@@ -1,0 +1,16 @@
+# By default nodoby can tag anything
+
+unavail
+
+# These users can tag everywhere including CVSROOT 
+# (do not remove cvsadmin from here).
+
+avail | cvsadmin
+
+# Development team can tag everywhere except under CVSROOT.
+# Make sure these two lists are the same. 
+# Do not put here users that should be able to tag 
+# to CVSROOT - put them in the list above, next to cvsadmin.
+
+avail.dev   | manuel reguero defert slopiens 
+unavail.dev | manuel reguero defert slopiens | CVSROOT
