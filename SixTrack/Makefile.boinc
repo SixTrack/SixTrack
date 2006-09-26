@@ -1,0 +1,20 @@
+SHELL = /bin/sh
+
+FC = "lf95"
+FCF = "--o1 --tp"
+FCL = "-static"
+
+all: SixTrack
+
+%.o: %.f
+	$(FC) -c $(FCF) $<
+
+SixTrack: track.o sixve.o sixvefox.o dabnews.o lielib.o myboinc.o crlibm/crlibm.a
+	$(FC) $(FCL) -o SixTrack track.o sixve.o sixvefox.o dabnews.o lielib.o myboinc.o \
+	crlibm/crlibm.a
+
+# make clean will execute this: 
+
+clean: 
+	rm -f crlibm/*.o crlibm/crlibm.a
+	rm -f *.o

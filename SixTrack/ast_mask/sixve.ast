@@ -1,0 +1,20 @@
+sixtrack.s
+sixven.f
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,nag
+e maincr,envarsv,distancv
+e ADIA,ADIB,DATEN,ENVARS,SYNOS,ERRF
+e COMNUL,RANECU
+e BETALF,BLOCK,BLOCKDIS
+e CHROMA,CLORB,CLORB2
+e COMBEL,ENVAR,ENVARDIS
+e ERROR,LINOPT,LOESD
+e MATRIX,ORBIT,ORD,PHASAD,QMOD,UMLAUF
+e DISTANCE,DECOUP
+e RESEX,RMOD,SEARCH,SUBRE,SUBSEA
+e POSTPR,JOIN,SUMPOS
+e myrinv
+e beam6d
+e aux
+e plotdumy
+e checkpt
+ex

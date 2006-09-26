@@ -1,0 +1,422 @@
+#!/bin/sh
+#
+# Version 1.2 29/08/2005
+# CERNLIB/GRAFLIB re-defined
+# Forces lf95 for crlibm
+# Adds g95 option
+# Version 1.3 05/09/2005
+# CERNLIB only for SixTrack (not SixTrack_da); CERNGRAF dropped.
+# The -naglib option now works for SixTrack_da
+#
+# Default: tilt tracking fast crlibm cernlib naglib -windows -da -collimat -cpss -boinc -cr
+# Options:
+# da => -tracking -cpss -boinc -collimat -cr
+# collimat => -da -cr -boinc -cpss
+# cpss => +cr -collimat -da -cernlib -naglib -boinc
+# boinc => +cr -collimat -da -cernlib -naglib -cpss
+# windows => messing about with crlibm
+# windows + boinc => subroutine sixtrack and new graphics interface???
+# nag => use f95 instead of LAHEY
+# g77 => use g77
+# g95 => use g95
+show_options()
+{
+ons="The following selections are ON  :"
+offs="The following selections are OFF :"
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+do
+  if test ${values[$i]} = "true"
+  then
+    ons="$ons ${options[$i]}"
+  else
+    offs="$offs ${options[$i]}"
+  fi
+done
+echo "$ons"
+echo "$offs"
+}
+
+windows_version=SixTrack71v4004boinc
+
+command_line=$*
+#NOTA BENE! Definitions of cernlib and naglib are reversed
+declare -a options
+declare -a values
+options=(junk tilt tracking fast crlibm windows cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95)
+values=(junk  true true     true true   false   true    true   false false    false false false false false false)
+tilt=""
+tracking=""
+fast=""
+crlibm=""
+cernlib="cernlib"
+windows="windows"
+naglib="naglib"
+da="da"
+collimat="collimat"
+cpss="cpss"
+boinc="boinc"
+cr="cr"
+nag="nag"
+g77="g77"
+g95="g95"
+while test $# != 0
+do
+  case $1 in
+    clean) make clean
+    ;;
+    -tilt) tilt="tilt"
+           values[1]=false
+    ;;
+    -tracking) tracking="tracking"
+           values[2]=false
+    ;;
+    -fast) fast="fast"
+           values[3]=false
+    ;;
+    -crlibm) crlibm="crlibm"
+           values[4]=false
+    ;;
+    -windows) windows="windows"
+           values[5]=false
+    ;;
+    -cernlib) cernlib=""
+           values[6]=false
+    ;;
+    -naglib) naglib=""
+           values[7]=false
+    ;;
+    -da) da="da"
+           values[8]=false
+    ;;
+    -collimat) collimat="collimat"
+           values[9]=false
+    ;;
+    -cpss) cpss="cpss"
+           values[10]=false
+    ;;
+    -boinc) boinc="boinc"
+           values[11]=false
+    ;;
+    -cr) cr="cr"
+           values[12]=false
+    ;;
+    -nag) nag="nag"
+           values[13]=false
+    ;;
+    -g77) g77="g77"
+           values[14]=false
+    ;;
+    -g95) g95="g95"
+           values[15]=false
+    ;;
+    +tilt) tilt=""
+           values[1]=true 
+    ;;
+    +tracking) tracking=""
+           values[2]=true
+    ;;
+    +fast) fast=""
+           values[3]=true
+    ;;
+    +crlibm) crlibm=""
+           values[4]=true
+    ;;
+    +windows) windows=""
+           values[5]=true
+    ;;
+    +cernlib) cernlib="cernlib"
+           values[6]=true
+    ;;
+    +naglib) naglib="naglib"
+           values[7]=true
+    ;;
+    +da) da=""
+           values[8]=true
+    ;;
+    +collimat) collimat=""
+           values[9]=true
+    ;;
+    +cpss) cpss=""
+           values[10]=true
+    ;;
+    +boinc) boinc=""
+           values[11]=true
+    ;;
+    +cr) cr=""
+           values[12]=true
+    ;;
+    +nag) nag=""
+           values[13]=true
+    ;;
+    +g77) g77=""
+           values[14]=true
+    ;;
+    +g95) g95=""
+           values[15]=true
+    ;;
+    tilt) tilt=""
+           values[1]=true
+    ;;
+    tracking) tracking=""
+           values[2]=true
+    ;;
+    fast) fast=""
+           values[3]=true
+    ;;
+    crlibm) crlibm=""
+           values[4]=true
+    ;;
+    windows) windows=""
+           values[5]=true
+    ;;
+    cernlib) cernlib="cernlib"
+           values[6]=true
+    ;;
+    naglib) naglib="naglib"
+           values[7]=true
+    ;;
+    da) da=""
+           values[8]=true
+    ;;
+    collimat) collimat=""
+           values[9]=true
+    ;;
+    cpss) cpss=""
+           values[10]=true
+    ;;
+    boinc) boinc=""
+           values[11]=true
+    ;;
+    cr) cr=""
+           values[12]=true
+    ;;
+    nag) nag=""
+           values[13]=true
+    ;;
+    g77) g77=""
+           values[14]=true
+    ;;
+    g95) g95=""
+           values[15]=true
+    ;;
+    *) echo "Illegal option $1"
+       exit 1
+     ;;
+  esac
+  shift
+done
+# Here Eric should check for valid/invalid combinations
+if test "$crlibm" = ""
+then
+  if test "$nag" = "" -o "$g77" = "" -o "$g95" = ""
+  then
+    show_options
+    echo "     INVALID option selected:"
+    echo "     crlibm => compilation must be done with Lahey lf95 !"
+    exit
+  fi
+fi
+if test "$boinc" = ""
+then
+  cpss=""
+  values[10]=true
+fi
+if test "$cpss" = ""
+then
+  windows=""
+  values[5]=true
+fi
+if test "$windows" = ""
+then
+  cernlib=""
+  values[6]=false
+  naglib=""
+  values[7]=false
+  cr=""
+  values[12]=true
+  if test "$da" = "" -o "$collimat" = "" -o "$cernlib" != "" -o "$naglib" != "" -o "$crlibm" != "" -o "$cr" != "" -o "$nag" = "" -o "$g77" = "" -o "$g95" = ""
+  then
+    show_options
+    echo "     INVALID options selected:"
+    echo "     boinc/cpss/windows options => -collimat -da -cernlib -naglib -nag -g77 -g95 and +crlibm +cr !"
+    da="da"
+    values[8]=false
+    collimat="collimat"
+    values[9]=false
+    cernlib=""
+    values[6]=false
+    naglib=""
+    values[7]=false
+    nag="nag"
+    values[13]=false
+    g77="g77"
+    values[14]=false
+    g95="g95"
+    values[15]=false
+    crlibm=""
+    values[4]=true
+    cr=""
+    values[12]=true    
+  fi
+fi
+if test "$collimat" = ""
+then
+  if test "$da" = "" -o "$cr" = "" -o "$windows" = ""
+  then
+    show_options
+    echo "     INVALID options selected:"
+    echo "     collimation option => -da -cr -boinc -cpss -windows !"
+    da="da"
+    values[8]=false
+    cr="cr"
+    values[12]=false
+    boinc="boinc"
+    values[11]=false
+    cpss="cpss"
+    values[10]=false
+    windows="windows"
+    values[5]=false
+  fi
+fi
+if test "$da" = ""
+then
+  if test "$tracking" = "" -o "$collimat" = "" -o "$boinc" = "" -o "$cpss" = "" -o "$windows" = "" -o "$cr" = ""
+  then
+    show_options
+    echo "     INVALID options selected:"
+    echo "     da option => -tracking -collimation -boinc/cpss/windows/cr !"
+    tracking="tracking"
+    values[2]=false
+    cr="cr"
+    values[12]=false
+    boinc="boinc"
+    values[11]=false
+    cpss="cpss"
+    values[10]=false
+    windows="windows"
+    values[5]=false
+  fi
+fi
+show_options
+# Set up compiler
+if test "$nag" = ""
+then
+  export FC="f95"
+  export FCF="-dusty -maxcontin=60 -dcfuns -ieee=full"
+  export FCL="-Bstatic"
+  export NAGLIBC="-lg2c"
+elif test "$g77" = ""
+then
+  export FC="g77"
+  export FCF="-O -g -fno-second-underscore -funroll-loops"
+  export FCL="-static"
+elif test "$g95" = ""
+then
+  export FC="g95"
+  export FCF="-O -g -fno-second-underscore -funroll-loops"
+  export FCL="-static"
+else
+  export FC="lf95"
+  export FCF="--o1 --tp"
+  export FCL="-static"
+fi
+# Update the .ast flags based on options
+rm -f *.ast
+cp ast_mask/*.ast .
+for opt in "$crlibm" "$tilt" "$fast" "$collimat" "$cr" "$boinc" "$nag"
+do
+  if test "$opt" != ""
+  then
+    for i in `ls *.ast`
+    do
+      sed -e 's/\(^df .*\), *'$opt' *,\(.*\)/\1,\2/' \
+          -e 's/\(^df .*\), *'$opt' *$/\1/' \
+          -e 's/\(^df  *'$opt' *,\)\(.*\)/df \2/'  \
+          -e 's/\(^df  *'$opt' *$\)/df/'         \
+      $i > tmp$$
+      mv tmp$$ $i
+    done
+  fi
+done
+# Delete unneeded decks from the .ast based on options
+for opt in "$collimat" "$cr" "$cernlib" "$naglib"
+do
+  if test "$opt" != ""
+  then
+    case $opt in
+    collimat) pattern="nwrtcoll"
+    ;;
+    cr)       pattern="checkpt"
+    ;;
+    cernlib)  pattern="plotdumy"
+    ;;
+    naglib)   pattern="nagdumy"
+    ;;
+    esac
+    for i in `ls *.ast`
+    do
+      sed -e '/^e  *'$pattern'/d' $i > tmp$$
+      mv tmp$$ $i
+    done
+  fi
+done
+make astuce
+make dafor
+# Next first astuce then dafor if required (sixvefox and sixscfox)
+for i in track sixve sixvefox sixda sixsc sixscfox lielib dabnew dabnews
+do
+  astuce < $i.ast
+  if test "$i" = "sixvefox" -o "$i" = "sixscfox" -o "$i" = "sixda"
+  then
+    ln -s -f $i"n.f" fort.1
+    dafor
+    rm -f fort.1 fort.3
+    mv fort.2 $i"n.f"
+  fi 
+  if test -s $i.f
+  then
+    diff $i"n.f" $i.f > /dev/null
+    if test $? -ne 0
+    then
+      mv $i"n.f" $i.f
+    else
+      rm $i"n.f"
+    fi
+  else
+    mv $i"n.f" $i.f
+  fi
+done
+# Then generate the .f files
+if test "$cernlib" != ""
+then
+  export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.3 -lg2c -lpthread"
+fi
+if test "$naglib" != ""
+then
+  export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.3 -lg2c -lpthread"
+fi
+if test "$crlibm" = ""
+then
+  cd crlibm
+  make
+  cd ..
+  export CRLIBM="crlibm/crlibm.a"
+fi
+if test "$da" = ""
+then
+  make SixTrack_da
+else
+  if test "$boinc" = ""
+  then
+    export BOINC="myboinc.o"
+  fi
+  make SixTrack
+fi
+if test "$windows" = ""
+then
+  echo "$0 : Creating directory $windows_version for boinc/cpss/windows"
+  windows/mkwindows $windows_version
+fi
+echo "       "
+echo "$0 : $command_line"
+show_options
