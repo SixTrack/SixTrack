@@ -1,3 +1,10 @@
+  SixTrack Version: 4.0.09
+   Latest version of the expanded version for collimation studies (collimat flag)
+     -- change of the collimator labels step to take into account the new Beam 2 lattice from MADX
+     -- "STOP" flags have been checked and removed if necessary
+     -- fort.XX units checked: no unit number above 99 shall be used
+   GRD-SR 26/09/2006
+
   SixTrack Version: 4.0.08 
    Latest version of the expanded version for collimation studies (collimat flag)
      -- creation of 3 additive "makedis" subroutines, incl. one that allows to read any beam 

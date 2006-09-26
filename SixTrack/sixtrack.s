@@ -17866,10 +17866,10 @@
       write(*,*) '            R. Assmann           -    AB/ABP'
 +ei
 +if cr
-      write(lout,*) '            S. Redaelli  -    AB/ABP'
+      write(lout,*) '            S. Redaelli          -    AB/OP'
 +ei
 +if .not.cr
-      write(*,*) '            S. Redaelli  -    AB/ABP'
+      write(*,*) '            S. Redaelli          -    AB/OP'
 +ei
 +if cr
       write(lout,*) '            G. Robert-Demolaize  -    AB/ABP'
@@ -18054,11 +18054,18 @@
       write(*,*) 'Info: Emity0   [um]   ', remity
 +ei
 +if cr
-      write(lout,*) 'Info: E0       [MeV]  ', e0
+      write(lout,*) 'Info: E0       [MeV]  ', myenom
 +ei
 +if .not.cr
-      write(*,*) 'Info: E0       [MeV]  ', e0
+      write(*,*) 'Info: E0       [MeV]  ', myenom
 +ei
+!07-2006
+!+if cr
+!      write(lout,*) 'Info: E0       [MeV]  ', e0
+!+ei
+!+if .not.cr
+!      write(*,*) 'Info: E0       [MeV]  ', e0
+!+ei
 +if cr
       write(lout,*)
 +ei
@@ -18078,7 +18085,7 @@
       myalphay = talphay(1)
       mybetax  = tbetax(1)
       mybetay  = tbetay(1)
-      myenom   = e0
+!07-2006      myenom   = e0
 !      MYENOM   = 1.001*E0
 !
       if (myemitx0.le.0. .or. myemity0.le.0.) then
@@ -18643,6 +18650,11 @@
         write(*,*)
 +ei
 !      ENDIF
+!GRD-SR, 09-02-2006
+!Call distribution routines only if collimation block is in fort.3, otherwise
+!the standard sixtrack would be prevented by the 'stop' command
+      if(do_coll) then
+!GRD-SR
       if (radial) then
          call   makedis_radial(mynp, myalphax, myalphay, mybetax,
      &        mybetay, myemitx0, myemity0, myenom, nr, ndr,
@@ -18669,13 +18681,16 @@
       stop
 +ei
 +if .not.cr
-         write(*,*) 'INFO> review your distribution parameters !!'
-         stop
+      write(*,*) 'INFO> review your distribution parameters !!'
+      stop
 +ei
          endif
 !
        endif
 !
+!GRD-SR,09-02-2006
+      endif
+!GRD-SR
 !++  Reset distribution for pencil beam
 !
        if (ipencil.gt.0) then
@@ -18786,8 +18801,8 @@
       open(unit=43, file='collgaps.dat')
 !APRIL2005
       if(firstrun) write(43,*)                                          &
-     &'#name  angle[rad]  betax[m]  betay[m] ',                         &
-     &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m]',              &
+     &'# ID name  angle[rad]  betax[m]  betay[m] ',                     &
+     &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m] ',             &
 !JUNE2005
      &'tilt1[rad] tilt2[rad]'
 !JUNE2005
@@ -18801,23 +18816,23 @@
      &'# 1=turn 2=n_particle'
 !
 !
-      if (dowrite_impact) then
-        open(unit=46, file='coll_impact.dat')
-        write(46,*)                                                     &
-     &'# 1=sample 2=iturn 3=icoll 4=nimp 5=nabs 6=imp_av 7=imp_sig'
-      endif
+!      if (dowrite_impact) then
+!        open(unit=46, file='coll_impact.dat')
+!        write(46,*)                                                     &
+!     &'# 1=sample 2=iturn 3=icoll 4=nimp 5=nabs 6=imp_av 7=imp_sig'
+!      endif
 !
       open(unit=40, file='collimator-temp.db')
 !
-      open(unit=47, file='tertiary.dat')
-      write(47,*)                                                       &
-     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
+!      open(unit=47, file='tertiary.dat')
+!      write(47,*)                                                       &
+!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
 !
-      if (dowrite_secondary) then
-        open(unit=48, file='secondary.dat')
-        write(48,'(2a)')                                                &
-     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
-      endif
+!      if (dowrite_secondary) then
+!        open(unit=48, file='secondary.dat')
+!        write(48,'(2a)')                                                &
+!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
+!      endif
 !
       if (dowrite_impact) then
         open(unit=49,file='impact.dat')
@@ -18827,9 +18842,9 @@
 !
 !APRIL2005
       if (dowritetracks) then
-        open(unit=39,file='tracks3.dat')
-        if(firstrun) write(39,*)                                        &
-     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
+!        open(unit=39,file='tracks3.dat')
+!        if(firstrun) write(39,*)                                        &
+!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
 !      if (dowritetracks) then
 !        open(unit=39,file='steftracks3.dat')
 !        write(39,*)                                                     &
@@ -18888,37 +18903,34 @@
 !      endif
 !End of Upgrade
 !APRIL2005
-      if(dowritetracks) then
-      open(unit=581, file='all_impacts.dat')
-      if(firstrun) write(581,'(a)')                                     &
-     &'# 1=name 2=turn 3=s'
-      open(unit=582, file='all_absorptions.dat')
-      if(firstrun) write(582,'(a)')                                     &
-     &'# 1=name 2=turn 3=s'
-      endif
-!
-      if(dowrite_impact) then
-      open(unit=583, file='FLUKA_impacts.dat')
-      if(firstrun) write(583,'(a)')                                     &
-!     &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs'
-     &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-      endif
-!APRIL2005
-!JUNE2005
-!
-!     SR, 18-08-2005: new format for 'FirstImpacts' file
-      if(dowrite_impact) then
-      open(unit=333, file='FirstImpacts.dat')
-      if(firstrun) write(333,*)
-     &     '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',
-     &     '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',
-     &     '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
-      endif
-!!     Old format
-!      if(firstrun) write(333,'(a)')                                     &
-!     &'1=name,2=iturn,3=icoll,4=nabs,5=s_impact,6=s_exit,7=b,8=b_exit'
+!      if(dowritetracks) then
+!      open(unit=581, file='all_impacts.dat')
+!      if(firstrun) write(581,'(a)')                                     &
+!     &'# 1=name 2=turn 3=s'
+!      open(unit=582, file='all_absorptions.dat')
+!      if(firstrun) write(582,'(a)')                                     &
+!     &'# 1=name 2=turn 3=s'
 !      endif
-!JUNE2005
+!
+!GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag'
+      if(dowrite_impact) then
+        open(unit=46, file='all_impacts.dat')
+        open(unit=47, file='all_absorptions.dat')
+        open(unit=48, file='FLUKA_impacts.dat')
+        open(unit=39, file='FirstImpacts.dat')
+        if (firstrun) then 
+          write(46,'(a)') '# 1=name 2=turn 3=s'
+          write(47,'(a)') '# 1=name 2=turn 3=s'
+          write(48,'(a)')                                               &
+     &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
+          write(39,*)                                                   &
+     &     '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
+     &     '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
+     &     '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
+        endif
+      endif
+!GRD-SR,09-02-2006
+!
 !JUNE2005
       if(name_sel(1:3).eq.'COL') then
       open(unit=555, file='RHIClosses.dat')
@@ -18927,22 +18939,6 @@
       endif
 !JUNE2005
 !
-!SLAC 2005
-!SLAC 2005 HERE IS THE OUTPUT FOR YUNHAI'S STUDIES...
-!SLAC 2005
-      if(dowrite_dist) then
-        open(unit=650,file='dist_sec-T01.dat')
-        open(unit=651,file='dist_sec-T02.dat')
-        open(unit=652,file='dist_sec-T03.dat')
-        open(unit=653,file='dist_sec-T04.dat')
-        open(unit=654,file='dist_sec-T05.dat')
-        open(unit=655,file='dist_sec-T06.dat')
-        open(unit=656,file='dist_sec-T07.dat')
-        open(unit=657,file='dist_sec-T08.dat')
-        open(unit=658,file='dist_sec-T09.dat')
-        open(unit=659,file='dist_sec-T10.dat')
-      endif
-!SLAC 2005
 !FOR FAST TRACKING CHECKS AND MULTIPLE SAMPLES
 !       open(unit=999,file='checkturns.dat')
 !
@@ -19024,9 +19020,10 @@
       close(42)
 !      close(43)
       close(44)
-      if(dowrite_impact) close(46)
-      close(47)
-      if(dowrite_secondary) close(48)
+!      if(dowrite_impact) close(46)
+!GRD-SR,09-02-2006 => freeing unit, file no longer needed
+!      close(47)
+!      if(dowrite_secondary) close(48)
       if(dowrite_impact) close(49)
 !GRD
 !APRIL2005
@@ -19208,48 +19205,38 @@
       end do
       close(50)
 !GRD
+!********************************************************************
+! THIS IS THE END OF THE 'DO' LOOP OVER THE thin6d SUBROUTINE  !!!!!
+!********************************************************************
       end do
+!
 !GRD
       close(outlun)
       close(43)
 !      CLOSE(46)
 !APRIL2005
       if(dowritetracks) then
-       close(39)
+!       close(39)
        if(.not. cern) close(38)
 !
 !       close(58)
-       close(581)
-       close(582)
-       close(583)
-!JUNE2005
-       close(333)
-!JUNE2005
 !
 !Mars2005
 !JUNE2005
-       close(555)
+      if(name_sel(1:3).eq.'COL') close(555)
 !JUNE2005
-!SLAC 2005
-!SLAC 2005 HERE IS THE OUTPUT FOR YUNHAI'S STUDIES...
-!SLAC 2005
-      if(dowrite_dist) then
-        close(650)
-        close(651)
-        close(652)
-        close(653)
-        close(654)
-        close(655)
-        close(656)
-        close(657)
-        close(658)
-        close(659)
-      endif
-!SLAC 2005
 !     SR, 10-08-2005: Use this close!
 !       close(999)
 !
       endif
+!
+      if(dowrite_impact) then
+        close(46)
+        close(47)
+        close(48)
+        close(39)
+      endif
+!
 !APRIL2005
 !      CLOSE(38)
 !
@@ -19270,7 +19257,7 @@
      &'13=orbity 14=tdispx 15=tdispy',                                  &
      &'16=xbob 17=ybob 18=xpbob 19=ypbob'
       do i=1,iu
-        write(56,'(i4, (1x,a16), 17(1x,e15.7))')                        &
+        write(56,'(i4, (1x,a16), 17(1x,e20.13))')                        &
      &i, ename(i), sampl(i),                                            &
      &sum_ax(i)/max(nampl(i),1),                                        &
      &sqrt(abs((sqsum_ax(i)/max(nampl(i),1))-                           &
@@ -20030,71 +20017,6 @@
 !       read(*,*)
 !Mars 2005
 !
-!SLAC 2005
-!SLAC 2005 HERE IS THE OUTPUT FOR YUNHAI'S STUDIES...
-!SLAC 2005
-        if(dowrite_dist .and. (ie.eq.1)) then
-!
-          do j = 1, napx
-!
-            if(secondary(j).ne.0) then
-!
-              if(iturn.eq.2) then
-                write(650,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.3) then
-                write(651,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.4) then
-                write(652,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.5) then
-                write(653,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.6) then
-                write(654,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.7) then
-                write(655,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.8) then
-                write(656,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.9) then
-                write(657,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.10) then
-                write(658,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-              if(iturn.eq.11) then
-                write(659,'(5(1X,E15.7))')                                &
-     &xv(1,j),yv(1,j),xv(2,j),yv(2,j),ejv(j)
-              endif
-!
-            endif
-!
-          enddo
-!
-        endif
-!SLAC 2005
 !
 !++  For absorbed particles set all coordinates to zero. Also
 !++  include very large offsets, let's say above 100mm or
@@ -20202,179 +20124,147 @@
 !________________________________________________________________________
 !++  If we have a collimator then...
 !
-!APRIL2005
-          if (do_coll .and.
-     &(bez(myix)(1:3).eq.'TCS'                                          &
-     &.or. bez(myix)(1:3).eq.'tcs'                                      &
-     &.or. bez(myix)(1:3).eq.'TCP'                                      &
-     &.or. bez(myix)(1:3).eq.'tcp'                                      &
-!UPGRADE January 2005                                                   &
-     &.or. bez(myix)(1:3).eq.'TCL'                                      &
-     &.or. bez(myix)(1:3).eq.'tcl'                                      &
-     &.or. bez(myix)(1:3).eq.'TCT'                                      &
-     &.or. bez(myix)(1:3).eq.'tct'                                      &
-     &.or. bez(myix)(1:3).eq.'TCD'                                      &
-     &.or. bez(myix)(1:3).eq.'tcd'                                      &
-     &.or. bez(myix)(1:3).eq.'TDI'                                      &
-     &.or. bez(myix)(1:3).eq.'tdi'                                      &
-!GRD
-!GRD CHANGES FOR RHIC
-!GRD                                                                    &
-     &.or. bez(myix)(1:3).eq.'COL'                                      &
-     &.or. bez(myix)(1:3).eq.'col')) then 
-!GRD            IF (iturn.eq.1)
-!GRD     1          write(*,*) 'INFO>  Found a collimator: ', bez(myix),
-!GRD     1                           stracki,totals
+!Feb2006
+!GRD (June 2005) 'COL' option is for RHIC collimators
 !
-!            IF (bez(myix)(1:3).EQ.'TCP'.OR.bez(myix)(1:3).EQ.'tcp') THEN
+!     SR (17-01-2006): Special assignment to the TCS.TCDQ for B1 and B4, 
+!     using the new naming as in V6.500.
+!     Note that this must be in the loop "if TCSG"!!
+!
+!     SR, 17-01-2006: Review the TCT assignments because the MADX names
+!     have changes (TCTH.L -> TCTH.4L)
+          if (do_coll .and.
+     &         (bez(myix)(1:2).eq.'TC'                                  &
+     &         .or. bez(myix)(1:2).eq.'tc'                              &
+     &         .or. bez(myix)(1:2).eq.'TD'                              &
+     &         .or. bez(myix)(1:2).eq.'td'                              &
+     &         .or. bez(myix)(1:3).eq.'COL'                             &
+     &         .or. bez(myix)(1:3).eq.'col')) then 
             if(bez(myix)(1:3).eq.'TCP' .or.                             &
-!JUNE2005
-!     &        bez(myix)(1:3).eq.'tcp' .or.                              &
-!     &        bez(myix)(1:4).eq.'COLM' .or.                             &
-!     &        bez(myix)(1:4).eq.'colm') then
-     &        bez(myix)(1:3).eq.'tcp') then
-!JUNE2005
-               if(bez(myix)(7:10).eq.'3.B1' .or.                        &
-     &            bez(myix)(7:10).eq.'3.b1') then
-                 nsig = nsig_tcp3
-               else
-                 nsig = nsig_tcp7
-               endif
+     &           bez(myix)(1:3).eq.'tcp') then
+              if(bez(myix)(7:9).eq.'3.B' .or.                           &
+     &             bez(myix)(7:9).eq.'3.b') then
+                nsig = nsig_tcp3
+              else
+                nsig = nsig_tcp7
+              endif
             elseif(bez(myix)(1:4).eq.'TCSG' .or.                        &
      &             bez(myix)(1:4).eq.'tcsg') then
-               if(bez(myix)(8:11).eq.'3.B1' .or.                        &
-     &            bez(myix)(8:11).eq.'3.b1' .or.                        &
-     &            bez(myix)(9:12).eq.'3.B1' .or.                        &
-     &            bez(myix)(9:12).eq.'3.b1') then
-                 nsig = nsig_tcsg3
-               else
-                 nsig = nsig_tcsg7
-               endif
+              if(bez(myix)(8:10).eq.'3.B' .or.                          &
+     &             bez(myix)(8:10).eq.'3.b' .or.                        &
+     &             bez(myix)(9:11).eq.'3.B' .or.                        &
+     &             bez(myix)(9:11).eq.'3.b') then
+                nsig = nsig_tcsg3
+              else
+                nsig = nsig_tcsg7
+              endif
+              if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')    &
+     &             ) then 
+                nsig = nsig_tcstcdq
+              endif
             elseif(bez(myix)(1:4).eq.'TCSM' .or.                        &
      &             bez(myix)(1:4).eq.'tcsm') then
-               if(bez(myix)(8:11).eq.'3.B1' .or.                        &
-     &            bez(myix)(8:11).eq.'3.b1' .or.                        &
-     &            bez(myix)(9:12).eq.'3.B1' .or.                        &
-     &            bez(myix)(9:12).eq.'3.b1') then
-                 nsig = nsig_tcsm3
-               else
-                 nsig = nsig_tcsm7
-               endif
+              if(bez(myix)(8:10).eq.'3.B' .or.                          &
+     &             bez(myix)(8:10).eq.'3.b' .or.                        &
+     &             bez(myix)(9:11).eq.'3.B' .or.                        &
+     &             bez(myix)(9:11).eq.'3.b') then
+                nsig = nsig_tcsm3
+              else
+                nsig = nsig_tcsm7
+              endif
             elseif(bez(myix)(1:4).eq.'TCLA' .or.                        &
      &             bez(myix)(1:4).eq.'tcla') then
-               if(bez(myix)(9:12).eq.'7.B1' .or.                        &
-     &            bez(myix)(9:12).eq.'7.b1') then
-                 nsig = nsig_tcla7
-               else
-                 nsig = nsig_tcla3
-               endif
+              if(bez(myix)(9:11).eq.'7.B' .or.                          &
+     &             bez(myix)(9:11).eq.'7.b') then
+                nsig = nsig_tcla7
+              else
+                nsig = nsig_tcla3
+              endif
             elseif(bez(myix)(1:4).eq.'TCDQ' .or.                        &
      &             bez(myix)(1:4).eq.'tcdq') then
-                 nsig = nsig_tcdq
-            elseif(bez(myix)(1:8).eq.'TCS.TCDQ' .or.                    &
-     &             bez(myix)(1:8).eq.'tcs.tcdq') then
-                 nsig = nsig_tcstcdq
-!SPECIAL TERTIARY TREATMENT
+              nsig = nsig_tcdq
             elseif(bez(myix)(1:4).eq.'TCTH' .or.                        &
      &             bez(myix)(1:4).eq.'tcth' ) then                      &
-!               nsig = nsig_tcth
-               if(bez(myix)(7:10).eq.'1.B1' .or.                        &
-     &            bez(myix)(7:10).eq.'1.b1') then
-                 nsig = nsig_tcth1
-               elseif(bez(myix)(7:10).eq.'2.B1' .or.                    &
-     &            bez(myix)(7:10).eq.'2.b1') then
-                 nsig = nsig_tcth2
-               elseif(bez(myix)(7:10).eq.'5.B1' .or.                    &
-     &            bez(myix)(7:10).eq.'5.b1') then
-                 nsig = nsig_tcth5
-               elseif(bez(myix)(7:10).eq.'8.B1' .or.                    &
-     &            bez(myix)(7:10).eq.'8.b1') then
-                 nsig = nsig_tcth8
-               endif
-!
+              if(bez(myix)(8:10).eq.'1.B' .or.                          &
+     &             bez(myix)(8:10).eq.'1.b') then
+                nsig = nsig_tcth1
+              elseif(bez(myix)(8:10).eq.'2.B' .or.                      &
+     &               bez(myix)(8:10).eq.'2.b') then
+                nsig = nsig_tcth2
+              elseif(bez(myix)(8:10).eq.'5.B' .or.                      &
+     &               bez(myix)(8:10).eq.'5.b') then
+                nsig = nsig_tcth5
+              elseif(bez(myix)(8:10).eq.'8.B' .or.                      &
+     &               bez(myix)(8:10).eq.'8.b') then 
+                nsig = nsig_tcth8
+              endif
             elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
      &             bez(myix)(1:4).eq.'tctv' ) then
-!               nsig = nsig_tctv
-               if(bez(myix)(7:10).eq.'1.B1' .or.                        &
-     &            bez(myix)(7:10).eq.'1.b1') then
-                 nsig = nsig_tctv1
-               elseif(bez(myix)(7:10).eq.'2.B1' .or.                    &
-     &                bez(myix)(7:10).eq.'2.b1' .or.                    &
-     &                bez(myix)(8:11).eq.'2.B1' .or.                    &
-     &                bez(myix)(8:11).eq.'2.b1') then
-                 nsig = nsig_tctv2
-               elseif(bez(myix)(7:10).eq.'5.B1' .or.                    &
-     &            bez(myix)(7:10).eq.'5.b1') then
-                 nsig = nsig_tctv5
-               elseif(bez(myix)(7:10).eq.'8.B1' .or.                    &
-     &                bez(myix)(7:10).eq.'8.b1' .or.                    &
-     &                bez(myix)(8:11).eq.'8.B1' .or.                    &
-     &                bez(myix)(8:11).eq.'8.b1') then
-                 nsig = nsig_tctv8
-               endif
-!
-            elseif(bez(myix)(1:7).eq.'TDI.4L2' .or.                     &
-     &             bez(myix)(1:7).eq.'tdi.4l2') then
-               nsig = nsig_tdi
+              if(bez(myix)(8:10).eq.'1.B' .or.                          &
+     &             bez(myix)(8:10).eq.'1.b') then
+                nsig = nsig_tctv1
+              elseif(bez(myix)(8:10).eq.'2.B' .or.                      &
+     &               bez(myix)(8:10).eq.'2.b' ) then
+                nsig = nsig_tctv2
+              elseif(bez(myix)(8:10).eq.'5.B' .or.                      &
+     &               bez(myix)(8:10).eq.'5.b') then
+                nsig = nsig_tctv5
+              elseif(bez(myix)(8:10).eq.'8.B' .or.                      &
+     &               bez(myix)(8:10).eq.'8.b') then
+                nsig = nsig_tctv8
+              endif
+            elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
+     &             bez(myix)(1:3).eq.'tdi') then
+              nsig = nsig_tdi
             elseif(bez(myix)(1:4).eq.'TCLP' .or.                        &
      &             bez(myix)(1:4).eq.'tclp' .or.                        &
      &             bez(myix)(1:4).eq.'TCL.' .or.                        &
      &             bez(myix)(1:4).eq.'tcl.') then
-               nsig = nsig_tclp
- !JUNE2005 CHANGES FOR CORRECT RHIC VERSION OF OPENINGS
-             elseif(bez(myix)(1:3).eq.'COL' .or.                        &
-     &        bez(myix)(1:3).eq.'col') then
-!     
-         if(bez(myix)(1:4).eq.'COLM' .or.                               &
-!     &      bez(myix)(1:4).eq.'colm') then
-     &      bez(myix)(1:4).eq.'colm' .or.                               &
-     &      bez(myix)(1:5).eq.'COLH0' .or.                              &
-     &      bez(myix)(1:5).eq.'colh0') then
-            nsig = nsig_tcth1
-!
-         elseif(bez(myix)(1:5).eq.'COLV0' .or.                          &
-     &          bez(myix)(1:5).eq.'colv0') then
-            nsig = nsig_tcth2
-!     
-         elseif(bez(myix)(1:5).eq.'COLH1' .or.                          &
-     &           bez(myix)(1:5).eq.'colh1') then
-!JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
-!JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
-!JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
-            nsig = nsig_tcth5
-!     
-         elseif(bez(myix)(1:5).eq.'COLV1' .or.                          &
-     &           bez(myix)(1:5).eq.'colv1') then
-            nsig = nsig_tcth8
-!     
-         elseif(bez(myix)(1:5).eq.'COLH2' .or.                          &
-     &           bez(myix)(1:5).eq.'colh2') then
-            nsig = nsig_tctv1
-!     
-         endif
+              nsig = nsig_tclp
+            elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
+     &             bez(myix)(1:4).eq.'tcli') then
+              nsig = nsig_tcli
+            elseif(bez(myix)(1:3).eq.'COL' .or.                         &
+     &             bez(myix)(1:3).eq.'col') then
+              if(bez(myix)(1:4).eq.'COLM' .or.                          &
+     &             bez(myix)(1:4).eq.'colm' .or.                        &
+     &             bez(myix)(1:5).eq.'COLH0' .or.                       &
+     &             bez(myix)(1:5).eq.'colh0') then
+                nsig = nsig_tcth1
+              elseif(bez(myix)(1:5).eq.'COLV0' .or.                     &
+     &               bez(myix)(1:5).eq.'colv0') then
+                nsig = nsig_tcth2
+              elseif(bez(myix)(1:5).eq.'COLH1' .or.                     &
+     &               bez(myix)(1:5).eq.'colh1') then
+!     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
+!     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
+!     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
+                nsig = nsig_tcth5
+              elseif(bez(myix)(1:5).eq.'COLV1' .or.                     &
+     &               bez(myix)(1:5).eq.'colv1') then
+                nsig = nsig_tcth8
+              elseif(bez(myix)(1:5).eq.'COLH2' .or.                     &
+     &               bez(myix)(1:5).eq.'colh2') then
+                nsig = nsig_tctv1
+              endif
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
-             else
-                nsig = nsig_tcli
-             endif
+            endif
 !APRIL2005
 !
 !++  Write trajectory for any selected particle
 !
         c_length = 0d0
 !
-!GRD THIS WE DO ONLY NOW BECAUSE WE HAVE NO IR3 COLLIMATORS
-!APRIL2005
-        if (firstrun.and.(                                              &
-     &(bez(myix)(1:4).eq.'TCDS').or.                                    &
-     &(bez(myix)(1:4).eq.'tcds').or.                                    &
-     &(bez(myix)(1:4).eq.'TCDD').or.                                    &
-     &(bez(myix)(1:4).eq.'tcdd')                                        &
-     &)) then
-!     &(bez(myix)(7:10).eq.'3.b1').or.                                   &
-!     &(bez(myix)(8:11).eq.'3.b1').or.                                   &
-!     &(bez(myix)(9:12).eq.'3.b1')                                       &
+!Feb2006
+!     SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
+        if ( firstrun ) then
+!        if (firstrun.and.(                                              &
+!     &(bez(myix)(1:4).eq.'TCDS').or.                                    &
+!     &(bez(myix)(1:4).eq.'tcds').or.                                    &
+!     &(bez(myix)(1:4).eq.'TCDD').or.                                    &
+!     &(bez(myix)(1:4).eq.'tcdd')                                        &
 !     &)) then
-!APRIL2005
+!
        if (rselect.gt.0 .and. rselect.lt.65) then
             do j = 1, napx
 !
@@ -20416,12 +20306,14 @@
                 sum_ay(ie)   = sum_ay(ie) + nspy
                 sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
                 nampl(ie)    = nampl(ie) + 1
-                sampl(ie)    = totals
-                ename(ie)    = bez(myix)(1:16)
+!                sampl(ie)    = totals
+!                ename(ie)    = bez(myix)(1:16)
               else
                 nspx = 0d0
                 nspy = 0d0
               endif
+                sampl(ie)    = totals
+                ename(ie)    = bez(myix)(1:16)
             end do
           endif
 !         ENDIF
@@ -20737,8 +20629,8 @@
      &,calc_aperture
             write(outlun,*) ' '
 !
-            write(43,'(a,4(1x,e13.5),1x,a,5(1x,e13.5))')                &
-     &db_name1(icoll)(1:11),                                            &
+            write(43,'(i,1x,a,4(1x,e13.5),1x,a,5(1x,e13.5))')           &
+     &icoll,db_name1(icoll)(1:12),                                      &
      &db_rotation(icoll),                                               &
      &tbetax(ie), tbetay(ie), calc_aperture,                            &
      &db_material(icoll),                                               &
@@ -20867,6 +20759,11 @@
 !JUNE2005
 ! 
             else 
+!GRD-SR, 09-02-2006
+!Force the treatment of the TCDQ equipment as a onsided collimator.
+!Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
+              if(db_name1(icoll)(1:4).eq.'TCDQ') onesided = .true.
+!GRD-SR
 !
 !==> SLICE here is possible
 !
@@ -21175,8 +21072,8 @@
 !
 !++  Write trajectory for any selected particle
 !
-        if (firstrun) then
-       if (rselect.gt.0 .and. rselect.lt.65) then
+            if (firstrun) then
+              if (rselect.gt.0 .and. rselect.lt.65) then
 !            DO j = 1, NAPX
 !
               xj     = (xv(1,j)-torbx(ie))/1d3
@@ -21185,10 +21082,12 @@
               ypj    = (yv(2,j)-torbyp(ie))/1d3
               pj     = ejv(j)/1d3
 !GRD
-              if (iturn.eq.1.and.j.eq.1) then
-              sum_ax(ie)=0d0
-              sum_ay(ie)=0d0
-              endif
+!07-2006 TEST
+!              if (iturn.eq.1.and.j.eq.1) then
+!              sum_ax(ie)=0d0
+!              sum_ay(ie)=0d0
+!              endif
+!07-2006 TEST
 !GRD
 !
               gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
@@ -21216,13 +21115,13 @@
 !                ename(ie)    = bez(myix)(1:16)
               else
                 nspx = 0d0
-             nspy = 0d0
+                nspy = 0d0
               endif
 !            END DO
                 sampl(ie)    = totals
                 ename(ie)    = bez(myix)(1:16)
-          endif
-         endif
+              endif
+            endif
 !
 !++  First check for particle interaction at this collimator and this turn
 !
@@ -21231,11 +21130,16 @@
 !++  Fill the change in particle angle into histogram
 !
 !APRIL2005
-              write(581,'(i8,1x,i4,1x,f8.2)')                           &
+              if(dowrite_impact) then
+                write(46,'(i8,1x,i4,1x,f8.2)')                          &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)
+              endif
+!
               if(part_abs(j).ne.0) then
-          write(582,'(i8,1x,i4,1x,f8.2)')                               &
+                if(dowrite_impact) then
+                  write(47,'(i8,1x,i4,1x,f8.2)')                        &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)
+                endif
           write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
@@ -21341,18 +21245,20 @@
 !APRIL2005
         endif
 !GRD
-        if ((tertiary(j).eq.2) .and.                                    &
-     &(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) ) then
-          xj     = (xv(1,j)-torbx(ie))/1d3
-          xpj    = (yv(1,j)-torbxp(ie))/1d3
-          yj     = (xv(2,j)-torby(ie))/1d3
-          ypj    = (yv(2,j)-torbyp(ie))/1d3
-          write(39,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.3))')                 &
-     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
-     &xv(1,j),yv(1,j),                                                  &
-     &xv(2,j),yv(2,j)
+!GRD-SR,09-02-2006 => freeing unit, file no longer needed
+!        if ((tertiary(j).eq.2) .and.                                    &
+!     &(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) ) then
+!          xj     = (xv(1,j)-torbx(ie))/1d3
+!          xpj    = (yv(1,j)-torbxp(ie))/1d3
+!          yj     = (xv(2,j)-torby(ie))/1d3
+!          ypj    = (yv(2,j)-torbyp(ie))/1d3
+!          write(39,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.3))')                 &
+!     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
+!     &xv(1,j),yv(1,j),                                                  &
+!     &xv(2,j),yv(2,j)
 !     2  XJ,XPJ,YJ,YPJ
-        endif
+!        endif
+!GRD-SR2006
 !      END DO
 !MAY2005
         endif
@@ -21424,9 +21330,9 @@
      &cn_impact(icoll) - caverage(icoll)**2)
             endif
           endif
-          if (dowrite_impact) write(46,'(5(1x,i4),2(1x,e15.7))')        &
-     &samplenumber, iturn, icoll, n_impact, n_absorbed,                 &
-     &average, sigma
+!          if (dowrite_impact) write(46,'(5(1x,i4),2(1x,e15.7))')        &
+!     &samplenumber, iturn, icoll, n_impact, n_absorbed,                 &
+!     &average, sigma
 !
 !-----------------------------------------------------------------
 !++  For a  S E L E C T E D  collimator only consider particles that
@@ -21549,87 +21455,91 @@
 !
 !++  Write tertiary halo
 !
-          if (icoll.eq.db_ncoll) then
+!GRD-SR,09-02-2006 => freeing unit, file no longer needed
+!          if (icoll.eq.db_ncoll) then
+!!
+!            gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+!            gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+!            arcdx    = 2.5d0
+!            arcbetax = 180d0
+!            sigsecut = 7d0
+!!
+!            do j = 1, napx
+!!
+!              xj     = (xv(1,j)-torbx(ie))/1d3
+!              xpj    = (yv(1,j)-torbxp(ie))/1d3
+!              yj     = (xv(2,j)-torby(ie))/1d3
+!              ypj    = (yv(2,j)-torbyp(ie))/1d3
+!              pj     = ejv(j)/1d3
+!!
+!              if (secondary(j).eq.1 .and. tertiary(j).eq.0              &
+!     &.and. xj.lt.99d-3 .and. yj.lt.99d-3) then
+!!
+!!                ARCDX = 0.
+!                if (xj.le.0.) then
+!                  xdisp = xj + (pj*1d3-myenom)/myenom * arcdx           &
+!     &* sqrt(tbetax(ie)/arcbetax)
+!                else
+!                  xdisp = xj - (pj*1d3-myenom)/myenom * arcdx           &
+!     &* sqrt(tbetax(ie)/arcbetax)
+!                endif
+!                xndisp = xj
+!                nspxd   = sqrt(                                         &
+!     &abs( gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                  &
+!     &+ tbetax(ie)*xpj**2 )/myemitx0                                    &
+!     &)
+!                nspx    = sqrt(                                         &
+!     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
+!     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
+!     &)
+!                nspy    = sqrt(                                         &
+!     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
+!     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+!     &)
+!                if (dowrite_secondary .and. (                           &
+!     &sqrt(nspxd**2+nspy**2).ge.sigsecut .or.                           &
+!     &sqrt(nspx**2+nspy**2).ge.sigsecut                                 &
+!     &)) then
+!                  write(48,'(10(1X,E15.7))')                            &
+!     &xj, xpj, yj, ypj, pj,                                             &
+!     &nspx, nspxd, nspy                                                 &
+!     &,sqrt(nspx**2+nspy**2),sqrt(nspxd**2+nspy**2)
+!                 endif
+!!
+!              elseif (tertiary(j).eq.1 .and.  xj.lt.99d-3               &
+!     &.and. yj.lt.99d-3) then
+!!
+!                if (xj.le.0.) then
+!                  xdisp = xj + (pj-myenom)/myenom * arcdx               &
+!     &* sqrt(tbetax(ie)/arcbetax)
+!                else
+!                  xdisp = xj - (pj-myenom)/myenom * arcdx               &
+!     &* sqrt(tbetax(ie)/arcbetax)
+!                endif
+!                xndisp = xj
+!                nspxd   = sqrt(                                         &
+!     &abs( gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                  &
+!     &+ tbetax(ie)*xpj**2 )/myemitx0                                    &
+!     &)
+!                nspx    = sqrt(                                         &
+!     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp                    &
+!     &*xpj + tbetax(ie)*xpj**2 )/myemitx0                               &
+!     &)
+!                nspy    = sqrt(                                         &
+!     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
+!     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+!     &)
+!                write(47,'(10(1X,E15.7))')                              &
+!     &xj, xpj, yj, ypj, pj                                              &
+!     &, nspx, nspxd, nspy                                               &
+!     &,sqrt(nspx**2+nspy**2),sqrt(nspxd**2+nspy**2)
+!              endif
+!!
+!            end do
 !
-            gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-            gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
-            arcdx    = 2.5d0
-            arcbetax = 180d0
-            sigsecut = 7d0
+!          endif
+!GRD-SR,09-02-2006 => freeing unit, file no longer needed
 !
-            do j = 1, napx
-!
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-              pj     = ejv(j)/1d3
-!
-              if (secondary(j).eq.1 .and. tertiary(j).eq.0              &
-     &.and. xj.lt.99d-3 .and. yj.lt.99d-3) then
-!
-!                ARCDX = 0.
-                if (xj.le.0.) then
-                  xdisp = xj + (pj*1d3-myenom)/myenom * arcdx           &
-     &* sqrt(tbetax(ie)/arcbetax)
-                else
-                  xdisp = xj - (pj*1d3-myenom)/myenom * arcdx           &
-     &* sqrt(tbetax(ie)/arcbetax)
-                endif
-                xndisp = xj
-                nspxd   = sqrt(                                         &
-     &abs( gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                  &
-     &+ tbetax(ie)*xpj**2 )/myemitx0                                    &
-     &)
-                nspx    = sqrt(                                         &
-     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
-     &)
-                if (dowrite_secondary .and. (                           &
-     &sqrt(nspxd**2+nspy**2).ge.sigsecut .or.                           &
-     &sqrt(nspx**2+nspy**2).ge.sigsecut                                 &
-     &)) then
-                  write(48,'(10(1X,E15.7))')                            &
-     &xj, xpj, yj, ypj, pj,                                             &
-     &nspx, nspxd, nspy                                                 &
-     &,sqrt(nspx**2+nspy**2),sqrt(nspxd**2+nspy**2)
-                 endif
-!
-              elseif (tertiary(j).eq.1 .and.  xj.lt.99d-3               &
-     &.and. yj.lt.99d-3) then
-!
-                if (xj.le.0.) then
-                  xdisp = xj + (pj-myenom)/myenom * arcdx               &
-     &* sqrt(tbetax(ie)/arcbetax)
-                else
-                  xdisp = xj - (pj-myenom)/myenom * arcdx               &
-     &* sqrt(tbetax(ie)/arcbetax)
-                endif
-                xndisp = xj
-                nspxd   = sqrt(                                         &
-     &abs( gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                  &
-     &+ tbetax(ie)*xpj**2 )/myemitx0                                    &
-     &)
-                nspx    = sqrt(                                         &
-     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp                    &
-     &*xpj + tbetax(ie)*xpj**2 )/myemitx0                               &
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
-     &)
-                write(47,'(10(1X,E15.7))')                              &
-     &xj, xpj, yj, ypj, pj                                              &
-     &, nspx, nspxd, nspy                                               &
-     &,sqrt(nspx**2+nspy**2),sqrt(nspxd**2+nspy**2)
-              endif
-!
-            end do
-          endif
 !---------------------------------------------------------
 !
 !++  End of check for known collimator
@@ -21707,12 +21617,14 @@
                 sum_ay(ie)   = sum_ay(ie) + nspy
                 sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
                 nampl(ie)    = nampl(ie) + 1
-                sampl(ie)    = totals
-                ename(ie)    = bez(myix)(1:16)
+!                sampl(ie)    = totals
+!                ename(ie)    = bez(myix)(1:16)
               else
                 nspx = 0d0
                 nspy = 0d0
               endif
+                sampl(ie)    = totals
+                ename(ie)    = bez(myix)(1:16)
 !APRIL2005
  23           continue
 !!JUNE2005
@@ -22140,71 +22052,71 @@
 !GRD UPGRADE JANUARY 2005
 !GRD
 +if collimat
-         if (firstrun) then
-       if (rselect.gt.0 .and. rselect.lt.65) then
-            do j = 1, napx
+      if (firstrun) then
+        if (rselect.gt.0 .and. rselect.lt.65) then
+          do j = 1, napx
 !
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-              pj     = ejv(j)/1d3
+            xj     = (xv(1,j)-torbx(ie))/1d3
+            xpj    = (yv(1,j)-torbxp(ie))/1d3
+            yj     = (xv(2,j)-torby(ie))/1d3
+            ypj    = (yv(2,j)-torbyp(ie))/1d3
+            pj     = ejv(j)/1d3
 !GRD
-              if (iturn.eq.1.and.j.eq.1) then
+            if (iturn.eq.1.and.j.eq.1) then
               sum_ax(ie)=0d0
               sum_ay(ie)=0d0
-              endif
+            endif
 !GRD
 !
-              if (tbetax(ie).gt.0.) then
-          gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-                gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+            if (tbetax(ie).gt.0.) then
+              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+            else
+              gammax = (1d0 + talphax(ie-1)**2)/tbetax(ie-1)
+              gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
+            endif
+!
+            if (part_abs(j).eq.0) then
+              if(tbetax(ie).gt.0.) then
+                nspx    = sqrt(                                         &
+     &               abs( gammax*(xj)**2 +                              &
+     &               2d0*talphax(ie)*xj*xpj +                           &
+     &               tbetax(ie)*xpj**2 )/myemitx0                       &
+     &               )
+                nspy    = sqrt(                                         &
+     &               abs( gammay*(yj)**2 +                              &
+     &               2d0*talphay(ie)*yj*ypj +                           &
+     &               tbetay(ie)*ypj**2 )/myemity0                       &
+     &               )
               else
-          gammax = (1d0 + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
+                nspx    = sqrt(                                         &
+     &               abs( gammax*(xj)**2 +                              &
+     &               2d0*talphax(ie-1)*xj*xpj +                         &
+     &               tbetax(ie-1)*xpj**2 )/myemitx0                     &
+     &               )
+                nspy    = sqrt(                                         &
+     &               abs( gammay*(yj)**2 +                              &
+     &               2d0*talphay(ie-1)*yj*ypj +                         &
+     &               tbetay(ie-1)*ypj**2 )/myemity0                     &
+     &               )
               endif
 !
-              if (part_abs(j).eq.0) then
-                if(tbetax(ie).gt.0.) then
-          nspx    = sqrt(                                               &
-     &abs( gammax*(xj)**2 +                                             &
-     &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*(yj)**2 +                                             &
-     &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
-     &)
-!                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
-!                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
-                else
-          nspx    = sqrt(                                               &
-     &abs( gammax*(xj)**2 +                                             &
-     &2d0*talphax(ie-1)*xj*xpj +                                        &
-     &tbetax(ie-1)*xpj**2 )/myemitx0                                    &
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*(yj)**2 +                                             &
-     &2d0*talphay(ie-1)*yj*ypj +                                        &
-     &tbetay(ie-1)*ypj**2 )/myemity0                                    &
-     &)
-                endif
-!
-                sum_ax(ie)   = sum_ax(ie) + nspx
-                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-                sum_ay(ie)   = sum_ay(ie) + nspy
-                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-                nampl(ie)    = nampl(ie) + 1
-                sampl(ie)    = totals
-                ename(ie)    = bez(myix)(1:16)
-              else
-                nspx = 0d0
-                nspy = 0d0
-              endif
-            end do
-          endif
-         endif
+              sum_ax(ie)   = sum_ax(ie) + nspx
+              sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+              sum_ay(ie)   = sum_ay(ie) + nspy
+              sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+              nampl(ie)    = nampl(ie) + 1
+!              sampl(ie)    = totals
+!              ename(ie)    = bez(myix)(1:16)
+            else
+              nspx = 0d0
+              nspy = 0d0
+            endif
+              sampl(ie)    = totals
+              ename(ie)    = bez(myix)(1:16)
+          end do
+        endif
+      endif
 !GRD
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
 !GRD
@@ -22280,17 +22192,19 @@
 !     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
               endif
 !GRD
-              if ((tertiary(j).eq.2) .and.                              &
-     &(xv(1,j).lt.99d0 .and. xv(2,j) .lt.99d0) ) then
-                xj     = (xv(1,j)-torbx(ie))/1d3
-                xpj    = (yv(1,j)-torbxp(ie))/1d3
-                yj     = (xv(2,j)-torby(ie))/1d3
-                ypj    = (yv(2,j)-torbyp(ie))/1d3
-                write(39,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.3))')           &
-     &ipart(j)+100*samplenumber,                                        &
-     &iturn,sampl(ie),xv(1,j),yv(1,j),xv(2,j),yv(2,j)
+!GRD-SR,09-02-2006 => freeing unit, file no longer needed
+!              if ((tertiary(j).eq.2) .and.                              &
+!     &(xv(1,j).lt.99d0 .and. xv(2,j) .lt.99d0) ) then
+!                xj     = (xv(1,j)-torbx(ie))/1d3
+!                xpj    = (yv(1,j)-torbxp(ie))/1d3
+!                yj     = (xv(2,j)-torby(ie))/1d3
+!                ypj    = (yv(2,j)-torbyp(ie))/1d3
+!                write(39,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.3))')           &
+!     &ipart(j)+100*samplenumber,                                        &
+!     &iturn,sampl(ie),xv(1,j),yv(1,j),xv(2,j),yv(2,j)
 !     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
-              endif
+!              endif
+!GRD-SR,09-02-2006
 !MAY2005
          endif
 !MAY2005
@@ -22711,10 +22625,12 @@
               ypj    = (yv(2,j)-torbyp(ie))/1d3
               pj     = ejv(j)/1d3
 !GRD
-              if (iturn.eq.1.and.j.eq.1) then
-              sum_ax(ie)=0d0
-              sum_ay(ie)=0d0
-              endif
+!07-2006 TEST
+!              if (iturn.eq.1.and.j.eq.1) then
+!              sum_ax(ie)=0d0
+!              sum_ay(ie)=0d0
+!              endif
+!07-2006 TEST
 !GRD
 !
               if (tbetax(ie).gt.0.) then
@@ -22841,17 +22757,19 @@
 !     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
               endif
 !GRD
-              if ((tertiary(j).eq.2) .and.                              &
-     &(xv(1,j).lt.99d0 .and. xv(2,j) .lt.99d0) ) then
-                xj     = (xv(1,j)-torbx(ie))/1d3
-                xpj    = (yv(1,j)-torbxp(ie))/1d3
-                yj     = (xv(2,j)-torby(ie))/1d3
-                ypj    = (yv(2,j)-torbyp(ie))/1d3
-                write(39,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.3))')           &
-     &ipart(j)+100*samplenumber,                                        &
-     &iturn,sampl(ie),xv(1,j),yv(1,j),xv(2,j),yv(2,j)
+!GRD-SR,09-02-2006 => freeing unit, file no longer needed
+!              if ((tertiary(j).eq.2) .and.                              &
+!     &(xv(1,j).lt.99d0 .and. xv(2,j) .lt.99d0) ) then
+!                xj     = (xv(1,j)-torbx(ie))/1d3
+!                xpj    = (yv(1,j)-torbxp(ie))/1d3
+!                yj     = (xv(2,j)-torby(ie))/1d3
+!                ypj    = (yv(2,j)-torbyp(ie))/1d3
+!                write(39,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.3))')           &
+!     &ipart(j)+100*samplenumber,                                        &
+!     &iturn,sampl(ie),xv(1,j),yv(1,j),xv(2,j),yv(2,j)
 !     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
-              endif
+!              endif
+!GRD-SR,09-02-2006
 !MAY2005
          endif
 !MAY2005
@@ -43140,6 +43058,8 @@
 +ca info
 +ca dbcollim
 !
++ca database
+!
       double precision x_flk,xp_flk,y_flk,yp_flk
 !
       double precision s_impact
@@ -43411,13 +43331,15 @@
 !     SR, 29-08-2005: Add to the longitudinal coordinates the position
 !     of the slice beginning
 
-            if(flagsec(j).eq.0) then
-              write(333,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')
-     &              name(j),iturn,icoll,nabs,
-     &              s_impact + (dble(j_slices)-1) * c_length,
-     &              s+sp + (dble(j_slices)-1) * c_length,
-     &              xinn,xpinn,yinn,ypinn,
-     &              x,xp,z,zp
+            if(dowrite_impact) then
+              if(flagsec(j).eq.0) then
+               write(39,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')&
+     &               name(j),iturn,icoll,nabs,                          &
+     &               s_impact + (dble(j_slices)-1) * c_length,          &
+     &               s+sp + (dble(j_slices)-1) * c_length,              &
+     &               xinn,xpinn,yinn,ypinn,                             &
+     &               x,xp,z,zp
+              endif
             endif
 !!     SR, 18-08-2005: add also the initial coordinates of the
 !!                     impacting particles!
@@ -43504,11 +43426,13 @@
      &xp *sin(-1d0*c_rotation)
 +ei
 !     SR, 29-08-2005: Include the slice numer!
-      write(583,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))')
-     &icoll,c_rotation,
-     &s + sp + (dble(j_slices)-1) * c_length,
-     &x_flk*1d3, xp_flk*1d3, y_flk*1d3, yp_flk*1d3,
+              if(dowrite_impact) then
+      write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))')     &
+     &icoll,c_rotation,                                                 &
+     &s + sp + (dble(j_slices)-1) * c_length,                           &
+     &x_flk*1d3, xp_flk*1d3, y_flk*1d3, yp_flk*1d3,                     &
      &nabs,name(j),iturn
+              endif
 !!     SR, GRD (2005-08-16) New format with more digits, as requested
 !!     by the FLUKA team.
 !      write(583,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))')
@@ -43742,6 +43666,8 @@
 +ca dbpencil
 +ca info
 +ca dbcollim
+!
++ca database
 !
       double precision x_flk,xp_flk,y_flk,yp_flk
 !JUNE2005
@@ -44230,10 +44156,12 @@
                   xp_flk = -1d0*xp
                   yp_flk = -1d0*zp
 !NOW WE CAN WRITE THE COORDINATES OF THE LOST PARTICLES
-      write(583,'(i4,(2x,f5.3),(2x,f8.6),4(1x,e16.7),2x,i2,2x,i5)')           &
-     &icoll,c_rotation,s+sp,                                                  &
-     &x_flk*1d3, xp_flk*1d3, y_flk*1d3, yp_flk*1d3,                           &
+              if(dowrite_impact) then
+      write(48,'(i4,(2x,f5.3),(2x,f8.6),4(1x,e16.7),2x,i2,2x,i5)')      &
+     &icoll,c_rotation,s+sp,                                            &
+     &x_flk*1d3, xp_flk*1d3, y_flk*1d3, yp_flk*1d3,                     &
      &nabs,name(j)
+              endif
 !APRIL2005
               fracab = fracab + 1 
 !              x = 99.99*1e-3  
@@ -45340,7 +45268,10 @@
       data (radl(i),i=6,nrmat)/ 0.188d0, 0.094d0/
       data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
 !GRD      data (EMR(i),i=1,nrmat)/  0.22, 0.302, 0.366,    0.0,  0.542/
-      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.0d0, 0.542d0/
+!MAY06-GRD value for Tungsten (W) not stated
+!      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.0d0, 0.542d0/
+      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
+!MAY06-GRD end of changes
       data (emr(i),i=6,nrmat)/  0.25d0, 0.25d0/
 !GRD      data tLcut,(Hcut(i),i=1,nrmat)/0.9982e-3,0.02,0.02,3*0.01/
       data tlcut / 0.0009982d0/
@@ -45357,21 +45288,38 @@
 ! in Cs and CsRef,1st index: Cross-sections for processes
 ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
 ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
-      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0 , 0.0035d0/
-      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0 , 0.034d0/
-      data csref(0,3),csref(1,3),csref(5,3)/1.232d0, 0.782d0 , 0.153d0/
-      data csref(0,4),csref(1,4),csref(5,4)/2.767d0, 1.65d0  , 0.768d0/
-      data csref(0,5),csref(1,5),csref(5,5)/2.960d0, 1.77d0  , 0.907d0/
+!
+!MAY06-GRD: found an error in the values for Rutherford cross-sections,
+!as the ones reported here are stated in fm^2 and not in barns, hence 
+!being 100 times too large...
+!      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0 , 0.0035d0/
+!      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0 , 0.034d0/
+!      data csref(0,3),csref(1,3),csref(5,3)/1.232d0, 0.782d0 , 0.153d0/
+!      data csref(0,4),csref(1,4),csref(5,4)/2.767d0, 1.65d0  , 0.768d0/
+!      data csref(0,5),csref(1,5),csref(5,5)/2.960d0, 1.77d0  , 0.907d0/
+!!GRD
+!      data csref(0,6),csref(1,6),csref(5,6)/0.331d0, 0.231d0, 0.0076d0/
+!      data csref(0,7),csref(1,7),csref(5,7)/0.331d0, 0.231d0, 0.0076d0/
+!
+      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0, 0.0035d-2/
+      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0, 0.034d-2/
+      data csref(0,3),csref(1,3),csref(5,3)/1.232d0, 0.782d0, 0.153d-2/
+      data csref(0,4),csref(1,4),csref(5,4)/2.767d0, 1.65d0 , 0.768d-2/
+      data csref(0,5),csref(1,5),csref(5,5)/2.960d0, 1.77d0 , 0.907d-2/
 !GRD
-      data csref(0,6),csref(1,6),csref(5,6)/0.331d0, 0.231d0, 0.0076d0/
-      data csref(0,7),csref(1,7),csref(5,7)/0.331d0, 0.231d0, 0.0076d0/
+      data csref(0,6),csref(1,6),csref(5,6)/0.331d0, 0.231d0, 0.0076d-2/
+      data csref(0,7),csref(1,7),csref(5,7)/0.331d0, 0.231d0, 0.0076d-2/
+!MAY06-GRD end of changes
 !
 ! pp cross-sections and parameters for energy dependence
       data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
       data pptco,ppeco,freeco/0.05788d0,0.04792d0,1.618d0/
 ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
 !GRD      data (bNRef(i),i=1,nrmat)/74.7,120.3,217.8,0.0,455.3/
-      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,0.0d0,455.3d0/
+!MAY06-GRD value for Tungsten (W) not stated
+!      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,0.0d0,455.3d0/
+      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
+!MAY06-GRD end of changes
       data (bnref(i),i=6,nrmat)/70.d0, 70.d0/
 !GRD LAST 2 ONES INTERPOLATED
 !
@@ -46014,7 +45962,7 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.1.1.1 2006-09-26 15:05:42 frs Exp $
+! $Id: sixtrack.s,v 1.2 2006-09-26 15:51:04 robertde Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.2  1997/09/22 13:45:47  mclareni
@@ -46786,7 +46734,7 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.1.1.1 2006-09-26 15:05:42 frs Exp $
+! $Id: sixtrack.s,v 1.2 2006-09-26 15:51:04 robertde Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.1.1.1  1996/04/01 15:02:13  mclareni
@@ -46893,7 +46841,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.1.1.1 2006-09-26 15:05:42 frs Exp $
+! $Id: sixtrack.s,v 1.2 2006-09-26 15:51:04 robertde Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.1.1.1  1996/04/01 15:02:14  mclareni
