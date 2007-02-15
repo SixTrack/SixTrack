@@ -12,8 +12,9 @@ crlibm.a: $(OBJS)
 	ar -rv crlibm.a $(OBJS)
 AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic
 DEFS = -DHAVE_CONFIG_H -I.
-CFLAGS = -g -O2
+CFLAGS = -g -O2 -m32
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
+FCF =  --tp --o1  -Wa,--32
 csh_fast.o: csh_fast.c crlibm.h crlibm_private.h scs.h \
         scs_config.h scs_private.h crlibm_config.h \
         csh_fast.h
@@ -67,11 +68,11 @@ atan_fast.o: atan_fast.c crlibm.h crlibm_private.h scs.h \
         atan_fast.h
 	$(COMPILE1) -c atan_fast.c
 atan2_rn.o: atan2_rn.f atan.o atan_fast.o
-	lf95 -c --tp --o1 atan2_rn.f
+	lf95 -c $(FCF) atan2_rn.f
 asin_rn.o: asin_rn.f atan.o atan_fast.o
-	lf95 -c --tp --o1 asin_rn.f
+	lf95 -c $(FCF) asin_rn.f
 acos_rn.o: acos_rn.f atan.o atan_fast.o
-	lf95 -c --tp --o1 acos_rn.f
+	lf95 -c $(FCF) acos_rn.f
 ericc.o: ericc.c crlibm.h crlibm_private.h 
 	$(COMPILE1) -c ericc.c
 

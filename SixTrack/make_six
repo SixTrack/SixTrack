@@ -19,6 +19,7 @@
 # nag => use f95 instead of LAHEY
 # g77 => use g77
 # g95 => use g95
+# gfortran => use gfortran
 show_options()
 {
 ons="The following selections are ON  :"
@@ -36,14 +37,15 @@ echo "$ons"
 echo "$offs"
 }
 
+sysname="`fs sysname`"
 windows_version=SixTrack71v4004boinc
 
 command_line=$*
 #NOTA BENE! Definitions of cernlib and naglib are reversed
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm windows cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95)
-values=(junk  true true     true true   false   true    true   false false    false false false false false false)
+options=(junk tilt tracking fast crlibm windows cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran)
+values=(junk  true true     true true   false   true    true   false false    false false false false false false false)
 tilt=""
 tracking=""
 fast=""
@@ -59,6 +61,7 @@ cr="cr"
 nag="nag"
 g77="g77"
 g95="g95"
+gfortran="gfortran"
 while test $# != 0
 do
   case $1 in
@@ -109,6 +112,9 @@ do
     -g95) g95="g95"
            values[15]=false
     ;;
+    -gfortran) gfortran="gfortran"
+           values[16]=false
+    ;;
     +tilt) tilt=""
            values[1]=true 
     ;;
@@ -153,6 +159,9 @@ do
     ;;
     +g95) g95=""
            values[15]=true
+    ;;
+    +gfortran) gfortran=""
+           values[16]=true
     ;;
     tilt) tilt=""
            values[1]=true
@@ -199,6 +208,9 @@ do
     g95) g95=""
            values[15]=true
     ;;
+    gfortran) gfortran=""
+           values[16]=true
+    ;;
     *) echo "Illegal option $1"
        exit 1
      ;;
@@ -208,7 +220,7 @@ done
 # Here Eric should check for valid/invalid combinations
 if test "$crlibm" = ""
 then
-  if test "$nag" = "" -o "$g77" = "" -o "$g95" = ""
+  if test "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
   then
     show_options
     echo "     INVALID option selected:"
@@ -234,11 +246,11 @@ then
   values[7]=false
   cr=""
   values[12]=true
-  if test "$da" = "" -o "$collimat" = "" -o "$cernlib" != "" -o "$naglib" != "" -o "$crlibm" != "" -o "$cr" != "" -o "$nag" = "" -o "$g77" = "" -o "$g95" = ""
+  if test "$da" = "" -o "$collimat" = "" -o "$cernlib" != "" -o "$naglib" != "" -o "$crlibm" != "" -o "$cr" != "" -o "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortan" = ""
   then
     show_options
     echo "     INVALID options selected:"
-    echo "     boinc/cpss/windows options => -collimat -da -cernlib -naglib -nag -g77 -g95 and +crlibm +cr !"
+    echo "     boinc/cpss/windows options => -collimat -da -cernlib -naglib -nag -g77 -g95 -gfortran and +crlibm +cr !"
     da="da"
     values[8]=false
     collimat="collimat"
@@ -253,6 +265,8 @@ then
     values[14]=false
     g95="g95"
     values[15]=false
+    gfortran="gfortran"
+    values[16]=false
     crlibm=""
     values[4]=true
     cr=""
@@ -302,24 +316,41 @@ show_options
 if test "$nag" = ""
 then
   export FC="f95"
-  export FCF="-dusty -maxcontin=60 -dcfuns -ieee=full"
-  export FCL="-Bstatic"
+  export FCF="-Wc,-m32 -Wl,-m32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+  export FCL="-Bstatic -m32"
   export NAGLIBC="-lg2c"
 elif test "$g77" = ""
 then
   export FC="g77"
-  export FCF="-O -g -fno-second-underscore -funroll-loops"
-  export FCL="-static"
+  export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
+  export FCL="-static -m32"
 elif test "$g95" = ""
 then
   export FC="g95"
-  export FCF="-O -g -fno-second-underscore -funroll-loops"
-  export FCL="-static"
+  export FCF="-O -Wa,--32 -g -fno-second-underscore -funroll-loops"
+  export FCL="-static -m32"
+elif test "$gfortran" = ""
+then
+  export FC="gfortran"
+  export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
+  export FCL="-static -m32"
 else
   export FC="lf95"
-  export FCF="--o1 --tp"
-  export FCL="-static"
+  export FCF="--o1 --tp -Wa,--32"
+  export FCL="-static -m32"
 fi
+
+if test "$OSTYPE" = "darwin"
+then
+# allows running of sixtrack under Macinstosh System 10
+  echo "MAC setup"
+  export FCL="-m32"
+  echo "Operating system: ",$OSTYPE
+else
+  echo "Linux setup"
+  echo $sysname
+fi
+
 # Update the .ast flags based on options
 rm -f *.ast
 cp ast_mask/*.ast .
@@ -389,11 +420,34 @@ done
 # Then generate the .f files
 if test "$cernlib" != ""
 then
-  export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.3 -lg2c -lpthread"
+  if test "$sysname" = "Current sysname is 'i386_linux26'"
+  then
+    #SLC4 32 machine
+    export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/i386-redhat-linux/3.4.3 -lg2c -L/usr/lib -lpthread"
+  elif test "$sysname" = "Current sysname is 'amd64_linux26'"
+  then
+    #SLC4 64 machine
+    export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+  elif test "$OSTYPE" = "darwin"
+  then
+    export CERNLIB="`/sw/bin/cernlib -u graflib packlib kernlib` -lg2c -lpthread"
+  else
+    echo "CERNLIB cannot be found for your machine. SiXTrack linking failed!"
+  fi
 fi
 if test "$naglib" != ""
 then
-  export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.3 -lg2c -lpthread"
+  if test "$sysname" = "Current sysname is 'i386_linux26'"
+  then
+    #SLC4 32 machine
+    export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a  -L/usr/lib/gcc/i386-redhat-linux/3.4.3 -lg2c -L/usr/lib -lpthread"
+  elif test "$sysname" = "Current sysname is 'amd64_linux26'"
+  then
+    #SLC4 64 machine
+    export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a  -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+  else
+    echo "NAGLIB cannot be found for your machine. SiXTrack_da linking failed!"
+  fi
 fi
 if test "$crlibm" = ""
 then
