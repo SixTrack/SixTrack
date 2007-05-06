@@ -45,11 +45,12 @@
       parameter(npart = 64,nmac = 1)
 +if .not.collimat
       parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=15000,         &
+     &nzfz = 300000,mmul = 20)
 +ei
 +if collimat
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
-+ei
      &nzfz = 300000,mmul = 11)
++ei
       parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
      &nema = 15)
       parameter(mcor = 10,mcop = mcor+6, mbea = 15)
@@ -9167,6 +9168,7 @@
           goto 190
         endif
       endif
+      if(ch(17:17).ne." ") call prror(104)
       call intepr(1,1,ch,ch1)
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i)
 !--CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
@@ -9834,7 +9836,8 @@
       aka(im,i)=benki*akad/r0a
       i=i+1
       r0a=r0a*r0
-      if(i.le.mmul+1) goto 770
+      if(i.gt.mmul+1) call prror(105)
+      if(ch(:4).ne.next) goto 770
 +if cr
       write(lout,10380)
 +ei
@@ -17335,22 +17338,22 @@
      &'   APERTURE = ',f15.3/)
 +if .not.tilt
 +if cr
-10010 format(/t10,'SIXTRACR VECTOR VERSION 4.0.08',                     &
-     &'  --  (last change: 20.10.2005)'//)
+10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09',                     &
+     &'  --  (last change: 06.05.2007)'//)
 +ei
 +if .not.cr
-10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.08',                     &
-     &'  --  (last change: 20.10.2005)'//)
+10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09',                     &
+     &'  --  (last change: 06.05.2007)'//)
 +ei
 +ei
 +if tilt
 +if cr
-10010 format(/t10,'SIXTRACR VECTOR VERSION 4.0.08 (with tilt)',         &
-     &'  --  (last change: 20.10.2005)'//)
+10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09 (with tilt)',         &
+     &'  --  (last change: 06.05.2007)'//)
 +ei
 +if .not.cr
-10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.08 (with tilt)',         &
-     &'  --  (last change: 20.10.2005)'//)
+10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09 (with tilt)',         &
+     &'  --  (last change: 06.05.2007)'//)
 +ei
 +ei
 10020 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:', /t10,         &
@@ -27105,12 +27108,12 @@
       stop 
 +ei
 +if .not.tilt
-10000 format(/t10,'SIXTRACK DA VERSION 4.0.08',                         &
-     &'  --  (last change: 20.10.2005)'//)
+10000 format(/t10,'SIXTRACK DA VERSION 4.0.09',                         &
+     &'  --  (last change: 06.05.2007)'//)
 +ei
 +if tilt
-10000 format(/t10,'SIXTRACK DA VERSION 4.0.08 (with tilt)',             &
-     &'  --  (last change: 20.10.2005)'//)
+10000 format(/t10,'SIXTRACK DA VERSION 4.0.09 (with tilt)',             &
+     &'  --  (last change: 06.05.2007)'//)
 +ei
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:', /t10,         &
      &'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM'/t10,    &
@@ -30173,7 +30176,7 @@
      &710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 ,                &
      &810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 ,                &
      &910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000,                &
-     &1010,1020,1030),ier
+     &1010,1020,1030,1040,1050),ier
       goto 1870
 +if cr
    10 write(lout,10010)
@@ -30895,6 +30898,20 @@
 +if .not.cr
  1030 write(*,11030)
 +ei
+      goto 1870
++if cr
+ 1040 write(lout,11040)
++ei
++if .not.cr
+ 1040 write(*,11040)
++ei
+      goto 1870
++if cr
+ 1050 write(lout,11050) mmul
++ei
++if .not.cr
+ 1050 write(*,11050) mmul
++ei
  1870 continue
 !-----------------------------------------------------------------------
 +ca close
@@ -31072,6 +31089,9 @@
 11020 format(t10,'MAXIMUM ELEMENT NUMBER FOR BEAM_BEAM WITH COUPLING ', &
      &'EXCEEDED:  NBB = ',i4)
 11030 format(t10,'6D BEAM-BEAM WITH TILT NOT POSSIBLE')
+11040 format(t10,'SINGLE ELEMENT NAME LONGER THAN 16 CHARACTERS')
+11050 format(t10,'THE INPUT ORDER OF MULTIPOLES IS LARGER THAN THE ',   &
+     &'MAXIMUM ALLOWED ORDER MMUL: ',i4)
       end
 +dk linopt
       subroutine linopt(dpp)
@@ -45962,9 +45982,14 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.2 2006-09-26 15:51:04 robertde Exp $
+! $Id: sixtrack.s,v 1.3 2007-05-06 21:24:28 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.2  2006/09/26 15:51:04  robertde
+!
+!
+! Latest version for the collimation studies to include the Beam 2 lattice; clean-up of the unit number for output files.
+!
 ! Revision 1.2  1997/09/22 13:45:47  mclareni
 ! Correct error in initializing RANLUX by using RLUXIN with the output of
 ! RLUXUT from a previous run.
@@ -46734,9 +46759,14 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.2 2006-09-26 15:51:04 robertde Exp $
+! $Id: sixtrack.s,v 1.3 2007-05-06 21:24:28 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.2  2006/09/26 15:51:04  robertde
+!
+!
+! Latest version for the collimation studies to include the Beam 2 lattice; clean-up of the unit number for output files.
+!
 ! Revision 1.1.1.1  1996/04/01 15:02:13  mclareni
 ! Mathlib gen
 !
@@ -46841,9 +46871,14 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.2 2006-09-26 15:51:04 robertde Exp $
+! $Id: sixtrack.s,v 1.3 2007-05-06 21:24:28 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.2  2006/09/26 15:51:04  robertde
+!
+!
+! Latest version for the collimation studies to include the Beam 2 lattice; clean-up of the unit number for output files.
+!
 ! Revision 1.1.1.1  1996/04/01 15:02:14  mclareni
 ! Mathlib gen
 !
