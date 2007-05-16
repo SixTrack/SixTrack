@@ -1,8 +1,0 @@
-sixtrack.s
-sixdan.f
-df crlibm,tilt,fast
-e mainda
-e RUNDA,RUNCAV,UMSCHR
-e COR_ORD,COR_GLO,DALIESIX
-e beam6df,MYDAINF
-ex

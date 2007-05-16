@@ -23,3 +23,4 @@ clean:
 	rm -f SixTrack SixTrack_da dafor astuce
 	rm -f crlibm/*.o crlibm/crlibm.a
 	rm -f *.o *~
+	rm -f *.ast
