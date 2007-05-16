@@ -1,4 +1,12 @@
   SixTrack Version: 4.0.09
+     -- removed redundant directory sixtrack and *.ast files.
+   Eric 16 May 2007
+
+     -- Program stops when single element names longer than 16 characters.
+     -- Program stops when when order of multipoles in fort.3 exceed MMUL.
+     -- MMUL is set to 20 for all non-collimation versions.
+   FS 09 May 2007  
+
    Latest version of the expanded version for collimation studies (collimat flag)
      -- change of the collimator labels step to take into account the new Beam 2 lattice from MADX
      -- "STOP" flags have been checked and removed if necessary
