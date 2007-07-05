@@ -44,7 +44,7 @@
      &nrco,ntr,nzfz
       parameter(npart = 64,nmac = 1)
 +if .not.collimat
-      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=15000,         &
+      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=20000,         &
      &nzfz = 300000,mmul = 20)
 +ei
 +if collimat
@@ -45982,9 +45982,17 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.3 2007-05-06 21:24:28 frs Exp $
+! $Id: sixtrack.s,v 1.4 2007-07-05 18:58:44 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.3  2007/05/06 21:24:28  frs
+! 1) Program stops if a Single Element Name is longer than 16 characters
+! (error # 104).
+! 2) MMUL increased from 11 to 20 for the .not.collimat version (request by
+! Ralph Assmann).
+! 3) Program stops if in a "MULT" block the multipole order is larger than
+! the maximum allowed order MMUL (error # 105).
+!
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
@@ -46759,9 +46767,17 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.3 2007-05-06 21:24:28 frs Exp $
+! $Id: sixtrack.s,v 1.4 2007-07-05 18:58:44 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.3  2007/05/06 21:24:28  frs
+! 1) Program stops if a Single Element Name is longer than 16 characters
+! (error # 104).
+! 2) MMUL increased from 11 to 20 for the .not.collimat version (request by
+! Ralph Assmann).
+! 3) Program stops if in a "MULT" block the multipole order is larger than
+! the maximum allowed order MMUL (error # 105).
+!
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
@@ -46871,9 +46887,17 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.3 2007-05-06 21:24:28 frs Exp $
+! $Id: sixtrack.s,v 1.4 2007-07-05 18:58:44 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.3  2007/05/06 21:24:28  frs
+! 1) Program stops if a Single Element Name is longer than 16 characters
+! (error # 104).
+! 2) MMUL increased from 11 to 20 for the .not.collimat version (request by
+! Ralph Assmann).
+! 3) Program stops if in a "MULT" block the multipole order is larger than
+! the maximum allowed order MMUL (error # 105).
+!
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
