@@ -39,6 +39,7 @@ echo "$offs"
 
 sysname="`fs sysname`"
 windows_version=SixTrack71v4004boinc
+gfortran_lib=""
 
 command_line=$*
 #NOTA BENE! Definitions of cernlib and naglib are reversed
@@ -346,6 +347,7 @@ then
   echo "MAC setup"
   export FCL="-m32"
   echo "Operating system: ",$OSTYPE
+  export gfortran_lib="/sw/lib/gcc4.2/lib/libgfortran.a"
 else
   echo "Linux setup"
   echo $sysname

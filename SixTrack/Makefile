@@ -11,11 +11,11 @@ astuce: astuce.o
 
 SixTrack: track.o sixve.o sixvefox.o dabnews.o lielib.o $(CRLIBM)
 	$(FC) $(FCL) -o SixTrack track.o sixve.o sixvefox.o dabnews.o lielib.o \
-	$(CERNLIB) $(CRLIBM)
+	$(CERNLIB) $(CRLIBM) $(gfortran_lib)
 
 SixTrack_da: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
 	$(FC) $(FCL) -o SixTrack_da sixda.o sixsc.o sixscfox.o dabnew.o lielib.o \
-	$(NAGLIB) $(CRLIBM)
+	$(NAGLIB) $(CRLIBM) $(gfortran_lib)
 
 # make clean will execute this: 
 clean: 
