@@ -168,6 +168,7 @@ C ANFANG UNTERPROGRAMM
 *
       DATA  BLANK / '        ' /
 *
+      IDN = 0
  100  CONTINUE
 *
       CALL GETCOM('PRECOM',A,10000,LA,IEND)
