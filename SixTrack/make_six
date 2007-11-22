@@ -38,7 +38,7 @@ echo "$offs"
 }
 
 sysname="`fs sysname`"
-windows_version=SixTrack71v4004boinc
+windows_version=SixTrack71v99boinc
 gfortran_lib=""
 
 command_line=$*

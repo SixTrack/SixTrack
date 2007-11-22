@@ -1,3 +1,6 @@
+  SixTrack Version: 4.1
+     -- add crab cavity
+     -- Print-out of coordinates at elements starting with "BPM"
   SixTrack Version: 4.0.09
      -- removed redundant directory sixtrack and *.ast files.
    Eric 16 May 2007

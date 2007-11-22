@@ -44,14 +44,14 @@
      &nrco,ntr,nzfz
       parameter(npart = 64,nmac = 1)
 +if .not.collimat
-      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=20000,         &
+      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 300000,mmul = 20)
 +ei
 +if collimat
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
      &nzfz = 300000,mmul = 11)
 +ei
-      parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
+      parameter(nran =2000000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
      &nema = 15)
       parameter(mcor = 10,mcop = mcor+6, mbea = 15)
       parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
@@ -120,7 +120,7 @@
      &qzt,r00,rad,ramp,rat,ratio,ratioe,rfre,rrtr,rtc,rts,rvf,rzph,     &
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
-     &acdipph
+     &acdipph, crabph
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -189,6 +189,7 @@
       common/wireco/ wirel(nele)
       common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
      &nturn3(nele), nturn4(nele)
+      common/crabco/ crabph(nele)
 +cd commons
       integer idz,itra
 +if vvector
@@ -859,7 +860,8 @@
 *FOX  D V DA INT ZRBF NORD NVAR ; D V DA INT XBBF NORD NVAR ;
 *FOX  D V DA INT ZBBF NORD NVAR ; D V DA INT CRXBF NORD NVAR ;
 *FOX  D V DA INT CBXBF NORD NVAR ; D V DA INT CRZBF NORD NVAR ;
-*FOX  D V DA INT WX NORD NVAR ; D V DA INT WY NORD NVAR ;
+*FOX  D V DA INT WX NORD NVAR ; D V DA INT WY NORD NVAR ; 
+*FOX  D V DA INT CRABAMP NORD NVAR ;
 +if rvet
 *FOX  D V DA INT RVET NORD NVAR ;
 +ei
@@ -883,7 +885,7 @@
 *FOX  D V RE INT CRAD ; D V RE INT GAMMAR ;
 *FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 *FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
-*FOX  D V RE INT PARBE14 ;
+*FOX  D V RE INT PARBE14 ; D V RE INT PI ;
 *FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ;
 *FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
 +if .not.fast
@@ -897,6 +899,8 @@
 *FOX  D V RE INT C1M18 ; D V RE INT C1M21 ; D V RE INT C1M24 ;
 *FOX  D V RE INT ONE ; D V RE INT TWO ; D V RE INT THREE ;
 *FOX  D V RE INT FOUR ; D V RE INT ZERO ; D V RE INT HALF ;
+*FOX  D V RE INT CRABFREQ ; D V RE INT CRABPHT ; 
+*FOX  D V RE INT CLIGHT ;
 *FOX  D V IN INT IDZ 2 ; D V IN INT KX ; D V IN INT IX ; D V IN INT JX ;
 *FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
 *FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
@@ -2905,6 +2909,66 @@
         dyy1=ekk*(tiltc(k)*cxzyi-tilts(k)*cxzyr)
         dyy2=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
 +ei
++cd  bpmdata
+!---------Collect BPM data
+          if(ix.gt.0.and.bez(ix)(1:2).eq.'BP'.and.n.lt.1025) then
+          if(n.eq.1) then   
+            open(ix+100,file=bez(ix),status='unknown')
+            endif
+            write(ix+100,'(7e18.10,1x)') xv(1,1),yv(1,1),xv(2,1),       &
+     &yv(2,1), sigmv(1), dpsv(1),ejfv(1)
+          if(n.eq.1024) then   
+            close(ix+100)
+            endif
+          endif
++cd crabkick
+!---------CrabAmp input in MV
+!---------ejfv(j) should be in MeV/c --> CrabAmp/c/ejfv(j) is in rad
+!---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
+!---------CrabFreq input in MHz (ek)
+!---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
++if crlibm
+          pi=4d0*atan_rn(1d0)
++ei
++if .not.crlibm
+          pi=4d0*atan(1d0)
++ei
+        crabfreq=ek(ix)*1000.0
+      
+        do j=1,napx
+        crabamp=ed(ix)/(ejfv(j))*1000.0
+!        write(*,*) crabamp, ejfv(j), clight, "HELLO" 
+
++if .not.tilt
++if crlibm
+        yv(xory,j)=yv(xory,j) - crabamp*                                
+     &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*
+     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
++ei
++if .not.crlibm
+        yv(xory,j)=yv(xory,j) - crabamp*                                
+     &sin(sigmv(j)/clight*crabfreq + crabph(ix))
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                      
+     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
++ei
++ei
++if tilt
++if crlibm
+      
+        yv(xory,j)=yv(xory,j) - crabamp*                                
+     &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                    
+     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
++ei
++if .not.crlibm
+        yv(xory,j)=yv(xory,j) - crabamp*                                
+     &sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                     
+     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
++ei
++ei
+      enddo
 +cd acdipkick
           nfree=nturn1(ix)
          if(n.gt.nfree) then
@@ -3276,6 +3340,14 @@
 +cd wirektrack
         if(kzz.eq.15) then
           ktrack(i)=45
+          goto 290
+        endif
++cd crab1
+        if(kzz.eq.23) then
+          ktrack(i)=53
+          goto 290
+        else if(kzz.eq.-23) then
+          ktrack(i)=54
           goto 290
         endif
 +cd acdip1
@@ -9211,9 +9283,21 @@
            el(i)=0
         endif
       endif
+!--CRABCAVITY
+      if(abs(kz(i)).eq.23) then
+        if(abs(ed(i)).le.pieni) then
+           kz(i)=0
+           ed(i)=0
+           ek(i)=0
+           el(i)=0
+        else
+           crabph(i)=el(i)
+           el(i)=0
+        endif
+      endif
 !--ACDIPOLE
       if(abs(kz(i)).eq.16) then
-        if(abs(ed(i)).le.pieni.or.ek(i).le.pieni) then
+        if(abs(ed(i)).le.pieni) then
            kz(i)=0
            ed(i)=0
            ek(i)=0
@@ -12837,7 +12921,7 @@
      &beamoff6,benkcc,betr0,c5m4,cbxb,cbzb,cik,crk,crxb,crzb,dare,dpdav,&
      &dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,rho2b,&
      &rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,      &
-     &zfeld1,zfeld2,zrb,zs
+     &zfeld1,zfeld2,zrb,zs, crabfreq, crabpht
       character*300 ch
 +ca parpro
 +ca parnum
@@ -13439,6 +13523,38 @@
             endif
             goto 480
           endif
++if crlibm
+          pi=4d0*atan_rn(1d0)
++ei
++if .not.crlibm
+          pi=4d0*atan(1d0)
++ei
+
+          if(kzz.eq.23) then
+*FOX  CRABAMP=ED(IX)/(EJF1) ;
+             crabfreq=ek(ix)
+             crabpht=crabph(ix)
+*FOX  Y(1)=Y(1) - CRABAMP*C1E3*
+*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(1)*
+*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA=DPDA1*C1M3 ;
+*FOX  EJF1=E0F*(ONE+DPDA) ;
+*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+          endif
+          if(kzz.eq.-23) then
+*FOX  CRABAMP=ED(IX)/(EJF1) ;
+             crabfreq=ek(ix)
+             crabpht=crabph(ix)
+*FOX  Y(2)=Y(2) - CRABAMP*C1E3*
+*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(2)*
+*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA=DPDA1*C1M3 ;
+*FOX  EJF1=E0F*(ONE+DPDA) ;
+*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+          endif
+      
           ipch=0
           if(ncor.gt.0) then
             do 130 i11=1,ncor
@@ -13839,7 +13955,7 @@
      &oz,ozp,ozp1,phi,r0,r2b,r2bf,rb,rbf,rdd,rho2b,rkb,rkbf,rrad,       &
      &scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,sigm1,       &
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
-     &zrb,zs
+     &zrb,zs,  crabfreq, crabpht
       character*16 typ
 +ca parpro
 +ca parnum
@@ -14364,6 +14480,42 @@
 +ca beam6dfi
           goto 440
         endif
++if crlibm
+          pi=4d0*atan_rn(1d0)
++ei
++if .not.crlibm
+          pi=4d0*atan(1d0)
++ei
+        if(kzz.eq.23) then
+*FOX  CRABAMP=ED(IX)/(EJF1) ;
+!       call dapri(EJF1,234)
+!       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
+        crabfreq=ek(ix)*1000.0
+        crabpht=crabph(ix)
+*FOX  Y(1)=Y(1) - CRABAMP*C1E3*
+*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(1)*
+*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA=DPDA1*C1M3 ;
+*FOX  EJF1=E0F*(ONE+DPDA) ;
+*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+
+
+          goto 440
+      endif
+        if(kzz.eq.-23) then
+*FOX  CRABAMP=ED(IX)/(EJF1) ;
+           crabfreq=ek(ix)*1000.0
+           crabpht=crabph(ix)
+*FOX  Y(2)=Y(2) - CRABAMP*C1E3*
+*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(2)*
+*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  DPDA=DPDA1*C1M3 ;
+*FOX  EJF1=E0F*(ONE+DPDA) ;
+*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+          goto 440  
+      endif
 +ca trom20
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
         ipch=0
@@ -17585,6 +17737,7 @@
 +ca beams24
 +ca wirektrack
 +ca acdip1
++ca crab1
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
@@ -19370,7 +19523,7 @@
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
-     &acdipamp1
+     &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
 +if time
@@ -19415,6 +19568,7 @@
         if(nthinerr.ne.0) return
         do 630 i=1,iu
           ix=ic(i)-nblo
++ca bpmdata
 +if time
 +ca timefct
 +ei
@@ -19422,7 +19576,7 @@
           goto(10,630,740,630,630,630,630,630,630,630,30,50,70,90,110,  &
      &130,150,170,190,210,420,440,460,480,500,520,540,560,580,600,      &
      &620,390,230,250,270,290,310,330,350,370,680,700,720,630,748,      &
-     &630,630,630,630,630,745,746),ktrack(i)
+     &630,630,630,630,630,745,746,751,752),ktrack(i)
           goto 630
    10     stracki=strack(i)
           do 20 j=1,napx
@@ -19742,6 +19896,14 @@
           xory=2
 +ca acdipkick
           goto 620
+  751     continue
+          xory=1
++ca crabkick
+          goto 620
+  752     continue
+          xory=2
++ca crabkick
+          goto 620
 
 !----------------------------
 
@@ -19786,7 +19948,8 @@
 +ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       double precision e0fo,e0o,xv1j,xv2j
-      double precision acdipamp, qd, acphase,acdipamp2,acdipamp1
+      double precision acdipamp, qd, acphase,acdipamp2,acdipamp1,       &
+     &crabamp,crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
 +if time
@@ -20066,6 +20229,7 @@
            endif
 +ei
           ix=ic(i)-nblo
++ca bpmdata
 +if time
 +ca timefct
 +ei
@@ -20105,7 +20269,7 @@
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746),ktrack(i)
+     &650,650,650,650,650,745,746,751,752),ktrack(i)
           goto 650
 +ei
 +if collimat
@@ -22038,7 +22202,15 @@
           xory=2
 +ca acdipkick
           goto 640
-
+  751     continue
+          xory=1
++ca crabkick
+          goto 640
+  752     continue
+          xory=2
++ca crabkick
+          goto 640
+      
 !----------------------------
 
 ! Wire.
@@ -22830,7 +23002,7 @@
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
-     &acdipamp1
+     &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
 +if time
@@ -22882,6 +23054,7 @@
         if(nthinerr.ne.0) return
         do 650 i=1,iu
           ix=ic(i)-nblo
++ca bpmdata
 +if time
 +ca timefct
 +ei
@@ -22889,7 +23062,7 @@
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746),ktrack(i)
+     &650,650,650,650,650,745,746,751,752),ktrack(i)
           goto 650
    10     stracki=strack(i)
           do 20 j=1,napx
@@ -23260,7 +23433,15 @@
           xory=2
 +ca acdipkick
           goto 640
-
+  751     continue
+          xory=1
++ca crabkick
+          goto 640
+  752     continue
+          xory=2
++ca crabkick
+          goto 640
+      
 !----------------------------
 
 ! Wire.
@@ -23887,6 +24068,7 @@
 +ca beams24
 +ca wirektrack
 +ca acdip1
++ca crab1
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
@@ -24159,7 +24341,7 @@
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
-     &acdipamp1
+     &acdipamp1,crabamp,crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
 +if time
@@ -24209,6 +24391,7 @@
               ix=ic(i)
             else
               ix=ic(i)-nblo
++ca bpmdata
 +if time
 +ca timefct
 +ei
@@ -24219,7 +24402,7 @@
             goto(20,480,740,480,480,480,480,480,480,480,40,60,80,100,   &
      &120,140,160,180,200,220,270,290,310,330,350,370,390,410,          &
      &430,450,470,240,500,520,540,560,580,600,620,640,680,700           &
-     &,720,480,748,480,480,480,480,480,745,746),ktrack(i)
+     &,720,480,748,480,480,480,480,480,745,746,751,752),ktrack(i)
             goto 480
    20       do 30 j=1,napx
               puxve=xv(1,j)
@@ -24548,7 +24731,15 @@
           xory=2
 +ca acdipkick
           goto 470
-
+  751     continue
+          xory=1
++ca crabkick
+          goto 470
+  752     continue
+          xory=2
++ca crabkick
+          goto 470
+      
 !----------------------------
 
 ! Wire.
@@ -24593,7 +24784,7 @@
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
-     &acdipamp1
+     &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
 +if time
@@ -24643,6 +24834,7 @@
               ix=ic(i)
             else
               ix=ic(i)-nblo
++ca bpmdata
 +if time
 +ca timefct
 +ei
@@ -24651,7 +24843,7 @@
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752),ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do 30 jb=1,jmel
@@ -25019,7 +25211,14 @@
           xory=2
 +ca acdipkick
           goto 490
-
+  751     continue
+          xory=1
++ca crabkick
+          goto 490
+  752     continue
+          xory=2
++ca crabkick
+          goto 490
 !----------------------------
 
 ! Wire.
@@ -25064,7 +25263,7 @@
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
-     &acdipamp1
+     &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
 +if time
@@ -25118,6 +25317,7 @@
               ix=ic(i)
             else
               ix=ic(i)-nblo
++ca bpmdata
 +if time
 +ca timefct
 +ei
@@ -25126,7 +25326,7 @@
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752),ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do 30 jb=1,jmel
@@ -25499,7 +25699,14 @@
           xory=2
 +ca acdipkick
           goto 490
-
+  751     continue
+          xory=1
++ca crabkick
+          goto 490
+  752     continue
+          xory=2
++ca crabkick
+          goto 490
 !----------------------------
 
 ! Wire.
@@ -27512,6 +27719,7 @@
         ptnfac(i)=zero
         wirel(i)=zero
         acdipph(i)=zero
+      crabph(i)=zero
         bez(i)=' '
         bezl(i)=' '
         do 120 i3=1,2
@@ -45982,9 +46190,12 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.4 2007-07-05 18:58:44 frs Exp $
+! $Id: sixtrack.s,v 1.5 2007-11-22 22:30:11 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.4  2007/07/05 18:58:44  frs
+! increase number of elements nblz=20000
+!
 ! Revision 1.3  2007/05/06 21:24:28  frs
 ! 1) Program stops if a Single Element Name is longer than 16 characters
 ! (error # 104).
@@ -46767,9 +46978,12 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.4 2007-07-05 18:58:44 frs Exp $
+! $Id: sixtrack.s,v 1.5 2007-11-22 22:30:11 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.4  2007/07/05 18:58:44  frs
+! increase number of elements nblz=20000
+!
 ! Revision 1.3  2007/05/06 21:24:28  frs
 ! 1) Program stops if a Single Element Name is longer than 16 characters
 ! (error # 104).
@@ -46887,9 +47101,12 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.4 2007-07-05 18:58:44 frs Exp $
+! $Id: sixtrack.s,v 1.5 2007-11-22 22:30:11 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.4  2007/07/05 18:58:44  frs
+! increase number of elements nblz=20000
+!
 ! Revision 1.3  2007/05/06 21:24:28  frs
 ! 1) Program stops if a Single Element Name is longer than 16 characters
 ! (error # 104).
