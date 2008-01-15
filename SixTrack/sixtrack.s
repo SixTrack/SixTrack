@@ -51,7 +51,7 @@
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
      &nzfz = 300000,mmul = 11)
 +ei
-      parameter(nran =2000000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
+      parameter(nran = 2000000,ncom = 100,mran = 500,mpa = 6,nrco = 5,  &
      &nema = 15)
       parameter(mcor = 10,mcop = mcor+6, mbea = 15)
       parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
@@ -2933,10 +2933,10 @@
 +if .not.crlibm
           pi=4d0*atan(1d0)
 +ei
-        crabfreq=ek(ix)*1000.0
+        crabfreq=ek(ix)*c1e3
       
         do j=1,napx
-        crabamp=ed(ix)/(ejfv(j))*1000.0
+        crabamp=ed(ix)/(ejfv(j))*c1e3
 !        write(*,*) crabamp, ejfv(j), clight, "HELLO" 
 
 +if .not.tilt
@@ -2944,13 +2944,13 @@
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*
-     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
 +ei
 +if .not.crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin(sigmv(j)/clight*crabfreq + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                      
-     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
 +ei
 +ei
 +if tilt
@@ -2959,15 +2959,19 @@
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                    
-     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
 +ei
 +if .not.crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                     
-     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
 +ei
 +ei
+      ejfv(j)=dpsv(j)*e0f+e0f
+      ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
       enddo
 +cd acdipkick
           nfree=nturn1(ix)
@@ -13532,7 +13536,7 @@
 
           if(kzz.eq.23) then
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
-             crabfreq=ek(ix)
+             crabfreq=ek(ix)*c1e3
              crabpht=crabph(ix)
 *FOX  Y(1)=Y(1) - CRABAMP*C1E3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
@@ -13544,7 +13548,7 @@
           endif
           if(kzz.eq.-23) then
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
-             crabfreq=ek(ix)
+             crabfreq=ek(ix)*c1e3
              crabpht=crabph(ix)
 *FOX  Y(2)=Y(2) - CRABAMP*C1E3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
@@ -14490,7 +14494,7 @@
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
 !       call dapri(EJF1,234)
 !       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
-        crabfreq=ek(ix)*1000.0
+        crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
 *FOX  Y(1)=Y(1) - CRABAMP*C1E3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
@@ -14505,7 +14509,7 @@
       endif
         if(kzz.eq.-23) then
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
-           crabfreq=ek(ix)*1000.0
+           crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 *FOX  Y(2)=Y(2) - CRABAMP*C1E3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
@@ -46190,7 +46194,7 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.5 2007-11-22 22:30:11 frs Exp $
+! $Id: sixtrack.s,v 1.6 2008-01-15 17:26:14 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.4  2007/07/05 18:58:44  frs
@@ -46978,7 +46982,7 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.5 2007-11-22 22:30:11 frs Exp $
+! $Id: sixtrack.s,v 1.6 2008-01-15 17:26:14 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.4  2007/07/05 18:58:44  frs
@@ -47101,7 +47105,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.5 2007-11-22 22:30:11 frs Exp $
+! $Id: sixtrack.s,v 1.6 2008-01-15 17:26:14 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.4  2007/07/05 18:58:44  frs
