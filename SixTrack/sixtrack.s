@@ -2944,13 +2944,13 @@
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*
-     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
+     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +if .not.crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin(sigmv(j)/clight*crabfreq + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                      
-     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
+     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +ei
 +if tilt
@@ -2959,13 +2959,13 @@
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                    
-     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
+     &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +if .not.crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                
      &sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                     
-     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))/c1e3
+     &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +ei
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -46194,7 +46194,7 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.6 2008-01-15 17:26:14 frs Exp $
+! $Id: sixtrack.s,v 1.7 2008-01-15 17:47:51 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.4  2007/07/05 18:58:44  frs
@@ -46982,7 +46982,7 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.6 2008-01-15 17:26:14 frs Exp $
+! $Id: sixtrack.s,v 1.7 2008-01-15 17:47:51 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.4  2007/07/05 18:58:44  frs
@@ -47105,7 +47105,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.6 2008-01-15 17:26:14 frs Exp $
+! $Id: sixtrack.s,v 1.7 2008-01-15 17:47:51 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.4  2007/07/05 18:58:44  frs
