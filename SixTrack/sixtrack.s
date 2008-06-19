@@ -38786,6 +38786,7 @@
       do 110 i=1,60
         sumda(i)=zero
   110 continue
+      sumda(52)=4009.0
       b0=zero
       nlost=0
       ntwin=1
@@ -46194,9 +46195,12 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.7 2008-01-15 17:47:51 frs Exp $
+! $Id: sixtrack.s,v 1.8 2008-06-19 13:15:24 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.7  2008/01/15 17:47:51  frs
+! replace CRAB /c1e3 by *c1m3
+!
 ! Revision 1.4  2007/07/05 18:58:44  frs
 ! increase number of elements nblz=20000
 !
@@ -46982,9 +46986,12 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.7 2008-01-15 17:47:51 frs Exp $
+! $Id: sixtrack.s,v 1.8 2008-06-19 13:15:24 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.7  2008/01/15 17:47:51  frs
+! replace CRAB /c1e3 by *c1m3
+!
 ! Revision 1.4  2007/07/05 18:58:44  frs
 ! increase number of elements nblz=20000
 !
@@ -47105,9 +47112,12 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.7 2008-01-15 17:47:51 frs Exp $
+! $Id: sixtrack.s,v 1.8 2008-06-19 13:15:24 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.7  2008/01/15 17:47:51  frs
+! replace CRAB /c1e3 by *c1m3
+!
 ! Revision 1.4  2007/07/05 18:58:44  frs
 ! increase number of elements nblz=20000
 !
