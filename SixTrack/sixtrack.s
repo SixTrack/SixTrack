@@ -1,3 +1,9 @@
++cd version
+      character*8 version
+      character*10 moddate
+      integer itot,ttot
+      data version /'4.0.10'/
+      data moddate /'24.06.2008'/
 +cd crlibco
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
@@ -16032,6 +16038,7 @@
       data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
      &'  April   ','   May    ','   June   ','   July   ',' August  ',  &
      &' September',' October  ',' November ',' December '/
++ca version
 !-----------------------------------------------------------------------
 +if boinc
       call boinc_init(0)
@@ -16145,10 +16152,10 @@
 !-----------------------------------------------------------------------
 +ca open
 +if cr
-      write(lout,10010)
+      write(lout,10010) version,moddate
 +ei
 +if .not.cr
-      write(*,10010)
+      write(*,10010) version,moddate
 +ei
       tlim=1e7
       call timest(tlim)
@@ -17494,22 +17501,22 @@
      &'   APERTURE = ',f15.3/)
 +if .not.tilt
 +if cr
-10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09',                     &
-     &'  --  (last change: 06.05.2007)'//)
+10010 format(/t10,'SIXTRACR VECTOR VERSION ',A8,                        &
+     &'  --  (last change: ',A10,')'//)
 +ei
 +if .not.cr
-10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09',                     &
-     &'  --  (last change: 06.05.2007)'//)
+10010 format(/t10,'SIXTRACK VECTOR VERSION ',A8,                        &
+     &'  --  (last change: ',A10,')'//)
 +ei
 +ei
 +if tilt
 +if cr
-10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09 (with tilt)',         &
-     &'  --  (last change: 06.05.2007)'//)
+10010 format(/t10,'SIXTRACR VECTOR VERSION ',A8,' (with tilt)',         &
+     &'  --  (last change: ',A10,')'//)
 +ei
 +if .not.cr
-10010 format(/t10,'SIXTRACK VECTOR VERSION 4.0.09 (with tilt)',         &
-     &'  --  (last change: 06.05.2007)'//)
+10010 format(/t10,'SIXTRACK VECTOR VERSION ',A8,' (with tilt)',         &
+     &'  --  (last change: ',A10,')'//)
 +ei
 +ei
 10020 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:', /t10,         &
@@ -26826,15 +26833,16 @@
      &'  April   ','   May    ','   June   ','   July   ',' August  ',  &
      &' September',' October  ',' November ',' December '/
 !-----------------------------------------------------------------------
++ca version
 +if iibm
       call xuflow(0)
 +ei
 +ca open
 +if cr
-      write(lout,10000)
+      write(lout,10000) version,moddate
 +ei
 +if .not.cr
-      write(*,10000)
+      write(*,10000) version,moddate
 +ei
       tlim=1e7
       call timest(tlim)
@@ -26843,21 +26851,21 @@
       idate=0
       itime=0
       call datime(idate,itime)
-      write(cdate,'(I6)') idate
-      write(ctime,'(I4)') itime
+      write(cdate,'(I6.6)') idate
+      write(ctime,'(I4.4)') itime
       read(cdate(3:4),'(I2)') imonth
       if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
         day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
-     &//' 19'//cdate(1:2)//', '
+     &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
         day='SIXTRACK starts on: '//cdate(5:6)//'nd of' //cmonth(imonth)&
-     &//' 19'//cdate(1:2)//', '
+     &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'3'.and.cdate(5:5).ne.'1') then
         day='SIXTRACK starts on: '//cdate(5:6)//'rd of' //cmonth(imonth)&
-     &//' 19'//cdate(1:2)//', '
+     &//' 20'//cdate(1:2)//', '
       else
         day='SIXTRACK starts on: '//cdate(5:6)//'th of' //cmonth(imonth)&
-     &//' 19'//cdate(1:2)//', '
+     &//' 20'//cdate(1:2)//', '
       endif
       if(ctime(1:2).ne.'  ') then
         if(ctime(3:4).eq.'  ') then
@@ -27319,12 +27327,12 @@
       stop 
 +ei
 +if .not.tilt
-10000 format(/t10,'SIXTRACK DA VERSION 4.0.09',                         &
-     &'  --  (last change: 06.05.2007)'//)
+10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
+     &'  --  (last change: ',A10,')'//)
 +ei
 +if tilt
-10000 format(/t10,'SIXTRACK DA VERSION 4.0.09 (with tilt)',             &
-     &'  --  (last change: 06.05.2007)'//)
+10000 format(/t10,'SIXTRACK DA VERSION ',A8,' (with tilt)',             &
+     &'  --  (last change: ',A10,')'//)
 +ei
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:', /t10,         &
      &'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM'/t10,    &
@@ -38708,6 +38716,7 @@
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
++ca version
 +ca save
 !----------------------------------------------------------------------
 !--TIME START
@@ -38786,7 +38795,19 @@
       do 110 i=1,60
         sumda(i)=zero
   110 continue
-      sumda(52)=4009.0
+      itot=0
+      do i=1,8
+        if (version(i:i).ne.' ') then
+          if (version(i:i).ne.'.') then
+            itot=itot*10+ichar(version(i:i))-ichar('0')
+          else
+            ttot=ttot*10**2+itot
+            itot=0
+          endif
+        endif
+      enddo
+      ttot=ttot*10**2+itot
+      sumda(52)=float(ttot)
       b0=zero
       nlost=0
       ntwin=1
@@ -46195,9 +46216,12 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.8 2008-06-19 13:15:24 frs Exp $
+! $Id: sixtrack.s,v 1.9 2008-06-24 14:12:42 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.8  2008/06/19 13:15:24  frs
+! Version 4009 with sumda(52) set to 4009.0
+!
 ! Revision 1.7  2008/01/15 17:47:51  frs
 ! replace CRAB /c1e3 by *c1m3
 !
@@ -46215,7 +46239,8 @@
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
-! Latest version for the collimation studies to include the Beam 2 lattice; clean-up of the unit number for output files.
+! Latest version for the collimation studies to include the Beam 2 lattice; 
+! clean-up of the unit number for output files.
 !
 ! Revision 1.2  1997/09/22 13:45:47  mclareni
 ! Correct error in initializing RANLUX by using RLUXIN with the output of
@@ -46986,9 +47011,12 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.8 2008-06-19 13:15:24 frs Exp $
+! $Id: sixtrack.s,v 1.9 2008-06-24 14:12:42 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.8  2008/06/19 13:15:24  frs
+! Version 4009 with sumda(52) set to 4009.0
+!
 ! Revision 1.7  2008/01/15 17:47:51  frs
 ! replace CRAB /c1e3 by *c1m3
 !
@@ -47006,7 +47034,8 @@
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
-! Latest version for the collimation studies to include the Beam 2 lattice; clean-up of the unit number for output files.
+! Latest version for the collimation studies to include the Beam 2 lattice; 
+! clean-up of the unit number for output files.
 !
 ! Revision 1.1.1.1  1996/04/01 15:02:13  mclareni
 ! Mathlib gen
@@ -47112,9 +47141,12 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.8 2008-06-19 13:15:24 frs Exp $
+! $Id: sixtrack.s,v 1.9 2008-06-24 14:12:42 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.8  2008/06/19 13:15:24  frs
+! Version 4009 with sumda(52) set to 4009.0
+!
 ! Revision 1.7  2008/01/15 17:47:51  frs
 ! replace CRAB /c1e3 by *c1m3
 !
@@ -47132,7 +47164,8 @@
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
-! Latest version for the collimation studies to include the Beam 2 lattice; clean-up of the unit number for output files.
+! Latest version for the collimation studies to include the Beam 2 lattice; 
+! clean-up of the unit number for output files.
 !
 ! Revision 1.1.1.1  1996/04/01 15:02:14  mclareni
 ! Mathlib gen
