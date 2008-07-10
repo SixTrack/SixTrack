@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.0.10'/
-      data moddate /'24.06.2008'/
+      data version /'4.0.11'/
+      data moddate /'10.07.2008'/
 +cd crlibco
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
@@ -19579,7 +19579,9 @@
         if(nthinerr.ne.0) return
         do 630 i=1,iu
           ix=ic(i)-nblo
++if bpm
 +ca bpmdata
++ei bpm
 +if time
 +ca timefct
 +ei
@@ -20240,7 +20242,9 @@
            endif
 +ei
           ix=ic(i)-nblo
++if bpm
 +ca bpmdata
++ei bpm
 +if time
 +ca timefct
 +ei
@@ -23065,7 +23069,9 @@
         if(nthinerr.ne.0) return
         do 650 i=1,iu
           ix=ic(i)-nblo
++if bpm
 +ca bpmdata
++ei bpm
 +if time
 +ca timefct
 +ei
@@ -24402,7 +24408,9 @@
               ix=ic(i)
             else
               ix=ic(i)-nblo
++if bpm
 +ca bpmdata
++ei bpm
 +if time
 +ca timefct
 +ei
@@ -24845,7 +24853,9 @@
               ix=ic(i)
             else
               ix=ic(i)-nblo
++if bpm
 +ca bpmdata
++ei bpm
 +if time
 +ca timefct
 +ei
@@ -25328,7 +25338,9 @@
               ix=ic(i)
             else
               ix=ic(i)-nblo
++if bpm
 +ca bpmdata
++ei bpm
 +if time
 +ca timefct
 +ei
@@ -46216,9 +46228,22 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.9 2008-06-24 14:12:42 mcintosh Exp $
+! $Id: sixtrack.s,v 1.10 2008-07-10 10:30:54 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.9  2008/06/24 14:12:42  mcintosh
+! Version 4.0.10; the version and last modification date
+! for both SixTrack and SixTrack_da are now specified in
+! a common deck at the very beginning of sixtrack.s.
+! Version is an 8 character string [v]v.[v]v.[v]v and
+! moddate a 10 character string dd.mm.yyyy. The version is
+! stored in floating-point in sumda(52) for BOINC in particular.
+! In this way fort.10 identifies the version which produced it.
+! In addition make_six will soon be changed to use "version".
+!
+! Small format changes to a couple of comments and the SIXDA
+! date/time corrected.
+!
 ! Revision 1.8  2008/06/19 13:15:24  frs
 ! Version 4009 with sumda(52) set to 4009.0
 !
@@ -47011,9 +47036,22 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.9 2008-06-24 14:12:42 mcintosh Exp $
+! $Id: sixtrack.s,v 1.10 2008-07-10 10:30:54 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.9  2008/06/24 14:12:42  mcintosh
+! Version 4.0.10; the version and last modification date
+! for both SixTrack and SixTrack_da are now specified in
+! a common deck at the very beginning of sixtrack.s.
+! Version is an 8 character string [v]v.[v]v.[v]v and
+! moddate a 10 character string dd.mm.yyyy. The version is
+! stored in floating-point in sumda(52) for BOINC in particular.
+! In this way fort.10 identifies the version which produced it.
+! In addition make_six will soon be changed to use "version".
+!
+! Small format changes to a couple of comments and the SIXDA
+! date/time corrected.
+!
 ! Revision 1.8  2008/06/19 13:15:24  frs
 ! Version 4009 with sumda(52) set to 4009.0
 !
@@ -47141,9 +47179,22 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.9 2008-06-24 14:12:42 mcintosh Exp $
+! $Id: sixtrack.s,v 1.10 2008-07-10 10:30:54 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.9  2008/06/24 14:12:42  mcintosh
+! Version 4.0.10; the version and last modification date
+! for both SixTrack and SixTrack_da are now specified in
+! a common deck at the very beginning of sixtrack.s.
+! Version is an 8 character string [v]v.[v]v.[v]v and
+! moddate a 10 character string dd.mm.yyyy. The version is
+! stored in floating-point in sumda(52) for BOINC in particular.
+! In this way fort.10 identifies the version which produced it.
+! In addition make_six will soon be changed to use "version".
+!
+! Small format changes to a couple of comments and the SIXDA
+! date/time corrected.
+!
 ! Revision 1.8  2008/06/19 13:15:24  frs
 ! Version 4009 with sumda(52) set to 4009.0
 !
