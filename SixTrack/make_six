@@ -11,8 +11,10 @@
 # Gets the version and modification date from sixtrack.s
 # Corrects the BOINC variable in the Makefile
 # make_six clean now exits after the clean just like a make clean
+# Version 1.5 11/07/2008
+# Adds the deck nwrtbnl and the flags bpm and bnlelens
 #
-# Default: tilt tracking fast crlibm cernlib naglib -windows -da -collimat -cpss -boinc -cr
+# Default: tilt tracking fast crlibm cernlib naglib -bpm -windows -da -collimat -bnlelens -cpss -boinc -cr
 # and uses the Lahey-Fujitsu lf95 compiler 
 
 # Options:
@@ -21,6 +23,8 @@
 # cpss => +cr -collimat -da -cernlib -naglib -boinc
 # boinc => +cr +crlibm -collimat -da -cernlib -naglib -cpss
 # windows => messing about with crlibm
+# bpm activates the collection of tracking data for sussix => basic SixTrack
+# bnlelens activates the bnl electron lens options => boinc, cr, crlibm
 # nag => use f95 instead of LAHEY
 # g77 => use g77
 # g95 => use g95
@@ -29,7 +33,7 @@ show_options()
 {
 ons="The following selections are ON  :"
 offs="The following selections are OFF :"
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
 do
   if test ${values[$i]} = "true"
   then
@@ -48,8 +52,8 @@ echo "$offs"
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm windows cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran)
-values=(junk  true true     true true   false   true    true   false false    false false false false false false false)
+options=(junk tilt tracking fast crlibm windows cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens)
+values=(junk  true true     true true   false   true    true   false false    false false false false false false false    false false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
@@ -79,6 +83,8 @@ nag="nag"
 g77="g77"
 g95="g95"
 gfortran="gfortran"
+bpm="bpm"
+bnlelens="bnlelens"
 while test $# != 0
 do
   case $1 in
@@ -133,6 +139,13 @@ do
     -gfortran) gfortran="gfortran"
            values[16]=false
     ;;
+    -bpm) bpm="bpm"
+          values[17]=false
+    ;;
+    -bnlelens) bnlelens="bnlelens"
+          values[18]=false
+    ;;
+
     +tilt) tilt=""
            values[1]=true 
     ;;
@@ -181,6 +194,13 @@ do
     +gfortran) gfortran=""
            values[16]=true
     ;;
+    +bpm) bpm=""
+          values[17]=true
+    ;;
+    +bnlelens) bnlelens=""
+          values[18]=true
+    ;;
+
     tilt) tilt=""
            values[1]=true
     ;;
@@ -229,6 +249,13 @@ do
     gfortran) gfortran=""
            values[16]=true
     ;;
+    bpm) bpm=""
+         values[17]=true
+    ;;
+    bnlelens) bnlelens=""
+         values[18]=true
+    ;;
+
     *) echo "Illegal option $1"
        exit 1
      ;;
@@ -378,7 +405,7 @@ fi
 # Update the .ast flags based on options
 rm -f *.ast
 cp ast_mask/*.ast .
-for opt in "$crlibm" "$tilt" "$fast" "$collimat" "$cr" "$boinc" "$nag"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag"
 do
   if test "$opt" != ""
   then
@@ -394,12 +421,14 @@ do
   fi
 done
 # Delete unneeded decks from the .ast based on options
-for opt in "$collimat" "$cr" "$cernlib" "$naglib"
+for opt in "$collimat" "$cr" "$cernlib" "$naglib" "$bnlelens"
 do
   if test "$opt" != ""
   then
     case $opt in
     collimat) pattern="nwrtcoll"
+    ;;
+    bnlelens) pattern="nwrtbnl"
     ;;
     cr)       pattern="checkpt"
     ;;

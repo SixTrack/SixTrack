@@ -1,7 +1,8 @@
 sixtrack.s
 trackn.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,bnlelens
 e tra_thck
 e tra_thin
 e nwrtcoll
+e nwrtbnl
 ex
