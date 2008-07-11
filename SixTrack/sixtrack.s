@@ -2,7 +2,7 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.1'/
+      data version /'4.1.2'/
       data moddate /'11.07.2008'/
 +cd rhicelens
 !GRDRHIC
@@ -2965,7 +2965,7 @@
 +ei
 +if .not.crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                
-     &sin(sigmv(j)/clight*crabfreq + crabph(ix))
+     &sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
       dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                      
      &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
@@ -46909,9 +46909,16 @@ cc     endif
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.12 2008-07-11 16:05:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.13 2008-07-11 17:10:36 rtomas Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.12  2008/07/11 16:05:43  mcintosh
+! Version 4.1.1
+! New make_six with new flags bpm and bnlelens and the ast's.
+! sixtrack.s: moved GRDRHIC comments inside +if bnlelens
+! Changed some writelin statements to be consistent; under investigation.
+! Fixed FORMAT bug in bnlelens.
+!
 ! Revision 1.11  2008/07/11 10:33:26  mcintosh
 ! Version 4.1.0 the first commited version with Guillaume's preliminary changes
 ! for "bnlelens" using the deck "rhicelens" required for RHIC BEAM-BEAM studies.
@@ -47727,9 +47734,16 @@ cc     endif
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.12 2008-07-11 16:05:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.13 2008-07-11 17:10:36 rtomas Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.12  2008/07/11 16:05:43  mcintosh
+! Version 4.1.1
+! New make_six with new flags bpm and bnlelens and the ast's.
+! sixtrack.s: moved GRDRHIC comments inside +if bnlelens
+! Changed some writelin statements to be consistent; under investigation.
+! Fixed FORMAT bug in bnlelens.
+!
 ! Revision 1.11  2008/07/11 10:33:26  mcintosh
 ! Version 4.1.0 the first commited version with Guillaume's preliminary changes
 ! for "bnlelens" using the deck "rhicelens" required for RHIC BEAM-BEAM studies.
@@ -47880,9 +47894,16 @@ cc     endif
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.12 2008-07-11 16:05:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.13 2008-07-11 17:10:36 rtomas Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.12  2008/07/11 16:05:43  mcintosh
+! Version 4.1.1
+! New make_six with new flags bpm and bnlelens and the ast's.
+! sixtrack.s: moved GRDRHIC comments inside +if bnlelens
+! Changed some writelin statements to be consistent; under investigation.
+! Fixed FORMAT bug in bnlelens.
+!
 ! Revision 1.11  2008/07/11 10:33:26  mcintosh
 ! Version 4.1.0 the first commited version with Guillaume's preliminary changes
 ! for "bnlelens" using the deck "rhicelens" required for RHIC BEAM-BEAM studies.
