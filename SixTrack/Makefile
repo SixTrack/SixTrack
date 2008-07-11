@@ -9,9 +9,9 @@ dafor: dafor.o
 astuce: astuce.o
 	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
 
-SixTrack: track.o sixve.o sixvefox.o dabnews.o lielib.o $(CRLIBM)
+SixTrack: track.o sixve.o sixvefox.o dabnews.o lielib.o $(BOINC) $(CRLIBM)
 	$(FC) $(FCL) -o SixTrack track.o sixve.o sixvefox.o dabnews.o lielib.o \
-	$(CERNLIB) $(CRLIBM) $(gfortran_lib)
+	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib)
 
 SixTrack_da: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
 	$(FC) $(FCL) -o SixTrack_da sixda.o sixsc.o sixscfox.o dabnew.o lielib.o \

@@ -1,3 +1,6 @@
+      program maincr
+      call worker
+      end
       subroutine boinc_time_to_checkpoint(timech)
       implicit none
       integer timech

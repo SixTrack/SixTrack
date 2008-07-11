@@ -7,15 +7,20 @@
 # Version 1.3 05/09/2005
 # CERNLIB only for SixTrack (not SixTrack_da); CERNGRAF dropped.
 # The -naglib option now works for SixTrack_da
+# Version 1.4 1/8/2008
+# Gets the version and modification date from sixtrack.s
+# Corrects the BOINC variable in the Makefile
+# make_six clean now exits after the clean just like a make clean
 #
 # Default: tilt tracking fast crlibm cernlib naglib -windows -da -collimat -cpss -boinc -cr
+# and uses the Lahey-Fujitsu lf95 compiler 
+
 # Options:
 # da => -tracking -cpss -boinc -collimat -cr
 # collimat => -da -cr -boinc -cpss
 # cpss => +cr -collimat -da -cernlib -naglib -boinc
-# boinc => +cr -collimat -da -cernlib -naglib -cpss
+# boinc => +cr +crlibm -collimat -da -cernlib -naglib -cpss
 # windows => messing about with crlibm
-# windows + boinc => subroutine sixtrack and new graphics interface???
 # nag => use f95 instead of LAHEY
 # g77 => use g77
 # g95 => use g95
@@ -24,7 +29,7 @@ show_options()
 {
 ons="The following selections are ON  :"
 offs="The following selections are OFF :"
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 do
   if test ${values[$i]} = "true"
   then
@@ -37,16 +42,27 @@ echo "$ons"
 echo "$offs"
 }
 
-sysname="`fs sysname`"
-windows_version=SixTrack71v99boinc
-gfortran_lib=""
-
-command_line=$*
 #NOTA BENE! Definitions of cernlib and naglib are reversed
+# in the sense that while a "" null value implies option is ON
+# the reverse is true for cernlib and naglib 
+# The 0th option is not used
 declare -a options
 declare -a values
 options=(junk tilt tracking fast crlibm windows cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran)
 values=(junk  true true     true true   false   true    true   false false    false false false false false false false)
+
+sysname="`fs sysname`"
+gfortran_lib=""
+sversion=`grep 'data version' sixtrack.s` 
+# get string between /....../
+sversion=`echo $sversion | sed -e's/.*\/\(.*\)\//\1/'`
+# remove the quotes
+version=`echo $sversion | sed -e's/.\([0-9]*\).\([0-9]*\).\([0-9]*\)./v\1\2\3/'`
+moddate=`grep 'data moddate' sixtrack.s` 
+moddate=`echo $moddate | sed -e's/.*\/\(.*\)\//\1/'`
+moddate=`echo $moddate | sed -e's/.\(.*\)./\1/'`
+
+command_line=$*
 tilt=""
 tracking=""
 fast=""
@@ -67,6 +83,7 @@ while test $# != 0
 do
   case $1 in
     clean) make clean
+    exit
     ;;
     -tilt) tilt="tilt"
            values[1]=false
@@ -218,7 +235,7 @@ do
   esac
   shift
 done
-# Here Eric should check for valid/invalid combinations
+# Here we check for valid/invalid combinations 
 if test "$crlibm" = ""
 then
   if test "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
@@ -231,11 +248,13 @@ then
 fi
 if test "$boinc" = ""
 then
+# BOINC includes the CPSS options and more
   cpss=""
   values[10]=true
 fi
 if test "$cpss" = ""
 then
+# CPSS is for Windows only
   windows=""
   values[5]=true
 fi
@@ -312,6 +331,9 @@ then
     values[5]=false
   fi
 fi
+echo ""
+echo "We are about to build a Sixtrack using the"
+echo "Version $version last modified on $moddate"
 show_options
 # Set up compiler
 if test "$nag" = ""
@@ -458,6 +480,7 @@ then
   cd ..
   export CRLIBM="crlibm/crlibm.a"
 fi
+export BOINC=""
 if test "$da" = ""
 then
   make SixTrack_da

@@ -2,8 +2,17 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.0.11'/
-      data moddate /'10.07.2008'/
+      data version /'4.1.0'/
+      data moddate /'11.07.2008'/
++cd rhicelens
+      double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
+     &talphay(nblz),torbx(nblz),torbxp(nblz),torby(nblz),torbyp(nblz),  &
+     &tdispx(nblz),tdispy(nblz),totals,sampl(nblz)
+      integer ielem
+      integer namepart(npart)
+!
+      common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,       &
+     &torby,torbyp,tdispx,tdispy,sampl,namepart
 +cd crlibco
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
@@ -4804,6 +4813,9 @@
               xv(2,jj)=xv(2,jj1)
               yv(1,jj)=yv(1,jj1)
               yv(2,jj)=yv(2,jj1)
++if bnlelens
+              namepart(jj)=namepart(jj1)
++ei
               dpsv(jj)=dpsv(jj1)
               sigmv(jj)=sigmv(jj1)
               ejfv(jj)=ejfv(jj1)
@@ -5306,12 +5318,20 @@
 +cd trom06
             phi(l)=phi(l)+dphi/pie
           enddo
-+if .not.collimat
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-+if collimat
++if collimat.and..not.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
++if .not.collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
@@ -8889,6 +8909,11 @@
 +ca commons
 +ca commont1
 +ca commondl
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       if(numx.eq.1) phas0=phas
@@ -8925,6 +8950,11 @@
 +ca commons
 +ca commont1
 +ca commondl
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
@@ -8986,6 +9016,11 @@
 +ca database
 +ei
 !
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -11093,7 +11128,14 @@
       if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
       if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
       if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
+!GRD-2007
++if bnlelens
+      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.9)) lhc=1
++ei
++if .not.bnlelens
       if(lhc.ne.0.and.lhc.ne.1) lhc=1
++ei
+!GRD-2007
       if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
       nbeam=1
       if(ibtyp.eq.1) call wzset
@@ -11678,6 +11720,11 @@
 +ca parpro
 +ca parnum
 +ca common
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ii=0
@@ -12033,6 +12080,11 @@
 +ca commons
 +ca commont1
 +ca commondl
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       dpd=one+dpp
@@ -12457,6 +12509,11 @@
 +ca commondl
 +ca commond1
 +ca commond2
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -12831,6 +12888,11 @@
 +ca common
 +ca commondl
 +ca commond1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -13988,6 +14050,11 @@
       dimension b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3)
       dimension d(3),dp(3),c(3),cp(3),au(6,6),aui(2)
       dimension i4(10,2)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +ca daini
@@ -14999,6 +15066,11 @@
 +ca commondl
 +ca commonl
 +ca commonxz
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15300,6 +15372,11 @@
 +ca commondl
 +ca commond1
 +ca commonm1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15357,6 +15434,11 @@
 +ca commondl
 +ca commonl
 +ca commonxz
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15486,6 +15568,11 @@
 +ca parnum
 +ca commondl
       dimension param(nele,4),bcu(nbb,12),star(3,mbea)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15557,6 +15644,11 @@
 +ca parpro
 +ca parnum
 +ca commondl
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15618,6 +15710,11 @@
 +ca parnum
 +ca commondl
       dimension star(3,mbea),bcu(nbb,12)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15763,6 +15860,11 @@
 +ca parpro
 +ca parnum
 +ca commondl
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15833,6 +15935,11 @@
 +ca parnum
       parameter(sqrpi2 = 3.544907701811032d0,hundred = 100d0)
 +ca commondl
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -15934,7 +16041,12 @@
       return
       end
 +dk maincr
++if boinc
+      subroutine worker
++ei
++if .not.boinc
       program maincr
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -15998,6 +16110,11 @@
 +ca commonl
 +ca commonmn
 +ca commonm1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca commonc
 +if collimat
 +ca collpara
@@ -16043,7 +16160,6 @@
 +if boinc
       call boinc_init(0)
       call boinc_init_graphics()
-      call sixtrack_unzip()
 +ei
 +if cr
       sythckcr=.false.
@@ -17671,6 +17787,11 @@
 +ca dbpencil
 +ca info
 +ei
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
@@ -19555,6 +19676,11 @@
 +ca crco
 +ei
       dimension dpsv3(npart)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -19992,6 +20118,11 @@
 +ca crco
 +ei
       dimension dpsv3(npart)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +if fast
@@ -23038,6 +23169,11 @@
 +ca crco
 +ei
       dimension dpsv3(npart)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +if fast
@@ -23504,6 +23640,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       nripple=nrturn+n
@@ -23555,6 +23696,11 @@
 +if boinc
       integer timech
 +ei
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +if cr
@@ -23682,6 +23828,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +ca lost1a
@@ -23718,6 +23869,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +ca lost1a
@@ -23755,6 +23911,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +ca lost1b
@@ -23792,6 +23953,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +ca lost1c
@@ -23827,6 +23993,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 20 ia=1,napx,2
@@ -23895,6 +24066,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       id=0
@@ -24008,6 +24184,45 @@
 +ca commontr
 +ca beamdim
       dimension nbeaux(nbb)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
+!
+!GRDRHIC
++if bnlelens
+!GRD-2007 NEW PARAMETERS FOR BEAM-BEAM STUDIES
+      integer maxn,napx00
+      parameter (maxn=20000,napx00=64)
+      integer   mynp
+      common /mynp/ mynp
+!
+      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
+     &myp(maxn),mys(maxn)
+      common /coord/ myx,myxp,myy,myyp,myp,mys
+!
+      integer   samplenumber
+      common /samplenumber/ samplenumber
+!
+      character*80 filename_dis
+      common /filename/ filename_dis
+!
+!GRD-042008
+      integer maxtrack,countertrack
+      parameter (maxtrack=10000)
+      double precision twojx,twojy,twojr,sumtwojx(maxtrack),            &
+     &sumtwojy(maxtrack),sumsquarex(maxtrack),sumsquarey(maxtrack),     &
+     &x_temp,xp_temp,y_temp,yp_temp
+!
+      integer n_cut(maxtrack),n_nocut(maxtrack)
+!
+      common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
+     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut
+!GRD-042008
++ei
+!GRDRHIC
+!
 +ca save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
@@ -24330,7 +24545,105 @@
         if(abs(phas).ge.pieni) then
           call thck6dua(nthinerr)
         else
+!GRDRHIC
++if .not.bnlelens
           call thck6d(nthinerr)
++ei
+!
++if bnlelens
+!GRD-2007
+!GRD-2007 REQUIRED FOR RHIC BEAM-BEAM STUDIES
+!GRD-2007
+!GRD-2007 OPTION IS ACTIVATED IF "LHC" PARAMETER IN BEAM-BEAM
+!GRD-2007 BLOCK IN FORT.3 IS SET TO 9
+!GRD-2007
+           if(lhc.eq.9) then
+!
+              mynp=20000
+!
+              filename_dis='beambeamdist.dat'
+              call  readdis(filename_dis,                               &
+     & 20000, myx, myxp, myy, myyp, myp, mys,mynp)
+!
+              open(unit=51,file='SixTwiss.dat')
+!
+              open(unit=52,file='beambeam-output.dat')
+!
+              open(unit=53,file='beambeam-lostID.dat')
+!
+              do j = 1, int(mynp/napx00)
+!     
+                 write(*,*) 'Sample number ', j, int(mynp/napx00)
+!     
+                 samplenumber = j
+!
+!TEST
+                 napx=napx00
+!
+                 do i = 1, napx00
+                    pstop(nlostp(i))=.false.
+                 enddo
+!TEST
+!     
+                 do i = 1, napx00
+                    xv(1,i)  = 1e3*myx(i+(j-1)*napx00)+torbx(1)
+                    yv(1,i)  = 1e3*myxp(i+(j-1)*napx00)+torbxp(1)
+                    xv(2,i)  = 1e3*myy(i+(j-1)*napx00)+torby(1)
+                    yv(2,i)  = 1e3*myyp(i+(j-1)*napx00)+torbyp(1)
+!                    x00(i)  = xv(1,i)
+!                    xp00(i) = yv(1,i)
+!                    y00(i)  = xv(2,i)
+!                    yp00(i) = yv(2,i)
+                    sigmv(i) = mys(i+(j-1)*napx00)
+                    ejv(i)   = myp(i+(j-1)*napx00)
+!     
+                    ejfv(i)=sqrt(ejv(i)*ejv(i)-pma*pma)
+                    rvv(j)=(ejv(i)*e0f)/(e0*ejfv(i))
+                    dpsv(i)=(ejfv(i)-e0f)/e0f
+                    oidpsv(i)=one/(one+dpsv(i))
+                    dpsv1(i)=dpsv(i)*c1e3*oidpsv(i)
+cc2008
+                    namepart(i) = samplenumber*100 + i
+cc2008
+                 enddo
+!
+                 call thck6d(nthinerr)
+!
+              enddo
+!
+!GRD-042008
+c              do i=1,numl
+c                 write(52,'(i8,2(1x,i8,2(1x,e15.8)))')                  &
+c     &                i,n_cut(i),sumsquarex(i)/(n_cut(i)**2),           &
+c     &                sumsquarey(i)/(n_cut(i)**2),n_cut(i)+n_nocut(i),  &
+c     &                sumtwojx(i)/(n_cut(i)+n_nocut(i)),                &
+c     &                sumtwojy(i)/(n_cut(i)+n_nocut(i))
+c              enddo
+!GRD-042008
+cc2008
+              close(53)
+cc2008
+              close(52)
+!
+c$$$              open(unit=51,file='SixTwiss.dat')
+c$$$              write(51,*) '# 1=i 2=s 3=betax 4=betay 5=alphax 6=alphay'
+c$$$              do i=1,iu
+c$$$                 write(51,'(i5,(1x,f15.10),4(1x,f20.13))')              &
+c$$$     &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i)
+c$$$              enddo
+              close(51)
+!
+           else
+!
+!GRD-2007 IF "LHC" IS ANYTHING BUT 9, USE THE ORIGINAL VERSION
+!
+              call thck6d(nthinerr)
+!
+           endif
+!GRD-2007
++ei
+!GRDRHIC
+!
         endif
       endif
       return
@@ -24379,6 +24692,11 @@
 +ca crco
 +ei
       dimension dpsv3(npart)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -24824,11 +25142,75 @@
 +ca crco
 +ei
       dimension dpsv3(npart)
++if bnlelens
+!GRD-2007
+!GRD-2007 NEW PARAMETERS FOR BEAM-BEAM STUDIES
+      integer maxn,napx00
+      parameter (maxn=20000,napx00=64)
+      integer   mynp
+      common /mynp/ mynp
+!
+      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
+     &myp(maxn),mys(maxn)
+      common /coord/ myx,myxp,myy,myyp,myp,mys
+!
+      integer   samplenumber
+      common /samplenumber/ samplenumber
+!
+      character*80 filename_dis
+      common /filename/ filename_dis
+!GRD-2007
+!GRDRHIC
++ei
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
+!
++if bnlelens
+!GRD-042008
+      integer maxtrack,countertrack
+      parameter (maxtrack=10000)
+      double precision twojx,twojy,twojr,sumtwojx(maxtrack),            &
+     &sumtwojy(maxtrack),sumsquarex(maxtrack),sumsquarey(maxtrack),     &
+     &x_temp,xp_temp,y_temp,yp_temp
+!
+      double precision limit_twojx,limit_twojy,limit_twojr
+!
+      integer n_cut(maxtrack),n_nocut(maxtrack)
+!
+      common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
+     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut
+!GRD-042008
++ei
+!
+!GRD-2007
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
       idz1=idz(1)
       idz2=idz(2)
++if bnlelens
+!GRD-042008
+      if(samplenumber.eq.1) then
+         do i=1,maxtrack
+            sumtwojx(i)=0d0
+            sumtwojy(i)=0d0
+            n_nocut(i)=0
+!     
+            sumsquarex(i)=0d0
+            sumsquarey(i)=0d0
+            n_cut(i)=0
+         enddo
+      endif
+!
+      countertrack = 0
+!GRD-042008
+!GRD-2007
+      totals=0d0
+!GRD-2007
++ei
+!
 +if cr
       if (restart) then
         call crstart
@@ -24849,6 +25231,17 @@
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
           do 500 i=1,iu
++if bnlelens
+!GRD-2007
+            if(n.eq.1) then
+               totals=totals+strack(i)
+               sampl(i)=totals
+               write(51,'(i5,(1x,f15.10),4(1x,f20.13))')                &
+     &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
+     &torby(i)
+            endif
+!GRD-2007
++ei
             if(ktrack(i).eq.1) then
               ix=ic(i)
             else
@@ -25258,6 +25651,103 @@
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
++if bnlelens
+!GRD-2007
+!GRD-2007 ADDITIONAL OUTPUT FILE FOR MULTI-PARTICLES BEAM-BEAM STUDIES
+!GRD-2007
+c          write(*,*) 0.01*numl,' ',int(0.01*numl)
+c          write(*,*) n
+!
+c          if(mod(n,(int(0.01*numl)+1)).eq.0) then
+cc          countertrack = countertrack + 1
+cc             write(*,*) countertrack
+!
+          do j=1,napx
+!
+             if(pstop(nlostp(j))) goto 505
+!
+!GRD-042008
+             x_temp=(xv(1,j)-torbx(i-1))*1e-3
+             y_temp=(xv(2,j)-torby(i-1))*1e-3
+             xp_temp=(yv(1,j)-torbxp(i-1))*1e-3
+             yp_temp=(yv(2,j)-torbyp(i-1))*1e-3
+!     
+             twojx = tbetax(i-1)*(xp_temp**2)+                          &
+     &               2d0*talphax(i-1)*x_temp*xp_temp+                   &
+     &               ((1+talphax(i-1)**2)/tbetax(i-1))*(x_temp**2)
+!
+             twojy = tbetay(i-1)*(yp_temp**2)+                          &
+     &               2d0*talphay(i-1)*y_temp*yp_temp+                   &
+     &               ((1+talphay(i-1)**2)/tbetay(i-1))*(y_temp**2)
+!
+             twojr = sqrt(twojx**2+twojy**2)
+!
+cc                if(countertrack.eq.1) then
+             if(n.eq.1) then
+                if(j.eq.1) then
+                   write(*,*) 'coucou'
+                   limit_twojx = 25d0*(2.5e-6/(e0/pma))
+                   limit_twojy = 25d0*(2.5e-6/(e0/pma))
+                   limit_twojr = 25d0*(2.5e-6/(e0/pma))
+                endif
+             endif
+!
+cc                if((twojx.ge.limit_twojx).or.                           &
+cc     &             (twojy.ge.limit_twojy).or.                           &
+cc     &             (twojr.ge.limit_twojr)) then
+             if(twojr.le.limit_twojr) then
+!
+                sumtwojx(countertrack)=sumtwojx(countertrack)+twojx
+                sumtwojy(countertrack)=sumtwojy(countertrack)+twojy
+                sumsquarex(countertrack)=sumsquarex(countertrack)+      &
+     &x_temp**2
+                sumsquarey(countertrack)=sumsquarey(countertrack)+      &
+     &y_temp**2
+                n_nocut(countertrack) = n_nocut(countertrack) + 1
+!
+             else
+!
+cc                   sumtwojx(countertrack)=sumtwojx(countertrack)+twojx
+cc                   sumtwojy(countertrack)=sumtwojy(countertrack)+twojy
+cc                   sumsquarex(countertrack)=sumsquarex(countertrack)+   &
+cc     &x_temp**2
+cc                   sumsquarey(countertrack)=sumsquarey(countertrack)+   &
+cc     &y_temp**2
+                n_cut(countertrack)=n_cut(countertrack)+1
+cc2008
+                write(53,'(i8,1x,i8)') n,namepart(j)
+cc2008
+!
+             endif
+!
+!GRD-042008
+ 505         continue
+          enddo
+!
+!GRD-042008
+cc     if(samplenumber.eq.int(mynp/napx00)) then
+!
+          if(mod(n,nwr(3)).eq.0) then
+!
+             write(*,*) 'dumping stats at turn number ',n
+!
+             write(52,'(i8,2(1x,i8),4(1x,e15.8)))')                     &
+     &n,n_cut(countertrack),n_nocut(countertrack),                      &
+     &sumsquarex(countertrack),                                         &
+     &sumsquarey(countertrack),                                         &
+     &sumtwojx(countertrack),                                           &
+     &sumtwojy(countertrack)
+!
+             countertrack=countertrack + 1
+!05-2008
+!
+          endif
+!
+cc     endif
+!GRD-042008
+!
+!GRD-2007
++ei
   510 continue
       return
       end
@@ -25305,6 +25795,11 @@
 +ca crco
 +ei
       dimension dpsv3(npart)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -25781,6 +26276,11 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
       do 10 j=1,napx
@@ -26287,6 +26787,11 @@
 +ca commont1
 +ca commondl
 +ca commonxz
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 !-----------------------------------------------------------------------
 +ca save
 !-----------------------------------------------------------------------
@@ -27451,6 +27956,11 @@
 +ca commd1da
 +ca commonc
 +ca commonxz
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ncorru=0
@@ -28437,6 +28947,11 @@
 +ca commont1
       dimension am(4,4)
       dimension qw(2)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ierro=0
@@ -28626,6 +29141,11 @@
 +ca commons
 +ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
@@ -28683,6 +29203,11 @@
 +ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
@@ -28746,6 +29271,11 @@
 +ca commonc
       dimension dsm(2,4),sens(2,4),xi(2),zi(2),dm(2),sm0(2)
       dimension qwc(3),cro0(2)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       cor=0d0
@@ -28907,6 +29437,11 @@
 +ca commonc
 +ca commondl
       dimension qw(2),qwc(3)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +if cr
@@ -29093,6 +29628,11 @@
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ierro=0
@@ -29181,6 +29721,11 @@
       character*6 chp(3),chd(3)
       dimension xx(6),dlo(6),cloc(6),dd(6),dc(6),am(nn,nn)
       integer nerror
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
@@ -29683,6 +30228,11 @@
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ierro=0
@@ -29744,6 +30294,11 @@
 +ca common
 +ca commons
 +ca commont1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 20 j=1,icoe
@@ -29792,6 +30347,11 @@
 +ca common
 +ca commons
 +ca commont1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       dpd=one+dpp
@@ -30093,6 +30653,11 @@
 +ca commons
 +ca commont1
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       dpd=one+dpp
@@ -30390,6 +30955,11 @@
 +ca common
 +ca commons
 +ca commont1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
 +if cr
@@ -31365,6 +31935,11 @@
       dimension cr(mmul),ci(mmul)
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
       data dpr/6*0d0/
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       nhmoni=0
@@ -31491,12 +32066,20 @@
       endif
       iflag=0
       idum='START'
-+if .not.collimat
-      call writelin(nr,idum,etl,phi,t,1)
-+ei
-+if collimat
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
       call writelin(nr,idum,etl,phi,t,1,k)
 +ei
++if collimat.and..not.bnlelens
+      call writelin(nr,idum,etl,phi,t,1,k)
++ei
++if .not.collimat.and.bnlelens
+      call writelin(nr,idum,etl,phi,t,1,k)
++ei
++if collimat.and.bnlelens
+      call writelin(nr,idum,etl,phi,t,1,k)
++ei
+!GRDRHIC
       if(ntco.ne.0) then
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
@@ -31518,20 +32101,42 @@
         do 150 j=1,jm
           jj=jj+dj
           jk=mtyp(ix,jj)
+!GRDRHIC
++if .not.bnlelens
           if(ithick.eq.1.and.kz(jk).ne.0) goto 120
-+if collimat
-!GRD UPGRADE JANUARY 2005
-!         if(ithick.eq.0.and.kz(jk).ne.0) 
-         if(ithick.eq.0.and.kz(jk).ne.0) then
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
-          goto 500
-         endif
 +ei
-!GRD END OF UPGRADE
-!GRD
-+if .not.collimat
-         if(ithick.eq.0.and.kz(jk).ne.0) goto 500
++if bnlelens
+          if(ithick.eq.1.and.kz(jk).ne.0) then
+             call writelin(nr,bez(jk),etl,phi,t,ix,k)
+             goto 120
+          endif
 +ei
+!GRDRHIC
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
+          if(ithick.eq.0.and.kz(jk).ne.0) then
+             goto 500
+          endif
++ei
++if collimat.and..not.bnlelens
+          if(ithick.eq.0.and.kz(jk).ne.0) then
+             call writelin(nr,bez(ix),etl,phi,t,ix,k)
+             goto 500
+          endif
++ei
++if .not.collimat.and.bnlelens
+          if(ithick.eq.0.and.kz(jk).ne.0) then
+             call writelin(nr,bez(ix),etl,phi,t,ix,k)
+             goto 500
+          endif
++ei
++if collimat.and.bnlelens
+          if(ithick.eq.0.and.kz(jk).ne.0) then
+             call writelin(nr,bez(ix),etl,phi,t,ix,k)
+             goto 500
+          endif
++ei
+!GRDRHIC
 !--PURE DRIFTLENGTH
           etl=etl+el(jk)
           do 100 l=1,2
@@ -31563,12 +32168,20 @@
             if(-dphi.gt.pieni) dphi=dphi+pi
   110     phi(l)=phi(l)+dphi/pie
           nr=nr+1
-+if .not.collimat
-          call writelin(nr,bez(jk),etl,phi,t,ix)
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-+if collimat
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
++if collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
++if .not.collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
@@ -31617,20 +32230,35 @@
             phi(l)=phi(l)+dphi/pie
           enddo
           nr=nr+1
-+if .not.collimat
-          call writelin(nr,bez(jk),etl,phi,t,ix)
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-+if collimat
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
++if collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
++if .not.collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
   150   continue
-+if collimat
-!GRD UPGRADE JANUARY 2005
+!GRDRHIC
++if collimat.and..not.bnlelens
         call writelin(nr,bez(jk),etl,phi,t,ix,k)
 +ei
++if collimat.and.bnlelens
+        call writelin(nr,bez(jk),etl,phi,t,ix,k)
++ei
++if .not.collimat.and.bnlelens
+        call writelin(nr,bez(jk),etl,phi,t,ix,k)
++ei
+!GRDRHIC
         goto 500
 !--BETACALCULATION FOR SERIES OF BLOCKS
   160   continue
@@ -31676,12 +32304,20 @@
           if(-dphi.gt.pieni) dphi=dphi+pi
   180   phi(l)=phi(l)+dphi/pie
         nr=nr+1
-+if .not.collimat
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-+if collimat
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
++if collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
++if .not.collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
@@ -31728,12 +32364,20 @@
           if(-dphi.gt.pieni) dphi=dphi+pi
   210   phi(l)=phi(l)+dphi/pie
         nr=nr+1
-+if .not.collimat
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-+if collimat
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
++if collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
++if .not.collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
@@ -31745,41 +32389,74 @@
         dyy1=zero
         dyy2=zero
         kpz=kp(ix)
-+if .not.collimat
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
         if(kpz.eq.6) goto 500
 +ei
-+if collimat
-!GRD UPGRADE JANUARY 2005
-!       if(kpz.eq.6) goto 500
++if collimat.and..not.bnlelens
         if(kpz.eq.6) then
-        call writelin(nr,bez(jk),etl,phi,t,ix,k)
-        goto 500
+           call writelin(nr,bez(jk),etl,phi,t,ix,k)
+           goto 500
         endif
 +ei
-!GRD END OF UPGRADE
++if collimat.and.bnlelens
+        if(kpz.eq.6) then
+           call writelin(nr,bez(jk),etl,phi,t,ix,k)
+           goto 500
+        endif
++ei
++if .not.collimat.and.bnlelens
+        if(kpz.eq.6) then
+           call writelin(nr,bez(jk),etl,phi,t,ix,k)
+           goto 500
+        endif
++ei
+!GRDRHIC
         kzz=kz(ix)
         if(kzz.eq.20.and.nbeam.ge.1) then
           nbeam=k
           nr=nr+1
-+if .not.collimat
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-+if collimat
++if collimat.and..not.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
++if .not.collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
         endif
 +ca trom01
 +ca trom03
 +ca trom06
-+if collimat
+!GRDRHIC
++if collimat.and..not.bnlelens
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then 
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
           goto 500
         endif
 +ei
-+if .not.collimat
++if collimat.and.bnlelens
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then 
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          goto 500
+        endif
++ei
++if .not.collimat.and.bnlelens
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then 
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          goto 500
+        endif
++ei
++if .not.collimat.and..not.bnlelens
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
 +ei
+!GRDRHIC
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -31792,11 +32469,17 @@
 +ca alignl
         if(kzz.lt.0) goto 370
         goto(230,240,250,260,270,280,290,300,310,320,330),kzz
-+if collimat
-!GRD UPGRADE JANUARY 2005
+!GRDRHIC
++if collimat.and..not.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
-!GRD END OF UPGRADE
++if collimat.and.bnlelens
+        call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if .not.collimat.and.bnlelens
+        call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
         goto 500
 !--HORIZONTAL DIPOLE
   230   ekk=ekk*c1e3
@@ -31913,13 +32596,20 @@
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
-!GRD
-+if collimat
-!UPGRADE JANUARY 2005
+!GRDRHIC
++if collimat.and..not.bnlelens
 ! --> THAT'S THE IMPORTANT ONE !!!!
          call writelin(nr,bez(jk),etl,phi,t,ix,k)
 +ei
-!GRD
++if collimat.and.bnlelens
+! --> THAT'S THE IMPORTANT ONE !!!!
+         call writelin(nr,bez(jk),etl,phi,t,ix,k)
++ei
++if .not.collimat.and.bnlelens
+! --> THAT'S THE IMPORTANT ONE !!!!
+         call writelin(nr,bez(jk),etl,phi,t,ix,k)
++ei
+!GRDRHIC
          goto 500
         endif
         im=irm(ix)
@@ -32056,12 +32746,20 @@
             write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
           endif
         endif
-+if .not.collimat
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+!GRDRHIC
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-+if collimat
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
++if collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
++if .not.collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
++if collimat.and.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
+!GRDRHIC
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
@@ -32110,10 +32808,16 @@
 10060 format(//131('-')//)
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
       end
-+if collimat
++if collimat.and..not.bnlelens
       subroutine writelin(nr,typ,tl,p1,t,ixwl,ielem)
 +ei
-+if .not.collimat
++if collimat.and.bnlelens
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,ielem)
++ei
++if .not.collimat.and.bnlelens
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,ielem)
++ei
++if .not.collimat.and..not.bnlelens
       subroutine writelin(nr,typ,tl,p1,t,ixwl)
 +ei
 !-----------------------------------------------------------------------
@@ -32141,6 +32845,11 @@
 +ca dblinopt
       integer ielem
 +ei
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       istart=0
@@ -32167,7 +32876,31 @@
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
    20   continue
-+if collimat
++if collimat.and..not.bnlelens
+        tbetax(max(ielem,1))  = b1(1)
+        tbetay(max(ielem,1))  = b1(2)
+        talphax(max(ielem,1)) = al1(1)
+        talphay(max(ielem,1)) = al1(2)
+        torbx(max(ielem,1))   = c(1)
+        torbxp(max(ielem,1))  = cp(1)
+        torby(max(ielem,1))   = c(2)
+        torbyp(max(ielem,1))  = cp(2)
+        tdispx(max(ielem,1))  = d(1)
+        tdispy(max(ielem,1))  = d(2)
++ei
++if collimat.and.bnlelens
+        tbetax(max(ielem,1))  = b1(1)
+        tbetay(max(ielem,1))  = b1(2)
+        talphax(max(ielem,1)) = al1(1)
+        talphay(max(ielem,1)) = al1(2)
+        torbx(max(ielem,1))   = c(1)
+        torbxp(max(ielem,1))  = cp(1)
+        torby(max(ielem,1))   = c(2)
+        torbyp(max(ielem,1))  = cp(2)
+        tdispx(max(ielem,1))  = d(1)
+        tdispy(max(ielem,1))  = d(2)
++ei
++if .not.collimat.and.bnlelens
         tbetax(max(ielem,1))  = b1(1)
         tbetay(max(ielem,1))  = b1(2)
         talphax(max(ielem,1)) = al1(1)
@@ -32281,6 +33014,11 @@
 +ca commons
 +ca commont1
       dimension t(6,4),phi(2)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       iwrite=0
@@ -32480,6 +33218,11 @@
 +ca commons
 +ca commont1
       dimension am(4,4)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 10 i=2,5
@@ -32531,6 +33274,11 @@
 +ca commont1
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       rzero=0.0
@@ -32993,6 +33741,11 @@
 +ca commons
 +ca commont1
       dimension nx(ncor1)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       kcorru=0
@@ -33107,6 +33860,11 @@
 +ca common
 +ca commons
 +ca commont1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       izu=0
@@ -33589,6 +34347,11 @@
       double precision exterr2,tcnst2
       dimension exterr2(nblz,40),tcnst2(nblz)
 +ei
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 10 i=1,nblz
@@ -33843,6 +34606,11 @@
       dimension qw(2),qwc(3)
       dimension aa(mmul),bb(mmul),dpr(5)
       dimension cr(mmul),ci(mmul)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ium=5
@@ -34277,6 +35045,11 @@
 +ca commont1
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 10 i=1,3
@@ -34615,6 +35388,11 @@
 +ca commonc
 +ca commondl
       dimension intwq(3),qwc(3)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ncorruo=ncorru
@@ -34947,6 +35725,11 @@
 +ca commont1
       dimension aa(mmul),bb(mmul),dpr(5)
       dimension cr(mmul),ci(mmul)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 10 i=1,mmul
@@ -35337,6 +36120,11 @@
       dimension b(10,10),nz2(9),e(10,10)
       dimension chy(9,18),shy(9,18),min(5)
       dimension cr(mmul),ci(mmul)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ium=5
@@ -36047,6 +36835,11 @@
 +ca commont1
       dimension aa(10,10),bb(10),dsm(10),sn(10),sen(10),ss(10)
       dimension qwc(3),d1(10),irr(12)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ntao=nta
@@ -36452,6 +37245,11 @@
 +ca common
 +ca commons
 +ca commont1
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ntao=nta
@@ -36616,6 +37414,11 @@
       dimension chy(9,18),shy(9,18)
       dimension dfac(10),dtu(2,5),dtup(2,5,0:4,0:4)
       dimension cr(mmul),ci(mmul)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ium=5
@@ -37763,6 +38566,11 @@
       dimension b(10,10),nz2(9),e(10,10)
       dimension chy(9,18),shy(9,18)
       dimension cr(mmul),ci(mmul)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       ium=5
@@ -38444,6 +39252,11 @@
 +ca commont1
       dimension aa(6,6),bb(6),dsm(6),sn(6),sen(6),ss(6)
       dimension qwc(3),qw(2),d1(6)
+!GRDRHIC
++if bnlelens
++ca rhicelens
++ei
+!GRDRHIC
 +ca save
 !-----------------------------------------------------------------------
       do 10 i=1,6
@@ -38808,6 +39621,7 @@
         sumda(i)=zero
   110 continue
       itot=0
+      ttot=0
       do i=1,8
         if (version(i:i).ne.' ') then
           if (version(i:i).ne.'.') then
@@ -46228,9 +47042,12 @@
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.10 2008-07-10 10:30:54 frs Exp $
+! $Id: sixtrack.s,v 1.11 2008-07-11 10:33:26 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.10  2008/07/10 10:30:54  frs
+! bpmdata are only written to files units > 100 if bpm flag in track.ast.
+!
 ! Revision 1.9  2008/06/24 14:12:42  mcintosh
 ! Version 4.0.10; the version and last modification date
 ! for both SixTrack and SixTrack_da are now specified in
@@ -47036,9 +47853,12 @@
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.10 2008-07-10 10:30:54 frs Exp $
+! $Id: sixtrack.s,v 1.11 2008-07-11 10:33:26 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.10  2008/07/10 10:30:54  frs
+! bpmdata are only written to files units > 100 if bpm flag in track.ast.
+!
 ! Revision 1.9  2008/06/24 14:12:42  mcintosh
 ! Version 4.0.10; the version and last modification date
 ! for both SixTrack and SixTrack_da are now specified in
@@ -47179,9 +47999,12 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.10 2008-07-10 10:30:54 frs Exp $
+! $Id: sixtrack.s,v 1.11 2008-07-11 10:33:26 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.10  2008/07/10 10:30:54  frs
+! bpmdata are only written to files units > 100 if bpm flag in track.ast.
+!
 ! Revision 1.9  2008/06/24 14:12:42  mcintosh
 ! Version 4.0.10; the version and last modification date
 ! for both SixTrack and SixTrack_da are now specified in
@@ -47213,7 +48036,6 @@
 ! the maximum allowed order MMUL (error # 105).
 !
 ! Revision 1.2  2006/09/26 15:51:04  robertde
-!
 !
 ! Latest version for the collimation studies to include the Beam 2 lattice; 
 ! clean-up of the unit number for output files.
@@ -47475,6 +48297,71 @@
       close(53)
 !
       end
+!GRDRHIC
++dk nwrtbnl
+      subroutine readdis(filename_dis, ngrd,                            &
+     &myx, myxp, myy, myyp, myp, mys,mynp)
+!
+!     SR, 09-08-2005
+!     Format for the input file:
+!               x, y   -> [ m ]
+!               xp, yp -> [ rad ]
+!               s      -> [ mm ]
+!               DE     -> [ MeV ]
+!
+      implicit none
+ 
+      integer ngrd
+!
+!++ Vectors of coordinates
+!
+      integer maxn
+      parameter (maxn=20000)
+      integer i,j,mynp
+      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
+     &myp(maxn),mys(maxn)
+      character*80   filename_dis
+ 
+      save
+!
+!++++++++++++++++++++++++++++++++++++++++++
+! 
+      write(*,*) 'Reading input bunch from ', filename_dis(1:16)
+ 
+      open(unit=99, file=filename_dis)
+ 
+!      do j=1,mynp
+      do j=1,maxn
+!
+!        read(99,'(f13.11,4(1x,f13.11),1x,f15.8)',end=10) myx(j),myxp(j),&
+        read(99,*,end=10) myx(j),myxp(j),                               &
+!
+     &myy(j), myyp(j), mys(j), myp(j)
+      enddo
+ 
+ 10   mynp = j - 1
+      if(mynp.eq.0) then
+         write(*,*) 
+         write(*,*) '!!!!! WARNING !!!!!'
+         write(*,*) filename_dis(1:16),' is either missing or too small'
+         write(*,*) 
+         stop
+      else
+         write(*,*) "Number of particles in the bunch = ",mynp
+      endif
+ 
+      close(99)
+!
+      open(unit=98,file='checkdist.dat')
+      do j=1,mynp
+         write(98,'(e15.8,4(1x,e15.8),1x,f15.8)')                       &
+     &myx(j),myxp(j),myy(j), myyp(j), mys(j), myp(j)
+      enddo
+      close(98)
+!
+      return
+      end
+!GRDRHIC
 +dk checkpt
       subroutine crcheck
       implicit none
