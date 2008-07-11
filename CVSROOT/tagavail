@@ -12,5 +12,5 @@ avail | cvsadmin cvssixtr frs
 # Do not put here users that should be able to tag 
 # to CVSROOT - put them in the list above, next to cvsadmin.
 
-avail | manuel reguero defert slopiens mcintosh robertde assmann sredaell stefano 
-unavail | manuel reguero defert slopiens mcintosh robertde assmann sredaell stefano | CVSROOT
+avail | manuel reguero defert slopiens mcintosh robertde assmann sredaell stefano rtomas  
+unavail | manuel reguero defert slopiens mcintosh robertde assmann sredaell stefano rtomas | CVSROOT
