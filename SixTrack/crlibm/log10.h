@@ -4,6 +4,12 @@
  * Constant to compute the natural logarithm. 
  */
 
+/* NaNs and Infs by Eric */
+static const db_number NaN=DB_NAN;
+static const db_number NNaN=DB_NNAN;
+static const db_number Inf=DB_INF;
+static const db_number NInf=DB_NINF;
+
 #ifdef WORDS_BIGENDIAN
 static const db_number 
   norm_number = {{0x3FD60000, 0x00000000}}; /* 11*2^(-5) */

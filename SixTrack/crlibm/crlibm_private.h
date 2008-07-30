@@ -155,8 +155,16 @@ int crlibm_second_step_taken;
 
 #ifdef WORDS_BIGENDIAN
  #define DB_ONE    {{0x3ff00000, 0x00000000}}
+ #define DB_NAN    {{0xfff80000, 0x00000000}}
+ #define DB_NNAN   {{0x7ff80000, 0x00000000}}
+ #define DB_INF    {{0x7ff00000, 0x00000000}}
+ #define DB_NINF   {{0xfff00000, 0x00000000}}
 #else
  #define DB_ONE    {{0x00000000 ,0x3ff00000}}
+ #define DB_NAN    {{0x00000000 ,0xfff80000}}
+ #define DB_NNAN   {{0x00000000 ,0x7ff80000}}
+ #define DB_INF    {{0x00000000 ,0x7ff00000}}
+ #define DB_NINF   {{0x00000000 ,0xfff00000}}
 #endif
 
 

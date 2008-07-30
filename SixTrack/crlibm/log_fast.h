@@ -9,6 +9,13 @@
 
 #define EMIN_MEDIUMPATH 23.000 
 #define EMIN_FASTPATH 185.000 
+
+/* NaNs and Infs by Eric */
+static const db_number NaN=DB_NAN;
+static const db_number NNaN=DB_NNAN;
+static const db_number Inf=DB_INF;
+static const db_number NInf=DB_NINF;
+
 /* Constants for rounding  */
 double const delta[4] =
 {

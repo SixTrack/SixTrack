@@ -9,18 +9,13 @@ dafor: dafor.o
 astuce: astuce.o
 	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
 
-SixTrack: track.o sixve.o sixvefox.o dabnews.o lielib.o $(BOINC) $(CRLIBM)
-	$(FC) $(FCL) -o SixTrack track.o sixve.o sixvefox.o dabnews.o lielib.o \
-	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib)
+%%SIXTRACK%%: track.o sixve.o sixvefox.o dabnews.o lielib.o $(BOINC) $(CRLIBM)
+	$(FC) $(FCL) -Wl,--print-map -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o \
+	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib) > sixtrack.map 2>&1
 
-SixTrack_da: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
-	$(FC) $(FCL) -o SixTrack_da sixda.o sixsc.o sixscfox.o dabnew.o lielib.o \
+%%SIXTRACK_DA%%: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
+	$(FC) $(FCL) -o %%SIXTRACK_DA%% sixda.o sixsc.o sixscfox.o dabnew.o lielib.o \
 	$(NAGLIB) $(CRLIBM) $(gfortran_lib)
 
-# make clean will execute this: 
 clean: 
-	rm -f track.f sixve.f sixvefox.f sixda.f sixsc.f sixscfox.f dabnew.f dabnews.f lielib.f
-	rm -f SixTrack SixTrack_da dafor astuce
-	rm -f crlibm/*.o crlibm/crlibm.a
-	rm -f *.o *~
-	rm -f *.ast
+	rm -f *.ast *.s *.f *.c *.o %%SIXTRACK%% %%SIXTRACK_DA%%

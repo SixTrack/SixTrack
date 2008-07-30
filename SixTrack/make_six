@@ -13,18 +13,20 @@
 # make_six clean now exits after the clean just like a make clean
 # Version 1.5 11/07/2008
 # Adds the deck nwrtbnl and the flags bpm and bnlelens
+# Version 2.0 Major change in philosophy; to clarify and document
+# all types of make.
+# Version 2.1 Adds bignblz option for Frank.
 #
 # Default: tilt tracking fast crlibm cernlib naglib -bpm -windows -da -collimat -bnlelens -cpss -boinc -cr
 # and uses the Lahey-Fujitsu lf95 compiler 
 
 # Options:
-# da => -tracking -cpss -boinc -collimat -cr
+# da => -tracking -cpss -boinc -collimat -cr +naglib
 # collimat => -da -cr -boinc -cpss
 # cpss => +cr -collimat -da -cernlib -naglib -boinc
 # boinc => +cr +crlibm -collimat -da -cernlib -naglib -cpss
-# windows => messing about with crlibm
 # bpm activates the collection of tracking data for sussix => basic SixTrack
-# bnlelens activates the bnl electron lens options => boinc, cr, crlibm
+# bnlelens activates the bnl electron lens options possibly => boinc, cr, crlibm
 # nag => use f95 instead of LAHEY
 # g77 => use g77
 # g95 => use g95
@@ -33,7 +35,7 @@ show_options()
 {
 ons="The following selections are ON  :"
 offs="The following selections are OFF :"
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
 do
   if test ${values[$i]} = "true"
   then
@@ -52,8 +54,8 @@ echo "$offs"
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm windows cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens)
-values=(junk  true true     true true   false   true    true   false false    false false false false false false false    false false)
+options=(junk tilt tracking fast crlibm windows   cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz) 
+values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
@@ -85,11 +87,15 @@ g95="g95"
 gfortran="gfortran"
 bpm="bpm"
 bnlelens="bnlelens"
+bignblz="bignblz"
 while test $# != 0
 do
   case $1 in
-    clean) make clean
-    exit
+    clean) echo "Cleaning crlibm, astuce and dafor and removing ALL SixTrack_* directories."
+           rm -f *.o dafor astuce
+           rm -f crlibm/crlibm.a crlibm/*.o
+           rm -rf SixTrack_* 
+           exit
     ;;
     -tilt) tilt="tilt"
            values[1]=false
@@ -144,6 +150,9 @@ do
     ;;
     -bnlelens) bnlelens="bnlelens"
           values[18]=false
+    ;;
+    -bignblz) bignblz="bignblz"
+          values[19]=false
     ;;
 
     +tilt) tilt=""
@@ -200,6 +209,9 @@ do
     +bnlelens) bnlelens=""
           values[18]=true
     ;;
+    +bignblz) bignblz=""
+          values[19]=true
+    ;;
 
     tilt) tilt=""
            values[1]=true
@@ -255,6 +267,9 @@ do
     bnlelens) bnlelens=""
          values[18]=true
     ;;
+    bignblz) bignblz=""
+          values[19]=true
+    ;;
 
     *) echo "Illegal option $1"
        exit 1
@@ -262,7 +277,7 @@ do
   esac
   shift
 done
-# Here we check for valid/invalid combinations 
+# Here we do some checking for valid/invalid combinations 
 if test "$crlibm" = ""
 then
   if test "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
@@ -270,103 +285,90 @@ then
     show_options
     echo "     INVALID option selected:"
     echo "     crlibm => compilation must be done with Lahey lf95 !"
-    exit
+    exit 1
   fi
+fi
+nopts=0
+for i in da collimat bnlelens
+do
+  if test "$i" = ""
+  then
+    nopts=`expr ($nopts + 1)` 
+    sixtrackmode="$i"
+  fi
+done
+if test "$nopts" -gt 2
+then
+  show_options
+  echo "     INVALID options selected:"
+  echo "     Select only one of da bnlelens or collimat!" 
+  exit 1
+fi
+if test "$nopts" -eq 0
+then
+  sixtrackmode=""
+fi
+if test "$da" = "" -o "$collimat" = ""
+then
+  tracking="tracking"
+  values[2]=false
+  if test "$boinc" = ""
+  then
+    show_options
+    echo "     INVALID options selected:"
+    echo "     BOINC/CPSS are for tracking only (NOT da nor collimat)"
+    exit 1
+  fi
+fi
+if test "$da" = "da"
+then
+  naglib=""
+  values[7]=false
 fi
 if test "$boinc" = ""
 then
-# BOINC includes the CPSS options and more
+# BOINC includes the CPSS options
   cpss=""
   values[10]=true
 fi
 if test "$cpss" = ""
 then
-# CPSS is for Windows only
+  # We will build for windows (and Linux)
+  # force windows, Lahey compiler, checkpoint/restart and crlibm, and NO cernlib 
+  echo "Forcing Lahey lf95, checkpoint/restart and crlibm"
   windows=""
   values[5]=true
-fi
-if test "$windows" = ""
-then
   cernlib=""
   values[6]=false
-  naglib=""
-  values[7]=false
+  crlibm=""
+  values[4]=true
   cr=""
+  nag="nag"
+  values[13]=false
   values[12]=true
-  if test "$da" = "" -o "$collimat" = "" -o "$cernlib" != "" -o "$naglib" != "" -o "$crlibm" != "" -o "$cr" != "" -o "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortan" = ""
-  then
-    show_options
-    echo "     INVALID options selected:"
-    echo "     boinc/cpss/windows options => -collimat -da -cernlib -naglib -nag -g77 -g95 -gfortran and +crlibm +cr !"
-    da="da"
-    values[8]=false
-    collimat="collimat"
-    values[9]=false
-    cernlib=""
-    values[6]=false
-    naglib=""
-    values[7]=false
-    nag="nag"
-    values[13]=false
-    g77="g77"
-    values[14]=false
-    g95="g95"
-    values[15]=false
-    gfortran="gfortran"
-    values[16]=false
-    crlibm=""
-    values[4]=true
-    cr=""
-    values[12]=true    
-  fi
+  g77="g77"
+  values[14]=false
+  g95="g95"
+  values[15]=false
+  gfortran="gfortran"
+  values[16]=false
 fi
-if test "$collimat" = ""
+if test "$bpm" = ""
 then
-  if test "$da" = "" -o "$cr" = "" -o "$windows" = ""
+  if test "$tracking" = "tracking" -o "$cpss" = ""
   then
     show_options
-    echo "     INVALID options selected:"
-    echo "     collimation option => -da -cr -boinc -cpss -windows !"
-    da="da"
-    values[8]=false
-    cr="cr"
-    values[12]=false
-    boinc="boinc"
-    values[11]=false
-    cpss="cpss"
-    values[10]=false
-    windows="windows"
-    values[5]=false
+    echo "    INVALID options selected:"
+    echo "    bpm is for tracking only and not for desktops!"
+    exit 1
   fi
 fi
-if test "$da" = ""
-then
-  if test "$tracking" = "" -o "$collimat" = "" -o "$boinc" = "" -o "$cpss" = "" -o "$windows" = "" -o "$cr" = ""
-  then
-    show_options
-    echo "     INVALID options selected:"
-    echo "     da option => -tracking -collimation -boinc/cpss/windows/cr !"
-    tracking="tracking"
-    values[2]=false
-    cr="cr"
-    values[12]=false
-    boinc="boinc"
-    values[11]=false
-    cpss="cpss"
-    values[10]=false
-    windows="windows"
-    values[5]=false
-  fi
-fi
-echo ""
-echo "We are about to build a Sixtrack using the"
-echo "Version $version last modified on $moddate"
-show_options
 # Set up compiler
 if test "$nag" = ""
 then
   export FC="f95"
-  export FCF="-Wc,-m32 -Wl,-m32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+  export FCF="-Wc,-m32 -Wl,-m32 -dusty -maxcontin=60 -dcfuns -ieee=full -g"
+#  export FCF="-Wc,-m32 -Wl,-m32 -dusty -maxcontin=60 -dcfuns -ieee=full -g -C=undefined"
   export FCL="-Bstatic -m32"
   export NAGLIBC="-lg2c"
 elif test "$g77" = ""
@@ -398,14 +400,65 @@ then
   echo "Operating system: ",$OSTYPE
   export gfortran_lib="/sw/lib/gcc4.2/lib/libgfortran.a"
 else
-  echo "Linux setup"
-  echo $sysname
+  echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
 fi
 
-# Update the .ast flags based on options
+ename="SixTrack_"
+if test "$crlibm" = ""
+then
+  ename=$ename"crlibm_"
+fi
+if test "$da" = ""
+then
+  ename=$ename"da_"
+elif test "$collimat" = ""
+then
+  ename=$ename"coll_"
+elif test "$bnlelens" = ""
+then
+  ename=$ename"bnl_"
+elif test "$bpm" = ""
+then
+  ename=$ename"bpm_"
+fi
+ename=$ename$FC$version
+if test "$boinc" = ""
+then
+  ename=$ename"_boinc"
+elif test "$cpss" = ""
+then
+  ename=$ename"_cpss"
+fi
+export ename
+
+echo ""
+echo "We are about to build $ename"
+echo "last modified on $moddate"
+echo "with the following options:"
+echo ""
+echo "Note that building for windows/boinc/cpss will also"
+echo "build for Linux as a validity check."
+echo ""
+show_options
+echo ""
+echo "Hit any key to continue, or CTRL/C to exit."
+read junk
+
+# Make astuce and dafor (required for sixvefox and sixscfox)
+make astuce
+make dafor
+# Create and initialise the build directory
+mkdir -p "$ename"
+cp Makefile $ename/Makefile
+cd "$ename"
+for dots in dabnew  lielib  sixtrack
+do
+  ln -sf ../${dots}.s ${dots}.s
+done
 rm -f *.ast
-cp ast_mask/*.ast .
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag"
+cp ../ast_mask/*.ast .
+# Update the .ast flags based on options
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz"
 do
   if test "$opt" != ""
   then
@@ -444,16 +497,14 @@ do
     done
   fi
 done
-make astuce
-make dafor
-# Next first astuce then dafor if required (sixvefox and sixscfox)
+# Then generate the .f files
 for i in track sixve sixvefox sixda sixsc sixscfox lielib dabnew dabnews
 do
-  astuce < $i.ast
+  ../astuce < $i.ast
   if test "$i" = "sixvefox" -o "$i" = "sixscfox" -o "$i" = "sixda"
   then
     ln -s -f $i"n.f" fort.1
-    dafor
+    ../dafor
     rm -f fort.1 fort.3
     mv fort.2 $i"n.f"
   fi 
@@ -470,7 +521,7 @@ do
     mv $i"n.f" $i.f
   fi
 done
-# Then generate the .f files
+# Now sort out cernlib
 if test "$cernlib" != ""
 then
   if test "$sysname" = "Current sysname is 'i386_linux26'"
@@ -485,9 +536,10 @@ then
   then
     export CERNLIB="`/sw/bin/cernlib -u graflib packlib kernlib` -lg2c -lpthread"
   else
-    echo "CERNLIB cannot be found for your machine. SiXTrack linking failed!"
+    echo "CERNLIB cannot be found for your machine. SixTrack linking not possible!"
   fi
 fi
+# and naglib
 if test "$naglib" != ""
 then
   if test "$sysname" = "Current sysname is 'i386_linux26'"
@@ -499,32 +551,74 @@ then
     #SLC4 64 machine
     export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a  -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
   else
-    echo "NAGLIB cannot be found for your machine. SiXTrack_da linking failed!"
+    echo "NAGLIB cannot be found for your machine. SixTrack_da linking will fail!"
   fi
 fi
+# and crlibm
+export CRLIBM=""
 if test "$crlibm" = ""
 then
-  cd crlibm
+  cd ../crlibm
   make
-  cd ..
-  export CRLIBM="crlibm/crlibm.a"
+  cd ../$ename
+  export CRLIBM="../crlibm/crlibm.a"
 fi
-export BOINC=""
+
 if test "$da" = ""
 then
-  make SixTrack_da
+  # Fix up the Makefile
+  sed -e's/%%SIXTRACK_DA%%/'$ename'/g' Makefile > tmp$$
+  mv tmp$$ Makefile  
+  make $ename
 else
+  export BOINC=""
   if test "$boinc" = ""
   then
     export BOINC="myboinc.o"
+    cp ../myboinc.f .
   fi
-  make SixTrack
-fi
-if test "$windows" = ""
-then
-  echo "$0 : Creating directory $windows_version for boinc/cpss/windows"
-  windows/mkwindows $windows_version
+  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile > tmp$$
+  mv tmp$$ Makefile
+  # We make for Linux now.because we are finished or as a verification 
+  # before we set up for windows.
+  make $ename
 fi
 echo "       "
 echo "$0 : $command_line"
+echo "tried to build $ename in the directory with the same name."
+echo ""
 show_options
+echo ""
+if test -s "$ename"
+then
+  echo "It appears to have completed successfully."
+else
+  echo "It appears to have failed."
+fi
+
+if test "$windows" = ""
+then
+  echo ""
+  echo "Setting up crlibm and Makefile.bat for Windows"
+  echo ""
+# We [re-]copy myboinc.f even for CPSS
+  cp ../myboinc.f .
+  cp ../windows/Makefile.bat .
+  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
+  mv tmp$$ Makefile.bat
+  if test "$boinc" = ""
+  then
+    # If  boinc i.e. not just CPSS or windows link in myboinc.obj
+    sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
+  else
+    sed -e's/%%BOINC%%//g' Makefile.bat > tmp$$
+  fi
+  mv tmp$$ Makefile.bat
+# and finally!!! perhaps get crlibm for windows
+  mkdir -p crlibm
+  cp ../windows/mkwindows .
+  ./mkwindows
+  echo "Now the $ename directory needs to be taken to Windows."
+  echo "The Makefile.bat allows for checking boinc/cpss before"
+  echo "really building the BOINC/CPSS version."
+fi

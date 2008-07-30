@@ -1,37 +1,12 @@
 #!/bin/sh
 #
-if test $# -ne 1
-then
-  echo "Please specify the destination Windows directory!"
-  exit 1
-fi
-version=$1
-# Move fortran source unchanged
-mkdir -p ../$version
-for i in sixve sixvefox track lielib dabnews myboinc
-do 
-  cp $i.f ../$version
-done
-cp Makefile.boinc ../$version
-# get the ericlib for Windows
-mysrc=windows
-mylinuxsrc=crlibm
-mydest=../$version/crlibm
-mylinuxdest=../$version/crlibm_linux
-mkdir -p $mydest
-mkdir -p $mylinuxdest
-cp $mylinuxsrc/Makefile $mylinuxdest
+# get the crlibm for Windows
 for i in acos_rn.f addition_scs.c asin_rn.f atan.c atan.h atan2_rn.f atan_fast.c atan_fast.h \
 coefpi2.h cosine.c cosine.h crlibm.h crlibm_config.h crlibm_private.h csh_fast.c csh_fast.h \
 division_scs.c double2scs.c ericc.c exp.c exp.h exp_fast.c exp_fast.h \
-log.c log.h log10.c log10.h log_fast.c log_fast.h \
+logsix.c logsix.h log10.c log10.h log_fast.c log_fast.h \
 multiplication_scs.c rem_pio2.c scs.h scs2double.c scs_config.h scs_private.h \
 sine.c sine.h tan.c tan.h trigo_fast.c trigo_fast.h zero_scs.c
 do
-  cp $mysrc/$i $mydest
-  cp $mylinuxsrc/$i $mylinuxdest
+  cp ../windows/$i crlibm
 done
-mv $mydest/log.h $mydest/logsix.h
-sed -e's/#include "log.h"/#include "logsix.h"/' $mydest/log.c > $mydest/logsix.c
-# and update the "Makefile"
-sed -e's/sixtrack_sixtrack%%/sixtrack_'$version'/' $mysrc/Makefile.bat > ../$version/Makefile.bat

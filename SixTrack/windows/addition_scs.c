@@ -52,7 +52,11 @@ Copyright (C) 2002  David Defour and Florent de Dinechin
 This function copies a result into another. There is an unrolled
 version for the case SCS_NB_WORDS==8.
 */
+#ifdef LINUX_INLINE
+void inline scs_set(scs_ptr result, scs_ptr x){
+#else
 void scs_set(scs_ptr result, scs_ptr x){
+#endif
  /* unsigned int i;*/
   
 #if (SCS_NB_WORDS==8)
@@ -80,8 +84,11 @@ first digit is non-zero)
  currently unused in the library: instead, specific renormalisation
  steps are fused within the code of the operations which require it.
  */
-
+#ifdef LINUX_INLINE
+void inline scs_renorm(scs_ptr result){
+#else
 void scs_renorm(scs_ptr result){
+#endif
   unsigned int c;
   int i, j, k;
 
@@ -134,7 +141,12 @@ void scs_renorm(scs_ptr result){
  has been no cancellation, which allows simpler renormalisation.
 */
 
+#ifdef LINUX_INLINE
+void inline scs_renorm_no_cancel_check(scs_ptr result){ 
+#else
 void scs_renorm_no_cancel_check(scs_ptr result){ 
+#endif
+
   unsigned int carry, c0;
  /* int i;*/
 
@@ -221,7 +233,12 @@ void do_add_no_renorm(scs_ptr result, scs_ptr x, scs_ptr y){
 /*
  * Addition without renormalization. Assumes that x.sign == y.sign.
  */
+#ifdef LINUX_INLINE
+void inline scs_add_no_renorm(scs_ptr result, scs_ptr x, scs_ptr y)
+#else
 void scs_add_no_renorm(scs_ptr result, scs_ptr x, scs_ptr y)
+#endif
+
 {
   if (X_IND >= Y_IND)
     do_add_no_renorm(result,x,y);
@@ -229,21 +246,6 @@ void scs_add_no_renorm(scs_ptr result, scs_ptr x, scs_ptr y)
     do_add_no_renorm(result,y,x);
   return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* The function that does the work in case of an addition
 
@@ -475,7 +477,11 @@ void do_add(scs_ptr result, scs_ptr x, scs_ptr y)
  * - (0)  if x = y
  */
 
+#ifdef LINUX_INLINE
+int inline scs_cmp_mant(scs_ptr x, scs_ptr y){
+#else
 int scs_cmp_mant(scs_ptr x, scs_ptr y){
+#endif
   int i;
   /* Tried to unroll this loop, it doesn't work  */
   for(i=0; i< SCS_NB_WORDS; i++){
@@ -587,7 +593,11 @@ void do_sub(scs_ptr result, scs_ptr x, scs_ptr y){
 /** SCS addition (result is a normalised SCS number).
 
  */
+#ifdef LINUX_INLINE
+void inline scs_add(scs_ptr result, scs_ptr x, scs_ptr y)
+#else
 void scs_add(scs_ptr result, scs_ptr x, scs_ptr y)
+#endif
 {
     
   if (x->exception.i[HI_ENDIAN]==0){scs_set(result, y); return; }
@@ -612,7 +622,11 @@ void scs_add(scs_ptr result, scs_ptr x, scs_ptr y)
  The arguments x, y and result may point to the same memory
  location. 
  */
+#ifdef LINUX_INLINE
+void inline scs_sub(scs_ptr result, scs_ptr x, scs_ptr y)
+#else
 void scs_sub(scs_ptr result, scs_ptr x, scs_ptr y)
+#endif
 {
   if (x->exception.i[HI_ENDIAN]==0)
     { scs_set(result, y); R_SGN = -R_SGN; return; }

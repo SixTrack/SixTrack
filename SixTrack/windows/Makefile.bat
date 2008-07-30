@@ -51,4 +51,5 @@ lf95.exe -c -o1 -tp -fix -nconcc sixvefox.f
 lf95.exe -c -o1 -tp -fix -nconcc track.f
 lf95.exe -c -o1 -tp -fix -nconcc dabnews.f
 lf95.exe -c -o1 -tp -fix -nconcc lielib.f
-lf95.exe -out sixtrack_sixtrack%%.exe sixve.obj sixvefox.obj track.obj dabnews.obj lielib.obj ericc.obj atan2_rn.obj atan.obj atan_fast.obj exp.obj logsix.obj exp_fast.obj log_fast.obj addition_scs.obj multiplication_scs.obj zero_scs.obj double2scs.obj scs2double.obj division_scs.obj sine.obj cosine.obj tan.obj trigo_fast.obj rem_pio2.obj log10.obj asin_rn.obj acos_rn.obj csh_fast.obj
+lf95.exe -c -o1 -tp -fix -nconcc myboinc.f
+lf95.exe -out %%SIXTRACK%%.exe %%BOINC%% sixve.obj sixvefox.obj track.obj dabnews.obj lielib.obj ericc.obj atan2_rn.obj atan.obj atan_fast.obj exp.obj logsix.obj exp_fast.obj log_fast.obj addition_scs.obj multiplication_scs.obj zero_scs.obj double2scs.obj scs2double.obj division_scs.obj sine.obj cosine.obj tan.obj trigo_fast.obj rem_pio2.obj log10.obj asin_rn.obj acos_rn.obj csh_fast.obj

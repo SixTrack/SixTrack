@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.2'/
-      data moddate /'11.07.2008'/
+      data version /'4.1.3'/
+      data moddate /'30.07.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -61,8 +61,14 @@
      &nrco,ntr,nzfz
       parameter(npart = 64,nmac = 1)
 +if .not.collimat
++if bignblz
       parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 300000,mmul = 20)
++ei
++if .not.bignblz
+      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=20000,         &
+     &nzfz = 300000,mmul = 20)
++ei
 +ei
 +if collimat
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
@@ -5695,7 +5701,7 @@
 +if nag
 +if boinc
       call boincrf('fort.10',filename)
-      open(10,file=filename,form='formatted',status='unknown',         &
+      open(10,file=filename,form='formatted',status='unknown',          &
 +ei
 +if .not.boinc
       open(10,file='fort.10',form='formatted',status='unknown',         &
@@ -13005,25 +13011,26 @@
 +if fast
       c5m4=5.0d-4
 +ei
-      if(mout2.eq.1)                                                    &
+      if(mout2.eq.1) then
 +if nag
 +if boinc
-     &call boincrf('fort.99',filename)
-     &open(99,file=filename,form='formatted',status='unknown',recl=303)
+      call boincrf('fort.99',filename)
+      open(99,file=filename,form='formatted',status='unknown',recl=303)
 +ei
 +if .not.boinc
-     &open(99,file='fort.99',form='formatted',status='unknown',recl=303)
+      open(99,file='fort.99',form='formatted',status='unknown',recl=303)
 +ei
 +ei
 +if .not.nag
 +if boinc
-     &call boincrf('fort.99',filename)
-     &open(99,file=filename,form='formatted',status='unknown')
+      call boincrf('fort.99',filename)
+      open(99,file=filename,form='formatted',status='unknown')
 +ei
 +if .not.boinc
-     &open(99,file='fort.99',form='formatted',status='unknown')
+      open(99,file='fort.99',form='formatted',status='unknown')
 +ei
 +ei
+      endif
       do i=1,100
         jj(i)=0
       enddo
@@ -22449,7 +22456,7 @@
      &(xv(1,j)*1d-3)**2                                                 &
      &/                                                                 &
      &(tbetax(ie)*myemitx0)                                             &
- !    &).ge.sigsecut2).and.                                              &
+!     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.                                         &
      &((                                                                &
      &(xv(2,j)*1d-3)**2                                                 &
@@ -46909,9 +46916,12 @@ cc     endif
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.13 2008-07-11 17:10:36 rtomas Exp $
+! $Id: sixtrack.s,v 1.14 2008-07-30 14:33:22 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.13  2008/07/11 17:10:36  rtomas
+! Fixed "2d0*pi" bug in crab cavity kick
+!
 ! Revision 1.12  2008/07/11 16:05:43  mcintosh
 ! Version 4.1.1
 ! New make_six with new flags bpm and bnlelens and the ast's.
@@ -47734,9 +47744,12 @@ cc     endif
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.13 2008-07-11 17:10:36 rtomas Exp $
+! $Id: sixtrack.s,v 1.14 2008-07-30 14:33:22 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.13  2008/07/11 17:10:36  rtomas
+! Fixed "2d0*pi" bug in crab cavity kick
+!
 ! Revision 1.12  2008/07/11 16:05:43  mcintosh
 ! Version 4.1.1
 ! New make_six with new flags bpm and bnlelens and the ast's.
@@ -47894,9 +47907,12 @@ cc     endif
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.13 2008-07-11 17:10:36 rtomas Exp $
+! $Id: sixtrack.s,v 1.14 2008-07-30 14:33:22 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.13  2008/07/11 17:10:36  rtomas
+! Fixed "2d0*pi" bug in crab cavity kick
+!
 ! Revision 1.12  2008/07/11 16:05:43  mcintosh
 ! Version 4.1.1
 ! New make_six with new flags bpm and bnlelens and the ast's.
@@ -48261,12 +48277,12 @@ cc     endif
  
       close(99)
 !
-      open(unit=98,file='checkdist.dat')
+      open(unit=97,file='checkdist.dat')
       do j=1,mynp
-         write(98,'(e15.8,4(1x,e15.8),1x,f15.8)')                       &
+         write(97,'(e15.8,4(1x,e15.8),1x,f15.8)')                       &
      &myx(j),myxp(j),myy(j), myyp(j), mys(j), myp(j)
       enddo
-      close(98)
+      close(97)
 !
       return
       end

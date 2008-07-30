@@ -84,9 +84,11 @@ double log10_rn(double x)
   /* Filter cases */
   if (nb.i[HI_ENDIAN] < 0x00100000){        /* x < 2^(-1022)    */
     if (((nb.i[HI_ENDIAN] & 0x7fffffff)|nb.i[LO_ENDIAN])==0)
-      return 1.0/0.0;                       /* log(+/-0) = -Inf */
+      /* return 1.0/0.0; */                       /* log(+/-0) = -Inf */
+	 return NInf.d;
     if (nb.i[HI_ENDIAN] < 0) 
-      return (x-x)/0;                       /* log(-x) = Nan    */
+      /* return (x-x)/0; */                       /* log(-x) = Nan    */
+	 return NaN.d;
 
     /* Subnormal number */
     E    -= (SCS_NB_BITS*2); /* keep in mind that x is a subnormal number */ 
@@ -181,9 +183,11 @@ double log10_rd(double x)
   /* Filter cases */
   if (nb.i[HI_ENDIAN] < 0x00100000){        /* x < 2^(-1022)    */
     if (((nb.i[HI_ENDIAN] & 0x7fffffff)|nb.i[LO_ENDIAN])==0)
-      return 1.0/0.0;                       /* log(+/-0) = -Inf */
+      /* return 1.0/0.0; */                       /* log(+/-0) = -Inf */
+	 return NInf.d;
     if (nb.i[HI_ENDIAN] < 0) 
-      return (x-x)/0;                       /* log(-x) = Nan    */
+      /* return (x-x)/0; */                       /* log(-x) = Nan    */
+	 return NaN.d;
 
     /* Subnormal number */
     E    -= (SCS_NB_BITS*2); /* keep in mind that x is a subnormal number */ 
@@ -272,9 +276,11 @@ double log10_ru(double x)
   /* Filter cases */
   if (nb.i[HI_ENDIAN] < 0x00100000){        /* x < 2^(-1022)    */
     if (((nb.i[HI_ENDIAN] & 0x7fffffff)|nb.i[LO_ENDIAN])==0)
-      return 1.0/0.0;                       /* log(+/-0) = -Inf */
+      /* return 1.0/0.0; */                       /* log(+/-0) = -Inf */
+      return NInf.d;
     if (nb.i[HI_ENDIAN] < 0) 
-      return (x-x)/0;                       /* log(-x) = Nan    */
+      /* return (x-x)/0; */                       /* log(-x) = Nan    */
+	 return NaN.d;
 
     /* Subnormal number */
     E    -= (SCS_NB_BITS*2); /* keep in mind that x is a subnormal number */ 

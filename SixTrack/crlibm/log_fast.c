@@ -161,10 +161,12 @@ static void log_quick(double *pres_hi, double *pres_lo, int* prndcstindex, db_nu
    /* Filter cases */
    if (y.i[HI_ENDIAN] < 0x00100000){        /* x < 2^(-1022)    */
      if (((y.i[HI_ENDIAN] & 0x7fffffff)|y.i[LO_ENDIAN])==0){
-       return -1.0/0.0;     
+       /* return -1.0/0.0; */
+	  return NInf.d;
      }                    		   /* log(+/-0) = -Inf */
      if (y.i[HI_ENDIAN] < 0){ 
-       return (x-x)/0;                      /* log(-x) = Nan    */
+       /* return (x-x)/0; */                      /* log(-x) = Nan    */
+	  return NaN.d;
      }
      /* Subnormal number */
      E = -52; 		
@@ -232,10 +234,12 @@ static void log_quick(double *pres_hi, double *pres_lo, int* prndcstindex, db_nu
  /* Filter cases */
    if (y.i[HI_ENDIAN] < 0x00100000){        /* x < 2^(-1022)    */
      if (((y.i[HI_ENDIAN] & 0x7fffffff)|y.i[LO_ENDIAN])==0){
-       return -1.0/0.0;     
+       /* return -1.0/0.0; */
+	  return NInf.d;     
      }                    		   /* log(+/-0) = -Inf */
      if (y.i[HI_ENDIAN] < 0){ 
-      return (x-x)/0;                      /* log(-x) = Nan    */
+      /* return (x-x)/0; */                      /* log(-x) = Nan    */
+	 return NaN.d;
      }
      /* Subnormal number */
      E = -52; 		
@@ -304,10 +308,12 @@ double log_ru(double x){
  /* Filter cases */
    if (y.i[HI_ENDIAN] < 0x00100000){        /* x < 2^(-1022)    */
      if (((y.i[HI_ENDIAN] & 0x7fffffff)|y.i[LO_ENDIAN])==0){
-       return -1.0/0.0;     
+       /* return -1.0/0.0; */
+	  return NInf.d;     
      }                    		   /* log(+/-0) = -Inf */
      if (y.i[HI_ENDIAN] < 0){ 
-      return (x-x)/0;                      /* log(-x) = Nan    */
+      /* return (x-x)/0; */                      /* log(-x) = Nan    */
+	 return NaN.d;
      }
      /* Subnormal number */
      E = -52; 		

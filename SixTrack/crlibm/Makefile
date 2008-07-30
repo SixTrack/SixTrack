@@ -3,7 +3,7 @@ CC = gcc
 OBJS = addition_scs.o multiplication_scs.o zero_scs.o \
      division_scs.o double2scs.o scs2double.o zero_scs.o \
      trigo_fast.o tan.o sine.o cosine.o \
-     exp.o log.o exp_fast.o log_fast.o \
+     exp.o logsix.o exp_fast.o log_fast.o \
      atan.o atan_fast.o division_scs.o \
      ericc.o atan2_rn.o \
      asin_rn.o acos_rn.o csh_fast.o log10.o rem_pio2.o
@@ -11,7 +11,7 @@ all: crlibm.a
 crlibm.a: $(OBJS)
 	ar -rv crlibm.a $(OBJS)
 AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic
-DEFS = -DHAVE_CONFIG_H -I.
+DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
 CFLAGS = -g -O2 -m32
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
 FCF =  --tp --o1  -Wa,--32
@@ -47,10 +47,10 @@ exp_fast.o: exp_fast.c crlibm.h crlibm_private.h scs.h \
 	scs_config.h scs_private.h crlibm_config.h \
 	exp_fast.h
 	$(COMPILE1) -c exp_fast.c
-log.o: log.c log.h crlibm.h crlibm_private.h scs.h \
+logsix.o: logsix.c logsix.h crlibm.h crlibm_private.h scs.h \
 	scs_config.h scs_private.h crlibm_config.h \
-        log.h
-	$(COMPILE1) -c log.c
+        logsix.h
+	$(COMPILE1) -c logsix.c
 log_fast.o: log_fast.c crlibm.h crlibm_private.h scs.h \
 	scs_config.h scs_private.h crlibm_config.h \
         log_fast.h
