@@ -2,14 +2,21 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
-  SixTrack Version: 4.1.4 CVS Version 1.15 McIntosh
+  SixTrack Version: 4.1.6 CVS Version 1.16 McIntosh
+     -- and of course I forgot the SixTrack Version....
+     -- Version and moddate set to 4.1.6, I am
+        skipping 4.1.4 and 4.1.5 and then CVS and SixTrack versions 
+        should correspond. Otherwise we get confused.
+  McIntosh 5th August, 2008
+
+  SixTrack Version: 4.1.3 CVS Version 1.15 McIntosh
      -- Second interim update for BNL.
      -- synuthck replaced computed goto by IF's due to
         particularly nasty Lahey lf95 bug.
-     -- Patched make_six to sort out logsix.c and .h until
-        we can sort out CVS ans mkwindows.
+     -- Patched make_six mkwindows to sort out logsix.c and .h
+        until we can sort out CVS
      -- Under +if bnlelens set ch1 to "" in subroutine intepr
-     -- Under +if bnlelens repcaed  rvv(j)= by rvv(i)= in trauthck
+     -- Under +if bnlelens replaced  rvv(j)= by rvv(i)= in trauthck
      -- Under +if bnlelens added k=0 before 1st linopt call to writelin
    McIntosh 5th August, 2008
 

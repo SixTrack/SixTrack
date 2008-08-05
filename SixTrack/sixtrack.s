@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.3'/
-      data moddate /'30.07.2008'/
+      data version /'4.1.6'/
+      data moddate /'05.08.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -46944,9 +46944,21 @@ cc     endif
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.15 2008-08-05 18:52:27 mcintosh Exp $
+! $Id: sixtrack.s,v 1.16 2008-08-05 19:06:46 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.15  2008/08/05 18:52:27  mcintosh
+!
+!   SixTrack Version: 4.1.4
+!      -- Second interim update for BNL.
+!      -- synuthck replaced computed goto by IF's due to
+!         particularly nasty Lahey lf95 bug.
+!      -- Patched make_six mkwindows to sort out logsix.c and .h
+!         until we can sort out CVS
+!      -- Under +if bnlelens set ch1 to "" in subroutine intepr
+!      -- Under +if bnlelens replaced  rvv(j)= by rvv(i)= in trauthck
+!      -- Under +if bnlelens added k=0 before 1st linopt call to writelin
+!
 ! Revision 1.14  2008/07/30 14:33:22  mcintosh
 ! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
 ! Eric McIntosh.
@@ -47785,9 +47797,21 @@ cc     endif
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.15 2008-08-05 18:52:27 mcintosh Exp $
+! $Id: sixtrack.s,v 1.16 2008-08-05 19:06:46 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.15  2008/08/05 18:52:27  mcintosh
+!
+!   SixTrack Version: 4.1.4
+!      -- Second interim update for BNL.
+!      -- synuthck replaced computed goto by IF's due to
+!         particularly nasty Lahey lf95 bug.
+!      -- Patched make_six mkwindows to sort out logsix.c and .h
+!         until we can sort out CVS
+!      -- Under +if bnlelens set ch1 to "" in subroutine intepr
+!      -- Under +if bnlelens replaced  rvv(j)= by rvv(i)= in trauthck
+!      -- Under +if bnlelens added k=0 before 1st linopt call to writelin
+!
 ! Revision 1.14  2008/07/30 14:33:22  mcintosh
 ! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
 ! Eric McIntosh.
@@ -47961,9 +47985,21 @@ cc     endif
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.15 2008-08-05 18:52:27 mcintosh Exp $
+! $Id: sixtrack.s,v 1.16 2008-08-05 19:06:46 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.15  2008/08/05 18:52:27  mcintosh
+!
+!   SixTrack Version: 4.1.4
+!      -- Second interim update for BNL.
+!      -- synuthck replaced computed goto by IF's due to
+!         particularly nasty Lahey lf95 bug.
+!      -- Patched make_six mkwindows to sort out logsix.c and .h
+!         until we can sort out CVS
+!      -- Under +if bnlelens set ch1 to "" in subroutine intepr
+!      -- Under +if bnlelens replaced  rvv(j)= by rvv(i)= in trauthck
+!      -- Under +if bnlelens added k=0 before 1st linopt call to writelin
+!
 ! Revision 1.14  2008/07/30 14:33:22  mcintosh
 ! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
 ! Eric McIntosh.
