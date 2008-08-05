@@ -4,9 +4,12 @@
 for i in acos_rn.f addition_scs.c asin_rn.f atan.c atan.h atan2_rn.f atan_fast.c atan_fast.h \
 coefpi2.h cosine.c cosine.h crlibm.h crlibm_config.h crlibm_private.h csh_fast.c csh_fast.h \
 division_scs.c double2scs.c ericc.c exp.c exp.h exp_fast.c exp_fast.h \
-logsix.c logsix.h log10.c log10.h log_fast.c log_fast.h \
+log.c log.h log10.c log10.h log_fast.c log_fast.h \
 multiplication_scs.c rem_pio2.c scs.h scs2double.c scs_config.h scs_private.h \
 sine.c sine.h tan.c tan.h trigo_fast.c trigo_fast.h zero_scs.c
 do
   cp ../windows/$i crlibm
 done
+# ...and fix log logsix .c .h CVS problem until FRS returns
+mv crlibm/log.h crlibm/logsix.h
+mv crlibm/log.c crlibm/logsix.c

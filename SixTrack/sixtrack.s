@@ -11805,6 +11805,9 @@
       character*160 ch1
 +ca save
 !-----------------------------------------------------------------------
++if bnlelens
+!     ch1=""
++ei
       i0=0
       i1=j
       i2=1
@@ -24546,7 +24549,9 @@
                     ejv(i)   = myp(i+(j-1)*napx00)
 !     
                     ejfv(i)=sqrt(ejv(i)*ejv(i)-pma*pma)
-                    rvv(j)=(ejv(i)*e0f)/(e0*ejfv(i))
+!Eric
+!                    rvv(j)=(ejv(i)*e0f)/(e0*ejfv(i))
+                    rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
                     dpsv(i)=(ejfv(i)-e0f)/e0f
                     oidpsv(i)=one/(one+dpsv(i))
                     dpsv1(i)=dpsv(i)*c1e3*oidpsv(i)
@@ -25199,6 +25204,7 @@ c$$$              enddo
 +ei
             endif
 !----------count 44
+!----------count 54! Eric
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
@@ -26232,8 +26238,477 @@ cc     endif
       do 160 l=1,il
         if(abs(el(l)).le.pieni) goto 160
         kz1=kz(l)+1
-        goto(20,40,80,60,40,60,100,100,140),kz1
-        goto 160
+!       goto(20,40,80,60,40,60,100,100,140),kz1
+!       goto 160
+!Eric
+!-----------------------------------------------------------------------
+!  DRIFTLENGTH
+!-----------------------------------------------------------------------
+        if (kz1.eq.1) then
+          goto 20
+!-----------------------------------------------------------------------
+!  RECTANGULAR MAGNET
+!  HORIZONTAL
+!-----------------------------------------------------------------------
+        elseif (kz1.eq.2.or.kz1.eq.5) then
+   40     fokm=el(l)*ed(l)
+          if(abs(fokm).le.pieni) goto 20
+          if(kz1.eq.2) then
+            ih1=1
+            ih2=2
+          else
+!  RECTANGULAR MAGNET VERTICAL
+            ih1=2
+            ih2=1
+          endif
+          do 50 j=1,napx
+            fok(j)=fokm/dpsq(j)
+            rho(j)=(one/ed(l))*dpsq(j)
++if crlibm
+            fok1(j)=(tan_rn(fok(j)*half))/rho(j)
++ei
++if .not.crlibm
+            fok1(j)=(tan(fok(j)*half))/rho(j)
++ei
++if crlibm
+            si(j)=sin_rn(fok(j))
++ei
++if .not.crlibm
+            si(j)=sin(fok(j))
++ei
++if crlibm
+            co(j)=cos_rn(fok(j))
++ei
++if .not.crlibm
+            co(j)=cos(fok(j))
++ei
+            al(2,ih1,j,l)=rho(j)*si(j)
+            al(5,ih1,j,l)=-dpsv(j)*(rho(j)*(one-co(j))/dpsq(j))*c1e3
++if crlibm
+            al(6,ih1,j,l)=-dpsv(j)*(two*tan_rn(fok(j)*half)/dpsq(j))*   &
+     &c1e3
++ei
++if .not.crlibm
+            al(6,ih1,j,l)=-dpsv(j)*(two*tan(fok(j)*half)/dpsq(j))*c1e3
++ei
++if crlibm
+            sm1(j)=cos_rn(fok(j))
++ei
++if .not.crlibm
+            sm1(j)=cos(fok(j))
++ei
++if crlibm
+            sm2(j)=sin_rn(fok(j))*rho(j)
++ei
++if .not.crlibm
+            sm2(j)=sin(fok(j))*rho(j)
++ei
++if crlibm
+            sm3(j)=-sin_rn(fok(j))/rho(j)
++ei
++if .not.crlibm
+            sm3(j)=-sin(fok(j))/rho(j)
++ei
+            sm12(j)=el(l)-sm1(j)*sm2(j)
+            sm23(j)=sm2(j)*sm3(j)
+            as3(j)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)- rho(j)&
+     &*dpsq(j)*(one-sm1(j)))
+            as4(j)=-rvv(j)*sm23(j)/c2e3
+            as6(j)=-rvv(j)*(el(l)+sm1(j)*sm2(j))/c4e3
++if rvet
+            as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/   &
+     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-sm2(j)))
++ei
++if .not.rvet
+            as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*
+     &sm12(j)+dpsv(j)*(el(l)-sm2(j)))+el(l)*(one-rvv(j)))*c1e3
++ei
+            as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-& 
+     &sm2(j)*dpsq(j)/rho(j))+fok1(j)*as3(j)
+            as(3,ih1,j,l)=as3(j)
+            as(4,ih1,j,l)=as4(j)+two*as6(j)*fok1(j)
+            as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))+ as6(j)  &
+     &*fok1(j)*fok1(j)+fok1(j)*as4(j)
+            as(6,ih1,j,l)=as6(j)
+!--VERTIKAL
++if crlibm
+            g(j)=tan_rn(fok(j)*half)/rho(j)
++ei
++if .not.crlibm
+            g(j)=tan(fok(j)*half)/rho(j)
++ei
+            gl(j)=el(l)*g(j)
+            al(1,ih2,j,l)=one-gl(j)
+            al(3,ih2,j,l)=-g(j)*(two-gl(j))
+            al(4,ih2,j,l)=al(1,ih2,j,l)
+            as6(j)=-rvv(j)*al(2,ih2,j,l)/c2e3
+            as(4,ih2,j,l)=-two*as6(j)*fok1(j)
+            as(5,ih2,j,l)=as6(j)*fok1(j)*fok1(j)
+            as(6,ih2,j,l)=as6(j)
+   50     continue
+          goto 160
+        elseif (kz1.eq.4.or.kz1.eq.6) then
+!-----------------------------------------------------------------------
+!  SEKTORMAGNET
+!  HORIZONTAL
+!-----------------------------------------------------------------------
+   60     fokm=el(l)*ed(l)
+          if(abs(fokm).le.pieni) goto 20
+          if(kz1.eq.4) then
+            ih1=1
+            ih2=2
+          else
+!  SECTOR MAGNET VERTICAL
+            ih1=2
+            ih2=1
+          endif
+          do 70 j=1,napx
+            fok(j)=fokm/dpsq(j)
+            rho(j)=(one/ed(l))*dpsq(j)
++if crlibm
+            si(j)=sin_rn(fok(j))
++ei
++if .not.crlibm
+            si(j)=sin(fok(j))
++ei
++if crlibm
+            co(j)=cos_rn(fok(j))
++ei
++if .not.crlibm
+            co(j)=cos(fok(j))
++ei
+            rhoc(j)=rho(j)*(one-co(j))/dpsq(j)
+            siq(j)=si(j)/dpsq(j)
+            al(1,ih1,j,l)=co(j)
+            al(2,ih1,j,l)=rho(j)*si(j)
+            al(3,ih1,j,l)=-si(j)/rho(j)
+            al(4,ih1,j,l)=co(j)
+            al(5,ih1,j,l)=-dpsv(j)*rhoc(j)*c1e3
+            al(6,ih1,j,l)=-dpsv(j)*siq(j)*c1e3
+            sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+            sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
++if rvet
+            as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/   &
+     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))
++ei
++if .not.rvet
+            as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*      &
+     &sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))+el(l)*(one-rvv(j)))*c1e3
++ei
+            as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-&
+     &dpd(j)*siq(j))
+            as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)-&
+     &dpd(j)*rhoc(j))
+            as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
+            as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))
+            as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))/  &
+     &c4e3
+!--VERTIKAL
+            as(6,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)/c2e3
+   70     continue
+          goto 160
+        elseif (kz1.eq.3) then
+!-----------------------------------------------------------------------
+!  QUADRUPOLE
+!  FOCUSSING
+!-----------------------------------------------------------------------
+   80   do 90 j=1,napx
+            fok(j)=ekv(j,l)*oidpsv(j)
+            aek(j)=abs(fok(j))
+            hi(j)=sqrt(aek(j))
+            fi(j)=el(l)*hi(j)
+            if(fok(j).le.zero) then
++if crlibm
+              al(1,1,j,l)=cos_rn(fi(j))
++ei
++if .not.crlibm
+              al(1,1,j,l)=cos(fi(j))
++ei
++if crlibm
+              hi1(j)=sin_rn(fi(j))
++ei
++if .not.crlibm
+              hi1(j)=sin(fi(j))
++ei
+              if(abs(hi(j)).le.pieni) then
+                al(2,1,j,l)=el(l)
+              else
+                al(2,1,j,l)=hi1(j)/hi(j)
+              endif
+              al(3,1,j,l)=-hi1(j)*hi(j)
+              al(4,1,j,l)=al(1,1,j,l)
++if rvet
+              as(1,1,j,l)=el(l)*rvet(j)
++ei
++if .not.rvet
+              as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
++ei
+              as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
+              as(5,1,j,l)=-rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))*      &
+     &aek(j)/c4e3
+              as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
+!--DEFOCUSSING
++if crlibm
+              hp(j)=exp_rn(fi(j))
++ei
++if .not.crlibm
+              hp(j)=exp(fi(j))
++ei
+              hm(j)=one/hp(j)
+              hc(j)=(hp(j)+hm(j))*half
+              hs(j)=(hp(j)-hm(j))*half
+              al(1,2,j,l)=hc(j)
+              if(abs(hi(j)).le.pieni) then
+                al(2,2,j,l)=el(l)
+              else
+                al(2,2,j,l)=hs(j)/hi(j)
+              endif
+              al(3,2,j,l)=hs(j)*hi(j)
+              al(4,2,j,l)=hc(j)
+              as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
+              as(5,2,j,l)=+rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))*      &
+     &aek(j)/c4e3
+              as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
+            else
++if crlibm
+              al(1,2,j,l)=cos_rn(fi(j))
++ei
++if .not.crlibm
+              al(1,2,j,l)=cos(fi(j))
++ei
++if crlibm
+              hi1(j)=sin_rn(fi(j))
++ei
++if .not.crlibm
+              hi1(j)=sin(fi(j))
++ei
+              if(abs(hi(j)).le.pieni) then
+                al(2,2,j,l)=el(l)
+              else
+                al(2,2,j,l)=hi1(j)/hi(j)
+              endif
+              al(3,2,j,l)=-hi1(j)*hi(j)
+              al(4,2,j,l)=al(1,2,j,l)
++if rvet
+              as(1,2,j,l)=el(l)*rvet(j)
++ei
++if .not.rvet
+              as(1,2,j,l)=el(l)*(one-rvv(j))*c1e3
++ei
+              as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
+              as(5,2,j,l)=-rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))*      &
+     &aek(j)/c4e3
+              as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
+!--DEFOCUSSING
++if crlibm
+              hp(j)=exp_rn(fi(j))
++ei
++if .not.crlibm
+              hp(j)=exp(fi(j))
++ei
+              hm(j)=one/hp(j)
+              hc(j)=(hp(j)+hm(j))*half
+              hs(j)=(hp(j)-hm(j))*half
+              al(1,1,j,l)=hc(j)
+              if(abs(hi(j)).le.pieni) then
+                al(2,1,j,l)=el(l)
+              else
+                al(2,1,j,l)=hs(j)/hi(j)
+              endif
+              al(3,1,j,l)=hs(j)*hi(j)
+              al(4,1,j,l)=hc(j)
+              as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
+              as(5,1,j,l)=+rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))*      &
+     &aek(j)/c4e3
+              as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
+            endif
+   90     continue
+          goto 160
+        elseif (kz1.eq.7.or.kz1.eq.8) then
+!-----------------------------------------------------------------------
+!  COMBINED FUNCTION MAGNET HORIZONTAL
+!  FOCUSSING
+!-----------------------------------------------------------------------
+  100     if(kz1.eq.7) then
+            do 110 j=1,napx
+              fokqv(j)=ekv(j,l)
+  110       continue
+            ih1=1
+            ih2=2
+          else
+!  COMBINED FUNCTION MAGNET VERTICAL
+            do 120 j=1,napx
+              fokqv(j)=-ekv(j,l)
+  120       continue
+            ih1=2
+            ih2=1
+          endif
+          do 130 j=1,napx
+            wf(j)=ed(l)/dpsq(j)
+            fok(j)=fokqv(j)/dpd(j)-wf(j)*wf(j)
+            afok(j)=abs(fok(j))
+            hi(j)=sqrt(afok(j))
+            fi(j)=hi(j)*el(l)
+            if(afok(j).le.pieni) then
+              as(6,1,j,l)=-rvv(j)*el(l)/c2e3
+              as(6,2,j,l)=as(6,1,j,l)
++if rvet
+              as(1,1,j,l)=el(l)*rvet(j)
++ei
++if .not.rvet
+              as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
++ei
+            endif
+            if(fok(j).lt.-pieni) then
++if crlibm
+              si(j)=sin_rn(fi(j))
++ei
++if .not.crlibm
+              si(j)=sin(fi(j))
++ei
++if crlibm
+              co(j)=cos_rn(fi(j))
++ei
++if .not.crlibm
+              co(j)=cos(fi(j))
++ei
+              wfa(j)=wf(j)/afok(j)*(one-co(j))/dpsq(j)
+              wfhi(j)=wf(j)/hi(j)*si(j)/dpsq(j)
+              al(1,ih1,j,l)=co(j)
+              al(2,ih1,j,l)=si(j)/hi(j)
+              al(3,ih1,j,l)=-si(j)*hi(j)
+              al(4,ih1,j,l)=co(j)
+              al(5,ih1,j,l)=-wfa(j)*dpsv(j)*c1e3
+              al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
+              sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+              sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
++if rvet
+              as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/ &
+     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/             &
+     &afok(j)*wf(j)*wf(j)
++ei
++if .not.rvet
+              as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12&
+     &(j)+ dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el        &
+     &(l)* (one-rvv(j)))*c1e3
++ei
+              as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*       &
+     &sm12(j)-dpd(j)*wfhi(j))
+              as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l) &
+     &*sm23(j)-dpd(j)*wfa(j))
+            as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
+              as(5,ih1,j,l)=-rvv(j)*sm12(j)*afok(j)/c4e3
+              as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)) &
+     &/c4e3
+              aek(j)=abs(ekv(j,l)/dpd(j))
+              hi(j)=sqrt(aek(j))
+              fi(j)=hi(j)*el(l)
++if crlibm
+              hp(j)=exp_rn(fi(j))
++ei
++if .not.crlibm
+              hp(j)=exp(fi(j))
++ei
+              hm(j)=one/hp(j)
+              hc(j)=(hp(j)+hm(j))*half
+              hs(j)=(hp(j)-hm(j))*half
+              al(1,ih2,j,l)=hc(j)
+              if(abs(hi(j)).gt.pieni) al(2,ih2,j,l)=hs(j)/hi(j)
+              al(3,ih2,j,l)=hs(j)*hi(j)
+              al(4,ih2,j,l)=hc(j)
+              as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
+              as(5,ih2,j,l)=+rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*&
+     &aek(j)/c4e3
+              as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)) &
+     &/c4e3
+            endif
+!--DEFOCUSSING
+            if(fok(j).gt.pieni) then
++if crlibm
+              hp(j)=exp_rn(fi(j))
++ei
++if .not.crlibm
+              hp(j)=exp(fi(j))
++ei
+              hm(j)=one/hp(j)
+              hc(j)=(hp(j)+hm(j))*half
+              hs(j)=(hp(j)-hm(j))*half
+              al(1,ih1,j,l)=hc(j)
+              al(2,ih1,j,l)=hs(j)/hi(j)
+              al(3,ih1,j,l)=hs(j)*hi(j)
+              al(4,ih1,j,l)=hc(j)
+              wfa(j)=wf(j)/afok(j)*(one-hc(j))/dpsq(j)
+              wfhi(j)=wf(j)/hi(j)*hs(j)/dpsq(j)
+              al(5,ih1,j,l)= wfa(j)*dpsv(j)*c1e3
+              al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
+              sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+              sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
++if rvet
+              as(1,ih1,j,l)=el(l)*rvet(j)+c1e3*rvv(j)*(dpsv(j)*dpsv(j)/ &
+     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/             &
+     &afok(j)*wf(j)*wf(j)
++ei
++if .not.rvet
+              as(1,ih1,j,l)=(rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*
+     &sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el(l)* &
+     &(one-rvv(j)))*c1e3
++ei
+              as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*       &
+     &sm12(j)-dpd(j)*wfhi(j))
+              as(3,ih1,j,l)=rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l)  &
+     &*sm23(j)-dpd(j)*wfa(j))
+              as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
+              as(5,ih1,j,l)=+rvv(j)*sm12(j)*afok(j)/c4e3
+              as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)) &
+     &/c4e3
+              aek(j)=abs(ekv(j,l)/dpd(j))
+              hi(j)=sqrt(aek(j))
+              fi(j)=hi(j)*el(l)
++if crlibm
+              si(j)=sin_rn(fi(j))
++ei
++if .not.crlibm
+              si(j)=sin(fi(j))
++ei
++if crlibm
+              co(j)=cos_rn(fi(j))
++ei
++if .not.crlibm
+              co(j)=cos(fi(j))
++ei
+              al(1,ih2,j,l)=co(j)
+              al(2,ih2,j,l)=si(j)/hi(j)
+              al(3,ih2,j,l)=-si(j)*hi(j)
+              al(4,ih2,j,l)=co(j)
+              as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
+              as(5,ih2,j,l)=-rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*&
+     &aek(j)/c4e3
+              as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)) &
+     &/c4e3
+            endif
+  130     continue
+          goto 160
+        elseif (kz1.eq.9) then
+!-----------------------------------------------------------------------
+!  EDGE FOCUSSING
+!-----------------------------------------------------------------------
+  140     do 150 j=1,napx
+            rhoi(j)=ed(l)/dpsq(j)
++if crlibm
+            fok(j)=rhoi(j)*tan_rn(el(l)*rhoi(j)*half)
++ei
++if .not.crlibm
+            fok(j)=rhoi(j)*tan(el(l)*rhoi(j)*half)
++ei
+            al(3,1,j,l)=fok(j)
+            al(3,2,j,l)=-fok(j)
+  150     continue
+          goto 160
+        else
+!Eric
+! Is really an error but old code went to 160
+          goto 160 
+        endif
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
@@ -26247,457 +26722,6 @@ cc     endif
           as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
 +ei
    30   continue
-        goto 160
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   40   fokm=el(l)*ed(l)
-        if(abs(fokm).le.pieni) goto 20
-        if(kz1.eq.2) then
-          ih1=1
-          ih2=2
-        else
-!  RECTANGULAR MAGNET VERTICAL
-          ih1=2
-          ih2=1
-        endif
-        do 50 j=1,napx
-          fok(j)=fokm/dpsq(j)
-          rho(j)=(one/ed(l))*dpsq(j)
-+if crlibm
-          fok1(j)=(tan_rn(fok(j)*half))/rho(j)
-+ei
-+if .not.crlibm
-          fok1(j)=(tan(fok(j)*half))/rho(j)
-+ei
-+if crlibm
-          si(j)=sin_rn(fok(j))
-+ei
-+if .not.crlibm
-          si(j)=sin(fok(j))
-+ei
-+if crlibm
-          co(j)=cos_rn(fok(j))
-+ei
-+if .not.crlibm
-          co(j)=cos(fok(j))
-+ei
-          al(2,ih1,j,l)=rho(j)*si(j)
-          al(5,ih1,j,l)=-dpsv(j)*(rho(j)*(one-co(j))/dpsq(j))*c1e3
-+if crlibm
-          al(6,ih1,j,l)=-dpsv(j)*(two*tan_rn(fok(j)*half)/dpsq(j))*c1e3
-+ei
-+if .not.crlibm
-          al(6,ih1,j,l)=-dpsv(j)*(two*tan(fok(j)*half)/dpsq(j))*c1e3
-+ei
-+if crlibm
-          sm1(j)=cos_rn(fok(j))
-+ei
-+if .not.crlibm
-          sm1(j)=cos(fok(j))
-+ei
-+if crlibm
-          sm2(j)=sin_rn(fok(j))*rho(j)
-+ei
-+if .not.crlibm
-          sm2(j)=sin(fok(j))*rho(j)
-+ei
-+if crlibm
-          sm3(j)=-sin_rn(fok(j))/rho(j)
-+ei
-+if .not.crlibm
-          sm3(j)=-sin(fok(j))/rho(j)
-+ei
-          sm12(j)=el(l)-sm1(j)*sm2(j)
-          sm23(j)=sm2(j)*sm3(j)
-          as3(j)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)- rho(j)  &
-     &*dpsq(j)*(one-sm1(j)))
-          as4(j)=-rvv(j)*sm23(j)/c2e3
-          as6(j)=-rvv(j)*(el(l)+sm1(j)*sm2(j))/c4e3
-+if rvet
-          as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/     &
-     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-sm2(j)))
-+ei
-+if .not.rvet
-          as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12(j)+&
-     &dpsv(j)*(el(l)-sm2(j)))+el(l)*(one-rvv(j)))*c1e3
-+ei
-          as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-  &
-     &sm2(j)*dpsq(j)/rho(j))+fok1(j)*as3(j)
-          as(3,ih1,j,l)=as3(j)
-          as(4,ih1,j,l)=as4(j)+two*as6(j)*fok1(j)
-          as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))+ as6(j)    &
-     &*fok1(j)*fok1(j)+fok1(j)*as4(j)
-          as(6,ih1,j,l)=as6(j)
-!--VERTIKAL
-+if crlibm
-          g(j)=tan_rn(fok(j)*half)/rho(j)
-+ei
-+if .not.crlibm
-          g(j)=tan(fok(j)*half)/rho(j)
-+ei
-          gl(j)=el(l)*g(j)
-          al(1,ih2,j,l)=one-gl(j)
-          al(3,ih2,j,l)=-g(j)*(two-gl(j))
-          al(4,ih2,j,l)=al(1,ih2,j,l)
-          as6(j)=-rvv(j)*al(2,ih2,j,l)/c2e3
-          as(4,ih2,j,l)=-two*as6(j)*fok1(j)
-          as(5,ih2,j,l)=as6(j)*fok1(j)*fok1(j)
-          as(6,ih2,j,l)=as6(j)
-   50   continue
-        goto 160
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   60   fokm=el(l)*ed(l)
-        if(abs(fokm).le.pieni) goto 20
-        if(kz1.eq.4) then
-          ih1=1
-          ih2=2
-        else
-!  SECTOR MAGNET VERTICAL
-          ih1=2
-          ih2=1
-        endif
-        do 70 j=1,napx
-          fok(j)=fokm/dpsq(j)
-          rho(j)=(one/ed(l))*dpsq(j)
-+if crlibm
-          si(j)=sin_rn(fok(j))
-+ei
-+if .not.crlibm
-          si(j)=sin(fok(j))
-+ei
-+if crlibm
-          co(j)=cos_rn(fok(j))
-+ei
-+if .not.crlibm
-          co(j)=cos(fok(j))
-+ei
-          rhoc(j)=rho(j)*(one-co(j))/dpsq(j)
-          siq(j)=si(j)/dpsq(j)
-          al(1,ih1,j,l)=co(j)
-          al(2,ih1,j,l)=rho(j)*si(j)
-          al(3,ih1,j,l)=-si(j)/rho(j)
-          al(4,ih1,j,l)=co(j)
-          al(5,ih1,j,l)=-dpsv(j)*rhoc(j)*c1e3
-          al(6,ih1,j,l)=-dpsv(j)*siq(j)*c1e3
-          sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-          sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-+if rvet
-          as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/     &
-     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))
-+ei
-+if .not.rvet
-          as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12(j) &
-     &+dpsv(j)*(el(l)-al(2,ih1,j,l)))+el(l)*(one-rvv(j)))*c1e3
-+ei
-          as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-  &
-     &dpd(j)*siq(j))
-          as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)-  &
-     &dpd(j)*rhoc(j))
-          as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
-          as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))
-          as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))/c4e3
-!--VERTIKAL
-          as(6,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)/c2e3
-   70   continue
-        goto 160
-!-----------------------------------------------------------------------
-!  QUADRUPOLE
-!  FOCUSSING
-!-----------------------------------------------------------------------
-   80   do 90 j=1,napx
-          fok(j)=ekv(j,l)*oidpsv(j)
-          aek(j)=abs(fok(j))
-          hi(j)=sqrt(aek(j))
-          fi(j)=el(l)*hi(j)
-          if(fok(j).le.zero) then
-+if crlibm
-            al(1,1,j,l)=cos_rn(fi(j))
-+ei
-+if .not.crlibm
-            al(1,1,j,l)=cos(fi(j))
-+ei
-+if crlibm
-            hi1(j)=sin_rn(fi(j))
-+ei
-+if .not.crlibm
-            hi1(j)=sin(fi(j))
-+ei
-            if(abs(hi(j)).le.pieni) then
-              al(2,1,j,l)=el(l)
-            else
-              al(2,1,j,l)=hi1(j)/hi(j)
-            endif
-            al(3,1,j,l)=-hi1(j)*hi(j)
-            al(4,1,j,l)=al(1,1,j,l)
-+if rvet
-            as(1,1,j,l)=el(l)*rvet(j)
-+ei
-+if .not.rvet
-            as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
-+ei
-            as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
-            as(5,1,j,l)=-rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))* aek(j) &
-     &/c4e3
-            as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
-!--DEFOCUSSING
-+if crlibm
-            hp(j)=exp_rn(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
-            hm(j)=one/hp(j)
-            hc(j)=(hp(j)+hm(j))*half
-            hs(j)=(hp(j)-hm(j))*half
-            al(1,2,j,l)=hc(j)
-            if(abs(hi(j)).le.pieni) then
-              al(2,2,j,l)=el(l)
-            else
-              al(2,2,j,l)=hs(j)/hi(j)
-            endif
-            al(3,2,j,l)=hs(j)*hi(j)
-            al(4,2,j,l)=hc(j)
-            as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
-            as(5,2,j,l)=+rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))* aek(j) &
-     &/c4e3
-            as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
-          else
-+if crlibm
-            al(1,2,j,l)=cos_rn(fi(j))
-+ei
-+if .not.crlibm
-            al(1,2,j,l)=cos(fi(j))
-+ei
-+if crlibm
-            hi1(j)=sin_rn(fi(j))
-+ei
-+if .not.crlibm
-            hi1(j)=sin(fi(j))
-+ei
-            if(abs(hi(j)).le.pieni) then
-              al(2,2,j,l)=el(l)
-            else
-              al(2,2,j,l)=hi1(j)/hi(j)
-            endif
-            al(3,2,j,l)=-hi1(j)*hi(j)
-            al(4,2,j,l)=al(1,2,j,l)
-+if rvet
-            as(1,2,j,l)=el(l)*rvet(j)
-+ei
-+if .not.rvet
-            as(1,2,j,l)=el(l)*(one-rvv(j))*c1e3
-+ei
-            as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
-            as(5,2,j,l)=-rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))* aek(j) &
-     &/c4e3
-            as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
-!--DEFOCUSSING
-+if crlibm
-            hp(j)=exp_rn(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
-            hm(j)=one/hp(j)
-            hc(j)=(hp(j)+hm(j))*half
-            hs(j)=(hp(j)-hm(j))*half
-            al(1,1,j,l)=hc(j)
-            if(abs(hi(j)).le.pieni) then
-              al(2,1,j,l)=el(l)
-            else
-              al(2,1,j,l)=hs(j)/hi(j)
-            endif
-            al(3,1,j,l)=hs(j)*hi(j)
-            al(4,1,j,l)=hc(j)
-            as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
-            as(5,1,j,l)=+rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))* aek(j) &
-     &/c4e3
-            as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
-          endif
-   90   continue
-        goto 160
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET HORIZONTAL
-!  FOCUSSING
-!-----------------------------------------------------------------------
-  100   if(kz1.eq.7) then
-          do 110 j=1,napx
-            fokqv(j)=ekv(j,l)
-  110     continue
-          ih1=1
-          ih2=2
-        else
-!  COMBINED FUNCTION MAGNET VERTICAL
-          do 120 j=1,napx
-            fokqv(j)=-ekv(j,l)
-  120     continue
-          ih1=2
-          ih2=1
-        endif
-        do 130 j=1,napx
-          wf(j)=ed(l)/dpsq(j)
-          fok(j)=fokqv(j)/dpd(j)-wf(j)*wf(j)
-          afok(j)=abs(fok(j))
-          hi(j)=sqrt(afok(j))
-          fi(j)=hi(j)*el(l)
-          if(afok(j).le.pieni) then
-            as(6,1,j,l)=-rvv(j)*el(l)/c2e3
-            as(6,2,j,l)=as(6,1,j,l)
-+if rvet
-            as(1,1,j,l)=el(l)*rvet(j)
-+ei
-+if .not.rvet
-            as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
-+ei
-          endif
-          if(fok(j).lt.-pieni) then
-+if crlibm
-            si(j)=sin_rn(fi(j))
-+ei
-+if .not.crlibm
-            si(j)=sin(fi(j))
-+ei
-+if crlibm
-            co(j)=cos_rn(fi(j))
-+ei
-+if .not.crlibm
-            co(j)=cos(fi(j))
-+ei
-            wfa(j)=wf(j)/afok(j)*(one-co(j))/dpsq(j)
-            wfhi(j)=wf(j)/hi(j)*si(j)/dpsq(j)
-            al(1,ih1,j,l)=co(j)
-            al(2,ih1,j,l)=si(j)/hi(j)
-            al(3,ih1,j,l)=-si(j)*hi(j)
-            al(4,ih1,j,l)=co(j)
-            al(5,ih1,j,l)=-wfa(j)*dpsv(j)*c1e3
-            al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
-            sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-            sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-+if rvet
-            as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/   &
-     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/             &
-     &afok(j)*wf(j)*wf(j)
-+ei
-+if .not.rvet
-            as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12  &
-     &(j)+ dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el        &
-     &(l)* (one-rvv(j)))*c1e3
-+ei
-            as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*sm12(j)- &
-     &dpd(j)*wfhi(j))
-            as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l)   &
-     &*sm23(j)-dpd(j)*wfa(j))
-            as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
-            as(5,ih1,j,l)=-rvv(j)*sm12(j)*afok(j)/c4e3
-            as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))   &
-     &/c4e3
-            aek(j)=abs(ekv(j,l)/dpd(j))
-            hi(j)=sqrt(aek(j))
-            fi(j)=hi(j)*el(l)
-+if crlibm
-            hp(j)=exp_rn(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
-            hm(j)=one/hp(j)
-            hc(j)=(hp(j)+hm(j))*half
-            hs(j)=(hp(j)-hm(j))*half
-            al(1,ih2,j,l)=hc(j)
-            if(abs(hi(j)).gt.pieni) al(2,ih2,j,l)=hs(j)/hi(j)
-            al(3,ih2,j,l)=hs(j)*hi(j)
-            al(4,ih2,j,l)=hc(j)
-            as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
-            as(5,ih2,j,l)=+rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*  &
-     &aek(j)/c4e3
-            as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))   &
-     &/c4e3
-          endif
-!--DEFOCUSSING
-          if(fok(j).gt.pieni) then
-+if crlibm
-            hp(j)=exp_rn(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
-            hm(j)=one/hp(j)
-            hc(j)=(hp(j)+hm(j))*half
-            hs(j)=(hp(j)-hm(j))*half
-            al(1,ih1,j,l)=hc(j)
-            al(2,ih1,j,l)=hs(j)/hi(j)
-            al(3,ih1,j,l)=hs(j)*hi(j)
-            al(4,ih1,j,l)=hc(j)
-            wfa(j)=wf(j)/afok(j)*(one-hc(j))/dpsq(j)
-            wfhi(j)=wf(j)/hi(j)*hs(j)/dpsq(j)
-            al(5,ih1,j,l)= wfa(j)*dpsv(j)*c1e3
-            al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
-            sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-            sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-+if rvet
-            as(1,ih1,j,l)=el(l)*rvet(j)+c1e3*rvv(j)*(dpsv(j)*dpsv(j)/   &
-     &(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/             &
-     &afok(j)*wf(j)*wf(j)
-+ei
-+if .not.rvet
-            as(1,ih1,j,l)=(rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12(j)&
-     &+dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el(l)*        &
-     &(one-rvv(j)))*c1e3
-+ei
-            as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*sm12(j)- &
-     &dpd(j)*wfhi(j))
-            as(3,ih1,j,l)=rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l)    &
-     &*sm23(j)-dpd(j)*wfa(j))
-            as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
-            as(5,ih1,j,l)=+rvv(j)*sm12(j)*afok(j)/c4e3
-            as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))   &
-     &/c4e3
-            aek(j)=abs(ekv(j,l)/dpd(j))
-            hi(j)=sqrt(aek(j))
-            fi(j)=hi(j)*el(l)
-+if crlibm
-            si(j)=sin_rn(fi(j))
-+ei
-+if .not.crlibm
-            si(j)=sin(fi(j))
-+ei
-+if crlibm
-            co(j)=cos_rn(fi(j))
-+ei
-+if .not.crlibm
-            co(j)=cos(fi(j))
-+ei
-            al(1,ih2,j,l)=co(j)
-            al(2,ih2,j,l)=si(j)/hi(j)
-            al(3,ih2,j,l)=-si(j)*hi(j)
-            al(4,ih2,j,l)=co(j)
-            as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
-            as(5,ih2,j,l)=-rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*  &
-     &aek(j)/c4e3
-            as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))   &
-     &/c4e3
-          endif
-  130   continue
-        goto 160
-!-----------------------------------------------------------------------
-!  EDGE FOCUSSING
-!-----------------------------------------------------------------------
-  140   do 150 j=1,napx
-          rhoi(j)=ed(l)/dpsq(j)
-+if crlibm
-          fok(j)=rhoi(j)*tan_rn(el(l)*rhoi(j)*half)
-+ei
-+if .not.crlibm
-          fok(j)=rhoi(j)*tan(el(l)*rhoi(j)*half)
-+ei
-          al(3,1,j,l)=fok(j)
-          al(3,2,j,l)=-fok(j)
-  150   continue
   160 continue
 !---------------------------------------  END OF 'ENVARS' (2)
       return
@@ -27106,13 +27130,13 @@ cc     endif
             al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
             sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
             sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-            as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12  &
-     &(j)+ dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el        &
-     &(l)* (one-rvv(j)))*c1e3
+            as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*      &
+     &sm12(j)+ dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+      &
+     &el(l)* (one-rvv(j)))*c1e3
             as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*sm12(j)- &
      &dpd(j)*wfhi(j))
-            as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l)   &
-     &*sm23(j)-dpd(j)*wfa(j))
+            as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)*ed(l)*   &
+     &sm23(j)-dpd(j)*wfa(j))
             as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
             as(5,ih1,j,l)=-rvv(j)*sm12(j)*afok(j)/c4e3
             as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))   &
@@ -31985,9 +32009,13 @@ cc     endif
 +ei
 +if .not.collimat.and.bnlelens
 !GRDRHIC
+!Eric
+      k=0
       call writelin(nr,idum,etl,phi,t,1,k)
+!GRDRHIC
 +ei
 +if collimat.and.bnlelens
+!GRDRHIC
       call writelin(nr,idum,etl,phi,t,1,k)
 !GRDRHIC
 +ei
@@ -46916,9 +46944,22 @@ cc     endif
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.14 2008-07-30 14:33:22 mcintosh Exp $
+! $Id: sixtrack.s,v 1.15 2008-08-05 18:52:27 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.14  2008/07/30 14:33:22  mcintosh
+! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
+! Eric McIntosh.
+! It is an interim update to facilitate development with BNL.
+! make_six creates a directory and executable name based on options.
+! make_six now supports [+-]bignblz which sets nblz to 200,000!!! if selected.
+! The Makefile creates a map and uses -g in FC for NAG.
+! crlibm is cleaned up for Linux/Windows and logsix.dat and logsix.h are used
+! instead of log.c and log.h and inlining is handled with an IFDEF.
+! In bnlelens Unit 97 (not 98) is used for checkdist.dat.
+! A problem with open(10... and open(99 is fixed for NAG.
+! sigsecut2 comment is cleaned up.
+!
 ! Revision 1.13  2008/07/11 17:10:36  rtomas
 ! Fixed "2d0*pi" bug in crab cavity kick
 !
@@ -47744,9 +47785,22 @@ cc     endif
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.14 2008-07-30 14:33:22 mcintosh Exp $
+! $Id: sixtrack.s,v 1.15 2008-08-05 18:52:27 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.14  2008/07/30 14:33:22  mcintosh
+! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
+! Eric McIntosh.
+! It is an interim update to facilitate development with BNL.
+! make_six creates a directory and executable name based on options.
+! make_six now supports [+-]bignblz which sets nblz to 200,000!!! if selected.
+! The Makefile creates a map and uses -g in FC for NAG.
+! crlibm is cleaned up for Linux/Windows and logsix.dat and logsix.h are used
+! instead of log.c and log.h and inlining is handled with an IFDEF.
+! In bnlelens Unit 97 (not 98) is used for checkdist.dat.
+! A problem with open(10... and open(99 is fixed for NAG.
+! sigsecut2 comment is cleaned up.
+!
 ! Revision 1.13  2008/07/11 17:10:36  rtomas
 ! Fixed "2d0*pi" bug in crab cavity kick
 !
@@ -47907,9 +47961,22 @@ cc     endif
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.14 2008-07-30 14:33:22 mcintosh Exp $
+! $Id: sixtrack.s,v 1.15 2008-08-05 18:52:27 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.14  2008/07/30 14:33:22  mcintosh
+! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
+! Eric McIntosh.
+! It is an interim update to facilitate development with BNL.
+! make_six creates a directory and executable name based on options.
+! make_six now supports [+-]bignblz which sets nblz to 200,000!!! if selected.
+! The Makefile creates a map and uses -g in FC for NAG.
+! crlibm is cleaned up for Linux/Windows and logsix.dat and logsix.h are used
+! instead of log.c and log.h and inlining is handled with an IFDEF.
+! In bnlelens Unit 97 (not 98) is used for checkdist.dat.
+! A problem with open(10... and open(99 is fixed for NAG.
+! sigsecut2 comment is cleaned up.
+!
 ! Revision 1.13  2008/07/11 17:10:36  rtomas
 ! Fixed "2d0*pi" bug in crab cavity kick
 !

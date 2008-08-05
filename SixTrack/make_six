@@ -559,6 +559,9 @@ export CRLIBM=""
 if test "$crlibm" = ""
 then
   cd ../crlibm
+# and fix the log logsix .c .h CVS problem until FRS returns
+  ln -sf log.c logsix.c
+  ln -sf log.h logsix.h
   make
   cd ../$ename
   export CRLIBM="../crlibm/crlibm.a"
@@ -569,6 +572,8 @@ then
   # Fix up the Makefile
   sed -e's/%%SIXTRACK_DA%%/'$ename'/g' Makefile > tmp$$
   mv tmp$$ Makefile  
+# remove an existing executable
+  rm -f $ename
   make $ename
 else
   export BOINC=""
@@ -581,6 +586,8 @@ else
   mv tmp$$ Makefile
   # We make for Linux now.because we are finished or as a verification 
   # before we set up for windows.
+# remove an existing executable
+  rm -f $ename
   make $ename
 fi
 echo "       "

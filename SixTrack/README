@@ -1,15 +1,90 @@
-  SixTrack Version: 4.1
-     -- add crab cavity
-     -- Print-out of coordinates at elements starting with "BPM"
-  SixTrack Version: 4.0.09
-     -- removed redundant directory sixtrack and *.ast files.
-   Eric 16 May 2007
+  Please note that when you make a CVS commit you
+should first modify the README and then cut and paste
+the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.4 CVS Version 1.15 McIntosh
+     -- Second interim update for BNL.
+     -- synuthck replaced computed goto by IF's due to
+        particularly nasty Lahey lf95 bug.
+     -- Patched make_six to sort out logsix.c and .h until
+        we can sort out CVS ans mkwindows.
+     -- Under +if bnlelens set ch1 to "" in subroutine intepr
+     -- Under +if bnlelens repcaed  rvv(j)= by rvv(i)= in trauthck
+     -- Under +if bnlelens added k=0 before 1st linopt call to writelin
+   McIntosh 5th August, 2008
+
+  SixTrack Version: 4.1.3 CVS Version 1.14 McIntosh
+     -- First interim update to facilitate development with BNL.
+     -- make_six creates a directory and executable name based on options.
+     -- make_six now supports [+-]bignblz which sets nblz to 200,000!!! if selected.
+     -- The Makefile creates a map and uses -g in FC for NAG.
+     -- crlibm is cleaned up for Linux/Windows and logsix.dat and logsix.h are used
+        instead of log.c and log.h and inlining is handled with an IFDEF.
+     -- In bnlelens Unit 97 (not 98) is used for checkdist.dat.
+     -- A problem with open(10... and open(99 is fixed for NAG.
+     -- sigsecut2 comment is cleaned up.
+   McIntosh 30th July, 2008
+
+  SixTrack Version: 4.1.2 CVS revision 1.13 rtomas
+     -- Fixed "2d0*pi" bug in crab cavity kick
+
+  SixTrack Version: 4.1.1 CVS revision 1.12 McIntosh
+     --  New make_six with new flags bpm and bnlelens and the ast's
+     --  sixtrack.s: moved GRDRHIC comments inside +if bnlelens
+     -- Changed some writelin statements to be consistent; under investigation.
+     --  Fixed FORMAT bug in bnlelens.
+   McIntosh 11 July, 2008 
+
+  SixTrack Version: 4.1.0 CVS revision 1.11 McIntosh
+     -- The first commited version with Guillaume's preliminary changes
+         for "bnlelens" using the deck "rhicelens" required for RHIC BEAM-BEAM studies.
+     --  make_six now determines the version and modification date from sixtrack.s, and
+         displays them
+     --  Sets the BOINC variable correctly for the Makefile. 
+     --  The program maincr to call worker is added to myboinc.f.
+   McIntosh 11 July, 2008
+
+  SixTrack Version: ?  CVS revision 1.10 frs
+     --  bpmdata are only written to files units > 100 if bpm flag in track.ast.
+   FRS 10 July, 2008
+
+  SixTrack Version: 4.0.10 CVS revision 1.9 McIntosh
+     -- The version and last modification date
+        for both SixTrack and SixTrack_da are now specified in
+        a common deck at the very beginning of sixtrack.s.
+        Version is an 8 character string [v]v.[v]v.[v]v and
+        moddate a 10 character string dd.mm.yyyy. The version is
+        stored in floating-point in sumda(52) for BOINC in particular.
+        In this way fort.10 identifies the version which produced it.
+     -- Small format changes to a couple of comments and the SIXDA
+        date/time corrected.
+    McIntosh 24 June, 2008
+
+  SixTrack Version: 4.0.9    CVS revision 1.8 frs
+      -- sumda(52) set to 4009.0
+    FRS 19 June, 2008
+    
+  SixTrack Version: ? CVS Revision 1.7 frs
+     -- replace CRAB /c1e3 by *c1m3
+    FRS 15 January, 2007
+
+  SixTrack Version: ? CVS Revision 1.6
+     -- ???  CRAB Cavity?
+`
+  SixTrack Version: ? CVS Revision 1.5
+     -- ???  CRAB Cavity?
+`
+  SixTrack Version: ? CVS Revision 1.4 frs
+     -- Increase number of elements nblz=20000 (actually 200,000)
+   FRS 05 July, 2007
+
+  Sixtrack Version ? CVS Revision 1.3 frs
      -- Program stops when single element names longer than 16 characters.
      -- Program stops when when order of multipoles in fort.3 exceed MMUL.
      -- MMUL is set to 20 for all non-collimation versions.
    FS 09 May 2007  
 
+   Sixtrack Version ? CVS Revision 1.2 robertde
    Latest version of the expanded version for collimation studies (collimat flag)
      -- change of the collimator labels step to take into account the new Beam 2 lattice from MADX
      -- "STOP" flags have been checked and removed if necessary
