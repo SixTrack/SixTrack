@@ -1,6 +1,6 @@
 sixtrack.s
 sixscn.f
-df crlibm,tilt,fast,collimat,cr,boinc,bignblz
+df crlibm,tilt,fast,collimat,cr,boinc,bignblz,debug
 e ADIA,ADIB,DATEN,ENVARS,SYNOS,ERRF
 e COMNUL,RANECU
 e ANFB,BETALF,BLOCK,BLOCKDIS

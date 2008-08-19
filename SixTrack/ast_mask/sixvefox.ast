@@ -1,6 +1,6 @@
 sixtrack.s
 sixvefoxn.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,bnlelens,bignblz
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,bnlelens,bignblz,debug
 e UMLAU6,ENVADA,SYNODA,ERRFF
 e CLOR6,MYDAINI
 e beam6df,wireda

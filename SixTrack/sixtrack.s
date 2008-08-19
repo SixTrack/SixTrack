@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.6'/
-      data moddate /'05.08.2008'/
+      data version /'4.1.7'/
+      data moddate /'13.08.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -13,8 +13,29 @@
       integer namepart(npart)
 !
       common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,       &
-     &torby,torbyp,tdispx,tdispy,sampl,namepart
+     &torby,torbyp,tdispx,tdispy,sampl,namepart,totals
++if bnlelens
 !GRDRHIC
+!GRD-042008
+      double precision twojx,twojy,twojr,sumtwojx,sumtwojy,             &
+     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp
+      double precision limit_twojx,limit_twojy,limit_twojr
+      integer n_cut,n_nocut
+      common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
+     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut,&
+     &limit_twojx,limit_twojy,limit_twojr
+      integer napx00
+      parameter (napx00=64)
+      integer   mynp
+      common /mynp/ mynp
+      double precision myx,myxp,myy,myyp,myp,mys
+      common /coord/ myx(npart),myxp(npart),myy(npart),myyp(npart),     &
+     &myp(npart),mys(npart)  
+      integer   samplenumber
+      common /samplenumber/ samplenumber
+!GRD-042008
+!GRDRHIC
++ei
 +cd crlibco
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
@@ -25,22 +46,33 @@
       real r1,timestart,timenow
       common /mytimes/timestart
 +cd crco
-      integer sixrecs,binrec,binrecs,numlcr
-      logical rerun,restart,checkp,fort12,fort13,check1213
+      integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
+      logical rerun,restart,checkp,fort95,fort96
       character*255 arecord
       character*20 stxt
       character*80 runtim
       common /crdata/                                                   &
-     &sixrecs,binrec,binrecs((npart+1)/2),                              &
+     &sixrecs,binrec,binrecs((npart+1)/2),bnlrec,bllrec,                &
      &numlcr,rerun,restart,checkp,                                      &
-     &fort12,fort13,arecord,stxt,runtim
+     &fort95,fort96,arecord,stxt,runtim
       integer crnumlcr,crnuml,crnapxo,crnapx,crnumxv,crnnumxv,crnlostp, &
-     &crsixrecs,crbinrec,crbinrecs
+     &crsixrecs,crbinrec,crbinrecs,crbnlrec,crbllrec
       logical crpstop,crsythck
       real crtime0,crtime1,crtime2
       double precision cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
      &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl
-      common/crio/crsixrecs,crbinrec,crbinrecs((npart+1)/2),            &
++if bnlelens
+!GRDRHIC
+!GRD-042008
+      integer crnamepart,crn_nocut,crn_cut
+      double precision crtotals,crsumtwojx,crsumtwojy,                  &
+     &crsumsquarex,crsumsquarey,                                        &
+     &crlimit_twojx,crlimit_twojy,crlimit_twojr
+!GRDRHIC
+!GRD-042008
++ei
+      common/crio/crsixrecs,crbinrec,crbinrecs((npart+1)/2),crbnlrec,   &
+     &crbllrec,                                                         &                                   
      &crnumlcr,crnuml,crsythck,                                         &
      &crtime0,crtime1,crtime2,                                          &
      &crnapxo,crnapx,cre0,                                              &
@@ -48,7 +80,23 @@
      &crxv(2,npart),cryv(2,npart),                                      &
      &crsigmv(npart),crdpsv(npart),crdpsv1(npart),crejv(npart),         &
      &crejfv(npart),craperv(npart,2),crxvl(2,npart),cryvl(2,npart),     &
++if .not.bnlelens
      &crdpsvl(npart),crejvl(npart),crsigmvl(npart)
++ei
++if bnlelens
+     &crdpsvl(npart),crejvl(npart),crsigmvl(npart),                     &
+     &crn_cut,                                                          &
+     &crn_nocut,                                                        &
+     &crsumsquarex,                                                     &
+     &crsumsquarey,                                                     &
+     &crsumtwojx,                                                       &
+     &crsumtwojy,                                                       &
+     &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
+     &crnamepart(npart),                                                &
+     &crtotals
+!GRDRHIC
+!GRD-042008
++ei
 +cd save
 +if automatc
 +ei
@@ -4623,6 +4671,142 @@
             y(1,2)=y(1,2)+dki(ix,2)*dpp/(one+dpp)*c1e3*tiltc(k)         &
      &-dki(ix,2)/(one+dpp)*c1e3*(one-tiltc(k))
 +ei
++cd bnlin
+!GRDRHIC
+!GRD-2007
+!GRD-2007 REQUIRED FOR RHIC BEAM-BEAM STUDIES
+!GRD-2007 OPTION IS ACTIVATED IF "LHC" PARAMETER IN BEAM-BEAM
+!GRD-2007 BLOCK IN FORT.3 IS SET TO 9
+!GRD-042008
+           if(lhc.eq.9) then
+             call  bnlrdis(20000)
++if cr
+               write(lout,*) 'Sample number 1'
++ei
++if .not.cr
+               write(*,*) 'Sample number 1'
++ei
+!TEST
+               napx=napx00
+               do j = 1, napx00
+                 pstop(nlostp(j))=.false.
+               enddo
+               do j = 1, napx00
+                  xv(1,j)  = 1e3*myx(j)+torbx(1)
+                  yv(1,j)  = 1e3*myxp(j)+torbxp(1)
+                  xv(2,j)  = 1e3*myy(j)+torby(1)
+                  yv(2,j)  = 1e3*myyp(j)+torbyp(1)
+                  sigmv(j) = mys(j)
+                  ejv(j)   = myp(j)
+                  ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
+                  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+                  dpsv(j)=(ejfv(j)-e0f)/e0f
+                  oidpsv(j)=one/(one+dpsv(j))
+                  dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
+cc2008
+                  namepart(j) = samplenumber*100 + j
+cc2008
+               enddo
+           endif
+!GRD-2007
+!GRD-042008
+!GRDRHIC
++cd bnlout
+!GRD-042008
+!GRDRHIC
+!GRD-2007
+!GRD-2007 ADDITIONAL OUTPUT FILE FOR MULTI-PARTICLES BEAM-BEAM STUDIES
+!GRD-2007
+          n_cut=0
+          n_nocut=0
+          do j=1,napx
+            if(pstop(nlostp(j))) goto 599
+!GRD-042008
++if debug
+!           if (n.ge.990) then
+!           write (99,*) 'before j ',j,xv(1,j),xv(2,j),yv(1,j),yv(2,j)
+!           endif
++ei
+            x_temp=(xv(1,j)-torbx(i-1))*1e-3
+            y_temp=(xv(2,j)-torby(i-1))*1e-3
+            xp_temp=(yv(1,j)-torbxp(i-1))*1e-3
+            yp_temp=(yv(2,j)-torbyp(i-1))*1e-3
+            twojx = tbetax(i-1)*(xp_temp**2)+                           &
+     &               2d0*talphax(i-1)*x_temp*xp_temp+                   &
+     &               ((1+talphax(i-1)**2)/tbetax(i-1))*(x_temp**2)
+            twojy = tbetay(i-1)*(yp_temp**2)+                           &
+     &               2d0*talphay(i-1)*y_temp*yp_temp+                   &
+     &               ((1+talphay(i-1)**2)/tbetay(i-1))*(y_temp**2)
+            twojr = sqrt(twojx**2+twojy**2)
+            if(n.eq.1) then
+               if(j.eq.1) then
+                  write(*,*) 'coucou'
+                  limit_twojx = 25d0*(2.5e-6/(e0/pma))
+                  limit_twojy = 25d0*(2.5e-6/(e0/pma))
+                  limit_twojr = 25d0*(2.5e-6/(e0/pma))
+               endif
+            endif
+            if(twojr.le.limit_twojr) then
+              sumtwojx=sumtwojx+twojx
+              sumtwojy=sumtwojy+twojy
+              sumsquarex=sumsquarex+x_temp**2
+              sumsquarey=sumsquarey+y_temp**2
+              n_nocut=n_nocut +1
+            else
+              n_cut=n_cut+1
+              write(53,'(i8,1x,i8)') n,namepart(j)
++if cr
+              endfile 53
+              backspace 53
+              bllrec=bllrec+1
++ei
+            endif
+!GRD-042008
+ 599        continue
+          enddo
++if debug
+      write (99,*) 'after  update bnl n ',n
+      write(99,*)                                                       &
+     &n_cut,                                                            &
+     &n_nocut,                                                          &
+     &sumsquarex,                                                       &
+     &sumsquarey,                                                       &
+     &sumtwojx,                                                         &
+     &sumtwojy,                                                         &
+     &limit_twojx,limit_twojy,limit_twojr,                              &
+     &totals,                                                           &                     
+     &(namepart(j),j=1,napx)
++ei
+!GRD-042008
+          if(mod(n,nwr(3)).eq.0) then
++if cr
+            write(lout,*) 'dumping stats at turn number ',n
++ei
++if .not.cr
+            write(*,*) 'dumping stats at turn number ',n
++ei
+            write(52,'(i8,2(1x,i8),4(1x,e15.8))')                       &
+     &n,n_cut,n_nocut,                                                  &
+     &sumsquarex,                                                       &
+     &sumsquarey,                                                       &
+     &sumtwojx,                                                         &
+     &sumtwojy
++if cr
+      endfile 52
+      backspace 52
+            bnlrec=bnlrec+1
++ei
+            sumsquarex=ZERO
+            sumsquarey=ZERO
+            sumtwojx=ZERO
+            sumtwojy=ZERO
+!05-2008
+!
+          endif
+!GRD-042008
+!GRD-2007
+!GRD-042008
+!GRDRHIC
 +cd thcklin
                 puxve1=xv(1,j)
                 puzve1=yv(1,j)
@@ -4906,8 +5090,16 @@
         nthinerr=3001
         return
       endif
-      if(ithick.eq.1.and.ilostch.eq.1)                                  &
-     &call synuthck
+      if(ithick.eq.1.and.ilostch.eq.1) then
++if cr
++if debug
+        write (93,*) 'ERIC lostpar??? calling synuthck!!!'
+        endfile 93
+        backspace 93
++ei
++ei
+        call synuthck
+      endif
       napx=lnapx
       return
 +cd lost5a
@@ -5724,7 +5916,6 @@
 +if .not.boinc
       open(11,file='fort.11',form='unformatted',status='unknown')
 +ei
-+if .not.cr
 +if boinc
       call boincrf('fort.12',filename)
       open(12,file=filename,form='formatted',status='unknown')
@@ -5738,7 +5929,6 @@
 +ei
 +if .not.boinc
       open(13,file='fort.13',form='formatted',status='unknown')
-+ei
 +ei
 +if boinc
       call boincrf('fort.14',filename)
@@ -5896,6 +6086,7 @@
       open(35,file='fort.35',form='formatted',status='unknown')
 +ei
 +ei
++if .not.bnlelens
 +if boinc
       call boincrf('fort.59',filename)
       open(59,file=filename,form='unformatted',status='unknown')
@@ -6120,12 +6311,65 @@
 +if .not.boinc
       open(90,file='fort.90',form='unformatted',status='unknown')
 +ei
++ei
 +if boinc
       call boincrf('fort.98',filename)
       open(98,file=filename,form='formatted',status='unknown')
 +ei
 +if .not.boinc
       open(98,file='fort.98',form='formatted',status='unknown')
++ei
++if bnlelens
+!GRDRHIC
+!GRD-042008
++if boinc
+      call boincrf('SixTwiss.dat',filename)
+      open(51,file=filename)
++ei
++if .not.boinc
+      open(51,file='SixTwiss.dat')
++ei
+!
++if boinc
+      call boincrf('beambeam-output.dat',filename)
+      open(52,file=filename)
++ei
++if .not.boinc
+      open(52,file='beambeam-output.dat')
++ei
+!
++if boinc
+      call boincrf('beambeam-lostID.dat',filename)
+      open(53,file=filename)
++ei
++if .not.boinc
+      open(53,file='beambeam-lostID.dat')
++ei
++if boinc
+      call boincrf('beambeamdist.dat',filename)
+      open(54,file=filename)
++ei
++if .not.boinc
+      open(54,file='beambeamdist.dat')
++ei
++if boinc
+      call boincrf('checkdist.dat',filename)
+      open(97, file=filename)
++ei
++if .not.boinc
+      open(97, file='checkdist.dat')
++ei
+!GRDRHIC
+!GRD-042008
++ei
++if debug
++if boinc
+      call boincrf('dump',filename)
+      open(99, file=filename,form='formatted')
++ei
++if .not.boinc
+      open(99, file='dump',form='formatted')
++ei
 +ei
 +cd close
 !-----------------------------------------------------------------------
@@ -6160,6 +6404,7 @@
 +if time
       close(35)
 +ei
++if .not.bnlelens
       close(59)
       close(60)
       close(61)
@@ -6192,8 +6437,22 @@
       close(88)
       close(89)
       close(90)
++ei
       close(98)
++if bnlelens
+!GRDRHIC
+!GRD-042008
+      close(51)
+      close(52)
+      close(53)
+      close(54)
+      close(97)
+!GRDRHIC
+!GRD-042008
++ei
++if debug
       close(99)
++ei
 +cd rvet0
       e0f=sqrt(e0*e0-pma*pma)
 +if rvet
@@ -16070,8 +16329,8 @@
 !  METAFILE FOR PLOTTING WITH GKS           : UNIT 20
 !
 +if cr
-!  CHECKPOINT/RESTART FILES                 : UNIT 12,13
-!  OPTIONAL DUMP FILE                       : UNIT 99
+!  CHECKPOINT/RESTART FILES                 : UNIT 95,96
+!  OPTIONAL DUMP.DEBUG FILE                 : UNIT 99
 !  PROGRESS FILE                            : UNIT 91
 !  INTERMEDIATE OUTPUT FILE (LOUT)          : UNIT 92
 !  CHECKPOINT/RESTART LOGFILE               : UNIT 93
@@ -16145,10 +16404,12 @@
       rerun=.false.
       restart=.false.
       checkp=.false.
-      fort12=.false.
-      fort13=.false.
+      fort95=.false.
+      fort96=.false.
       sixrecs=0
       binrec=0
+      bnlrec=0
+      bllrec=0
       do i=1,(npart+1)/2
         binrecs(i)=0
       enddo
@@ -16202,38 +16463,38 @@
 +if .not.boinc
   602 open(6,file='fort.6',form='formatted',status='new')
 +ei
-!--   Now check for restart files fort.12/13 and OPEN them
+!--   Now check for restart files fort.95/96 and OPEN them
 +if boinc
-  605 call boincrf('fort.12',filename)
-      open(12,file=filename,form='unformatted',status='old',err=600)
+  605 call boincrf('fort.95',filename)
+      open(95,file=filename,form='unformatted',status='old',err=600)
 +ei
 +if .not.boinc
-  605 open(12,file='fort.12',form='unformatted',status='old',err=600)
+  605 open(95,file='fort.95',form='unformatted',status='old',err=600)
 +ei
-      fort12=.true.
+      fort95=.true.
       goto 608
 +if boinc
-  600 call boincrf('fort.12',filename)
-      open(12,file=filename,form='unformatted',status='new')
+  600 call boincrf('fort.95',filename)
+      open(95,file=filename,form='unformatted',status='new')
 +ei
 +if .not.boinc
-  600 open(12,file='fort.12',form='unformatted',status='new')
+  600 open(95,file='fort.95',form='unformatted',status='new')
 +ei
 +if boinc
-  608 call boincrf('fort.13',filename)
-      open(13,file=filename,form='unformatted',status='old',err=601)
+  608 call boincrf('fort.96',filename)
+      open(96,file=filename,form='unformatted',status='old',err=601)
 +ei
 +if .not.boinc
-  608 open(13,file='fort.13',form='unformatted',status='old',err=601)
+  608 open(96,file='fort.96',form='unformatted',status='old',err=601)
 +ei
-      fort13=.true.
+      fort96=.true.
       goto 609
 +if boinc
-  601 call boincrf('fort.13',filename)
-      open(13,file=filename,form='unformatted',status='new')
+  601 call boincrf('fort.96',filename)
+      open(96,file=filename,form='unformatted',status='new')
 +ei
 +if .not.boinc
-  601 open(13,file='fort.13',form='unformatted',status='new')
+  601 open(96,file='fort.96',form='unformatted',status='new')
 +ei
 +if boinc
   609 call boincrf('fort.91',filename)
@@ -16457,9 +16718,15 @@
       rad=pi/180
       call daten
 +if cr
-      if (idfor.eq.2.or.idfor.eq.3) then
-        idfor=idfor-2
++if .not.debug
+      if (ithick.eq.1) then
+        if(idp.ne.0.and.ition.ne.0) then
+          write(lout,*) 'CANNOT Checkpoint/Restart THICK LENS'
+          call abend                                                    &
+     &('SIXTRACR cannot handle thick lens, for now anyway.')
+        endif
       endif
++ei
       checkp=.true.
       call crcheck
 +ei
@@ -17231,6 +17498,15 @@
             dam(ia)=dam1
             dam(ia+1)=dam1
           endif
++if bnlelens
++if cr
+      write (LOUT,*) 'SKIPPING Binary File Initialisation for BNLELENS'
++ei
++if .not.cr
+      write (*,*) 'SKIPPING Binary File Initialisation for BNLELENS'
++ei
++ei
++if .not.bnlelens
 +if cr
           if (.not.restart) then
 +ei
@@ -17258,7 +17534,17 @@
           binrecs(ia2)=1
           endif
 +ei
++ei
         else
++if bnlelens
++if cr
+      write (LOUT,*) 'SKIPPING Binary File Initialisation for BNLELENS'
++ei
++if .not.cr
+      write (*,*) 'SKIPPING Binary File Initialisation for BNLELENS'
++ei
++ei
++if .not.bnlelens
 +if cr
           if (.not.restart) then
 +ei
@@ -17286,7 +17572,9 @@
           binrecs(ia2)=1
           endif
 +ei
++ei
         endif
++if .not.bnlelens
         if(ierro.ne.0) then
 +if cr
           write(lout,*)
@@ -17315,9 +17603,12 @@
 +ei
           goto 520
         endif
++ei
   340 continue
 +if cr
++if .not.bnlelens
       binrec=1
++ei
 +ei
       if(e0.gt.pieni) then
         do 350 j=1,napx
@@ -17422,7 +17713,6 @@
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejvl(ia),ejvl(ie)
-+if .not.cr
           write(12,10280,iostat=ierro)                                  &
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
@@ -17430,7 +17720,6 @@
           if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
      &'corrupted output probably due to lost particle: ',ia,            &
      &' or: ',ie
-+ei
         endif
         if(.not.pstop(ia).and.pstop(ie)) then
 !-- SECOND PARTICLE LOST
@@ -17457,14 +17746,12 @@
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
-+if .not.cr
           write(12,10280,iostat=ierro)                                  &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
           if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
      &'corrupted output probably due to lost particle: ',ie
-+ei
         endif
         if(pstop(ia).and..not.pstop(ie)) then
 !-- FIRST PARTICLE LOST
@@ -17491,14 +17778,12 @@
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
-+if .not.cr
           write(12,10280,iostat=ierro)                                  &
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
           if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
      &'corrupted output probably due to lost particle: ',ia
-+ei
         endif
         if(.not.pstop(ia).and..not.pstop(ie)) then
 !-- BOTH PARTICLES STABLE
@@ -17519,17 +17804,16 @@
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
      &e0,ejv(id),ejv(ig)
-+if .not.cr
           write(12,10280,iostat=ierro)                                  &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
      &e0,ejv(id),ejv(ig)
           if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
      &'corrupted output although particles stable'
-+ei
           id=ig
         endif
   470 continue
++if .not.bnlelens
       iposc=0
       if(ipos.eq.1) then
         do 480 ia=1,napxo,2
@@ -17549,6 +17833,13 @@
   510   if(ndafi.ge.1) call sumpos
       endif
   520 continue
++ei
++if bnlelens
+!GRDRHIC
+!GRD-042008
+  490 continue
+  520 continue
++ei
 !--HPLOTTING END
       if(ipos.eq.1.and.                                                 &
      &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
@@ -19658,6 +19949,9 @@
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
++if bnlelens
++ca bnlin
++ei
 +if cr
       if (restart) then
         call crstart
@@ -20036,6 +20330,9 @@
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
         if(mod(n,nwr(4)).eq.0) call write6(n)
++if bnlelens
++ca bnlout
++ei
   640 continue
       return
       end
@@ -20101,6 +20398,9 @@
       c5m4=5.0d-4
 +ei
       nthinerr=0
++if bnlelens
++ca bnlin
++ei
 +if collimat
 !++  Some initialization
 !
@@ -23083,6 +23383,9 @@
         if(ntwin.ne.2) call dist1
         if(mod(n,nwr(4)).eq.0) call write6(n)
 +ei
++if bnlelens
++ca bnlout
++ei
   660 continue
 +if collimat
       close(99)
@@ -23148,6 +23451,9 @@
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
++ei
++if bnlelens
++ca bnlin
 +ei
       nthinerr=0
 +if cr
@@ -23583,6 +23889,9 @@
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
         if(mod(n,nwr(4)).eq.0) call write6(n)
++if bnlelens
++ca bnlout
++ei
   660 continue
       return
       end
@@ -23678,6 +23987,7 @@
       endif
 +ei
 !GRD      do 10 ia=1,napx
++if .not.bnlelens
       do 10 ia=1,napx-1
 !GRD
         if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
@@ -23744,8 +24054,11 @@
           endif
         endif
    10 continue
++ei
 +if cr
++if .not.bnlelens
       binrec=binrec+1
++ei
 +if boinc
       if (checkp) then
         call boinc_time_to_checkpoint(timech)
@@ -24054,49 +24367,39 @@
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
      &e0,ejv(id),ejv(ie)
-+if .not.cr
           write(12,10010,iostat=ierro)                                  &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
      &e0,ejv(id),ejv(ie)
-+ei
           id=id+1
 !-- FIRST PARTICLES LOST
         else if(pstop(ia).and..not.pstop(ig)) then
           id=id+1
-+if .not.cr
           write(12,10010,iostat=ierro)                                  &
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
-+ei
 !-- SECOND PARTICLES LOST
         else if(.not.pstop(ia).and.pstop(ig)) then
           id=id+1
-+if .not.cr
           write(12,10010,iostat=ierro)                                  &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),     &
      &e0,ejv(id),ejvl(ig)
-+ei
 !-- BOTH PARTICLES LOST
         else if(pstop(ia).and.pstop(ig)) then
-+if .not. cr
           write(12,10010,iostat=ierro)                                  &
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),     &
      &e0,ejvl(ia),ejvl(ig)
-+ei
         endif
    10 continue
 +if .not.cr
       if(ierro.ne.0) write(*,*) 'Warning from write6: fort.12 has ',    &
      &'corrupted output probably due to lost particles'
 +ei
-+if .not.cr
       endfile 12
       backspace 12
-+ei
 +if cr
       endfile lout
       backspace lout
@@ -24139,40 +24442,11 @@
 +ca beamdim
       dimension nbeaux(nbb)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
 +ca rhicelens
-+ei
-+if bnlelens
-!GRDRHIC
-!
-!GRD-2007 NEW PARAMETERS FOR BEAM-BEAM STUDIES
-      integer maxn,napx00
-      parameter (maxn=20000,napx00=64)
-      integer   mynp
-      common /mynp/ mynp
-!
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn)
-      common /coord/ myx,myxp,myy,myyp,myp,mys
-!
-      integer   samplenumber
-      common /samplenumber/ samplenumber
-!
       character*80 filename_dis
-      common /filename/ filename_dis
-!
-!GRD-042008
-      integer maxtrack,countertrack
-      parameter (maxtrack=10000)
-      double precision twojx,twojy,twojr,sumtwojx(maxtrack),            &
-     &sumtwojy(maxtrack),sumsquarex(maxtrack),sumsquarey(maxtrack),     &
-     &x_temp,xp_temp,y_temp,yp_temp
-!
-      integer n_cut(maxtrack),n_nocut(maxtrack)
-!
-      common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
-     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut
-!GRD-042008
-!GRDRHIC
+      common /filenames/ filename_dis
 !
 +ei
 +ca save
@@ -24497,106 +24771,7 @@
         if(abs(phas).ge.pieni) then
           call thck6dua(nthinerr)
         else
-+if .not.bnlelens
           call thck6d(nthinerr)
-+ei
-+if bnlelens
-!GRDRHIC
-!GRD-2007
-!GRD-2007 REQUIRED FOR RHIC BEAM-BEAM STUDIES
-!GRD-2007
-!GRD-2007 OPTION IS ACTIVATED IF "LHC" PARAMETER IN BEAM-BEAM
-!GRD-2007 BLOCK IN FORT.3 IS SET TO 9
-!GRD-2007
-           if(lhc.eq.9) then
-!
-              mynp=20000
-!
-              filename_dis='beambeamdist.dat'
-              call  readdis(filename_dis,                               &
-     & 20000, myx, myxp, myy, myyp, myp, mys,mynp)
-!
-              open(unit=51,file='SixTwiss.dat')
-!
-              open(unit=52,file='beambeam-output.dat')
-!
-              open(unit=53,file='beambeam-lostID.dat')
-!
-              do j = 1, int(mynp/napx00)
-!     
-                 write(*,*) 'Sample number ', j, int(mynp/napx00)
-!     
-                 samplenumber = j
-!
-!TEST
-                 napx=napx00
-!
-                 do i = 1, napx00
-                    pstop(nlostp(i))=.false.
-                 enddo
-!TEST
-!     
-                 do i = 1, napx00
-                    xv(1,i)  = 1e3*myx(i+(j-1)*napx00)+torbx(1)
-                    yv(1,i)  = 1e3*myxp(i+(j-1)*napx00)+torbxp(1)
-                    xv(2,i)  = 1e3*myy(i+(j-1)*napx00)+torby(1)
-                    yv(2,i)  = 1e3*myyp(i+(j-1)*napx00)+torbyp(1)
-!                    x00(i)  = xv(1,i)
-!                    xp00(i) = yv(1,i)
-!                    y00(i)  = xv(2,i)
-!                    yp00(i) = yv(2,i)
-                    sigmv(i) = mys(i+(j-1)*napx00)
-                    ejv(i)   = myp(i+(j-1)*napx00)
-!     
-                    ejfv(i)=sqrt(ejv(i)*ejv(i)-pma*pma)
-!Eric
-!                    rvv(j)=(ejv(i)*e0f)/(e0*ejfv(i))
-                    rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
-                    dpsv(i)=(ejfv(i)-e0f)/e0f
-                    oidpsv(i)=one/(one+dpsv(i))
-                    dpsv1(i)=dpsv(i)*c1e3*oidpsv(i)
-cc2008
-                    namepart(i) = samplenumber*100 + i
-cc2008
-                 enddo
-!
-                 call thck6d(nthinerr)
-!
-              enddo
-!
-!GRD-042008
-c              do i=1,numl
-c                 write(52,'(i8,2(1x,i8,2(1x,e15.8)))')                  &
-c     &                i,n_cut(i),sumsquarex(i)/(n_cut(i)**2),           &
-c     &                sumsquarey(i)/(n_cut(i)**2),n_cut(i)+n_nocut(i),  &
-c     &                sumtwojx(i)/(n_cut(i)+n_nocut(i)),                &
-c     &                sumtwojy(i)/(n_cut(i)+n_nocut(i))
-c              enddo
-!GRD-042008
-cc2008
-              close(53)
-cc2008
-              close(52)
-!
-c$$$              open(unit=51,file='SixTwiss.dat')
-c$$$              write(51,*) '# 1=i 2=s 3=betax 4=betay 5=alphax 6=alphay'
-c$$$              do i=1,iu
-c$$$                 write(51,'(i5,(1x,f15.10),4(1x,f20.13))')              &
-c$$$     &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i)
-c$$$              enddo
-              close(51)
-!
-           else
-!
-!GRD-2007 IF "LHC" IS ANYTHING BUT 9, USE THE ORIGINAL VERSION
-!
-              call thck6d(nthinerr)
-!
-           endif
-!GRD-2007
-!GRDRHIC
-!
-+ei
         endif
       endif
       return
@@ -24653,6 +24828,9 @@ c$$$              enddo
       nthinerr=0
       idz1=idz(1)
       idz2=idz(2)
++if bnlelens
++ca bnlin
++ei
 +if cr
       if (restart) then
         call crstart
@@ -25046,6 +25224,9 @@ c$$$              enddo
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
++if bnlelens
++ca bnlout
++ei
   490 continue
       return
       end
@@ -25094,73 +25275,27 @@ c$$$              enddo
 +ei
       dimension dpsv3(npart)
 +if bnlelens
-!GRD-2007
-!GRD-2007 NEW PARAMETERS FOR BEAM-BEAM STUDIES
-      integer maxn,napx00
-      parameter (maxn=20000,napx00=64)
-      integer   mynp
-      common /mynp/ mynp
-!
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn)
-      common /coord/ myx,myxp,myy,myyp,myp,mys
-!
-      integer   samplenumber
-      common /samplenumber/ samplenumber
-!
-      character*80 filename_dis
-      common /filename/ filename_dis
-!GRD-2007
 !GRDRHIC
-+ei
-+if bnlelens
+!GRD-042008
 +ca rhicelens
-+ei
-+if bnlelens
 !GRDRHIC
-!
 !GRD-042008
-      integer maxtrack,countertrack
-      parameter (maxtrack=10000)
-      double precision twojx,twojy,twojr,sumtwojx(maxtrack),            &
-     &sumtwojy(maxtrack),sumsquarex(maxtrack),sumsquarey(maxtrack),     &
-     &x_temp,xp_temp,y_temp,yp_temp
-!
-      double precision limit_twojx,limit_twojy,limit_twojr
-!
-      integer n_cut(maxtrack),n_nocut(maxtrack)
-!
-      common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
-     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut
-!GRD-042008
-!
-!GRD-2007
 +ei
 +ca save
++if debug
 !-----------------------------------------------------------------------
+!===================================================================
+! Eric beginthck6dstart
+!===================================================================
++ei
       nthinerr=0
       idz1=idz(1)
       idz2=idz(2)
 +if bnlelens
-!GRD-042008
-      if(samplenumber.eq.1) then
-         do i=1,maxtrack
-            sumtwojx(i)=0d0
-            sumtwojy(i)=0d0
-            n_nocut(i)=0
-!     
-            sumsquarex(i)=0d0
-            sumsquarey(i)=0d0
-            n_cut(i)=0
-         enddo
-      endif
-!
-      countertrack = 0
-!GRD-042008
-!GRD-2007
-      totals=0d0
-!GRD-2007
+      totals=zero
++ca bnlin
 +ei
+! Now the outer loop over turns
 +if cr
       if (restart) then
         call crstart
@@ -25180,7 +25315,13 @@ c$$$              enddo
           if(irip.eq.1) call ripple(n)
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
++if debug
+! Now comes the loop over elements do 500/501
+          do 501 i=1,iu
++ei
++if .not.debug
           do 500 i=1,iu
++ei
 +if bnlelens
 !GRD-2007
             if(n.eq.1) then
@@ -25191,6 +25332,14 @@ c$$$              enddo
      &torby(i)
             endif
 !GRD-2007
++ei
++if debug
+!===================================================================
+!===================================================================
+! Eric endthck6dstart 
+! Nothing should be changed in the rest of this loop
+!===================================================================
+!===================================================================
 +ei
             if(ktrack(i).eq.1) then
               ix=ic(i)
@@ -25211,6 +25360,15 @@ c$$$              enddo
      &,730,748,500,500,500,500,500,745,746,751,752),ktrack(i)
             goto 500
    20       jmel=mel(ix)
++if bnlelens
++if debug
+!     if (n.eq.991) then
+!     write (99,*) 'element statement 20 j=1 991 before ',              &
+!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
+!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+!     endif
++ei
++ei
             do 30 jb=1,jmel
               jx=mtyp(ix,jb)
               do 30 j=1,napx
@@ -25246,7 +25404,30 @@ c$$$              enddo
             if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                    &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),                &
      &j=1,napx)
++if bnlelens
++if debug
+!     if (n.eq.991) then
+!     write (99,*) 'element statement 40 j=1 991 after  ',              &
+!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
+!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+!     endif
++ei
++ei
++if cr
+!       write (93,*) 'ERIC loop at 40 calling synuthck!!!'
+!       endfile 93
+!       backspace 93
++ei
             call synuthck
++if bnlelens
++if debug
+!     if (n.eq.991) then
+!     write (99,*) 'element statement 40 j=1 991 after synuthck ',      &
+!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
+!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+!     endif
++ei
++ei
             goto 490
 !--HORIZONTAL DIPOLE
    60       do 70 j=1,napx
@@ -25541,6 +25722,15 @@ c$$$              enddo
           endif
           goto 490
   720     continue
++if bnlelens
++if debug
+!     if (n.eq.991) then
+!     write (99,*) 'element statement 720 j=1 991 before ',             &
+!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
+!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+!     endif
++ei
++ei
           if(ibtyp.eq.0) then
 +ca beam21
 +ca beama1
@@ -25559,6 +25749,15 @@ c$$$              enddo
 +ca beamwzf2
 +ca beama4
           endif
++if bnlelens
++if debug
+!     if (n.eq.991) then
+!     write (99,*) 'element statement 720 j=1 991 after  ',             &
+!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
+!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+!     endif
++ei
++ei
           goto 490
   730     continue
 +ca beam6d
@@ -25597,109 +25796,42 @@ c$$$              enddo
 
   490       continue
 +ca lostpart
++if debug
+  500 continue
+!     if (n.ge.990) then
+!     write (99,*) 'after element i, ktrack ',i,ktrack(i),              &
+!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
+!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+!     endif
+  501     continue
++ei
++if .not.debug
   500     continue
++ei
++if debug
+! End of loop over elements
+!===================================================================
+!===================================================================
+! Eric beginthck6dend
+!===================================================================
+!===================================================================
++ei
           call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
 +if bnlelens
-!GRD-2007
-!GRD-2007 ADDITIONAL OUTPUT FILE FOR MULTI-PARTICLES BEAM-BEAM STUDIES
-!GRD-2007
-c          write(*,*) 0.01*numl,' ',int(0.01*numl)
-c          write(*,*) n
-!
-c          if(mod(n,(int(0.01*numl)+1)).eq.0) then
-cc          countertrack = countertrack + 1
-cc             write(*,*) countertrack
-!
-          do j=1,napx
-!
-             if(pstop(nlostp(j))) goto 505
-!
-!GRD-042008
-             x_temp=(xv(1,j)-torbx(i-1))*1e-3
-             y_temp=(xv(2,j)-torby(i-1))*1e-3
-             xp_temp=(yv(1,j)-torbxp(i-1))*1e-3
-             yp_temp=(yv(2,j)-torbyp(i-1))*1e-3
-!     
-             twojx = tbetax(i-1)*(xp_temp**2)+                          &
-     &               2d0*talphax(i-1)*x_temp*xp_temp+                   &
-     &               ((1+talphax(i-1)**2)/tbetax(i-1))*(x_temp**2)
-!
-             twojy = tbetay(i-1)*(yp_temp**2)+                          &
-     &               2d0*talphay(i-1)*y_temp*yp_temp+                   &
-     &               ((1+talphay(i-1)**2)/tbetay(i-1))*(y_temp**2)
-!
-             twojr = sqrt(twojx**2+twojy**2)
-!
-cc                if(countertrack.eq.1) then
-             if(n.eq.1) then
-                if(j.eq.1) then
-                   write(*,*) 'coucou'
-                   limit_twojx = 25d0*(2.5e-6/(e0/pma))
-                   limit_twojy = 25d0*(2.5e-6/(e0/pma))
-                   limit_twojr = 25d0*(2.5e-6/(e0/pma))
-                endif
-             endif
-!
-cc                if((twojx.ge.limit_twojx).or.                           &
-cc     &             (twojy.ge.limit_twojy).or.                           &
-cc     &             (twojr.ge.limit_twojr)) then
-             if(twojr.le.limit_twojr) then
-!
-                sumtwojx(countertrack)=sumtwojx(countertrack)+twojx
-                sumtwojy(countertrack)=sumtwojy(countertrack)+twojy
-                sumsquarex(countertrack)=sumsquarex(countertrack)+      &
-     &x_temp**2
-                sumsquarey(countertrack)=sumsquarey(countertrack)+      &
-     &y_temp**2
-                n_nocut(countertrack) = n_nocut(countertrack) + 1
-!
-             else
-!
-cc                   sumtwojx(countertrack)=sumtwojx(countertrack)+twojx
-cc                   sumtwojy(countertrack)=sumtwojy(countertrack)+twojy
-cc                   sumsquarex(countertrack)=sumsquarex(countertrack)+   &
-cc     &x_temp**2
-cc                   sumsquarey(countertrack)=sumsquarey(countertrack)+   &
-cc     &y_temp**2
-                n_cut(countertrack)=n_cut(countertrack)+1
-cc2008
-                write(53,'(i8,1x,i8)') n,namepart(j)
-cc2008
-!
-             endif
-!
-!GRD-042008
- 505         continue
-          enddo
-!
-!GRD-042008
-cc     if(samplenumber.eq.int(mynp/napx00)) then
-!
-          if(mod(n,nwr(3)).eq.0) then
-!
-             write(*,*) 'dumping stats at turn number ',n
-!
-             write(52,'(i8,2(1x,i8),4(1x,e15.8))')                      &
-     &n,n_cut(countertrack),n_nocut(countertrack),                      &
-     &sumsquarex(countertrack),                                         &
-     &sumsquarey(countertrack),                                         &
-     &sumtwojx(countertrack),                                           &
-     &sumtwojy(countertrack)
-!
-             countertrack=countertrack + 1
-!05-2008
-!
-          endif
-!
-cc     endif
-!GRD-042008
-!
-!GRD-2007
++ca bnlout
 +ei
   510 continue
++if debug
+! end loop over turns
+!===================================================================
+!===================================================================
+! Eric endthck6dend
+!===================================================================
+!===================================================================
++ei
       return
       end
       subroutine thck6dua(nthinerr)
@@ -25754,6 +25886,9 @@ cc     endif
       nthinerr=0
       idz1=idz(1)
       idz2=idz(2)
++if bnlelens
++ca bnlin
++ei
 +if cr
       if (restart) then
         call crstart
@@ -25836,6 +25971,13 @@ cc     endif
             if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                    &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),                &
      &j=1,napx)
++if cr
++if debug
+!       write (93,*) 'ERIC Thck6dua calling synuthck!!!'
+!       endfile 93
+!       backspace 93
++ei
++ei
             call synuthck
             goto 490
 !--HORIZONTAL DIPOLE
@@ -26192,6 +26334,9 @@ cc     endif
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
++if bnlelens
++ca bnlout
++ei
   510 continue
       return
       end
@@ -26230,6 +26375,14 @@ cc     endif
 +ei
 +ca save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
++if cr
++if debug
+!       write (93,*) 'ERIC synuthck called!!!'
+!       write (93,*) 'ERIC il= ',il
+!       endfile 93
+!       backspace 93
++ei
++ei
       do 10 j=1,napx
         dpd(j)=one+dpsv(j)
         dpsq(j)=sqrt(dpd(j))
@@ -27924,6 +28077,48 @@ cc     endif
 +ei
 +ca save
 !-----------------------------------------------------------------------
+!
++if bnlelens
+!GRDRHIC
+!GRD-042008
+! Set all new variables to 0 or ZERO
+! Note we do not initialise the checkpoint cr* variables
+! nor the my* variables as they should all be read in!
+! double precision
+      do i=1,nblz 
+        tbetax(i)=ZERO
+        tbetay(i)=ZERO
+        talphax(i)=ZERO
+        talphay(i)=ZERO
+        torbx(i)=ZERO
+        torbxp(i)=ZERO
+        torby(i)=ZERO
+        torbyp(i)=ZERO
+        tdispx(i)=ZERO
+        tdispy(i)=ZERO
+        sampl(i)=ZERO
+      enddo
+! double precision
+      totals=ZERO
+      limit_twojx=ZERO
+      limit_twojy=ZERO
+      limit_twojr=ZERO
+      twojx=ZERO
+      twojy=ZERO
+      twojr=ZERO
+      sumtwojx=ZERO
+      sumtwojy=ZERO
+      sumsquarex=ZERO
+      sumsquarey=ZERO
+! integers
+      n_cut=0
+      n_nocut=0
+      samplenumber=0
+      mynp=0
+      do j=1,npart
+        namepart(j)=0
+      enddo
++ei
       ncorru=0
       ncorrep=0
       nrturn=0
@@ -38158,10 +38353,18 @@ cc     endif
           do 810 j=1,5
             do 810 l=0,4
               do 810 k=0,4
++if cr
                 if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
-     &(6,10160)
-                if(abs(dtup(i,j,k,l)).gt.pieni) write(6,                &
+     &(lout,10160)
+                if(abs(dtup(i,j,k,l)).gt.pieni) write(lout,             &
      &'(10X,G16.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
++ei
++if .not.cr
+                if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
+     &(*,10160)
+                if(abs(dtup(i,j,k,l)).gt.pieni) write(*,                &
+     &'(10X,G16.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
++ei
   810   continue
 +if cr
         write(lout,10060)
@@ -45862,9 +46065,9 @@ cc     endif
       return
       end
 !
-!========================================================================
+========================================================================
 !
-      subroutine readdis(filename_dis, mynp, 
+      subroutine readdis(filename_dis, mynp,
      &     myx, myxp, myy, myyp, myp, mys)
 !
 !     SR, 09-08-2005
@@ -45891,17 +46094,17 @@ cc     endif
 
       write(*,*) "Reading input bunch from ", filename_dis
 
-      open(unit=111, file=filename_dis)
-      
+      open(unit=54, file=filename_dis)
+
       do j=1,mynp
-         read(111,*,end=10) myx(j), myxp(j), myy(j), myyp(j), 
+         read(54,*,end=10) myx(j), myxp(j), myy(j), myyp(j),
      &        mys(j), myp(j)
       enddo
 
  10   mynp = j - 1
       write(*,*) "Number of particles in the bunch = ",mynp
 
-      close(111)
+      close(54)
 
       return
       end
@@ -46944,9 +47147,16 @@ cc     endif
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.16 2008-08-05 19:06:46 mcintosh Exp $
+! $Id: sixtrack.s,v 1.17 2008-08-19 08:48:40 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.16  2008/08/05 19:06:46  mcintosh
+!   SixTrack Version 4.1.6
+!      -- and of course I forgot the SixTrack Version....
+!      -- Version and moddate set to 4.1.6, I am
+!         skipping 4.1.4 and 4.1.5 and then CVS and SixTrack versions
+!         should correspond. Otherwise we get confused. Eric.
+!
 ! Revision 1.15  2008/08/05 18:52:27  mcintosh
 !
 !   SixTrack Version: 4.1.4
@@ -47797,9 +48007,16 @@ cc     endif
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.16 2008-08-05 19:06:46 mcintosh Exp $
+! $Id: sixtrack.s,v 1.17 2008-08-19 08:48:40 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.16  2008/08/05 19:06:46  mcintosh
+!   SixTrack Version 4.1.6
+!      -- and of course I forgot the SixTrack Version....
+!      -- Version and moddate set to 4.1.6, I am
+!         skipping 4.1.4 and 4.1.5 and then CVS and SixTrack versions
+!         should correspond. Otherwise we get confused. Eric.
+!
 ! Revision 1.15  2008/08/05 18:52:27  mcintosh
 !
 !   SixTrack Version: 4.1.4
@@ -47985,9 +48202,16 @@ cc     endif
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.16 2008-08-05 19:06:46 mcintosh Exp $
+! $Id: sixtrack.s,v 1.17 2008-08-19 08:48:40 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.16  2008/08/05 19:06:46  mcintosh
+!   SixTrack Version 4.1.6
+!      -- and of course I forgot the SixTrack Version....
+!      -- Version and moddate set to 4.1.6, I am
+!         skipping 4.1.4 and 4.1.5 and then CVS and SixTrack versions
+!         should correspond. Otherwise we get confused. Eric.
+!
 ! Revision 1.15  2008/08/05 18:52:27  mcintosh
 !
 !   SixTrack Version: 4.1.4
@@ -48327,8 +48551,8 @@ cc     endif
       end
 +dk nwrtbnl
 !GRDRHIC
-      subroutine readdis(filename_dis, ngrd,                            &
-     &myx, myxp, myy, myyp, myp, mys,mynp)
+!GRD-042008
+      subroutine bnlrdis(ngrd)
 !
 !     SR, 09-08-2005
 !     Format for the input file:
@@ -48338,57 +48562,54 @@ cc     endif
 !               DE     -> [ MeV ]
 !
       implicit none
- 
++ca parpro
++ca crcoall
++ca rhicelens
       integer ngrd
 !
 !++ Vectors of coordinates
 !
-      integer maxn
-      parameter (maxn=20000)
-      integer i,j,mynp
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn)
-      character*80   filename_dis
- 
+      integer i,j
       save
-!
-!++++++++++++++++++++++++++++++++++++++++++
-! 
-      write(*,*) 'Reading input bunch from ', filename_dis(1:16)
- 
-      open(unit=99, file=filename_dis)
- 
-!      do j=1,mynp
-      do j=1,maxn
-!
-!        read(99,'(f13.11,4(1x,f13.11),1x,f15.8)',end=10) myx(j),myxp(j),&
-        read(99,*,end=10) myx(j),myxp(j),                               &
-!
-     &myy(j), myyp(j), mys(j), myp(j)
++if cr
+      write(lout,*) "Reading input bunch from beambeamdist.dat"
++ei
++if .not.cr
+      write(*,*) 'Reading input bunch from beambeamdist.dat'
++ei
+      mynp=0
+      do j=1,npart
+        read(54,*,end=10) myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j)
       enddo
- 
- 10   mynp = j - 1
+      mynp=1
+ 10   continue
       if(mynp.eq.0) then
-         write(*,*) 
-         write(*,*) '!!!!! WARNING !!!!!'
-         write(*,*) filename_dis(1:16),' is either missing or too small'
-         write(*,*) 
-         stop
++if cr
+        write(lout,*) 
+        write(lout,*) '!!!!! WARNING !!!!!'
+        write(lout,*)'beambeamdist.dat is either missing or too small'
+        write(lout,*) 
+        call abend('bnlelens input file error                         ')
       else
-         write(*,*) "Number of particles in the bunch = ",mynp
+        write(lout,*) "Number of samples in the bunch = ",mynp
++ei
++if .not.cr
+        write(*,*)
+        write(*,*) '!!!!! WARNING !!!!!'
+        write(*,*) 'beambeamdist.dat, is either missing or too small'
+        write(*,*)
+        stop
+      else
+         write(*,*) "Number of samples in the bunch = ",mynp
++ei
       endif
- 
-      close(99)
-!
-      open(unit=97,file='checkdist.dat')
-      do j=1,mynp
-         write(97,'(e15.8,4(1x,e15.8),1x,f15.8)')                       &
-     &myx(j),myxp(j),myy(j), myyp(j), mys(j), myp(j)
+      do j=1,npart
+        write(97,'(e15.8,4(1x,e15.8),1x,f15.8)')                        &
+     &myx(j),myxp(j),myy(j), myyp(j),mys(j),myp(j)
       enddo
-      close(97)
-!
       return
       end
+!GRD-042008
 !GRDRHIC
 +dk checkpt
       subroutine crcheck
@@ -48415,9 +48636,12 @@ cc     endif
 +ca dbpencil
 +ca database
 +ei
++if bnlelens
++ca rhicelens
++ei
 +ca crco
       integer i,j,k,ia
-      logical read12,read13
+      logical read95,read96
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94,istat
       dimension hbuff(253),tbuff(35)
 +if boinc
@@ -48425,8 +48649,8 @@ cc     endif
 +ei
 +ca save
       restart=.false.
-      read12=.false.
-      read13=.false.
+      read95=.false.
+      read96=.false.
 !     Some log entries to fort.93
       write(93,*)                                                       &
      &'SIXTRACR CRCHECK CALLED lout=',lout,'restart',restart,           &
@@ -48435,26 +48659,28 @@ cc     endif
       backspace 93
 !--   We are not checkpoint/restart or we have no restart files
       if (.not.checkp) goto 605
-      if (.not.fort12.and..not.fort13) goto 605
+      if (.not.fort95.and..not.fort96) goto 605
 !--   If we do we must have a fort.6 as they were created by CRPOINT
       if (.not.rerun) then
         write(lout,*)                                                   &
      &'SIXTRACR CRCHECK *** ERROR *** ',                                &
-     &'Found fort.12/fort.13 but NO fort.6'
+     &'Found fort.95/fort.96 but NO fort.6'
       call abend('SIXTRACR CRCHECK failure                          ')
       endif
 !--   Check at least one restart file is readable
        write(93,*)                                                      &
-     &'SIXTRACR CRCHECK checking fort.12/13'
+     &'SIXTRACR CRCHECK checking fort.95/96'
       endfile 93
       backspace 93
-      if (fort12) then
-        rewind 12
-        read(12,err=100,end=100)                                        &
+      if (fort95) then
+        rewind 95
+        read(95,err=100,end=100)                                        &
      &crnumlcr,                                                         &
      &crnuml,                                                           &
      &crsixrecs,                                                        &
      &crbinrec,                                                         &
+     &crbnlrec,                                                         &
+     &crbllrec,                                                         &
      &crsythck,                                                         &
      &crtime0,                                                          &
      &crtime1,                                                          &
@@ -48462,7 +48688,7 @@ cc     endif
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        read(12,err=100,end=100)                                        &
+        read(95,err=100,end=100)                                        &
      &(crbinrecs(j),j=1,(crnapxo+1)/2),                                 &
      &(crnumxv(j),j=1,crnapxo),                                         &
      &(crnnumxv(j),j=1,crnapxo),                                        &
@@ -48486,22 +48712,36 @@ cc     endif
      &(crdpsvl(j),j=1,crnapxo),                                         &
      &(crejvl(j),j=1,crnapxo),                                          &
      &(crsigmvl(j),j=1,crnapxo)
-        read12=.true.
++if bnlelens
+      read(95,err=100,end=100)
+     &crn_cut,                                                          &
+     &crn_nocut,                                                        &
+     &crsumsquarex,                                                     &
+     &crsumsquarey,                                                     &
+     &crsumtwojx,                                                       &
+     &crsumtwojy,                                                       &
+     &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
+     &crtotals,                                                         &                        
+     &(crnamepart(j),j=1,crnapxo)
++ei
+        read95=.true.
         goto 103
       endif
-  100 if (.not.read12) then
+  100 if (.not.read95) then
         write(93,*)                                                     &
-     &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 12'
+     &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 95'
         endfile 93
         backspace 93
       endif
-      if (fort13) then
-        rewind 13
-        read(13,err=101,end=101,iostat=istat)                           &
+      if (fort96) then
+        rewind 96
+        read(96,err=101,end=101,iostat=istat)                           &
      &crnumlcr,                                                         &
      &crnuml,                                                           &
      &crsixrecs,                                                        &
      &crbinrec,                                                         &
+     &crbnlrec,                                                         &
+     &crbllrec,                                                         &
      &crsythck,                                                         &
      &crtime0,                                                          &
      &crtime1,                                                          &
@@ -48509,7 +48749,7 @@ cc     endif
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        read(13,err=100,end=100,iostat=istat)                           &
+      read(96,err=101,end=101,iostat=istat)                             &
      &(crbinrecs(j),j=1,(crnapxo+1)/2),                                 &
      &(crnumxv(j),j=1,crnapxo),                                         &
      &(crnnumxv(j),j=1,crnapxo),                                        &
@@ -48533,26 +48773,55 @@ cc     endif
      &(crdpsvl(j),j=1,crnapxo),                                         &
      &(crejvl(j),j=1,crnapxo),                                          &
      &(crsigmvl(j),j=1,crnapxo)
-         read13=.true.
++if bnlelens
+      read(96,err=101,end=101)
+     &crn_cut,                                                          &
+     &crn_nocut,                                                        &
+     &crsumsquarex,                                                     &
+     &crsumsquarey,                                                     &
+     &crsumtwojx,                                                       &
+     &crsumtwojy,                                                       &
+     &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
+     &crtotals,                                                         &
+     &(crnamepart(j),j=1,crnapxo)
++ei
+         read96=.true.
          goto 103
       endif
-  101 if (.not.read13) then
+  101 if (.not.read96) then
         write(93,*)                                                     &
-     &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 13'
+     &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 96'
          endfile 93
          backspace 93
       endif
   103 continue
       endfile 93
       backspace 93
-!--   If we have successfully read either fort.12 or fort.13
++if debug
++if bnlelens
+!     write (99,*) 'crcheck ',
+!    &crbnlrec,                                                         &
+!    &crbllrec,                                                         &
+!    &crn_cut,                                                          &
+!    &crn_nocut,                                                        &
+!    &crsumsquarex,                                                     &
+!    &crsumsquarey,                                                     &
+!    &crsumtwojx,                                                       &
+!    &crsumtwojy,                                                       &
+!    &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
+!    &crtotals,                                                         &
+!    &(crnamepart(j),j=1,crnapxo)
++ei
++ei
+!--   If we have successfully read either fort.95 or fort.96
 !--   we need to handle lost particles and ntwin .ne. 2
 !--   Otherwise we just continue with checkpointing as requested
-      if (read12.or.read13) then
+      if (read95.or.read96) then
         write(93,*)                                                     &
-     &'SIXTRACR CRCHECK read12',read12,'read13',read13,                 &
+     &'SIXTRACR CRCHECK read95',read95,'read96',read96,                 &
      &'crnapxo',crnapxo,'crbinrec',crbinrec,'napx',napx,                &
-     &'sixrecs',sixrecs,'crsixrecs',crsixrecs
+     &'sixrecs',sixrecs,'crsixrecs',crsixrecs,'crbnlrec',crbnlrec,      &
+     &'crbllrec',crbllrec
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK crbinrecs ',                                    &
      &(crbinrecs(j),j=1,(crnapxo+1)/2)
@@ -48568,6 +48837,28 @@ cc     endif
      &'SIXTRACR CRCHECK found fort.6 sixrecs=',sixrecs
         endfile 93
         backspace 93
++if bnlelens
+!--   Now re-position beambeam-output.dat and lostID.dat
+  610   read(52,'(a255)',end=608,err=108,iostat=istat) arecord
+        bnlrec=bnlrec+1
+        if (bnlrec.lt.crbnlrec) goto 610
+        endfile 52
+  608   backspace 52
+        write(93,*)                                                     &
+     &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
+        endfile 93
+        backspace 93
+  611   read(53,'(a255)',end=609,err=109,iostat=istat) arecord
+        bllrec=bllrec+1
+        if (bllrec.lt.crbllrec) goto 611
+        endfile 53
+  609   backspace 53
+        write(93,*)                                                     &
+     &'SIXTRACR CRCHECK found fort.53 bllrec=',bllrec
+        endfile 93
+        backspace 93
++ei
++if .not.bnlelens
 !--   We may be re-running with a DIFFERENT number of turns (numl)
         if (numl.ne.crnuml) then
           if (numl.lt.crnumlcr) then
@@ -48662,6 +48953,13 @@ cc     endif
             endif
    10     continue
         endif
++ei
++if bnlelens
+        write (93,*)                                                    &
+     &'SIXTRACR CRCHECK skipping binary files for bnlelens'
+        endfile 93
+        backspace 93
++ei
 !--     Set up flag for tracking routines to call CRSTART
         restart=.true.
         write(6,*)                                                      &
@@ -48676,6 +48974,7 @@ cc     endif
         return
       endif
       goto 605
++if .not.bnlelens
 !--   Just abort if we cannot re-position/copy the binary files,
   102 write(lout,*)
       write(lout,*)                                                     &
@@ -48693,6 +48992,7 @@ cc     endif
      &' binrecs94=',binrecs94
       write(lout,*)
       call abend('SIXTRACR CRCHECK failure copying binary files     ')
++ei
 !--  We are not checkpointing or we have no checkpoints
 !--  or we have no readable checkpoint
 !--  If not checkpointing we can just give up on lout and use
@@ -48738,7 +49038,7 @@ cc     endif
  106  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.6, iostat=',istat
       write(93,*)                                                       &
-     &'sixrecs=',sixrecs,' crsixrecs',crsixrecs
+     &'sixrecs=',sixrecs,' crsixrecs=',crsixrecs
       endfile 93
       backspace 93
       call abend('SIXTRACR CRCHECK failure positioning fort.6       ')
@@ -48747,6 +49047,22 @@ cc     endif
       endfile 93
       backspace 93
       call abend('SIXTRACR CRCHECK failure positioning fort.92      ')
++if bnlelens
+ 108  write(93,*)                                                       &
+     &'SIXTRACR CRCHECK *** ERROR *** reading fort.52, iostat=',istat
+      write(93,*)                                                       &
+     &'bnlrec=',bnlrec,' crbnlrec=',crbnlrec
+      endfile 93
+      backspace 93
+      call abend('SIXTRACR CRCHECK failure positioning fort.52      ')
+ 109  write(93,*)                                                       &
+     &'SIXTRACR CRCHECK *** ERROR *** reading fort.53, iostat=',istat
+      write(93,*)                                                       &
+     &'bllrec=',bllrec,' crbllrec=',crbllrec
+      endfile 93
+      backspace 93
+      call abend('SIXTRACR CRCHECK failure positioning fort.53      ')
++ei
       end
       subroutine crpoint
       implicit none
@@ -48771,6 +49087,9 @@ cc     endif
 +ca dblinopt
 +ca dbpencil
 +ca database
++ei
++if bnlelens
++ca rhicelens
 +ei
 +ca crco
       integer i,j
@@ -48833,20 +49152,22 @@ cc     endif
       call timex(time2)
       time2=time2+crtime2
       crnumlcr=numx+1
-      rewind 12
-      write(12,err=100,iostat=istat)                                    &
+      rewind 95
+      write(95,err=100,iostat=istat)                                    &
      &crnumlcr,                                                         &
      &numl,                                                             &
      &sixrecs,                                                          &
      &binrec,                                                           &
-     &crsythck,                                                         &
+     &bnlrec,                                                           &
+     &bllrec,                                                           &
+     &sythckcr,                                                         &
      &time0,                                                            &
      &time1,                                                            &
      &time2,                                                            &
      &napxo,                                                            &
      &napx,                                                             &
      &e0
-      write(12,err=100,iostat=istat)                                    &
+      write(95,err=100,iostat=istat)                                    &
      &(binrecs(j),j=1,(napxo+1)/2),                                     &
      &(numxv(j),j=1,napxo),                                             &
      &(nnumxv(j),j=1,napxo),                                            &
@@ -48870,23 +49191,55 @@ cc     endif
      &(dpsvl(j),j=1,napxo),                                             &
      &(ejvl(j),j=1,napxo),                                              &
      &(sigmvl(j),j=1,napxo)
-      endfile 12
-      backspace 12
++if bnlelens
+      write(95,err=100,iostat=istat)                                    &
+     &n_cut,                                                            &
+     &n_nocut,                                                          &
+     &sumsquarex,                                                       &
+     &sumsquarey,                                                       &
+     &sumtwojx,                                                         &
+     &sumtwojy,                                                         &
+     &limit_twojx,limit_twojy,limit_twojr,                              &
+     &totals,                                                           &
+     &(namepart(j),j=1,napxo)
++ei
+      endfile 95
+      backspace 95
++if bnlelens
++if debug
+!     if (numx.ge.990) then
+!     write (99,*) 'Checkpointing bnl numx ',numx
+!     write(99,*)                                                       &
+!    &n_cut,                                                            &
+!    &n_nocut,                                                          &
+!    &sumsquarex,                                                       &
+!    &sumsquarey,                                                       &
+!    &sumtwojx,                                                         &
+!    &sumtwojy,                                                         &
+!    &limit_twojx,limit_twojy,limit_twojr,                              &
+!    &totals,                                                           &
+!    &(namepart(j),j=1,napxo)
+!     write (99,*) 'crpoint xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
+!     endif
++ei
++ei
 !--   and finally a second checkpoint copy
-      rewind 13
-      write(13,err=100,iostat=istat)                                    &
+      rewind 96
+      write(96,err=100,iostat=istat)                                    &
      &crnumlcr,                                                         &
      &numl,                                                             &
      &sixrecs,                                                          &
      &binrec,                                                           &
-     &crsythck,                                                         &
+     &bnlrec,                                                           &
+     &bllrec,                                                           &
+     &sythckcr,                                                         &
      &time0,                                                            &
      &time1,                                                            &
      &time2,                                                            &
      &napxo,                                                            &
      &napx,                                                             &
      &e0
-      write(13,err=100,iostat=istat)                                    &
+      write(96,err=100,iostat=istat)                                    &
      &(binrecs(j),j=1,(napxo+1)/2),                                     &
      &(numxv(j),j=1,napxo),                                             &
      &(nnumxv(j),j=1,napxo),                                            &
@@ -48910,10 +49263,25 @@ cc     endif
      &(dpsvl(j),j=1,napxo),                                             &
      &(ejvl(j),j=1,napxo),                                              &
      &(sigmvl(j),j=1,napxo)
-      endfile 13
-      backspace 13
-!--   call dump
-!--   call abend('SIXTRACR CHECKPOINT written                       ')      
++if bnlelens
+      write(96,err=100,iostat=istat)                                    &
+     &n_cut,                                                            &
+     &n_nocut,                                                          &
+     &sumsquarex,                                                       &
+     &sumsquarey,                                                       &
+     &sumtwojx,                                                         &
+     &sumtwojy,                                                         &
+     &limit_twojx,limit_twojy,limit_twojr,                              &
+     &totals,                                                           &
+     &(namepart(j),j=1,napxo)
++ei
+      endfile 96
+      backspace 96
++if debug
+!ERIC
+!     call dump('1st Checkpoint',numx,i)
+!     call abend('SIXTRACR CHECKPOINT written                       ')      
++ei
       return
   100 write(93,*)                                                       &
      &'SIXTRACR CRPOINT *** ERROR *** writing checkpt file,iostat=',    &
@@ -48954,6 +49322,9 @@ cc     endif
 +ca dbpencil
 +ca database
 +ei
++if bnlelens
++ca rhicelens
++ei
 +ca crco
       integer j
       character*256 filename
@@ -48967,6 +49338,8 @@ cc     endif
 !--   for more turns from the last checkpoint
 !--   but we need to worry about numxv, nnumxv
       binrec=crbinrec
+      bnlrec=crbnlrec
+      bllrec=crbllrec
       sythckcr=crsythck
       time0=crtime0
       time1=crtime1
@@ -49006,8 +49379,44 @@ cc     endif
           numxv(j)=numl
           nnumxv(j)=numl
         endif
++if bnlelens
+        namepart(j)=crnamepart(j)
++ei
       enddo
-      if (sythckcr) call synuthck
++if bnlelens
+      n_cut=crn_cut
+      n_nocut=crn_nocut
+      sumsquarex=crsumsquarex
+      sumsquarey=crsumsquarey
+      sumtwojx=crsumtwojx
+      sumtwojy=crsumtwojy
+      limit_twojx=crlimit_twojx
+      limit_twojy=crlimit_twojy
+      limit_twojr=crlimit_twojr
+      totals=crtotals
++ei
++if debug
++if bnlelens
+!     write (99,*) 'crstart bnl numlcr ',numlcr
+!     write(99,*)                                                       &
+!    &n_cut,                                                            &
+!    &n_nocut,                                                          &
+!    &sumsquarex,                                                       &
+!    &sumsquarey,                                                       &
+!    &sumtwojx,                                                         &
+!    &sumtwojy,                                                         &
+!    &limit_twojx,limit_twojy,limit_twojr,                              &
+!    &totals,                                                           &
+!    &(namepart(j),j=1,napxo)
+!     write (99,*) 'crstart xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
++ei
++ei
+!     if (sythckcr) then
+!       write (93,*) 'ERIC crstart calling synuthck!!!'
+!       endfile 93
+!       backspace 93
+!       call synuthck
+!     endif
       write(93,*)                                                       &
      &'SIXTRACR CRSTART six/crsix/bin recs',sixrecs,crsixrecs,binrec
       endfile 93
@@ -49036,7 +49445,8 @@ cc     endif
      &sixrecs,'crsixrecs',crsixrecs
       call abend('SIXTRACR CRSTART Problem fort.6                   ')
       end
-      subroutine dump
++if debug
+      subroutine dumpxy(dumpname,n,i)
       implicit none
 +ca crcoall
 +ca parpro
@@ -49061,8 +49471,111 @@ cc     endif
 +ca database
 +ei
 +ca crco
-      integer i
++if bnlelens
++ca rhicelens
++ei
+      integer n,i
+      character*(*) dumpname
 +ca save
+      end 
++if bnlelens
+      subroutine dumpbnl(dumpname,n,i)
+      implicit none
++ca crcoall
++ca parpro
++ca parnum
++ca common
++ca common2
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonl
++ca commonmn
++ca commonm1
++ca commontr
++ca commonc
++if collimat
++ca collpara
++ca dbmaincr
++ca dblinopt
++ca dbpencil
++ca database
++ei
++ca crco
++if bnlelens
++ca rhicelens
++ei
+      integer n,i
+      character*(*) dumpname
++ca save
+      end 
++ei
+      subroutine dumpsynu(dumpname,n,i)
+      implicit none
++ca crcoall
++ca parpro
++ca parnum
++ca common
++ca common2
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonl
++ca commonmn
++ca commonm1
++ca commontr
++ca commonc
++if collimat
++ca collpara
++ca dbmaincr
++ca dblinopt
++ca dbpencil
++ca database
++ei
++ca crco
++if bnlelens
++ca rhicelens
++ei
+      integer n,i
+      character*(*) dumpname
++ca save
+      end 
+      subroutine dump(dumpname,n,i)
+      implicit none
++ca crcoall
++ca parpro
++ca parnum
++ca common
++ca common2
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonl
++ca commonmn
++ca commonm1
++ca commontr
++ca commonc
++if collimat
++ca collpara
++ca dbmaincr
++ca dblinopt
++ca dbpencil
++ca database
++ei
++ca crco
++if bnlelens
++ca rhicelens
++ei
+      integer n,i
+      character*(*) dumpname
++ca save
+      write (99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,*) 'time0 ',time0
       write(99,*) 'time1 ',time1
@@ -49073,8 +49586,8 @@ cc     endif
       write(99,*) 'rerun ',rerun
       write(99,*) 'restart ',restart
       write(99,*) 'checkp ',checkp
-      write(99,*) 'fort12 ',fort12
-      write(99,*) 'fort13 ',fort13
+      write(99,*) 'fort95 ',fort95
+      write(99,*) 'fort96 ',fort96
       write(99,*) 'arecord ',arecord
       write(99,*) 'stxt ',stxt
       write(99,*) 'runtim ',runtim
@@ -49542,6 +50055,7 @@ cc     endif
       write(99,*) 'time0 ',time0
       write(99,*) 'time1 ',time1
       end
++ei
 +dk aux
 !      logical function isnan(arg1,arg2)
       logical function myisnan(arg1,arg2)

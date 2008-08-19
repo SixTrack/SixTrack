@@ -35,7 +35,7 @@ show_options()
 {
 ons="The following selections are ON  :"
 offs="The following selections are OFF :"
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
   if test ${values[$i]} = "true"
   then
@@ -50,12 +50,12 @@ echo "$offs"
 
 #NOTA BENE! Definitions of cernlib and naglib are reversed
 # in the sense that while a "" null value implies option is ON
-# the reverse is true for cernlib and naglib 
+# the reverse is true for cernlib and naglib
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm windows   cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz) 
-values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false)
+options=(junk tilt tracking fast crlibm windows   cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz debug)
+values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false   false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
@@ -69,13 +69,16 @@ moddate=`echo $moddate | sed -e's/.*\/\(.*\)\//\1/'`
 moddate=`echo $moddate | sed -e's/.\(.*\)./\1/'`
 
 command_line=$*
+# Now we have the default settings
+# we have ON
 tilt=""
 tracking=""
 fast=""
 crlibm=""
 cernlib="cernlib"
-windows="windows"
 naglib="naglib"
+# and we have OFF
+windows="windows"
 da="da"
 collimat="collimat"
 cpss="cpss"
@@ -88,6 +91,7 @@ gfortran="gfortran"
 bpm="bpm"
 bnlelens="bnlelens"
 bignblz="bignblz"
+debug="debug"
 while test $# != 0
 do
   case $1 in
@@ -154,6 +158,10 @@ do
     -bignblz) bignblz="bignblz"
           values[19]=false
     ;;
+    -debug) debug="debug"
+          values[20]=false
+    ;;
+
 
     +tilt) tilt=""
            values[1]=true 
@@ -212,6 +220,10 @@ do
     +bignblz) bignblz=""
           values[19]=true
     ;;
+    +debug) debug=""
+          values[20]=true
+    ;;
+
 
     tilt) tilt=""
            values[1]=true
@@ -270,6 +282,10 @@ do
     bignblz) bignblz=""
           values[19]=true
     ;;
+    debug) debug=""
+          values[20]=true
+    ;;
+
 
     *) echo "Illegal option $1"
        exit 1
@@ -277,46 +293,49 @@ do
   esac
   shift
 done
+
 # Here we do some checking for valid/invalid combinations 
-if test "$crlibm" = ""
-then
-  if test "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
-  then
-    show_options
-    echo "     INVALID option selected:"
-    echo "     crlibm => compilation must be done with Lahey lf95 !"
-    exit 1
-  fi
-fi
 nopts=0
-for i in da collimat bnlelens
+sixtrackmode=""
+for i in da collimat
 do
   if test "$i" = ""
   then
-    nopts=`expr ($nopts + 1)` 
+    nopts=`expr ($nopts + 1)`
     sixtrackmode="$i"
   fi
 done
-if test "$nopts" -gt 2
+if test "$nopts" -ge 2
 then
   show_options
   echo "     INVALID options selected:"
-  echo "     Select only one of da bnlelens or collimat!" 
+  echo "     Select only one of da or collimat!"
   exit 1
-fi
-if test "$nopts" -eq 0
+elif test "$nopts" -eq 0
 then
-  sixtrackmode=""
+  tracking=""
+  values[2]=true
+fi
+if test "$boinc" = ""
+then
+# BOINC includes the CPSS options
+  cpss=""
+  values[10]=true
 fi
 if test "$da" = "" -o "$collimat" = ""
 then
-  tracking="tracking"
-  values[2]=false
-  if test "$boinc" = ""
+  if test "$cpss" = ""
   then
     show_options
     echo "     INVALID options selected:"
     echo "     BOINC/CPSS are for tracking only (NOT da nor collimat)"
+    exit 1
+  fi
+  if test "$bpm" = ""
+  then
+    show_options
+    echo "    INVALID options selected:"
+    echo "    bpm is for tracking only and not for desktops!"
     exit 1
   fi
 fi
@@ -324,12 +343,6 @@ if test "$da" = "da"
 then
   naglib=""
   values[7]=false
-fi
-if test "$boinc" = ""
-then
-# BOINC includes the CPSS options
-  cpss=""
-  values[10]=true
 fi
 if test "$cpss" = ""
 then
@@ -353,13 +366,14 @@ then
   gfortran="gfortran"
   values[16]=false
 fi
-if test "$bpm" = ""
+# and make sure we use Lahey for crlibm
+if test "$crlibm" = ""
 then
-  if test "$tracking" = "tracking" -o "$cpss" = ""
+  if test "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
   then
     show_options
-    echo "    INVALID options selected:"
-    echo "    bpm is for tracking only and not for desktops!"
+    echo "     INVALID option selected:"
+    echo "     crlibm => compilation must be done with Lahey lf95 !"
     exit 1
   fi
 fi
@@ -429,6 +443,10 @@ elif test "$cpss" = ""
 then
   ename=$ename"_cpss"
 fi
+if test "$debug" = ""
+then
+  ename=$ename"_debug"
+fi
 export ename
 
 echo ""
@@ -458,7 +476,7 @@ done
 rm -f *.ast
 cp ../ast_mask/*.ast .
 # Update the .ast flags based on options
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz" "$debug"
 do
   if test "$opt" != ""
   then
@@ -600,7 +618,8 @@ if test -s "$ename"
 then
   echo "It appears to have completed successfully."
 else
-  echo "It appears to have failed."
+  echo "It appears to have failed!!!"
+  exit 2
 fi
 
 if test "$windows" = ""
