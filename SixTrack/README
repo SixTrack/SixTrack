@@ -2,6 +2,18 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
+    -- Fixed a problem with the collimat option (my fault)
+       Need a regression test for this.
+    -- Added C/R for synuthck, 6d thick lens and variable IL.
+       Modified crpoint,crcheck, and crstart and the size of the C/R file.
+    -- If bnlelens, use napx rather napx00/npart for number of pairs
+    -- Most important is that bnlens option is now an addition to the
+       normal tracking so that the SAME executable can be used for
+       normal DA and bnlelens LHC=9 runs (important for BOINC/CPSS)
+       but LHC=9 does NOT write binary files nor post-process.
+  McIntosh 20th August, 2008
+
   SixTrack Version: 4.1.7 CVS Version 1.17 McIntosh
     -- make_six has a new 'debug' option to aid SixTrack development.
     -- If debug is selected, a new flag to ASTUTE SixTrack makes 
