@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.8'/
-      data moddate /'20.08.2008'/
+      data version /'4.1.9'/
+      data moddate /'23.08.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -5008,7 +5008,11 @@ cc2008
               yv(1,jj)=yv(1,jj1)
               yv(2,jj)=yv(2,jj1)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
               namepart(jj)=namepart(jj1)
+!GRDRHIC
+!GRD-042008
 +ei
               dpsv(jj)=dpsv(jj1)
               sigmv(jj)=sigmv(jj1)
@@ -6331,7 +6335,6 @@ cc2008
 +if .not.boinc
       open(51,file='SixTwiss.dat')
 +ei
-!
 +if boinc
       call boincrf('beambeam-output.dat',filename)
       open(52,file=filename)
@@ -11393,7 +11396,11 @@ cc2008
       if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
 !GRD-2007
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.9)) lhc=1
+!GRDRHIC
+!GRD-042008
 +ei
 +if .not.bnlelens
       if(lhc.ne.0.and.lhc.ne.1) lhc=1
@@ -12067,7 +12074,11 @@ cc2008
 +ca save
 !-----------------------------------------------------------------------
 +if bnlelens
-!     ch1=""
+!GRDRHIC
+!GRD-042008
+      ch1=""
+!GRDRHIC
+!GRD-042008
 +ei
       i0=0
       i1=j
@@ -17274,20 +17285,7 @@ cc2008
       if(ibidu.eq.2) then
 +ca dump2
 +ca dump3
-!--SETTING UP THE PLOTTING
         damp=(amp(1)-amp0)/(napx/2-1)/2
-        if(ipos.eq.1.and.                                               &
-     &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
-          call hlimit(nplo)
-          call hplint(kwtype)
-          call igmeta(-20,-111)
-          cpto='NPTO'
-          if(icr.eq.1) cpto='PTO '
-          call hplopt(cpto,1)
-          call hplopt('DATE',1)
-          call hplset('DATE',1.)
-          call hplset('CSIZ',.15)
-        endif
       endif
       do 80 i=1,npart
         pstop(i)=.false.
@@ -17494,19 +17492,25 @@ cc2008
             dam(ia)=dam1
             dam(ia+1)=dam1
           endif
++if bnlelens
+!GRDRHIC
+!GRD-042008
 +if cr
-      if (lhc.eq.9) then
-        write (LOUT,*)
+          if (lhc.eq.9) then
+            write (lout,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
-      go to 340
-      endif
+            go to 340
+          endif
 +ei
 +if .not.cr
-      if (lhc.eq.9) then
-        write (*,*)
+          if (lhc.eq.9) then
+            write (*,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
-      go to 340
-      endif
+            go to 340
+          endif
++ei
+!GRDRHIC
+!GRD-042008
 +ei
 +if cr
           if (.not.restart) then
@@ -17536,19 +17540,25 @@ cc2008
           endif
 +ei
         else
++if bnlelens
+!GRDRHIC
+!GRD-042008
 +if cr
-      if (lhc.eq.9) then
-        write (LOUT,*)
+          if (lhc.eq.9) then
+            write (LOUT,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
-        go to 340
-      endif
+            go to 340
+          endif
 +ei
 +if .not.cr
-      if (lhc.eq.9) then
-        write (*,*)
+          if (lhc.eq.9) then
+            write (*,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
-        go to 340
-      endif
+              go to 340
+          endif
++ei
+!GRDRHIC
+!GRD-042008
 +ei
 +if cr
           if (.not.restart) then
@@ -17814,7 +17824,11 @@ cc2008
         endif
   470 continue
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       if (lhc.eq.9) go to 520
+!GRDRHIC
+!GRD-042008
 +ei
         iposc=0
         if(ipos.eq.1) then
@@ -19945,10 +19959,14 @@ cc2008
 !-----------------------------------------------------------------------
       nthinerr=0
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       totals=zero
       if (lhc.eq.9) then
 +ca bnlin
       endif
+!GRDRHIC
+!GRD-042008
 +ei
 +if cr
       if (restart) then
@@ -20329,9 +20347,13 @@ cc2008
         if(ntwin.ne.2) call dist1
         if(mod(n,nwr(4)).eq.0) call write6(n)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
         if (lhc.eq.9) then
 +ca bnlout
         endif
+!GRDRHIC
+!GRD-042008
 +ei
   640 continue
       return
@@ -20399,10 +20421,14 @@ cc2008
 +ei
       nthinerr=0
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       totals=zero
       if (lhc.eq.9) then
 +ca bnlin
       endif
+!GRDRHIC
+!GRD-042008
 +ei
 +if collimat
 !++  Some initialization
@@ -23387,9 +23413,13 @@ cc2008
         if(mod(n,nwr(4)).eq.0) call write6(n)
 +ei
 +if bnlelens
+!GRDRHIC
+!GRD-042008
         if (lhc.eq.9) then
 +ca bnlout
         endif
+!GRDRHIC
+!GRD-042008
 +ei
   660 continue
 +if collimat
@@ -23458,10 +23488,14 @@ cc2008
       c5m4=5.0d-4
 +ei
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       totals=zero
       if (lhc.eq.9) then
 +ca bnlin
       endif
+!GRDRHIC
+!GRD-042008
 +ei
       nthinerr=0
 +if cr
@@ -23898,9 +23932,13 @@ cc2008
         if(ntwin.ne.2) call dist1
         if(mod(n,nwr(4)).eq.0) call write6(n)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
         if (lhc.eq.9) then
 +ca bnlout
         endif
+!GRDRHIC
+!GRD-042008
 +ei
   660 continue
       return
@@ -23998,7 +24036,11 @@ cc2008
 +ei
 !GRD      do 10 ia=1,napx
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       if (lhc.ne.9) then
+!GRDRHIC
+!GRD-042008
 +ei
       do 10 ia=1,napx-1
 !GRD
@@ -24067,16 +24109,24 @@ cc2008
         endif
    10 continue
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       endif
+!GRDRHIC
+!GRD-042008
 +ei
 +if cr
 +if .not.bnlelens
       binrec=binrec+1
 +ei
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       if (lhc.ne.9) then
       binrec=binrec+1
       endif
+!GRDRHIC
+!GRD-042008
 +ei
 +if boinc
       if (checkp) then
@@ -24840,10 +24890,14 @@ cc2008
       idz1=idz(1)
       idz2=idz(2)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       totals=zero
       if (lhc.eq.9) then
 +ca bnlin
       endif
+!GRDRHIC
+!GRD-042008
 +ei
 +if cr
       if (restart) then
@@ -25239,7 +25293,13 @@ cc2008
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
+      if (lhc.eq.9) then
 +ca bnlout
+      endif
+!GRDRHIC
+!GRD-042008
 +ei
   490 continue
       return
@@ -25306,10 +25366,14 @@ cc2008
       idz1=idz(1)
       idz2=idz(2)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       totals=zero
       if (lhc.eq.9) then
 +ca bnlin
       endif
+!GRDRHIC
+!GRD-042008
 +ei
 ! Now the outer loop over turns
 +if cr
@@ -25339,6 +25403,8 @@ cc2008
           do 500 i=1,iu
 +ei
 +if bnlelens
+!GRDRHIC
+!GRD-042008
 !GRD-2007
             if(n.eq.1) then
                totals=totals+strack(i)
@@ -25347,6 +25413,8 @@ cc2008
      &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
      &torby(i)
             endif
+!GRDRHIC
+!GRD-042008
 !GRD-2007
 +ei
 +if debug
@@ -25837,7 +25905,13 @@ cc2008
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
+      if (lhc.eq.9) then
 +ca bnlout
+      endif
+!GRDRHIC
+!GRD-042008
 +ei
   510 continue
 +if debug
@@ -25903,10 +25977,14 @@ cc2008
       idz1=idz(1)
       idz2=idz(2)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       totals=zero
       if (lhc.eq.9) then
 +ca bnlin
       endif
+!GRDRHIC
+!GRD-042008
 +ei
 +if cr
       if (restart) then
@@ -26354,7 +26432,13 @@ cc2008
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
+      if (lhc.eq.9) then
 +ca bnlout
+      endif
+!GRDRHIC
+!GRD-042008
 +ei
   510 continue
       return
@@ -28138,6 +28222,8 @@ cc2008
       do j=1,npart
         namepart(j)=0
       enddo
+!GRDRHIC
+!GRD-042008
 +ei
       ncorru=0
       ncorrep=0
@@ -47163,9 +47249,23 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.18 2008-08-22 09:54:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.19 2008-08-23 08:50:26 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.18  2008/08/22 09:54:43  mcintosh
+!
+!   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
+!     -- Fixed a problem with the collimat option (my fault)
+!        Need a regression test for this.
+!     -- Added C/R for synuthck, 6d thick lens and variable IL.
+!        Modified crpoint,crcheck, and crstart and the size of the C/R file.
+!     -- If bnlelens, use napx rather napx00/npart for number of pairs
+!     -- Most important is that bnlens option is now an addition to the
+!        normal tracking so that the SAME executable can be used for
+!        normal DA and bnlelens LHC=9 runs (important for BOINC/CPSS)
+!        but LHC=9 does NOT write binary files nor post-process.
+!   McIntosh 20th August, 2008
+!
 ! Revision 1.17  2008/08/19 08:48:40  mcintosh
 !   SixTrack Version: 4.1.7 CVS Version 1.17 McIntosh
 !     -- make_six has a new 'debug' option to aid SixTrack development.
@@ -48052,9 +48152,23 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.18 2008-08-22 09:54:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.19 2008-08-23 08:50:26 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.18  2008/08/22 09:54:43  mcintosh
+!
+!   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
+!     -- Fixed a problem with the collimat option (my fault)
+!        Need a regression test for this.
+!     -- Added C/R for synuthck, 6d thick lens and variable IL.
+!        Modified crpoint,crcheck, and crstart and the size of the C/R file.
+!     -- If bnlelens, use napx rather napx00/npart for number of pairs
+!     -- Most important is that bnlens option is now an addition to the
+!        normal tracking so that the SAME executable can be used for
+!        normal DA and bnlelens LHC=9 runs (important for BOINC/CPSS)
+!        but LHC=9 does NOT write binary files nor post-process.
+!   McIntosh 20th August, 2008
+!
 ! Revision 1.17  2008/08/19 08:48:40  mcintosh
 !   SixTrack Version: 4.1.7 CVS Version 1.17 McIntosh
 !     -- make_six has a new 'debug' option to aid SixTrack development.
@@ -48276,9 +48390,23 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.18 2008-08-22 09:54:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.19 2008-08-23 08:50:26 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.18  2008/08/22 09:54:43  mcintosh
+!
+!   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
+!     -- Fixed a problem with the collimat option (my fault)
+!        Need a regression test for this.
+!     -- Added C/R for synuthck, 6d thick lens and variable IL.
+!        Modified crpoint,crcheck, and crstart and the size of the C/R file.
+!     -- If bnlelens, use napx rather napx00/npart for number of pairs
+!     -- Most important is that bnlens option is now an addition to the
+!        normal tracking so that the SAME executable can be used for
+!        normal DA and bnlelens LHC=9 runs (important for BOINC/CPSS)
+!        but LHC=9 does NOT write binary files nor post-process.
+!   McIntosh 20th August, 2008
+!
 ! Revision 1.17  2008/08/19 08:48:40  mcintosh
 !   SixTrack Version: 4.1.7 CVS Version 1.17 McIntosh
 !     -- make_six has a new 'debug' option to aid SixTrack development.
@@ -48820,6 +48948,8 @@ cc2008
      &(crejvl(j),j=1,crnapxo),                                          &
      &(crsigmvl(j),j=1,crnapxo)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       read(95,err=100,end=100)
      &crn_cut,                                                          &
      &crn_nocut,                                                        &
@@ -48830,6 +48960,8 @@ cc2008
      &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
      &crtotals,                                                         &                        
      &(crnamepart(j),j=1,crnapxo)
+!GRDRHIC
+!GRD-042008
 +ei
 !ERIC new extended checkpoint for synuthck
         if (crsythck) then
@@ -48888,6 +49020,8 @@ cc2008
      &(crejvl(j),j=1,crnapxo),                                          &
      &(crsigmvl(j),j=1,crnapxo)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       read(96,err=101,end=101)
      &crn_cut,                                                          &
      &crn_nocut,                                                        &
@@ -48898,6 +49032,8 @@ cc2008
      &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
      &crtotals,                                                         &
      &(crnamepart(j),j=1,crnapxo)
+!GRDRHIC
+!GRD-042008
 +ei
 !ERIC new extended checkpoint for synuthck
         if (crsythck) then
@@ -48958,27 +49094,32 @@ cc2008
         endfile 93
         backspace 93
 +if bnlelens
+!GRDRHIC
+!GRD-042008
+        if (lhc.eq.9) then
 !--   Now re-position beambeam-output.dat and lostID.dat
-  610   read(52,'(a255)',end=608,err=108,iostat=istat) arecord
-        bnlrec=bnlrec+1
-        if (bnlrec.lt.crbnlrec) goto 610
-        endfile 52
-  608   backspace 52
-        write(93,*)                                                     &
+  610     read(52,'(a255)',end=608,err=108,iostat=istat) arecord
+          bnlrec=bnlrec+1
+          if (bnlrec.lt.crbnlrec) goto 610
+          endfile 52
+  608     backspace 52
+          write(93,*)                                                     &
      &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
-        endfile 93
-        backspace 93
-  611   read(53,'(a255)',end=609,err=109,iostat=istat) arecord
-        bllrec=bllrec+1
-        if (bllrec.lt.crbllrec) goto 611
-        endfile 53
-  609   backspace 53
-        write(93,*)                                                     &
+          endfile 93
+          backspace 93
+  611     read(53,'(a255)',end=609,err=109,iostat=istat) arecord
+          bllrec=bllrec+1
+          if (bllrec.lt.crbllrec) goto 611
+          endfile 53
+  609     backspace 53
+          write(93,*)                                                     &
      &'SIXTRACR CRCHECK found fort.53 bllrec=',bllrec
-        endfile 93
-        backspace 93
+          endfile 93
+          backspace 93
+        endif
+!GRDRHIC
+!GRD-042008
 +ei
-+if .not.bnlelens
 !--   We may be re-running with a DIFFERENT number of turns (numl)
         if (numl.ne.crnuml) then
           if (numl.lt.crnumlcr) then
@@ -48997,6 +49138,13 @@ cc2008
      &crnuml,' to ',numl
           endfile 93
           backspace 93
++if bnlelens
+!GRDRHIC
+!GRD-042008
+          if (lhc.ne.9) then
+!GRDRHIC
+!GRD-042008
++ei
 +if boinc
           call boincrf('fort.94',filename)
           open(94,file=filename,form='unformatted',status='unknown') 
@@ -49022,7 +49170,7 @@ cc2008
                 read(91-ia,err=105,end=105,iostat=istat) tbuff
                 write(94,err=105,iostat=istat) tbuff
               endif
-            mybinrecs=mybinrecs+1
+              mybinrecs=mybinrecs+1
    14       continue
             rewind 94
             rewind 91-ia
@@ -49045,10 +49193,24 @@ cc2008
             rewind 94            
    13     continue
           close(94)
++if bnlelens
+!GRDRHIC
+!GRD-042008
+          endif
+!GRDRHIC
+!GRD-042008
++ei
         else 
 !--  Now with the new array crbinrecs we can ignore files which are
 !--  basically finished because a particle has been lost.......
 !--  Just check crbinrecs against crbinrec
++if bnlelens
+!GRDRHIC
+!GRD-042008
+          if (lhc.ne.9) then
+!GRDRHIC
+!GRD-042008
++ei
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK re-positioning binary files'
           do 10 ia=1,crnapxo/2,1
@@ -49072,13 +49234,19 @@ cc2008
      &'SIXTRACR CRCHECK ignoring IA ',ia,' Unit ',myia
             endif
    10     continue
-        endif
-+ei
+          endif
 +if bnlelens
-        write (93,*)                                                    &
+!GRDRHIC
+!GRD-042008
+          endif
+        if (lhc.eq.9) then
+          write (93,*)                                                    &
      &'SIXTRACR CRCHECK skipping binary files for bnlelens'
-        endfile 93
-        backspace 93
+          endfile 93
+          backspace 93
+        endif
+!GRDRHIC
+!GRD-042008
 +ei
 !--     Set up flag for tracking routines to call CRSTART
         restart=.true.
@@ -49094,7 +49262,6 @@ cc2008
         return
       endif
       goto 605
-+if .not.bnlelens
 !--   Just abort if we cannot re-position/copy the binary files,
   102 write(lout,*)
       write(lout,*)                                                     &
@@ -49112,7 +49279,6 @@ cc2008
      &' binrecs94=',binrecs94
       write(lout,*)
       call abend('SIXTRACR CRCHECK failure copying binary files     ')
-+ei
 !--  We are not checkpointing or we have no checkpoints
 !--  or we have no readable checkpoint
 !--  If not checkpointing we can just give up on lout and use
@@ -49168,6 +49334,8 @@ cc2008
       backspace 93
       call abend('SIXTRACR CRCHECK failure positioning fort.92      ')
 +if bnlelens
+!GRDRHIC
+!GRD-042008
  108  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.52, iostat=',istat
       write(93,*)                                                       &
@@ -49182,6 +49350,8 @@ cc2008
       endfile 93
       backspace 93
       call abend('SIXTRACR CRCHECK failure positioning fort.53      ')
+!GRDRHIC
+!GRD-042008
 +ei
       end
       subroutine crpoint
@@ -49313,6 +49483,8 @@ cc2008
      &(ejvl(j),j=1,napxo),                                              &
      &(sigmvl(j),j=1,napxo)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       write(95,err=100,iostat=istat)                                    &
      &n_cut,                                                            &
      &n_nocut,                                                          &
@@ -49323,6 +49495,8 @@ cc2008
      &limit_twojx,limit_twojy,limit_twojr,                              &
      &totals,                                                           &
      &(namepart(j),j=1,napxo)
+!GRDRHIC
+!GRD-042008
 +ei
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
@@ -49426,6 +49600,8 @@ cc2008
      &(ejvl(j),j=1,napxo),                                              &
      &(sigmvl(j),j=1,napxo)
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       write(96,err=100,iostat=istat)                                    &
      &n_cut,                                                            &
      &n_nocut,                                                          &
@@ -49436,6 +49612,8 @@ cc2008
      &limit_twojx,limit_twojy,limit_twojr,                              &
      &totals,                                                           &
      &(namepart(j),j=1,napxo)
+!GRDRHIC
+!GRD-042008
 +ei
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
@@ -49581,10 +49759,16 @@ cc2008
           nnumxv(j)=numl
         endif
 +if bnlelens
+!GRDRHIC
+!GRD-042008
         namepart(j)=crnamepart(j)
+!GRDRHIC
+!GRD-042008
 +ei
       enddo
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       n_cut=crn_cut
       n_nocut=crn_nocut
       sumsquarex=crsumsquarex
@@ -49595,6 +49779,8 @@ cc2008
       limit_twojy=crlimit_twojy
       limit_twojr=crlimit_twojr
       totals=crtotals
+!GRDRHIC
+!GRD-042008
 +ei
 +if debug
 +if bnlelens
@@ -49775,6 +49961,8 @@ cc2008
 +ca save
       end 
 +if bnlelens
+!GRDRHIC
+!GRD-042008
       subroutine dumpbnl(dumpname,n,i)
       implicit none
 +ca crcoall
@@ -49807,6 +49995,8 @@ cc2008
       character*(*) dumpname
 +ca save
       end 
+!GRDRHIC
+!GRD-042008
 +ei
       subroutine dumpsynu(dumpname,n,i)
       implicit none

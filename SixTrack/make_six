@@ -322,6 +322,12 @@ then
   cpss=""
   values[10]=true
 fi
+if test "$cpss" = ""
+then
+# force windows anyway
+  windows=""
+  values[5]=true
+fi
 if test "$da" = "" -o "$collimat" = ""
 then
   if test "$cpss" = ""
@@ -344,7 +350,7 @@ then
   naglib=""
   values[7]=false
 fi
-if test "$cpss" = ""
+if test "$windows" = ""
 then
   # We will build for windows (and Linux)
   # force windows, Lahey compiler, checkpoint/restart and crlibm, and NO cernlib 

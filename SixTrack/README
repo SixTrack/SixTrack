@@ -2,6 +2,14 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
+    -- Fixed a problem with binary output files when
+       using the bnlelens option for normal DA runs.
+    -- Removed redundant plotting initialisation.
+    -- Forced -cernlib for +windows in make_six.
+    -- Added !GRDRHIC/!GRD-042008 comments.
+  McIntosh 23rd August, 2008
+
   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
     -- Fixed a problem with the collimat option (my fault)
        Need a regression test for this.
