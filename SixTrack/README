@@ -2,6 +2,12 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
+    -- Added SixTwiss output to all tracking routines if bnldata
+    -- Use napx to write checkdist if bnlelens
+    -- Do NOT write a second C/R file fort.96
+  McIntosh 23rd August, 2008
+
   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
     -- Fixed a problem with binary output files when
        using the bnlelens option for normal DA runs.

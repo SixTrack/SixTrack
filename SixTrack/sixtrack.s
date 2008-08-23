@@ -2,7 +2,7 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.9'/
+      data version /'4.1.10'/
       data moddate /'23.08.2008'/
 +cd rhicelens
 !GRDRHIC
@@ -4809,6 +4809,20 @@ cc2008
 !GRD-2007
 !GRD-042008
 !GRDRHIC
++cd bnltwiss
+!GRDRHIC
+!GRD-042008
+!GRD-2007
+            if(n.eq.1.and.lhc.eq.9) then
+               totals=totals+strack(i)
+               sampl(i)=totals
+               write(51,'(i5,(1x,f15.10),4(1x,f20.13))')                &
+     &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
+     &torby(i)
+            endif
+!GRDRHIC
+!GRD-042008
+!GRD-2007
 +cd thcklin
                 puxve1=xv(1,j)
                 puzve1=yv(1,j)
@@ -16485,29 +16499,13 @@ cc2008
   605 open(95,file='fort.95',form='unformatted',status='old',err=600)
 +ei
       fort95=.true.
-      goto 608
+      goto 609
 +if boinc
   600 call boincrf('fort.95',filename)
       open(95,file=filename,form='unformatted',status='new')
 +ei
 +if .not.boinc
   600 open(95,file='fort.95',form='unformatted',status='new')
-+ei
-+if boinc
-  608 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='old',err=601)
-+ei
-+if .not.boinc
-  608 open(96,file='fort.96',form='unformatted',status='old',err=601)
-+ei
-      fort96=.true.
-      goto 609
-+if boinc
-  601 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='new')
-+ei
-+if .not.boinc
-  601 open(96,file='fort.96',form='unformatted',status='new')
 +ei
 +if boinc
   609 call boincrf('fort.91',filename)
@@ -19988,6 +19986,9 @@ cc2008
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
         do 630 i=1,iu
++if bnlelens
++ca bnltwiss
++ei
           ix=ic(i)-nblo
 +if bpm
 +ca bpmdata
@@ -20672,6 +20673,9 @@ cc2008
            else
               myix=ic(i)-nblo
            endif
++ei
++if bnlelens
++ca bnltwiss
 +ei
           ix=ic(i)-nblo
 +if bpm
@@ -23522,6 +23526,9 @@ cc2008
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
         do 650 i=1,iu
++if bnlelens
++ca bnltwiss
++ei
           ix=ic(i)-nblo
 +if bpm
 +ca bpmdata
@@ -24919,6 +24926,9 @@ cc2008
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
           do 480 i=1,iu
++if bnlelens
++ca bnltwiss
++ei
             if(ktrack(i).eq.1) then
               ix=ic(i)
             else
@@ -25403,19 +25413,7 @@ cc2008
           do 500 i=1,iu
 +ei
 +if bnlelens
-!GRDRHIC
-!GRD-042008
-!GRD-2007
-            if(n.eq.1) then
-               totals=totals+strack(i)
-               sampl(i)=totals
-               write(51,'(i5,(1x,f15.10),4(1x,f20.13))')                &
-     &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
-     &torby(i)
-            endif
-!GRDRHIC
-!GRD-042008
-!GRD-2007
++ca bnltwiss
 +ei
 +if debug
 !===================================================================
@@ -26010,6 +26008,9 @@ cc2008
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
           do 500 i=1,iu
++if bnlelens
++ca bnltwiss
++ei
             if(ktrack(i).eq.1) then
               ix=ic(i)
             else
@@ -47249,9 +47250,18 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.19 2008-08-23 08:50:26 mcintosh Exp $
+! $Id: sixtrack.s,v 1.20 2008-08-23 12:03:30 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.19  2008/08/23 08:50:26  mcintosh
+!   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
+!     -- Fixed a problem with binary output files when
+!        using the bnlelens option for normal DA runs.
+!     -- Removed redundant plotting initialisation.
+!     -- Forced -cernlib for +windows in make_six.
+!     -- Added !GRDRHIC/!GRD-042008 comments.
+!   McIntosh 23rd August, 2008
+!
 ! Revision 1.18  2008/08/22 09:54:43  mcintosh
 !
 !   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
@@ -48152,9 +48162,18 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.19 2008-08-23 08:50:26 mcintosh Exp $
+! $Id: sixtrack.s,v 1.20 2008-08-23 12:03:30 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.19  2008/08/23 08:50:26  mcintosh
+!   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
+!     -- Fixed a problem with binary output files when
+!        using the bnlelens option for normal DA runs.
+!     -- Removed redundant plotting initialisation.
+!     -- Forced -cernlib for +windows in make_six.
+!     -- Added !GRDRHIC/!GRD-042008 comments.
+!   McIntosh 23rd August, 2008
+!
 ! Revision 1.18  2008/08/22 09:54:43  mcintosh
 !
 !   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
@@ -48390,9 +48409,18 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.19 2008-08-23 08:50:26 mcintosh Exp $
+! $Id: sixtrack.s,v 1.20 2008-08-23 12:03:30 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.19  2008/08/23 08:50:26  mcintosh
+!   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
+!     -- Fixed a problem with binary output files when
+!        using the bnlelens option for normal DA runs.
+!     -- Removed redundant plotting initialisation.
+!     -- Forced -cernlib for +windows in make_six.
+!     -- Added !GRDRHIC/!GRD-042008 comments.
+!   McIntosh 23rd August, 2008
+!
 ! Revision 1.18  2008/08/22 09:54:43  mcintosh
 !
 !   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
@@ -48837,7 +48865,8 @@ cc2008
          write(*,*) "Number of samples in the bunch = ",mynp
 +ei
       endif
-      do j=1,npart
+!ERIC napx00???
+      do j=1,napx
         write(97,'(e15.8,4(1x,e15.8),1x,f15.8)')                        &
      &myx(j),myxp(j),myy(j), myyp(j),mys(j),myp(j)
       enddo
@@ -49558,7 +49587,8 @@ cc2008
 !     endif
 +ei
 +ei
-!--   and finally a second checkpoint copy
+!--   and finally a second checkpoint copy, or maybe not!
+      if (.not.fort96) go to 104 
       rewind 96
       write(96,err=100,iostat=istat)                                    &
      &crnumlcr,                                                         &
@@ -49661,7 +49691,7 @@ cc2008
 !     call dump('1st Checkpoint',numx,i)
 !     call abend('SIXTRACR CHECKPOINT written                       ')      
 +ei
-      return
+  104 return
   100 write(93,*)                                                       &
      &'SIXTRACR CRPOINT *** ERROR *** writing checkpt file,iostat=',    &
      &istat
