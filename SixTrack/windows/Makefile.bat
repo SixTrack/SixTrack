@@ -45,6 +45,9 @@ copy csh_fast.obj ..
 copy asin_rn.obj ..
 copy acos_rn.obj ..
 copy atan2_rn.obj ..
+copy asin_rn.f ..
+copy acos_rn.f ..
+copy atan2_rn.f ..
 cd ..
 lf95.exe -c -o1 -tp -fix -nconcc sixve.f
 lf95.exe -c -o1 -tp -fix -nconcc sixvefox.f

@@ -2,6 +2,16 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
+    -- make_six copies only necessary .ast and .f files
+       Sorted .f files for crlibm for windows and makes a
+       link from the new executable to SixTrack
+    -- SixTrack for BNL only, use fort.54 for beambeamdist.dat for
+       BOINC and CPSS. Use fort.52, fort.53, fort.51 and fort.97
+       for beambeam-output.dat, beambeam-lostID.dat, SixTwiss.dat,
+       and checkdist.dat for CPSS but ONLY fort.10 for BOINC.
+   McIntosh 31st August, 2008
+
   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
     -- Added SixTwiss output to all tracking routines if bnldata
     -- Use napx to write checkdist if bnlelens

@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.10'/
-      data moddate /'23.08.2008'/
+      data version /'4.1.11'/
+      data moddate /'31.08.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -4756,11 +4756,23 @@ cc2008
               n_nocut=n_nocut +1
             else
               n_cut=n_cut+1
++if .not.boinc
               write(53,'(i8,1x,i8)') n,namepart(j)
++ei
++if boinc
+              write(10,'(a10,i8,1x,i8)') 'lostID    ',n,namepart(j)
++ei
 +if cr
++if .not.boinc
               endfile 53
               backspace 53
               bllrec=bllrec+1
++ei
++if boinc
+              endfile 10
+              backspace 10
+              bnlrec=bnlrec+1
++ei
 +ei
             endif
 !GRD-042008
@@ -4787,15 +4799,27 @@ cc2008
 +if .not.cr
             write(*,*) 'dumping stats at turn number ',n
 +ei
++if .not.boinc
             write(52,'(i8,2(1x,i8),4(1x,e15.8))')                       &
++ei
++if boinc
+            write(10,'(a10,i8,2(1x,i8),4(1x,e15.8))')                   &
+     &'output    ',                                                     &
++ei
      &n,n_cut,n_nocut,                                                  &
      &sumsquarex,                                                       &
      &sumsquarey,                                                       &
      &sumtwojx,                                                         &
      &sumtwojy
 +if cr
++if .not.boinc
       endfile 52
       backspace 52
++ei
++if boinc
+      endfile 10
+      backspace 10
++ei
             bnlrec=bnlrec+1
 +ei
             sumsquarex=zero
@@ -4816,9 +4840,18 @@ cc2008
             if(n.eq.1.and.lhc.eq.9) then
                totals=totals+strack(i)
                sampl(i)=totals
++if .not.boinc
                write(51,'(i5,(1x,f15.10),4(1x,f20.13))')                &
++ei
++if boinc
+                 write(10,'(a10,i5,(1x,f15.10),4(1x,f20.13))')          &
+     &'SixTwiss  ',                                                     &
++ei
      &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
      &torby(i)
++if boinc
+               bnlrec=bnlrec+2
++ei
             endif
 !GRDRHIC
 !GRD-042008
@@ -6342,41 +6375,51 @@ cc2008
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-+if boinc
-      call boincrf('SixTwiss.dat',filename)
-      open(51,file=filename)
-+ei
++if cr
+! For BOINC all output now goes to fort.10
 +if .not.boinc
+      open(51,file='fort.51')
++ei
++ei
++if .not.cr
       open(51,file='SixTwiss.dat')
 +ei
-+if boinc
-      call boincrf('beambeam-output.dat',filename)
-      open(52,file=filename)
-+ei
++if cr
 +if .not.boinc
+      open(52,file='fort.52')
++ei
++ei
++if .not.cr
       open(52,file='beambeam-output.dat')
 +ei
-!
-+if boinc
-      call boincrf('beambeam-lostID.dat',filename)
-      open(53,file=filename)
-+ei
++if cr
 +if .not.boinc
+      open(53,file='fort.53')
++ei
++ei
++if .not.cr
       open(53,file='beambeam-lostID.dat')
 +ei
++if cr
 +if boinc
-      call boincrf('beambeamdist.dat',filename)
+      call boincrf('fort.54',filename)
       open(54,file=filename)
 +ei
 +if .not.boinc
+      open(54,file='fort.54')
++ei
++ei
++if .not.cr
       open(54,file='beambeamdist.dat')
 +ei
-+if boinc
-      call boincrf('checkdist.dat',filename)
-      open(97, file=filename)
-+ei
++if cr
 +if .not.boinc
-      open(97, file='checkdist.dat')
+      open(97,file='fort.97')
++ei
++ei
++if .not.cr
+      open(97,file='checkdist.dat')
++ei
 +ei
 !GRDRHIC
 !GRD-042008
@@ -47250,9 +47293,16 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.20 2008-08-23 12:03:30 mcintosh Exp $
+! $Id: sixtrack.s,v 1.21 2008-08-31 21:51:08 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.20  2008/08/23 12:03:30  mcintosh
+!   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
+!     -- Added SixTwiss output to all tracking routines if bnldata
+!     -- Use napx to write checkdist if bnlelens
+!     -- Do NOT write a second C/R file fort.96
+!   McIntosh 23rd August, 2008
+!
 ! Revision 1.19  2008/08/23 08:50:26  mcintosh
 !   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
 !     -- Fixed a problem with binary output files when
@@ -48162,9 +48212,16 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.20 2008-08-23 12:03:30 mcintosh Exp $
+! $Id: sixtrack.s,v 1.21 2008-08-31 21:51:08 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.20  2008/08/23 12:03:30  mcintosh
+!   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
+!     -- Added SixTwiss output to all tracking routines if bnldata
+!     -- Use napx to write checkdist if bnlelens
+!     -- Do NOT write a second C/R file fort.96
+!   McIntosh 23rd August, 2008
+!
 ! Revision 1.19  2008/08/23 08:50:26  mcintosh
 !   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
 !     -- Fixed a problem with binary output files when
@@ -48409,9 +48466,16 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.20 2008-08-23 12:03:30 mcintosh Exp $
+! $Id: sixtrack.s,v 1.21 2008-08-31 21:51:08 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.20  2008/08/23 12:03:30  mcintosh
+!   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
+!     -- Added SixTwiss output to all tracking routines if bnldata
+!     -- Use napx to write checkdist if bnlelens
+!     -- Do NOT write a second C/R file fort.96
+!   McIntosh 23rd August, 2008
+!
 ! Revision 1.19  2008/08/23 08:50:26  mcintosh
 !   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
 !     -- Fixed a problem with binary output files when
@@ -48824,6 +48888,7 @@ cc2008
 +ca parpro
 !ERIC
 +ca common
++ca crco
 +ca crcoall
 +ca rhicelens
       integer ngrd
@@ -48867,8 +48932,19 @@ cc2008
       endif
 !ERIC napx00???
       do j=1,napx
++if .not.boinc
         write(97,'(e15.8,4(1x,e15.8),1x,f15.8)')                        &
++ei
++if boinc
+        if (.not.restart) then
+          write(10,'(a10,e15.8,4(1x,e15.8),1x,f15.8)')                  &
+     &'checkdist ',                                                     &
++ei
      &myx(j),myxp(j),myy(j), myyp(j),mys(j),myp(j)
++if boinc
+        endif
+        if (.not.restart) bnlrec=bnlrec+1
++ei
       enddo
       return
       end
@@ -49127,6 +49203,8 @@ cc2008
 !GRD-042008
         if (lhc.eq.9) then
 !--   Now re-position beambeam-output.dat and lostID.dat
+!--   or only fort.10 if boinc
++if .not.boinc
   610     read(52,'(a255)',end=608,err=108,iostat=istat) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
@@ -49145,6 +49223,18 @@ cc2008
      &'SIXTRACR CRCHECK found fort.53 bllrec=',bllrec
           endfile 93
           backspace 93
++ei
++if boinc
+  610     read(10,'(a255)',end=608,err=108,iostat=istat) arecord
+          bnlrec=bnlrec+1
+          if (bnlrec.lt.crbnlrec) goto 610
+          endfile 10
+  608     backspace 10
+          write(93,*)                                                     &
+     &'SIXTRACR CRCHECK found fort.10 bnlrec=',bnlrec
+          endfile 93
+          backspace 93
++ei
         endif
 !GRDRHIC
 !GRD-042008

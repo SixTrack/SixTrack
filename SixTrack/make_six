@@ -96,6 +96,7 @@ while test $# != 0
 do
   case $1 in
     clean) echo "Cleaning crlibm, astuce and dafor and removing ALL SixTrack_* directories."
+           rm SixTrack
            rm -f *.o dafor astuce
            rm -f crlibm/crlibm.a crlibm/*.o
            rm -rf SixTrack_* 
@@ -479,8 +480,18 @@ for dots in dabnew  lielib  sixtrack
 do
   ln -sf ../${dots}.s ${dots}.s
 done
+# Use only necessary .ast (and .f later)
+if test "$da" = ""
+then
+  export FORS='sixda sixsc sixscfox dabnew lielib'
+else
+  export FORS='track sixve sixvefox dabnews lielib'
+fi
 rm -f *.ast
-cp ../ast_mask/*.ast .
+for i in $FORS 
+do
+  cp ../ast_mask/$i.ast .
+done
 # Update the .ast flags based on options
 for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz" "$debug"
 do
@@ -522,7 +533,7 @@ do
   fi
 done
 # Then generate the .f files
-for i in track sixve sixvefox sixda sixsc sixscfox lielib dabnew dabnews
+for i in $FORS
 do
   ../astuce < $i.ast
   if test "$i" = "sixvefox" -o "$i" = "sixscfox" -o "$i" = "sixda"
@@ -623,11 +634,14 @@ echo ""
 if test -s "$ename"
 then
   echo "It appears to have completed successfully."
+# and a link for Frank
+  cd ..
+  ln -sf $ename/$ename SixTrack
+  cd $ename
 else
   echo "It appears to have failed!!!"
   exit 2
 fi
-
 if test "$windows" = ""
 then
   echo ""
