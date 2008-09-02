@@ -2,6 +2,11 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
+    -- Fixed the SixTwiss output to write one line F20.13
+       and most importantly changed the bnlrec count for C/R
+   McIntosh 2nd September, 2008
+
   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
     -- make_six copies only necessary .ast and .f files
        Sorted .f files for crlibm for windows and makes a

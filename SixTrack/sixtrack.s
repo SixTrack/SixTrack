@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.11'/
-      data moddate /'31.08.2008'/
+      data version /'4.1.12'/
+      data moddate /'02.09.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -4844,13 +4844,13 @@ cc2008
                write(51,'(i5,(1x,f15.10),4(1x,f20.13))')                &
 +ei
 +if boinc
-                 write(10,'(a10,i5,(1x,f15.10),4(1x,f20.13))')          &
+                 write(10,'(a10,i5,(1x,f15.10),6(1x,f20.13))')          &
      &'SixTwiss  ',                                                     &
 +ei
      &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
      &torby(i)
 +if boinc
-               bnlrec=bnlrec+2
+               bnlrec=bnlrec+1
 +ei
             endif
 !GRDRHIC
@@ -47293,9 +47293,20 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.21 2008-08-31 21:51:08 mcintosh Exp $
+! $Id: sixtrack.s,v 1.22 2008-09-02 13:48:08 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.21  2008/08/31 21:51:08  mcintosh
+!   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
+!     -- make_six copies only necessary .ast and .f files
+!        Sorted .f files for crlibm for windows and makes a
+!        link from the new executable to SixTrack
+!     -- SixTrack for BNL only, use fort.54 for beambeamdist.dat for
+!        BOINC and CPSS. Use fort.52, fort.53, fort.51 and fort.97
+!        for beambeam-output.dat, beambeam-lostID.dat, SixTwiss.dat,
+!        and checkdist.dat for CPSS but ONLY fort.10 for BOINC.
+!    McIntosh 31st August, 2008
+!
 ! Revision 1.20  2008/08/23 12:03:30  mcintosh
 !   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
 !     -- Added SixTwiss output to all tracking routines if bnldata
@@ -48212,9 +48223,20 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.21 2008-08-31 21:51:08 mcintosh Exp $
+! $Id: sixtrack.s,v 1.22 2008-09-02 13:48:08 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.21  2008/08/31 21:51:08  mcintosh
+!   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
+!     -- make_six copies only necessary .ast and .f files
+!        Sorted .f files for crlibm for windows and makes a
+!        link from the new executable to SixTrack
+!     -- SixTrack for BNL only, use fort.54 for beambeamdist.dat for
+!        BOINC and CPSS. Use fort.52, fort.53, fort.51 and fort.97
+!        for beambeam-output.dat, beambeam-lostID.dat, SixTwiss.dat,
+!        and checkdist.dat for CPSS but ONLY fort.10 for BOINC.
+!    McIntosh 31st August, 2008
+!
 ! Revision 1.20  2008/08/23 12:03:30  mcintosh
 !   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
 !     -- Added SixTwiss output to all tracking routines if bnldata
@@ -48466,9 +48488,20 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.21 2008-08-31 21:51:08 mcintosh Exp $
+! $Id: sixtrack.s,v 1.22 2008-09-02 13:48:08 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.21  2008/08/31 21:51:08  mcintosh
+!   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
+!     -- make_six copies only necessary .ast and .f files
+!        Sorted .f files for crlibm for windows and makes a
+!        link from the new executable to SixTrack
+!     -- SixTrack for BNL only, use fort.54 for beambeamdist.dat for
+!        BOINC and CPSS. Use fort.52, fort.53, fort.51 and fort.97
+!        for beambeam-output.dat, beambeam-lostID.dat, SixTwiss.dat,
+!        and checkdist.dat for CPSS but ONLY fort.10 for BOINC.
+!    McIntosh 31st August, 2008
+!
 ! Revision 1.20  2008/08/23 12:03:30  mcintosh
 !   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
 !     -- Added SixTwiss output to all tracking routines if bnldata
