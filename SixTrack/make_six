@@ -96,7 +96,7 @@ while test $# != 0
 do
   case $1 in
     clean) echo "Cleaning crlibm, astuce and dafor and removing ALL SixTrack_* directories."
-           rm SixTrack
+           rm -f SixTrack
            rm -f *.o dafor astuce
            rm -f crlibm/crlibm.a crlibm/*.o
            rm -rf SixTrack_* 

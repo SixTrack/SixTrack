@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.12'/
-      data moddate /'02.09.2008'/
+      data version /'4.1.13'/
+      data moddate /'04.09.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -3005,9 +3005,9 @@
           pi=4d0*atan(1d0)
 +ei
         crabfreq=ek(ix)*c1e3
-      
+
         do j=1,napx
-        crabamp=ed(ix)/(ejfv(j))*c1e3
+         crabamp=ed(ix)/(ejfv(j))*c1e3
 !        write(*,*) crabamp, ejfv(j), clight, "HELLO" 
 
 +if .not.tilt
@@ -4679,7 +4679,19 @@
 !GRD-2007 BLOCK IN FORT.3 IS SET TO 9
 !GRD-042008
            if(lhc.eq.9) then
-             call  bnlrdis(20000)
+! Write a line to fort.10 for all platforms (including LSF)
++if boinc
+             if (.not.restart) then
+               write(10,'(a10,a60)') 'title     ',sixtit(1:60)
+               endfile 10
+               backspace 10
+               bnlrec=bnlrec+1
+             endif
++ei
++if .not.boinc
+             write(10,'(a60)') sixtit(1:60)
++ei
+             call bnlrdis(20000)
 +if cr
                write(lout,*) 'Sample number 1'
 +ei
@@ -4724,7 +4736,7 @@ cc2008
 !GRD-042008
 +if debug
 !           if (n.ge.990) then
-!           write (99,*) 'before j ',j,xv(1,j),xv(2,j),yv(1,j),yv(2,j)
+!           write(99,*) 'before j ',j,xv(1,j),xv(2,j),yv(1,j),yv(2,j)
 !           endif
 +ei
             x_temp=(xv(1,j)-torbx(i-1))*1e-3
@@ -4779,7 +4791,7 @@ cc2008
  599        continue
           enddo
 +if debug
-!     write (99,*) 'after  update bnl n ',n
+!     write(99,*) 'after  update bnl n ',n
 !     write(99,*)                                                       &
 !    &n_cut,                                                            &
 !    &n_nocut,                                                          &
@@ -4841,7 +4853,7 @@ cc2008
                totals=totals+strack(i)
                sampl(i)=totals
 +if .not.boinc
-               write(51,'(i5,(1x,f15.10),4(1x,f20.13))')                &
+               write(51,'(i5,(1x,f15.10),6(1x,f20.13))')                &
 +ei
 +if boinc
                  write(10,'(a10,i5,(1x,f15.10),6(1x,f20.13))')          &
@@ -5146,7 +5158,7 @@ cc2008
       if(ithick.eq.1.and.ilostch.eq.1) then
 +if cr
 +if debug
-        write (93,*) 'ERIC lostpar??? calling synuthck!!!'
+        write(93,*) 'ERIC lostpar??? calling synuthck!!!'
         endfile 93
         backspace 93
 +ei
@@ -16772,7 +16784,7 @@ cc2008
       rad=pi/180
       call daten
 +if debug
-      write (93,*) 'ERIC il= ',i
+      write(93,*) 'ERIC il= ',i
 +ei
 +if cr
       checkp=.true.
@@ -17538,14 +17550,14 @@ cc2008
 !GRD-042008
 +if cr
           if (lhc.eq.9) then
-            write (lout,*)
+            write(lout,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
 +ei
 +if .not.cr
           if (lhc.eq.9) then
-            write (*,*)
+            write(*,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
@@ -17586,14 +17598,14 @@ cc2008
 !GRD-042008
 +if cr
           if (lhc.eq.9) then
-            write (LOUT,*)
+            write(lout,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
 +ei
 +if .not.cr
           if (lhc.eq.9) then
-            write (*,*)
+            write(*,*)
      & 'SKIPPING Binary File Initialisation for BNLELENS'
               go to 340
           endif
@@ -24077,7 +24089,7 @@ cc2008
 +ca save
 !-----------------------------------------------------------------------
 +if cr
-      write (91,*,iostat=istat,err=11) numx,numl
+      write(91,*,iostat=istat,err=11) numx,numl
       rewind 91
       if (restart.and.(numx.eq.numlcr-1)) then
         restart=.false.
@@ -25488,7 +25500,7 @@ cc2008
 +if bnlelens
 +if debug
 !     if (n.eq.991) then
-!     write (99,*) 'element statement 20 j=1 991 before ',              &
+!     write(99,*) 'element statement 20 j=1 991 before ',               &
 !    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
 !    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
 !     endif
@@ -25532,14 +25544,14 @@ cc2008
 +if bnlelens
 +if debug
 !     if (n.eq.991) then
-!     write (99,*) 'element statement 40 j=1 991 after  ',              &
+!     write(99,*) 'element statement 40 j=1 991 after  ',               &
 !    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
 !    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
 !     endif
 +ei
 +ei
 +if cr
-!       write (93,*) 'ERIC loop at 40 calling synuthck!!!'
+!       write(93,*) 'ERIC loop at 40 calling synuthck!!!'
 !       endfile 93
 !       backspace 93
 +ei
@@ -25547,7 +25559,7 @@ cc2008
 +if bnlelens
 +if debug
 !     if (n.eq.991) then
-!     write (99,*) 'element statement 40 j=1 991 after synuthck ',      &
+!     write(99,*) 'element statement 40 j=1 991 after synuthck ',       &
 !    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
 !    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
 !     endif
@@ -25850,7 +25862,7 @@ cc2008
 +if bnlelens
 +if debug
 !     if (n.eq.991) then
-!     write (99,*) 'element statement 720 j=1 991 before ',             &
+!     write(99,*) 'element statement 720 j=1 991 before ',              &
 !    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
 !    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
 !     endif
@@ -25877,7 +25889,7 @@ cc2008
 +if bnlelens
 +if debug
 !     if (n.eq.991) then
-!     write (99,*) 'element statement 720 j=1 991 after  ',             &
+!     write(99,*) 'element statement 720 j=1 991 after  ',              &
 !    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
 !    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
 !     endif
@@ -25924,7 +25936,7 @@ cc2008
 +if debug
   500 continue
 !     if (n.ge.990) then
-!     write (99,*) 'after element i, ktrack ',i,ktrack(i),              &
+!     write(99,*) 'after element i, ktrack ',i,ktrack(i),               &
 !    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
 !    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
 !     endif
@@ -26114,7 +26126,7 @@ cc2008
      &j=1,napx)
 +if cr
 +if debug
-!       write (93,*) 'ERIC Thck6dua calling synuthck!!!'
+!       write(93,*) 'ERIC Thck6dua calling synuthck!!!'
 !       endfile 93
 !       backspace 93
 +ei
@@ -26524,8 +26536,8 @@ cc2008
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 +if cr
 +if debug
-!       write (93,*) 'ERIC synuthck called!!!'
-!       write (93,*) 'ERIC il= ',il
+!       write(93,*) 'ERIC synuthck called!!!'
+!       write(93,*) 'ERIC il= ',il
 !       endfile 93
 !       backspace 93
 +ei
@@ -40929,14 +40941,14 @@ cc2008
 !--We can do this only if we know binrecs (NOT post-processing only)
       if (binrec.ne.0) then
         if (binrecs(91-nfile).ne.crbinrecs(91-nfile)) then
-          write (lout,*)                                                &
+          write(lout,*)                                                 &
      &'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write (lout,*)                                                &
+          write(lout,*)                                                 &
      &'Unit No ',nfile,' binrec/binrecs/crbinrecs ',                    &
      &binrec,binrecs(91-nfile),crbinrecs(91-nfile)
-          write (93,*)                                                  &
+          write(93,*)                                                   &
      &'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write (93,*)                                                  &
+          write(93,*)                                                   &
      &'Unit No ',nfile,' binrec/binrecs/crbinrecs ',                    &
      &binrec,binrecs(91-nfile),crbinrecs(91-nfile)
           endfile 93
@@ -45795,10 +45807,10 @@ cc2008
         myemitx = myemitx0*(mynex + (2d0*dble(rndm4()-0.5)*mdex) )**2
         xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-        myx(j)   = xsigmax * sin_rn(2d0*pi*rndm4())
+        myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-        myx(j)   = xsigmax * sin(2d0*pi*rndm4())
+        myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))
 +ei
         if (rndm4().gt.0.5) then
           myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
@@ -45811,10 +45823,10 @@ cc2008
         myemity = myemity0*(myney + (2d0*dble(rndm4()-0.5)*mdey) )**2
         ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-        myy(j)   = ysigmay * sin_rn(2d0*pi*rndm4())
+        myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-        myy(j)   = ysigmay * sin(2d0*pi*rndm4())
+        myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
 +ei
         if (rndm4().gt.0.5) then
           myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-        &
@@ -45907,10 +45919,10 @@ cc2008
             myemitx = myemitx0*(mynex+(2d0*dble(rndm4()-0.5)*mdex))**2
             xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-            myx(j)   = xsigmax * sin_rn(2d0*pi*rndm4())
+            myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-            myx(j)   = xsigmax * sin(2d0*pi*rndm4())
+            myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))
 +ei
             if (rndm4().gt.0.5) then
               myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
@@ -45920,17 +45932,17 @@ cc2008
      &              myalphax*myx(j)/mybetax
             endif
 !
-            phiy = 2*pi*rndm4()
+            phiy = 2*pi*dble(rndm4())
 !
 +if crlibm
-            iiy = -1d0*myemity0 * log_rn( rndm4() )
+            iiy = -1d0*myemity0 * log_rn( dble(rndm4()) )
 !
             myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
      &           myalphay * cos_rn(phiy))
 +ei
 +if .not.crlibm
-            iiy = -1d0*myemity0 * log( rndm4() )
+            iiy = -1d0*myemity0 * log( dble(rndm4()) )
 !
             myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
@@ -45940,10 +45952,10 @@ cc2008
             myemity = myemity0*(myney+(2d0*dble(rndm4()-0.5)*mdey))**2
             ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-            myy(j)   = ysigmay * sin_rn(2d0*pi*rndm4())
+            myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-            myy(j)   = ysigmay * sin(2d0*pi*rndm4())
+            myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
 +ei
             if (rndm4().gt.0.5) then
               myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &
@@ -45953,46 +45965,46 @@ cc2008
      &              myalphay*myy(j)/mybetay
             endif
 !
-            phix = 2*pi*rndm4()
+            phix = 2*pi*dble(rndm4())
 +if crlibm
-            iix = - myemitx0 * log_rn( rndm4() )
+            iix = - myemitx0 * log_rn( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
      &           myalphax * cos_rn(phix))
 +ei
 +if .not.crlibm
-            iix = - myemitx0 * log( rndm4() )
+            iix = - myemitx0 * log( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
      &           myalphax * cos(phix))
 +ei
          elseif ( mynex.eq.0.and.myney.eq.0 ) then
-            phix = 2*pi*rndm4()
+            phix = 2*pi*dble(rndm4())
 +if crlibm
-            iix = - myemitx0 * log_rn( rndm4() )
+            iix = - myemitx0 * log_rn( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
      &           myalphax * cos_rn(phix))
 +ei
 +if .not.crlibm
-            iix = - myemitx0 * log( rndm4() )
+            iix = - myemitx0 * log( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
      &           myalphax * cos(phix))
 +ei
-            phiy = 2*pi*rndm4()
+            phiy = 2*pi*dble(rndm4())
 +if crlibm
-            iiy = - myemity0 * log_rn( rndm4() )
+            iiy = - myemity0 * log_rn( dble(rndm4()) )
             myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
      &           myalphay * cos_rn(phiy))
 +ei
 +if .not.crlibm
-            iiy = - myemity0 * log( rndm4() )
+            iiy = - myemity0 * log( dble(rndm4()) )
 !
             myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
@@ -46073,28 +46085,28 @@ cc2008
 !GRD         write(lout,*)"  => 7TeV values of dp/p and bunch length used!"
 !GRD      endif
 !GRD
-      write (lout,*) "Generation of bunch with dp/p and length:"
-      write (lout,*) "  RMS bunch length  = ", bunch_length
-      write (lout,*) "  RMS energy spread = ", en_error
+      write(lout,*) "Generation of bunch with dp/p and length:"
+      write(lout,*) "  RMS bunch length  = ", bunch_length
+      write(lout,*) "  RMS energy spread = ", en_error
 +ei
 +if .not.cr
 !GRD         write(*,*)"Warning-Energy different from LHC inj or top!"
 !GRD         write(*,*)"     => 7TeV values of dp/p and bunch length used!"
 !GRD      endif
 !GRD
-      write (*,*) "Generation of bunch with dp/p and length:"
-      write (*,*) "  RMS bunch length  = ", bunch_length
-      write (*,*) "  RMS energy spread = ", en_error
+      write(*,*) "Generation of bunch with dp/p and length:"
+      write(*,*) "  RMS bunch length  = ", bunch_length
+      write(*,*) "  RMS energy spread = ", en_error
 +ei
       do j=1, mynp
          if ((mynex.gt.0d0).and.(myney.eq.0d0)) then
             myemitx = myemitx0*(mynex+(2d0*dble(rndm4()-0.5)*mdex))**2
             xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-            myx(j)   = xsigmax * sin_rn(2d0*pi*rndm4())
+            myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-            myx(j)   = xsigmax * sin(2d0*pi*rndm4())
+            myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))
 +ei
             if (rndm4().gt.0.5) then
               myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
@@ -46104,17 +46116,17 @@ cc2008
      &              myalphax*myx(j)/mybetax
             endif
 !
-            phiy = 2*pi*rndm4()
+            phiy = 2*pi*dble(rndm4())
 !
 +if crlibm
-            iiy = -1d0*myemity0 * log_rn( rndm4() )
+            iiy = -1d0*myemity0 * log_rn( dble(rndm4()) )
 !
             myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
      &           myalphay * cos_rn(phiy))
 +ei
 +if .not.crlibm
-            iiy = -1d0*myemity0 * log( rndm4() )
+            iiy = -1d0*myemity0 * log( dble(rndm4()) )
 !
             myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
@@ -46124,10 +46136,10 @@ cc2008
             myemity = myemity0*(myney+(2d0*dble(rndm4()-0.5)*mdey))**2
             ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-            myy(j)   = ysigmay * sin_rn(2d0*pi*rndm4())
+            myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-            myy(j)   = ysigmay * sin(2d0*pi*rndm4())
+            myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
 +ei
             if (rndm4().gt.0.5) then
               myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &
@@ -46137,46 +46149,46 @@ cc2008
      &              myalphay*myy(j)/mybetay
             endif
 !
-            phix = 2*pi*rndm4()
+            phix = 2*pi*dble(rndm4())
 +if crlibm
-            iix = - myemitx0 * log_rn( rndm4() )
+            iix = - myemitx0 * log_rn( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
      &           myalphax * cos_rn(phix))
 +ei
 +if .not.crlibm
-            iix = - myemitx0 * log( rndm4() )
+            iix = - myemitx0 * log( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
      &           myalphax * cos(phix))
 +ei
          elseif ( mynex.eq.0.and.myney.eq.0 ) then
-            phix = 2*pi*rndm4()
+            phix = 2*pi*dble(rndm4())
 +if crlibm
-            iix = - myemitx0 * log_rn( rndm4() )
+            iix = - myemitx0 * log_rn( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
      &           myalphax * cos_rn(phix))
 +ei
 +if .not.crlibm
-            iix = - myemitx0 * log( rndm4() )
+            iix = - myemitx0 * log( dble(rndm4()) )
 !
             myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
      &           myalphax * cos(phix))
 +ei
-            phiy = 2*pi*rndm4()
+            phiy = 2*pi*dble(rndm4())
 +if crlibm
-            iiy = - myemity0 * log_rn( rndm4() )
+            iiy = - myemity0 * log_rn( dble(rndm4()) )
             myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
      &           myalphay * cos_rn(phiy))
 +ei
 +if .not.crlibm
-            iiy = - myemity0 * log( rndm4() )
+            iiy = - myemity0 * log( dble(rndm4()) )
 !
             myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
@@ -46359,10 +46371,10 @@ cc2008
         myemitx = myemitx0*(mynex + (2d0*dble(rndm4()-0.5)*mdex) )**2
         xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-        myx(j)   = xsigmax * sin_rn(2d0*pi*rndm4())
+        myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-        myx(j)   = xsigmax * sin(2d0*pi*rndm4())
+        myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))
 +ei
         if (rndm4().gt.0.5) then
           myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
@@ -46375,10 +46387,10 @@ cc2008
         myemity = myemity0*(myney + (2d0*dble(rndm4()-0.5)*mdey) )**2
         ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-        myy(j)   = ysigmay * sin_rn(2d0*pi*rndm4())
+        myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
 +ei
 +if .not.crlibm
-        myy(j)   = ysigmay * sin(2d0*pi*rndm4())
+        myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
 +ei
         if (rndm4().gt.0.5) then
           myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-        &
@@ -46520,7 +46532,7 @@ cc2008
       real rndm4
       teta = sqrt(t)/p
 ! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-   10 va  =2d0*rndm4()-1d0
+   10 va  =2d0*dble(rndm4())-1d0
       vb = dble(rndm4())
       va2 = va*va
       vb2 = vb*vb
@@ -47165,8 +47177,8 @@ cc2008
       real rndm4
       x0=xx
       xp0=xxp
-5     v1=2d0*rndm4()-1d0
-      v2=2d0*rndm4()-1d0
+5     v1=2d0*dble(rndm4())-1d0
+      v2=2d0*dble(rndm4())-1d0
       r2=v1*v1+v2*v2
       if(r2.ge.1.d0) goto 5
 +if crlibm
@@ -47293,9 +47305,15 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.22 2008-09-02 13:48:08 mcintosh Exp $
+! $Id: sixtrack.s,v 1.23 2008-09-08 15:37:55 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.22  2008/09/02 13:48:08  mcintosh
+!   SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
+!     -- Fixed the SixTwiss output to write one line F20.13
+!        and most importantly changed the bnlrec count for C/R
+!    McIntosh 2nd September, 2008
+!
 ! Revision 1.21  2008/08/31 21:51:08  mcintosh
 !   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
 !     -- make_six copies only necessary .ast and .f files
@@ -48223,9 +48241,15 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.22 2008-09-02 13:48:08 mcintosh Exp $
+! $Id: sixtrack.s,v 1.23 2008-09-08 15:37:55 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.22  2008/09/02 13:48:08  mcintosh
+!   SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
+!     -- Fixed the SixTwiss output to write one line F20.13
+!        and most importantly changed the bnlrec count for C/R
+!    McIntosh 2nd September, 2008
+!
 ! Revision 1.21  2008/08/31 21:51:08  mcintosh
 !   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
 !     -- make_six copies only necessary .ast and .f files
@@ -48488,9 +48512,15 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.22 2008-09-02 13:48:08 mcintosh Exp $
+! $Id: sixtrack.s,v 1.23 2008-09-08 15:37:55 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.22  2008/09/02 13:48:08  mcintosh
+!   SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
+!     -- Fixed the SixTwiss output to write one line F20.13
+!        and most importantly changed the bnlrec count for C/R
+!    McIntosh 2nd September, 2008
+!
 ! Revision 1.21  2008/08/31 21:51:08  mcintosh
 !   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
 !     -- make_six copies only necessary .ast and .f files
@@ -49193,7 +49223,7 @@ cc2008
       backspace 93
 +if debug
 +if bnlelens
-!     write (99,*) 'crcheck ',
+!     write(99,*) 'crcheck ',
 !    &crbnlrec,                                                         &
 !    &crbllrec,                                                         &
 !    &crn_cut,                                                          &
@@ -49392,7 +49422,7 @@ cc2008
 !GRD-042008
           endif
         if (lhc.eq.9) then
-          write (93,*)                                                    &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK skipping binary files for bnlelens'
           endfile 93
           backspace 93
@@ -49559,7 +49589,7 @@ cc2008
 !--   (if it exists and we are not already using fort.6)
       osixrecs=sixrecs
       rewind lout
-    3 read (lout,'(a255)',end=1,err=101,iostat=istat) arecord
+    3 read(lout,'(a255)',end=1,err=101,iostat=istat) arecord
       lstring=255
       do i=255,2,-1
         lstring=i
@@ -49652,7 +49682,7 @@ cc2008
 +ei
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
-        write (95,err=100,iostat=istat)                                 &
+        write(95,err=100,iostat=istat)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &(aek(j),j=1,napxo),                                               &
@@ -49695,7 +49725,7 @@ cc2008
 +if bnlelens
 +if debug
 !     if (numx.ge.990) then
-!     write (99,*) 'Checkpointing bnl numx ',numx
+!     write(99,*) 'Checkpointing bnl numx ',numx
 !     write(99,*)                                                       &
 !    &n_cut,                                                            &
 !    &n_nocut,                                                          &
@@ -49706,7 +49736,7 @@ cc2008
 !    &limit_twojx,limit_twojy,limit_twojr,                              &
 !    &totals,                                                           &
 !    &(namepart(j),j=1,napxo)
-!     write (99,*) 'crpoint xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
+!     write(99,*) 'crpoint xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
 !     endif
 +ei
 +ei
@@ -49770,7 +49800,7 @@ cc2008
 +ei
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
-        write (96,err=100,iostat=istat)                                 &
+        write(96,err=100,iostat=istat)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &(aek(j),j=1,napxo),                                               &
@@ -49937,7 +49967,7 @@ cc2008
 +ei
 +if debug
 +if bnlelens
-!     write (99,*) 'crstart bnl numlcr ',numlcr
+!     write(99,*) 'crstart bnl numlcr ',numlcr
 !     write(99,*)                                                       &
 !    &n_cut,                                                            &
 !    &n_nocut,                                                          &
@@ -49948,7 +49978,7 @@ cc2008
 !    &limit_twojx,limit_twojy,limit_twojr,                              &
 !    &totals,                                                           &
 !    &(namepart(j),j=1,napxo)
-!     write (99,*) 'crstart xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
+!     write(99,*) 'crstart xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
 +ei
 +ei
 !ERIC new extended checkpoint for synuthck
@@ -50214,7 +50244,7 @@ cc2008
       integer n,i
       character*(*) dumpname
 +ca save
-      write (99,*) dumpname,'   Turn ',n,' Element ',i
+      write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,*) 'time0 ',time0
       write(99,*) 'time1 ',time1
@@ -50778,7 +50808,7 @@ cc2008
         endfile 93
         backspace 93
         rewind 92
-    3   read (92,'(a255)',end=1,err=4,iostat=istat) arecord
+    3   read(92,'(a255)',end=1,err=4,iostat=istat) arecord
         lstring=255
         do i=255,2,-1
           lstring=i

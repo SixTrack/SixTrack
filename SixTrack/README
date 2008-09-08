@@ -2,6 +2,14 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
+    -- If bnlelens AND lhc.eq.9 AND NOT boinc
+       write one line to fort.10 containing the sixtit(1:60)
+       if boinc AND NOT restart write and add one to bnlrecs
+       Cleaned up all read/write[]( to read/write(
+       Fixed all calls to rndm4 in +collimat to be to dble(rndm4())
+   McIntosh 8th September, 2008
+
   SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
     -- Fixed the SixTwiss output to write one line F20.13
        and most importantly changed the bnlrec count for C/R
