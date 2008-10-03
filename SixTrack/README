@@ -2,6 +2,18 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
+    -- Now endfile SixTwiss, checkdist, and beambeam-output
+       and fort.10 fort.97 fort.51. 
+    -- Debug code for SIGSEV on BNL in crstart.
+    -- Implemented additional debug dump routines (needs testing)
+    -- Remove n_cut=0 and n_nocut=0 (wrongly added by me)
+    -- Re-instated the second C/R file fort.96 and added
+       code to check extended checkpoint in crcheck. 
+    -- Two versions of writelin (extra 7th argument for collimat and bnlelens)
+    -- Moved REAL time2 to COMMON ttime and read95/read96 to COMMON as well.
+   McIntosh 3rd October, 2008
+
   SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
     -- If bnlelens AND lhc.eq.9 AND NOT boinc
        write one line to fort.10 containing the sixtit(1:60)
