@@ -2,6 +2,11 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
+    -- Write CRPOINT messages 5 times maximum
+    -- Set n_cut and n_nocut to 0 after printing
+   McIntosh 21st October, 2008
+
   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
     -- Now endfile SixTwiss, checkdist, and beambeam-output
        and fort.10 fort.97 fort.51. 

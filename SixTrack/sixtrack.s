@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.14'/
-      data moddate /'29.09.2008'/
+      data version /'4.1.15'/
+      data moddate /'21.10.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -4842,6 +4842,8 @@ cc2008
             sumsquarey=zero
             sumtwojx=zero
             sumtwojy=zero
+            n_cut=0
+            n_nocut=0
 !05-2008
 !
           endif
@@ -47340,9 +47342,22 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.24 2008-10-03 15:34:32 mcintosh Exp $
+! $Id: sixtrack.s,v 1.25 2008-10-21 15:49:21 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.24  2008/10/03 15:34:32  mcintosh
+!   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
+!     -- Now endfile SixTwiss, checkdist, and beambeam-output
+!        and fort.10 fort.97 fort.51.
+!     -- Debug code for SIGSEV on BNL in crstart.
+!     -- Implemented additional debug dump routines (needs testing)
+!     -- Remove n_cut=0 and n_nocut=0 (wrongly added by me)
+!     -- Re-instated the second C/R file fort.96 and added
+!        code to check extended checkpoint in crcheck.
+!     -- Two versions of writelin (extra 7th argument for collimat and bnlelens)
+!     -- Moved REAL time2 to COMMON ttime and read95/read96 to COMMON as well.
+!    McIntosh 3rd October, 2008
+!
 ! Revision 1.23  2008/09/08 15:37:55  mcintosh
 !   SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
 !     -- If bnlelens AND lhc.eq.9 AND NOT boinc
@@ -48285,9 +48300,22 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.24 2008-10-03 15:34:32 mcintosh Exp $
+! $Id: sixtrack.s,v 1.25 2008-10-21 15:49:21 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.24  2008/10/03 15:34:32  mcintosh
+!   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
+!     -- Now endfile SixTwiss, checkdist, and beambeam-output
+!        and fort.10 fort.97 fort.51.
+!     -- Debug code for SIGSEV on BNL in crstart.
+!     -- Implemented additional debug dump routines (needs testing)
+!     -- Remove n_cut=0 and n_nocut=0 (wrongly added by me)
+!     -- Re-instated the second C/R file fort.96 and added
+!        code to check extended checkpoint in crcheck.
+!     -- Two versions of writelin (extra 7th argument for collimat and bnlelens)
+!     -- Moved REAL time2 to COMMON ttime and read95/read96 to COMMON as well.
+!    McIntosh 3rd October, 2008
+!
 ! Revision 1.23  2008/09/08 15:37:55  mcintosh
 !   SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
 !     -- If bnlelens AND lhc.eq.9 AND NOT boinc
@@ -48565,9 +48593,22 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.24 2008-10-03 15:34:32 mcintosh Exp $
+! $Id: sixtrack.s,v 1.25 2008-10-21 15:49:21 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.24  2008/10/03 15:34:32  mcintosh
+!   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
+!     -- Now endfile SixTwiss, checkdist, and beambeam-output
+!        and fort.10 fort.97 fort.51.
+!     -- Debug code for SIGSEV on BNL in crstart.
+!     -- Implemented additional debug dump routines (needs testing)
+!     -- Remove n_cut=0 and n_nocut=0 (wrongly added by me)
+!     -- Re-instated the second C/R file fort.96 and added
+!        code to check extended checkpoint in crcheck.
+!     -- Two versions of writelin (extra 7th argument for collimat and bnlelens)
+!     -- Moved REAL time2 to COMMON ttime and read95/read96 to COMMON as well.
+!    McIntosh 3rd October, 2008
+!
 ! Revision 1.23  2008/09/08 15:37:55  mcintosh
 !   SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
 !     -- If bnlelens AND lhc.eq.9 AND NOT boinc
@@ -49761,7 +49802,7 @@ cc2008
 +ei
       data ncalls /0/
 +ca save
-      if (ncalls.le.3) then
+      if (ncalls.le.5) then
         write(93,*)                                                     &
      &'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
         write(93,*)                                                     &
@@ -49801,7 +49842,7 @@ cc2008
 +if .not.boinc
         open(lout,file='fort.92',form='formatted',status='unknown')
 +ei
-        if (ncalls.le.4) then
+        if (ncalls.le.5) then
           write(93,*)                                                   &
      &'SIXTRACR CRPOINT copied lout=',lout,'sixrecs=',sixrecs
           endfile 93
@@ -49813,9 +49854,11 @@ cc2008
       call timex(time2)
       time2=time2+crtime2
       crnumlcr=numx+1
-      write (93,*) 'SIXTRACR CRPOINT writing fort.95'
-      endfile 93
-      backspace 93
+      if (ncalls.le.5) then
+        write (93,*) 'SIXTRACR CRPOINT writing fort.95'
+        endfile 93
+        backspace 93
+      endif
       rewind 95
       write(95,err=100,iostat=istat)                                    &
      &crnumlcr,                                                         &
@@ -49862,7 +49905,7 @@ cc2008
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        if (ncalls.le.3) then
+        if (ncalls.le.5) then
           write (93,*) 'SIXTRACR CRPOINT writing BNL vars fort.95'
           endfile 93
           backspace 93
@@ -49884,7 +49927,7 @@ cc2008
 !GRD-042008
 +ei
       if (sythckcr) then
-        if (ncalls.le.3) then
+        if (ncalls.le.5) then
 !ERIC new extended checkpoint for synuthck
           write (93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.95'
           endfile 93 
@@ -49951,9 +49994,11 @@ cc2008
 +ei
 !--   and finally a second checkpoint copy, or maybe not!
 !--   Well, a second copy is indeed required as shown by testing
-      write (93,*) 'SIXTRACR CRPOINT writing fort.96'
-      endfile 93
-      backspace 93
+      if (ncalls.le.5) then
+        write (93,*) 'SIXTRACR CRPOINT writing fort.96'
+        endfile 93
+        backspace 93
+      endif
       rewind 96
       write(96,err=100,iostat=istat)                                    &
      &crnumlcr,                                                         &
@@ -50000,9 +50045,11 @@ cc2008
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write (93,*) 'SIXTRACR CRPOINT writing Record 3 BNL fort.96'
-        endfile 93
-        backspace 93
+        if (ncalls.le.5) then
+          write (93,*) 'SIXTRACR CRPOINT writing Record 3 BNL fort.96'
+          endfile 93
+          backspace 93
+        endif
         write(96,err=100,iostat=istat)                                  &
      &n_cut,                                                            &
      &n_nocut,                                                          &
@@ -50021,9 +50068,11 @@ cc2008
 +ei
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
-        write (93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.96'
-        endfile 93
-        backspace 93
+        if (ncalls.le.5) then
+          write (93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.96'
+          endfile 93
+          backspace 93
+        endif
         write(96,err=100,iostat=istat)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
