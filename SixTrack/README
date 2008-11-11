@@ -2,6 +2,10 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
+    -- Small fix to phase trombone from Guillaume and Yun
+   McIntosh 11th November, 2008
+
   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
     -- Write CRPOINT messages 5 times maximum
     -- Set n_cut and n_nocut to 0 after printing

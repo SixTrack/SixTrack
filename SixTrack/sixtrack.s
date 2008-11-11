@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.15'/
-      data moddate /'21.10.2008'/
+      data version /'4.1.16'/
+      data moddate /'11.11.2008'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -5657,7 +5657,10 @@ cc2008
 +cd trom41
             sigmv(j)=sigmv(j)+cotr(irrtr,5)+rrtr(irrtr,5,1)*xv(1,j)+    &
      &rrtr(irrtr,5,2)*yv(1,j)+rrtr(irrtr,5,3)*xv(2,j)+                  &
-     &rrtr(irrtr,5,4)*yv(2,j)
+!BNL-NOV08
+!     &rrtr(irrtr,5,4)*yv(2,j)
+     &rrtr(irrtr,5,4)*yv(2,j)+rrtr(irrtr,5,6)*dpsv(j)*c1e3
+!BNL-NOV08
 +cd trom42
             pux=xv(1,j)
             dpsv3(j)=dpsv(j)*c1e3
@@ -47342,9 +47345,16 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.25 2008-10-21 15:49:21 mcintosh Exp $
+! $Id: sixtrack.s,v 1.26 2008-11-11 08:54:00 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.25  2008/10/21 15:49:21  mcintosh
+!
+!   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
+!     -- Write CRPOINT messages 5 times maximum
+!     -- Set n_cut and n_nocut to 0 after printing
+!    McIntosh 21st October, 2008
+!
 ! Revision 1.24  2008/10/03 15:34:32  mcintosh
 !   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
 !     -- Now endfile SixTwiss, checkdist, and beambeam-output
@@ -48300,9 +48310,16 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.25 2008-10-21 15:49:21 mcintosh Exp $
+! $Id: sixtrack.s,v 1.26 2008-11-11 08:54:00 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.25  2008/10/21 15:49:21  mcintosh
+!
+!   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
+!     -- Write CRPOINT messages 5 times maximum
+!     -- Set n_cut and n_nocut to 0 after printing
+!    McIntosh 21st October, 2008
+!
 ! Revision 1.24  2008/10/03 15:34:32  mcintosh
 !   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
 !     -- Now endfile SixTwiss, checkdist, and beambeam-output
@@ -48593,9 +48610,16 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.25 2008-10-21 15:49:21 mcintosh Exp $
+! $Id: sixtrack.s,v 1.26 2008-11-11 08:54:00 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.25  2008/10/21 15:49:21  mcintosh
+!
+!   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
+!     -- Write CRPOINT messages 5 times maximum
+!     -- Set n_cut and n_nocut to 0 after printing
+!    McIntosh 21st October, 2008
+!
 ! Revision 1.24  2008/10/03 15:34:32  mcintosh
 !   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
 !     -- Now endfile SixTwiss, checkdist, and beambeam-output
