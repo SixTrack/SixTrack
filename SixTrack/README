@@ -1,6 +1,13 @@
   Please note that when you make a CVS commit you
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
+  SixTrack Version: 4.1.16 CVS Version 1.27 McIntosh
+    -- Fixed README and update make_six for SLC5 (cernlib and -static)
+   McIntosh 20th March, 2009
+
+  SixTrack Version: 4.1.16 CVS Version 1.26 McIntosh
+    -- Added lib32 with the cernlib .a libraries and X11
+   McIntosh 20th March, 2009
 
   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
     -- Small fix to phase trombone from Guillaume and Yun

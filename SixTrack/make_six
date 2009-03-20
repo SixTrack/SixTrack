@@ -397,6 +397,7 @@ then
   export FC="g77"
   export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
   export FCL="-static -m32"
+  export FCL="-m32"
 elif test "$g95" = ""
 then
   export FC="g95"
@@ -410,7 +411,13 @@ then
 else
   export FC="lf95"
   export FCF="--o1 --tp -Wa,--32"
-  export FCL="-static -m32"
+  ls -l /usr/lib/gcc/i386-redhat-linux/3.4.6/libgcc_eh.a > /dev/null 2>&1
+  if test $? -ne 0
+  then
+    export FCL="-static -m32"
+  else
+    export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lgcc_eh"
+  fi
 fi
 
 if test "$OSTYPE" = "darwin"
@@ -468,7 +475,6 @@ show_options
 echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
-
 # Make astuce and dafor (required for sixvefox and sixscfox)
 make astuce
 make dafor
@@ -565,13 +571,22 @@ then
     export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/i386-redhat-linux/3.4.3 -lg2c -L/usr/lib -lpthread"
   elif test "$sysname" = "Current sysname is 'amd64_linux26'"
   then
-    #SLC4 64 machine
-    export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+    #SLC4 64 machine but SLC4 or SLC5???
+    ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
+    if test $? -ne 0
+    then
+      # if it isn't there we assume SLC5 and use Frank's version
+      export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+    else
+      export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+    fi
   elif test "$OSTYPE" = "darwin"
   then
     export CERNLIB="`/sw/bin/cernlib -u graflib packlib kernlib` -lg2c -lpthread"
   else
     echo "CERNLIB cannot be found for your machine. SixTrack linking not possible!"
+    echo "You could maybe try with -cernlib (no graphics)."
+    exit 2
   fi
 fi
 # and naglib
