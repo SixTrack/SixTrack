@@ -397,7 +397,6 @@ then
   export FC="g77"
   export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
   export FCL="-static -m32"
-  export FCL="-m32"
 elif test "$g95" = ""
 then
   export FC="g95"
