@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.1.16'/
-      data moddate /'11.11.2008'/
+      data version /'4.2.00'/
+      data moddate /'30.04.2009'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -30,7 +30,7 @@
       common /mynp/ mynp
       double precision myx,myxp,myy,myyp,myp,mys
       common /coord/ myx(npart),myxp(npart),myy(npart),myyp(npart),     &
-     &myp(npart),mys(npart)  
+     &myp(npart),mys(npart)
       integer   samplenumber
       common /samplenumber/ samplenumber
 !GRD-042008
@@ -72,7 +72,7 @@
 !GRD-042008
 +ei
       common/crio/crsixrecs,crbinrec,crbinrecs((npart+1)/2),crbnlrec,   &
-     &crbllrec,cril,                                                    &                                   
+     &crbllrec,cril,                                                    &
      &crnumlcr,crnuml,crsythck,                                         &
      &crtime0,crtime1,crtime2,                                          &
      &crnapxo,crnapx,cre0,                                              &
@@ -415,9 +415,9 @@
 +ei
 +cd commontr
       integer ktrack,nwri
-      double precision dpsv1,strack,strackc,stracks
+      double precision dpsv1,strack,strackc,stracks,strackx,strackz
       common/track/ ktrack(nblz),strack(nblz),strackc(nblz),            &
-     &stracks(nblz),dpsv1(npart),nwri
+     &stracks(nblz),strackx(nblz),strackz(nblz),dpsv1(npart),nwri
 +cd commonc
       integer ichromc,ilinc,iqmodc
       double precision clon,chromc,corr,wxys
@@ -666,9 +666,7 @@
 !APRIL2005
 !SEPT2005-SR, 29-08-2005
       double precision x_sl(100), y1_sl(100), y2_sl(100),               &
-     &     angle1(100), angle2(100),
-     &     max_tmp,
-     &     a_tmp1, a_tmp2
+     &     angle1(100), angle2(100), max_tmp, a_tmp1, a_tmp2
 !SEPT2005
 !
       character*2 c_material     !material
@@ -931,7 +929,7 @@
 *FOX  D V DA INT ZRBF NORD NVAR ; D V DA INT XBBF NORD NVAR ;
 *FOX  D V DA INT ZBBF NORD NVAR ; D V DA INT CRXBF NORD NVAR ;
 *FOX  D V DA INT CBXBF NORD NVAR ; D V DA INT CRZBF NORD NVAR ;
-*FOX  D V DA INT WX NORD NVAR ; D V DA INT WY NORD NVAR ; 
+*FOX  D V DA INT WX NORD NVAR ; D V DA INT WY NORD NVAR ;
 *FOX  D V DA INT CRABAMP NORD NVAR ;
 +if rvet
 *FOX  D V DA INT RVET NORD NVAR ;
@@ -970,7 +968,7 @@
 *FOX  D V RE INT C1M18 ; D V RE INT C1M21 ; D V RE INT C1M24 ;
 *FOX  D V RE INT ONE ; D V RE INT TWO ; D V RE INT THREE ;
 *FOX  D V RE INT FOUR ; D V RE INT ZERO ; D V RE INT HALF ;
-*FOX  D V RE INT CRABFREQ ; D V RE INT CRABPHT ; 
+*FOX  D V RE INT CRABFREQ ; D V RE INT CRABPHT ;
 *FOX  D V RE INT CLIGHT ;
 *FOX  D V IN INT IDZ 2 ; D V IN INT KX ; D V IN INT IX ; D V IN INT JX ;
 *FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
@@ -1175,6 +1173,19 @@
         strackc(i)=strack(i)*tiltc(i)
         stracks(i)=strack(i)*tilts(i)
 +ei
++cd stra2dpe
++if .not.tilt
+        strack(i)=zero
+        strackx(i)=ed(IX)
+        strackz(i)=ek(IX)
++ei
++if tilt
+        strack(i)=zero
+        strackx(i)=ed(IX)*tiltc(i)
+        stracks(i)=ed(IX)*tilts(i)
+        strackz(i)=ek(IX)*tiltc(i)
+        strackc(i)=ek(IX)*tilts(i)
++ei
 +cd stra03
 +if .not.tilt
         strack(i)=smiv(1,i)*c1m3
@@ -1304,6 +1315,17 @@
 *FOX  Y(1)=Y(1)+EKK*(TILTC(I)*CRKVE+TILTS(I)*CIKVE) ;
 *FOX  Y(2)=Y(2)+EKK*(-TILTC(I)*CIKVE+TILTS(I)*CRKVE) ;
 +ei
++cd kickfdpe
++if .not.tilt
+*FOX  Y(1)=Y(1)+ED(IX)*CRKVE/(ONE+DPDA) ;
+*FOX  Y(2)=Y(2)+EK(IX)*CIKVE/(ONE+DPDA) ;
++ei
++if tilt
+*FOX  Y(1)=Y(1)+(ED(IX)*TILTC(I)*CRKVE-EK(IX)*TILTS(I)*CIKVE)/
+*FOX  (ONE+DPDA) ;
+*FOX  Y(2)=Y(2)+(EK(IX)*TILTC(I)*CIKVE+ED(IX)*TILTS(I)*CRKVE)/
+*FOX  (ONE+DPDA) ;
++ei
 +cd kickf01v
 +if .not.tilt
 *FOX  Y(2)=Y(2)+EKK ;
@@ -1424,6 +1446,17 @@
             yv(2,j)=yv(2,j)+oidpsv(j)*(-strackc(i)*cikve+               &
      &stracks(i)*crkve)
 +ei
++cd kickvdpe
++if .not.tilt
+            yv(1,j)=yv(1,j)+strackx(i)*oidpsv(j)*crkve
+            yv(2,j)=yv(2,j)-strackz(i)*oidpsv(j)*cikve
++ei
++if tilt
+            yv(1,j)=yv(1,j)+oidpsv(j)*(strackx(i)*crkve-                &
+     &stracks(i)*cikve)
+            yv(2,j)=yv(2,j)+oidpsv(j)*(strackz(i)*cikve+                &
+     &strackc(i)*crkve)
++ei
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -1460,6 +1493,15 @@
 +if tilt
         dyy1=ekk*(tiltc(k)*crkve+tilts(k)*cikve)
         dyy2=ekk*(-tiltc(k)*cikve+tilts(k)*crkve)
++ei
++cd kickldpe
++if .not.tilt
+        dyy1=ed(IX)*crkve/(one+dpp)
+        dyy2=ek(IX)*cikve/(one+dpp)
++ei
++if tilt
+        dyy1=(ed(IX)*tiltc(k)*crkve-ek(IX)*tilts(k)*cikve)/(one+dpp)
+        dyy2=(ek(IX)*tiltc(k)*cikve+ed(IX)*tilts(k)*crkve)/(one+dpp)
 +ei
 +cd kickl01v
 +if .not.tilt
@@ -1500,6 +1542,19 @@
         y(1,1)=y(1,1)+tiltc(k)*dyy1-tilts(k)*dyy2
         y(1,2)=y(1,2)+tiltc(k)*dyy2+tilts(k)*dyy1
 +ei
++cd kickudpe
++if .not.tilt
+        dyy1=ed(IX)*crkve
+        dyy2=ek(IX)*cikve
+        y(1,1)=y(1,1)+dyy1/(one+dpp)
+        y(1,2)=y(1,2)+dyy2/(one+dpp)
++ei
++if tilt
+        dyy1=ed(IX)*crkve/(one+dpp)
+        dyy2=ek(IX)*cikve/(one+dpp)
+        y(1,1)=y(1,1)+tiltc(k)*dyy1-tilts(k)*dyy2
+        y(1,2)=y(1,2)+tiltc(k)*dyy2+tilts(k)*dyy1
++ei
 +cd kicku01v
 +if .not.tilt
         y(1,2)=y(1,2)+ekk
@@ -1534,6 +1589,21 @@
         tiltsk=two*tiltc(k)*tilts(k)
         qu=ekk*tiltck
         qv=-ekk*tiltsk
++ei
++cd kickqdpe
++if .not.tilt
+        qu=ed(IX)/(one+dpp)
+        quz=ek(IX)/(one+dpp)
+        qv=zero
+        qvz=zero
++ei
++if tilt
+        tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
+        tiltsk=two*tiltc(k)*tilts(k)
+        qu=ed(IX)*tiltck/(one+dpp)
+        qv=-ed(IX)*tiltsk/(one+dpp)
+        quz=-ek(IX)*tiltck/(one+dpp)
+        qvz=ek(IX)*tiltsk/(one+dpp)
 +ei
 +cd kickq03h
 +if .not.tilt
@@ -1758,6 +1828,27 @@
         qv=-ekk*tiltsk
         ab1(2)=qu
         ab2(2)=-qv
++ei
++cd kickadpe
++if .not.tilt
+        dyy1=ed(IX)*xl/(one+dpp)
+        dyy2=ek(IX)*zl/(one+dpp)
+        mpe=20
+        qu=ed(IX)/(one+dpp)
+        quz=ek(IX)/(one+dpp)
+        qv=zero
+        qvz=zero
++ei
++if tilt
+        dyy1=(ed(IX)*tiltc(k)*xl-ek(IX)*tilts(k)*zl)/(one+dpp)
+        dyy2=(ek(IX)*tiltc(k)*zl+ed(IX)*tilts(k)*xl)/(one+dpp)
+        mpe=20
+        tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
+        tiltsk=two*tiltc(k)*tilts(k)
+        qu=ed(IX)*tiltck/(one+dpp)
+        qv=-ed(IX)*tiltsk/(one+dpp)
+        quz=-ek(IX)*tiltck/(one+dpp)
+        qvz=ek(IX)*tiltsk/(one+dpp)
 +ei
 +cd kicka03h
 +if .not.tilt
@@ -2983,12 +3074,12 @@
 +cd  bpmdata
 !---------Collect BPM data
           if(ix.gt.0.and.bez(ix)(1:2).eq.'BP'.and.n.lt.1025) then
-          if(n.eq.1) then   
+          if(n.eq.1) then
             open(ix+100,file=bez(ix),status='unknown')
             endif
             write(ix+100,'(7e18.10,1x)') xv(1,1),yv(1,1),xv(2,1),       &
      &yv(2,1), sigmv(1), dpsv(1),ejfv(1)
-          if(n.eq.1024) then   
+          if(n.eq.1024) then
             close(ix+100)
             endif
           endif
@@ -3008,34 +3099,34 @@
 
         do j=1,napx
          crabamp=ed(ix)/(ejfv(j))*c1e3
-!        write(*,*) crabamp, ejfv(j), clight, "HELLO" 
+!        write(*,*) crabamp, ejfv(j), clight, "HELLO"
 
 +if .not.tilt
 +if crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                
+        yv(xory,j)=yv(xory,j) - crabamp*                                &
      &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
-      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
      &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +if .not.crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                
+        yv(xory,j)=yv(xory,j) - crabamp*                                &
      &sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
-      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                      
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
      &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +ei
 +if tilt
 +if crlibm
-      
-        yv(xory,j)=yv(xory,j) - crabamp*                                
+
+        yv(xory,j)=yv(xory,j) - crabamp*                                &
      &sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
-      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                    
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
      &cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +if .not.crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                
+        yv(xory,j)=yv(xory,j) - crabamp*                                &
      &sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
-      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*                     
+      dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
      &cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
 +ei
 +ei
@@ -4802,7 +4893,7 @@ cc2008
 !    &sumtwojx,                                                         &
 !    &sumtwojy,                                                         &
 !    &limit_twojx,limit_twojy,limit_twojr,                              &
-!    &totals,                                                           &                     
+!    &totals,                                                           &
 !    &(namepart(j),j=1,napx)
 !     endfile 99
 !     backspace 99
@@ -5910,7 +6001,7 @@ cc2008
       yv(1,j) = yv(1,j) * c1e3
       yv(2,j) = yv(2,j) * c1e3
 
-!      print *, 'End: ',j,xv(1,j),xv(2,j),yv(1,j),
+!      print *, 'End: ',j,xv(1,j),xv(2,j),yv(1,j),                       &
 !     &yv(2,j)
 
 !-----------------------------------------------------------------------
@@ -6934,7 +7025,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-          stop 
+          stop
 +ei
         end if
 !-----------------------------------------------------------------------
@@ -7151,7 +7242,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-          stop 
+          stop
 +ei
         end if
 !-----------------------------------------------------------------------
@@ -7879,7 +7970,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-          stop 
+          stop
 +ei
         end if
 !-----------------------------------------------------------------------
@@ -8092,7 +8183,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-          stop 
+          stop
 +ei
         end if
 !-----------------------------------------------------------------------
@@ -8119,7 +8210,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-          stop 
+          stop
 +ei
         end if
 !-----------------------------------------------------------------------
@@ -13979,7 +14070,7 @@ cc2008
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
           endif
-      
+
           ipch=0
           if(ncor.gt.0) then
             do 130 i11=1,ncor
@@ -13998,7 +14089,8 @@ cc2008
           endif
 +ca alignf
           if(kzz.lt.0) goto 370
-          goto(140,150,160,170,180,190,200,210,220,230,240),kzz
+          goto(140,150,160,170,180,190,200,210,220,230,240,480,480,480, &
+     &         480,480,480,480,480,480,480,480,480,325),kzz
           goto 480
 !--HORIZONTAL DIPOLE
   140     continue
@@ -14084,6 +14176,10 @@ cc2008
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
+          goto 480
+!--DIPEDGE ELEMENT
+  235     continue
++ca kickfdpe
           goto 480
   240     r0=ek(ix)
           nmz=nmu(ix)
@@ -14942,7 +15038,7 @@ cc2008
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
-          goto 440  
+          goto 440
       endif
 +ca trom20
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
@@ -14970,7 +15066,8 @@ cc2008
         zs=zsi(i)
 +ca alignf
         if(kzz.lt.0) goto 320
-        goto(90,100,110,120,130,140,150,160,170,180,190),kzz
+        goto(90,100,110,120,130,140,150,160,170,180,190,440,440,440,    &
+     &       440,440,440,440,440,440,440,440,440,185),kzz
         goto 440
 !--HORIZONTAL DIPOLE
    90   continue
@@ -15056,6 +15153,10 @@ cc2008
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
+        goto 440
+!--DIPEDGE ELEMENT
+  185   continue 
++ca kickfdpe
         goto 440
   190   r0=ek(ix)
         nmz=nmu(ix)
@@ -16537,11 +16638,11 @@ cc2008
 +if .not.boinc
       open(93,file='fort.93',form='formatted',status='unknown')
 +ei
-  606 read(93,'(a255)',end=607) arecord 
-      goto 606 
+  606 read(93,'(a255)',end=607) arecord
+      goto 606
   607 backspace 93
 !--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: ' 
+      stxt='SIXTRACR starts on: '
 +if boinc
       call boincrf('fort.6',filename)
       open(6,file=filename,form='formatted',status='old',err=602)
@@ -17585,14 +17686,14 @@ cc2008
 !GRD-042008
 +if cr
           if (lhc.eq.9) then
-            write(lout,*)
+            write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
 +ei
 +if .not.cr
           if (lhc.eq.9) then
-            write(*,*)
+            write(*,*)                                                  &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
@@ -17974,7 +18075,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 
+      stop
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -18240,7 +18341,8 @@ cc2008
      &extalign(i,2),extalign(i,3)
         endif
         if(kzz.lt.0) goto 180
-        goto(50,60,70,80,90,100,110,120,130,140,150),kzz
+        goto(50,60,70,80,90,100,110,120,130,140,150,290,290,290,        &
+     &       290,290,290,290,290,290,290,290,290,145),kzz
         ktrack(i)=31
         goto 290
    50   if(abs(smiv(1,i)).le.pieni) then
@@ -18312,6 +18414,11 @@ cc2008
         endif
         ktrack(i)=20
 +ca stra10
+        goto 290
+!--DIPEDGE ELEMENT
+  145   continue 
++ca stra2dpe
+        ktrack(i)=55
         goto 290
   150   r0=ek(ix)
         nmz=nmu(ix)
@@ -18909,15 +19016,15 @@ cc2008
 !APRIL2005
 !SEPT2005
 +if cr
-      write(lout,*) 
+      write(lout,*)
       write(lout,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
-      write(lout,*) 
+      write(lout,*)
       write(lout,*) 'INFO>  N_SLICES    = ', n_slices
       write(lout,*) 'INFO>  SMIN_SLICES = ',smin_slices
       write(lout,*) 'INFO>  SMAX_SLICES = ',smax_slices
       write(lout,*) 'INFO>  RECENTER1   = ',recenter1
       write(lout,*) 'INFO>  RECENTER2   = ',recenter2
-      write(lout,*) 
+      write(lout,*)
       write(lout,*) 'INFO>  FIT1_1   = ',fit1_1
       write(lout,*) 'INFO>  FIT1_2   = ',fit1_2
       write(lout,*) 'INFO>  FIT1_3   = ',fit1_3
@@ -18925,7 +19032,7 @@ cc2008
       write(lout,*) 'INFO>  FIT1_5   = ',fit1_5
       write(lout,*) 'INFO>  FIT1_6   = ',fit1_6
       write(lout,*) 'INFO>  SCALING1 = ',ssf1
-      write(lout,*) 
+      write(lout,*)
       write(lout,*) 'INFO>  FIT2_1   = ',fit2_1
       write(lout,*) 'INFO>  FIT2_2   = ',fit2_2
       write(lout,*) 'INFO>  FIT2_3   = ',fit2_3
@@ -18933,19 +19040,19 @@ cc2008
       write(lout,*) 'INFO>  FIT2_5   = ',fit2_5
       write(lout,*) 'INFO>  FIT2_6   = ',fit2_6
       write(lout,*) 'INFO>  SCALING2 = ',ssf2
-      write(lout,*) 
+      write(lout,*)
 +ei
 !
 +if .not.cr
-      write(*,*) 
+      write(*,*)
       write(*,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
-      write(*,*) 
+      write(*,*)
       write(*,*) 'INFO>  N_SLICES    = ', n_slices
       write(*,*) 'INFO>  SMIN_SLICES = ',smin_slices
       write(*,*) 'INFO>  SMAX_SLICES = ',smax_slices
       write(*,*) 'INFO>  RECENTER1   = ',recenter1
       write(*,*) 'INFO>  RECENTER2   = ',recenter2
-      write(*,*) 
+      write(*,*)
       write(*,*) 'INFO>  FIT1_1   = ',fit1_1
       write(*,*) 'INFO>  FIT1_2   = ',fit1_2
       write(*,*) 'INFO>  FIT1_3   = ',fit1_3
@@ -18953,7 +19060,7 @@ cc2008
       write(*,*) 'INFO>  FIT1_5   = ',fit1_5
       write(*,*) 'INFO>  FIT1_6   = ',fit1_6
       write(*,*) 'INFO>  SCALING1 = ',ssf1
-      write(*,*) 
+      write(*,*)
       write(*,*) 'INFO>  FIT2_1   = ',fit2_1
       write(*,*) 'INFO>  FIT2_2   = ',fit2_2
       write(*,*) 'INFO>  FIT2_3   = ',fit2_3
@@ -18961,7 +19068,7 @@ cc2008
       write(*,*) 'INFO>  FIT2_5   = ',fit2_5
       write(*,*) 'INFO>  FIT2_6   = ',fit2_6
       write(*,*) 'INFO>  SCALING2 = ',ssf2
-      write(*,*) 
+      write(*,*)
 +ei
 !SEPT2005
 !
@@ -19308,24 +19415,24 @@ cc2008
       if(do_coll) then
 !GRD-SR
       if (radial) then
-         call   makedis_radial(mynp, myalphax, myalphay, mybetax,
-     &        mybetay, myemitx0, myemity0, myenom, nr, ndr,
+         call   makedis_radial(mynp, myalphax, myalphay, mybetax,       &
+     &        mybetay, myemitx0, myemity0, myenom, nr, ndr,             &
      &        myx, myxp, myy, myyp, myp, mys)
       else
          if (do_thisdis.eq.1) then
-            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,
+            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
+     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.2) then
-            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay,
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,
+            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
+     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.3) then
-            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay,
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,
+            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
+     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
      &           myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
          elseif(do_thisdis.eq.4) then
-            call  readdis(filename_dis, 
+            call  readdis(filename_dis,                                 &
      &           mynp, myx, myxp, myy, myyp, myp, mys)
          else
 +if cr
@@ -19372,7 +19479,7 @@ cc2008
       open(unit=52,file='dist0.dat')
        if (dowrite_dist) then
         do j = 1, mynp
-          write(52,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j),
+          write(52,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j),   &
 !     SR, 11-08-2005
      &          mys(j), myp(j)
         end do
@@ -19570,7 +19677,7 @@ cc2008
         open(unit=47, file='all_absorptions.dat')
         open(unit=48, file='FLUKA_impacts.dat')
         open(unit=39, file='FirstImpacts.dat')
-        if (firstrun) then 
+        if (firstrun) then
           write(46,'(a)') '# 1=name 2=turn 3=s'
           write(47,'(a)') '# 1=name 2=turn 3=s'
           write(48,'(a)')                                               &
@@ -20088,7 +20195,7 @@ cc2008
           goto(10,630,740,630,630,630,630,630,630,630,30,50,70,90,110,  &
      &130,150,170,190,210,420,440,460,480,500,520,540,560,580,600,      &
      &620,390,230,250,270,290,310,330,350,370,680,700,720,630,748,      &
-     &630,630,630,630,630,745,746,751,752),ktrack(i)
+     &630,630,630,630,630,745,746,751,752,753),ktrack(i)
           goto 630
    10     stracki=strack(i)
           do 20 j=1,napx
@@ -20416,6 +20523,14 @@ cc2008
           xory=2
 +ca crabkick
           goto 620
+!--DIPEDGE ELEMENT
+  753      continue
+         do j=1,napx
++ca alignva
++ca kickvdpe
+         enddo
+          goto 620
+
 
 !----------------------------
 
@@ -20689,14 +20804,14 @@ cc2008
       do 650 i=1,iu
 +if collimat
       ie=i
-!!     SR, 10-08-2005 - My format to writer down particle distributions 
+!!     SR, 10-08-2005 - My format to writer down particle distributions
 !!                      at various elements
 !       do j=1,napx
 !          if ( ie.eq.1 .or.
 !     +         ie.eq.89 .or.
 !     +         ie.eq.1373 .or.
-!     +         ie.eq.3943 ) then 
-!             write(999,'(3(i5),(f10.3),6(e15.7))') 
+!     +         ie.eq.3943 ) then
+!             write(999,'(3(i5),(f10.3),6(e15.7))')
 !     +            ie,ipart(j)+100*samplenumber,iturn,totals,xv(1,j),
 !     +            yv(1,j),xv(2,j),yv(2,j),
 !     +            sigmv(j), (ejv(j)-myenom)/myenom
@@ -20789,7 +20904,7 @@ cc2008
      &(bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
      &(bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
 !RHIC
-     &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then 
+     &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then
 !GRD     write(*,*) bez(myix),'found!!'
 !APRIL2005
          myktrack = 1
@@ -20813,7 +20928,7 @@ cc2008
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752),ktrack(i)
+     &650,650,650,650,650,745,746,751,752,753),ktrack(i)
           goto 650
 +ei
 +if collimat
@@ -20838,7 +20953,7 @@ cc2008
 !Feb2006
 !GRD (June 2005) 'COL' option is for RHIC collimators
 !
-!     SR (17-01-2006): Special assignment to the TCS.TCDQ for B1 and B4, 
+!     SR (17-01-2006): Special assignment to the TCS.TCDQ for B1 and B4,
 !     using the new naming as in V6.500.
 !     Note that this must be in the loop "if TCSG"!!
 !
@@ -20850,7 +20965,7 @@ cc2008
      &         .or. bez(myix)(1:2).eq.'TD'                              &
      &         .or. bez(myix)(1:2).eq.'td'                              &
      &         .or. bez(myix)(1:3).eq.'COL'                             &
-     &         .or. bez(myix)(1:3).eq.'col')) then 
+     &         .or. bez(myix)(1:3).eq.'col')) then
             if(bez(myix)(1:3).eq.'TCP' .or.                             &
      &           bez(myix)(1:3).eq.'tcp') then
               if(bez(myix)(7:9).eq.'3.B' .or.                           &
@@ -20870,7 +20985,7 @@ cc2008
                 nsig = nsig_tcsg7
               endif
               if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')    &
-     &             ) then 
+     &             ) then
                 nsig = nsig_tcstcdq
               endif
             elseif(bez(myix)(1:4).eq.'TCSM' .or.                        &
@@ -20906,7 +21021,7 @@ cc2008
      &               bez(myix)(8:10).eq.'5.b') then
                 nsig = nsig_tcth5
               elseif(bez(myix)(8:10).eq.'8.B' .or.                      &
-     &               bez(myix)(8:10).eq.'8.b') then 
+     &               bez(myix)(8:10).eq.'8.b') then
                 nsig = nsig_tcth8
               endif
             elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
@@ -21284,26 +21399,26 @@ cc2008
 !JUNE2005   HERE IS THE SPECIAL TREATMENT...
 !JUNE2005
          elseif(db_name1(icoll)(1:4).eq.'COLM') then
-!     
+!
             xmax = nsig_tcth1*sqrt(bx_dist*myemitx0)
             ymax = nsig_tcth2*sqrt(by_dist*myemity0)
-!     
+!
             c_rotation = db_rotation(icoll)
             c_length   = db_length(icoll)
             c_material = db_material(icoll)
             c_offset   = db_offset(icoll)
             c_tilt(1)  = db_tilt(icoll,1)
             c_tilt(2)  = db_tilt(icoll,2)
-!     
+!
 !DEBUG
 !      calc_aperture = sqrt( xmax**2 * cos(c_rotation)**2                &
 !     &+ ymax**2 * sin(c_rotation)**2 )
       calc_aperture = xmax
-!     
+!
 !      nom_aperture = sqrt( xmax**2 * cos(c_rotation-(pi/2d0))**2        &
 !     &+ ymax**2 * sin(c_rotation-(pi/2d0))**2 )
       nom_aperture = ymax
-!     
+!
 !DEBUG
 !      write(*,*) 'GRD'
 !      write(*,*) 'openings of colmark'
@@ -21468,8 +21583,8 @@ cc2008
 !GRD let's also add the FLUKA possibility
      &              flukaname)
 !JUNE2005
-! 
-            else 
+!
+            else
 !GRD-SR, 09-02-2006
 !Force the treatment of the TCDQ equipment as a onsided collimator.
 !Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
@@ -21481,56 +21596,56 @@ cc2008
 !     SR, 29-08-2005: Slice the collimator jaws in 'n_slices' pieces
 !     using two 4th-order polynomial fits. For each slices, the new
 !     gaps and centre are calculates
-!     It is assumed that the jaw point closer to the beam defines the 
+!     It is assumed that the jaw point closer to the beam defines the
 !     nominal aperture.
 !
 !     SR, 01-09-2005: new official version - input assigned through
 !     the 'fort.3' file.
-               if (n_slices.gt.1d0 .and.
-     &              totals.gt.smin_slices .and. 
-     &              totals.lt.smax_slices .and. 
+               if (n_slices.gt.1d0 .and.                                &
+     &              totals.gt.smin_slices .and.                         &
+     &              totals.lt.smax_slices .and.                         &
      &              db_name1(icoll)(1:4).eq.'TCSG' ) then
                   if (firstrun) then
 +if cr
-                  write(lout,*) 'INFOslice - Collimator ',
-     &              db_name1(icoll), ' sliced in ',n_slices,
+                  write(lout,*) 'INFOslice - Collimator ',              &
+     &              db_name1(icoll), ' sliced in ',n_slices,            &
      &              ' pieces!'
 +ei
 +if .not.cr
-                  write(*,*) 'INFOslice - Collimator ',
-     &              db_name1(icoll), ' sliced in ',n_slices,
+                  write(*,*) 'INFOslice - Collimator ',                 &
+     &              db_name1(icoll), ' sliced in ',n_slices,            &
      &              ' pieces!'
 +ei
                   endif
 !
 !!     In this preliminary try, all secondary collimators are sliced.
 !!     Slice only collimators with finite length!!
-!               if (db_name1(icoll)(1:4).eq.'TCSG' .and. 
+!               if (db_name1(icoll)(1:4).eq.'TCSG' .and.
 !     &              c_length.gt.0d0 ) then
 !!     Slice the primaries, to have more statistics faster!
-!!               if (db_name1(icoll)(1:3).eq.'TCP' .and. 
+!!               if (db_name1(icoll)(1:3).eq.'TCP' .and.
 !!     +              c_length.gt.0d0 ) then
 !!
 !!
 !!     Calculate longitudinal positions of slices and corresponding heights
 !!     and angles from the fit parameters.
-!!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0; 
+!!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
 !!     Note: here, take (n_slices+1) points in order to calculate the
 !!           tilt angle of the last slice!!
                   do jjj=1,n_slices+1
                      x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
-                     y1_sl(jjj) =  fit1_1 + 
-     &                    fit1_2*x_sl(jjj) + 
-     &                    fit1_3*(x_sl(jjj)**2) +
-     &                    fit1_4*(x_sl(jjj)**3) +
-     &                    fit1_5*(x_sl(jjj)**4) +
+                     y1_sl(jjj) =  fit1_1 +                             &
+     &                    fit1_2*x_sl(jjj) +                            &
+     &                    fit1_3*(x_sl(jjj)**2) +                       &
+     &                    fit1_4*(x_sl(jjj)**3) +                       &
+     &                    fit1_5*(x_sl(jjj)**4) +                       &
      &                    fit1_6*(x_sl(jjj)**5)
 !
-                     y2_sl(jjj) = -1d0 * (fit2_1 +
-     &                    fit2_2*x_sl(jjj) +
-     &                    fit2_3*(x_sl(jjj)**2) +
-     &                    fit2_4*(x_sl(jjj)**3) +
-     &                    fit2_5*(x_sl(jjj)**4) +
+                     y2_sl(jjj) = -1d0 * (fit2_1 +                      &
+     &                    fit2_2*x_sl(jjj) +                            &
+     &                    fit2_3*(x_sl(jjj)**2) +                       &
+     &                    fit2_4*(x_sl(jjj)**3) +                       &
+     &                    fit2_5*(x_sl(jjj)**4) +                       &
      &                    fit2_6*(x_sl(jjj)**5))
                   enddo
 !     Apply the slicing scaling factors (ssf's):
@@ -21540,15 +21655,15 @@ cc2008
                   enddo
 !     Sign of the angle defined differently for the two jaws!
                   do jjj=1,n_slices
-                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) / 
+                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /      &
      &                    (c_length / dble(n_slices) )
-                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) / 
+                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /      &
      &                    (c_length / dble(n_slices) )
                   enddo
 !     For both jaws, look for the 'deepest' point (closest point to beam)
 !     Then, shift the vectors such that this closest point defines
 !     the nominal aperture
-!     Index here must go up to (n_slices+1) in case the last point is the 
+!     Index here must go up to (n_slices+1) in case the last point is the
 !     closest (and also for the later calculation of 'a_tmp1' and 'a_tmp2')
 !
 !     SR, 01-09-2005: add the recentring flag, as given in 'fort.3' to
@@ -21560,7 +21675,7 @@ cc2008
                      endif
                   enddo
                   do jjj=1, n_slices+1
-                     y1_sl(jjj) = y1_sl(jjj) - max_tmp * recenter1
+                     y1_sl(jjj) = y1_sl(jjj) - max_tmp * recenter1      &
      &                    + 0.5 *c_aperture
                   enddo
                   max_tmp = -1e6
@@ -21570,7 +21685,7 @@ cc2008
                      endif
                   enddo
                   do jjj=1, n_slices+1
-                     y2_sl(jjj) = y2_sl(jjj) - max_tmp * recenter2
+                     y2_sl(jjj) = y2_sl(jjj) - max_tmp * recenter2      &
      &                    - 0.5 *c_aperture
                   enddo
 !
@@ -21585,11 +21700,11 @@ cc2008
 +ei
                      do jjj=1,n_slices
 +if cr
-                       write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj),
+                       write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), &
      &                   angle1(jjj), angle2(jjj)
 +ei
 +if .not.cr
-                       write(*,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj),
+                       write(*,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj),    &
      &                   angle1(jjj), angle2(jjj)
 +ei
                      enddo
@@ -21619,15 +21734,15 @@ cc2008
                   do jjj=1,n_slices
 !
 !     First calculate aperture and centre of the slice
-!     Note that: 
-!     (1)due to our notation for the angle sign, 
+!     Note that:
+!     (1)due to our notation for the angle sign,
 !     the rotation point of the slice (index j or j+1)
 !     DEPENDS on the angle value!!
-!     (2) New version of 'collimate2' is required: one must pass 
-!     the slice number in order the calculate correctly the 's' 
+!     (2) New version of 'collimate2' is required: one must pass
+!     the slice number in order the calculate correctly the 's'
 !     coordinate in the impact files.
 !
-!     Here, 'a_tmp1' and 'a_tmp2' are, for each slice, the closest 
+!     Here, 'a_tmp1' and 'a_tmp2' are, for each slice, the closest
 !     corners to the beam
                         if ( angle1(jjj).gt.0d0 ) then
                            a_tmp1 = y1_sl(jjj)
@@ -21656,30 +21771,30 @@ cc2008
 !                     c_tilt(2) = c_tilt(2) + angle2(jjj)
                      c_tilt(1) = angle1(jjj)
                      c_tilt(2) = angle2(jjj)
-!     New version of 'collimate2' is required: one must pass the 
-!     slice number in order the calculate correctly the 's' 
+!     New version of 'collimate2' is required: one must pass the
+!     slice number in order the calculate correctly the 's'
 !     coordinate in the impact files.
 !     +                    a_tmp1 - a_tmp2,
 !     +                    0.5 * ( a_tmp1 + a_tmp2 ),
-                     call collimate2(c_material, 
-     &                    c_length / dble(n_slices), 
-     &                    c_rotation,
-     &                    a_tmp1 - a_tmp2,
-     &                    0.5 * ( a_tmp1 + a_tmp2 ),
-     &                    c_tilt,
-     &                    rcx, rcxp, rcy, rcyp,
-     &                    rcp, rcs, napx, enom_gev, 
-     &                    part_hit, part_abs, part_impact, part_indiv, 
-     &                    part_linteract, onesided, flukaname, 
-     &                    secondary, 
+                     call collimate2(c_material,                        &
+     &                    c_length / dble(n_slices),                    &
+     &                    c_rotation,                                   &
+     &                    a_tmp1 - a_tmp2,                              &
+     &                    0.5 * ( a_tmp1 + a_tmp2 ),                    &
+     &                    c_tilt,                                       &
+     &                    rcx, rcxp, rcy, rcyp,                         &
+     &                    rcp, rcs, napx, enom_gev,                     &
+     &                    part_hit, part_abs, part_impact, part_indiv,  &
+     &                    part_linteract, onesided, flukaname,          &
+     &                    secondary,                                    &
      &                    jjj)
 !                     do ijk=1,npart
 !                        if ( part_hit(ijk).eq. (10000*ie + iturn)) then
-                           
+
 !!                    Some checks....
 !                     do ijk=1,npart
 !                        if ( part_hit(ijk).eq. (10000*ie + iturn)) then
-!                           write(*,*) 'INFOijk', 
+!                           write(*,*) 'INFOijk',
 !     +                          ijk, jjj, db_name1(icoll),
 !     +                          part_abs(ijk), rcx(ijk), rcy(ijk),
 !     +                          rcp(ijk), rcs(ijk)
@@ -21688,12 +21803,12 @@ cc2008
                   enddo
                else
 !     Treatment of non-sliced collimators
-                  call collimate2(c_material, c_length, c_rotation,
-     &                 c_aperture, c_offset, c_tilt,
-     &                 rcx, rcxp, rcy, rcyp,
-     &                 rcp, rcs, napx, enom_gev, part_hit, part_abs,
-     &                 part_impact, part_indiv, part_linteract,
-     &                 onesided, flukaname, secondary, 1)
+                  call collimate2(c_material, c_length, c_rotation,     &
+     &                 c_aperture, c_offset, c_tilt,                    &
+     &                 rcx, rcxp, rcy, rcyp,                            &
+     &                 rcp, rcs, napx, enom_gev, part_hit, part_abs,    &
+     &                 part_impact, part_indiv, part_linteract,         &
+     &                 onesided, flukaname, secondary, 1)               &
                endif
 !
 ! end of check for RHIC
@@ -21911,8 +22026,8 @@ cc2008
 !MAY2005
         if(part_abs(j).eq.0) then
 !MAY2005
-        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)     &
-     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.                &
+        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)    &
+     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
 !GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
 !GRD                                                                    &
@@ -22347,14 +22462,14 @@ cc2008
 !         if((xv(1,j).ge.40d0).or.(xv(2,j).ge.40d0).or.                  &
 !     &      (xv(1,j).le.-40d0).or.(xv(2,j).le.-40d0)) then
 !!GRD+KAD here we dump the location within RHIC where any one transvere
-!!GRD+KAD dimension of the beam gets bigger than 4 cm => kind of like a 
+!!GRD+KAD dimension of the beam gets bigger than 4 cm => kind of like a
 !!GRD+KAD raw aperture check to obtain loss maps...
 !           write(555,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')         &
 !     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
 !     &xv(1,j),yv(1,j),                                                  &
 !     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
 !     &secondary(j)+tertiary(j)+other(j)
-!!GRD+KAD then we just delete the particle from the tracking, so as not to have 
+!!GRD+KAD then we just delete the particle from the tracking, so as not to have
 !!GRD+KAD strange values for the impact parameter and have losses at other crazy
 !!GRD+KAD locations
 !!AUGUST2005 comment that out for LHC studies
@@ -22754,7 +22869,14 @@ cc2008
           xory=2
 +ca crabkick
           goto 640
-      
+!--DIPEDGE ELEMENT
+  753     continue
+          do j=1,napx
++ca alignva
++ca kickvdpe
+          enddo
+          goto 640
+
 !----------------------------
 
 ! Wire.
@@ -22937,14 +23059,14 @@ cc2008
 !         if((xv(1,j).ge.40d0).or.(xv(2,j).ge.40d0).or.                  &
 !     &      (xv(1,j).le.-40d0).or.(xv(2,j).le.-40d0)) then
 !!GRD+KAD here we dump the location within RHIC where any one transvere
-!!GRD+KAD dimension of the beam gets bigger than 4 cm => kind of like a 
+!!GRD+KAD dimension of the beam gets bigger than 4 cm => kind of like a
 !!GRD+KAD raw aperture check to obtain loss maps...
 !           write(555,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')         &
 !     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
 !     &xv(1,j),yv(1,j),                                                  &
 !     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
 !     &secondary(j)+tertiary(j)+other(j)
-!!GRD+KAD then we just delete the particle from the tracking, so as not to have 
+!!GRD+KAD then we just delete the particle from the tracking, so as not to have
 !!GRD+KAD strange values for the impact parameter and have losses at other crazy
 !!GRD+KAD locations
 !!AUGUST2005 comment that out for LHC studies
@@ -22969,9 +23091,9 @@ cc2008
 !GRD END OF UPGRADE
 !GRD
 +if collimat
-          kpz=abs(kp(ix)) 
-          if(kpz.eq.0) goto 650 
-          if(kpz.eq.1) goto 650 
+          kpz=abs(kp(ix))
+          if(kpz.eq.0) goto 650
+          if(kpz.eq.1) goto 650
 +ei
 +if .not.collimat
 +ca lostpart
@@ -23188,7 +23310,7 @@ cc2008
                 xpnorm = xpnorm + dnormx*cos(xangle)
 +ei
                 xgrd(j)   = 1000d0*(xnorm * sqrt(tbetax(ie)*myemitx0))
-                xpgrd(j)  = 1000d0*((xpnorm*sqrt(tbetax(ie)*myemitx0)
+                xpgrd(j)  = 1000d0*((xpnorm*sqrt(tbetax(ie)*myemitx0)   &
 !    &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
 !
@@ -23631,7 +23753,7 @@ cc2008
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752),ktrack(i)
+     &650,650,650,650,650,745,746,751,752,753),ktrack(i)
           goto 650
    10     stracki=strack(i)
           do 20 j=1,napx
@@ -24010,7 +24132,14 @@ cc2008
           xory=2
 +ca crabkick
           goto 640
-      
+!--DIPEDGE ELEMENT
+  753     continue
+          do j=1,napx
++ca alignva
++ca kickvdpe
+          enddo
+          goto 640
+
 !----------------------------
 
 ! Wire.
@@ -24692,7 +24821,8 @@ cc2008
      &extalign(i,2),extalign(i,3)
         endif
         if(kzz.lt.0) goto 180
-        goto(50,60,70,80,90,100,110,120,130,140,150),kzz
+        goto(50,60,70,80,90,100,110,120,130,140,150,290,290,290,        &
+     &       290,290,290,290,290,290,290,290,290,145),kzz
         ktrack(i)=31
         goto 290
    50   if(abs(smiv(1,i)).le.pieni) then
@@ -24764,6 +24894,11 @@ cc2008
         endif
         ktrack(i)=20
 +ca stra10
+        goto 290
+!--DIPEDGE ELEMENT
+  145   continue 
++ca stra2dpe
+        ktrack(i)=55
         goto 290
   150   r0=ek(ix)
         nmz=nmu(ix)
@@ -25035,7 +25170,7 @@ cc2008
             goto(20,480,740,480,480,480,480,480,480,480,40,60,80,100,   &
      &120,140,160,180,200,220,270,290,310,330,350,370,390,410,          &
      &430,450,470,240,500,520,540,560,580,600,620,640,680,700           &
-     &,720,480,748,480,480,480,480,480,745,746,751,752),ktrack(i)
+     &,720,480,748,480,480,480,480,480,745,746,751,752,753),ktrack(i)
             goto 480
    20       do 30 j=1,napx
               puxve=xv(1,j)
@@ -25372,7 +25507,14 @@ cc2008
           xory=2
 +ca crabkick
           goto 470
-      
+!--DIPEDGE ELEMENT
+  753     continue
+          do j=1,napx
++ca alignva
++ca kickvdpe
+          enddo
+          goto 470
+
 !----------------------------
 
 ! Wire.
@@ -25505,7 +25647,7 @@ cc2008
 +if debug
 !===================================================================
 !===================================================================
-! Eric endthck6dstart 
+! Eric endthck6dstart
 ! Nothing should be changed in the rest of this loop
 !===================================================================
 !===================================================================
@@ -25526,7 +25668,7 @@ cc2008
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752,753),ktrack(i)
             goto 500
    20       jmel=mel(ix)
 +if bnlelens
@@ -25960,6 +26102,14 @@ cc2008
           xory=2
 +ca crabkick
           goto 490
+!--DIPEDGE ELEMENT
+  753     continue
+          do j=1,napx
++ca alignva
++ca kickvdpe
+          enddo
+          goto 490
+
 !----------------------------
 
 ! Wire.
@@ -26121,7 +26271,7 @@ cc2008
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752,753),ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do 30 jb=1,jmel
@@ -26509,6 +26659,14 @@ cc2008
           xory=2
 +ca crabkick
           goto 490
+!--DIPEDGE ELEMENT
+  753     continue
+          do j=1,napx
++ca alignva
++ca kickvdpe
+          enddo
+          goto 490
+
 !----------------------------
 
 ! Wire.
@@ -26676,7 +26834,7 @@ cc2008
             as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*
      &sm12(j)+dpsv(j)*(el(l)-sm2(j)))+el(l)*(one-rvv(j)))*c1e3
 +ei
-            as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-& 
+            as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-&
      &sm2(j)*dpsq(j)/rho(j))+fok1(j)*as3(j)
             as(3,ih1,j,l)=as3(j)
             as(4,ih1,j,l)=as4(j)+two*as6(j)*fok1(j)
@@ -27060,7 +27218,7 @@ cc2008
         else
 !Eric
 ! Is really an error but old code went to 160
-          goto 160 
+          goto 160
         endif
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
@@ -28157,7 +28315,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 
+      stop
 +ei
 +if .not.tilt
 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
@@ -28285,7 +28443,7 @@ cc2008
 ! Note we do not initialise the checkpoint cr* variables
 ! nor the my* variables as they should all be read in!
 ! double precision
-      do i=1,nblz 
+      do i=1,nblz
         tbetax(i)=zero
         tbetay(i)=zero
         talphax(i)=zero
@@ -32055,7 +32213,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 
+      stop
 +ei
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10,  &
@@ -32246,7 +32404,7 @@ cc2008
       double precision aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
      &ci,cikve,clo0,clop0,cr,crkve,crkveuk,di00,dip00,dphi,dpp,dpp1,    &
      &dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,pie,puf,qu,qv,qw,qwc,r0,r0a, &
-     &t,xl,xs,zl,zs
+     &t,xl,xs,zl,zs,quz,qvz
 +if tilt
       double precision dyy11,qu1,tiltck,tiltsk
 +ei
@@ -32768,20 +32926,20 @@ cc2008
 +ca trom03
 +ca trom06
 +if collimat.and..not.bnlelens
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then 
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
           goto 500
         endif
 +ei
 +if collimat.and.bnlelens
 !GRDRHIC
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then 
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
           goto 500
         endif
 +ei
 +if .not.collimat.and.bnlelens
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then 
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
           goto 500
         endif
@@ -32801,7 +32959,8 @@ cc2008
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
         if(kzz.lt.0) goto 370
-        goto(230,240,250,260,270,280,290,300,310,320,330),kzz
+        goto(230,240,250,260,270,280,290,300,310,320,330,500,500,500,   &
+     &       500,500,500,500,500,500,500,500,500,325),kzz
 +if collimat.and..not.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
@@ -32899,6 +33058,11 @@ cc2008
 +ca kickq10h
 +ca kicksho
 +ca kicklxxh
+        goto 480
+!--DIPEDGE ELEMENT
+ 325    continue
++ca kickldpe
++ca kickqdpe
         goto 480
   330   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -33053,13 +33217,19 @@ cc2008
 +ca kickq10v
 +ca kicksho
 +ca kicklxxv
-  480   t(6,2)=t(6,2)-dyy1/(one+dpp)
+  480   continue
+        t(6,2)=t(6,2)-dyy1/(one+dpp)
         t(6,4)=t(6,4)-dyy2/(one+dpp)
         t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 490 i=2,ium
           t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-  490   t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.ne.24) then
+            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          else
+            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+          endif
+  490   continue
         nr=nr+1
         bexi=t(2,1)*t(2,1)+t(3,1)*t(3,1)
         bezii=t(4,3)*t(4,3)+t(5,3)*t(5,3)
@@ -33144,7 +33314,7 @@ cc2008
 +if collimat.or.bnlelens
       subroutine writelin(nr,typ,tl,p1,t,ixwl,ielem)
 +ei
-+if .not.collimat.and..not.bnlelens 
++if .not.collimat.and..not.bnlelens
       subroutine writelin(nr,typ,tl,p1,t,ixwl)
 +ei
 !-----------------------------------------------------------------------
@@ -34907,7 +35077,7 @@ cc2008
      &dj
       double precision aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk, &
      &dphi,dpp,dppi,dpr,dyy1,dyy2,ekk,phi,phibf,pie,puf,qu,qv,qw,qwc,   &
-     &qxsa,qxse,r0,r0a,t,xl,xs,zl,zs
+     &qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
 +if tilt
       double precision dyy11,qu1,tiltck,tiltsk
 +ei
@@ -35092,7 +35262,8 @@ cc2008
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
         if(kzz.lt.0) goto 310
-        goto(170,180,190,200,210,220,230,240,250,260,270),kzz
+        goto(170,180,190,200,210,220,230,240,250,260,270,450,450,450,   &
+     &       450,450,450,450,450,450,450,450,450,265),kzz
         goto 450
 !--HORIZONTAL DIPOLE
   170   ekk=ekk*c1e3
@@ -35179,6 +35350,11 @@ cc2008
 +ca kickq10h
 +ca kicksho
 +ca kicklxxh
+        goto 420
+!--DIPEDGE ELEMENT
+  265   continue    
++ca kickldpe
++ca kickqdpe
         goto 420
   270   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -35315,11 +35491,16 @@ cc2008
 +ca kickq10v
 +ca kicksho
 +ca kicklxxv
-  420   t(1,2)=t(1,2)+dyy1
+  420   continue
+        t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 430 i=2,ium
           t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-          t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.ne.24) then
+            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          else
+            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+          endif
   430   continue
         do 440 l=1,2
           ll=2*l
@@ -36023,7 +36204,7 @@ cc2008
 +ei
       integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
       double precision aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,   &
-     &dyy1,dyy2,ekk,puf,qu,qv,r0,r0a,xl,xs,zl,zs
+     &dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
 +if tilt
       double precision dyy11,qu1,tiltck,tiltsk
 +ei
@@ -36106,7 +36287,8 @@ cc2008
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignu
         if(kzz.lt.0) goto 220
-        goto(80,90,100,110,120,130,140,150,160,170,180),kzz
+        goto(80,90,100,110,120,130,140,150,160,170,180,350,350,350,     &
+     &       350,350,350,350,350,350,350,350,350,175),kzz
         goto 350
 !--HORIZONTAL DIPOLE
    80   ekk=ekk*c1e3
@@ -36218,6 +36400,12 @@ cc2008
 +ca kickuxxh
         if(ium.eq.1) goto 350
         goto 330
+!--DIPEDGE ELEMENT
+  175   continue
++ca kickudpe
+        if(ium.eq.1) goto 350
++ca kickqdpe
+         goto 330
   180   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
@@ -36380,9 +36568,14 @@ cc2008
 +ca kicksho
 +ca kickuxxv
         if(ium.eq.1) goto 350
-  330   do 340 j=2,ium
+  330   continue
+        do 340 j=2,ium
           y(j,1)=y(j,1)+x(j,1)*qu-qv*x(j,2)
-          y(j,2)=y(j,2)-x(j,2)*qu-qv*x(j,1)
+          if(kzz.ne.24) then
+            y(j,2)=y(j,2)-x(j,2)*qu-qv*x(j,1)
+          else
+            y(j,2)=y(j,2)-x(j,2)*quz-qvz*x(j,1)
+          endif
   340   continue
   350 continue
 !-----------------------------------------------------------------------
@@ -36408,7 +36601,7 @@ cc2008
      &chy,ci,cikve,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dphi,dpp,  &
      &dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,phy,pie, &
      &puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,    &
-     &vdt1,vdt2,vdt3,xl,xs,zl,zs
+     &vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
 +if tilt
       double precision dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
      &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
@@ -36624,7 +36817,8 @@ cc2008
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
         if(kzz.lt.0) goto 370
-        goto(220,230,240,250,260,270,280,290,300,310,320),kzz
+        goto(220,230,240,250,260,270,280,290,300,310,320,480,480,480,   &
+     &       480,480,480,480,480,480,480,480,480,315),kzz
         goto 770
 !--HORIZONTAL DIPOLE
   220   ekk=ekk*c1e3
@@ -36665,6 +36859,10 @@ cc2008
 !--NORMAL 20-POLE
   310   ekk=ekk*c1m24
 +ca kicka10h
+        goto 480
+!--DIPEDGE ELEMENT
+  315   continue
++ca kickadpe
         goto 480
   320   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -36765,11 +36963,16 @@ cc2008
 !--SKEW 20-POLE
   470   ekk=ekk*c1m24
 +ca kicka10v
-  480   t(1,2)=t(1,2)+dyy1
+  480   continue
+        t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 490 i=2,ium
           t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-          t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.ne.24) then
+            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          else
+            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+          endif
   490   continue
         do 500 l=1,2
           ll=2*l
@@ -37693,7 +37896,7 @@ cc2008
      &dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,ekk,    &
      &ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,&
      &r0a,radi,rc,re,re1,res,rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,&
-     &vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs
+     &vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
 +if tilt
       double precision dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
      &tiltck5,tiltck6,tiltck8,tiltck10,tiltckuk,tiltsk,tiltsk1,tiltsk2, &
@@ -38034,7 +38237,8 @@ cc2008
           zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
           if(kzz.lt.0) goto 400
-          goto(260,270,280,290,300,310,320,330,340,350,360),kzz
+          goto(260,270,280,290,300,310,320,330,340,350,360,790,790,790, &
+     &       790,790,790,790,790,790,790,790,790,355),kzz
           goto 790
 !--HORIZONTAL DIPOLE
   260     ekk=ekk*c1e3
@@ -38088,6 +38292,10 @@ cc2008
   350     ekk=ekk*c1m24
 +ca kicka10h
 +ca kispa10h
+          goto 510
+!--DIPEDGE ELEMENT
+  355     continue
++ca kickadpe
           goto 510
   360     r0=ek(ix)
           if(abs(dki(ix,1)).gt.pieni) then
@@ -38203,11 +38411,16 @@ cc2008
   500     ekk=ekk*c1m24
 +ca kicka10v
 +ca kispa10v
-  510     t(1,2)=t(1,2)+dyy1
+  510     continue
+          t(1,2)=t(1,2)+dyy1
           t(1,4)=t(1,4)+dyy2
           do 520 i=2,ium
             t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+            if(kzz.ne.24) then
+              t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+            else
+              t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+            endif
   520     continue
           do 530 l=1,2
             ll=2*l
@@ -38854,7 +39067,7 @@ cc2008
      &chy,ci,cikve,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dphi,dpp,  &
      &dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,phy,pie, &
      &puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,    &
-     &vdt1,vdt2,vdt3,xl,xs,zl,zs
+     &vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
 +if tilt
       double precision dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
      &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
@@ -39069,7 +39282,8 @@ cc2008
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
         if(kzz.lt.0) goto 350
-        goto(220,230,240,250,260,270,280,290,300,310,320),kzz
+        goto(220,230,240,250,260,270,280,290,300,310,320,740,740,740,   &
+     &       740,740,740,740,740,740,740,740,740,315),kzz
         goto 740
 !--HORIZONTAL DIPOLE
   220   ekk=ekk*c1e3
@@ -39110,6 +39324,10 @@ cc2008
 !--NORMAL 20-POLE
   310   ekk=ekk*c1m24
 +ca kicka10h
+        goto 460
+!--DIPEDGE ELEMENT
+  315   continue  
++ca kickadpe
         goto 460
   320   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -39210,11 +39428,16 @@ cc2008
 !--SKEW 20-POLE
   450   ekk=ekk*c1m24
 +ca kicka10v
-  460   t(1,2)=t(1,2)+dyy1
+  460   continue
+        t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 470 i=2,ium
           t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-          t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.ne.24) then
+            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          else
+            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+          endif
   470   continue
         do 480 l=1,2
           ll=2*l
@@ -42824,7 +43047,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 
+      stop
 +ei
 10000 format(10x,f47.33)
       end
@@ -43241,7 +43464,7 @@ cc2008
       data border /8d0/
 +ca save
 !-----------------------------------------------------------------------
-+if crlibm 
++if crlibm
       pi=4d0*atan_rn(1d0)
 +ei
 +if .not.crlibm
@@ -43349,7 +43572,7 @@ cc2008
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 
+      stop
 +ei
       end
 +dk myrinv
@@ -44449,7 +44672,7 @@ cc2008
       integer flagsec(maxn)
 !
 !     SR, 18-08-2005: add temporary variable to write in FirstImpacts
-!     the initial distribution of the impacting particles in the 
+!     the initial distribution of the impacting particles in the
 !     collimator frame.
       double precision xinn,xpinn,yinn,ypinn
 !
@@ -44511,7 +44734,7 @@ cc2008
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       do j = 1, nev
 !
-! SR-GRD (04-08-2005): 
+! SR-GRD (04-08-2005):
 !        Don't do scattering process for particles already absorbed
          if (part_abs(j) .ne. 0) goto 777
 !
@@ -44587,7 +44810,7 @@ cc2008
           xp = mirror * xp
 !
 !          if (j.eq.1) then
-!             write(*,*) 'INFOtilt', 
+!             write(*,*) 'INFOtilt',
 !     &            icoll, j_slices, c_tilt(1), c_tilt(2),
 !     &            mirror, tiltangle, c_offset, c_aperture/2
 !          endif
@@ -44628,7 +44851,7 @@ cc2008
         endif
 !
 !     SR, 18-08-2005: after finishing the coordinate transformation,
-!     or the coordinate manipulations in case of pencil beams, 
+!     or the coordinate manipulations in case of pencil beams,
 !     write down the initial coordinates of the impacting particles
           xinn  = x
           xpinn = xp
@@ -45013,27 +45236,27 @@ cc2008
 !     &part_abs, impact, indiv, lint, onesided)
      &part_abs, impact, indiv, lint, onesided,                          &
      &name)
-! 
-!++  Based on routines by JBJ. Changed by RA 2001. 
-! 
-!++  - Deleted all HBOOK stuff. 
-!++  - Deleted optics routine and all parser routines. 
-!++  - Replaced RANMAR call by RANLUX call 
-!++  - Included RANLUX code from CERNLIB into source 
-!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat) 
-!++  - Replaced FUNPRE with FUNLXP 
-!++  - Replaced FUNRAN with FUNLUX 
-!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX, 
-!++                                         FUNPCT, FUNLZ, RADAPT, 
-!++                                           RGS56P 
-!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT, 
-!++                                           RLUXGO 
-!++                                            
-!++  - Changed program so that Nev is total number of particles 
-!++    (scattered and not-scattered) 
-!++  - Added debug comments 
-!++  - Put real dp/dx 
-! 
+!
+!++  Based on routines by JBJ. Changed by RA 2001.
+!
+!++  - Deleted all HBOOK stuff.
+!++  - Deleted optics routine and all parser routines.
+!++  - Replaced RANMAR call by RANLUX call
+!++  - Included RANLUX code from CERNLIB into source
+!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
+!++  - Replaced FUNPRE with FUNLXP
+!++  - Replaced FUNRAN with FUNLUX
+!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
+!++                                         FUNPCT, FUNLZ, RADAPT,
+!++                                           RGS56P
+!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT,
+!++                                           RLUXGO
+!++
+!++  - Changed program so that Nev is total number of particles
+!++    (scattered and not-scattered)
+!++  - Added debug comments
+!++  - Put real dp/dx
+!
       implicit none
 +if cr
 +ca crcoall
@@ -45060,136 +45283,136 @@ cc2008
       integer event
 !DEBUG
 +ca save
-!======================================================================= 
-! Be=1 Al=2 Cu=3 W=4 Pb=5 
-!  
-! LHC uses:    Al, 0.2 m  
-!              Cu, 1.0 m  
-! 
-      if (c_material.eq.'BE') then  
-         mat = 1  
-      elseif (c_material.eq.'AL') then  
-         mat = 2  
-      elseif (c_material.eq.'CU') then  
-         mat = 3  
-      elseif (c_material.eq.'W') then  
-         mat = 4  
-      elseif (c_material.eq.'PB') then  
-         mat = 5  
-      elseif (c_material.eq.'C') then  
-         mat = 6  
-      elseif (c_material.eq.'C2') then  
-         mat = 7  
-      else  
+!=======================================================================
+! Be=1 Al=2 Cu=3 W=4 Pb=5
+!
+! LHC uses:    Al, 0.2 m
+!              Cu, 1.0 m
+!
+      if (c_material.eq.'BE') then
+         mat = 1
+      elseif (c_material.eq.'AL') then
+         mat = 2
+      elseif (c_material.eq.'CU') then
+         mat = 3
+      elseif (c_material.eq.'W') then
+         mat = 4
+      elseif (c_material.eq.'PB') then
+         mat = 5
+      elseif (c_material.eq.'C') then
+         mat = 6
+      elseif (c_material.eq.'C2') then
+         mat = 7
+      else
 +if cr
-         write(lout,*) 'ERR>  Material not found. STOP'  
+         write(lout,*) 'ERR>  Material not found. STOP'
 +ei
 +if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP'  
+         write(*,*) 'ERR>  Material not found. STOP'
 +ei
-!        STOP  
-      endif  
-!  
-        length  = c_length 
-        nev = np  
-        p0  = enom  
-! 
-!++  Initialize scattering processes 
-! 
-      call scatin(p0) 
- 
-! EVENT LOOP,  initial distribution is here a flat distribution with 
-! xmin=x-, xmax=x+, etc. from the input file 
-! 
-      nhit    = 0 
-      fracab  = 0. 
-      mirror  = 1.  
-!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-      do j = 1, nev  
-!  
-        impact(j) = -1. 
-        lint(j)   = -1. 
-        indiv(j)  = -1. 
-! 
-        x   = x_in(j) 
-        xp  = xp_in(j) 
-        z   = y_in(j) 
-        zp  = yp_in(j) 
-        p   = p_in(j) 
-!        sp  = s_in(J) 
-        sp   = 0.  
-        dpop = (p - p0)/p0 
-!  
-!++  Transform particle coordinates to get into collimator coordinate  
-!++  system  
-!  
-!++  First check whether particle was lost before  
-!  
-!        if (x.lt.99.0*1e-3 .and. z.lt.99.0*1e-3) then  
-        if (x.lt.99.0*1d-3 .and. z.lt.99.0*1d-3) then  
-!  
-!++  First do rotation into collimator frame  
-!  
+!        STOP
+      endif
+!
+        length  = c_length
+        nev = np
+        p0  = enom
+!
+!++  Initialize scattering processes
+!
+      call scatin(p0)
+
+! EVENT LOOP,  initial distribution is here a flat distribution with
+! xmin=x-, xmax=x+, etc. from the input file
+!
+      nhit    = 0
+      fracab  = 0.
+      mirror  = 1.
+!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      do j = 1, nev
+!
+        impact(j) = -1.
+        lint(j)   = -1.
+        indiv(j)  = -1.
+!
+        x   = x_in(j)
+        xp  = xp_in(j)
+        z   = y_in(j)
+        zp  = yp_in(j)
+        p   = p_in(j)
+!        sp  = s_in(J)
+        sp   = 0.
+        dpop = (p - p0)/p0
+!
+!++  Transform particle coordinates to get into collimator coordinate
+!++  system
+!
+!++  First check whether particle was lost before
+!
+!        if (x.lt.99.0*1e-3 .and. z.lt.99.0*1e-3) then
+        if (x.lt.99.0*1d-3 .and. z.lt.99.0*1d-3) then
+!
+!++  First do rotation into collimator frame
+!
 !JUNE2005
 !JUNE2005 CHANGE TO MAKE THE RHIC TREATMENT EASIER...
 !JUNE2005
 !+if crlibm
-!          x  = x_in(j)*cos_rn(c_rotation) +sin_rn(c_rotation)*y_in(j)  
+!          x  = x_in(j)*cos_rn(c_rotation) +sin_rn(c_rotation)*y_in(j)
 !+ei
 !+if .not.crlibm
-!          x  = x_in(j)*cos(c_rotation) +sin(c_rotation)*y_in(j)  
+!          x  = x_in(j)*cos(c_rotation) +sin(c_rotation)*y_in(j)
 !+ei
 !+if crlibm
-!          z  = y_in(j)*cos_rn(c_rotation) -sin_rn(c_rotation)*x_in(j)  
+!          z  = y_in(j)*cos_rn(c_rotation) -sin_rn(c_rotation)*x_in(j)
 !+ei
 !+if .not.crlibm
-!          z  = y_in(j)*cos(c_rotation) -sin(c_rotation)*x_in(j)  
+!          z  = y_in(j)*cos(c_rotation) -sin(c_rotation)*x_in(j)
 !+ei
 !+if crlibm
-!          xp = xp_in(j)*cos_rn(c_rotation)+sin_rn(c_rotation)*yp_in(j)  
+!          xp = xp_in(j)*cos_rn(c_rotation)+sin_rn(c_rotation)*yp_in(j)
 !+ei
 !+if .not.crlibm
-!          xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j)  
+!          xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j)
 !+ei
 !+if crlibm
-!          zp = yp_in(j)*cos_rn(c_rotation)-sin_rn(c_rotation)*xp_in(j)  
+!          zp = yp_in(j)*cos_rn(c_rotation)-sin_rn(c_rotation)*xp_in(j)
 !+ei
 !+if .not.crlibm
-!          zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j)  
+!          zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j)
 !+ei
           x  = -1d0*x_in(j)
           z  = -1d0*y_in(j)
           xp = -1d0*xp_in(j)
           zp = -1d0*yp_in(j)
 !JUNE2005
-! 
-!++  For one-sided collimators consider only positive X. For negative 
-!++  X jump to the next particle 
-! 
-!GRD          IF (ONESIDED .AND. X.LT.0) GOTO 777 
+!
+!++  For one-sided collimators consider only positive X. For negative
+!++  X jump to the next particle
+!
+!GRD          IF (ONESIDED .AND. X.LT.0) GOTO 777
 !JUNE2005          if (onesided .and. x.lt.0d0 .or. z.gt.0d0) goto 777
           if (onesided .and. (x.lt.0d0 .and. z.gt.0d0)) goto 777
-!  
-!++  Now mirror at the horizontal axis for negative X offset  
-!  
+!
+!++  Now mirror at the horizontal axis for negative X offset
+!
 !GRD
 !GRD THIS WE HAVE TO COMMENT OUT IN CASE OF RHIC BECAUSE THERE ARE
 !GRD ONLY ONE-SIDED COLLIMATORS
 !GRD
-!          IF (X.LT.0) THEN 
-!            MIRROR = -1.  
-!            tiltangle = -1.*C_TILT(2) 
-!          ELSE 
-!            MIRROR = 1.  
-            tiltangle = c_tilt(1) 
-!          ENDIF 
-!          X  = MIRROR * X  
-!          XP = MIRROR * XP  
+!          IF (X.LT.0) THEN
+!            MIRROR = -1.
+!            tiltangle = -1.*C_TILT(2)
+!          ELSE
+!            MIRROR = 1.
+            tiltangle = c_tilt(1)
+!          ENDIF
+!          X  = MIRROR * X
+!          XP = MIRROR * XP
 !GRD
-! 
-!++  Shift with opening and offset  
-!  
-          x  = x - c_aperture/2 - mirror*c_offset  
+!
+!++  Shift with opening and offset
+!
+          x  = x - c_aperture/2 - mirror*c_offset
 !GRD
 !GRD SPECIAL FEATURE TO TAKE INTO ACCOUNT THE PARTICULAR SHAPE OF RHIC PRIMARY COLLIMATORS
 !GRD
@@ -45202,63 +45425,63 @@ cc2008
 !          if(iturn.eq.1)                                                &
 !     &write(*,*) 'check ',x,xp,z,zp,c_aperture,n_aperture
 !JUNE2005
-! 
-!++  Include collimator tilt 
-! 
-          if (tiltangle.gt.0.) then 
-            xp = xp - tiltangle 
-          elseif (tiltangle.lt.0.) then 
+!
+!++  Include collimator tilt
+!
+          if (tiltangle.gt.0.) then
+            xp = xp - tiltangle
+          elseif (tiltangle.lt.0.) then
 +if crlibm
-            x  = x + sin_rn(tiltangle) * c_length 
+            x  = x + sin_rn(tiltangle) * c_length
 +ei
 +if .not.crlibm
-            x  = x + sin(tiltangle) * c_length 
+            x  = x + sin(tiltangle) * c_length
 +ei
-            xp = xp - tiltangle 
-          endif 
-! 
-!++  For selected collimator, first turn reset particle distribution 
-!++  to simple pencil beam 
-! 
-            nprim = 3 
+            xp = xp - tiltangle
+          endif
+!
+!++  For selected collimator, first turn reset particle distribution
+!++  to simple pencil beam
+!
+            nprim = 3
             if ( (icoll.eq.ipencil                                      &
      &.and. iturn.eq.1) .or.                                            &
      &(iturn.eq.1 .and. ipencil.eq.999 .and.                            &
      &icoll.le.nprim .and.                                              &
      &(j.ge.(icoll-1)*nev/nprim) .and.                                  &
      &(j.le.(icoll)*nev/nprim)                                          &
-     &)  ) then 
-              x    = pencil_dx(icoll) 
-              xp   = 0. 
-              z    = 0. 
-              zp   = 0. 
-              dpop = 0. 
+     &)  ) then
+              x    = pencil_dx(icoll)
+              xp   = 0.
+              z    = 0.
+              zp   = 0.
+              dpop = 0.
               if(rndm4().lt.0.5) mirror = -abs(mirror)
               if(rndm4().ge.0.5) mirror = abs(mirror)
-            endif 
-!  
-!++  particle passing above the jaw are discarded => take new event 
-!++  entering by the face, shorten the length (zlm) and keep track of  
-!++  entrance longitudinal coordinate (keeps) for histograms 
-! 
-!++  The definition is that the collimator jaw is at x>=0.  
-! 
-!++  1) Check whether particle hits the collimator 
-! 
-          hit     =  .false. 
-          s       =  0. 
-          keeps   =  0. 
-          zlm     =  -1.0d0 * length 
-! 
+            endif
+!
+!++  particle passing above the jaw are discarded => take new event
+!++  entering by the face, shorten the length (zlm) and keep track of
+!++  entrance longitudinal coordinate (keeps) for histograms
+!
+!++  The definition is that the collimator jaw is at x>=0.
+!
+!++  1) Check whether particle hits the collimator
+!
+          hit     =  .false.
+          s       =  0.
+          keeps   =  0.
+          zlm     =  -1.0d0 * length
+!
 !GRD
 !JUNE2005          if (x.ge.0d0 .and. z.le.0d0) then
           if (x.ge.0d0 .and. z.le.0d0) then
              goto 10
-! 
-!++  Particle hits collimator and we assume interaction length ZLM equal 
-!++  to collimator length (what if it would leave collimator after 
-!++  small length due to angle???) 
-! 
+!
+!++  Particle hits collimator and we assume interaction length ZLM equal
+!++  to collimator length (what if it would leave collimator after
+!++  small length due to angle???)
+!
 !JUNE2005
 !            zlm = length
 !            impact(j) = max(x,(-1d0*z))
@@ -45275,11 +45498,11 @@ cc2008
      &.and.zp.ge.0d0) then
              goto 20
 !GRD
-!JUNE2005          if(x.lt.0d0.and.z.gt.0d0.and.xp.le.0d0.and.zp.ge.0d0) then 
-! 
-!++  Particle does not hit collimator. Interaction length ZLM is zero. 
-! 
-!JUNE2005            zlm = 0. 
+!JUNE2005          if(x.lt.0d0.and.z.gt.0d0.and.xp.le.0d0.and.zp.ge.0d0) then
+!
+!++  Particle does not hit collimator. Interaction length ZLM is zero.
+!
+!JUNE2005            zlm = 0.
 !JUNE2005          endif
 !GRD
 !JUNE2005          if (x.lt.0d0.and.z.gt.0d0.and.xp.gt.0d0.and.zp.ge.0d0) then
@@ -45342,93 +45565,93 @@ cc2008
  300        continue
             event = 300
             if(z.gt.0d0.and.zp.lt.0d0) goto 500
-! 
-!++  Calculate s-coordinate of interaction point 
-! 
-            s = (-1.0d0*x) / xp 
-            if (s.le.0d0) then 
+!
+!++  Calculate s-coordinate of interaction point
+!
+            s = (-1.0d0*x) / xp
+            if (s.le.0d0) then
 +if cr
-              write(lout,*) 'S.LE.0 -> This should not happen (1)' 
+              write(lout,*) 'S.LE.0 -> This should not happen (1)'
 +ei
 +if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (1)' 
+              write(*,*) 'S.LE.0 -> This should not happen (1)'
 +ei
-              stop 
-            endif 
-! 
-            if (s .lt. length) then 
-              zlm = length - s 
-              impact(j) = 0. 
-              indiv(j) = xp 
-            else 
-              zlm = 0. 
-            endif 
+              stop
+            endif
+!
+            if (s .lt. length) then
+              zlm = length - s
+              impact(j) = 0.
+              indiv(j) = xp
+            else
+              zlm = 0.
+            endif
             goto 999
 !GRD
  400        continue
             event = 400
 !JUNE2005          if (x.lt.0d0.and.z.gt.0d0.and.xp.le.0d0.and.zp.lt.0d0) then
-! 
-!++  Calculate s-coordinate of interaction point 
-! 
-            s = (-1.0d0*z) / zp 
-            if (s.le.0) then 
+!
+!++  Calculate s-coordinate of interaction point
+!
+            s = (-1.0d0*z) / zp
+            if (s.le.0) then
 +if cr
-              write(lout,*) 'S.LE.0 -> This should not happen (2)' 
+              write(lout,*) 'S.LE.0 -> This should not happen (2)'
 +ei
 +if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (2)' 
+              write(*,*) 'S.LE.0 -> This should not happen (2)'
 +ei
-              stop 
-            endif 
-! 
-            if (s .lt. length) then 
-              zlm = length - s 
-              impact(j) = 0. 
-              indiv(j) = zp 
-            else 
-              zlm = 0. 
-            endif 
+              stop
+            endif
+!
+            if (s .lt. length) then
+              zlm = length - s
+              impact(j) = 0.
+              indiv(j) = zp
+            else
+              zlm = 0.
+            endif
 !JUNE2005          endif
-!GRD 
+!GRD
             goto 999
 !GRD
 !GRD
 !JUNE2005          if (x.lt.0d0.and.z.gt.0d0.and.xp.gt.0d0.and.zp.lt.0d0) then
  500        continue
             event = 500
-! 
-!++  Calculate s-coordinate of interaction point 
-! 
-            sx = (-1.0d0*x) / xp 
-            sz = (-1.0d0*z) / zp 
+!
+!++  Calculate s-coordinate of interaction point
+!
+            sx = (-1.0d0*x) / xp
+            sz = (-1.0d0*z) / zp
 !
             if(sx.lt.sz) s=sx
             if(sx.ge.sz) s=sz
 !
-            if (s.le.0d0) then 
+            if (s.le.0d0) then
 +if cr
-              write(lout,*) 'S.LE.0 -> This should not happen (3)' 
+              write(lout,*) 'S.LE.0 -> This should not happen (3)'
 +ei
 +if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (3)' 
+              write(*,*) 'S.LE.0 -> This should not happen (3)'
 +ei
-              stop 
-            endif 
-! 
-            if (s .lt. length) then 
-              zlm = length - s 
-              impact(j) = 0. 
+              stop
+            endif
+!
+            if (s .lt. length) then
+              zlm = length - s
+              impact(j) = 0.
               if(s.eq.sx) then
                 indiv(j) = xp
               else
                 indiv(j) = zp
               endif
-            else 
-              zlm = 0. 
-            endif 
+            else
+              zlm = 0.
+            endif
 !
-!JUNE2005          endif 
+!JUNE2005          endif
 !GRD
 !GRD
  999      continue
@@ -45442,21 +45665,21 @@ cc2008
 !      write(*,*) 'impact! ',impact(j),x,xp,z,zp,s,event
 !          endif
 !JUNE2005
-! 
-!++  First do the drift part 
-! 
-          drift_length = length - zlm 
-          if (drift_length.gt.0.) then 
-            x  = x + xp* drift_length 
-            z  = z + zp * drift_length 
-            sp = sp + drift_length 
-          endif 
-! 
-!++  Now do the scattering part 
-! 
-          if (zlm.gt.0.) then 
-            nhit = nhit + 1 
-!            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP 
+!
+!++  First do the drift part
+!
+          drift_length = length - zlm
+          if (drift_length.gt.0.) then
+            x  = x + xp* drift_length
+            z  = z + zp * drift_length
+            sp = sp + drift_length
+          endif
+!
+!++  Now do the scattering part
+!
+          if (zlm.gt.0.) then
+            nhit = nhit + 1
+!            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
 !DEBUG
 !            write(*,*) 'abs?',s,zlm
 !DEBUG
@@ -45481,7 +45704,7 @@ cc2008
                z  = z + c_aperture/2 + mirror*c_offset
             endif
 !JUNE2005
-            call jaw(s, nabs) 
+            call jaw(s, nabs)
 !DEBUG
 !            write(*,*) 'abs?',nabs
 !DEBUG
@@ -45505,11 +45728,11 @@ cc2008
                z  = z + n_aperture/2 + mirror*c_offset
             endif
 !JUNE2005
-            lhit(j) = 10000*ie + iturn 
-!  
-!++  If particle is absorbed then set x and y to 99.99 mm 
-!  
-            if (nabs.eq.1) then 
+            lhit(j) = 10000*ie + iturn
+!
+!++  If particle is absorbed then set x and y to 99.99 mm
+!
+            if (nabs.eq.1) then
 !APRIL2005
 !TO WRITE FLUKA INPUT CORRECTLY, WE HAVE TO GO BACK IN THE MACHINE FRAME
             if (tiltangle.gt.0.) then
@@ -45526,14 +45749,14 @@ cc2008
 !
             x = x + c_aperture/2 + mirror*c_offset
 !GRD
-!JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK 
+!JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK
 !JUNE2005  TO  THE ACCELERATOR FRAME...
 !            z = z - c_aperture/2 - mirror*c_offset
             z = z - n_aperture/2 - mirror*c_offset
 !JUNE2005
 !
 !++   Last do rotation into collimator frame
-!     
+!
                   x_flk  = -1d0*x
                   y_flk  = -1d0*z
                   xp_flk = -1d0*xp
@@ -45546,71 +45769,71 @@ cc2008
      &nabs,name(j)
               endif
 !APRIL2005
-              fracab = fracab + 1 
-!              x = 99.99*1e-3  
-!              z = 99.99*1e-3  
-              x = 99.99*1.0d-3  
-              z = 99.99*1.0d-3  
-              part_abs(j) = 10000*ie + iturn 
-              lint(j) = zlm 
-            endif 
-          endif 
-! 
-!++  Do the rest drift, if particle left collimator early 
-! 
-          if (nabs.ne.1 .and. zlm.gt.0.) then  
-            drift_length = (length-(s+sp)) 
-!            if (drift_length.gt.1.e-15) then 
-            if (drift_length.gt.1.0d-15) then 
-!              WRITE(*,*) J, DRIFT_LENGTH 
-              x  = x + xp * drift_length 
-              z  = z + zp * drift_length 
-              sp = sp + drift_length 
-            endif 
-            lint(j) = zlm - drift_length 
-          endif 
-!  
-!++  Transform back to particle coordinates with opening and offset  
-!  
-!          if (x.lt.99.0*1e-3 .and. z.lt.99.0*1e-3) then  
-          if (x.lt.99.0*1d-3 .and. z.lt.99.0*1d-3) then  
-!  
-!++  Include collimator tilt 
-! 
-            if (tiltangle.gt.0.) then 
-              x  = x  + tiltangle*c_length 
-              xp = xp + tiltangle 
-            elseif (tiltangle.lt.0.) then 
-              x  = x + tiltangle*c_length 
-              xp = xp + tiltangle 
-! 
+              fracab = fracab + 1
+!              x = 99.99*1e-3
+!              z = 99.99*1e-3
+              x = 99.99*1.0d-3
+              z = 99.99*1.0d-3
+              part_abs(j) = 10000*ie + iturn
+              lint(j) = zlm
+            endif
+          endif
+!
+!++  Do the rest drift, if particle left collimator early
+!
+          if (nabs.ne.1 .and. zlm.gt.0.) then
+            drift_length = (length-(s+sp))
+!            if (drift_length.gt.1.e-15) then
+            if (drift_length.gt.1.0d-15) then
+!              WRITE(*,*) J, DRIFT_LENGTH
+              x  = x + xp * drift_length
+              z  = z + zp * drift_length
+              sp = sp + drift_length
+            endif
+            lint(j) = zlm - drift_length
+          endif
+!
+!++  Transform back to particle coordinates with opening and offset
+!
+!          if (x.lt.99.0*1e-3 .and. z.lt.99.0*1e-3) then
+          if (x.lt.99.0*1d-3 .and. z.lt.99.0*1d-3) then
+!
+!++  Include collimator tilt
+!
+            if (tiltangle.gt.0.) then
+              x  = x  + tiltangle*c_length
+              xp = xp + tiltangle
+            elseif (tiltangle.lt.0.) then
+              x  = x + tiltangle*c_length
+              xp = xp + tiltangle
+!
 +if crlibm
-              x  = x - sin_rn(tiltangle) * c_length 
+              x  = x - sin_rn(tiltangle) * c_length
 +ei
 +if .not.crlibm
-              x  = x - sin(tiltangle) * c_length 
+              x  = x - sin(tiltangle) * c_length
 +ei
-            endif 
-! 
-!++  Transform back to particle coordinates with opening and offset  
-! 
-            z00 = z 
-            x00 = x + mirror*c_offset  
-            x = x + c_aperture/2 + mirror*c_offset  
+            endif
+!
+!++  Transform back to particle coordinates with opening and offset
+!
+            z00 = z
+            x00 = x + mirror*c_offset
+            x = x + c_aperture/2 + mirror*c_offset
 !GRD
-!JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK 
+!JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK
 !JUNE2005  TO  THE ACCELERATOR FRAME...
 !            z = z - c_aperture/2 - mirror*c_offset
             z = z - n_aperture/2 - mirror*c_offset
 !JUNE2005
-!  
-!++  Now mirror at the horizontal axis for negative X offset  
-!  
-            x    = mirror * x  
-            xp   = mirror * xp  
-!  
-!++  Last do rotation into collimator frame  
-!  
+!
+!++  Now mirror at the horizontal axis for negative X offset
+!
+            x    = mirror * x
+            xp   = mirror * xp
+!
+!++  Last do rotation into collimator frame
+!
 !JUNE2005
 !+if crlibm
 !            x_in(j)  = x  *cos_rn(-1.*c_rotation) +                     &
@@ -45619,10 +45842,10 @@ cc2008
 !            x_in(j)  = x  *cos(-1.*c_rotation) +                        &
 !+ei
 !+if crlibm
-!     &z  *sin_rn(-1.*c_rotation)  
+!     &z  *sin_rn(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
-!     &z  *sin(-1.*c_rotation)  
+!     &z  *sin(-1.*c_rotation)
 !+ei
 !+if crlibm
 !            y_in(j)  = z  *cos_rn(-1.*c_rotation) -                     &
@@ -45631,10 +45854,10 @@ cc2008
 !            y_in(j)  = z  *cos(-1.*c_rotation) -                        &
 !+ei
 !+if crlibm
-!     &x  *sin_rn(-1.*c_rotation)  
+!     &x  *sin_rn(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
-!     &x  *sin(-1.*c_rotation)  
+!     &x  *sin(-1.*c_rotation)
 !+ei
 !+if crlibm
 !            xp_in(j) = xp *cos_rn(-1.*c_rotation) +                     &
@@ -45643,95 +45866,95 @@ cc2008
 !            xp_in(j) = xp *cos(-1.*c_rotation) +                        &
 !+ei
 !+if crlibm
-!     &zp *sin_rn(-1.*c_rotation)  
+!     &zp *sin_rn(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
-!     &zp *sin(-1.*c_rotation)  
+!     &zp *sin(-1.*c_rotation)
 !+ei
 !+if crlibm
-!            yp_in(j) = zp *cos_rn(-1.*c_rotation) -                     &  
+!            yp_in(j) = zp *cos_rn(-1.*c_rotation) -                     &
 !+ei
 !+if .not.crlibm
 !            yp_in(j) = zp *cos(-1.*c_rotation) -                        &
 !+ei
 !+if crlibm
-!     &xp *sin_rn(-1.*c_rotation)  
+!     &xp *sin_rn(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
-!     &xp *sin(-1.*c_rotation)  
+!     &xp *sin(-1.*c_rotation)
 !+ei
             x_in(j) = -1d0*x
             y_in(j) = -1d0*z
             xp_in(j) = -1d0*xp
             yp_in(j) = -1d0*zp
 !JUNE2005
-! 
+!
             if ( (icoll.eq.ipencil                                      &
      &.and. iturn.eq.1)   .or.                                          &
      &(iturn.eq.1 .and. ipencil.eq.999 .and.                            &
      &icoll.le.nprim .and.                                              &
      &(j.ge.(icoll-1)*nev/nprim) .and.                                  &
      &(j.le.(icoll)*nev/nprim)                                          &
-     &)  ) then 
-! 
-               x00  = mirror * x00  
+     &)  ) then
+!
+               x00  = mirror * x00
 +if crlibm
                x_in(j)  = x00  *cos_rn(-1.*c_rotation) +                &
 +ei
 +if .not.crlibm
-               x_in(j)  = x00  *cos(-1.*c_rotation) +                   &  
+               x_in(j)  = x00  *cos(-1.*c_rotation) +                   &
 +ei
 +if crlibm
-     &z00  *sin_rn(-1.*c_rotation)  
+     &z00  *sin_rn(-1.*c_rotation)
 +ei
 +if .not.crlibm
-     &z00  *sin(-1.*c_rotation)  
+     &z00  *sin(-1.*c_rotation)
 +ei
 +if crlibm
-               y_in(j)  = z00  *cos_rn(-1.*c_rotation) -                &  
+               y_in(j)  = z00  *cos_rn(-1.*c_rotation) -                &
 +ei
 +if .not.crlibm
-               y_in(j)  = z00  *cos(-1.*c_rotation) -                   & 
+               y_in(j)  = z00  *cos(-1.*c_rotation) -                   &
 +ei
 +if crlibm
-     &x00  *sin_rn(-1.*c_rotation)  
+     &x00  *sin_rn(-1.*c_rotation)
 +ei
 +if .not.crlibm
-     &x00  *sin(-1.*c_rotation)  
+     &x00  *sin(-1.*c_rotation)
 +ei
-! 
-               xp_in(j) = xp_in(j) + mirror*xp_pencil0 
-               yp_in(j) = yp_in(j) + mirror*yp_pencil0 
-               x_in(j) = x_in(j) + mirror*x_pencil(icoll) 
-               y_in(j) = y_in(j) + mirror*y_pencil(icoll) 
-            endif 
-!  
-            p_in(j) = (1 + dpop) * p0  
-            s_in(j) = s_in(j) + sp  
-!  
-          else  
-            x_in(j)  = x  
-            y_in(j)  = z  
-          endif  
-!  
-!++  End of check for particles not being lost before  
-! 
-        endif  
-!  
-!        IF (X.GT.99.00) WRITE(*,*) 'After : ', X, X_IN(J)  
-!  
-!++  End of loop over all particles  
-!  
- 777  end do 
-!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-! 
-!      WRITE(*,*) 'Number of particles:            ', Nev 
-!      WRITE(*,*) 'Number of particle hits:        ', Nhit 
-!      WRITE(*,*) 'Number of absorped particles:   ', fracab  
-!      WRITE(*,*) 'Number of escaped particles:    ', Nhit-fracab  
-!      WRITE(*,*) 'Fraction of absorped particles: ', 100.*fracab/Nhit 
-! 
-      end 
+!
+               xp_in(j) = xp_in(j) + mirror*xp_pencil0
+               yp_in(j) = yp_in(j) + mirror*yp_pencil0
+               x_in(j) = x_in(j) + mirror*x_pencil(icoll)
+               y_in(j) = y_in(j) + mirror*y_pencil(icoll)
+            endif
+!
+            p_in(j) = (1 + dpop) * p0
+            s_in(j) = s_in(j) + sp
+!
+          else
+            x_in(j)  = x
+            y_in(j)  = z
+          endif
+!
+!++  End of check for particles not being lost before
+!
+        endif
+!
+!        IF (X.GT.99.00) WRITE(*,*) 'After : ', X, X_IN(J)
+!
+!++  End of loop over all particles
+!
+ 777  end do
+!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!      WRITE(*,*) 'Number of particles:            ', Nev
+!      WRITE(*,*) 'Number of particle hits:        ', Nhit
+!      WRITE(*,*) 'Number of absorped particles:   ', fracab
+!      WRITE(*,*) 'Number of escaped particles:    ', Nhit-fracab
+!      WRITE(*,*) 'Fraction of absorped particles: ', 100.*fracab/Nhit
+!
+      end
 !
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !
@@ -46253,7 +46476,7 @@ cc2008
          mys(j) = a_st
          myp(j) = b_st
          j = j + 1
-      enddo      
+      enddo
 !++   2nd: give the correct values
       do j=1,mynp
          myp(j) = myenom * (1d0 + myp(j) * en_error)
@@ -46265,8 +46488,7 @@ cc2008
 !
 !========================================================================
 !
-      subroutine readdis(filename_dis, mynp,
-     &     myx, myxp, myy, myyp, myp, mys)
+      subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 !
 !     SR, 09-08-2005
 !     Format for the input file:
@@ -46295,7 +46517,7 @@ cc2008
       open(unit=54, file=filename_dis)
 
       do j=1,mynp
-         read(54,*,end=10) myx(j), myxp(j), myy(j), myyp(j),
+         read(54,*,end=10) myx(j), myxp(j), myy(j), myyp(j),            &
      &        mys(j), myp(j)
       enddo
 
@@ -46673,7 +46895,7 @@ cc2008
 ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
 !
 !MAY06-GRD: found an error in the values for Rutherford cross-sections,
-!as the ones reported here are stated in fm^2 and not in barns, hence 
+!as the ones reported here are stated in fm^2 and not in barns, hence
 !being 100 times too large...
 !      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0 , 0.0035d0/
 !      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0 , 0.034d0/
@@ -47345,9 +47567,15 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.26 2008-11-11 08:54:00 mcintosh Exp $
+! $Id: sixtrack.s,v 1.27 2009-05-14 08:40:22 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.26  2008/11/11 08:54:00  mcintosh
+!
+!   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
+!     -- Small fix to phase trombone from Guillaume and Yun
+!    McIntosh 11th November, 2008
+!
 ! Revision 1.25  2008/10/21 15:49:21  mcintosh
 !
 !   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
@@ -47538,7 +47766,7 @@ cc2008
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
-! Latest version for the collimation studies to include the Beam 2 lattice; 
+! Latest version for the collimation studies to include the Beam 2 lattice;
 ! clean-up of the unit number for output files.
 !
 ! Revision 1.2  1997/09/22 13:45:47  mclareni
@@ -47817,7 +48045,7 @@ cc2008
       if (luxlev .le. maxlev)  then
          nskip = ndskip(luxlev)
 +if cr
-         write(lout,'(A,I2,A,I4)')
+         write(lout,'(A,I2,A,I4)')                                      &
     &' RANLUX LUXURY LEVEL SET BY RLUXGO :',
 +ei
 +if .not.cr
@@ -48310,9 +48538,15 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.26 2008-11-11 08:54:00 mcintosh Exp $
+! $Id: sixtrack.s,v 1.27 2009-05-14 08:40:22 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.26  2008/11/11 08:54:00  mcintosh
+!
+!   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
+!     -- Small fix to phase trombone from Guillaume and Yun
+!    McIntosh 11th November, 2008
+!
 ! Revision 1.25  2008/10/21 15:49:21  mcintosh
 !
 !   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
@@ -48503,7 +48737,7 @@ cc2008
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
 !
-! Latest version for the collimation studies to include the Beam 2 lattice; 
+! Latest version for the collimation studies to include the Beam 2 lattice;
 ! clean-up of the unit number for output files.
 !
 ! Revision 1.1.1.1  1996/04/01 15:02:13  mclareni
@@ -48610,9 +48844,15 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.26 2008-11-11 08:54:00 mcintosh Exp $
+! $Id: sixtrack.s,v 1.27 2009-05-14 08:40:22 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.26  2008/11/11 08:54:00  mcintosh
+!
+!   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
+!     -- Small fix to phase trombone from Guillaume and Yun
+!    McIntosh 11th November, 2008
+!
 ! Revision 1.25  2008/10/21 15:49:21  mcintosh
 !
 !   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
@@ -48802,7 +49042,7 @@ cc2008
 !
 ! Revision 1.2  2006/09/26 15:51:04  robertde
 !
-! Latest version for the collimation studies to include the Beam 2 lattice; 
+! Latest version for the collimation studies to include the Beam 2 lattice;
 ! clean-up of the unit number for output files.
 !
 ! Revision 1.1.1.1  1996/04/01 15:02:14  mclareni
@@ -48817,7 +49057,7 @@ cc2008
 +if crlibm
 +ca crlibco
 +ei
-      integer i 
+      integer i
       real err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
       double precision e5,e6
 
@@ -49102,10 +49342,10 @@ cc2008
  10   continue
       if(mynp.eq.0) then
 +if cr
-        write(lout,*) 
+        write(lout,*)
         write(lout,*) '!!!!! WARNING !!!!!'
         write(lout,*)'beambeamdist.dat is either missing or too small'
-        write(lout,*) 
+        write(lout,*)
         call abend('bnlelens input file error                         ')
       else
         write(lout,*) "Number of samples in the bunch = ",mynp
@@ -49265,7 +49505,7 @@ cc2008
      &crsumtwojx,                                                       &
      &crsumtwojy,                                                       &
      &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
-     &crtotals,                                                         &                        
+     &crtotals,                                                         &
      &(crnamepart(j),j=1,crnapxo)
       endif
 !GRDRHIC
@@ -49321,7 +49561,7 @@ cc2008
           write (93,*) 'CRCHECK read fort.95 EXTENDED OK'
           endfile 93
           backspace 93
-          write(93,*)                                                     &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK leaving fort.95 for CRSTART EXTENDED'
           endfile 93
           backspace 93
@@ -49459,7 +49699,7 @@ cc2008
           write (93,*) 'SIXTRACR CRCHECK read fort.96 EXTENDED OK'
           endfile 93
           backspace 93
-          write(93,*)                                                     &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK, leaving fort.96 for CRSTART EXTENDED'
           endfile 93
           backspace 93
@@ -49506,7 +49746,7 @@ cc2008
      &(crbinrecs(j),j=1,(crnapxo+1)/2)
         endfile 93
         backspace 93
-!--   First we position fort.6 to last checkpoint   
+!--   First we position fort.6 to last checkpoint
   603   read(6,'(a255)',end=604,err=106,iostat=istat) arecord
         sixrecs=sixrecs+1
         if (sixrecs.lt.crsixrecs) goto 603
@@ -49528,7 +49768,7 @@ cc2008
           if (bnlrec.lt.crbnlrec) goto 610
           endfile 52
   608     backspace 52
-          write(93,*)                                                     &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
           endfile 93
           backspace 93
@@ -49537,7 +49777,7 @@ cc2008
           if (bllrec.lt.crbllrec) goto 611
           endfile 53
   609     backspace 53
-          write(93,*)                                                     &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK found fort.53 bllrec=',bllrec
           endfile 93
           backspace 93
@@ -49548,7 +49788,7 @@ cc2008
           if (bnlrec.lt.crbnlrec) goto 610
           endfile 10
   608     backspace 10
-          write(93,*)                                                     &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK found fort.10 bnlrec=',bnlrec
           endfile 93
           backspace 93
@@ -49584,12 +49824,12 @@ cc2008
 +ei
 +if boinc
           call boincrf('fort.94',filename)
-          open(94,file=filename,form='unformatted',status='unknown') 
+          open(94,file=filename,form='unformatted',status='unknown')
 +ei
 +if .not.boinc
-          open(94,file='fort.94',form='unformatted',status='unknown') 
+          open(94,file='fort.94',form='unformatted',status='unknown')
 +ei
-          do 13 ia=1,crnapxo/2,1         
+          do 13 ia=1,crnapxo/2,1
             mybinrecs=0
             binrecs94=0
             myia=91-ia
@@ -49598,7 +49838,7 @@ cc2008
 !--   Reset the number of turns (not very elegant)
             hbuff(51)=numl
             write(94,err=105,iostat=istat) hbuff
-            do 14 j=2,crbinrecs(ia) 
+            do 14 j=2,crbinrecs(ia)
               if(ntwin.ne.2) then
                 read(91-ia,err=105,end=105,iostat=istat)                &
      &(tbuff(k),k=1,17)
@@ -49626,8 +49866,8 @@ cc2008
               binrecs94=binrecs94+1
    15       continue
    17       endfile 91-ia
-            backspace 91-ia 
-            rewind 94            
+            backspace 91-ia
+            rewind 94
    13     continue
           close(94)
 +if bnlelens
@@ -49637,7 +49877,7 @@ cc2008
 !GRDRHIC
 !GRD-042008
 +ei
-        else 
+        else
 !--  Now with the new array crbinrecs we can ignore files which are
 !--  basically finished because a particle has been lost.......
 !--  Just check crbinrecs against crbinrec
@@ -49730,13 +49970,13 @@ cc2008
 !--   we will just overwrite it for now and delete
 !--   92 to avoid abend copying it again
           write(93,*)                                                   &
-     &'SIXTRACR CRCHECK overwriting fort.6' 
+     &'SIXTRACR CRCHECK overwriting fort.6'
           endfile 93
           backspace 93
         endif
 !--   and just use fort.6 from now on
         write(93,*)                                                     &
-     &'SIXTRACR CRCHECK giving up on LOUT' 
+     &'SIXTRACR CRCHECK giving up on LOUT'
         endfile 93
         backspace 93
 !--   Copy the lout to fort.6
@@ -49954,7 +50194,7 @@ cc2008
         if (ncalls.le.5) then
 !ERIC new extended checkpoint for synuthck
           write (93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.95'
-          endfile 93 
+          endfile 93
           backspace 93
         endif
         write(95,err=100,iostat=istat)                                  &
@@ -50139,7 +50379,7 @@ cc2008
 +if debug
 !ERIC
 !     call dump('1st Checkpoint',numx,i)
-!     call abend('SIXTRACR CHECKPOINT written                       ')      
+!     call abend('SIXTRACR CHECKPOINT written                       ')
 +ei
   104 return
   100 write(93,*)                                                       &
@@ -50311,10 +50551,10 @@ cc2008
 !       write (93,*) 'CRSTART DEBUG DUMP'
 !       call dump('Before xcrstart',0,0)
 !       endfile 93
-!       backspace 93        
+!       backspace 93
 !       write (93,*) 'CRSTART reading EXTENDED vars'
 !       endfile 93
-!       backspace 93        
+!       backspace 93
 !       if (read95) then
 !         i=1
 !         read(95,end=100,err=100,iostat=istat)                         &
@@ -50330,94 +50570,94 @@ cc2008
 !    &(afok(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(as3(j),j=1,napxo)                                               
+!    &(as3(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(as4(j),j=1,napxo)                                               
+!    &(as4(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(as6(j),j=1,napxo)                                               
+!    &(as6(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(co(j),j=1,napxo)                                                
+!    &(co(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(dpd(j),j=1,napxo)                                               
+!    &(dpd(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(dpsq(j),j=1,napxo)                                              
+!    &(dpsq(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(fi(j),j=1,napxo)                                                
+!    &(fi(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(fok(j),j=1,napxo)                                               
+!    &(fok(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(fok1(j),j=1,napxo)                                              
+!    &(fok1(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(fokqv(j),j=1,napxo)                                             
+!    &(fokqv(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(g(j),j=1,napxo)                                                 
+!    &(g(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(gl(j),j=1,napxo)                                                
+!    &(gl(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(hc(j),j=1,napxo)                                                
+!    &(hc(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(hi(j),j=1,napxo)                                                
+!    &(hi(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(hi1(j),j=1,napxo)                                               
+!    &(hi1(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(hm(j),j=1,napxo)                                                
+!    &(hm(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(hp(j),j=1,napxo)                                                
+!    &(hp(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(hs(j),j=1,napxo)                                                
+!    &(hs(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(rho(j),j=1,napxo)                                               
+!    &(rho(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(rhoc(j),j=1,napxo)                                              
+!    &(rhoc(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(rhoi(j),j=1,napxo)                                              
+!    &(rhoi(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(si(j),j=1,napxo)                                                
+!    &(si(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(siq(j),j=1,napxo)                                               
+!    &(siq(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(sm1(j),j=1,napxo)                                               
+!    &(sm1(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(sm12(j),j=1,napxo)                                              
+!    &(sm12(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(sm2(j),j=1,napxo)                                               
+!    &(sm2(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(sm23(j),j=1,napxo)                                              
+!    &(sm23(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(sm3(j),j=1,napxo)                                               
+!    &(sm3(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(wf(j),j=1,napxo)                                                
+!    &(wf(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
-!    &(wfa(j),j=1,napxo)                                               
+!    &(wfa(j),j=1,napxo)
 !         i=i+1
 !         read(95,end=100,err=100,iostat=istat)                         &
 !    &(wfhi(j),j=1,napxo)
@@ -50508,7 +50748,7 @@ cc2008
       backspace 93
           go to 102
         endif
-  100   write(93,*)                                                       &
+  100   write(93,*)                                                     &
      &'SIXTRACR CRSTART COULD NOT READ CHECKPOINT FILE 95 (extended)',  &
      &' iostat=',istat
 +if debug
@@ -50518,7 +50758,7 @@ cc2008
 !       backspace 93
 +ei
         go to 103
-  101   write(93,*)                                                       &
+  101   write(93,*)                                                     &
      &'SIXTRACR CRSTART COULD NOT READ CHECKPOINT FILE 96 (extended)',  &
      &' iostat=',istat
   103   endfile 93
@@ -50600,7 +50840,7 @@ cc2008
      &(dpsv1(j),j=1,k)
       endfile 99
       backspace 99
-      end 
+      end
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -50648,7 +50888,7 @@ cc2008
      &(namepart(j),j=1,napx)
       endfile 99
       backspace 99
-      end 
+      end
 !GRDRHIC
 !GRD-042008
 +ei
@@ -50723,7 +50963,7 @@ cc2008
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
       endfile 99
       backspace 99
-      end 
+      end
       subroutine dump(dumpname,n,i)
       implicit none
 +ca crcoall
@@ -50802,7 +51042,7 @@ cc2008
       write(99,*) 'strackc',strackc
       write(99,*) 'stracks',stracks
       write(99,*) 'dpsv1',dpsv1
-! 
+!
       write(99,*) 'ierro ',ierro
       write(99,*) 'erbez ',erbez
       write(99,*) 'pi ',pi
@@ -51344,7 +51584,7 @@ cc2008
 +ei
       stop
     4 write(93,*)                                                       &
-     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat 
+     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
       write(6,*)                                                        &
      &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
 +if boinc
