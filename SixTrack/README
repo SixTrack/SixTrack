@@ -5,6 +5,7 @@ the new text into the CVS notes when requested.
   SixTrack Version: 4.2.1 Revision 1.28 frs
     -- Fixed computed go to dipedge element
     -- Got rid of some warnings in crlibm/csh_fast.c
+    -- New make_six for 32/64-bit MACHTYPE with SLC4/SLC5
   Frank Schmidt 6th July, 2009
 
   SixTrack Version: 4.2.0 Revision 1.27 frs

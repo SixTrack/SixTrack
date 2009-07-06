@@ -17,6 +17,9 @@
 # all types of make.
 # Version 2.1 Adds bignblz option for Frank.
 #
+# July, 2009. Updated all libraries etc to use Frank's cernlib and X11 libraries
+# if they are not present (SLC5!). Also verified correct linking on 32/64 bit
+# systems, SLC4 and SLC5.    A NIGHTMARE!!!
 # Default: tilt tracking fast crlibm cernlib naglib -bpm -windows -da -collimat -bnlelens -cpss -boinc -cr
 # and uses the Lahey-Fujitsu lf95 compiler 
 
@@ -410,13 +413,29 @@ then
 else
   export FC="lf95"
   export FCF="--o1 --tp -Wa,--32"
-  ls -l /usr/lib/gcc/i386-redhat-linux/3.4.6/libgcc_eh.a > /dev/null 2>&1
-  if test $? -ne 0
+  export FCL="-static -m32"
+  if test "$MACHTYPE" = "x86_64"
   then
-    export FCL="-static -m32"
+    ls -l /usr/lib/gcc/x86_64-redhat-linux/4.1.1/32/libgcc_eh.a > /dev/null 2>&1
+    if test $? -ne 0
+    then
+      export FCL="-static -m32"
+    else
+      export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
+    fi
+  elif test "$MACHTYPE" = "i386"
+  then
+    ls -l /usr/lib/gcc/i386-redhat-linux/4.1.1/libgcc_eh.a > /dev/null 2>&1
+    if test $? -ne 0
+    then
+      export FCL="-static -m32"
+    else
+      export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
+    fi
   else
-    export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lgcc_eh"
-  fi
+    echo "Unknow MACHTYPE $MACHTYPE"
+    exit 2
+  fi 
 fi
 
 if test "$OSTYPE" = "darwin"
@@ -564,27 +583,40 @@ done
 # Now sort out cernlib
 if test "$cernlib" != ""
 then
-  if test "$sysname" = "Current sysname is 'i386_linux26'"
+  if test "$OSTYPE" = "linux"
   then
-    #SLC4 32 machine
-    export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/i386-redhat-linux/3.4.3 -lg2c -L/usr/lib -lpthread"
-  elif test "$sysname" = "Current sysname is 'amd64_linux26'"
-  then
-    #SLC4 64 machine but SLC4 or SLC5???
     ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
-    if test $? -ne 0
+    stat1=$?
+    ls -l /usr/X11R6/lib/libX11.a > /dev/null 2>&1
+    stat2=$?
+    if test $stat1 -eq 0 -a $stat2 -eq 0
     then
-      # if it isn't there we assume SLC5 and use Frank's version
-      export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+      if test "$MACHTYPE" = "i386"
+      then
+        export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
+      elif test "$MACHTYPE" = "x86_64"
+      then
+        export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c -L/usr/lib -lpthread"
+      else
+        echo "Unknown MACHTYPE $MACHTYPE!!"
+        exit 2
+      fi
     else
-      export CERNLIB="`/cern/pro/bin/cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+      if test "$MACHTYPE" = "i386"
+      then
+        export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
+      elif test "$MACHTYPE" = "x86_64"
+      then
+        export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c -L/usr/lib -lpthread"
+      else
+        echo "Unknown MACHTYPE $MACHTYPE!!"
+      fi
     fi
   elif test "$OSTYPE" = "darwin"
   then
     export CERNLIB="`/sw/bin/cernlib -u graflib packlib kernlib` -lg2c -lpthread"
   else
-    echo "CERNLIB cannot be found for your machine. SixTrack linking not possible!"
-    echo "You could maybe try with -cernlib (no graphics)."
+    echo "Unrecognised OSTYPE $OSTYPE (not linux or darwin)"
     exit 2
   fi
 fi
