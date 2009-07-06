@@ -2,7 +2,7 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.00'/
+      data version /'4.2.01'/
       data moddate /'30.04.2009'/
 +cd rhicelens
 !GRDRHIC
@@ -14090,7 +14090,7 @@ cc2008
 +ca alignf
           if(kzz.lt.0) goto 370
           goto(140,150,160,170,180,190,200,210,220,230,240,480,480,480, &
-     &         480,480,480,480,480,480,480,480,480,325),kzz
+     &         480,480,480,480,480,480,480,480,480,235),kzz
           goto 480
 !--HORIZONTAL DIPOLE
   140     continue
@@ -47567,9 +47567,13 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.27 2009-05-14 08:40:22 frs Exp $
+! $Id: sixtrack.s,v 1.28 2009-07-06 10:10:25 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.27  2009/05/14 08:40:22  frs
+! Adding dipedge element which allows to track all relevent elements
+! except the solenoids
+!
 ! Revision 1.26  2008/11/11 08:54:00  mcintosh
 !
 !   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
@@ -48538,9 +48542,13 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.27 2009-05-14 08:40:22 frs Exp $
+! $Id: sixtrack.s,v 1.28 2009-07-06 10:10:25 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.27  2009/05/14 08:40:22  frs
+! Adding dipedge element which allows to track all relevent elements
+! except the solenoids
+!
 ! Revision 1.26  2008/11/11 08:54:00  mcintosh
 !
 !   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
@@ -48844,9 +48852,13 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.27 2009-05-14 08:40:22 frs Exp $
+! $Id: sixtrack.s,v 1.28 2009-07-06 10:10:25 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.27  2009/05/14 08:40:22  frs
+! Adding dipedge element which allows to track all relevent elements
+! except the solenoids
+!
 ! Revision 1.26  2008/11/11 08:54:00  mcintosh
 !
 !   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh

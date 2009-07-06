@@ -67,7 +67,11 @@ double do_cosh(double x, int rounding_mode){
   int table_index;
   double temp_hi, temp_lo, temp;/* some temporary variables */
   double b_hi, b_lo,b_ca_hi, b_ca_lo, b_sa_hi, b_sa_lo;
-  double ca_hi, ca_lo, sa_hi, sa_lo; /*will be the tabulated values */
+  /* Initialised to avoid warning messages */
+  double ca_hi = 0.; /*will be the tabulated values */
+  double ca_lo = 0.; /*will be the tabulated values */
+  double sa_hi = 0.; /*will be the tabulated values */
+  double sa_lo = 0.; /*will be the tabulated values */
   double tcb_hi, tsb_hi; /*results of polynomial approximations*/
   double square_b_hi;
   double ch_2_pk_hi, ch_2_pk_lo, ch_2_mk_hi, ch_2_mk_lo;
