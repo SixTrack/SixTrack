@@ -444,7 +444,7 @@ then
   echo "MAC setup"
   export FCL="-m32"
   echo "Operating system: ",$OSTYPE
-  export gfortran_lib="/sw/lib/gcc4.2/lib/libgfortran.a"
+  export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
 else
   echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
 fi
