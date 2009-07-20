@@ -10,12 +10,12 @@ astuce: astuce.o
 	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
 
 %%SIXTRACK%%: track.o sixve.o sixvefox.o dabnews.o lielib.o $(BOINC) $(CRLIBM)
-	$(FC) $(FCL) -Wl,--print-map -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o \
+	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o \
 	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib) > sixtrack.map 2>&1
 
 %%SIXTRACK_DA%%: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
-	$(FC) $(FCL) -o %%SIXTRACK_DA%% sixda.o sixsc.o sixscfox.o dabnew.o lielib.o \
-	$(NAGLIB) $(CRLIBM) $(gfortran_lib)
+	$(FC) $(FCLMAP) -o %%SIXTRACK_DA%% sixda.o sixsc.o sixscfox.o dabnew.o lielib.o \
+	$(NAGLIB) $(CRLIBM) $(gfortran_lib) > sixtrack_da.map 2>&1
 
 clean: 
 	rm -f *.ast *.s *.f *.c *.o %%SIXTRACK%% %%SIXTRACK_DA%%

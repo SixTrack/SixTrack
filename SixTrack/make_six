@@ -403,7 +403,7 @@ then
 elif test "$g95" = ""
 then
   export FC="g95"
-  export FCF="-O -Wa,--32 -g -fno-second-underscore -funroll-loops"
+  export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
   export FCL="-static -m32"
 elif test "$gfortran" = ""
 then
@@ -437,6 +437,7 @@ else
     exit 2
   fi 
 fi
+export FCLMAP="-Wl,--print_map $FCL"
 
 if test "$OSTYPE" = "darwin"
 then
@@ -445,6 +446,12 @@ then
   export FCL="-m32"
   echo "Operating system: ",$OSTYPE
   export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
+  if test "$da" != ""
+  then
+    export FCLMAP="-Wl,-map sixtrack.map $FCL"
+  else
+    export FCLMAP="-Wl,-map sixtrack_da.map $FCL"
+  fi
 else
   echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
 fi
@@ -614,7 +621,8 @@ then
     fi
   elif test "$OSTYPE" = "darwin"
   then
-    export CERNLIB="`/sw/bin/cernlib -u graflib packlib kernlib` -lg2c -lpthread"
+    export CERN_ROOT="/sw"
+    export CERNLIB="`$CERN_ROOT/bin/cernlib -u graflib packlib kernlib` -lg2c -lpthread"
   else
     echo "Unrecognised OSTYPE $OSTYPE (not linux or darwin)"
     exit 2
