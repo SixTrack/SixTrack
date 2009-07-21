@@ -404,7 +404,12 @@ elif test "$g95" = ""
 then
   export FC="g95"
   export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
-  export FCL="-static -m32"
+  if test "$MACHTYPE" = "i586"
+  then
+    export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
+  else
+    export FCL="-static -m32"
+  fi
 elif test "$gfortran" = ""
 then
   export FC="gfortran"
@@ -432,12 +437,21 @@ else
     else
       export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
     fi
+  elif test "$MACHTYPE" = "i586"
+  then
+    export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
   else
     echo "Unknow MACHTYPE $MACHTYPE"
     exit 2
   fi 
 fi
-export FCLMAP="-Wl,--print_map $FCL"
+
+if test "$MACHTYPE" = "i586"
+then
+  export FCLMAP="$FCL"
+else
+  export FCLMAP="-Wl,--print_map $FCL"
+fi
 
 if test "$OSTYPE" = "darwin"
 then
@@ -612,6 +626,15 @@ then
       if test "$MACHTYPE" = "i386"
       then
         export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
+      elif test "$MACHTYPE" = "i586"
+      then
+        export FCLMAP="-static -m32"
+        export CERNLIB="-L/usr/lib/cernlib/2006/lib/ -lgraflib -lgrafX11 -lpacklib -lkernlib -L/usr/lib/gcc/i586-redhat-linux/3.4.6 -lg2c -L/usr/lib -lX11 -lxcb -lxcb-glx -lXau -lXdmcp -ldl" 
+        export CERNLIB+=" -lpthread -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc -lgcc_eh"
+        if test "$gfortran" != ""
+        then
+          export CERNLIB+=" -lgfortran"
+        fi
       elif test "$MACHTYPE" = "x86_64"
       then
         export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c -L/usr/lib -lpthread"
