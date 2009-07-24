@@ -2,7 +2,7 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.01'/
+      data version /'4.2.02'/
       data moddate /'30.04.2009'/
 +cd rhicelens
 !GRDRHIC
@@ -1186,6 +1186,10 @@
         strackz(i)=ek(IX)*tiltc(i)
         strackc(i)=ek(IX)*tilts(i)
 +ei
++cd solenoid
+        strack(i)=zero
+        strackx(i)=ed(IX)
+        strackz(i)=ek(IX)
 +cd stra03
 +if .not.tilt
         strack(i)=smiv(1,i)*c1m3
@@ -1326,6 +1330,19 @@
 *FOX  Y(2)=Y(2)+(EK(IX)*TILTC(I)*CIKVE+ED(IX)*TILTS(I)*CRKVE)/
 *FOX  (ONE+DPDA) ;
 +ei
++cd kickfso1
+*FOX  Y(1)=Y(1)-X(2)*ED(IX) ;
+*FOX  Y(2)=Y(2)+X(1)*ED(IX) ;
+*FOX  CRKVE=Y(1)-X(1)*ED(IX)*EK(IX) ;
+*FOX  CIKVE=Y(2)-X(2)*ED(IX)*EK(IX) ;
+*FOX  Y(1)=CRKVE*COS(EK(IX))+CIKVE*SIN(EK(IX)) ;
+*FOX  Y(2)=-CRKVE*SIN(EK(IX))+CIKVE*COS(EK(IX)) ;
+*FOX  CRKVE=X(1)*COS(EK(IX))+X(2)*SIN(EK(IX)) ;
+*FOX  CIKVE=-X(1)*SIN(EK(IX))+X(2)*COS(EK(IX)) ;
+*FOX  X(1)=CRKVE ;
+*FOX  X(2)=CIKVE ;
+*FOX  Y(1)=Y(1)+X(2)*ED(IX) ;
+*FOX  Y(2)=Y(2)-X(1)*ED(IX) ;
 +cd kickf01v
 +if .not.tilt
 *FOX  Y(2)=Y(2)+EKK ;
@@ -1457,6 +1474,31 @@
             yv(2,j)=yv(2,j)+oidpsv(j)*(strackz(i)*cikve+                &
      &strackc(i)*crkve)
 +ei
++cd kickvso1
+            yv(1,j)=yv(1,j)-xv(2,j)*strackx(i)
+            yv(2,j)=yv(2,j)+xv(1,j)*strackx(i)
+            crkve=yv(1,j)-xv(1,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
+            cikve=yv(2,j)-xv(2,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
+            yv(1,j)=crkve*cos(strackz(i)*ejf0v(j)/ejfv(j))+             &
+     &cikve*sin(strackz(i)*ejf0v(j)/ejfv(j))
+            yv(2,j)=-crkve*sin(strackz(i)*ejf0v(j)/ejfv(j))+            &
+     &cikve*cos(strackz(i)*ejf0v(j)/ejfv(j))
+            crkve=xv(1,j)*cos(strackz(i)*ejf0v(j)/ejfv(j))+             &
+     &xv(2,j)*sin(strackz(i)*ejf0v(j)/ejfv(j))
+            cikve=-xv(1,j)*sin(strackz(i)*ejf0v(j)/ejfv(j))+            &
+     &xv(2,j)*cos(strackz(i)*ejf0v(j)/ejfv(j))
+            xv(1,j)=crkve
+            xv(2,j)=cikve
+            yv(1,j)=yv(1,j)+xv(2,j)*strackx(i)
+            yv(2,j)=yv(2,j)-xv(1,j)*strackx(i)
++cd kickvso2
+            crkve=sigmv(j)-0.5*(xv(1,j)*xv(1,j)+xv(2,j)*xv(2,j))*       &
+     &strackx(i)*strackz(i)*rvv(j)*ejf0v(j)/ejfv(j)*ejf0v(j)/ejfv(j)
+            sigmv(j)=crkve
+            crkve=yv(1,j)-xv(1,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
+            cikve=yv(2,j)-xv(2,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
+            sigmv(j)=sigmv(j)+(xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i)* &
+     &rvv(j)*ejf0v(j)/ejfv(j)*ejf0v(j)/ejfv(j)
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -1503,6 +1545,13 @@
         dyy1=(ed(IX)*tiltc(k)*crkve-ek(IX)*tilts(k)*cikve)/(one+dpp)
         dyy2=(ek(IX)*tiltc(k)*cikve+ed(IX)*tilts(k)*crkve)/(one+dpp)
 +ei
++cd kicklso1
+            crkve=y(1,1)-x(1,1)*ed(IX)*ek(IX)/(one+dpp)
+            cikve=y(1,2)-x(1,2)*ed(IX)*ek(IX)/(one+dpp)
+            dyy1=crkve*cos(ek(IX)/(one+dpp))+                           &
+     &cikve*sin(ek(IX)/(one+dpp))-y(1,1)
+            dyy2=-crkve*sin(ek(IX)/(one+dpp))+                          &
+     &cikve*cos(ek(IX)/(one+dpp))-y(1,2)
 +cd kickl01v
 +if .not.tilt
         dyy1=zero
@@ -1555,6 +1604,15 @@
         y(1,1)=y(1,1)+tiltc(k)*dyy1-tilts(k)*dyy2
         y(1,2)=y(1,2)+tiltc(k)*dyy2+tilts(k)*dyy1
 +ei
++cd kickuso1
+            crkve=y(1,1)-x(1,1)*ed(IX)*ek(IX)/(one+dpp)
+            cikve=y(1,2)-x(1,2)*ed(IX)*ek(IX)/(one+dpp)
+            dyy1=crkve*cos(ek(IX)/(one+dpp))+                           &
+     &cikve*sin(ek(IX)/(one+dpp))-y(1,1)
+            dyy2=-crkve*sin(ek(IX)/(one+dpp))+                          &
+     &cikve*cos(ek(IX)/(one+dpp))-y(1,2)
+        y(1,1)=y(1,1)+dyy1
+        y(1,2)=y(1,2)+dyy2
 +cd kicku01v
 +if .not.tilt
         y(1,2)=y(1,2)+ekk
@@ -1605,6 +1663,9 @@
         quz=-ek(IX)*tiltck/(one+dpp)
         qvz=ek(IX)*tiltsk/(one+dpp)
 +ei
++cd kickqso1
+        qu=ed(IX)
+        qv=ek(IX)
 +cd kickq03h
 +if .not.tilt
         qu=ekk*two*crkve
@@ -1850,6 +1911,16 @@
         quz=-ek(IX)*tiltck/(one+dpp)
         qvz=ek(IX)*tiltsk/(one+dpp)
 +ei
++cd kickaso1
+            crkve=y(1,1)-x(1,1)*ed(IX)*ek(IX)/(one+dpp)
+            cikve=y(1,2)-x(1,2)*ed(IX)*ek(IX)/(one+dpp)
+            dyy1=crkve*cos(ek(IX)/(one+dpp))+                           &
+     &cikve*sin(ek(IX)/(one+dpp))-y(1,1)
+            dyy2=-crkve*sin(ek(IX)/(one+dpp))+                          &
+     &cikve*cos(ek(IX)/(one+dpp))-y(1,2)
+        mpe=20
+        qu=ed(IX)
+        qv=ek(IX)
 +cd kicka03h
 +if .not.tilt
         mpe=3
@@ -9728,6 +9799,10 @@ cc2008
       if(ch(17:17).ne." ") call prror(104)
       call intepr(1,1,ch,ch1)
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i)
+      if(kz(i).eq.25) then
+        ed(i)=ed(i)/two
+        ek(i)=ek(i)/two
+      endif
 !--CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
       if((kz(i).eq.4.or.kz(i).eq.5).and.abs(el(i)).gt.pieni)            &
      &ed(i)=-ed(i)
@@ -14090,7 +14165,7 @@ cc2008
 +ca alignf
           if(kzz.lt.0) goto 370
           goto(140,150,160,170,180,190,200,210,220,230,240,480,480,480, &
-     &         480,480,480,480,480,480,480,480,480,235),kzz
+     &         480,480,480,480,480,480,480,480,480,235,236),kzz
           goto 480
 !--HORIZONTAL DIPOLE
   140     continue
@@ -14180,6 +14255,10 @@ cc2008
 !--DIPEDGE ELEMENT
   235     continue
 +ca kickfdpe
+          goto 480
+!--solenoid
+  236     continue
++ca kickfso1
           goto 480
   240     r0=ek(ix)
           nmz=nmu(ix)
@@ -15067,7 +15146,7 @@ cc2008
 +ca alignf
         if(kzz.lt.0) goto 320
         goto(90,100,110,120,130,140,150,160,170,180,190,440,440,440,    &
-     &       440,440,440,440,440,440,440,440,440,185),kzz
+     &       440,440,440,440,440,440,440,440,440,185,186),kzz
         goto 440
 !--HORIZONTAL DIPOLE
    90   continue
@@ -15157,6 +15236,10 @@ cc2008
 !--DIPEDGE ELEMENT
   185   continue 
 +ca kickfdpe
+        goto 440
+!--solenoid
+  186   continue 
++ca kickfso1
         goto 440
   190   r0=ek(ix)
         nmz=nmu(ix)
@@ -18342,7 +18425,7 @@ cc2008
         endif
         if(kzz.lt.0) goto 180
         goto(50,60,70,80,90,100,110,120,130,140,150,290,290,290,        &
-     &       290,290,290,290,290,290,290,290,290,145),kzz
+     &       290,290,290,290,290,290,290,290,290,145,146),kzz
         ktrack(i)=31
         goto 290
    50   if(abs(smiv(1,i)).le.pieni) then
@@ -18419,6 +18502,11 @@ cc2008
   145   continue 
 +ca stra2dpe
         ktrack(i)=55
+        goto 290
+!--solenoid
+  146   continue 
++ca solenoid
+        ktrack(i)=56
         goto 290
   150   r0=ek(ix)
         nmz=nmu(ix)
@@ -20195,7 +20283,7 @@ cc2008
           goto(10,630,740,630,630,630,630,630,630,630,30,50,70,90,110,  &
      &130,150,170,190,210,420,440,460,480,500,520,540,560,580,600,      &
      &620,390,230,250,270,290,310,330,350,370,680,700,720,630,748,      &
-     &630,630,630,630,630,745,746,751,752,753),ktrack(i)
+     &630,630,630,630,630,745,746,751,752,753,754),ktrack(i)
           goto 630
    10     stracki=strack(i)
           do 20 j=1,napx
@@ -20528,6 +20616,12 @@ cc2008
          do j=1,napx
 +ca alignva
 +ca kickvdpe
+         enddo
+          goto 620
+!--solenoid
+  754      continue
+         do j=1,napx
++ca kickvso1
          enddo
           goto 620
 
@@ -20928,7 +21022,7 @@ cc2008
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752,753),ktrack(i)
+     &650,650,650,650,650,745,746,751,752,753,754),ktrack(i)
           goto 650
 +ei
 +if collimat
@@ -22876,6 +22970,13 @@ cc2008
 +ca kickvdpe
           enddo
           goto 640
+!--solenoid
+  754     continue
+          do j=1,napx
++ca kickvso1
++ca kickvso2
+          enddo
+          goto 640
 
 !----------------------------
 
@@ -23753,7 +23854,7 @@ cc2008
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752,753),ktrack(i)
+     &650,650,650,650,650,745,746,751,752,753,754),ktrack(i)
           goto 650
    10     stracki=strack(i)
           do 20 j=1,napx
@@ -24137,6 +24238,13 @@ cc2008
           do j=1,napx
 +ca alignva
 +ca kickvdpe
+          enddo
+          goto 640
+!--solenoid
+  754     continue
+          do j=1,napx
++ca kickvso1
++ca kickvso2
           enddo
           goto 640
 
@@ -24822,7 +24930,7 @@ cc2008
         endif
         if(kzz.lt.0) goto 180
         goto(50,60,70,80,90,100,110,120,130,140,150,290,290,290,        &
-     &       290,290,290,290,290,290,290,290,290,145),kzz
+     &       290,290,290,290,290,290,290,290,290,145,146),kzz
         ktrack(i)=31
         goto 290
    50   if(abs(smiv(1,i)).le.pieni) then
@@ -24899,6 +25007,11 @@ cc2008
   145   continue 
 +ca stra2dpe
         ktrack(i)=55
+        goto 290
+!--solenoid
+  146   continue 
++ca solenoid
+        ktrack(i)=56
         goto 290
   150   r0=ek(ix)
         nmz=nmu(ix)
@@ -25169,8 +25282,8 @@ cc2008
 !----------count=43
             goto(20,480,740,480,480,480,480,480,480,480,40,60,80,100,   &
      &120,140,160,180,200,220,270,290,310,330,350,370,390,410,          &
-     &430,450,470,240,500,520,540,560,580,600,620,640,680,700           &
-     &,720,480,748,480,480,480,480,480,745,746,751,752,753),ktrack(i)
+     &430,450,470,240,500,520,540,560,580,600,620,640,680,700,720,      &
+     &480,748,480,480,480,480,480,745,746,751,752,753,754),ktrack(i)
             goto 480
    20       do 30 j=1,napx
               puxve=xv(1,j)
@@ -25514,6 +25627,12 @@ cc2008
 +ca kickvdpe
           enddo
           goto 470
+!--solenoid
+  754     continue
+          do j=1,napx
++ca kickvso1
+          enddo
+          goto 470
 
 !----------------------------
 
@@ -25668,7 +25787,7 @@ cc2008
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752,753,754),ktrack(i)
             goto 500
    20       jmel=mel(ix)
 +if bnlelens
@@ -26109,6 +26228,13 @@ cc2008
 +ca kickvdpe
           enddo
           goto 490
+!--solenoid
+  754     continue
+          do j=1,napx
++ca kickvso1
++ca kickvso2
+          enddo
+          goto 490
 
 !----------------------------
 
@@ -26271,7 +26397,7 @@ cc2008
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752,753,754),ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do 30 jb=1,jmel
@@ -26664,6 +26790,13 @@ cc2008
           do j=1,napx
 +ca alignva
 +ca kickvdpe
+          enddo
+          goto 490
+!--solenoid
+  754     continue
+          do j=1,napx
++ca kickvso1
++ca kickvso2
           enddo
           goto 490
 
@@ -32960,7 +33093,7 @@ cc2008
 +ca alignl
         if(kzz.lt.0) goto 370
         goto(230,240,250,260,270,280,290,300,310,320,330,500,500,500,   &
-     &       500,500,500,500,500,500,500,500,500,325),kzz
+     &       500,500,500,500,500,500,500,500,500,325,326),kzz
 +if collimat.and..not.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
@@ -33063,6 +33196,11 @@ cc2008
  325    continue
 +ca kickldpe
 +ca kickqdpe
+        goto 480
+!--solenoid
+ 326    continue
++ca kicklso1
++ca kickqso1
         goto 480
   330   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -33223,11 +33361,21 @@ cc2008
         t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 490 i=2,ium
-          t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-          if(kzz.ne.24) then
-            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.eq.24) then
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
+          elseif(kzz.eq.25) then
+            crkve=t(i,2)-t(i,1)*qu*qv 
+            cikve=t(i,4)-t(i,3)*qu*qv 
+            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
+            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
+            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
+            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
+            t(i,1)=crkve 
+            t(i,3)=cikve 
           else
-            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
           endif
   490   continue
         nr=nr+1
@@ -35263,7 +35411,7 @@ cc2008
 +ca alignl
         if(kzz.lt.0) goto 310
         goto(170,180,190,200,210,220,230,240,250,260,270,450,450,450,   &
-     &       450,450,450,450,450,450,450,450,450,265),kzz
+     &       450,450,450,450,450,450,450,450,450,265,266),kzz
         goto 450
 !--HORIZONTAL DIPOLE
   170   ekk=ekk*c1e3
@@ -35355,6 +35503,11 @@ cc2008
   265   continue    
 +ca kickldpe
 +ca kickqdpe
+        goto 420
+!--solenoid
+  266   continue    
++ca kicklso1
++ca kickqso1
         goto 420
   270   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -35495,11 +35648,21 @@ cc2008
         t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 430 i=2,ium
-          t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-          if(kzz.ne.24) then
-            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.eq.24) then
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
+          elseif(kzz.eq.25) then
+            crkve=t(i,2)-t(i,1)*qu*qv 
+            cikve=t(i,4)-t(i,3)*qu*qv 
+            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
+            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
+            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
+            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
+            t(i,1)=crkve 
+            t(i,3)=cikve 
           else
-            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
           endif
   430   continue
         do 440 l=1,2
@@ -36288,7 +36451,7 @@ cc2008
 +ca alignu
         if(kzz.lt.0) goto 220
         goto(80,90,100,110,120,130,140,150,160,170,180,350,350,350,     &
-     &       350,350,350,350,350,350,350,350,350,175),kzz
+     &       350,350,350,350,350,350,350,350,350,175,176),kzz
         goto 350
 !--HORIZONTAL DIPOLE
    80   ekk=ekk*c1e3
@@ -36405,6 +36568,12 @@ cc2008
 +ca kickudpe
         if(ium.eq.1) goto 350
 +ca kickqdpe
+         goto 330
+!--solenoid
+  176   continue
++ca kickuso1
+        if(ium.eq.1) goto 350
++ca kickqso1
          goto 330
   180   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -36570,11 +36739,21 @@ cc2008
         if(ium.eq.1) goto 350
   330   continue
         do 340 j=2,ium
-          y(j,1)=y(j,1)+x(j,1)*qu-qv*x(j,2)
-          if(kzz.ne.24) then
-            y(j,2)=y(j,2)-x(j,2)*qu-qv*x(j,1)
-          else
+          if(kzz.eq.24) then
+            y(j,1)=y(j,1)+x(j,1)*qu-qv*x(j,2)
             y(j,2)=y(j,2)-x(j,2)*quz-qvz*x(j,1)
+          elseif(kzz.eq.25) then
+            crkve=y(j,1)-x(j,1)*qu*qv 
+            cikve=y(j,2)-x(j,2)*qu*qv 
+            y(j,1)=crkve*cos(qv)+cikve*sin(qv) 
+            y(j,2)=-crkve*sin(qv)+cikve*cos(qv) 
+            crkve=x(j,1)*cos(qv)+x(j,2)*sin(qv) 
+            cikve=-x(j,1)*sin(qv)+x(j,2)*cos(qv) 
+            x(j,1)=crkve 
+            x(j,2)=cikve 
+          else
+            y(j,1)=y(j,1)+x(j,1)*qu-qv*x(j,2)
+            y(j,2)=y(j,2)-x(j,2)*qu-qv*x(j,1)
           endif
   340   continue
   350 continue
@@ -36818,7 +36997,7 @@ cc2008
 +ca alignl
         if(kzz.lt.0) goto 370
         goto(220,230,240,250,260,270,280,290,300,310,320,480,480,480,   &
-     &       480,480,480,480,480,480,480,480,480,315),kzz
+     &       480,480,480,480,480,480,480,480,480,315,316),kzz
         goto 770
 !--HORIZONTAL DIPOLE
   220   ekk=ekk*c1e3
@@ -36863,6 +37042,10 @@ cc2008
 !--DIPEDGE ELEMENT
   315   continue
 +ca kickadpe
+        goto 480
+!--solenoid
+  316   continue
++ca kickaso1
         goto 480
   320   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -36967,11 +37150,21 @@ cc2008
         t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 490 i=2,ium
-          t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-          if(kzz.ne.24) then
-            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.eq.24) then
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
+          elseif(kzz.eq.25) then
+            crkve=t(i,2)-t(i,1)*qu*qv 
+            cikve=t(i,4)-t(i,3)*qu*qv 
+            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
+            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
+            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
+            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
+            t(i,1)=crkve 
+            t(i,3)=cikve 
           else
-            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
           endif
   490   continue
         do 500 l=1,2
@@ -38238,7 +38431,7 @@ cc2008
 +ca alignl
           if(kzz.lt.0) goto 400
           goto(260,270,280,290,300,310,320,330,340,350,360,790,790,790, &
-     &       790,790,790,790,790,790,790,790,790,355),kzz
+     &       790,790,790,790,790,790,790,790,790,355,356),kzz
           goto 790
 !--HORIZONTAL DIPOLE
   260     ekk=ekk*c1e3
@@ -38296,6 +38489,10 @@ cc2008
 !--DIPEDGE ELEMENT
   355     continue
 +ca kickadpe
+          goto 510
+!--solenoid
+  356     continue
++ca kickaso1
           goto 510
   360     r0=ek(ix)
           if(abs(dki(ix,1)).gt.pieni) then
@@ -38415,12 +38612,22 @@ cc2008
           t(1,2)=t(1,2)+dyy1
           t(1,4)=t(1,4)+dyy2
           do 520 i=2,ium
-            t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-            if(kzz.ne.24) then
-              t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
-            else
-              t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
-            endif
+          if(kzz.eq.24) then
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
+          elseif(kzz.eq.25) then
+            crkve=t(i,2)-t(i,1)*qu*qv 
+            cikve=t(i,4)-t(i,3)*qu*qv 
+            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
+            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
+            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
+            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
+            t(i,1)=crkve 
+            t(i,3)=cikve 
+          else
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
+          endif
   520     continue
           do 530 l=1,2
             ll=2*l
@@ -39283,7 +39490,7 @@ cc2008
 +ca alignl
         if(kzz.lt.0) goto 350
         goto(220,230,240,250,260,270,280,290,300,310,320,740,740,740,   &
-     &       740,740,740,740,740,740,740,740,740,315),kzz
+     &       740,740,740,740,740,740,740,740,740,315,316),kzz
         goto 740
 !--HORIZONTAL DIPOLE
   220   ekk=ekk*c1e3
@@ -39328,6 +39535,10 @@ cc2008
 !--DIPEDGE ELEMENT
   315   continue  
 +ca kickadpe
+        goto 460
+!--solenoid
+  316   continue  
++ca kickaso1
         goto 460
   320   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
@@ -39432,11 +39643,21 @@ cc2008
         t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
         do 470 i=2,ium
-          t(i,2)=t(i,2)+qu*t(i,1)-qv*t(i,3)
-          if(kzz.ne.24) then
-            t(i,4)=t(i,4)-qu*t(i,3)-qv*t(i,1)
+          if(kzz.eq.24) then
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
+          elseif(kzz.eq.25) then
+            crkve=t(i,2)-t(i,1)*qu*qv 
+            cikve=t(i,4)-t(i,3)*qu*qv 
+            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
+            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
+            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
+            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
+            t(i,1)=crkve 
+            t(i,3)=cikve 
           else
-            t(i,4)=t(i,4)-quz*t(i,3)-qvz*t(i,1)
+            t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
+            t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
           endif
   470   continue
         do 480 l=1,2
@@ -47567,7 +47788,7 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.28 2009-07-06 10:10:25 mcintosh Exp $
+! $Id: sixtrack.s,v 1.29 2009-07-24 15:18:12 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.27  2009/05/14 08:40:22  frs
@@ -48542,7 +48763,7 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.28 2009-07-06 10:10:25 mcintosh Exp $
+! $Id: sixtrack.s,v 1.29 2009-07-24 15:18:12 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.27  2009/05/14 08:40:22  frs
@@ -48852,7 +49073,7 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.28 2009-07-06 10:10:25 mcintosh Exp $
+! $Id: sixtrack.s,v 1.29 2009-07-24 15:18:12 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
 ! Revision 1.27  2009/05/14 08:40:22  frs
