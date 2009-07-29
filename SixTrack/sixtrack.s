@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.02'/
-      data moddate /'30.04.2009'/
+      data version /'4.2.03'/
+      data moddate /'29.07.2009'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -1921,6 +1921,36 @@
         mpe=20
         qu=ed(IX)
         qv=ek(IX)
++cd phas1so1
+!--solenoid
+          elseif(kzz.eq.25) then
+            do l=1,2
+              ll=2*l
+              if(abs(t(ll,ll-1)).gt.pieni) then
+                phibf(l)=atan_rn(t(ll+1,ll-1)/t(ll,ll-1))
+              else
+                phibf(l)=pi2
+              endif
+            enddo
++cd phas2so1
+            crkve=t(i,2)-t(i,1)*qu*qv
+            cikve=t(i,4)-t(i,3)*qu*qv
+            t(i,2)=crkve*cos(qv)+cikve*sin(qv)
+            t(i,4)=-crkve*sin(qv)+cikve*cos(qv)
+            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv)
+            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv)
+            t(i,1)=crkve
+            t(i,3)=cikve
++cd phas3so1
+            do l=1,2
+              ll=2*l
+              if(abs(t(ll,ll-1)).gt.pieni) then
+                dphi=atan_rn(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
+              else
+                dphi=pi2-phibf(l)
+              endif
+              phi(l)=phi(l)+dphi/pie
+            enddo
 +cd kicka03h
 +if .not.tilt
         mpe=3
@@ -33364,15 +33394,9 @@ cc2008
           if(kzz.eq.24) then
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
-          elseif(kzz.eq.25) then
-            crkve=t(i,2)-t(i,1)*qu*qv 
-            cikve=t(i,4)-t(i,3)*qu*qv 
-            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
-            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
-            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
-            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
-            t(i,1)=crkve 
-            t(i,3)=cikve 
++ca phas1so1
++ca phas2so1
++ca phas3so1
           else
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
@@ -35651,15 +35675,9 @@ cc2008
           if(kzz.eq.24) then
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
-          elseif(kzz.eq.25) then
-            crkve=t(i,2)-t(i,1)*qu*qv 
-            cikve=t(i,4)-t(i,3)*qu*qv 
-            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
-            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
-            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
-            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
-            t(i,1)=crkve 
-            t(i,3)=cikve 
++ca phas1so1
++ca phas2so1
++ca phas3so1
           else
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
@@ -37153,15 +37171,9 @@ cc2008
           if(kzz.eq.24) then
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
-          elseif(kzz.eq.25) then
-            crkve=t(i,2)-t(i,1)*qu*qv 
-            cikve=t(i,4)-t(i,3)*qu*qv 
-            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
-            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
-            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
-            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
-            t(i,1)=crkve 
-            t(i,3)=cikve 
++ca phas1so1
++ca phas2so1
++ca phas3so1
           else
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
@@ -38615,15 +38627,9 @@ cc2008
           if(kzz.eq.24) then
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
-          elseif(kzz.eq.25) then
-            crkve=t(i,2)-t(i,1)*qu*qv 
-            cikve=t(i,4)-t(i,3)*qu*qv 
-            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
-            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
-            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
-            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
-            t(i,1)=crkve 
-            t(i,3)=cikve 
++ca phas1so1
++ca phas2so1
++ca phas3so1
           else
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
@@ -39646,15 +39652,9 @@ cc2008
           if(kzz.eq.24) then
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
-          elseif(kzz.eq.25) then
-            crkve=t(i,2)-t(i,1)*qu*qv 
-            cikve=t(i,4)-t(i,3)*qu*qv 
-            t(i,2)=crkve*cos(qv)+cikve*sin(qv) 
-            t(i,4)=-crkve*sin(qv)+cikve*cos(qv) 
-            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv) 
-            cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv) 
-            t(i,1)=crkve 
-            t(i,3)=cikve 
++ca phas1so1
++ca phas2so1
++ca phas3so1
           else
             t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
@@ -47788,9 +47788,14 @@ cc2008
 !ccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.29 2009-07-24 15:18:12 frs Exp $
+! $Id: sixtrack.s,v 1.30 2009-07-29 13:09:44 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.29  2009/07/24 15:18:12  frs
+! First attempt at thin solenoid (work done by Yipeng Sun)
+! The tune calculation in the traditional SixTrack part seems slightly off.
+! DA part seems okay and in agreement with MAD-X.
+!
 ! Revision 1.27  2009/05/14 08:40:22  frs
 ! Adding dipedge element which allows to track all relevent elements
 ! except the solenoids
@@ -48763,9 +48768,14 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.29 2009-07-24 15:18:12 frs Exp $
+! $Id: sixtrack.s,v 1.30 2009-07-29 13:09:44 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.29  2009/07/24 15:18:12  frs
+! First attempt at thin solenoid (work done by Yipeng Sun)
+! The tune calculation in the traditional SixTrack part seems slightly off.
+! DA part seems okay and in agreement with MAD-X.
+!
 ! Revision 1.27  2009/05/14 08:40:22  frs
 ! Adding dipedge element which allows to track all relevent elements
 ! except the solenoids
@@ -49073,9 +49083,14 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.29 2009-07-24 15:18:12 frs Exp $
+! $Id: sixtrack.s,v 1.30 2009-07-29 13:09:44 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.29  2009/07/24 15:18:12  frs
+! First attempt at thin solenoid (work done by Yipeng Sun)
+! The tune calculation in the traditional SixTrack part seems slightly off.
+! DA part seems okay and in agreement with MAD-X.
+!
 ! Revision 1.27  2009/05/14 08:40:22  frs
 ! Adding dipedge element which allows to track all relevent elements
 ! except the solenoids
