@@ -2,10 +2,20 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.2.3 Revision 1.30 frs
+    -- Fix the missing phase advance in the solenoid. This thin element is 
+       special in the sense that the it creates a direct phase advance that 
+       has to be calculated at every element occurrence. Fix the missing 
+       phase advance in the solenoid. This thin element is special in the 
+       sense that the it creates a direct phase advance that has to be
+       calculated at every element occurrence.
+  Frank Schmidt 27th July, 2009
+
   SixTrack Version: 4.2.2 Revision 1.29 yipeng
     -- First attempt at thin solenoid (work done by Yipeng Sun)
-    -- The tune calculation in the traditional SixTrack part seems slightly off.
-    -- DA part seems okay and in agreement with MAD-X.
+       The tune calculation in the traditional SixTrack part seems slightly off.
+       DA part seems okay and in agreement with MAD-X.
+  Yipeng Sun & Frank Schmidt 24th July, 2009
 
   SixTrack Version: 4.2.1 Revision 1.28 frs
     -- Fixed computed go to dipedge element
