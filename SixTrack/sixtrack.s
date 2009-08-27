@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.03'/
-      data moddate /'29.07.2009'/
+      data version /'4.2.04'/
+      data moddate /'08.08.2009'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -122,7 +122,12 @@
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
      &nzfz = 300000,mmul = 11)
 +ei
++if collimat
+      parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
++ei
++if .not.collimat
       parameter(nran = 2000000,ncom = 100,mran = 500,mpa = 6,nrco = 5,  &
++ei
      &nema = 15)
       parameter(mcor = 10,mcop = mcor+6, mbea = 15)
       parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
@@ -437,7 +442,7 @@
       integer max_ncoll,max_npart,maxn,numeff,outlun,nc
 !UPGRADE January 2005
 !     PARAMETER (MAX_NCOLL=68,MAX_NPART=20000,nc=32,NUMEFF=19,
-      parameter (max_ncoll=75,max_npart=20000,nc=32,numeff=19,          &
+      parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
      &maxn=20000,outlun=54)
 +cd database
 !GRD
@@ -446,7 +451,7 @@
 !APRIL2005
       logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
      &dowrite_impact,dowrite_secondary,dowrite_amplitude,radial,        &
-     &systilt_antisymm,dowritetracks,cern,do_nsig
+     &systilt_antisymm,dowritetracks,cern,do_nsig,do_mingap
 !     &systilt_antisymm,dowritetracks,cern
 !APRIL2005
 !
@@ -455,7 +460,8 @@
 !      integer nloop,rnd_seed,ibeam,jobnumber
 !SEPT2005 for slicing process
 !      integer nloop,rnd_seed,ibeam,jobnumber,do_thisdis
-      integer nloop,rnd_seed,ibeam,jobnumber,do_thisdis,n_slices
+      integer nloop,rnd_seed,c_offsettilt_seed,ibeam,jobnumber,         &
+     &do_thisdis,n_slices,pencil_distr
 !JUNE2005
 !
 !UPGRADE JANUARY 2005
@@ -469,19 +475,21 @@
      &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
      &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
 !
-     &nsig_tcdq,nsig_tcstcdq,nsig_tdi,                                  &
+     &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
 !SEPT2005 add these lines for the slicing procedure
      &smin_slices,smax_slices,recenter1,recenter2,                      &
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-!SEPT2005
+!SEPT2005,OCT2006 added offset
      &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
-     &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,nr,ndr, &
+     &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
+     &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
+     &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
 !     &driftsx,driftsy,pencil_offset,sigsecut3
 !JUNE2005
 !     &driftsx,driftsy,pencil_offset,sigsecut3,sigsecut2
-     &driftsx,driftsy,pencil_offset,sigsecut3,sigsecut2,                &
-     &enerror,bunchlength
+     &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
+     &sigsecut3,sigsecut2,enerror,bunchlength
 !JUNE2005
 !APRIL2005
 !
@@ -511,24 +519,27 @@
      &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
      &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
 !
-     &nsig_tcdq,nsig_tcstcdq,nsig_tdi,                                  &
+     &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
 !
      &smin_slices,smax_slices,recenter1,recenter2,                      &
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !
      &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
-     &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,nr,     &
+     &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
+     &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
+     &c_sysoffset_sec,c_rmserror_gap,nr,                                &
 !
-     &ndr,driftsx,driftsy,pencil_offset,sigsecut3,sigsecut2,enerror,    &
+     &ndr,driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,        &
+     &sigsecut3,sigsecut2,enerror,                                      &
      &bunchlength,coll_db,name_sel,                                     &
-     &castordir,filename_dis,nloop,rnd_seed,ibeam,jobnumber,do_thisdis, &
-     &n_slices,                                                         &
+     &castordir,filename_dis,nloop,rnd_seed,c_offsettilt_seed,          &
+     &ibeam,jobnumber,do_thisdis,n_slices,pencil_distr,                 &
      &do_coll,                                                          &
 !
      &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
      &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
-     &dowritetracks,cern,do_nsig
+     &dowritetracks,cern,do_nsig,do_mingap
 !SEPT2005
 !JUNE2005
 !APRIL2005
@@ -604,6 +615,15 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
+! Variables for finding the collimator with the smallest gap
+! and defining, stroring the gap rms error
+!
+      character*16 coll_mingap1, coll_mingap2
+      double precision gap_rms_error(max_ncoll), nsig_err, sig_offset
+      double precision mingap,gap_h1,gap_h2,gap_h3,gap_h4
+      integer coll_mingap_id
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbmaincr
       double precision myemitx0,myemity0,myalphax,myalphay,mybetax,     &
      &mybetay,rselect
@@ -629,10 +649,11 @@
 !MAY2005
      &flukaname(npart)
 !MAY2005
-!     SR, 29-08-2005: add the required varisble for slicing collimators
+!     SR, 29-08-2005: add the required variable for slicing collimators
       integer jjj, ijk
 !
-      double precision  ran_gauss
+      double precision  ran_gauss, myran_gauss
+      real rndm5,zbv
 !
       double precision c_length    !length in m
       double precision c_rotation  !rotation angle vs vertical in radian
@@ -664,9 +685,12 @@
      &xpbob(nblz),ypbob(nblz),xineff(npart),yineff(npart),              &
      &xpineff(npart),ypineff(npart),grdpiover2,grdpiover4,grd3piover4
 !APRIL2005
-!SEPT2005-SR, 29-08-2005
-      double precision x_sl(100), y1_sl(100), y2_sl(100),               &
-     &     angle1(100), angle2(100), max_tmp, a_tmp1, a_tmp2
+!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
+      double precision x_sl(100),x1_sl(100),x2_sl(100),                 &
+     &     y1_sl(100), y2_sl(100),                                      &
+     &     angle1(100), angle2(100),                                    &
+     &     max_tmp,                                                     &
+     &     a_tmp1, a_tmp2
 !SEPT2005
 !
       character*2 c_material     !material
@@ -708,9 +732,9 @@
       common /efficiency/ neffx,neffy
 !
       integer part_hit(maxn),part_abs(maxn),n_tot_absorbed,n_absorbed   &
-     &,part_select(maxn)
+     &,part_select(maxn),nabs_type(maxn)
       double precision part_impact(maxn)
-      common /stats/ part_impact,part_hit,part_abs
+      common /stats/ part_impact,part_hit,part_abs,nabs_type
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
@@ -733,6 +757,9 @@
 !     INTEGER DB_NCOLL
       integer db_ncoll
 !
+! For re-initializtion of random generator (already decleared before)
+!      integer   mclock_liar
+!
       character*16 db_name1(max_ncoll),db_name2(max_ncoll)
       character*2 db_material(max_ncoll)
 !APRIL2005
@@ -745,7 +772,7 @@
 !     &db_offset(max_ncoll),                                             &
 !     &db_bx(max_ncoll),db_by(max_ncoll),db_tilt(max_ncoll,2)
 !      common /colldatabase/ db_length,db_rotation,db_offset,db_bx,db_by,&
-!!    &DB_TILT,DB_NAME1,DB_NAME2,DB_MATERIAL,DB_NCOLL
+!!     &DB_TILT,DB_NAME1,DB_NAME2,DB_MATERIAL,DB_NCOLL
 !     &db_tilt,db_name1,db_name2,db_material,db_ncoll,db_nabs,db_ntot,   &
 !     &db_startabs
 !APRIL2005
@@ -795,7 +822,7 @@
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll
 !MAY2005
 !      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart)
+      integer lhit(npart),part_abs(npart),name(npart),nabs_type(maxn)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -817,6 +844,11 @@
       character*(nc) filen,tit
 !
       real   rndm4,xlow,xhigh,xplow,xphigh,dx,dxp
+!
+!AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
+!           sheet beam distribution  (smear in x and y)
+!
+      double precision ran_gauss
 !
       common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,  &
      &nev
@@ -1927,7 +1959,12 @@
             do l=1,2
               ll=2*l
               if(abs(t(ll,ll-1)).gt.pieni) then
++if crlibm
                 phibf(l)=atan_rn(t(ll+1,ll-1)/t(ll,ll-1))
++ei
++if .not.crlibm
+                phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
++ei
               else
                 phibf(l)=pi2
               endif
@@ -1945,7 +1982,12 @@
             do l=1,2
               ll=2*l
               if(abs(t(ll,ll-1)).gt.pieni) then
++if crlibm
                 dphi=atan_rn(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
++ei
++if .not.crlibm
+                dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
++ei
               else
                 dphi=pi2-phibf(l)
               endif
@@ -11520,7 +11562,8 @@ cc2008
 !SEPT2005
       if(iclr.eq.5) read(ch1,*)                                         &
      &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8
+     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
+     &nsig_tcxrp,nsig_tcryo
       if(iclr.eq.6) read(ch1,*) n_slices,smin_slices,smax_slices,       &
      &recenter1,recenter2
       if(iclr.eq.7) read(ch1,*)                                         &
@@ -11534,12 +11577,18 @@ cc2008
      &dowrite_impact,dowrite_secondary,dowrite_amplitude
       if(iclr.eq.11) read(ch1,*) xbeat,xbeatphase,ybeat,                &
      &ybeatphase
+!AUGUST2006 ADDED offset variables for mechanical errors    ---- TW
+!JANUAR2007 added rms error for gap and switch to min gap   ---- TW
       if(iclr.eq.12) read(ch1,*) c_rmstilt_prim,c_rmstilt_sec,          &
-     &c_systilt_prim,c_systilt_sec
+     &c_systilt_prim,c_systilt_sec,c_rmsoffset_prim,c_rmsoffset_sec,    &
+     &c_sysoffset_prim,c_sysoffset_sec,c_offsettilt_seed,               &
+     &c_rmserror_gap,do_mingap
       if(iclr.eq.13) read(ch1,*) radial,nr,ndr
       if(iclr.eq.14) read(ch1,*) driftsx,driftsy,cut_input,             &
      &systilt_antisymm
-      if(iclr.eq.15) read(ch1,*) ipencil,pencil_offset
+!AUGUST2006 ADDED rmsx, rmsy and distr. type for pencil beam ---- TW
+      if(iclr.eq.15) read(ch1,*)                                        &
+     &ipencil,pencil_offset,pencil_rmsx,pencil_rmsy,pencil_distr
 !APRIL2005
       if(iclr.eq.16) read(ch1,*) coll_db,ibeam
 !APRIL2005
@@ -18707,87 +18756,39 @@ cc2008
       open(unit=outlun, file='colltrack.out')
 !
 +if cr
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) '         -------------------------------'
-+ei
-+if .not.cr
-      write(*,*) '         -------------------------------'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) '         Program      C O L L T R A C K '
-+ei
-+if .not.cr
-      write(*,*) '         Program      C O L L T R A C K '
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) '            R. Assmann           -    AB/ABP'
-+ei
-+if .not.cr
-      write(*,*) '            R. Assmann           -    AB/ABP'
-+ei
-+if cr
+      write(lout,*) '            C. Bracco            -    AB/ABP'
+      write(lout,*) '            V. Previtali         -    AB/ABP'
       write(lout,*) '            S. Redaelli          -    AB/OP'
-+ei
-+if .not.cr
-      write(*,*) '            S. Redaelli          -    AB/OP'
-+ei
-+if cr
-      write(lout,*) '            G. Robert-Demolaize  -    AB/ABP'
-+ei
-+if .not.cr
-      write(*,*) '            G. Robert-Demolaize  -    AB/ABP'
-+ei
-+if cr
+      write(lout,*) '            G. Robert-Demolaize  -    SLAC'
+      write(lout,*) '            A. Rossi             -    AB/ABP'
+      write(lout,*) '            T. Weiler            -    AB/ABP'
+      write(lout,*) '                 CERN 2001 - 2009'
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
-      write(lout,*) '                 CERN 2001 - 2005'
-+ei
-+if .not.cr
-      write(*,*) '                 CERN 2001 - 2005'
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) '         -------------------------------'
-+ei
-+if .not.cr
-      write(*,*) '         -------------------------------'
-+ei
-+if cr
-      write(lout,*)
+      write(lout,*) 'Collimation version of Sixtrack running... 08/2009'
 +ei
 +if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
+      write(*,*) '         -------------------------------'
+      write(*,*)
+      write(*,*) '          Program      C O L L T R A C K '
+      write(*,*)
+      write(*,*) '            R. Assmann           -    AB/ABP'
+      write(*,*) '            C. Bracco            -    AB/ABP'
+      write(*,*) '            V. Previtali         -    AB/ABP'
+      write(*,*) '            S. Redaelli          -    AB/OP'
+      write(*,*) '            G. Robert-Demolaize  -    BNL'
+      write(*,*) '            A. Rossi             -    AB/ABP'
+      write(*,*) '            T. Weiler            -    IEKP'
+      write(*,*) '                 CERN 2001 - 2009'
+      write(*,*)
+      write(*,*) '         -------------------------------'
+      write(*,*)
       write(*,*)
 +ei
       write(outlun,*)
@@ -18797,162 +18798,84 @@ cc2008
       write(outlun,*) '         Program      C O L L T R A C K '
       write(outlun,*)
       write(outlun,*) '            R. Assmann       -    AB/ABP'
-      write(outlun,*) '           S. Redaelli       -    AB/ABP'
-      write(outlun,*) '      G. Robert-Demolaize    -    AB/ABP'
+      write(outlun,*) '             C.Bracco        -    AB/ABP'
+      write(outlun,*) '           V. Previtali      -    AB/ABP'
+      write(outlun,*) '           S. Redaelli       -    AB/OP'
+      write(outlun,*) '      G. Robert-Demolaize    -    BNL'
+      write(outlun,*) '             A. Rossi        -    AB/ABP'
+      write(outlun,*) '             T. Weiler       -    IEKP'
       write(outlun,*)
-      write(outlun,*) '                 CERN 2001 - 2005'
+      write(outlun,*) '                 CERN 2001 - 2009'
       write(outlun,*)
       write(outlun,*) '         -------------------------------'
       write(outlun,*)
       write(outlun,*)
 !
 +if cr
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
-      write(lout,*) 'Collimation version of Sixtrack running... 10/2005'
-+ei
-+if .not.cr
-      write(*,*) 'Collimation version of Sixtrack running... 10/2005'
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) '                     R. Assmann, F. Schmidt, CERN'
+      write(lout,*) '                           C. Bracco,        CERN'
+      write(lout,*) '                           V. Previtali,     CERN'
       write(lout,*) '                           S. Redaelli,      CERN'
-      write(lout,*) '                       G. Robert-Demolaize,  CERN'
+      write(lout,*) '                       G. Robert-Demolaize,  BNL'
+      write(lout,*) '                           A. Rossi,         CERN'
+      write(lout,*) '                           T. Weiler         IEKP'
 +ei
 +if .not.cr
+      write(*,*)
+      write(*,*) 'Collimation version of Sixtrack running... 08/2009'
+      write(*,*)
       write(*,*) '                     R. Assmann, F. Schmidt, CERN'
+      write(*,*) '                           C. Bracco,        CERN'
+      write(*,*) '                           V. Previtali,     CERN'
       write(*,*) '                           S. Redaelli,      CERN'
-      write(*,*) '                       G. Robert-Demolaize,  CERN'
+      write(*,*) '                       G. Robert-Demolaize,  BNL'
+      write(*,*) '                           A. Rossi,         CERN'
+      write(*,*) '                           T. Weiler         IEKP'
 +ei
 +if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'Generating particle distribution at FIRST element!'
-+ei
-+if .not.cr
-      write(*,*) 'Generating particle distribution at FIRST element!'
-+ei
-+if cr
       write(lout,*) 'Optical functions obtained from Sixtrack internal!'
-+ei
-+if .not.cr
-      write(*,*) 'Optical functions obtained from Sixtrack internal!'
-+ei
-+if cr
       write(lout,*) 'Emittance and energy obtained from Sixtrack input!'
-+ei
-+if .not.cr
-      write(*,*) 'Emittance and energy obtained from Sixtrack input!'
-+ei
-+if cr
+      write(lout,*)
       write(lout,*)
 +ei
 +if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
+      write(*,*) 'Generating particle distribution at FIRST element!'
+      write(*,*) 'Optical functions obtained from Sixtrack internal!'
+      write(*,*) 'Emittance and energy obtained from Sixtrack input!'
+      write(*,*)
       write(*,*)
 +ei
 +if cr
       write(lout,*) 'Info: Betax0   [m]    ', tbetax(1)
+      write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
+      write(lout,*) 'Info: Alphax0         ', talphax(1)
+      write(lout,*) 'Info: Alphay0         ', talphay(1)
+      write(lout,*) 'Info: Orbitx0  [mm]   ', torbx(1)
+      write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
+      write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
+      write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
+      write(lout,*) 'Info: Emitx0   [um]   ', remitx
+      write(lout,*) 'Info: Emity0   [um]   ', remity
+      write(lout,*) 'Info: E0       [MeV]  ', e0
+      write(lout,*)
+      write(lout,*)
 +ei
 +if .not.cr
       write(*,*) 'Info: Betax0   [m]    ', tbetax(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
-+ei
-+if .not.cr
       write(*,*) 'Info: Betay0   [m]    ', tbetay(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Alphax0         ', talphax(1)
-+ei
-+if .not.cr
       write(*,*) 'Info: Alphax0         ', talphax(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Alphay0         ', talphay(1)
-+ei
-+if .not.cr
       write(*,*) 'Info: Alphay0         ', talphay(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Orbitx0  [mm]   ', torbx(1)
-+ei
-+if .not.cr
       write(*,*) 'Info: Orbitx0  [mm]   ', torbx(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
-+ei
-+if .not.cr
       write(*,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
-+ei
-+if .not.cr
       write(*,*) 'Info: Orbity0  [mm]   ', torby(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-+ei
-+if .not.cr
       write(*,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-+ei
-+if cr
-      write(lout,*) 'Info: Emitx0   [um]   ', remitx
-+ei
-+if .not.cr
       write(*,*) 'Info: Emitx0   [um]   ', remitx
-+ei
-+if cr
-      write(lout,*) 'Info: Emity0   [um]   ', remity
-+ei
-+if .not.cr
       write(*,*) 'Info: Emity0   [um]   ', remity
-+ei
-+if cr
-      write(lout,*) 'Info: E0       [MeV]  ', myenom
-+ei
-+if .not.cr
-      write(*,*) 'Info: E0       [MeV]  ', myenom
-+ei
-!07-2006
-!+if cr
-!      write(lout,*) 'Info: E0       [MeV]  ', e0
-!+ei
-!+if .not.cr
-!      write(*,*) 'Info: E0       [MeV]  ', e0
-!+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
+      write(*,*) 'Info: E0       [MeV]  ', e0
       write(*,*)
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
 +ei
 !
@@ -18996,68 +18919,28 @@ cc2008
 !
 +if cr
       write(lout,*) 'INFO>  NLOOP     = ', nloop
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NLOOP     = ', nloop
-+ei
-+if cr
       write(lout,*) 'INFO>  DO_THISDIS     = ', do_thisdis
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  DO_THISDIS     = ', do_thisdis
-+ei
-+if cr
       write(lout,*) 'INFO>  MYNEX     = ', mynex
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  MYNEX     = ', mynex
-+ei
-+if cr
       write(lout,*) 'INFO>  MYDEX     = ', mdex
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  MYDEX     = ', mdex
-+ei
-+if cr
       write(lout,*) 'INFO>  MYNEY     = ', myney
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  MYNEY     = ', myney
-+ei
-+if cr
       write(lout,*) 'INFO>  MYDEY     = ', mdey
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  MYDEY     = ', mdey
-+ei
-+if cr
       write(lout,*) 'INFO>  FILENAME_DIS     = ', filename_dis
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  FILENAME_DIS     = ', filename_dis
-+ei
-+if cr
       write(lout,*) 'INFO>  ENERROR     = ', enerror
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  ENERROR     = ', enerror
-+ei
-+if cr
       write(lout,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
-+ei
-+if cr
       write(lout,*) 'INFO>  RSELECT   = ', int(rselect)
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  RSELECT   = ', int(rselect)
-+ei
-+if cr
       write(lout,*) 'INFO>  DO_COLL   = ', do_coll
 +ei
 +if .not.cr
+      write(*,*) 'INFO>  NLOOP     = ', nloop
+      write(*,*) 'INFO>  DO_THISDIS     = ', do_thisdis
+      write(*,*) 'INFO>  MYNEX     = ', mynex
+      write(*,*) 'INFO>  MYDEX     = ', mdex
+      write(*,*) 'INFO>  MYNEY     = ', myney
+      write(*,*) 'INFO>  MYDEY     = ', mdey
+      write(*,*) 'INFO>  FILENAME_DIS     = ', filename_dis
+      write(*,*) 'INFO>  ENERROR     = ', enerror
+      write(*,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
+      write(*,*) 'INFO>  RSELECT   = ', int(rselect)
       write(*,*) 'INFO>  DO_COLL   = ', do_coll
 +ei
 !APRIL2005
@@ -19130,6 +19013,8 @@ cc2008
       write(*,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
       write(*,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
       write(*,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
+      write(*,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
+      write(*,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
 +ei
 !APRIL2005
 !SEPT2005
@@ -19194,290 +19079,112 @@ cc2008
 !
 +if cr
       write(lout,*) 'INFO>  EMITX0            = ', emitx0
+      write(lout,*) 'INFO>  EMITY0            = ', emity0
+      write(lout,*)
+      write(lout,*) 'INFO>  DO_SELECT         = ', do_select
+      write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
+      write(lout,*) 'INFO>  RND_SEED          = ', rnd_seed
+      write(lout,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
+      write(lout,*) 'INFO>  NAME_SEL          = ', name_sel
+      write(lout,*) 'INFO>  DO_ONESIDE        = ', do_oneside
+      write(lout,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
+      write(lout,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
+      write(lout,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
+      write(lout,*)
+      write(lout,*) 'INFO>  XBEAT             = ', xbeat
+      write(lout,*) 'INFO>  XBEATPHASE        = ', xbeatphase
+      write(lout,*) 'INFO>  YBEAT             = ', ybeat
+      write(lout,*) 'INFO>  YBEATPHASE        = ', ybeatphase
+      write(lout,*)
+      write(lout,*) 'INFO>  C_RMSTILT_PRIM    = ', c_rmstilt_prim
+      write(lout,*) 'INFO>  C_RMSTILT_SEC     = ', c_rmstilt_sec
+      write(lout,*) 'INFO>  C_SYSTILT_PRIM    = ', c_systilt_prim
+      write(lout,*) 'INFO>  C_SYSTILT_SEC     = ', c_systilt_sec
+      write(lout,*)
+      write(lout,*) 'INFO>  RADIAL            = ', radial
+      write(lout,*) 'INFO>  NR                = ', nr
+      write(lout,*) 'INFO>  NDR               = ', ndr
+      write(lout,*)
+      write(lout,*) 'INFO>  DRIFTSX           = ', driftsx
+      write(lout,*) 'INFO>  DRIFTSY           = ', driftsy
+      write(lout,*) 'INFO>  CUT_INPUT         = ', cut_input
+      write(lout,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
+      write(lout,*)
+      write(lout,*) 'INFO>  IPENCIL           = ', ipencil
+      write(lout,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
+      write(lout,*)
+      write(lout,*) 'INFO>  COLL_DB           = ', coll_db
+      write(lout,*) 'INFO>  IBEAM             = ', ibeam
+      write(lout,*)
+      write(lout,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
+      write(lout,*)
+      write(lout,*) 'INFO>  CERN              = ', cern
+      write(lout,*)
+      write(lout,*) 'INFO>  CASTORDIR     = ', castordir
+      write(lout,*)
+      write(lout,*) 'INFO>  JOBNUMBER     = ', jobnumber
+      write(lout,*)
+      write(lout,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
+      write(lout,*)
 +ei
 +if .not.cr
       write(*,*) 'INFO>  EMITX0            = ', emitx0
-+ei
-+if cr
-      write(lout,*) 'INFO>  EMITY0            = ', emity0
-+ei
-+if .not.cr
       write(*,*) 'INFO>  EMITY0            = ', emity0
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  DO_SELECT         = ', do_select
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DO_SELECT         = ', do_select
-+ei
-+if cr
-      write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DO_NOMINAL        = ', do_nominal
-+ei
-+if cr
-      write(lout,*) 'INFO>  RND_SEED          = ', rnd_seed
-+ei
-+if .not.cr
       write(*,*) 'INFO>  RND_SEED          = ', rnd_seed
-+ei
-+if cr
-      write(lout,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
-+ei
-+if cr
-      write(lout,*) 'INFO>  NAME_SEL          = ', name_sel
-+ei
-+if .not.cr
       write(*,*) 'INFO>  NAME_SEL          = ', name_sel
-+ei
-+if cr
-      write(lout,*) 'INFO>  DO_ONESIDE        = ', do_oneside
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DO_ONESIDE        = ', do_oneside
-+ei
-+if cr
-      write(lout,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
-+ei
-+if cr
-      write(lout,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
-+ei
-+if cr
-      write(lout,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  XBEAT             = ', xbeat
-+ei
-+if .not.cr
       write(*,*) 'INFO>  XBEAT             = ', xbeat
-+ei
-+if cr
-      write(lout,*) 'INFO>  XBEATPHASE        = ', xbeatphase
-+ei
-+if .not.cr
       write(*,*) 'INFO>  XBEATPHASE        = ', xbeatphase
-+ei
-+if cr
-      write(lout,*) 'INFO>  YBEAT             = ', ybeat
-+ei
-+if .not.cr
       write(*,*) 'INFO>  YBEAT             = ', ybeat
-+ei
-+if cr
-      write(lout,*) 'INFO>  YBEATPHASE        = ', ybeatphase
-+ei
-+if .not.cr
       write(*,*) 'INFO>  YBEATPHASE        = ', ybeatphase
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  C_RMSTILT_PRIM    = ', c_rmstilt_prim
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  C_RMSTILT_PRIM    = ', c_rmstilt_prim
-+ei
-+if cr
-      write(lout,*) 'INFO>  C_RMSTILT_SEC     = ', c_rmstilt_sec
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  C_RMSTILT_SEC     = ', c_rmstilt_sec
-+ei
-+if cr
-      write(lout,*) 'INFO>  C_SYSTILT_PRIM    = ', c_systilt_prim
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  C_SYSTILT_PRIM    = ', c_systilt_prim
-+ei
-+if cr
-      write(lout,*) 'INFO>  C_SYSTILT_SEC     = ', c_systilt_sec
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  C_SYSTILT_SEC     = ', c_systilt_sec
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
+      write(*,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
+      write(*,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
+      write(*,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
+      write(*,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
+      write(*,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
+      write(*,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
+      write(*,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
+      write(*,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
+      write(*,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
+      write(*,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
+      write(*,*) 'INFO>  DO_MINGAP          = ', do_mingap
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  RADIAL            = ', radial
-+ei
-+if .not.cr
       write(*,*) 'INFO>  RADIAL            = ', radial
-+ei
-+if cr
-      write(lout,*) 'INFO>  NR                = ', nr
-+ei
-+if .not.cr
       write(*,*) 'INFO>  NR                = ', nr
-+ei
-+if cr
-      write(lout,*) 'INFO>  NDR               = ', ndr
-+ei
-+if .not.cr
       write(*,*) 'INFO>  NDR               = ', ndr
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  DRIFTSX           = ', driftsx
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DRIFTSX           = ', driftsx
-+ei
-+if cr
-      write(lout,*) 'INFO>  DRIFTSY           = ', driftsy
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DRIFTSY           = ', driftsy
-+ei
-+if cr
-      write(lout,*) 'INFO>  CUT_INPUT         = ', cut_input
-+ei
-+if .not.cr
       write(*,*) 'INFO>  CUT_INPUT         = ', cut_input
-+ei
-+if cr
-      write(lout,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
-+ei
-+if .not.cr
       write(*,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  IPENCIL           = ', ipencil
-+ei
-+if .not.cr
       write(*,*) 'INFO>  IPENCIL           = ', ipencil
-+ei
-+if cr
-      write(lout,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
-+ei
-+if .not.cr
       write(*,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
+      write(*,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
+      write(*,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
+      write(*,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  COLL_DB           = ', coll_db
-+ei
-+if .not.cr
       write(*,*) 'INFO>  COLL_DB           = ', coll_db
-+ei
-+if cr
-      write(lout,*) 'INFO>  IBEAM             = ', ibeam
-+ei
-+if .not.cr
       write(*,*) 'INFO>  IBEAM             = ', ibeam
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
-+ei
-+if .not.cr
       write(*,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  CERN              = ', cern
-+ei
-+if .not.cr
       write(*,*) 'INFO>  CERN              = ', cern
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  CASTORDIR     = ', castordir
-+ei
-+if .not.cr
       write(*,*) 'INFO>  CASTORDIR     = ', castordir
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  JOBNUMBER     = ', jobnumber
-+ei
-+if .not.cr
       write(*,*) 'INFO>  JOBNUMBER     = ', jobnumber
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
-+ei
-+if cr
-      write(lout,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
-+ei
-+if .not.cr
       write(*,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
-+ei
-+if cr
-      write(lout,*)
-+ei
-+if .not.cr
       write(*,*)
 +ei
 !
@@ -19487,20 +19194,12 @@ cc2008
 !
 +if cr
       write(lout,*) 'INFO>  NAPX     = ', napx, mynp
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NAPX     = ', napx, mynp
-+ei
-+if cr
       write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-+ei
-+if cr
       write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
 +ei
 +if .not.cr
+      write(*,*) 'INFO>  NAPX     = ', napx, mynp
+      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
       write(*,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
 +ei
 !
@@ -19525,6 +19224,7 @@ cc2008
 +ei
 +if .not.cr
         write(*,*)
+        write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 +ei
 !      ENDIF
 !GRD-SR, 09-02-2006
@@ -19558,8 +19258,8 @@ cc2008
       stop
 +ei
 +if .not.cr
-      write(*,*) 'INFO> review your distribution parameters !!'
-      stop
+            write(*,*) 'INFO> review your distribution parameters !!'
+            stop
 +ei
          endif
 !
@@ -19573,22 +19273,18 @@ cc2008
        if (ipencil.gt.0) then
 +if cr
          write(lout,*) 'WARN>  Distributions reset to pencil beam!'
-+ei
-+if .not.cr
-         write(*,*) 'WARN>  Distributions reset to pencil beam!'
-+ei
-+if cr
          write(lout,*)
 +ei
 +if .not.cr
+         write(*,*) 'WARN>  Distributions reset to pencil beam!'
          write(*,*)
 +ei
          write(outlun,*) 'WARN>  Distributions reset to pencil beam!'
          do j = 1, mynp
-           myx(j)  = 0d0
-           myxp(j) = 0d0
-           myy(j)  = 0d0
-           myyp(j) = 0d0
+            myx(j)  = 0d0
+            myxp(j) = 0d0
+            myy(j)  = 0d0
+            myyp(j) = 0d0
          end do
        endif
 !
@@ -19618,6 +19314,9 @@ cc2008
 !APRIL2005
         other(i)              = 0
 !APRIL2005
+!DEC 2008
+        nabs_type(i)          = 0
+!DEC2008
         x00(i)      = myx(i)
         xp00(i)     = myxp(i)
         y00(i)      = myy(i)
@@ -19681,7 +19380,7 @@ cc2008
      &'# ID name  angle[rad]  betax[m]  betay[m] ',                     &
      &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m] ',             &
 !JUNE2005
-     &'tilt1[rad] tilt2[rad]'
+     &'tilt1[rad] tilt2[rad] nsig'
 !JUNE2005
 !      write(43,*)                                                       &
 !     &'#name  angle[rad]  betax[m]  betay[m] ',                         &
@@ -19711,6 +19410,12 @@ cc2008
 !     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
 !      endif
 !
+! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
+      open(unit=55, file='collsettings.dat')
+      if(firstrun) write(55,*)                                          &
+     &'# name  slicenumber  halfgap[m]  gap_offset[m] ',                &
+     &'tilt jaw1[rad]  tilt jaw2[rad] length[m] material'               &
+! TW06/08
       if (dowrite_impact) then
         open(unit=49,file='impact.dat')
         write(49,*)                                                     &
@@ -19769,6 +19474,19 @@ cc2008
 !GRD
         if(firstrun) write(38,*)                                        &
      &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
+
+!AUGUST2006:write pencul sheet beam coordiantes to file ---- TW
+      open(unit=9997, file='pencilbeam_distr.dat')
+      if(firstrun) write(9997,*) 'x    xp    y      yp'      
+!
+! TW 
+!      open(unit=9998, file='TCXRA.dat')
+!      open(unit=9999, file='TCXRB.dat')
+!      if(firstrun) write(9998,*)                                        &
+!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp' 
+!      if(firstrun) write(9999,*)                                        &
+!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp'
+!
 !GRD
       endif
 !GRD
@@ -19790,12 +19508,26 @@ cc2008
 !      endif
 !
 !GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag'
+      if(do_select) then
+        open(unit=45, file='coll_ellipse.dat')
+        if (firstrun) then
+!           write(45,'(a)')                                               &
+           write(45,*)                                                  &
+!     &          '#  1=x 2=y 3=xp 4=yp 5=E 6=s 7=turn'
+!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
+     &          '#  1=name 2=x 3=y 4=xp 5=yp 6=E 7=s 8=turn 9=halo ',   &
+     & '10=nabs_type'
+        endif
+      endif
       if(dowrite_impact) then
         open(unit=46, file='all_impacts.dat')
         open(unit=47, file='all_absorptions.dat')
         open(unit=48, file='FLUKA_impacts.dat')
         open(unit=39, file='FirstImpacts.dat')
+        open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
         if (firstrun) then
+!          write(45,'(a)')                                               &
+!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
           write(46,'(a)') '# 1=name 2=turn 3=s'
           write(47,'(a)') '# 1=name 2=turn 3=s'
           write(48,'(a)')                                               &
@@ -20107,12 +19839,17 @@ cc2008
 !
       endif
 !
+      if(do_select) then
+         close(45)
+      endif
       if(dowrite_impact) then
         close(46)
         close(47)
         close(48)
         close(39)
       endif
+!      close(9998)
+!      close(9999)
 !
 !APRIL2005
 !      CLOSE(38)
@@ -20134,7 +19871,7 @@ cc2008
      &'13=orbity 14=tdispx 15=tdispy',                                  &
      &'16=xbob 17=ybob 18=xpbob 19=ypbob'
       do i=1,iu
-        write(56,'(i4, (1x,a16), 17(1x,e20.13))')                        &
+        write(56,'(i4, (1x,a16), 17(1x,e20.13))')                       &
      &i, ename(i), sampl(i),                                            &
      &sum_ax(i)/max(nampl(i),1),                                        &
      &sqrt(abs((sqsum_ax(i)/max(nampl(i),1))-                           &
@@ -20793,20 +20530,66 @@ cc2008
 !APRIL2005
       call readcollimator
 !
-      do icoll = 1, db_ncoll
-+if cr
-        write(lout,*) db_name1(icoll)
-+ei
 +if .not.cr
-        write(*,*) db_name1(icoll)
+        write(*,*) 'number of collimators', db_ncoll
+        do icoll = 1, db_ncoll
+            write(*,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
+            write(*,*) 'collimator', icoll, ' ', db_name2(icoll)
+        end do
+!******write settings for alignment error in colltrack.out file
+!
+      write(outlun,*) ' '
+      write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
+      write(outlun,*) ' '
+      write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
+      write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
+      write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
+      write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
+      write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
+      write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
+      write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
+      write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
+      write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
+      write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
+      write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
+      write(outlun,*) ' '
+!     TW - 01/2007
+!     added offset and random_seed for tilt and offset
+!     APRIL2005
+!*****intialize random generator with offset_seed
+      c_offsettilt_seed = abs(c_offsettilt_seed)
+      rnd_lux = 3
+      rnd_k1  = 0
+      rnd_k2  = 0
+      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)         
+!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
+!
+! reset counter to assure starting at the same position in case of
+! using rndm5 somewhere else in the code before
+! 
+      zbv = rndm5(1)
 +ei
 +if cr
-        write(lout,*) db_name2(icoll)
+!******write settings for alignment error in colltrack.out file
+!
+      write(outlun,*) ' '
+      write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
+      write(outlun,*) ' '
+      write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
+      write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
+      write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
+      write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
+      write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
+      write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
+      write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
+      write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
+      write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
+      write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
+      write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
+      write(outlun,*) ' '
+!        write(lout,*) db_name1(icoll)
+!        write(lout,*) db_name2(icoll)
 +ei
-+if .not.cr
-        write(*,*) db_name2(icoll)
-+ei
-      end do
 !APRIL2005
 !
 !++  Generate random tilts (Gaussian distribution plus systematic)
@@ -20815,40 +20598,343 @@ cc2008
 !++  block) in order to re-use exactly the same information for every
 !++  sample.
 !
-      if (c_rmstilt_prim.gt.0. .or. c_rmstilt_sec.gt.0. .or.            &
-     &c_systilt_prim.ne.0. .or. c_systilt_sec.ne.0.) then
-        do icoll = 1, db_ncoll
-          if (db_name1(icoll)(1:3).eq.'TCP') then
-            c_rmstilt = c_rmstilt_prim
-            c_systilt = c_systilt_prim
-          else
-            c_rmstilt = c_rmstilt_sec
-+if cr
-            write(lout,*) 'C_RMSTILT = ', c_rmstilt
-+ei
-+if .not.cr
-            write(*,*) 'C_RMSTILT = ', c_rmstilt
-+ei
-            c_systilt = c_systilt_sec
-+if cr
-            write(lout,*) 'C_SYSTILT = ', c_systilt
-+ei
-+if .not.cr
-            write(*,*) 'C_SYSTILT = ', c_systilt
-+ei
-          endif
-          db_tilt(icoll,1) = c_systilt+c_rmstilt*ran_gauss(2d0)
-          if (systilt_antisymm) then
-            db_tilt(icoll,2) = -1d0*c_systilt+c_rmstilt*ran_gauss(2d0)
-          else
-            db_tilt(icoll,2) = c_systilt+c_rmstilt*ran_gauss(2d0)
-          endif
-          write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),        &
-     &' jaw 1 has tilt [rad]: ', db_tilt(icoll,1)
-          write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),        &
-     &' jaw 2 has tilt [rad]: ', db_tilt(icoll,2)
-        end do
-      endif
+         if (c_rmstilt_prim.gt.0. .or. c_rmstilt_sec.gt.0. .or.         &
+     &        c_systilt_prim.ne.0. .or. c_systilt_sec.ne.0.) then
+            do icoll = 1, db_ncoll
+               if (db_name1(icoll)(1:3).eq.'TCP') then
+                  c_rmstilt = c_rmstilt_prim
+                  c_systilt = c_systilt_prim
+               else
+                  c_rmstilt = c_rmstilt_sec
+                  c_systilt = c_systilt_sec
+               endif
+               db_tilt(icoll,1) = c_systilt+c_rmstilt*myran_gauss(3d0)
+               if (systilt_antisymm) then
+                  db_tilt(icoll,2) =                                    &
+     &                 -1d0*c_systilt+c_rmstilt*myran_gauss(3d0)
+               else
+                  db_tilt(icoll,2) =                                    &
+     &                 c_systilt+c_rmstilt*myran_gauss(3d0)
+               endif
+               write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),   &
+     &              ' jaw 1 has tilt [rad]: ', db_tilt(icoll,1)
+               write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),   &
+     &              ' jaw 2 has tilt [rad]: ', db_tilt(icoll,2)
+            end do
+         endif
+!++  Generate random offsets (Gaussian distribution plus systematic)
+!++  Do this only for the first call of this routine (first sample)
+!++  Keep all collimator database info and errors in memeory (COMMON
+!++  block) in order to re-use exactly the same information for every
+!++  sample and throughout a all run.
+         if (c_sysoffset_prim.ne.0. .or. c_sysoffset_sec.ne.0. .or.     &
+     &        c_rmsoffset_prim.gt.0. .or. c_rmsoffset_sec.gt.0.) then
+            do icoll = 1, db_ncoll 
+               if (db_name1(icoll)(1:3).eq.'TCP') then
+                  db_offset(icoll) = c_sysoffset_prim +                 &
+     &                 c_rmsoffset_prim*myran_gauss(3d0)
+               else
+                  db_offset(icoll) = c_sysoffset_sec +                  &
+     &                 c_rmsoffset_sec*myran_gauss(3d0)
+               endif
+               write(outlun,*) 'INFO>  offset: ', db_name1(icoll),      &
+     &              db_offset(icoll)
+            end do
+         endif
+!++  Generate random offsets (Gaussian distribution)
+!++  Do this only for the first call of this routine (first sample)
+!++  Keep all collimator database info and errors in memeory (COMMON
+!++  block) in order to re-use exactly the same information for every
+!++  sample and throughout a all run.
+!         if (c_rmserror_gap.gt.0.) then
+!            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
+            do icoll = 1, db_ncoll 
+               gap_rms_error(icoll) = c_rmserror_gap * myran_gauss(3d0)
+               write(outlun,*) 'INFO>  gap_rms_error: ',                &
+     &              db_name1(icoll),gap_rms_error(icoll)
+            end do
+! if no gap rms_error is used set array to zero
+!         else if
+!            do icoll = 1, db_ncoll 
+!               gap_rms_error(icoll) = 0.0
+!               write(outlun,*) 'INFO>  gap_rms_error: ',                &
+!     &              db_name1(icoll),gap_rms_error(icoll)
+!            end do
+!         endif
+!
+!---- creating a file with beta-functions at TCP/TCS 
+         open(unit=10000, file='twisslike.out')
+         open(unit=10001, file='sigmasettings.out')
+         mingap = 20
+         do j=1,iu
+!            if (bez(j)(1:3).eq.'TCP' .or. bez(j)(1:3).eq.'TCS' .or.     &
+!     &           bez(j)(1:3).eq.'tcp' .or. bez(j)(1:3).eq.'tcs') then
+! this transformation gives the right marker/name to the corresponding 
+! beta-dunctions or vice versa ;)
+            if(ic(j).le.nblo) then
+               do jb=1,mel(ic(j))
+                  myix=mtyp(ic(j),jb)
+               enddo
+            else
+               myix=ic(j)-nblo
+            endif
+! FEBRUAR2007
+! Using same code-block as below to evalute the collimator opening
+! for each collimator, this is needed to get the smallest collimator gap
+! in principal only looking for primary and secondary should be enough
+! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA amd TCTVB 
+! both namings before and after V6.503 can be used 
+            if ( bez(myix)(1:2).eq.'TC'                                 &
+     &           .or. bez(myix)(1:2).eq.'tc'                            &
+     &           .or. bez(myix)(1:2).eq.'TD'                            &
+     &           .or. bez(myix)(1:2).eq.'td'                            &
+     &           .or. bez(myix)(1:3).eq.'COL'                           &
+     &           .or. bez(myix)(1:3).eq.'col') then
+               if(bez(myix)(1:3).eq.'TCP' .or.                          &
+     &              bez(myix)(1:3).eq.'tcp') then
+                  if(bez(myix)(7:9).eq.'3.B' .or.                       &
+     &                 bez(myix)(7:9).eq.'3.b') then
+                     nsig = nsig_tcp3
+                  else
+                     nsig = nsig_tcp7
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCSG' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcsg') then
+                  if(bez(myix)(8:10).eq.'3.B' .or.                      &
+     &                 bez(myix)(8:10).eq.'3.b' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.B' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.b') then
+                     nsig = nsig_tcsg3
+                  else
+                     nsig = nsig_tcsg7
+                  endif
+                  if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')&
+     &                 ) then
+                     nsig = nsig_tcstcdq
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCSM' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcsm') then
+                  if(bez(myix)(8:10).eq.'3.B' .or.                      &
+     &                 bez(myix)(8:10).eq.'3.b' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.B' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.b') then
+                     nsig = nsig_tcsm3
+                  else
+                     nsig = nsig_tcsm7
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCLA' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcla') then
+                  if(bez(myix)(9:11).eq.'7.B' .or.                      &
+     &                 bez(myix)(9:11).eq.'7.b') then
+                     nsig = nsig_tcla7
+                  else
+                     nsig = nsig_tcla3
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCDQ' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcdq') then
+                  nsig = nsig_tcdq
+               elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcth' ) then                  &
+                  if(bez(myix)(8:10).eq.'1.B' .or.                      &
+     &                 bez(myix)(8:10).eq.'1.b') then
+                     nsig = nsig_tcth1
+                  elseif(bez(myix)(8:10).eq.'2.B' .or.                  &
+     &                    bez(myix)(8:10).eq.'2.b') then
+                     nsig = nsig_tcth2
+                  elseif(bez(myix)(8:10).eq.'5.B' .or.                  &
+     &                    bez(myix)(8:10).eq.'5.b') then
+                     nsig = nsig_tcth5
+                  elseif(bez(myix)(8:10).eq.'8.B' .or.                  &
+     &                    bez(myix)(8:10).eq.'8.b') then
+                     nsig = nsig_tcth8
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
+     &                 bez(myix)(1:4).eq.'tctv' ) then
+                  if(bez(myix)(8:10).eq.'1.B' .or.                      &
+     &                 bez(myix)(8:10).eq.'1.b' .or.                    &
+     &                 bez(myix)(9:11).eq.'1.B' .or.                    &
+     &                 bez(myix)(9:11).eq.'1.b' ) then
+                     nsig = nsig_tctv1
+                  elseif(bez(myix)(8:10).eq.'2.B' .or.                  &
+     &                    bez(myix)(8:10).eq.'2.b' .or.                 &
+     &                    bez(myix)(9:11).eq.'2.B' .or.                 &
+     &                    bez(myix)(9:11).eq.'2.b' ) then
+                     nsig = nsig_tctv2
+                  elseif(bez(myix)(8:10).eq.'5.B' .or.                  &
+     &                    bez(myix)(8:10).eq.'5.b' .or.                 &
+     &                    bez(myix)(9:11).eq.'5.B' .or.                 &
+     &                    bez(myix)(9:11).eq.'5.b') then
+                     nsig = nsig_tctv5
+                  elseif(bez(myix)(8:10).eq.'8.B' .or.                  &
+     &                    bez(myix)(8:10).eq.'8.b' .or.                 &
+     &                    bez(myix)(9:11).eq.'8.B' .or.                 &
+     &                    bez(myix)(9:11).eq.'8.b') then
+                     nsig = nsig_tctv8
+                  endif
+               elseif(bez(myix)(1:3).eq.'TDI' .or.                      &
+     &                 bez(myix)(1:3).eq.'tdi') then
+                  nsig = nsig_tdi
+               elseif(bez(myix)(1:4).eq.'TCLP' .or.                     &
+     &                 bez(myix)(1:4).eq.'tclp' .or.                    &
+     &                 bez(myix)(1:4).eq.'TCL.' .or.                    &
+     &                 bez(myix)(1:4).eq.'tcl.') then
+                  nsig = nsig_tclp
+               elseif(bez(myix)(1:4).eq.'TCLI' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcli') then
+                  nsig = nsig_tcli
+               elseif(bez(myix)(1:4).eq.'TCXR' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcxr') then
+                  nsig = nsig_tcxrp
+!     TW 04/2008 ---- start adding TCRYO
+               elseif(bez(myix)(1:5).eq.'TCRYO' .or.                     &
+     &                 bez(myix)(1:5).eq.'tcryo') then
+                  nsig = nsig_tcryo
+!     TW 04/2008 ---- end adding TCRYO
+               elseif(bez(myix)(1:3).eq.'COL' .or.                      &
+     &                 bez(myix)(1:3).eq.'col') then
+                  if(bez(myix)(1:4).eq.'COLM' .or.                      &
+     &                 bez(myix)(1:4).eq.'colm' .or.                    &
+     &                 bez(myix)(1:5).eq.'COLH0' .or.                   &
+     &                 bez(myix)(1:5).eq.'colh0') then
+                     nsig = nsig_tcth1
+                  elseif(bez(myix)(1:5).eq.'COLV0' .or.                 &
+     &                    bez(myix)(1:5).eq.'colv0') then
+                     nsig = nsig_tcth2
+                  elseif(bez(myix)(1:5).eq.'COLH1' .or.                 &
+     &                    bez(myix)(1:5).eq.'colh1') then
+!     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
+!     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
+!     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
+                     nsig = nsig_tcth5
+                  elseif(bez(myix)(1:5).eq.'COLV1' .or.                 &
+     &                    bez(myix)(1:5).eq.'colv1') then
+                     nsig = nsig_tcth8
+                  elseif(bez(myix)(1:5).eq.'COLH2' .or.                 &
+     &                    bez(myix)(1:5).eq.'colh2') then
+                     nsig = nsig_tctv1
+                  endif
+!     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+               endif
+!     FEBRUAR2007
+               do i = 1, db_ncoll
+!
+! start searching minimum gap 
+!
+                  if ((db_name1(i)(1:11).eq.bez(myix)(1:11)) .or.       &
+     &                 (db_name2(i)(1:11).eq.bez(myix)(1:11))) then
+                     if ( db_length(i) .gt. 0d0 ) then
+!                        write(10000,*) bez(myix),tbetax(j),tbetay(j),   &
+!     &                       torbx(j),torby(j), nsig, gap_rms_error(i)
+                        nsig_err = nsig + gap_rms_error(i)
+! jaw 1 on positive side x-axis
+                        gap_h1 = nsig_err - sin(db_tilt(i,1))*          &
+     &                       db_length(i)/2
+                        gap_h2 = nsig_err + sin(db_tilt(i,1))*          &
+     &                       db_length(i)/2
+! jaw 2 on negative side of x-axis (see change of sign comapred 
+! to above code lines, alos have a look to setting of tilt angle)
+                        gap_h3 = nsig_err + sin(db_tilt(i,2))*          &
+     &                       db_length(i)/2
+                        gap_h4 = nsig_err - sin(db_tilt(i,2))*          &
+     &                       db_length(i)/2
+! find minumum halfgap
+!! --- start of oldversion (first try searching of smallest gap not halfgap)
+!                        if (((gap_h1+gap_h3)/2) .le. mingap) then
+!                           mingap = (gap_h1 + gap_h3) / 2
+!                           coll_mingap_id = i
+!                           coll_mingap1 = db_name1(i)
+!                           coll_mingap2 = db_name2(i)
+!                        endif
+!                        if (((gap_h2+gap_h4)/2) .le. mingap) then
+!                           mingap = (gap_h2 + gap_h4) / 2
+!                           coll_mingap_id = i
+!                           coll_mingap1 = db_name1(i)
+!                           coll_mingap2 = db_name2(i)
+!                        endif
+!! --- end of old version
+! --- searching for smallest halfgap
+!! ---scaling for beta beat needed? 
+!                        if (do_nominal) then                            
+!                           bx_dist = db_bx(icoll) * scale_bx / scale_bx0
+!                           by_dist = db_by(icoll) * scale_by / scale_by0
+!                        else
+!                           bx_dist = tbetax(j) * scale_bx / scale_bx0
+!                           by_dist = tbetay(j) * scale_by / scale_by0
+!                        endif
+                        if (do_nominal) then                            
+                           bx_dist = db_bx(icoll) 
+                           by_dist = db_by(icoll)
+                        else
+                           bx_dist = tbetax(j)
+                           by_dist = tbetay(j)
+                        endif
+                        sig_offset = db_offset(i) /                     &
+     &                       (sqrt(bx_dist**2 * cos(db_rotation(i))**2  &
+     &                       + by_dist**2 * sin(db_rotation(i))**2 ))
+                        write(10000,*) bez(myix),tbetax(j),tbetay(j),   &
+     &                       torbx(j),torby(j), nsig, gap_rms_error(i)
+                        write(10001,*) bez(myix), gap_h1, gap_h2,       & 
+     &                       gap_h3, gap_h4, sig_offset, db_offset(i),  &
+     &                       nsig, gap_rms_error(i)
+                        if ((gap_h1 + sig_offset) .le. mingap) then
+                           mingap = gap_h1 + sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i) 
+                        elseif ((gap_h2 + sig_offset) .le. mingap) then
+                           mingap = gap_h2 + sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i) 
+                        elseif ((gap_h3 - sig_offset) .le. mingap) then
+                           mingap = gap_h3 - sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i) 
+                        elseif ((gap_h4 - sig_offset) .le. mingap) then
+                           mingap = gap_h4 - sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i)
+                        endif
+                     endif
+                  endif
+               enddo
+!     
+! could be done more elegant the above code to search the minimum gap
+! and should also consider the jaw tilt
+!
+            endif
+         enddo
+         write(10000,*) coll_mingap_id,coll_mingap1,coll_mingap2,       &
+     &        mingap
+         write(10000,*) 'INFO> IPENCIL initial ',ipencil
+! if pencil beam is used and on collimator with smallest gap the
+! distribution should be generated, set ipencil to coll_mingap_id    
+         if (ipencil.gt.0 .and. do_mingap) then
+            ipencil = coll_mingap_id
+         endif
+         write(10000,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
+! ---
+         write(10001,*) coll_mingap_id,coll_mingap1,coll_mingap2,       &
+     &        mingap
+!         write(10001,*) 'INFO> IPENCIL initial ',ipencil
+! if pencil beam is used and on collimator with smallest gap the
+! distribution should be generated, set ipencil to coll_mingap_id    
+         write(10001,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
+         write(10001,*) 'INFO> rnd_seed is (before reinit)',rnd_seed
+!
+         close(10000)
+         close(10001)
+!
+!****** re-intialize random generator with rnd_seed 
+!       reinit with initial value used in first call  
+         rnd_lux = 3
+         rnd_k1  = 0
+         rnd_k2  = 0
+         call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
+! TW - 01/2007
+!
 !GRD
 !GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, ie THE ONE WE DON'T WANT
 !GRD TO KEEP OVER EACH LOOP
@@ -20859,6 +20945,9 @@ cc2008
 !APRIL2005
              other(j)=0
 !APRIL2005
+!DEC 2008
+             nabs_type(j) = 0
+!DEC2008
           end do
 !GRD
           do k = 1, numeff
@@ -20875,7 +20964,7 @@ cc2008
             csqsum(j) = 0d0
           enddo
 !Mars 2005
-!++ End of first call stuff
+!++ End of first call stuff (end of first run)
 !
       endif
 !
@@ -20887,6 +20976,9 @@ cc2008
 !APRIL2005
         other(j)=0
 !APRIL2005
+!DEC 2008
+        nabs_type(j) = 0
+!DEC2008
       end do
 !GRD
 !GRD HERE WE INITIALIZE THE VALUES OF IPART(j)
@@ -20927,7 +21019,7 @@ cc2008
 +ei
       do 650 i=1,iu
 +if collimat
-      ie=i
+        ie=i
 !!     SR, 10-08-2005 - My format to writer down particle distributions
 !!                      at various elements
 !       do j=1,napx
@@ -20977,27 +21069,30 @@ cc2008
 !APRIL2005
               other(j) = 0
 !APRIL2005
+!DEC 2008
+              nabs_type(j) = 0
+!DEC2008
             endif
           end do
 !GRD
 !GRD SAVE COORDINATES OF PARTICLE 1 TO CHECK ORBIT
 !GRD
           if(firstrun) then
-        xbob(ie)=xv(1,1)
-        ybob(ie)=xv(2,1)
-        xpbob(ie)=yv(1,1)
-        ypbob(ie)=yv(2,1)
-        endif
+            xbob(ie)=xv(1,1)
+            ybob(ie)=xv(2,1)
+            xpbob(ie)=yv(1,1)
+            ypbob(ie)=yv(2,1)
+          endif
 !
 !++  Here comes sixtrack stuff
 !
-        if(ic(i).le.nblo) then
-              do jb=1,mel(ic(i))
-                 myix=mtyp(ic(i),jb)
-              enddo
-           else
+          if(ic(i).le.nblo) then
+            do jb=1,mel(ic(i))
+               myix=mtyp(ic(i),jb)
+            enddo
+          else
               myix=ic(i)-nblo
-           endif
+          endif
 +ei
 +if bnlelens
 +ca bnltwiss
@@ -21027,6 +21122,10 @@ cc2008
      &(bez(myix)(1:3).eq.'TCT'.or.bez(myix)(1:3).eq.'tct') .or.         &
      &(bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
      &(bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
+! UPGRADE MAI 2006 -> TOTEM
+     &(bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
+! TW 04/2008 adding TCRYO 
+     &(bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') .or.         &
 !RHIC
      &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then
 !GRD     write(*,*) bez(myix),'found!!'
@@ -21083,6 +21182,10 @@ cc2008
 !
 !     SR, 17-01-2006: Review the TCT assignments because the MADX names
 !     have changes (TCTH.L -> TCTH.4L)
+!
+! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA amd TCTVB 
+! both namings before and after V6.503 can be used 
+!
           if (do_coll .and.
      &         (bez(myix)(1:2).eq.'TC'                                  &
      &         .or. bez(myix)(1:2).eq.'tc'                              &
@@ -21148,20 +21251,28 @@ cc2008
      &               bez(myix)(8:10).eq.'8.b') then
                 nsig = nsig_tcth8
               endif
-            elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
+            elseif(bez(myix)(1:4).eq.'TCTV' .or.                         &
      &             bez(myix)(1:4).eq.'tctv' ) then
               if(bez(myix)(8:10).eq.'1.B' .or.                          &
-     &             bez(myix)(8:10).eq.'1.b') then
-                nsig = nsig_tctv1
+     &             bez(myix)(8:10).eq.'1.b' .or.                        &
+     &             bez(myix)(9:11).eq.'1.B' .or.                        &
+     &             bez(myix)(9:11).eq.'1.b' ) then
+                 nsig = nsig_tctv1
               elseif(bez(myix)(8:10).eq.'2.B' .or.                      &
-     &               bez(myix)(8:10).eq.'2.b' ) then
-                nsig = nsig_tctv2
+     &                bez(myix)(8:10).eq.'2.b' .or.                     &
+     &                bez(myix)(9:11).eq.'2.B' .or.                     &
+     &                bez(myix)(9:11).eq.'2.b' ) then
+                 nsig = nsig_tctv2
               elseif(bez(myix)(8:10).eq.'5.B' .or.                      &
-     &               bez(myix)(8:10).eq.'5.b') then
-                nsig = nsig_tctv5
+     &                bez(myix)(8:10).eq.'5.b' .or.                     &
+     &                bez(myix)(9:11).eq.'5.B' .or.                     &
+     &                bez(myix)(9:11).eq.'5.b') then
+                 nsig = nsig_tctv5
               elseif(bez(myix)(8:10).eq.'8.B' .or.                      &
-     &               bez(myix)(8:10).eq.'8.b') then
-                nsig = nsig_tctv8
+     &                bez(myix)(8:10).eq.'8.b' .or.                     &
+     &                bez(myix)(9:11).eq.'8.B' .or.                     &
+     &                bez(myix)(9:11).eq.'8.b') then
+                 nsig = nsig_tctv8
               endif
             elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
      &             bez(myix)(1:3).eq.'tdi') then
@@ -21174,6 +21285,12 @@ cc2008
             elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
      &             bez(myix)(1:4).eq.'tcli') then
               nsig = nsig_tcli
+            elseif(bez(myix)(1:4).eq.'TCXR' .or.                        &
+     &             bez(myix)(1:4).eq.'tcxr') then
+              nsig = nsig_tcxrp
+            elseif(bez(myix)(1:5).eq.'TCRYO' .or.                        &
+     &             bez(myix)(1:5).eq.'tcryo') then
+              nsig = nsig_tcryo
             elseif(bez(myix)(1:3).eq.'COL' .or.                         &
      &             bez(myix)(1:3).eq.'col') then
               if(bez(myix)(1:4).eq.'COLM' .or.                          &
@@ -21208,14 +21325,7 @@ cc2008
 !Feb2006
 !     SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
         if ( firstrun ) then
-!        if (firstrun.and.(                                              &
-!     &(bez(myix)(1:4).eq.'TCDS').or.                                    &
-!     &(bez(myix)(1:4).eq.'tcds').or.                                    &
-!     &(bez(myix)(1:4).eq.'TCDD').or.                                    &
-!     &(bez(myix)(1:4).eq.'tcdd')                                        &
-!     &)) then
-!
-       if (rselect.gt.0 .and. rselect.lt.65) then
+          if (rselect.gt.0 .and. rselect.lt.65) then
             do j = 1, napx
 !
               xj     = (xv(1,j)-torbx(ie))/1d3
@@ -21353,20 +21463,31 @@ cc2008
 !
 !-------------------------------------------------------------------
 !++  Write beam ellipse at selected collimator
-!
-           if (firstrun .and.                                           &
-     &((db_name1(icoll).eq.name_sel(1:11))                              &
-     &.or.(db_name2(icoll).eq.name_sel(1:11)))                          &
-     &.and. iturn.eq.1 .and. dowrite_dist) then
-            open(unit=45, file='coll_ellipse.dat')
-            write(45,'(a)')                                             &
-     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
+! ---- changed name_sel(1:11) name_sel(1:12) to be checked if feasible!!
+          if (                                                          &
+     &         ((db_name1(icoll).eq.name_sel(1:12))                     &
+     &         .or.(db_name2(icoll).eq.name_sel(1:12)))                 &
+     &         .and. dowrite_dist) then
+!          if (firstrun .and.                                            &
+!     &         ((db_name1(icoll).eq.name_sel(1:11))                     &
+!     &         .or.(db_name2(icoll).eq.name_sel(1:11)))                 &
+!     &         .and. dowrite_dist) then
+! --- get halo on each turn
+!     &.and. iturn.eq.1 .and. dowrite_dist) then
+! --- put open and close at the pso. where it is done for the 
+! --- other files belonging to dowrite_impact flag !(may not a good loc.)
+!            open(unit=45, file='coll_ellipse.dat')
+!            write(45,'(a)')                                             &
+!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
             do j = 1, napx
-              write(45,'(6(1X,E15.7))')                                 &
-     &xv(1,j), xv(2,j), yv(1,j), yv(2,j), ejv(j), mys(j)
+            write(45,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))')              &
+     &ipart(j)+100*samplenumber,xv(1,j), xv(2,j), yv(1,j), yv(2,j),     &
+     &ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j),           &
+     &nabs_type(j)
             end do
-            close(45)
+!            close(45)
           endif
+!
 !
 !-------------------------------------------------------------------
 !++  Output to temporary database and screen
@@ -21413,6 +21534,9 @@ cc2008
 !JUNE2005   THE PRIMARY COLLIMATOR OF RHIC
          if(db_name1(icoll)(1:4).ne.'COLM') then
 !JUNE2005
+!FEBRUAR2007 added gap error to nsig      --------------- TW
+          nsig = nsig + gap_rms_error(icoll)
+!FEBRUAR2007                              --------------- TW
           xmax = nsig*sqrt(bx_dist*myemitx0)
           ymax = nsig*sqrt(by_dist*myemity0)
           xmax_pencil = (nsig+pencil_offset)*                           &
@@ -21440,10 +21564,10 @@ cc2008
           calc_aperture = sqrt( xmax**2 * cos(c_rotation)**2            &
 +ei
 +if crlibm
-     &+ ymax**2 * sin_rn(c_rotation)**2 )
+     &                    + ymax**2 * sin_rn(c_rotation)**2 )
 +ei
 +if .not.crlibm
-     &+ ymax**2 * sin(c_rotation)**2 )
+     &                    + ymax**2 * sin(c_rotation)**2 )
 +ei
 !
 !      write(*,*) 'aperture=',calc_aperture,'at ',DB_NAME1(ICOLL),NSIG,
@@ -21452,73 +21576,146 @@ cc2008
 !
 +if crlibm
           nom_aperture = sqrt( xmax_nom**2 * cos_rn(c_rotation)**2      &
+     &                   + ymax_nom**2 * sin_rn(c_rotation)**2 )
 +ei
 +if .not.crlibm
           nom_aperture = sqrt( xmax_nom**2 * cos(c_rotation)**2         &
-+ei
-+if crlibm
-     &+ ymax_nom**2 * sin_rn(c_rotation)**2 )
-+ei
-+if .not.crlibm
-     &+ ymax_nom**2 * sin(c_rotation)**2 )
+     &                   + ymax_nom**2 * sin(c_rotation)**2 )
 +ei
 !
             pencil_aperture =                                           &
 +if crlibm
-     &sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2                      &
+     &                    sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2  &
+     &                    + ymax_pencil**2 * sin_rn(c_rotation)**2 )
 +ei
 +if .not.crlibm
-     &sqrt( xmax_pencil**2 * cos(c_rotation)**2                         &
-+ei
-+if crlibm
-     &+ ymax_pencil**2 * sin_rn(c_rotation)**2 )
-+ei
-+if .not.crlibm
-     &+ ymax_pencil**2 * sin(c_rotation)**2 )
+     &                    sqrt( xmax_pencil**2 * cos(c_rotation)**2     &
+     &                    + ymax_pencil**2 * sin(c_rotation)**2 )
 +ei
 !
 !++  Get x and y offsets at collimator center point
 !
 +if crlibm
             x_pencil(icoll) = xmax_pencil * (cos_rn(c_rotation))
-+ei
-+if .not.crlibm
-            x_pencil(icoll) = xmax_pencil * (cos(c_rotation))
-+ei
-+if crlibm
             y_pencil(icoll) = ymax_pencil * (sin_rn(c_rotation))
 +ei
 +if .not.crlibm
+            x_pencil(icoll) = xmax_pencil * (cos(c_rotation))
             y_pencil(icoll) = ymax_pencil * (sin(c_rotation))
 +ei
 !
-!++  Get corresponding beam angles
+!++  Get corresponding beam angles (uses xp_max)
 !
-            xp_pencil(icoll) =                                          &
-     &-1d0 * sqrt(myemitx0/tbetax(ie))*talphax(ie)                      &
-     &* x_pencil(icoll) / sqrt(myemitx0*tbetax(ie))
+!          xp_pencil(icoll) =                                            &
+!     &                   -1d0 * sqrt(myemitx0/tbetax(ie))*talphax(ie)   &
+!       &                   * x_pencil(icoll) / sqrt(myemitx0*tbetax(ie))
+!     
+!          yp_pencil(icoll) =                                            &
+!     &                    -1d0 * sqrt(myemity0/tbetay(ie))*talphay(ie)  &
+!     &                   * y_pencil(icoll) / sqrt(myemity0*tbetay(ie))
 !
-            yp_pencil(icoll) =                                          &
-     &-1d0 * sqrt(myemity0/tbetay(ie))*talphay(ie)                      &
-     &* y_pencil(icoll) / sqrt(myemity0*tbetay(ie))
+          xp_pencil(icoll) =                                            &
+     &                   -1d0 * sqrt(myemitx0/tbetax(ie))*talphax(ie)   &
+     &                   * xmax / sqrt(myemitx0*tbetax(ie))
+!     
+          yp_pencil(icoll) =                                            &
+     &                    -1d0 * sqrt(myemity0/tbetay(ie))*talphay(ie)  &
+     &                   * ymax / sqrt(myemity0*tbetay(ie))
 !
+! that the way xp is calculated for makedis subroutines !!!!
+!        if (rndm4().gt.0.5) then
+!          myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
+!     &myalphax*myx(j)/mybetax
+!        else
+!          myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
+!     &myalphax*myx(j)/mybetax
+!        endif
+!            xp_pencil(icoll) =                                          &
+!     &           sqrt(sqrt((myemitx0/tbetax(ie)                         &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
+!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) " ************************************ "
+!            write(*,*) myemitx0/tbetax(ie)                              &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2
+!            write(*,*)sqrt(sqrt((myemitx0/tbetax(ie)                    &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))
+!            write(*,*) -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) sqrt(myemitx0/tbetax(ie))*talphax(ie)            &
+!     &                   * x_pencil(icoll) / sqrt(myemitx0*tbetax(ie))
+!            write(*,*)  sqrt(sqrt((myemitx0/tbetax(ie)                  &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
+!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) xp_pencil(icoll)
+!            write(*,*) " ************************************ "
+!
+!            yp_pencil(icoll) =                                          &
+!     &           sqrt(sqrt((myemity0/tbetay(ie)                         &
+!     &           -y_pencil(icoll)**2/tbetay(ie)**2)**2))                &
+!     &           -talphay(ie)*y_pencil(icoll)/tbetay(ie)
+!!
             xp_pencil0 = xp_pencil(icoll)
             yp_pencil0 = yp_pencil(icoll)
 !
             pencil_dx(icoll)  =                                         &
 +if crlibm
-     &sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2                      &
+     &                     sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2 &
+     &                     + ymax_pencil**2 * sin_rn(c_rotation)**2 )   &
 +ei
 +if .not.crlibm
-     &sqrt( xmax_pencil**2 * cos(c_rotation)**2                         &
+     &                     sqrt( xmax_pencil**2 * cos(c_rotation)**2    &
+     &                     + ymax_pencil**2 * sin(c_rotation)**2 )      &
 +ei
+     &                     - calc_aperture
+!++ TW -- tilt for of jaw for pencil beam
+!++ as in Ralphs orig routine, but not in collimate subroutine itself
+!            nprim = 3
+!            if ( (icoll.eq.ipencil) &
+!     &           icoll.le.nprim .and. (j.ge.(icoll-1)*nev/nprim)        &
+!     &           .and. (j.le.(icoll)*nev/nprim))) then
+! this is done for every bunch (64 particle bucket)
+! important: Sixtrack calculates in "mm" and collimate2 in "m"
+! therefore 1E-3 is used to  
+            if ((icoll.eq.ipencil).and.(iturn.eq.1)) then
+!!               write(*,*) " ************************************** "
+!!               write(*,*) " * INFO> seting tilt for pencil beam  * "
+!!               write(*,*) " ************************************** "
+!     c_tilt(1) =  (xp_pencil0*cos(c_rotation)                  &
 +if crlibm
-     &+ ymax_pencil**2 * sin_rn(c_rotation)**2 ) -                      &
+!adriana
+               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos_rn(c_rotation)    &
+     &                     + sin_rn(c_rotation)*yp_pencil0)
 +ei
 +if .not.crlibm
-     &+ ymax_pencil**2 * sin(c_rotation)**2 ) -                         &
+               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos(c_rotation)       &
+     &                     + sin(c_rotation)*yp_pencil0)
 +ei
-     &calc_aperture
+               write(*,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",     &
+     &              icoll, c_tilt(1)
+!
+!! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is 
+!! -systilt + rmstilt otherwise +systilt + rmstilt
+!!               if (systilt_antisymm) then
+!! to align the jaw/pencil to the beam always use the minus regardless which 
+!! orientation of the jaws was used (symmetric/antisymmetric) 
+!                c_tilt(2) =  -1.*(xp_pencil0*cos(c_rotation)             &
++if crlibm
+!adriana
+                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos_rn(c_rotation)  &
+     &                 + sin_rn(c_rotation)*yp_pencil0)
++ei
++if .not.crlibm
+                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos(c_rotation)     &
+     &                 + sin(c_rotation)*yp_pencil0)
++ei
+!!               else
+!!                  c_tilt(2) = c_tilt(2) + (xp_pencil0*cos(c_rotation)   &
+!!     &                 + sin(c_rotation)*yp_pencil0)
+!!               endif
+               write(*,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",      &
+     &              icoll, c_tilt(2)
+            endif
+!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3) 
+!
 !JUNE2005
 !JUNE2005   HERE IS THE SPECIAL TREATMENT...
 !JUNE2005
@@ -21577,9 +21774,13 @@ cc2008
      &,nom_aperture
             write(outlun,*) 'Aperture (cal) [m]:  '                     &
      &,calc_aperture
+            write(outlun,*) 'Collimator halfgap [sigma]:  '              &
+     &,nsig
+            write(outlun,*) 'RMS error on halfgap [sigma]:  '            &
+     &,gap_rms_error(icoll)
             write(outlun,*) ' '
 !
-            write(43,'(i,1x,a,4(1x,e13.5),1x,a,5(1x,e13.5))')           &
+            write(43,'(i,1x,a,4(1x,e13.5),1x,a,6(1x,e13.5))')           &
      &icoll,db_name1(icoll)(1:12),                                      &
      &db_rotation(icoll),                                               &
      &tbetax(ie), tbetay(ie), calc_aperture,                            &
@@ -21589,7 +21790,20 @@ cc2008
      &sqrt(tbetay(ie)*myemity0),                                        &
 !JUNE2005
      &db_tilt(icoll,1),                                                 &
-     &db_tilt(icoll,2)
+     &db_tilt(icoll,2),                                                 &
+     &nsig
+! coll settings file
+            if(n_slices.le.1) then
+            write(55,'(a,1x,i,5(1x,e13.5),1x,a)')                       &
+     &db_name1(icoll)(1:12),                                            &
+     &n_slices,calc_aperture,                                           &
+     &db_offset(icoll),                                                 &
+     &db_tilt(icoll,1),                                                 &
+     &db_tilt(icoll,2),                                                 &
+     &db_length(icoll),                                                 &
+     &db_material(icoll)
+         endif
+!
 !JUNE2005
 !
           endif
@@ -21712,7 +21926,11 @@ cc2008
 !GRD-SR, 09-02-2006
 !Force the treatment of the TCDQ equipment as a onsided collimator.
 !Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
-              if(db_name1(icoll)(1:4).eq.'TCDQ') onesided = .true.
+!              if(db_name1(icoll)(1:4).eq.'TCDQ' ) onesided = .true.
+! to treat all collimators onesided 
+! -> only for worst case TCDQ studies
+               if(db_name1(icoll)(1:4).eq.'TCDQ') onesided = .true.
+               if(db_name1(icoll)(1:5).eq.'TCXRP') onesided = .true.
 !GRD-SR
 !
 !==> SLICE here is possible
@@ -21725,18 +21943,33 @@ cc2008
 !
 !     SR, 01-09-2005: new official version - input assigned through
 !     the 'fort.3' file.
+!               if (n_slices.gt.1d0 .and.                                &
+!     &              totals.gt.smin_slices .and.                         &
+!     &              totals.lt.smax_slices .and.                         &
+!     &              db_name1(icoll)(1:4).eq.'TCSG' ) then
+!                  if (firstrun) then
+!                  write(*,*) 'INFOslice - Collimator ',
+!     &              db_name1(icoll), ' sliced in ',n_slices,
+!     &              ' pieces!'
+!                  endif
+!CB
                if (n_slices.gt.1d0 .and.                                &
-     &              totals.gt.smin_slices .and.                         &
-     &              totals.lt.smax_slices .and.                         &
-     &              db_name1(icoll)(1:4).eq.'TCSG' ) then
+!     &              totals.gt.smin_slices .and.                         &
+!     &              totals.lt.smax_slices .and.                         &
+     &             (db_name1(icoll)(1:4).eq.'TCSG'                      &
+     &             .or. db_name1(icoll)(1:3).eq.'TCP'                   &
+     &             .or. db_name1(icoll)(1:4).eq.'TCLA'                  &
+     &             .or. db_name1(icoll)(1:3).eq.'TCT'                   &
+     &             .or. db_name1(icoll)(1:4).eq.'TCLI'                  &
+     &             .or. db_name1(icoll)(1:4).eq.'TCL.')) then       
                   if (firstrun) then
 +if cr
-                  write(lout,*) 'INFOslice - Collimator ',              &
+                  write(lout,*) 'INFO> slice - Collimator ',            &
      &              db_name1(icoll), ' sliced in ',n_slices,            &
      &              ' pieces!'
 +ei
 +if .not.cr
-                  write(*,*) 'INFOslice - Collimator ',                 &
+                  write(*,*) 'INFO> slice - Collimator ',               &
      &              db_name1(icoll), ' sliced in ',n_slices,            &
      &              ' pieces!'
 +ei
@@ -21756,34 +21989,75 @@ cc2008
 !!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
 !!     Note: here, take (n_slices+1) points in order to calculate the
 !!           tilt angle of the last slice!!
-                  do jjj=1,n_slices+1
-                     x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
-                     y1_sl(jjj) =  fit1_1 +                             &
-     &                    fit1_2*x_sl(jjj) +                            &
-     &                    fit1_3*(x_sl(jjj)**2) +                       &
-     &                    fit1_4*(x_sl(jjj)**3) +                       &
-     &                    fit1_5*(x_sl(jjj)**4) +                       &
-     &                    fit1_6*(x_sl(jjj)**5)
+!                  do jjj=1,n_slices+1
+!                     x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
+!                     y1_sl(jjj) =  fit1_1 +                             &
+!     &                    fit1_2*x_sl(jjj) +                            &
+!     &                    fit1_3*(x_sl(jjj)**2) +                       &
+!     &                    fit1_4*(x_sl(jjj)**3) +                       &
+!     &                    fit1_5*(x_sl(jjj)**4) +                       &
+!     &                    fit1_6*(x_sl(jjj)**5)
 !
-                     y2_sl(jjj) = -1d0 * (fit2_1 +                      &
-     &                    fit2_2*x_sl(jjj) +                            &
-     &                    fit2_3*(x_sl(jjj)**2) +                       &
-     &                    fit2_4*(x_sl(jjj)**3) +                       &
-     &                    fit2_5*(x_sl(jjj)**4) +                       &
-     &                    fit2_6*(x_sl(jjj)**5))
-                  enddo
+!                     y2_sl(jjj) = -1d0 * (fit2_1 +                      &
+!     &                    fit2_2*x_sl(jjj) +                            &
+!     &                    fit2_3*(x_sl(jjj)**2) +                       &
+!     &                    fit2_4*(x_sl(jjj)**3) +                       &
+!     &                    fit2_5*(x_sl(jjj)**4) +                       &
+!     &                    fit2_6*(x_sl(jjj)**5))
+!                  enddo
+!     CB:10-2007 deformation of the jaws scaled with length
+               do jjj=1,n_slices+1
+                  x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
+                  y1_sl(jjj) =  fit1_1 +
+     &                 fit1_2*x_sl(jjj) +
+     &                 fit1_3/c_length*(x_sl(jjj)**2) +
+     &                 fit1_4*(x_sl(jjj)**3) +
+     &                 fit1_5*(x_sl(jjj)**4) +
+     &                 fit1_6*(x_sl(jjj)**5)
+!     
+                  y2_sl(jjj) = -1d0 * (fit2_1 +
+     &                 fit2_2*x_sl(jjj) +
+     &                 fit2_3/c_length*(x_sl(jjj)**2) +
+     &                 fit2_4*(x_sl(jjj)**3) +
+     &                 fit2_5*(x_sl(jjj)**4) +
+     &                 fit2_6*(x_sl(jjj)**5))
+               enddo
 !     Apply the slicing scaling factors (ssf's):
+!     
+!                  do jjj=1,n_slices+1
+!                     y1_sl(jjj) = ssf1 * y1_sl(jjj)
+!                     y2_sl(jjj) = ssf2 * y2_sl(jjj)
+!                  enddo
+!
+!     CB:10-2007 coordinates rotated of the tilt 
                   do jjj=1,n_slices+1
                      y1_sl(jjj) = ssf1 * y1_sl(jjj)
                      y2_sl(jjj) = ssf2 * y2_sl(jjj)
+! CB code
+                     x1_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,1))- 
+     &                    y1_sl(jjj)*sin(db_tilt(icoll,1))
+                     x2_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,2))- 
+     &                    y2_sl(jjj)*sin(db_tilt(icoll,2))
+                     y1_sl(jjj) = y1_sl(jjj)*cos(db_tilt(icoll,1))+ 
+     &                    x_sl(jjj)*sin(db_tilt(icoll,1))
+                     y2_sl(jjj) = y2_sl(jjj)*cos(db_tilt(icoll,2))+ 
+     &                    x_sl(jjj)*sin(db_tilt(icoll,2))
                   enddo
 !     Sign of the angle defined differently for the two jaws!
                   do jjj=1,n_slices
-                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /      &
-     &                    (c_length / dble(n_slices) )
-                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /      &
-     &                    (c_length / dble(n_slices) )
+                     angle1(jjj) = (( y1_sl(jjj+1) - y1_sl(jjj) ) /
+     &                    ( x1_sl(jjj+1)-x1_sl(jjj) ))
+                     angle2(jjj) =(( y2_sl(jjj+1) - y2_sl(jjj) ) /
+     &                    ( x2_sl(jjj+1)-x2_sl(jjj) ))
                   enddo
+!
+!     Sign of the angle defined differently for the two jaws!
+!                  do jjj=1,n_slices
+!                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /
+!     &                    (c_length / dble(n_slices) )
+!                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /
+!     &                    (c_length / dble(n_slices) )
+!                  enddo
 !     For both jaws, look for the 'deepest' point (closest point to beam)
 !     Then, shift the vectors such that this closest point defines
 !     the nominal aperture
@@ -21825,11 +22099,13 @@ cc2008
                      do jjj=1,n_slices
 +if cr
                        write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), &
-     &                   angle1(jjj), angle2(jjj)
+     &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
+     &                   db_tilt(icoll,2)
 +ei
 +if .not.cr
                        write(*,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj),    &
-     &                   angle1(jjj), angle2(jjj)
+     &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
+     &                   db_tilt(icoll,2)
 +ei
                      enddo
                   endif
@@ -21900,18 +22176,37 @@ cc2008
 !     coordinate in the impact files.
 !     +                    a_tmp1 - a_tmp2,
 !     +                    0.5 * ( a_tmp1 + a_tmp2 ),
+! -- TW SEP07 added compatility for tilt, gap and ofset errors to slicing
+! -- TW gaprms error is already included in the c_aperture used above  
+! -- TW tilt error is added to y1_sl and y2_sl therfore included in 
+! -- TW angle1 and angle2 no additinal changes needed 
+! -- TW offset error directly added to call of collimate2
+!
+! --- TW JUNE08 
+                     if (firstrun) then
+                        write(55,'(a,1x,i,5(1x,e13.5),1x,a)')           &
+     &                       db_name1(icoll)(1:12),                     &
+     &                       jjj,                                       &
+     &                       (a_tmp1 - a_tmp2)/2d0,                     &
+     &                       0.5 * (a_tmp1 + a_tmp2) + c_offset,        &
+     &                       c_tilt(1),                                 &
+     &                       c_tilt(2),                                 &
+     &                       c_length / dble(n_slices),                 & 
+     &                       db_material(icoll)
+                     endif
+! --- TW JUNE08 
                      call collimate2(c_material,                        &
      &                    c_length / dble(n_slices),                    &
      &                    c_rotation,                                   &
      &                    a_tmp1 - a_tmp2,                              &
-     &                    0.5 * ( a_tmp1 + a_tmp2 ),                    &
+     &                    0.5 * ( a_tmp1 + a_tmp2 ) + c_offset,         &
      &                    c_tilt,                                       &
      &                    rcx, rcxp, rcy, rcyp,                         &
      &                    rcp, rcs, napx, enom_gev,                     &
      &                    part_hit, part_abs, part_impact, part_indiv,  &
      &                    part_linteract, onesided, flukaname,          &
      &                    secondary,                                    &
-     &                    jjj)
+     &                    jjj, nabs_type)
 !                     do ijk=1,npart
 !                        if ( part_hit(ijk).eq. (10000*ie + iturn)) then
 
@@ -21932,7 +22227,7 @@ cc2008
      &                 rcx, rcxp, rcy, rcyp,                            &
      &                 rcp, rcs, napx, enom_gev, part_hit, part_abs,    &
      &                 part_impact, part_indiv, part_linteract,         &
-     &                 onesided, flukaname, secondary, 1)               &
+     &                 onesided, flukaname, secondary, 1, nabs_type)    &
                endif
 !
 ! end of check for RHIC
@@ -22019,59 +22314,74 @@ cc2008
               ejv(j) = rcp0(j)*1d3
             endif
 !APRIL2005
+! 
+!TW for roman pot checking
+!            if(icoll.eq.73) then
+!               do j = 1,napx 
+!                  write(9998,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
+!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
+!               enddo
+!            elseif(icoll.eq.74) then
+!               do j = 1,napx 
+!                  write(9999,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
+!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
+!               enddo
+!            endif
 !
 !++  Write trajectory for any selected particle
 !
-            if (firstrun) then
-              if (rselect.gt.0 .and. rselect.lt.65) then
+!!            if (firstrun) then
+!!              if (rselect.gt.0 .and. rselect.lt.65) then
 !            DO j = 1, NAPX
 !
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-              pj     = ejv(j)/1d3
+!!              xj     = (xv(1,j)-torbx(ie))/1d3
+!!              xpj    = (yv(1,j)-torbxp(ie))/1d3
+!!              yj     = (xv(2,j)-torby(ie))/1d3
+!!              ypj    = (yv(2,j)-torbyp(ie))/1d3
+!!              pj     = ejv(j)/1d3
 !GRD
 !07-2006 TEST
-!              if (iturn.eq.1.and.j.eq.1) then
-!              sum_ax(ie)=0d0
-!              sum_ay(ie)=0d0
-!              endif
-!07-2006 TEST
+!!              if (iturn.eq.1.and.j.eq.1) then
+!!              sum_ax(ie)=0d0
+!!              sum_ay(ie)=0d0
+!!              endif
 !GRD
 !
-              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+!!              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+!!              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
 !
-              if (part_abs(j).eq.0) then
-          nspx    = sqrt(                                               &
-     &abs( gammax*(xj)**2 +                                             &
-     &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*(yj)**2 +                                             &
-     &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
-     &)
+!!             if (part_abs(j).eq.0) then
+!!          nspx    = sqrt(                                               &
+!!     &abs( gammax*(xj)**2 +                                             &
+!!     &2d0*talphax(ie)*xj*xpj +                                          &
+!!     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+!!     &)
+!!                nspy    = sqrt(                                         &
+!!     &abs( gammay*(yj)**2 +                                             &
+!!     &2d0*talphay(ie)*yj*ypj +                                          &
+!!     &tbetay(ie)*ypj**2 )/myemity0                                      &
+!!     &)
+
+
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
-                sum_ax(ie)   = sum_ax(ie) + nspx
-                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-                sum_ay(ie)   = sum_ay(ie) + nspy
-                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-                nampl(ie)    = nampl(ie) + 1
+!!                sum_ax(ie)   = sum_ax(ie) + nspx
+!!                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+!!                sum_ay(ie)   = sum_ay(ie) + nspy
+!!                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+!!                nampl(ie)    = nampl(ie) + 1
+!
 !                sampl(ie)    = totals
 !                ename(ie)    = bez(myix)(1:16)
-              else
-                nspx = 0d0
-                nspy = 0d0
-              endif
+!!              else
+!!                nspx = 0d0
+!!                nspy = 0d0
+!!              endif
 !            END DO
-                sampl(ie)    = totals
-                ename(ie)    = bez(myix)(1:16)
-              endif
-            endif
+!!                sampl(ie)    = totals
+!!                ename(ie)    = bez(myix)(1:16)
+!!              endif
+!!            endif
 !
 !++  First check for particle interaction at this collimator and this turn
 !
@@ -22082,7 +22392,7 @@ cc2008
 !APRIL2005
               if(dowrite_impact) then
                 write(46,'(i8,1x,i4,1x,f8.2)')                          &
-     &ipart(j)+100*samplenumber,iturn,sampl(ie)
+     &               ipart(j)+100*samplenumber,iturn,sampl(ie)
               endif
 !
               if(part_abs(j).ne.0) then
@@ -22143,12 +22453,12 @@ cc2008
 !GRD
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
 !GRD
-      if (dowritetracks) then
+              if (dowritetracks) then
 !      DO J = 1, NAPX
 !APRIL2005
 !        if ((secondary(j).eq.1.and.tertiary(j).eq.0)                     &
 !MAY2005
-        if(part_abs(j).eq.0) then
+                if(part_abs(j).eq.0) then
 !MAY2005
         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)    &
      & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
@@ -22211,9 +22521,9 @@ cc2008
 !GRD-SR2006
 !      END DO
 !MAY2005
-        endif
+              endif
 !MAY2005
-      endif
+            endif
 !GRD
 !      ENDIF
 !GRD--------------
@@ -22291,6 +22601,8 @@ cc2008
 !++  - This is switched on with the DO_SELECT flag in the input file.
 !++  - Note that the part_select(j) flag defaults to 1 for all particles.
 !
+! should name_sel(1:11) extended to allow longer names as done for 
+! coll the coll_ellipse.dat file !!!!!!!!
            if (((db_name1(icoll).eq.name_sel(1:11))                     &
      &.or.(db_name2(icoll).eq.name_sel(1:11)))                          &
      &.and. iturn.eq.1  ) then
@@ -22313,8 +22625,8 @@ cc2008
 !GRD              ELSEIF (DO_SELECT) THEN
               elseif (do_select.and.firstrun) then
                 part_select(j) = 0
-                xv(1,j) = 99.99d0
-                xv(2,j) = 99.99d0
+!!CB                xv(1,j) = 99.99d0
+!!CB                xv(2,j) = 99.99d0
 !                xgrd(j) = 99.99d0
 !                ygrd(j) = 99.99d0
                 n_tot_absorbed = num_selabs
@@ -22331,10 +22643,14 @@ cc2008
               if ( part_hit(j).eq.(10000*ie+iturn) ) then
                 if (part_impact(j).lt.-0.5d0) then
 +if cr
-                  write(lout,*) 'ERR>  Found invalid impact parameter!'
+                  write(lout,*) 'ERR>  Found invalid impact parameter!' &
+     &                  part_impact(j)
 +ei
 +if .not.cr
-                  write(*,*) 'ERR>  Found invalid impact parameter!'
+                  write(*,*) 'ERR>  Found invalid impact parameter!',   &
+     &                  part_impact(j)
+                  write(outlun,*) 'ERR>  Invalid impact parameter!',    &
+     &                  part_impact(j)
 +ei
                   stop
                 endif
@@ -23018,6 +23334,9 @@ cc2008
           goto 640
 
 !----------------------------
+if collimat
+! end of the loop over element type (myktrack and ktrack(i))
++ei
 
   640     continue
 !GRD
@@ -23523,6 +23842,7 @@ cc2008
 !GRD
               secondary(imov) = secondary(j)
               tertiary(imov) = tertiary(j)
+              nabs_type(imov) = nabs_type(j)
 !GRD
 !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
 !GRD
@@ -23597,12 +23917,12 @@ cc2008
               ypj    = (yv(2,j)-torbyp(ie))/1d3
               pj     = ejv(j)/1d3
 !GRD
-!07-2006 TEST
-!              if (iturn.eq.1.and.j.eq.1) then
-!              sum_ax(ie)=0d0
-!              sum_ay(ie)=0d0
-!              endif
-!07-2006 TEST
+              if (iturn.eq.1.and.j.eq.1) then
+              sum_ax(ie)=0d0
+              sum_ay(ie)=0d0
+              endif
+
+
 !GRD
 !
               if (tbetax(ie).gt.0.) then
@@ -44835,7 +45155,7 @@ cc2008
 !     &np, enom, lhit,part_abs, impact, indiv, lint, onesided)
 !     &np, enom, lhit,part_abs, impact, indiv, lint, onesided, name)
      &np, enom, lhit,part_abs, impact, indiv, lint, onesided, name,     &
-     &flagsec, j_slices)
+     &flagsec, j_slices, nabs_type)
 !MAY2005
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !----                                                                    -----
@@ -44924,12 +45244,17 @@ cc2008
          mat = 6
       elseif (c_material.eq.'C2') then
          mat = 7
+!02/2008 TW added vacuum and black absorber (was missing) 
+      elseif (c_material.eq.'VA') then
+         mat = 11
+      elseif (c_material.eq.'BL') then
+         mat = 12
       else
 +if cr
-         write(lout,*) 'ERR>  Material not found. STOP'
+         write(lout,*) 'ERR>  Material not found. STOP', c_material
 +ei
 +if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP'
+         write(*,*) 'ERR>  Material not found. STOP', c_material
 +ei
 !        STOP
       endif
@@ -45058,18 +45383,135 @@ cc2008
 !++  For selected collimator, first turn reset particle distribution
 !++  to simple pencil beam
 !
+! -- TW why did I set this to 0, seems to be needed for getting 
+!       right amplitude => no "tilt" of jaw for the first turn !!!!
+!          c_tilt(1) = 0d0
+!          c_tilt(2) = 0d0
+!
           nprim = 3
           if ( (icoll.eq.ipencil .and. iturn.eq.1) .or. (iturn.eq.1     &
      &.and. ipencil.eq.999 .and. icoll.le.nprim .and.                   &
      &(j.ge.(icoll-1)*nev/nprim) .and. (j.le.(icoll)*nev/nprim))) then
-          x    = pencil_dx(icoll)
-          xp   = 0.
-          z    = 0.
-          zp   = 0.
-          dpop = 0.
-          if(rndm4().lt.0.5) mirror = -abs(mirror)
-          if(rndm4().ge.0.5) mirror = abs(mirror)
-        endif
+! -- TW why did I set this to 0, seems to be needed for getting 
+!       right amplitude => no "tilt" of jaw for the first turn !!!!
+          c_tilt(1) = 0d0
+          c_tilt(2) = 0d0
+!
+!
+!AUGUST2006: Standard pencil beam as implemented by GRD ------- TW
+!
+             if (pencil_rmsx.eq.0. .and. pencil_rmsy.eq.0.) then
+                x    = pencil_dx(icoll)
+                xp   = 0.
+                z    = 0.
+                zp   = 0.
+!                dpop = 0.
+             endif
+!
+!AUGUST2006: Rectangular (pencil-beam) sheet-beam with  ------ TW
+!            pencil_offset is the rectangulars center
+!            pencil_rmsx defines spread of impact parameter
+!            pencil_rmsy defines spread parallel to jaw surface
+! 
+            if (pencil_distr.eq.0 .and.(pencil_rmsx.ne.0.               &
+     &.or.pencil_rmsy.ne.0.)) then
+! how to assure that all generated particles are on the jaw ?!
+                x    = pencil_dx(icoll)                                 &
+     &                 + pencil_rmsx*(rndm4()-0.5)
+                xp   = 0.
+                z    = pencil_rmsy*(rndm4()-0.5)
+                zp   = 0.
+!                dpop = 0.
+             endif
+!
+!AUGUST2006: Gaussian (pencil-beam) sheet-beam with ------- TW
+!            pencil_offset is the mean  gaussian distribution
+!            pencil_rmsx defines spread of impact parameter
+!            pencil_rmsy defines spread parallel to jaw surface
+! 
+            if (pencil_distr.eq.1 .and.(pencil_rmsx.ne.0.               &
+     &.or.pencil_rmsy.ne.0. )) then
+                x    = pencil_dx(icoll) + pencil_rmsx*ran_gauss(2d0)
+! all generated particles are on the jaw now
+                x    = sqrt(x**2)
+                xp   = 0.
+                z    = pencil_rmsy*ran_gauss(2d0)
+                zp   = 0.
+!                dpop = 0.                
+             endif
+!
+!AUGUST2006: Gaussian (pencil-beam) sheet-beam with ------- TW
+!            pencil_offset is the mean  gaussian distribution
+!            pencil_rmsx defines spread of impact parameter
+!                        here pencil_rmsx is not gaussian!!!
+!            pencil_rmsy defines spread parallel to jaw surface
+! 
+            if (pencil_distr.eq.2 .and.(pencil_rmsx.ne.0.               &
+     &.or.pencil_rmsy.ne.0. )) then
+                x    = pencil_dx(icoll)                                 &
+     &              + pencil_rmsx*(rndm4()-0.5)
+! all generated particles are on the jaw now
+                x    = sqrt(x**2)
+                xp   = 0.
+                z    = pencil_rmsy*ran_gauss(2d0)
+                zp   = 0.
+!                dpop = 0.                
+             endif
+
+!
+!JULY2007: Selection of pos./neg. jaw  implemented by GRD ---- TW
+!
+! ensure that for onesided only particles on pos. jaw are created
+             if (onesided) then
+                mirror = 1d0
+             else
+!     if(rndm4().lt.0.5) mirror = -1d0
+!     if(rndm4().ge.0.5) mirror = 1d0  => using two different random
+                if(rndm4().lt.0.5) then 
+                   mirror = -1d0
+                else 
+                   mirror = 1d0
+                endif
+             endif
+!    
+! -- TW SEP07 if c_tilt is set to zero before entering pencil beam 
+!             section the assigning of the tilt will result in 
+!             assigning zeros 
+             if (mirror.lt.0) then
+!!     tiltangle = -1d0*c_tilt(2)
+                tiltangle = c_tilt(2)
+             else 
+                tiltangle = c_tilt(1)
+             endif
+!!!!--- commented this out since particle is tilted after leaving 
+!!!!--- collimator -> remove this  code fragment in final verion
+!!             x  = mirror * x
+!!             xp = mirror * xp
+!
+!++  Include collimator tilt
+! this is propably not correct
+!
+!             xp =  (xp_pencil0*cos(c_rotation)+                         &
+!     &            sin(c_rotation)*yp_pencil0)
+!             if (tiltangle.gt.0.) then
+!                xp = xp - tiltangle
+!!             endif
+!!             elseif (tiltangle.lt.0.) then
+!             else
+!               x  = x + sin(tiltangle) * c_length
+!               xp = xp - tiltangle
+!             endif
+!
+       write(9997,'(f10.8,(2x,f10.8),(2x,f10.8),(2x,f10.8)(2x,f10.8))')     
+     &            x, xp, z, zp, tiltangle
+
+!
+      endif
+
+
+!          if(rndm4().lt.0.5) mirror = -abs(mirror)
+!          if(rndm4().ge.0.5) mirror = abs(mirror)
+!        endif
 !
 !     SR, 18-08-2005: after finishing the coordinate transformation,
 !     or the coordinate manipulations in case of pencil beams,
@@ -45152,6 +45594,7 @@ cc2008
             nhit = nhit + 1
 !            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
             call jaw(s, nabs)
+            nabs_type(j) = nabs
 !JUNE2005
 !JUNE2005 SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
 !JUNE2005
@@ -45183,6 +45626,47 @@ cc2008
 !            endif
 !JUNE2005
             lhit(j) = 10000*ie + iturn
+
+
+!-- September2006  TW added from Ralphs code
+!--------------------------------------------------------------
+!++ Change tilt for pencil beam impact
+!
+!            if ( (icoll.eq.ipencil                                      &
+!     &           .and. iturn.eq.1)   .or.                               &
+!     &           (iturn.eq.1 .and. ipencil.eq.999 .and.                 &
+!     &                             icoll.le.nprim .and.                 &
+!     &            (j.ge.(icoll-1)*nev/nprim) .and.                      &
+!     &            (j.le.(icoll)*nev/nprim)                              &
+!     &           )  ) then
+!
+!               if (.not. changed_tilt1(icoll) .and. mirror.gt.0.) then 
+! ----- Maybe a warning would be nice that c_tilt is overwritten !!!!!
+! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
+! this has to be solved if necassary and understood 
+!                 c_tilt(1) = xp_pencil0(icoll)*cos(c_rotation)+         &
+!     &                       sin(c_rotation)*yp_pencil0(icoll)
+!                 c_tilt(1) = xp_pencil0*cos(c_rotation)+                &
+!     &                       sin(c_rotation)*yp_pencil0
+!                 write(*,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
+!     &                   icoll, c_tilt(1), j
+!                 changed_tilt1(icoll) = .true.
+!               elseif (.not. changed_tilt2(icoll)                       &
+!     &                                   .and. mirror.lt.0.) then
+! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
+! this has to be solved if necassary and understood 
+!                 c_tilt(2) = -1.*(xp_pencil0(icoll)*cos(c_rotation)+    &
+!     &                       sin(c_rotation)*yp_pencil0(icoll))
+!                 c_tilt(2) = -1.*(xp_pencil0*cos(c_rotation)+           &
+!     &                       sin(c_rotation)*yp_pencil0)
+!                 write(*,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",  &
+!     &                   icoll, c_tilt(2), j
+!                 changed_tilt2(icoll) = .true.
+!               endif
+!            endif
+!
+!----------------------------------------------------------------
+!-- September 2006
 !
 !++  If particle is absorbed then set x and y to 99.99 mm
 !     SR: before assigning new (x,y) for nabs=1, write the
@@ -45426,6 +45910,17 @@ cc2008
             y_in(j)  = z
           endif
 !
+! output for comparing the particle in accelerator frame 
+!
+          if(dowrite_impact) then
+             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
+     &            name(j),iturn,icoll,nabs,                             &
+     &            s_in(j),                                              &
+     &            s+sp + (dble(j_slices)-1) * c_length,                 &
+     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
+     &            x,xp,z,zp
+          endif
+!
 !++  End of check for particles not being lost before
 !
 !        endif
@@ -45526,10 +46021,10 @@ cc2008
          mat = 7
       else
 +if cr
-         write(lout,*) 'ERR>  Material not found. STOP'
+         write(lout,*) 'ERR>  Material not found. STOP', c_material
 +ei
 +if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP'
+         write(*,*) 'ERR>  Material not found. STOP', c_material
 +ei
 !        STOP
       endif
@@ -46215,6 +46710,11 @@ cc2008
 +ei
       mygammax = (1d0+myalphax**2)/mybetax
       mygammay = (1d0+myalphay**2)/mybetay
+!++TW 11/07 reset j, helps if subroutine is called twice 
+! was done during try to reset distribution, still needed
+! will this subroutine ever called twice? 
+      j = 0
+!
 !
 !++  Number of points and generate distribution
 !
@@ -46283,6 +46783,10 @@ cc2008
       write(outlun,*) 'INFO>  Nominal beam energy   = ', myenom
       write(outlun,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
       write(outlun,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
+      write(outlun,*) 'INFO>  Beta x   = ', mybetax
+      write(outlun,*) 'INFO>  Beta y   = ', mybetay
+      write(outlun,*) 'INFO>  Alpha x  = ', myalphax
+      write(outlun,*) 'INFO>  Alpha y  = ', myalphay
       write(outlun,*)
 !
       do while (j.lt.mynp)
@@ -47786,11 +48290,114 @@ cc2008
 !
 !
 !ccccccccccccccccccccccccccccccccccccccc
+!-TW-01/2007
+! function rndm5(irnd) , irnd = 1 will reset 
+! inn counter => enables reproducible set of 
+! random unmbers
+!cccccccccccccccccccccccccccccccccc
+!
+      function rndm5(irnd)
+      implicit none
+      integer len, inn, irnd
+      real rndm5, a
+      save
+      parameter ( len =  30000 )
+      dimension a(len)
+      data inn/1/
+!
+! reset inn to 1 enable reproducible random numbers
+      if ( irnd .eq. 1) inn = 1
+      if ( inn.eq.1 ) then
+         call ranlux(a,len)
+         rndm5=a(1)
+         inn=2
+      else
+         rndm5=a(inn)
+         inn=inn+1
+         if(inn.eq.len+1)inn=1
+      endif
+      return
+      end
+!
+!ccccccccccccccccccccccccccccccccccccccc 
+!
+!
+      double precision function myran_gauss(cut)
+!*********************************************************************
+!
+! myran_gauss - will generate a normal distribution from a uniform
+!     distribution between [0,1].
+!     See "Communications of the ACM", V. 15 (1972), p. 873.
+!
+!     cut - double precision - cut for distribution in units of sigma
+!     the cut must be greater than 0.5
+!
+!     changed rndm4 to rndm5(irnd) and defined flag as true 
+! 
+!*********************************************************************
+      implicit none
+      
+      logical flag
+      real rndm5
+      double precision x, u1, u2, twopi, r,cut
+      save
+      
+      flag = .true.
+
+      twopi=8d0*atan(1d0)
+ 1    if (flag) then
+         r = dble(rndm5(0))
+         r = max(r, 0.5d0**32)
+         r = min(r, 1d0-0.5d0**32)
+         u1 = sqrt(-2d0*log( r ))
+         u2 = dble(rndm5(0))
+         x = u1 * cos(twopi*u2)
+      else
+         x = u1 * sin(twopi*u2)
+      endif
+      
+      flag = .not. flag
+      
+!     cut the distribution if cut > 0.5
+      if (cut .gt. 0.5d0 .and. abs(x) .gt. cut) goto 1
+      
+      myran_gauss = x
+      return
+      end
+!
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+
+
 
 !
-! $Id: sixtrack.s,v 1.30 2009-07-29 13:09:44 frs Exp $
+!
+! $Id: sixtrack.s,v 1.31 2009-08-27 12:29:11 adriana Exp $
 !
 ! $Log: not supported by cvs2svn $
+!
+! Revision 1.31 2009/08/12 adriana
+!   SixTrack Version: 4.2.4  
+!     C. Bracco / A. Rossi / Th. Weiler
+!     Changes in the collimation part:
+!     -- Added and updated alignment errors (tilt, offset,
+!        gap-size): all values of alignment errors can be kept
+!        identical for different runs, by applying the same seed.
+!        Therefore the random function myran_gauss and rndm5 have
+!        been added and the inputs fort.3 adapted.
+!     -- Alignment errors are also applied for deformed jaws.
+!     -- Added to the pencil beam section the possibility to
+!        generate different particle distributions (Gaussian and
+!        rectangular in x and y) on the selected collimator.
+!     -- Changes to the do_select option to get the multi-turn
+!        halo information for all particle packets.
+!     C. Bracco / A. Rossi / Th. Weiler
+!
+! Revision 1.30  2009/07/29 13:09:44  frs
+! Fix the missing phase advance in the solenoid. This thin element is special
+! in the sense that the it creates a direct phase advance that has to be
+! calculated at every element occurrence.
+!
 ! Revision 1.29  2009/07/24 15:18:12  frs
 ! First attempt at thin solenoid (work done by Yipeng Sun)
 ! The tune calculation in the traditional SixTrack part seems slightly off.
@@ -48768,9 +49375,14 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.30 2009-07-29 13:09:44 frs Exp $
+! $Id: sixtrack.s,v 1.31 2009-08-27 12:29:11 adriana Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.30  2009/07/29 13:09:44  frs
+! Fix the missing phase advance in the solenoid. This thin element is special
+! in the sense that the it creates a direct phase advance that has to be
+! calculated at every element occurrence.
+!
 ! Revision 1.29  2009/07/24 15:18:12  frs
 ! First attempt at thin solenoid (work done by Yipeng Sun)
 ! The tune calculation in the traditional SixTrack part seems slightly off.
@@ -49083,9 +49695,14 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.30 2009-07-29 13:09:44 frs Exp $
+! $Id: sixtrack.s,v 1.31 2009-08-27 12:29:11 adriana Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.30  2009/07/29 13:09:44  frs
+! Fix the missing phase advance in the solenoid. This thin element is special
+! in the sense that the it creates a direct phase advance that has to be
+! calculated at every element occurrence.
+!
 ! Revision 1.29  2009/07/24 15:18:12  frs
 ! First attempt at thin solenoid (work done by Yipeng Sun)
 ! The tune calculation in the traditional SixTrack part seems slightly off.
@@ -49481,6 +50098,10 @@ cc2008
       if (ios.ne.0) then
         write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
         stop
+      endif
+      if (db_ncoll.gt.max_ncoll) then
+         write(*,*) 'ERR> db_ncoll > max_ncoll '
+         stop
       endif
 !
       do j=1,db_ncoll

@@ -22,7 +22,7 @@
 # systems, SLC4 and SLC5.    A NIGHTMARE!!!
 # Default: tilt tracking fast crlibm cernlib naglib -bpm -windows -da -collimat -bnlelens -cpss -boinc -cr
 # and uses the Lahey-Fujitsu lf95 compiler 
-
+# 12th August, 2009. Just changed print_map to print-map. Eric.
 # Options:
 # da => -tracking -cpss -boinc -collimat -cr +naglib
 # collimat => -da -cr -boinc -cpss
@@ -450,7 +450,7 @@ if test "$MACHTYPE" = "i586"
 then
   export FCLMAP="$FCL"
 else
-  export FCLMAP="-Wl,--print_map $FCL"
+  export FCLMAP="-Wl,--print-map $FCL"
 fi
 
 if test "$OSTYPE" = "darwin"

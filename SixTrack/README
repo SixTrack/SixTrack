@@ -2,6 +2,22 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+   SixTrack Version: 4.2.4 Revision 1.31 adriana
+     C. Bracco / A. Rossi / Th. Weiler
+     Changes in the collimation part:
+     -- Added and updated alignment errors (tilt, offset,
+        gap-size): all values of alignment errors can be kept
+        identical for different runs, by applying the same seed.
+        Therefore the random function myran_gauss and rndm5 have
+        been added and the inputs fort.3 adapted.
+     -- Alignment errors are also applied for deformed jaws.
+     -- Added to the pencil beam section the possibility to
+        generate different particle distributions (Gaussian and
+        rectangular in x and y) on the selected collimator.
+     -- Changes to the do_select option to get the multi-turn
+        halo information for all particle packets.
+     C. Bracco / A. Rossi / Th. Weiler
+
   SixTrack Version: 4.2.3 Revision 1.30 frs
     -- Fix the missing phase advance in the solenoid. This thin element is 
        special in the sense that the it creates a direct phase advance that 
