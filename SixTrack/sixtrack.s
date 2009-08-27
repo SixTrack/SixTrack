@@ -23334,7 +23334,7 @@ cc2008
           goto 640
 
 !----------------------------
-if collimat
++if collimat
 ! end of the loop over element type (myktrack and ktrack(i))
 +ei
 
@@ -48372,9 +48372,30 @@ if collimat
 
 !
 !
-! $Id: sixtrack.s,v 1.31 2009-08-27 12:29:11 adriana Exp $
+! $Id: sixtrack.s,v 1.32 2009-08-27 13:04:10 adriana Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.31  2009/08/27 12:29:11  adriana
+!
+!
+!    SixTrack Version: 4.2.4 Revision 1.31 adriana
+!      C. Bracco / A. Rossi / Th. Weiler
+!      Changes in the collimation part:
+!      -- Added and updated alignment errors (tilt, offset,
+!         gap-size): all values of alignment errors can be kept
+!         identical for different runs, by applying the same seed.
+!         Therefore the random function myran_gauss and rndm5 have
+!         been added and the inputs fort.3 adapted.
+!      -- Alignment errors are also applied for deformed jaws.
+!      -- Added to the pencil beam section the possibility to
+!         generate different particle distributions (Gaussian and
+!         rectangular in x and y) on the selected collimator.
+!      -- Changes to the do_select option to get the multi-turn
+!         halo information for all particle packets.
+!      C. Bracco / A. Rossi / Th. Weiler
+!
+!    make_six map option corrected (E.McIntosh)
+!
 !
 ! Revision 1.31 2009/08/12 adriana
 !   SixTrack Version: 4.2.4  
@@ -49375,9 +49396,30 @@ if collimat
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.31 2009-08-27 12:29:11 adriana Exp $
+! $Id: sixtrack.s,v 1.32 2009-08-27 13:04:10 adriana Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.31  2009/08/27 12:29:11  adriana
+!
+!
+!    SixTrack Version: 4.2.4 Revision 1.31 adriana
+!      C. Bracco / A. Rossi / Th. Weiler
+!      Changes in the collimation part:
+!      -- Added and updated alignment errors (tilt, offset,
+!         gap-size): all values of alignment errors can be kept
+!         identical for different runs, by applying the same seed.
+!         Therefore the random function myran_gauss and rndm5 have
+!         been added and the inputs fort.3 adapted.
+!      -- Alignment errors are also applied for deformed jaws.
+!      -- Added to the pencil beam section the possibility to
+!         generate different particle distributions (Gaussian and
+!         rectangular in x and y) on the selected collimator.
+!      -- Changes to the do_select option to get the multi-turn
+!         halo information for all particle packets.
+!      C. Bracco / A. Rossi / Th. Weiler
+!
+!    make_six map option corrected (E.McIntosh)
+!
 ! Revision 1.30  2009/07/29 13:09:44  frs
 ! Fix the missing phase advance in the solenoid. This thin element is special
 ! in the sense that the it creates a direct phase advance that has to be
@@ -49695,9 +49737,30 @@ if collimat
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.31 2009-08-27 12:29:11 adriana Exp $
+! $Id: sixtrack.s,v 1.32 2009-08-27 13:04:10 adriana Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.31  2009/08/27 12:29:11  adriana
+!
+!
+!    SixTrack Version: 4.2.4 Revision 1.31 adriana
+!      C. Bracco / A. Rossi / Th. Weiler
+!      Changes in the collimation part:
+!      -- Added and updated alignment errors (tilt, offset,
+!         gap-size): all values of alignment errors can be kept
+!         identical for different runs, by applying the same seed.
+!         Therefore the random function myran_gauss and rndm5 have
+!         been added and the inputs fort.3 adapted.
+!      -- Alignment errors are also applied for deformed jaws.
+!      -- Added to the pencil beam section the possibility to
+!         generate different particle distributions (Gaussian and
+!         rectangular in x and y) on the selected collimator.
+!      -- Changes to the do_select option to get the multi-turn
+!         halo information for all particle packets.
+!      C. Bracco / A. Rossi / Th. Weiler
+!
+!    make_six map option corrected (E.McIntosh)
+!
 ! Revision 1.30  2009/07/29 13:09:44  frs
 ! Fix the missing phase advance in the solenoid. This thin element is special
 ! in the sense that the it creates a direct phase advance that has to be
