@@ -132,7 +132,7 @@
       parameter(mcor = 10,mcop = mcor+6, mbea = 15)
       parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
       parameter(nmon1 = 600,ncor1 = 600)
-      parameter(ntr = 20,nbb = 160)
+      parameter(ntr = 20,nbb = 350)
 +cd parnum
       double precision c180e0,c1e1,c1e12,c1e13,c1e15,c1e16,c1e2,c1e3,   &
      &c1e4,c1e6,c1m1,c1m7,c1m10,c1m12,c1m13,c1m15,c1m18,c1m2,c1m21,     &
@@ -48372,9 +48372,14 @@ cc2008
 
 !
 !
-! $Id: sixtrack.s,v 1.32 2009-08-27 13:04:10 adriana Exp $
+! $Id: sixtrack.s,v 1.33 2009-10-05 07:42:10 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.32  2009/08/27 13:04:10  adriana
+!
+!
+! Correct wrong 'if collimat' to '+if collimat' statement - adriana
+!
 ! Revision 1.31  2009/08/27 12:29:11  adriana
 !
 !
@@ -49396,9 +49401,14 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.32 2009-08-27 13:04:10 adriana Exp $
+! $Id: sixtrack.s,v 1.33 2009-10-05 07:42:10 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.32  2009/08/27 13:04:10  adriana
+!
+!
+! Correct wrong 'if collimat' to '+if collimat' statement - adriana
+!
 ! Revision 1.31  2009/08/27 12:29:11  adriana
 !
 !
@@ -49737,9 +49747,14 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.32 2009-08-27 13:04:10 adriana Exp $
+! $Id: sixtrack.s,v 1.33 2009-10-05 07:42:10 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.32  2009/08/27 13:04:10  adriana
+!
+!
+! Correct wrong 'if collimat' to '+if collimat' statement - adriana
+!
 ! Revision 1.31  2009/08/27 12:29:11  adriana
 !
 !
