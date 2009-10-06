@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.04'/
-      data moddate /'08.08.2009'/
+      data version /'4.2.05'/
+      data moddate /'05.10.2009'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -48372,9 +48372,12 @@ cc2008
 
 !
 !
-! $Id: sixtrack.s,v 1.33 2009-10-05 07:42:10 frs Exp $
+! $Id: sixtrack.s,v 1.34 2009-10-06 09:00:56 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.33  2009/10/05 07:42:10  frs
+! Number of BB encouters up to 350
+!
 ! Revision 1.32  2009/08/27 13:04:10  adriana
 !
 !
@@ -49401,9 +49404,12 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.33 2009-10-05 07:42:10 frs Exp $
+! $Id: sixtrack.s,v 1.34 2009-10-06 09:00:56 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.33  2009/10/05 07:42:10  frs
+! Number of BB encouters up to 350
+!
 ! Revision 1.32  2009/08/27 13:04:10  adriana
 !
 !
@@ -49747,9 +49753,12 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.33 2009-10-05 07:42:10 frs Exp $
+! $Id: sixtrack.s,v 1.34 2009-10-06 09:00:56 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.33  2009/10/05 07:42:10  frs
+! Number of BB encouters up to 350
+!
 ! Revision 1.32  2009/08/27 13:04:10  adriana
 !
 !
