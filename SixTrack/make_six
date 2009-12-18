@@ -645,7 +645,7 @@ then
   elif test "$OSTYPE" = "darwin"
   then
     export CERN_ROOT="/sw"
-    export CERNLIB="`$CERN_ROOT/bin/cernlib -u graflib packlib kernlib` -lg2c -lpthread"
+    export CERNLIB="`$CERN_ROOT/bin/cernlib -u graflib packlib kernlib` -lpthread"
   else
     echo "Unrecognised OSTYPE $OSTYPE (not linux or darwin)"
     exit 2
