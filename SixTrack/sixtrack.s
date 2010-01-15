@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.05'/
-      data moddate /'05.10.2009'/
+      data version /'4.2.06'/
+      data moddate /'15.01.2010'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -6043,12 +6043,11 @@ cc2008
 
       xi = xv(1,j)-rx
       yi = xv(2,j)-ry
-      yv(1,j) = yv(1,j)-1.0d-7*cur/chi*xi/(xi**2+yi**2)*                &
+      yv(1,j) = yv(1,j)-c1m7*cur/chi*xi/(xi**2+yi**2)*                  &
      &(sqrt((lin+l)**2+xi**2+yi**2)-sqrt((lin-l)**2+                    &
      &xi**2+yi**2))
 !GRD FOR CONSISTENSY
-!      yv(2,j) = yv(2,j)-1e-7*cur/chi*yi/(xi**2+yi**2)*                  &
-      yv(2,j) = yv(2,j)-1.0d-7*cur/chi*yi/(xi**2+yi**2)*                &
+      yv(2,j) = yv(2,j)-c1m7*cur/chi*yi/(xi**2+yi**2)*                  &
      &(sqrt((lin+l)**2+xi**2+yi**2)-sqrt((lin-l)**2+                    &
      &xi**2+yi**2))
 
@@ -40834,6 +40833,12 @@ cc2008
       di0au(4)=dip0(2)
       sigcor=cma2
       dpscor=cma1
+      sumda(53)= clo(1)
+      sumda(54)=clop(1)
+      sumda(55)= clo(2)
+      sumda(56)=clop(2)
+      sumda(57)= clo(3)
+      sumda(58)=clop(3)
       if(ifipa.eq.ilapa.and.ndafi.gt.itopa) ndafi=itopa
       if(ilapa-ifipa.eq.1.and.ndafi.gt.itopa/2) ndafi=itopa/2
 !-----------------------------------------------------------------------
@@ -48372,9 +48377,12 @@ cc2008
 
 !
 !
-! $Id: sixtrack.s,v 1.34 2009-10-06 09:00:56 frs Exp $
+! $Id: sixtrack.s,v 1.35 2010-01-15 14:30:43 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.34  2009/10/06 09:00:56  frs
+! Version 4205
+!
 ! Revision 1.33  2009/10/05 07:42:10  frs
 ! Number of BB encouters up to 350
 !
@@ -49404,9 +49412,12 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.34 2009-10-06 09:00:56 frs Exp $
+! $Id: sixtrack.s,v 1.35 2010-01-15 14:30:43 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.34  2009/10/06 09:00:56  frs
+! Version 4205
+!
 ! Revision 1.33  2009/10/05 07:42:10  frs
 ! Number of BB encouters up to 350
 !
@@ -49753,9 +49764,12 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.34 2009-10-06 09:00:56 frs Exp $
+! $Id: sixtrack.s,v 1.35 2010-01-15 14:30:43 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.34  2009/10/06 09:00:56  frs
+! Version 4205
+!
 ! Revision 1.33  2009/10/05 07:42:10  frs
 ! Number of BB encouters up to 350
 !
