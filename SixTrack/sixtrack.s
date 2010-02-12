@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.06'/
-      data moddate /'15.01.2010'/
+      data version /'4.2.07'/
+      data moddate /'12.02.2010'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -6763,9 +6763,11 @@ cc2008
 +if bnlelens
 !GRDRHIC
 !GRD-042008
++if .not.boinc 
       close(51)
       close(52)
       close(53)
++ei
       close(54)
       close(97)
 !GRDRHIC
@@ -48377,9 +48379,16 @@ cc2008
 
 !
 !
-! $Id: sixtrack.s,v 1.35 2010-01-15 14:30:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.36 2010-02-12 14:48:00 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.35  2010/01/15 14:30:43  mcintosh
+!
+!   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
+!     -- Added Closed Orbit to sumda(53:58) for fort.10.
+!     -- Changed a couple of constants in "Wire" to use c1m7.
+!   Frank Schmidt/McIntosh 15th January, 2010
+!
 ! Revision 1.34  2009/10/06 09:00:56  frs
 ! Version 4205
 !
@@ -49412,9 +49421,16 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.35 2010-01-15 14:30:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.36 2010-02-12 14:48:00 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.35  2010/01/15 14:30:43  mcintosh
+!
+!   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
+!     -- Added Closed Orbit to sumda(53:58) for fort.10.
+!     -- Changed a couple of constants in "Wire" to use c1m7.
+!   Frank Schmidt/McIntosh 15th January, 2010
+!
 ! Revision 1.34  2009/10/06 09:00:56  frs
 ! Version 4205
 !
@@ -49764,9 +49780,16 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.35 2010-01-15 14:30:43 mcintosh Exp $
+! $Id: sixtrack.s,v 1.36 2010-02-12 14:48:00 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.35  2010/01/15 14:30:43  mcintosh
+!
+!   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
+!     -- Added Closed Orbit to sumda(53:58) for fort.10.
+!     -- Changed a couple of constants in "Wire" to use c1m7.
+!   Frank Schmidt/McIntosh 15th January, 2010
+!
 ! Revision 1.34  2009/10/06 09:00:56  frs
 ! Version 4205
 !
