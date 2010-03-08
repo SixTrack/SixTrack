@@ -24,19 +24,19 @@
       implicit none
       integer i
       end
-      subroutine boinc_init_graphics
-      implicit none
-      end
-      subroutine sixtrack_unzip
-      implicit none
-      end
-      subroutine graphic_progress(n,numl)
-      implicit none
-      integer n,numl
-      end
+!     subroutine boinc_init_graphics
+!     implicit none
+!     end
+!     subroutine sixtrack_unzip
+!     implicit none
+!     end
+!     subroutine graphic_progress(n,numl)
+!     implicit none
+!     integer n,numl
+!     end
       subroutine boinc_checkpoint_completed
       implicit none
       end
-      subroutine boinc_finish_graphics
-      implicit none
-      end
+!     subroutine boinc_finish_graphics
+!     implicit none
+!     end

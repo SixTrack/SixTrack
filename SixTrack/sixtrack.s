@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.07'/
-      data moddate /'12.02.2010'/
+      data version /'4.2.08'/
+      data moddate /'07.03.2010'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -16756,7 +16756,7 @@ cc2008
 !-----------------------------------------------------------------------
 +if boinc
       call boinc_init(0)
-      call boinc_init_graphics()
+!     call boinc_init_graphics()
 +ei
 +if cr
       sythckcr=.false.
@@ -20030,7 +20030,8 @@ cc2008
 +ei
 +if boinc
         call boinc_sixtrack_progress(n,numl)
-        call graphic_progress(n,numl)
+        continue
+!       call graphic_progress(n,numl)
 +ei
         numx=n-1
         if(irip.eq.1) call ripple(n)
@@ -21006,7 +21007,8 @@ cc2008
 +ei
 +if boinc
         call boinc_sixtrack_progress(n,numl)
-        call graphic_progress(n,numl)
+        continue
+!       call graphic_progress(n,numl)
 +ei
 +if collimat
        iturn=n
@@ -24180,7 +24182,8 @@ cc2008
 +ei
 +if boinc
         call boinc_sixtrack_progress(n,numl)
-        call graphic_progress(n,numl)
+        continue
+!       call graphic_progress(n,numl)
 +ei
         numx=n-1
         if(irip.eq.1) call ripple(n)
@@ -25607,7 +25610,8 @@ cc2008
 +ei
 +if boinc
         call boinc_sixtrack_progress(n,numl)
-        call graphic_progress(n,numl)
+        continue
+!       call graphic_progress(n,numl)
 +ei
           numx=n-1
           if(irip.eq.1) call ripple(n)
@@ -26098,7 +26102,8 @@ cc2008
 +ei
 +if boinc
         call boinc_sixtrack_progress(n,numl)
-        call graphic_progress(n,numl)
+        continue
+!       call graphic_progress(n,numl)
 +ei
           numx=n-1
           if(irip.eq.1) call ripple(n)
@@ -26719,7 +26724,8 @@ cc2008
 +ei
 +if boinc
         call boinc_sixtrack_progress(n,numl)
-        call graphic_progress(n,numl)
+        continue
+!       call graphic_progress(n,numl)
 +ei
           numx=n-1
           if(irip.eq.1) call ripple(n)
@@ -48379,9 +48385,14 @@ cc2008
 
 !
 !
-! $Id: sixtrack.s,v 1.36 2010-02-12 14:48:00 mcintosh Exp $
+! $Id: sixtrack.s,v 1.37 2010-03-08 11:06:32 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.36  2010/02/12 14:48:00  mcintosh
+!   SixTrack Version: 4.2.7 eric
+!     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
+!   McIntosh February, 2010
+!
 ! Revision 1.35  2010/01/15 14:30:43  mcintosh
 !
 !   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
@@ -49421,9 +49432,14 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.36 2010-02-12 14:48:00 mcintosh Exp $
+! $Id: sixtrack.s,v 1.37 2010-03-08 11:06:32 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.36  2010/02/12 14:48:00  mcintosh
+!   SixTrack Version: 4.2.7 eric
+!     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
+!   McIntosh February, 2010
+!
 ! Revision 1.35  2010/01/15 14:30:43  mcintosh
 !
 !   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
@@ -49780,9 +49796,14 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.36 2010-02-12 14:48:00 mcintosh Exp $
+! $Id: sixtrack.s,v 1.37 2010-03-08 11:06:32 mcintosh Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.36  2010/02/12 14:48:00  mcintosh
+!   SixTrack Version: 4.2.7 eric
+!     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
+!   McIntosh February, 2010
+!
 ! Revision 1.35  2010/01/15 14:30:43  mcintosh
 !
 !   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
@@ -52572,7 +52593,7 @@ cc2008
      &'SIXTRACR stop '//cstring
       write(93,*)
 +if boinc
-      call boinc_finish_graphics()
+!     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
       stop
@@ -52581,7 +52602,7 @@ cc2008
       write(6,*)                                                        &
      &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
 +if boinc
-      call boinc_finish_graphics()
+!     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
       stop
@@ -52590,7 +52611,7 @@ cc2008
       write(*,*)                                                        &
      &'SIXTRACK STOP/ABEND '//cstring
 +if boinc
-      call boinc_finish_graphics()
+!     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
       stop

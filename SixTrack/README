@@ -2,21 +2,39 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
-   SixTrack Version: 4.2.4 Revision 1.31 adriana
-     C. Bracco / A. Rossi / Th. Weiler
-     Changes in the collimation part:
-     -- Added and updated alignment errors (tilt, offset,
-        gap-size): all values of alignment errors can be kept
-        identical for different runs, by applying the same seed.
-        Therefore the random function myran_gauss and rndm5 have
-        been added and the inputs fort.3 adapted.
-     -- Alignment errors are also applied for deformed jaws.
-     -- Added to the pencil beam section the possibility to
-        generate different particle distributions (Gaussian and
-        rectangular in x and y) on the selected collimator.
-     -- Changes to the do_select option to get the multi-turn
-        halo information for all particle packets.
-     C. Bracco / A. Rossi / Th. Weiler
+  SixTrack Version: 4.2.8 eric
+    -- Commented out the boinc graphic init, finish and progress calls
+    -- Commented out the routines in myboinc.f
+  McIntosh 7th March, 2010 
+
+  SixTrack Version: 4.2.7 eric
+    -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
+  McIntosh February, 2010 
+ 
+  SixTrack Version: 4.2.6 Revision  1.35 eric and frs
+    -- Added Closed Orbit to sumda(53:58) for fort.10.
+    -- Changed a couple of constants in "Wire" to use c1m7.
+  Frank Schmidt/McIntosh 15th January, 2010 
+
+  SixTrack Version: 4.2.5 Revision 1.33/1.34 frs
+    -- Number of BB encounters up to 350
+  Frank Schmidt 5th/6th October, 2009
+
+  SixTrack Version: 4.2.4 Revision 1.31/1.32 adriana
+    C. Bracco / A. Rossi / Th. Weiler
+    Changes in the collimation part:
+    -- Added and updated alignment errors (tilt, offset,
+       gap-size): all values of alignment errors can be kept
+       identical for different runs, by applying the same seed.
+       Therefore the random function myran_gauss and rndm5 have
+       been added and the inputs fort.3 adapted.
+    -- Alignment errors are also applied for deformed jaws.
+    -- Added to the pencil beam section the possibility to
+       generate different particle distributions (Gaussian and
+       rectangular in x and y) on the selected collimator.
+    -- Changes to the do_select option to get the multi-turn
+       halo information for all particle packets.
+    C. Bracco / A. Rossi / Th. Weiler
 
   SixTrack Version: 4.2.3 Revision 1.30 frs
     -- Fix the missing phase advance in the solenoid. This thin element is 
