@@ -2,6 +2,15 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.2.9 FS
+    -- Proper stop for single elements with names longer then 16
+       characters which may happen for SixTrack input file fort.2 
+       produced by MAD-X (could be 24). Before, the 17th column was 
+       checked for non-blank character which is a special case only.
+       It is checked for 16 non-blank characters, leading blanks allowed.
+       Moreover, the code is stopped in case the length of 80 
+       characters is exceeded without minimal input, i.e. a mininum
+       of 8 characters is needed for valid input.
   SixTrack Version: 4.2.8 eric
     -- Commented out the boinc graphic init, finish and progress calls
     -- Commented out the routines in myboinc.f

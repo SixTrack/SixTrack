@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.08'/
-      data moddate /'07.03.2010'/
+      data version /'4.2.09'/
+      data moddate /'13.04.2010'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -9869,7 +9869,22 @@ cc2008
           goto 190
         endif
       endif
-      if(ch(17:17).ne." ") call prror(104)
+!      if(ch(17:17).ne." ") call prror(104)
+      i2=0
+      do i1=1,80
+        if(ch(i1:i1).ne." ".and.i2.eq.0) then
+          i2=i1
+        elseif(i2.gt.0) then
+          if(ch(i1:i1).eq." ") then
+            if(i1-i2.gt.16) then
+              call prror(104)
+            else
+              goto 165
+            endif
+          endif
+        endif
+      enddo
+ 165  if(i1.gt.72) call prror(104)
       call intepr(1,1,ch,ch1)
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i)
       if(kz(i).eq.25) then
@@ -48385,9 +48400,15 @@ cc2008
 
 !
 !
-! $Id: sixtrack.s,v 1.37 2010-03-08 11:06:32 mcintosh Exp $
+! $Id: sixtrack.s,v 1.38 2010-04-13 00:15:50 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.37  2010/03/08 11:06:32  mcintosh
+!   SixTrack Version: 4.2.8 eric
+!     -- Commented out the boinc graphic init, finish and progress calls
+!     -- Commented out the routines in myboinc.f
+!   McIntosh 7th March, 2010
+!
 ! Revision 1.36  2010/02/12 14:48:00  mcintosh
 !   SixTrack Version: 4.2.7 eric
 !     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
@@ -49432,9 +49453,15 @@ cc2008
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-! $Id: sixtrack.s,v 1.37 2010-03-08 11:06:32 mcintosh Exp $
+! $Id: sixtrack.s,v 1.38 2010-04-13 00:15:50 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.37  2010/03/08 11:06:32  mcintosh
+!   SixTrack Version: 4.2.8 eric
+!     -- Commented out the boinc graphic init, finish and progress calls
+!     -- Commented out the routines in myboinc.f
+!   McIntosh 7th March, 2010
+!
 ! Revision 1.36  2010/02/12 14:48:00  mcintosh
 !   SixTrack Version: 4.2.7 eric
 !     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
@@ -49796,9 +49823,15 @@ cc2008
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 !
-! $Id: sixtrack.s,v 1.37 2010-03-08 11:06:32 mcintosh Exp $
+! $Id: sixtrack.s,v 1.38 2010-04-13 00:15:50 frs Exp $
 !
 ! $Log: not supported by cvs2svn $
+! Revision 1.37  2010/03/08 11:06:32  mcintosh
+!   SixTrack Version: 4.2.8 eric
+!     -- Commented out the boinc graphic init, finish and progress calls
+!     -- Commented out the routines in myboinc.f
+!   McIntosh 7th March, 2010
+!
 ! Revision 1.36  2010/02/12 14:48:00  mcintosh
 !   SixTrack Version: 4.2.7 eric
 !     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
