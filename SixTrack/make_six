@@ -625,7 +625,7 @@ then
     else
       if test "$MACHTYPE" = "i386"
       then
-        export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
+        export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -lXau -lXdmcp -ldl -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
       elif test "$MACHTYPE" = "i586"
       then
         export FCLMAP="-static -m32"
