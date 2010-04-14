@@ -625,7 +625,7 @@ then
     else
       if test "$MACHTYPE" = "i386"
       then
-        export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -lXau -lXdmcp -ldl -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
+        export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -ldl -lpthread -lgcc_eh"
       elif test "$MACHTYPE" = "i586"
       then
         export FCLMAP="-static -m32"
@@ -637,7 +637,7 @@ then
         fi
       elif test "$MACHTYPE" = "x86_64"
       then
-        export CERNLIB="-L/afs/cern.ch/user/f/frs/public/lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lX11 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c -L/usr/lib -lpthread"
+        export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
       else
         echo "Unknown MACHTYPE $MACHTYPE!!"
       fi
