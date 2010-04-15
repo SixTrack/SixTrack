@@ -403,7 +403,7 @@ then
 elif test "$g95" = ""
 then
   export FC="g95"
-  export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
+  export FCF="-O4 -Wa,--32 -g -fno-second-underscore -funroll-loops"
   if test "$MACHTYPE" = "i586"
   then
     export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
@@ -413,7 +413,7 @@ then
 elif test "$gfortran" = ""
 then
   export FC="gfortran"
-  export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
+  export FCF="-O4 -m32 -g -fno-second-underscore -funroll-loops"
   export FCL="-static -m32"
 else
   export FC="lf95"
