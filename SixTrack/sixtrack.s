@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.09'/
-      data moddate /'13.04.2010'/
+      data version /'4.2.10'/
+      data moddate /'01.07.2010'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -429,7 +429,7 @@
       common/correct/ corr(3,3),chromc(2),wxys(3),clon(6),iqmodc,       &
      &ichromc,ilinc
 +cd commphin
-      common/phasecom/ phase(3,npos)
+      common/phasecom/ phase(3,npos+1)
       common/invari/ dani(ninv+1)
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !-----                                                                   -----

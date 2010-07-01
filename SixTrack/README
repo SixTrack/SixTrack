@@ -2,6 +2,11 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.2.10 FRS/eric
+    -- Changed dimension of phase(3,npos+1) in common phasecomm 
+       Corrected an overwrite in postpr in rare cases
+  FRS/McIntosh 1st July, 2010
+
   SixTrack Version: 4.2.9 FS
     -- Proper stop for single elements with names longer then 16
        characters which may happen for SixTrack input file fort.2 
