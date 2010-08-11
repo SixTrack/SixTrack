@@ -63,19 +63,24 @@ C ANFANG - HAUPTPROGRAMM -
       open(2,file='fort.2',form='formatted',status='unknown')
       open(3,file='fort.3',form='formatted',status='unknown')
 *
+      CALL predata
+*
       CALL PRECOM
 *
       STOP
       END
 *
-      BLOCKDATA BLDATA
-*     *****************
+C ANFANG UNTERPROGRAMM
+  
+      subroutine predata
 *
+* Eric: use local LL DATA and copy it to the COMMON blocks
+      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
 *-----MEMORY MANAGEMENT ----------------------------------------------------- 1
       PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                2
       CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            3
-      INTEGER NPAR(LNAM,17)                                                   4
-      DOUBLE PRECISION CC(LCC)                                                5
+      INTEGER NPAR(LNAM,17)                                                 4
+      DOUBLE PRECISION CC(LCC)                                              5
       COMMON / CMEM / CNAM,CTEX,CBLA                                          6
       COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               7
 *---------------------------------------------------------------------------- 8
@@ -89,50 +94,115 @@ C ANFANG - HAUPTPROGRAMM -
 *           11-17: BOUNDS (FOR ARRAYS)
 *
 *-----CODE ------------------------------------------------------------------ 1
-      PARAMETER (LARI=10000)                                                   2
-      INTEGER NARI(LARI,11), IARI                                             3
+      PARAMETER (LARI=10000)                                                  2
+      INTEGER NARI(LARI,11), IARI                                         3
       COMMON / CODE / NARI, IARI                                              4
 *---------------------------------------------------------------------------- 5
-*-----SYMBOL---------------------------------------------------------------- 1
-      PARAMETER (LFUNC=100,LOPER=16)                                           2
+*-----SYMBOL----------------------------------------------------------------  1
+      PARAMETER (LFUNC=100,LOPER=16)                                          2
       INTEGER KFUN(LFUNC)
-      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                                  3
+      INTEGER llKFUN(LFUNC)
+      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                              3
+      CHARACTER llOPER(LOPER)*6, llFUNC(LFUNC)*6                              3
       COMMON / SYMBOL1 / KFUN
-      COMMON / SYMBOL / OPER, FUNC                                           4
+      COMMON / SYMBOL / OPER, FUNC                                            4
 *---------------------------------------------------------------------------- 5
+      integer i,j
+      character blanks*80
+      character blank6*6
+      character blank8*8
 *
 *     OPER     : CONTAINS LOPER NAMES OF SUPPORTED BINARY OPERTORS
 *     FUNC     : CONTAINS LFUNC NAMES OF SUPPORTED INTRINSIC FUNCTIONS
 *
-      DATA OPER /  '+     ','-     ','*     ','/     ','^     ',
-     2             'DIM   ','DIST  ','MIN   ','MAX   ','MOD   ',
-     3             'EQ    ','NE    ','GT    ','LT    ','GE    ',
-     4             'LE    ' /
+      DATA llOPER /  '+     ','-     ','*     ','/     ','^     ',
+     2               'DIM   ','DIST  ','MIN   ','MAX   ','MOD   ',
+     3               'EQ    ','NE    ','GT    ','LT    ','GE    ',
+     4               'LE    ' /
 *
-      DATA FUNC /  'COS   ','SIN   ','TAN   ','ACOS  ','ASIN  ',
-     2             'ATAN  ','COSD  ','SIND  ','TAND  ','ACOSD ',
-     3             'ASIND ','ATAND ','COSH  ','SINH  ','TANH  ',
-     4             'COSHD ','SINHD ','TANHD ','EXP   ','LOG   ',
-     5             'LOG2  ','LOG10 ','NINT  ','ABS   ','SIGN  ',
-     6             'SQRT  ','FAC   ','SQR   ','ISRT  ','REAL  ',
-     7             'DBLE  ','FLOAT ','SNGL  ','DBLE  ','DCOS  ',
-     8             'DSIN  ','DTAN  ','DACOS ','DASIN ','DATAN ',
-     9             'DCOSD ','DSIND ','DTAND ','DACOSD','DASIND',
-     *             'DATAND','DCOSH ','DSINH ','DTANH ','DEXP  ',
-     1             'DLOG  ','DLOG2 ','DLOG10','DNINT ','DABS  ',
-     2             'DSIGN ','DSQRT ','INT   ','IFIX  ','IDINT ',
-     3             'AINT  ','DINT  ','ANINT ','DNINT ','IDNINT',
-     4             'ABS   ','DABS  ','IABS  ','DSQRT ','DEXP  ',
-     5             'ALOG  ','LOG10 ','ALOG10','DLOG10','DMIN1 ',
-     6             'MAX   ','AMAX1 ','AMAX  ','MAX0  ','MAX1  ',
-     7             'AMAX0 ','MIN   ','AMIN1 ','AMIN  ','MIN0  ',
-     8             'MIN1  ','AMIN0 ','DIM   ','IDIM  ','MOD   ',
-     9             'AMOD  ','SIGN  ','ISIGN ','DPROD ','ATAN2 ',
-     *             'DATAN2','DMAX1 ','DDIM  ','DSIGN ','DMOD  '/
+      DATA llFUNC /  'COS   ','SIN   ','TAN   ','ACOS  ','ASIN  ',
+     2               'ATAN  ','COSD  ','SIND  ','TAND  ','ACOSD ',
+     3               'ASIND ','ATAND ','COSH  ','SINH  ','TANH  ',
+     4               'COSHD ','SINHD ','TANHD ','EXP   ','LOG   ',
+     5               'LOG2  ','LOG10 ','NINT  ','ABS   ','SIGN  ',
+     6               'SQRT  ','FAC   ','SQR   ','ISRT  ','REAL  ',
+     7               'DBLE  ','FLOAT ','SNGL  ','DBLE  ','DCOS  ',
+     8               'DSIN  ','DTAN  ','DACOS ','DASIN ','DATAN ',
+     9               'DCOSD ','DSIND ','DTAND ','DACOSD','DASIND',
+     *               'DATAND','DCOSH ','DSINH ','DTANH ','DEXP  ',
+     1               'DLOG  ','DLOG2 ','DLOG10','DNINT ','DABS  ',
+     2               'DSIGN ','DSQRT ','INT   ','IFIX  ','IDINT ',
+     3               'AINT  ','DINT  ','ANINT ','DNINT ','IDNINT',
+     4               'ABS   ','DABS  ','IABS  ','DSQRT ','DEXP  ',
+     5               'ALOG  ','LOG10 ','ALOG10','DLOG10','DMIN1 ',
+     6               'MAX   ','AMAX1 ','AMAX  ','MAX0  ','MAX1  ',
+     7               'AMAX0 ','MIN   ','AMIN1 ','AMIN  ','MIN0  ',
+     8               'MIN1  ','AMIN0 ','DIM   ','IDIM  ','MOD   ',
+     9               'AMOD  ','SIGN  ','ISIGN ','DPROD ','ATAN2 ',
+     *               'DATAN2','DMAX1 ','DDIM  ','DSIGN ','DMOD  '/
 *
-      DATA KFUN / 74*1,26*2 /
-      DATA CBLA / '
-     *                           ' /
+      DATA llKFUN / 74*1,26*2 /
+*   Eric left unchanged, but trying a DO loop later
+*     DATA llCBLA / '
+*    *                           ' /
+*
+      DATA llINAM / 0 /
+*
+      do i=1,80
+        blanks(i:i)=' '     
+      enddo
+      blank6='      '
+      blank8='        '
+*
+      do i=1,lnam
+        cnam(i)=blank8
+      enddo
+*
+      do i=1,ltex
+        ctex(i)=blanks
+      enddo
+*       
+      cbla=blanks
+*
+      do i=1,lnam
+        do j=1,17
+          npar(i,j)=0
+        enddo
+      enddo
+*       
+      do i=1,lcc
+        cc(i)=ZERO
+      enddo
+*
+      itex=0
+      icc=0
+*
+      do i=1,lari
+        do j=1,11
+          nari(i,j)=0
+        enddo
+      enddo
+      iari=0
+*
+      do i=1,100
+        kfun(i)=llkfun(i)
+      enddo
+*
+      do i=1,lnam
+        do j=1,17
+          npar(i,j)=0
+        enddo
+      enddo
+*
+      do i=1,lfunc
+        func(i)=llfunc(i)
+      enddo
+*
+      do i=1,loper
+        oper(i)=lloper(i)
+      enddo
+*
+      inam=llINAM
 *
       END
 *
@@ -246,6 +316,9 @@ cfrs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
          ENDIF
          IF((NPAR(I,1).EQ.1).AND.(NPAR(I,2).EQ.4).AND.
      *      (NPAR(I,6).NE.1)) then
+* Eric's attempt to initialise DAALL varibales (length 1)
+               WRITE(2,'(A)')
+     *         '         '//CNAM(I)//'= 0'
                WRITE(2,'(A,38A1,5(/''     *   '',60A1))')
      *         '         CALL DAALL('//CNAM(I)//',1',
      *   ('*','(',(CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,80)),')',
@@ -649,6 +722,9 @@ C ANFANG UNTERPROGRAMM
 *
       CHARACTER A*(*)
 *
+* Eric sets ILAST when line has no trailing blanks
+      ILAST = IA2
+*
       DO 10 ILAST = IA2,IA1,-1
       IF(A(ILAST:ILAST).NE.' ') RETURN
   10  CONTINUE
@@ -842,6 +918,10 @@ cfrs      PARAMETER(LANA=100,LA=10000,LCHECK=0,LDEC=37)
       DATA AER  / '                                                  ' /
       DATA IFI  / 0 /
 *
+* Eric
+      IB = 0
+* Eric
+      IFUVA = 0
       IF(IFI.EQ.0) THEN
          IFI = 1
          CDEC(0) = ONE
@@ -1959,8 +2039,10 @@ C ANFANG UNTERPROGRAMM
       ILIN = ILAST(A,1,800) / 66
       WRITE(2,'(A)') '      '//A(1:66),
      *              ('     *'//A(J*66+1:(J+1)*66),J=1,ILIN)
-      ILIN = ILAST(AC,1,800) / 66
+* Eric Moved the ILIN = ....
+*     ILIN = ILAST(AC,1,800) / 66
       IF(ICON.NE.0) THEN
+        ILIN = ILAST(AC,1,800) / 66
          WRITE(2,'(A)') '      '//AC(1:66),
      *              ('     *'//AC(J*66+1:(J+1)*66),J=1,ILIN)
          ICON = 0

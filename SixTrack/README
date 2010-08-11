@@ -2,6 +2,23 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.2.11 eric
+    -- Mainly fixing unitialised variables
+       astuce: Removed tabs and initialised ILEV
+       dafor: Removed BLOCKDATA and used subroutine predata instead
+              Initialised many variables and moved the ILIN = (ILAST(AC)...
+              Generated code to initialise variables allocated by DAALL
+       sixtrack: Changed comnul for AAIV, BBIV, and TASAU
+    -- New make_six with nagfor and FCF and added 
+       -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 to NAGLIBC
+    -- New crlibm Makefile with -fno-strict-aliasing for the typ-punned problem
+    -- Fixed lfit/lfitw argument dimensions
+    -- changed log10(real(xxaux)) to real(log10(xxaux))
+    -- This version was checked out on SLC5 as well and with NAG nagfor
+       -C=all and -C=undefined and -float-store and Lahey for production
+       Changed the NAGLIBC definition for SLC4/5 compatibility
+  McIntosh 8th August, 2010
+
   SixTrack Version: 4.2.10 FRS/eric
     -- Changed dimension of phase(3,npos+1) in common phasecomm 
        Corrected an overwrite in postpr in rare cases

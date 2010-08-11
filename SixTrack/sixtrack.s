@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.10'/
-      data moddate /'01.07.2010'/
+      data version /'4.2.11'/
+      data moddate /'08.08.2010'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -28935,6 +28935,7 @@ cc2008
 +ca commd1da
 +ca commonc
 +ca commonxz
++ca commonmn
 +if bnlelens
 +ca rhicelens
 +ei
@@ -29234,6 +29235,14 @@ cc2008
               rtc(i1,i2,i3,i4)=zero
               rts(i1,i2,i3,i4)=zero
   110 continue
+!--NUMBER OF PARTICLES--------------------------------------------------
+      do i=1,npart
+        do i1=1,6
+          do i2=1,6
+            tasau(i,i1,i2)=zero
+          enddo
+        enddo
+      enddo
 !--NUMBER OF ELEMENTS---------------------------------------------------
       do 150 i=1,nele
         kz(i)=0
@@ -29353,6 +29362,12 @@ cc2008
         do i1=1,mmul
           aai(i,i1)=zero
           bbi(i,i1)=zero
+        enddo
+        do i3=1,mmul
+          do i2=1,nmac
+            aaiv(i3,i2,i)=zero
+            bbiv(i3,i2,i)=zero
+          enddo
         enddo
   190 continue
 !--RANDOM NUMBERS-------------------------------------------------------
@@ -42608,7 +42623,7 @@ cc2008
                 fzs(k1)=real(log10_rn(xxaux))
 +ei
 +if .not.crlibm
-                fzs(k1)=log10(real(xxaux))
+                fzs(k1)=real(log10(xxaux))
 +ei
               else
                 fzs(k1)=real(xxaux)
@@ -45066,7 +45081,7 @@ cc2008
       integer j,key,l
       real a,b,count,e,scartx,scarty,sumx,sumxx,sumxy,sumy,sumyy,x,xmed,&
      &y,ymed
-      dimension x(1),y(1)
+      dimension x(*),y(*)
 +ca save
 !-----------------------------------------------------------------------
 !
@@ -45134,7 +45149,7 @@ cc2008
 +ei
       integer icnt,j,key,l
       real a,b,e,w,w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi,x,y
-      dimension x(1),y(1),w(1)
+      dimension x(*),y(*),w(*)
 +ca save
 !-----------------------------------------------------------------------
 !

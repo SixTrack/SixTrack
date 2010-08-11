@@ -4,10 +4,10 @@ SHELL = /bin/sh
 	$(FC) -c $(FCF) $<
 
 dafor: dafor.o
-	$(FC) -m32 -o dafor dafor.o
+	$(FC) $(FCL) -o dafor dafor.o
 
 astuce: astuce.o
-	$(FC) -m32 -o astuce astuce.o $(NAGLIBC)
+	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
 
 %%SIXTRACK%%: track.o sixve.o sixvefox.o dabnews.o lielib.o $(BOINC) $(CRLIBM)
 	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o \

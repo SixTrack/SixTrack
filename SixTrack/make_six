@@ -390,11 +390,11 @@ fi
 # Set up compiler
 if test "$nag" = ""
 then
-  export FC="f95"
-  export FCF="-Wc,-m32 -Wl,-m32 -dusty -maxcontin=60 -dcfuns -ieee=full -g"
-#  export FCF="-Wc,-m32 -Wl,-m32 -dusty -maxcontin=60 -dcfuns -ieee=full -g -C=undefined"
-  export FCL="-Bstatic -m32"
-  export NAGLIBC="-lg2c"
+  export FC="nagfor"
+# export FCF="-float-store -O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+  export FCF="-float-store -O -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+  export FCL="-Bstatic -abi=32"
+  export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
 elif test "$g77" = ""
 then
   export FC="g77"

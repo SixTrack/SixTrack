@@ -167,12 +167,12 @@
         call upper(sline)
         l = lastnb(sline)
         call flags1(sline, 1, l)
-	if (iasepl(4) .ne. 0)  then
+        if (iasepl(4) .ne. 0)  then
           sline = 'e ' // sargin(iasepl(4))
           call upper(sline)
           l = lastnb(sline)
           call decks(sline, 1, l)
-	endif
+        endif
       endif
 10000 format(//' change the master character (current =',a1,
      +') with a line'//
@@ -1077,6 +1077,8 @@
       rewind inunit
       nlin=0
       nlout=0
+* Eric added this for nagfor -C=undefined
+      ilev=0
       dkflag=.false.
    10 continue
       read(inunit,'(A)',end=999) sline

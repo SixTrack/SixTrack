@@ -10,7 +10,7 @@ OBJS = addition_scs.o multiplication_scs.o zero_scs.o \
 all: crlibm.a
 crlibm.a: $(OBJS)
 	ar -rv crlibm.a $(OBJS)
-AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic
+AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing
 DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
 CFLAGS = -g -O2 -m32
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
