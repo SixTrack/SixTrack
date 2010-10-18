@@ -2,6 +2,26 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.2.12 Harry Renshall and Eric
+    -- Extensive parenthesisation for result reproducibility
+    -- Changed the tle1 assignment in postpr to use log[_rn](double
+    -- New option api to make_six for BOINC
+    -- and windows/Makefile.bat to handle it
+    -- Dump routines for debug moved to the +dk dumps
+    -- and the .ast files modified appropriately
+    -- make_six and .ast modified to handle the new deck 
+    -- make_six to use nagfor with the new -abi=32 flag
+    -- the bignblz and/or api options are added to the name
+       of the executable
+    -- call disable_xp under a "+if nag" at start of maincr
+       and make_six forces crlibm for NAG
+    -- disable_xp added to crlibm
+    -- Fixed csh_fast.c to remove uninitialised warnings
+    -- Added the -fno-strict-aliasing to crlibm Makefile
+    -- Results verified for compatibility with lf95 -o1 etc
+       apart from BNL
+  McIntosh and Renshall 18th October, 2010
+
   SixTrack Version: 4.2.11 eric
     -- Mainly fixing unitialised variables
        astuce: Removed tabs and initialised ILEV

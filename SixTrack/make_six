@@ -20,7 +20,7 @@
 # July, 2009. Updated all libraries etc to use Frank's cernlib and X11 libraries
 # if they are not present (SLC5!). Also verified correct linking on 32/64 bit
 # systems, SLC4 and SLC5.    A NIGHTMARE!!!
-# Default: tilt tracking fast crlibm cernlib naglib -bpm -windows -da -collimat -bnlelens -cpss -boinc -cr
+# Default: tilt tracking fast crlibm cernlib naglib -bpm -api -da -collimat -bnlelens -cpss -boinc -cr
 # and uses the Lahey-Fujitsu lf95 compiler 
 # 12th August, 2009. Just changed print_map to print-map. Eric.
 # Options:
@@ -34,6 +34,11 @@
 # g77 => use g77
 # g95 => use g95
 # gfortran => use gfortran
+# Version 2.2 August 2010
+# Changed to nagfor, changed NAGLIBC for SLC4/5 compatibility
+# Replaced windows flag by api flag for BOINC
+# New deck for dumps for debug
+# Forced crlibm for NAG nagfor
 show_options()
 {
 ons="The following selections are ON  :"
@@ -57,7 +62,7 @@ echo "$offs"
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm windows   cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz debug)
+options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz debug)
 values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false   false)
 
 sysname="`fs sysname`"
@@ -81,7 +86,7 @@ crlibm=""
 cernlib="cernlib"
 naglib="naglib"
 # and we have OFF
-windows="windows"
+api="api"
 da="da"
 collimat="collimat"
 cpss="cpss"
@@ -117,7 +122,7 @@ do
     -crlibm) crlibm="crlibm"
            values[4]=false
     ;;
-    -windows) windows="windows"
+    -api) api="api"
            values[5]=false
     ;;
     -cernlib) cernlib=""
@@ -179,7 +184,7 @@ do
     +crlibm) crlibm=""
            values[4]=true
     ;;
-    +windows) windows=""
+    +api) api=""
            values[5]=true
     ;;
     +cernlib) cernlib="cernlib"
@@ -241,7 +246,7 @@ do
     crlibm) crlibm=""
            values[4]=true
     ;;
-    windows) windows=""
+    api) api=""
            values[5]=true
     ;;
     cernlib) cernlib="cernlib"
@@ -297,7 +302,6 @@ do
   esac
   shift
 done
-
 # Here we do some checking for valid/invalid combinations 
 nopts=0
 sixtrackmode=""
@@ -326,12 +330,6 @@ then
   cpss=""
   values[10]=true
 fi
-if test "$cpss" = ""
-then
-# force windows anyway
-  windows=""
-  values[5]=true
-fi
 if test "$da" = "" -o "$collimat" = ""
 then
   if test "$cpss" = ""
@@ -354,13 +352,13 @@ then
   naglib=""
   values[7]=false
 fi
-if test "$windows" = ""
+if test "$cpss" = ""
 then
-  # We will build for windows (and Linux)
-  # force windows, Lahey compiler, checkpoint/restart and crlibm, and NO cernlib 
+  # We will build for windows and Linux boinc and cpss 
+  # Note that boinc forces the cpss flag anyway
+  # Force Lahey compiler, checkpoint/restart and crlibm, and NO cernlib 
+  # The api flag is now used to force the real BOINC api.
   echo "Forcing Lahey lf95, checkpoint/restart and crlibm"
-  windows=""
-  values[5]=true
   cernlib=""
   values[6]=false
   crlibm=""
@@ -376,23 +374,32 @@ then
   gfortran="gfortran"
   values[16]=false
 fi
-# and make sure we use Lahey for crlibm
+# and make sure we use Lahey/NAG for crlibm
 if test "$crlibm" = ""
 then
-  if test "$nag" = "" -o "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
+  if test "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
   then
     show_options
     echo "     INVALID option selected:"
-    echo "     crlibm => compilation must be done with Lahey lf95 !"
+    echo "     crlibm => compilation must be done with Lahey lf95 or nagfor!"
     exit 1
+  fi
+else
+  if test "$nag" = ""
+  then
+    echo "    Forcing crlibm for the NAG nagfor compiler!"
+    crlibm="" 
+    values[4]="true"
   fi
 fi
 # Set up compiler
 if test "$nag" = ""
 then
   export FC="nagfor"
+  export FCF="-O -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+# export FCF="-O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
 # export FCF="-float-store -O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-  export FCF="-float-store -O -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+# export FCF="-float-store -O -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   export FCL="-Bstatic -abi=32"
   export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
 elif test "$g77" = ""
@@ -496,9 +503,17 @@ elif test "$cpss" = ""
 then
   ename=$ename"_cpss"
 fi
+if test "$bignblz" = ""
+then
+  ename=$ename"_bignblz"
+fi
 if test "$debug" = ""
 then
   ename=$ename"_debug"
+fi
+if test "$api" = ""
+then
+  ename=$ename"_api"
 fi
 export ename
 
@@ -511,6 +526,11 @@ echo "Note that building for windows/boinc/cpss will also"
 echo "build for Linux as a validity check."
 echo ""
 show_options
+echo ""
+echo "And compiler options:"
+echo "FC = $FC"
+echo "FCF = $FCF"
+echo "FCL = $FCL"
 echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
@@ -549,12 +569,17 @@ do
           -e 's/\(^df  *'$opt' *,\)\(.*\)/df \2/'  \
           -e 's/\(^df  *'$opt' *$\)/df/'         \
       $i > tmp$$
+      if test $? -ne 0
+      then
+        echo "Problem updating the definitions in $i !!!"
+        exit 3
+      fi
       mv tmp$$ $i
     done
   fi
 done
 # Delete unneeded decks from the .ast based on options
-for opt in "$collimat" "$cr" "$cernlib" "$naglib" "$bnlelens"
+for opt in "$collimat" "$cr" "$cernlib" "$naglib" "$bnlelens" "$debug"
 do
   if test "$opt" != ""
   then
@@ -569,10 +594,17 @@ do
     ;;
     naglib)   pattern="nagdumy"
     ;;
+    debug)   pattern="dumps"
+    ;;
     esac
     for i in `ls *.ast`
     do
       sed -e '/^e  *'$pattern'/d' $i > tmp$$
+      if test $? -ne 0
+      then
+        echo "Problem deleting decks in $i !!!"
+        exit 3
+      fi
       mv tmp$$ $i
     done
   fi
@@ -678,7 +710,6 @@ then
   cd ../$ename
   export CRLIBM="../crlibm/crlibm.a"
 fi
-
 if test "$da" = ""
 then
   # Fix up the Makefile
@@ -691,12 +722,17 @@ else
   export BOINC=""
   if test "$boinc" = ""
   then
-    export BOINC="myboinc.o"
-    cp ../myboinc.f .
+    if test "$api" = ""
+    then
+      export BOINC="../boinc_api_fortran.o ../libboinc_api.a"
+    else
+      export BOINC="myboinc.o"
+      cp ../myboinc.f .
+    fi
   fi
   sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile > tmp$$
   mv tmp$$ Makefile
-  # We make for Linux now.because we are finished or as a verification 
+  # We make for Linux now because we are finished or as a verification 
   # before we set up for windows.
 # remove an existing executable
   rm -f $ename
@@ -719,7 +755,8 @@ else
   echo "It appears to have failed!!!"
   exit 2
 fi
-if test "$windows" = ""
+# Note that selecting boinc has forced cpss
+if test "$cpss" = ""
 then
   echo ""
   echo "Setting up crlibm and Makefile.bat for Windows"
@@ -731,10 +768,16 @@ then
   mv tmp$$ Makefile.bat
   if test "$boinc" = ""
   then
-    # If  boinc i.e. not just CPSS or windows link in myboinc.obj
-    sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
+    # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
+    if test "$api" != ""
+    then
+      sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
+    else
+      sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
+    fi
   else
-    sed -e's/%%BOINC%%//g' Makefile.bat > tmp$$
+    sed -e's/%%BOINC%%//g' \
+        -e'/myboinc.f/d' Makefile.bat > tmp$$
   fi
   mv tmp$$ Makefile.bat
 # and finally!!! perhaps get crlibm for windows

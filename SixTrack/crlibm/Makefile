@@ -6,7 +6,8 @@ OBJS = addition_scs.o multiplication_scs.o zero_scs.o \
      exp.o logsix.o exp_fast.o log_fast.o \
      atan.o atan_fast.o division_scs.o \
      ericc.o atan2_rn.o \
-     asin_rn.o acos_rn.o csh_fast.o log10.o rem_pio2.o
+     asin_rn.o acos_rn.o csh_fast.o log10.o rem_pio2.o \
+     disable_xp.o
 all: crlibm.a
 crlibm.a: $(OBJS)
 	ar -rv crlibm.a $(OBJS)
@@ -75,6 +76,7 @@ acos_rn.o: acos_rn.f atan.o atan_fast.o
 	lf95 -c $(FCF) acos_rn.f
 ericc.o: ericc.c crlibm.h crlibm_private.h 
 	$(COMPILE1) -c ericc.c
+disable_xp.o: disable_xp.c
 
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline 
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
