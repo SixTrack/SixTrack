@@ -2,6 +2,14 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+  SixTrack Version: 4.2.13 Emanuele Laface and Eric
+    -- Emanuele's mods for flat beam, hopefully integrated
+       with Version 4.2.12 by Eric
+    -- Also put the MAINCR message napxo to fort.93 under 
+       a +if cr
+    -- Removed the post-processing fix to tle1 (too many diffs)
+  Laface and McIntosh 18th October, 2010
+
   SixTrack Version: 4.2.12 Harry Renshall and Eric
     -- Extensive parenthesisation for result reproducibility
     -- Changed the tle1 assignment in postpr to use log[_rn](double

@@ -2,7 +2,7 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.12'/
+      data version /'4.2.13'/
       data moddate /'18.10.2010'/
 +cd rhicelens
 !GRDRHIC
@@ -196,7 +196,7 @@
      &qzt,r00,rad,ramp,rat,ratio,ratioe,rfre,rrtr,rtc,rts,rvf,rzph,     &
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
-     &acdipph, crabph
+     &acdipph, crabph, bbbx, bbby, bbbs
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -208,6 +208,7 @@
       common/kons/pi,pi2,pisqrt,rad
       common/str /il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
       common/ell /ed(nele),el(nele),ek(nele),sm(nele),kz(nele),kp(nele)
+      common/bbb /bbbx(nele), bbby(nele), bbbs(nele)
       common/pla /xpl(nele),xrms(nele),zpl(nele),zrms(nele)
       common/str2 /mel(nblo),mtyp(nblo,nelb),mstr(nblo)
       common/mat/a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
@@ -568,8 +569,8 @@
       common /mu/ mux,muy
 !
       double precision ielem,iclr,grd
-      character*80 ch
-      character*160 ch1
+      character*160 ch
+      character*320 ch1
       logical flag
 !
       integer k,np0,rnd_lux,rnd_k1,rnd_k2
@@ -6943,27 +6944,12 @@ cc2008
           call dacct(damap,nvar,aa2,nvar,aa2r,nvar)
           call dacct(damap,nvar,damap1,nvar,damap,nvar)
           call dacct(damap,nvar,damapi,nvar,damap,nvar)
-          do ii=1,3
-            call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-            call averaged(angno,aa2r,.false.,angno)
-            do j=1,ndimf
-              j1=2*j
-              jj(j1-1)=1
-              jj(j1)=1
-              call dapek(angno,jj,angnoe(j))
-              jj(j1-1)=0
-              jj(j1)=0
-            enddo
-            if(ndimf.eq.3) then
-!hr03         bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2)+        &
-              bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+      &!hr03
-     &emitz*angnoe(3))
-            else
-              bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
-            endif
-          enddo
-          if(parbe(ix,2).gt.0) then
-            do ii=4,10
+          if(lhc.eq.2) then
+            bbcu(ibb,1)=bbbx(ix)
+            bbcu(ibb,2)=bbby(ix)
+            bbcu(ibb,3)=bbbs(ix)
+          else
+            do ii=1,3
               call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
               call averaged(angno,aa2r,.false.,angno)
               do j=1,ndimf
@@ -6982,6 +6968,27 @@ cc2008
                 bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
               endif
             enddo
+            if(parbe(ix,2).gt.0) then
+              do ii=4,10
+                call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
+                call averaged(angno,aa2r,.false.,angno)
+                do j=1,ndimf
+                  j1=2*j
+                  jj(j1-1)=1
+                  jj(j1)=1
+                  call dapek(angno,jj,angnoe(j))
+                  jj(j1-1)=0
+                  jj(j1)=0
+                enddo
+                if(ndimf.eq.3) then
+!hr03           bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2)+      &
+                bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
+     &emitz*angnoe(3))
+                else
+                  bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
+                endif
+              enddo
+            endif
           endif
           if(lhc.eq.1) then
             dummy=bbcu(ibb,1)
@@ -6997,8 +7004,9 @@ cc2008
             bbcu(ibb,6)=bbcu(ibb,10)
             bbcu(ibb,10)=dummy
           endif
-          if(bbcu(ibb,1).le.pieni.or.bbcu(ibb,2).le.pieni)              &
-     &call prror(88)
+          if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
+            call prror(88)
+          endif
           if(ibbc.eq.1) then
             sfac1=bbcu(ibb,1)+bbcu(ibb,2)
             sfac2=bbcu(ibb,1)-bbcu(ibb,2)
@@ -11306,8 +11314,8 @@ cc2008
       character*16 kl,kr,orga,post,ripp,beam,trom
       character*16 coll
       character*60 ihead
-      character*80 ch
-      character*160 ch1
+      character*160 ch
+      character*320 ch1
 +ca parpro
 +ca parnum
 +ca common
@@ -11606,7 +11614,7 @@ cc2008
       enddo
  165  if(i1.gt.72) call prror(104)
       call intepr(1,1,ch,ch1)
-      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i)
+      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
       if(kz(i).eq.25) then
         ed(i)=ed(i)/two
         ek(i)=ek(i)/two
@@ -13495,12 +13503,12 @@ cc2008
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.9)) lhc=1
+      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
 !GRDRHIC
 !GRD-042008
 +ei
 +if .not.bnlelens
-      if(lhc.ne.0.and.lhc.ne.1) lhc=1
+      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
 +ei
 !GRD-2007
       if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
@@ -13916,7 +13924,7 @@ cc2008
       return
 10000 format(11(a4,1x))
 10010 format(a4,8x,a60)
-10020 format(a80)
+10020 format(a160)
 10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
      &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
@@ -14091,8 +14099,8 @@ cc2008
 +ei
       integer ii,ikz
       double precision rdum1,rdum2,rel1
-      character*80  ch
-      character*160 ch1
+      character*160  ch
+      character*320 ch1
       character*16 idat
 +ca parpro
 +ca parnum
@@ -14106,18 +14114,18 @@ cc2008
 +if .not.hhp
       rewind 2
 +ei
- 1    read(2,'(A80)',end=90) ch
+ 1    read(2,'(A160)',end=90) ch
       if(ch(:1).eq.'/') then
-        write(4,'(A80)') ch
+        write(4,'(A160)') ch
         goto 1
       elseif(ch(:4).eq.'SING') then
-        write(4,'(A80)') ch
+        write(4,'(A160)') ch
       else
         return
       endif
- 2    read(2,'(A80)',end=90) ch
+ 2    read(2,'(A160)',end=90) ch
       if(ch(:1).eq.'/') then
-        write(4,'(A80)') ch
+        write(4,'(A160)') ch
       else
         ii=ii+1
         if(ch(:4).ne.'NEXT') then
@@ -14137,13 +14145,13 @@ cc2008
             endif
           endif
         else
-          write(4,'(A80)') ch
+          write(4,'(A160)') ch
           goto 3
         endif
       endif
       goto 2
- 3    read(2,'(A80)',end=90) ch
-      write(4,'(A80)') ch
+ 3    read(2,'(A160)',end=90) ch
+      write(4,'(A160)') ch
       goto 3
  90   continue
 10000 format(a16,1x,i2,1x,d21.15,1x,d21.15,1x,d16.10)
@@ -14176,8 +14184,8 @@ cc2008
 +ca crlibco
 +ei
       integer i,i0,i1,i2,i3,i4,iev,ii,j
-      character*80 ch
-      character*160 ch1
+      character*160 ch
+      character*320 ch1
 +ca save
 !-----------------------------------------------------------------------
 +if bnlelens
@@ -14228,7 +14236,7 @@ cc2008
         endif
    10 continue
       goto 30
-   20 ch1(1:85)=''''//ch(i1:ii-1)//''''//ch(ii:80)//' / '
+   20 ch1(1:320)=''''//ch(i1:ii-1)//''''//ch(ii:160)//' / '
       return
    30 i3=i3+1
       ch1(i3:i3+2)=' / '
@@ -19583,9 +19591,11 @@ cc2008
       endif
 !hr05 napx=napx*imc*mmac
       napx=(napx*imc)*mmac                                               !hr05
++if cr
       write (93,*) 'MAINCR setting napxo=',napx
       endfile 93
       backspace 93
++ei
       napxo=napx
       if(ibidu.eq.1) then
 +ca dump1
@@ -44603,12 +44613,12 @@ cc2008
         if(ia.gt.0) then
 +if crlibm
 !hr06     tle1=real(log_rn(dble(ia)))
-          tle1=log_rn(dble(ia))                                          !hr06
+          tle1=real(log_rn(dble(ia)))
 !bugfix   tle1=log_rn(dble(ia))                                          !hr06
 +ei
 +if .not.crlibm
 !hr06     tle1=log(real(ia))
-          tle1=log(dble(ia))                                             !hr06
+          tle1=log(real(ia))
 !bugfix   tle1=log(dble(ia))                                             !hr06
 +ei
           if(i2.gt.1) then
