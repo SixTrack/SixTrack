@@ -77,6 +77,7 @@ acos_rn.o: acos_rn.f atan.o atan_fast.o
 ericc.o: ericc.c crlibm.h crlibm_private.h 
 	$(COMPILE1) -c ericc.c
 disable_xp.o: disable_xp.c
+	$(COMPILE1) -c disable_xp.c
 
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline 
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
