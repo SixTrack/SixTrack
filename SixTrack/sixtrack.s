@@ -21260,6 +21260,11 @@ cc2008
          elseif(do_thisdis.eq.4) then
             call  readdis(filename_dis,                                 &
      &           mynp, myx, myxp, myy, myyp, myp, mys)
+         elseif(do_thisdis.eq.5) then
+            call  makedis_ga(mynp, myalphax, myalphay, mybetax,         &
+     & mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,   &
+     &     myx, myxp, myy, myyp, myp, mys,                              &
+     &     enerror, bunchlength )
          else
 +if cr
       write(lout,*) 'INFO> review your distribution parameters !!'
@@ -21830,7 +21835,7 @@ cc2008
 !
       open(unit=50, file='coll_summary.dat')
       write(50,*)                                                       &
-     &'# 1=icoll 2=nimp 3=nabs 4=imp_av 5=imp_sig 6=length'
+     &'# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
       do icoll = 1, db_ncoll
         if(db_length(icoll).gt.0d0) then
         write(50,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f3.1)')              &
@@ -23820,13 +23825,13 @@ cc2008
      &,nom_aperture
             write(outlun,*) 'Aperture (cal) [m]:  '                     &
      &,calc_aperture
-            write(outlun,*) 'Collimator halfgap [sigma]:  '              &
+            write(outlun,*) 'Collimator halfgap [sigma]:  '             &
      &,nsig
-            write(outlun,*) 'RMS error on halfgap [sigma]:  '            &
+            write(outlun,*) 'RMS error on halfgap [sigma]:  '           &
      &,gap_rms_error(icoll)
             write(outlun,*) ' '
 !
-            write(43,'(i,1x,a,4(1x,e13.5),1x,a,6(1x,e13.5))')           &
+            write(43,'(i10,1x,a,4(1x,e13.5),1x,a,6(1x,e13.5))')         &
      &icoll,db_name1(icoll)(1:12),                                      &
      &db_rotation(icoll),                                               &
      &tbetax(ie), tbetay(ie), calc_aperture,                            &
@@ -23840,7 +23845,7 @@ cc2008
      &nsig
 ! coll settings file
             if(n_slices.le.1) then
-            write(55,'(a,1x,i,5(1x,e13.5),1x,a)')                       &
+            write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')                     &
      &db_name1(icoll)(1:12),                                            &
      &n_slices,calc_aperture,                                           &
      &db_offset(icoll),                                                 &
@@ -24054,18 +24059,18 @@ cc2008
 !     CB:10-2007 deformation of the jaws scaled with length
                do jjj=1,n_slices+1
                   x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
-                  y1_sl(jjj) =  fit1_1 +
-     &                 fit1_2*x_sl(jjj) +
-     &                 fit1_3/c_length*(x_sl(jjj)**2) +
-     &                 fit1_4*(x_sl(jjj)**3) +
-     &                 fit1_5*(x_sl(jjj)**4) +
+                  y1_sl(jjj) =  fit1_1 +                                &
+     &                 fit1_2*x_sl(jjj) +                               &
+     &                 fit1_3/c_length*(x_sl(jjj)**2) +                 &
+     &                 fit1_4*(x_sl(jjj)**3) +                          &
+     &                 fit1_5*(x_sl(jjj)**4) +                          &
      &                 fit1_6*(x_sl(jjj)**5)
 !     
-                  y2_sl(jjj) = -1d0 * (fit2_1 +
-     &                 fit2_2*x_sl(jjj) +
-     &                 fit2_3/c_length*(x_sl(jjj)**2) +
-     &                 fit2_4*(x_sl(jjj)**3) +
-     &                 fit2_5*(x_sl(jjj)**4) +
+                  y2_sl(jjj) = -1d0 * (fit2_1 +                         &
+     &                 fit2_2*x_sl(jjj) +                               &
+     &                 fit2_3/c_length*(x_sl(jjj)**2) +                 &
+     &                 fit2_4*(x_sl(jjj)**3) +                          &
+     &                 fit2_5*(x_sl(jjj)**4) +                          &
      &                 fit2_6*(x_sl(jjj)**5))
                enddo
 !     Apply the slicing scaling factors (ssf's):
@@ -24080,28 +24085,28 @@ cc2008
                      y1_sl(jjj) = ssf1 * y1_sl(jjj)
                      y2_sl(jjj) = ssf2 * y2_sl(jjj)
 ! CB code
-                     x1_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,1))- 
+                     x1_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,1))-        &
      &                    y1_sl(jjj)*sin(db_tilt(icoll,1))
-                     x2_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,2))- 
+                     x2_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,2))-        &
      &                    y2_sl(jjj)*sin(db_tilt(icoll,2))
-                     y1_sl(jjj) = y1_sl(jjj)*cos(db_tilt(icoll,1))+ 
+                     y1_sl(jjj) = y1_sl(jjj)*cos(db_tilt(icoll,1))+     &
      &                    x_sl(jjj)*sin(db_tilt(icoll,1))
-                     y2_sl(jjj) = y2_sl(jjj)*cos(db_tilt(icoll,2))+ 
+                     y2_sl(jjj) = y2_sl(jjj)*cos(db_tilt(icoll,2))+     &
      &                    x_sl(jjj)*sin(db_tilt(icoll,2))
                   enddo
 !     Sign of the angle defined differently for the two jaws!
                   do jjj=1,n_slices
-                     angle1(jjj) = (( y1_sl(jjj+1) - y1_sl(jjj) ) /
+                     angle1(jjj) = (( y1_sl(jjj+1) - y1_sl(jjj) ) /     &
      &                    ( x1_sl(jjj+1)-x1_sl(jjj) ))
-                     angle2(jjj) =(( y2_sl(jjj+1) - y2_sl(jjj) ) /
+                     angle2(jjj) =(( y2_sl(jjj+1) - y2_sl(jjj) ) /      &
      &                    ( x2_sl(jjj+1)-x2_sl(jjj) ))
                   enddo
 !
 !     Sign of the angle defined differently for the two jaws!
 !                  do jjj=1,n_slices
-!                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /
+!                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /     &
 !     &                    (c_length / dble(n_slices) )
-!                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /
+!                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /     &
 !     &                    (c_length / dble(n_slices) )
 !                  enddo
 !     For both jaws, look for the 'deepest' point (closest point to beam)
@@ -30247,7 +30252,7 @@ cc2008
           as(5,1,j,l)=(((-1d0*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))* &!hr06
      &aek(j))/c4e3                                                       !hr06
 !hr06       as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
-      as(6,1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3  &!hr06
+      as(6,1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
 +if crlibm
             hp(j)=exp_rn(fi(j))
@@ -42364,17 +42369,41 @@ cc2008
         vor=one
 !hr06   if(mod(iv6,2).ne.0) vor=-one
         if(mod(iv6,2).ne.0) vor=-1d0*one                                 !hr06
-        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*(beta(1)**iv5)* (beta&
-     &(2)**iv6)
+!        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*(beta(1)**iv5)* (beta&
+!     &(2)**iv6)
++if crlibm
+        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*                     & !yil11
+     &exp_rn(iv5*log_rn(beta(1)))*exp_rn(iv6*log_rn(beta(2)))
++ei
++if .not.crlibm
+        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*                     & !yil11
+     &exp(iv5*log(beta(1)))*exp(iv6*log(beta(2)))
++ei
         if(iv5.ne.0) then
 !hr06     dtu1=dtu1+vtu2*iv5*(ep(1)**(iv5-1))*(ep(2)**iv6)
-          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)     !hr06
+!          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)     !hr06
++if crlibm
+          dtu1=dtu1+((vtu2*dble(iv5))*exp_rn((iv5-1)*log_rn(ep(1))))*   & !yil11
+     &         exp_rn(iv6*log_rn(ep(2)))
++ei
++if .not.crlibm
+          dtu1=dtu1+((vtu2*dble(iv5))*exp((iv5-1)*log(ep(1))))*         & !yil11
+     &         exp(iv6*log(ep(2)))
++ei
 !hr06     dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+vtu2*iv5*vtu1
          dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+(vtu2*dble(iv5))*vtu1 !hr06
         endif
         if(iv6.ne.0) then
 !hr06     dtu2=dtu2+vtu2*iv6*(ep(1)**iv5)*(ep(2)**(iv6-1))
-          dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))     !hr06
+!          dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))     !hr06
++if crlibm
+          dtu2=dtu2+((vtu2*dble(iv6))*exp_rn(iv5*log_rn(ep(1))))*       & !yil11
+     &                exp_rn((iv6-1)*log_rn(ep(2)))
++ei
++if .not.crlibm
+          dtu2=dtu2+((vtu2*dble(iv6))*exp(iv5*log(ep(1))))*             & !yil11
+     &                exp((iv6-1)*log(ep(2)))
++ei
 !hr06     dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+vtu2*iv6*vtu1
          dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+(vtu2*dble(iv6))*vtu1 !hr06
         endif
@@ -50773,6 +50802,183 @@ cc2008
 !
       return
       end
+
+!>
+!! \brief The routine makes an initial Gaussian distribution
+!! 
+!!     Uses the old routine 'MAKEDIS' for the halo plane and adds the\n
+!!     transverse beam size in the other plane (matched distrubutions\n
+!!     are generated starting from the twiss functions).\n
+!!     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches\n
+!!     centred in the aperture centre are generated. (SR, 08-05-2005)
+!!     
+!!     YIL EDIT 2010: particle 0 is always on orbit...
+!! 
+!! @author Javier Barranco <jbarranc@cern.ch>
+!! @param mynp
+!! @param myalphax
+!! @param myalphay
+!! @param mybetax
+!! @param mybetay
+!! @param myemitx0
+!! @param myemity0
+!! @param myenom
+!! @param mynex
+!! @param mdex
+!! @param myney
+!! @param mdey
+!! @param myx
+!! @param myxp
+!! @param myy
+!! @param myyp
+!! @param myp
+!! @param mys
+!! @param enerror
+!! @param bunchlength
+!!
+!! @date Last modified: 06. August 2009
+!! @see ran_gauss
+!! 
+!<
+      subroutine makedis_ga( mynp, myalphax, myalphay, mybetax,
+     & mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,
+     &     myx, myxp, myy, myyp, myp, mys,
+     &     enerror, bunchlength )
+!
+      implicit none
++if cr
++ca crcoall
++ei
++if crlibm
++ca crlibco
++ei
+!
++ca collpara
++ca dbmkdist
+
+! !YIL debug july 2010
++ca parpro
++ca commont1
+
+      double precision pi
+!YIL march2010 edit: was missing enerror, bunchlength etc... 
+! no common block for these parameters?
+!
+      double precision ran_gauss, gauss_rand
+      double precision iix, iiy, phix, phiy
+      double precision enerror, bunchlength
+      double precision en_error, bunch_length
+!
+      double precision long_cut
+      double precision a_st, b_st
+      integer startpar
+!
++ca save
+
+!-----------------------------------------------------------------------
+!++  Generate particle distribution
+!
+!
+!++  Generate random distribution, assuming optical parameters at IP1
+!
+!++  Calculate the gammas
+      pi=4d0*atan(1d0)
+!
+      mygammax = (1d0+myalphax**2)/mybetax
+      mygammay = (1d0+myalphay**2)/mybetay
+      en_error = enerror
+      bunch_length = bunchlength
+
+      write (*,*) "Generation of bunch with dp/p and length:"
+      write (*,*) "  RMS bunch length  = ", bunch_length
+      write (*,*) "  RMS energy spread = ", en_error
+! JBG August 2007
+      write (*,*)
+      write (*,*) "   ***STEP 1 for Gaussian Beam***"
+      write (*,*)
+      write (*,*) "   Beam generated with 5 sigma cut"
+      write (*,*)
+      write (*,*) "  Parameters used for Distribution Generation"
+      write (*,*) "  BetaX =", mybetax    
+      write (*,*) "  BetaY =", mybetay
+      write (*,*) "  EmittanceX =", myemitx0
+      write (*,*) "  EmittanceY =", myemity0
+      write (*,*)
+      
+      !YIL July 2010 first particle on orbit
+      startpar=2
+      myx(1)=0.0
+      myy(1)=0.0
+      myxp(1)=0.0
+      myyp(1)=0.0
+      myp(1) = myenom
+      mys(1) = 0d0
+      !YIL end edit July 2010
+      
+      do j=startpar, mynp
+! JBG July 2007    
+! Option added for septum studies
+!
+            myemitx=myemitx0
+            xsigmax = sqrt(mybetax*myemitx)
+            myx(j)   = xsigmax * ran_gauss(5d0)
+            myxp(j)  = ran_gauss(5d0)*sqrt(myemitx/mybetax)-(myalphax*
+     &myx(j)/mybetax)    
+!    
+!            if (rndm4().gt.0.5) then
+!              myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-       
+!     &              myalphax*myx(j)/mybetax
+!              write(*,*)'Xp pos: ',myxp(j)
+!            else
+!              myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-    
+!     &              myalphax*myx(j)/mybetax
+!              write(*,*)'Xp neg: ',myxp(j)
+!            endif
+!
+           myemity=myemity0
+           ysigmay = sqrt(mybetay*myemity)
+!        write(*,*)'Sigma Y: ',ysigmay
+            myy(j)   = ysigmay * ran_gauss(5d0)
+      myyp(j)  = ran_gauss(5d0)*sqrt(myemity/mybetay)-(myalphay*myy(j)/ &
+     & mybetay)
+
+!            myy(j)   = ysigmay * sin(2d0*pi*rndm4())
+!            if (rndm4().gt.0.5) then
+!              myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-        &
+!     &              myalphay*myy(j)/mybetay
+!            else
+!              myyp(j)  = -1*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &
+!     &              myalphay*myy(j)/mybetay
+!            endif
+!
+      end do
+! SR, 11-08-2005 For longitudinal phase-space, add a cut at 2 sigma
+!
+!++   1st: generate mynpnumbers within the chose cut
+!
+      long_cut = 2
+      j = startpar
+      do while (j.le.mynp)
+         a_st = ran_gauss(5d0)
+         b_st = ran_gauss(5d0)
+         do while ((a_st*a_st+b_st*b_st).gt.long_cut*long_cut)
+            a_st = ran_gauss(5d0)
+            b_st = ran_gauss(5d0)
+         enddo
+         mys(j) = a_st
+         myp(j) = b_st
+         j = j + 1
+      enddo
+!++   2nd: give the correct values
+      do j=startpar,mynp
+         myp(j) = myenom * (1d0 + myp(j) * en_error)
+         mys(j) = bunch_length * mys(j)
+      enddo
+!
+      return
+      end subroutine
+! end of subroutine makedis_ga
+
 !
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !
