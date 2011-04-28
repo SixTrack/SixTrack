@@ -57071,6 +57071,198 @@ cc2008
       save
       return
       end
++dk hdf5K 
++if hdf5
+!>
+!! @brief module that contains the code necessary for hdf5 support
+!!
+!<
+      MODULE SIXTRACKHDF5
+      
+      USE HDF5
+      
+      IMPLICIT NONE
+
+        CHARACTER(LEN=20), PARAMETER :: HFNAME = "tracks2.h5"
+        INTEGER(HID_T) :: hfile_id
+        INTEGER(HID_T) :: h5set_id       ! Dataset identifier
+        INTEGER(HID_T) :: h5space_id,memspace     ! Dataspace identifier
+        INTEGER(HID_T) :: crp_list        ! dataset creatation property identifier 
+        CHARACTER(LEN=6), PARAMETER :: h5setname = "tracks"     ! Dataset name
+        INTEGER     ::   h5error
+        INTEGER, PARAMETER :: incr = 1024
+        INTEGER(HSIZE_T), DIMENSION(2) :: h5dims,maxdims,data_dims,offset
+        INTEGER     ::   h5rank = 2                        ! Dataset rank
+        REAL, DIMENSION(9) :: data_in
+        REAL, DIMENSION(9,incr) :: data_in2
+        !DOUBLE PRECISION :: data_in(9)
+      CONTAINS
+      
+      SUBROUTINE WRITETOFILE
+          CALL h5dextend_f(h5set_id, h5dims, h5error)
+          CALL h5dget_space_f(h5set_id, h5space_id, h5error)
+          
+          !
+          ! Get updated dataspace
+          !
+          offset(1)=0
+          offset(2)=h5dims(2)-incr
+
+
+          !
+          ! Select hyperslab in the dataset.
+          !
+          CALL h5sselect_hyperslab_f(h5space_id, H5S_SELECT_SET_F, &
+                                     offset, data_dims , h5error)
+          CALL h5screate_simple_f(h5rank, data_dims, memspace, h5error) 
+          CALL H5dwrite_f(h5set_id, H5T_NATIVE_REAL, data_in2, &
+            h5dims, h5error,file_space_id = h5space_id, mem_space_id = memspace)
+      END SUBROUTINE WRITETOFILE
+      END MODULE SIXTRACKHDF5
+      
+      SUBROUTINE INITHDF5
+        USE SIXTRACKHDF5
+        h5dims=(/9,0/)
+          !
+          !Initialize FORTRAN predifined datatypes
+          !
+          CALL h5open_f(h5error) 
+
+          CALL h5fcreate_f(HFNAME, H5F_ACC_TRUNC_F, hfile_id, h5error)
+
+
+          !
+          !Create the data space with unlimited length.
+          !
+          maxdims = (/9, H5S_UNLIMITED_F/)
+          CALL h5screate_simple_f(h5rank, h5dims, h5space_id, &
+            h5error, maxdims)
+          !
+          !Modify dataset creation properties, i.e. enable chunking
+          !
+          CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, h5error)
+          CALL h5pset_deflate_f (crp_list, 4, h5error)
+           
+          data_dims=(/9,incr/)
+          CALL h5pset_chunk_f(crp_list, h5rank, data_dims, h5error)
+          
+          !
+          !Create a dataset with 3X3 dimensions using cparms creation propertie .
+          !
+          CALL h5dcreate_f(hfile_id, h5setname, H5T_NATIVE_REAL, h5space_id, &
+                           h5set_id, h5error, crp_list )
+
+
+
+
+    
+      END SUBROUTINE INITHDF5
+
+      SUBROUTINE APPENDREADING(pid,turn,s,x,xp,y,yp,dee,typ)
+       USE SIXTRACKHDF5
+       INTEGER turn,pid,typ
+       DOUBLE PRECISION x,xp,y,yp,dee,s
+       
+          h5dims(2)=h5dims(2)+1
+
+
+       data_in(1)=pid
+       data_in(2)=turn
+       data_in(3)=s
+       data_in(4)=x
+       data_in(5)=xp
+       data_in(6)=y
+       data_in(7)=yp
+       data_in(8)=dee
+       data_in(9)=typ
+
+       data_in2(1,mod(h5dims(2),incr))=pid
+       data_in2(2,mod(h5dims(2),incr))=turn
+       data_in2(3,mod(h5dims(2),incr))=s
+       data_in2(4,mod(h5dims(2),incr))=x
+       data_in2(5,mod(h5dims(2),incr))=xp
+       data_in2(6,mod(h5dims(2),incr))=y
+       data_in2(7,mod(h5dims(2),incr))=yp
+       data_in2(8,mod(h5dims(2),incr))=dee
+       data_in2(9,mod(h5dims(2),incr))=typ
+
+
+          !
+          !Extend the dataset. Dataset becomes 10 x 3.
+          !
+          if (mod(h5dims(2),incr).eq.0) then
+              call WRITETOFILE()
+          endif
+      END SUBROUTINE APPENDREADING
+      
+      SUBROUTINE CLOSEHDF5
+       USE SIXTRACKHDF5
+
+        
+          if (mod(h5dims(2),incr).ne.0) then
+              call WRITETOFILE()
+          endif
+          
+       !
+       ! End access to the dataset and release resources used by it.
+       !
+       CALL h5dclose_f(h5set_id, h5error)
+  
+       !
+       ! Terminate access to the data space.
+       !
+       CALL h5sclose_f(h5space_id, h5error)
+     
+       !
+       ! Close the file.
+       !
+       CALL h5fclose_f(hfile_id, h5error)
+  
+       !
+       ! Close FORTRAN interface.
+       !
+       CALL h5close_f(h5error)
+      END SUBROUTINE CLOSEHDF5
++ei
++dk beamGasK
++if .not.beamgas
+      subroutine nobeamgasactive
+        write(*,*) "Dummy routine in beamgas.f if beamgas module off"
+      end subroutine
++ei
++if beamgas
+!>
+!! @brief Module containing constants for beamgas part
+!!
+!<
+      module beamgascommon
+!       common to beamGasInit and beamGas
+      integer, parameter :: bgmaxx=40000,bamount=1000
+      integer bgmax,bgid,bgiddb(bgmaxx),ibgloc,pressID,njobs,njobthis,  &
+     &        dpmjetevents
+      real pressARRAY(2,bgmaxx)
+!       bgParameters are s_null, n_null and n_here
+!       these values are needed to know when enough particles are scattered
+!       at a given point
+!       s_null tells you how far the scattering process has gone so far
+!       required that s_now > s_null (move s_null to s_now+ small delta
+!       afterwards)
+!       n_null tells you how many particles are scattered in previous gas
+!       elements
+!       n_here is a counter telling you how many particles are scattered
+!       at this location
+      double precision bgParameters(3)
+      double precision minenergy !this variable should not be needed (already taken care of in beamgasinit)
+      real bgxpdb(bgmaxx),bgypdb(bgmaxx),bgEdb(bgmaxx),pSCATT(bamount)
+      end module beamgascommon
+
+      module lorentzcommon
+      ! Common to lorentzBoost and createLorentzMatrix
+      double precision lorentzmatrix(4,4),new4MomCoord(4)
+      end module lorentzcommon
+
+
++ei
 +dk libX11dummy
 void XAllocColor(void) { }
 void XBell(void) { }
