@@ -41,19 +41,19 @@
 # Forced crlibm for NAG nagfor
 show_options()
 {
-ons="The following selections are ON  :"
-offs="The following selections are OFF :"
-for i in `seq 1 22`
-do
-  if test ${values[$i]} = "true"
-  then
-    ons="$ons ${options[$i]}"
-  else
-    offs="$offs ${options[$i]}"
-  fi
-done
-echo "$ons"
-echo "$offs"
+    ons="The following selections are ON  :"
+    offs="The following selections are OFF :"
+    for i in `seq 1 22`
+    do
+        if test ${values[$i]} = "true"
+        then
+            ons="$ons ${options[$i]}"
+        else
+            offs="$offs ${options[$i]}"
+        fi
+    done
+    echo "$ons"
+    echo "$offs"
 }
 
 #NOTA BENE! Definitions of cernlib and naglib are reversed
@@ -62,8 +62,8 @@ echo "$offs"
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz debug beamgas  hdf5)
-values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false   false false    false)
+options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5)
+values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false   false false false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
@@ -104,477 +104,474 @@ debug="debug"
 hdf5="hdf5"
 while test $# != 0
 do
-  case $1 in
-    clean) echo "Cleaning crlibm, astuce and dafor and removing ALL SixTrack_* directories."
-           rm -f SixTrack
-           rm -f *.o dafor astuce
-           rm -f crlibm/crlibm.a crlibm/*.o
-           rm -rf SixTrack_* 
-           exit
-    ;;
-    -tilt) tilt="tilt"
-           values[1]=false
-    ;;
-    -tracking) tracking="tracking"
-           values[2]=false
-    ;;
-    -fast) fast="fast"
-           values[3]=false
-    ;;
-    -crlibm) crlibm="crlibm"
-           values[4]=false
-    ;;
-    -api) api="api"
-           values[5]=false
-    ;;
-    -cernlib) cernlib=""
-           values[6]=false
-    ;;
-    -naglib) naglib=""
-           values[7]=false
-    ;;
-    -da) da="da"
-           values[8]=false
-    ;;
-    -collimat) collimat="collimat"
-           values[9]=false
-    ;;
-    -cpss) cpss="cpss"
-           values[10]=false
-    ;;
-    -boinc) boinc="boinc"
-           values[11]=false
-    ;;
-    -cr) cr="cr"
-           values[12]=false
-    ;;
-    -nag) nag="nag"
-           values[13]=false
-    ;;
-    -g77) g77="g77"
-           values[14]=false
-    ;;
-    -g95) g95="g95"
-           values[15]=false
-    ;;
-    -gfortran) gfortran="gfortran"
-           values[16]=false
-    ;;
-    -bpm) bpm="bpm"
-          values[17]=false
-    ;;
-    -bnlelens) bnlelens="bnlelens"
-          values[18]=false
-    ;;
-    -bignblz) bignblz="bignblz"
-          values[19]=false
-    ;;
-    -debug) debug="debug"
-          values[20]=false
-    ;;
-    -beamgas) beamgas="beamgas"
-          values[21]=false
-    ;;
-    -hdf5) hdf5="hdf5"
-          values[22]=false
-    ;;
+    case $1 in
+        clean) echo "Cleaning crlibm, astuce and dafor and removing ALL SixTrack_* directories."
+            rm -f SixTrack
+            rm -f *.o dafor astuce
+            rm -f crlibm/crlibm.a crlibm/*.o
+            rm -rf SixTrack_* 
+            exit
+            ;;
+        -tilt) tilt="tilt"
+            values[1]=false
+            ;;
+        -tracking) tracking="tracking"
+            values[2]=false
+            ;;
+        -fast) fast="fast"
+            values[3]=false
+            ;;
+        -crlibm) crlibm="crlibm"
+            values[4]=false
+            ;;
+        -api) api="api"
+            values[5]=false
+            ;;
+        -cernlib) cernlib=""
+            values[6]=false
+            ;;
+        -naglib) naglib=""
+            values[7]=false
+            ;;
+        -da) da="da"
+            values[8]=false
+            ;;
+        -collimat) collimat="collimat"
+            values[9]=false
+            ;;
+        -cpss) cpss="cpss"
+            values[10]=false
+            ;;
+        -boinc) boinc="boinc"
+            values[11]=false
+            ;;
+        -cr) cr="cr"
+            values[12]=false
+            ;;
+        -nag) nag="nag"
+            values[13]=false
+            ;;
+        -g77) g77="g77"
+            values[14]=false
+            ;;
+        -g95) g95="g95"
+            values[15]=false
+            ;;
+        -gfortran) gfortran="gfortran"
+            values[16]=false
+            ;;
+        -bpm) bpm="bpm"
+            values[17]=false
+            ;;
+        -beamgas) beamgas="beamgas"
+            values[18]=false
+            ;;
+        -bnlelens) bnlelens="bnlelens"
+            values[19]=false
+            ;;
+        -bignblz) bignblz="bignblz"
+            values[20]=false
+            ;;
+        -debug) debug="debug"
+            values[21]=false
+            ;;
+        -hdf5) hdf5="hdf5"
+            values[22]=false
+            ;;
 
 
-    +tilt) tilt=""
-           values[1]=true 
-    ;;
-    +tracking) tracking=""
-           values[2]=true
-    ;;
-    +fast) fast=""
-           values[3]=true
-    ;;
-    +crlibm) crlibm=""
-           values[4]=true
-    ;;
-    +api) api=""
-           values[5]=true
-    ;;
-    +cernlib) cernlib="cernlib"
-           values[6]=true
-    ;;
-    +naglib) naglib="naglib"
-           values[7]=true
-    ;;
-    +da) da=""
-           values[8]=true
-    ;;
-    +collimat) collimat=""
-           values[9]=true
-    ;;
-    +cpss) cpss=""
-           values[10]=true
-    ;;
-    +boinc) boinc=""
-           values[11]=true
-    ;;
-    +cr) cr=""
-           values[12]=true
-    ;;
-    +nag) nag=""
-           values[13]=true
-    ;;
-    +g77) g77=""
-           values[14]=true
-    ;;
-    +g95) g95=""
-           values[15]=true
-    ;;
-    +gfortran) gfortran=""
-           values[16]=true
-    ;;
-    +bpm) bpm=""
-          values[17]=true
-    ;;
-    +bnlelens) bnlelens=""
-          values[18]=true
-    ;;
-    +bignblz) bignblz=""
-          values[19]=true
-    ;;
-    +debug) debug=""
-          values[20]=true
-    ;;
-    +beamgas) beamgas="beamgas"
-          values[21]=true
-    ;;
-    +hdf5) hdf5="hdf5"
-          values[22]=true
-    ;;
+        +tilt) tilt=""
+            values[1]=true 
+            ;;
+        +tracking) tracking=""
+            values[2]=true
+            ;;
+        +fast) fast=""
+            values[3]=true
+            ;;
+        +crlibm) crlibm=""
+            values[4]=true
+            ;;
+        +api) api=""
+            values[5]=true
+            ;;
+        +cernlib) cernlib="cernlib"
+            values[6]=true
+            ;;
+        +naglib) naglib="naglib"
+            values[7]=true
+            ;;
+        +da) da=""
+            values[8]=true
+            ;;
+        +collimat) collimat=""
+            values[9]=true
+            ;;
+        +cpss) cpss=""
+            values[10]=true
+            ;;
+        +boinc) boinc=""
+            values[11]=true
+            ;;
+        +cr) cr=""
+            values[12]=true
+            ;;
+        +nag) nag=""
+            values[13]=true
+            ;;
+        +g77) g77=""
+            values[14]=true
+            ;;
+        +g95) g95=""
+            values[15]=true
+            ;;
+        +gfortran) gfortran=""
+            values[16]=true
+            ;;
+        +bpm) bpm=""
+            values[17]=true
+            ;;
+        +beamgas) beamgas=""
+            values[18]=true
+            ;;
+        +bnlelens) bnlelens="bnlelens"
+            values[19]=true
+            ;;
+        +bignblz) bignblz="bignblz"
+            values[20]=true
+            ;;
+        +debug) debug="debug"
+            values[21]=true
+            ;;
+        +hdf5) hdf5="hdf5"
+            values[22]=true
+            ;;
 
 
-    tilt) tilt=""
-           values[1]=true
-    ;;
-    tracking) tracking=""
-           values[2]=true
-    ;;
-    fast) fast=""
-           values[3]=true
-    ;;
-    crlibm) crlibm=""
-           values[4]=true
-    ;;
-    api) api=""
-           values[5]=true
-    ;;
-    cernlib) cernlib="cernlib"
-           values[6]=true
-    ;;
-    naglib) naglib="naglib"
-           values[7]=true
-    ;;
-    da) da=""
-           values[8]=true
-    ;;
-    collimat) collimat=""
-           values[9]=true
-    ;;
-    cpss) cpss=""
-           values[10]=true
-    ;;
-    boinc) boinc=""
-           values[11]=true
-    ;;
-    cr) cr=""
-           values[12]=true
-    ;;
-    nag) nag=""
-           values[13]=true
-    ;;
-    g77) g77=""
-           values[14]=true
-    ;;
-    g95) g95=""
-           values[15]=true
-    ;;
-    gfortran) gfortran=""
-           values[16]=true
-    ;;
-    bpm) bpm=""
-         values[17]=true
-    ;;
-    bnlelens) bnlelens=""
-         values[18]=true
-    ;;
-    bignblz) bignblz=""
-         values[19]=true
-    ;;
-    debug) debug=""
-         values[20]=true
-    ;;
-    beamgas) beamgas=""
-         values[21]=true
-    ;;
-    hdf5) hdf5=""
-          values[22]=true
-    ;;
+        tilt) tilt=""
+            values[1]=true
+            ;;
+        tracking) tracking=""
+            values[2]=true
+            ;;
+        fast) fast=""
+            values[3]=true
+            ;;
+        crlibm) crlibm=""
+            values[4]=true
+            ;;
+        api) api=""
+            values[5]=true
+            ;;
+        cernlib) cernlib="cernlib"
+            values[6]=true
+            ;;
+        naglib) naglib="naglib"
+            values[7]=true
+            ;;
+        da) da=""
+            values[8]=true
+            ;;
+        collimat) collimat=""
+            values[9]=true
+            ;;
+        cpss) cpss=""
+            values[10]=true
+            ;;
+        boinc) boinc=""
+            values[11]=true
+            ;;
+        cr) cr=""
+            values[12]=true
+            ;;
+        nag) nag=""
+            values[13]=true
+            ;;
+        g77) g77=""
+            values[14]=true
+            ;;
+        g95) g95=""
+            values[15]=true
+            ;;
+        gfortran) gfortran=""
+            values[16]=true
+            ;;
+        bpm) bpm=""
+            values[17]=true
+            ;;
+        beamgas) beamgas=""
+            values[18]=true
+            ;;
+        bnlelens) bnlelens=""
+            values[19]=true
+            ;;
+        bignblz) bignblz=""
+            values[20]=true
+            ;;
+        debug) debug=""
+            values[21]=true
+            ;;
+        hdf5) hdf5=""
+            values[22]=true
+            ;;
 
 
-    *) echo "Illegal option $1"
-       exit 1
-     ;;
-  esac
-  shift
+        *) echo "Illegal option $1"
+            exit 1
+            ;;
+    esac
+    shift
 done
 # Here we do some checking for valid/invalid combinations 
 nopts=0
 sixtrackmode=""
 for i in da collimat
 do
-  if test "$i" = ""
-  then
-    nopts=`expr ($nopts + 1)`
-    sixtrackmode="$i"
-  fi
+    if test "$i" = ""
+    then
+        nopts=`expr ($nopts + 1)`
+        sixtrackmode="$i"
+    fi
 done
 if test "$nopts" -ge 2
 then
-  show_options
-  echo "     INVALID options selected:"
-  echo "     Select only one of da or collimat!"
-  exit 1
+    show_options
+    echo "     INVALID options selected:"
+    echo "     Select only one of da or collimat!"
+    exit 1
 elif test "$nopts" -eq 0
 then
-  tracking=""
-  values[2]=true
+    tracking=""
+    values[2]=true
 fi
 if test "$boinc" = ""
 then
-# BOINC includes the CPSS options
-  cpss=""
-  values[10]=true
+    # BOINC includes the CPSS options
+    cpss=""
+    values[10]=true
 fi
 if test "$beamgas" = ""
 then
-   if test "$collimat" != ""
-   then
-   show_options
-   echo "     INVALID options selected:"
-   echo "     beamgas requires collimat"
-   exit 1
-  fi
+    if test "$collimat" != ""
+    then
+        show_options
+        echo "     INVALID options selected:"
+        echo "     beamgas requires collimat"
+        exit 1
+    fi
 fi
 if [ ! "$hdf5" ]
 then
-   if [ "$collimat" ]
-   then
-   show_options
-   echo "     INVALID options selected:"
-   echo "     hdf5 is only for the tracks-file in"
-   echo "     collimation studies"
-   exit 1
-  fi
-  if [ "$gfortran" ]
-  then
-   show_options
-   echo "     INVALID options selected:"
-   echo "     hdf5 only works with gfortran"
-   echo "     for the moment."
-   exit 1
-  fi
+    if [ "$collimat" ]
+    then
+        show_options
+        echo "     INVALID options selected:"
+        echo "     hdf5 is only for the tracks-file in"
+        echo "     collimation studies"
+        exit 1
+    fi
 fi
 if test "$da" = "" -o "$collimat" = ""
 then
-  if test "$cpss" = ""
-  then
-    show_options
-    echo "     INVALID options selected:"
-    echo "     BOINC/CPSS are for tracking only (NOT da nor collimat)"
-    exit 1
-  fi
-  if test "$bpm" = ""
-  then
-    show_options
-    echo "    INVALID options selected:"
-    echo "    bpm is for tracking only and not for desktops!"
-    exit 1
-  fi
+    if test "$cpss" = ""
+    then
+        show_options
+        echo "     INVALID options selected:"
+        echo "     BOINC/CPSS are for tracking only (NOT da nor collimat)"
+        exit 1
+    fi
+    if test "$bpm" = ""
+    then
+        show_options
+        echo "    INVALID options selected:"
+        echo "    bpm is for tracking only and not for desktops!"
+        exit 1
+    fi
 fi
 if test "$da" = "da"
 then
-  naglib=""
-  values[7]=false
+    naglib=""
+    values[7]=false
 fi
 if test "$cpss" = ""
 then
-  # We will build for windows and Linux boinc and cpss 
-  # Note that boinc forces the cpss flag anyway
-  # Force Lahey compiler, checkpoint/restart and crlibm, and NO cernlib 
-  # The api flag is now used to force the real BOINC api.
-  echo "Forcing Lahey lf95, checkpoint/restart and crlibm"
-  cernlib=""
-  values[6]=false
-  crlibm=""
-  values[4]=true
-  cr=""
-  nag="nag"
-  values[13]=false
-  values[12]=true
-  g77="g77"
-  values[14]=false
-  g95="g95"
-  values[15]=false
-  gfortran="gfortran"
-  values[16]=false
+    # We will build for windows and Linux boinc and cpss 
+    # Note that boinc forces the cpss flag anyway
+    # Force Lahey compiler, checkpoint/restart and crlibm, and NO cernlib 
+    # The api flag is now used to force the real BOINC api.
+    echo "Forcing Lahey lf95, checkpoint/restart and crlibm"
+    cernlib=""
+    values[6]=false
+    crlibm=""
+    values[4]=true
+    cr=""
+    nag="nag"
+    values[13]=false
+    values[12]=true
+    g77="g77"
+    values[14]=false
+    g95="g95"
+    values[15]=false
+    gfortran="gfortran"
+    values[16]=false
 fi
 # and make sure we use Lahey/NAG for crlibm
 if test "$crlibm" = ""
 then
-  if test "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
-  then
-    show_options
-    echo "     INVALID option selected:"
-    echo "     crlibm => compilation must be done with Lahey lf95 or nagfor!"
-    exit 1
-  fi
+    if test "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
+    then
+        show_options
+        echo "     INVALID option selected:"
+        echo "     crlibm => compilation must be done with Lahey lf95 or nagfor!"
+        exit 1
+    fi
 else
-  if test "$nag" = ""
-  then
-    echo "    Forcing crlibm for the NAG nagfor compiler!"
-    crlibm="" 
-    values[4]="true"
-  fi
+    if test "$nag" = ""
+    then
+        echo "    Forcing crlibm for the NAG nagfor compiler!"
+        crlibm="" 
+        values[4]="true"
+    fi
 fi
 # Set up compiler
 if test "$nag" = ""
 then
-  export FC="nagfor"
-  export FCF="-O -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
-# export FCF="-O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-# export FCF="-float-store -O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-# export FCF="-float-store -O -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-  export FCL="-Bstatic -abi=32"
-  export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
+    export FC="nagfor"
+    export FCF="-O -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+    # export FCF="-O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+    # export FCF="-float-store -O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+    # export FCF="-float-store -O -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+    export FCL="-Bstatic -abi=32"
+    export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
 elif test "$g77" = ""
 then
-  export FC="g77"
-  export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
-  export FCL="-static -m32"
+    export FC="g77"
+    export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
+    export FCL="-static -m32"
 elif test "$g95" = ""
 then
-  export FC="g95"
-  export FCF="-O4 -Wa,--32 -g -fno-second-underscore -funroll-loops"
-  if test "$MACHTYPE" = "i586"
-  then
-    export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
-  else
-    export FCL="-static -m32"
-  fi
+    export FC="g95"
+    export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
+    export FCF="-O4 -Wa,--32 -g -fno-second-underscore -funroll-loops"
+    if test "$MACHTYPE" = "i586"
+    then
+        export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
+    else
+        export FCL="-static -m32"
+    fi
 elif test "$gfortran" = ""
 then
-  export FC="gfortran"
-  export FCF="-O4 -m32 -g -fno-second-underscore -funroll-loops"
-  export FCL="-static -m32"
-  if test "$hdf5" = ""
-  then
-      export FCF="$FCF -I/afs/cern.ch/user/y/ylevinse/.local/include/"
-  fi
+    export FC="gfortran"
+    export FCF="-O4 -m32 -g -fno-second-underscore -funroll-loops"
+    export FCL="-static -m32"
+    if test "$hdf5" = ""
+    then
+        # H5ROOT is the location where you find the  HDF5 libs and include files for your compiler...
+        # Seems the mod files must be created with the EXACT same compiler.
+        export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc45/"
+        export FCF="$FCF -I${H5ROOT}/include/"
+    fi
 else
-  export FC="lf95"
-  export FCF="--o1 --tp -Wa,--32"
-  export FCL="-static -m32"
-  if [[ "$MACHTYPE" == *x86_64* ]] 
-  then
-    ls -l /usr/lib/gcc/x86_64-redhat-linux/4.1.1/32/libgcc_eh.a > /dev/null 2>&1
-    if test $? -ne 0
+    export FC="lf95"
+    export FCF="--o1 --tp -Wa,--32"
+    export FCL="-static -m32"
+    if [[ "$MACHTYPE" == *x86_64* ]] 
     then
-      export FCL="-static -m32"
-    else
-      export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
-    fi
-  elif [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
-  then
-    ls -l /usr/lib/gcc/i386-redhat-linux/4.1.1/libgcc_eh.a > /dev/null 2>&1
-    if test $? -ne 0
+        ls -l /usr/lib/gcc/x86_64-redhat-linux/4.1.1/32/libgcc_eh.a > /dev/null 2>&1
+        if test $? -ne 0
+        then
+            export FCL="-static -m32"
+        else
+            export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
+        fi
+    elif [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
     then
-      export FCL="-static -m32"
+        ls -l /usr/lib/gcc/i386-redhat-linux/4.1.1/libgcc_eh.a > /dev/null 2>&1
+        if test $? -ne 0
+        then
+            export FCL="-static -m32"
+        else
+            export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
+        fi
+    elif test "$MACHTYPE" = "i586"
+    then
+        export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
     else
-      export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
+        echo "Unknow MACHTYPE $MACHTYPE"
+        exit 2
+    fi 
+    if test "$hdf5" = ""
+    then
+        echo "HDF5 does not work yet with lf95..."
+        export FCF="$FCF -I${H5ROOT}/include/"
     fi
-  elif test "$MACHTYPE" = "i586"
-  then
-    export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
-  else
-    echo "Unknow MACHTYPE $MACHTYPE"
-    exit 2
-  fi 
-  if test "$hdf5" = ""
-  then
-      echo "HDF5 does not work yet with lf95..."
-      export FCF="$FCF -I/afs/cern.ch/user/y/ylevinse/.local/include/"
-  fi
 fi
 
 if test "$MACHTYPE" = "i586"
 then
-  export FCLMAP="$FCL"
+    export FCLMAP="$FCL"
 else
-  export FCLMAP="-Wl,--print-map $FCL"
+    export FCLMAP="-Wl,--print-map $FCL"
 fi
 
 if test "$OSTYPE" = "darwin"
 then
-# allows running of sixtrack under Macinstosh System 10
-  echo "MAC setup"
-  export FCL="-m32"
-  echo "Operating system: ",$OSTYPE
-  export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
-  if test "$da" != ""
-  then
-    export FCLMAP="-Wl,-map sixtrack.map $FCL"
-  else
-    export FCLMAP="-Wl,-map sixtrack_da.map $FCL"
-  fi
+    # allows running of sixtrack under Macinstosh System 10
+    echo "MAC setup"
+    export FCL="-m32"
+    echo "Operating system: ",$OSTYPE
+    export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
+    if test "$da" != ""
+    then
+        export FCLMAP="-Wl,-map sixtrack.map $FCL"
+    else
+        export FCLMAP="-Wl,-map sixtrack_da.map $FCL"
+    fi
 else
-  echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
+    echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
 fi
 
 ename="SixTrack_"
 if test "$crlibm" = ""
 then
-  ename=$ename"crlibm_"
+    ename=$ename"crlibm_"
 fi
 if test "$da" = ""
 then
-  ename=$ename"da_"
+    ename=$ename"da_"
 elif test "$collimat" = ""
 then
-  ename=$ename"coll_"
+    ename=$ename"coll_"
 elif test "$bnlelens" = ""
 then
-  ename=$ename"bnl_"
+    ename=$ename"bnl_"
 elif test "$bpm" = ""
 then
-  ename=$ename"bpm_"
-elif test "$beamgas" = ""
+    ename=$ename"bpm_"
+fi
+if test "$beamgas" = ""
 then
-  ename=$ename"beamgas_"
+    ename=$ename"beamgas_"
 fi
 ename=$ename$FC$version
 if test "$boinc" = ""
 then
-  ename=$ename"_boinc"
+    ename=$ename"_boinc"
 elif test "$cpss" = ""
 then
-  ename=$ename"_cpss"
+    ename=$ename"_cpss"
 fi
 if test "$bignblz" = ""
 then
-  ename=$ename"_bignblz"
+    ename=$ename"_bignblz"
 fi
 if test "$debug" = ""
 then
-  ename=$ename"_debug"
+    ename=$ename"_debug"
 fi
 if test "$api" = ""
 then
-  ename=$ename"_api"
+    ename=$ename"_api"
 fi
 export ename
 
@@ -596,245 +593,235 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
-sed  "s#%%FC%%#$FC#g" Makefile | \
-sed  "s#%%FCF%%#${FCF}#g" | \
-sed  "s#%%FCL%%#${FCL}#g" | \
-sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
-sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
-sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
-sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
-sed  "s#%%BOINC%%#$BOINC#g" | \
-sed  "s#%%NAGLIBC%%#$NAGLIBC#g" \
-> tmp$$
-make -f tmp$$ astuce
-make -f tmp$$ dafor
-rm tmp$$
+make astuce
+make dafor
 # Create and initialise the build directory
 mkdir -p "$ename"
 cp Makefile $ename/Makefile
 cd "$ename"
 for dots in dabnew  lielib  sixtrack
 do
-  ln -sf ../${dots}.s ${dots}.s
+    ln -sf ../${dots}.s ${dots}.s
 done
 # Use only necessary .ast (and .f later)
 if test "$da" = ""
 then
-  export FORS='sixda sixsc sixscfox dabnew lielib beamgas'
+    export FORS='sixda sixsc sixscfox dabnew lielib beamgas'
 else
-  export FORS='track sixve sixvefox dabnews lielib beamgas'
+    export FORS='track sixve sixvefox dabnews lielib beamgas'
 fi
 rm -f *.ast
 for i in $FORS 
 do
-  cp ../ast_mask/$i.ast .
+    cp ../ast_mask/$i.ast .
 done
 # Update the .ast flags based on options
 for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz" "$debug" "$hdf5"
 do
-  if test "$opt" != ""
-  then
-    for i in `ls *.ast`
-    do
-      sed -e 's/\(^df .*\), *'$opt' *,\(.*\)/\1,\2/' \
-          -e 's/\(^df .*\), *'$opt' *$/\1/' \
-          -e 's/\(^df  *'$opt' *,\)\(.*\)/df \2/'  \
-          -e 's/\(^df  *'$opt' *$\)/df/'         \
-      $i > tmp$$
-      if test $? -ne 0
-      then
-        echo "Problem updating the definitions in $i !!!"
-        exit 3
-      fi
-      mv tmp$$ $i
-    done
-  fi
+    if test "$opt" != ""
+    then
+        for i in `ls *.ast`
+        do
+            sed -e 's/\(^df .*\), *'$opt' *,\(.*\)/\1,\2/' \
+                -e 's/\(^df .*\), *'$opt' *$/\1/' \
+                -e 's/\(^df  *'$opt' *,\)\(.*\)/df \2/'  \
+                -e 's/\(^df  *'$opt' *$\)/df/'         \
+                $i > tmp$$
+            if test $? -ne 0
+            then
+                echo "Problem updating the definitions in $i !!!"
+                exit 3
+            fi
+            mv tmp$$ $i
+        done
+    fi
 done
 # Delete unneeded decks from the .ast based on options
 for opt in "$collimat" "$cr" "$cernlib" "$naglib" "$bnlelens" "$debug"
 do
-  if test "$opt" != ""
-  then
-    case $opt in
-    collimat) pattern="nwrtcoll"
-    ;;
-    bnlelens) pattern="nwrtbnl"
-    ;;
-    cr)       pattern="checkpt"
-    ;;
-    cernlib)  pattern="plotdumy"
-    ;;
-    naglib)   pattern="nagdumy"
-    ;;
-    debug)   pattern="dumps"
-    ;;
-    esac
-    for i in `ls *.ast`
-    do
-      sed -e '/^e  *'$pattern'/d' $i > tmp$$
-      if test $? -ne 0
-      then
-        echo "Problem deleting decks in $i !!!"
-        exit 3
-      fi
-      mv tmp$$ $i
-    done
-  fi
+    if test "$opt" != ""
+    then
+        case $opt in
+            collimat) pattern="nwrtcoll"
+                ;;
+            bnlelens) pattern="nwrtbnl"
+                ;;
+            cr)       pattern="checkpt"
+                ;;
+            cernlib)  pattern="plotdumy"
+                ;;
+            naglib)   pattern="nagdumy"
+                ;;
+            debug)   pattern="dumps"
+                ;;
+        esac
+        for i in `ls *.ast`
+        do
+            sed -e '/^e  *'$pattern'/d' $i > tmp$$
+            if test $? -ne 0
+            then
+                echo "Problem deleting decks in $i !!!"
+                exit 3
+            fi
+            mv tmp$$ $i
+        done
+    fi
 done
 # Then generate the .f files
 for i in $FORS
 do
-  ../astuce < $i.ast
-  if test "$i" = "sixvefox" -o "$i" = "sixscfox" -o "$i" = "sixda"
-  then
-    ln -s -f $i"n.f" fort.1
-    ../dafor
-    rm -f fort.1 fort.3
-    mv fort.2 $i"n.f"
-  fi 
-  if test -s $i.f
-  then
-    diff $i"n.f" $i.f > /dev/null
-    if test $? -ne 0
+    ../astuce < $i.ast
+    if test "$i" = "sixvefox" -o "$i" = "sixscfox" -o "$i" = "sixda"
     then
-      mv $i"n.f" $i.f
+        ln -s -f $i"n.f" fort.1
+        ../dafor
+        rm -f fort.1 fort.3
+        mv fort.2 $i"n.f"
+    fi 
+    if test -s $i.f
+    then
+        diff $i"n.f" $i.f > /dev/null
+        if test $? -ne 0
+        then
+            mv $i"n.f" $i.f
+        else
+            rm $i"n.f"
+        fi
     else
-      rm $i"n.f"
+        mv $i"n.f" $i.f
     fi
-  else
-    mv $i"n.f" $i.f
-  fi
 done
 # Now sort out cernlib
 if test "$cernlib" != ""
 then
-  if [[ "$OSTYPE" == *linux* ]]
-  then
-    ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
-    stat1=$?
-    ls -l /usr/X11R6/lib/libX11.a > /dev/null 2>&1
-    stat2=$?
-    if test $stat1 -eq 0 -a $stat2 -eq 0
+    if [[ "$OSTYPE" == *linux* ]]
     then
-    if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
-      then
-        export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
-      elif [[ "$MACHTYPE" == *x86_64* ]]
-      then
-        export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c -L/usr/lib -lpthread"
-      else
-        echo "Unknown MACHTYPE $MACHTYPE!!"
-        exit 2
-      fi
-    else
-      if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
-      then
-        export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -ldl -lpthread -lgcc_eh"
-      elif test "$MACHTYPE" = "i586"
-      then
-        export FCLMAP="-static -m32"
-        export CERNLIB="-L/usr/lib/cernlib/2006/lib/ -lgraflib -lgrafX11 -lpacklib -lkernlib -L/usr/lib/gcc/i586-redhat-linux/3.4.6 -lg2c -L/usr/lib -lX11 -lxcb -lxcb-glx -lXau -lXdmcp -ldl" 
-        export CERNLIB+=" -lpthread -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc -lgcc_eh"
-        if test "$gfortran" != ""
+        ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
+        stat1=$?
+        ls -l /usr/X11R6/lib/libX11.a > /dev/null 2>&1
+        stat2=$?
+        if test $stat1 -eq 0 -a $stat2 -eq 0
         then
-          export CERNLIB+=" -lgfortran"
-        fi
-      elif [[ "$MACHTYPE" == *x86_64* ]]
-      then
-        export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
-        # YIL: for gfortran 4.4/4.5 don't say which directory to use...
-        if ( ${FC} --version | grep 4.4. > /dev/null ) || ( ${FC} --version | grep 4.5. > /dev/null )
-        then 
-            export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh"
+            if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
+            then
+                export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
+            elif [[ "$MACHTYPE" == *x86_64* ]]
+            then
+                export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c -L/usr/lib -lpthread"
+            else
+                echo "Unknown MACHTYPE $MACHTYPE!!"
+                exit 2
+            fi
         else
-            export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
+            if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
+            then
+                export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -ldl -lpthread -lgcc_eh"
+            elif test "$MACHTYPE" = "i586"
+            then
+                export FCLMAP="-static -m32"
+                export CERNLIB="-L/usr/lib/cernlib/2006/lib/ -lgraflib -lgrafX11 -lpacklib -lkernlib -L/usr/lib/gcc/i586-redhat-linux/3.4.6 -lg2c -L/usr/lib -lX11 -lxcb -lxcb-glx -lXau -lXdmcp -ldl" 
+                export CERNLIB+=" -lpthread -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc -lgcc_eh"
+                if test "$gfortran" != ""
+                then
+                    export CERNLIB+=" -lgfortran"
+                fi
+            elif [[ "$MACHTYPE" == *x86_64* ]]
+            then
+                # YIL: for gfortran 4.4/4.5 don't say which directory to use...
+                if ( ${FC} --version | grep 4.4. > /dev/null ) || ( ${FC} --version | grep 4.5. > /dev/null )
+                then 
+                    export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh"
+                else
+                    export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
+                fi
+                # YIL: add hdf5 libs
+                if test "$hdf5" = ""
+                then
+                    export CERNLIB="-Wl,--start-group -L${H5ROOT}/lib/ -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lsz -lz -lm -Wl,--end-group  $CERNLIB"
+                fi
+            else
+                echo "Unknown MACHTYPE $MACHTYPE!!"
+            fi
         fi
-        # YIL: add hdf5 libs
-        if test "$hdf5" = ""
-        then
-            export CERNLIB="-Wl,--start-group -L/afs/cern.ch/user/y/ylevinse/.local/lib/ -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm -Wl,--end-group  $CERNLIB"
-        fi
-      else
-        echo "Unknown MACHTYPE $MACHTYPE!!"
-      fi
+    elif test "$OSTYPE" = "darwin"
+    then
+        export CERN_ROOT="/sw"
+        export CERNLIB="`$CERN_ROOT/bin/cernlib -u graflib packlib kernlib` -lpthread"
+    else
+        echo "Unrecognised OSTYPE $OSTYPE (not linux or darwin)"
+        exit 2
     fi
-  elif test "$OSTYPE" = "darwin"
-  then
-    export CERN_ROOT="/sw"
-    export CERNLIB="`$CERN_ROOT/bin/cernlib -u graflib packlib kernlib` -lpthread"
-  else
-    echo "Unrecognised OSTYPE $OSTYPE (not linux or darwin)"
-    exit 2
-  fi
 fi
 # and naglib
 if test "$naglib" != ""
 then
-  if test "$sysname" = "Current sysname is 'i386_linux26'"
-  then
-    #SLC4 32 machine
-    export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a  -L/usr/lib/gcc/i386-redhat-linux/3.4.3 -lg2c -L/usr/lib -lpthread"
-  elif test "$sysname" = "Current sysname is 'amd64_linux26'"
-  then
-    #SLC4 64 machine
-    export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a  -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
-  else
-    echo "NAGLIB cannot be found for your machine. SixTrack_da linking will fail!"
-  fi
+    if test "$sysname" = "Current sysname is 'i386_linux26'"
+    then
+        #SLC4 32 machine
+        export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a  -L/usr/lib/gcc/i386-redhat-linux/3.4.3 -lg2c -L/usr/lib -lpthread"
+    elif test "$sysname" = "Current sysname is 'amd64_linux26'"
+    then
+        #SLC4 64 machine
+        export NAGLIB="/afs/cern.ch/sw/nag/mark18/lnx/fllux18dg/libnag.a  -L/usr/lib/gcc/x86_64-redhat-linux/3.4.3/32 -lg2c -L/usr/lib -lpthread"
+    else
+        echo "NAGLIB cannot be found for your machine. SixTrack_da linking will fail!"
+    fi
 fi
 # and crlibm
 export CRLIBM=""
 if test "$crlibm" = ""
 then
-  cd ../crlibm
-# and fix the log logsix .c .h CVS problem until FRS returns
-  ln -sf log.c logsix.c
-  ln -sf log.h logsix.h
-  make
-  cd ../$ename
-  export CRLIBM="../crlibm/crlibm.a"
+    cd ../crlibm
+    # and fix the log logsix .c .h CVS problem until FRS returns
+    ln -sf log.c logsix.c
+    ln -sf log.h logsix.h
+    make
+    cd ../$ename
+    export CRLIBM="../crlibm/crlibm.a"
 fi
 if test "$da" = ""
 then
-  # Fix up the Makefile
-  sed -e's/%%SIXTRACK_DA%%/'$ename'/g' Makefile > tmp$$
-  mv tmp$$ Makefile  
-# remove an existing executable
-  rm -f $ename
-  make $ename
+    # Fix up the Makefile
+    sed -e's/%%SIXTRACK_DA%%/'$ename'/g' Makefile > tmp$$
+    mv tmp$$ Makefile  
+    # remove an existing executable
+    rm -f $ename
+    make $ename
 else
-  export BOINC=""
-  if test "$boinc" = ""
-  then
-    if test "$api" = ""
+    export BOINC=""
+    if test "$boinc" = ""
     then
-      export BOINC="../boinc_api_fortran.o ../libboinc_api.a"
-    else
-      export BOINC="myboinc.o"
-      cp ../myboinc.f .
+        if test "$api" = ""
+        then
+            export BOINC="../boinc_api_fortran.o ../libboinc_api.a"
+        else
+            export BOINC="myboinc.o"
+            cp ../myboinc.f .
+        fi
     fi
-  fi
-  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile > tmp$$
-  mv tmp$$ Makefile
-  # We make for Linux now because we are finished or as a verification 
-  # before we set up for windows.
-  #YIL addition: creating beamgas.f90 instead of beamgas.f
-  mv beamgas.f beamgas.f90
-  #YIL addition: create a makefile that is actually standalone:
-  sed  "s#%%FC%%#$FC#g" Makefile | \
-    sed  "s#%%FCF%%#${FCF}#g" | \
-    sed  "s#%%FCL%%#${FCL}#g" | \
-    sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
-    sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
-    sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
-    sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
-    sed  "s#%%BOINC%%#$BOINC#g" | \
-    sed  "s#%%NAGLIBC%%#$NAGLIBC#g" \
-    > tmp$$
-  mv tmp$$ Makefile  
-# remove an existing executable
-  rm -f $ename
-  make $ename
+    sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile > tmp$$
+    mv tmp$$ Makefile
+    # We make for Linux now because we are finished or as a verification 
+    # before we set up for windows.
+    #YIL addition: creating beamgas.f90 instead of beamgas.f
+    mv beamgas.f beamgas.f90
+    mv sixve.f sixve.f90
+    #  mv track.f track.f90
+    #YIL addition: create a makefile that is actually standalone:
+    sed  "s#%%FC%%#$FC#g" Makefile | \
+        sed  "s#%%FCF%%#${FCF}#g" | \
+        sed  "s#%%FCL%%#${FCL}#g" | \
+        sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
+        sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
+        sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
+        sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
+        sed  "s#%%BOINC%%#$BOINC#g" | \
+        sed  "s#%%NAGLIBC%%#$NAGLIBC#g" \
+        > tmp$$
+    mv tmp$$ Makefile  
+    # remove an existing executable
+    rm -f $ename
+    make $ename
 fi
 echo "       "
 echo "$0 : $command_line"
@@ -844,45 +831,45 @@ show_options
 echo ""
 if test -s "$ename"
 then
-  echo "It appears to have completed successfully."
-# and a link for Frank
-  cd ..
-  ln -sf $ename/$ename SixTrack
-  cd $ename
+    echo "It appears to have completed successfully."
+    # and a link for Frank
+    cd ..
+    ln -sf $ename/$ename SixTrack
+    cd $ename
 else
-  echo "It appears to have failed!!!"
-  exit 2
+    echo "It appears to have failed!!!"
+    exit 2
 fi
 # Note that selecting boinc has forced cpss
 if test "$cpss" = ""
 then
-  echo ""
-  echo "Setting up crlibm and Makefile.bat for Windows"
-  echo ""
-# We [re-]copy myboinc.f even for CPSS
-  cp ../myboinc.f .
-  cp ../windows/Makefile.bat .
-  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
-  mv tmp$$ Makefile.bat
-  if test "$boinc" = ""
-  then
-    # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
-    if test "$api" != ""
+    echo ""
+    echo "Setting up crlibm and Makefile.bat for Windows"
+    echo ""
+    # We [re-]copy myboinc.f even for CPSS
+    cp ../myboinc.f .
+    cp ../windows/Makefile.bat .
+    sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
+    mv tmp$$ Makefile.bat
+    if test "$boinc" = ""
     then
-      sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
+        # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
+        if test "$api" != ""
+        then
+            sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
+        else
+            sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
+        fi
     else
-      sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
+        sed -e's/%%BOINC%%//g' \
+            -e'/myboinc.f/d' Makefile.bat > tmp$$
     fi
-  else
-    sed -e's/%%BOINC%%//g' \
-        -e'/myboinc.f/d' Makefile.bat > tmp$$
-  fi
-  mv tmp$$ Makefile.bat
-# and finally!!! perhaps get crlibm for windows
-  mkdir -p crlibm
-  cp ../windows/mkwindows .
-  ./mkwindows
-  echo "Now the $ename directory needs to be taken to Windows."
-  echo "The Makefile.bat allows for checking boinc/cpss before"
-  echo "really building the BOINC/CPSS version."
+    mv tmp$$ Makefile.bat
+    # and finally!!! perhaps get crlibm for windows
+    mkdir -p crlibm
+    cp ../windows/mkwindows .
+    ./mkwindows
+    echo "Now the $ename directory needs to be taken to Windows."
+    echo "The Makefile.bat allows for checking boinc/cpss before"
+    echo "really building the BOINC/CPSS version."
 fi
