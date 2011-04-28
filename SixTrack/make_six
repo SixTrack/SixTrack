@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Version 1.2 29/08/2005
 # CERNLIB/GRAFLIB re-defined
@@ -43,7 +43,7 @@ show_options()
 {
 ons="The following selections are ON  :"
 offs="The following selections are OFF :"
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+for i in `seq 1 22`
 do
   if test ${values[$i]} = "true"
   then
@@ -62,8 +62,8 @@ echo "$offs"
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz debug)
-values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false   false)
+options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm   bnlelens bignblz debug beamgas  hdf5)
+values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false   false false    false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
@@ -97,9 +97,11 @@ g77="g77"
 g95="g95"
 gfortran="gfortran"
 bpm="bpm"
+beamgas="beamgas"
 bnlelens="bnlelens"
 bignblz="bignblz"
 debug="debug"
+hdf5="hdf5"
 while test $# != 0
 do
   case $1 in
@@ -170,6 +172,12 @@ do
     -debug) debug="debug"
           values[20]=false
     ;;
+    -beamgas) beamgas="beamgas"
+          values[21]=false
+    ;;
+    -hdf5) hdf5="hdf5"
+          values[22]=false
+    ;;
 
 
     +tilt) tilt=""
@@ -232,6 +240,12 @@ do
     +debug) debug=""
           values[20]=true
     ;;
+    +beamgas) beamgas="beamgas"
+          values[21]=true
+    ;;
+    +hdf5) hdf5="hdf5"
+          values[22]=true
+    ;;
 
 
     tilt) tilt=""
@@ -289,10 +303,16 @@ do
          values[18]=true
     ;;
     bignblz) bignblz=""
-          values[19]=true
+         values[19]=true
     ;;
     debug) debug=""
-          values[20]=true
+         values[20]=true
+    ;;
+    beamgas) beamgas=""
+         values[21]=true
+    ;;
+    hdf5) hdf5=""
+          values[22]=true
     ;;
 
 
@@ -329,6 +349,27 @@ then
 # BOINC includes the CPSS options
   cpss=""
   values[10]=true
+fi
+if test "$beamgas" = ""
+then
+   if test "$collimat" != ""
+   then
+   show_options
+   echo "     INVALID options selected:"
+   echo "     beamgas requires collimat"
+   exit 1
+  fi
+fi
+if [ ! "$hdf5" ]
+then
+   if [ "$collimat" ]
+   then
+   show_options
+   echo "     INVALID options selected:"
+   echo "     hdf5 is only for the tracks-file in"
+   echo "     collimation studies"
+   exit 1
+  fi
 fi
 if test "$da" = "" -o "$collimat" = ""
 then
@@ -422,11 +463,15 @@ then
   export FC="gfortran"
   export FCF="-O4 -m32 -g -fno-second-underscore -funroll-loops"
   export FCL="-static -m32"
+  if test "$hdf5" = ""
+  then
+      export FCF="$FCF -I/afs/cern.ch/user/y/ylevinse/.local/include/"
+  fi
 else
   export FC="lf95"
   export FCF="--o1 --tp -Wa,--32"
   export FCL="-static -m32"
-  if test "$MACHTYPE" = "x86_64"
+  if [[ "$MACHTYPE" == *x86_64* ]] 
   then
     ls -l /usr/lib/gcc/x86_64-redhat-linux/4.1.1/32/libgcc_eh.a > /dev/null 2>&1
     if test $? -ne 0
@@ -435,7 +480,7 @@ else
     else
       export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
     fi
-  elif test "$MACHTYPE" = "i386"
+  elif [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
   then
     ls -l /usr/lib/gcc/i386-redhat-linux/4.1.1/libgcc_eh.a > /dev/null 2>&1
     if test $? -ne 0
@@ -451,6 +496,11 @@ else
     echo "Unknow MACHTYPE $MACHTYPE"
     exit 2
   fi 
+  if test "$hdf5" = ""
+  then
+      echo "HDF5 does not work yet with lf95..."
+      export FCF="$FCF -I/afs/cern.ch/user/y/ylevinse/.local/include/"
+  fi
 fi
 
 if test "$MACHTYPE" = "i586"
@@ -494,6 +544,9 @@ then
 elif test "$bpm" = ""
 then
   ename=$ename"bpm_"
+elif test "$beamgas" = ""
+then
+  ename=$ename"beamgas_"
 fi
 ename=$ename$FC$version
 if test "$boinc" = ""
@@ -548,9 +601,9 @@ done
 # Use only necessary .ast (and .f later)
 if test "$da" = ""
 then
-  export FORS='sixda sixsc sixscfox dabnew lielib'
+  export FORS='sixda sixsc sixscfox dabnew lielib beamgas'
 else
-  export FORS='track sixve sixvefox dabnews lielib'
+  export FORS='track sixve sixvefox dabnews lielib beamgas'
 fi
 rm -f *.ast
 for i in $FORS 
@@ -558,7 +611,7 @@ do
   cp ../ast_mask/$i.ast .
 done
 # Update the .ast flags based on options
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz" "$debug"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz" "$debug" "$hdf5"
 do
   if test "$opt" != ""
   then
@@ -636,7 +689,7 @@ done
 # Now sort out cernlib
 if test "$cernlib" != ""
 then
-  if test "$OSTYPE" = "linux"
+  if [[ "$OSTYPE" == *linux* ]]
   then
     ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
     stat1=$?
@@ -644,10 +697,10 @@ then
     stat2=$?
     if test $stat1 -eq 0 -a $stat2 -eq 0
     then
-      if test "$MACHTYPE" = "i386"
+    if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
       then
         export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -lg2c -L/usr/lib -lpthread"
-      elif test "$MACHTYPE" = "x86_64"
+      elif [[ "$MACHTYPE" == *x86_64* ]]
       then
         export CERNLIB="`cernlib -u graflib packlib_noshift kernlib_noshift` -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c -L/usr/lib -lpthread"
       else
@@ -655,7 +708,7 @@ then
         exit 2
       fi
     else
-      if test "$MACHTYPE" = "i386"
+      if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
       then
         export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/i386-redhat-linux/3.4.6 -ldl -lpthread -lgcc_eh"
       elif test "$MACHTYPE" = "i586"
@@ -667,9 +720,21 @@ then
         then
           export CERNLIB+=" -lgfortran"
         fi
-      elif test "$MACHTYPE" = "x86_64"
+      elif [[ "$MACHTYPE" == *x86_64* ]]
       then
         export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
+        # YIL: for gfortran 4.4/4.5 don't say which directory to use...
+        if ( ${FC} --version | grep 4.4. > /dev/null ) || ( ${FC} --version | grep 4.5. > /dev/null )
+        then 
+            export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh"
+        else
+            export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
+        fi
+        # YIL: add hdf5 libs
+        if test "$hdf5" = ""
+        then
+            export CERNLIB="-Wl,--start-group -L/afs/cern.ch/user/y/ylevinse/.local/lib/ -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm -Wl,--end-group  $CERNLIB"
+        fi
       else
         echo "Unknown MACHTYPE $MACHTYPE!!"
       fi
@@ -734,6 +799,20 @@ else
   mv tmp$$ Makefile
   # We make for Linux now because we are finished or as a verification 
   # before we set up for windows.
+  #YIL addition: creating beamgas.f90 instead of beamgas.f
+  mv beamgas.f beamgas.f90
+  #YIL addition: create a makefile that is actually standalone:
+  sed  "s#%%FC%%#$FC#g" Makefile | \
+    sed  "s#%%FCF%%#${FCF}#g" | \
+    sed  "s#%%FCL%%#${FCL}#g" | \
+    sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
+    sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
+    sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
+    sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
+    sed  "s#%%BOINC%%#$BOINC#g" | \
+    sed  "s#%%NAGLIBC%%#$NAGLIBC#g" \
+    > tmp$$
+  mv tmp$$ Makefile  
 # remove an existing executable
   rm -f $ename
   make $ename
