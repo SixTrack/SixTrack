@@ -7395,7 +7395,7 @@ cc2008
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
 !hr03 xv(2,j) = xv(2,j) + lin*yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-   &
 !hr03&yv(2,j)**2)
-      xv(2,j) = xv(2,j) + (lin*yv(2,j))/                                 !hr03
+      xv(2,j) = xv(2,j) + (lin*yv(2,j))/                                &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
 
 !      call kick(l,cur,lin,rx,ry,chi)
@@ -7652,7 +7652,7 @@ cc2008
       open(11,file=filename,form='unformatted',status='unknown')
 +ei
 +if .not.boinc
-      open(11,file='fort.11',form='unformatted',status='unknown')
+      open(11,file='fort.11',form='formatted',status='unknown')
 +ei
 +if boinc
       call boincrf('fort.12',filename)
@@ -8200,6 +8200,9 @@ cc2008
 +ei
 +if debug
       close(99)
++ei
++if hdf5
+      call CLOSEHDF5()
 +ei
 +cd rvet0
 !hr03 e0f=sqrt(e0*e0-pma*pma)
@@ -10757,7 +10760,13 @@ cc2008
         h=one/(3.2d0*q)
 !hr05   nc=7+int(23.0*q)
         nc=7+int(23.0d0*q)                                               !hr05
-        xl=h**(1-nc)
+!        xl=h**(1-nc)
++if crlibm
+        xl=exp_rn((1-nc)*log_rn(h))                                      !yil11
++ei
++if .not.crlibm
+        xl=exp((1-nc)*log(h))                                            !yil11
++ei
         xh=y+0.5d0/h
         yh=x
         nu=10+int(21d0*q)
@@ -14815,7 +14824,7 @@ cc2008
 !hr05   as(2,ih,j,i)=-rv*(dpp*wf/(two*dpsq)*sm12-dpd*wfhi)
         as(2,ih,j,i)=(-1d0*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
 !hr05   as(3,ih,j,i)=-rv*(dpp*half/afok/dpd*ed(i)*sm23-dpd*wfa)
-        as(3,ih,j,i)=(-1d0*rv)*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-    !hr05
+        as(3,ih,j,i)=(-1d0*rv)*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-   &!hr05
      &dpd*wfa)                                                           !hr05
 !hr05   as(4,ih,j,i)=-rv*sm23/c2e3
         as(4,ih,j,i)=((-1d0*rv)*sm23)/c2e3                               !hr05
@@ -18675,6 +18684,9 @@ cc2008
       call boinc_init(0)
 !     call boinc_init_graphics()
 +ei
++if hdf5
+       call INITHDF5()
++ei
 +if cr
       sythckcr=.false.
       numlcr=1
@@ -22482,6 +22494,12 @@ cc2008
 +if crlibm
 +ca crlibco
 +ei
++if hdf5
+!   YIL: In order to make sure we are sending the correct
+!        data types to appendreading..
+       INTEGER hdfturn,hdfpid,hdftyp
+       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
++ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       double precision c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,  &
@@ -24235,7 +24253,7 @@ cc2008
 !
 ! --- TW JUNE08 
                      if (firstrun) then
-                        write(55,'(a,1x,i,5(1x,e13.5),1x,a)')           &
+                        write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')         &
      &                       db_name1(icoll)(1:12),                     &
      &                       jjj,                                       &
      &                       (a_tmp1 - a_tmp2)/2d0,                     &
@@ -24451,6 +24469,24 @@ cc2008
                   write(47,'(i8,1x,i4,1x,f8.2)')                        &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)
                 endif
++if hdf5
+!       INTEGER hdfturn,hdfpid,hdftyp
+!       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)-0.5*c_length
+       hdfx=(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+         &
+     &      torbxp(ie))
+       hdfxp=rcxp0(j)*1d3+torbxp(ie)
+       hdfy=(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+         &
+     &      torbyp(ie))
+       hdfyp=rcyp0(j)*1d3+torbyp(ie)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
++ei
++if .not.hdf5   
           write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
@@ -24458,6 +24494,7 @@ cc2008
      &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
      &rcyp0(j)*1d3+torbyp(ie),                                          &
      &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
++ei
               endif
 !APRIL2005
 !              WRITE(*,*) "Particle number ", j
@@ -24539,6 +24576,29 @@ cc2008
           ypj    = (yv(2,j)-torbyp(ie))/1d3
 !APRIL2005
 !          write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')                 &
++if hdf5
+!       INTEGER hdfturn,hdfpid,hdftyp
+!       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+!       We write trajectories before and after element in this case.
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)-0.5*c_length
+       hdfx=xv(1,j)-0.5*c_length*yv(1,j)
+       hdfxp=yv(1,j)
+       hdfy=xv(2,j)-0.5*c_length*yv(2,j)
+       hdfyp=yv(2,j)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
+       hdfs=sampl(ie)+0.5*c_length
+       hdfx=xv(1,j)+0.5*c_length*yv(1,j)
+       hdfy=xv(2,j)+0.5*c_length*yv(2,j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
+     
++ei
++if .not.hdf5 
           write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
@@ -24554,6 +24614,7 @@ cc2008
      &secondary(j)+tertiary(j)+other(j)
 !     2  XJ,XPJ,YJ,YPJ
 !APRIL2005
++ei
         endif
 !GRD
 !GRD-SR,09-02-2006 => freeing unit, file no longer needed
@@ -25528,14 +25589,30 @@ cc2008
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
                 yj     = (xv(2,j)-torby(ie))/1d3
                 ypj    = (yv(2,j)-torbyp(ie))/1d3
-!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &
++if hdf5
+!       INTEGER hdfturn,hdfpid,hdftyp
+!       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)
+       hdfx=xv(1,j)
+       hdfxp=yv(1,j)
+       hdfy=xv(2,j)
+       hdfyp=yv(2,j)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
++ei
++if .not.hdf5  
+!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &         
           write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
      &xv(1,j),yv(1,j),                                                  &
-!     &xv(2,j),yv(2,j)
      &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
      &secondary(j)+tertiary(j)+other(j)
 !     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
++ei              
               endif
 !GRD
 !GRD-SR,09-02-2006 => freeing unit, file no longer needed
@@ -26094,6 +26171,22 @@ cc2008
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
                 yj     = (xv(2,j)-torby(ie))/1d3
                 ypj    = (yv(2,j)-torbyp(ie))/1d3
++if hdf5
+!       INTEGER hdfturn,hdfpid,hdftyp
+!       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)
+       hdfx=xv(1,j)
+       hdfxp=yv(1,j)
+       hdfy=xv(2,j)
+       hdfyp=yv(2,j)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
++ei
++if .not.hdf5  
 !                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &
           write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
@@ -26102,6 +26195,7 @@ cc2008
      &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
      &secondary(j)+tertiary(j)+other(j)
 !     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
++ei
               endif
 !GRD
 !GRD-SR,09-02-2006 => freeing unit, file no longer needed
@@ -26174,6 +26268,12 @@ cc2008
 +ei
 +if crlibm
 +ca crlibco
++ei
++if hdf5
+!   YIL: In order to make sure we are sending the correct
+!        data types to appendreading..
+       INTEGER hdfturn,hdfpid,hdftyp
+       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 +ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       double precision c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
@@ -36702,7 +36802,7 @@ cc2008
         else
           couuang=zero
         endif
-        write(11) typ,etl,phi,bexi,bexii,bezi,bezii, alxi,alxii,alzi,   &
+        write(11,*) typ,etl,phi,bexi,bexii,bezi,bezii, alxi,alxii,alzi, &
      &alzii, gaxi,gaxii,gazi,gazii,phxi,phxii,phzi,phzii, phxpi,        &
      &phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
      &t(1,2),t(1,3),t(1,4)
@@ -42360,7 +42460,13 @@ cc2008
       iv2=2*iv
       iv3=iv+1
 !hr06 vtu1=-ekk*(half**iv2)*dfac(iv2)/pi
-      vtu1=(((-1d0*ekk)*(half**iv2))*dfac(iv2))/pi                       !hr06
+!      vtu1=(((-1d0*ekk)*(half**iv2))*dfac(iv2))/pi                       !hr06
++if crlibm
+      vtu1=(((-1d0*ekk)*exp_rn(iv2*log_rn(half)))*dfac(iv2))/pi           !yil11
++ei
++if .not.crlibm
+      vtu1=(((-1d0*ekk)*exp(iv2*log(half)))*dfac(iv2))/pi                 !yil11
++ei
       dtu1=zero
       dtu2=zero
       do 10 iv4=1,iv3
@@ -49140,7 +49246,8 @@ cc2008
 !
 !++  End of loop over all particles
 !
- 777  end do
+ 777  continue
+      end do
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !      WRITE(*,*) 'Number of particles:            ', Nev
@@ -49921,7 +50028,8 @@ cc2008
 !
 !++  End of loop over all particles
 !
- 777  end do
+ 777  continue
+      end do
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !      WRITE(*,*) 'Number of particles:            ', Nev
@@ -57202,7 +57310,7 @@ cc2008
           if (mod(h5dims(2),incr).ne.0) then
               call WRITETOFILE()
           endif
-          
+
        !
        ! End access to the dataset and release resources used by it.
        !
