@@ -370,6 +370,14 @@ then
    echo "     collimation studies"
    exit 1
   fi
+  if [ "$gfortran" ]
+  then
+   show_options
+   echo "     INVALID options selected:"
+   echo "     hdf5 only works with gfortran"
+   echo "     for the moment."
+   exit 1
+  fi
 fi
 if test "$da" = "" -o "$collimat" = ""
 then
@@ -588,8 +596,19 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
-make astuce
-make dafor
+sed  "s#%%FC%%#$FC#g" Makefile | \
+sed  "s#%%FCF%%#${FCF}#g" | \
+sed  "s#%%FCL%%#${FCL}#g" | \
+sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
+sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
+sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
+sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
+sed  "s#%%BOINC%%#$BOINC#g" | \
+sed  "s#%%NAGLIBC%%#$NAGLIBC#g" \
+> tmp$$
+make -f tmp$$ astuce
+make -f tmp$$ dafor
+rm tmp$$
 # Create and initialise the build directory
 mkdir -p "$ename"
 cp Makefile $ename/Makefile
