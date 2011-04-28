@@ -7264,7 +7264,7 @@ cc2008
       yv(1,j) = yv(1,j) * c1m3
       yv(2,j) = yv(2,j) * c1m3
 
-!      print *, 'Start: ',j,xv(1,j),xv(2,j),yv(1,j),
+!      write(*,*) 'Start: ',j,xv(1,j),xv(2,j),yv(1,j),
 !     &yv(2,j)
 
 !     call drift(-embl/2)
@@ -7568,7 +7568,7 @@ cc2008
       yv(1,j) = yv(1,j) * c1e3
       yv(2,j) = yv(2,j) * c1e3
 
-!      print *, 'End: ',j,xv(1,j),xv(2,j),yv(1,j),                       &
+!      write(*,*) 'End: ',j,xv(1,j),xv(2,j),yv(1,j),                       &
 !     &yv(2,j)
 
 !-----------------------------------------------------------------------
@@ -22487,6 +22487,12 @@ cc2008
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
++if beamgas
+! <b>Additions/modifications:</b>
+! - YIL: Added call to beamGas subroutine if element name starts with 
+!   'press' or 'PRESS' (only for first turn)
+! - YIL: Added call to beamGasInit just after readcollimator
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -22592,7 +22598,15 @@ cc2008
 !
 !APRIL2005
       call readcollimator
-!
+!      
++if beamgas
+!YIL call beam gas initiation routine
+      call beamGasInit(myenom)
+      do icoll = 1, db_ncoll
+        write(*,*) db_name1(icoll)
+        write(*,*) db_name2(icoll)
+      end do
++ei
 +if .not.cr
         write(*,*) 'number of collimators', db_ncoll
         do icoll = 1, db_ncoll
@@ -23167,6 +23181,16 @@ cc2008
 +ca bnltwiss
 +ei
           ix=ic(i)-nblo
++if beamgas
+!YIL Call beamGas subroutine whenever a pressure-element is found
+! should be faster/safer to first check the turn then do the name search
+      if( iturn.eq.1 ) then
+        if (bez(myix)(1:5).eq.'PRESS' .or.     
+     &    bez(myix)(1:5).eq.'press' ) then
+               call beamGas(myix, secondary,totals,myenom,ipart)
+         endif
+      endif
++ei beamgas
 +if bpm
 +ca bpmdata
 +ei bpm
@@ -57392,6 +57416,636 @@ cc2008
       ! Common to lorentzBoost and createLorentzMatrix
       double precision lorentzmatrix(4,4),new4MomCoord(4)
       end module lorentzcommon
+!>
+!! \brief YIL subroutine beam gas scattering process.
+!!
+!! 
+!! This is a part of the inclusion of beam gas simulation for sixtrack
+!!
+!! Any "pressure element" (i.e. an element starting with\n
+!! press) should call this function.\n
+!! It will cycle through all primary particles and\n
+!! scatter according to rules generated.
+!! 
+!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
+!!
+!! @date Last modified 21. Jul. 2010
+!!
+!!
+!! \param myix The block ID number
+!! \param secondary This is the array that tells which of the 64 particles are secondaries
+!! \param totals This is the position around the ring, calculated from the start flag in fort.2
+!! \param myenom This is an array with the energy of the 64 particles
+!! \param ipart This is an array with the id number of each particle
+!!
+!! \warning This is the one-turn version
+!! \return The subroutine does not return anything
+!! \see thin6d, beamGasInit and rotateMatrix
+!< 
+      subroutine beamGas( myix, secondary, totals, myenom, ipart )      
+!BELOW YOU FIND NEW ADDITIONS:
+      use beamgascommon
+      use lorentzcommon
+      implicit none
+!YIL: parnum
+!+ca parnum
+
+!YIL: parpro
++ca parpro
+
+!YIL: parbeam
++ca parbeam
+
+!YIL: collpara
++ca collpara
+
+!YIL: COMMON
++ca common
+
+!YIL: COMMONMN
++ca commonmn
+
+!~: commonm1
++ca commonm1
+
+!YIL: INFO
++ca info
+
+!YIL: DBCOMMON
++ca dbcommon
+
+!YIL: commontr
++ca commontr
+
+
+!YIL: This is leftovers that does not have a cd-block
+
+      !YIL need to save, this is input variable
+      double precision myenom
+      integer ipart(npart)
+      
+      !YIL: think this probably should be saved as well...
+      integer   mynp
+      common /mynp/ mynp
+
+!These are local subroutine stuff
+      double precision totals,oldCoordinates(5),protonmass,             &
+     & totMomentum, doLorentz,tmpPX,tmpPY
+      
+
+      integer choice,myix
+      double precision rotm(3,3), z(3),ztmp(3) ! the variable used to store rotation matrix and coordinates
+!       CHECK: Is ichar('0')=48 and so on for all systems??
+      
+      integer i,j,k
+      
+      pressID=0
+      j=1
+      do while (pressID.eq.0.and.j.le.bgmaxx)
+       if ((pressARRAY(1,j).gt.(totals-0.01)).and.                      &
+     &     (pressARRAY(1,j).le.(totals+0.01)))                          &
+     &          pressID=j
+        j=j+1
+      enddo
+      if (pressID.eq.0) then
+       write(*,*) 'Couldnt find pressure marker',totals
+       stop
+      endif
+      
+      doLorentz=0
+      if ((abs(yv(1,1)).gt.3e-3).or.(abs(yv(2,1)).gt.3e-3)) then ! do a Lorentz boost of DPMJET events
+       !YIL warning: hardcoded mass of protons:
+       protonmass=938.3
+       doLorentz=1
+        tmpPX=yv(1,1) !don't think I can send array elements to functions??
+        tmpPY=yv(2,1)
+        call createLorentzMatrix(myenom,tmpPX,tmpPY,protonmass)
+      endif
+      do j = 2,napx
+      choice=0
+      if ((secondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
+     &      (bgParameters(1).le.totals)) then   
+!       write(*,*) 'mynp, amountofPart,n_interm: ',mynp,  
+!      &      pressARRAY(2,pressID)*(mynp),bgParameters(3)
+!       write(*,*) 'DEBUG: scattering: ',j,bgParameters(3)+1,
+!      & pressARRAY(2,pressID)*njobs*dpmjetevents
+  668 continue
+!       Warning: This means that we round DOWN to the nearest integer at each 
+!       location. It is needed in order not to run out of particles
+!       In generate_pmarkers.py the normalized sum is accordingly changed to 1
+      if ((pressARRAY(2,pressID)*njobs*dpmjetevents).gt.                &
+     &    (bgParameters(3)+1)) then
+      bgParameters(3)=bgParameters(3)+1
+      if (((bgParameters(2)+bgParameters(3)).gt.(dpmjetevents*njobthis))&
+     & .and.((bgParameters(2)+bgParameters(3)).le.                      &
+     & (dpmjetevents*(njobthis+1)))) then
+!       The scattering id is increased by one for each interaction
+      bgid=bgid+1
+      
+      do while (bgid.gt.bgiddb(ibgloc))
+!       get to the right place in the lists
+         ibgloc=ibgloc+1
+      enddo
+      
+      if(bgid.lt.bgiddb(ibgloc)) then ! no proton for this scattering event
+!       check that this works correctly!!!!!!
+         write(777,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),   &
+     &      yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom,           &
+     &      bgid+njobthis*dpmjetevents
+!       writing down the scattering location information
+      write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),      &
+     &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),                       &
+     &   bgid+njobthis*dpmjetevents,bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),&
+     &   yv(2,j)
+         part_abs(j) = 1
+      goto 669
+      endif
+      if(bgid.eq.bgiddb(ibgloc)) then ! a proton was found for this scattering event
+
+            choice=ibgloc
+!        If several protons, the one with max energy is used (next 5 particles are checked)
+!        THIS IS NECESSARY SINCE ALL PROTONS ARE READ INTO LIST!
+         if ((bgiddb(choice).eq.bgiddb(ibgloc+1))                        &
+     &      .and.(bgEdb(ibgloc+1).gt.bgEdb(choice))) then
+               choice=ibgloc+1
+         endif         
+         if ((bgiddb(choice).eq.bgiddb(ibgloc+2))                        &
+     &      .and.(bgEdb(ibgloc+2).gt.bgEdb(choice))) then
+               choice=ibgloc+2
+         endif
+         if ((bgiddb(choice).eq.bgiddb(ibgloc+3))                        &
+     &      .and.(bgEdb(ibgloc+3).gt.bgEdb(choice))) then
+               choice=ibgloc+3
+         endif
+         if ((bgiddb(choice).eq.bgiddb(ibgloc+4))                        &
+     &      .and.(bgEdb(ibgloc+4).gt.bgEdb(choice))) then
+               choice=ibgloc+4
+         endif
+         if ((bgiddb(choice).eq.bgiddb(ibgloc+5))                        &
+     &      .and.(bgEdb(ibgloc+5).gt.bgEdb(choice))) then
+               choice=ibgloc+5
+         endif
+
+         
+         oldCoordinates(1)=yv(1,j)
+         oldCoordinates(2)=yv(2,j)
+         oldCoordinates(3)=ejv(j)
+         oldCoordinates(4)=xv(1,j)
+         oldCoordinates(5)=xv(2,j)
+!          sixtrack does not track particles with dp/p >~ 10^-1 correctly!
+!          THIS HAS ALREADY BEEN CHECKED FOR WHEN THE FILE WAS READ INITIALLY!
+         if ((bgEdb(choice)).gt.minenergy) then
+         if(doLorentz.eq.1d0) then ! we need to boost the dpmjet event first:
+         totMomentum=sqrt(bgEdb(choice)**2-(protonmass*1e-3)**2)
+         tmpPX=bgxpdb(choice)*totMomentum
+         tmpPY=bgypdb(choice)*totMomentum
+         protonmass=protonmass*1e-3
+         call lorentzBoost(tmpPX,tmpPY,totMomentum,protonmass)
+         protonmass=protonmass*1e3
+!         This returns E,px,py,pz, need xp,yp
+         totMomentum=sqrt(new4MomCoord(2)**2+new4MomCoord(3)**2+        &
+     &    new4MomCoord(4)**2)
+         call rotateMatrix(yv(1,1),yv(2,1),rotm) !we also need to "rotate back" before we're in the "same state"
+         z(1) = (new4MomCoord(2)/totMomentum)
+         z(2) = (new4MomCoord(3)/totMomentum)
+         z(3) = (new4MomCoord(4)/totMomentum)
+!          rotating the vector into the orbit reference system:
+         z = (/ rotm(1,1)*z(1)+rotm(1,2)*z(2)+ rotm(1,3)*z(3),          &
+     &          rotm(2,1)*z(1)+rotm(2,2)*z(2)+ rotm(2,3)*z(3),          &
+     &          rotm(3,1)*z(1)+rotm(3,2)*z(2)+rotm(3,3)*z(3) /)
+          if (z(3).eq.0) then
+           write(*,*) "ERROR> there is something wrong",                &
+     &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
+     &      new4MomCoord
+           stop
+          else
+!           boosted xp event
+           bgxpdb(choice) = z(1)
+!           boosted yp event
+           bgypdb(choice) = z(2)
+           bgEdb(choice) = new4MomCoord(1) ! boosted energy
+         write(684,*) bgxpdb(choice),bgypdb(choice),bgEdb(choice),      &
+     &     new4MomCoord
+          endif
+         endif ! doLorentz
+         call rotateMatrix(yv(1,j),yv(2,j),rotm)
+!          creating resulting vector [x,y,z] from dpmjet:
+         z(1) = (bgxpdb(choice)) ! this is correct, since dpmjet gives xp=px/p and so on...
+         z(2) = (bgypdb(choice))
+         z(3) = sqrt(1-z(1)**2-z(2)**2)
+!          write(684,*) z, yv(1,j),yv(2,j)
+!          rotating the vector into the orbit reference system:
+          ztmp=z
+          z=matmul(rotm,z)
+!         z = (/ rotm(1,1)*z(1)+rotm(1,2)*z(2)+ rotm(1,3)*z(3),          &
+!     &      rotm(2,1)*z(1)+rotm(2,2)*z(2)+ rotm(2,3)*z(3),              & 
+!     &      rotm(3,1)*z(1)+rotm(3,2)*z(2)+rotm(3,3)*z(3) /)             &
+!                adding the angles to the yv vector:
+      if (z(3).eq.0) then
+        yv(1,j) = acos(0.0)*1e3
+        yv(2,j) = 1.0*yv(1,j)
+      else
+!        xp
+        yv(1,j) = atan(z(1)/z(3))*1e3
+!        yp
+        yv(2,j) = atan(z(2)/z(3))*1e3
+      endif
+!        energy WARNING: I DO NOT KNOW ALL THE PLACES I NEED TO INSERT THE ENERGY????
+         ejv(j) = bgEdb(choice)*1000
+!YIL Copied this here, think these are all variables in need of an update
+!++  Energy update, as recommended by Frank
+!
+         ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
+         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+         dpsv(j)=(ejfv(j)-e0f)/e0f
+         oidpsv(j)=1.0/(1.0+dpsv(j))
+         dpsv1(j)=dpsv(j)*1.0d3*oidpsv(j)
+!          yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j) !sure this is correct??
+!          yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j) !yes, xp \def px/p0, not px/p...
+!          BUT, ejf0v(j) seems to be equal to zero??
+!          AND, shouldn't it be ejfv(j)/ejf0v(j) ??
+      
+!       writing down the scattering location information
+      write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),      &
+     &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),oldCoordinates(3),            &
+     &   bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
+     &   oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
+         secondary(j)=1
+         else
+!          write(*,*) 'INFO> Particle lost locally'
+!          I do not believe it is possible to get here, but no need to remove it I suppose...
+         write(777,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),   &
+     &      yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom,           &
+     &      bgid+njobthis*dpmjetevents
+         part_abs(j) = 1
+         goto 669
+         endif
+         
+!       if bgid.eq.bgiddb(ibgloc) end statement
+      endif
+      
+!       if njob correct range statement
+      else if((bgParameters(2)+bgParameters(3)).le.                     &
+     &   (dpmjetevents*njobthis)) then
+      goto 668
+      endif
+!       if pSCATT statement
+      else
+      bgParameters(1) = totals+0.001
+      bgParameters(2) = bgParameters(2)+bgParameters(3)
+      bgParameters(3) = 0
+      endif
+!       check secondary if statement
+      endif
+!       end j=1,napx statement
+  669 continue
+      enddo
+      end subroutine
+      
+      
+!>
+!! \brief YIL subroutine beam gas initiation.
+!!
+!! This function must be called during the initialization of\n
+!! the simulation, if beam gas should be included.
+!! 
+!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
+!!
+!! @date Last updated 25. July 2009
+!!
+!! \warning This is the version with scattering only in first turn
+!! \param myenom Needs to know nom. energy to know which events to skip
+!! \return The subroutine does not return anything
+!! \see beamGas and maincr
+!! \todo pressure marker ID not used anymore, should be removed
+!< 
+      subroutine beamGasInit(myenom)
+      
+      use beamgascommon
+      IMPLICIT NONE
+      
+      integer check,j,i
+      double precision myenom
+
+      integer   mynp
+      common /mynp/ mynp
+      
+      character*11 pressRead
+      integer filereaderror, previousEvent,numberOfEvents
+      real pINPUT,pPOS,pVAL
+
+      write(*,*) '************************'
+      write(*,*) '****                 ***'
+      write(*,*) '***Beam gas initiation**'
+      write(*,*) '****      YIL        ***'
+      write(*,*) '************************'
+      write(*,*) ''
+      
+! DEBUG: open debug file...      
+      open(684,file='debugfile.txt')
+! END DEBUG
+      open(666,file='dpmjet.eve')
+      open(667,file='scatterLOC.txt')
+      write(667,*)'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=E',      &
+     & ' 10=eventID 11=dpmjetID 12=newEnergy 13=oldX 14=oldY 15=oldXP   & 
+     & 16=oldYP'
+      write(667,*)'# These are original coordinates of proton after impa&
+     &ct, and old xp,yp'
+      write(667,*)
+      
+
+!       initialize pressure markers array
+!       DO THIS BEFORE OTHER STUFF, AS YOU MIGHT DO STUPID THINGS TO VARIABLES
+!       (LEARNED THE HARD WAY!!!)
+      open(778,file='pressure_input.txt')
+      open(779,file='pressure_profile.txt')
+      filereaderror=0
+      do
+         read(778,*,IOSTAT=filereaderror) pressRead, pINPUT
+      if (filereaderror.eq.0.and.pressRead(1:6).eq.'press.') then
+      pressID= (ichar(pressRead(11:11))-48)*1e0 +                       &
+     &         (ichar(pressRead(10:10))-48)*1e1 +                       &
+     &         (ichar(pressRead(9:9))-48)*1e2 +                         &
+     &         (ichar(pressRead(8:8))-48)*1e3 +                         &
+     &         (ichar(pressRead(7:7))-48)*1e4                           
+         pSCATT(pressID) = pINPUT
+         write(*,*) 'INFO> Pressuremarker: ',pressRead,pressID,         &
+     &      pSCATT(pressID)
+      else if (filereaderror.lt.0) then
+!       means that end of file is reached
+         exit
+      else if (filereaderror.gt.0) then
+!       means that this line did not correspond to normal input
+!       do not need to perform anything (probably a comment line)
+      else if (filereaderror.eq.0.and.pressRead(1:7).eq.'thisjob') then
+      njobthis = pINPUT
+      else if (filereaderror.eq.0.and.pressRead(1:5).eq.'njobs') then
+      njobs = pINPUT
+      else if (filereaderror.eq.0.and.pressRead(1:8).eq.'dpmjetev') then
+      dpmjetevents = pINPUT
+      end if
+      end do 
+      j=1
+      do
+         read(779,*,IOSTAT=filereaderror) pPOS, pVAL
+      if (filereaderror.eq.0) then
+      pressARRAY(1,j)=pPOS
+      pressARRAY(2,j)=pVAL
+      j=j+1
+       if (j>bgmaxx) then
+         write(*,*) 'ERROR> Too many pressure markers!'
+         stop
+       endif
+      else if (filereaderror.lt.0) then
+!       means that end of file is reached
+         exit
+      else if (filereaderror.gt.0) then
+!       means that this line did not correspond to normal input
+!       do not need to perform anything (probably a comment line)
+      end if
+      end do
+      do 1328 i = j,bgmaxx
+       pressARRAY(1,i)=-1.0
+       pressARRAY(2,i)=0.0
+1328  continue
+!       count the number of lines in dpmjet
+      j=1
+      previousEvent=0
+      numberOfEvents=0
+!       Here you can set the energy acceptance (0.95 means at least 95% of nominal energy)
+!       0.001 is because minenergy must be in GeV whereas myenom is in MeV
+!       Note to self: Remember to update this in batchrun.sh immediately! :)
+      minenergy=0.80*myenom*0.001
+      filereaderror=0
+      pINPUT=0.0
+      do
+!          2212 is the proton id. We do not load other particles.
+!          The other particles will be used to generate a complete file
+!          afterwards.
+!          ONLY LOAD PROTONS WITH ENERGY OFFSET BELOW 5%!!
+         read(666,*,IOSTAT=filereaderror) bgiddb(j), check, bgxpdb(j),  &
+     &      bgypdb(j), bgEdb(j)
+         if (check.eq.2212.and.bgEdb(j).gt.minenergy) then
+            if (bgiddb(j).ne.previousEvent) then
+               previousEvent=bgiddb(j)
+               numberOfEvents=numberOfEvents+1
+            endif
+            j=j+1
+         endif
+         if (filereaderror.lt.0) exit
+         if (numberOfEvents.gt.(bgmaxx-1)) then
+         write(*,*) 'ERROR> Too many dpmjet events!'
+         stop
+      endif
+      enddo
+!       number of lines in dpmjet - 1
+      bgmax=j
+      close(666)
+      write(*,*) 'INFO> Trackable events in dpmjet.eve: ', bgmax-1
+      if (numberOfEvents.gt.mynp) then 
+         write(*,*) 'ERROR> You need to generate less dpmjet events!'
+         write(*,*) 'ERROR> There were too many trackable events...'
+         write(*,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
+         write(*,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
+     &events'
+         stop
+      endif
+      write(*,*) 'INFO> This is job number: ', njobthis
+      write(*,*) 'INFO> Total number of jobs is: ', njobs
+      write(*,*) 'INFO> Total number of particles in simulation: ',     &
+     &   njobs*dpmjetevents
+      close(778)
+      open(777,file='localLOSSES.txt')
+      write(777,*)                                                      &
+     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=DE/E 10=CollisionID'
+      write(777,*) '# Note that name is not unique, but CollisionID is'
+      write(777,*) '# Note that s is particle coordinate, not bunch     &
+     & coordinate'
+      
+!       YOU HAVE TO PUT THESE INITIALIZATIONS AT THE END OF THE ROUTINE
+!       FOR SOME STRANGE FORTRAN-REASON
+      bgParameters(1)=0.0
+      bgParameters(2)=0.0
+      bgParameters(3)=0.0
+      
+      bgid=0
+      check=0
+      ibgloc=1
+      
+      end subroutine
+      
+!> \brief The routine returns a 3x3 rotation matrix for cartesian coordinates
+!! 
+!! The function rotates cartesian coordinates based on an angle of the old and new\n
+!! z-axis in the xz-plane (ax) and yz-plane (ay), given in milliradians. Typically\n
+!! a particle with a small offset from the closed orbit (z-direction)
+!! 
+!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
+!!
+!! @date Last modified: 26. Mar. 2010
+!! 
+!! \warning The angles of the particle should be in rad even though ax and ay
+!! are in millirad! Dpmjet uses rad while sixtrack stores xp,yp in millirad!
+!! \warning edit Mar10: changed sign of entire matrix, think it was wrong?
+!! \param ax Angle in x-direction [millirad]
+!! \param ay Angle in y-direction [millirad]
+!! \param matrix 3x3 array which will contain the returned rotation matrix
+!! 
+!! \return The subroutine returns a 3x3 rotation matrix
+!! \see beamGas
+!!
+!<
+      subroutine rotateMatrix(ax,ay,matrix)
+      double precision matrix(3,3)
+      double precision sinax, sinay, cosax, cosay
+      double precision ax,ay
+      
+      sinax = sin(ax*0.001)
+      cosax = cos(ax*0.001)
+      sinay = sin(ay*0.001)
+      cosay = cos(ay*0.001)
+      
+      matrix(1,1)=cosax
+      matrix(1,2)=-sinax*sinay
+      matrix(1,3)=sinax*cosay
+      
+      matrix(2,1)=-sinax*sinay
+      matrix(2,2)=cosay
+      matrix(2,3)=sinay*cosax
+      
+      
+      matrix(3,1)=-sinax
+      matrix(3,2)=-sinay
+      matrix(3,3)=cosax*cosay
+      end subroutine
+
+!>
+!! \brief Performs Lorentz boost on a given coordinate set
+!!
+!! This code performs a Lorentz boost on the coordinates px,py,E
+!! The Lorentz transfer matrix must be initialized first, using subroutine
+!! createLorentzMatrix.
+!! 
+!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
+!!
+!! @date Last modified 28. July 2010
+!!
+!!
+!! \param px [GeV] Momentum in x-direction
+!! \param py [GeV] Momentum in y-direction
+!! \param p [GeV] Total particle momentum
+!! \param mass [GeV] Particle mass
+!!
+!! \return new4MomCoord will contain the 4-momentum coordinates after boost
+!! \see createLorentzMatrix
+!< 
+      subroutine lorentzBoost(px,py,ptot,mass)
+      
+      use lorentzcommon
+      implicit none
+       
+       double precision px,py,ptot,mass
+       double precision oldcoord(4)
+
+       integer i,j
+       
+       
+       oldcoord(1)=sqrt(ptot**2+mass**2)
+       oldcoord(2)=px
+       oldcoord(3)=py
+       oldcoord(4)=sqrt(ptot**2-px**2-py**2) ! E/c, px,py,pz
+       do j=1,4 
+        new4MomCoord(j)=0.0
+       enddo
+       
+       ! Matrix multiplication: 
+       do i=1,4
+         do j=1,4
+         new4MomCoord(i)=new4MomCoord(i)+lorentzmatrix(i,j)*oldcoord(j)
+         enddo
+       enddo        
+!        write(*,*)
+!        write(*,*) "DEBUG, n4M: ", new4MomCoord
+!        write(*,*)
+!        do i=1,4
+!         write(*,*) "DEBUG, lM: ", lorentzmatrix(i,1:4)
+!        enddo
+      end subroutine 
+!>
+!! \brief Creates Lorentz transform matrix
+!!
+!! This subroutine sets up (or updates) the Lorentz matrix
+!! used for Lorentz boost. This Lorentz boost is used for 
+!! implementing the crossing angle in distributions that
+!! are coming from head-on collisions. Used for IR cross talk.
+!! Because the boost shouldn't increase the energy of the distribution,
+!! the entire matrix is divided by the gamma factor!
+!!  
+!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
+!!
+!! @date Last modified 28. July 2010
+!!
+!!
+!! \param E [MeV] energy of the BEAM
+!! \param xp [mrad] forward cosine in x-direction of the ORBIT coordinates
+!! \param yp [mrad] forward cosine in y-direction of the ORBIT coordinates
+!! \param mass [MeV] mass of the particle type
+!!
+!! \return Nothing
+!! \warning Matrix divided by gamma factor!
+!! \see lorentzBoost
+!< 
+      subroutine createLorentzMatrix(E,xp,yp,mass)
+       use lorentzcommon
+       implicit none
+
+       double precision E,xp,yp,mass
+       ! local variables:
+       double precision v0,gpart,p0,b(3),b2,b2inv,g
+
+       integer i,j
+        
+        gpart=E/mass ! relativistic gamma for the particles
+        p0=sqrt(E**2-mass**2)
+        v0=p0/(gpart*mass)
+! !         print v0
+        b(1)=xp*1e-3*v0 ! relativistic beta...
+        b(2)=yp*1e-3*v0
+        b(3)=0.0 ! Assumed no movement of CM in longitudinal direction...
+        b2=0.0
+        do j=1,3
+         b2=b2+b(j)*b(j)
+        enddo
+        if (b2>0) then
+      	 b2inv=1/b2
+        else
+      	 b2inv=0
+		  endif
+        g=1.0/sqrt(1.0-b2) ! relativistic gamma for the boost
+!         write(*,*) "DEBUG, g: ",g, v0, xp,yp,E,mass
+
+		lorentzmatrix(1,1)=g /g
+      do j=2,4 
+       lorentzmatrix(1,j)=g /g
+        lorentzmatrix(1,j)=-b(j-1)*g /g
+        lorentzmatrix(j,1)=-b(j-1)*g /g
+        
+        lorentzmatrix(j,j) = (1.0 + (g-1.0)* b(j-1)**2*b2inv) /g
+      enddo
+!         
+        lorentzmatrix(2,3) = ((g-1)* b(1)*b(2)*b2inv) /g
+        lorentzmatrix(3,2) = (lorentzmatrix(2,3)) /g
+        
+        lorentzmatrix(2,4) = ((g-1)* b(1)*b(3)*b2inv) /g
+        lorentzmatrix(4,2) = (lorentzmatrix(2,4)) /g
+        
+        lorentzmatrix(3,4) = ((g-1)* b(2)*b(3)*b2inv) /g
+        lorentzmatrix(4,3) = (lorentzmatrix(3,4)) /g
+        
+!        do i=1,4
+!         write(*,*) "DEBUG,lMAT: ", lorentzmatrix(i,1:4)
+!        enddo
+      end subroutine
 
 
 +ei
