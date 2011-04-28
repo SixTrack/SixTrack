@@ -1,6 +1,6 @@
 sixtrack.s
 sixdan.f
-df crlibm,tilt,fast,collimat,cr,boinc,bignblz,debug
+df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug
 e mainda
 e RUNDA,RUNCAV,UMSCHR
 e COR_ORD,COR_GLO,DALIESIX

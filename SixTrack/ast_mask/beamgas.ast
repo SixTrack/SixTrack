@@ -1,8 +1,6 @@
 sixtrack.s
-trackn.f
+beamgasn.f
 df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,beamgas,bnlelens,bignblz,debug,hdf5
-e tra_thck
-e tra_thin
-e nwrtcoll
-e nwrtbnl
+e beamGasK
+e hdf5K 
 ex
