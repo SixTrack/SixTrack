@@ -1,22 +1,7 @@
 SHELL = /bin/sh
 
-FC = %%FC%%
-FCF = %%FCF%%
-FCL = %%FCL%%
-FCLMAP = %%FCLMAP%%
-CRLIBM = %%CRLIBM%%
-CERNLIB = %%CERNLIB%%
-gfortran_lib = %%gfortran_lib%%
-BOINC = %%BOINC%%
-NAGLIBC = %%NAGLIBC%%
-
 %.o: %.f
 	$(FC) -c $(FCF) $<
-
-%.o: %.f90
-	$(FC) -c $(FCF) $<
-
-all: %%SIXTRACK%%
 
 dafor: dafor.o
 	$(FC) $(FCL) -o dafor dafor.o
@@ -24,8 +9,8 @@ dafor: dafor.o
 astuce: astuce.o
 	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
 
-%%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o beamgas.o $(BOINC) $(CRLIBM)
-	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o beamgas.o \
+%%SIXTRACK%%: track.o sixve.o sixvefox.o dabnews.o lielib.o $(BOINC) $(CRLIBM)
+	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o \
 	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib) > sixtrack.map 2>&1
 
 %%SIXTRACK_DA%%: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
@@ -33,4 +18,4 @@ astuce: astuce.o
 	$(NAGLIB) $(CRLIBM) $(gfortran_lib) > sixtrack_da.map 2>&1
 
 clean: 
-	rm -f *.ast *.s *.c *.o %%SIXTRACK%% %%SIXTRACK_DA%%
+	rm -f *.ast *.s *.f *.c *.o %%SIXTRACK%% %%SIXTRACK_DA%%
