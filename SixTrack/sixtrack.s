@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.13'/
-      data moddate /'18.10.2010'/
+      data version /'4.2.14'/
+      data moddate /'17.06.2011'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -54,7 +54,7 @@
       common /crdata/                                                   &
      &sixrecs,binrec,binrecs((npart+1)/2),bnlrec,bllrec,                &
      &numlcr,rerun,restart,checkp,                                      &
-     &fort95,fort96,arecord,stxt,runtim,read95,read96
+     &fort95,fort96,read95,read96,arecord,stxt,runtim
       integer crnumlcr,crnuml,crnapxo,crnapx,crnumxv,crnnumxv,crnlostp, &
      &crsixrecs,crbinrec,crbinrecs,crbnlrec,crbllrec,cril
       logical crpstop,crsythck
@@ -71,29 +71,39 @@
 !GRDRHIC
 !GRD-042008
 +ei
-      common/crio/crsixrecs,crbinrec,crbinrecs((npart+1)/2),crbnlrec,   &
-     &crbllrec,cril,                                                    &
-     &crnumlcr,crnuml,crsythck,                                         &
-     &crtime0,crtime1,crtime2,                                          &
-     &crnapxo,crnapx,cre0,                                              &
-     &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart),    &
+      common/crio/                                                      &
+     &cre0,
      &crxv(2,npart),cryv(2,npart),                                      &
      &crsigmv(npart),crdpsv(npart),crdpsv1(npart),crejv(npart),         &
      &crejfv(npart),craperv(npart,2),crxvl(2,npart),cryvl(2,npart),     &
-+if .not.bnlelens
-     &crdpsvl(npart),crejvl(npart),crsigmvl(npart)
-+ei
-+if bnlelens
      &crdpsvl(npart),crejvl(npart),crsigmvl(npart),                     &
-     &crn_cut,                                                          &
-     &crn_nocut,                                                        &
++if bnlelens
+!GRDRHIC
+!GRD-042008
      &crsumsquarex,                                                     &
      &crsumsquarey,                                                     &
      &crsumtwojx,                                                       &
      &crsumtwojy,                                                       &
      &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
-     &crnamepart(npart),                                                &
-     &crtotals
+     &crtotals,                                                         &
+!GRDRHIC
+!GRD-042008
++ei
+     &            crsixrecs,crbinrec,crbinrecs((npart+1)/2),crbnlrec,   &
+     &crbllrec,cril,                                                    &
+     &crnumlcr,crnuml,crsythck,                                         &
+     &crtime0,crtime1,crtime2,                                          &
+     &crnapxo,crnapx,                                                   &
++if .not.bnlelens
+     &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart)
++ei
++if bnlelens
+!GRDRHIC
+!GRD-042008
+     &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart),    &
+     &crn_cut,                                                          &
+     &crn_nocut,                                                        &
+     &crnamepart(npart)
 !GRDRHIC
 !GRD-042008
 +ei
@@ -110,11 +120,11 @@
       parameter(npart = 64,nmac = 1)
 +if .not.collimat
 +if bignblz
-      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=200000,        &
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 300000,mmul = 20)
 +ei
 +if .not.bignblz
-      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=20000,         &
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
      &nzfz = 300000,mmul = 20)
 +ei
 +ei
@@ -6856,7 +6866,7 @@ cc2008
             write(*,10060)
 +ei
 +if cr
-            write(lout,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),
+            write(lout,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),&
 +ei
 +if .not.cr
             write(*,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),   &
@@ -7576,6 +7586,13 @@ cc2008
 +cd open
 !--OPENING DATA FILES
 +if boinc
+      if (.not.rerun) then
+! This Fortran to C interface specifies an unzip of fort.zip
+        call boinc_zip()
+!       call system('unzip fort.zip')
+      endif
++ei
++if boinc
       call boincrf('fort.2',filename)
       open(2,file=filename,form='formatted',status='unknown')
 +ei
@@ -7596,7 +7613,7 @@ cc2008
 +if .not.boinc
       open(4,file='fort.4',form='formatted',status='unknown')
 +ei
-+if nag
++if nagfor
 +if boinc
       call boincrf('fort.7',filename)
       open(7,file=filename,form='formatted',status='unknown',recl=303)
@@ -7605,7 +7622,7 @@ cc2008
       open(7,file='fort.7',form='formatted',status='unknown',recl=303)
 +ei
 +ei
-+if .not.nag
++if .not.nagfor
 +if boinc
       call boincrf('fort.7',filename)
       open(7,file=filename,form='formatted',status='unknown')
@@ -7628,7 +7645,7 @@ cc2008
 +if .not.boinc
       open(9,file='fort.9',form='formatted',status='unknown')
 +ei
-+if nag
++if nagfor
 +if boinc
       call boincrf('fort.10',filename)
       open(10,file=filename,form='formatted',status='unknown',          &
@@ -7638,7 +7655,7 @@ cc2008
 +ei
      &recl=8195)
 +ei
-+if .not.nag
++if .not.nagfor
 +if boinc
       call boincrf('fort.10',filename)
       open(10,file=filename,form='formatted',status='unknown')
@@ -7649,7 +7666,7 @@ cc2008
 +ei
 +if boinc
       call boincrf('fort.11',filename)
-      open(11,file=filename,form='unformatted',status='unknown')
+      open(11,file=filename,form='formatted',status='unknown')
 +ei
 +if .not.boinc
       open(11,file='fort.11',form='formatted',status='unknown')
@@ -10760,13 +10777,13 @@ cc2008
         h=one/(3.2d0*q)
 !hr05   nc=7+int(23.0*q)
         nc=7+int(23.0d0*q)                                               !hr05
-!        xl=h**(1-nc)
-+if crlibm
-        xl=exp_rn((1-nc)*log_rn(h))                                      !yil11
-+ei
-+if .not.crlibm
-        xl=exp((1-nc)*log(h))                                            !yil11
-+ei
+         xl=h**(1-nc)
+!   +if crlibm
+!     xl=exp_rn((1-nc)*log_rn(h))                                      !yil11
+!   +ei
+!   +if .not.crlibm
+!     xl=exp((1-nc)*log(h))                                            !yil11
+!   +ei
         xh=y+0.5d0/h
         yh=x
         nu=10+int(21d0*q)
@@ -12418,7 +12435,7 @@ cc2008
         write(*,*)
 +ei
 +if cr
-        write(lout,*) '          Multipole errors read in ' ,
+        write(lout,*) '          Multipole errors read in ' ,           &
 +ei
 +if .not.cr
         write(*,*) '          Multipole errors read in ' ,              &
@@ -12499,7 +12516,7 @@ cc2008
   860   continue
   861   continue
 +if cr
-        write(lout,*) '        From file fort.16 :',iexnum,
+        write(lout,*) '        From file fort.16 :',iexnum,             &
 +ei
 +if .not.cr
         write(*,*) '        From file fort.16 :',iexnum,                &
@@ -12521,7 +12538,7 @@ cc2008
         write(*,*)
 +ei
 +if cr
-        write(lout,*) '  Time-d  Multipole errors read in ' ,
+        write(lout,*) '  Time-d  Multipole errors read in ' ,           &
 +ei
 +if .not.cr
         write(*,*) '  Time-d  Multipole errors read in ' ,              &
@@ -12603,7 +12620,7 @@ cc2008
  1860  continue
  1861  continue
 +if cr
-        write(lout,*) '        From file fort.35 :',iexnum,
+        write(lout,*) '        From file fort.35 :',iexnum,             &
 +ei
 +if .not.cr
         write(*,*) '        From file fort.35 :',iexnum,                &
@@ -12625,7 +12642,7 @@ cc2008
         write(*,*)
 +ei
 +if cr
-        write(lout,*) '          Alignment errors read in ' ,
+        write(lout,*) '          Alignment errors read in ' ,           &
 +ei
 +if .not.cr
         write(*,*) '          Alignment errors read in ' ,              &
@@ -12680,7 +12697,7 @@ cc2008
  1580   continue
  1581   continue
 +if cr
-        write(lout,*) '        From file fort.8 :',iexnum,
+        write(lout,*) '        From file fort.8 :',iexnum,              &
 +ei
 +if .not.cr
         write(*,*) '        From file fort.8 :',iexnum,                 &
@@ -12722,7 +12739,7 @@ cc2008
           write(*,*)
 +ei
 +if cr
-          write(lout,*)'          Single (random) kick errors read in ',
+          write(lout,*)'          Single (random) kick errors read in ',&
 +ei
 +if .not.cr
           write(*,*) '          Single (random) kick errors read in ' , &
@@ -12735,7 +12752,7 @@ cc2008
           write(*,*)
 +ei
 +if cr
-          write(lout,*) '        From file fort.30 :',iexnum,
+          write(lout,*) '        From file fort.30 :',iexnum,           &
 +ei
 +if .not.cr
           write(*,*) '        From file fort.30 :',iexnum,              &
@@ -13626,7 +13643,7 @@ cc2008
 !hr05     if(parbe(j,2).gt.mbea) then
           if(parbe(j,2).gt.dble(mbea)) then                              !hr05
 +if cr
-            write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of ',
+            write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of ',   &
 +ei
 +if .not.cr
             write(*,'(a48,i4,a29,i4)') '     WARNING: Number of ',      &
@@ -13669,7 +13686,7 @@ cc2008
       do 1435 k=1,il1
       if(abs(kz(k)).eq.12) then
 +if cr
-        write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),
+        write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
 +ei
 +if .not.cr
         write(*,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),      &
@@ -13680,7 +13697,7 @@ cc2008
       else
 +if cr
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),      &
-     &xrms(k),
+     &xrms(k),                                                          &
 +ei
 +if .not.cr
         write(*,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k), &
@@ -13797,15 +13814,15 @@ cc2008
         if(partnum.gt.zero) then
 +if cr
           write(lout,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,    &
-     &ibeco,
 +ei
 +if .not.cr
-          write(*,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,ibeco, &
+          write(*,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,       &
 +ei
+     &ibeco,                                                            &
      &ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
         else
 +if cr
-          write(lout,10141)ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+          write(lout,10141)ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,&
 +ei
 +if .not.cr
           write(*,10141) ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,  &
@@ -13844,7 +13861,7 @@ cc2008
 +ei
           do j=1,il
 +if cr
-            if(parbe(j,2).gt.0) write(lout,10145) bez(j),
+            if(parbe(j,2).gt.0) write(lout,10145) bez(j),               &
 +ei
 +if .not.cr
             if(parbe(j,2).gt.0) write(*,10145) bez(j),                  &
@@ -13874,7 +13891,7 @@ cc2008
       if(numl.le.nde(1)) nfb=numl
 +if cr
       write(lout,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,    &
-     &nwr(3),
+     &nwr(3),                                                           &
 +ei
 +if .not.cr
       write(*,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,nwr(3),&
@@ -15515,7 +15532,7 @@ cc2008
       c5m4=5.0d-4
 +ei
       if(mout2.eq.1) then
-+if nag
++if nagfor
 +if boinc
       call boincrf('fort.99',filename)
       open(99,file=filename,form='formatted',status='unknown',recl=303)
@@ -15524,7 +15541,7 @@ cc2008
       open(99,file='fort.99',form='formatted',status='unknown',recl=303)
 +ei
 +ei
-+if .not.nag
++if .not.nagfor
 +if boinc
       call boincrf('fort.99',filename)
       open(99,file=filename,form='formatted',status='unknown')
@@ -18677,7 +18694,7 @@ cc2008
      &' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
-+if nag
++if nagfor
       call disable_xp()
 +ei
 +if boinc
@@ -18809,7 +18826,7 @@ cc2008
       read(cdate(3:4),'(I2)') imonth
       if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
 +if cr
-        day=stxt//cdate(5:6)//'st of' //cmonth(imonth)
+        day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
 +ei
 +if .not.cr
         day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
@@ -18817,7 +18834,7 @@ cc2008
      &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
 +if cr
-        day=stxt//cdate(5:6)//'nd of' //cmonth(imonth)
+        day=stxt//cdate(5:6)//'nd of' //cmonth(imonth)                  &
 +ei
 +if .not.cr
         day='SIXTRACK starts on: '//cdate(5:6)//'nd of' //cmonth(imonth)&
@@ -18825,7 +18842,7 @@ cc2008
      &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'3'.and.cdate(5:5).ne.'1') then
 +if cr
-        day=stxt//cdate(5:6)//'rd of' //cmonth(imonth)
+        day=stxt//cdate(5:6)//'rd of' //cmonth(imonth)                  &
 +ei
 +if .not.cr
         day='SIXTRACK starts on: '//cdate(5:6)//'rd of' //cmonth(imonth)&
@@ -18833,7 +18850,7 @@ cc2008
      &//' 20'//cdate(1:2)//', '
       else
 +if cr
-        day=stxt//cdate(5:6)//'th of' //cmonth(imonth)
+        day=stxt//cdate(5:6)//'th of' //cmonth(imonth)                  &
 +ei
 +if .not.cr
         day='SIXTRACK starts on: '//cdate(5:6)//'th of' //cmonth(imonth)&
@@ -19469,7 +19486,7 @@ cc2008
           if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
             if(iclo6.eq.0) then
 +if cr
-              write(lout,10150) phag,
+              write(lout,10150) phag,                                   &
 +ei
 +if .not.cr
               write(*,10150) phag,                                      &
@@ -19480,7 +19497,7 @@ cc2008
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
             else
 +if cr
-              write(lout,10160) phag,
+              write(lout,10160) phag,                                   &
 +ei
 +if .not.cr
               write(*,10160) phag,                                      &
@@ -19510,7 +19527,7 @@ cc2008
           if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
             if(iclo6.eq.0) then
 +if cr
-              write(lout,10210)
+              write(lout,10210)                                         &
 +ei
 +if .not.cr
               write(*,10210)                                            &
@@ -19521,7 +19538,7 @@ cc2008
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
             else
 +if cr
-              write(lout,10220)
+              write(lout,10220)                                         &
 +ei
 +if .not.cr
               write(*,10220)                                            &
@@ -19548,15 +19565,15 @@ cc2008
           if(iclo6.eq.0) then
 +if cr
             write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),     &
-     &idz(2),
 +ei
 +if .not.cr
-            write(*,10110) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2), &
+            write(*,10110) clo(1),clop(1),clo(2),clop(2),idz(1),        &
 +ei
+     &idz(2),                                                           &
      &iver, idfor,iclo6,ition
           else
 +if cr
-            write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),
+            write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
 +ei
 +if .not.cr
             write(*,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),   &
@@ -19717,7 +19734,7 @@ cc2008
 +ei
 +if cr
           write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),        &
-     &sigmv(ia),
+     &sigmv(ia),                                                        &
 +ei
 +if .not.cr
           write(*,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),           &
@@ -19791,7 +19808,7 @@ cc2008
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
         endif
 +if cr
-        write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),
+        write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
 +ei
 +if .not.cr
         write(*,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),   &
@@ -19903,14 +19920,14 @@ cc2008
 !GRD-042008
 +if cr
           if (lhc.eq.9) then
-            write(lout,*)
+            write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
 +ei
 +if .not.cr
           if (lhc.eq.9) then
-            write(*,*)
+            write(*,*)                                                  &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
               go to 340
           endif
@@ -19954,7 +19971,7 @@ cc2008
           write(*,*)
 +ei
 +if cr
-          write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91
+          write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91&
 +ei
 +if .not.cr
           write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91   &
@@ -20064,21 +20081,21 @@ cc2008
         if(pstop(ia).and.pstop(ie)) then
 !-- BOTH PARTICLES LOST
 +if cr
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),
+          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
 +ei
 +if .not.cr
           write(*,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),            &
 +ei
      &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
 +if cr
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),
+          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
 +ei
 +if .not.cr
           write(*,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),            &
 +ei
      &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
 +if cr
-          write(lout,10280)
+          write(lout,10280)                                             &
 +ei
 +if .not.cr
           write(*,10280)                                                &
@@ -20104,14 +20121,14 @@ cc2008
           write(*,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
 +ei
 +if cr
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),
+          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
 +ei
 +if .not.cr
           write(*,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),            &
 +ei
      &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
 +if cr
-          write(lout,10280)
+          write(lout,10280)                                             &
 +ei
 +if .not.cr
           write(*,10280)                                                &
@@ -20130,7 +20147,7 @@ cc2008
 !-- FIRST PARTICLE LOST
           id=id+1
 +if cr
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),
+          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
 +ei
 +if .not.cr
           write(*,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),            &
@@ -20143,7 +20160,7 @@ cc2008
           write(*,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
 +ei
 +if cr
-          write(lout,10280)
+          write(lout,10280)                                             &
 +ei
 +if .not.cr
           write(*,10280)                                                &
@@ -20169,7 +20186,7 @@ cc2008
           write(*,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
 +ei
 +if cr
-          write(lout,10280)
+          write(lout,10280)                                             &
 +ei
 +if .not.cr
           write(*,10280)                                                &
@@ -32945,12 +32962,11 @@ cc2008
         chromc(2)=sens(2,4)*c1m3
 +if cr
         write(lout,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),&
-     &bez
 +ei
 +if .not.cr
-        write(*,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),bez&
+        write(*,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),   &
 +ei
-     &(is(2))
+     &bez(is(2))
 +if cr
         write(lout,10040) xi,zi
 +ei
@@ -33076,14 +33092,14 @@ cc2008
             edcor(2)=ed(iq2)
             if(ncorr.eq.1) then
 +if cr
-              write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),
+              write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),           &
 +ei
 +if .not.cr
               write(*,10010) cro(1),corr(1,1)*c1e3,cro(2),              &
 +ei
      &corr(1,2)*c1e3,ncorr-1,cor
 +if cr
-              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),
+              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
 +ei
 +if .not.cr
               write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),    &
@@ -33091,14 +33107,14 @@ cc2008
      &bez(iq2)
             else
 +if cr
-              write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),
+              write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),           &
 +ei
 +if .not.cr
               write(*,10020) cro(1),corr(1,1)*c1e3,cro(2),              &
 +ei
      &corr(1,2)*c1e3,ncorr-1,cor
 +if cr
-              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),
+              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
 +ei
 +if .not.cr
               write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),    &
@@ -33135,7 +33151,7 @@ cc2008
 +ei
       if(ncorr.eq.1) then
 +if cr
-        write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),
+        write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),                 &
 +ei
 +if .not.cr
         write(*,10010) cro(1),corr(1,1)*c1e3,cro(2),                    &
@@ -33143,7 +33159,7 @@ cc2008
      &corr(1,2)*c1e3,ncorr-1,cor
       else
 +if cr
-        write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,
+        write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,  &
 +ei
 +if .not.cr
         write(*,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,     &
@@ -36581,7 +36597,7 @@ cc2008
 +ei
       if(ncorru.eq.0) then
 +if cr
-          write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),
+          write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),&
 +ei
 +if .not.cr
           write(*,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),   &
@@ -36600,7 +36616,7 @@ cc2008
           write(*,10030) typ(9:16)
 +ei
 +if cr
-          write(lout,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),
+          write(lout,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),        &
 +ei
 +if .not.cr
           write(*,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),           &
@@ -37480,7 +37496,7 @@ cc2008
               zfz(izu)=zfz(izu)+dble(xinc(j))/ek(ix)                     !hr06
               ckicknew=sm(ix)+zfz(izu)*ek(ix)
 +if cr
-              write(lout,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,
+              write(lout,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,    &
 +ei
 +if .not.cr
               write(*,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,       &
@@ -38994,7 +39010,7 @@ cc2008
 +ei
           if (abs(el(iq1)).le.pieni) then
 +if cr
-            write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez
+            write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
 +ei
 +if .not.cr
             write(*,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez   &
@@ -39002,7 +39018,7 @@ cc2008
      &(iq2),sm0(3),ed(iq3),bez(iq3)
           else
 +if cr
-            write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez
+            write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
 +ei
 +if .not.cr
             write(*,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez   &
@@ -39030,7 +39046,7 @@ cc2008
 +ei
           if (abs(el(iq1)).le.pieni) then
 +if cr
-            write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez
+            write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
 +ei
 +if .not.cr
             write(*,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez   &
@@ -39038,7 +39054,7 @@ cc2008
      &(iq2)
           else
 +if cr
-            write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez
+            write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
 +ei
 +if .not.cr
             write(*,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez   &
@@ -39288,7 +39304,7 @@ cc2008
               if(ncorr.eq.1) then
 +if cr
                 write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
-     &ncorr-1,
+     &ncorr-1,                                                          &
 +ei
 +if .not.cr
                 write(*,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1, &
@@ -39297,7 +39313,7 @@ cc2008
               else
 +if cr
                 write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
-     &ncorr-1,
+     &ncorr-1,                                                          &
 +ei
 +if .not.cr
                 write(*,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1, &
@@ -39306,7 +39322,7 @@ cc2008
               endif
               if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
 +if cr
-                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,
+                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
 +ei
 +if .not.cr
                 write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,      &
@@ -39314,7 +39330,7 @@ cc2008
      &ed(iq(2)),bez(iq(2))
               elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
 +if cr
-                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,
+                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
 +ei
 +if .not.cr
                 write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,      &
@@ -39322,7 +39338,7 @@ cc2008
      &ek(iq(2)),bez(iq(2))
               elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
 +if cr
-                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,
+                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
 +ei
 +if .not.cr
                 write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,      &
@@ -39330,7 +39346,7 @@ cc2008
      &ed(iq(2)),bez(iq(2))
               else
 +if cr
-                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,
+                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
 +ei
 +if .not.cr
                 write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,      &
@@ -39403,7 +39419,7 @@ cc2008
         endif
         if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
 +if cr
-          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),
+          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
 +ei
 +if .not.cr
           write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),  &
@@ -39411,7 +39427,7 @@ cc2008
      &bez(iq(2))
         elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
 +if cr
-          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),
+          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
 +ei
 +if .not.cr
           write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),  &
@@ -39419,7 +39435,7 @@ cc2008
      &bez(iq(2))
         elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
 +if cr
-          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),
+          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
 +ei
 +if .not.cr
           write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),  &
@@ -39427,7 +39443,7 @@ cc2008
      &bez(iq(2))
         else
 +if cr
-          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),
+          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
 +ei
 +if .not.cr
           write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),  &
@@ -41008,7 +41024,7 @@ cc2008
   240   write(*,10100)
 +ei
 +if cr
-        write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),
+        write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),&
 +ei
 +if .not.cr
         write(*,10110) bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),  &
@@ -41019,7 +41035,7 @@ cc2008
           i2=2*i
           i1=i2-1
 +if cr
-  250   write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn
+  250   write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn&
 +ei
 +if .not.cr
   250   write(*,10110) bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn  &
@@ -41039,7 +41055,7 @@ cc2008
         write(*,10120) sen(j3),ss(j3),sen(j4),ss(j4)
 +ei
 +if cr
-        write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn
+        write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn&
 +ei
 +if .not.cr
         write(*,10110) bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn  &
@@ -41061,7 +41077,7 @@ cc2008
         if (abs(el(irr(j1))).le.pieni) then
 +if cr
           write(lout,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),          &
-     &ed(irr(j2)),
+     &ed(irr(j2)),                                                      &                                     
 +ei
 +if .not.cr
           write(*,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),ed(irr(j2)), &
@@ -41070,7 +41086,7 @@ cc2008
         else
 +if cr
           write(lout,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),          &
-     &ek(irr(j2)),
+     &ek(irr(j2)),                                                      &
 +ei
 +if .not.cr
           write(*,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),ek(irr(j2)), &
@@ -41476,7 +41492,7 @@ cc2008
 +ei
 +if cr
         write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),     &
-     &phi(l),
+     &phi(l),                                                           &
 +ei
 +if .not.cr
         write(*,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l), &
@@ -42166,7 +42182,7 @@ cc2008
         write(*,10030)
 +ei
 +if cr
-        write(lout,10010)nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),
+        write(lout,10010)nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),&
 +ei
 +if .not.cr
         write(*,10010) nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),  &
@@ -42195,7 +42211,7 @@ cc2008
           gtu2=gtu2+dtu(2,iv)
   800   continue
 +if cr
-        write(lout,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu
+        write(lout,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu &
 +ei
 +if .not.cr
         write(*,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu    &
@@ -43451,7 +43467,7 @@ cc2008
         write(*,10010)
 +ei
 +if cr
-        write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen
+        write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen&
 +ei
 +if .not.cr
         write(*,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen   &
@@ -43459,7 +43475,7 @@ cc2008
      &(4),ss(4)
 +if cr
         write(lout,10030) bez(nskew(1)),sn(1),ed(nskew(1)),             &
-     &bez(nskew(2)),sn
+     &bez(nskew(2)),sn                                                  &
 +ei
 +if .not.cr
         write(*,10030) bez(nskew(1)),sn(1),ed(nskew(1)),bez(nskew(2)),sn&
@@ -43481,7 +43497,7 @@ cc2008
 +ei
           if (abs(el(nskew(5))).le.pieni) then
 +if cr
-            write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed
+            write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed      &
 +ei
 +if .not.cr
             write(*,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed         &
@@ -43489,7 +43505,7 @@ cc2008
      &(nskew(6)), nskew(6)
           else
 +if cr
-            write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek
+            write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek      &
 +ei
 +if .not.cr
             write(*,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek         &
@@ -44027,7 +44043,7 @@ cc2008
         write(*,10040) sixtit,commen
 +ei
 +if cr
-        write(lout,10050) progrm,ifipa,itopa,hvs,numl,
+        write(lout,10050) progrm,ifipa,itopa,hvs,numl,                  &
 +ei
 +if .not.cr
         write(*,10050) progrm,ifipa,itopa,hvs,numl,                     &
@@ -44036,7 +44052,7 @@ cc2008
      &bet0(2),bet0z2,bet0z3,bet0(3),bet0s2,bet0s3,                      &
      &alf0(1),alf0x2,alf0x3
 +if cr
-        write(lout,10060) alf0(2),alf0z2,alf0z3,alf0(3),alf0s2,alf0s3,
+        write(lout,10060) alf0(2),alf0z2,alf0z3,alf0(3),alf0s2,alf0s3,  &
 +ei
 +if .not.cr
         write(*,10060) alf0(2),alf0z2,alf0z3,alf0(3),alf0s2,alf0s3,     &
@@ -45069,7 +45085,7 @@ cc2008
 !hr06     iturn=nint((i+1)*iav*tidnt)
           iturn=nint(dble((i+1)*iav)*tidnt)                              !hr06
 +if cr
-          if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),
+          if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),     &
 +ei
 +if .not.cr
           if(nprint.eq.1) write(*,10120) iturn,biav(i),slope(i),        &
@@ -45095,7 +45111,7 @@ cc2008
 !--CALCULATION OF AVERAGED PHASEADVANCES
       tph6=abs(tph6)
 +if cr
-      if(nprint.eq.1) write(lout,10140)tphx,sdpx,tphz,sdpz,tph6,sdp6,qwc
+      if(nprint.eq.1) write(lout,10140)tphx,sdpx,tphz,sdpz,tph6,sdp6,qwc&
 +ei
 +if .not.cr
       if(nprint.eq.1) write(*,10140)tphx,sdpx,tphz,sdpz,tph6,sdp6,qwc   &
@@ -45143,7 +45159,7 @@ cc2008
           endif
 +if cr
           if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,  &
-     &jm1,
+     &jm1,                                                              &
 +ei
 +if .not.cr
           if(abs(ares).lt.dres.and.nprint.eq.1) write(*,10170) im1,jm1, &
@@ -45293,7 +45309,7 @@ cc2008
   400   continue
 +if cr
         if(nprint.eq.1) write(lout,10210) ffx,ffz,qwc(1),ffx-qwc(1),    &
-     &qwc(2),
+     &qwc(2),                                                           &
 +ei
 +if .not.cr
         if(nprint.eq.1) write(*,10210) ffx,ffz,qwc(1),ffx-qwc(1),qwc(2),&
@@ -45315,7 +45331,7 @@ cc2008
             dared=anint(ared)
             ared=ared-dared
 +if cr
-            if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,
+            if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,&
 +ei
 +if .not.cr
             if(abs(ares).lt.dres.and.nprint.eq.1) write(*,10170) im1,   &
@@ -45333,7 +45349,7 @@ cc2008
 !--PRINT 4-D INVARIANTS WITH LINEAR COUPLING
 +if cr
       if(nprint.eq.1) write(lout,10270) emi,emii,emiii,angi,angii,      &
-     &angiii,
+     &angiii,                                                           &
 +ei
 +if .not.cr
       if(nprint.eq.1) write(*,10270) emi,emii,emiii,angi,angii,angiii,  &
@@ -45343,7 +45359,7 @@ cc2008
       ampx0=sqrt(bet0(1)*emx0)
       ampz0=sqrt(bet0(2)*emz0)
 +if cr
-      if(nprint.eq.1) write(lout,10220) emx0,ampx0,emz0,ampz0,emxa,emxs,
+      if(nprint.eq.1) write(lout,10220) emx0,ampx0,emz0,ampz0,emxa,emxs,&
 +ei
 +if .not.cr
       if(nprint.eq.1) write(*,10220) emx0,ampx0,emz0,ampz0,emxa,emxs,   &
@@ -45499,7 +45515,7 @@ cc2008
       if(nuex.lt.ninv.and.nprint.eq.1) write(*,10250) nuex,ninv
 +ei
 +if cr
-      if(nprint.eq.1) write(lout,10260) nuez,nuix,nuex,nuiz, ninv,pinx,
+      if(nprint.eq.1) write(lout,10260) nuez,nuix,nuex,nuiz, ninv,pinx, &
 +ei
 +if .not.cr
       if(nprint.eq.1) write(*,10260) nuez,nuix,nuex,nuiz, ninv,pinx,    &
@@ -45723,7 +45739,7 @@ cc2008
                   write(*,*) '* * * ERROR * * *'
 +ei
 +if cr
-                  write(lout,*)
+                  write(lout,*)                                         &
 +ei
 +if .not.cr
                   write(*,*)                                            &
@@ -45750,7 +45766,7 @@ cc2008
                   write(*,*)
 +ei
 +if cr
-                  write(lout,*)
+                  write(lout,*)                                         &
 +ei
 +if .not.cr
                   write(*,*)                                            &
@@ -45788,7 +45804,7 @@ cc2008
                   write(*,*) '* * * ERROR * * *'
 +ei
 +if cr
-                  write(lout,*)
+                  write(lout,*)                                         &
 +ei
 +if .not.cr
                   write(*,*)                                            &
@@ -45816,7 +45832,7 @@ cc2008
                   write(*,*)
 +ei
 +if cr
-                  write(lout,*)
+                  write(lout,*)                                         &
 +ei
 +if .not.cr
                   write(*,*)                                            &
@@ -46566,7 +46582,7 @@ cc2008
           write(*,*) '**ERROR**'
 +ei
 +if cr
-          write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',
+          write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
 +ei
 +if .not.cr
           write(*,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',         &
@@ -46587,7 +46603,7 @@ cc2008
           dlost=d(22)
         endif
 +if cr
-        write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),
+        write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),  &
 +ei
 +if .not.cr
         write(*,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),     &
@@ -46612,7 +46628,7 @@ cc2008
           write(*,*) '**ERROR**'
 +ei
 +if cr
-          write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',
+          write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
 +ei
 +if .not.cr
           write(*,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',         &

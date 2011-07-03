@@ -1,15 +1,15 @@
 SHELL = /bin/sh
 
-FC = lf95
-FCF = --o1 --tp -Wa,--32
-FCL = -static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh
-FCLMAP = -Wl,--print-map -static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh
-CRLIBM = 
-CERNLIB = 
-gfortran_lib = 
-BOINC = 
-NAGLIBC = 
-BEAMGAS = 
+FC = %%FC%%
+FCF = %%FCF%%
+FCL = %%FCL%%
+FCLMAP = %%FCLMAP%%
+CRLIBM = %%CRLIBM%%
+CERNLIB = %%CERNLIB%%
+gfortran_lib = %%gfortran_lib%%
+BOINC = %%BOINC%%
+NAGLIBC = %%NAGLIBC%%
+BEAMGAS = %%BEAMGAS%%
 
 %.o: %.f
 	$(FC) -c $(FCF) $<

@@ -40,3 +40,6 @@
 !     subroutine boinc_finish_graphics
 !     implicit none
 !     end
+      subroutine boinc_zip
+      implicit none
+      end

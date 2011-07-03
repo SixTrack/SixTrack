@@ -36,14 +36,19 @@
 # gfortran => use gfortran
 # Version 2.2 August 2010
 # Changed to nagfor, changed NAGLIBC for SLC4/5 compatibility
+# Version 2.3 27th June, 2011 (including ylevinse collimation mods
+# creating a stand alone Makefile and with an hdf5 flag).
 # Replaced windows flag by api flag for BOINC
-# New deck for dumps for debug
-# Forced crlibm for NAG nagfor
+# Added Intel ifort, fio (rounded formatted I/O) flags,
+# and an optional optimisation parameter [O|o][0-4].
+# A new deck dump for debug. Changed nag to nagfor everywhere.
+# Allowed crlibm for NAG nagfor and Intel ifort.
+
 show_options()
 {
     ons="The following selections are ON  :"
     offs="The following selections are OFF :"
-    for i in `seq 1 22`
+    for i in `seq 1 24`
     do
         if test ${values[$i]} = "true"
         then
@@ -55,6 +60,34 @@ show_options()
     echo "$ons"
     echo "$offs"
 }
+generate_makefile() 
+{
+    # Function generates a Makefile from the input file defined
+    # Input argument 1: required, Makefile template
+    # Input argument 2: optional (default Makefile) name of created Makefile
+    if [ ! -f $1 ]
+    then
+        echo "ERROR: $1 not existing!"
+        exit 1
+    fi
+    if [ "$2" ]
+    then
+        outfile=$2
+    else
+        outfile=Makefile
+    fi
+        sed  "s#%%FC%%#$FC#g" $1 | \
+        sed  "s#%%FCF%%#${FCF}#g" | \
+        sed  "s#%%FCL%%#${FCL}#g" | \
+        sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
+        sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
+        sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
+        sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
+        sed  "s#%%BOINC%%#$BOINC#g" | \
+        sed  "s#%%NAGLIBC%%#$NAGLIBC#g" | \
+        sed  "s#%%BEAMGAS%%#$BEAMGAS#g" \
+        > $outfile
+}
 
 #NOTA BENE! Definitions of cernlib and naglib are reversed
 # in the sense that while a "" null value implies option is ON
@@ -62,8 +95,8 @@ show_options()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nag   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5)
-values=(junk  true true     true true   false     true    true   false false    false false false false false false false    false false    false   false false false)
+options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio)
+values=(junk  true true     true true   false     true    true   false false    false false false false    false false false    false false    false   false false false false false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
@@ -71,7 +104,7 @@ sversion=`grep 'data version' sixtrack.s`
 # get string between /....../
 sversion=`echo $sversion | sed -e's/.*\/\(.*\)\//\1/'`
 # remove the quotes
-version=`echo $sversion | sed -e's/.\([0-9]*\).\([0-9]*\).\([0-9]*\)./v\1\2\3/'`
+version=`echo $sversion | sed -e's/.\([0-9]*\).\([0-9]*\).\([0-9]*\)./\1\2\3/'`
 moddate=`grep 'data moddate' sixtrack.s` 
 moddate=`echo $moddate | sed -e's/.*\/\(.*\)\//\1/'`
 moddate=`echo $moddate | sed -e's/.\(.*\)./\1/'`
@@ -92,7 +125,7 @@ collimat="collimat"
 cpss="cpss"
 boinc="boinc"
 cr="cr"
-nag="nag"
+nagfor="nagfor"
 g77="g77"
 g95="g95"
 gfortran="gfortran"
@@ -102,6 +135,8 @@ bnlelens="bnlelens"
 bignblz="bignblz"
 debug="debug"
 hdf5="hdf5"
+ifort="ifort"
+fio="fio"
 while test $# != 0
 do
     case $1 in
@@ -148,7 +183,7 @@ do
         -cr) cr="cr"
             values[12]=false
             ;;
-        -nag) nag="nag"
+        -nag) nagfor="nagfor"
             values[13]=false
             ;;
         -g77) g77="g77"
@@ -177,6 +212,12 @@ do
             ;;
         -hdf5) hdf5="hdf5"
             values[22]=false
+            ;;
+        -ifort) ifort="ifort"
+            values[23]=false
+            ;;
+        -fio) fio="fio"
+            values[24]=false
             ;;
 
 
@@ -216,7 +257,7 @@ do
         +cr) cr=""
             values[12]=true
             ;;
-        +nag) nag=""
+        +nagfor) nagfor=""
             values[13]=true
             ;;
         +g77) g77=""
@@ -234,17 +275,23 @@ do
         +beamgas) beamgas=""
             values[18]=true
             ;;
-        +bnlelens) bnlelens="bnlelens"
+        +bnlelens) bnlelens=""
             values[19]=true
             ;;
-        +bignblz) bignblz="bignblz"
+        +bignblz) bignblz=""
             values[20]=true
             ;;
-        +debug) debug="debug"
+        +debug) debug=""
             values[21]=true
             ;;
-        +hdf5) hdf5="hdf5"
+        +hdf5) hdf5=""
             values[22]=true
+            ;;
+        +ifort) ifort=""
+            values[23]=true
+            ;;
+        +fio) fio=""
+            values[24]=true
             ;;
 
 
@@ -284,7 +331,7 @@ do
         cr) cr=""
             values[12]=true
             ;;
-        nag) nag=""
+        nagfor) nagfor=""
             values[13]=true
             ;;
         g77) g77=""
@@ -314,7 +361,33 @@ do
         hdf5) hdf5=""
             values[22]=true
             ;;
+        ifort) ifort=""
+            values[23]=true
+            ;;
+        fio) fio="fio"
+            values[24]=true
+            ;;
 
+    O0) myopt=O0
+    ;;
+    o0) myopt=o0
+    ;;
+    O1) myopt=O1
+    ;;
+    o1) myopt=o1
+    ;;
+    O2) myopt=O2
+    ;;
+    o2) myopt=o2
+    ;;
+    O3) myopt=O3
+    ;;
+    o3) myopt=o3
+    ;;
+    O4) myopt=O4
+    ;;
+    o4) myopt=o4
+    ;;
 
         *) echo "Illegal option $1"
             exit 1
@@ -359,6 +432,9 @@ then
         echo "     beamgas requires collimat"
         exit 1
     fi
+    BEAMGAS="beamgas.o"
+else
+    BEAMGAS=""
 fi
 if [ ! "$hdf5" ]
 then
@@ -405,7 +481,7 @@ then
     crlibm=""
     values[4]=true
     cr=""
-    nag="nag"
+    nagfor="nagfor"
     values[13]=false
     values[12]=true
     g77="g77"
@@ -415,29 +491,33 @@ then
     gfortran="gfortran"
     values[16]=false
 fi
-# and make sure we use Lahey/NAG for crlibm
+# and make sure we use Lahey or nagfor or ifort for crlibm
 if test "$crlibm" = ""
 then
     if test "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
     then
         show_options
         echo "     INVALID option selected:"
-        echo "     crlibm => compilation must be done with Lahey lf95 or nagfor!"
+        echo "     crlibm => compilation must be done with lf95 or nagfor or ifort!"
         exit 1
     fi
 else
-    if test "$nag" = ""
+    if test "$nagfor" = "" -o "$ifort" = ""
     then
-        echo "    Forcing crlibm for the NAG nagfor compiler!"
+        echo "    Forcing crlibm for the nagfor/ifort compilers!"
         crlibm="" 
         values[4]="true"
     fi
 fi
 # Set up compiler
-if test "$nag" = ""
+if test "$nagfor" = ""
 then
     export FC="nagfor"
-    export FCF="-O -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+    if test "$myopt" = ""
+    then
+      myopt="O"
+    fi
+    export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
     # export FCF="-O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
     # export FCF="-float-store -O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
     # export FCF="-float-store -O -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
@@ -446,13 +526,20 @@ then
 elif test "$g77" = ""
 then
     export FC="g77"
-    export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
+    if test "$myopt" = ""
+    then
+      myopt="O"
+    fi
+    export FCF="-$myopt -m32 -g -fno-second-underscore -funroll-loops"
     export FCL="-static -m32"
 elif test "$g95" = ""
 then
     export FC="g95"
-    export FCF="-O -m32 -g -fno-second-underscore -funroll-loops"
-    export FCF="-O4 -Wa,--32 -g -fno-second-underscore -funroll-loops"
+    if test "$myopt" = ""
+    then
+      myopt="O"
+    fi
+    export FCF="-4 -Wa,--32 -g -fno-second-underscore -funroll-loops"
     if test "$MACHTYPE" = "i586"
     then
         export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
@@ -462,18 +549,41 @@ then
 elif test "$gfortran" = ""
 then
     export FC="gfortran"
-    export FCF="-O4 -m32 -g -fno-second-underscore -funroll-loops"
+    if test "$myopt" = ""
+    then
+      myopt="O4"
+    fi
+    export FCF="-$myopt -m32 -g -fno-second-underscore -funroll-loops"
     export FCL="-static -m32"
     if test "$hdf5" = ""
     then
         # H5ROOT is the location where you find the  HDF5 libs and include files for your compiler...
         # Seems the mod files must be created with the EXACT same compiler.
-        export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc45/"
-        export FCF="$FCF -I${H5ROOT}/include/"
+        export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc45"
+        export FCF="$FCF -I${H5ROOT}/include"
     fi
+elif test "$ifort" = ""
+then
+  export FC="ifort"
+    if test "$myopt" = ""
+    then
+      myopt="O"
+    fi
+# boinc has forced cpss
+  if test "$cpss" = ""
+  then
+    export FCF="-$myopt -arch IA32 -m32 -fp-model source -fp-model strict"
+  else
+    export FCF="-$myopt -m32 -fp-model source -fp-model strict"
+  fi
+  export FCL="-static -m32"
 else
     export FC="lf95"
-    export FCF="--o1 --tp -Wa,--32"
+    if test "$myopt" = ""
+    then
+      myopt="o1"
+    fi
+    export FCF="--$myopt --tp -Wa,--32"
     export FCL="-static -m32"
     if [[ "$MACHTYPE" == *x86_64* ]] 
     then
@@ -531,7 +641,7 @@ else
     echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
 fi
 
-ename="SixTrack_"
+ename="SixTrack_${version}_"
 if test "$crlibm" = ""
 then
     ename=$ename"crlibm_"
@@ -553,7 +663,7 @@ if test "$beamgas" = ""
 then
     ename=$ename"beamgas_"
 fi
-ename=$ename$FC$version
+ename=$ename$FC
 if test "$boinc" = ""
 then
     ename=$ename"_boinc"
@@ -573,6 +683,7 @@ if test "$api" = ""
 then
     ename=$ename"_api"
 fi
+ename=${ename}_$myopt
 export ename
 
 echo ""
@@ -593,11 +704,11 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
+generate_makefile Makefile.template
 make astuce
 make dafor
 # Create and initialise the build directory
 mkdir -p "$ename"
-cp Makefile $ename/Makefile
 cd "$ename"
 for dots in dabnew  lielib  sixtrack
 do
@@ -616,7 +727,7 @@ do
     cp ../ast_mask/$i.ast .
 done
 # Update the .ast flags based on options
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nag" "$bignblz" "$debug" "$hdf5"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" 
 do
     if test "$opt" != ""
     then
@@ -737,7 +848,7 @@ then
                 # YIL: add hdf5 libs
                 if test "$hdf5" = ""
                 then
-                    export CERNLIB="-Wl,--start-group -L${H5ROOT}/lib/ -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lsz -lz -lm -Wl,--end-group  $CERNLIB"
+                    export CERNLIB="-Wl,--start-group -L${H5ROOT}/lib32/ -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm -Wl,--end-group  $CERNLIB"
                 fi
             else
                 echo "Unknown MACHTYPE $MACHTYPE!!"
@@ -781,47 +892,49 @@ then
 fi
 if test "$da" = ""
 then
-    # Fix up the Makefile
-    sed -e's/%%SIXTRACK_DA%%/'$ename'/g' Makefile > tmp$$
-    mv tmp$$ Makefile  
-    # remove an existing executable
-    rm -f $ename
-    make $ename
+  # Fix up the Makefile
+  generate_makefile ../Makefile.template Makefile
+  sed -e's/%%SIXTRACK_DA%%/'$ename'/g' Makefile > tmp$$
+  mv tmp$$ Makefile  
+  # remove an existing executable
+  rm -f $ename
+  make $ename
 else
-    export BOINC=""
-    if test "$boinc" = ""
+  export BOINC=""
+  if test "$boinc" = ""
+  then
+    if test "$api" = ""
     then
-        if test "$api" = ""
-        then
-            export BOINC="../boinc_api_fortran.o ../libboinc_api.a"
-        else
-            export BOINC="myboinc.o"
-            cp ../myboinc.f .
-        fi
+      export BOINC="../boinc_api_fortran.o ../libboinc_api.a"
+    else
+      export BOINC="myboinc.o"
+      cp ../myboinc.f .
     fi
-    sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile > tmp$$
-    mv tmp$$ Makefile
-    # We make for Linux now because we are finished or as a verification 
-    # before we set up for windows.
-    #YIL addition: creating beamgas.f90 instead of beamgas.f
-    mv beamgas.f beamgas.f90
-    mv sixve.f sixve.f90
-    #  mv track.f track.f90
-    #YIL addition: create a makefile that is actually standalone:
-    sed  "s#%%FC%%#$FC#g" Makefile | \
-        sed  "s#%%FCF%%#${FCF}#g" | \
-        sed  "s#%%FCL%%#${FCL}#g" | \
-        sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
-        sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
-        sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
-        sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
-        sed  "s#%%BOINC%%#$BOINC#g" | \
-        sed  "s#%%NAGLIBC%%#$NAGLIBC#g" \
-        > tmp$$
-    mv tmp$$ Makefile  
-    # remove an existing executable
-    rm -f $ename
-    make $ename
+  fi
+  generate_makefile ../Makefile.template Makefile
+  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile > tmp$$
+  mv tmp$$ Makefile
+  # We make for Linux now because we are finished or as a verification 
+  # before we set up for windows.
+  #YIL addition: creating beamgas.f90 instead of beamgas.f
+  mv beamgas.f beamgas.f90
+  # mv sixve.f sixve.f90
+  # mv track.f track.f90
+  generate_makefile Makefile Makefile.tmp
+  mv Makefile.tmp Makefile
+  # remove an existing executable
+  rm -f $ename
+  # and make myboinc.o if necessary
+  if test "$boinc" = ""
+  then
+    if test "$api" != ""
+    then
+      rm -f myboinc.o
+      make myboinc.o
+    fi
+  fi
+  # and (at last) do a make...........
+  make $ename
 fi
 echo "       "
 echo "$0 : $command_line"
