@@ -1,4 +1,8 @@
 SHELL = /bin/sh
+
+FC = %%FC%%
+FCF = %%FCF%%
+
 CC = gcc
 OBJS = addition_scs.o multiplication_scs.o zero_scs.o \
      division_scs.o double2scs.o scs2double.o zero_scs.o \

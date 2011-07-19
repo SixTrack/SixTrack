@@ -76,7 +76,7 @@ generate_makefile()
     else
         outfile=Makefile
     fi
-        sed  "s#%%FC%%#$FC#g" $1 | \
+        sed  "s#%%FC%%#${FC}#g" $1 | \
         sed  "s#%%FCF%%#${FCF}#g" | \
         sed  "s#%%FCL%%#${FCL}#g" | \
         sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
@@ -364,7 +364,7 @@ do
         ifort) ifort=""
             values[23]=true
             ;;
-        fio) fio="fio"
+        fio) fio=""
             values[24]=true
             ;;
 
@@ -882,13 +882,20 @@ fi
 export CRLIBM=""
 if test "$crlibm" = ""
 then
-    cd ../crlibm
-    # and fix the log logsix .c .h CVS problem until FRS returns
-    ln -sf log.c logsix.c
-    ln -sf log.h logsix.h
-    make
-    cd ../$ename
-    export CRLIBM="../crlibm/crlibm.a"
+  mkdir -p crlibm
+  cp ../crlibm/*.c ../crlibm/*.h ../crlibm/*.f ../crlibm/Makefile.template crlibm
+  cd crlibm
+  # and fix the log logsix .c .h CVS problem until FRS returns
+  ln -sf log.c logsix.c
+  ln -sf log.h logsix.h
+# and fix the Makefile.template
+  sed  -e 's/%%FC%%/'"${FC}"'/g' \
+       -e 's/%%FCF%%/'"${FCF}"'/g' \
+    Makefile.template > Makefile
+  make clean
+  make crlibm.a
+  cd ..
+  export CRLIBM="crlibm/crlibm.a"
 fi
 if test "$da" = ""
 then

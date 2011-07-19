@@ -82,6 +82,9 @@ extern double sinh_rd(double); /* toward -inf */
 extern double sinh_ru(double); /* toward +inf */ 
 extern double sinh_rz(double); /* toward zero */ 
 
+/* Extended Precision Functions */
+extern void disable_xp_(void);
+extern void enable_xp_(void);
 
 /* Unfinished functions */
 /* These functions provide correct rounding but are very slow

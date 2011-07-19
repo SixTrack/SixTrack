@@ -11,5 +11,8 @@
         asin_rn=sign(pi2,x)
       else 
         asin_rn=atan_rn(x/sqrt(1.0d0-x*x))
+! Try using (1-x)*(1+x) in case x is very small.........
+! or close to 1.....write a test program!!!
+!       asin_rn=atan_rn(x/sqrt((1.0d0-x)*(1.0d0+x))
       endif
       end

@@ -14,15 +14,15 @@ BEGIN {
         pfnr=FNR
       }
       if (count == 2 && nested == 0) {
-        print ("") > "blah"
-        print (pfnr) > "blah"
-        print (pif) > "blah"
+        print ("") > "count.log"
+        print (pfnr) > "count.log"
+        print (pif) > "count.log"
         nested=1
       }
       if (count >= 2) {
         indent = indent"     "
-        print (indent FNR) > "blah"
-        print (indent l) > "blah"
+        print (indent FNR) > "count.log"
+        print (indent l) > "count.log"
       }
       if (count > mcount) {
         mcount=count
@@ -31,8 +31,8 @@ BEGIN {
     if (l ~ /^+ei/) {
       count=count-1
       if (count >= 1) {
-        print (indent FNR) > "blah"
-        print (indent l) > "blah"
+        print (indent FNR) > "count.log"
+        print (indent l) > "count.log"
         len=length(indent)-5
         indent=substr(indent,1,len)
       }
@@ -44,8 +44,8 @@ BEGIN {
         pif=""
         if (nested == 1) {
           nested=0
-          print (indent FNR) > "blah"
-          print (indent l) > "blah"
+          print (indent FNR) > "count.log"
+          print (indent l) > "count.log"
         }
       }
     }

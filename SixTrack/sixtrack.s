@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.14'/
-      data moddate /'17.06.2011'/
+      data version /'4.2.15'/
+      data moddate /'15.07.2011'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -18694,7 +18694,7 @@ cc2008
      &' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
-+if nagfor
++if crlibm
       call disable_xp()
 +ei
 +if boinc

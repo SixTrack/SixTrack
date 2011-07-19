@@ -2,6 +2,16 @@
 should first modify the README and then cut and paste
 the new text into the SVN notes when requested.
 
+  SixTrack Version: 4.2.15 Eric
+    -- A few small changes for maintenance mainly.
+       Extended Precision is disabled if crlibm is selected
+       (was done by Lahey previously). Added the disable_xp routine to 
+       crlibm and prototypes for both enable/disable_xp.
+    -- beauty/count.awk now writes to count.log as well as 
+       displaying report on the astuce directives in a .s file
+    -- Added crlibm/Makefile.template to SVN.  
+  McIntosh 19th July, 2011
+
   SixTrack Version: 4.2.14 Eric
     -- Used SVN Rev 97 with all the Collimation mods to
        sixtrack.s, make_six and Makefile and added ylevinse
