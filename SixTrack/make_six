@@ -395,33 +395,23 @@ do
     esac
     shift
 done
-# Here we do some checking for valid/invalid combinations 
-nopts=0
-sixtrackmode=""
-for i in da collimat
-do
-    if test "$i" = ""
-    then
-        nopts=`expr ($nopts + 1)`
-        sixtrackmode="$i"
-    fi
-done
-if test "$nopts" -ge 2
+# Here we do some checking for valid/invalid combinations
+if test "$da" = "" -a "$collimat" = ""
 then
-    show_options
-    echo "     INVALID options selected:"
-    echo "     Select only one of da or collimat!"
-    exit 1
-elif test "$nopts" -eq 0
+  show_options
+  echo "     INVALID options selected:"
+  echo "     Select only one of da or collimat!"
+  exit 1
+elif test "$da" != "" -a "$collimat" != ""
 then
-    tracking=""
-    values[2]=true
+  tracking=""
+  values[2]=true
 fi
 if test "$boinc" = ""
 then
-    # BOINC includes the CPSS options
-    cpss=""
-    values[10]=true
+  # BOINC includes the CPSS options
+  cpss=""
+  values[10]=true
 fi
 if test "$beamgas" = ""
 then
