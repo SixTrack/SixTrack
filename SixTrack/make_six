@@ -611,7 +611,10 @@ then
     if test "$gfortran" = ""
     then
         gccver=`gfortran -dumpversion`
-        if [[ $gccver == 4\.5\.* ]]
+        if [[ $gccver == 4\.6\.* ]]
+        then
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.7-gcc46"
+        elif [[ $gccver == 4\.5\.* ]]
         then
             export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc45"
         elif [[ $gccver == 4\.3\.* ]]
