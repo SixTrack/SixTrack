@@ -129,8 +129,14 @@
 +ei
 +ei
 +if collimat
++if beamgas
+      parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,         &
+     &nzfz = 300000,mmul = 11)
++ei
++if .not. beamgas
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
      &nzfz = 300000,mmul = 11)
++ei
 +ei
 +if collimat
       parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
@@ -57524,7 +57530,7 @@ cc2008
         j=j+1
       enddo
       if (pressID.eq.0) then
-       write(*,*) 'Couldnt find pressure marker',totals
+       write(*,*) 'Couldnt find pressure marker at',totals
        stop
       endif
       
