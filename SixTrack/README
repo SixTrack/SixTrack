@@ -2,6 +2,24 @@
 should first modify the README and then cut and paste
 the new text into the SVN notes when requested.
 
+  SixTrack Version: 4.2.15 Yngve
+    -- using make_six +option is not valid anymore 
+       (cleaner make_six).
+       
+       for beamgas module, increased number of
+       blocks/elements again. I had forgotten about
+       that a while back...
+
+       added gcc 4.6 to list of acceptable versions
+       for hdf5
+       
+       removed Makefile, only Makefile.template
+       should be part of repository. Makefile is generated
+       by make_six
+       
+       added some fixes to make_six for hdf5/beamgas
+  Inntjore Levinsen, 15. of September, 2011
+  
   SixTrack Version: 4.2.15 Eric
     -- Just added correction to make_six for checking that
        not both da and collimation are selected
