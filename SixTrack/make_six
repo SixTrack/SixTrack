@@ -423,6 +423,16 @@ then
         exit 1
     fi
     BEAMGAS="beamgas.o"
+elif test "$hdf5" = ""
+then
+    if test "$collimat" != ""
+    then
+        show_options
+        echo "     INVALID options selected:"
+        echo "     hdf5 makes no sense without collimat"
+        exit 1
+    fi
+    BEAMGAS="beamgas.o"
 else
     BEAMGAS=""
 fi
@@ -545,13 +555,6 @@ then
     fi
     export FCF="-$myopt -m32 -g -fno-second-underscore -funroll-loops"
     export FCL="-static -m32"
-    if test "$hdf5" = ""
-    then
-        # H5ROOT is the location where you find the  HDF5 libs and include files for your compiler...
-        # Seems the mod files must be created with the EXACT same compiler.
-        export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc45"
-        export FCF="$FCF -I${H5ROOT}/include"
-    fi
 elif test "$ifort" = ""
 then
   export FC="ifort"
@@ -600,11 +603,32 @@ else
         echo "Unknow MACHTYPE $MACHTYPE"
         exit 2
     fi 
-    if test "$hdf5" = ""
+fi
+if test "$hdf5" = ""
+then
+    # H5ROOT is the location where you find the  HDF5 libs and include files for your compiler...
+    # Seems the mod files must be created with the EXACT same compiler.
+    if test "$gfortran" = ""
     then
-        echo "HDF5 does not work yet with lf95..."
-        export FCF="$FCF -I${H5ROOT}/include/"
+        gccver=`gfortran -dumpversion`
+        if [[ $gccver == 4\.5\.* ]]
+        then
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc45"
+        elif [[ $gccver == 4\.3\.* ]]
+        then
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc43"
+        else
+            echo "ERROR: hdf5 not available for gcc version $gccver, please disable hdf5 or use gcc version 4.3 or 4.5"
+            exit 1
+        fi
+    elif test "$ifort" = ""
+    then
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.7-ifort"
+    else
+            echo "ERROR: hdf5 not available, please disable hdf5"
+            exit 1
     fi
+    export FCF="$FCF -I${H5ROOT}/include"
 fi
 
 if test "$MACHTYPE" = "i586"
