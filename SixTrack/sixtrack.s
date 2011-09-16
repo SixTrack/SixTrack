@@ -133,7 +133,7 @@
       parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,         &
      &nzfz = 300000,mmul = 11)
 +ei
-+if .not. beamgas
++if .not.beamgas
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
      &nzfz = 300000,mmul = 11)
 +ei
