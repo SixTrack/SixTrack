@@ -57264,7 +57264,9 @@ cc2008
           CALL h5sselect_hyperslab_f(h5space_id, H5S_SELECT_SET_F,      &
      &                               offset, data_dims , h5error)
           CALL h5screate_simple_f(h5rank, data_dims, memspace, h5error) 
++if debug
           print *,"DBG HDFw",h5dims,"off",offset,"ddims",data_dims
++ei
           CALL H5dwrite_f(h5set_id, H5T_NATIVE_REAL, data_in2,          &
             data_dims, h5error,file_space_id = h5space_id, mem_space_id &
      &       = memspace)
@@ -57353,8 +57355,9 @@ cc2008
        
           h5dims(2)=h5dims(2)+1
 
-
++if debug
        print *, "DBG HDF",mod(h5dims(2),incr),h5dims(2),incr
++ei
        data_in2(1,mod(h5dims(2),incr)+1)=pid
        data_in2(2,mod(h5dims(2),incr)+1)=turn
        data_in2(3,mod(h5dims(2),incr)+1)=s
