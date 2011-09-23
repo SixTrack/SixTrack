@@ -3,8 +3,21 @@ should first modify the README and then cut and paste
 the new text into the SVN notes when requested.
 
   SixTrack Version: 4.2.15 Yngve
+    Date:   Fri Sep 23 20:28:27 2011 +0200
+      hdf5
+          some debug statements are now only printed if debug flag is used
+          when running make_six
+      collimat
+          makedis_ga now using mynex/myney to set cut
+      beamgas 
+          cleaning up beamgas code somewhat
+
+
+  SixTrack Version: 4.2.15 Yngve
     -- using make_six +option is not valid anymore 
        (cleaner make_six).
+       Note, you use "./make_six option" to turn an option
+       on, or "./make_six -option" to turn it off.
        
        for beamgas module, increased number of
        blocks/elements again. I had forgotten about
