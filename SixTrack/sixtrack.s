@@ -22625,10 +22625,6 @@ cc2008
 +if beamgas
 !YIL call beam gas initiation routine
       call beamGasInit(myenom)
-      do icoll = 1, db_ncoll
-        write(*,*) db_name1(icoll)
-        write(*,*) db_name2(icoll)
-      end do
 +ei
 +if .not.cr
         write(*,*) 'number of collimators', db_ncoll
@@ -51053,7 +51049,12 @@ cc2008
       write (*,*) "  EmittanceY =", myemity0
       write (*,*)
       
-      !YIL July 2010 first particle on orbit
+      startpar=1
++if beamgas
+      ! YIL July 2010 first particle on orbit
+      !  initial xangle (if any) is not
+      !  yet applied at this point...
+      !  so we can set all to 0.
       startpar=2
       myx(1)=0.0
       myy(1)=0.0
@@ -51062,15 +51063,15 @@ cc2008
       myp(1) = myenom
       mys(1) = 0d0
       !YIL end edit July 2010
-      
++ei
       do j=startpar, mynp
 ! JBG July 2007    
 ! Option added for septum studies
 !
             myemitx=myemitx0
             xsigmax = sqrt(mybetax*myemitx)
-            myx(j)   = xsigmax * ran_gauss(5d0)
-            myxp(j)  = ran_gauss(5d0)*sqrt(myemitx/mybetax)-(myalphax*
+            myx(j)  = xsigmax * ran_gauss(mynex)
+            myxp(j) = ran_gauss(mynex)*sqrt(myemitx/mybetax)-(myalphax* &
      &myx(j)/mybetax)    
 !    
 !            if (rndm4().gt.0.5) then
@@ -51086,8 +51087,8 @@ cc2008
            myemity=myemity0
            ysigmay = sqrt(mybetay*myemity)
 !        write(*,*)'Sigma Y: ',ysigmay
-            myy(j)   = ysigmay * ran_gauss(5d0)
-      myyp(j)  = ran_gauss(5d0)*sqrt(myemity/mybetay)-(myalphay*myy(j)/ &
+            myy(j)   = ysigmay * ran_gauss(myney)
+      myyp(j) = ran_gauss(myney)*sqrt(myemity/mybetay)-(myalphay*myy(j)/&
      & mybetay)
 
 !            myy(j)   = ysigmay * sin(2d0*pi*rndm4())
@@ -51102,7 +51103,7 @@ cc2008
       end do
 ! SR, 11-08-2005 For longitudinal phase-space, add a cut at 2 sigma
 !
-!++   1st: generate mynpnumbers within the chose cut
+!++   1st: generate mynpnumbers within the chosen cut
 !
       long_cut = 2
       j = startpar
@@ -57430,8 +57431,7 @@ cc2008
 !       n_here is a counter telling you how many particles are scattered
 !       at this location
       double precision bgParameters(3)
-      double precision minenergy !this variable should not be needed (already taken care of in beamgasinit)
-      real bgxpdb(bgmaxx),bgypdb(bgmaxx),bgEdb(bgmaxx),pSCATT(bamount)
+      real bgxpdb(bgmaxx),bgypdb(bgmaxx),bgEdb(bgmaxx)
       end module beamgascommon
 
       module lorentzcommon
@@ -57519,7 +57519,7 @@ cc2008
       double precision rotm(3,3), z(3),ztmp(3) ! the variable used to store rotation matrix and coordinates
 !       CHECK: Is ichar('0')=48 and so on for all systems??
       
-      integer i,j,k
+      integer i,j,k,i_tmp
       
       pressID=0
       j=1
@@ -57547,12 +57547,12 @@ cc2008
       choice=0
       if ((secondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
      &      (bgParameters(1).le.totals)) then   
-!       write(*,*) 'mynp, amountofPart,n_interm: ',mynp,  
-!      &      pressARRAY(2,pressID)*(mynp),bgParameters(3)
-!       write(*,*) 'DEBUG: scattering: ',j,bgParameters(3)+1,
-!      & pressARRAY(2,pressID)*njobs*dpmjetevents
++if debug
+      write(*,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
+     & pressARRAY(2,pressID)*njobs*dpmjetevents
++ei
   668 continue
-!       Warning: This means that we round DOWN to the nearest integer at each 
+!       Warning: We round DOWN to the nearest integer at each 
 !       location. It is needed in order not to run out of particles
 !       In generate_pmarkers.py the normalized sum is accordingly changed to 1
       if ((pressARRAY(2,pressID)*njobs*dpmjetevents).gt.                &
@@ -57585,28 +57585,16 @@ cc2008
       if(bgid.eq.bgiddb(ibgloc)) then ! a proton was found for this scattering event
 
             choice=ibgloc
-!        If several protons, the one with max energy is used (next 5 particles are checked)
+!        If several protons, the one with max energy is used
 !        THIS IS NECESSARY SINCE ALL PROTONS ARE READ INTO LIST!
-         if ((bgiddb(choice).eq.bgiddb(ibgloc+1))                        &
-     &      .and.(bgEdb(ibgloc+1).gt.bgEdb(choice))) then
-               choice=ibgloc+1
-         endif         
-         if ((bgiddb(choice).eq.bgiddb(ibgloc+2))                        &
-     &      .and.(bgEdb(ibgloc+2).gt.bgEdb(choice))) then
-               choice=ibgloc+2
-         endif
-         if ((bgiddb(choice).eq.bgiddb(ibgloc+3))                        &
-     &      .and.(bgEdb(ibgloc+3).gt.bgEdb(choice))) then
-               choice=ibgloc+3
-         endif
-         if ((bgiddb(choice).eq.bgiddb(ibgloc+4))                        &
-     &      .and.(bgEdb(ibgloc+4).gt.bgEdb(choice))) then
-               choice=ibgloc+4
-         endif
-         if ((bgiddb(choice).eq.bgiddb(ibgloc+5))                        &
-     &      .and.(bgEdb(ibgloc+5).gt.bgEdb(choice))) then
-               choice=ibgloc+5
-         endif
+      do i_tmp = 1,10
+        if (bgiddb(choice).ne.bgiddb(ibgloc+i_tmp)) then
+          exit
+        endif
+        if (bgEdb(ibgloc+i_tmp).gt.bgEdb(choice)) then
+          choice=ibgloc+i_tmp
+        endif  
+      end do
 
          
          oldCoordinates(1)=yv(1,j)
@@ -57614,9 +57602,7 @@ cc2008
          oldCoordinates(3)=ejv(j)
          oldCoordinates(4)=xv(1,j)
          oldCoordinates(5)=xv(2,j)
-!          sixtrack does not track particles with dp/p >~ 10^-1 correctly!
-!          THIS HAS ALREADY BEEN CHECKED FOR WHEN THE FILE WAS READ INITIALLY!
-         if ((bgEdb(choice)).gt.minenergy) then
+         
          if(doLorentz.eq.1d0) then ! we need to boost the dpmjet event first:
          totMomentum=sqrt(bgEdb(choice)**2-(protonmass*1e-3)**2)
          tmpPX=bgxpdb(choice)*totMomentum
@@ -57632,9 +57618,7 @@ cc2008
          z(2) = (new4MomCoord(3)/totMomentum)
          z(3) = (new4MomCoord(4)/totMomentum)
 !          rotating the vector into the orbit reference system:
-         z = (/ rotm(1,1)*z(1)+rotm(1,2)*z(2)+ rotm(1,3)*z(3),          &
-     &          rotm(2,1)*z(1)+rotm(2,2)*z(2)+ rotm(2,3)*z(3),          &
-     &          rotm(3,1)*z(1)+rotm(3,2)*z(2)+rotm(3,3)*z(3) /)
+         z = matmul(rotm,z)
           if (z(3).eq.0) then
            write(*,*) "ERROR> there is something wrong",                &
      &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
@@ -57655,13 +57639,10 @@ cc2008
          z(1) = (bgxpdb(choice)) ! this is correct, since dpmjet gives xp=px/p and so on...
          z(2) = (bgypdb(choice))
          z(3) = sqrt(1-z(1)**2-z(2)**2)
-!          write(684,*) z, yv(1,j),yv(2,j)
+         
 !          rotating the vector into the orbit reference system:
           ztmp=z
           z=matmul(rotm,z)
-!         z = (/ rotm(1,1)*z(1)+rotm(1,2)*z(2)+ rotm(1,3)*z(3),          &
-!     &      rotm(2,1)*z(1)+rotm(2,2)*z(2)+ rotm(2,3)*z(3),              & 
-!     &      rotm(3,1)*z(1)+rotm(3,2)*z(2)+rotm(3,3)*z(3) /)             &
 !                adding the angles to the yv vector:
       if (z(3).eq.0) then
         yv(1,j) = acos(0.0)*1e3
@@ -57675,17 +57656,13 @@ cc2008
 !        energy WARNING: I DO NOT KNOW ALL THE PLACES I NEED TO INSERT THE ENERGY????
          ejv(j) = bgEdb(choice)*1000
 !YIL Copied this here, think these are all variables in need of an update
-!++  Energy update, as recommended by Frank
+!++  Energy update, as recommended by Frank [comment from collimat part]
 !
          ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
          dpsv(j)=(ejfv(j)-e0f)/e0f
          oidpsv(j)=1.0/(1.0+dpsv(j))
          dpsv1(j)=dpsv(j)*1.0d3*oidpsv(j)
-!          yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j) !sure this is correct??
-!          yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j) !yes, xp \def px/p0, not px/p...
-!          BUT, ejf0v(j) seems to be equal to zero??
-!          AND, shouldn't it be ejfv(j)/ejf0v(j) ??
       
 !       writing down the scattering location information
       write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),      &
@@ -57693,15 +57670,6 @@ cc2008
      &   bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
      &   oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
          secondary(j)=1
-         else
-!          write(*,*) 'INFO> Particle lost locally'
-!          I do not believe it is possible to get here, but no need to remove it I suppose...
-         write(777,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),   &
-     &      yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom,           &
-     &      bgid+njobthis*dpmjetevents
-         part_abs(j) = 1
-         goto 669
-         endif
          
 !       if bgid.eq.bgiddb(ibgloc) end statement
       endif
@@ -57711,11 +57679,12 @@ cc2008
      &   (dpmjetevents*njobthis)) then
       goto 668
       endif
-!       if pSCATT statement
+!       if (pressARRAY(2,pressID)*njobs*dpmjetevents).gt.(bgParameters(3)+1)
       else
       bgParameters(1) = totals+0.001
       bgParameters(2) = bgParameters(2)+bgParameters(3)
       bgParameters(3) = 0
+!       if (pressARRAY(2,pressID)*njobs*dpmjetevents).gt.(bgParameters(3)+1)
       endif
 !       check secondary if statement
       endif
@@ -57747,14 +57716,14 @@ cc2008
       IMPLICIT NONE
       
       integer check,j,i
-      double precision myenom
+      double precision myenom,minenergy
 
       integer   mynp
       common /mynp/ mynp
       
-      character*11 pressRead
+      character*11 bg_var
       integer filereaderror, previousEvent,numberOfEvents
-      real pINPUT,pPOS,pVAL
+      real bg_val,ecutoff,pPOS,pVAL
 
       write(*,*) '************************'
       write(*,*) '****                 ***'
@@ -57779,32 +57748,22 @@ cc2008
 !       initialize pressure markers array
 !       DO THIS BEFORE OTHER STUFF, AS YOU MIGHT DO STUPID THINGS TO VARIABLES
 !       (LEARNED THE HARD WAY!!!)
-      open(778,file='pressure_input.txt')
+      open(778,file='beamgas_config.txt')
       open(779,file='pressure_profile.txt')
       filereaderror=0
       do
-         read(778,*,IOSTAT=filereaderror) pressRead, pINPUT
-      if (filereaderror.eq.0.and.pressRead(1:6).eq.'press.') then
-      pressID= (ichar(pressRead(11:11))-48)*1e0 +                       &
-     &         (ichar(pressRead(10:10))-48)*1e1 +                       &
-     &         (ichar(pressRead(9:9))-48)*1e2 +                         &
-     &         (ichar(pressRead(8:8))-48)*1e3 +                         &
-     &         (ichar(pressRead(7:7))-48)*1e4                           
-         pSCATT(pressID) = pINPUT
-         write(*,*) 'INFO> Pressuremarker: ',pressRead,pressID,         &
-     &      pSCATT(pressID)
-      else if (filereaderror.lt.0) then
-!       means that end of file is reached
+         read(778,*,IOSTAT=filereaderror) bg_var, bg_val
+      if (filereaderror.lt.0) then
+!       end of file
          exit
-      else if (filereaderror.gt.0) then
-!       means that this line did not correspond to normal input
-!       do not need to perform anything (probably a comment line)
-      else if (filereaderror.eq.0.and.pressRead(1:7).eq.'thisjob') then
-      njobthis = pINPUT
-      else if (filereaderror.eq.0.and.pressRead(1:5).eq.'njobs') then
-      njobs = pINPUT
-      else if (filereaderror.eq.0.and.pressRead(1:8).eq.'dpmjetev') then
-      dpmjetevents = pINPUT
+      else if (filereaderror.eq.0.and.bg_var.eq.'thisjob') then
+        njobthis = bg_val
+      else if (filereaderror.eq.0.and.bg_var.eq.'njobs') then
+        njobs = bg_val
+      else if (filereaderror.eq.0.and.bg_var.eq.'dpmjetev') then
+        dpmjetevents = bg_val
+      else if (filereaderror.eq.0.and.bg_var.eq.'ecutoff') then
+        ecutoff = bg_val
       end if
       end do 
       j=1
@@ -57837,9 +57796,8 @@ cc2008
 !       Here you can set the energy acceptance (0.95 means at least 95% of nominal energy)
 !       0.001 is because minenergy must be in GeV whereas myenom is in MeV
 !       Note to self: Remember to update this in batchrun.sh immediately! :)
-      minenergy=0.80*myenom*0.001
+      minenergy=ecutoff*myenom*0.001
       filereaderror=0
-      pINPUT=0.0
       do
 !          2212 is the proton id. We do not load other particles.
 !          The other particles will be used to generate a complete file
