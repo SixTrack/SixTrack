@@ -538,20 +538,20 @@ then
         gccver=`gfortran -dumpversion`
         if [[ $gccver == 4\.6\.* ]]
         then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.7-gcc46"
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.7-gcc46"
         elif [[ $gccver == 4\.5\.* ]]
         then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc45"
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.6-gcc45"
         elif [[ $gccver == 4\.3\.* ]]
         then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.6-gcc43"
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.6-gcc43"
         else
             echo "ERROR: hdf5 not available for gcc version $gccver, please disable hdf5 or use gcc version 4.3 or 4.5"
             exit 1
         fi
     elif test "$ifort" = ""
     then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch1/hdf5/hdf5-1.8.7-ifort"
+            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.7-ifort"
     else
             echo "ERROR: hdf5 not available, please disable hdf5"
             exit 1

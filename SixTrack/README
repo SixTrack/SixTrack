@@ -1,6 +1,16 @@
   Please note that when you make an SVN commit you
 should first modify the README and then cut and paste
 the new text into the SVN notes when requested.
+  
+  SixTrack Version: 4.2.15 Yngve
+    Date: Thu Sep 29, 2011
+      hdf5
+        moved libraries to scratch0 on my afs
+      collimat
+        A bug I thought was fixed, when tct's
+        doesn't have '.B' in their names
+        they weren't discovered (tctv's in 2/8)
+        fixed for all tct's with this commit
 
   SixTrack Version: 4.2.15 Yngve
     Date:   Fri Sep 23 20:28:27 2011 +0200
