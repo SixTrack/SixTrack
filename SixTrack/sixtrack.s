@@ -22783,7 +22783,7 @@ cc2008
 ! Using same code-block as below to evalute the collimator opening
 ! for each collimator, this is needed to get the smallest collimator gap
 ! in principal only looking for primary and secondary should be enough
-! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA amd TCTVB 
+! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB 
 ! both namings before and after V6.503 can be used 
             if ( bez(myix)(1:2).eq.'TC'                                 &
      &           .or. bez(myix)(1:2).eq.'tc'                            &
@@ -22834,6 +22834,7 @@ cc2008
                elseif(bez(myix)(1:4).eq.'TCDQ' .or.                     &
      &                 bez(myix)(1:4).eq.'tcdq') then
                   nsig = nsig_tcdq
+! YIL11: Checking only the IR value for TCT's..
                elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
      &                 bez(myix)(1:4).eq.'tcth' ) then                  &
                   if(bez(myix)(8:8).eq.'1') then
@@ -23283,7 +23284,7 @@ cc2008
 !     SR, 17-01-2006: Review the TCT assignments because the MADX names
 !     have changes (TCTH.L -> TCTH.4L)
 !
-! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA amd TCTVB 
+! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB 
 ! both namings before and after V6.503 can be used 
 !
           if (do_coll .and.
@@ -23336,42 +23337,31 @@ cc2008
             elseif(bez(myix)(1:4).eq.'TCDQ' .or.                        &
      &             bez(myix)(1:4).eq.'tcdq') then
               nsig = nsig_tcdq
+! YIL11: Checking only the IR value for TCT's..
             elseif(bez(myix)(1:4).eq.'TCTH' .or.                        &
      &             bez(myix)(1:4).eq.'tcth' ) then                      &
-              if(bez(myix)(8:10).eq.'1.B' .or.                          &
-     &             bez(myix)(8:10).eq.'1.b') then
+              if(bez(myix)(8:8).eq.'1') then
                 nsig = nsig_tcth1
-              elseif(bez(myix)(8:10).eq.'2.B' .or.                      &
-     &               bez(myix)(8:10).eq.'2.b') then
+              elseif(bez(myix)(8:8).eq.'2') then
                 nsig = nsig_tcth2
-              elseif(bez(myix)(8:10).eq.'5.B' .or.                      &
-     &               bez(myix)(8:10).eq.'5.b') then
+              elseif(bez(myix)(8:8).eq.'5') then
                 nsig = nsig_tcth5
-              elseif(bez(myix)(8:10).eq.'8.B' .or.                      &
-     &               bez(myix)(8:10).eq.'8.b') then
+              elseif(bez(myix)(8:8).eq.'8') then
                 nsig = nsig_tcth8
               endif
-            elseif(bez(myix)(1:4).eq.'TCTV' .or.                         &
+            elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
      &             bez(myix)(1:4).eq.'tctv' ) then
-              if(bez(myix)(8:10).eq.'1.B' .or.                          &
-     &             bez(myix)(8:10).eq.'1.b' .or.                        &
-     &             bez(myix)(9:11).eq.'1.B' .or.                        &
-     &             bez(myix)(9:11).eq.'1.b' ) then
+              if(bez(myix)(8:8).eq.'1' .or.                             &
+     &             bez(myix)(9:9).eq.'1') then
                  nsig = nsig_tctv1
-              elseif(bez(myix)(8:10).eq.'2.B' .or.                      &
-     &                bez(myix)(8:10).eq.'2.b' .or.                     &
-     &                bez(myix)(9:11).eq.'2.B' .or.                     &
-     &                bez(myix)(9:11).eq.'2.b' ) then
+              elseif(bez(myix)(8:8).eq.'2' .or.                         &
+     &             bez(myix)(9:9).eq.'2') then
                  nsig = nsig_tctv2
-              elseif(bez(myix)(8:10).eq.'5.B' .or.                      &
-     &                bez(myix)(8:10).eq.'5.b' .or.                     &
-     &                bez(myix)(9:11).eq.'5.B' .or.                     &
-     &                bez(myix)(9:11).eq.'5.b') then
+              elseif(bez(myix)(8:8).eq.'5' .or.                         &
+     &             bez(myix)(9:9).eq.'5') then
                  nsig = nsig_tctv5
-              elseif(bez(myix)(8:10).eq.'8.B' .or.                      &
-     &                bez(myix)(8:10).eq.'8.b' .or.                     &
-     &                bez(myix)(9:11).eq.'8.B' .or.                     &
-     &                bez(myix)(9:11).eq.'8.b') then
+              elseif(bez(myix)(8:8).eq.'8' .or.                         &
+     &             bez(myix)(9:9).eq.'8') then
                  nsig = nsig_tctv8
               endif
             elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
@@ -23388,7 +23378,7 @@ cc2008
             elseif(bez(myix)(1:4).eq.'TCXR' .or.                        &
      &             bez(myix)(1:4).eq.'tcxr') then
               nsig = nsig_tcxrp
-            elseif(bez(myix)(1:5).eq.'TCRYO' .or.                        &
+            elseif(bez(myix)(1:5).eq.'TCRYO' .or.                       &
      &             bez(myix)(1:5).eq.'tcryo') then
               nsig = nsig_tcryo
             elseif(bez(myix)(1:3).eq.'COL' .or.                         &
