@@ -12903,7 +12903,7 @@ cc2008
       if(iclr.eq.1) read(ch1,*) itco,dma,dmap
       if(iclr.eq.2) read(ch1,*) itqv,dkq,dqq
       if(iclr.eq.3) read(ch1,*) itcro,dsm0,dech
-      if(iclr.eq.4) read(ch1,*) de0,ded,dsi
+      if(iclr.eq.4) read(ch1,*) de0,ded,dsi,aper(1),aper(2)
       if(iclr.ne.4) goto 940
       iclr=0
       goto 110
@@ -39551,7 +39551,7 @@ cc2008
         kpz=kp(ix)
         if(kpz.eq.6) goto 350
         kzz=kz(ix)
-        if(abs(x(1,1)).lt.c1e4.and.abs(x(1,2)).lt.c1e4) goto 70
+        if(abs(x(1,1)).lt.aper(1).and.abs(x(1,2)).lt.aper(2)) goto 70
         ierr=1
         call prror(101)
         return
