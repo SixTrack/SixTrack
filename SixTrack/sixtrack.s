@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.15'/
-      data moddate /'15.07.2011'/
+      data version /'4.2.16'/
+      data moddate /'09.01.2012'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
