@@ -1,0 +1,7 @@
+#include "sixtrack.h"
+#include "decks/envada.F"
+#include "decks/umlau6.F"
+#include "decks/wireda.F"
+#include "decks/synoda.F"
+#include "decks/errff.F"
+#include "decks/clor6.F"

@@ -1,0 +1,10 @@
+option(_CRLIBM "Turn on CRLIBM" OFF)
+option(_TILT "Turn on TILT" ON)
+option(_FAST "Turn on FAST" ON)
+option(_COLLIMAT "Turn on COLLIMAT" OFF)
+option(_CR "Turn on CR" OFF)
+option(_BOINC "Turn on BOINC" OFF)
+option(_BEAMGAS "Turn on BEAMGAS" OFF)
+option(_DEBUG "Turn on DEBUG" OFF)
+# Added manually:
+option(DYNAPER "Dynamic Aperture" OFF)

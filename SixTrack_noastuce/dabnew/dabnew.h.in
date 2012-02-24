@@ -1,0 +1,11 @@
+#cmakedefine _CRLIBM
+#cmakedefine _TILT
+#cmakedefine _FAST
+#cmakedefine _COLLIMAT
+#cmakedefine _CR
+#cmakedefine _BOINC
+#cmakedefine _BEAMGAS
+#cmakedefine _DEBUG
+! Added manually:
+#cmakedefine _BIG
+#cmakedefine _SMALL

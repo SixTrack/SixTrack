@@ -1,0 +1,10 @@
+#include "sixtrack.h"
+#define _VVECTOR
+#include "decks/envada.F"
+#include "decks/umlau6.F"
+#include "decks/wireda.F"
+#include "decks/synoda.F"
+#include "decks/errff.F"
+#include "decks/beam6df.F"
+#include "decks/clor6.F"
+#include "decks/mydaini.F"

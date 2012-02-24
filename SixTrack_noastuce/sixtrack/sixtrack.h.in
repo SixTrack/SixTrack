@@ -1,0 +1,13 @@
+#cmakedefine _CRLIBM
+#cmakedefine _TILT
+#cmakedefine _FAST
+#cmakedefine _COLLIMAT
+#cmakedefine _CR
+#cmakedefine _BOINC
+#cmakedefine _BEAMGAS
+#cmakedefine _BNLELENS
+#cmakedefine _BIGNBLZ
+#cmakedefine _BPM
+#cmakedefine _DEBUG
+#cmakedefine _HDF5
+#cmakedefine _NAGFOR
