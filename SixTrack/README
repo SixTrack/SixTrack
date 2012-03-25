@@ -1,156 +1,25 @@
-  Please note that when you make an SVN commit you
+  Please note that when you make a CVS commit you
 should first modify the README and then cut and paste
-the new text into the SVN notes when requested.
-  
-  SixTrack Version: 4.2.15 Yngve
-    Date: Thu Sep 29, 2011
-      hdf5
-        moved libraries to scratch0 on my afs
-      collimat
-        A bug I thought was fixed, when tct's
-        doesn't have '.B' in their names
-        they weren't discovered (tctv's in 2/8)
-        fixed for all tct's with this commit
+the new text into the CVS notes when requested.
 
-  SixTrack Version: 4.2.15 Yngve
-    Date:   Fri Sep 23 20:28:27 2011 +0200
-      hdf5
-          some debug statements are now only printed if debug flag is used
-          when running make_six
-      collimat
-          makedis_ga now using mynex/myney to set cut
-      beamgas 
-          cleaning up beamgas code somewhat
+ SixTrack Version: 4.4.11 eric
+  McIntosh 8th February, 2012
+    -- based on 4.4.01 (never committed)
+    -- Uses round_ulp from Laurent roundnulp( ,1024)
+       only for the same variables, extaux(k), alignx|z and tilt
+  McIntosh 25th March, 2012
 
-
-  SixTrack Version: 4.2.15 Yngve
-    -- using make_six +option is not valid anymore 
-       (cleaner make_six).
-       Note, you use "./make_six option" to turn an option
-       on, or "./make_six -option" to turn it off.
-       
-       for beamgas module, increased number of
-       blocks/elements again. I had forgotten about
-       that a while back...
-
-       added gcc 4.6 to list of acceptable versions
-       for hdf5
-       
-       removed Makefile, only Makefile.template
-       should be part of repository. Makefile is generated
-       by make_six
-       
-       added some fixes to make_six for hdf5/beamgas
-  Inntjore Levinsen, 15. of September, 2011
-  
-  SixTrack Version: 4.2.15 Eric
-    -- Just added correction to make_six for checking that
-       not both da and collimation are selected
-  McIntosh 19th July, 2011
-
-  SixTrack Version: 4.2.15 Eric
-    -- A few small changes for maintenance mainly.
-       Extended Precision is disabled if crlibm is selected
-       (was done by Lahey previously). Added the disable_xp routine to 
-       crlibm and prototypes for both enable/disable_xp.
-    -- beauty/count.awk now writes to count.log as well as 
-       displaying report on the astuce directives in a .s file
-    -- Added crlibm/Makefile.template to SVN.  
-  McIntosh 19th July, 2011
-
-  SixTrack Version: 4.2.14 Eric
-    -- Used SVN Rev 97 with all the Collimation mods to
-       sixtrack.s, make_six and Makefile and added ylevinse
-       SVN notes to this README (and fixed open(11, for BOINC)
-    -- Updated NBLO from 400 to 600 (but NOT for collimation)
-    -- Added/removed "&"s at lines 7398, 14818, and 30250 for consistency
-    -- Added a hundred or so missing ampersands for f90 compatibility
-    -- Temporarily removed the fix to real**int in the function errf
-       to preserve numerical compatibility
-    -- Re-arranged some of [my] C/R variables to align them for ifort
-    -- Added ifort and fio options to make_six and fixed the ast files
-    -- Fixed setting of make_six options selected with a +
-    -- Added Makefile.template and made beamgas.f compilation conditional
-    -- Modified the naming convention for the executables.
-    -- ylevinse mods covering SixTrack SVN version numbers 86 to 97
-      97 added changes to make_six.
-      New (optional) flags hdf5 and beamgas.
-      These are off by default
-      added linking to libsz.a in make_six
-      fixes to make_six for hdf5
-      - hdf5 mod files must be made from same compiler you are using (??)
-      - tested for gfortran 4.5, new H5ROOT should point to correct
-      base for hdf5 lib/include folders.ylevinse46d 02h/trunk/SixTrack/
-      96BEAMGAS source code
-      This is the source code needed for the beamgas module.
-      This patch is originating from many different commits on a different
-      branch. Together with the previous commit the final code will be tested
-      and checked before committed.ylevinse46d 02h/trunk/SixTrack/
-      95HDF5 source code
-      this commit contains the source code needed for HDF5 support.
-      it is a copy of the diff from many other earlier commits on a different
-      branch. There has been an attempt to clean it, so that the patches are
-      easier to read.ylevinse46d 02h/trunk/SixTrack/
-      94Fixed sixtrack.s so it works with gfortran again
-      - replaced "777 end do" with "777 continue - end do"
-      - write(11) -> write(11,*)
-      - also added the calls hdf5 module
-      - changed fort.11 to formatted output (got runtime error with 
-      gfortran)ylevinse46d 02h/trunk/SixTrack/
-      93further changes to make_six:
-      - hdf5 currently only works with gfortran
-      - make astuce/dafor didn't work because of previous commitylevinse46d 
-      02h/trunk/SixTrack/
-      92added new code in sixtrack.s
-      - HDF5 module/subroutines for tracks2.h5
-      - The modules for beamgas, subroutines are not present yet
-      These modules just holds common variables for beamgas 
-      routines..ylevinse46d 02h/trunk/SixTrack/
-      91updated astuce masks for new modules, added one (beamgas.ast)ylevinse46d 
-      02h/trunk/SixTrack/
-      90make_six ready for new modules
-      - replaced #!/bin/sh with #!/bin/bash
-      - fixed test "$MACHTYPE" (replaced them with [[ "$MACHTYPE" == ... ]] )
-      - added two new options, beamgas and hdf5
-      - now writing all parameters to Makefile, so it is standalone
-      - for gfortran >= 4.4, don't specify link directoryylevinse46d 
-      02h/trunk/SixTrack/
-      89made Makefile ready for new modules (beamgas & hdf5)
-      fixed Makefile so it will now be standalone, ie. you can run "make"
-      in the subfolderylevinse46d 02h/trunk/SixTrack/
-      88- added some & in column 73 to make code more F90 compatible
-      - added makedis_ga from Javier Barrancoylevinse59d 22h/trunk/SixTrack/
-      87new file being addedfrs198d 21h/trunk/SixTrack/
-      86missing disable_xp.c and make linefrs198d 21h/trunk/SixTrack/
-  McIntosh 1st July, 2011
-
-  SixTrack Version: 4.2.13 Emanuele Laface and Eric
-    -- Emanuele's mods for flat beam, hopefully integrated
-       with Version 4.2.12 by Eric
-    -- Also put the MAINCR message napxo to fort.93 under 
-       a +if cr
-    -- Removed the post-processing fix to tle1 (too many diffs)
-  Laface and McIntosh 18th October, 2010
-
-  SixTrack Version: 4.2.12 Harry Renshall and Eric
-    -- Extensive parenthesisation for result reproducibility
-    -- Changed the tle1 assignment in postpr to use log[_rn](double
-    -- New option api to make_six for BOINC
-    -- and windows/Makefile.bat to handle it
-    -- Dump routines for debug moved to the +dk dumps
-    -- and the .ast files modified appropriately
-    -- make_six and .ast modified to handle the new deck 
-    -- make_six to use nagfor with the new -abi=32 flag
-    -- the bignblz and/or api options are added to the name
-       of the executable
-    -- call disable_xp under a "+if nag" at start of maincr
-       and make_six forces crlibm for NAG
-    -- disable_xp added to crlibm
-    -- Fixed csh_fast.c to remove uninitialised warnings
-    -- Added the -fno-strict-aliasing to crlibm Makefile
-    -- Results verified for compatibility with lf95 -o1 etc
-       apart from BNL
-  McIntosh and Renshall 18th October, 2010
+  SixTrack Version: 4.4.01 eric
+    -- Based on 4.4.00 (never committed) which merges all
+       my latest ifort/portability mods including DBLE(SNGL)),
+       exponentiation, DP lfitw, errf, postprocessing etc. 
+       with SVN Revision 119 to trunk/SixTrack
+    -- Now uses new Fortran Function myround13??? to (hopefully) solve
+       problems with different results on ifort formatted input
+       between Linux and Windows (and Nagfor lf95).
+    -- No longer calls "worker" (no graphics) at L. Deniau request
+    -- Call disable_xp for nagfor only (will also be needed for gfortran)  
+  McIntosh 8th February, 2012
 
   SixTrack Version: 4.2.11 eric
     -- Mainly fixing unitialised variables
@@ -161,57 +30,7 @@ the new text into the SVN notes when requested.
        sixtrack: Changed comnul for AAIV, BBIV, and TASAU
     -- New make_six with nagfor and FCF and added 
        -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 to NAGLIBC
-    -- New crlibm Makefile with -fno-strict-aliasing for the typ-punned problem
-    -- Fixed lfit/lfitw argument dimensions
-    -- changed log10(real(xxaux)) to real(log10(xxaux))
-    -- This version was checked out on SLC5 as well and with NAG nagfor
-       -C=all and -C=undefined and -float-store and Lahey for production
-       Changed the NAGLIBC definition for SLC4/5 compatibility
-  McIntosh 8th August, 2010
-
-  SixTrack Version: 4.2.10 FRS/eric
-    -- Changed dimension of phase(3,npos+1) in common phasecomm 
-       Corrected an overwrite in postpr in rare cases
-  FRS/McIntosh 1st July, 2010
-
-  SixTrack Version: 4.2.13 Emanuele Laface and Eric
-    -- Emanuele's mods for flat beam, hopefully integrated
-       with Version 4.2.12 by Eric
-    -- Also put the MAINCR message napxo to fort.93 under 
-       a +if cr
-    -- Removed the post-processing fix to tle1 (too many diffs)
-  Laface and McIntosh 18th October, 2010
-
-  SixTrack Version: 4.2.12 Harry Renshall and Eric
-    -- Extensive parenthesisation for result reproducibility
-    -- Changed the tle1 assignment in postpr to use log[_rn](double
-    -- New option api to make_six for BOINC
-    -- and windows/Makefile.bat to handle it
-    -- Dump routines for debug moved to the +dk dumps
-    -- and the .ast files modified appropriately
-    -- make_six and .ast modified to handle the new deck 
-    -- make_six to use nagfor with the new -abi=32 flag
-    -- the bignblz and/or api options are added to the name
-       of the executable
-    -- call disable_xp under a "+if nag" at start of maincr
-       and make_six forces crlibm for NAG
-    -- disable_xp added to crlibm
-    -- Fixed csh_fast.c to remove uninitialised warnings
-    -- Added the -fno-strict-aliasing to crlibm Makefile
-    -- Results verified for compatibility with lf95 -o1 etc
-       apart from BNL
-  McIntosh and Renshall 18th October, 2010
-
-  SixTrack Version: 4.2.11 eric
-    -- Mainly fixing unitialised variables
-       astuce: Removed tabs and initialised ILEV
-       dafor: Removed BLOCKDATA and used subroutine predata instead
-              Initialised many variables and moved the ILIN = (ILAST(AC)...
-              Generated code to initialise variables allocated by DAALL
-       sixtrack: Changed comnul for AAIV, BBIV, and TASAU
-    -- New make_six with nagfor and FCF and added 
-       -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 to NAGLIBC
-    -- New crlibm Makefile with -fno-strict-aliasing for the typ-punned problem
+    -- New crlibm Makefile with -fno-strict-aliasing for the type-punned problem
     -- Fixed lfit/lfitw argument dimensions
     -- changed log10(real(xxaux)) to real(log10(xxaux))
     -- This version was checked out on SLC5 as well and with NAG nagfor

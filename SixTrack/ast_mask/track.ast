@@ -1,6 +1,6 @@
 sixtrack.s
 trackn.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,beamgas,bnlelens,bignblz,debug,hdf5
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,beamgas,bnlelens,bignblz,debug,hdf5,fio,ifort,lf95
 e tra_thck
 e tra_thin
 e nwrtcoll

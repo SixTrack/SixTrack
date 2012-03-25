@@ -20,10 +20,10 @@ BEAMGAS = %%BEAMGAS%%
 all: %%SIXTRACK%%
 
 dafor: dafor.o
-	$(FC) -m32 -o dafor dafor.o
+	$(FC) $(FCL) -o dafor dafor.o
 
 astuce: astuce.o
-	$(FC) -m32 -o astuce astuce.o $(NAGLIBC)
+	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
 
 boinc_api_fortran.o: boinc_api_fortran.C
 	gcc -c boinc_api_fortran.C

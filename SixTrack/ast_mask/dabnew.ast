@@ -1,6 +1,6 @@
 dabnew.s
 dabnewn.f
-df big,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug
+df big,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,ifort,lf95
 e daini
 e daexter
 e dallsta
@@ -98,4 +98,5 @@ e damono
 e dacycle
 e daorder
 e datrash
+e dumps
 ex

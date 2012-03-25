@@ -1,6 +1,6 @@
 sixtrack.s
 sixscfoxn.f
-df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug
+df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,ifort,lf95
 e UMLAU6,ENVADA,SYNODA,ERRFF,wireda
 e CLOR6
 ex

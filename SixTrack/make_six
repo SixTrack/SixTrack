@@ -43,7 +43,8 @@
 # and an optional optimisation parameter [O|o][0-4].
 # A new deck dump for debug. Changed nag to nagfor everywhere.
 # Allowed crlibm for NAG nagfor and Intel ifort.
-
+# Version 2.4 January, 2012. merged latest SixTrack production Rev 119
+# with all my changes for ifort and FIO.
 show_options()
 {
     ons="The following selections are ON  :"
@@ -96,7 +97,7 @@ generate_makefile()
 declare -a options
 declare -a values
 options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio)
-values=(junk  true true     true true   false     true    true   false false    false false false false    false false false    false false    false   false false false false false)
+values=(junk  true true     true false  false     true    true   false false    false false false false    false false false    false false    false   false false false false false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
@@ -115,7 +116,7 @@ command_line=$*
 tilt=""
 tracking=""
 fast=""
-crlibm=""
+crlibm="NULL"
 cernlib="cernlib"
 naglib="naglib"
 # and we have OFF
@@ -136,6 +137,7 @@ bignblz="bignblz"
 debug="debug"
 hdf5="hdf5"
 ifort="ifort"
+lf95="lf95"
 fio="fio"
 while test $# != 0
 do
@@ -220,6 +222,7 @@ do
             values[24]=false
             ;;
 
+
         tilt) tilt=""
             values[1]=true
             ;;
@@ -293,6 +296,8 @@ do
             values[24]=true
             ;;
 
+    O) myopt=O
+    ;;
     O0) myopt=O0
     ;;
     o0) myopt=o0
@@ -394,45 +399,44 @@ then
     naglib=""
     values[7]=false
 fi
-if test "$cpss" = ""
+if test "$crlibm" = "NULL"
+then
+  # It has not been specified!
+  if test "$collimat" = ""
+  then
+    # Turn it off for collimation
+    crlibm="crlibm"
+    values[4]=false
+    echo "Option crlibm turned OFF for collimation"
+  else
+    # Turn it on
+    crlibm=""
+    values[4]=true
+    echo "Option crlibm turned ON"
+  fi
+fi
+if test "$collimat" != "" -a "$cpss" = ""
 then
     # We will build for windows and Linux boinc and cpss 
     # Note that boinc forces the cpss flag anyway
-    # Force Lahey compiler, checkpoint/restart and crlibm, and NO cernlib 
     # The api flag is now used to force the real BOINC api.
-    echo "Forcing Lahey lf95, checkpoint/restart and crlibm"
+    # and we turn off cernlib
     cernlib=""
     values[6]=false
+    echo "Option cernlib turned OFF"
     crlibm=""
     values[4]=true
+    echo "Option crlibm turned ON"
     cr=""
-    nagfor="nagfor"
-    values[13]=false
     values[12]=true
-    g77="g77"
-    values[14]=false
-    g95="g95"
-    values[15]=false
-    gfortran="gfortran"
-    values[16]=false
+    echo "Option Checkpoint/Restart turned ON"
 fi
-# and make sure we use Lahey or nagfor or ifort for crlibm
 if test "$crlibm" = ""
 then
-    if test "$g77" = "" -o "$g95" = "" -o "$gfortran" = ""
-    then
-        show_options
-        echo "     INVALID option selected:"
-        echo "     crlibm => compilation must be done with lf95 or nagfor or ifort!"
-        exit 1
-    fi
-else
-    if test "$nagfor" = "" -o "$ifort" = ""
-    then
-        echo "    Forcing crlibm for the nagfor/ifort compilers!"
-        crlibm="" 
-        values[4]="true"
-    fi
+    echo ""
+    echo "NOTA BENE: SKIPPING checks for crlibm !!!"
+    echo "Should really only be specified for tracking with lf95 or ifort!"
+    echo ""
 fi
 # Set up compiler
 if test "$nagfor" = ""
@@ -443,9 +447,9 @@ then
       myopt="O"
     fi
     export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
-    # export FCF="-O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-    # export FCF="-float-store -O -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-    # export FCF="-float-store -O -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+    #export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+    # export FCF="-float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+    # export FCF="-float-store -$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
     export FCL="-Bstatic -abi=32"
     export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
 elif test "$g77" = ""
@@ -483,51 +487,56 @@ then
 elif test "$ifort" = ""
 then
   export FC="ifort"
-    if test "$myopt" = ""
-    then
-      myopt="O"
-    fi
-# boinc has forced cpss
-  if test "$cpss" = ""
+  if test "$myopt" = ""
   then
-    export FCF="-$myopt -arch IA32 -m32 -fp-model source -fp-model strict"
+    myopt="O"
+  fi
+  if test "$cpss" = "" -o "$crlibm" = ""
+  then
+# For v4308
+# Retry arch=ia32 for comparison for v4302
+#   export FCF="-$myopt -arch IA32 -m32 -fp-model source -fp-model strict -fp-model no-except"
+# This version is in make_six_noSSE2
+# and now try for a speedup with NO arch IA32 v4309
+    export FCF="-$myopt -mia32 -axSSE2 -fp-model source -fp-model strict -fp-model no-except"
   else
-    export FCF="-$myopt -m32 -fp-model source -fp-model strict"
+    export FCF="-$myopt -m32"
   fi
   export FCL="-static -m32"
 else
-    export FC="lf95"
-    if test "$myopt" = ""
+  export FC="lf95"
+  export lf95=""
+  if test "$myopt" = ""
+  then
+    myopt="o1"
+  fi
+  export FCF="--$myopt --tp -Wa,--32"
+  export FCL="-static -m32"
+  if [[ "$MACHTYPE" == *x86_64* ]] 
+  then
+    ls -l /usr/lib/gcc/x86_64-redhat-linux/4.1.1/32/libgcc_eh.a > /dev/null 2>&1
+    if test $? -ne 0
     then
-      myopt="o1"
-    fi
-    export FCF="--$myopt --tp -Wa,--32"
-    export FCL="-static -m32"
-    if [[ "$MACHTYPE" == *x86_64* ]] 
-    then
-        ls -l /usr/lib/gcc/x86_64-redhat-linux/4.1.1/32/libgcc_eh.a > /dev/null 2>&1
-        if test $? -ne 0
-        then
-            export FCL="-static -m32"
-        else
-            export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
-        fi
-    elif [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
-    then
-        ls -l /usr/lib/gcc/i386-redhat-linux/4.1.1/libgcc_eh.a > /dev/null 2>&1
-        if test $? -ne 0
-        then
-            export FCL="-static -m32"
-        else
-            export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
-        fi
-    elif test "$MACHTYPE" = "i586"
-    then
-        export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
+      export FCL="-static -m32"
     else
-        echo "Unknow MACHTYPE $MACHTYPE"
-        exit 2
-    fi 
+      export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
+    fi
+  elif [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
+  then
+    ls -l /usr/lib/gcc/i386-redhat-linux/4.1.1/libgcc_eh.a > /dev/null 2>&1
+    if test $? -ne 0
+    then
+      export FCL="-static -m32"
+    else
+      export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
+    fi
+  elif test "$MACHTYPE" = "i586"
+  then
+      export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
+  else
+    echo "Unknow MACHTYPE $MACHTYPE"
+    exit 2
+  fi 
 fi
 if test "$hdf5" = ""
 then
@@ -568,19 +577,20 @@ fi
 
 if test "$OSTYPE" = "darwin"
 then
-    # allows running of sixtrack under Macinstosh System 10
-    echo "MAC setup"
-    export FCL="-m32"
-    echo "Operating system: ",$OSTYPE
-    export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
-    if test "$da" != ""
-    then
-        export FCLMAP="-Wl,-map sixtrack.map $FCL"
-    else
-        export FCLMAP="-Wl,-map sixtrack_da.map $FCL"
-    fi
+  # allows running of sixtrack under Macintosh System 10
+  echo "MAC setup"
+  export FCL="-m32"
+  echo "Operating system: ",$OSTYPE
+#  FIX up with Frank's fix for 4.6!!!!
+  export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
+  if test "$da" != ""
+  then
+    export FCLMAP="-Wl,-map sixtrack.map $FCL"
+  else
+    export FCLMAP="-Wl,-map sixtrack_da.map $FCL"
+  fi
 else
-    echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
+  echo "Linux/windows setup for $sysname / WINDOWS 2000/XP"
 fi
 
 ename="SixTrack_${version}_"
@@ -606,6 +616,10 @@ then
     ename=$ename"beamgas_"
 fi
 ename=$ename$FC
+if test "$fio" = ""
+then
+  ename=$ename"_fio"
+fi
 if test "$boinc" = ""
 then
     ename=$ename"_boinc"
@@ -651,6 +665,13 @@ make astuce
 make dafor
 # Create and initialise the build directory
 mkdir -p "$ename"
+# and now copy the BOINC interfaces for BOINC and api
+if test "$boinc" = "" -a "$api" = ""
+then
+  cp cern_boinc_api_fortran.C $ename
+  cp boinc_api_fortran.C $ename
+# cp maincr.f $ename
+fi
 cd "$ename"
 for dots in dabnew  lielib  sixtrack
 do
@@ -669,7 +690,7 @@ do
     cp ../ast_mask/$i.ast .
 done
 # Update the .ast flags based on options
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" 
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$ifort" "$lf95" 
 do
     if test "$opt" != ""
     then
@@ -825,17 +846,19 @@ export CRLIBM=""
 if test "$crlibm" = ""
 then
   mkdir -p crlibm
-  cp ../crlibm/*.c ../crlibm/*.h ../crlibm/*.f ../crlibm/Makefile.template crlibm
+  cp -r ../crlibm/* crlibm
   cd crlibm
-  # and fix the log logsix .c .h CVS problem until FRS returns
-  ln -sf log.c logsix.c
-  ln -sf log.h logsix.h
 # and fix the Makefile.template
   sed  -e 's/%%FC%%/'"${FC}"'/g' \
        -e 's/%%FCF%%/'"${FCF}"'/g' \
     Makefile.template > Makefile
   make clean
   make crlibm.a
+  if test $? -ne 0
+  then
+    echo "Failed to make crlibm!!! Please inform McIntosh."
+    exit 4
+  fi
   cd ..
   export CRLIBM="crlibm/crlibm.a"
 fi
@@ -854,7 +877,12 @@ else
   then
     if test "$api" = ""
     then
-      export BOINC="../boinc_api_fortran.o ../libboinc_api.a"
+
+      export BOINC="../boinc_api_fortran.o ../boinc_api.o ../libboinc.a ../libboinc_zip.a"
+
+# Temporary fix until we actually have the BOINC libs
+#     export BOINC="myboinc.o"
+#     cp ../myboinc.f .
     else
       export BOINC="myboinc.o"
       cp ../myboinc.f .
@@ -871,17 +899,47 @@ else
   # mv track.f track.f90
   generate_makefile Makefile Makefile.tmp
   mv Makefile.tmp Makefile
+ # do the setup for Windows anway
+  if test "$cpss" = ""
+  then
+    echo ""
+    echo "Setting up for Windows"
+    echo ""
+    cd crlibm
+    # We [re-]copy myboinc.f even for CPSS
+    sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat.template > tmp$$
+    mv tmp$$ Makefile.bat
+    if test "$boinc" = ""
+    then
+        # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
+        if test "$api" != ""
+        then
+            sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
+        else
+            sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
+        fi
+    else
+        sed -e's/%%BOINC%%//g' \
+            -e'/myboinc.f/d' Makefile.bat > tmp$$
+    fi
+    mv tmp$$ Makefile.bat
+    cd ..
+    echo "Now the $ename directory needs to be taken to Windows."
+    echo "The Makefile.bat allows for checking boinc/cpss before"
+    echo "really building the BOINC/CPSS version."
+    echo ""
+  fi
   # remove an existing executable
   rm -f $ename
   # and make myboinc.o if necessary
-  if test "$boinc" = ""
-  then
-    if test "$api" != ""
-    then
-      rm -f myboinc.o
-      make myboinc.o
-    fi
-  fi
+# if test "$boinc" = ""
+# then
+#   if test "$api" != ""
+#   then
+#     rm -f myboinc.o
+#     make myboinc.o
+#   fi
+# fi
   # and (at last) do a make...........
   make $ename
 fi
@@ -905,33 +963,28 @@ fi
 # Note that selecting boinc has forced cpss
 if test "$cpss" = ""
 then
-    echo ""
-    echo "Setting up crlibm and Makefile.bat for Windows"
-    echo ""
-    # We [re-]copy myboinc.f even for CPSS
-    cp ../myboinc.f .
-    cp ../windows/Makefile.bat .
-    sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
-    mv tmp$$ Makefile.bat
-    if test "$boinc" = ""
+  echo ""
+  echo "Setting up crlibm and Makefile.bat for Windows"
+  echo ""
+  # We [re-]copy myboinc.f even for CPSS
+  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
+  mv tmp$$ Makefile.bat
+  if test "$boinc" = ""
+  then
+    # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
+    if test "$api" != ""
     then
-        # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
-        if test "$api" != ""
-        then
-            sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
-        else
-            sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
-        fi
+       sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
     else
-        sed -e's/%%BOINC%%//g' \
-            -e'/myboinc.f/d' Makefile.bat > tmp$$
+      sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
     fi
-    mv tmp$$ Makefile.bat
-    # and finally!!! perhaps get crlibm for windows
-    mkdir -p crlibm
-    cp ../windows/mkwindows .
-    ./mkwindows
-    echo "Now the $ename directory needs to be taken to Windows."
-    echo "The Makefile.bat allows for checking boinc/cpss before"
-    echo "really building the BOINC/CPSS version."
+  else
+     sed -e's/%%BOINC%%//g' \
+         -e'/myboinc.f/d' Makefile.bat > tmp$$
+  fi
+  mv tmp$$ Makefile.bat
+  echo ""
+  echo "Now the $ename directory needs to be taken to Windows."
+  echo "The Makefile.bat allows for checking boinc/cpss before"
+  echo "really building the BOINC/CPSS version."
 fi

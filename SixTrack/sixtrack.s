@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.2.16'/
-      data moddate /'09.01.2012'/
+      data version /'4.4.11'/
+      data moddate /'05.03.2012'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -1102,7 +1102,16 @@
               call phasad(zero,qwc)
               sigm(1)=clo6(3)
               dps(1)=clop6(3)
++if debug 
+!     call dumpbin('bqmodda',1,3)
+!     call abend('before qmodda 1 3                                 ')
+!     write(*,*) '1st call qmodda'
++ei
               call qmodda(3,qwc)
++if debug 
+!     call dumpbin('aqmodda',1,3)
+!     call abend('after  qmodda 1 3                                 ')
++ei
               if(ilin.ge.2) then
                 nlinoo=nlin
                 nlin=nlino
@@ -1111,7 +1120,14 @@
                 nlin=nlinoo
               endif
               dp1=dp10+clop6(3)
++if debug 
+!     call dumpbin('ecdclor6',1,3)
+!     call abend('end cd clor6                                      ')
++ei
 +cd beamcou
++if debug
+!       write(*,*) 'Beam coupling'
++ei
               dps0=dps(1)
               dps(1)=zero
               iqmodc=4
@@ -1119,6 +1135,10 @@
               ilinc=2
               call mydaini(2,2,nd2,nd,nd2,1)
               dps(1)=dps0
++if debug
+!     call dumpbin('abeamcou',2,22)
+!     call abend('after beam coupling                               ')
++ei
 +cd alignf
 +if .not.tilt
 *FOX  XL=X(1)-XS ;
@@ -4391,9 +4411,19 @@
 *FOX  CIKVEBF=X(2) ;
 !hr03       startco=dare(x(1))-clobeam(1,imbb(i))+ed(ix)
             startco=(dare(x(1))-clobeam(1,imbb(i)))+ed(ix)               !hr03
++if debug
+!     if (umcalls.eq.8) then
+!       call wda('startco',startco,1,0,0,0)
+!     endif
++ei
             call dapok(crkvebf,jj,startco)
 !hr03       startco=dare(x(2))-clobeam(2,imbb(i))+ek(ix)
             startco=(dare(x(2))-clobeam(2,imbb(i)))+ek(ix)
++if debug
+!     if (umcalls.eq.8) then
+!       call wda('startco',startco,2,0,0,0)
+!     endif
++ei
             call dapok(cikvebf,jj,startco)
             if(ibbc.eq.1) then
 *FOX  CCCC=CRKVEBF ;
@@ -4511,6 +4541,13 @@
             beamoff4=(((crad*ptnfac(ix))*crk)/                          &!hr03
      &rho2b)*(one-exp(-1d0*tkb))                                         !hr03
 +ei
++if debug
+!GOTCHA
+!     if (dokcalls.ge.445959) then
+!       write(*,*) 'beamoff4 1',beamoff4
+!       call wda('beamoff4',beamoff4,1,0,0,0)
+!     endif
++ei
 !hr03       beamoff5=crad*ptnfac(ix)*cik/                               &
 +if crlibm
 !hr03       beamoff5=crad*ptnfac(ix)*cik/                               &
@@ -4538,6 +4575,11 @@
 !hr08&sigman(1,imbb(i))*sigman(1,imbb(i)))
             r2bf=two*(sigman(2,imbb(i))**2-                             &!hr08
      &sigman(1,imbb(i))**2)                                              !hr08
++if debug
+!     if (umcalls.eq.8) then
+!       call wda('r2bf',r2bf,1,0,0,0)
+!     endif
++ei
 +cd beam11of
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
@@ -4556,6 +4598,11 @@
             rbf=sqrt(r2bf)
 !hr03       rkbf=crad*ptnfac(ix)*pisqrt/rbf
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
++if debug
+!     if (umcalls.eq.8) then
+!       call wda('rkbf',rkbf,1,0,0,0)
+!     endif
++ei
 +cd beama1of
             rb=sqrt(r2b)
 !hr03       rkb=crad*ptnfac(ix)*pisqrt/rb
@@ -4588,13 +4635,47 @@
 +cd beam12s
             call errf(xrbf,zrbf,crxbf,crzbf)
 +cd beam12of
++if debug
+!     call wda('12ofxrb',xrb,0,0,0,0)
+!     call wda('12ofzrb',zrb,0,0,0,0)
+!     write(*,*) '12ofxrb',xrb
+!     write(*,*) '12ofzrb',zrb
++ei
             call errf(xrb,zrb,crxb,crzb)
++if debug
+!     call wda('12ofcrxb',crxb,0,0,0,0)
+!     call wda('12ofcrzb',crzb,0,0,0,0)
+!     write(*,*) '12ofcrxb',crxb
+!     write(*,*) '12ofcrzb',crzb
+!
+!     call wda('12ofxrb',xrb,0,0,0,0)
+!     call wda('12ofzrb',zrb,0,0,0,0)
+!     write(*,*) '12ofxrb',xrb
+!     write(*,*) '12ofzrb',zrb
++ei
 +cd beam22f
             call errff(zrbf,xrbf,crzbf,crxbf)
 +cd beam22s
             call errf(zrbf,xrbf,crzbf,crxbf)
 +cd beam22of
++if debug
+!     call wda('12ofxrb',xrb,0,0,0,0)
+!     call wda('12ofzrb',zrb,0,0,0,0)
+!     write(*,*) '12ofxrb',xrb
+!     write(*,*) '12ofzrb',zrb
++ei
             call errf(zrb,xrb,crzb,crxb)
++if debug
+!     call wda('22ofcrxb',crxb,0,0,0,0)
+!     call wda('22ofcrzb',crzb,0,0,0,0)
+!     write(*,*) '22ofcrxb',crxb
+!     write(*,*) '22ofcrzb',crzb
+!
+!     call wda('22ofxrb',xrb,0,0,0,0)
+!     call wda('22ofzrb',zrb,0,0,0,0)
+!     write(*,*) '22ofxrb',xrb
+!     write(*,*) '22ofzrb',zrb
++ei
 +cd beama3f
       if(abs(sigman(1,imbb(i))).lt.pieni.or.                            &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
@@ -4639,11 +4720,37 @@
 +cd beama4f
       scrkveb=sign(one,dare(crkvebf))
       scikveb=sign(one,dare(cikvebf))
++if debug
+!     call wda('a4f1',scrkveb,1,0,0,0)
+!     call wda('a4f1',scikveb,1,0,0,0)
+!     call wda('ibbc',0d0,ibbc,0,0,0)
++ei
       if(ibbc.eq.0) then
++if debug
+!ERIC PROBLEM IS HERE before wda of y1/y2
+!       if (umcalls.eq.8) then
+!         call wda('bexpy1',0d0,1,0,0,0)
+!         write(*,*) 'Here we are'
+!         call dumpda('bexpy1',1,0)
+!         read(444)
+!       endif
++ei
 *FOX  Y(1)=Y(1)+(RKBF*(CRZBF-EXP(-TKBF)*
 *FOX  CBZBF)*SCRKVEB-BEAMOFF4)/(ONE+DPDA) ;
++if debug
+!     if (umcalls.eq.8) then
+!       call wda('aexpy1',y(1),1,0,0,0)
+!       write(*,*) 'Hereafter'
+!         call dumpda('aexpy1',1,0)
+!       read(444)
+!     endif
++ei
 *FOX  Y(2)=Y(2)+(RKBF*(CRXBF-EXP(-TKBF)*
 *FOX  CBXBF)*SCIKVEB-BEAMOFF5)/(ONE+DPDA) ;
++if debug
+!     call wda('a4f1 0 y1',y(1),1,0,0,0)
+!     call wda('a4f1 0 y2',y(2),2,0,0,0)
++ei
       else
 *FOX  CCCC=(RKBF*(CRZBF-EXP(-TKBF)*
 *FOX  CBZBF)*SCRKVEB-BEAMOFF4)*BBCU(IMBB(I),11)-
@@ -4655,6 +4762,10 @@
 *FOX  (RKBF*(CRXBF-EXP(-TKBF)*
 *FOX  CBXBF)*SCIKVEB-BEAMOFF5)*BBCU(IMBB(I),11) ;
 *FOX   Y(2)=Y(2)+CCCC/(ONE+DPDA) ;
++if debug
+!     call wda('a4f1 n y1',y(1),1,0,0,0)
+!     call wda('a4f1 n y2',y(2),2,0,0,0)
++ei
       endif
 +cd beama4s1
 +if crlibm
@@ -4711,6 +4822,21 @@
 +ei
 !hr03&sign(one,cikvebf))/(one+dpp))/cikve*half
 +cd beama4of
++if debug
+!     call wda('4ofrkb',rkb,0,0,0,0)
+!     call wda('4ofcrzb',crzb,0,0,0,0)
+!     call wda('4oftkb',tkb,0,0,0,0)
+!     call wda('4ofcbzb',cbzb,0,0,0,0)
+!     call wda('4ofcrk',crk,0,0,0,0)
+!     call wda('4ofexp',-exp_rn(-1d0*tkb),0,0,0,0)
+!
+!     write(*,*) '4ofrkb',rkb
+!     write(*,*) '4ofcrzb',crzb
+!     write(*,*) '4oftkb',tkb
+!     write(*,*) '4ofcbzb',cbzb
+!     write(*,*) '4ofcrk',crk
+!     write(*,*) '4ofexp',-exp_rn(-1d0*tkb)
++ei
 +if crlibm
 !hr03         beamoff4=rkb*(crzb-exp_rn(-tkb)*cbzb)*
 !hr03&sign(one,crk)
@@ -4722,6 +4848,16 @@
 !hr03&sign(one,crk)
               beamoff4=(rkb*(crzb-exp(-1d0*tkb)*cbzb))*                 &!hr03
      &sign(one,crk)                                                      !hr03
++ei
++if debug
+!GOTCHA
+!     if (dokcalls.ge.445959) then
+!       write(*,*) 'beamoff4 2',beamoff4
+!       call wda('beamoff4',beamoff4,2,0,0,0)
+!       call dumpda('beamoff4',0,0)
+!       call dumpum('beamoff4',0,0)
+!       read(222)
+!     endif
 +ei
 !hr03&sign(one,crk)
 +if crlibm
@@ -5122,6 +5258,13 @@
             beamoff5=zero
             beamoff6=zero
           endif
++if debug
+!GOTCHA
+!     if (dokcalls.ge.445959) then
+!         write(*,*) 'beamoff4 3',beamoff4
+!       call wda('beamoff4',beamoff4,3,0,0,0)
+!     endif
++ei
           dummy=dare(x(1))
 *FOX      X(1)=TRACKI(1)*C1E3+DUMMY-BEAMOFF1 ;
           dummy=dare(x(2))
@@ -6964,6 +7107,12 @@ cc2008
             bbcu(ibb,1)=bbbx(ix)
             bbcu(ibb,2)=bbby(ix)
             bbcu(ibb,3)=bbbs(ix)
++if debug
+!         write(*,*) 'bbcu set in umlalid1'
+!     call warr('umlid1bbcu',bbcu(ibb,1),ibb,1,0,0)
+!     call warr('umlid1bbcu',bbcu(ibb,2),ibb,2,0,0)
+!     call warr('umlid1bbcu',bbcu(ibb,3),ibb,3,0,0)
++ei
           else
             do ii=1,3
               call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
@@ -6980,8 +7129,14 @@ cc2008
 !hr03           bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2)+      &
                 bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
      &emitz*angnoe(3))
++if debug
+!     call warr('umlid1bbcii',bbcu(ibb,ii),ibb,ii,1,0)
++ei
               else
                 bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
++if debug
+!     call warr('umlid1bbcii',bbcu(ibb,ii),ibb,ii,2,0)
++ei
               endif
             enddo
             if(parbe(ix,2).gt.0) then
@@ -7595,22 +7750,46 @@ cc2008
       if (.not.rerun) then
 ! This Fortran to C interface specifies an unzip of fort.zip
         call boinc_zip()
-!       call system('unzip fort.zip')
+        !call system('unzip fort.zip')
       endif
 +ei
 +if boinc
       call boincrf('fort.2',filename)
++if fio
+      open(2,file=filename,form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(2,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(2,file='fort.2',form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(2,file='fort.2',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.3',filename)
++if fio
+      open(3,file=filename,form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(3,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(3,file='fort.3',form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(3,file='fort.3',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.4',filename)
@@ -7639,10 +7818,22 @@ cc2008
 +ei
 +if boinc
       call boincrf('fort.8',filename)
++if fio
+      open(8,file=filename,form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(8,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(8,file='fort.8',form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(8,file='fort.8',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.9',filename)
@@ -7655,167 +7846,437 @@ cc2008
 +if boinc
       call boincrf('fort.10',filename)
       open(10,file=filename,form='formatted',status='unknown',          &
++if fio
+     &round='nearest'                                                   &
++ei
 +ei
 +if .not.boinc
       open(10,file='fort.10',form='formatted',status='unknown',         &
++if fio
+     &round='nearest'                                                   &
++ei
 +ei
      &recl=8195)
 +ei
 +if .not.nagfor
 +if boinc
       call boincrf('fort.10',filename)
++if fio
+      open(10,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(10,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(10,file='fort.10',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(10,file='fort.10',form='formatted',status='unknown')
++ei
 +ei
 +ei
 +if boinc
       call boincrf('fort.11',filename)
++if fio
+      open(11,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(11,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(11,file='fort.11',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(11,file='fort.11',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.12',filename)
++if fio
+      open(12,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(12,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(12,file='fort.12',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(12,file='fort.12',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.13',filename)
++if fio
+      open(13,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(13,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(13,file='fort.13',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(13,file='fort.13',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.14',filename)
++if fio
+      open(14,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(14,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(14,file='fort.14',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(14,file='fort.14',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.15',filename)
++if fio
+      open(15,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(15,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(15,file='fort.15',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(15,file='fort.15',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.16',filename)
++if fio
+      open(16,file=filename,form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(16,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(16,file='fort.16',form='formatted',status='unknown',
+     &round='nearest')
++ei
++if .not.fio
       open(16,file='fort.16',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.17',filename)
++if fio
+      open(17,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(17,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(17,file='fort.17',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(17,file='fort.17',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.18',filename)
++if fio
+      open(18,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(18,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(18,file='fort.18',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(18,file='fort.18',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.19',filename)
++if fio
+      open(19,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(19,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(19,file='fort.19',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(19,file='fort.19',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.20',filename)
++if fio
+      open(20,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(20,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(20,file='fort.20',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(20,file='fort.20',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.21',filename)
++if fio
+      open(21,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(21,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(21,file='fort.21',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(21,file='fort.21',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.22',filename)
++if fio
+      open(22,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(22,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(22,file='fort.22',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(22,file='fort.22',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.23',filename)
++if fio
+      open(23,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(23,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(23,file='fort.23',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(23,file='fort.23',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.24',filename)
++if fio
+      open(24,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(24,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(24,file='fort.24',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(24,file='fort.24',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.25',filename)
++if fio
+      open(25,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(25,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(25,file='fort.25',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(25,file='fort.25',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.26',filename)
++if fio
+      open(26,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(26,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(26,file='fort.26',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(26,file='fort.26',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.27',filename)
++if fio
+      open(27,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(27,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(27,file='fort.27',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(27,file='fort.27',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.28',filename)
++if fio
+      open(28,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(28,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(28,file='fort.28',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(28,file='fort.28',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.29',filename)
++if fio
+      open(29,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(29,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(29,file='fort.29',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(29,file='fort.29',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.30',filename)
++if fio
+      open(30,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(30,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(30,file='fort.30',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(30,file='fort.30',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.31',filename)
++if fio
+      open(31,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(31,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(31,file='fort.31',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(31,file='fort.31',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.32',filename)
@@ -7826,24 +8287,58 @@ cc2008
 +ei
 +if boinc
       call boincrf('fort.33',filename)
++if fio
+      open(33,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(33,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(33,file='fort.33',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(33,file='fort.33',form='formatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.34',filename)
++if fio
+      open(34,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(34,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(34,file='fort.34',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(34,file='fort.34',form='formatted',status='unknown')
 +ei
-+if time
++ei
 +if boinc
       call boincrf('fort.35',filename)
++if fio
+      open(35,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(35,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(35,file='fort.35',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(35,file='fort.35',form='formatted',status='unknown')
 +ei
 +ei
@@ -8086,58 +8581,126 @@ cc2008
 +if cr
 ! For BOINC all output now goes to fort.10
 +if .not.boinc
-      open(51,file='fort.51')
++if fio
+      open(51,file='fort.51',form='formatted',round='nearest')
++ei
++if .not.fio
+      open(51,file='fort.51',form='formatted')
++ei
 +ei
 +ei
 +if .not.cr
-      open(51,file='SixTwiss.dat')
++if .not.boinc
++if fio
+      open(51,file='SixTwiss.dat',form='formatted',round='nearest')
++ei
++if .not.fio
+      open(51,file='SixTwiss.dat',form='formatted')
++ei
++ei
 +ei
 +if cr
 +if .not.boinc
-      open(52,file='fort.52')
++if fio
+      open(52,file='fort.52',form='formatted',round='nearest')
++ei
++if .not.fio
+      open(52,file='fort.52',form='formatted')
++ei
 +ei
 +ei
 +if .not.cr
-      open(52,file='beambeam-output.dat')
++if fio
+      open(52,file='beambeam-output.dat',form='formatted',              &
+     &round='nearest')
++ei
++if .not.fio
+      open(52,file='beambeam-output.dat',form='formatted')
++ei
 +ei
 +if cr
 +if .not.boinc
-      open(53,file='fort.53')
++if fio
+      open(53,file='fort.53',form='formatted',round='nearest')
++ei
++if .not.fio
+      open(53,file='fort.53',form='formatted')
++ei
 +ei
 +ei
 +if .not.cr
-      open(53,file='beambeam-lostID.dat')
++if fio
+      open(53,file='beambeam-lostID.dat',form='formatted',              &
+     &round='nearest')
++ei
++if .not.fio
+      open(53,file='beambeam-lostID.dat',form='formatted')
++ei
 +ei
 +if cr
 +if boinc
       call boincrf('fort.54',filename)
-      open(54,file=filename)
++if fio
+      open(54,file=filename,form='formatted',round='nearest')
++ei
++if .not.fio
+      open(54,file=filename,form='formatted')
++ei
++ei
 +ei
 +if .not.boinc
-      open(54,file='fort.54')
++if fio
+      open(54,file='fort.54',form='formatted',round='nearest')
++ei
++if .not.fio
+      open(54,file='fort.54',form='formatted')
 +ei
 +ei
 +if .not.cr
-      open(54,file='beambeamdist.dat')
++if fio
+      open(54,file='beambeamdist.dat',form='formatted',                 &
+     &round='nearest')
++ei
++if .not.fio
+      open(54,file='beambeamdist.dat',form='formatted')
++ei
 +ei
 +if cr
 +if .not.boinc
-      open(97,file='fort.97')
++if fio
+      open(97,file='fort.97',form='formatted',round='nearest')
++ei
++if .not.fio
+      open(97,file='fort.97',form='formatted')
++ei
 +ei
 +ei
 +if .not.cr
-      open(97,file='checkdist.dat')
++if fio
+      open(97,file='checkdist.dat',form='formatted',round='nearest')
++ei
++if .not.fio
+      open(97,file='checkdist.dat',form='formatted')
++ei
 +ei
 !GRDRHIC
 !GRD-042008
 +ei
+!Eric for the DA coefficients in BINARY
+      open(111,file='fort.111',form='unformatted')
+! Write a BINARY fort.10 of sumda for checking
+      open(110,file='fort.110',form='unformatted')
 +if debug
+!DUMPS 99
 +if boinc
       call boincrf('dump',filename)
-      open(99, file=filename,form='formatted')
+      open(99,file=filename,form='unformatted')
+      call boincrf('arrays',filename)
+      open(100,file=filename,form='unformatted')
 +ei
 +if .not.boinc
-      open(99, file='dump',form='formatted')
+      open(99,file='dump',form='unformatted')
+      open(100,file='arrays',form='unformatted')
 +ei
 +ei
 +cd close
@@ -8215,17 +8778,22 @@ cc2008
       close(51)
       close(52)
       close(53)
+      close(97)
 +ei
       close(54)
-      close(97)
 !GRDRHIC
 !GRD-042008
 +ei
-+if debug
-      close(99)
-+ei
 +if hdf5
       call CLOSEHDF5()
++ei
++if debug
+      close(99)
+      close(100)
+!Eric....and more to come
+      close(110)
+      close(111)
+! Missing +ei!!!
 +ei
 +cd rvet0
 !hr03 e0f=sqrt(e0*e0-pma*pma)
@@ -10783,16 +11351,28 @@ cc2008
         h=one/(3.2d0*q)
 !hr05   nc=7+int(23.0*q)
         nc=7+int(23.0d0*q)                                               !hr05
-         xl=h**(1-nc)
-!   +if crlibm
-!     xl=exp_rn((1-nc)*log_rn(h))                                      !yil11
-!   +ei
-!   +if .not.crlibm
-!     xl=exp((1-nc)*log(h))                                            !yil11
-!   +ei
+!       xl=h**(1-nc)
++if crlibm
+        xl=exp_rn((1-nc)*log_rn(h))                                      !yil11
++ei
++if .not.crlibm
+        xl=exp((1-nc)*log(h))                                            !yil11
++ei
++if debug
+!       call wda('errfq',q,nc,0,0,0)
+!       call wda('errfh',h,nc,0,0,0)
+!       call wda('errfxl',xl,nc,0,0,0)
++ei
++if debug
+!       call wda('errfxlrn',xl,nc,0,0,0)
++ei
         xh=y+0.5d0/h
         yh=x
         nu=10+int(21d0*q)
++if debug
+!       call wda('errfxh',xh,nu,0,0,0)
+!       call wda('errfyh',yh,nu,0,0,0)
++ei
         rx(nu+1)=0d0
         ry(nu+1)=0d0
         do 10 n=nu,1,-1
@@ -11646,7 +12226,19 @@ cc2008
       enddo
  165  if(i1.gt.72) call prror(104)
       call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
++ei
++if .not.fio
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
++ei
++if nagfor
+      call disable_xp()
++ei
       if(kz(i).eq.25) then
         ed(i)=ed(i)/two
         ek(i)=ek(i)/two
@@ -11761,7 +12353,19 @@ cc2008
       xrms0=zero
       zpl0=zero
       zrms0=zero
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,xpl0,xrms0,zpl0,zrms0
++ei
++if .not.fio
       read(ch1,*) idat,xpl0,xrms0,zpl0,zrms0
++ei
++if nagfor
+      call disable_xp()
++ei
       do 180 j=1,il
         if(idat.ne.bez(j)) goto 180
         xpl(j)=xpl0
@@ -11809,7 +12413,13 @@ cc2008
         if(ch(1:1).eq.'/') goto 210
       endif
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & mper,(msym(k),k=1,mper)
++ei
++if .not.fio
       read(ch1,*) mper,(msym(k),k=1,mper)
++ei
       if(mper.gt.nper) call prror(17)
       i=0
   220 do 230 m=1,40
@@ -11832,7 +12442,13 @@ cc2008
         endif
       endif
       call intepr(2,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,(ilm0(m),m=1,40)
++ei
++if .not.fio
       read(ch1,*) idat,(ilm0(m),m=1,40)
++ei
       if(idat.eq.idum) goto 270
       i=i+1
       if(i.gt.nblo-1) call prror(18)
@@ -11902,7 +12518,13 @@ cc2008
         endif
   420 continue
   430 call intepr(3,i2,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & (ilm0(k),k=1,40)
++ei
++if .not.fio
       read(ch1,*) (ilm0(k),k=1,40)
++ei
       do 490 k=1,40
         if(ilm0(k).eq.idum) goto 490
         if(ilm0(k).eq.go) goto 480
@@ -11937,25 +12559,127 @@ cc2008
         goto 500
       endif
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
       if(iclr.eq.1) then
++if fio
+        read(ch1,*,round='nearest')                                     &
+     & itra,chi0,chid,rat,iver
++ei
++if .not.fio
         read(ch1,*) itra,chi0,chid,rat,iver
++ei
         if(itra.gt.2) call prror(40)
       endif
++if fio
+      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+     & exz(1,1)
++ei
++if .not.fio
       if(iclr.eq.2) read(ch1,*) exz(1,1)
++ei
++if fio
+      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
+     & exz(1,2)
++ei
++if .not.fio
       if(iclr.eq.3) read(ch1,*) exz(1,2)
++ei
++if fio
+      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
+     & exz(1,3)
++ei
++if .not.fio
       if(iclr.eq.4) read(ch1,*) exz(1,3)
++ei
++if fio
+      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
+     & exz(1,4)
++ei
++if .not.fio
       if(iclr.eq.5) read(ch1,*) exz(1,4)
++ei
++if fio
+      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
+     & exz(1,5)
++ei
++if .not.fio
       if(iclr.eq.6) read(ch1,*) exz(1,5)
++ei
++if fio
+      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
+     & exz(1,6)
++ei
++if .not.fio
       if(iclr.eq.7) read(ch1,*) exz(1,6)
++ei
++if fio
+      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
+     & exz(2,1)
++ei
++if .not.fio
       if(iclr.eq.8) read(ch1,*) exz(2,1)
++ei
++if fio
+      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
+     & exz(2,2)
++ei
++if .not.fio
       if(iclr.eq.9) read(ch1,*) exz(2,2)
++ei
++if fio
+      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
+     & exz(2,3)
++ei
++if .not.fio
       if(iclr.eq.10) read(ch1,*) exz(2,3)
++ei
++if fio
+      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
+     & exz(2,4)
++ei
++if .not.fio
       if(iclr.eq.11) read(ch1,*) exz(2,4)
++ei
++if fio
+      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
+     & exz(2,5)
++ei
++if .not.fio
       if(iclr.eq.12) read(ch1,*) exz(2,5)
++ei
++if fio
+      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
+     & exz(2,6)
++ei
++if .not.fio
       if(iclr.eq.13) read(ch1,*) exz(2,6)
++ei
++if fio
+      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
+     & e0
++ei
++if .not.fio
       if(iclr.eq.14) read(ch1,*) e0
++ei
++if fio
+      if(iclr.eq.15) read(ch1,*,round='nearest')                        &
+     & ej(1)
++ei
++if .not.fio
       if(iclr.eq.15) read(ch1,*) ej(1)
++ei
++if fio
+      if(iclr.eq.16) read(ch1,*,round='nearest')                        &
+     & ej(2)
++ei
++if .not.fio
       if(iclr.eq.16) read(ch1,*) ej(2)
++ei
++if nagfor
+      call disable_xp()
++ei
       if(iclr.ne.16) goto 500
       dp1=exz(1,6)
       iclr=0
@@ -11973,10 +12697,27 @@ cc2008
         goto 510
       endif
       ch1(:83)=ch(:80)//' / '
++if fio
+      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
++ei
++if .not.fio
       if(iclr.eq.1) read(ch1,*)                                         &
++ei
      &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2)
++if fio
+      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+     & idz(1),idz(2),idfor,irew,iclo6
++ei
++if .not.fio
       if(iclr.eq.2) read(ch1,*) idz(1),idz(2),idfor,irew,iclo6
++ei
++if fio
+      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
+     & nde(1),nde(2),                                                   &
++ei
++if .not.fio
       if(iclr.eq.3) read(ch1,*) nde(1),nde(2),                          &
++ei
      &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu
       if(iclo6.eq.5.or.iclo6.eq.6) then
         iclo6=iclo6-4
@@ -12005,12 +12746,24 @@ cc2008
         numlr=0
         napx=1
         imc=1
++if fio
+        read(ch1,*,round='nearest')                                     &
+     & nord,nvar,preda,nsix,ncor
++ei
++if .not.fio
         read(ch1,*) nord,nvar,preda,nsix,ncor
++ei
         if(nvar.le.4) ition=0
         if(nord.le.0.or.nvar.le.0) call prror(91)
       else
         call intepr(3,1,ch,ch1)
++if fio
+        read(ch1,*,round='nearest')                                     &
+     & (ilm0(i),i=1,ncor)
++ei
++if .not.fio
         read(ch1,*) (ilm0(i),i=1,ncor)
++ei
       endif
       if(iclo6.eq.1.or.iclo6.eq.2) nsix=0
       if(nvar.ne.6) then
@@ -12080,8 +12833,26 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 570
       call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      if(l.eq.1) read(ch1,*,round='nearest')                            &
+     & iss(1),cro(1),ichrom0
++ei
++if .not.fio
       if(l.eq.1) read(ch1,*) iss(1),cro(1),ichrom0
++ei
++if fio
+      if(l.eq.2) read(ch1,*,round='nearest')                            &
+     & iss(2),cro(2)
++ei
++if .not.fio
       if(l.eq.2) read(ch1,*) iss(2),cro(2)
++ei
++if nagfor
+      call disable_xp()
++ei
   580 continue
       do 590 j=1,il
       if(iss(1).eq.bez(j)) is(1)=j
@@ -12116,7 +12887,13 @@ cc2008
       endif
       call intepr(1,1,ch,ch1)
       if(l.eq.1) then
++if fio
+        read(ch1,*,round='nearest')                                     &
+     & iqq(1),qw0(1),iqmod6
++ei
++if .not.fio
         read(ch1,*) iqq(1),qw0(1),iqmod6
++ei
         if(iqmod6.eq.1) then
           iqmod6=0
         elseif(iqmod6.eq.2) then
@@ -12126,14 +12903,38 @@ cc2008
           iqmod6=1
         endif
       endif
++if nagfor
+      call enable_xp()
++ei
++if fio
+      if(l.eq.2) read(ch1,*,round='nearest')                            &
+     & iqq(2),qw0(2)
++ei
++if .not.fio
       if(l.eq.2) read(ch1,*) iqq(2),qw0(2)
++ei
++if fio
+      if(l.eq.3) read(ch1,*,round='nearest')                            &
+     & iqq(3),qw0(3)
++ei
++if .not.fio
       if(l.eq.3) read(ch1,*) iqq(3),qw0(3)
++ei
++if nagfor
+      call disable_xp()
++ei
   630 continue
   640 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 640
       call intepr(4,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & iqq(4),iqq(5)
++ei
++if .not.fio
       read(ch1,*) iqq(4),iqq(5)
++ei
       if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni                  &
      &.and.abs(qw0(3)).gt.pieni) then
         do 650 j=1,il
@@ -12165,7 +12966,13 @@ cc2008
       if(ch(1:1).eq.'/') goto 660
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,nt,ilin0,ntco,eui,euii
++ei
++if .not.fio
       read(ch1,*) idat,nt,ilin0,ntco,eui,euii
++ei
       iprint=0
       if(idat.ne.'BLOCK'.and.idat.ne.'ELEMENT') call prror(45)
       if(idat.eq.'BLOCK') iprint=1
@@ -12178,7 +12985,13 @@ cc2008
       if(ch(1:1).eq.'/') goto 690
       if(ch(:4).eq.next) goto 110
       call intepr(2,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & (ilm0(m),m=1,40)
++ei
++if .not.fio
       read(ch1,*) (ilm0(m),m=1,40)
++ei
       do 700 m=1,40
       if(ilm0(m).eq.idum) goto 700
       nlin=nlin+1
@@ -12197,8 +13010,26 @@ cc2008
       goto 710
       endif
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
++if fio
+      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
+     & harm,alc,u0,phag,tlen,pma,ition,dppoff
++ei
++if .not.fio
       if(iclr.eq.1) read(ch1,*) harm,alc,u0,phag,tlen,pma,ition,dppoff
++ei
++if fio
+      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+     & dpscor,sigcor
++ei
++if .not.fio
       if(iclr.eq.2) read(ch1,*) dpscor,sigcor
++ei
++if nagfor
+      call disable_xp()
++ei
       if(iclr.ne.2) goto 710
       iclr=0
       if(abs(pma-pmap).le.c1m1) pmat=pmap
@@ -12302,7 +13133,19 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 740
       call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & imn,r0,benki
++ei
++if .not.fio
       read(ch1,*) imn,r0,benki
++ei
++if nagfor
+      call disable_xp()
++ei
       i=1
       r0a=one
       im=im+1
@@ -12335,7 +13178,19 @@ cc2008
       if(ch(1:1).eq.'/') goto 780
       if(ch(:4).eq.next) goto 110
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & bk0d,bkad,ak0d,akad
++ei
++if .not.fio
       read(ch1,*) bk0d,bkad,ak0d,akad
++ei
++if nagfor
+      call disable_xp()
++ei
       if(abs(bk0d).gt.pieni.or.abs(bkad).gt.pieni                       &
      &.or.abs(ak0d).gt.pieni.or.abs(akad).gt.pieni) nmu(j)=i
 +if cr
@@ -12370,7 +13225,13 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 790
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & izu0, mmac, mout, mcut
++ei
++if .not.fio
       read(ch1,*) izu0, mmac, mout, mcut
++ei
       mcut=iabs(mcut)
 +if vvector
       if(mmac.gt.nmac) call prror(55)
@@ -12471,9 +13332,18 @@ cc2008
                 goto 820
               endif
               call intepr(3,1,ch,ch1)
++if fio
+              read(ch1,*,round='nearest')                               &
+     & ilm0(1)
++ei
++if .not.fio
               read(ch1,*) ilm0(1)
++ei
               iexnum=iexnum+1
               bezext(iexnum)=ilm0(1)
++if nagfor
+      call enable_xp()
++ei
               read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
      &extaux(3)
               read(16,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
@@ -12500,6 +13370,15 @@ cc2008
               read(16,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
      &extaux(38)
               read(16,*,end=870,iostat=ierro) extaux(39),extaux(40)
++if crlibm
+      do k=1,40
+        call roundnulp(extaux(k),1024)
+!       extaux(k)=DBLE(SNGL(extaux(k)))
+      enddo
++ei
++if nagfor
+      call disable_xp()
++ei
               if(ierro.gt.0) call prror(80)
               iexread=1
               goto 840
@@ -12511,9 +13390,15 @@ cc2008
   840         continue
             endif
             if(ilm0(1).eq.bez(ix)) then
++if debug
+!             call warr('ilm0(1)',0d0,1,i,0,0)
++ei
               icext(i)=ix
               do 850 k=1,40
                 exterr(i,k)=extaux(k)
++if debug
+!     call warr('extaux',extaux(k),i,k,0,0)
++ei
   850         continue
               iexread=0
               goto 860
@@ -12574,7 +13459,16 @@ cc2008
                 goto 1820
               endif
               call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+              read(ch1,*,round='nearest')                               &
+     & ilm0(1),tcnst
++ei
++if .not.fio
               read(ch1,*) ilm0(1),tcnst
++ei
               iexnum=iexnum+1
               bezext(iexnum)=ilm0(1)
               read(35,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
@@ -12603,6 +13497,9 @@ cc2008
               read(35,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
      &extaux(38)
               read(35,*,end=870,iostat=ierro) extaux(39),extaux(40)
++if nagfor
+      call disable_xp()
++ei
               if(ierro.gt.0) call prror(80)
               iexread=1
               goto 1840
@@ -12679,7 +13576,34 @@ cc2008
                 goto 1550
               endif
               call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+              read(ch1,*,round='nearest')                               &
+     & ilm0(1),alignx,alignz,tilt
++ei
++if .not.fio
               read(ch1,*) ilm0(1),alignx,alignz,tilt
++ei
+!Eric
++if crlibm
+!             alignx=DBLE(SNGL(alignx))
+!             alignz=DBLE(SNGL(alignz))
+!             tilt=DBLE(SNGL(tilt))
+              call roundnulp(alignx,1024)
+              call roundnulp(alignz,1024)
+              call roundnulp(tilt,1024)
++ei
++if nagfor
+      call disable_xp()
++ei
++if debug
+!     call warr('ilm0(1)',0d0,1,0,0,0)
+!     call warr('alignx',alignx,I,1,0,0)
+!     call warr('alignz',alignz,I,2,0,0)
+!     call warr('tilt',tilt,I,3,0,0)
++ei
               iexnum=iexnum+1
               bezext(iexnum)=ilm0(1)
               iexread=1
@@ -12732,7 +13656,19 @@ cc2008
             read(30,10020,end=1591,iostat=ierro) ch
             if(ierro.gt.0) call prror(87)
             call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+            read(ch1,*,round='nearest')                                 &
+     & ilm0(1),zfz(izu-2)
++ei
++if .not.fio
             read(ch1,*) ilm0(1),zfz(izu-2)
++ei
++if nagfor
+      call disable_xp()
++ei
             iexnum=iexnum+1
             if(kz(ix).eq.11) izu=izu+2*mmul
           endif
@@ -12789,7 +13725,19 @@ cc2008
                 goto 1594
               endif
               call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+              read(ch1,*,round='nearest')                               &
+     & ilm0(1),dummy,alignx,alignz,tilt
++ei
++if .not.fio
               read(ch1,*) ilm0(1),dummy,alignx,alignz,tilt
++ei
++if nagfor
+      call disable_xp()
++ei
 !hr05         if((abs(alignx)+abs(alignz)+abs(tilt)).le.pieni)          &
               if(((abs(alignx)+abs(alignz))+abs(tilt)).le.pieni)        &!hr05
      &goto 1595
@@ -12816,8 +13764,13 @@ cc2008
  1591   continue
       endif
       goto 110
++if nagfor
+  870 call disable_xp()
+      call prror(80)
++ei
++if .not.nagfor
   870 call prror(80)
-
++ei
 !-----------------------------------------------------------------------
 !  ORGANISATION OF RANDOM NUMBERS
 !-----------------------------------------------------------------------
@@ -12842,7 +13795,19 @@ cc2008
       if(ch(1:1).eq.'/') goto 910
       if(ch(:4).eq.next) goto 110
       call intepr(3,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,bezr(2,iorg),bezr(3,iorg)
++ei
++if .not.fio
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
++ei
++if nagfor
+      call disable_xp()
++ei
       if(idat.ne.next) then
       if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum) write  &
      &(6,10360) idat
@@ -12900,10 +13865,40 @@ cc2008
       goto 110
       endif
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
++if fio
+      if(iclr.eq.1) read(ch1,*,round='nearest')                         
+     & itco,dma,dmap
++ei
++if .not.fio
       if(iclr.eq.1) read(ch1,*) itco,dma,dmap
++ei
++if fio
+      if(iclr.eq.2) read(ch1,*,round='nearest')                         
+     & itqv,dkq,dqq
++ei
++if .not.fio
       if(iclr.eq.2) read(ch1,*) itqv,dkq,dqq
++ei
++if fio
+      if(iclr.eq.3) read(ch1,*,round='nearest')                         
+     & itcro,dsm0,dech
++ei
++if .not.fio
       if(iclr.eq.3) read(ch1,*) itcro,dsm0,dech
++ei
++if fio
+      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
+     & de0,ded,dsi,aper(1),aper(2)
++ei
++if .not.fio
       if(iclr.eq.4) read(ch1,*) de0,ded,dsi,aper(1),aper(2)
++ei
++if nagfor
+      call disable_xp()
++ei
       if(iclr.ne.4) goto 940
       iclr=0
       goto 110
@@ -12922,7 +13917,19 @@ cc2008
       apxx=zero
       apzz=zero
       call intepr(8,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,irel,apxx,apzz
++ei
++if .not.fio
       read(ch1,*) idat,irel,apxx,apzz
++ei
++if nagfor
+      call disable_xp()
++ei
       do 970 j=1,il
       if(idat.ne.bez(j)) goto 970
       kp(j)=1
@@ -12954,14 +13961,32 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 980
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & sigma0,ncorru,ncorrep
++ei
++if .not.fio
       read(ch1,*) sigma0,ncorru,ncorrep
++ei
++if nagfor
+      call disable_xp()
++ei
       iclo=1
   990 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 990
       iele=idum
       call intepr(4,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,iele
++ei
++if .not.fio
       read(ch1,*) idat,iele
++ei
       if(idat.eq.next) goto 110
       if(idat.ne.'HMON='.and.idat.ne.'HCOR='.and. idat.ne.'VMON='.and.  &
      &idat.ne.'VCOR=') call prror(44)
@@ -13019,7 +14044,19 @@ cc2008
       if(ch(:4).eq.next) goto 110
       icoe=ii
       call intepr(5,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,(ratio(ii,l),icel(ii,l),l=1,20)
++ei
++if .not.fio
       read(ch1,*) idat,(ratio(ii,l),icel(ii,l),l=1,20)
++ei
++if nagfor
+      call disable_xp()
++ei
       do 1080 j=1,il
       if(idat.ne.bez(j)) goto 1070
       kp(j)=5
@@ -13073,7 +14110,19 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1110
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & nta,nte,qxt,qzt,tam1,tam2,ipt,totl
++ei
++if .not.fio
       read(ch1,*) nta,nte,qxt,qzt,tam1,tam2,ipt,totl
++ei
++if nagfor
+      call disable_xp()
++ei
       if(nta.lt.2) call prror(37)
       if(nte.lt.nta.or.nte.gt.9) call prror(37)
       isub=1
@@ -13085,8 +14134,20 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1120
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & nre
++ei
++if .not.fio
       read(ch1,*) nre
++ei
++if fio
+      if(nre.ne.0) read(ch1,*,round='nearest')                          &
+     & nre,npp,nrr(1),nrr(2),nrr(3),                                    &
++ei
++if .not.fio
       if(nre.ne.0) read(ch1,*) nre,npp,nrr(1),nrr(2),nrr(3),            &
++ei
      &ipr(1),ipr(2),ipr(3)
       if(nre.ne.0.and.(npp.lt.2.or.npp.gt.nrco)) call prror(46)
       if(nre.lt.0.or.nre.gt.3) call prror(47)
@@ -13096,8 +14157,20 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1130
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & nur
++ei
++if .not.fio
       read(ch1,*) nur
++ei
++if fio
+      if(nur.ne.0) read(ch1,*,round='nearest')                          &
+     & nur,nu(1),nu(2),nu(3)
++ei
++if .not.fio
       if(nur.ne.0) read(ch1,*) nur,nu(1),nu(2),nu(3)
++ei
       if(nur.lt.0.or.nur.gt.3) call prror(49)
       if(nu(1).gt.9.or.nu(2).gt.9.or.nu(3).gt.9                         &
      &.or.nu(1).lt.0.or.nu(2).lt.0.or.nu(3).lt.0) call prror(50)
@@ -13105,24 +14178,72 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1140
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & totl,qxt,qzt,tam1,tam2
++ei
++if .not.fio
       read(ch1,*) totl,qxt,qzt,tam1,tam2
++ei
++if nagfor
+      call disable_xp()
++ei
  1150 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1150
       call intepr(3,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & (ilm0(i),i=1,6)
++ei
++if .not.fio
       read(ch1,*) (ilm0(i),i=1,6)
++ei
  1160 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1160
       call intepr(6,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & nch
++ei
++if .not.fio
       read(ch1,*) nch
++ei
++if fio
+      if(nch.ne.0) read(ch1,*,round='nearest')                          &
+     & nch,ilm0(7),ilm0(8)
++ei
++if .not.fio
       if(nch.ne.0) read(ch1,*) nch,ilm0(7),ilm0(8)
++ei
  1170 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1170
       call intepr(7,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & nqc
++ei
++if .not.fio
       read(ch1,*) nqc
++ei
++if nagfor
+      call enable_xp()
++ei
++if fio
+      if(nqc.ne.0) read(ch1,*,round='nearest')                          &
+     & nqc,ilm0(9),ilm0(10),qw0
++ei
++if .not.fio
       if(nqc.ne.0) read(ch1,*) nqc,ilm0(9),ilm0(10),qw0
++ei
++if nagfor
+      call disable_xp()
++ei
       do 1190 k=1,10
       do 1180 j=1,il
         if(ilm0(k).ne.bez(j)) goto 1180
@@ -13149,12 +14270,30 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1200
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & qxt,qzt,tam1,tam2,totl
++ei
++if .not.fio
       read(ch1,*) qxt,qzt,tam1,tam2,totl
++ei
++if nagfor
+      call disable_xp()
++ei
  1210 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1210
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & mesa,mp,m21,m22,m23,ise1,ise2,ise3
++ei
++if .not.fio
       read(ch1,*) mesa,mp,m21,m22,m23,ise1,ise2,ise3
++ei
       if(mp.lt.2.or.mp.gt.9) call prror(37)
       if(abs(m21).gt.mp.or.abs(m22).gt.mp                               &
      &.or.abs(m23).gt.mp) call prror(48)
@@ -13166,7 +14305,13 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1240
       call intepr(3,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,(ilm0(m),m=2,40)
++ei
++if .not.fio
       read(ch1,*) idat,(ilm0(m),m=2,40)
++ei
       if(idat.eq.next) goto 110
       ilm0(1)=idat
       ka=k0+1
@@ -13197,12 +14342,36 @@ cc2008
       goto 1280
       endif
       ch1(:83)=ch(:80)//' / '
++if nagfor
+      call enable_xp()
++ei
       if(iclr.eq.1) toptit(1)=ch
++if fio
+      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+     & iav,nstart,nstop,iwg,dphix,dphiz,                                &
++ei
++if .not.fio
       if(iclr.eq.2) read(ch1,*) iav,nstart,nstop,iwg,dphix,dphiz,       &
++ei
      &iskip,iconv,imad,cma1,cma2
++if fio
+      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
+     & qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
++ei
++if .not.fio
       if(iclr.eq.3) read(ch1,*) qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
++ei
++if fio
+      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
+     & kwtype,itf,icr,idis,icow,istw,iffw,                              &
++ei
++if .not.fio
       if(iclr.eq.4) read(ch1,*) kwtype,itf,icr,idis,icow,istw,iffw,     &
++ei
      &nprint,ndafi
++if nagfor
+      call disable_xp()
++ei
       kwtype=0
       icr=0
       if(iskip.le.0) iskip=1
@@ -13232,7 +14401,19 @@ cc2008
       call intepr(1,1,ch,ch1)
       irco=irco+1
       if(irco.gt.nele) call prror(51)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,ram,rfr,rph,nrturn
++ei
++if .not.fio
       read(ch1,*) idat,ram,rfr,rph,nrturn
++ei
++if nagfor
+      call disable_xp()
++ei
       do 1310 j=1,il
       if(idat.eq.bez(j)) then
         nrel(irco)=j
@@ -13251,7 +14432,13 @@ cc2008
       if(ierro.gt.0) call prror(58)
       if(ch(1:1).eq.'/') goto 1330
       call intepr(3,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,(ilm0(m),m=2,4)
++ei
++if .not.fio
       read(ch1,*) idat,(ilm0(m),m=2,4)
++ei
       if(idat.eq.next) then
       iskew=0
       goto 110
@@ -13266,7 +14453,19 @@ cc2008
         goto 1360
       endif
       call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & ilm0(4+i),qwsk(i)
++ei
++if .not.fio
       read(ch1,*) ilm0(4+i),qwsk(i)
++ei
++if nagfor
+      call disable_xp()
++ei
  1350 continue
  1360 continue
       do 1380 i=1,6
@@ -13329,79 +14528,255 @@ cc2008
       endif
       ch1(:83)=ch(:80)//' / '
 !APRIL2005
++if fio
+      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
+     & do_coll
++ei
++if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
++ei
++if fio
+      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+     & nloop,myenom
++ei
++if .not.fio
       if(iclr.eq.2) read(ch1,*) nloop,myenom
++ei
 !JUNE2005
++if fio
+!      if(iclr.eq.3) read(ch1,*,round='nearest')                        &
+     & mynex,mdex,myney,mdey
++ei
++if .not.fio
 !      if(iclr.eq.3) read(ch1,*) mynex,mdex,myney,mdey
++ei
++if fio
+      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
+     & do_thisdis,mynex,mdex,myney,mdey,       &
++ei
++if .not.fio
       if(iclr.eq.3) read(ch1,*) do_thisdis,mynex,mdex,myney,mdey,       &
++ei
      &filename_dis,enerror,bunchlength
 !JUNE2005
 !UPGRADE JANUARY 2005
++if fio
+!      if(iclr.eq.4) read(ch1,*,round='nearest')                        &
+     & NSIG_PRIM,NSIG_SEC
++ei
++if .not.fio
 !      if(iclr.eq.4) read(ch1,*) NSIG_PRIM,NSIG_SEC
++ei
++if fio
+!      if(iclr.eq.4) read(ch1,*,round='nearest')                        
+     & nsig_prim,nsig_sec,nsig_ter
++ei
++if .not.fio
 !      if(iclr.eq.4) read(ch1,*) nsig_prim,nsig_sec,nsig_ter
++ei
++if fio
+      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
+     & do_nsig,                                &
++ei
++if .not.fio
       if(iclr.eq.4) read(ch1,*) do_nsig,                                &
++ei
      &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
      &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,             &
      &nsig_tcli,                                                        &
 !     &nsig_tcth,nsig_tctv,                                              &
      &nsig_tcdq,nsig_tcstcdq,nsig_tdi
 !APRIL2005
++if fio
+!      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
++ei
++if .not.fio
 !      if(iclr.eq.5) read(ch1,*)                                         &
++ei
 !     &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
 !     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8
++if fio
+!      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
+!    & emitx0,emity0
++ei
++if .not.fio
 !      if(iclr.eq.6) read(ch1,*) emitx0,emity0
++ei
++if fio
+!      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
+!    & do_select,do_nominal,                   &
++ei
++if .not.fio
 !      if(iclr.eq.7) read(ch1,*) do_select,do_nominal,                   &
++ei
 !     &rnd_seed,dowrite_dist,name_sel,do_oneside,                        &
 !     &dowrite_impact,dowrite_secondary,dowrite_amplitude
++if fio
+!      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
+!    & xbeat,xbeatphase,ybeat,                                           &
++ei
++if .not.fio
 !      if(iclr.eq.8) read(ch1,*) xbeat,xbeatphase,ybeat,                 &
++ei
 !     &ybeatphase
++if fio
+!      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
+!    & c_rmstilt_prim,c_rmstilt_sec,                                     &
++ei
++if .not.fio
 !      if(iclr.eq.9) read(ch1,*) c_rmstilt_prim,c_rmstilt_sec,           &
++ei
 !     &c_systilt_prim,c_systilt_sec
++if fio
+!      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
+!    & radial,nr,ndr
++ei
++if .not.fio
 !      if(iclr.eq.10) read(ch1,*) radial,nr,ndr
++ei
++if fio
+!      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
+!    & driftsx,driftsy,cut_input,                                        &
++ei
++if .not.fio
 !      if(iclr.eq.11) read(ch1,*) driftsx,driftsy,cut_input,             &
++ei
 !     &systilt_antisymm
++if fio
+!      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
+!    & ipencil,pencil_offset
++ei
++if .not.fio
 !      if(iclr.eq.12) read(ch1,*) ipencil,pencil_offset
++ei
 !!APRIL2005
++if fio
+!      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
+     & coll_db,ibeam
++ei
++if .not.fio
 !      if(iclr.eq.13) read(ch1,*) coll_db,ibeam
++ei
 !!APRIL2005
++if fio
+!      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
+!    & dowritetracks, cern, castordir,                                   &
++ei
++if .not.fio
 !      if(iclr.eq.14) read(ch1,*) dowritetracks, cern, castordir,        &
++ei
 !     &jobnumber, sigsecut2, sigsecut3
 !!
 !      if(iclr.ne.14) goto 1285
 !SEPT2005
++if fio
+      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
++ei
++if .not.fio
       if(iclr.eq.5) read(ch1,*)                                         &
++ei
      &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
      &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
      &nsig_tcxrp,nsig_tcryo
++if fio
+      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
+     & n_slices,smin_slices,smax_slices,                                &
++ei
++if .not.fio
       if(iclr.eq.6) read(ch1,*) n_slices,smin_slices,smax_slices,       &
++ei
      &recenter1,recenter2
++if fio
+      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
++ei
++if .not.fio
       if(iclr.eq.7) read(ch1,*)                                         &
++ei
      & fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1
++if fio
+      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
++ei
++if .not.fio
       if(iclr.eq.8) read(ch1,*)                                         &
++ei
      & fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2
 !
++if fio
+      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
+     & emitx0,emity0
++ei
++if .not.fio
       if(iclr.eq.9) read(ch1,*) emitx0,emity0
++ei
++if fio
+      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
+     & do_select,do_nominal,                  &
++ei
++if .not.fio
       if(iclr.eq.10) read(ch1,*) do_select,do_nominal,                  &
++ei
      &rnd_seed,dowrite_dist,name_sel,do_oneside,                        &
      &dowrite_impact,dowrite_secondary,dowrite_amplitude
++if fio
+      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
+     & xbeat,xbeatphase,ybeat,                                          &
++ei
++if .not.fio
       if(iclr.eq.11) read(ch1,*) xbeat,xbeatphase,ybeat,                &
++ei
      &ybeatphase
 !AUGUST2006 ADDED offset variables for mechanical errors    ---- TW
 !JANUAR2007 added rms error for gap and switch to min gap   ---- TW
++if fio
+      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
+     & c_rmstilt_prim,c_rmstilt_sec,                                    &
++ei
++if .not.fio
       if(iclr.eq.12) read(ch1,*) c_rmstilt_prim,c_rmstilt_sec,          &
++ei
      &c_systilt_prim,c_systilt_sec,c_rmsoffset_prim,c_rmsoffset_sec,    &
      &c_sysoffset_prim,c_sysoffset_sec,c_offsettilt_seed,               &
      &c_rmserror_gap,do_mingap
++if fio
+      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
+     & radial,nr,ndr
++ei
++if .not.fio
       if(iclr.eq.13) read(ch1,*) radial,nr,ndr
++ei
++if fio
+      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
+     & driftsx,driftsy,cut_input,                                       &
++ei
++if .not.fio
       if(iclr.eq.14) read(ch1,*) driftsx,driftsy,cut_input,             &
++ei
      &systilt_antisymm
 !AUGUST2006 ADDED rmsx, rmsy and distr. type for pencil beam ---- TW
++if fio
+      if(iclr.eq.15) read(ch1,*,round='nearest')                        &
+     &                                                                  &
++ei
++if .not.fio
       if(iclr.eq.15) read(ch1,*)                                        &
++ei
      &ipencil,pencil_offset,pencil_rmsx,pencil_rmsy,pencil_distr
 !APRIL2005
++if fio
+      if(iclr.eq.16) read(ch1,*,round='nearest')                        &
+     & coll_db,ibeam
++ei
++if .not.fio
       if(iclr.eq.16) read(ch1,*) coll_db,ibeam
++ei
 !APRIL2005
++if fio
+      if(iclr.eq.17) read(ch1,*,round='nearest')                        &
+     & dowritetracks, cern, castordir,                                  &
++ei
++if .not.fio
       if(iclr.eq.17) read(ch1,*) dowritetracks, cern, castordir,        &
++ei
      &jobnumber, sigsecut2, sigsecut3
 !
       if(iclr.ne.17) goto 1285
@@ -13445,7 +14820,13 @@ cc2008
       endif
       inorm=1
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & nordf,nvarf,nord1,idptr
++ei
++if .not.fio
       read(ch1,*) nordf,nvarf,nord1,idptr
++ei
       if(nord.ne.0.and.nordf.gt.nord+1) imod1=1
       if(nvar.ne.0.and.nvarf.gt.nvar) then
         nvarf=nvar
@@ -13462,13 +14843,31 @@ cc2008
       if(ch(:4).eq.next) goto 110
       icorr=1
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & nctype,ncor
++ei
++if .not.fio
       read(ch1,*) nctype,ncor
++ei
       if(ncor.gt.mcor) call prror(65)
       if(ncor.gt.0) then
       read(3,10020,end=1530,iostat=ierro) ch
       ch1(:83)=ch(:80)//' / '
       call intepr(3,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & (coel(i),i=1,ncor)
++ei
++if .not.fio
       read(ch1,*) (coel(i),i=1,ncor)
++ei
++if nagfor
+      call disable_xp()
++ei
       do 1430 j1=1,ncor
         do 1420 j2=1,il
           if(coel(j1).eq.bez(j2)) then
@@ -13494,7 +14893,13 @@ cc2008
         nord=7
       endif
       else
++if nagfor
+      call enable_xp()
++ei
       read(3,*) nmom1,nmom2,weig1,weig2,dpmax
++if nagfor
+      call disable_xp()
++ei
       if(nmom1.lt.2.or.nmom1.gt.3) call prror(75)
       if(nmom1.gt.nmom2) call prror(76)
       if(nmom2.lt.2.or.nmom2.gt.3) call prror(77)
@@ -13527,7 +14932,13 @@ cc2008
       if(ch(1:1).eq.'/') goto 1600
       if(ch(:4).eq.next) goto 110
       ch1(:83)=ch(:80)//' / '
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
++ei
++if .not.fio
       read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
++ei
       if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
       if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
       if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
@@ -13551,7 +14962,19 @@ cc2008
       if(ch(1:1).eq.'/') goto 1610
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & idat,i,xang,xplane
++ei
++if .not.fio
       read(ch1,*) idat,i,xang,xplane
++ei
++if nagfor
+      call disable_xp()
++ei
       if(i.lt.0) i=0
       do 1620 j=1,il
       if(idat.eq.bez(j).and.kz(j).eq.20) then
@@ -13571,7 +14994,13 @@ cc2008
       if(ch(1:1).eq.'/') goto 1700
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & imn
++ei
++if .not.fio
       read(ch1,*) imn
++ei
       imtr0=imtr0+1
       if(imtr0.gt.ntr) call prror(100)
       do 1710 j=1,il
@@ -13606,7 +15035,19 @@ cc2008
       if(ch(:4).eq.next) call prror(99)
       ch1(:83)=ch(:80)//' / '
       j1=j1+3
++if nagfor
+      call enable_xp()
++ei
++if fio
+      read(ch1,*,round='nearest')                                       &
+     & cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
++ei
++if .not.fio
       read(ch1,*) cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
++ei
++if nagfor
+      call disable_xp()
++ei
       if(j1.lt.6) goto 1730
       do j=1,6
         j1=0
@@ -13616,8 +15057,20 @@ cc2008
         if(ch(:4).eq.next) call prror(99)
         ch1(:83)=ch(:80)//' / '
         j1=j1+3
++if nagfor
+      call enable_xp()
++ei
++if fio
+        read(ch1,*,round='nearest')                                     &
+     & rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),                           &
++ei
++if .not.fio
         read(ch1,*) rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),              &
++ei
      &rrtr(imtr0,j,j1)
++if nagfor
+      call disable_xp()
++ei
         if(j1.lt.6) goto 1740
       enddo
       goto 1700
@@ -14162,7 +15615,13 @@ cc2008
         ii=ii+1
         if(ch(:4).ne.'NEXT') then
           call intepr(1,1,ch,ch1)
++if fio
+          read(ch1,*,round='nearest')                                   &
+     & idat,ikz,rdum1,rdum2,rel1
++ei
++if .not.fio
           read(ch1,*) idat,ikz,rdum1,rdum2,rel1
++ei
           if(ikz.eq.11) then
             write(4,10000) idat,ikz,rdum1,rdum2,rel1
           else
@@ -14473,7 +15932,8 @@ cc2008
    20 continue
 +if crlibm
 !hr05 rvec0 = ((-two*log_rn(r(1)))**half)*cos_rn(two*pi*r(2))
-      rvec0 = (((-1d0*two)*log_rn(r(1)))**half)*cos_rn((two*pi)*r(2))    !hr05
+!     rvec0 = (((-1d0*two)*log_rn(r(1)))**half)*cos_rn((two*pi)*r(2))    !hr05
+      rvec0 = sqrt(((-1d0*two)*log_rn(r(1))))*cos_rn((two*pi)*r(2))      !hr05
 +ei
 +if .not.crlibm
 !hr05 rvec0 = ((-two*log(r(1)))**half)*cos(two*pi*r(2))
@@ -14488,12 +15948,10 @@ cc2008
 !     RVEC(I) = ((-TWO*LOG(R(1)))**HALF)*COS(TWO*PI*R(2))
 ! 100 CONTINUE
       return
-
       entry recuin(is1,is2)
       iseed1 = is1
       iseed2 = is2
       return
-
       entry recuut(is1,is2)
       is1 = iseed1
       is2 = iseed2
@@ -16588,11 +18046,19 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
++if debug
+!     integer umcalls,dapcalls,dokcalls,dumpl
+!     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
++ei
 +ca save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
++if debug
+!     umcalls=umcalls+1
+!     call wda('umcalls',0d0,1,umcalls,0,0)
++ei
       nd2=ndimf*2
       call etall(damap,6)
       call etall(damapi,6)
@@ -16606,9 +18072,15 @@ cc2008
       call etall(xy,6)
       call etall(h,1)
       call etall(df,6)
++if debug
+!     call wda('uml2',0d0,2,0,0,0)
++ei
       if(iqmodc.eq.1) call danot(2)
       if(iqmodc.eq.3) call danot(1)
       if(ichromc.eq.1) call danot(3)
++if debug
+!     call wda('uml3',0d0,3,0,0,0)
++ei
       icoonly=0
       if(iqmodc.eq.2.or.iqmodc.eq.4.or.ichromc.eq.2) icoonly=1
 +if fast
@@ -16674,6 +18146,9 @@ cc2008
         ed1=ed(issss(1))
         ed2=ed(issss(2))
       endif
++if debug
+!     call wda('uml4',0d0,4,0,0,0)
++ei
       call davar(x(1),ox,1)
       oxp1=oxp*(one+dps1)
       call davar(yp(1),oxp1,2)
@@ -16709,10 +18184,20 @@ cc2008
         ivar=ivar+2
       endif
 !--Normal Form Analysis for calculation of linear lattice functions
++if debug
+!     call wda('uml5',0d0,5,ilinc,0,0)
++ei
       if(ilinc.eq.1.or.ilinc.eq.2) then
         mfile=18
+!Eric
         rewind mfile
+        rewind 111
+!ERIC HERE
         call daread(damap,nvar,mfile,1.d0)
++if debug
+!     call warr('emitz',emitz,0,0,0,0)
+!     call wda('uml6',0d0,6,0,0,0)
++ei
         call mapnorm(damap,f,aa2,a1,xy,h,nord1)
         do j=1,nvar
           call dacop(damap(j),damap1(j))
@@ -16724,7 +18209,15 @@ cc2008
           call averaged(angno,damap1,.true.,angno)
           jj(5)=1
           jj(6)=1
++if debug
+!     call warr('emitz',emitz,0,0,0,0)
+!     call wda('uml7',0d0,7,0,0,0)
++ei
           call dapek(angno,jj,emitz)
++if debug
+!     call warr('emitz',emitz,1,0,0,0)
+!     call wda('uml8',0d0,8,0,0,0)
++ei
           jj(5)=0
           jj(6)=0
           if(abs(emitz).le.pieni) then
@@ -16734,6 +18227,15 @@ cc2008
             emitz=((sigz**2/emitz)*half)*c1e6                            !hr05
           endif
         endif
++if debug
+!     call warr('emitz',emitz,2,0,0,0)
+!     call wda('uml9',0d0,9,0,0,0)
++ei
++if debug
+!     call dumpbin('emitz',1,1)
+!     call dumpda('emitz',1,0)
+!     call abend('          emitz                                   ')
++ei
         jj(5)=1
         do j=1,nd2
           call dapek(a1(j),jj,dicu(j))
@@ -16766,6 +18268,13 @@ cc2008
       phi(2)=zero
       phi(3)=zero
       ibb=0
++if debug
+!     call wda('biu',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('biu',0,0)
+!     call abend('biu                                               ')
+!     endif
++ei
       do 430 i=1,iu
         if(iqmodc.eq.2.or.iqmodc.eq.4) then
           if(i.eq.niu(1)) then
@@ -16778,6 +18287,13 @@ cc2008
             clon(6)=dare(dpda)
           endif
         endif
++if debug
+!     call wda('aclon',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('aclon',0,0)
+!     call abend('aclon                                             ')
+!     endif
++ei
         if(ilinc.eq.1.and.i.eq.1) then
 +if cr
           write(lout,10000) nd2
@@ -16812,6 +18328,14 @@ cc2008
           tl=zero
 +ca umlalid
         endif
++if debug
+!     call wda('biflag',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call wda('biflag',0d0,iflag,0,0,0)
+!       call dumpda('biflag',0,0)
+!     call abend('biflag                                            ')
+!     endif
++ei
         if(iflag.eq.1) then
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
@@ -16850,8 +18374,22 @@ cc2008
                 dpdav=dare(smida(2))
 *FOX  CORRAU1(8)=SMIDA(2)-DPDAV ;
               endif
++if debug
+!     call wda('dacct',0d0,1,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('bdacct',0,0)
+!     call abend('bdaccct                                           ')
+!     endif
++ei
               call dacct(corrau2,nvar,corrau1,nvar,corrnew,nvar)
             endif
++if debug
+!     call wda('adacct?',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('adacct?',0,0)
+!     call abend('adacct?                                           ')
+!     endif
++ei
             dpdav=dare(x(1))
 *FOX  X(1)=CORROLD(1)+DPDAV ;
             dpdav=dare(yp(1))
@@ -16881,6 +18419,13 @@ cc2008
           call prror(93)
         endif
 +ca dalin1
++if debug
+!     call wda('adlin1',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('adlin1',0,0)
+!     call abend('adlin1                                            ')
+!     endif
++ei
               ipch=0
               if(iqmodc.eq.1.and.kz(jx).eq.2) then
                 if(jx.eq.iq(1).or.iratioe(jx).eq.iq(1)) then
@@ -16891,6 +18436,13 @@ cc2008
               endif
               if(ipch.ne.0) then
                 call envquad(jx,ipch)
++if debug
+!     call wda('aenvquad',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('aenvquad',0,0)
+!     call abend('aenvquad                                          ')
+!     endif
++ei
 *FOX  PUX=X(1) ;
 *FOX  PUZ=Y(1) ;
 *FOX  X(1)=ALDAQ(1,1)*PUX+ALDAQ(1,2)*PUZ+ALDAQ(1,5)*IDZ(1) ;
@@ -16953,8 +18505,22 @@ cc2008
             endif
           enddo
         endif
++if debug
+!     if (umcalls.eq.8) then
+!     call wda('bgoto430',0d0,2,0,0,0)
+!       call dumpda('bgoto430',0,0)
+!     call abend('bgoto430                                          ')
+!     endif
++ei
         goto 430
    50   ix=ix-nblo
++if debug
+!     if (umcalls.eq.8) then
+!     call wda('a50',0d0,ix,nblo,ix-nblo,0)
+!       call dumpda('a50',0,0)
+!     call abend('a50                                               ')
+!     endif
++ei
         if(abs(dare(x(1))).gt.aint(aper(1)).or.                         &
      &abs(dare(x(2))).gt.aint(aper(2))) then
 +if cr
@@ -17353,6 +18919,13 @@ cc2008
 +ca kickfho
 +ca kickfxxv
  440  continue
++if debug
+!     if (umcalls.eq.8) then
+!     call wda('a440   ',0d0,2,0,0,0)
+!       call dumpda('a440   ',0,0)
+!     call abend('a440                                              ')
+!     endif
++ei
       if(ilinc.eq.1) then
         typ=bez(ix)
 +ca umlalid
@@ -17361,6 +18934,13 @@ cc2008
  430  continue
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
++if debug
+!     call wda('afox   ',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('afox   ',0,0)
+!     call abend('afox                                              ')
+!     endif
++ei
       if(icav.eq.0.or.ithick.ne.1) then
         if(icoonly.eq.1) then
           xxtr(1,1) = dare(x(1))
@@ -17377,6 +18957,13 @@ cc2008
 *FOX  CORRAU1(4)=YP(2) ;
 *FOX  CORRAU1(5)=SIGMDA ;
 *FOX  CORRAU1(6)=DPDA1 ;
++if debug
+!     call wda('b435   ',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('b435   ',0,0)
+!     call abend('b435                                              ')
+!     endif
++ei
         do 435 kkk=1,6
           dpdav2(kkk)=dare(corrau1(kkk))
 *FOX  CORRAU1(KKK)=CORRAU1(KKK)-DPDAV2(KKK) ;
@@ -17390,6 +18977,13 @@ cc2008
 *FOX  CORRNEW(8)=SMIDA(2)-DPDAV ;
         endif
         call dacct(corrau1,nvar,corrnew,nvar,corrau2,nvar)
++if debug
+!     call wda('b436   ',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('b436   ',0,0)
+!     call abend('b436                                              ')
+!     endif
++ei
         do 436 kkk=1,6
 *FOX  CORRAU2(KKK)=CORRAU2(KKK)+DPDAV2(KKK) ;
   436   continue
@@ -17432,6 +19026,13 @@ cc2008
           aml6(i,i)=aml6(i,i)-one
         enddo
       endif
++if debug
+!     call wda('adacct?',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('adacct?',0,0)
+!     call abend('adacct?                                           ')
+!     endif
++ei
       call dacop(yp(1),damap(2))
       call dacop(yp(2),damap(4))
       if(ndimf.eq.3) then
@@ -17442,8 +19043,17 @@ cc2008
       endif
       if(iqmodc.eq.2.or.iqmodc.eq.4.or.ilin.ge.2) then
         rewind 18
+!Eric
+        rewind 111
         call daprid(damap,1,nvar,18)
       endif
++if debug
+!     call wda('boutput',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('boutput',0,0)
+!     call abend('boutput                                           ')
+!     endif
++ei
 !--now do the output
       if(iqmodc.eq.1) call danot(3)
       if(iqmodc.eq.3) call danot(2)
@@ -17519,6 +19129,13 @@ cc2008
         corr(3,2)=coefh1/det1
       endif
  470  continue
++if debug
+!     call wda('a470   ',0d0,2,0,0,0)
+!     if (umcalls.eq.8) then
+!       call dumpda('a470   ',0,0)
+!     call abend('a470                                              ')
+!     endif
++ei
       call dadal(damap,6)
       call dadal(damapi,6)
       call dadal(damap1,6)
@@ -17815,6 +19432,8 @@ cc2008
       call darea(sigmda,18)
       call darea(dpda1,18)
       rewind 18
+!Eric
+        rewind 111
       if(ition.ne.0) then
 !hr08 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr08
@@ -18586,12 +20205,7 @@ cc2008
       return
       end
 +dk maincr
-+if boinc
-      subroutine worker
-+ei
-+if .not.boinc
       program maincr
-+ei
       implicit none
 +if cr
 +ca crcoall
@@ -18694,6 +20308,10 @@ cc2008
 +if boinc
       character*256 filename
 +ei
++if debug
+!     integer umcalls,dapcalls,dokcalls,dumpl
+!     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
++ei
       dimension cmonth(12)
       data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
      &'  April   ','   May    ','   June   ','   July   ',' August  ',  &
@@ -18701,7 +20319,21 @@ cc2008
 +ca version
 !-----------------------------------------------------------------------
 +if crlibm
+! Removed the call to disable_xp for Laurent
+! but re-instated it for nagfor
++if nagfor
       call disable_xp()
++ei
++ei
++if debug
+!     umcalls=0
+!     dapcalls=0
+!     dokcalls=0
+!     dumpl=0
++ei
+      runtim=''
++if cr
+      stxt=''
 +ei
 +if boinc
       call boinc_init(0)
@@ -18726,6 +20358,9 @@ cc2008
         binrecs(i)=0
       enddo
       crtime2=0.
++if debug
+                   !call system('../crmain  >> crlog')
++ei
       lout=92
 !--   Very first get rid of any previous partial output
 +if boinc
@@ -18740,40 +20375,93 @@ cc2008
       close(lout)
 +if boinc
       call boincrf('fort.92',filename)
++if fio
+      open(lout,file=filename,form='formatted',status='unknown',        &
+     &round='nearest')
++ei
++if .not.fio
       open(lout,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(lout,file='fort.92',form='formatted',status='unknown',       &
+     &round='nearest')
++ei
++if .not.fio
       open(lout,file='fort.92',form='formatted',status='unknown')
++ei
 +ei
 !--   Now position the checkpoint/restart logfile=93
 +if boinc
       call boincrf('fort.93',filename)
++if fio
+      open(93,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(93,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(93,file='fort.93',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
       open(93,file='fort.93',form='formatted',status='unknown')
++ei
 +ei
   606 read(93,'(a255)',end=607) arecord
       goto 606
   607 backspace 93
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: '
 +if boinc
       call boincrf('fort.6',filename)
++if fio
+      open(6,file=filename,form='formatted',status='old',err=602,       &
+     &round='nearest')
++ei
++if .not.fio
       open(6,file=filename,form='formatted',status='old',err=602)
 +ei
+!--   Set up start message depending on fort.6 or not
+      stxt='SIXTRACR reruns on: '
++ei
 +if .not.boinc
++if fio
+      open(6,file='fort.6',form='formatted',status='old',err=602,       &
+     &round='nearest')
++ei
++if .not.fio
       open(6,file='fort.6',form='formatted',status='old',err=602)
 +ei
+!--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
++ei
       rerun=.true.
       goto 605
 +if boinc
   602 call boincrf('fort.6',filename)
++if fio
+      open(6,file=filename,form='formatted',status='new',               &
+     &round='nearest')
++ei
++if .not.fio
       open(6,file=filename,form='formatted',status='new')
 +ei
+!--   Set up start message depending on fort.6 or not
+      stxt='SIXTRACR starts on: '
++ei
 +if .not.boinc
++if fio
+  602 open(6,file='fort.6',form='formatted',status='new',               &
+     &round='nearest')
++ei
++if .not.fio
   602 open(6,file='fort.6',form='formatted',status='new')
++ei
+!--   Set up start message depending on fort.6 or not
+      stxt='SIXTRACR starts on: '
 +ei
 !--   Now check for restart files fort.95/96 and OPEN them
 +if boinc
@@ -18810,11 +20498,26 @@ cc2008
 +ei
 +if boinc
   609 call boincrf('fort.91',filename)
++if fio
+      open(91,file=filename,form='formatted',status='unknown',          &
+     &round='nearest')
++ei
++if .not.fio
       open(91,file=filename,form='formatted',status='unknown')
 +ei
++ei
 +if .not.boinc
++if fio
+  609 open(91,file='fort.91',form='formatted',status='unknown',         &
+     &round='nearest')
++ei
++if .not.fio
   609 open(91,file='fort.91',form='formatted',status='unknown')
 +ei
++ei
++ei
++if debug
+                   !call system('../crmain  >> crlog')
 +ei
 !-----------------------------------------------------------------------
 +ca open
@@ -18882,10 +20585,10 @@ cc2008
         endif
       endif
 +if cr
-      write(lout,*) runtim
+      write(lout,'(a80)') runtim
 +ei
 +if .not.cr
-      write(*,*) runtim
+      write(*,'(a80)') runtim
 +ei
 +if cr
 !     Log start messages
@@ -18893,6 +20596,9 @@ cc2008
       write(93,*) 'SIXTRACR MAINCR ',runtim
       endfile 93
       backspace 93
++ei
++if debug
+                   !call system('../crmain  >> crlog')
 +ei
 +if iibm
       call xuflow(0)
@@ -19030,6 +20736,10 @@ cc2008
 !hr05 rad=pi/180
       rad=pi/180d0                                                       !hr05
       call daten
++if debug
+!     call dumpbin('adaten',999,9999)
+!     call abend('after  daten                                      ')
++ei
 +if debug.and.cr
 !     write(93,*) 'ERIC IL= ',il
 !     endfile 93
@@ -19037,6 +20747,9 @@ cc2008
 +ei
 +if cr
       checkp=.true.
++if debug
+                   !call system('../crmain  >> crlog')
++ei
       call crcheck
 +ei
 +if cr
@@ -19093,6 +20806,10 @@ cc2008
       dp00=dp1
       if(napx.le.0.or.imc.le.0) goto 490
       do 260 m=1,mmac
++if debug
+!       call warr('nmac and m',0d0,nmac,m,0,0)
+!       write(*,*) 'do 260 nmac/m',nmac,m
++ei
 !--MULTIPOLE WITH THEIR RANDOM VALUES ADDED
         if(m.ge.2) then
           call recuin(m*izu0,irecuin)
@@ -19122,10 +20839,18 @@ cc2008
         endif
         if(m.eq.1) call ord
         call clorb(ded)
++if debug
+!     call dumpbin('aclorb',1,1)
+!     call abend('after  clorb                                      ')
++ei
         do 120 l=1,2
           clo0(l)=clo(l)
   120   clop0(l)=clop(l)
         call clorb(zero)
++if debug
+!     call dumpbin('aclorb',1,1)
+!     call abend('after  clorb                                      ')
++ei
         do 130 l=1,2
           ll=2*l
           di0(l)=(clo0(l)-clo(l))/ded
@@ -19136,6 +20861,10 @@ cc2008
         if(ichrom.eq.1.or.ichrom.eq.3) call chroma
         if(iskew.ne.0) call decoup
         if(ilin.eq.1.or.ilin.eq.3) call linopt(dp1)
++if debug
+!     call dumpbin('bbb',96,996)
+!     call abend('bbb                                               ')
++ei
 !--beam-beam element
         nlino=nlin
         nlin=0
@@ -19150,8 +20879,16 @@ cc2008
         endif
         if(isub.eq.1) call subre(dp1)
         if(ise.eq.1) call search(dp1)
++if debug
+!     call dumpbin('asearch',95,995)
+!     call abend('asearch                                           ')
++ei
         izu=0
         do 150 i=1,iu
++if debug
+!       call warr('i/iu',0d0,i,iu,0,0)
+!       write(*,*) 'do 150 i/iu',i,iu
++ei
           ix=ic(i)
           if(ix.le.nblo) goto 150
           ix=ix-nblo
@@ -19163,6 +20900,11 @@ cc2008
           smizf(i)=zfz(izu)*ek(ix)
           smiv(m,i)=sm(ix)+smizf(i)
           smi(i)=smiv(m,i)
++if debug
+!         call warr('smizf(i)',smizf(i),i,0,0,0)
+!         call warr('smiv(m,i)',smiv(m,i),m,i,0,0)
+!         call warr('smi(i)',smi(i),i,0,0,0)
++ei
           izu=izu+1
           xsiv(m,i)=xpl(ix)+zfz(izu)*xrms(ix)
           xsi(i)=xsiv(m,i)
@@ -19208,6 +20950,10 @@ cc2008
             izu=izu+2*mmul-2*nmz
           endif
   150   continue
++if debug
+!     call dumpbin('ado 150',150,150)
+!     call abend('ado 150                                           ')
++ei
         dp1=zero
         if(ichrom.gt.1) then
           itiono=ition
@@ -19241,6 +20987,10 @@ cc2008
           if (iclo6.eq.1.or.iclo6.eq.2) then
             if(ib.eq.1) then
 +ca clor6
++if debug
+!     call dumpbin('aclor6',1,1)
+!     call abend('after  clor6                                      ')
++ei
             endif
             if(iqmod6.eq.1) then
               do ncrr=1,iu
@@ -19279,8 +21029,16 @@ cc2008
               ncorruo=ncorru
               ncorru=1
               call clorb(zero)
++if debug
+!     call dumpbin('aclorb',1,1)
+!     call abend('after  clorb                                      ')
++ei
               call betalf(zero,qw)
               call phasad(zero,qwc)
++if debug
+!     call dumpbin('abetphas',1,1)
+!     call abend('after  abetphas                                   ')
++ei
 !--beam-beam element
               if(nbeam.ge.1) then
               nd=3
@@ -19290,15 +21048,27 @@ cc2008
               ncorru=ncorruo
               iqmodc=3
               call mydaini(2,2,6,3,6,1)
++if debug
+!     call dumpbin('bmydaini',999,9999)
+!     call abend('before mydaini                                    ')
++ei
               do i=1,2
 !hr05           qwc(i)=int(qwc(i))+wxys(i)
                 qwc(i)=dble(int(qwc(i)))+wxys(i)
               enddo
               if(ilin.ge.2) then
++if debug
+!     call dumpbin('bmydaini',999,9999)
+!     call abend('before mydaini                                    ')
++ei
                 nlinoo=nlin
                 nlin=nlino
                 ilinc=1
                 call mydaini(2,2,6,3,6,1)
++if debug
+!     call dumpbin('amydaini',999,9999)
+!     call abend('after  mydaini                                    ')
++ei
                 nlin=nlinoo
               endif
             else
@@ -19308,8 +21078,17 @@ cc2008
               call clorb(dp1)
               call betalf(dp1,qw)
               call phasad(dp1,qwc)
++if debug
+!     call dumpbin('abetphas',1,1)
+!     call abend('after  abetphas                                   ')
++ei
               dp1=zero
 !--beam-beam element
++if debug
+!     call dumpbin('bbeam',1,1)
+!     call abend('after bbeam                                       ')
+!     write(*,*) 'call qmodda at beam-beam'
++ei
               dp1=dps(1)
               ncorru=ncorruo
               if(nvar2.le.5) then
@@ -19317,6 +21096,10 @@ cc2008
                 ition=0
               endif
               call qmodda(2,qwc)
++if debug 
+!     call dumpbin('aqmodda',3,2)
+!     call abend('after  qmodda 3 2                                 ')
++ei
               if(nvar2.le.5) ition=itiono
               if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
               if(ilin.ge.2) then
@@ -19421,6 +21204,10 @@ cc2008
           alf0s2 =-1d0*(tas(iar,5,1)*tasiar61+tas(iar,5,2)*tasiar62)     !hr05
 !hr05     alf0s3 =-(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)
           alf0s3 =-1d0*(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)     !hr05
++if debug
+!     call dumpbin('abib1',1,1)
+!     call abend('after bib1                                        ')
++ei
           do 220 ib1=1,napx
             iar=ib1+(m+ib-2)*napx
             do 200 ib2=1,6
@@ -19609,6 +21396,10 @@ cc2008
           ib0=ib0+napx
   250   continue
   260 continue
++if debug
+!     call dumpbin('ado 260',260,260)
+!     call abend('ado 260                                           ')
++ei
       if(irip.eq.1) then
         do 280 i=1,iu
           ix=ic(i)
@@ -19627,7 +21418,7 @@ cc2008
 !hr05 napx=napx*imc*mmac
       napx=(napx*imc)*mmac                                               !hr05
 +if cr
-      write (93,*) 'MAINCR setting napxo=',napx
+      write(93,*) 'MAINCR setting napxo=',napx
       endfile 93
       backspace 93
 +ei
@@ -19915,7 +21706,7 @@ cc2008
      &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
      &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
 +if cr
-          endfile 91 -ia2
+          endfile 91-ia2
           backspace 91-ia2
           binrecs(ia2)=1
           endif
@@ -19963,7 +21754,7 @@ cc2008
      &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
      &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
 +if cr
-          endfile 91 -ia2
+          endfile 91-ia2
           backspace 91-ia2
           binrecs(ia2)=1
           endif
@@ -20060,11 +21851,22 @@ cc2008
 +if .not.cr
       write(*,10200)
 +ei
++if debug
+!     call dumpbin('btrack',1,1)
+!     call abend('btrack                                            ')
++ei
++if debug
+                   !call system('../crmain  >> crlog')
++ei
       time1=0.
       call timex(time1)
 !---------------------------------------  LOOP OVER TURNS TO BE TRACKED
       if(ithick.eq.0) call trauthin(nthinerr)
       if(ithick.eq.1) call trauthck(nthinerr)
++if debug
+!     call dumpbin('atrack',1,1)
+!     call abend('atrack                                            ')
++ei
       time2=0.
       call timex(time2)
       if(nthinerr.eq.3000) goto 520
@@ -20267,6 +22069,12 @@ cc2008
 +ei
 +if .not.cr
       write(*,10310) time2
++ei
++if debug
+      call wda('THE END',0d0,9,9,9,9)
+!     call dumpum('THE END',999,9999)
+      call dumpbin('THE END',999,9999)
+      call dumpzfz('THE END',9,9)
 +ei
 +ca close
 +if cr
@@ -23407,7 +25215,6 @@ cc2008
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
             endif
 !APRIL2005
-!
 !++  Write trajectory for any selected particle
 !
         c_length = 0d0
@@ -27338,7 +29145,7 @@ cc2008
      &'corrupted output probably due to lost particles'
       if(ierro.ne.0) then                                                !hr09
 +if debug
-        call dump(' write6',0,0)                                         !hr09
+        call dumpbin(' write6',0,0)                                      !hr09
 +ei
         call abend(' abend in write6                                  ') !hr09
       endif                                                              !hr09
@@ -30798,10 +32605,10 @@ cc2008
         endif
       endif
 +if cr
-      write(lout,*) runtim
+      write(lout,'(a80)') runtim
 +ei
 +if .not.cr
-      write(*,*) runtim
+      write(*,'(a80)') runtim
 +ei
       do 10 i=1,2
         eps(i)=zero
@@ -30970,7 +32777,14 @@ cc2008
           itiono=ition
           ition=0
         endif
++if debug
+!       write(*,*) '3rd call qmodda multipole???'
++ei
         call qmodda(2,qwc)
++if debug 
+!     call dumpbin('aqmodda',2,3)
+!     call abend('after  qmodda 2 3                                 ')
++ei
         if(nvar2.le.5) ition=itiono
         if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
         if(ilin.ge.2) then
@@ -32058,6 +33872,8 @@ cc2008
       call etallnom(hs,1,'HS        ')
       call etallnom(df,nd2,'DF        ')
       rewind mfile
+!Eric
+      rewind 111
       rewind mf1
       rewind mf2
       rewind mf3
@@ -33028,6 +34844,10 @@ cc2008
       call phasad(dp1,qwc)
       if(nbeam.ge.1) then
 +ca beamcou
++if debug
+!     call dumpbin('abeamcou2',3,33)
+!     call abend('after beam coupling                               ')
++ei
       endif
       ncorru=ncorruo
       iq1=is(1)
@@ -33156,14 +34976,14 @@ cc2008
 10000 format(/131('-')/t10,'ENTERING DA CHROMATICITY CORRECTION'/)
 10010 format(/131('-')/t10,                                             &
      &'CHROMATICITY'   ,18x,'THEORET.        BEFORE CORRECTION'/ t10,   &
-     &'HORIZONTAL'     ,15x,g20.14,1x,g20.14/ t10,                      &
-     &'VERTICAL'       ,17x,g20.14,1x,g20.14// t10,                     &
+     &'HORIZONTAL'     ,15x,G20.14,1x,G20.14/ t10,                      &
+     &'VERTICAL'       ,17x,G20.14,1x,G20.14// t10,                     &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
      &'ACCURACY:'      ,17x,g16.10/)
 10020 format(/131('-')/t10,                                             &
      &'CHROMATICITY'   ,18x,'THEORET.        AFTER CORRECTION'/ t10,    &
-     &'HORIZONTAL'     ,15x,g20.14,1x,g20.14/ t10,                      &
-     &'VERTICAL'       ,17x,g20.14,1x,g20.14// t10,                     &
+     &'HORIZONTAL'     ,15x,G20.14,1x,G20.14/ t10,                      &
+     &'VERTICAL'       ,17x,G20.14,1x,G20.14// t10,                     &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
      &'ACCURACY:'      ,17x,g16.10/)
 10030 format(t10,'SEXTUPOLE STRENGTH',5x,g16.10,2x,g16.10,'   TYP     ',&
@@ -33258,6 +35078,16 @@ cc2008
 +ei
 +if .not.cr
         write(*,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
++ei
++if debug
+!     call warr('dpp',dpp,0,0,0,0)
+!     call warr('dpp',dpp,0,0,0,0)
+!     call warr('clo(1)',clo(1),0,0,0,0)
+!     call warr('clop(1)',clop(1),0,0,0,0)
+!     call warr('clo(2)',clo(2),0,0,0,0)
+!     call warr('clop(2)',clop(2),0,0,0,0)
+!     call warr('ii',0d0,ii,0,0,0)
+!     call warr('cor',cor,0,0,0,0)
 +ei
       endif
 !-----------------------------------------------------------------------
@@ -33354,10 +35184,18 @@ cc2008
         enddo
         sigm(1)=cloc(5)
         dps(1)=cloc(6)
++if debug
+!       write(*,*) 'Calling UMLAUDA from clorda'
+!       call warr('cloc5',cloc(5),0,0,0,0)
+!       call warr('cloc6',cloc(6),0,0,0,0)
++ei
         call umlauda
         do i4=1,nd2
           do j4=1,nd2
             am(i4,j4)=aml6(i4,j4)
++if debug
+!       call warr('ambef',am(i4,j4),i4,j4,0,0)
++ei
           enddo
         enddo
         call dinv(nd2,am,nd2,idummy,nerror)
@@ -33366,6 +35204,13 @@ cc2008
 +ei
 +if .not.cr
         if(nerror.ne.0) write(*,*) ' ATTENTION, MATRIX SINGULAR '
++ei
++if debug
+!       do i4=1,nd2
+!         do j4=1,nd2
+!     call warr('amaft',am(i4,j4),i4,j4,0,0)
+!         enddo
+!       enddo
 +ei
         if(ndimf.eq.3) then
           do l=1,2
@@ -33391,6 +35236,10 @@ cc2008
           dd(l)=cloc(l)-xx(l)
           dc(l)=abs(dd(l))
           if(l.eq.5) dc(5)=dc(5)*c1m2
++if debug
+!       call warr('ddl',dd(l),l,1,0,0)
+!       call warr('dcl',dc(l),l,1,0,0)
++ei
         enddo
         icheck=0
         do l=1,ndimf
@@ -33422,10 +35271,26 @@ cc2008
           write(*,10060) chp(l),cloc(ll-1),cloc(ll)
 +ei
 !hr06     cor=cor+dc(ll-1)*dc(ll-1)
++if debug
+!     call warr('corl ll',cor,l,ll,1,0)
+!     call warr('dcll*2',dc(ll-1)**2,l,ll,1,0)
++ei
           cor=cor+dc(ll-1)**2                                            !hr06
++if debug
+!         call warr('acor',cor,l,ll,1,0)
++ei
         enddo
         cor=sqrt(cor)
++if debug
+!       call warr('vital',0d0,ii,0,0,0)
+!       call warr('corlll',cor,l,ll,1,0)
+!       call warr('coro',coro,l,ll,1,0)
++ei
         if(ii.eq.1.or.cor.lt.coro) then
++if debug
+!       call warr('cor',cor,2,0,0,0)
+!       call warr('coro',coro,2,0,0,0)
++ei
           coro=cor
           do l=1,nd2
             cloc(l)=cloc(l)+dlo(l)
@@ -33495,9 +35360,20 @@ cc2008
           write(*,10060) chp(l),cloc(ll-1),cloc(ll)
 +ei
 !hr06     cor=cor+dc(ll-1)*dc(ll-1)
++if debug
+!     call warr('corl ll',cor,l,ll,2,0)
+!     call warr('dcll*2',dc(ll-1)**2,l,ll,2,0)
++ei
           cor=cor+dc(ll-1)**2                                            !hr06
++if debug
+!         call warr('acor',cor,l,ll,2,0)
++ei
         enddo
         cor=sqrt(cor)
++if debug
+!       call warr('cor',cor,3,0,0,0)
+!       call warr('coro',coro,3,0,0,0)
++ei
         if(cor.lt.coro) then
           coro=cor
           do l=1,nd2
@@ -33620,6 +35496,24 @@ cc2008
           clop(l)=cloc(ll)
         enddo
       endif
++if debug
+!     call warr('end clorda',cloc(1),1,0,0,0)
+!     call warr('end cloc(2)',cloc(2),2,0,0,0)
+!     call warr('end cloc(3)',cloc(3),3,0,0,0)
+!     call warr('end cloc(4)',cloc(4),4,0,0,0)
+!     call warr('end cloc(5)',cloc(5),5,0,0,0)
+!     call warr('end cloc(6)',cloc(6),6,0,0,0)
+!     call warr('clo(1)',clo(1),1,0,0,0)
+!     call warr('clo(2)',clo(2),2,0,0,0)
+!     call warr('clop(1)',clop(1),1,0,0,0)
+!     call warr('clop(2)',clop(2),2,0,0,0)
+!     call warr('clo6(1)',clo6(1),1,0,0,0)
+!     call warr('clo6(2)',clo6(2),2,0,0,0)
+!     call warr('clo6(3)',clo6(3),3,0,0,0)
+!     call warr('clop6(1)',clop6(1),1,0,0,0)
+!     call warr('clop6(2)',clop6(2),2,0,0,0)
+!     call warr('clop6(3)',clop6(3),3,0,0,0)
++ei
 !-----------------------------------------------------------------------
       return
 10000 format(t10,'DA CLOSED ORBIT CALCULATION'/ t10,                    &
@@ -33679,6 +35573,10 @@ cc2008
       call daeps(preda)
       call idprset(-102)
       call lieinit(nord,nvar,ndimf,ndpt,0,nis)
++if debug
+!     call dumpbin('alieinit',1,11)
+!     call abend('alieinit in mydaini                               ')
++ei
 +if cr
       write(lout,10000) nord,nvar,ndimf
 +ei
@@ -33687,9 +35585,25 @@ cc2008
 +ei
       call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
++if debug
+!     write(*,*) 'ncase=',ncase,' if 1 call clorda'
++ei
       if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
++if debug
+!     call dumpbin('aclorda',1,11)
+!     call abend('aclorda                                           ')
++ei
 !--tune variation
++if debug
+!     write(*,*) 'ncase=',ncase,' if 2 call umlauda'
++ei
       if(ncase.eq.2) call umlauda
++if debug
+!     if(ncase.eq.2) then
+!     call dumpbin('aumlauda',7,77)
+!     call abend('aumlauda                                          ')
+!     endif
++ei
       iqmodc=0
       ichromc=0
       ilinc=0
@@ -33759,6 +35673,8 @@ cc2008
 !--tune variation
       if(ncase.eq.2) call umlauda
       rewind 18
+!Eric
+        rewind 111
 !--main map calculation
       if(ncase.eq.3) call runda
 !--%*6 map calculation
@@ -37729,7 +39645,7 @@ cc2008
         rho(k)=sqrt(piv)
         if(k.eq.n) goto 90
 !hr06   piv=0.0d0
-        piv=0.0                                                         !hr06
+        piv=0.0                                                          !hr06
         kpiv = k + 1
         j1 = kpiv
         k2=n + j1
@@ -38368,6 +40284,15 @@ cc2008
       call betalf(dpp,qw)
       if(ierro.ne.0) call prror(22+ierro)
       call envar(dpp)
++if debug
+!     call warr('qw',qw(1),1,0,0,0)
+!     call warr('qw',qw(2),2,0,0,0)
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
+!     call dumpbin('aenvarqmod',88,R88
+!     call abend('aenvarqmod                                        ')
++ei
 !--STARTVALUES OF THE TRAJECTORIES
       do 50 l=1,2
         ll=2*l
@@ -38509,6 +40434,16 @@ cc2008
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
         if(kzz.lt.0) goto 310
++if debug
+!     call warr('qw',qw(1),1,0,0,0)
+!     call warr('qw',qw(2),2,0,0,0)
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
+!     call warr('kzz',0d0,kzz,0,0,0)
+!     call dumpbin('bkzz      ',77 777)
+!     call abend('bkzz                                              ')
++ei
         goto(170,180,190,200,210,220,230,240,250,260,270,450,450,450,   &
      &       450,450,450,450,450,450,450,450,450,265,266),kzz
         goto 450
@@ -38775,6 +40710,15 @@ cc2008
 !hr06   qwc(3)=phi(1)+qxse-qxsa
         qwc(3)=(phi(1)+qxse)-qxsa                                        !hr06
       endif
++if debug
+!     call warr('qw',qw(1),1,0,0,0)
+!     call warr('qw',qw(2),2,0,0,0)
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
+!     call dumpbin('aphasad',97,997)
+!     call abend('aphasad                                           ')
++ei
 !-----------------------------------------------------------------------
       return
       end
@@ -39147,6 +41091,11 @@ cc2008
 +ei
 +ca save
 !-----------------------------------------------------------------------
++if debug
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
++ei
       ncorruo=ncorru
       ncorru=1
       nd2=2*mm
@@ -39154,6 +41103,22 @@ cc2008
       intwq(1)=int(qwc(1))
       intwq(2)=int(qwc(2))
       intwq(3)=0
++if debug
+!     call warr('intwq',0d0,intwq(1),1,0,0)
+!     call warr('intwq',0d0,intwq(2),2,0,0)
+!     call warr('intwq',0d0,intwq(3),3,0,0)
+!     call warr('clo6(1)',clo6(1),1,0,0,0)
+!     call warr('clo6(2)',clo6(2),2,0,0,0)
+!     call warr('clo6(3)',clo6(3),3,0,0,0)
+!     call warr('clop6(1)',clop6(1),1,0,0,0)
+!     call warr('clop6(2)',clop6(2),2,0,0,0)
+!     call warr('clop6(3)',clop6(3),3,0,0,0)
+!sqmodda
+!     write(*,*) 'qmodda called!'
+!     call dumpbin('sqmodda',80,800)
+!     call abend('sqmodda                                           ')
+!     write(*,*) 'mm=',mm
++ei
       dq1=zero
       dq2=zero
       if(iqmod6.eq.1) then
@@ -39169,6 +41134,10 @@ cc2008
         endif
         edcor1=edcor(1)
         edcor2=edcor(2)
++if debug
+!       call warr('edcor1',edcor1,1,0,0,0)
+!       call warr('edcor2',edcor2,2,0,0,0)
++ei
         cor=0d0
         coro=1d38
       endif
@@ -39223,7 +41192,39 @@ cc2008
 +ei
         endif
         iqmodc=2
++if debug 
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
+!     call warr('intwq',0d0,intwq(1),1,0,0)
+!     call warr('intwq',0d0,intwq(2),2,0,0)
+!     call warr('intwq',0d0,intwq(3),3,0,0)
+!     call warr('clo6(1)',clo6(1),1,0,0,0)
+!     call warr('clo6(2)',clo6(2),2,0,0,0)
+!     call warr('clo6(3)',clo6(3),3,0,0,0)
+!     call warr('clop6(1)',clop6(1),1,0,0,0)
+!     call warr('clop6(2)',clop6(2),2,0,0,0)
+!     call warr('clop6(3)',clop6(3),3,0,0,0)
+!     call dumpbin('bdaini',96,996)
+!     call abend('before daini                                      ')
++ei
         call mydaini(1,1,nd2,mm,nd2,1)
++if debug 
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
+!     call warr('intwq',0d0,intwq(1),1,0,0)
+!     call warr('intwq',0d0,intwq(2),2,0,0)
+!     call warr('intwq',0d0,intwq(3),3,0,0)
+!     call warr('clo6(1)',clo6(1),1,0,0,0)
+!     call warr('clo6(2)',clo6(2),2,0,0,0)
+!     call warr('clo6(3)',clo6(3),3,0,0,0)
+!     call warr('clop6(1)',clop6(1),1,0,0,0)
+!     call warr('clop6(2)',clop6(2),2,0,0,0)
+!     call warr('clop6(3)',clop6(3),3,0,0,0)
+!     call dumpbin('adaini',96,996)
+!     call abend('after  daini                                      ')
++ei
         if(iqmod6.eq.1) then
 +if cr
           write(lout,10000) nd2
@@ -39233,6 +41234,16 @@ cc2008
 +ei
           iqmodc=1
           call mydaini(2,3,ndh,mm,nd2,1)
++if debug 
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
+!     call warr('intwq',0d0,intwq(1),1,0,0)
+!     call warr('intwq',0d0,intwq(2),2,0,0)
+!     call warr('intwq',0d0,intwq(3),3,0,0)
+!     call dumpbin('adaini',99,999)
+!     call abend('after  daini                                      ')
++ei
           do i=1,mm
 !hr06       qwc(i)=intwq(i)+corr(1,i)
             qwc(i)=dble(intwq(i))+corr(1,i)                              !hr06
@@ -39358,6 +41369,16 @@ cc2008
 !hr06       qwc(i)=intwq(i)+wxys(i)
             qwc(i)=dble(intwq(i))+wxys(i)                                !hr06
           enddo
++if debug 
+!     call warr('qwc',qwc(1),1,0,0,0)
+!     call warr('qwc',qwc(2),2,0,0,0)
+!     call warr('qwc',qwc(3),3,0,0,0)
+!     call warr('intwq',0d0,intwq(1),1,0,0)
+!     call warr('intwq',0d0,intwq(2),2,0,0)
+!     call warr('intwq',0d0,intwq(3),3,0,0)
+!     call dumpbin('adaini',98,998)
+!     call abend('after  daini 98                                   ')
++ei
           goto 1
         endif
       enddo
@@ -39432,19 +41453,23 @@ cc2008
         endif
       endif
       ncorru=ncorruo
++if debug
+!     call dumpbin('end qmodda',7,999)
+!     call abend('end qmodda 7 999                                  ')
++ei
 !-----------------------------------------------------------------------
 10000 format(/131('-')/t10,'ENTERING ',i1,'D DA TUNE-VARIATION')
 10010 format(1x,f47.33/1x,f47.33)
 10020 format(/131('-')/t10,i1,'D DA TUNE-VARIATION'/t10,                &
      &'TUNE'           ,26x,'THEORET.       BEFORE CORRECTION'/ t10,    &
-     &'HORIZONTAL'     ,15x,g20.14,g20.14/ t10,                         &
-     &'VERTICAL'       ,17x,g20.14,g20.14// t10,                        &
+     &'HORIZONTAL'     ,15x,G20.14,G20.14/ t10,                         &
+     &'VERTICAL'       ,17x,G20.14,G20.14// t10,                        &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
      &'ACCURACY:'      ,17x,g16.10/)
 10030 format(/131('-')/t10,i1,'D DA TUNE-VARIATION'/t10,                &
      &'TUNE'           ,26x,'THEORET.       AFTER CORRECTION'/ t10,     &
-     &'HORIZONTAL'     ,15x,g20.14,g20.14/ t10,                         &
-     &'VERTICAL'       ,17x,g20.14,g20.14// t10,                        &
+     &'HORIZONTAL'     ,15x,G20.14,G20.14/ t10,                         &
+     &'VERTICAL'       ,17x,G20.14,G20.14// t10,                        &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
      &'ACCURACY:'      ,17x,g16.10/)
 10040 format(t10,'QUADRUPOLE STRENGTH',6x,g16.10,4x,g16.10,'   TYP     '&
@@ -43578,7 +45603,8 @@ cc2008
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
-      real const,dle,fxs,fzs,slope,tim1,tim2,tle,tlim,varlea,wgh
+      real tim1,tim2,tlim,fxs,fzs
+      double precision const,dle,slope,tle,varlea,wgh
       double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
      &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
      &bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold,c, &
@@ -43653,8 +45679,8 @@ cc2008
         xxi(i)=zero
         zzr(i)=zero
         zzi(i)=zero
-        fxs(i)=zero
-        fzs(i)=zero
+        fxs(i)=0.0
+        fzs(i)=0.0
    50 continue
       do 60 i=1,6
         txyz(i)=zero
@@ -43683,8 +45709,8 @@ cc2008
       do 100 i=1,nlya
         tle(i)=zero
         dle(i)=zero
-        slope(i)=0.0
-        varlea(i)=0.0
+        slope(i)=zero
+        varlea(i)=zero
         wgh(i)=zero
         biav(i)=zero
   100 continue
@@ -44103,7 +46129,7 @@ cc2008
       dle1=zero
       bold=zero
       dle1c=zero
-      const=0.0
+      const=zero
       dphx=zero
       dphz=zero
       dph6=zero
@@ -44761,23 +46787,40 @@ cc2008
         dle(i2)=dle1/dble(iav)                                           !hr06
         if(ia.gt.0) then
 +if crlibm
+!ERIC bug fixed...........
 !hr06     tle1=real(log_rn(dble(ia)))
-          tle1=real(log_rn(dble(ia)))
+!eric     tle1=real(log_rn(dble(ia)))
 !bugfix   tle1=log_rn(dble(ia))                                          !hr06
+          tle1=log_rn(dble(ia))                                          !hr06
 +ei
 +if .not.crlibm
 !hr06     tle1=log(real(ia))
-          tle1=log(real(ia))
+!eric     tle1=log(real(ia))
 !bugfix   tle1=log(dble(ia))                                             !hr06
+          tle1=log(dble(ia))                                             !hr06
 +ei
           if(i2.gt.1) then
 !hr06       biav(i2-1)=bold/iav
             biav(i2-1)=bold/dble(iav)                                    !hr06
++if debug
+!           call warr('biav',biav(i2-1),i2,0,0,0)
++ei
             if(i2.eq.2) biav(1)=biav(1)*half
++if debug
+!           call warr('biavhalf',biav(1),1,0,0,1)
++ei
             bold=zero
             tle(i2)=(tle1+tlo)*half
++if debug
+!           call warr('tle1)',tle1,0,0,0,0)
+!           call warr('tlo',tlo,0,0,0,0)
+!           call warr('tle(i2)',tle(i2),i2,0,0,0)
++ei
             if(abs(tle1-tlo).gt.pieni) then
               wgh(i2)=one/(tle1-tlo)
++if debug
+!           call warr('wgh(i2)',wgh(i2),i2,0,0,0)
++ei
             else
 +if cr
               write(lout,10310) nfile
@@ -44790,13 +46833,25 @@ cc2008
           else
             tle(i2)=tle1*half
             wgh(i2)=one/(tle1)
++if debug
+!           call warr('tle(i2)',tle(i2),i2,0,0,1)
+!           call warr('wgh(i2)',wgh(i2),i2,0,0,1)
++ei
           endif
         else
           tle(i2)=zero
           wgh(i2)=zero
++if debug
+!           call warr('tle(i2)',tle(i2),i2,0,0,2)
+!           call warr('wgh(i2)',wgh(i2),i2,0,0,2)
++ei
         endif
         tlo=tle1
         dle1=zero
++if debug
+!           call warr('tlo',tlo,0,0,0,0)
+!           call warr('dle1',dle1,0,0,0,0)
++ei
       endif
 !--COORDINATE-ANGLE CONVERSION
       call caconv(dpx,d,c)
@@ -44840,10 +46895,33 @@ cc2008
 !--ANALYSING DATA
 !----------------------------------------------------------------------
 !--FIT OF DISTANCE IN PHASESPACE + MEAN PHASEADVANCE
++if debug
+!     call warr('lfitw1',tle,0,0,0,1)
+!     call warr('lfitw2',dle,0,0,0,2)
+!     call warr('lfitw3',wgh,0,0,0,3)
++ei
       do 280 i=2,i2
-        if(iwg.eq.1) call lfitw(tle,dle,wgh,i,1,slope(i-1),const,varlea &
+        if(iwg.eq.1) call lfitwd(tle,dle,wgh,i,1,slope(i-1),const,varlea&
      &(i-1))
-        if(iwg.eq.0) call lfit(tle,dle,i,1,slope(i-1),const,varlea(i-1))
+        if(iwg.eq.0) call lfitd(tle,dle,i,1,slope(i-1),const,varlea     &
+     &(i-1))
++if debug
+!     if(iwg.eq.1) then
+!     call warr('lfitwtle',tle(i),i,0,0,1)
+!     call warr('lfitwdle',dle(i),i,0,0,2)
+!     call warr('lfitwwgh',wgh(i),i,0,0,3)
+!     call warr('lfitwslo',slope(i-1),i,0,0,4)
+!     call warr('lfitwcon',const,i,0,0,5)
+!     call warr('lfitwvar',varlea(i-1),i,0,0,6)
+!     endif
+!     if (iwg.eq.0) then
+!     call warr('lfit',tle(i),i,0,0,1)
+!     call warr('lfit',dle(i),i,0,0,2)
+!     call warr('lfit',slope(i-1),i,0,0,4)
+!     call warr('lfit',const,i,0,0,5)
+!     call warr('lfit',varlea(i-1),i,0,0,6)
+!     endif
++ei
   280 continue
       if(iapx.eq.0) then
 +if cr
@@ -45072,7 +47150,7 @@ cc2008
 +ei
      &varlea(i)
           if(biav(i).gt.0.1d0) ilyap=1
-          slopem=max(slopem,dble(slope(i)))
+          slopem=max(slopem,slope(i))
   360   continue
 +if cr
         if(nprint.eq.1) write(lout,10130)
@@ -45083,7 +47161,7 @@ cc2008
         sumda(10)=biav(i2-1)
         if(ilyap.eq.0) then
 !hr06    sumda(11)=slope(i2-1)
-         sumda(11)=dble(slope(i2-1))                                     !hr06
+         sumda(11)=slope(i2-1)                                           !hr06
         else
          sumda(11)=slopem
         endif
@@ -45414,6 +47492,15 @@ cc2008
       sumda(50)=chromc(1)*c1e3
       sumda(51)=chromc(2)*c1e3
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
++if debug
+      do i=1,60
+        call warr('sumda(i)',sumda(i),i,0,0,0)
+      enddo
++ei
+! We should really write fort.10 in BINARY!
+!+if debug
+      write(110) (sumda(i),i=1,60)
+!+ei
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
         if(ch(ich:ich).ne.' ') goto 700
@@ -46683,17 +48770,37 @@ cc2008
 !-----------------------------------------------------------------------
 +if boinc
       call boincrf('fort.12',filename)
++if fio
+      open(12,err=50,file=filename,form='FORMATTED',round='nearest')
++ei
++if .not.fio
       open(12,err=50,file=filename,form='FORMATTED')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(12,err=50,file='fort.12',form='FORMATTED',round='nearest')
++ei
++if .not.fio
       open(12,err=50,file='fort.12',form='FORMATTED')
++ei
 +ei
 +if boinc
       call boincrf('fort.13',filename)
++if fio
+      open(13,err=50,file=filename,form='FORMATTED',round='nearest')
++ei
++if .not.fio
       open(13,err=50,file=filename,form='FORMATTED')
 +ei
++ei
 +if .not.boinc
++if fio
+      open(13,err=50,file='fort.13',form='FORMATTED',round='nearest')
++ei
++if .not.fio
       open(13,err=50,file='fort.13',form='FORMATTED')
++ei
 +ei
 !-----------------------------------------------------------------------
       read(90,end=60,iostat=ierro) sixtit,commen,cdate,ctime, progrm,   &
@@ -48314,7 +50421,7 @@ cc2008
      &' ... (n.lt.1 or idim.lt.n or k.lt.1).',                          &
      &5x,'n =', i4, 5x,'idim =', i4, 5x,'k =', i4,'.')
       end
-      subroutine lfit(x,y,l,key,a,b,e)
+      subroutine lfitd(x,y,l,key,a,b,e)
 !-----------------------------------------------------------------------
 !
 !     TO FIT A STRAIGHT LINE    Y=A*X+B    TO L POINTS WITH ERROR E
@@ -48323,6 +50430,7 @@ cc2008
 !     L IS NO. OF POINTS
 !
 !-----------------------------------------------------------------------
+!Eric made DOUBLE PRECISION
       implicit none
 +if cr
 +ca crcoall
@@ -48331,8 +50439,8 @@ cc2008
 +ca crlibco
 +ei
       integer j,key,l
-      real a,b,count,e,scartx,scarty,sumx,sumxx,sumxy,sumy,sumyy,x,xmed,&
-     &y,ymed
+      double precision a,b,count,e,scartx,scarty
+      double precision sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
 !hr07 dimension x(*),y(*)
       dimension x(l),y(l)                                                !hr07
 +ca save
@@ -48381,7 +50489,7 @@ cc2008
   101 e=0.0
   100 return
       end
-      subroutine lfitw(x,y,w,l,key,a,b,e)
+      subroutine lfitwd(x,y,w,l,key,a,b,e)
 !-----------------------------------------------------------------------
 !
 !     TO PERFORM A WEIGHTED STRAIGHT LINE FIT
@@ -48393,6 +50501,7 @@ cc2008
 !     L IS NO. OF POINTS
 !
 !-----------------------------------------------------------------------
+!Eric made DOUBLE PRECISION
       implicit none
 +if cr
 +ca crcoall
@@ -48401,7 +50510,8 @@ cc2008
 +ca crlibco
 +ei
       integer icnt,j,key,l
-      real a,b,e,w,w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi,x,y
+      double precision a,b,e,x,y,w
+      double precision w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
 !hr07 dimension x(*),y(*),w(*)
       dimension x(l),y(l),w(l)                                           !hr07
 +ca save
@@ -48438,7 +50548,8 @@ cc2008
       a=(w2xy-(w2x*w2y)/w2)/(w2x2-w2x**2/w2)
       b=(w2y-a*w2x)/w2
       if(icnt.le.2) goto 3
-      e=((w2y2-w2y**2/w2)-(w2xy-w2x*w2y/w2)**2/(w2x2-w2x**2/w2))/       &!hr07
+!Eric
+      e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &!hr07
      &dble(icnt-2)
       goto 4
 !
@@ -54242,6 +56353,9 @@ cc2008
      &'rerun',rerun,'checkp',checkp
       endfile 93
       backspace 93
++if debug
+                   !call system('../crcheck >> crlog')
++ei
 !--   We are not checkpoint/restart or we have no restart files
       if (.not.checkp) goto 605
       if (.not.fort95.and..not.fort96) goto 605
@@ -54258,7 +56372,7 @@ cc2008
       endfile 93
       backspace 93
       if (fort95) then
-        write (93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1'
         endfile 93
         backspace 93
         rewind 95
@@ -54277,7 +56391,7 @@ cc2008
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        write (93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
         endfile 93
         backspace 93
         read(95,err=100,end=100)                                        &
@@ -54308,7 +56422,7 @@ cc2008
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write (93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3 BNL'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3 BNL'
         endfile 93
         backspace 93
         read(95,err=100,end=100)                                        &
@@ -54330,7 +56444,7 @@ cc2008
 !ERICVARS
 ! and make sure we can read the extended vars before leaving fort.95
 ! We will re-read them in crstart to be sure they are restored correctly
-          write (93,*)                                                  &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK verifying Record 4 extended vars fort.95',      &
      &' crnapxo=',crnapxo
           endfile 93
@@ -54372,7 +56486,7 @@ cc2008
      &(wfa(j),j=1,crnapxo),                                             &
      &(wfhi(j),j=1,crnapxo)
           backspace 95
-          write (93,*) 'CRCHECK read fort.95 EXTENDED OK'
+          write(93,*) 'CRCHECK read fort.95 EXTENDED OK'
           endfile 93
           backspace 93
           write(93,*)                                                   &
@@ -54390,11 +56504,11 @@ cc2008
         backspace 93
       endif
       if (fort96) then
-        write (93,*) 'CRCHECK trying fort.96 instead'
+        write(93,*) 'CRCHECK trying fort.96 instead'
         endfile 93
         backspace 93
         rewind 96
-        write (93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1'
         endfile 93
         backspace 93
         read(96,err=101,end=101,iostat=istat)                           &
@@ -54412,7 +56526,7 @@ cc2008
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        write (93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
         endfile 93
         backspace 93
       read(96,err=101,end=101,iostat=istat)                             &
@@ -54443,7 +56557,7 @@ cc2008
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write (93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3 BNL'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3 BNL'
         endfile 93
         backspace 93
         read(96,err=101,end=101)                                        &
@@ -54465,12 +56579,12 @@ cc2008
 !ERICVARS
 ! and make sure we can read the extended vars before leaving fort.96
 ! We will re-read them in crstart to be sure they are correct
-          write (93,*)                                                  &
+          write(93,*)                                                   &
      &'SIXTRACR CRCHECK verifying Record 4 extended vars fort.96,',     &
      &' crnapxo=',crnapxo
           endfile 93
           backspace 93
-          write (93,*) 'CRCHECK verifying extended vars fort.96'
+          write(93,*) 'CRCHECK verifying extended vars fort.96'
           endfile 93
           backspace 93
           read(96,end=101,err=101,iostat=istat)                         &
@@ -54510,7 +56624,7 @@ cc2008
      &(wfa(j),j=1,crnapxo),                                             &
      &(wfhi(j),j=1,crnapxo)
           backspace 96
-          write (93,*) 'SIXTRACR CRCHECK read fort.96 EXTENDED OK'
+          write(93,*) 'SIXTRACR CRCHECK read fort.96 EXTENDED OK'
           endfile 93
           backspace 93
           write(93,*)                                                   &
@@ -54566,6 +56680,9 @@ cc2008
         if (sixrecs.lt.crsixrecs) goto 603
         endfile 6
   604   backspace 6
++if debug
+                   !call system('../crcheck >> crlog')
++ei
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK found fort.6 sixrecs=',sixrecs
         endfile 93
@@ -54741,11 +56858,13 @@ cc2008
 +ei
 !--     Set up flag for tracking routines to call CRSTART
         restart=.true.
-        write(6,*)                                                      &
+        write(lout,'(a80)')                                                   &
      &runtim
-        endfile 6
-        backspace 6
-        sixrecs=sixrecs+1
+        endfile lout
+        backspace lout
++if debug
+                   !call system('../crcheck >> crlog')
++ei
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK restart=TRUE',' crnumlcr=',crnumlcr
         endfile 93
@@ -54793,6 +56912,9 @@ cc2008
      &'SIXTRACR CRCHECK giving up on LOUT'
         endfile 93
         backspace 93
++if debug
+                   !call system('../crcheck >> crlog')
++ei
 !--   Copy the lout to fort.6
         rewind lout
     3   read(lout,'(a255)',end=1,err=107,iostat=istat) arecord
@@ -54809,6 +56931,9 @@ cc2008
         rewind lout
         endfile lout
         close(lout)
++if debug
+                   !call system('../crcheck >> crlog')
++ei
         lout=6
       endif
       return
@@ -54880,14 +57005,18 @@ cc2008
 +ei
       data ncalls /0/
 +ca save
++if .not.debug
       if (ncalls.le.5) then
++ei
         write(93,*)                                                     &
      &'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
         write(93,*)                                                     &
-     &'SIXTRACR CRPOINT CALLED binrec',binrec
+     &'SIXTRACR CRPOINT CALLED binrec/sixrec ',binrec,sixrecs
         endfile 93
         backspace 93
++if .not.debug
       endif
++ei
       ncalls=ncalls+1
       if (restart) then
         restart=.false.
@@ -54895,6 +57024,9 @@ cc2008
       endif
 !--   We need to copy fort.92 to fort.6 (sixrecs)
 !--   (if it exists and we are not already using fort.6)
++if debug
+                   !call system('../crpoint >> crlog')
++ei
       osixrecs=sixrecs
       rewind lout
     3 read(lout,'(a255)',end=1,err=101,iostat=istat) arecord
@@ -54913,6 +57045,9 @@ cc2008
         rewind lout
         endfile lout
         close(lout)
++if debug
+                   !call system('../crpoint >> crlog')
++ei
 +if boinc
         call boincrf('fort.92',filename)
         open(lout,file=filename,form='formatted',status='unknown')
@@ -54920,23 +57055,31 @@ cc2008
 +if .not.boinc
         open(lout,file='fort.92',form='formatted',status='unknown')
 +ei
++if .not.debug
         if (ncalls.le.5) then
++ei
           write(93,*)                                                   &
      &'SIXTRACR CRPOINT copied lout=',lout,'sixrecs=',sixrecs
           endfile 93
           backspace 93
++if .not.debug
         endif
++ei
       else
         rewind lout
       endif
       call timex(time2)
       time2=time2+crtime2
       crnumlcr=numx+1
++if .not.debug
       if (ncalls.le.5) then
-        write (93,*) 'SIXTRACR CRPOINT writing fort.95'
++ei
+        write(93,*) 'SIXTRACR CRPOINT writing fort.95'
         endfile 93
         backspace 93
++if .not.debug
       endif
++ei
       rewind 95
       write(95,err=100,iostat=istat)                                    &
      &crnumlcr,                                                         &
@@ -54983,11 +57126,15 @@ cc2008
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
++if .not.debug
         if (ncalls.le.5) then
-          write (93,*) 'SIXTRACR CRPOINT writing BNL vars fort.95'
++ei
+          write(93,*) 'SIXTRACR CRPOINT writing BNL vars fort.95'
           endfile 93
           backspace 93
++if .not.debug
         endif
++ei
         write(95,err=100,iostat=istat)                                  &
      &n_cut,                                                            &
      &n_nocut,                                                          &
@@ -55005,12 +57152,16 @@ cc2008
 !GRD-042008
 +ei
       if (sythckcr) then
++if .not.debug
         if (ncalls.le.5) then
++ei
 !ERIC new extended checkpoint for synuthck
-          write (93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.95'
+          write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.95'
           endfile 93
           backspace 93
++if .not.debug
         endif
++ei
         write(95,err=100,iostat=istat)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -55072,11 +57223,15 @@ cc2008
 +ei
 !--   and finally a second checkpoint copy, or maybe not!
 !--   Well, a second copy is indeed required as shown by testing
++if .not.debug
       if (ncalls.le.5) then
-        write (93,*) 'SIXTRACR CRPOINT writing fort.96'
++ei
+        write(93,*) 'SIXTRACR CRPOINT writing fort.96'
         endfile 93
         backspace 93
++if .not.debug
       endif
++ei
       rewind 96
       write(96,err=100,iostat=istat)                                    &
      &crnumlcr,                                                         &
@@ -55123,11 +57278,15 @@ cc2008
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
++if .not.debug
         if (ncalls.le.5) then
-          write (93,*) 'SIXTRACR CRPOINT writing Record 3 BNL fort.96'
++ei
+          write(93,*) 'SIXTRACR CRPOINT writing Record 3 BNL fort.96'
           endfile 93
           backspace 93
++if .not.debug
         endif
++ei
         write(96,err=100,iostat=istat)                                  &
      &n_cut,                                                            &
      &n_nocut,                                                          &
@@ -55146,11 +57305,15 @@ cc2008
 +ei
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
++if .not.debug
         if (ncalls.le.5) then
-          write (93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.96'
++ei
+          write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.96'
           endfile 93
           backspace 93
++if .not.debug
         endif
++ei
         write(96,err=100,iostat=istat)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -55190,6 +57353,9 @@ cc2008
       endif
       endfile 96
       backspace 96
++if debug
+                   !call system('../crpoint >> crlog')
++ei
 +if debug
 !ERIC
 !     call dump('1st Checkpoint',numx,i)
@@ -55261,13 +57427,13 @@ cc2008
       e0=cre0
 !hr08 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr08
-      write (93,*) 'CRSTART doing binrecs'
+      write(93,*) 'CRSTART doing binrecs'
       endfile 93
       backspace 93
       do j=1,(napxo+1)/2
         binrecs(j)=crbinrecs(j)
       enddo
-      write (93,*) 'CRSTART doing normal NPART vars'
+      write(93,*) 'CRSTART doing normal NPART vars'
       endfile 93
       backspace 93
       do j=1,napxo
@@ -55311,7 +57477,7 @@ cc2008
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write (93,*) 'CRSTART doing BNL vars'
+        write(93,*) 'CRSTART doing BNL vars'
         endfile 93
         backspace 93
         n_cut=crn_cut
@@ -55363,11 +57529,11 @@ cc2008
 !ERICVARS now read the extended vars from fort.95/96.
 +if debug
 ! Commented out code for multiple records
-!       write (93,*) 'CRSTART DEBUG DUMP'
+!       write(93,*) 'CRSTART DEBUG DUMP'
 !       call dump('Before xcrstart',0,0)
 !       endfile 93
 !       backspace 93
-!       write (93,*) 'CRSTART reading EXTENDED vars'
+!       write(93,*) 'CRSTART reading EXTENDED vars'
 !       endfile 93
 !       backspace 93
 !       if (read95) then
@@ -55516,7 +57682,7 @@ cc2008
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-          write (93,*) 'CRSTART read fort.95 EXTENDED OK'
+          write(93,*) 'CRSTART read fort.95 EXTENDED OK'
           endfile 93
           backspace 93
           go to 102
@@ -55558,7 +57724,7 @@ cc2008
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-      write (93,*) 'CRSTART read fort.96 EXTENDED OK'
+      write(93,*) 'CRSTART read fort.96 EXTENDED OK'
       endfile 93
       backspace 93
           go to 102
@@ -55568,7 +57734,7 @@ cc2008
      &' iostat=',istat
 +if debug
 ! Multiple record debug code commented out
-!       write (93,*) 'CRSTART This was the ith READ, I=',i
+!       write(93,*) 'CRSTART This was the ith READ, I=',i
 !       endfile 93
 !       backspace 93
 +ei
@@ -55584,10 +57750,16 @@ cc2008
      &'SIXTRACR CRSTART six/crsix/bin recs',sixrecs,crsixrecs,binrec
       endfile 93
       backspace 93
++if debug
+                   !call system('../crstart >> crlog')
++ei
 !--   Just throw away our fort.92 stuff.
       rewind lout
       endfile lout
       close(lout)
++if debug
+                   !call system('../crstart >> crlog')
++ei
 +if boinc
       call boincrf('fort.92',filename)
       open(lout,file=filename,form='formatted',status='unknown')
@@ -55595,12 +57767,17 @@ cc2008
 +if .not.boinc
       open(lout,file='fort.92',form='formatted',status='unknown')
 +ei
-      runtim(1:20)='SIXTRACR restarted: '
-      write(6,*)                                                        &
+! but also add the rerun message
+      write(lout,'(a80)')                                                     &
      &runtim
-      endfile 6
-      backspace 6
-      sixrecs=sixrecs+1
+      runtim(1:20)='SIXTRACR restarted: '
+      write(lout,'(a80)')                                                     &
+     &runtim
+      endfile lout
+      backspace lout
++if debug
+                   !call system('../crstart >> crlog')
++ei
       return
   606 backspace 6
       write(lout,*)                                                     &
@@ -55608,8 +57785,348 @@ cc2008
      &sixrecs,'crsixrecs',crsixrecs
       call abend('SIXTRACR CRSTART Problem fort.6                   ')
       end
++dk aux
+!      logical function isnan(arg1,arg2)
+      logical function myisnan(arg1,arg2)
+      implicit none
++if cr
++ca crcoall
++ei
++if crlibm
++ca crlibco
++ei
+      double precision arg1,arg2
+!      isnan=.false.
+!      if(arg1.ne.arg2) isnan=.true.
+      myisnan=.false.
+      if(arg1.ne.arg2) myisnan=.true.
+      end
+      subroutine datime(nd,nt)
+      implicit none
+! Fill common slate for usage by hmachi call as per z007 writeup.        !hr08
+      common /slate/ isl(40)                                             !hr08
+
+      integer isl                                                        !hr08
++if cr
++ca crcoall
++ei
+!
+!-    call datime (nd,nt)   returns integer date   nd = yymmdd
+!-                                  integer time   nt =   hhmm
+!     integer nd,nt,mm(3),nn(3)
+!     call idate (mm(1),mm(2),mm(3))
+!     call itime (nn)
+      character*8 date
+      character*10 time
+      character*5 zone
+      integer values(8),mm(3),nd,nt
++ca save
+      call date_and_time(date,time,zone,values)
+      mm(3)=mod(values(1),100)
+!     mm(3) = mod (mm(3),100)
+      mm(2)=values(3)
+      mm(1)=values(2)
+      isl(1)= mm(3)                                                      !hr08
+      isl(2)= mm(2)                                                      !hr08
+      isl(3)= mm(1)                                                      !hr08
+      isl(4)= values(5)                                                  !hr08
+      isl(5)= values(6)                                                  !hr08
+      isl(6)= 0                                                          !hr08
+      nd = (mm(3)*100+mm(1))*100 + mm(2)
+!     nt =            nn(1) *100 + nn(2)
+      nt=values(5)*100+values(6)
+      return
+      end
+      subroutine timest(r1)
+      implicit none
++if cr
++ca crcoall
++ei
++ca commtim
+      logical start
+      data start /.false./
++ca save
+      if (.not.start) then
+        start=.true.
+        call cpu_time(timestart)
+      endif
+      return
+      end
+      subroutine timex(r1)
+      implicit none
++if cr
++ca crcoall
++ei
++ca commtim
++ca save
+      call timest(0.0)
+      call cpu_time(timenow)
+      r1=timenow-timestart
+      return
+      end
+      subroutine abend(cstring)
+      implicit none
++ca crcoall
+      integer i,lstring,istat
+      character*50 cstring
+      character*255 arecord
++ca save
++if cr
++if debug
+                   !call system('../crend   >> crlog')
++ei
+      if (lout.eq.92) then
+        write(93,*)                                                     &
+     &'SIXTRACR STOP/ABEND copying fort.92'
+        endfile 93
+        backspace 93
+        rewind 92
+    3   read(92,'(a255)',end=1,err=4,iostat=istat) arecord
+        lstring=255
+        do i=255,2,-1
+          lstring=i
+          if (arecord(i:i).ne.' ')goto 2
+          lstring=lstring-1
+        enddo
+    2   write(6,'(a)') arecord(1:lstring)
+        goto 3
+      endif
+    1 write(6,*)                                                        &
+     &'SIXTRACR stop '//cstring
+      close(92)
+      close(6)
+      write(93,*)                                                       &
+     &'SIXTRACR stop '//cstring
+      write(93,*)
++if debug
+                   !call system('../crend   >> crlog')
++ei
++if boinc
+!     call boinc_finish_graphics()
+      call boinc_finish(0)
++ei
+      stop
+    4 write(93,*)                                                       &
+     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
+      write(6,*)                                                        &
+     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
++if debug
+                   !call system('../crend   >> crlog')
++ei
++if boinc
+!     call boinc_finish_graphics()
+      call boinc_finish(0)
++ei
+      stop
++ei
++if .not.cr
+      write(*,*)                                                        &
+     &'SIXTRACK STOP/ABEND '//cstring
++if debug
+                   !call system('../crend   >> crlog')
++ei
++if boinc
+!     call boinc_finish_graphics()
+      call boinc_finish(0)
++ei
+      stop
++ei
+      end
++dk plotdumy
+      subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1,i2,i3
+      real r1,r2,r3,r4,r5
+      character c1
++ca save
+      return
+      end
+      subroutine hdelet(i1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
++ca save
+      return
+      end
+      subroutine hlimit(i1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
++ca save
+      return
+      end
+      subroutine hplax(c1,c2)
+      implicit none
+      integer lout
+      common /crflags/lout
+      character c1,c2
++ca save
+      return
+      end
+      subroutine hplcap(i1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
++ca save
+      return
+      end
+      subroutine hplend()
+      implicit none
+      integer lout
+      common /crflags/lout
++ca save
+      return
+      end
+      subroutine hplint(i1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
++ca save
+      return
+      end
+      subroutine hplopt(c1,i1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
+      character c1
++ca save
+      return
+      end
+      subroutine hplot(i1,c1,c2,i2)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1,i2
+      character c1,c2
++ca save
+      return
+      end
+      subroutine hplset(c1,r1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      real r1
+      character c1
++ca save
+      return
+      end
+      subroutine hplsiz(r1,r2,c1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      real r1,r2
+      character c1
++ca save
+      return
+      end
+      subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
+      real r1,r2,r3,r4,r5
+      character c1
++ca save
+      return
+      end
+      subroutine htitle(c1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      character c1
++ca save
+      return
+      end
+      subroutine ipl(i1,r1,r2)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
+      real r1(*),r2(*)
++ca save
+      return
+      end
+      subroutine ipm(i1,r1,r2)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
+      real r1,r2
++ca save
+      return
+      end
+      subroutine iselnt(i1)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1
++ca save
+      return
+      end
+      subroutine igmeta(i1,i2)
+      implicit none
+      integer lout
+      common /crflags/lout
+      integer i1,i2
++ca save
+      return
+      end
++dk nagdumy
+      subroutine e04ucf(n,nclin,ncnln,lda,ldcj,ldr,a,bl,bu,
+     +confun,objfun,iter,istate,c,cjac,clamda,
+     +objf,objgrd,r,x,iwork,liwork,work,lwork,
+     +iuser,user,ifail)
+      implicit none
+      integer n,nclin,ncnln,lda,ldcj,ldr,iter,
+     +istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,
+     +iuser(*),ifail
+      real a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),
+     +c(*),cjac(ldcj,*),clamda(n+nclin+ncnln),objf,
+     +objgrd(n),r(ldr,n),x(n),work(lwork),user(*)
+      external confun,objfun
+      save
+      return
+      end
+      subroutine e04uef(c1)
+      implicit none
+      character c1
+      save
+      return
+      end
+      subroutine e04udm(c1)
+      implicit none
+      character c1
+      save
+      return
+      end
+      subroutine x04abf(n1,n2)
+      implicit none
+      integer n1,n2
+      save
+      return
+      end
 +dk dumps
 +if debug
+!DUMPS
+      subroutine warr(vname,value,i,j,k,l)
+      implicit none
+      character*(*) vname
+      double precision value
+      integer i,j,k,l
+      character*(16) myname
+      myname=vname
+      write(100) myname,value,i,j,k,l
+      endfile 100
+      backspace 100
+      return
+      end
       subroutine dumpbl1(dumpname,n,i)
       implicit none
 +ca crcoall
@@ -55677,13 +58194,19 @@ cc2008
 +ca rhicelens
 +ei
       integer n,i
+      integer j
       character*(*) dumpname
+      character*10 mydump,myzfz
 +ca save
-      write(99,*) dumpname,'   Turn ',n,' Element ',i
-      write(99,100) 'zfz ',zfz
-      endfile 99
-      backspace 99
- 100  format (a10,(Z20))
+      mydump=dumpname
+      myzfz='zfz'
+      write(101) mydump,n,i
+      write(101) myzfz
+      do j=1,nzfz
+        write(101) zfz(j) 
+      enddo
+      endfile 101
+      backspace 101
       end
       subroutine dumpxy(dumpname,n,i,k)
       implicit none
@@ -56368,7 +58891,523 @@ cc2008
       endfile 99
       backspace 99
       end
+      subroutine dumpbin(dumpname,n,i)
+      implicit none
++ca crcoall
++ca parpro
++ca parnum
++ca common
++ca common2
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonl
++ca commonmn
++ca commonm1
++ca commontr
++ca commonc
++if collimat
++ca collpara
++ca dbmaincr
++ca dblinopt
++ca dbpencil
++ca database
 +ei
++ca crco
++if bnlelens
++ca rhicelens
++ei
+      integer n,i
+      character*(*) dumpname
+      character*10 mydump
++ca save
+      mydump=dumpname
+      write(99) mydump
+      write(99) n
+      write(99) i
+!     my cr variables
+      write(99) time0
+      write(99) time1
+      write(99) sixrecs
+      write(99) binrec
+      write(99) binrecs
+      write(99) numlcr
+      write(99) rerun
+      write(99) restart
+      write(99) checkp
+      write(99) fort95
+      write(99) fort96
+      write(99) arecord
+      write(99) stxt
+      write(99) runtim
+!     mycrio variables
+      write(99) crnumlcr
+      write(99) crnuml
+      write(99) crsixrecs
+      write(99) crbinrec
+      write(99) crbinrecs
+      write(99) crsythck
+      write(99) crtime0
+      write(99) crtime1
+      write(99) crtime2
+      write(99) crnapxo
+      write(99) crnapx
+      write(99) cre0
+      write(99) crnumxv
+      write(99) crnnumxv
+      write(99) crnlostp
+      write(99) crpstop
+      write(99) crxv
+      write(99) cryv
+      write(99) crsigmv
+      write(99) crdpsv
+      write(99) crdpsv1
+      write(99) crejv
+      write(99) crejfv
+!     some tracking stuff
+      write(99) nwri
+      write(99) ktrack
+      write(99) strack
+      write(99) strackc
+      write(99) stracks
+      write(99) dpsv1
+!
+      write(99) ierro
+      write(99) erbez
+      write(99) pi
+      write(99) pi2
+      write(99) pisqrt
+      write(99) rad
+      write(99) il
+      write(99) mper
+      write(99) mblo
+      write(99) mbloz
+      write(99) msym
+      write(99) kanf
+      write(99) iu
+      write(99) ic
+      write(99) ed
+      write(99) el
+      write(99) ek
+      write(99) sm
+      write(99) kz
+      write(99) kp
+      write(99) xpl
+      write(99) xrms
+      write(99) zpl
+      write(99) zrms
+      write(99) mel
+      write(99) mtyp
+      write(99) mstr
+      write(99) a
+      write(99) bl1
+      write(99) bl2
+      write(99) rvf
+      write(99) idfor
+      write(99) napx
+      write(99) napxo
+      write(99) numlr
+      write(99) nde
+      write(99) nwr
+      write(99) ird
+      write(99) imc
+      write(99) irew
+      write(99) ntwin
+      write(99) iclo6
+      write(99) iclo6r
+      write(99) iver
+      write(99) ibidu
+      write(99) qs
+      write(99) e0
+      write(99) pma
+      write(99) ej
+      write(99) ejf
+      write(99) phas0
+      write(99) phas
+      write(99) hsy
+      write(99) crad
+      write(99) hsyc
+      write(99) phasc
+      write(99) dppoff
+      write(99) sigmoff
+      write(99) tlen
+      write(99) iicav
+      write(99) itionc
+      write(99) ition
+      write(99) idp
+      write(99) ncy
+      write(99) ixcav
+      write(99) dpscor
+      write(99) sigcor
+      write(99) icode
+      write(99) idam
+      write(99) its6d
+      write(99) bk0
+      write(99) ak0
+      write(99) bka
+      write(99) aka
+      write(99) benki
+      write(99) benkc
+      write(99) r00
+      write(99) irm
+      write(99) nmu
+      write(99) zfz
+      write(99) iorg
+      write(99) mzu
+      write(99) bezr
+      write(99) izu0
+      write(99) mmac
+      write(99) mcut
+      write(99) exterr
+      write(99) extalign
+      write(99) tiltc
+      write(99) tilts
+      write(99) mout2
+      write(99) icext
+      write(99) icextal
+      write(99) aper
+      write(99) di0
+      write(99) dip0
+      write(99) ta
+      write(99) dma
+      write(99) dmap
+      write(99) dkq
+      write(99) dqq
+      write(99) de0
+      write(99) ded
+      write(99) dsi
+      write(99) dech
+      write(99) dsm0
+      write(99) itco
+      write(99) itcro
+      write(99) itqv
+      write(99) iout
+      write(99) qw0
+      write(99) iq
+      write(99) iqmod
+      write(99) kpa
+      write(99) iqmod6
+      write(99) bez
+      write(99) elbe
+      write(99) bezb
+      write(99) ilin
+      write(99) nt
+      write(99) iprint
+      write(99) ntco
+      write(99) eui
+      write(99) euii
+      write(99) nlin
+      write(99) bezl
+      write(99) betam
+      write(99) pam
+      write(99) betac
+      write(99) pac
+      write(99) bclorb
+      write(99) nhmoni
+      write(99) nhcorr
+      write(99) nvmoni
+      write(99) nvcorr
+      write(99) ncororb
+      write(99) apx
+      write(99) apz
+      write(99) sigma0
+      write(99) iclo
+      write(99) ncorru
+      write(99) ncorrep
+      write(99) icomb0
+      write(99) icomb
+      write(99) ratio
+      write(99) ratioe
+      write(99) iratioe
+      write(99) icoe
+      write(99) ise
+      write(99) mesa
+      write(99) mp
+      write(99) m21
+      write(99) m22
+      write(99) m23
+      write(99) ise1
+      write(99) ise2
+      write(99) ise3
+      write(99) isea
+      write(99) qxt
+      write(99) qzt
+      write(99) tam1
+      write(99) tam2
+      write(99) isub
+      write(99) nta
+      write(99) nte
+      write(99) ipt
+      write(99) totl
+      write(99) rtc
+      write(99) rts
+      write(99) ire
+      write(99) ipr
+      write(99) irmod2
+      write(99) dtr
+      write(99) nre
+      write(99) nur
+      write(99) nch
+      write(99) nqc
+      write(99) npp
+      write(99) nrr
+      write(99) nu
+      write(99) dphix
+      write(99) dphiz
+      write(99) qx0
+      write(99) qz0
+      write(99) dres
+      write(99) dfft
+      write(99) cma1
+      write(99) cma2
+      write(99) nstart
+      write(99) nstop
+      write(99) iskip
+      write(99) iconv
+      write(99) imad
+      write(99) ipos
+      write(99) iav
+      write(99) iwg
+      write(99) ivox
+      write(99) ivoz
+      write(99) ires
+      write(99) ifh
+      write(99) toptit
+      write(99) kwtype
+      write(99) itf
+      write(99) icr
+      write(99) idis
+      write(99) icow
+      write(99) istw
+      write(99) iffw
+      write(99) nprint
+      write(99) ndafi
+      write(99) irip
+      write(99) irco
+      write(99) ramp
+      write(99) rfre
+      write(99) rzph
+      write(99) nrel
+      write(99) nrturn
+      write(99) qwsk
+      write(99) betx
+      write(99) betz
+      write(99) alfx
+      write(99) alfz
+      write(99) iskew
+      write(99) nskew
+      write(99) hmal
+      write(99) sixtit
+      write(99) commen
+      write(99) ithick
+      write(99) clo6
+      write(99) clop6
+      write(99) dki
+      write(99) sigman
+      write(99) sigman2
+      write(99) sigmanq
+      write(99) clobeam
+      write(99) beamoff
+      write(99) parbe
+      write(99) track6d
+      write(99) ptnfac
+      write(99) sigz
+      write(99) sige
+      write(99) partnum
+      write(99) parbe14
+      write(99) emitx
+      write(99) emity
+      write(99) emitz
+      write(99) gammar
+      write(99) nbeam
+      write(99) ibbc
+      write(99) ibeco
+      write(99) ibtyp
+      write(99) lhc
+      write(99) cotr
+      write(99) rrtr
+      write(99) imtr
+      write(99) bbcu
+      write(99) ibb6d
+      write(99) imbb
+      write(99) as
+      write(99) al
+      write(99) sigm
+      write(99) dps
+      write(99) idz
+      write(99) dp1
+      write(99) itra
+      write(99) x
+      write(99) y
+      write(99) bet0
+      write(99) alf0
+      write(99) clo
+      write(99) clop
+      write(99) cro
+      write(99) is
+      write(99) ichrom
+      write(99) nnumxv
+      write(99) xsi
+      write(99) zsi
+      write(99) smi
+      write(99) aai
+      write(99) bbi
+      write(99) rsmi
+      write(99) rfres
+      write(99) rzphs
+      write(99) ampt
+      write(99) tlim
+      write(99) tasm
+      write(99) preda
+      write(99) idial
+      write(99) nord
+      write(99) nvar
+      write(99) nvar2
+      write(99) nsix
+      write(99) ncor
+      write(99) ipar
+      write(99) nordf
+      write(99) nvarf
+      write(99) nord1
+      write(99) ndimf
+      write(99) idptr
+      write(99) inorm
+      write(99) imod1
+      write(99) imod2
+      write(99) icorr
+      write(99) nctype
+      write(99) namp
+      write(99) nmom
+      write(99) nmom1
+      write(99) nmom2
+      write(99) weig1
+      write(99) weig2
+      write(99) dpmax
+      write(99) coel
+      write(99) ekv
+      write(99) fokqv
+      write(99) aaiv
+      write(99) bbiv
+      write(99) smiv
+      write(99) zsiv
+      write(99) xsiv
+      write(99) xsv
+      write(99) zsv
+      write(99) qw
+      write(99) qwc
+      write(99) clo0
+      write(99) clop0
+      write(99) eps
+      write(99) epsa
+      write(99) ekk
+      write(99) cr
+      write(99) ci
+      write(99) xv
+      write(99) yv
+      write(99) dam
+      write(99) ekkv
+      write(99) sigmv
+      write(99) dpsv
+      write(99) dp0v
+      write(99) sigmv6
+      write(99) dpsv6
+      write(99) ejv
+      write(99) ejfv
+      write(99) xlv
+      write(99) zlv
+      write(99) pstop
+      write(99) rvv
+      write(99) ejf0v
+      write(99) numxv
+      write(99) nms
+      write(99) nlostp
+      write(99) dpd
+      write(99) dpsq
+      write(99) fok
+      write(99) rho
+      write(99) fok1
+      write(99) si
+      write(99) co
+      write(99) g
+      write(99) gl
+      write(99) sm1
+      write(99) sm2
+      write(99) sm3
+      write(99) sm12
+      write(99) as3
+      write(99) as4
+      write(99) as6
+      write(99) sm23
+      write(99) rhoc
+      write(99) siq
+      write(99) aek
+      write(99) afok
+      write(99) hp
+      write(99) hm
+      write(99) hc
+      write(99) hs
+      write(99) wf
+      write(99) wfa
+      write(99) wfhi
+      write(99) rhoi
+      write(99) hi
+      write(99) fi
+      write(99) hi1
+      write(99) xvl
+      write(99) yvl
+      write(99) ejvl
+      write(99) dpsvl
+      write(99) oidpsv
+      write(99) sigmvl
+      write(99) iv
+      write(99) aperv
+      write(99) ixv
+      write(99) clov
+      write(99) clopv
+      write(99) alf0v
+      write(99) bet0v
+      write(99) ampv
+      write(99) clo6v
+      write(99) clop6v
+      write(99) hv
+      write(99) bl1v
+      write(99) tas
+      write(99) qwcs
+      write(99) di0xs
+      write(99) di0zs
+      write(99) dip0xs
+      write(99) dip0zs
+      write(99) xau
+      write(99) cloau
+      write(99) di0au
+      write(99) tau
+      write(99) tasau
+      write(99) wx
+      write(99) x1
+      write(99) x2
+      write(99) fake
+      write(99) e0f
+      write(99) numx
+      write(99) cotr
+      write(99) rrtr
+      write(99) imtr
+!     these other values???
+      write(99) numl
+      write(99) niu
+      write(99) amp0
+      write(99) amp
+      write(99) damp
+      write(99) chi0
+      write(99) chid
+      write(99) rat
+      write(99) exz
+      write(99) time0
+      write(99) time1
+      endfile 99
+      backspace 99
+      end
       subroutine dumphex(dumpname,n,i)
       implicit none
 +ca crcoall
@@ -56883,321 +59922,8 @@ cc2008
       backspace 99
  100  format (a10,(Z20))
       end
-+dk aux
-!      logical function isnan(arg1,arg2)
-      logical function myisnan(arg1,arg2)
-      implicit none
-+if cr
-+ca crcoall
+!DUMPS
 +ei
-+if crlibm
-+ca crlibco
-+ei
-      double precision arg1,arg2
-!      isnan=.false.
-!      if(arg1.ne.arg2) isnan=.true.
-      myisnan=.false.
-      if(arg1.ne.arg2) myisnan=.true.
-      end
-      subroutine datime(nd,nt)
-      implicit none
-! Fill common slate for usage by hmachi call as per z007 writeup.        !hr08
-      common /slate/ isl(40)                                             !hr08
-
-      integer isl                                                        !hr08
-+if cr
-+ca crcoall
-+ei
-!
-!-    call datime (nd,nt)   returns integer date   nd = yymmdd
-!-                                  integer time   nt =   hhmm
-!     integer nd,nt,mm(3),nn(3)
-!     call idate (mm(1),mm(2),mm(3))
-!     call itime (nn)
-      character*8 date
-      character*10 time
-      character*5 zone
-      integer values(8),mm(3),nd,nt
-+ca save
-      call date_and_time(date,time,zone,values)
-      mm(3)=mod(values(1),100)
-!     mm(3) = mod (mm(3),100)
-      mm(2)=values(3)
-      mm(1)=values(2)
-      isl(1)= mm(3)                                                      !hr08
-      isl(2)= mm(2)                                                      !hr08
-      isl(3)= mm(1)                                                      !hr08
-      isl(4)= values(5)                                                  !hr08
-      isl(5)= values(6)                                                  !hr08
-      isl(6)= 0                                                          !hr08
-      nd = (mm(3)*100+mm(1))*100 + mm(2)
-!     nt =            nn(1) *100 + nn(2)
-      nt=values(5)*100+values(6)
-      return
-      end
-      subroutine timest(r1)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+ca commtim
-      logical start
-      data start /.false./
-+ca save
-      if (.not.start) then
-        start=.true.
-        call cpu_time(timestart)
-      endif
-      return
-      end
-      subroutine timex(r1)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+ca commtim
-+ca save
-      call timest(0.0)
-      call cpu_time(timenow)
-      r1=timenow-timestart
-      return
-      end
-      subroutine abend(cstring)
-      implicit none
-+ca crcoall
-      integer i,lstring,istat
-      character*50 cstring
-      character*255 arecord
-+ca save
-+if cr
-      if (lout.eq.92) then
-        write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND copying fort.92'
-        endfile 93
-        backspace 93
-        rewind 92
-    3   read(92,'(a255)',end=1,err=4,iostat=istat) arecord
-        lstring=255
-        do i=255,2,-1
-          lstring=i
-          if (arecord(i:i).ne.' ')goto 2
-          lstring=lstring-1
-        enddo
-    2   write(6,'(a)') arecord(1:lstring)
-        goto 3
-      endif
-    1 write(6,*)                                                        &
-     &'SIXTRACR stop '//cstring
-      close(92)
-      close(6)
-      write(93,*)                                                       &
-     &'SIXTRACR stop '//cstring
-      write(93,*)
-+if boinc
-!     call boinc_finish_graphics()
-      call boinc_finish(0)
-+ei
-      stop
-    4 write(93,*)                                                       &
-     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
-      write(6,*)                                                        &
-     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
-+if boinc
-!     call boinc_finish_graphics()
-      call boinc_finish(0)
-+ei
-      stop
-+ei
-+if .not.cr
-      write(*,*)                                                        &
-     &'SIXTRACK STOP/ABEND '//cstring
-+if boinc
-!     call boinc_finish_graphics()
-      call boinc_finish(0)
-+ei
-      stop
-+ei
-      end
-+dk plotdumy
-      subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1,i2,i3
-      real r1,r2,r3,r4,r5
-      character c1
-+ca save
-      return
-      end
-      subroutine hdelet(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-+ca save
-      return
-      end
-      subroutine hlimit(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-+ca save
-      return
-      end
-      subroutine hplax(c1,c2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      character c1,c2
-+ca save
-      return
-      end
-      subroutine hplcap(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-+ca save
-      return
-      end
-      subroutine hplend()
-      implicit none
-      integer lout
-      common /crflags/lout
-+ca save
-      return
-      end
-      subroutine hplint(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-+ca save
-      return
-      end
-      subroutine hplopt(c1,i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      character c1
-+ca save
-      return
-      end
-      subroutine hplot(i1,c1,c2,i2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1,i2
-      character c1,c2
-+ca save
-      return
-      end
-      subroutine hplset(c1,r1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      real r1
-      character c1
-+ca save
-      return
-      end
-      subroutine hplsiz(r1,r2,c1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      real r1,r2
-      character c1
-+ca save
-      return
-      end
-      subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      real r1,r2,r3,r4,r5
-      character c1
-+ca save
-      return
-      end
-      subroutine htitle(c1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      character c1
-+ca save
-      return
-      end
-      subroutine ipl(i1,r1,r2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      real r1(*),r2(*)
-+ca save
-      return
-      end
-      subroutine ipm(i1,r1,r2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      real r1,r2
-+ca save
-      return
-      end
-      subroutine iselnt(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-+ca save
-      return
-      end
-      subroutine igmeta(i1,i2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1,i2
-+ca save
-      return
-      end
-+dk nagdumy
-      subroutine e04ucf(n,nclin,ncnln,lda,ldcj,ldr,a,bl,bu,
-     +confun,objfun,iter,istate,c,cjac,clamda,
-     +objf,objgrd,r,x,iwork,liwork,work,lwork,
-     +iuser,user,ifail)
-      implicit none
-      integer n,nclin,ncnln,lda,ldcj,ldr,iter,
-     +istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,
-     +iuser(*),ifail
-      real a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),
-     +c(*),cjac(ldcj,*),clamda(n+nclin+ncnln),objf,
-     +objgrd(n),r(ldr,n),x(n),work(lwork),user(*)
-      external confun,objfun
-      save
-      return
-      end
-      subroutine e04uef(c1)
-      implicit none
-      character c1
-      save
-      return
-      end
-      subroutine e04udm(c1)
-      implicit none
-      character c1
-      save
-      return
-      end
-      subroutine x04abf(n1,n2)
-      implicit none
-      integer n1,n2
-      save
-      return
-      end
 +dk hdf5K 
 +if hdf5
 !>

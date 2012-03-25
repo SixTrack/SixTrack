@@ -11,7 +11,7 @@ OBJS = addition_scs.o multiplication_scs.o zero_scs.o \
      atan.o atan_fast.o division_scs.o \
      ericc.o atan2_rn.o \
      asin_rn.o acos_rn.o csh_fast.o log10.o rem_pio2.o \
-     disable_xp.o enable_xp.o
+     round_near.o round_ulp_gcc.o disable_xp.o enable_xp.o
 all: crlibm.a
 crlibm.a: $(OBJS)
 	ar -rv crlibm.a $(OBJS)
@@ -19,7 +19,6 @@ AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconve
 DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
 CFLAGS = -g -O2 -m32
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
-FCF =  --tp --o1  -Wa,--32
 csh_fast.o: csh_fast.c crlibm.h crlibm_private.h scs.h \
         scs_config.h scs_private.h crlibm_config.h \
         csh_fast.h
@@ -84,6 +83,10 @@ disable_xp.o: disable_xp.c
 	$(COMPILE1) -c disable_xp.c
 enable_xp.o: enable_xp.c
 	$(COMPILE1) -c enable_xp.c
+round_ulp_gcc.o: round_ulp.c
+	$(CC) -m32 -std=c99 -O3 -W -Wall -pedantic -c round_ulp.c -o round_ulp_gcc.o
+round_near.o: round_near.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic -c round_near.c
 
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline 
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)

@@ -1,20 +1,47 @@
 SHELL = /bin/sh
 
-FC = "lf95"
-FCF = "--o1 --tp"
-FCL = "-static"
+FC = ifort
+FCF = -O2 -mia32 -axSSE2 -fp-model source -fp-model strict -fp-model no-except
+FCL = -static -m32
+FCLMAP = -Wl,--print-map -static -m32
 
-all: SixTrack
+CCL = -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lnsl -lstdc++ -lpthread -lm -lc \
+ -lgcc_eh
+CRLIBM = crlibm/crlibm.a
+CERNLIB = 
+gfortran_lib = 
+BOINC = ../boinc_api_fortran.o ../boinc_api.o ../libboinc.a ../libboinc_zip.a
+NAGLIBC = 
+BEAMGAS = 
+
+CRLIBM = crlibm
+BOINCAPI = ../../api
+BOINCLIB = ../../lib
+BOINCZIP = ../../../server_edge_eric/boinc/zip
+
+SRC = dabnews.f lielib.f sixve.f sixvefox.f track.f maincr.f cern_boinc_api_fortran.C cern_app_main.C
+
+EXE = sixtrack.exe
+
+all: $(EXE)
 
 %.o: %.f
 	$(FC) -c $(FCF) $<
+%.o: %.C
+	g++ -m32 -c -I../.. -I../../api -I../../lib -I$(BOINCZIP) $<
 
-SixTrack: track.o sixve.o sixvefox.o dabnews.o lielib.o myboinc.o crlibm/crlibm.a
-	$(FC) $(FCL) -o SixTrack track.o sixve.o sixvefox.o dabnews.o lielib.o myboinc.o \
-	crlibm/crlibm.a
+$(EXE) : track.o sixve.o sixvefox.o dabnews.o lielib.o crlibm/crlibm.a cern_boinc_api_fortran.o
+	$(FC) $(FCL) -o $(EXE) track.o sixve.o sixvefox.o dabnews.o lielib.o $(CRLIBM)/crlibm.a \
+			cern_boinc_api_fortran.o  $(BOINCAPI)/boinc_api.o $(BOINCLIB)/libboinc.a \
+                        $(BOINCZIP)/libboinc_zip.a \
+			$(CCL) > sixtrack.map
 
+#	/afs/cern.ch/sw/fortran/lahey/lf9562/bin/../lib/fjpar.o -L/afs/cern.ch/sw/fortran/lahey/lf9562/bin/../lib -lfj9ipp -lfj9fpp -lfj9e6 -lfccx86_6a -lm -lpthread
 # make clean will execute this: 
 
 clean: 
 	rm -f crlibm/*.o crlibm/crlibm.a
-	rm -f *.o
+	rm -f *.o sixtrack.exe
+
+tar :
+	tar -cvzf sixtrack.tgz makefile $(SRC)

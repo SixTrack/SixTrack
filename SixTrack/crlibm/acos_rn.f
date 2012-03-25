@@ -9,7 +9,10 @@
       elseif (abs(x).eq.0.0d0) then
         acos_rn=pi2
       else
-        acos_rn=atan_rn(sqrt(1.0d0-x*x)/x)
+!       acos_rn=atan_rn(sqrt(1.0d0-x*x)/x)
+! Try using (1-x)*(1+x) in case x is very small.........
+! or close to 1.....write a test program!!!
+         acos_rn=atan_rn(sqrt((1.0d0-x)*(1.0d0+x))/x)
         if (x.lt.0.0d0) then
           acos_rn=pi+acos_rn
         endif
