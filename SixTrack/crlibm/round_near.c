@@ -17,16 +17,25 @@ double round_near_(int*ferrno,char*field,int flen)
 {
   char* endptr;
   double good;
+  int k;
   field[flen-1]='\0';
-  printf("strtod Field: %s\n",field);
+  for (k=0;k<flen-1;k++)
+  {
+    if(field[k]=='D'||field[k]=='d')
+    {
+      field[k]='e';
+      break;
+    }
+  }
+//  printf("strtod Field: %s\n",field);
   errno=0;
   good = strtod(field,&endptr);
   *ferrno=errno;
-  printf("strtod Errno: %i\n",errno);
-  printf("strtod returning: %21.14G\n", good);
-  if (*endptr != '\0') {       /* Not necessarily an error... */
-    printf("strtod Extra characters: index %i:%s\n", *endptr,endptr);
-  }
+//  printf("strtod Errno: %i\n",errno);
+//  printf("strtod returning: %21.14G\n", good);
+//  if (*endptr != '\0') {       /* Not necessarily an error... */
+//    printf("strtod Extra characters: index %i:%s\n", *endptr,endptr);
+//  }
   *ferrno=errno;
   return good;
 }

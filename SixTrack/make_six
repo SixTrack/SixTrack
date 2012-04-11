@@ -468,12 +468,12 @@ then
     then
       myopt="O"
     fi
-    export FCF="-4 -Wa,--32 -g -fno-second-underscore -funroll-loops"
+    export FCF="-Wa,--32 -g -fno-second-underscore -funroll-loops"
     if test "$MACHTYPE" = "i586"
     then
         export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
     else
-        export FCL="-static -m32"
+        export FCL="-static -m32 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
     fi
 elif test "$gfortran" = ""
 then
@@ -905,25 +905,12 @@ else
     echo ""
     echo "Setting up for Windows"
     echo ""
-    cd crlibm
-    # We [re-]copy myboinc.f even for CPSS
-    sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat.template > tmp$$
-    mv tmp$$ Makefile.bat
-    if test "$boinc" = ""
-    then
-        # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
-        if test "$api" != ""
-        then
-            sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
-        else
-            sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
-        fi
-    else
-        sed -e's/%%BOINC%%//g' \
-            -e'/myboinc.f/d' Makefile.bat > tmp$$
-    fi
-    mv tmp$$ Makefile.bat
-    cd ..
+    cp ../crlibm/Makefile.bat crlibm
+### need to get from Windows and fix..........
+###    cp ../link_intel2.bat .
+# Is the this the right version????
+    cp ../boinc_api_fortran.cpp .  
+    cp ../compile_intel.bat .
     echo "Now the $ename directory needs to be taken to Windows."
     echo "The Makefile.bat allows for checking boinc/cpss before"
     echo "really building the BOINC/CPSS version."
@@ -966,23 +953,24 @@ then
   echo ""
   echo "Setting up crlibm and Makefile.bat for Windows"
   echo ""
-  # We [re-]copy myboinc.f even for CPSS
-  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
-  mv tmp$$ Makefile.bat
-  if test "$boinc" = ""
-  then
-    # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
-    if test "$api" != ""
-    then
-       sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
-    else
-      sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
-    fi
-  else
-     sed -e's/%%BOINC%%//g' \
-         -e'/myboinc.f/d' Makefile.bat > tmp$$
-  fi
-  mv tmp$$ Makefile.bat
+# # We [re-]copy myboinc.f even for CPSS
+  echo "Skipping this step, until it is sorted properly!!!"
+# sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
+# mv tmp$$ Makefile.bat
+# if test "$boinc" = ""
+# then
+#   # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
+#   if test "$api" != ""
+#   then
+#      sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
+#   else
+#     sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
+#   fi
+# else
+#    sed -e's/%%BOINC%%//g' \
+#        -e'/myboinc.f/d' Makefile.bat > tmp$$
+# fi
+# mv tmp$$ Makefile.bat
   echo ""
   echo "Now the $ename directory needs to be taken to Windows."
   echo "The Makefile.bat allows for checking boinc/cpss before"

@@ -25,8 +25,11 @@ dafor: dafor.o
 astuce: astuce.o
 	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
 
-boinc_api_fortran.o: boinc_api_fortran.C
-	gcc -c boinc_api_fortran.C
+boinc_api_fortran.o: boinc_api_fortran.cpp
+	gcc -c boinc_api_fortran.cpp
+
+myboinc.o: myboinc.f
+	$(FC) -c $(FCF) myboinc.f
 
 %%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o $(BEAMGAS) $(BOINC) $(CRLIBM)
 	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o $(BEAMGAS) \

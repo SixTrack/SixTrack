@@ -2,8 +2,15 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.33 eric
+    -- based on 4.4.11 
+    -- Uses strtod and sprintf and fround for all input variables
+       and for formatted write of fort.10. This is the first 0 ULP
+       version giving identical results on Linux with 4 different
+       Fortran compilers. 
+  McIntosh 11th April, 2012
+
  SixTrack Version: 4.4.11 eric
-  McIntosh 8th February, 2012
     -- based on 4.4.01 (never committed)
     -- Uses round_ulp from Laurent roundnulp( ,1024)
        only for the same variables, extaux(k), alignx|z and tilt

@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.11'/
-      data moddate /'05.03.2012'/
+      data version /'4.4.33'/
+      data moddate /'09.04.2012'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -1095,7 +1095,25 @@
                 clo6(3)=zero
                 clop6(3)=zero
               else
++if .not.crlibm
                 read(33,*) (clo6(l),clop6(l), l=1,3)
++ei
++if crlibm
+                read(33,*) ch 
+                lineno=lineno+1
+                ch1(:nchars+3)=ch(:nchars)//' / '
+                call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
+                do l=1,3
+                  if (nf.gt.0) then
+                    clo6(l)=fround(errno,fields,l*2-1)
+                    nf=nf-1
+                  endif
+                  if (nf.gt.0) then
+                    clop6(l)=fround(errno,fields,l*2)
+                    nf=nf-1
+                  endif
+                enddo
++ei
               endif
               call clorb(zero)
               call betalf(zero,qw)
@@ -3844,7 +3862,7 @@
         dyy1=ekk*(tiltc(k)*cxzyi-tilts(k)*cxzyr)
         dyy2=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
 +ei
-+cd  bpmdata
++cd bpmdata
 !---------Collect BPM data
           if(ix.gt.0.and.bez(ix)(1:2).eq.'BP'.and.n.lt.1025) then
           if(n.eq.1) then
@@ -7847,13 +7865,13 @@ cc2008
       call boincrf('fort.10',filename)
       open(10,file=filename,form='formatted',status='unknown',          &
 +if fio
-     &round='nearest'                                                   &
+     &round='nearest',                                                  &
 +ei
 +ei
 +if .not.boinc
       open(10,file='fort.10',form='formatted',status='unknown',         &
 +if fio
-     &round='nearest'                                                   &
+     &round='nearest',                                                  &
 +ei
 +ei
      &recl=8195)
@@ -9391,6 +9409,19 @@ cc2008
 +ca commadha
 +ca commadh1
       dimension ind(10),user(500)
++if crlibm
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
+      character*(nchars+nchars) ch1
+      integer maxf,nofields
+      parameter (maxf=30)
+      parameter (nofields=20)
+      character*(maxf) fields(nofields)
+      integer errno,nfields,nunit,lineno,nf
+      double precision fround
+      data lineno /0/
++ei
 +ca save
 !-----------------------------------------------------------------------
       nmax=40
@@ -9410,6 +9441,58 @@ cc2008
    10 read(23,'(I6,2X,G20.14,I5,4X,18(2I2,1X))',end=30) ncoef,cc,nord,  &
      &njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot)
       read(23,*,end=30) cc
++if crlibm
+      read(23,*,end=30) ch
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      lineno=lineno+1
+      call splitfld(errno,23,lineno,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read (fields(1),*) ncoef
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        cc=fround(errno,fileds,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(3),*) nord
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(4),*) njx
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(5),*) njx1
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(6),*) njz
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(7),*) njz1
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(8),*) np
+        nf=nf-1
+      endif
+      do jel=1,jeltot
+        if (nf.gt.0) then
+          read (fields(8+jel),*) ind(jel)
+          nf=nf-1
+        endif
+      enddo
+      read(23,*,end=30) ch
+      lineno=lineno+1
+      ch1(nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,23,lineno,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        cc=fround(errno,fields,1)
+        nf=nf-1
+      endif
++ei
 !-----------------------------------------------------------------------
 !---- CODING IND IN BASE 3
 !-----------------------------------------------------------------------
@@ -10467,13 +10550,80 @@ cc2008
 +ca commadha
 +ca commadh2
       dimension ind(10),user(500)
++if crlibm
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
+      character*(nchars+nchars) ch1
+      integer nofields
+      parameter (nofields=20)
+      character*(nchars) fields(nofields)
+      integer errno,nfields,nunit,lineno,maxf,nf
+      double precision fround
+      data lineno /0/
++ei
 +ca save
 !-----------------------------------------------------------------------
       rewind 23
 !-----------------------------------------------------------------------
++if .not.crlibm
    10 read(23,*,end=40) ncoef,cc,nor,njx,njx1,njz,njz1,np,(ind(jel),jel &
      &=1,jeltot)
       read(23,*,end=40) cc
++ei
++if crlibm
+      nunit=23
+      read(23,*,end=40) ch
+      lineno=lineno+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,23,lineno,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read (fields(1),*) ncoef
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        cc=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(3),*) nor
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(4),*) njx
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(5),*) njx1
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(6),*) njz
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(7),*) njz1
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read (fields(8),*) np
+        nf=nf-1
+      endif
+      do jel=1,jeltot
+        if (nf.gt.0) then
+          read (fields(8+jel),*) ind(jel)
+          nf=nf-1
+        endif
+      enddo
+      read(23,*,end=40) ch
+      lineno=lineno+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,23,lineno,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        cc=fround(errno,fields,1)
+        nf=nf-1
+      endif
++ei
 !-----------------------------------------------------------------------
 !---- CODING IND IN BASE NORDP+1
 !-----------------------------------------------------------------------
@@ -11926,8 +12076,28 @@ cc2008
       character*16 kl,kr,orga,post,ripp,beam,trom
       character*16 coll
       character*60 ihead
-      character*160 ch
-      character*320 ch1
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
+      character*(nchars+nchars) ch1
++if crlibm
+      integer maxf,nofields
+      parameter (maxf=30)
+      parameter (nofields=41)
+      character*(maxf) fields(nofields)
+      integer errno,nfields,nunit,nf
+      double precision fround
++ei
++if .not.crlibm
+      integer nunit
++ei
+      integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
+      data lineno2 /0/
+      data lineno3 /0/
+      data lineno8 /0/
+      data lineno16 /0/
+      data lineno30 /0/
+      data lineno35 /0/
 +ca parpro
 +ca parnum
 +ca common
@@ -12100,6 +12270,7 @@ cc2008
       preda=c1m38
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(idat(1:1).eq.'/') goto 90
       if(idat.ne.free.and.idat.ne.geom) call prror(1)
       imod=1
@@ -12144,12 +12315,16 @@ cc2008
       if(imod.eq.2) then
   100   read(2,10000,end=1520,iostat=ierro) idat
         if(ierro.gt.0) call prror(57)
+        nunit=2
+        lineno2=lineno2+1
         if(idat(1:1).eq.'/') goto 100
         if(idat.eq.sing) goto 120
         call prror(15)
       endif
   110 read(3,10000,end=1530,iostat=ierro) idat
       if(ierro.gt.0) call prror(58)
+      nunit=3
+      lineno3=lineno3+1
       if(idat(1:1).eq.'/') goto 110
       if(idat.eq.sing) goto 120
       if(idat.eq.bloc) goto 190
@@ -12195,15 +12370,21 @@ cc2008
   130 if(imod.eq.1) then
   140   read(3,10020,end=1530,iostat=ierro) ch
         if(ierro.gt.0) call prror(58)
+        nunit=3
+        lineno3=lineno3+1
         if(ch(1:1).eq.'/') goto 140
         if(ch(:4).eq.next) goto 110
       else if(imod.eq.2) then
   150   read(2,10020,end=1520,iostat=ierro) ch
         if(ierro.gt.0) call prror(57)
+        nunit=2
+        lineno2=lineno2+1
         if(ch(1:1).eq.'/') goto 150
         if(ch(:4).eq.next) then
   160     read(2,10000,end=1520,iostat=ierro) idat
           if(ierro.gt.0) call prror(57)
+          nunit=2
+          lineno2=lineno2+1
           if(idat(1:1).eq.'/') goto 160
           if(idat.ne.bloc) call prror(15)
           goto 190
@@ -12226,6 +12407,7 @@ cc2008
       enddo
  165  if(i1.gt.72) call prror(104)
       call intepr(1,1,ch,ch1)
+!     write (*,*) 'ch1:'//ch1//':'
 +if nagfor
       call enable_xp()
 +ei
@@ -12234,7 +12416,53 @@ cc2008
      & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +ei
 +if .not.fio
++if .not.crlibm
+!     write (*,*) 'ERIC'
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+!     write (*,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
++ei
++if crlibm
+!     write(*,*) 'eric'
+      if (nunit.eq.2) then
+        call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields)
+      elseif (nunit.eq.3) then
+        call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields)
+      else
+      call abend('ERIC!!! daten nunit/lineno2/3 SING                ') 
+      endif
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(2),*) kz(i)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        ed(i)=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        ek(i)=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        el(i)=fround(errno,fields,5)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        bbbx(i)=fround(errno,fields,6)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        bbby(i)=fround(errno,fields,7)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        bbbs(i)=fround(errno,fields,8)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -12346,6 +12574,7 @@ cc2008
 !-----------------------------------------------------------------------
   170 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 170
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
@@ -12361,7 +12590,32 @@ cc2008
      & idat,xpl0,xrms0,zpl0,zrms0
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) idat,xpl0,xrms0,zpl0,zrms0
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        xpl0=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        xrms0=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        zpl0=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        zrms0=fround(errno,fields,5)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -12405,21 +12659,19 @@ cc2008
   190 if(imod.eq.1) then
   200   read(3,10020,end=1530,iostat=ierro) ch
         if(ierro.gt.0) call prror(58)
+        nunit=3
+        lineno3=lineno3+1
         if(ch(1:1).eq.'/') goto 200
       endif
       if(imod.eq.2) then
   210   read(2,10020,end=1520,iostat=ierro) ch
         if(ierro.gt.0) call prror(57)
+        nunit=2
+        lineno2=lineno2+1
         if(ch(1:1).eq.'/') goto 210
       endif
-      ch1(:83)=ch(:80)//' / '
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & mper,(msym(k),k=1,mper)
-+ei
-+if .not.fio
+      ch1(:nchars+3)=ch(:nchars)//' / '
       read(ch1,*) mper,(msym(k),k=1,mper)
-+ei
       if(mper.gt.nper) call prror(17)
       i=0
   220 do 230 m=1,40
@@ -12427,15 +12679,21 @@ cc2008
       if(imod.eq.1) then
   240   read(3,10020,end=1530,iostat=ierro) ch
         if(ierro.gt.0) call prror(58)
+        nunit=3
+        lineno3=lineno3+1
         if(ch(1:1).eq.'/') goto 240
         if(ch(:4).eq.next) goto 110
       else if(imod.eq.2) then
   250   read(2,10020,end=1520,iostat=ierro) ch
         if(ierro.gt.0) call prror(57)
+        nunit=2
+        lineno2=lineno2+1
         if(ch(1:1).eq.'/') goto 250
         if(ch(:4).eq.next) then
   260     read(2,10000,end=1520,iostat=ierro) idat
           if(ierro.gt.0) call prror(57)
+          nunit=2
+          lineno2=lineno2+1
           if(idat(1:1).eq.'/') goto 260
           if(idat.ne.stru) call prror(15)
           goto 320
@@ -12482,11 +12740,15 @@ cc2008
       if(imod.eq.1) then
   350   read(3,10020,end=1530,iostat=ierro) ch
         if(ierro.gt.0) call prror(58)
+        nunit=3
+        lineno3=lineno3+1
         if(ch(1:1).eq.'/') goto 350
       endif
       if(imod.eq.2) then
   360   read(2,10020,end=1520,iostat=ierro) ch
         if(ierro.gt.0) call prror(57)
+        nunit=2
+        lineno2=lineno2+1
         if(ch(1:1).eq.'/') goto 360
       endif
       if(ch(:4).eq.next) goto 110
@@ -12553,12 +12815,13 @@ cc2008
 !-----------------------------------------------------------------------
   500 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).ne.'/') then
         iclr=iclr+1
       else
         goto 500
       endif
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -12568,7 +12831,32 @@ cc2008
      & itra,chi0,chid,rat,iver
 +ei
 +if .not.fio
++if .not.crlibm
         read(ch1,*) itra,chi0,chid,rat,iver
++ei
++if crlibm
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) itra
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          chi0=fround(errno,fields,2)
+        nf=nf-1
+        endif
+        if (nf.gt.0) then
+          chid=fround(errno,fields,3)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          rat=fround(errno,fields,4)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+            read (fields(5),*) iver
+            nf=nf-1
+        endif
++ei
 +ei
         if(itra.gt.2) call prror(40)
       endif
@@ -12577,105 +12865,270 @@ cc2008
      & exz(1,1)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.2) read(ch1,*) exz(1,1)
++ei
++if crlibm
+      if(iclr.eq.2) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(1,1)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & exz(1,2)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.3) read(ch1,*) exz(1,2)
++ei
++if crlibm
+      if(iclr.eq.3) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(1,2)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
      & exz(1,3)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.4) read(ch1,*) exz(1,3)
++ei
++if crlibm
+      if(iclr.eq.4) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(1,3)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.5) read(ch1,*,round='nearest')                         &
      & exz(1,4)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.5) read(ch1,*) exz(1,4)
++ei
++if crlibm
+      if(iclr.eq.5) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(1,4)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.6) read(ch1,*,round='nearest')                         &
      & exz(1,5)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.6) read(ch1,*) exz(1,5)
++ei
++if crlibm
+      if(iclr.eq.2) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(1,5)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.7) read(ch1,*,round='nearest')                         &
      & exz(1,6)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.7) read(ch1,*) exz(1,6)
++ei
++if crlibm
+      if(iclr.eq.7) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(1,6)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.8) read(ch1,*,round='nearest')                         &
      & exz(2,1)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.8) read(ch1,*) exz(2,1)
++ei
++if crlibm
+      if(iclr.eq.8) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(2,1)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.9) read(ch1,*,round='nearest')                         &
      & exz(2,2)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.9) read(ch1,*) exz(2,2)
++ei
++if crlibm
+      if(iclr.eq.9) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(2,2)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.10) read(ch1,*,round='nearest')                        &
      & exz(2,3)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.10) read(ch1,*) exz(2,3)
++ei
++if crlibm
+      if(iclr.eq.10) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(2,3)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.11) read(ch1,*,round='nearest')                        &
      & exz(2,4)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.11) read(ch1,*) exz(2,4)
++ei
++if crlibm
+      if(iclr.eq.11) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(2,4)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.12) read(ch1,*,round='nearest')                        &
      & exz(2,5)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.12) read(ch1,*) exz(2,5)
++ei
++if crlibm
+      if(iclr.eq.12) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(2,5)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.13) read(ch1,*,round='nearest')                        &
      & exz(2,6)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.13) read(ch1,*) exz(2,6)
++ei
++if crlibm
+      if(iclr.eq.13) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          exz(2,6)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.14) read(ch1,*,round='nearest')                        &
      & e0
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.14) read(ch1,*) e0
++ei
++if crlibm
+      if(iclr.eq.14) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          e0=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.15) read(ch1,*,round='nearest')                        &
      & ej(1)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.15) read(ch1,*) ej(1)
++ei
++if crlibm
+      if(iclr.eq.15) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          ej(1)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.16) read(ch1,*,round='nearest')                        &
      & ej(2)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.16) read(ch1,*) ej(2)
++ei
++if crlibm
+      if(iclr.eq.16) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          ej(2)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -12691,19 +13144,66 @@ cc2008
 !-----------------------------------------------------------------------
   510 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).ne.'/') then
         iclr=iclr+1
       else
         goto 510
       endif
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
+     &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2)
 +ei
 +if .not.fio
-      if(iclr.eq.1) read(ch1,*)                                         &
-+ei
++if .not.crlibm
+      if(iclr.eq.1) then
+        read(ch1,*)                                                     &
      &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2)
+      endif
++ei
++if crlibm
+      if(iclr.eq.1) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) numl
+        nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(2),*) numlr
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(3),*) napx
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          amp(1)=fround(errno,fields,4)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          amp0=fround(errno,fields,5)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(6),*) ird
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(7),*) imc
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(8),*) niu(1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(9),*) niu(2)
+          nf=nf-1
+        endif
+      endif
++ei
++ei
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & idz(1),idz(2),idfor,irew,iclo6
@@ -12734,6 +13234,7 @@ cc2008
 !-----------------------------------------------------------------------
   520 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 520
       ndum=ndum+1
       if(ch(:4).eq.next) then
@@ -12741,7 +13242,7 @@ cc2008
         goto 110
       endif
       if(ndum.eq.1) then
-        ch1(:83)=ch(:80)//' / '
+        ch1(:nchars+3)=ch(:nchars)//' / '
         idial=1
         numlr=0
         napx=1
@@ -12751,7 +13252,32 @@ cc2008
      & nord,nvar,preda,nsix,ncor
 +ei
 +if .not.fio
++if .not.crlibm
         read(ch1,*) nord,nvar,preda,nsix,ncor
++ei
++if crlibm
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read (fields(1),*) nord
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read (fields(2),*) nvar
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          preda=fround(errno,fields,3)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read (fields(4),*) nsix
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read (fields(5),*) ncor
+          nf=nf-1
+        endif
++ei
 +ei
         if(nvar.le.4) ition=0
         if(nord.le.0.or.nvar.le.0) call prror(91)
@@ -12831,6 +13357,7 @@ cc2008
       do 580 l=1,2
   570 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 570
       call intepr(1,1,ch,ch1)
 +if nagfor
@@ -12841,14 +13368,48 @@ cc2008
      & iss(1),cro(1),ichrom0
 +ei
 +if .not.fio
++if .not.crlibm
       if(l.eq.1) read(ch1,*) iss(1),cro(1),ichrom0
++ei
++if crlibm
+      if(l.eq.1) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read (fields(1),*) iss(1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          cro(1)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read (fields(3),*) ichrom0
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(l.eq.2) read(ch1,*,round='nearest')                            &
      & iss(2),cro(2)
 +ei
 +if .not.fio
++if .not.crlibm
       if(l.eq.2) read(ch1,*) iss(2),cro(2)
++ei
++if crlibm
+      if (l.eq.2) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) iss(2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          cro(2)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -12866,6 +13427,7 @@ cc2008
       do 630 l=1,3
   610 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 610
       if(ch(:4).eq.next) then
         if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni) then
@@ -12892,7 +13454,24 @@ cc2008
      & iqq(1),qw0(1),iqmod6
 +ei
 +if .not.fio
++if .not.crlibm
         read(ch1,*) iqq(1),qw0(1),iqmod6
++ei
++if crlibm
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) iqq(1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          qw0(1)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(3),*) iqmod6
+          nf=nf-1
+        endif
++ei
 +ei
         if(iqmod6.eq.1) then
           iqmod6=0
@@ -12911,14 +13490,44 @@ cc2008
      & iqq(2),qw0(2)
 +ei
 +if .not.fio
++if .not.crlibm
       if(l.eq.2) read(ch1,*) iqq(2),qw0(2)
++ei
++if crlibm
+      if(l.eq.2) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) iqq(2)
+        nf=nf-1
+        endif
+        if (nf.gt.0) then
+          qw0(2)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(l.eq.3) read(ch1,*,round='nearest')                            &
      & iqq(3),qw0(3)
 +ei
 +if .not.fio
++if .not.crlibm
       if(l.eq.3) read(ch1,*) iqq(3),qw0(3)
++ei
++if crlibm
+      if(l.eq.3) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) iqq(3)
+        nf=nf-1
+        endif
+        if (nf.gt.0) then
+          qw0(3)=fround(errno,fields,2)
+        nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -12926,6 +13535,7 @@ cc2008
   630 continue
   640 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 640
       call intepr(4,1,ch,ch1)
 +if fio
@@ -12954,6 +13564,7 @@ cc2008
 +ei
         iqmod=0
         iqmod6=0
+        write(*,*) 'TUNE ADJUSTED'
         goto 110
       endif
 !-----------------------------------------------------------------------
@@ -12963,6 +13574,7 @@ cc2008
       ilin0=1
       read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 660
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
@@ -12971,7 +13583,36 @@ cc2008
      & idat,nt,ilin0,ntco,eui,euii
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) idat,nt,ilin0,ntco,eui,euii
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(2),*) nt
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(3),*) ilin0
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(4),*) ntco
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        eui=fround(errno,fields,5)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        euii=fround(errno,fields,6)
+        nf=nf-1
+      endif
++ei
 +ei
       iprint=0
       if(idat.ne.'BLOCK'.and.idat.ne.'ELEMENT') call prror(45)
@@ -12982,6 +13623,7 @@ cc2008
   680 ilm0(m)=idum
   690 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 690
       if(ch(:4).eq.next) goto 110
       call intepr(2,1,ch,ch1)
@@ -13004,12 +13646,13 @@ cc2008
 !-----------------------------------------------------------------------
   710 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).ne.'/') then
       iclr=iclr+1
       else
       goto 710
       endif
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -13018,14 +13661,68 @@ cc2008
      & harm,alc,u0,phag,tlen,pma,ition,dppoff
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.1) read(ch1,*) harm,alc,u0,phag,tlen,pma,ition,dppoff
++ei
++if crlibm
+      if(iclr.eq.1) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          harm=fround(errno,fields,1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          alc=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          u0=fround(errno,fields,3)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          phag=fround(errno,fields,4)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          tlen=fround(errno,fields,5)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          pma=fround(errno,fields,6)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(7),*) ition
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dppoff=fround(errno,fields,8)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & dpscor,sigcor
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.2) read(ch1,*) dpscor,sigcor
++ei
++if crlibm
+      if(iclr.eq.2) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          dpscor=fround(errno,fields,1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          sigcor=fround(errno,fields,2)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -13131,6 +13828,7 @@ cc2008
 !-----------------------------------------------------------------------
   740 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 740
       call intepr(1,1,ch,ch1)
 +if nagfor
@@ -13141,7 +13839,24 @@ cc2008
      & imn,r0,benki
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) imn,r0,benki
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) imn
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        r0=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        benki=fround(errno,fields,3)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -13175,9 +13890,10 @@ cc2008
       akad=zero
   780 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 780
       if(ch(:4).eq.next) goto 110
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -13186,7 +13902,28 @@ cc2008
      & bk0d,bkad,ak0d,akad
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) bk0d,bkad,ak0d,akad
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        bk0d=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        bkad=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        ak0d=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        akad=fround(errno,fields,4)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -13217,14 +13954,16 @@ cc2008
 +if .not.cr
       write(*,10380)
 +ei
+      write (*,*) 'BENKI done'
       goto 770
 !-----------------------------------------------------------------------
 !  FLUCTUATION RANDOM STARTING NUMBER
 !-----------------------------------------------------------------------
   790 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 790
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       read(ch1,*,round='nearest')                                       &
      & izu0, mmac, mout, mcut
@@ -13328,6 +14067,7 @@ cc2008
 ! READ IN REGULAR MULTIPOLES FIRST AND THEN THE SKEW COMPONENTS
               if(ifiend16.eq.0) then
                 read(16,10020,end=820,iostat=ierro) ch
+                lineno16=lineno16+1
               else
                 goto 820
               endif
@@ -13344,37 +14084,111 @@ cc2008
 +if nagfor
       call enable_xp()
 +ei
++if .not.crlibm
               read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
      &extaux(3)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
      &extaux(6)
+               lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
      &extaux(9)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
      &extaux(12)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
      &extaux(15)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
      &extaux(18)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(19),extaux(20)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
      &extaux(23)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
      &extaux(26)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
      &extaux(29)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
      &extaux(32)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
      &extaux(35)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
      &extaux(38)
+              lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(39),extaux(40)
++ei
 +if crlibm
-      do k=1,40
-        call roundnulp(extaux(k),1024)
-!       extaux(k)=DBLE(SNGL(extaux(k)))
+! Now my new loops for splitfld and fround (round_near)
+      do k=1,16,3
+        read(16,10020,end=870,iostat=ierro) ch
+        lineno16=lineno16+1
+        ch1(:nchars+3)=ch(:nchars)//' / '
+        call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+!             write (*,*) 'ch:'//ch//':'
+!             write (*,*) 'ch1:'//ch1//':'
+        if (nf.gt.0) then
+          extaux(k)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+1)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+2)=fround(errno,fields,3)
+          nf=nf-1
+        endif
       enddo
+      read(16,10020,end=870,iostat=ierro) ch
+      lineno16=lineno16+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        extaux(19)=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        extaux(20)=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      do k=21,36,3
+        read(16,10020,end=870,iostat=ierro) ch
+        lineno16=lineno16+1
+        ch1(:nchars+3)=ch(:nchars)//' / '
+        call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          extaux(k)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+1)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+2)=fround(errno,fields,3)
+          nf=nf-1
+        endif
+      enddo
+      read(16,10020,end=870,iostat=ierro) ch
+      lineno16=lineno16+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        extaux(39)=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        extaux(40)=fround(errno,fields,2)
+        nf=nf-1
+      endif
 +ei
 +if nagfor
       call disable_xp()
@@ -13455,6 +14269,7 @@ cc2008
 ! READ IN REGULAR MULTIPOLES FIRST AND THEN THE SKEW COMPONENTS
               if(ifiend35.eq.0) then
                 read(35,10020,end=1820,iostat=ierro) ch
+                lineno35=lineno35+1
               else
                 goto 1820
               endif
@@ -13467,36 +14282,188 @@ cc2008
      & ilm0(1),tcnst
 +ei
 +if .not.fio
++if .not.crlibm
               read(ch1,*) ilm0(1),tcnst
++ei
++if crlibm
+              call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+              if (nf.gt.0) then
+                read(fields(1),*) ilm0(1)
+                nf=nf-1
+              endif
+              if (nf.gt.0) then
+                tcnst=fround(errno,fields,2)
+                nf=nf-1
+              endif
++ei
 +ei
               iexnum=iexnum+1
               bezext(iexnum)=ilm0(1)
++if fio
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(1),&
+     &extaux(2),                                                        &
+     &extaux(3)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(4),&
+     &extaux(5),                                                        &
+     &extaux(6)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(7),&
+     &extaux(8),                                                        &
+     &extaux(9)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(10)&
+     &,extaux(11),                                                      &
+     &extaux(12)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(13)&
+     &,extaux(14),                                                      &
+     &extaux(15)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(16)&
+     &,extaux(17),                                                      &
+     &extaux(18)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(19)&
+     &,extaux(20)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(21)&
+     &,extaux(22),                                                      &
+     &extaux(23)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(24)&
+     &,extaux(25),                                                      &
+     &extaux(26)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(27)&
+     &,extaux(28),                                                      &
+     &extaux(29)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(30)&
+     &,extaux(31),                                                      &
+     &extaux(32)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(33)&
+     &,extaux(34),                                                      &
+     &extaux(35)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(36)&
+     &,extaux(37),                                                      &
+     &extaux(38)
+              lineno35=lineno35+1
+              read(35,*,end=870,iostat=ierro,round='nearest') extaux(39)&
+     &,extaux(40)
+              lineno35=lineno35+1
++ei
++if .not.fio
++if .not.crlibm
               read(35,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
      &extaux(3)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
      &extaux(6)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
      &extaux(9)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
      &extaux(12)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
      &extaux(15)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
      &extaux(18)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(19),extaux(20)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
      &extaux(23)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
      &extaux(26)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
      &extaux(29)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
      &extaux(32)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
      &extaux(35)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
      &extaux(38)
+              lineno35=lineno35+1
               read(35,*,end=870,iostat=ierro) extaux(39),extaux(40)
+              lineno35=lineno35+1
++ei
++if crlibm
+! Now my new loops for splitfld and fround (round_near)
+      do k=1,16,3
+        read(35,10020,end=870,iostat=ierro) ch
+        lineno35=lineno35+1
+        ch1(:nchars+3)=ch(:nchars)//' / '
+!             write (*,*) 'ch:'//ch//':'
+!             write (*,*) 'ch1:'//ch1//':'
+        call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          extaux(k)=fround(errno,fields,1)
+        nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+1)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+2)=fround(errno,fields,3)
+          nf=nf-1
+        endif
+      enddo
+      read(35,10020,end=870,iostat=ierro) ch
+      lineno35=lineno35+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+          extaux(19)=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+          extaux(20)=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      do k=21,36,3
+        read(35,10020,end=870,iostat=ierro) ch
+        lineno35=lineno35+1
+        ch1(:nchars+3)=ch(:nchars)//' / '
+        call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          extaux(k)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+1)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          extaux(k+2)=fround(errno,fields,3)
+          nf=nf-1
+        endif
+      enddo
+      read(35,10020,end=870,iostat=ierro) ch
+      lineno35=lineno35+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        extaux(39)=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        extaux(40)=fround(errno,fields,2)
+        nf=nf-1
+      endif
++ei
++ei
 +if nagfor
       call disable_xp()
 +ei
@@ -13572,10 +14539,13 @@ cc2008
               if(ifiend8.eq.0) then
                 read(8,10020,end=1550,iostat=ierro) ch
                 if(ierro.gt.0) call prror(86)
+                lineno8=lineno8+1
               else
                 goto 1550
               endif
               call intepr(1,1,ch,ch1)
+!             write (*,*) 'ch:'//ch//':'
+!             write (*,*) 'ch1:'//ch1//':'
 +if nagfor
       call enable_xp()
 +ei
@@ -13584,16 +14554,34 @@ cc2008
      & ilm0(1),alignx,alignz,tilt
 +ei
 +if .not.fio
++if .not.crlibm
               read(ch1,*) ilm0(1),alignx,alignz,tilt
 +ei
-!Eric
 +if crlibm
+              call splitfld(errno,8,lineno8,nofields,nf,ch1,fields)
+              if (nf.gt.0) then
+                read(fields(1),*) ilm0(1)
+                nf=nf-1
+              endif
+              if (nf.gt.0) then
+                alignx=fround(errno,fields,2)
+                nf=nf-1
+              endif
+              if (nf.gt.0) then
+                alignz=fround(errno,fields,3)
+                nf=nf-1
+              endif
+              if (nf.gt.0) then
+                tilt=fround(errno,fields,4)
+                nf=nf-1
+              endif
 !             alignx=DBLE(SNGL(alignx))
 !             alignz=DBLE(SNGL(alignz))
 !             tilt=DBLE(SNGL(tilt))
-              call roundnulp(alignx,1024)
-              call roundnulp(alignz,1024)
-              call roundnulp(tilt,1024)
+!             call roundnulp(alignx,1024)
+!             call roundnulp(alignz,1024)
+!             call roundnulp(tilt,1024)
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -13655,6 +14643,7 @@ cc2008
             izu=izu+3
             read(30,10020,end=1591,iostat=ierro) ch
             if(ierro.gt.0) call prror(87)
+            lineno30=lineno30+1
             call intepr(1,1,ch,ch1)
 +if nagfor
       call enable_xp()
@@ -13721,6 +14710,7 @@ cc2008
               if(ifiend8.eq.0) then
                 read(30,10020,end=1594,iostat=ierro) ch
                 if(ierro.gt.0) call prror(87)
+                lineno30=lineno30+1
               else
                 goto 1594
               endif
@@ -13792,6 +14782,7 @@ cc2008
   900 iorg=iorg+1
   910 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 910
       if(ch(:4).eq.next) goto 110
       call intepr(3,1,ch,ch1)
@@ -13855,6 +14846,7 @@ cc2008
 !-----------------------------------------------------------------------
   940 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).ne.'/') then
       iclr=iclr+1
       else
@@ -13864,7 +14856,7 @@ cc2008
       iclr=0
       goto 110
       endif
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -13873,28 +14865,111 @@ cc2008
      & itco,dma,dmap
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.1) read(ch1,*) itco,dma,dmap
++ei
++if crlibm
+      if(iclr.eq.1) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) itco
+        endif
+        if (nf.gt.0) then
+          dma=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dmap=fround(errno,fields,3)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         
      & itqv,dkq,dqq
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.2) read(ch1,*) itqv,dkq,dqq
++ei
++if crlibm
+      if(iclr.eq.2) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) itqv
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dkq=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dqq=fround(errno,fields,3)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.3) read(ch1,*,round='nearest')                         
      & itcro,dsm0,dech
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.3) read(ch1,*) itcro,dsm0,dech
++ei
++if crlibm
+      if(iclr.eq.3) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) itcro
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dsm0=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dech=fround(errno,fields,3)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
      & de0,ded,dsi,aper(1),aper(2)
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.4) read(ch1,*) de0,ded,dsi,aper(1),aper(2)
++ei
++if crlibm
+      if(iclr.eq.4) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          de0=fround(errno,fields,1)
+        nf=nf-1
+        endif
+        if (nf.gt.0) then
+          ded=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dsi=fround(errno,fields,3)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          aper(1)=fround(errno,fields,4)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          aper(2)=fround(errno,fields,5)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -13913,6 +14988,7 @@ cc2008
 +ei
   960 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 960
       apxx=zero
       apzz=zero
@@ -13925,7 +15001,28 @@ cc2008
      & idat,irel,apxx,apzz
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) idat,irel,apxx,apzz
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(2),*) irel
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        apxx=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        apzz=fround(errno,fields,4)
+          nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -13952,15 +15049,17 @@ cc2008
       write(*,10330) bez(j),irel,apxx,apzz
 +ei
   970 continue
-      if(idat.ne.next) goto 960
+! Eric temporary fix for BUG???
+!     if(idat.ne.next) goto 960
       goto 110
 !-----------------------------------------------------------------------
 !  ORBIT CORRECTION
 !-----------------------------------------------------------------------
   980 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 980
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -13969,7 +15068,24 @@ cc2008
      & sigma0,ncorru,ncorrep
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) sigma0,ncorru,ncorrep
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        sigma0=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(2),*) ncorru 
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(3),*) ncorrep
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -13977,6 +15093,7 @@ cc2008
       iclo=1
   990 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 990
       iele=idum
       call intepr(4,1,ch,ch1)
@@ -14040,6 +15157,7 @@ cc2008
       if(ii.gt.ncom) goto 1100
  1060 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1060
       if(ch(:4).eq.next) goto 110
       icoe=ii
@@ -14052,7 +15170,26 @@ cc2008
      & idat,(ratio(ii,l),icel(ii,l),l=1,20)
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) idat,(ratio(ii,l),icel(ii,l),l=1,20)
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      do l=1,20
+        if (nf.gt.0) then
+          ratio(ii,l)=fround(errno,fields,l*2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(l*2+1),*) icel(ii,l)
+          nf=nf-1
+        endif
+      enddo
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -14108,8 +15245,9 @@ cc2008
 !-----------------------------------------------------------------------
  1110 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1110
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -14118,7 +15256,41 @@ cc2008
      & nta,nte,qxt,qzt,tam1,tam2,ipt,totl
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) nta,nte,qxt,qzt,tam1,tam2,ipt,totl
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) nta
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(2),*) nte
+        qxt=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        qzt=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        tam1=fround(errno,fields,5)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        tam2=fround(errno,fields,6)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(7),*) ipt
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        totl=fround(errno,fields,8)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -14132,8 +15304,9 @@ cc2008
 !-----------------------------------------------------------------------
  1120 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1120
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       read(ch1,*,round='nearest')                                       &
      & nre
@@ -14155,8 +15328,9 @@ cc2008
      &.or.abs(nrr(3)).gt.npp) call prror(48)
  1130 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1130
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       read(ch1,*,round='nearest')                                       &
      & nur
@@ -14176,8 +15350,9 @@ cc2008
      &.or.nu(1).lt.0.or.nu(2).lt.0.or.nu(3).lt.0) call prror(50)
  1140 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1140
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -14186,13 +15361,39 @@ cc2008
      & totl,qxt,qzt,tam1,tam2
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) totl,qxt,qzt,tam1,tam2
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        totl=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        qxt=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        qzt=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        tam1=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        tam2=fround(errno,fields,5)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
 +ei
  1150 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1150
       call intepr(3,1,ch,ch1)
 +if fio
@@ -14204,6 +15405,7 @@ cc2008
 +ei
  1160 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1160
       call intepr(6,1,ch,ch1)
 +if fio
@@ -14222,6 +15424,7 @@ cc2008
 +ei
  1170 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1170
       call intepr(7,1,ch,ch1)
 +if fio
@@ -14239,7 +15442,30 @@ cc2008
      & nqc,ilm0(9),ilm0(10),qw0
 +ei
 +if .not.fio
++if .not.crlibm
       if(nqc.ne.0) read(ch1,*) nqc,ilm0(9),ilm0(10),qw0
++ei
++if crlibm
+      if(nqc.ne.0) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) nqc
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(2),*) ilm0(9)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(3),*) ilm0(10)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          qw0=fround(errno,fields,4)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -14268,8 +15494,9 @@ cc2008
 !-----------------------------------------------------------------------
  1200 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1200
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if nagfor
       call enable_xp()
 +ei
@@ -14278,15 +15505,41 @@ cc2008
      & qxt,qzt,tam1,tam2,totl
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) qxt,qzt,tam1,tam2,totl
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        qxt=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        qzt=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        tam1=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+          tam2=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        totl=fround(errno,fields,5)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
 +ei
  1210 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1210
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       read(ch1,*,round='nearest')                                       &
      & mesa,mp,m21,m22,m23,ise1,ise2,ise3
@@ -14303,6 +15556,7 @@ cc2008
  1230 ilm0(m)=idum
  1240 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1240
       call intepr(3,1,ch,ch1)
 +if fio
@@ -14336,6 +15590,7 @@ cc2008
 !-----------------------------------------------------------------------
  1280 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1 
       if(ch(1:1).ne.'/') then
       iclr=iclr+1
       else
@@ -14349,17 +15604,107 @@ cc2008
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & iav,nstart,nstop,iwg,dphix,dphiz,                                &
+     &iskip,iconv,imad,cma1,cma2
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.2) read(ch1,*) iav,nstart,nstop,iwg,dphix,dphiz,       &
-+ei
      &iskip,iconv,imad,cma1,cma2
++ei
++if crlibm
+      if(iclr.eq.2) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          read(fields(1),*) iav
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(2),*) nstart
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(3),*) nstop
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(4),*) iwg
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dphix=fround(errno,fields,5)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dphiz=fround(errno,fields,6)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(8),*) iconv
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(9),*) imad
+        nf=nf-1
+        endif
+        if (nf.gt.0) then
+          cma1=fround(errno,fields,10)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          cma2=fround(errno,fields,11)
+          nf=nf-1
+        endif
+      endif
++ei
++ei
 +if fio
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
 +ei
 +if .not.fio
++if .not.crlibm
       if(iclr.eq.3) read(ch1,*) qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
++ei
++if crlibm
+      if(iclr.eq.3) then
+        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          qx0=fround(errno,fields,1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          qz0=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(3),*) ivox
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(4),*) ivoz
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(5),*) ires
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dres=fround(errno,fields,6)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(7),*) ifh
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          dfft=fround(errno,fields,8)
+          nf=nf-1
+        endif
+      endif
++ei
 +ei
 +if fio
       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
@@ -14396,6 +15741,7 @@ cc2008
  1290 irip=1
  1300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1300
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
@@ -14409,7 +15755,32 @@ cc2008
      & idat,ram,rfr,rph,nrturn
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) idat,ram,rfr,rph,nrturn
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        ram=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        rfr=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        rph=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(5),*) nrturn
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -14430,6 +15801,7 @@ cc2008
  1320 iskew=1
  1330 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1330
       call intepr(3,1,ch,ch1)
 +if fio
@@ -14447,6 +15819,7 @@ cc2008
       do 1350 i=1,2
  1340 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1340
       if(ch(:4).eq.next) then
         iskew=2
@@ -14461,7 +15834,20 @@ cc2008
      & ilm0(4+i),qwsk(i)
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) ilm0(4+i),qwsk(i)
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) ilm0(4+i)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        qwsk(i)=fround(errno,fields,2)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
       call disable_xp()
@@ -14490,6 +15876,7 @@ cc2008
 !GRD-----------------------------------------------------------------------
  1285 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
 +if .not.collimat
 +if cr
       write(lout,*)
@@ -14518,6 +15905,7 @@ cc2008
  1287 continue
       if(ch(:4).eq.next) goto 110
       read(3,10020,end=1530,iostat=ierro) ch
+      lineno3=lineno3+1
       goto 1287
 +ei
 +if collimat
@@ -14526,7 +15914,7 @@ cc2008
       else
          goto 1285
       endif
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 !APRIL2005
 +if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
@@ -14789,6 +16177,7 @@ cc2008
 !-----------------------------------------------------------------------
  1390 read(3,10020,end=1530,iostat=ierro) commen
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(commen(1:1).eq.'/') goto 1390
       if(commen(:4).eq.next) then
       commen=' '
@@ -14799,6 +16188,7 @@ cc2008
 !-----------------------------------------------------------------------
  1400 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1400
       if(ch(:4).eq.next) then
       goto 110
@@ -14819,7 +16209,7 @@ cc2008
         call prror(78)
       endif
       inorm=1
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       read(ch1,*,round='nearest')                                       &
      & nordf,nvarf,nord1,idptr
@@ -14839,10 +16229,11 @@ cc2008
 !-----------------------------------------------------------------------
  1410 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1410
       if(ch(:4).eq.next) goto 110
       icorr=1
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       read(ch1,*,round='nearest')                                       &
      & nctype,ncor
@@ -14853,7 +16244,8 @@ cc2008
       if(ncor.gt.mcor) call prror(65)
       if(ncor.gt.0) then
       read(3,10020,end=1530,iostat=ierro) ch
-      ch1(:83)=ch(:80)//' / '
+      lineno3=lineno3+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
       call intepr(3,1,ch,ch1)
 +if nagfor
       call enable_xp()
@@ -14883,6 +16275,7 @@ cc2008
       endif
       if(nctype.eq.0) then
       read(3,*) namp,nmom,dummy,dummy,dummy
+      lineno3=lineno3+1
       if(namp+nmom.eq.0) call prror(71)
       if(namp*nmom.ne.0) call prror(72)
       if(namp.lt.0.or.namp.gt.2) call prror(73)
@@ -14897,6 +16290,7 @@ cc2008
       call enable_xp()
 +ei
       read(3,*) nmom1,nmom2,weig1,weig2,dpmax
+      lineno3=lineno3+1
 +if nagfor
       call disable_xp()
 +ei
@@ -14929,15 +16323,57 @@ cc2008
 !-----------------------------------------------------------------------
  1600 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1600
       if(ch(:4).eq.next) goto 110
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
       read(ch1,*,round='nearest')                                       &
      & partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if .not.fio
++if .not.crlibm
       read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        partnum=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        emitnx=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        emitny=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        sigz=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        sige=fround(errno,fields,5)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(6),*) ibeco
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(7),*) ibtyp
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(8),*) lhc
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(9),*) ibbc
+        nf=nf-1
+      endif
++ei
 +ei
       if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
       if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
@@ -14991,6 +16427,7 @@ cc2008
 !-----------------------------------------------------------------------
  1700 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1700
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
@@ -15031,9 +16468,10 @@ cc2008
 +ei
  1730 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1730
       if(ch(:4).eq.next) call prror(99)
-      ch1(:83)=ch(:80)//' / '
+      ch1(:nchars+3)=ch(:nchars)//' / '
       j1=j1+3
 +if nagfor
       call enable_xp()
@@ -15053,9 +16491,10 @@ cc2008
         j1=0
  1740   read(3,10020,end=1530,iostat=ierro) ch
         if(ierro.gt.0) call prror(58)
+        lineno3=lineno3+1
         if(ch(1:1).eq.'/') goto 1740
         if(ch(:4).eq.next) call prror(99)
-        ch1(:83)=ch(:80)//' / '
+        ch1(:nchars+3)=ch(:nchars)//' / '
         j1=j1+3
 +if nagfor
       call enable_xp()
@@ -15409,7 +16848,7 @@ cc2008
       return
 10000 format(11(a4,1x))
 10010 format(a4,8x,a60)
-10020 format(a160)
+10020 format(a)
 10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
      &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
@@ -15587,6 +17026,13 @@ cc2008
       character*160  ch
       character*320 ch1
       character*16 idat
+      integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
+      data lineno2 /0/
+      data lineno3 /0/
+      data lineno8 /0/
+      data lineno16 /0/
+      data lineno30 /0/
+      data lineno35 /0/ 
 +ca parpro
 +ca parnum
 +ca common
@@ -15599,18 +17045,20 @@ cc2008
 +if .not.hhp
       rewind 2
 +ei
- 1    read(2,'(A160)',end=90) ch
+ 1    read(2,*,end=90) ch
+      lineno2=lineno2+1
       if(ch(:1).eq.'/') then
-        write(4,'(A160)') ch
+        write(4,*) ch
         goto 1
       elseif(ch(:4).eq.'SING') then
-        write(4,'(A160)') ch
+        write(4,*) ch
       else
         return
       endif
- 2    read(2,'(A160)',end=90) ch
+ 2    read(2,*,end=90) ch
+      lineno2=lineno2+1
       if(ch(:1).eq.'/') then
-        write(4,'(A160)') ch
+        write(4,*) ch
       else
         ii=ii+1
         if(ch(:4).ne.'NEXT') then
@@ -15636,13 +17084,14 @@ cc2008
             endif
           endif
         else
-          write(4,'(A160)') ch
+          write(4,*) ch
           goto 3
         endif
       endif
       goto 2
- 3    read(2,'(A160)',end=90) ch
-      write(4,'(A160)') ch
+ 3    read(2,*,end=90) ch
+      lineno2=lineno2+1
+      write(4,*) ch
       goto 3
  90   continue
 10000 format(a16,1x,i2,1x,d21.15,1x,d21.15,1x,d16.10)
@@ -15674,9 +17123,12 @@ cc2008
 +if crlibm
 +ca crlibco
 +ei
+!ERIC
       integer i,i0,i1,i2,i3,i4,iev,ii,j
-      character*160 ch
-      character*320 ch1
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
+      character*(nchars+nchars) ch1
 +ca save
 !-----------------------------------------------------------------------
 +if bnlelens
@@ -15690,7 +17142,7 @@ cc2008
       i1=j
       i2=1
       i4=0
-      do 10 ii=j,80
+      do 10 ii=j,nchars
         if(i0.eq.0.and.ch(ii:ii).eq.' ') then
           if(i.eq.2.and.ii.eq.5.and.ch(:5).eq.'     ') then
             ch1(:4)=''' '' '
@@ -15727,15 +17179,172 @@ cc2008
         endif
    10 continue
       goto 30
-   20 ch1(1:320)=''''//ch(i1:ii-1)//''''//ch(ii:160)//' / '
+   20 ch1(1:nchars+nchars)=''''//ch(i1:ii-1)//''''//ch(ii:nchars)//' / '
       return
    30 i3=i3+1
       ch1(i3:i3+2)=' / '
       return
-   40 i3=i2+83-i1
-      ch1(i2:i3)=ch(i1:80)//' / '
+   40 i3=i2+nchars+3-i1
+      ch1(i2:i3)=ch(i1:nchars)//' / '
       return
       end
++if crlibm
+      subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
+      integer errno,nunit,lineno,nfields,nf,i,j,k
+      character*(*) chars
+      character*(*) fields(*)
+! This routine splits the chars input into space separated
+! fields, up to nfields maximum. It returns the no of
+! fields in nf. All spaces are ignored but treated as separators.
+! A / is a line terminator as provided in ch1 typically.
+! This corresponds to Fortran treatment with an * format spec.
+      j=0
+      nf=0
+      do i=1,nfields
+        fields(i)=' '
+        lf=len(fields(i))
+ 8889   k=0
+ 8888   j=j+1
+        if (j.gt.len(chars)) then
+          errno=1
+          go to 8887
+        endif
+        if (k.eq.0.and.chars(j:j).eq.' ') go to 8888
+        if (chars(j:j).ne.' '.and.chars(j:j).ne.'/') then
+          k=k+1
+          if (k.ge.lf) then
+! We reserve the last position for a null for C 
+! Field length exceeded
+! Eric for debug
+            do j=1,nf
+              write(*,*) 'splitfld:'//fields(j)//':'
+            enddo
+            errno=2
+            call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+          endif
+          fields(i)(k:k)=chars(j:j)
+          go to 8888
+        else
+          if (chars(j:j).eq.'/') then
+! we are all through but may have a field
+            if (k.ne.0) nf=nf+1
+! Eric for debug
+!     do j=1,nf
+!       write(*,*) 'splitfld:'//fields(j)//':'
+!     enddo
+            return
+          else
+! Must have a space, field separator
+            nf=nf+1
+          endif
+        endif
+      enddo
+ 8890 continue
+! If we get here we have a problem unless there
+! is nothing left but ' '*/
+ 8886 j=j+1
+      if (j.gt.len(chars)) go to 8887
+      if (chars(j:j).eq.'/') return
+      if (chars(j:j).eq.' ') go to 8886
+      errno=3
+ 8887 continue
+! Eric for debug
+      do j=1,nf
+        write(*,*) 'splitfld:'//fields(j)//':'
+      enddo
+      call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+      end
+      double precision function fround(errno,fields,f)
+      implicit none
+      integer errno,f
+      character*(*) fields(*)
+      double precision round_near,value
+      fround=round_near(errno,fields(f))
+      if (errno.ne.0) then
+        value=fround
+        call rounderr(errno,fields,f,value)
+      endif
+      return
+      end
+      subroutine rounderr(errno,fields,f,value)
+      implicit none
++if cr
++ca crcoall
++ei
+      integer nchars,nofields
+      integer errno,nfields,f
+      character*(*) fields(*)
+      double precision value
++if .not.cr
+      write (*,10000)
+      write (*,*) 'Data Input Error (probably in subroutine daten)'
+      write (*,*) 'Overfow/Underflow in strtod()'
+      write (*,*) 'Errno: ',errno
+      write (*,*) 'f:fieldf:',f,':'//fields(f)
+      write (*,*) 'Function fround (rounderr) returning:',value
++ei
++if cr
+      write (lout,10000)
+      write (lout,*) 'Data Input Error (probably in subroutine daten)'
+      write (lout,*) 'Overfow/Underflow in strtod()'
+      write (lout,*) 'Errno: ',errno
+      write (lout,*) 'f:fieldf:',f,':'//fields(f)
+      write (lout,*) 'Function fround (rounderr) returning:',value
++ei
+      call abend('Treating this as FATAL!!!                         ')
+10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
+     &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
+      return
+      end
+      subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+      implicit none
++if cr
++ca crcoall
++ei
+      integer errno,nunit,lineno,nfields,nf,lf
+      character* (*) chars
++if .not.cr
+      write (*,10000)
+      write (*,*) 'Data Input Error (probably in subroutine daten)'
+      write (*,*) 'Reading unit no (fort.)',nunit,' Line',lineno
+      write (*,*) 'Input line:'//chars//':'
+      if (errno.eq.1) then
+        write (*,*)                                                     &
+     &  'Input string too long, exceeds',len(chars),' characters'
+      endif
+      if (errno.eq.2) then
+        write (*,*)                                                     &
+     &  'Field too long, exceeds',lf-1,' characters'
+      endif
+      if (errno.eq.3) then
+        write (*,*)                                                     &
+     &  'Too many input fields, maximum of',nfields,' exceeded'
+      endif
++ei
++if cr
+      write (lout,10000)
+      write (lout,*) 'Data Input Error (probably in subroutine daten)'
+      write (lout,*) 'Reading unit no (fort.)',nunit,' Line',lineno
+      write (lout,*) 'Input line:'//chars//':'
+      if (errno.eq.1) then
+        write (lout,*)                                                     &
+     &  'Input string too long, exceeds',len(chars),' characters'
+      endif
+      if (errno.eq.2) then
+        write (lout,*)                                                     &
+     &  'Field too long, exceeds',lf,' characters'
+      endif
+      if (errno.eq.3) then
+        write (lout,*)                                                     &
+     &  'Too many input fields, maximum of',nfields,' exceeded'
+      endif
++ei
+      call abend('Treating this error as FATAL!!!                   ')
+10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
+     &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
+      return
+      end
++ei
       subroutine wzset
 !  *********************************************************************
 !
@@ -20308,6 +21917,19 @@ cc2008
 +if boinc
       character*256 filename
 +ei
++if crlibm
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
+      character*(nchars+nchars) ch1
+      integer maxf,nofields
+      parameter (maxf=30)
+      parameter (nofields=41)
+      character*(maxf) fields(nofields)
+      integer errno,nfields,nunit,lineno,nf
+      double precision fround
+      data lineno /0/
++ei
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -20320,10 +21942,8 @@ cc2008
 !-----------------------------------------------------------------------
 +if crlibm
 ! Removed the call to disable_xp for Laurent
-! but re-instated it for nagfor
-+if nagfor
+! but re-instated it
       call disable_xp()
-+ei
 +ei
 +if debug
 !     umcalls=0
@@ -20737,8 +22357,8 @@ cc2008
       rad=pi/180d0                                                       !hr05
       call daten
 +if debug
-!     call dumpbin('adaten',999,9999)
-!     call abend('after  daten                                      ')
+      call dumpbin('adaten',999,9999)
+      call abend('after  daten                                      ')
 +ei
 +if debug.and.cr
 !     write(93,*) 'ERIC IL= ',il
@@ -22071,10 +23691,10 @@ cc2008
       write(*,10310) time2
 +ei
 +if debug
-      call wda('THE END',0d0,9,9,9,9)
+!     call wda('THE END',0d0,9,9,9,9)
 !     call dumpum('THE END',999,9999)
-      call dumpbin('THE END',999,9999)
-      call dumpzfz('THE END',9,9)
+!     call dumpbin('THE END',999,9999)
+!     call dumpzfz('THE END',9,9)
 +ei
 +ca close
 +if cr
@@ -29145,7 +30765,7 @@ cc2008
      &'corrupted output probably due to lost particles'
       if(ierro.ne.0) then                                                !hr09
 +if debug
-        call dumpbin(' write6',0,0)                                      !hr09
+!       call dumpbin(' write6',0,0)                                      !hr09
 +ei
         call abend(' abend in write6                                  ') !hr09
       endif                                                              !hr09
@@ -45625,6 +47245,11 @@ cc2008
       character*8 cdate,ctime,progrm
       character*11 hvs
       character*8192 ch
++if crlibm
+      character*25 ch1
+      integer errno,l1,l2
+      integer dtostr
++ei
       dimension tle(nlya),dle(nlya)
       dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
       dimension xinv(ninv),invx(ninv),zinv(ninv),invz(ninv)
@@ -47493,19 +49118,63 @@ cc2008
       sumda(51)=chromc(2)*c1e3
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 +if debug
-      do i=1,60
-        call warr('sumda(i)',sumda(i),i,0,0,0)
-      enddo
+!     do i=1,60
+!       call warr('sumda(i)',sumda(i),i,0,0,0)
+!     enddo
 +ei
 ! We should really write fort.10 in BINARY!
-!+if debug
-      write(110) (sumda(i),i=1,60)
-!+ei
+      write(110,iostat=ierro) (sumda(i),i=1,60)
++if .not.nagfor
+      write(210,'(60Z21)') (sumda(i),i=1,60)
++ei
++if .not.crlibm
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
         if(ch(ich:ich).ne.' ') goto 700
       enddo
- 700  write(10,'(a)') ch(:ich)
+ 700  write(10,'(a)',iostat=ierro) ch(:ich)
++ei
++if crlibm
+! Now use my new dtostr for portability
+      ch(1:1)=' '
+      l1=1
+      do i=1,60
+        errno=dtostr(sumda(i),ch1)
+        if (errno.gt.0) then
+          do l2=errno,2,-1
+            if (ch1(l2:l2).ne.' ') go to 701 
+          enddo
+ 701      ch(l1:l1+l2)=' '//ch1(1:l2)
+          l1=l1+l2+1
+        else
++if cr
+          write(lout,*)
++ei
++if .not.cr
+          write(*,*)
++ei
++if cr
+          write(lout,*) '*** ERROR ***,PROBLEMS WITH DTOSTR CONVERSION'
++ei
++if .not.cr
+          write(*,*) '*** ERROR ***,PROBLEMS WITH DTOSTR CONVERSION'
++ei
++if cr
+          write(lout,*) 'ERROR CODE : ',errno,' ',errno
++ei
++if .not.cr
+          write(*,*) 'ERROR CODE : ',errno,' ',errno
++ei
++if cr
+          write(lout,*)
++ei
++if .not.cr
+          write(*,*)
++ei
+        endif
+      enddo        
+      write(10,'(a)',iostat=ierro) ch(1:l1-1)
++ei
       if(ierro.ne.0) then
 +if cr
         write(lout,*)
@@ -47514,10 +49183,10 @@ cc2008
         write(*,*)
 +ei
 +if cr
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',10
+        write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
 +ei
 +if .not.cr
-        write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',10
+        write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
 +ei
 +if cr
         write(lout,*) 'ERROR CODE : ',ierro
@@ -48635,12 +50304,43 @@ cc2008
       character*4 ch
 +ca parnum
       dimension d(60)
++if crlibm
+      integer nchars
+!     parameter (nchars=160)
+      character*(1601) ch1
+      integer maxf,nofields
+      parameter (maxf=30)
+      parameter (nofields=60)
+      character*(maxf) fields(nofields)
+      integer errno,nfields,nunit,lineno,nf
+      double precision fround
+      data lineno /0/
++ei
 +ca save
 !-----------------------------------------------------------------------
       rewind 10
       do 10 i=1,1000
         ch=' '
++if .not.crlibm
         read(10,*,end=20,iostat=ierro) (d(j),j=1,60)
++ei
++if crlibm
+        read(10,'(A1600)',end=20,iostat=ierro) ch1
+        lineno=lineno+1
+        ch1(1601:1601)='/'
+!       write (*,*) 'ch1:'//ch1//':'
+        call splitfld(errno,10,lineno,nofields,nf,ch1,fields)
+!       write (*,*) ':'//fields(1)//':'
+!       write (*,*) ':'//fields(2)//':'
+!       write (*,*) ':'//fields(3)//':'
+        do j=1,60
+          if (nf.gt.0) then
+            d(j)=fround(errno,fields,j)
+!           write (*,*) 'd(j)',j,d(j)
+            nf=nf-1
+          endif
+        enddo
++ei
         if(ierro.gt.0) then
 +if cr
           write(lout,*) '**ERROR**'
@@ -48679,6 +50379,9 @@ cc2008
      &d(13),nint(d(17)),d(20),d(25),d(14),d(15)
    10 continue
    20 rewind 10
++if crlibm
+      lineno=0
++ei
 +if cr
       write(lout,10020)
 +ei
@@ -48686,7 +50389,22 @@ cc2008
       write(*,10020)
 +ei
       do 30 i=1,1000
++if .not.crlibm
         read(10,*,end=40,iostat=ierro) (d(j),j=1,60)
++ei
++if crlibm
+        read(10,'(A1600)',end=40,iostat=ierro) ch1
+        lineno=lineno+1
+        ch1(1601:1601)='/'
+        call splitfld(errno,10,lineno,nofields,nf,ch1,fields)
+        do j=1,60
+          if (nf.gt.0) then
+            d(j)=fround(errno,fields,j)
+!           write (*,*) 'd(j)',j,d(j)
+            nf=nf-1
+          endif
+        enddo
++ei
         if(ierro.gt.0) then
 +if cr
           write(lout,*) '**ERROR**'
