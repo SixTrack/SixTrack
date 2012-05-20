@@ -317,8 +317,8 @@ cfrs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
          IF((NPAR(I,1).EQ.1).AND.(NPAR(I,2).EQ.4).AND.
      *      (NPAR(I,6).NE.1)) then
 * Eric's attempt to initialise DAALL varibales (length 1)
-               WRITE(2,'(A)')
-     *         '         '//CNAM(I)//'= 0'
+*              WRITE(2,'(A)')
+*    *         '         '//CNAM(I)//'= 0'
                WRITE(2,'(A,38A1,5(/''     *   '',60A1))')
      *         '         CALL DAALL('//CNAM(I)//',1',
      *   ('*','(',(CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,80)),')',

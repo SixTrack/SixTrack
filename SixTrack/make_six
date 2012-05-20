@@ -446,6 +446,7 @@ then
     then
       myopt="O"
     fi
+# SHOULD I USE -float-store ???? Doesn't seem to be necessary..........
     export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
     #export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
     # export FCF="-float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"

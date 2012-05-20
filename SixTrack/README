@@ -2,6 +2,20 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.35 eric and Harry
+    --  based on 4.4.34
+    --  Javier's mods for crabamp with Harry's fixes labelled hr13
+    --  Removed  a double assignment to ferrno in round_near.c
+  McIntosh 18th May, 2012
+
+ SixTrack Version: 4.4.34 eric
+    -- Fixed assignment of data to sigma0 and qw0 in daten.
+    -- Fixed a few problems with g77 and concatenation
+       in new daten subs splitfld, spliterr, rounderr.
+    -- Unfixed initialisation of DA variables in dafor.f.
+    -- Not committed
+  McIntosh 28th April, 2012
+
  SixTrack Version: 4.4.33 eric
     -- based on 4.4.11 
     -- Uses strtod and sprintf and fround for all input variables

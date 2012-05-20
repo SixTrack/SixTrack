@@ -36,6 +36,5 @@ double round_near_(int*ferrno,char*field,int flen)
 //  if (*endptr != '\0') {       /* Not necessarily an error... */
 //    printf("strtod Extra characters: index %i:%s\n", *endptr,endptr);
 //  }
-  *ferrno=errno;
   return good;
 }
