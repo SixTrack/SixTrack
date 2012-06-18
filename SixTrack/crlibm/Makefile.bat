@@ -41,12 +41,11 @@ copy log10.obj ..
 copy csh_fast.obj ..
 gcc -c disable_xp.c
 gcc -c enable_xp.c
-gcc -m32 -std=c99 -O3 -W -Wall -pedantic -c round_ulp.c -o round_ulp_gcc.o
 gcc -m32 -std=c99 -W -Wall -pedantic -c round_near.c
 gcc -m32 -std=c99 -W -Wall -pedantic -c dtostr.c
+gcc -m32 -std=c99 -W -Wall -pedantic -c dtoa_c.c
 copy disable_xp.o ..
 copy enable_xp.o ..
-copy round_ulp_gcc.o ..
 copy round_near.o ..
-copy dtostr.o ..
+copy dtoa_c.o ..
 cd ..

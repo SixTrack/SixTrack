@@ -45,6 +45,9 @@
 # Allowed crlibm for NAG nagfor and Intel ifort.
 # Version 2.4 January, 2012. merged latest SixTrack production Rev 119
 # with all my changes for ifort and FIO.
+# Version 2.5 June, 2012.
+# Added option SSE2 to try and fix HORRIBLE Intel/AMD performance issues.
+# and many other changes for Windows and BOINC including templates.
 show_options()
 {
     ons="The following selections are ON  :"
@@ -86,7 +89,9 @@ generate_makefile()
         sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
         sed  "s#%%BOINC%%#$BOINC#g" | \
         sed  "s#%%NAGLIBC%%#$NAGLIBC#g" | \
-        sed  "s#%%BEAMGAS%%#$BEAMGAS#g" \
+        sed  "s#%%BEAMGAS%%#$BEAMGAS#g" | \
+        sed  "s#%%SIXTRACK%%#$SIXTRACK#g" | \
+        sed  "s#%%SIXTRACK_DA%%#$SIXTRACK_DA#g" \
         > $outfile
 }
 
@@ -96,21 +101,26 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio)
-values=(junk  true true     true false  false     true    true   false false    false false false false    false false false    false false    false   false false false false false)
+options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio SSE2)
+values=(junk  true true     true false  false     true    true   false false    false false false false    false false false    false false    false   false false false false false false)
 
 sysname="`fs sysname`"
 gfortran_lib=""
-sversion=`grep 'data version' sixtrack.s` 
+# FORCE build of SixTrack to use 4440 as the VERSION and name
+# but keep the 4437 for BOINC results validation
+#sversion=`grep 'data version' sixtrack.s`
+sversion="/'4.4.40'/"
+echo $sversion
 # get string between /....../
 sversion=`echo $sversion | sed -e's/.*\/\(.*\)\//\1/'`
 # remove the quotes
 version=`echo $sversion | sed -e's/.\([0-9]*\).\([0-9]*\).\([0-9]*\)./\1\2\3/'`
-moddate=`grep 'data moddate' sixtrack.s` 
+moddate=`grep 'data moddate' sixtrack.s`
 moddate=`echo $moddate | sed -e's/.*\/\(.*\)\//\1/'`
 moddate=`echo $moddate | sed -e's/.\(.*\)./\1/'`
+echo $version $moddate
 
-command_line=$*
+command_lin=$*
 # Now we have the default settings
 # we have ON
 tilt=""
@@ -119,6 +129,8 @@ fast=""
 crlibm="NULL"
 cernlib="cernlib"
 naglib="naglib"
+# used for ifort only SSE2
+SSE2="SSE2"
 # and we have OFF
 api="api"
 da="da"
@@ -139,6 +151,7 @@ hdf5="hdf5"
 ifort="ifort"
 lf95="lf95"
 fio="fio"
+SSE2=""
 while test $# != 0
 do
     case $1 in
@@ -221,6 +234,9 @@ do
         -fio) fio="fio"
             values[24]=false
             ;;
+        -SSE2) SSE2="SSE2"
+            values[24]=false
+            ;;
 
 
         tilt) tilt=""
@@ -293,6 +309,9 @@ do
             values[23]=true
             ;;
         fio) fio=""
+            values[24]=true
+            ;;
+        SSE2) SSE2=""
             values[24]=true
             ;;
 
@@ -494,13 +513,18 @@ then
   fi
   if test "$cpss" = "" -o "$crlibm" = ""
   then
-# For v4308
-# Retry arch=ia32 for comparison for v4302
-#   export FCF="-$myopt -arch IA32 -m32 -fp-model source -fp-model strict -fp-model no-except"
-# This version is in make_six_noSSE2
-# and now try for a speedup with NO arch IA32 v4309
-    export FCF="-$myopt -mia32 -axSSE2 -fp-model source -fp-model strict -fp-model no-except"
+# We MUST HAVE the numeric portability (and my default architecture e.g. PIII)
+# Because of performance on AMD etc we allow SSE2 option to optimise
+    if test "$SSE2" = "SSE2"
+    then
+    # Code which works on ANY ia32 WITHOUT using SSE2 though
+      export FCF="-$myopt -mia32 -fp-model source -fp-model strict -fp-model no-except"
+    else
+# and now -mSSE2
+    export FCF="-$myopt -msse2 -fp-model source -fp-model strict -fp-model no-except"
+    fi
   else
+    # Just use the defaults for the compile host
     export FCF="-$myopt -m32"
   fi
   export FCL="-static -m32"
@@ -640,6 +664,10 @@ if test "$api" = ""
 then
     ename=$ename"_api"
 fi
+if test "$SSE2" = ""
+then
+    ename=$ename"_SSE2"
+fi
 ename=${ename}_$myopt
 export ename
 
@@ -664,16 +692,10 @@ read junk
 generate_makefile Makefile.template
 make astuce
 make dafor
-# Create and initialise the build directory
+# Create and INITIALISE the build directory
 mkdir -p "$ename"
-# and now copy the BOINC interfaces for BOINC and api
-if test "$boinc" = "" -a "$api" = ""
-then
-  cp cern_boinc_api_fortran.C $ename
-  cp boinc_api_fortran.C $ename
-# cp maincr.f $ename
-fi
 cd "$ename"
+rm -rf *
 for dots in dabnew  lielib  sixtrack
 do
     ln -sf ../${dots}.s ${dots}.s
@@ -846,6 +868,7 @@ fi
 export CRLIBM=""
 if test "$crlibm" = ""
 then
+  export CRLIBM="crlibm/crlibm.a"
   mkdir -p crlibm
   cp -r ../crlibm/* crlibm
   cd crlibm
@@ -853,6 +876,7 @@ then
   sed  -e 's/%%FC%%/'"${FC}"'/g' \
        -e 's/%%FCF%%/'"${FCF}"'/g' \
     Makefile.template > Makefile
+  echo "Making crlibm." 
   make clean
   make crlibm.a
   if test $? -ne 0
@@ -861,75 +885,74 @@ then
     exit 4
   fi
   cd ..
-  export CRLIBM="crlibm/crlibm.a"
 fi
 if test "$da" = ""
 then
   # Fix up the Makefile
+  SIXTRACK_DA=$ename
   generate_makefile ../Makefile.template Makefile
-  sed -e's/%%SIXTRACK_DA%%/'$ename'/g' Makefile > tmp$$
-  mv tmp$$ Makefile  
   # remove an existing executable
   rm -f $ename
   make $ename
 else
-  export BOINC=""
+# and now fix up the Makefile.boinc.template
+# for the build on boinc02/boinc05
+    SIXTRACK=$ename
   if test "$boinc" = ""
   then
     if test "$api" = ""
     then
-
-      export BOINC="../boinc_api_fortran.o ../boinc_api.o ../libboinc.a ../libboinc_zip.a"
-
-# Temporary fix until we actually have the BOINC libs
-#     export BOINC="myboinc.o"
-#     cp ../myboinc.f .
+      export BOINC=""
     else
       export BOINC="myboinc.o"
       cp ../myboinc.f .
     fi
+    generate_makefile ../Makefile.boinc.template Makefile.boinc 
   fi
-  generate_makefile ../Makefile.template Makefile
-  sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile > tmp$$
-  mv tmp$$ Makefile
-  # We make for Linux now because we are finished or as a verification 
-  # before we set up for windows.
   #YIL addition: creating beamgas.f90 instead of beamgas.f
   mv beamgas.f beamgas.f90
   # mv sixve.f sixve.f90
   # mv track.f track.f90
-  generate_makefile Makefile Makefile.tmp
-  mv Makefile.tmp Makefile
+  generate_makefile ../Makefile.template Makefile
  # do the setup for Windows anway
-  if test "$cpss" = ""
+  echo ""
+  echo "Setting up for Windows (as well)"
+  echo ""
+  cp ../boinc_api_fortran.cpp.windows .  
+  cp ../boinc_api_fortran.cpp .  
+  cp ../compile_fortran.bat.template .
+  cp ../link_intel.bat.template .
+  cp ../make_windows.template .
+  if test "$api" != ""
   then
-    echo ""
-    echo "Setting up for Windows"
-    echo ""
-    cp ../crlibm/Makefile.bat crlibm
-### need to get from Windows and fix..........
-###    cp ../link_intel2.bat .
-# Is the this the right version????
-    cp ../boinc_api_fortran.cpp .  
-    cp ../compile_intel.bat .
-    echo "Now the $ename directory needs to be taken to Windows."
-    echo "The Makefile.bat allows for checking boinc/cpss before"
-    echo "really building the BOINC/CPSS version."
-    echo ""
+    cp ../myboinc.f .
   fi
+  ARCH="IA32"
+  if test "$SSE2" = ""
+  then
+    ARCH="SSE2"
+  fi
+  sed -e's/%%ARCH%%/'$ARCH'/g' compile_fortran.bat.template > tmp$$
+  mv tmp$$ compile_fortran.bat
+  sed -e's/%%SIXTRACK%%/'$ename'/g' make_windows.template > tmp$$
+  mv tmp$$ make_windows
+  sed -e's/%%SIXTRACK%%/'$ename'/g' link_intel.bat.template > tmp$$
+  mv tmp$$ link_intel.bat
+  if test "$api" != ""
+  then
+    sed -e's/%%MYBOINC%%/myboinc.obj/g' link_intel.bat > tmp$$
+  else
+    sed -e's/%%MYBOINC%%//g' link_intel.bat > tmp$$
+  fi
+  mv tmp$$ link_intel.bat
+  echo ""
   # remove an existing executable
   rm -f $ename
-  # and make myboinc.o if necessary
-# if test "$boinc" = ""
-# then
-#   if test "$api" != ""
-#   then
-#     rm -f myboinc.o
-#     make myboinc.o
-#   fi
-# fi
-  # and (at last) do a make...........
-  make $ename
+  # and (at last) do a make if NOT "api"
+  if test "$api" != ""
+  then
+    make $ename
+  fi
 fi
 echo "       "
 echo "$0 : $command_line"
@@ -937,43 +960,30 @@ echo "tried to build $ename in the directory with the same name."
 echo ""
 show_options
 echo ""
-if test -s "$ename"
+if test "$api" != ""
 then
-    echo "It appears to have completed successfully."
-    # and a link for Frank
-    cd ..
-    ln -sf $ename/$ename SixTrack
-    cd $ename
-else
-    echo "It appears to have failed!!!"
-    exit 2
+  if test -s "$ename"
+  then
+      echo "It appears to have completed successfully."
+      # and a link for Frank
+      cd ..
+      ln -sf $ename/$ename SixTrack
+      cd $ename
+  else
+      echo "It appears to have failed!!!"
+      exit 2
+  fi
 fi
 # Note that selecting boinc has forced cpss
 if test "$cpss" = ""
 then
-  echo ""
-  echo "Setting up crlibm and Makefile.bat for Windows"
-  echo ""
-# # We [re-]copy myboinc.f even for CPSS
-  echo "Skipping this step, until it is sorted properly!!!"
-# sed -e's/%%SIXTRACK%%/'$ename'/g' Makefile.bat > tmp$$
-# mv tmp$$ Makefile.bat
-# if test "$boinc" = ""
-# then
-#   # If  boinc i.e. not just CPSS link in the BOINC api or myboinc.obj
-#   if test "$api" != ""
-#   then
-#      sed -e's/%%BOINC%%/myboinc.obj/g' Makefile.bat > tmp$$
-#   else
-#     sed -e's?%%BOINC%%?../boinc_api_fortran.obj ../libboinc_api.a?g' Makefile.bat > tmp$$
-#   fi
-# else
-#    sed -e's/%%BOINC%%//g' \
-#        -e'/myboinc.f/d' Makefile.bat > tmp$$
-# fi
-# mv tmp$$ Makefile.bat
-  echo ""
-  echo "Now the $ename directory needs to be taken to Windows."
-  echo "The Makefile.bat allows for checking boinc/cpss before"
-  echo "really building the BOINC/CPSS version."
+  if test "$api" = ""
+  then
+    make clean
+    cd crlibm
+    make clean
+    cd ..
+    echo ""
+  fi
+  echo "The $ename directory can now be taken to Windows/MacOS or BOINC server."
 fi

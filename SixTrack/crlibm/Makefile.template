@@ -1,17 +1,13 @@
 SHELL = /bin/sh
 
-FC = %%FC%%
-FCF = %%FCF%%
-
 CC = gcc
 OBJS = addition_scs.o multiplication_scs.o zero_scs.o \
      division_scs.o double2scs.o scs2double.o zero_scs.o \
      trigo_fast.o tan.o sine.o cosine.o \
      exp.o logsix.o exp_fast.o log_fast.o \
      atan.o atan_fast.o division_scs.o \
-     ericc.o atan2_rn.o \
-     asin_rn.o acos_rn.o csh_fast.o log10.o rem_pio2.o \
-     dtostr.o dtoa_c.o round_near.o round_ulp_gcc.o disable_xp.o enable_xp.o
+     ericc.o csh_fast.o log10.o rem_pio2.o \
+     dtoa_c.o dtoaf.o round_near.o disable_xp.o enable_xp.o
 all: crlibm.a
 crlibm.a: $(OBJS)
 	ar -rv crlibm.a $(OBJS)
@@ -71,26 +67,18 @@ atan_fast.o: atan_fast.c crlibm.h crlibm_private.h scs.h \
         scs_config.h scs_private.h crlibm_config.h \
         atan_fast.h
 	$(COMPILE1) -c atan_fast.c
-atan2_rn.o: atan2_rn.f atan.o atan_fast.o
-	$(FC) -c $(FCF) atan2_rn.f
-asin_rn.o: asin_rn.f atan.o atan_fast.o
-	$(FC) -c $(FCF) asin_rn.f
-acos_rn.o: acos_rn.f atan.o atan_fast.o
-	$(FC) -c $(FCF) acos_rn.f
 ericc.o: ericc.c crlibm.h crlibm_private.h 
 	$(COMPILE1) -c ericc.c
 disable_xp.o: disable_xp.c
 	$(COMPILE1) -c disable_xp.c
 enable_xp.o: enable_xp.c
 	$(COMPILE1) -c enable_xp.c
-round_ulp_gcc.o: round_ulp.c
-	$(CC) -m32 -std=c99 -O3 -W -Wall -pedantic -c round_ulp.c -o round_ulp_gcc.o
 round_near.o: round_near.c
 	$(CC) -m32 -std=c99 -W -Wall -pedantic -c round_near.c
-dtostr.o: dtostr.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -c dtostr.c
 dtoa_c.o: dtoa_c.c
 	$(CC) -m32 -std=c99 -W -Wall -pedantic -c dtoa_c.c
+dtoaf.o: dtoaf.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic -c dtoaf.c
 
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline 
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)

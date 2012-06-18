@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.35'/
-      data moddate /'25.04.2012'/
+      data version /'4.4.40'/
+      data moddate /'18.06.2012'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -17737,7 +17737,166 @@ cc2008
       call abend('Treating this error as FATAL!!!                   ')
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
+! Never returns
+      end
+      integer function dtostr(x,results)
+! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
+! crlibm
+      implicit none
++if cr
++ca crcoall
++ei
+      double precision x
+      character*(*) results
+      integer dtoaf 
+      integer ilen,mode,ndigits,decpoint,mysign
+      integer i,l,d,e
+      character*1 str(999)
+      character*24 lstr
+      character*3 e3
+      mode=2
+      ndigits=17
+      ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1))
+      if (ilen.le.0.or.ilen.gt.17) then
+! Always returns 17 or less characters as requested
++if cr
+      write (lout,10000)
+      write (lout,*) 'Routine dtoa[f] returned string length ',ilen
++ei
++if .not.cr
+      write (*,10000)
+      write (*,*) 'Routine dtoa[f] returned string length ',ilen
++ei
+      call abend('Error writing fort.10                             ')
+10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
+     &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
+! Never returns
+      endif
+      lstr=' '
+      do i=1,ilen
+        lstr(i:i)=str(i)
+      enddo
+! Now try my formatting
+      d=decpoint
+      e=0
+      l=1
+      lstr=' '
+      if (mysign.ne.0) then
+        lstr(l:l)='-'
+      endif
+      if (decpoint.eq.9999) then
+! Infinity or Nan
+        do i=1,ilen
+          lstr(l+i:l+i)=str(i)
+        enddo
+      else
+! Pad with zeros
+        do i=ilen+1,17
+          str(i)='0'
+        enddo
+        if (decpoint.le.0) then
+          e=decpoint-1
+          d=1
+        else
+! I am using 17 as decision point to avoid dddd.e+eee
+! but rather d.ddde+eee
+          if (decpoint.ge.17) then
+            e=decpoint-1
+            d=1
+          else
+            d=decpoint
+          endif
+        endif
+! and copy with the decimal point
+        do i=1,17
+          lstr(l+i:l+i)=str(i)
+          if (i.eq.d) then
+            l=l+1
+            lstr(l+i:l+i)='.'
+          endif
+        enddo
+! and add exponent e+/-nnn
+        l=20
+        lstr(l:l)='e'
+        l=21
+        lstr(l:l)='+'
+        if (e.lt.0) then
+          lstr(l:l)='-'
+          e=-e
+        endif
+        l=22
+        write (e3,'(I3.3)') e
+        lstr(l:l+2)=e3(1:3)
+      endif  
+      results=lstr
+      dtostr=24
       return
+      end
+      double precision function acos_rn(x)
+      implicit none
+      double precision atan_rn,x,pi,pi2
+      logical myisnan
+      data pi  /3.1415926535897932d0/
+      data pi2 /1.5707963267948966d0/
+      if (myisnan(x,x)) then
+        acos_rn=x
+      elseif (abs(x).eq.0.0d0) then
+        acos_rn=pi2
+      else
+!       acos_rn=atan_rn(sqrt(1.0d0-x*x)/x)
+! Try using (1-x)*(1+x) in case x is very small.........
+! or close to 1.....write a test program!!!
+         acos_rn=atan_rn(sqrt((1.0d0-x)*(1.0d0+x))/x)
+        if (x.lt.0.0d0) then
+          acos_rn=pi+acos_rn
+        endif
+      endif
+      end
+      double precision function asin_rn(x)
+      implicit none
+      double precision atan_rn,x,pi2
+      logical myisnan
+      data pi2 /1.5707963267948966d0/
+      if (myisnan(x,x)) then
+        asin_rn=x
+        return
+      endif
+      if (abs(x).eq.1.0d0) then
+        asin_rn=sign(pi2,x)
+      else 
+!       asin_rn=atan_rn(x/sqrt(1.0d0-x*x))
+! Try using (1-x)*(1+x) in case x is very small.........
+! or close to 1.....write a test program!!!
+        asin_rn=atan_rn(x/sqrt((1.0d0-x)*(1.0d0+x)))
+      endif
+      end
+      double precision function atan2_rn(y,x)
+      implicit none
+      double precision atan_rn,x,y,pi,pi2
+      logical myisnan
+      data pi  /3.1415926535897932d0/
+      data pi2 /1.5707963267948966d0/
+      if (x.eq.0d0) then
+         if (y.eq.0d0) then
+C Should get me a NaN 
+           atan2_rn=atan_rn(y/x)
+         else
+           atan2_rn=sign(pi2,y)
+         endif
+      else
+        if (y.eq.0d0) then
+          if (x.gt.0d0) then
+            atan2_rn=0d0
+          else
+            atan2_rn=pi
+          endif
+        else          
+          atan2_rn=atan_rn(y/x)
+          if (x.lt.0d0) then
+            atan2_rn=sign(pi,y)+atan2_rn
+          endif
+        endif
+      endif
       end
 +ei
       subroutine wzset
@@ -49723,8 +49882,10 @@ cc2008
 +ei
 ! We should really write fort.10 in BINARY!
       write(110,iostat=ierro) (sumda(i),i=1,60)
++if debug
 +if .not.nagfor
       write(210,'(60Z21)') (sumda(i),i=1,60)
++ei
 +ei
 +if .not.crlibm
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
@@ -49735,42 +49896,12 @@ cc2008
 +ei
 +if crlibm
 ! Now use my new dtostr for portability
-      ch(1:1)=' '
       l1=1
       do i=1,60
+! We return the length of the string (always 24)
         errno=dtostr(sumda(i),ch1)
-        if (errno.gt.0) then
-          do l2=errno,2,-1
-            if (ch1(l2:l2).ne.' ') go to 701 
-          enddo
- 701      ch(l1:l1+l2)=' '//ch1(1:l2)
-          l1=l1+l2+1
-        else
-+if cr
-          write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
-          write(lout,*) '*** ERROR ***,PROBLEMS WITH DTOSTR CONVERSION'
-+ei
-+if .not.cr
-          write(*,*) '*** ERROR ***,PROBLEMS WITH DTOSTR CONVERSION'
-+ei
-+if cr
-          write(lout,*) 'ERROR CODE : ',errno,' ',errno
-+ei
-+if .not.cr
-          write(*,*) 'ERROR CODE : ',errno,' ',errno
-+ei
-+if cr
-          write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-        endif
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
       enddo        
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 +ei

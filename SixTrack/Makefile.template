@@ -10,6 +10,7 @@ gfortran_lib = %%gfortran_lib%%
 BOINC = %%BOINC%%
 NAGLIBC = %%NAGLIBC%%
 BEAMGAS = %%BEAMGAS%%
+SIXTRACK = %%SIXTRACK%%
 
 %.o: %.f
 	$(FC) -c $(FCF) $<
@@ -24,9 +25,6 @@ dafor: dafor.o
 
 astuce: astuce.o
 	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
-
-boinc_api_fortran.o: boinc_api_fortran.cpp
-	gcc -c boinc_api_fortran.cpp
 
 myboinc.o: myboinc.f
 	$(FC) -c $(FCF) myboinc.f

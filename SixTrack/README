@@ -2,6 +2,29 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.40 eric
+    --  Put write 210 (fort.10 HEX) under +if debug
+    --  Added the crlibm .f routines (acos_rn.f asin_rn.f atan2_rn.f)
+    --  to sixtrack.s
+    --  make_six (for MacOS), boinc_api_fortran[.windows] 
+    --  and new make_windows with new templates and
+    --  flags for +/-SSE2 
+  McIntosh 18th June, 2012
+
+ SixTrack Version: 4.4.37 eric
+    --  based on 4.4.35
+    --  Changes for writing fort.10 using dtoa_c.c, 
+    --  function dtostr_ calls function dtoaf_ calls dtoa. 
+    --  Removed redundant error messages in dtostr
+  McIntosh 29th May, 2012
+
+ SixTrack Version: 4.4.36 eric 
+    --  Never committed (just to test g77) which does
+    -- NOT work as it can't even open Unit 90!
+    -- So I just deleted all the references to binary writes
+    -- and built NO bnlelens NO C/R etc
+  McIntosh 29th May, 2012
+
  SixTrack Version: 4.4.35 eric and Harry
     --  based on 4.4.34
     --  Javier's mods for crabamp with Harry's fixes labelled hr13

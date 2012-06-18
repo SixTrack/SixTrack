@@ -176,9 +176,11 @@
  *	also does extra computations to set the underflow and overflow
  *	flags when appropriate (i.e., when the result is tiny and
  *	inexact or when it is a numeric value rounded to +-infinity).
- * #define NO_ERRNO if strtod should not assign errno = ERANGE when
+*/
+ #define NO_ERRNO /* if strtod should not assign errno = ERANGE when
  *	the result overflows to +-Infinity or underflows to 0.
- * #define NO_HEX_FP to omit recognition of hexadecimal floating-point
+*/
+ #define NO_HEX_FP /* to omit recognition of hexadecimal floating-point
  *	values by strtod.
  * #define NO_STRTOD_BIGCOMP (on IEEE-arithmetic systems only for now)
  *	to disable logic for "fast" testing of very long input strings
@@ -861,7 +863,7 @@ mult
 #else
 #ifdef Pack_32
 	for(; xb < xbe; xb++, xc0++) {
-		if (y = *xb & 0xffff) {
+		if ((y = *xb & 0xffff)) {
 			x = xa;
 			xc = xc0;
 			carry = 0;
@@ -875,7 +877,7 @@ mult
 				while(x < xae);
 			*xc = carry;
 			}
-		if (y = *xb >> 16) {
+		if ((y = *xb >> 16)) {
 			x = xa;
 			xc = xc0;
 			carry = 0;
@@ -3561,7 +3563,7 @@ rv_alloc(int i)
 
 	j = sizeof(ULong);
 	for(k = 0;
-		sizeof(Bigint) - sizeof(ULong) - sizeof(int) + j <= i;
+		j+(int) (sizeof(Bigint) - sizeof(ULong) - sizeof(int)) <= i;
 		j <<= 1)
 			k++;
 	r = (int*)Balloc(k);
