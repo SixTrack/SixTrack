@@ -3,6 +3,17 @@ should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
  SixTrack Version: 4.4.40 eric
+    -- Same SixTrack but new make_six for MacOS
+    -- Defaults to ifort instead of lf95
+    -- uname -m instead of fs sysname
+    -- sse3 instead of sse2 for Macs
+    -- enable_xp.c/disable_xp.c dummied on ifdef APPLE
+    -- Comma separated map options for FCLMAP
+    -- NO static linking for Mac
+    -- Fixed bug with make_six options and added lf95
+   McIntosh 22nd June, 2012
+
+ SixTrack Version: 4.4.40 eric
     --  Put write 210 (fort.10 HEX) under +if debug
     --  Added the crlibm .f routines (acos_rn.f asin_rn.f atan2_rn.f)
     --  to sixtrack.s
