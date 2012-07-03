@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.40'/
-      data moddate /'18.06.2012'/
+      data version /'4.4.41'/
+      data moddate /'03.07.2012'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -330,12 +330,13 @@
 +cd commonxz
       double precision aai,ampt,bbi,damp,rfres,rsmi,rzphs,smi,smizf,xsi,&
      &zsi
-      real tlim,time0,time1,time2
+      integer napxto
+      real tlim,time0,time1,time2,time
       common/xz/xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),              &
      &aai(nblz,mmul),bbi(nblz,mmul)
       common/rfres/rsmi(nblz),rfres(nblz),rzphs(nblz)
       common/damp/damp,ampt
-      common/ttime/tlim,time0,time1,time2
+      common/ttime/tlim,time0,time1,time2,time,napxto
 +cd commonta
       double precision tasm
       common/tasm/tasm(6,6)
@@ -19129,7 +19130,6 @@ C Should get me a NaN
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
      &nsta,nsto,idaa
-      real time
       double precision beamoff1,beamoff2,beamoff4,beamoff5,             &
      &beamoff6,benkcc,betr0,c5m4,cbxb,cbzb,cik,crk,crxb,crzb,dare,dpdav,&
      &dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,rho2b,&
@@ -21700,7 +21700,6 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer idaa
-      real time
       double precision betr0,dare,sigmdac
 +ca parpro
 +ca parnum
@@ -22589,9 +22588,8 @@ C Should get me a NaN
 +ei
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
-     &jm,k,kpz,kzz,l,lkk,ll,m,mkk,napxto,ncorruo,ncrr,nd,nd2,ndafi2,    &
+     &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
      &nerror,nlino,nlinoo,nmz,nthinerr
-      real time
       double precision alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
      &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
      &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
@@ -22646,6 +22644,8 @@ C Should get me a NaN
 !     dokcalls=0
 !     dumpl=0
 +ei
+      time=0.0
+      napxto=0
       runtim=''
 +if cr
       stxt=''
@@ -24201,6 +24201,14 @@ C Should get me a NaN
         ia2=(ie)/2
 !hr05   napxto=napxto+numxv(ia)+numxv(ie)
         napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
+! And now get the total tracking time for Massimo to be
+! added to fort.10 along with napxto
++if cr
+      time=(time2-time1)+crtime2                                         !hr05
++ei
++if .not.cr
+      time=time2-time1
++ei
         if(pstop(ia).and.pstop(ie)) then
 !-- BOTH PARTICLES LOST
 +if cr
@@ -47976,12 +47984,13 @@ C Should get me a NaN
 +if cr
 +ca crco
 +ei
++ca commonxz
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
-      real tim1,tim2,tlim,fxs,fzs
+      real tim1,tim2,fxs,fzs
       double precision const,dle,slope,tle,varlea,wgh
       double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
      &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
@@ -49817,8 +49826,11 @@ C Should get me a NaN
       sumda(19)=sevx
       sumda(20)=sevz
       sumda(21)=sevt
-      sumda(59)=dmmac
-      sumda(60)=dnms
+! These two places now used for napxto and time
+!     sumda(59)=dmmac
+!     sumda(60)=dnms
+      sumda(59)=dble(napxto)
+      sumda(60)=dble(time)
       sumda(24)=dizu0
 !hr06 emax=emax/100*emxa+emxa
       emax=(emax/100d0)*emxa+emxa                                        !hr06

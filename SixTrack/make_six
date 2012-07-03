@@ -578,17 +578,18 @@ else
   then
 # We MUST HAVE the numeric portability (and my default architecture e.g. PIII)
 # Because of performance on AMD etc we allow SSE2 option to optimise
+# Changed to SSE3 on igor's recommendation
     if test "$SSE2" = "SSE2"
     then
-    # Code which works on ANY ia32 WITHOUT using SSE2 though
+    # Code which works on ANY ia32 WITHOUT using SSE3 though
       export FCF="-$myopt -mia32 -fp-model source -fp-model strict -fp-model no-except"
     else
-# and now -mSSE2
+# and now -mSSE3
       if test "$OSTYPE" = "Darwin"
       then
-        export FCF="-$myopt -msse3 -fp-model source -fp-model strict -fp-model no-except"
+        export FCF="-$myopt -fp-model source -fp-model strict -fp-model no-except"
       else
-        export FCF="-$myopt -msse2 -fp-model source -fp-model strict -fp-model no-except"
+        export FCF="-$myopt -msse3 -fp-model source -fp-model strict -fp-model no-except"
       fi
     fi
   else
