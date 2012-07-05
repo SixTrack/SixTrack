@@ -1,0 +1,44 @@
+SHELL = /bin/sh
+
+FC = %%FC%%
+FCF = %%FCF%%
+FCL = %%FCL%%
+FCLMAP = %%FCLMAP%%
+
+CCL = /opt/local/lib/gcc47/gcc/x86_64-apple-darwin10/4.7.0/i386 -lpthread -lm -lc -lgcc_eh
+CRLIBM = %%CRLIBM%%
+CERNLIB = %%CERNLIB%% 
+gfortran_lib = %%gfortran_lib%% 
+NAGLIBC = %%NAGLIBC%% 
+BEAMGAS = %%BEAMGAS%% 
+
+BOINCAPI = ../../..
+BOINCLIB = ../../..
+BOINCZIP = ../../../..
+
+SRC = dabnews.f lielib.f sixve.f sixvefox.f track.f maincr.f
+OBJS = dabnews.o lielib.o sixve.o sixvefox.o track.o
+
+all: %%SIXTRACK%%
+
+%.o: %.f
+	$(FC) -c $(FCF) $<
+
+#boinc_api_fortran.o: boinc_api_fortran.cpp
+#	gcc -m32 -c -I../.. -I../../api -I../../lib -I$(BOINCZIP) boinc_api_fortran.cpp
+
+%%SIXTRACK%% : $(OBJS) $(CRLIBM) $(BOINCAPI)/libboinc_api.o $(BOINCLIB)/libboinc.a $(BOINCZIP)/libboinc_zip.a
+	$(FC) $(FCLMAP) -o %%SIXTRACK%% $(OBJS) $(CRLIBM) \
+			$(BOINCAPI)/libboinc_api.o $(BOINCLIB)/libboinc.a \
+                        $(BOINCZIP)/libboinc_zip.a \
+			$(CCL) > sixtrack.map
+
+#	/afs/cern.ch/sw/fortran/lahey/lf9562/bin/../lib/fjpar.o -L/afs/cern.ch/sw/fortran/lahey/lf9562/bin/../lib -lfj9ipp -lfj9fpp -lfj9e6 -lfccx86_6a -lm -lpthread
+# make clean will execute this: 
+
+clean: 
+	rm -f crlibm/*.o crlibm/crlibm.a
+	rm -f *.o %%SIXTRACK%%
+
+tar :
+	tar -cvzf sixtrack.tgz makefile $(SRC)

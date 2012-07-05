@@ -48,6 +48,8 @@
 # Version 2.5 June, 2012.
 # Added option SSE2 to try and fix HORRIBLE Intel/AMD performance issues.
 # and many other changes for Windows and BOINC including templates.
+# Version 2.6. 4th July
+# uname -s for Darwin SSE as sse2 or sse3
 show_options()
 {
     ons="The following selections are ON  :"
@@ -101,9 +103,11 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio SSE2 lf95)
+options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio SSE lf95)
 values=(junk  true true     true false  false     true    true   false false    false false false false    false false false    false false    false   false false false false false false false)
 
+# Overide for Darwin
+OSTYPE=`uname -s`
 # sysname="`fs sysname`"
 ARCH64="true"
 uname -m | grep 64 > /dev/null
@@ -132,8 +136,8 @@ fast=""
 crlibm="NULL"
 cernlib="cernlib"
 naglib="naglib"
-# used for ifort only SSE2
-SSE2="NULL"
+# used for ifort only SSE
+SSE="NULL"
 # and we have OFF
 api="api"
 da="da"
@@ -236,9 +240,6 @@ do
         -fio) fio="fio"
             values[24]=false
             ;;
-        -SSE2) SSE2="SSE2"
-            values[25]=false
-            ;;
         -lf95) lf95="lf95"
             values[26]=false
             ;;
@@ -316,13 +317,15 @@ do
         fio) fio=""
             values[24]=true
             ;;
-        SSE2) SSE2=""
-            values[25]=true
-            ;;
         lf95) lf95=""
             values[26]=true
             ;;
-
+    sse2) SSE=sse2
+    values[25]=true
+    ;;
+    sse3) SSE=sse3
+    values[25]=true
+    ;;
     O) myopt=O
     ;;
     O0) myopt=O0
@@ -353,12 +356,12 @@ do
     shift
 done
 # Here we do some checking for valid/invalid combinations
-if test "$SSE2" = ""
+if test "$SSE" != "NULL"
 then
-  if test "$ifort" != ""
+  if test "$ifort" != "" -o "$OSTYPE" = "Darwin"
   then
-    echo "Ignoring SSE2 option (valid for only ifort)"
-    SSE2="SSE2"
+    echo "Ignoring $SSE option (valid for only ifort and default for MAC)"
+    SSE="NULL"
      values[25]=false
   fi
 fi
@@ -568,28 +571,21 @@ else
   then
     myopt="O"
   fi
-  # Turn ON SSE2 unless specifically turned off with -SSE2
-  if test "$SSE2" = "NULL"
-  then
-    SSE2=""
-    values[25]=true
-  fi
   if test "$cpss" = "" -o "$crlibm" = ""
   then
 # We MUST HAVE the numeric portability (and my default architecture e.g. PIII)
-# Because of performance on AMD etc we allow SSE2 option to optimise
-# Changed to SSE3 on igor's recommendation
-    if test "$SSE2" = "SSE2"
+# Because of performance on AMD etc we allow sse2/sse3 option to optimise
+    if test "$SSE" = "NULL"
     then
     # Code which works on ANY ia32 WITHOUT using SSE3 though
       export FCF="-$myopt -mia32 -fp-model source -fp-model strict -fp-model no-except"
     else
-# and now -mSSE3
+# and now use sse2 or sse3
       if test "$OSTYPE" = "Darwin"
       then
-        export FCF="-$myopt -fp-model source -fp-model strict -fp-model no-except"
+        export FCF="-m32 -mmacosx-version-min=10.5 -$myopt -fp-model source -fp-model strict -fp-model no-except"
       else
-        export FCF="-$myopt -msse3 -fp-model source -fp-model strict -fp-model no-except"
+        export FCF="-$myopt -m$SSE -fp-model source -fp-model strict -fp-model no-except"
       fi
     fi
   else
@@ -640,7 +636,7 @@ then
   # allows running of sixtrack under Macintosh System 10
   echo "MAC setup"
   # NO STATIC linking? on Darwin
-  export FCL="-m32"
+  export FCL="-m32 -mmacosx-version-min=10.5"
   echo "Operating system: $OSTYPE"
 #  FIX up with Frank's fix for 4.6!!!!
   export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
@@ -700,9 +696,9 @@ then
 fi
 if test "$ifort" = ""
 then
-  if test "$SSE2" = ""
+  if test "$SSE" != "NULL"
   then
-      ename=$ename"_SSE2"
+      ename=$ename"_$SSE"
   fi
 fi
 ename=${ename}_$myopt
@@ -828,7 +824,7 @@ done
 # Now sort out cernlib
 if test "$cernlib" != ""
 then
-    if [[ "$OSTYPE" == *linux* ]]
+    if [[ "$OSTYPE" == Linux ]]
     then
         ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
         stat1=$?
@@ -882,7 +878,7 @@ then
         export CERN_ROOT="/sw"
         export CERNLIB="`$CERN_ROOT/bin/cernlib -u graflib packlib kernlib` -lpthread"
     else
-        echo "Unrecognised OSTYPE $OSTYPE (not linux or Darwin)"
+        echo "Unrecognised OSTYPE $OSTYPE (not Linux or Darwin)"
         exit 2
     fi
 fi
@@ -943,6 +939,8 @@ else
       cp ../myboinc.f .
     fi
     generate_makefile ../Makefile.boinc.template Makefile.boinc 
+# and try the same for MACs
+    generate_makefile ../Makefile.boinc.mac.template Makefile.boinc.mac
   fi
   #YIL addition: creating beamgas.f90 instead of beamgas.f
   mv beamgas.f beamgas.f90
@@ -963,9 +961,13 @@ else
     cp ../myboinc.f .
   fi
   ARCH="IA32"
-  if test "$SSE2" = ""
+  if test "$SSE" = "sse2"
   then
     ARCH="SSE2"
+  fi
+  if test "$SSE" = "sse3"
+  then
+    ARCH="SSE3"
   fi
   sed -e's/%%ARCH%%/'$ARCH'/g' compile_fortran.bat.template > tmp$$
   mv tmp$$ compile_fortran.bat
