@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.41'/
-      data moddate /'03.07.2012'/
+      data version /'4.4.42'/
+      data moddate /'15.07.2012'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -48124,6 +48124,10 @@ C Should get me a NaN
       ttot=ttot*10**2+itot
 !hr06 sumda(52)=float(ttot)
       sumda(52)=dble(ttot)                                               !hr06
+! and put stats for Massimo (always get version in fort.10)
+! so even if we go to 550 we now get the stats
+      sumda(59)=dble(napxto)
+      sumda(60)=dble(time)
       b0=zero
       nlost=0
       ntwin=1
@@ -49827,10 +49831,11 @@ C Should get me a NaN
       sumda(20)=sevz
       sumda(21)=sevt
 ! These two places now used for napxto and time
+! But we set them earlier in case particles are lost very early
 !     sumda(59)=dmmac
 !     sumda(60)=dnms
-      sumda(59)=dble(napxto)
-      sumda(60)=dble(time)
+!     sumda(59)=dble(napxto)
+!     sumda(60)=dble(time)
       sumda(24)=dizu0
 !hr06 emax=emax/100*emxa+emxa
       emax=(emax/100d0)*emxa+emxa                                        !hr06
@@ -50388,11 +50393,65 @@ C Should get me a NaN
       close(10)
       call abend('SIXTRACR POSTPR  *** ERROR ***                    ')
 +ei
-  550 write(ch,*,iostat=ierro) (sumda(i),i=1,60)
+  550 continue
+!--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
+!-- Will almost all be zeros but we now have napxto and ttime
++if debug
+!     do i=1,60
+!       call warr('sumda(i)',sumda(i),i,0,0,0)
+!     enddo
++ei
+! We should really write fort.10 in BINARY!
+      write(110,iostat=ierro) (sumda(i),i=1,60)
++if debug
++if .not.nagfor
+      write(210,'(60Z21)') (sumda(i),i=1,60)
++ei
++ei
++if .not.crlibm
+      write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
         if(ch(ich:ich).ne.' ') goto 707
       enddo
- 707  write(10,'(a)') ch(:ich)
+ 707  write(10,'(a)',iostat=ierro) ch(:ich)
++ei
++if crlibm
+! Now use my new dtostr for portability
+      l1=1
+      do i=1,60
+! We return the length of the string (always 24)
+        errno=dtostr(sumda(i),ch1)
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
+      enddo        
+      write(10,'(a)',iostat=ierro) ch(1:l1-1)
++ei
+      if(ierro.ne.0) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
++if cr
+        write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
++ei
++if .not.cr
+        write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
++ei
++if cr
+        write(lout,*) 'ERROR CODE : ',ierro
++ei
++if .not.cr
+        write(*,*) 'ERROR CODE : ',ierro
++ei
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+      endif
 !--REWIND USED FILES
   560 rewind nfile
       rewind 14

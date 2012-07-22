@@ -1,0 +1,8 @@
+#!/bin/sh
+# A script to build SixTrack with ifort (Lahey ?)
+echo "Trying to build SixTrack %%SIXTRACK%%"
+cd crlibm
+make clean
+make
+cd ..
+make -f Makefile.boinc.mac

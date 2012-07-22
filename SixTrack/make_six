@@ -941,6 +941,7 @@ else
     generate_makefile ../Makefile.boinc.template Makefile.boinc 
 # and try the same for MACs
     generate_makefile ../Makefile.boinc.mac.template Makefile.boinc.mac
+    generate_makefile ../make_mac.template make_mac
   fi
   #YIL addition: creating beamgas.f90 instead of beamgas.f
   mv beamgas.f beamgas.f90
