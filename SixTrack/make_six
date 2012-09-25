@@ -50,6 +50,8 @@
 # and many other changes for Windows and BOINC including templates.
 # Version 2.6. 4th July
 # uname -s for Darwin SSE as sse2 or sse3
+# and added SSE4.1 and SSE4.2 (just in case)
+# Note that SSE$.1 and SSE4.2 are specified as sse41 sse42 (aesthetics)
 show_options()
 {
     ons="The following selections are ON  :"
@@ -326,6 +328,12 @@ do
     sse3) SSE=sse3
     values[25]=true
     ;;
+    sse41) SSE=sse4.1
+    values[25]=true
+    ;;
+    sse42) SSE=sse4.2
+    values[25]=true
+    ;;
     O) myopt=O
     ;;
     O0) myopt=O0
@@ -356,15 +364,6 @@ do
     shift
 done
 # Here we do some checking for valid/invalid combinations
-if test "$SSE" != "NULL"
-then
-  if test "$ifort" != "" -o "$OSTYPE" = "Darwin"
-  then
-    echo "Ignoring $SSE option (valid for only ifort and default for MAC)"
-    SSE="NULL"
-     values[25]=false
-  fi
-fi
 if test "$da" = "" -a "$collimat" = ""
 then
   show_options
@@ -575,6 +574,7 @@ else
   then
 # We MUST HAVE the numeric portability (and my default architecture e.g. PIII)
 # Because of performance on AMD etc we allow sse2/sse3 option to optimise
+# and now SSE4.1 and SSE4.2
     if test "$SSE" = "NULL"
     then
     # Code which works on ANY ia32 WITHOUT using SSE3 though
@@ -622,6 +622,16 @@ then
             exit 1
     fi
     export FCF="$FCF -I${H5ROOT}/include"
+fi
+# Here we do some checking for SSE options now we know the compiler
+if test "$SSE" != "NULL"
+then
+  if test "$ifort" != "" -o "$OSTYPE" = "Darwin"
+  then
+    echo "Ignoring $SSE option (valid for only ifort and default for MAC)"
+    SSE="NULL"
+     values[25]=false
+  fi
 fi
 
 if test "$MACHTYPE" = "i586"
@@ -964,11 +974,19 @@ else
   ARCH="IA32"
   if test "$SSE" = "sse2"
   then
-    ARCH="SSE2"
+    ARCH="sse2"
   fi
   if test "$SSE" = "sse3"
   then
-    ARCH="SSE3"
+    ARCH="sse3"
+  fi
+  if test "$SSE" = "sse4.1"
+  then
+    ARCH="sse4.1"
+  fi
+  if test "$SSE" = "sse4.2"
+  then
+    ARCH="sse4.2"
   fi
   sed -e's/%%ARCH%%/'$ARCH'/g' compile_fortran.bat.template > tmp$$
   mv tmp$$ compile_fortran.bat

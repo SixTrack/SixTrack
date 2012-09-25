@@ -2,6 +2,16 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.43 eric and javier
+    -- Javier's mods for new elements called allMULT
+    -- Fix for sumpos for mmac and nms
+    -- make_six new SSE defaults and checks and removed set -x
+   McIntosh 22nd September, 2012
+
+ SixTrack Version: 4.4.42 eric
+    -- Fixed SUMDA 59/60 for all particles lost early
+   McIntosh 22nd July, 2012
+
  SixTrack Version: 4.4.41 eric
     -- Quickly changed to SSE3 (but still called SSE2) for Igor for BOINC
     -- Added total turns and CPU time to fort.10 words 59/60
