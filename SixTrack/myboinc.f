@@ -20,9 +20,8 @@
       implicit none
       integer n,numl
       end
-      subroutine boinc_init(i)
+      subroutine boinc_init()
       implicit none
-      integer i
       end
 !     subroutine boinc_init_graphics
 !     implicit none

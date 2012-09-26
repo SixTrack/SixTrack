@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.43'/
-      data moddate /'19.09.2012'/
+      data version /'4.4.44'/
+      data moddate /'26.09.2012'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -22979,7 +22979,7 @@ C Should get me a NaN
       stxt=''
 +ei
 +if boinc
-      call boinc_init(0)
+      call boinc_init()
 !     call boinc_init_graphics()
 +ei
 +if hdf5
