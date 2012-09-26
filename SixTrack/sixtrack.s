@@ -2,7 +2,7 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.44'/
+      data version /'4.4.45'/
       data moddate /'26.09.2012'/
 +cd rhicelens
 !GRDRHIC
@@ -51571,13 +51571,16 @@ C Should get me a NaN
 ! Now we are using 60 for CPU in seconds
 ! But note that dnms is now found in word 59.
 ! and we always print the maximum DMMAC as NMAC
-! which should really be OK I think.
+! or zero which should really be OK I think.
+! N.B. If particle is lost nms is 0, so we set mmac to zero too 
+      d(60)=dble(nmac)
+      if (nint(d(59)).eq.0) d(60)=zero
 +if cr
-      write(lout,10030) i,nint(d(59)),nint(dble(nmac)),                 &
+      write(lout,10030) i,nint(d(59)),nint(d(60)),                      &
      &nint(d(59))*nint(d(24))
 +ei
 +if .not.cr
-      write(*,10030) i,nint(d(59)),nint(dble(nmac)),                    &
+      write(*,10030) i,nint(d(59)),nint(d(60)),                         &
      &nint(d(59))*nint(d(24))
 +ei
    30 continue
