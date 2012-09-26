@@ -2,7 +2,13 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
- SixTrack Version: 4.4.45 eric and laurent
+ SixTrack Version: 4.4.46 eric and laurent
+    -- Now call boinc_zip_ directly and use boinc_fraction_done
+       instead of boinc_sixtrack_progress 
+    -- Added boinc_fraction_done etc to myboinc.f
+   McIntosh 26th September, 2012
+
+ SixTrack Version: 4.4.45 eric
     -- Just made sure MMAC is zero (when NMS=0) for lost particles
    McIntosh 26th September, 2012
 

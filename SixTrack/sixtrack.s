@@ -2,7 +2,7 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.45'/
+      data version /'4.4.46'/
       data moddate /'26.09.2012'/
 +cd rhicelens
 !GRDRHIC
@@ -8276,7 +8276,8 @@ cc2008
 +if boinc
       if (.not.rerun) then
 ! This Fortran to C interface specifies an unzip of fort.zip
-        call boinc_zip()
+! make call with zipmode, filename, path
+        call boinc_zip(0,'fort.zip','.')
         !call system('unzip fort.zip')
       endif
 +ei
@@ -26566,7 +26567,8 @@ C Should get me a NaN
       do 640 n=1,numl
 +ei
 +if boinc
-        call boinc_sixtrack_progress(n,numl)
+!        call boinc_sixtrack_progress(n,numl)
+        call boinc_fraction_done(dble(n)/dble(numl))
         continue
 !       call graphic_progress(n,numl)
 +ei
@@ -27555,7 +27557,8 @@ C Should get me a NaN
       do 660 n=1,numl
 +ei
 +if boinc
-        call boinc_sixtrack_progress(n,numl)
+!       call boinc_sixtrack_progress(n,numl)
+        call boinc_fraction_done(dble(n)/dble(numl))
         continue
 !       call graphic_progress(n,numl)
 +ei
@@ -30841,7 +30844,8 @@ C Should get me a NaN
       do 660 n=1,numl
 +ei
 +if boinc
-        call boinc_sixtrack_progress(n,numl)
+!       call boinc_sixtrack_progress(n,numl)
+        call boinc_fraction_done(dble(n)/dble(numl))
         continue
 !       call graphic_progress(n,numl)
 +ei
@@ -32295,7 +32299,8 @@ C Should get me a NaN
       do 490 n=1,numl
 +ei
 +if boinc
-        call boinc_sixtrack_progress(n,numl)
+!       call boinc_sixtrack_progress(n,numl)
+        call boinc_fraction_done(dble(n)/dble(numl))
         continue
 !       call graphic_progress(n,numl)
 +ei
@@ -32795,7 +32800,8 @@ C Should get me a NaN
       do 510 n=1,numl
 +ei
 +if boinc
-        call boinc_sixtrack_progress(n,numl)
+!       call boinc_sixtrack_progress(n,numl)
+        call boinc_fraction_done(dble(n)/dble(numl))
         continue
 !       call graphic_progress(n,numl)
 +ei
@@ -33421,7 +33427,8 @@ C Should get me a NaN
       do 510 n=1,numl
 +ei
 +if boinc
-        call boinc_sixtrack_progress(n,numl)
+!       call boinc_sixtrack_progress(n,numl)
+        call boinc_fraction_done(dble(n)/dble(numl))
         continue
 !       call graphic_progress(n,numl)
 +ei

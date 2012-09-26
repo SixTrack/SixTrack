@@ -16,9 +16,9 @@
       implicit none
       integer flag
       end
-      subroutine boinc_sixtrack_progress(n,numl)
+      subroutine boinc_fraction_done(f)
       implicit none
-      integer n,numl
+      double precision f
       end
       subroutine boinc_init()
       implicit none
@@ -39,6 +39,8 @@
 !     subroutine boinc_finish_graphics
 !     implicit none
 !     end
-      subroutine boinc_zip
+      subroutine boinc_zip(mode,zipfile,path)
       implicit none
+      integer mode
+      character*(*) zipfile,path
       end
