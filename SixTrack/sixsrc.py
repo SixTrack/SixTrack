@@ -10,16 +10,16 @@ Source:
   flags: flags used to compose the decks
 
   Usage:
-  s=Souce('./')
+  s=Source('./')
 """
 
 
 
-from objdebug import ObjDebug
+#from objdebug import ObjDebug
 import os
 import re
 
-object=ObjDebug
+#object=ObjDebug
 
 def parse_comma_list(s):
   lst=s.split(',')
