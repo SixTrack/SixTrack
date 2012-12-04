@@ -1,3 +1,6 @@
+#!/usr/bin/ipython
+
+
 """ Sixtrack code analyzer
 
 Source:
@@ -287,11 +290,14 @@ class FlagDict(dict):
 if __name__=='__main__':
   import sixsrc
   s=sixsrc.Source('./')
-  print s.blocks.maincr.used_in_ast
-  print s.blocks.maincr.block_used
-  print s.blocks.crlibco.used_in_block
-  s.blocks.maincr.get_source(regexp='seed',context=5)
+  print """
 
-
+  Instructions:
+  The main object is called s. Use s.<TAB> to explore variables and methods. For a example type:
+print s.blocks.maincr.used_in_ast
+print s.blocks.maincr.block_used
+print s.blocks.crlibco.used_in_block
+s.blocks.maincr.get_source(regexp='seed',context=5)
+"""
 
 
