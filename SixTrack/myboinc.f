@@ -33,6 +33,10 @@
 !     implicit none
 !     integer n,numl
 !     end
+      subroutine boinc_sixtrack_progress(n,numl)
+      implicit none
+      integer n,numl
+      end
       subroutine boinc_checkpoint_completed
       implicit none
       end

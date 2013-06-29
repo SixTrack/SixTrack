@@ -2,6 +2,28 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.50 eric
+    -- Always checkpoint (do NOT call BOINC time to checkpoint)
+    -- Do a checkpoint when all turns completed before
+       post-processing (unless restarted from that checkpoint)
+       in order to facilitate ten million turns etc
+    -- Replaced g77 option by pgf90 (preliminary)
+   McIntosh 27th June, 2013
+
+ SixTrack Version: 4.4.49 eric 
+    -- Only disable_xp/enable_xp for Nagfor ifdef crlibm
+    -- Do not use errno in round_near.c (for Cygwin)
+   McIntosh 30th May, 2013
+
+ SixTrack Version: 4.4.48 eric 
+    -- Fixed crlibm/round_near.c and function fround (nasty BUG)
+    -- Used maxf = 30 in call to round_near
+   McIntosh 29th May, 2013
+
+ SixTrack Version: 4.4.47 eric 
+    -- Fixed read(23 for crlibm in routine readd1
+   McIntosh November 2012
+
  SixTrack Version: 4.4.46 eric and laurent
     -- Now call boinc_zip_ directly and use boinc_fraction_done
        instead of boinc_sixtrack_progress 

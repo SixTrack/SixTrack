@@ -31,7 +31,7 @@
 # bpm activates the collection of tracking data for sussix => basic SixTrack
 # bnlelens activates the bnl electron lens options possibly => boinc, cr, crlibm
 # nag => use f95 instead of LAHEY
-# g77 => use g77
+# pgf90 => use pgf90
 # g95 => use g95
 # gfortran => use gfortran
 # Version 2.2 August 2010
@@ -105,7 +105,7 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   g77   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio SSE lf95)
+options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   pgf90   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio SSE lf95)
 values=(junk  true true     true false  false     true    true   false false    false false false false    false false false    false false    false   false false false false false false false)
 
 # Overide for Darwin
@@ -148,7 +148,7 @@ cpss="cpss"
 boinc="boinc"
 cr="cr"
 nagfor="nagfor"
-g77="g77"
+pgf90="pgf90"
 g95="g95"
 gfortran="gfortran"
 bpm="bpm"
@@ -209,7 +209,7 @@ do
         -nag) nagfor="nagfor"
             values[13]=false
             ;;
-        -g77) g77="g77"
+        -pgf90) pgf90="pgf90"
             values[14]=false
             ;;
         -g95) g95="g95"
@@ -286,7 +286,7 @@ do
         nagfor) nagfor=""
             values[13]=true
             ;;
-        g77) g77=""
+        pgf90) pgf90=""
             values[14]=true
             ;;
         g95) g95=""
@@ -485,21 +485,22 @@ then
     myopt="O"
   fi
 # SHOULD I USE -float-store ???? Doesn't seem to be necessary..........
-  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
-  #export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-  # export FCF="-float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+#PRO#  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+  export FCF="-S -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+#DEBUG#   export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+  ####export FCF="-$myopt -float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   # export FCF="-float-store -$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   export FCL="-Bstatic -abi=32"
   export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
-elif test "$g77" = ""
+elif test "$pgf90" = ""
 then
-  export FC="g77"
+  export FC="pgf90"
   if test "$myopt" = ""
   then
     myopt="O"
   fi
-  export FCF="-$myopt -m32 -g -fno-second-underscore -funroll-loops"
-  export FCL="-static -m32"
+  export FCF="-$myopt -fast -m32 -Kieee"
+  export FCL="-Bstatic -fast -m32"
 elif test "$g95" = ""
 then
   export FC="g95"
