@@ -3,6 +3,11 @@ should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
  SixTrack Version: 4.4.52 eric and Igor and Laurent
+    -- Just fixed yhe type definitions in myboinc.f
+       which is for internal use only.
+   McIntosh 12th August, 2013
+
+ SixTrack Version: 4.4.52 eric and Igor and Laurent
     -- Deleted a redundant +ca cseeds (came in v4443!)???
    McIntosh 4th July, 2013
 

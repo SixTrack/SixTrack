@@ -45,6 +45,6 @@
 !     end
       subroutine boinc_zip(mode,zipfile,path,strl1,strl2)
       implicit none
-      integer mode strl1 strl2
+      integer mode,strl1,strl2
       character*(*) zipfile,path
       end
