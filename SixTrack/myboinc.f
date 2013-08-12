@@ -43,8 +43,8 @@
 !     subroutine boinc_finish_graphics
 !     implicit none
 !     end
-      subroutine boinc_zip(mode,zipfile,path)
+      subroutine boinc_zip(mode,zipfile,path,strl1,strl2)
       implicit none
-      integer mode
+      integer mode strl1 strl2
       character*(*) zipfile,path
       end

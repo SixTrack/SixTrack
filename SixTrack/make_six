@@ -486,8 +486,8 @@ then
   fi
 # SHOULD I USE -float-store ???? Doesn't seem to be necessary..........
 #PRO#  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
-  export FCF="-S -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
-#DEBUG#   export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+# export FCF="-S -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
+  export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   ####export FCF="-$myopt -float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   # export FCF="-float-store -$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   export FCL="-Bstatic -abi=32"
@@ -499,7 +499,7 @@ then
   then
     myopt="O"
   fi
-  export FCF="-$myopt -fast -m32 -Kieee"
+  export FCF="-Mnoflushz -$myopt -fast -m32 -Kieee"
   export FCL="-Bstatic -fast -m32"
 elif test "$g95" = ""
 then
@@ -522,7 +522,7 @@ then
   then
     myopt="O4"
   fi
-  export FCF="-$myopt -m32 -g -fno-second-underscore -funroll-loops"
+  export FCF=" -frecord-marker=4 -$myopt -m32 -g -fno-second-underscore -funroll-loops"
   export FCL="-static -m32"
 elif test "$lf95" = ""
 then
@@ -576,22 +576,26 @@ else
 # We MUST HAVE the numeric portability (and my default architecture e.g. PIII)
 # Because of performance on AMD etc we allow sse2/sse3 option to optimise
 # and now SSE4.1 and SSE4.2
+#
+# and use FTZ for testing (null for production)
+#   FTZ="-no-ftz"
+    FTZ=""
     if test "$SSE" = "NULL"
     then
     # Code which works on ANY ia32 WITHOUT using SSE3 though
-      export FCF="-$myopt -mia32 -fp-model source -fp-model strict -fp-model no-except"
+      export FCF="$FTZ -$myopt -mia32 -fp-model source -fp-model strict -fp-model no-except"
     else
 # and now use sse2 or sse3
       if test "$OSTYPE" = "Darwin"
       then
-        export FCF="-m32 -mmacosx-version-min=10.5 -$myopt -fp-model source -fp-model strict -fp-model no-except"
+        export FCF="$FTZ -m32 -mmacosx-version-min=10.5 -$myopt -fp-model source -fp-model strict -fp-model no-except"
       else
-        export FCF="-$myopt -m$SSE -fp-model source -fp-model strict -fp-model no-except"
+        export FCF="$FTZ -$myopt -m$SSE -fp-model source -fp-model strict -fp-model no-except"
       fi
     fi
   else
     # Just use the defaults for the compile host
-    export FCF="-$myopt -m32"
+    export FCF="$FTZ -$myopt -m32"
   fi
   export FCL="-static -m32"
 fi

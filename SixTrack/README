@@ -2,10 +2,14 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.52 eric and Igor and Laurent
+    -- Deleted a redundant +ca cseeds (came in v4443!)???
+   McIntosh 4th July, 2013
+
  SixTrack Version: 4.4.51 eric
     -- Really fixes checkpoint and adds log message to fort.93
        for the last checkpoint
-    -- Adds parameters 8,0 to boinc_zip call (string lengths)
+    -- Adds parameters 8,1 to boinc_zip call (string lengths)
    McIntosh 1st July, 2013
 
  SixTrack Version: 4.4.50 eric

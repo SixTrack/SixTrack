@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.51'/
-      data moddate /'01.07.2013'/
+      data version /'4.4.52'/
+      data moddate /'04.07.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -23026,7 +23026,6 @@ C Should get me a NaN
 +ca commonl
 +ca commonmn
 +ca commonm1
-+ca cseeds
 +if bnlelens
 +ca rhicelens
 +ei
