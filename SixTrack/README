@@ -2,8 +2,34 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.61 Eric
+    -- Added code to daten for crlibm and read of xstr
+   McIntosh 16th August, 2013
+
+ SixTrack Version: 4.4.60 Eric and Javier
+    -- Included Laurent's new disable_xp, enable_xp for WINDOWS
+    -- Removed "MY" crlibm/features.h (but kept fpu_control.h)
+    -- Used Javier's latest features
+   McIntosh 16th August, 2013
+
+ SixTrack Version: 4.4.56 eric and Igor and Laurent
+    -- Same as 4.4.52 but pgf90 has -Mnoflushz (for SSE)
+   McIntosh 28th July, 2013
+
+ SixTrack Version: 4.4.55 eric and Igor and Laurent
+    -- Same as 4.4.52 but pgf90 traps underflow
+   McIntosh 26th July, 2013
+
+ SixTrack Version: 4.4.54 eric and Igor and Laurent
+    -- Same as 4.4.52 but ifort has -no-ftz for Linux
+   McIntosh 21st July, 2013
+
+ SixTrack Version: 4.4.53 eric and Igor and Laurent
+    -- Same as 4.4.52 but ifort has -ftz for Linux
+   McIntosh 20th July, 2013
+
  SixTrack Version: 4.4.52 eric and Igor and Laurent
-    -- Just fixed yhe type definitions in myboinc.f
+    -- Just fixed the type definitions in myboinc.f
        which is for internal use only.
    McIntosh 12th August, 2013
 

@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.52'/
-      data moddate /'04.07.2013'/
+      data version /'4.4.61'/
+      data moddate /'16.08.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -275,7 +275,7 @@
       common/co6d/clo6(3),clop6(3)
       common/dkic/dki(nele,3)
       common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
-     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,4),track6d(6,npart),     &
+     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,5),track6d(6,npart),     &
      &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
@@ -3882,13 +3882,13 @@
 +ei
 +cd bpmdata
 !---------Collect BPM data
-          if(ix.gt.0.and.bez(ix)(1:2).eq.'BP'.and.n.lt.1025) then
+          if(ix.gt.0.and.bez(ix)(1:3).eq.'BPM'.and.n.lt.100001) then
           if(n.eq.1) then
             open(ix+100,file=bez(ix),status='unknown')
             endif
             write(ix+100,'(7e18.10,1x)') xv(1,1),yv(1,1),xv(2,1),       &
      &yv(2,1), sigmv(1), dpsv(1),ejfv(1)
-          if(n.eq.1024) then
+          if(n.eq.100000) then
             close(ix+100)
             endif
           endif
@@ -5560,6 +5560,8 @@
               r2b(j)=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
 +cd beama1
               rb(j)=sqrt(r2b(j))
+              if(j.eq.1) then
+              endif
 !hr03         rkb(j)=strack(i)*pisqrt/rb(j)
               rkb(j)=(strack(i)*pisqrt)/rb(j)                            !hr03
 +cd beama2
@@ -12578,7 +12580,7 @@ cc2008
       double precision ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,ram,rdev,rfr,rmean,rph,rsqsum,rsum,rv,tilt,u0,  &
-     &xang,xpl0,xplane,xrms0,zpl0,zrms0
+     &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
       character*16 sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character*16 fluc,chro,tune,iter,limi,orbi,deco
       character*16 beze,bez0,go,rect,elli,comb,sear,subr,reso,bezext
@@ -17074,6 +17076,7 @@ cc2008
       if(ibtyp.eq.1) call wzset
  1610 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+      lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1610
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
@@ -17084,10 +17087,35 @@ cc2008
 +ei
 +if fio
       read(ch1,*,round='nearest')                                       &
-     & idat,i,xang,xplane
+     & idat,i,xang,xplane,xstr
 +ei
 +if .not.fio
-      read(ch1,*) idat,i,xang,xplane
++if .not.crlibm
+      read(ch1,*) idat,i,xang,xplane,xstr
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(2),*) i
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        xang=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        xplane=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        xstr=fround(errno,fields,5)
+        nf=nf-1
+      endif
++ei
 +ei
 +if nagfor
 +if crlibm
@@ -17102,6 +17130,7 @@ cc2008
         parbe(j,2)=dble(i)                                               !hr12
         parbe(j,1)=xang
         parbe(j,3)=xplane
+        parbe(j,5)=xstr
         goto 1610
       endif
  1620 continue
@@ -22492,11 +22521,12 @@ C Should get me a NaN
 +ei
       integer ibb,ibbc,ne,nsli,idaa
       double precision alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
-     &sphi,star,tphi
+     &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
 +ca parpro
 +ca parnum
 +ca commondl
-      dimension param(nele,4),bcu(nbb,12),star(3,mbea)
+      ! JBG Increaseing param to dimension 5 for xstr
+      dimension param(nele,5),bcu(nbb,12),star(3,mbea)
 +if bnlelens
 +ca rhicelens
 +ei
@@ -22510,25 +22540,32 @@ C Should get me a NaN
       phi=param(ne,1)
       nsli=param(ne,2)
       alpha=param(ne,3)
+      phi2=param(ne,5)
 !hr05 f=param(ne,4)/nsli
       f=param(ne,4)/dble(nsli)                                           !hr05
 +if crlibm
       sphi=sin_rn(phi)
+      sphi2=sin_rn(phi2)
 +ei
 +if .not.crlibm
       sphi=sin(phi)
+      sphi2=sin(phi2)
 +ei
 +if crlibm
       cphi=cos_rn(phi)
+      cphi2=cos_rn(phi2)
 +ei
 +if .not.crlibm
       cphi=cos(phi)
+      cphi2=cos(phi2)
 +ei
 +if crlibm
       tphi=tan_rn(phi)
+      tphi2=tan_rn(phi2)
 +ei
 +if .not.crlibm
       tphi=tan(phi)
+      tphi2=tan(phi2)
 +ei
 +if crlibm
       salpha=sin_rn(alpha)
@@ -22543,7 +22580,7 @@ C Should get me a NaN
       calpha=cos(alpha)
 +ei
 !     define slices
-      call stsld(star,cphi,sphi,sigzs,nsli,calpha,salpha)
+      call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
       call boostf(sphi,cphi,tphi,salpha,calpha,track)
       call sbcf(star,cphi,nsli,f,ibb,bcu,track,ibbc)
       call boostif(sphi,cphi,tphi,salpha,calpha,track)
@@ -22568,7 +22605,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer idaa
-      double precision calpha,cphi,salpha,sphi,tphi
+      double precision calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2    &
 +ca parpro
 +ca parnum
 +ca commondl
@@ -22585,6 +22622,7 @@ C Should get me a NaN
 *FOX  D V DA INT H1Z NORD NVAR ; D V DA INT X1 NORD NVAR ;
 *FOX  D V DA INT Y1 NORD NVAR ;
 *FOX  D V RE EXT SPHI ; D V RE EXT CPHI ; D V RE EXT TPHI ;
+*FOX  D V RE EXT SPHI2 ; D V RE EXT CPHI2 ; D V RE EXT TPHI2 ;
 *FOX  D V RE EXT SALPHA ; D V RE EXT CALPHA ;
 *FOX  D V RE INT ONE ; D V RE INT C1E3 ;
 *FOX  D V DA INT DET NORD NVAR ; D V DA INT H1 NORD NVAR ;
@@ -22799,6 +22837,7 @@ C Should get me a NaN
 *FOX  D V DA INT Y1 NORD NVAR ; D V DA INT Z1 NORD NVAR ;
 *FOX  D V RE INT ONE ; D V RE INT TWO ;
 *FOX  D V RE EXT SPHI ; D V RE EXT CPHI ; D V RE EXT TPHI ;
+*FOX  D V RE EXT SPHI2 ; D V RE EXT CPHI2 ; D V RE EXT TPHI2 ;
 *FOX  D V RE EXT SALPHA ; D V RE EXT CALPHA ;
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
@@ -36422,7 +36461,8 @@ C Should get me a NaN
         do 140 i1=1,3
           bezr(i1,i)=' '
   140   continue
-        do i1=1,4
+        ! JBG increasing parbe to dimension 5
+        do i1=1,5
           parbe(i,i1)=zero
         enddo
   150 continue
@@ -51905,36 +51945,44 @@ C Should get me a NaN
 +ei
       integer ibb,ibbc,ibtyp,ne,np,nsli
       double precision alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
-     &sphi,tphi,track,star
+     &sphi,tphi,track,star,phi2,cphi2,sphi2,tphi2
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-      dimension param(nele,4),bcu(nbb,12)
+      !JBG increased the dimension of param to 5 to include xstr
+      dimension param(nele,5),bcu(nbb,12)
       dimension star(3,mbea)
 +ca save
 !-----------------------------------------------------------------------
       phi=param(ne,1)
       nsli=param(ne,2)
       alpha=param(ne,3)
+      phi2=param(ne,5)
 !hr06 f=param(ne,4)/nsli
       f=param(ne,4)/dble(nsli)                                           !hr06
 +if crlibm
       sphi=sin_rn(phi)
+      sphi2=sin_rn(phi2)
 +ei
 +if .not.crlibm
       sphi=sin(phi)
+      sphi2=sin(phi2)
 +ei
 +if crlibm
       cphi=cos_rn(phi)
+      cphi2=cos_rn(phi2)
 +ei
 +if .not.crlibm
       cphi=cos(phi)
+      cphi2=cos(phi2)
 +ei
 +if crlibm
       tphi=tan_rn(phi)
+      tphi2=tan_rn(phi2)
 +ei
 +if .not.crlibm
       tphi=tan(phi)
+      tphi2=tan(phi2)
 +ei
 +if crlibm
       salpha=sin_rn(alpha)
@@ -51949,7 +51997,7 @@ C Should get me a NaN
       calpha=cos(alpha)
 +ei
 !     define slices
-      call stsld(star,cphi,sphi,sigzs,nsli,calpha,salpha)
+      call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
       call boost(np,sphi,cphi,tphi,salpha,calpha,track)
       call sbc(np,star,cphi,nsli,f,ibtyp,ibb,bcu,track,ibbc)
       call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
@@ -52046,7 +52094,7 @@ C Should get me a NaN
       do 2000 jsli=1,nsli
         do 1000 i=1,np
           s=(track(5,i)-star(3,jsli))*half
-          sp=s/cphi
+          sp=s/cphi 
 !hr06     dum(1)=bcu(ibb,1)+two*bcu(ibb,4)*sp+bcu(ibb,6)*sp*sp
           dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2       !hr06
 !hr06     dum(2)=bcu(ibb,2)+two*bcu(ibb,9)*sp+bcu(ibb,10)*sp*sp
@@ -52065,6 +52113,7 @@ C Should get me a NaN
          else
             ibbc1=0
           endif
+        !JBG New set of canonical set of variables at the Col point (CP)
 !hr06     sepx0=track(1,i)+track(2,i)*s-star(1,jsli)
           sepx0=(track(1,i)+track(2,i)*s)-star(1,jsli)                   !hr06
 !hr06     sepy0=track(3,i)+track(4,i)*s-star(2,jsli)
@@ -52346,7 +52395,7 @@ C Should get me a NaN
       endif
       return
       end
-      subroutine stsld(star,cphi,sphi,sigzs,nsli,calpha,salpha)
+      subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -52365,8 +52414,8 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,nsli
-      double precision bord,bord1,border,calpha,cphi,gauinv,pi,         &
-     &salpha,sigz,sigzs,sphi,star,yy
+      double precision bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,   &
+     &salpha,sigz,sigzs,sphi,sphi2,star,yy
 +ca parpro
 +ca parnum
       dimension star(3,mbea)
@@ -52380,7 +52429,8 @@ C Should get me a NaN
 +if .not.crlibm
       pi=4d0*atan(1d0)
 +ei
-      sigz=sigzs/cphi
+      ! JBG To be checked that this should cphi or cphi2
+      sigz=sigzs/cphi2
 ! DEFINE `STARRED' COORDINATES
 !  BORD is longitudinal border star(3,mbea) is the barycenter of region
 !  divided two borders.
@@ -52406,10 +52456,16 @@ C Should get me a NaN
 +ei
 !hr06&sqrt(2d0*pi)*dble(nsli)*sigz
         bord=bord1
+        !JBG When doing slicing phi=0 for crab crossing
+        ! star(1,i)=0.
+        ! star(2,i)=0. 
+        !JBG When doing slicing phi2 different tiltings of the strong beam
+        star(1,i)=(star(3,i)*sphi2)*calpha
+        star(2,i)=(star(3,i)*sphi2)*salpha  
 !hr06   star(1,i)=star(3,i)*sphi*calpha
-        star(1,i)=(star(3,i)*sphi)*calpha                                !hr06
+        !star(1,i)=(star(3,i)*sphi)*calpha                                !hr06
 !hr06   star(2,i)=star(3,i)*sphi*salpha
-        star(2,i)=(star(3,i)*sphi)*salpha                                !hr06
+        !star(2,i)=(star(3,i)*sphi)*salpha                                !hr06
  101  continue
       return
       end

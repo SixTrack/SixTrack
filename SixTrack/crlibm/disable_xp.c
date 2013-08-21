@@ -7,6 +7,15 @@ void disable_xp_(void)
 {
 }
 
+#elif defined(_WIN32)
+
+#include <float.h>
+
+void disable_xp_(void)
+{
+  _controlfp(_PC_53, _MCW_PC);
+}
+
 #else
 
 #include <fpu_control.h>
