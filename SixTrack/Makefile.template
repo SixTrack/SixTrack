@@ -3,6 +3,7 @@ SHELL = /bin/sh
 FC = %%FC%%
 FCF = %%FCF%%
 FCL = %%FCL%%
+FCLD = %%FCLD%%
 FCLMAP = %%FCLMAP%%
 CRLIBM = %%CRLIBM%%
 CERNLIB = %%CERNLIB%%
@@ -21,10 +22,10 @@ SIXTRACK = %%SIXTRACK%%
 all: %%SIXTRACK%%
 
 dafor: dafor.o
-	$(FC) $(FCL) -o dafor dafor.o
+	$(FC) $(FCLD) -o dafor dafor.o
 
 astuce: astuce.o
-	$(FC) $(FCL) -o astuce astuce.o $(NAGLIBC)
+	$(FC) $(FCLD) -o astuce astuce.o $(NAGLIBC)
 
 myboinc.o: myboinc.f
 	$(FC) -c $(FCF) myboinc.f

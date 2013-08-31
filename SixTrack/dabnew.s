@@ -6215,20 +6215,12 @@
 +ei
       iin = iin + 1
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call enable_xp()
-+ei
-+ei
 +ei
       read(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                     &
      &ii,c,io,(j(i),i=1,inva)
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call disable_xp()
-+ei
-+ei
 +ei
 !Eric
       read(111) c
@@ -6242,22 +6234,14 @@
 !     call wda('dar3c',c,3,0,0,0)
 +ei
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call enable_xp()
-+ei
-+ei
 +ei
 !Eric
       read(iunit,'(G20.14)') c
 !Eric
       read(111) c
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call disable_xp()
-+ei
-+ei
 +ei
 +if debug
 !     call wda('dar4c',c,4,0,0,0)
@@ -7951,20 +7935,12 @@
   10  continue
       iin = iin + 1
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call enable_xp()
-+ei
-+ei
 +ei
       read(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                     &
      &ii,c,io,(jt(i),i=1,invo)
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call disable_xp()
-+ei
-+ei
 +ei
 !
       if(ii.eq.0) goto 20
@@ -7972,19 +7948,11 @@
 !Eric
 !     read(iunit,*) c
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call enable_xp()
-+ei
-+ei
 +ei
       read(iunit,'(G20.14)') c
 +if crlibm
-+if .not.ifort
-+if .not.lf95
                                                   call disable_xp()
-+ei
-+ei
 +ei
       do 999 jh=1,invo
  999  j(jh)=jt(jx(jh))

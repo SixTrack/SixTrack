@@ -87,6 +87,7 @@ generate_makefile()
         sed  "s#%%FC%%#${FC}#g" $1 | \
         sed  "s#%%FCF%%#${FCF}#g" | \
         sed  "s#%%FCL%%#${FCL}#g" | \
+        sed  "s#%%FCLD%%#${FCLD}#g" | \
         sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
         sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
         sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
@@ -375,6 +376,11 @@ then
   tracking=""
   values[2]=true
 fi
+if test "$fio" = ""
+then
+  echo "Lahey lf95 does NOT support fio 2003 rounding!"
+  exit 1
+fi
 if test "$boinc" = ""
 then
   # BOINC includes the CPSS options
@@ -469,13 +475,6 @@ then
     values[12]=true
     echo "Option Checkpoint/Restart turned ON"
 fi
-#if test "$crlibm" = ""
-#then
-#    echo ""
-#    echo "NOTA BENE: SKIPPING checks for crlibm !!!"
-#    echo "Should really only be specified for tracking with lf95 or ifort!"
-#    echo ""
-#fi
 # Set up compiler
 if test "$nagfor" = ""
 then
@@ -491,6 +490,7 @@ then
   ####export FCF="-$myopt -float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   # export FCF="-float-store -$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   export FCL="-Bstatic -abi=32"
+  export FCLD="-abi=32"
   export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
 elif test "$pgf90" = ""
 then
@@ -501,6 +501,7 @@ then
   fi
   export FCF="-Mnoflushz -$myopt -fast -m32 -Kieee"
   export FCL="-Bstatic -fast -m32"
+  export FCLD="-fast -m32"
 elif test "$g95" = ""
 then
   export FC="g95"
@@ -512,8 +513,10 @@ then
   if test "$MACHTYPE" = "i586"
   then
     export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
+    export FCLD="-m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
   else
     export FCL="-static -m32 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
+    export FCLD="-m32 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
   fi
 elif test "$gfortran" = ""
 then
@@ -524,24 +527,27 @@ then
   fi
   export FCF=" -frecord-marker=4 -$myopt -m32 -g -fno-second-underscore -funroll-loops"
   export FCL="-static -m32"
+  export FCLD="-m32"
 elif test "$lf95" = ""
 then
   export FC="lf95"
-  export lf95=""
   if test "$myopt" = ""
   then
     myopt="o1"
   fi
   export FCF="--$myopt --tp -Wa,--32"
   export FCL="-static -m32"
+  export FCLD="-m32"
   if [[ "$MACHTYPE" == *x86_64* ]]
   then
     ls -l /usr/lib/gcc/x86_64-redhat-linux/4.1.1/32/libgcc_eh.a > /dev/null 2>&1
     if test $? -ne 0
     then
       export FCL="-static -m32"
+      export FCLD="-m32"
     else
       export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
+      export FCLD="-m32 -L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh"
     fi
   elif [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
   then
@@ -549,12 +555,15 @@ then
     if test $? -ne 0
     then
       export FCL="-static -m32"
+      export FCLD="-m32"
     else
       export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
+      export FCLD="-m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh"
     fi
   elif test "$MACHTYPE" = "i586"
   then
       export FCL="-static -m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
+      export FCLD="-m32 -L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh"
   else
     echo "Unknow MACHTYPE $MACHTYPE"
     exit 2
@@ -598,6 +607,7 @@ else
     export FCF="$FTZ -$myopt -m32"
   fi
   export FCL="-static -m32"
+  export FCLD="-m32"
 fi
 if test "$hdf5" = ""
 then
@@ -652,6 +662,7 @@ then
   echo "MAC setup"
   # NO STATIC linking? on Darwin
   export FCL="-m32 -mmacosx-version-min=10.5"
+  export FCLD="-m32 -mmacosx-version-min=10.5"
   echo "Operating system: $OSTYPE"
 #  FIX up with Frank's fix for 4.6!!!!
   export gfortran_lib="/sw/lib/gcc4.4/lib/libgfortran.a"
@@ -942,7 +953,9 @@ then
   make $ename
 else
 # and now fix up the Makefile.boinc.template
-# for the build on boinc02/boinc05
+# for the build (local) using /afs/cern/.ch/project/sixtrack/boinc_linux32
+# containing boinc api/lib/zip libraries and associated .h files.
+# thankyou Riccardo/Igor August 2013.
     SIXTRACK=$ename
   if test "$boinc" = ""
   then
@@ -1009,10 +1022,12 @@ else
   echo ""
   # remove an existing executable
   rm -f $ename
-  # and (at last) do a make if NOT "api"
+  # and (at last) do a make API or not
   if test "$api" != ""
   then
     make $ename
+  else
+    make -f Makefile.boinc
   fi
 fi
 echo "       "
@@ -1021,30 +1036,28 @@ echo "tried to build $ename in the directory with the same name."
 echo ""
 show_options
 echo ""
-if test "$api" != ""
+if test -s "$ename"
 then
-  if test -s "$ename"
-  then
-      echo "It appears to have completed successfully."
-      # and a link for Frank
-      cd ..
-      ln -sf $ename/$ename SixTrack
-      cd $ename
-  else
-      echo "It appears to have failed!!!"
-      exit 2
-  fi
+  echo "It appears to have completed successfully."
+  # and a link for Frank
+  cd ..
+  ln -sf $ename/$ename SixTrack
+  cd $ename
+else
+  echo "It appears to have failed!!!"
+  exit 2
 fi
 # Note that selecting boinc has forced cpss
-if test "$cpss" = ""
-then
-  if test "$api" = ""
-  then
-    make clean
-    cd crlibm
-    make clean
-    cd ..
-    echo ""
-  fi
-  echo "The $ename directory can now be taken to Windows/MacOS or BOINC server."
-fi
+#if test "$cpss" = ""
+#then
+#  if test "$api" = ""
+#  then
+#    make clean
+#    cd crlibm
+#    make clean
+#    cd ..
+#    echo ""
+#  fi
+echo "The $ename directory can now be taken to Windows/MacOS or BOINC server."
+echo "but you may want to 'cd $ename;make clean;cd crlibm; make clean; cd ../..'"
+#fi
