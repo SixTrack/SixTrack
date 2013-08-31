@@ -2,6 +2,10 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.63 Eric
+    -- Just added a call to boincrf for fort.zip for Windows.
+   McIntosh 31st August, 2013
+
  SixTrack Version: 4.4.62 Eric
     -- Fixed nasty bug in daten iclr.eq.2 concerning exz
        in tracking input
@@ -9,7 +13,7 @@ the new text into the CVS notes when requested.
     -- dabnew.s and sixtrack.s. if fio (but NOT Lahey lf95)
        then enable/disable _xp before/after the READ "NEAREST"
        fio overrules crlibm for formatted input
-   McIntosh 29th August, 2013
+   McIntosh 29th September, 2013
 
  SixTrack Version: 4.4.61 Eric
     -- Added code to daten for crlibm and read of xstr

@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.62'/
-      data moddate /'29.08.2013'/
+      data version /'4.4.63'/
+      data moddate /'31.08.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -8290,7 +8290,9 @@ cc2008
       if (.not.rerun) then
 ! This Fortran to C interface specifies an unzip of fort.zip
 ! make call with zipmode, filename, path
-        call boinc_zip(0,'fort.zip','.',8,1)
+! Now try calling boincrf for Windows
+        call boincrf('fort.zip',filename)
+        call boinc_zip(0,filename,'.',256,1)
         !call system('unzip fort.zip')
       endif
 +ei
