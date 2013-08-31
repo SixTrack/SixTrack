@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.61'/
-      data moddate /'16.08.2013'/
+      data version /'4.4.62'/
+      data moddate /'29.08.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -1103,6 +1103,16 @@
                 clo6(3)=zero
                 clop6(3)=zero
               else
++if fio
++if crlibm
+                call enable_xp()
++ei
+                read(33,*,round='nearest') (clo6(l),clop6(l), l=1,3)
++if crlibm
+                call disable_xp()
++ei
++ei
++if .not.fio
 +if .not.crlibm
                 read(33,*) (clo6(l),clop6(l), l=1,3)
 +ei
@@ -1121,6 +1131,7 @@
                     nf=nf-1
                   endif
                 enddo
++ei
 +ei
               endif
               call clorb(zero)
@@ -9950,6 +9961,7 @@ cc2008
 !-----------------------------------------------------------------------
       rewind 23
 !-----------------------------------------------------------------------
+! Unit 23 is opened with round='nearest' if fio is selected
 +if .not.crlibm
    10 read(23,'(I6,2X,G20.14,I5,4X,18(2I2,1X))',end=30) ncoef,cc,nord,  &
      &njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot)
@@ -11080,6 +11092,7 @@ cc2008
 !-----------------------------------------------------------------------
       rewind 23
 !-----------------------------------------------------------------------
+! Unit 23 is opened round='nearest' if fio is selected
 +if .not.crlibm
    10 read(23,*,end=40) ncoef,cc,nor,njx,njx1,njz,njz1,np,(ind(jel),jel &
      &=1,jeltot)
@@ -12922,14 +12935,15 @@ cc2008
  165  if(i1.gt.72) call prror(104)
       call intepr(1,1,ch,ch1)
 !     write (*,*) 'ch1:'//ch1//':'
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -12978,11 +12992,6 @@ cc2008
         bbbs(i)=fround(errno,fields,8)
         nf=nf-1
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       if(kz(i).eq.25) then
@@ -13149,14 +13158,15 @@ cc2008
       xrms0=zero
       zpl0=zero
       zrms0=zero
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & idat,xpl0,xrms0,zpl0,zrms0
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13184,11 +13194,6 @@ cc2008
         zrms0=fround(errno,fields,5)
         nf=nf-1
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       do 180 j=1,il
@@ -13271,13 +13276,8 @@ cc2008
         endif
       endif
       call intepr(2,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & idat,(ilm0(m),m=1,40)
-+ei
-+if .not.fio
+! reading character strings so OK
       read(ch1,*) idat,(ilm0(m),m=1,40)
-+ei
       if(idat.eq.idum) goto 270
       i=i+1
       if(i.gt.nblo-1) call prror(18)
@@ -13351,13 +13351,8 @@ cc2008
         endif
   420 continue
   430 call intepr(3,i2,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & (ilm0(k),k=1,40)
-+ei
-+if .not.fio
+! reading character strings so OK
       read(ch1,*) (ilm0(k),k=1,40)
-+ei
       do 490 k=1,40
         if(ilm0(k).eq.idum) goto 490
         if(ilm0(k).eq.go) goto 480
@@ -13393,15 +13388,16 @@ cc2008
         goto 500
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
+      if(iclr.eq.1) then
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-      if(iclr.eq.1) then
-+if fio
         read(ch1,*,round='nearest')                                     &
      & itra,chi0,chid,rat,iver
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13434,8 +13430,14 @@ cc2008
         if(itra.gt.2) call prror(40)
       endif
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & exz(1,1)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13452,8 +13454,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & exz(1,2)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13470,8 +13478,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
      & exz(1,3)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13488,8 +13502,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.5) read(ch1,*,round='nearest')                         &
      & exz(1,4)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13506,15 +13526,21 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.6) read(ch1,*,round='nearest')                         &
      & exz(1,5)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
       if(iclr.eq.6) read(ch1,*) exz(1,5)
 +ei
 +if crlibm
-      if(iclr.eq.2) then
+      if(iclr.eq.6) then
         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
         if (nf.gt.0) then
           exz(1,5)=fround(errno,fields,1)
@@ -13524,8 +13550,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.7) read(ch1,*,round='nearest')                         &
      & exz(1,6)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13542,8 +13574,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.8) read(ch1,*,round='nearest')                         &
      & exz(2,1)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13560,8 +13598,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.9) read(ch1,*,round='nearest')                         &
      & exz(2,2)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13578,8 +13622,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.10) read(ch1,*,round='nearest')                        &
      & exz(2,3)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13596,8 +13646,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.11) read(ch1,*,round='nearest')                        &
      & exz(2,4)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13614,8 +13670,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.12) read(ch1,*,round='nearest')                        &
      & exz(2,5)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13632,8 +13694,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.13) read(ch1,*,round='nearest')                        &
      & exz(2,6)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13650,8 +13718,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.14) read(ch1,*,round='nearest')                        &
      & e0
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13668,8 +13742,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.15) read(ch1,*,round='nearest')                        &
      & ej(1)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13686,8 +13766,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.16) read(ch1,*,round='nearest')                        &
      & ej(2)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13701,11 +13787,6 @@ cc2008
           nf=nf-1
         endif
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       if(iclr.ne.16) goto 500
@@ -13727,8 +13808,14 @@ cc2008
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
      &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13780,20 +13867,33 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & idz(1),idz(2),idfor,irew,iclo6
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
       if(iclr.eq.2) read(ch1,*) idz(1),idz(2),idfor,irew,iclo6
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & nde(1),nde(2),                                                   &
+     &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
       if(iclr.eq.3) read(ch1,*) nde(1),nde(2),                          &
-+ei
      &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu
++ei
       if(iclo6.eq.5.or.iclo6.eq.6) then
         iclo6=iclo6-4
         iclo6r=1
@@ -13823,8 +13923,14 @@ cc2008
         napx=1
         imc=1
 +if fio
++if crlibm
+      call enable_xp()
++ei
         read(ch1,*,round='nearest')                                     &
      & nord,nvar,preda,nsix,ncor
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13858,13 +13964,8 @@ cc2008
         if(nord.le.0.or.nvar.le.0) call prror(91)
       else
         call intepr(3,1,ch,ch1)
-+if fio
-        read(ch1,*,round='nearest')                                     &
-     & (ilm0(i),i=1,ncor)
-+ei
-+if .not.fio
+! ilm0 are character strings so should be OK
         read(ch1,*) (ilm0(i),i=1,ncor)
-+ei
       endif
       if(iclo6.eq.1.or.iclo6.eq.2) nsix=0
       if(nvar.ne.6) then
@@ -13935,14 +14036,15 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 570
       call intepr(1,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       if(l.eq.1) read(ch1,*,round='nearest')                            &
      & iss(1),cro(1),ichrom0
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13967,8 +14069,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(l.eq.2) read(ch1,*,round='nearest')                            &
      & iss(2),cro(2)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -13986,11 +14094,6 @@ cc2008
           nf=nf-1
         endif
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
   580 continue
@@ -14029,8 +14132,14 @@ cc2008
       call intepr(1,1,ch,ch1)
       if(l.eq.1) then
 +if fio
++if crlibm
+      call enable_xp()
++ei
         read(ch1,*,round='nearest')                                     &
      & iqq(1),qw0(1),iqmod6
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14061,14 +14170,15 @@ cc2008
           iqmod6=1
         endif
       endif
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       if(l.eq.2) read(ch1,*,round='nearest')                            &
      & iqq(2),qw0(2)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14089,8 +14199,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(l.eq.3) read(ch1,*,round='nearest')                            &
      & iqq(3),qw0(3)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14110,11 +14226,6 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
   630 continue
   640 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -14122,8 +14233,14 @@ cc2008
       if(ch(1:1).eq.'/') goto 640
       call intepr(4,1,ch,ch1)
 +if fio
++if crlibm
+      call enable_xp()
++ei
       read(ch1,*,round='nearest')                                       &
      & iqq(4),iqq(5)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
       read(ch1,*) iqq(4),iqq(5)
@@ -14162,8 +14279,14 @@ cc2008
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
 +if fio
++if crlibm
+      call enable_xp()
++ei
       read(ch1,*,round='nearest')                                       &
      & idat,nt,ilin0,ntco,eui,euii
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14210,13 +14333,8 @@ cc2008
       if(ch(1:1).eq.'/') goto 690
       if(ch(:4).eq.next) goto 110
       call intepr(2,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & (ilm0(m),m=1,40)
-+ei
-+if .not.fio
+! ilm0 are character strings, should be OK
       read(ch1,*) (ilm0(m),m=1,40)
-+ei
       do 700 m=1,40
       if(ilm0(m).eq.idum) goto 700
       nlin=nlin+1
@@ -14242,8 +14360,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
      & harm,alc,u0,phag,tlen,pma,ition,dppoff
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14288,8 +14412,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & dpscor,sigcor
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14307,11 +14437,6 @@ cc2008
           nf=nf-1
         endif
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       if(iclr.ne.2) goto 710
@@ -14424,8 +14549,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       read(ch1,*,round='nearest')                                       &
      & imn,r0,benki
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14445,11 +14576,6 @@ cc2008
         benki=fround(errno,fields,3)
         nf=nf-1
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       i=1
@@ -14485,14 +14611,15 @@ cc2008
       if(ch(1:1).eq.'/') goto 780
       if(ch(:4).eq.next) goto 110
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & bk0d,bkad,ak0d,akad
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14516,11 +14643,6 @@ cc2008
         akad=fround(errno,fields,4)
         nf=nf-1
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       if(abs(bk0d).gt.pieni.or.abs(bkad).gt.pieni                       &
@@ -14560,8 +14682,14 @@ cc2008
       if(ch(1:1).eq.'/') goto 790
       ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
++if crlibm
+      call enable_xp()
++ei
       read(ch1,*,round='nearest')                                       &
      & izu0, mmac, mout, mcut
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
       read(ch1,*) izu0, mmac, mout, mcut
@@ -14667,21 +14795,61 @@ cc2008
                 goto 820
               endif
               call intepr(3,1,ch,ch1)
-+if fio
-              read(ch1,*,round='nearest')                               &
-     & ilm0(1)
-+ei
-+if .not.fio
+! ilm0 are character strings, should be OK
               read(ch1,*) ilm0(1)
-+ei
               iexnum=iexnum+1
               bezext(iexnum)=ilm0(1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
+! if fio is selected fort.16 is opened with round='nearest'
+              read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
+     &extaux(3)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
+     &extaux(6)
+               lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
+     &extaux(9)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
+     &extaux(12)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
+     &extaux(15)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
+     &extaux(18)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(19),extaux(20)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
+     &extaux(23)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
+     &extaux(26)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
+     &extaux(29)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
+     &extaux(32)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
+     &extaux(35)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
+     &extaux(38)
+              lineno16=lineno16+1
+              read(16,*,end=870,iostat=ierro) extaux(39),extaux(40)
++if crlibm
+      call disable_xp()
 +ei
++ei
++if .not.fio
 +if .not.crlibm
+! if fio is selected fort.16 is opened with round='nearest'
               read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
      &extaux(3)
               lineno16=lineno16+1
@@ -14787,10 +14955,6 @@ cc2008
         nf=nf-1
       endif
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
 +ei
               if(ierro.gt.0) call prror(80)
               iexread=1
@@ -14873,14 +15037,15 @@ cc2008
                 goto 1820
               endif
               call intepr(1,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
               read(ch1,*,round='nearest')                               &
      & ilm0(1),tcnst
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -14901,6 +15066,9 @@ cc2008
               iexnum=iexnum+1
               bezext(iexnum)=ilm0(1)
 +if fio
++if crlibm
+      call enable_xp()
++ei
               read(35,*,end=870,iostat=ierro,round='nearest') extaux(1),&
      &extaux(2),                                                        &
      &extaux(3)
@@ -14955,6 +15123,9 @@ cc2008
               read(35,*,end=870,iostat=ierro,round='nearest') extaux(39)&
      &,extaux(40)
               lineno35=lineno35+1
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15065,11 +15236,6 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
               if(ierro.gt.0) call prror(80)
               iexread=1
               goto 1840
@@ -15149,14 +15315,15 @@ cc2008
               call intepr(1,1,ch,ch1)
 !             write (*,*) 'ch:'//ch//':'
 !             write (*,*) 'ch1:'//ch1//':'
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
               read(ch1,*,round='nearest')                               &
      & ilm0(1),alignx,alignz,tilt
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15186,11 +15353,6 @@ cc2008
 !             call roundnulp(alignx,1024)
 !             call roundnulp(alignz,1024)
 !             call roundnulp(tilt,1024)
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
 +if debug
@@ -15252,22 +15414,18 @@ cc2008
             if(ierro.gt.0) call prror(87)
             lineno30=lineno30+1
             call intepr(1,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
             read(ch1,*,round='nearest')                                 &
      & ilm0(1),zfz(izu-2)
-+ei
-+if .not.fio
-            read(ch1,*) ilm0(1),zfz(izu-2)
-+ei
-+if nagfor
 +if crlibm
       call disable_xp()
 +ei
++ei
++if .not.fio
+            read(ch1,*) ilm0(1),zfz(izu-2)
 +ei
             iexnum=iexnum+1
             if(kz(ix).eq.11) izu=izu+2*mmul
@@ -15326,22 +15484,18 @@ cc2008
                 goto 1594
               endif
               call intepr(1,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
               read(ch1,*,round='nearest')                               &
      & ilm0(1),dummy,alignx,alignz,tilt
-+ei
-+if .not.fio
-              read(ch1,*) ilm0(1),dummy,alignx,alignz,tilt
-+ei
-+if nagfor
 +if crlibm
       call disable_xp()
 +ei
++ei
++if .not.fio
+              read(ch1,*) ilm0(1),dummy,alignx,alignz,tilt
 +ei
 !hr05         if((abs(alignx)+abs(alignz)+abs(tilt)).le.pieni)          &
               if(((abs(alignx)+abs(alignz))+abs(tilt)).le.pieni)        &!hr05
@@ -15403,23 +15557,8 @@ cc2008
       if(ch(1:1).eq.'/') goto 910
       if(ch(:4).eq.next) goto 110
       call intepr(3,1,ch,ch1)
-+if nagfor
-+if crlibm
-      call enable_xp()
-+ei
-+ei
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & idat,bezr(2,iorg),bezr(3,iorg)
-+ei
-+if .not.fio
+! bezr are character strings, should be OK
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
       if(idat.ne.next) then
       if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum) write  &
      &(6,10360) idat
@@ -15478,14 +15617,15 @@ cc2008
       goto 110
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         
      & itco,dma,dmap
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15509,8 +15649,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.2) read(ch1,*,round='nearest')                         
      & itqv,dkq,dqq
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15561,8 +15707,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
      & de0,ded,dsi,aper(1),aper(2)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15594,11 +15746,6 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
       if(iclr.ne.4) goto 940
       iclr=0
       goto 110
@@ -15618,14 +15765,15 @@ cc2008
       apxx=zero
       apzz=zero
       call intepr(8,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & idat,irel,apxx,apzz
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15649,11 +15797,6 @@ cc2008
         apzz=fround(errno,fields,4)
           nf=nf-1
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       do 970 j=1,il
@@ -15689,14 +15832,15 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 980
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & sigma0,ncorru,ncorrep
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15722,11 +15866,6 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
       iclo=1
   990 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -15734,13 +15873,8 @@ cc2008
       if(ch(1:1).eq.'/') goto 990
       iele=idum
       call intepr(4,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & idat,iele
-+ei
-+if .not.fio
+! integers so should be OK
       read(ch1,*) idat,iele
-+ei
       if(idat.eq.next) goto 110
       if(idat.ne.'HMON='.and.idat.ne.'HCOR='.and. idat.ne.'VMON='.and.  &
      &idat.ne.'VCOR=') call prror(44)
@@ -15799,14 +15933,15 @@ cc2008
       if(ch(:4).eq.next) goto 110
       icoe=ii
       call intepr(5,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & idat,(ratio(ii,l),icel(ii,l),l=1,20)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15828,11 +15963,6 @@ cc2008
           nf=nf-1
         endif
       enddo
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       do 1080 j=1,il
@@ -15889,14 +16019,15 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1110
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & nta,nte,qxt,qzt,tam1,tam2,ipt,totl
++if crlibm
+      call enable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -15935,11 +16066,6 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
       if(nta.lt.2) call prror(37)
       if(nte.lt.nta.or.nte.gt.9) call prror(37)
       isub=1
@@ -15952,20 +16078,9 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1120
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & nre
-+ei
-+if .not.fio
+! all integers so should be OK
       read(ch1,*) nre
-+ei
-+if fio
-      if(nre.ne.0) read(ch1,*,round='nearest')                          &
-     & nre,npp,nrr(1),nrr(2),nrr(3),                                    &
-+ei
-+if .not.fio
       if(nre.ne.0) read(ch1,*) nre,npp,nrr(1),nrr(2),nrr(3),            &
-+ei
      &ipr(1),ipr(2),ipr(3)
       if(nre.ne.0.and.(npp.lt.2.or.npp.gt.nrco)) call prror(46)
       if(nre.lt.0.or.nre.gt.3) call prror(47)
@@ -15976,20 +16091,8 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1130
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & nur
-+ei
-+if .not.fio
       read(ch1,*) nur
-+ei
-+if fio
-      if(nur.ne.0) read(ch1,*,round='nearest')                          &
-     & nur,nu(1),nu(2),nu(3)
-+ei
-+if .not.fio
       if(nur.ne.0) read(ch1,*) nur,nu(1),nu(2),nu(3)
-+ei
       if(nur.lt.0.or.nur.gt.3) call prror(49)
       if(nu(1).gt.9.or.nu(2).gt.9.or.nu(3).gt.9                         &
      &.or.nu(1).lt.0.or.nu(2).lt.0.or.nu(3).lt.0) call prror(50)
@@ -15998,14 +16101,15 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1140
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & totl,qxt,qzt,tam1,tam2
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -16035,62 +16139,35 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
  1150 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1150
       call intepr(3,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & (ilm0(i),i=1,6)
-+ei
-+if .not.fio
+! ilm0 are character strings so should be OK
       read(ch1,*) (ilm0(i),i=1,6)
-+ei
  1160 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1160
       call intepr(6,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & nch
-+ei
-+if .not.fio
       read(ch1,*) nch
-+ei
-+if fio
-      if(nch.ne.0) read(ch1,*,round='nearest')                          &
-     & nch,ilm0(7),ilm0(8)
-+ei
-+if .not.fio
       if(nch.ne.0) read(ch1,*) nch,ilm0(7),ilm0(8)
-+ei
  1170 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1170
       call intepr(7,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & nqc
-+ei
-+if .not.fio
       read(ch1,*) nqc
-+ei
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       if(nqc.ne.0) read(ch1,*,round='nearest')                          &
      & nqc,ilm0(9),ilm0(10),qw0
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -16122,11 +16199,6 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
       do 1190 k=1,10
       do 1180 j=1,il
         if(ilm0(k).ne.bez(j)) goto 1180
@@ -16154,14 +16226,15 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1200
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & qxt,qzt,tam1,tam2,totl
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -16191,19 +16264,20 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
  1210 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1210
       ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
++if crlibm
+      call enable_xp()
++ei
       read(ch1,*,round='nearest')                                       &
      & mesa,mp,m21,m22,m23,ise1,ise2,ise3
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
       read(ch1,*) mesa,mp,m21,m22,m23,ise1,ise2,ise3
@@ -16220,13 +16294,8 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1240
       call intepr(3,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & idat,(ilm0(m),m=2,40)
-+ei
-+if .not.fio
+! character strings so should be OK
       read(ch1,*) idat,(ilm0(m),m=2,40)
-+ei
       if(idat.eq.next) goto 110
       ilm0(1)=idat
       ka=k0+1
@@ -16258,16 +16327,17 @@ cc2008
       goto 1280
       endif
       ch1(:83)=ch(:80)//' / '
-+if nagfor
+      if(iclr.eq.1) toptit(1)=ch
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-      if(iclr.eq.1) toptit(1)=ch
-+if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & iav,nstart,nstop,iwg,dphix,dphiz,                                &
      &iskip,iconv,imad,cma1,cma2
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -16324,8 +16394,14 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -16370,17 +16446,19 @@ cc2008
 +ei
 +ei
 +if fio
++if crlibm
+      call enable_xp()
++ei
       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
      & kwtype,itf,icr,idis,icow,istw,iffw,                              &
-+ei
-+if .not.fio
-      if(iclr.eq.4) read(ch1,*) kwtype,itf,icr,idis,icow,istw,iffw,     &
-+ei
      &nprint,ndafi
-+if nagfor
 +if crlibm
       call disable_xp()
 +ei
++ei
++if .not.fio
+      if(iclr.eq.4) read(ch1,*) kwtype,itf,icr,idis,icow,istw,iffw,     &
+     &nprint,ndafi
 +ei
       kwtype=0
       icr=0
@@ -16412,14 +16490,15 @@ cc2008
       call intepr(1,1,ch,ch1)
       irco=irco+1
       if(irco.gt.nele) call prror(51)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & idat,ram,rfr,rph,nrturn
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -16449,11 +16528,6 @@ cc2008
       endif
 +ei
 +ei
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
       do 1310 j=1,il
       if(idat.eq.bez(j)) then
         nrel(irco)=j
@@ -16473,13 +16547,8 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1330
       call intepr(3,1,ch,ch1)
-+if fio
-      read(ch1,*,round='nearest')                                       &
-     & idat,(ilm0(m),m=2,4)
-+ei
-+if .not.fio
+! character strings again
       read(ch1,*) idat,(ilm0(m),m=2,4)
-+ei
       if(idat.eq.next) then
       iskew=0
       goto 110
@@ -16495,14 +16564,15 @@ cc2008
         goto 1360
       endif
       call intepr(1,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & ilm0(4+i),qwsk(i)
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -16518,11 +16588,6 @@ cc2008
         qwsk(i)=fround(errno,fields,2)
         nf=nf-1
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
  1350 continue
@@ -16920,22 +16985,19 @@ cc2008
       lineno3=lineno3+1
       ch1(:nchars+3)=ch(:nchars)//' / '
       call intepr(3,1,ch,ch1)
-+if nagfor
+! coel are chjaracter strings so should be OK
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & (coel(i),i=1,ncor)
-+ei
-+if .not.fio
-      read(ch1,*) (coel(i),i=1,ncor)
-+ei
-+if nagfor
 +if crlibm
       call disable_xp()
 +ei
++ei
++if .not.fio
+      read(ch1,*) (coel(i),i=1,ncor)
 +ei
       do 1430 j1=1,ncor
         do 1420 j2=1,il
@@ -16963,16 +17025,45 @@ cc2008
         nord=7
       endif
       else
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-      read(3,*) nmom1,nmom2,weig1,weig2,dpmax
+      read(3,*, round='nearest') nmom1,nmom2,weig1,weig2,dpmax
       lineno3=lineno3+1
-+if nagfor
 +if crlibm
       call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
+      read(3,*) nmom1,nmom2,weig1,weig2,dpmax
+      lineno3=lineno3+1
++ei
++if crlibm
+      read(3,*) ch1
+      lineno3=lineno3+1
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(1),*) nmom1
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        read(fields(2),*) nmom2
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        weig1=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        weig2=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        dpmax=fround(errno,fields,5)
+        nf=nf-1
+      endif
 +ei
 +ei
       if(nmom1.lt.2.or.nmom1.gt.3) call prror(75)
@@ -17009,8 +17100,14 @@ cc2008
       if(ch(:4).eq.next) goto 110
       ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
++if crlibm
+      call enable_xp()
++ei
       read(ch1,*,round='nearest')                                       &
      & partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -17080,14 +17177,15 @@ cc2008
       if(ch(1:1).eq.'/') goto 1610
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & idat,i,xang,xplane,xstr
++if crlibm
+      call disable_xp()
++ei
 +ei
 +if .not.fio
 +if .not.crlibm
@@ -17115,11 +17213,6 @@ cc2008
         xstr=fround(errno,fields,5)
         nf=nf-1
       endif
-+ei
-+ei
-+if nagfor
-+if crlibm
-      call disable_xp()
 +ei
 +ei
       if(i.lt.0) i=0
@@ -17186,21 +17279,34 @@ cc2008
       if(ch(:4).eq.next) call prror(99)
       ch1(:nchars+3)=ch(:nchars)//' / '
       j1=j1+3
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
       read(ch1,*,round='nearest')                                       &
      & cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
-+ei
-+if .not.fio
-      read(ch1,*) cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
-+ei
-+if nagfor
 +if crlibm
       call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
+      read(ch1,*) cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        cotr(imtr0,j1-2)=fround(errno,fields,1) 
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        cotr(imtr0,j1-1)=fround(errno,fields,2) 
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        cotr(imtr0,j1)=fround(errno,fields,3) 
+        nf=nf-1
+      endif
 +ei
 +ei
       if(j1.lt.6) goto 1730
@@ -17213,22 +17319,36 @@ cc2008
         if(ch(:4).eq.next) call prror(99)
         ch1(:nchars+3)=ch(:nchars)//' / '
         j1=j1+3
-+if nagfor
++if fio
 +if crlibm
       call enable_xp()
 +ei
-+ei
-+if fio
         read(ch1,*,round='nearest')                                     &
      & rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),                           &
-+ei
-+if .not.fio
-        read(ch1,*) rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),              &
-+ei
      &rrtr(imtr0,j,j1)
-+if nagfor
 +if crlibm
       call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
+        read(ch1,*) rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),              &
+     &rrtr(imtr0,j,j1)
++ei
++if crlibm
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        rrtr(imtr0,j,j1-2)=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        rrtr(imtr0,j,j1-1)=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        rrtr(imtr0,j,j1)=fround(errno,fields,3)
+        nf=nf-1
+      endif
 +ei
 +ei
         if(j1.lt.6) goto 1740
@@ -25567,7 +25687,12 @@ C Should get me a NaN
         write(*,*)                                                      &
 +ei
      &'ERR> Please use BEAM command to define emittances!'
++if cr
+        call abend('                                                  ')
++ei
++if .not.cr
         stop
++ei
       endif
 !
 !++  Calculate the gammas
@@ -25931,7 +26056,7 @@ C Should get me a NaN
          else
 +if cr
       write(lout,*) 'INFO> review your distribution parameters !!'
-      stop
+      call abend('                                                  ')
 +ei
 +if .not.cr
             write(*,*) 'INFO> review your distribution parameters !!'
@@ -29419,7 +29544,12 @@ C Should get me a NaN
                   write(outlun,*) 'ERR>  Invalid impact parameter!',    &
      &                  part_impact(j)
 +ei
-                  stop
++if cr
+      call abend('                                                  ')
++ei
++if .not.cr
+      stop
++ei
                 endif
                 n_impact = n_impact + 1
                 sum = sum + part_impact(j)
