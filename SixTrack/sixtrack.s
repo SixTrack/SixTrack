@@ -63740,6 +63740,9 @@ C Should get me a NaN
             j=j+1
          endif
          if (filereaderror.lt.0) exit
+!        If we have more events in the dpmjet file than
+!        what we are supposed to simulate, we stop here...
+         if (previousEvent.gt.dpmjetevents) exit
          if (numberOfEvents.gt.(bgmaxx-1)) then
          write(*,*) 'ERROR> Too many dpmjet events!'
          stop
