@@ -63557,8 +63557,10 @@ C Should get me a NaN
 !           boosted yp event
            bgypdb(choice) = z(2)
            bgEdb(choice) = new4MomCoord(1) ! boosted energy
-         write(684,*) bgxpdb(choice),bgypdb(choice),bgEdb(choice),      &
-     &     new4MomCoord
+! DEBUG: 
+!         write(684,*) bgxpdb(choice),bgypdb(choice),bgEdb(choice),      &
+!     &     new4MomCoord
+! END DEBUG
           endif
          endif ! doLorentz
          call rotateMatrix(yv(1,j),yv(2,j),rotm)
@@ -63660,7 +63662,7 @@ C Should get me a NaN
       write(*,*) ''
       
 ! DEBUG: open debug file...      
-      open(684,file='debugfile.txt')
+!      open(684,file='debugfile.txt')
 ! END DEBUG
       open(666,file='dpmjet.eve')
       open(667,file='scatterLOC.txt')
