@@ -48,3 +48,9 @@
       integer mode,strl1,strl2
       character*(*) zipfile,path
       end
+      subroutine boinc_zipitall()
+      implicit none
+      end
+      subroutine boinc_unzip()
+      implicit none
+      end

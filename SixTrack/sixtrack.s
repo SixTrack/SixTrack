@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.63'/
-      data moddate /'31.08.2013'/
+      data version /'4.4.91'/
+      data moddate /'13.11.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -36,6 +36,15 @@
 !GRD-042008
 !GRDRHIC
 +ei
++cd bnlio
+! This is empty if -crlibm and causes a problem with astuce
+! if +crlibm we define parameters for dtostr
++if crlibm
+      character*8192 ch
+      character*25 ch1
+      integer errno,l1,l2
+      integer dtostr
++ei
 +cd crlibco
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
@@ -47,20 +56,22 @@
       common /mytimes/timestart
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
-      logical rerun,restart,checkp,fort95,fort96,read95,read96
+      logical rerun,start,restart,checkp,fort95,fort96,read95,read96
       character*255 arecord
       character*20 stxt
       character*80 runtim
+! Note order of placement in COMMON crdata is important
+! for the alignment of the data
       common /crdata/                                                   &
      &sixrecs,binrec,binrecs((npart+1)/2),bnlrec,bllrec,                &
-     &numlcr,rerun,restart,checkp,                                      &
+     &numlcr,rerun,start,restart,checkp,                                &
      &fort95,fort96,read95,read96,arecord,stxt,runtim
       integer crnumlcr,crnuml,crnapxo,crnapx,crnumxv,crnnumxv,crnlostp, &
      &crsixrecs,crbinrec,crbinrecs,crbnlrec,crbllrec,cril
       logical crpstop,crsythck
       real crtime0,crtime1,crtime2
       double precision cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
-     &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl
+     &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl,croidpsv
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -76,7 +87,7 @@
      &crxv(2,npart),cryv(2,npart),                                      &
      &crsigmv(npart),crdpsv(npart),crdpsv1(npart),crejv(npart),         &
      &crejfv(npart),craperv(npart,2),crxvl(2,npart),cryvl(2,npart),     &
-     &crdpsvl(npart),crejvl(npart),crsigmvl(npart),                     &
+     &crdpsvl(npart),crejvl(npart),crsigmvl(npart),croidpsv(npart),     &
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -201,7 +212,7 @@
      &napxo,nbeam,nch,ncororb,ncorrep,ncorru,ncy,ndafi,nde,nhcorr,      &
      &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrel,nrr,nrturn,nskew,     &
      &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
-     &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4
+     &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml
       double precision a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
      &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
@@ -231,7 +242,7 @@
       common/mat/a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
       common/syos2/rvf(mpa)
       common/tra1/rat,idfor,napx,napxo,numl,niu(2),numlr,nde(2),nwr(4), &
-     &ird,imc,irew,ntwin,iclo6,iclo6r,iver,ibidu
+     &ird,imc,irew,ntwin,iclo6,iclo6r,iver,ibidu,numlcp,numlmax,nnuml
       common/syn/qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3),          &
      &crad,hsyc(nele),phasc(nele),dppoff,sigmoff(nblz),tlen,            &
      &iicav,itionc(nele),ition,idp,ncy,ixcav
@@ -6952,6 +6963,49 @@ cc2008
 +if .not.cr
             write(*,*) 'dumping stats at turn number ',n
 +ei
++if crlibm
+! Use dtostr for correct binary decimal conversion
+           l1=1
++if .not.boinc
+! use Unit 52 
++ei 
++if boinc
+! use Unit 10 and initialise string with header
+            ch(l1:l1+10)='output    '           
+            l1=l1+11
++ei
+! Now do conversions
+! First the 3 integers using internal read
+            write(ch(l1:l1+8),'(i8)') n
+            l1=l1+9
+            write(ch(l1:l1+9),'(1x,i8)') n_cut
+            l1=l1+10
+            write(ch(l1:l1+9),'(1x,i8)') n_nocut
+            l1=l1+10
+! and now the four double precision
+! We return the length of the string (always 24)
+            errno=dtostr(sumsquarex,ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(sumsquarey,ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(sumtwojx,ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(sumtwojy,ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
++if .not.boinc
+! write string to 52
+            write(52,'(a)') ch(1:l1-1)
++ei
++if boinc 
+! write string to 10
+            write(10,'(a)') ch(1:l1-1)
++ei
++ei
++if .not.crlibm
 +if .not.boinc
             write(52,'(i8,2(1x,i8),4(1x,e15.8))')                       &
 +ei
@@ -6964,6 +7018,7 @@ cc2008
      &sumsquarey,                                                       &
      &sumtwojx,                                                         &
      &sumtwojy
++ei
 +if cr
 +if .not.boinc
       endfile 52
@@ -6995,6 +7050,54 @@ cc2008
             if(n.eq.1.and.lhc.eq.9) then
                totals=totals+strack(i)
                sampl(i)=totals
++if crlibm
+! Use dtostr for correct binary decimal conversion
+               l1=1
++if .not.boinc
+! Use Unit 51
++ei
++if boinc
+! Use Unit 10 and initialise string with header
+               ch(l1:l1+10)='SixTwiss  '
+               l1=l1+11
++ei
+! Now do the conversions
+! A 5-digit integer, followed by 7 double precision numbers
+               write(ch(l1:l1+5),'(i5)') i
+               l1=l1+6
+! and now the 7 double precision
+! We return the length of the string (always 24)
+            errno=dtostr(sampl(i),ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(tbetax(i),ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(tbetay(i),ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(talphax(i),ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(talphay(i),ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(torbx(i),ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
+            errno=dtostr(torby(i),ch1)
+            ch(l1:l1+errno)=' '//ch1(1:errno)
+            l1=l1+errno+1
++if .not.boinc
+! write string to 51
+            write(51,'(a)') ch(1:l1-1)
++ei
++if boinc
+! write string to 10
+            write(10,'(a)') ch(1:l1-1)
++ei
++ei
++if .not.crlibm
 +if .not.boinc
                write(51,'(i5,(1x,f15.10),6(1x,f20.13))')                &
 +ei
@@ -7004,6 +7107,7 @@ cc2008
 +ei
      &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
      &torby(i)
++ei
 +if boinc
                bnlrec=bnlrec+1
                endfile 10
@@ -7330,6 +7434,7 @@ cc2008
         write(*,*)
 +ei
         nthinerr=3001
+        nnuml=numl
         return
       endif
       if(ithick.eq.1.and.ilostch.eq.1) then
@@ -8287,16 +8392,6 @@ cc2008
 +cd open
 !--OPENING DATA FILES
 +if boinc
-      if (.not.rerun) then
-! This Fortran to C interface specifies an unzip of fort.zip
-! make call with zipmode, filename, path
-! Now try calling boincrf for Windows
-        call boincrf('fort.zip',filename)
-        call boinc_zip(0,filename,'.',256,1)
-        !call system('unzip fort.zip')
-      endif
-+ei
-+if boinc
       call boincrf('fort.2',filename)
 +if fio
       open(2,file=filename,form='formatted',status='unknown',
@@ -8421,6 +8516,14 @@ cc2008
       open(10,file='fort.10',form='formatted',status='unknown')
 +ei
 +ei
++ei
+! and in ALL cases make sure fort.10 is empty as we
+! ALWAYS re-create it, BUT for BOINC it contains many things!.
+! It is re-positioned in CRCHECK
++if .not.boinc
+      rewind 10
+      endfile 10
+      rewind 10
 +ei
 +if boinc
       call boincrf('fort.11',filename)
@@ -10039,7 +10142,7 @@ cc2008
 +ei
 +ca close
 +if cr
-      call abend('                                                  ')
+      call abend('Problem with data in fort.23')
 +ei
 +if .not.cr
           stop
@@ -12704,6 +12807,9 @@ cc2008
       ncy2=0
       ndum=0
       numl=1
+!  Initialise new input parameters
+      numlmax=1000000
+      numlcp=0
       napx=0
       amp(1)=c1m3
       amp0=zero
@@ -13813,8 +13919,9 @@ cc2008
 +if crlibm
       call enable_xp()
 +ei
+! Two new options for Turns to checkpoint and max turns/job.
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2)
+     &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
 +if crlibm
       call disable_xp()
 +ei
@@ -13823,7 +13930,7 @@ cc2008
 +if .not.crlibm
       if(iclr.eq.1) then
         read(ch1,*)                                                     &
-     &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2)
+     &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
       endif
 +ei
 +if crlibm
@@ -13865,6 +13972,16 @@ cc2008
           read(fields(9),*) niu(2)
           nf=nf-1
         endif
+        if (nf.gt.0) then
+          read(fields(10),*) numlcp
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          read(fields(11),*) numlmax
+          nf=nf-1
+        endif
+! and default nnmul to numl
+        nnuml=numl
       endif
 +ei
 +ei
@@ -13896,6 +14013,7 @@ cc2008
       if(iclr.eq.3) read(ch1,*) nde(1),nde(2),                          &
      &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu
 +ei
+      if(numlcp.eq.0) numlcp=nwr(3)
       if(iclo6.eq.5.or.iclo6.eq.6) then
         iclo6=iclo6-4
         iclo6r=1
@@ -14356,11 +14474,6 @@ cc2008
       goto 710
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
-+if nagfor
-+if crlibm
-      call enable_xp()
-+ei
-+ei
 +if fio
 +if crlibm
       call enable_xp()
@@ -14545,11 +14658,6 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 740
       call intepr(1,1,ch,ch1)
-+if nagfor
-+if crlibm
-      call enable_xp()
-+ei
-+ei
 +if fio
 +if crlibm
       call enable_xp()
@@ -15525,15 +15633,7 @@ cc2008
  1591   continue
       endif
       goto 110
-+if nagfor
-+if crlibm
-      call disable_xp()
-+ei
   870 call prror(80)
-+ei
-+if .not.nagfor
-  870 call prror(80)
-+ei
 !-----------------------------------------------------------------------
 !  ORGANISATION OF RANDOM NUMBERS
 !-----------------------------------------------------------------------
@@ -16987,7 +17087,7 @@ cc2008
       lineno3=lineno3+1
       ch1(:nchars+3)=ch(:nchars)//' / '
       call intepr(3,1,ch,ch1)
-! coel are chjaracter strings so should be OK
+! coel are character strings so should be OK
 +if fio
 +if crlibm
       call enable_xp()
@@ -23187,6 +23287,8 @@ C Should get me a NaN
 +ca commonl
 +ca commonmn
 +ca commonm1
+! Eric needs nwri (clean up new variables and common blocks!)
++ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -23265,17 +23367,19 @@ C Should get me a NaN
 +if cr
       stxt=''
 +ei
++if hdf5
+       call INITHDF5()
++ei
 +if boinc
       call boinc_init()
 !     call boinc_init_graphics()
 +ei
-+if hdf5
-       call INITHDF5()
-+ei
 +if cr
+! Main start for Checkpoint/Restart
       sythckcr=.false.
       numlcr=1
       rerun=.false.
+      start=.true.
       restart=.false.
       checkp=.false.
       fort95=.false.
@@ -23345,6 +23449,10 @@ C Should get me a NaN
   606 read(93,'(a255)',end=607) arecord
       goto 606
   607 backspace 93
+! Now we see if we have a fort.6 which implies
+! that we can perhaps just restart using all exisiting files
+! including the last checkpoints
+! if not, we just do a start (with an unzip for BOINC)
 +if boinc
       call boincrf('fort.6',filename)
 +if fio
@@ -23371,13 +23479,20 @@ C Should get me a NaN
       rerun=.true.
       goto 605
 +if boinc
-  602 call boincrf('fort.6',filename)
+  602 continue
+! No fort.6 so we do an unzip of Sixin.zip
+! Now, if BOINC, after a failed restart, call UNZIP Sixin.zip
+! name hard-wired in our boinc_unzip_.
+! Either it is only the fort.* input data or it is a restart.
+      call boinc_unzip()
+      !call system('unzip Sixin.zip')
+call boincrf('fort.6',filename)
 +if fio
-      open(6,file=filename,form='formatted',status='new',               &
+      open(6,file=filename,form='formatted',status='unknown',           &
      &round='nearest')
 +ei
 +if .not.fio
-      open(6,file=filename,form='formatted',status='new')
+      open(6,file=filename,form='formatted',status='unknown')
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
@@ -23445,6 +23560,7 @@ C Should get me a NaN
   609 open(91,file='fort.91',form='formatted',status='unknown')
 +ei
 +ei
+! END of Main start for Checkpoint/Restart
 +ei
 +if debug
                    !call system('../crmain  >> crlog')
@@ -23718,7 +23834,15 @@ C Should get me a NaN
       endif
       if(ipos.eq.1.and.napx.eq.0) then
         do 70 i=1,ndafi
++if .not.cr
           call postpr(91-i)
++ei
++if cr
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile 93
+          backspace 93
+          call postpr(91-i,nnuml)
++ei
    70   continue
         call sumpos
         goto 520
@@ -24804,21 +24928,50 @@ C Should get me a NaN
 !---------------------------------------  END OF LOOP OVER TURNS
   460 continue
       napxto=0
+! and set numx=nnuml (for writebin) NOT for LOST particles
+! because all lost set nnuml=numl
+      numx=nnuml
       id=0
-! Now for very last checkpoint before postpr
-!     numx=numx+1
-      numx=numl
 +if cr
-! and leave checkp .true.
-!     checkp=.false.
+      if (.not.restart) then  
+! If restart is true , we haven't done any tracking
+! and must be running from very last checkpoint
+        write(93,*) 'Very last call to WRITEBIN?'
+        write(93,*) 'numlmax,nnuml,numl',numlmax,nnuml,numl
+        endfile 93
+        backspace 93
+        if (nnuml.eq.numl) then
+! We REALLY have finished (or all particles lost)
+! When all lost, nthinerr=3001, we set nnuml=numl
+! and make sure we do the last WRITEBIN
+          write(93,*) 'Very last call to WRITEBIN'
+          endfile 93
+          backspace 93
+          call writebin(nthinerr)
+          if(nthinerr.eq.3000) goto 520
+        else
+! I assume we are stopping because we have done nnuml turns
+! which should be numlmax and do a writebin only if time
+          write(93,*) 'Very last call to WRITEBIN?'
+          write(93,*) 'numlmax,nnuml,nwri',numlmax,nnuml,nwri
+          endfile 93
+          backspace 93
+          if(mod(nnuml,nwri).eq.0) then
+            write(93,*) 'Very last call to WRITEBIN'
+            endfile 93
+            backspace 93
+            call writebin(nthinerr)
+            if(nthinerr.eq.3000) goto 520
+          endif
+        endif
+! and do the very last checkpoint
+        call callcrp()
+      endif
 +ei
++if .not.cr
       call writebin(nthinerr)
       if(nthinerr.eq.3000) goto 520
-      do 470 ia=1,napxo,2
-        ie=ia+1
-        ia2=(ie)/2
-!hr05   napxto=napxto+numxv(ia)+numxv(ie)
-        napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
++ei
 ! And now get the total tracking time for Massimo to be
 ! added to fort.10 along with napxto
 +if cr
@@ -24827,6 +24980,11 @@ C Should get me a NaN
 +if .not.cr
       time=time2-time1
 +ei
+      do 470 ia=1,napxo,2
+        ie=ia+1
+        ia2=(ie)/2
+!hr05   napxto=napxto+numxv(ia)+numxv(ie)
+        napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
         if(pstop(ia).and.pstop(ie)) then
 !-- BOTH PARTICLES LOST
 +if cr
@@ -24964,7 +25122,15 @@ C Should get me a NaN
           do 480 ia=1,napxo,2
             ia2=(ia+1)/2
             iposc=iposc+1
-            call postpr(91-ia2)
++if .not.cr
+          call postpr(91-ia2)
++ei
++if cr
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile 93
+          backspace 93
+          call postpr(91-ia2,nnuml)
++ei
   480     continue
           if(iposc.ge.1) call sumpos
         endif
@@ -24973,7 +25139,15 @@ C Should get me a NaN
           ndafi2=ndafi
           do 500 ia=1,ndafi2
             if(ia.gt.ndafi) goto 510
-            call postpr(91-ia)
++if .not.cr
+          call postpr(91-ia)
++ei
++if cr
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile 93
+          backspace 93
+          call postpr(91-ia,nnuml)
++ei
   500     continue
   510     if(ndafi.ge.1) call sumpos
         endif
@@ -26837,6 +27011,7 @@ C Should get me a NaN
       dimension dpsv3(npart)
 +if bnlelens
 +ca rhicelens
++ca bnlio
 +ei
 +ca save
 !-----------------------------------------------------------------------
@@ -26855,7 +27030,10 @@ C Should get me a NaN
         write(93,*)                                                     &
      &'THIN4D SIXTRACR restart numlcr',numlcr,'numl',numl
       endif
-      do 640 n=numlcr,numl
+! and now reset numl to do only numlmax turns
+      nnuml=min((numlcr/numlmax+1)*numlmax,numl)
+      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+      do 640, n=numlcr,nnuml
 +ei
 +if .not.cr
       do 640 n=1,numl
@@ -26870,6 +27048,12 @@ C Should get me a NaN
         if(irip.eq.1) call ripple(n)
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
++if cr
+!  does not call CRPOINT if restart=.true.
+!  (and note that writebin does nothing if restart=.true.
+          if(mod(numx,numlcp).eq.0) call callcrp()
+          restart=.false.
++ei
         do 630 i=1,iu
 +if bnlelens
 +ca bnltwiss
@@ -27326,6 +27510,7 @@ C Should get me a NaN
       dimension dpsv3(npart)
 +if bnlelens
 +ca rhicelens
++ca bnlio
 +ei
 +ca save
 !-----------------------------------------------------------------------
@@ -27845,7 +28030,10 @@ C Should get me a NaN
         write(93,*)                                                     &
      &'THIN6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
       endif
-      do 660 n=numlcr,numl
+! and now reset numl to do only numlmax turns
+      nnuml=min((numlcr/numlmax+1)*numlmax,numl)
+      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+      do 660 n=numlcr,nnuml
 +ei
 +if .not.cr
       do 660 n=1,numl
@@ -27863,6 +28051,12 @@ C Should get me a NaN
         if(irip.eq.1) call ripple(n)
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
++if cr
+!  does not call CRPOINT if restart=.true.
+!  (and note that writebin does nothing if restart=.true.
+          if(mod(numx,numlcp).eq.0) call callcrp()
+          restart=.false.
++ei
 +if collimat
         totals=0d0
 +ei
@@ -31116,6 +31310,7 @@ C Should get me a NaN
       dimension dpsv3(npart)
 +if bnlelens
 +ca rhicelens
++ca bnlio
 +ei
 +ca save
 !-----------------------------------------------------------------------
@@ -31136,8 +31331,11 @@ C Should get me a NaN
         call crstart
         write(93,*)                                                     &
      &'THIN6DUA ','SIXTRACR restart numlcr',numlcr,'numl',numl
+! and now reset numl to do only numlmax turns
       endif
-      do 660 n=numlcr,numl
+      nnuml=min((numlcr/numlmax+1)*numlmax,numl)
+      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+      do 660 n=numlcr,nnuml
 +ei
 +if .not.cr
       do 660 n=1,numl
@@ -31156,6 +31354,12 @@ C Should get me a NaN
         if(nwri.eq.0) nwri=numl+numlr+1
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
++if cr
+!  does not call CRPOINT if restart=.true.
+!  (and note that writebin does nothing if restart=.true.
+          if(mod(numx,numlcp).eq.0) call callcrp()
+          restart=.false.
++ei
         do 650 i=1,iu
 +if bnlelens
 +ca bnltwiss
@@ -31682,7 +31886,7 @@ C Should get me a NaN
 +ei
       integer ia,ia2,ie,nthinerr
 +if cr
-      integer istat
+      integer istat,ncalls
 +ei
 +if boinc
       integer timech
@@ -31690,19 +31894,46 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
++if cr
+      data ncalls /0/
++ei
 +ca save
 !-----------------------------------------------------------------------
 +if cr
+      ncalls=ncalls+1 
       write(91,*,iostat=istat,err=11) numx,numl
       rewind 91
-      if (restart.and.(numx.eq.numlcr-1)) then
-        restart=.false.
-        write(93,*) 'WRITEBIN bailing out'
-        write(93,*) 'numl,numx,numlcr',numl,numx,numlcr
+      if (restart) then
+        write(93,*) 'WRITEBIN bailing out on restart'
+        write(93,*) 'numl, nnuml, numx, numlcr '
+        write(93,*)  numl,nnuml,numx,numlcr
+        endfile 93
+        backspace 93
         return
+      else
++if .not.debug
+        if (ncalls.le.20.or.numx.ge.nnuml-20) then
++ei
+        write(93,*) 'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
+        write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
+        endfile 93
+        backspace 93
++if .not.debug
+        endif
++ei
       endif
 +ei
-!GRD      do 10 ia=1,napx
++if cr
++if .not.debug
+      if (ncalls.le.20.or.numx.ge.nnuml-20) then      
++ei
+        write(93,*) 'WRITEBIN writing binrec ',binrec+1
+        endfile 93
+        backspace 93
++if .not.debug
+      endif
++ei
++ei
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -31710,71 +31941,71 @@ C Should get me a NaN
 !GRDRHIC
 !GRD-042008
 +ei
-      do 10 ia=1,napx-1
+        do 10 ia=1,napx-1
 !GRD
-        if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
+          if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
      &(mod(nlostp(ia),2).ne.0)) then
-          ia2=(nlostp(ia)+1)/2
-          ie=ia+1
-          if(ntwin.ne.2) then
-            write(91-ia2,iostat=ierro)                                  &
+            ia2=(nlostp(ia)+1)/2
+            ie=ia+1
+            if(ntwin.ne.2) then
+              write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
      &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0
-            endfile 91-ia2
-            backspace 91-ia2
+              endfile 91-ia2
+              backspace 91-ia2
 +if cr
-            binrecs(ia2)=binrecs(ia2)+1
+              binrecs(ia2)=binrecs(ia2)+1
 +ei
-          else
-            write(91-ia2,iostat=ierro)                                  &
+            else
+              write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
      &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0,        &
      &nlostp(ia)+1,dam(ia),                                             &
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),e0
-            endfile 91-ia2
-            backspace 91-ia2
+              endfile 91-ia2
+              backspace 91-ia2
 +if cr
-            binrecs(ia2)=binrecs(ia2)+1
+              binrecs(ia2)=binrecs(ia2)+1
 +ei
-          endif
-          if(ierro.ne.0) then
+            endif
+            if(ierro.ne.0) then
 +if cr
-            write(lout,*)
+              write(lout,*)
 +ei
 +if .not.cr
-            write(*,*)
+              write(*,*)
 +ei
 +if cr
-            write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',
+              write(lout,*) '*** ERROR ***,PROBLEM WRITING TO FILE# : ',&
 +ei
 +if .not.cr
-            write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',   &
+              write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE# : ',  &
 +ei
      &91-ia2
 +if cr
-            write(lout,*) 'ERROR CODE : ',ierro
+              write(lout,*) 'ERROR CODE : ',ierro
 +ei
 +if .not.cr
-            write(*,*) 'ERROR CODE : ',ierro
+              write(*,*) 'ERROR CODE : ',ierro
 +ei
 +if cr
-            write(lout,*)
+              write(lout,*)
 +ei
 +if .not.cr
-            write(*,*)
+              write(*,*)
 +ei
 +if cr
-            endfile lout
-            backspace lout
+              endfile lout
+              backspace lout
 +ei
 +if .not.cr
-            endfile 12
-            backspace 12
+              endfile 12
+              backspace 12
 +ei
-            nthinerr=3000
-            return
+              nthinerr=3000
+              return
+            endif
           endif
-        endif
    10 continue
 +if bnlelens
 !GRDRHIC
@@ -31786,16 +32017,106 @@ C Should get me a NaN
 +if cr
 +if .not.bnlelens
       binrec=binrec+1
++if .not.debug
+      if (ncalls.le.20.or.numx.ge.nnuml-20) then
++ei
+        write(93,*) 'WRITEBIN written binrec ',binrec
+        endfile 93
+        backspace 93
++if .not.debug
+      endif
++ei
 +ei
 +if bnlelens
 !GRDRHIC
 !GRD-042008
       if (lhc.ne.9) then
-      binrec=binrec+1
+        binrec=binrec+1
++if .not.debug
+        if (ncalls.le.20.or.numx.ge.nnuml-20) then
++ei
+          write(93,*) 'WRITEBIN written binrec ',binrec
+          endfile 93
+          backspace 93
++if .not.debug
+        endif
++ei
       endif
 !GRDRHIC
 !GRD-042008
 +ei
+      return
+   11 write(lout,*)                                                     &
+     &'*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',istat
+      call abend('SIXTRACR WRITEBIN IO ERROR on Unit 91             ')
++ei
+      return
+      end
+      subroutine callcrp()
+!-----------------------------------------------------------------------
+!
+!  F. SCHMIDT
+!-----------------------------------------------------------------------
+!  3 February 1999
+!-----------------------------------------------------------------------
+      implicit none
++if cr
++ca crcoall
++ei
++if crlibm
++ca crlibco
++ei
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++if cr
++ca crco
++ei
+      integer ia,ia2,ie,nthinerr
++if cr
+      integer istat,ncalls
++ei
++if boinc
+      integer timech
++ei
++if bnlelens
++ca rhicelens
++ei
++if cr
+      data ncalls /0/
++ei
++ca save
+!-----------------------------------------------------------------------
++if cr
+      ncalls=ncalls+1 
+      write(91,*,iostat=istat,err=11) numx,numl
+      rewind 91
+      if (restart) then
+        write(93,*) 'CALLCRP/CRPOINT bailing out'
+        write(93,*) 'numl, nnuml, numx, numlcr ',numl,nnuml,numx,numlcr
+        endfile 93
+        backspace 93
+        return
+      else
++if .not.debug
+        if (ncalls.le.20.or.numx.ge.nnuml-20) then
++ei
+        write(93,*) 'CALLCRP numl, nnuml, numlcr, numx, nwri, numlcp '
+        write(93,*) numl,nnuml,numlcr,numx,nwri,numlcp
+        endfile 93
+        backspace 93
++if .not.debug
+        endif
++ei
+      endif
 +if boinc
       if (checkp) then
 ! Now ALWAYS checkpoint
@@ -32575,6 +32896,7 @@ C Should get me a NaN
       dimension dpsv3(npart)
 +if bnlelens
 +ca rhicelens
++ca bnlio
 +ei
 +ca save
 !-----------------------------------------------------------------------
@@ -32594,8 +32916,11 @@ C Should get me a NaN
         call crstart
         write(93,*)                                                     &
      &'THCK4D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+! and now reset numl to do only numlmax turns
       endif
-      do 490 n=numlcr,numl
+      nnuml=min((numlcr/numlmax+1)*numlmax,numl)
+      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+      do 490 n=numlcr,nnuml
 +ei
 +if .not.cr
       do 490 n=1,numl
@@ -32610,6 +32935,12 @@ C Should get me a NaN
           if(irip.eq.1) call ripple(n)
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
++if cr
+!  does not call CRPOINT if restart=.true.
+!  (and note that writebin does nothing if restart=.true.
+          if(mod(numx,numlcp).eq.0) call callcrp()
+          restart=.false.
++ei
           do 480 i=1,iu
 +if bnlelens
 +ca bnltwiss
@@ -33068,6 +33399,7 @@ C Should get me a NaN
 !GRDRHIC
 !GRD-042008
 +ca rhicelens
++ca bnlio
 !GRDRHIC
 !GRD-042008
 +ei
@@ -33095,8 +33427,11 @@ C Should get me a NaN
         call crstart
         write(93,*)                                                     &
      &'THCK6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+! and now reset numl to do only numlmax turns
       endif
-      do 510 n=numlcr,numl
+      nnuml=min((numlcr/numlmax+1)*numlmax,numl)
+      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+      do 510 n=numlcr,nnuml
 +ei
 +if .not.cr
       do 510 n=1,numl
@@ -33111,6 +33446,12 @@ C Should get me a NaN
           if(irip.eq.1) call ripple(n)
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
++if cr
+!  does not call CRPOINT if restart=.true.
+!  (and note that writebin does nothing if restart=.true.
+          if(mod(numx,numlcp).eq.0) call callcrp()
+          restart=.false.
++ei
 +if debug
 ! Now comes the loop over elements do 500/501
           do 501 i=1,iu
@@ -33703,6 +34044,7 @@ C Should get me a NaN
       dimension dpsv3(npart)
 +if bnlelens
 +ca rhicelens
++ca bnlio
 +ei
 +ca save
 !-----------------------------------------------------------------------
@@ -33722,8 +34064,11 @@ C Should get me a NaN
         call crstart
         write(93,*)                                                     &
      &'THCK6DUA ','SIXTRACR restart numlcr',numlcr,'numl',numl
+! and now reset numl to do only numlmax turns
       endif
-      do 510 n=numlcr,numl
+      nnuml=min((numlcr/numlmax+1)*numlmax,nnuml)
+      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+      do 510 n=numlcr,nnuml
 +ei
 +if .not.cr
       do 510 n=1,numl
@@ -33742,6 +34087,12 @@ C Should get me a NaN
           if(nwri.eq.0) nwri=numl+numlr+1
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
++if cr
+!  does not call CRPOINT if restart=.true.
+!  (and note that writebin does nothing if restart=.true.
+          if(mod(numx,numlcp).eq.0) call callcrp()
+          restart=.false.
++ei
           do 500 i=1,iu
 +if bnlelens
 +ca bnltwiss
@@ -48628,7 +48979,12 @@ C Should get me a NaN
      &g16.10/14x,a16,2x,g16.10,1x,g16.10/14x,a16,2x,g16.10,1x,g16.10)
       end
 +dk postpr
++if .not.cr
       subroutine postpr(nfile)
++ei
++if cr
+      subroutine postpr(nfile,nnuml)
++ei
 !-----------------------------------------------------------------------
 !  POST PROCESSING
 !
@@ -48700,6 +49056,9 @@ C Should get me a NaN
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
++if cr
+      integer nnuml
++ei
 +ca version
 +ca save
 !----------------------------------------------------------------------
@@ -48830,7 +49189,12 @@ C Should get me a NaN
         goto 550
 +ei
       endif
++if .not.cr
       sumda(1)=numl
++ei
++if cr
+      sumda(1)=nnuml
++ei
       idam=1
       if(icode.eq.1.or.icode.eq.2.or.icode.eq.4) idam=1
       if(icode.eq.3.or.icode.eq.5.or.icode.eq.6) idam=2
@@ -59471,6 +59835,22 @@ C Should get me a NaN
 !++ Vectors of coordinates
 !
       integer i,j
++if crlibm
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
+      character*(nchars+nchars) ch1
+      integer errno,l1,l2
+      integer dtostr
+
+      integer maxf,nofields
+      parameter (maxf=30)
+      parameter (nofields=41)
+      character*(maxf) fields(nofields)
+!     integer errno,nfields,nunit,nf
+      integer nfields,nunit,nf
+      double precision fround
++ei
       save
 +if cr
       write(lout,*) "Reading input bunch from beambeamdist.dat"
@@ -59481,7 +59861,51 @@ C Should get me a NaN
       mynp=0
 !ERIC napx00???
       do j=1,napx
+! Now read data using crlibm stuff.
++if fio
++if crlibm
+        call enable_xp()
++ei
+        read(54,*,end=10,round='nearest')                                       &
+     & myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j)
++if crlibm
+        call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
         read(54,*,end=10) myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j)
++ei
++if crlibm
+        read (54,'(A)',end=10) ch 
+        ch1(:nchars+3)=ch(:nchars)//' / '
+        call splitfld(errno,54,j,nofields,nf,ch1,fields)
+        if (nf.gt.0) then
+          myx(j)=fround(errno,fields,1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          myxp(j)=fround(errno,fields,2)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          myy(j)=fround(errno,fields,3)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          myyp(j)=fround(errno,fields,4)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          mys(j)=fround(errno,fields,5)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          myp(j)=fround(errno,fields,6)
+          nf=nf-1
+        endif
++ei
++ei
       enddo
       mynp=1
  10   continue
@@ -59507,20 +59931,57 @@ C Should get me a NaN
       endif
 !ERIC napx00???
       do j=1,napx
++if crlibm
+! Now use my new dtostr for portability
+        l1=1
++if boinc
+        ch(l1:l1+10)='checkdist '
+        l1=l1+11
++ei
+! We return the length of the string (always 24)
+        errno=dtostr(myx(j),ch1)
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
+        errno=dtostr(myxp(j),ch1)
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
+        errno=dtostr(myy(j),ch1)
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
+        errno=dtostr(myyp(j),ch1)
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
+        errno=dtostr(mys(j),ch1)
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
+        errno=dtostr(myp(j),ch1)
+        ch(l1:l1+errno)=' '//ch1(1:errno)
+        l1=l1+errno+1
++ei
 +if .not.boinc
++if crlibm
+        write(97,'(a)') ch(1:l1-1)
++ei
++if .not.crlibm
         write(97,'(e15.8,4(1x,e15.8),1x,f15.8)')                        &
      &myx(j),myxp(j),myy(j), myyp(j),mys(j),myp(j)
++ei
         endfile 97
         backspace 97
 +ei
 +if boinc
         if (.not.restart) then
++if crlibm
+          write(10,'(a)') ch(1:l1-1)
++ei
++if .not.crlibm
           write(10,'(a10,e15.8,4(1x,e15.8),1x,f15.8)')                  &
      &'checkdist ',                                                     &
      &myx(j),myxp(j),myy(j), myyp(j),mys(j),myp(j)
-        endfile 10
-        backspace 10
-        bnlrec=bnlrec+1
++ei
+          endfile 10
+          backspace 10
+          bnlrec=bnlrec+1
         endif
 +ei
       enddo
@@ -59580,12 +60041,15 @@ C Should get me a NaN
       if (.not.checkp) goto 605
       if (.not.fort95.and..not.fort96) goto 605
 !--   If we do we must have a fort.6 as they were created by CRPOINT
+! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
++if .not.boinc
       if (.not.rerun) then
         write(lout,*)                                                   &
      &'SIXTRACR CRCHECK *** ERROR *** ',                                &
      &'Found fort.95/fort.96 but NO fort.6'
       call abend('SIXTRACR CRCHECK failure                          ')
       endif
++ei
 !--   Check at least one restart file is readable
        write(93,*)                                                      &
      &'SIXTRACR CRCHECK checking fort.95/96'
@@ -59627,6 +60091,7 @@ C Should get me a NaN
      &(crsigmv(j),j=1,crnapxo),                                         &
      &(crdpsv(j),j=1,crnapxo),                                          &
      &(crdpsv1(j),j=1,crnapxo),                                         &
+     &(croidpsv(j),j=1,crnapxo),                                        &
      &(crejv(j),j=1,crnapxo),                                           &
      &(crejfv(j),j=1,crnapxo),                                          &
      &(craperv(j,1),j=1,crnapxo),                                       &
@@ -59762,6 +60227,7 @@ C Should get me a NaN
      &(crsigmv(j),j=1,crnapxo),                                         &
      &(crdpsv(j),j=1,crnapxo),                                          &
      &(crdpsv1(j),j=1,crnapxo),                                         &
+     &(croidpsv(j),j=1,crnapxo),                                        &
      &(crejv(j),j=1,crnapxo),                                           &
      &(crejfv(j),j=1,crnapxo),                                          &
      &(craperv(j,1),j=1,crnapxo),                                       &
@@ -59949,6 +60415,7 @@ C Should get me a NaN
 !GRD-042008
 +ei
 !--   We may be re-running with a DIFFERENT number of turns (numl)
+! Eric fix this later by reading numl for fort.90
         if (numl.ne.crnuml) then
           if (numl.lt.crnumlcr) then
             write(lout,*)                                               &
@@ -60226,7 +60693,7 @@ C Should get me a NaN
       data ncalls /0/
 +ca save
 +if .not.debug
-      if (ncalls.le.5.or.numx.ge.numl) then
+      if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
         write(93,*)                                                     &
      &'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
@@ -60292,7 +60759,7 @@ C Should get me a NaN
       time2=time2+crtime2
       crnumlcr=numx+1
 +if .not.debug
-      if (ncalls.le.5.or.numx.ge.numl) then
+      if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
         write(93,*) 'SIXTRACR CRPOINT writing fort.95'
         endfile 93
@@ -60329,6 +60796,7 @@ C Should get me a NaN
      &(sigmv(j),j=1,napxo),                                             &
      &(dpsv(j),j=1,napxo),                                              &
      &(dpsv1(j),j=1,napxo),                                             &
+     &(oidpsv(j),j=1,napxo),                                            &
      &(ejv(j),j=1,napxo),                                               &
      &(ejfv(j),j=1,napxo),                                              &
      &(aperv(j,1),j=1,napxo),                                           &
@@ -60347,7 +60815,7 @@ C Should get me a NaN
 !GRD-042008
       if(lhc.eq.9) then
 +if .not.debug
-        if (ncalls.le.5.or.numx.ge.numl) then
+        if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
           write(93,*) 'SIXTRACR CRPOINT writing BNL vars fort.95'
           endfile 93
@@ -60373,7 +60841,7 @@ C Should get me a NaN
 +ei
       if (sythckcr) then
 +if .not.debug
-        if (ncalls.le.5.or.numx.ge.numl) then
+        if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
 !ERIC new extended checkpoint for synuthck
           write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.95'
@@ -60444,7 +60912,7 @@ C Should get me a NaN
 !--   and finally a second checkpoint copy, or maybe not!
 !--   Well, a second copy is indeed required as shown by testing
 +if .not.debug
-      if (ncalls.le.5.or.numx.ge.numl) then
+      if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
         write(93,*) 'SIXTRACR CRPOINT writing fort.96'
         endfile 93
@@ -60481,6 +60949,7 @@ C Should get me a NaN
      &(sigmv(j),j=1,napxo),                                             &
      &(dpsv(j),j=1,napxo),                                              &
      &(dpsv1(j),j=1,napxo),                                             &
+     &(oidpsv(j),j=1,napxo),                                            &
      &(ejv(j),j=1,napxo),                                               &
      &(ejfv(j),j=1,napxo),                                              &
      &(aperv(j,1),j=1,napxo),                                           &
@@ -60499,7 +60968,7 @@ C Should get me a NaN
 !GRD-042008
       if(lhc.eq.9) then
 +if .not.debug
-        if (ncalls.le.5.or.numx.ge.numl) then
+        if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
           write(93,*) 'SIXTRACR CRPOINT writing Record 3 BNL fort.96'
           endfile 93
@@ -60526,7 +60995,7 @@ C Should get me a NaN
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
 +if .not.debug
-        if (ncalls.le.5.or.numx.ge.numl) then
+        if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
           write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.96'
           endfile 93
@@ -60668,7 +61137,9 @@ C Should get me a NaN
         sigmv(j)=crsigmv(j)
         dpsv(j)=crdpsv(j)
         dpsv1(j)=crdpsv1(j)
-        oidpsv(j)=one/(one+dpsv(j))
+! TEMPORARY? fix for crabamp/multipole problem
+        oidpsv(j)=croidpsv(j)
+!       oidpsv(j)=one/(one+dpsv(j))
         ejv(j)=crejv(j)
         ejfv(j)=crejfv(j)
         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -61088,7 +61559,7 @@ C Should get me a NaN
       implicit none
 +ca crcoall
       integer i,lstring,istat
-      character*50 cstring
+      character*(*) cstring
       character*255 arecord
 +ca save
 +if cr
@@ -61113,6 +61584,9 @@ C Should get me a NaN
       endif
     1 write(6,*)                                                        &
      &'SIXTRACR stop '//cstring
+!     and get rid of fort.92 (DON'T zip it to save some bytes)
+      rewind 92
+      endfile 92
       close(92)
       close(6)
       write(93,*)                                                       &
@@ -61122,6 +61596,7 @@ C Should get me a NaN
                    !call system('../crend   >> crlog')
 +ei
 +if boinc
+      call boinc_zipitall()
 !     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
@@ -61134,6 +61609,7 @@ C Should get me a NaN
                    !call system('../crend   >> crlog')
 +ei
 +if boinc
+      call boinc_zipitall()
 !     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
@@ -61144,10 +61620,6 @@ C Should get me a NaN
      &'SIXTRACK STOP/ABEND '//cstring
 +if debug
                    !call system('../crend   >> crlog')
-+ei
-+if boinc
-!     call boinc_finish_graphics()
-      call boinc_finish(0)
 +ei
       stop
 +ei
@@ -61470,8 +61942,8 @@ C Should get me a NaN
      &(ejfv(j),j=1,k),                                                  &
      &(rvv(j),j=1,k),                                                   &
      &(dpsv(j),j=1,k),                                                  &
-     &(oidpsv(j),j=1,k),                                                &
      &(dpsv1(j),j=1,k)
+     &(oidpsv(j),j=1,k),                                                &
       endfile 99
       backspace 99
       end

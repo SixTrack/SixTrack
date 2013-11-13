@@ -36,7 +36,7 @@ myboinc.o: myboinc.f
 
 %%SIXTRACK_DA%%: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
 	$(FC) $(FCLMAP) -o %%SIXTRACK_DA%% sixda.o sixsc.o sixscfox.o dabnew.o lielib.o \
-	$(NAGLIB) $(CRLIBM) $(gfortran_lib) > sixtrack_da.map 2>&1
+	$(NAGLIB) $(NAGLIBC) $(CRLIBM) $(gfortran_lib) > sixtrack_da.map 2>&1
 
 clean: 
 	rm -f *.ast *.s *.c *.o %%SIXTRACK%% %%SIXTRACK_DA%%

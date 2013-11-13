@@ -161,6 +161,8 @@ hdf5="hdf5"
 ifort="ifort"
 lf95="lf95"
 fio="fio"
+# in case BOINC is defined already!
+BOINC=""
 while test $# != 0
 do
     case $1 in
@@ -484,11 +486,14 @@ then
     myopt="O"
   fi
 # SHOULD I USE -float-store ???? Doesn't seem to be necessary..........
+# Results appear to be different??? (better NOT to use)
 #PRO#  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
 # export FCF="-S -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full"
-  export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+  #export FCF="-$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   ####export FCF="-$myopt -float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-  # export FCF="-float-store -$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+# export FCF="-$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+# export FCF="-float-store -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   export FCL="-Bstatic -abi=32"
   export FCLD="-abi=32"
   export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
@@ -499,7 +504,8 @@ then
   then
     myopt="O"
   fi
-  export FCF="-Mnoflushz -$myopt -fast -m32 -Kieee"
+  export FCF="-fast -$myopt -m32 -Kieee"
+# export FCF="-Mnoflushz -fast -$myopt -m32 -Kieee"
   export FCL="-Bstatic -fast -m32"
   export FCLD="-fast -m32"
 elif test "$g95" = ""
@@ -531,10 +537,11 @@ then
 elif test "$lf95" = ""
 then
   export FC="lf95"
-  if test "$myopt" = ""
+  if test "$myopt" != ""
   then
-    myopt="o1"
+    echo "Ignoring $myopt because it produces wrong results!!!" 
   fi
+  myopt="o0"
   export FCF="--$myopt --tp -Wa,--32"
   export FCL="-static -m32"
   export FCLD="-m32"
@@ -675,6 +682,10 @@ then
 fi
 
 ename="SixTrack_${version}_"
+if test "$cernlib" != ""
+then
+    ename=$ename"cernlib_"
+fi
 if test "$crlibm" = ""
 then
     ename=$ename"crlibm_"
@@ -707,6 +718,9 @@ then
 elif test "$cpss" = ""
 then
     ename=$ename"_cpss"
+elif test "$cr" = ""
+then
+    ename=$ename"_cr"
 fi
 if test "$bignblz" = ""
 then
@@ -946,7 +960,10 @@ fi
 if test "$da" = ""
 then
   # Fix up the Makefile
+  #Eric?????
+  export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
   SIXTRACK_DA=$ename
+  SIXTRACK="dummy"
   generate_makefile ../Makefile.template Makefile
   # remove an existing executable
   rm -f $ename
@@ -982,6 +999,7 @@ else
   echo ""
   cp ../boinc_api_fortran.cpp.windows .  
   cp ../boinc_api_fortran.cpp .  
+  cp ../boinc_zipitall.cpp .  
   cp ../compile_fortran.bat.template .
   cp ../link_intel.bat.template .
   cp ../make_windows.template .

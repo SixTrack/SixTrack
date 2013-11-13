@@ -7134,7 +7134,6 @@
 +if crlibm
 +ca crlibco
 +ei
-      integer int
       double precision xran
 !     ************************************
 !
@@ -7148,7 +7147,7 @@
 +if .not.crlibm
       bran = abs(sin(xran))
 +ei
-      bran = 10*bran
+      bran = 10.0D0*bran
       bran = bran - int(bran)
 !      IF(BRAN.LT. .1D0) BRAN = BRAN + .1D0
 !

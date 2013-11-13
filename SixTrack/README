@@ -2,6 +2,127 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.91 Eric
+    -- Merged version of sixtrack.s.v4490 with Yngve's
+    -- collimations mods based on v4463
+   McIntosh 13th November, 2013
+
+ SixTrack Version: 4.4.90 Eric
+    -- Adding oidpsv(j) to C/R as a TEMPORARY??? fix for test javier.
+    -- Still to run regression tests before testing new NUMLMAX NUMLCP
+    -- Modified from Version 4.4.87.
+    -- See README for full info.
+   McIntosh 12th November, 2013
+
+ SixTrack Version: 4.4.89 Eric
+    -- Added a dump/abend after restart before Tracking Turn 2.
+    -- This shows that oidpsv(j) is DIFFERENT (dpsv(j) is
+       changed in both CRABAMP elements and by multipoles).
+   McIntosh 30th October, 2013
+
+ SixTrack Version: 4.4.88 Eric
+    -- Adding debug for every element and a dump/abend
+       in order to save C/R files after 1 Turn.
+   McIntosh 30th October, 2013
+
+ SixTrack Version: 4.4.88xory Eric
+    -- Just saved this with xory added to C/R. Doesn't help.
+   McIntosh 28th October, 2013
+
+ SixTrack Version: 4.4.87 Eric
+    -- Still a problem with test javier on "cr" version (+/- bnl???)
+    -- Fixed problem on +if cr for binrec in WRITEBIN
+    -- Changed "writing" message in WRITEBIN to match "written" (binrec+1)
+    -- Fixed the over-write fort.10 for only if .not.boinc 
+    -- Still to run regression tests before testing new NUMLMAX NUMLCP
+   McIntosh 25th October, 2013
+
+ SixTrack Version: 4.4.86 Eric
+    -- Fixed MAJOR design issue with RESTART by introducing
+       a new START flag and optionally calling UNZIP Sixin.zip
+    -- Running regression tests before testing new NUMLMAX NUMLCP
+   McIntosh 22nd October, 2013
+
+ SixTrack Version: 4.4.85 Eric
+    -- First version for Igor
+    -- Changed fort.93 messages in WRITEBIN and CALLCRP
+       to improve readability
+    -- Added fort.93 messages for call POSTPR
+    -- Changed DO until for clarity of tracking loop
+   McIntosh 21st October, 2013
+
+ SixTrack Version: 4.4.84 Eric
+    -- Various bug fixes in new NUMLMAX option
+   McIntosh 18th October, 2013
+
+ SixTrack Version: 4.4.83 Eric
+    --  Introduced an inetrface routine CALLCRP to acll CRPOINT
+   McIntosh 18th October, 2013
+
+ SixTrack Version: 4.4.82 Eric
+    -- Changed to use Sixin.zip instead of fort.zip
+    -- ENDFILE and CLOSE 92 in ABEND to save time and space
+    -- Fewer messages from writebin
+    -- Added boinc_unzip_ to boinc_zipitall.cpp
+    -- Split writebin and crpoint to writebin and callcrp
+   McIntosh 18th October, 2013
+
+ SixTrack Version: 4.4.81 Eric
+    -- Fixing a problem with numlcp=9 numlmax=100
+       when we never get past 200 turns!
+    -- Still to implement Sixin.zip/Sixout.zip
+    -- Added call to boinc_zipitall and boinc_zipitall.cpp
+    -- Added crlibm option for fort.54 blrdis read dist
+   McIntosh 14th October, 2013
+
+ SixTrack Version: 4.4.80 Eric
+    -- Added new daten input numlcp and nummlmax
+    -- All the changes for numlmax turns per job
+    -- Use numlcp instead of defaulting to nwri (nwr(3))
+    -- Need to verify a problem with BNL .dat output
+   McIntosh 13th October, 2013
+
+ SixTrack Version: 4.4.71 Eric
+    -- Removed two dangling +ei
+    -- Fixed up bnlelens write(10|51|52|97) to use dtostr
+    -- Merged Collimation mods from SVN Versions 149 and 150
+    -- Added NAGLIBC for SixTrack_DA to make_six (messy
+        as is the whole question of cernlib/gcc libs etc)
+       Tested SixTrack_DA with naglib, gfortran and ifort.
+   McIntosh 12th October, 2013
+
+ SixTrack Version: 4.4.70 Eric
+    --  Just testing nagfor with -float-store???
+   McIntosh 7th October, 2013
+
+ SixTrack Version: 4.4.69 Eric
+    -- Removed a redundant integer int in function bran
+        and changed a 10 to 10.0D0 both in dabnew.s
+    -- Added a message when there is an error reading fort.23
+    -- Fixed a nasty bug with [en|dis]able_xp for nagfor+crlibm only.
+   McIntosh 7th October, 2013
+
+ SixTrack Version: 4.4.68 Eric
+    --  Just testing ifort xe2013/composer_xe_2013_sp1.0.080 O0, O1 and O2
+    --  and ia32, sse2 and sse3.
+   McIntosh 30th September, 2013
+
+ SixTrack Version: 4.4.67 Eric
+    --  Just testing gfortran O4
+   McIntosh 26th September, 2013
+
+ SixTrack Version: 4.4.66 Eric
+    --  Just testing ifort 2013 with O1 (ia32, sse2 and sse3)
+   McIntosh 20th September, 2013
+
+ SixTrack Version: 4.4.65 Eric
+    --  Re-build with new boinc libs from server_stable (Riccardo)
+   McIntosh 18th September, 2013
+
+ SixTrack Version: 4.4.64 Eric
+    -- Just testing new ifort 2013 (usevnewifort)
+   McIntosh 16th September, 2013
+
  SixTrack Version: 4.4.63 Eric
     -- Just added a call to boincrf for fort.zip for Windows.
    McIntosh 31st August, 2013
