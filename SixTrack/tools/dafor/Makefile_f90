@@ -1,0 +1,24 @@
+# |
+# o---------------------------------------------------------------------o
+# |
+# | dafor Fortran files selection and dependencies
+# |
+# o---------------------------------------------------------------------o
+# |
+
+FC_DIR := .
+FC_SRC := $(notdir $(wildcard $(FC_DIR)/*.f))
+
+vpath %.f $(FC_DIR)
+
+#######################
+# Fortran dependencies (case not automatic!)
+
+ifeq ($(FDEP),)
+
+dafor.o: $(FC_DIR)/dafor.f
+
+endif
+
+#######################
+# end of makefile
