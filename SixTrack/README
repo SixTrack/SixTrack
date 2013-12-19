@@ -2,6 +2,27 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.93 Eric
+    -- FIXED the mywwerf problem by using a CONSTANT P
+    -- Found that unzip Sixin.zip was over-writing fort.93 etc
+    -- Decided to just re-position fort.93 again and empty fort.92 
+    -- WRITEBIN not to write message if +bnlelens
+    -- Do NOT enable_xp in dabnew.s for Lahey lf95
+    -- Enable for other compilers if +crlibm, but I use the binary fort.111
+    -- In sixtrack.s it is done only for +fio which isn't supported 
+       by lf95 (should carefully check when testing fio)
+    -- Commented out some +if debug commands
+    -- Riccardo will add fix for OIDPSV and then I will test
+    -- See README for all changes since Version 4462
+   McIntosh 19th December, 2013
+
+ SixTrack Version: 4.4.92 Eric
+    -- Changing dabnew.s to handle better fort.111 etc
+    -- Note fort.111 is different (just * format!) and fort.18 is OK.
+    -- Problem is bnl and nagfor combination
+    -- Don't write to binary files in WRITE6 +if bnlelens
+   McIntosh 20th November, 2013
+
  SixTrack Version: 4.4.91 Eric
     -- Merged version of sixtrack.s.v4490 with Yngve's
     -- collimations mods based on v4463

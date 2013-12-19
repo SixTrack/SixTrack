@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.91'/
-      data moddate /'13.11.2013'/
+      data version /'4.4.93'/
+      data moddate /'28.11.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -7122,6 +7122,12 @@ cc2008
 !GRD-042008
 !GRD-2007
 +cd thcklin
++if debug
+!     if (i.ge.673.and.j.le.2) then
+!       call warr('bl30 i j',xv(1,2),i,j,0,0)
+!       call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
+!     endif
++ei
                 puxve1=xv(1,j)
                 puzve1=yv(1,j)
                 puxve2=xv(2,j)
@@ -7154,6 +7160,12 @@ cc2008
 !hr03&(6,2,j,jx)
         yv(2,j)=(al(3,2,j,jx)*puxve2+ al(4,2,j,jx)*puzve2)+dble(idz2)*al&!hr03
      &(6,2,j,jx)                                                         !hr03
++if debug
+!     if (i.ge.673.and.j.le.2) then
+!       call warr('al30 i j',xv(1,2),i,j,0,0)
+!       call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
+!     endif
++ei
 +cd sqrtfox0
 +if rvet
 *FOX  RVET=C1E3*PMA*PMA*(TWO+DPDA)*DPDA/E0/(ONE+DPDA) ;
@@ -18534,7 +18546,8 @@ C Should get me a NaN
      &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
       parameter (z1=1,hf=z1/2d0,z10=10d0)
       parameter (c1=74d0/z10,c2=83d0/z10,c3=z10/32d0,c4=16d0/z10)
-      parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
+!     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
+      parameter (c=1.12837916709551257d0,p=46768052394588893.3825d0)
       dimension rr(37),ri(37)
 +ca save
 !-----------------------------------------------------------------------
@@ -23783,8 +23796,8 @@ call boincrf('fort.6',filename)
       rad=pi/180d0                                                       !hr05
       call daten
 +if debug
-      call dumpbin('adaten',999,9999)
-      call abend('after  daten                                      ')
+!     call dumpbin('adaten',999,9999)
+!     call abend('after  daten                                      ')
 +ei
 +if debug.and.cr
 !     write(93,*) 'ERIC IL= ',il
@@ -31927,9 +31940,22 @@ call boincrf('fort.6',filename)
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then      
 +ei
++if bnlelens
+        if (lhc.ne.9) then
+          write(93,*) 'WRITEBIN writing binrec ',binrec+1
+          endfile 93
+          backspace 93
+        else
+          write(93,*) 'WRITEBIN skipping write for bnlelens',binrec+1
+          endfile 93
+          backspace 93
+        endif
++ei
++if .not.bnlelens
         write(93,*) 'WRITEBIN writing binrec ',binrec+1
         endfile 93
         backspace 93
++ei
 +if .not.debug
       endif
 +ei
@@ -32404,8 +32430,10 @@ call boincrf('fort.6',filename)
         ig=ia+1
         ia2=ig/2
 +if .not.cr
++if .not.bnlelens
         endfile 91-ia2
         backspace 91-ia2
++ei
 +ei
 !-- PARTICLES STABLE
         if(.not.pstop(ia).and..not.pstop(ig)) then
@@ -33436,6 +33464,7 @@ call boincrf('fort.6',filename)
 +if .not.cr
       do 510 n=1,numl
 +ei
+! To do a dump and abend
 +if boinc
 !       call boinc_sixtrack_progress(n,numl)
         call boinc_fraction_done(dble(n)/dble(numl))
@@ -33481,6 +33510,12 @@ call boincrf('fort.6',filename)
 +ca timefct
 +ei
             endif
++if debug
+!     if (i.ge.673) then
+!     call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
+!     endif
+!     if (i.eq.676) stop
++ei
 !----------count 44
 !----------count 54! Eric
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
@@ -61942,8 +61977,8 @@ call boincrf('fort.6',filename)
      &(ejfv(j),j=1,k),                                                  &
      &(rvv(j),j=1,k),                                                   &
      &(dpsv(j),j=1,k),                                                  &
-     &(dpsv1(j),j=1,k)
-     &(oidpsv(j),j=1,k),                                                &
+     &(dpsv1(j),j=1,k),                                                 &
+     &(oidpsv(j),j=1,k)
       endfile 99
       backspace 99
       end

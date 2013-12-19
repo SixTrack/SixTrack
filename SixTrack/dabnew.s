@@ -5737,10 +5737,8 @@
          write(iunit,'(A)')                                             &
      &'    I  VALUE  '
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
          do 80 i = ipoa,ipoa+illa-1
@@ -5748,10 +5746,8 @@
 !Eric
  80      write(111) cc(i)
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
       elseif(nomax.eq.1) then
@@ -5759,10 +5755,8 @@
      &'    I  COEFFICIENT          ORDER   EXPONENTS'
          if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
          do 90 i=1,illa
@@ -5783,10 +5777,8 @@
          write(111) cc(ipoa+i-1)
  90     continue
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
       else
@@ -5802,10 +5794,8 @@
 !ETIENNE
           iout = iout+1
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
           write(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                &
@@ -5821,10 +5811,8 @@
 !ETIENNE
 !
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
  100  continue
@@ -5931,10 +5919,8 @@
 !
 
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
 !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
@@ -5949,10 +5935,8 @@
  503  format(' ', i3,1x,g23.16,1x,100(1x,i2))
  502  format(' ', i5,1x,g23.16,1x,100(1x,i2))
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
 
@@ -5966,20 +5950,16 @@
 
       if(iout.eq.0) iout=1
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
 
       write(iunit,502) -iout,0.d0,(j(i),i=1,inva)
 !
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
       return
@@ -6068,20 +6048,13 @@
       if(abs(cc(ii)).gt.eps) then
       if(eps.gt.1.e-37) then
 +if crlibm
-+if .not.ifort
-+if .not.lf95
 !                                                 call enable_xp()
-+ei
-+ei
 +ei
 !       write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
 +if crlibm
-+if .not.ifort
-+if .not.lf95
 !                                                 call disable_xp()
 +ei
-+ei
-+ei
+!      write(111) cc(ii)
        ich=1
        do ik=1,ishift
          if(j(ik).ne.0) ich=0
@@ -6097,20 +6070,13 @@
        call dapok(inb,jd,cc(ii))
       else
 +if crlibm
-+if .not.ifort
-+if .not.lf95
 !                                                 call enable_xp()
-+ei
-+ei
 +ei
 !       write(iunit,503) ioa,cc(ii),(j(i),i=1,inva)
 +if crlibm
-+if .not.ifort
-+if .not.lf95
 !                                                 call disable_xp()
 +ei
-+ei
-+ei
+!       write(111) c(ii)
         ich=1
         do ik=1,ishift
           if(j(ik).ne.0) ich=0
@@ -6215,12 +6181,16 @@
 +ei
       iin = iin + 1
 +if crlibm
++if .not.lf95
                                                   call enable_xp()
++ei
 +ei
       read(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                     &
      &ii,c,io,(j(i),i=1,inva)
 +if crlibm
++if .not.lf95
                                                   call disable_xp()
++ei
 +ei
 !Eric
       read(111) c
@@ -6234,14 +6204,18 @@
 !     call wda('dar3c',c,3,0,0,0)
 +ei
 +if crlibm
++if .not.lf95
                                                   call enable_xp()
++ei
 +ei
 !Eric
       read(iunit,'(G20.14)') c
 !Eric
       read(111) c
 +if crlibm
++if .not.lf95
                                                   call disable_xp()
++ei
 +ei
 +if debug
 !     call wda('dar4c',c,4,0,0,0)
@@ -7643,19 +7617,15 @@
 
       if(inva.eq.0) then
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
          do 80 i = ipoa,ipoa+illa-1
  80      write(iunit,'(I6,2X,G20.14)') i-ipoa, cc(i)
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
       elseif(nomax.eq.1) then
@@ -7666,20 +7636,16 @@
              ioa=1
            endif
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
          write(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                 &
      &iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(iunit,*) cc(ipoa+i-1)
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
  90      continue
@@ -7694,10 +7660,8 @@
 !ETIENNE
           iout = iout+1
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call enable_xp()
-+ei
 +ei
 +ei
           write(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                &
@@ -7705,10 +7669,8 @@
 !ETIENNE
           write(iunit,*) cc(ii)
 +if crlibm
-+if .not.ifort
 +if .not.lf95
                                                   call disable_xp()
-+ei
 +ei
 +ei
           endif
@@ -7934,12 +7896,17 @@
   10  continue
       iin = iin + 1
 +if crlibm
++if .not.lf95
                                                   call enable_xp()
++ei
 +ei
       read(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                     &
      &ii,c,io,(jt(i),i=1,invo)
 +if crlibm
++if .not.lf95
                                                   call disable_xp()
+      read(111) c
++ei
 +ei
 !
       if(ii.eq.0) goto 20
@@ -7947,12 +7914,17 @@
 !Eric
 !     read(iunit,*) c
 +if crlibm
++if .not.lf95
                                                   call enable_xp()
++ei
 +ei
       read(iunit,'(G20.14)') c
 +if crlibm
++if .not.lf95
                                                   call disable_xp()
 +ei
++ei
+      read(111) c
       do 999 jh=1,invo
  999  j(jh)=jt(jx(jh))
       do 998 jh=nchop+1,inva
