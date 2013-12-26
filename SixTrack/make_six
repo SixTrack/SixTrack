@@ -494,6 +494,9 @@ then
 # export FCF="-$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
 # export FCF="-float-store -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
   export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
+  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -ieee=full -g90"
+# The ieee=nonstd is INCOMPATIBLE with abi=32!!!
+# export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=nonstd -g90"
   export FCL="-Bstatic -abi=32"
   export FCLD="-abi=32"
   export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
@@ -502,12 +505,14 @@ then
   export FC="pgf90"
   if test "$myopt" = ""
   then
-    myopt="O"
+    myopt="fast"
   fi
-  export FCF="-fast -$myopt -m32 -Kieee"
-# export FCF="-Mnoflushz -fast -$myopt -m32 -Kieee"
-  export FCL="-Bstatic -fast -m32"
-  export FCLD="-fast -m32"
+  export FCF="-$myopt -m32 -Kieee"
+  export FCF="-g -$myopt -m32 -Kieee"
+### The -Mnoflushz gives different results for bnl test case (thck6d)???
+###  export FCF="-Mnoflushz -fast -$myopt -m32 -Kieee"
+  export FCL="-Bstatic -$myopt -m32"
+  export FCLD="-m32"
 elif test "$g95" = ""
 then
   export FC="g95"
@@ -537,7 +542,7 @@ then
 elif test "$lf95" = ""
 then
   export FC="lf95"
-  if test "$myopt" != ""
+  if test "$myopt" != "" -a "$myopt" != "o0"
   then
     echo "Ignoring $myopt because it produces wrong results!!!" 
   fi

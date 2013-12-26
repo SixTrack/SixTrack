@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.93'/
-      data moddate /'28.11.2013'/
+      data version /'4.4.97'/
+      data moddate /'26.12.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -13994,6 +13994,8 @@ cc2008
         endif
 ! and default nnmul to numl
         nnuml=numl
+! and numlcp to 1000
+        if(numlcp.eq.0) numlcp=1000
       endif
 +ei
 +ei
@@ -14025,7 +14027,6 @@ cc2008
       if(iclr.eq.3) read(ch1,*) nde(1),nde(2),                          &
      &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu
 +ei
-      if(numlcp.eq.0) numlcp=nwr(3)
       if(iclo6.eq.5.or.iclo6.eq.6) then
         iclo6=iclo6-4
         iclo6r=1
@@ -23408,6 +23409,9 @@ C Should get me a NaN
 +if debug
                    !call system('../crmain  >> crlog')
 +ei
++if boinc
+ 611  continue
++ei
       lout=92
 !--   Very first get rid of any previous partial output
 +if boinc
@@ -23462,6 +23466,14 @@ C Should get me a NaN
   606 read(93,'(a255)',end=607) arecord
       goto 606
   607 backspace 93
+! and if BOINC issue an informatory message
++if boinc
+      if (start) then
+        write(93,*) 'SIXTRACR starts very first time'
+      else
+        write(93,*) 'SIXTRACR retry after unzip of Sixin.zip'
+      endif
++ei
 ! Now we see if we have a fort.6 which implies
 ! that we can perhaps just restart using all exisiting files
 ! including the last checkpoints
@@ -23494,12 +23506,19 @@ C Should get me a NaN
 +if boinc
   602 continue
 ! No fort.6 so we do an unzip of Sixin.zip
-! Now, if BOINC, after a failed restart, call UNZIP Sixin.zip
+! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
+! and CLOSE 92 and 93
+      if (start) then
+        start=.false.
+        close(92)
+        close(93)
+! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
 ! name hard-wired in our boinc_unzip_.
 ! Either it is only the fort.* input data or it is a restart.
-      call boinc_unzip()
-      !call system('unzip Sixin.zip')
-call boincrf('fort.6',filename)
+        call boinc_unzip()
+        !call system('unzip Sixin.zip')
+        go to 611
+      endif
 +if fio
       open(6,file=filename,form='formatted',status='unknown',           &
      &round='nearest')
@@ -60727,9 +60746,12 @@ call boincrf('fort.6',filename)
 +ei
       data ncalls /0/
 +ca save
+!     call system('echo "CPSTART `date`" >> crtimes')
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
+        write(93,*)                                                     &
+     &'SIXTRACR CRPOINT CALLED numlmax=',numlmax,' numlcp=',numlcp
         write(93,*)                                                     &
      &'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
         write(93,*)                                                     &
@@ -61085,6 +61107,7 @@ call boincrf('fort.6',filename)
 !     call dump('1st Checkpoint',numx,i)
 !     call abend('SIXTRACR CHECKPOINT written                       ')
 +ei
+!     call system('echo "CPEND   `date`" >> crtimes')
   104 return
   100 write(93,*)                                                       &
      &'SIXTRACR CRPOINT *** ERROR *** writing checkpt file,iostat=',    &
