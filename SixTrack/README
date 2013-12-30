@@ -2,6 +2,37 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.4.99 Eric
+    -- Removed the now hopefully unnecessary
+       checkpoint of OIDPSV
+   McIntosh 29th December, 2013
+
+ SixTrack Version: 4.4.98 Riccardo
+    -- Fixes from Riccardo for the OIDPSV problem etc
+    -- based on Version 4.4.97
+   McIntosh 28th December, 2013
+
+ SixTrack Version: 4.4.97 Eric
+    -- Default numlcp to 1000
+    -- Reading numlcp and numlmax as 10th/11th items in fort.3
+       Tracking Parameters Line 1 (was done already) but remember
+       to set 8th/9th items niu(1 and 2) to 0 and re-create Sixin.zip
+    -- Commented out call system in crpoint to check timing of C/R    
+   McIntosh 26th December, 2013
+
+ SixTrack Version: 4.4.96 Eric
+    -- Added a fort.93 log message to clarify start up
+    -- Fixed missing +ei at 611 for =if boinc
+   McIntosh 23rd December, 2013
+
+ SixTrack Version: 4.4.95 Eric
+    -- Put back and added checks "unzip of Sixin.zip"
+   McIntosh 23rd December, 2013
+
+ SixTrack Version: 4.4.94 Eric
+    -- Commented out the "unzip of Sixin.zip" for tests with Igor
+   McIntosh 23rd December, 2013
+
  SixTrack Version: 4.4.93 Eric
     -- FIXED the mywwerf problem by using a CONSTANT P
     -- Found that unzip Sixin.zip was over-writing fort.93 etc

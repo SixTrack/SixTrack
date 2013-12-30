@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.97'/
-      data moddate /'26.12.2013'/
+      data version /'4.4.99'/
+      data moddate /'29.12.2013'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -71,7 +71,7 @@
       logical crpstop,crsythck
       real crtime0,crtime1,crtime2
       double precision cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
-     &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl,croidpsv
+     &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -87,7 +87,7 @@
      &crxv(2,npart),cryv(2,npart),                                      &
      &crsigmv(npart),crdpsv(npart),crdpsv1(npart),crejv(npart),         &
      &crejfv(npart),craperv(npart,2),crxvl(2,npart),cryvl(2,npart),     &
-     &crdpsvl(npart),crejvl(npart),crsigmvl(npart),croidpsv(npart),     &
+     &crdpsvl(npart),crejvl(npart),crsigmvl(npart),                     &
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -3981,9 +3981,14 @@
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3      !hr03
 +ei
 +ei
+      ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
 !hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      oidpsv(j)=one/(one+dpsv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
       enddo
@@ -4061,9 +4066,14 @@
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))           
 +ei
 +ei
-      ejfv(j)=dpsv(j)*e0f+e0f ! e0f=sqrt(e0**2-pma**2)
+      ejf0v(j)=ejfv(j)
+      ejfv(j)=dpsv(j)*e0f+e0f
 !hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      oidpsv(j)=one/(one+dpsv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
@@ -4121,9 +4131,14 @@
         write(*,*)'xp,yp after',yv(1,j),yv(2,j)
 +ei
 +ei
-      ejfv(j)=dpsv(j)*e0f+e0f ! e0f=sqrt(e0**2-pma**2)
+      ejf0v(j)=ejfv(j)
+      ejfv(j)=dpsv(j)*e0f+e0f
 !hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      oidpsv(j)=one/(one+dpsv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
@@ -4209,9 +4224,14 @@
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
 +ei
 +ei
+       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
 !hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      oidpsv(j)=one/(one+dpsv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
@@ -4272,9 +4292,14 @@
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
 +ei
 +ei
+      ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
 !hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      oidpsv(j)=one/(one+dpsv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
@@ -4377,9 +4402,14 @@
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
 +ei
 +ei
+      ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
 !hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      oidpsv(j)=one/(one+dpsv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
@@ -4448,9 +4478,14 @@
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
 +ei
 +ei
+      ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
 !hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      oidpsv(j)=one/(one+dpsv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
@@ -20342,9 +20377,12 @@ C Should get me a NaN
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
 *FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(1)*
 *FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.-23) then
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
@@ -20354,9 +20392,12 @@ C Should get me a NaN
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
 *FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(2)*
 *FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
 ! JBG RF CC Multipoles
           if(kzz.eq.26) then
@@ -20373,9 +20414,12 @@ C Should get me a NaN
 *FOX  DPDA1=DPDA1 - (1/2.)*(CRABAMP2)*(CRKVE*CRKVE-
 *FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*C1M3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT2) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
 ! JBG RF CC Multipoles
           if(kzz.eq.-26) then
@@ -20392,9 +20436,12 @@ C Should get me a NaN
 *FOX  DPDA1=DPDA1 - (CRABAMP2)*(CIKVE*CRKVE)
 *FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*C1M3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT2) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.27) then
           xs=xsi(i)
@@ -20412,9 +20459,12 @@ C Should get me a NaN
 *FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  C1M6*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.-27) then
           xs=xsi(i)
@@ -20432,9 +20482,12 @@ C Should get me a NaN
 *FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  C1M6*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.28) then
           xs=xsi(i)
@@ -20453,9 +20506,12 @@ C Should get me a NaN
 *FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
 *FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.-28) then
           xs=xsi(i)
@@ -20474,9 +20530,12 @@ C Should get me a NaN
 *FOX  CIKVE*CIKVE*CIKVE*CRKVE)*
 *FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           ipch=0
           if(ncor.gt.0) then
@@ -21545,9 +21604,12 @@ C Should get me a NaN
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
 *FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(1)*
 *FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
       endif
         if(kzz.eq.-23) then
@@ -21558,9 +21620,12 @@ C Should get me a NaN
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
 *FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(2)*
 *FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
       endif
 
@@ -21586,9 +21651,12 @@ C Should get me a NaN
 *FOX  DPDA1=DPDA1 - (1/2.)*(CRABAMP2)*(CRKVE*CRKVE-
 *FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*C1M3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT2) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
       endif
           if(kzz.eq.-26) then
@@ -21609,9 +21677,12 @@ C Should get me a NaN
 *FOX  DPDA1=DPDA1 - (CRABAMP2)*(CIKVE*CRKVE)
 *FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*C1M3*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT2) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.27) then
             ! JBG bypass this element if 4D/5D case
@@ -21634,9 +21705,12 @@ C Should get me a NaN
 *FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  C1M6*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
           endif
           if(kzz.eq.-27) then
@@ -21660,9 +21734,12 @@ C Should get me a NaN
 *FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  C1M6*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.28) then
             ! JBG bypass this element if 4D/5D case
@@ -21686,9 +21763,12 @@ C Should get me a NaN
 *FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
 *FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
           endif
           if(kzz.eq.-28) then
@@ -21713,9 +21793,12 @@ C Should get me a NaN
 *FOX  CIKVE*CIKVE*CIKVE*CRKVE)*
 *FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 *FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
+*FOX  EJF0=EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
 *FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
 +ca trom20
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
@@ -22818,7 +22901,7 @@ C Should get me a NaN
 !     define slices
       call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
       call boostf(sphi,cphi,tphi,salpha,calpha,track)
-      call sbcf(star,cphi,nsli,f,ibb,bcu,track,ibbc)
+      call sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
       call boostif(sphi,cphi,tphi,salpha,calpha,track)
 !     DADAL AUTOMATIC INCLUSION
       return
@@ -22887,7 +22970,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       return
       end
-      subroutine sbcf(star,cphi,nsli,f,ibb,bcu,track,ibbc)
+      subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -22905,7 +22988,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
-      double precision bcu,cphi,dare,f,sfac,star
+      double precision bcu,cphi,cphi2,dare,f,sfac,star
 +ca parpro
 +ca parnum
 +ca commondl
@@ -22932,7 +23015,7 @@ C Should get me a NaN
 *FOX  D V IN EXT IBB ;
 *FOX  D V RE INT HALF ; D V RE INT TWO ; D V RE INT FOUR ;
 *FOX  D V RE INT ZERO ; D V RE INT ONE ; D V RE INT C1E3 ;
-*FOX  D V RE INT SFAC ; D V RE INT CPHI ;
+*FOX  D V RE INT SFAC ; D V RE INT CPHI ; D V RE INT CPHI2 ;
 *FOX  D V IN INT JSLI ;
 *FOX  D F RE DARE 1 ;
 *FOX  E D ;
@@ -22940,7 +23023,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       do 2000 jsli=1,nsli
 *FOX    S=(TRACK(5)-STAR(3,JSLI))*HALF ;
-*FOX    SP=S/CPHI ;
+*FOX    SP=S/CPHI2 ;
 *FOX    DUM(1)=BCU(IBB,1)+TWO*BCU(IBB,4)*SP+BCU(IBB,6)*SP*SP ;
 *FOX    DUM(2)=BCU(IBB,2)+TWO*BCU(IBB,9)*SP+BCU(IBB,10)*SP*SP ;
 *FOX    DUM(3)=BCU(IBB,3)+(BCU(IBB,5)+BCU(IBB,7))*SP+
@@ -52549,7 +52632,7 @@ C Should get me a NaN
 !     define slices
       call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
       call boost(np,sphi,cphi,tphi,salpha,calpha,track)
-      call sbc(np,star,cphi,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+      call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
       call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
       return
       end
@@ -52613,7 +52696,7 @@ C Should get me a NaN
  1000 continue
       return
       end
-      subroutine sbc(np,star,cphi,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+      subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -52634,7 +52717,7 @@ C Should get me a NaN
       integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
       double precision bbf0,bbfx,bbfy,bbgx,bbgy,bcu,costh,costhp,cphi,  &
      &dum,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,star,sx,       &
-     &sy,track
+     &sy,track,cphi2
 +ca parpro
 +ca parnum
       dimension track(6,npart),bcu(nbb,12)
@@ -52644,7 +52727,8 @@ C Should get me a NaN
       do 2000 jsli=1,nsli
         do 1000 i=1,np
           s=(track(5,i)-star(3,jsli))*half
-          sp=s/cphi 
+          !write(*,*)'JBG - cphi2',cphi2
+          sp=s/cphi2 
 !hr06     dum(1)=bcu(ibb,1)+two*bcu(ibb,4)*sp+bcu(ibb,6)*sp*sp
           dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2       !hr06
 !hr06     dum(2)=bcu(ibb,2)+two*bcu(ibb,9)*sp+bcu(ibb,10)*sp*sp
@@ -52979,7 +53063,6 @@ C Should get me a NaN
 +if .not.crlibm
       pi=4d0*atan(1d0)
 +ei
-      ! JBG To be checked that this should cphi or cphi2
       sigz=sigzs/cphi2
 ! DEFINE `STARRED' COORDINATES
 !  BORD is longitudinal border star(3,mbea) is the barycenter of region
@@ -56458,7 +56541,7 @@ C Should get me a NaN
 !     SR, 09-08-2005
 !     Format for the input file:
 !               x, y   -> [ m ]
-!               xp, yp -> [ mrad ]
+!               xp, yp -> [ rad ]
 !               s      -> [ mm ]
 !               DE     -> [ MeV ]
 !
@@ -60145,7 +60228,6 @@ C Should get me a NaN
      &(crsigmv(j),j=1,crnapxo),                                         &
      &(crdpsv(j),j=1,crnapxo),                                          &
      &(crdpsv1(j),j=1,crnapxo),                                         &
-     &(croidpsv(j),j=1,crnapxo),                                        &
      &(crejv(j),j=1,crnapxo),                                           &
      &(crejfv(j),j=1,crnapxo),                                          &
      &(craperv(j,1),j=1,crnapxo),                                       &
@@ -60281,7 +60363,6 @@ C Should get me a NaN
      &(crsigmv(j),j=1,crnapxo),                                         &
      &(crdpsv(j),j=1,crnapxo),                                          &
      &(crdpsv1(j),j=1,crnapxo),                                         &
-     &(croidpsv(j),j=1,crnapxo),                                        &
      &(crejv(j),j=1,crnapxo),                                           &
      &(crejfv(j),j=1,crnapxo),                                          &
      &(craperv(j,1),j=1,crnapxo),                                       &
@@ -60853,7 +60934,6 @@ C Should get me a NaN
      &(sigmv(j),j=1,napxo),                                             &
      &(dpsv(j),j=1,napxo),                                              &
      &(dpsv1(j),j=1,napxo),                                             &
-     &(oidpsv(j),j=1,napxo),                                            &
      &(ejv(j),j=1,napxo),                                               &
      &(ejfv(j),j=1,napxo),                                              &
      &(aperv(j,1),j=1,napxo),                                           &
@@ -61006,7 +61086,6 @@ C Should get me a NaN
      &(sigmv(j),j=1,napxo),                                             &
      &(dpsv(j),j=1,napxo),                                              &
      &(dpsv1(j),j=1,napxo),                                             &
-     &(oidpsv(j),j=1,napxo),                                            &
      &(ejv(j),j=1,napxo),                                               &
      &(ejfv(j),j=1,napxo),                                              &
      &(aperv(j,1),j=1,napxo),                                           &
@@ -61196,8 +61275,8 @@ C Should get me a NaN
         dpsv(j)=crdpsv(j)
         dpsv1(j)=crdpsv1(j)
 ! TEMPORARY? fix for crabamp/multipole problem
-        oidpsv(j)=croidpsv(j)
-!       oidpsv(j)=one/(one+dpsv(j))
+!       oidpsv(j)=croidpsv(j)
+        oidpsv(j)=one/(one+dpsv(j))
         ejv(j)=crejv(j)
         ejfv(j)=crejfv(j)
         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
