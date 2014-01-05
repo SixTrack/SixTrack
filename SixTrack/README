@@ -2,6 +2,13 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.01 Eric
+    -- Now try and correct sumda(22/23) and Total Turn(s)
+       Tricky, because of nnuml and multiple restarts
+       Recomputing napxto in maincr and sumda(22/23) in postpr
+       Leaving debug code until I check LOST particles
+   McIntosh 5th January, 2014
+
  SixTrack Version: 4.4.99 Eric
     -- Removed the now hopefully unnecessary
        checkpoint of OIDPSV

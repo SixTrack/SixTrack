@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.4.99'/
-      data moddate /'29.12.2013'/
+      data version /'4.5.01'/
+      data moddate /'05.01.2014'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -25289,6 +25289,23 @@ C Should get me a NaN
       write(*,10290) time1
 +ei
 +if cr
+! and TRY a FIX for napxto
+      if (nnuml.ne.numl) then
+        napxto=0
+        write(lout,*) 'numl=',numl,' nnuml=',nnuml
+! We may have stopped because of numlmax
+        do ia=1,napxo
+          if (numxv(ia).eq.numl) then
+! assumed stable
+      write(lout,*) 'ia=',ia,nnuml
+            napxto=napxto+nnuml
+          else
+! assumed lost
+      write(lout,*) 'ia=',ia,' numxv=',numxv
+            napxto=napxto+numxv(ia)
+          endif
+        enddo 
+      endif
       write(lout,10300) napxto,time
 +ei
 +if .not.cr
@@ -50688,6 +50705,13 @@ C Should get me a NaN
       sumda(22)=dble(ia)                                                 !hr06
 !hr06 sumda(23)=ia
       sumda(23)=dble(ia)                                                 !hr06
++ei
++if cr
+! TRY a FIX for nnuml
+      if (nnuml.ne.numl) then
+        if (nint(sumda(22)).eq.numl) sumda(22)=dble(nnuml)
+        if (nint(sumda(23)).eq.numl) sumda(23)=dble(nnuml)
+      endif
 +ei
 !hr06 sumda(2)=nlost
       sumda(2)=dble(nlost)
