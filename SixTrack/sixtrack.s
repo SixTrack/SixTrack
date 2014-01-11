@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.01'/
-      data moddate /'05.01.2014'/
+      data version /'4.5.03'/
+      data moddate /'10.01.2014'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -69,7 +69,7 @@
       integer crnumlcr,crnuml,crnapxo,crnapx,crnumxv,crnnumxv,crnlostp, &
      &crsixrecs,crbinrec,crbinrecs,crbnlrec,crbllrec,cril
       logical crpstop,crsythck
-      real crtime0,crtime1,crtime2
+      real crtime3
       double precision cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
      &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl
 +if bnlelens
@@ -103,7 +103,7 @@
      &            crsixrecs,crbinrec,crbinrecs((npart+1)/2),crbnlrec,   &
      &crbllrec,cril,                                                    &
      &crnumlcr,crnuml,crsythck,                                         &
-     &crtime0,crtime1,crtime2,                                          &
+     &                crtime3,                                          &
      &crnapxo,crnapx,                                                   &
 +if .not.bnlelens
      &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart)
@@ -342,12 +342,12 @@
       double precision aai,ampt,bbi,damp,rfres,rsmi,rzphs,smi,smizf,xsi,&
      &zsi
       integer napxto
-      real tlim,time0,time1,time2,time
+      real tlim,time0,time1,time2,time3,trtime
       common/xz/xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),              &
      &aai(nblz,mmul),bbi(nblz,mmul)
       common/rfres/rsmi(nblz),rfres(nblz),rzphs(nblz)
       common/damp/damp,ampt
-      common/ttime/tlim,time0,time1,time2,time,napxto
+      common/ttime/tlim,time0,time1,time2,time3,trtime,napxto
 +cd commonta
       double precision tasm
       common/tasm/tasm(6,6)
@@ -23436,6 +23436,8 @@ C Should get me a NaN
       integer errno,nfields,nunit,lineno,nf
       double precision fround
       data lineno /0/
+! fixes for CPU time
+      real pretime,posttime,tottime
 +ei
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
@@ -23458,7 +23460,6 @@ C Should get me a NaN
 !     dokcalls=0
 !     dumpl=0
 +ei
-      time=0.0
       napxto=0
       runtim=''
 +if cr
@@ -23488,7 +23489,7 @@ C Should get me a NaN
       do i=1,(npart+1)/2
         binrecs(i)=0
       enddo
-      crtime2=0.
+      crtime3=0.
 +if debug
                    !call system('../crmain  >> crlog')
 +ei
@@ -23764,8 +23765,18 @@ C Should get me a NaN
 +if iibm
       call xuflow(0)
 +ei
-!     A normal start, time0 is used to accumulate total
-      time0=0.
+!     A normal start, time0 is beginning
+      pretime=0.0
+      trtime=0.0
+      posttime=0.0
+      tottime=0.0
+      time0=0.0
+      time1=0.0
+      time2=0.0
+      time3=0.0
+      tlim=1e7
+      call timest(tlim)
+      call timex(time0)
       do 10 i=1,nblz
         xsi(i)=zero
         zsi(i)=zero
@@ -25029,6 +25040,9 @@ C Should get me a NaN
 +ei
       time1=0.
       call timex(time1)
+! time1 is now pre-processing CPU
+! note that this will be reset evry restart as we redo pre-processing
+      pretime=time1-time0
 !---------------------------------------  LOOP OVER TURNS TO BE TRACKED
       if(ithick.eq.0) call trauthin(nthinerr)
       if(ithick.eq.1) call trauthck(nthinerr)
@@ -25038,6 +25052,14 @@ C Should get me a NaN
 +ei
       time2=0.
       call timex(time2)
+! trtime is now the tracking time, BUT we must add other time for C/R
+      trtime=time2-time1
++if cr
+! because now crpoint will write tracking time
+! using time3 as a temp
+! and crcheck/crstart will reset crtime3
+      trtime=trtime+crtime3
++ei
       if(nthinerr.eq.3000) goto 520
       if(nthinerr.eq.3001) goto 460
 !---------------------------------------  END OF LOOP OVER TURNS
@@ -25087,14 +25109,11 @@ C Should get me a NaN
       call writebin(nthinerr)
       if(nthinerr.eq.3000) goto 520
 +ei
-! And now get the total tracking time for Massimo to be
-! added to fort.10 along with napxto
-+if cr
-      time=(time2-time1)+crtime2                                         !hr05
-+ei
-+if .not.cr
-      time=time2-time1
-+ei
+! If CR we have to worry about turns printed in fort.6
+! If lost should be OK, otherwise we need to use nnuml instead
+! of the numl in numxv/nnumxv???? Eric.
+! where we reset [n]numxv to nnuml UNLESS particle lost
+! Now we shall try using that fix at start of tracking
       do 470 ia=1,napxo,2
         ie=ia+1
         ia2=(ie)/2
@@ -25273,49 +25292,55 @@ C Should get me a NaN
         call igmeta(999,0)
         call hplend
       endif
+      time3=0.
+      call timex(time3)
+! Note that crpoint no longer destroys time2
+      posttime=time3-time2
++if debug
 +if cr
-!hr05 time=time2-time1+crtime2
-      time=(time2-time1)+crtime2                                         !hr05
+      write(lout,*) 'BUG:',time3,time2,pretime,trtime,posttime
+      write(93,*) 'BUG:',time3,time2,pretime,trtime,posttime
 +ei
 +if .not.cr
-      time=time2-time1
+      write(*,*) 'BUG:',time3,time2,pretime,trtime,posttime
 +ei
-      time2=0.
-      call timex(time2)
++ei
+! and now get grand total including post-processing
+      tottime=(pretime+trtime)+posttime
 +if cr
-      write(lout,10290) time1
+      write(lout,10290) pretime
 +ei
 +if .not.cr
-      write(*,10290) time1
+      write(*,10290) pretime
 +ei
 +if cr
 ! and TRY a FIX for napxto
-      if (nnuml.ne.numl) then
-        napxto=0
-        write(lout,*) 'numl=',numl,' nnuml=',nnuml
+!     if (nnuml.ne.numl) then
+!       napxto=0
+!       write(lout,*) 'numl=',numl,' nnuml=',nnuml
 ! We may have stopped because of numlmax
-        do ia=1,napxo
-          if (numxv(ia).eq.numl) then
+!       do ia=1,napxo
+!         if (numxv(ia).eq.numl) then
 ! assumed stable
-      write(lout,*) 'ia=',ia,nnuml
-            napxto=napxto+nnuml
-          else
+!     write(lout,*) 'ia=',ia,nnuml
+!           napxto=napxto+nnuml
+!         else
 ! assumed lost
-      write(lout,*) 'ia=',ia,' numxv=',numxv
-            napxto=napxto+numxv(ia)
-          endif
-        enddo 
-      endif
-      write(lout,10300) napxto,time
+!     write(lout,*) 'ia=',ia,' numxv=',numxv
+!           napxto=napxto+numxv(ia)
+!         endif
+!       enddo 
+!     endif
+      write(lout,10300) napxto,trtime
 +ei
 +if .not.cr
-      write(*,10300) napxto,time
+      write(*,10300) napxto,trtime
 +ei
 +if cr
-      write(lout,10310) time2+crtime2
+      write(lout,10310) tottime
 +ei
 +if .not.cr
-      write(*,10310) time2
+      write(*,10310) tottime
 +ei
 +if debug
 !     call wda('THE END',0d0,9,9,9,9)
@@ -27128,6 +27153,7 @@ C Should get me a NaN
 +ei
 +ca parnum
 +ca common
++ca common2
 +ca commons
 +ca commont1
 +ca commondl
@@ -27165,6 +27191,14 @@ C Should get me a NaN
 ! and now reset numl to do only numlmax turns
       nnuml=min((numlcr/numlmax+1)*numlmax,numl)
       write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+! and reset [n]numxv unless particle is lost
+! TRYing Eric (and removing postpr fixes).
+      if (nnuml.ne.numl) then
+        do j=1,napx
+          if (numxv(j).eq.numl) numxv(j)=nnuml
+          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+        enddo
+      endif
       do 640, n=numlcr,nnuml
 +ei
 +if .not.cr
@@ -27618,6 +27652,7 @@ C Should get me a NaN
 +ei
 +ca parnum
 +ca common
++ca common2
 +ca commons
 +ca commont1
 +ca commondl
@@ -28165,6 +28200,14 @@ C Should get me a NaN
 ! and now reset numl to do only numlmax turns
       nnuml=min((numlcr/numlmax+1)*numlmax,numl)
       write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+! and reset [n]numxv unless particle is lost
+! TRYing Eric (and removing postpr fixes).
+      if (nnuml.ne.numl) then
+        do j=1,napx
+          if (numxv(j).eq.numl) numxv(j)=nnuml
+          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+        enddo
+      endif
       do 660 n=numlcr,nnuml
 +ei
 +if .not.cr
@@ -31427,6 +31470,7 @@ C Should get me a NaN
 +ei
 +ca parnum
 +ca common
++ca common2
 +ca commons
 +ca commont1
 +ca commondl
@@ -31467,6 +31511,14 @@ C Should get me a NaN
       endif
       nnuml=min((numlcr/numlmax+1)*numlmax,numl)
       write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+! and reset [n]numxv unless particle is lost
+! TRYing Eric (and removing postpr fixes).
+      if (nnuml.ne.numl) then
+        do j=1,napx
+          if (numxv(j).eq.numl) numxv(j)=nnuml
+          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+        enddo
+      endif
       do 660 n=numlcr,nnuml
 +ei
 +if .not.cr
@@ -33028,6 +33080,7 @@ C Should get me a NaN
 +ei
 +ca parnum
 +ca common
++ca common2
 +ca commons
 +ca commont1
 +ca commondl
@@ -33067,6 +33120,14 @@ C Should get me a NaN
       endif
       nnuml=min((numlcr/numlmax+1)*numlmax,numl)
       write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+! and reset [n]numxv unless particle is lost
+! TRYing Eric (and removing postpr fixes).
+      if (nnuml.ne.numl) then
+        do j=1,napx
+          if (numxv(j).eq.numl) numxv(j)=nnuml
+          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+        enddo
+      endif
       do 490 n=numlcr,nnuml
 +ei
 +if .not.cr
@@ -33529,6 +33590,7 @@ C Should get me a NaN
 +ei
 +ca parnum
 +ca common
++ca common2
 +ca commons
 +ca commont1
 +ca commondl
@@ -33578,6 +33640,14 @@ C Should get me a NaN
       endif
       nnuml=min((numlcr/numlmax+1)*numlmax,numl)
       write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+! and reset [n]numxv unless particle is lost
+! TRYing Eric (and removing postpr fixes).
+      if (nnuml.ne.numl) then
+        do j=1,napx
+          if (numxv(j).eq.numl) numxv(j)=nnuml
+          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+        enddo
+      endif
       do 510 n=numlcr,nnuml
 +ei
 +if .not.cr
@@ -34183,6 +34253,7 @@ C Should get me a NaN
 +ei
 +ca parnum
 +ca common
++ca common2
 +ca commons
 +ca commont1
 +ca commondl
@@ -34222,6 +34293,14 @@ C Should get me a NaN
       endif
       nnuml=min((numlcr/numlmax+1)*numlmax,nnuml)
       write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+! and reset [n]numxv unless particle is lost
+! TRYing Eric (and removing postpr fixes).
+      if (nnuml.ne.numl) then
+        do j=1,napx
+          if (numxv(j).eq.numl) numxv(j)=nnuml
+          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+        enddo
+      endif
       do 510 n=numlcr,nnuml
 +ei
 +if .not.cr
@@ -49309,7 +49388,7 @@ C Should get me a NaN
       sumda(52)=dble(ttot)                                               !hr06
 ! and put CPU time for Massimo
 ! so even if we go to 550 we now get the stats
-      sumda(60)=dble(time)
+      sumda(60)=dble(trtime)
       b0=zero
       nlost=0
       ntwin=1
@@ -50708,10 +50787,11 @@ C Should get me a NaN
 +ei
 +if cr
 ! TRY a FIX for nnuml
-      if (nnuml.ne.numl) then
-        if (nint(sumda(22)).eq.numl) sumda(22)=dble(nnuml)
-        if (nint(sumda(23)).eq.numl) sumda(23)=dble(nnuml)
-      endif
+! should be redumdant now
+!     if (nnuml.ne.numl) then
+!       if (nint(sumda(22)).eq.numl) sumda(22)=dble(nnuml)
+!       if (nint(sumda(23)).eq.numl) sumda(23)=dble(nnuml)
+!     endif
 +ei
 !hr06 sumda(2)=nlost
       sumda(2)=dble(nlost)
@@ -60230,9 +60310,7 @@ C Should get me a NaN
      &crbllrec,                                                         &
      &crsythck,                                                         &
      &cril,                                                             &
-     &crtime0,                                                          &
-     &crtime1,                                                          &
-     &crtime2,                                                          &
+     &crtime3,                                                          &
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
@@ -60365,9 +60443,7 @@ C Should get me a NaN
      &crbllrec,                                                         &
      &crsythck,                                                         &
      &cril,                                                             &
-     &crtime0,                                                          &
-     &crtime1,                                                          &
-     &crtime2,                                                          &
+     &crtime3,                                                          &
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
@@ -60917,8 +60993,10 @@ C Should get me a NaN
       else
         rewind lout
       endif
-      call timex(time2)
-      time2=time2+crtime2
+      call timex(time3)
+! Hope this is correct
+! Maybe not!!!! this should be accumulative over multiple C/Rs
+      time3=(time3-time1)+crtime3
       crnumlcr=numx+1
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -60939,9 +61017,7 @@ C Should get me a NaN
      &bllrec,                                                           &
      &sythckcr,                                                         &
      &il,                                                               &
-     &time0,                                                            &
-     &time1,                                                            &
-     &time2,                                                            &
+     &time3,                                                            &
      &napxo,                                                            &
      &napx,                                                             &
      &e0
@@ -61091,9 +61167,7 @@ C Should get me a NaN
      &bllrec,                                                           &
      &sythckcr,                                                         &
      &il,                                                               &
-     &time0,                                                            &
-     &time1,                                                            &
-     &time2,                                                            &
+     &time3,                                                            &
      &napxo,                                                            &
      &napx,                                                             &
      &e0
@@ -61270,8 +61344,7 @@ C Should get me a NaN
       bnlrec=crbnlrec
       bllrec=crbllrec
       sythckcr=crsythck
-      time0=crtime0
-      time1=crtime1
+! the crtime3 is required (crtime0/1 removed)
       napxo=crnapxo
       napx=crnapx
       e0=cre0
@@ -62285,9 +62358,7 @@ C Should get me a NaN
       write(99,*) 'crbinrec',crbinrec
       write(99,*) 'crbinrecs',crbinrecs
       write(99,*) 'crsythck',crsythck
-      write(99,*) 'crtime0',crtime0
-      write(99,*) 'crtime1',crtime1
-      write(99,*) 'crtime2',crtime2
+      write(99,*) 'crtime3',crtime3
       write(99,*) 'crnapxo',crnapxo
       write(99,*) 'crnapx',crnapx
       write(99,*) 'cre0',cre0
@@ -62802,9 +62873,7 @@ C Should get me a NaN
       write(99) crbinrec
       write(99) crbinrecs
       write(99) crsythck
-      write(99) crtime0
-      write(99) crtime1
-      write(99) crtime2
+      write(99) crtime3
       write(99) crnapxo
       write(99) crnapx
       write(99) cre0
@@ -63315,9 +63384,7 @@ C Should get me a NaN
       write(99,100) 'crbinrec',crbinrec
       write(99,100) 'crbinrecs',crbinrecs
       write(99,100) 'crsythck',crsythck
-      write(99,100) 'crtime0',crtime0
-      write(99,100) 'crtime1',crtime1
-      write(99,100) 'crtime2',crtime2
+      write(99,100) 'crtime3',crtime3
       write(99,100) 'crnapxo',crnapxo
       write(99,100) 'crnapx',crnapx
       write(99,100) 'cre0',cre0
