@@ -27,7 +27,8 @@ the new text into the CVS notes when requested.
    McIntosh 29th December, 2013
 
  SixTrack Version: 4.4.98 Riccardo
-    -- Fixes from Riccardo for the OIDPSV problem etc
+    -- Fixes from Riccardo for the OIDPSV problem 
+    -- Fix crab cavity map (proper update of long. coordinates)
     -- based on Version 4.4.97
    McIntosh 28th December, 2013
 
