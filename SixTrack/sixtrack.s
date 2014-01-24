@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.03'/
-      data moddate /'10.01.2014'/
+      data version /'4.5.04'/
+      data moddate /'12.01.2014'/
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -23436,9 +23436,9 @@ C Should get me a NaN
       integer errno,nfields,nunit,lineno,nf
       double precision fround
       data lineno /0/
-! fixes for CPU time
-      real pretime,posttime,tottime
 +ei
+! fixes for CPU time (for all versions, not just crlibm).
+      real pretime,posttime,tottime
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl

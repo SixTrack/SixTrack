@@ -2,11 +2,16 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.04 Eric
+    -- Removed +if crlibm from the new vars posttime,
+       pretime and tottime
+   McIntosh 24th January, 2014
+
  SixTrack Version: 4.5.03 Eric
-    -- Fixed reported CPU times.
+    -- First attempt to fix reported CPU times.
        Finally used new names, removed crtime0/crtime1
-       and used time3 in crpoint (as well as post) for crtime3
-   McIntosh 11th January, 2014
+       and used time3 in crpoint (as well as post) for crtime2
+   McIntosh 10th January, 2014
 
  SixTrack Version: 4.5.02 Eric
     -- Now try and correct the turns reported in fort.6
