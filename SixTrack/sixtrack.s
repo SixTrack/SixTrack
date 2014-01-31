@@ -4,6 +4,25 @@
       integer itot,ttot
       data version /'4.5.04'/
       data moddate /'12.01.2014'/
++ cd license
+!!SixTrack
+!!
+!!The code contains the SixTrack particle simulation code written by
+!!F. Schmidt, DESY, CERN
+!!E. Mcintosh, H. Ranshall, H. Grote, F. James,
+!!K. Koelbig, K. Heinemann, M. Vaenttinen,
+!!R. Assman, C. Bracco, V. Previtali, S. Redaelli, G. Robert-Demolaize
+!!A. Rossi, T. Weiler,
+!!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,  CERN
+!!G. Robert-Demolaize, BNL
+!!
+!!Copyright 2014 CERN. This software is distributed under the terms of the GNU
+!!Lesser General Public License version 2.1, copied verbatim in the file
+!!``COPYING''.
+!!
+!!In applying this licence, CERN does not waive the privileges and immunities
+!!granted to it by virtue of its status as an Intergovernmental Organization or
+!!submit itself to any jurisdiction.
 +cd rhicelens
 !GRDRHIC
       double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
