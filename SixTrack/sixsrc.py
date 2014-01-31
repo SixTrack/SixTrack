@@ -1,7 +1,16 @@
 #!/usr/bin/ipython
 
+"""Sixtrack code analyzer
 
-""" Sixtrack code analyzer
+R. De Maria
+
+Copyright 2014 CERN. This software is distributed under the terms of the GNU
+Lesser General Public License version 2.1, copied verbatim in the file
+``COPYING''.
+
+In applying this licence, CERN does not waive the privileges and immunities
+granted to it by virtue of its status as an Intergovernmental Organization or
+submit itself to any jurisdiction.
 
 Source:
   asts: containts templates (.ast) for generating fortran files (.f)
