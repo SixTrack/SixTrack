@@ -4,7 +4,7 @@
       integer itot,ttot
       data version /'4.5.04'/
       data moddate /'12.01.2014'/
-+ cd license
++cd license
 !!SixTrack
 !!
 !!The code contains the SixTrack particle simulation code written by
