@@ -478,6 +478,85 @@
       double precision clon,chromc,corr,wxys
       common/correct/ corr(3,3),chromc(2),wxys(3),clon(6),iqmodc,       &
      &ichromc,ilinc
++cd commonex
+!-----------------------------------------------------------------------
+!  COMMON FOR EXACT VERSION
+!-----------------------------------------------------------------------
+      integer iexact
+      common/exact/iexact
++cd exactvars
+!-----------------------------------------------------------------------
+!  EXACT DRIFT
+!-----------------------------------------------------------------------
+      double precision pz
++cd ex4Ddrift
+            do j=1,napx
+              xv(1,j)=xv(1,j)*c1m3
+              xv(2,j)=xv(2,j)*c1m3
+              yv(1,j)=yv(1,j)*c1m3
+              yv(2,j)=yv(2,j)*c1m3
++if crlibm
+              pz=exp_rn(-1d0*(half*log_rn(one-(yv(1,j)**2+yv(2,j)**2))))
+              xv(1,j)=xv(1,j)+stracki*(yv(1,j)*pz)
+              xv(2,j)=xv(2,j)+stracki*(yv(2,j)*pz)
++ei
++if .not.crlibm
+              pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
+              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
+              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
++ei
+              xv(1,j)=xv(1,j)*c1e3
+              xv(2,j)=xv(2,j)*c1e3
+              yv(1,j)=yv(1,j)*c1e3
+              yv(2,j)=yv(2,j)*c1e3
+            enddo
++cd ex6Ddrift
+!-----------------------------------------------------------------------
+!  EXACT DRIFT
+!-----------------------------------------------------------------------
+            do j=1,napx
+              xv(1,j)=xv(1,j)*c1m3
+              xv(2,j)=xv(2,j)*c1m3
+              yv(1,j)=yv(1,j)*c1m3
+              yv(2,j)=yv(2,j)*c1m3
+              sigmv(j)=sigmv(j)*c1m3
++if crlibm
+              pz=exp_rn(-1d0*(half*log_rn(one-(yv(1,j)**2+yv(2,j)**2))))
+              xv(1,j)=xv(1,j)+stracki*(yv(1,j)*pz)
+              xv(2,j)=xv(2,j)+stracki*(yv(2,j)*pz)
+              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)*pz))
++ei
++if .not.crlibm
+              pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
+              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
+              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
+              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
++ei
+              xv(1,j)=xv(1,j)*c1e3
+              xv(2,j)=xv(2,j)*c1e3
+              yv(1,j)=yv(1,j)*c1e3
+              yv(2,j)=yv(2,j)*c1e3
+              sigmv(j)=sigmv(j)*c1e3
+            enddo
++cd exDAdrift
+!-----------------------------------------------------------------------
+!  EXACT DRIFT
+!-----------------------------------------------------------------------
+*FOX  X(1)=X(1)*C1M3 ;
+*FOX  X(2)=X(2)*C1M3 ;
+*FOX  Y(1)=Y(1)*C1M3 ;
+*FOX  Y(2)=Y(2)*C1M3 ;
+*FOX  SIGMDA=SIGMDA*C1M3 ;
+*FOX  PZ=SQRT(ONE-Y(1)*Y(1)-Y(2)*Y(2)) ;
+*FOX  X(1)=X(1)+EL(JX)*Y(1)/PZ ;
+*FOX  X(2)=X(2)+EL(JX)*Y(2)/PZ ;
+*FOX  SIGMDA=SIGMDA+(ONE-(RV/PZ))*EL(JX) ;
+*FOX  X(1)=X(1)*C1E3 ;
+*FOX  X(2)=X(2)*C1E3 ;
+*FOX  Y(1)=Y(1)*C1E3 ;
+*FOX  Y(2)=Y(2)*C1E3 ;
+*FOX  SIGMDA=SIGMDA*C1E3 ;
+!-----------------------------------------------------------------------
 +cd commphin
       common/phasecom/ phase(3,npos+1)
       common/invari/ dani(ninv+1)
@@ -722,7 +801,7 @@
      &nom_aperture,pencil_aperture,xp_pencil(max_ncoll),                &
      &yp_pencil(max_ncoll),x_pencil0,y_pencil0,sum,sqsum,               &
      &csum(max_ncoll),csqsum(max_ncoll),average,sigma,sigsecut,nspxd,   &
-     &xndisp,xgrd(npart),xpgrd(npart),ygrd(npart),ypgrd(npart),         &
+     &xndisp,xgrd(npart),xpgrd(npart),ygrd(npart),ypgrd(npart),zpj,     &
 !APRIL2005
 !     &pgrd(npart),ax0,ay0,bx0,by0,dnormx,dnormy,driftx,drifty,xnorm,    &
 !     &xpnorm,xangle,ynorm,ypnorm,yangle,xbob(nblz),ybob(nblz),          &
@@ -1064,6 +1143,7 @@
 *FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
 *FOX  D V IN INT IMBB NBLZ ;
 *FOX  D F RE DARE 1 ;
+*FOX  D V DA INT PZ NORD NVAR ;
 *FOX  E D ;
 +cd dump1
       write(32)                                                         &
@@ -9623,7 +9703,7 @@ cc2008
 *FOX  X(2)=ALDA(2,1)*PUX+ALDA(2,2)*PUZ+ALDA(2,5)*IDZ(2) ;
 *FOX  Y(2)=ALDA(2,3)*PUX+ALDA(2,4)*PUZ+ALDA(2,6)*IDZ(2) ;
 +cd dalin6
-            else
+!            else !moved outside of dalin6 /Mattias
 *FOX  X(1)=X(1)+EL(JX)*Y(1) ;
 *FOX  X(2)=X(2)+EL(JX)*Y(2) ;
 +cd dalino
@@ -12798,6 +12878,7 @@ cc2008
       data lineno35 /0/
 +ca parpro
 +ca parnum
++ca commonex
 +ca common
 +ca commons
 +ca commont1
@@ -14072,14 +14153,14 @@ cc2008
 +ei
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & nde(1),nde(2),                                                   &
-     &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu
+     &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu,iexact
 +if crlibm
       call disable_xp()
 +ei
 +ei
 +if .not.fio
       if(iclr.eq.3) read(ch1,*) nde(1),nde(2),                          &
-     &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu
+     &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu,iexact
 +ei
       if(iclo6.eq.5.or.iclo6.eq.6) then
         iclo6=iclo6-4
@@ -20971,6 +21052,7 @@ C Should get me a NaN
       character*16 typ
 +ca parpro
 +ca parnum
++ca commonex
 +ca common
 +ca commons
 +ca commont2
@@ -21439,10 +21521,16 @@ C Should get me a NaN
               else
 +ca dalin5
               endif
+            else
+              if(iexact.eq.1) then
++ca exDAdrift
+              else
+! Regular drift
 +ca dalin6
 +ca sqrtfox0
 *FOX  SIGMDA=SIGMDA+
 +ca sqrtfox
+              endif
             endif
             if(ilinc.eq.1) then
               typ=bez(jx)
@@ -23394,6 +23482,7 @@ C Should get me a NaN
 +ca parpro
 +ca parnum
 +ca common
++ca commonex
 +ca common2
 +ca commons
 +ca commont1
@@ -27150,6 +27239,8 @@ C Should get me a NaN
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       implicit none
++ca exactvars
++ca commonex
 +if cr
 +ca crcoall
 +ei
@@ -27257,10 +27348,14 @@ C Should get me a NaN
      &630,630,630,630,630,745,746,751,752,753,754),ktrack(i)
           goto 630
    10     stracki=strack(i)
-          do 20 j=1,napx
-            xv(1,j)=xv(1,j)+stracki*yv(1,j)
-            xv(2,j)=xv(2,j)+stracki*yv(2,j)
-   20     continue
+          if(iexact.eq.0) then
+            do j=1,napx
+              xv(1,j)=xv(1,j)+stracki*yv(1,j)
+              xv(2,j)=xv(2,j)+stracki*yv(2,j)
+            enddo
+          else
++ca ex4Ddrift
+          endif
           goto 630
 !--HORIZONTAL DIPOLE
    30     do 40 j=1,napx
@@ -27642,6 +27737,8 @@ C Should get me a NaN
 ! - YIL: Added call to beamGasInit just after readcollimator
 +ei
       implicit none
++ca exactvars
++ca commonex
 +if cr
 +ca crcoall
 +ei
@@ -28578,10 +28675,16 @@ C Should get me a NaN
               sum_ay(ie)=0d0
               endif
 !GRD
-!
+!-- DRIFT PART
               if (stracki.eq.0.) then
-                xj  = xj + 0.5d0*c_length*xpj
-                yj  = yj + 0.5d0*c_length*ypj
+                if(iexact.eq.0) then
+                  xj  = xj + 0.5d0*c_length*xpj
+                  yj  = yj + 0.5d0*c_length*ypj
+                else
+                  zpj=sqrt(1d0-xpj**2-ypj**2)
+                  xj = xj + 0.5d0*c_length*(xpj/zpj)
+                  yj = yj + 0.5d0*c_length*(ypj/zpj)
+                endif
               endif
 !
               gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
@@ -29091,10 +29194,16 @@ C Should get me a NaN
 !Mars 2005
 !
 !++  For zero length element track back half collimator length
-!
+!  DRIFT PART
               if (stracki.eq.0.) then
-                rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
-                rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
+                if(iexact.eq.0) then
+                  rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
+                  rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
+                else
+                  zpj=sqrt(1d0-rcxp(j)**2-rcyp(j)**2)
+                  rcx(j) = rcx(j) - 0.5d0*c_length*(rcxp(j)/zpj)
+                  rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
+                endif
               else
                 Write(*,*) "ERROR: Non-zero length collimator!"
                 STOP
@@ -29518,10 +29627,16 @@ C Should get me a NaN
             if (part_hit(j).eq.(10000*ie+iturn)) then
 !APRIL2005
 !++  For zero length element track back half collimator length
-
+! DRIFT PART
               if (stracki.eq.0.) then
-                rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
-                rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
+                if(iexact.eq.0) then
+                  rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
+                  rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
+                else
+                  zpj=sqrt(1d0-rcxp(j)**2-rcyp(j)**2)
+                  rcx(j) = rcx(j) - 0.5d0*c_length*(rcxp(j)/zpj)
+                  rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
+                endif
               endif
 
 !++  Now copy data back to original verctor
@@ -30223,11 +30338,15 @@ C Should get me a NaN
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 +ei
 +if .not.collimat
-          do 20 j=1,napx
-            xv(1,j)=xv(1,j)+stracki*yv(1,j)
-            xv(2,j)=xv(2,j)+stracki*yv(2,j)
+          if(iexact.eq.0) then
+            do j=1,napx
+              xv(1,j)=xv(1,j)+stracki*yv(1,j)
+              xv(2,j)=xv(2,j)+stracki*yv(2,j)
 +ca sqrtv
-   20     continue
+            enddo
+          else
++ca ex6Ddrift
+          endif
           goto 650
 +ei
    30     do 40 j=1,napx
@@ -31467,6 +31586,8 @@ C Should get me a NaN
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       implicit none
++ca exactvars
++ca commonex
 +if cr
 +ca crcoall
 +ei
@@ -31581,11 +31702,15 @@ C Should get me a NaN
      &650,650,650,650,650,745,746,751,752,753,754),ktrack(i)
           goto 650
    10     stracki=strack(i)
-          do 20 j=1,napx
-            xv(1,j)=xv(1,j)+stracki*yv(1,j)
-            xv(2,j)=xv(2,j)+stracki*yv(2,j)
+          if(iexact.eq.0) then
+            do j=1,napx
+              xv(1,j)=xv(1,j)+stracki*yv(1,j)
+              xv(2,j)=xv(2,j)+stracki*yv(2,j)
 +ca sqrtv
-   20     continue
+            enddo
+          else
++ca ex6Ddrift
+          endif
           goto 650
    30     e0o=e0
           e0fo=e0f
@@ -36810,6 +36935,7 @@ C Should get me a NaN
       integer i,i1,i2,i3,i4,j
 +ca parpro
 +ca parnum
++ca commonex
 +ca common
 +ca commons
 +ca commont1
@@ -36870,6 +36996,7 @@ C Should get me a NaN
       ncorru=0
       ncorrep=0
       nrturn=0
+      iexact=0
       ithick=0
       ierro=0
       il=0
@@ -54446,6 +54573,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
 !
++ca commonex
 +ca parpro
 +ca collpara
 +ca dbpencil
@@ -54454,7 +54582,7 @@ C Should get me a NaN
 !
 +ca database
 !
-      double precision x_flk,xp_flk,y_flk,yp_flk
+      double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
       double precision s_impact
       integer flagsec(maxn)
@@ -54844,13 +54972,20 @@ C Should get me a NaN
           endif
 !
 !++  First do the drift part
-!
+! DRIFT PART
           drift_length = length - zlm
 !hr09     if (drift_length.gt.0.) then
           if (drift_length.gt.0.d0) then                                 !hr09
-            x  = x + xp* drift_length
-            z  = z + zp * drift_length
-            sp = sp + drift_length
+            if(iexact.eq.0) then
+              x  = x + xp* drift_length
+              z  = z + zp * drift_length
+              sp = sp + drift_length
+            else
+              zpj = sqrt(1d0-xp**2-zp**2)
+              x = x + drift_length*(xp/zpj)
+              z = z + drift_length*(zp/zpj)
+              sp = sp + drift_length
+            endif
           endif
 !
 !++  Now do the scattering part
@@ -55039,13 +55174,20 @@ C Should get me a NaN
           endif
 !
 !++  Do the rest drift, if particle left collimator early
-!
+!  DRIFT PART
           if (nabs.ne.1 .and. zlm.gt.0.) then
              drift_length = (length-(s+sp))
              if (drift_length.gt.1d-15) then
-                x  = x + xp * drift_length
-                z  = z + zp * drift_length
-                sp = sp + drift_length
+               if(iexact.eq.0) then
+                 x  = x + xp * drift_length
+                 z  = z + zp * drift_length
+                 sp = sp + drift_length
+               else
+                 zpj = sqrt(1d0-xp**2-zp**2)
+                 x = x + drift_length*(xp/zpj)
+                 z = z + drift_length*(zp/zpj)
+                 sp = sp + drift_length
+               endif
              endif
              lint(j) = zlm - drift_length
           endif
