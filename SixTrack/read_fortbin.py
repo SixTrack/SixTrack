@@ -13,6 +13,7 @@
 
 
 import struct
+import os
 import numpy as np
 
 def _read(fh,fmt):
@@ -24,7 +25,6 @@ def _read(fh,fmt):
     if len(obj)==1:
       obj=obj[0]
     out[lbl]=obj
-    print "%-8s <%s>"%(lbl, obj)
   return out
 
 fmt_head="""\
@@ -72,30 +72,58 @@ energy   1d Energy (Mev)
 
 def read_fortbin(fn):
   fh=open(fn,'rb')
-  header=read(fh,fmt_head)
-  part1=[]
-  part2=[]
+  header=_read(fh,fmt_head)
+  partfirst=header['partfirst']
+  partlast=header['partlast']
+  part={}
+  for i in range(partfirst,partlast+1):
+    part[i]=[]
   while fh.read(4)!='':  # read(fh,'headpart 1I ...')
     turnnum= struct.unpack('I',fh.read(4))
     #read(fh,fmt_part)
     #read(fh,fmt_part)
-    pnum1= struct.unpack('I',fh.read(4))
-    orb1 = struct.unpack('8d',fh.read(64))
-    pnum2= struct.unpack('I',fh.read(4))
-    orb2 = struct.unpack('8d',fh.read(64))
+    for i in range(partfirst,partlast+1):
+      pnum1= struct.unpack('I',fh.read(4))
+      orb1 = struct.unpack('8d',fh.read(64))
+      part[i].append(list(orb1))
     fh.read(4) # read(fh,'headpart 1I ...')
-    part1.append(orb1)
-    part2.append(orb2)
-  return header,np.array(part1),np.array(part2)
+  for i in range(partfirst,partlast+1):
+    part[i]=np.array(part[i])
+  return header,part
+
+def read_allfortbin(basedir='.'):
+  fn=os.path.join(basedir,'fort.90')
+  head,part=read_fortbin(fn)
+  for lbl,obj in head.items():
+    print "%-8s <%s>"%(lbl, obj)
+  npart=head['parttot']
+  for i in range(1,npart/2):
+    fn =os.path.join(basedir,'fort.%d'%(90-i))
+    nhead,ndata=read_fortbin(fn)
+  #  for lbl,obj in nhead.items():
+  #    print "%-8s <%s>"%(lbl, obj)
+    part.update(ndata)
+  for i in sorted(part.keys()):
+    print "part %d turns %d"%(i,len(part[i]))
+  return head,part
+
+
+
+
 
 if __name__=='__main__':
-  head,orb1,orb2=read_fortbin('fort.90')
-  amp1,x1,xp1,y1,yp1,sig1,delta1,e1=orb1.T
-  amp2,x2,xp2,y2,yp2,sig2,delta2,e2=orb2.T
+  import sys
+  if len(sys.argv)>1:
+    basedir=sys.argv[1]
+  else:
+    basedir='.'
+  print basedir
+  head,part=read_allfortbin(basedir)
 
-  f=np.linspace(0,1,4096)
-  tunx=np.fft.fft(x1+1j*xp1)
-  tuny=np.fft.fft(y1+1j*yp1)
+
+  #f=np.linspace(0,1,len(x1))
+  #tunx=np.fft.fft(x1+1j*xp1)
+  #tuny=np.fft.fft(y1+1j*yp1)
 
   #plot(f,abs(tunx),label='qx')
   #plot(f,abs(tuny),label='qy')
