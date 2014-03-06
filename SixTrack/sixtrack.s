@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.04'/
-      data moddate /'12.01.2014'/
+      data version /'4.5.06'/
+      data moddate /'24.02.2014'/
 +cd license
 !!SixTrack
 !!
@@ -495,16 +495,9 @@
               xv(2,j)=xv(2,j)*c1m3
               yv(1,j)=yv(1,j)*c1m3
               yv(2,j)=yv(2,j)*c1m3
-+if crlibm
-              pz=exp_rn(-1d0*(half*log_rn(one-(yv(1,j)**2+yv(2,j)**2))))
-              xv(1,j)=xv(1,j)+stracki*(yv(1,j)*pz)
-              xv(2,j)=xv(2,j)+stracki*(yv(2,j)*pz)
-+ei
-+if .not.crlibm
               pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
-              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
-+ei
+              xv(1,j)=xv(1,j)+stracki*((yv(1,j)/pz))
+              xv(2,j)=xv(2,j)+stracki*((yv(2,j)/pz))
               xv(1,j)=xv(1,j)*c1e3
               xv(2,j)=xv(2,j)*c1e3
               yv(1,j)=yv(1,j)*c1e3
@@ -520,18 +513,10 @@
               yv(1,j)=yv(1,j)*c1m3
               yv(2,j)=yv(2,j)*c1m3
               sigmv(j)=sigmv(j)*c1m3
-+if crlibm
-              pz=exp_rn(-1d0*(half*log_rn(one-(yv(1,j)**2+yv(2,j)**2))))
-              xv(1,j)=xv(1,j)+stracki*(yv(1,j)*pz)
-              xv(2,j)=xv(2,j)+stracki*(yv(2,j)*pz)
-              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)*pz))
-+ei
-+if .not.crlibm
               pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
-              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
+              xv(1,j)=xv(1,j)+stracki*((yv(1,j)/pz))
+              xv(2,j)=xv(2,j)+stracki*((yv(2,j)/pz))
               sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
-+ei
               xv(1,j)=xv(1,j)*c1e3
               xv(2,j)=xv(2,j)*c1e3
               yv(1,j)=yv(1,j)*c1e3

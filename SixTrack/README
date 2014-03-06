@@ -2,6 +2,15 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.06 Eric and Mattias
+    -- Implemented "exact" drift from Mattias
+    -- Eric changed to just use sqrt
+   McIntosh 6th March, 2014
+
+ SixTrack Version: 4.5.05 Riccardo
+    -- Added licence info
+   Riccardo 24th February, 2014
+
  SixTrack Version: 4.5.04 Eric
     -- Removed +if crlibm from the new vars posttime,
        pretime and tottime
@@ -32,8 +41,7 @@ the new text into the CVS notes when requested.
    McIntosh 29th December, 2013
 
  SixTrack Version: 4.4.98 Riccardo
-    -- Fixes from Riccardo for the OIDPSV problem 
-    -- Fix crab cavity map (proper update of long. coordinates)
+    -- Fixes from Riccardo for the OIDPSV problem etc
     -- based on Version 4.4.97
    McIntosh 28th December, 2013
 
