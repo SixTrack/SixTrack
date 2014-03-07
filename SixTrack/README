@@ -2,6 +2,15 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.08 Eric
+    -- Added parentheses to FOXY EXACT code to match the
+       actual computation (and removed redundant parentheses)
+   McIntosh , 7th March, 2014
+
+ SixTrack Version: 4.5.07 Eric
+    -- Just trying a Windows boinc api WITHOUT call boinc_unzip
+   McIntosh , 26th February, 2014
+
  SixTrack Version: 4.5.06 Eric and Mattias
     -- Implemented "exact" drift from Mattias
     -- Eric changed to just use sqrt

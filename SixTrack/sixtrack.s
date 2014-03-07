@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.06'/
-      data moddate /'24.02.2014'/
+      data version /'4.5.08'/
+      data moddate /'07.03.2014'/
 +cd license
 !!SixTrack
 !!
@@ -496,8 +496,8 @@
               yv(1,j)=yv(1,j)*c1m3
               yv(2,j)=yv(2,j)*c1m3
               pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-              xv(1,j)=xv(1,j)+stracki*((yv(1,j)/pz))
-              xv(2,j)=xv(2,j)+stracki*((yv(2,j)/pz))
+              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
+              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
               xv(1,j)=xv(1,j)*c1e3
               xv(2,j)=xv(2,j)*c1e3
               yv(1,j)=yv(1,j)*c1e3
@@ -514,8 +514,8 @@
               yv(2,j)=yv(2,j)*c1m3
               sigmv(j)=sigmv(j)*c1m3
               pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-              xv(1,j)=xv(1,j)+stracki*((yv(1,j)/pz))
-              xv(2,j)=xv(2,j)+stracki*((yv(2,j)/pz))
+              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
+              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
               sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
               xv(1,j)=xv(1,j)*c1e3
               xv(2,j)=xv(2,j)*c1e3
@@ -533,8 +533,8 @@
 *FOX  Y(2)=Y(2)*C1M3 ;
 *FOX  SIGMDA=SIGMDA*C1M3 ;
 *FOX  PZ=SQRT(ONE-Y(1)*Y(1)-Y(2)*Y(2)) ;
-*FOX  X(1)=X(1)+EL(JX)*Y(1)/PZ ;
-*FOX  X(2)=X(2)+EL(JX)*Y(2)/PZ ;
+*FOX  X(1)=X(1)+EL(JX)*(Y(1)/PZ) ;
+*FOX  X(2)=X(2)+EL(JX)*(Y(2)/PZ) ;
 *FOX  SIGMDA=SIGMDA+(ONE-(RV/PZ))*EL(JX) ;
 *FOX  X(1)=X(1)*C1E3 ;
 *FOX  X(2)=X(2)*C1E3 ;
