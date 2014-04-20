@@ -2,10 +2,16 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.10 Eric
+    -- NO call boinc_zipitall (missed one in 4.5.09)
+    -- Re-instated call boinc_time_to checkpoint
+    -- Changed CR ABEND Message
+   McIntosh , 14th April, 2014
+
  SixTrack Version: 4.5.09 Eric
     -- Based on 4508 but NO call boinc_unzip
     -- Based on 4508 but NO call boinc_zipitall
-    -- ???Just to test ifort 2013_sp1.2.144???
+    -- Just to test ifort 2013_sp1.2.144 as well
    McIntosh , 26th March, 2014
 
  SixTrack Version: 4.5.08 Eric

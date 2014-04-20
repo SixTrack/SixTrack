@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.09'/
-      data moddate /'26.03.2014'/
+      data version /'4.5.10'/
+      data moddate /'14.04.2014'/
 +cd license
 !!SixTrack
 !!
@@ -32446,11 +32446,12 @@ C Should get me a NaN
 +if boinc
       if (checkp) then
 ! Now ALWAYS checkpoint
-!       call boinc_time_to_checkpoint(timech)
-!       if (timech.ne.0) then
+! NO, re-instated at user request
+        call boinc_time_to_checkpoint(timech)
+        if (timech.ne.0) then
           call crpoint
           call boinc_checkpoint_completed()
-!       endif
+        endif
       endif
 +ei
 +if .not.boinc
@@ -61976,15 +61977,15 @@ C Should get me a NaN
                    !call system('../crend   >> crlog')
 +ei
 +if boinc
-      call boinc_zipitall()
+!     call boinc_zipitall()
 !     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
       stop
     4 write(93,*)                                                       &
-     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
+     &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',istat
       write(6,*)                                                        &
-     &'SIXTRACR CRABEND *** ERROR *** reading fort.92, iostat=',istat
+     &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',istat
 +if debug
                    !call system('../crend   >> crlog')
 +ei
