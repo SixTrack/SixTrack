@@ -2,6 +2,46 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.13 Adriana
+    Modifications to Collimation Routines
+    -- Add output file Coll_Scatter.dat (within the Jaw subroutine)  
+       with all interactions at collimators
+    -- Add output file FLUKA_impacts_all.dat  
+       with all absorptions at collimators
+    -- Add Single Diffractive events in FLUKA_impacts.dat
+    -- Add Pencil Beam type 3 (R.Bruce): 
+       The new pencil beam model uses the existing
+       routines for annular halo generation and samples a matched halo at 
+       the face or end of any given collimator, with all particles hitting 
+       the jaws at a variable depth. There is no unphysical tilt of the 
+       jaws with the beam envelope as in the previous pencil beam
+    -- Replacement of the scattering routine with an upgraded version 
+       (C.Tambasco and B.Salvachua). At the moment the old routine is 
+       commented out, to be seen if to delete it or put it as a compilation
+       option. The new routine includes:
+         A different Carbon density that better fits the real collimator 
+          jaw material.
+         The addition of the logarithmic term in the in the rms angle 
+          equation of the multiple Coulomb scattering has been added. 
+         Implementation of the Bethe-Bloch equation (in place of a fix value) 
+          to better estimate the ionization losses.
+         Computation of new fits of experimental data (TOTEM collaboration) 
+          to better extrapolate the proton-proton elastic and total cross 
+          sections.
+         Updating of the proton-proton single diffractive cross section 
+          considering a recent parametrization based on the renormalized 
+          pomeron flux exchange.
+         Updating of the proton-nucleus inelastic and total cross sections 
+          considering the new available data from the Particle Data Group.
+    -- Further modification to the computation of ionisation losses taking 
+       into account the tale of the Landau distribution, since Bethe-Bloch 
+       is not valid for beta.gamma>1000 (D. Mirarchi).
+   McIntosh/Adriana, 30th April, 2014
+
+ SixTrack Version: 4.5.12 Eric
+    -- Just for testing new build by Xavier (not committed)
+   McIntosh , 30th April, 2014
+
  SixTrack Version: 4.5.11 Eric
     -- Put back call to unzip and zipitall
     -- Waiting for Riccardo's changes
