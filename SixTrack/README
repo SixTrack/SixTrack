@@ -3,6 +3,11 @@ should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
  SixTrack Version: 4.5.14 Eric
+    -- Rebuilding WITHOUT any zip calls but with the lib boinc_zip
+    -- Just replaced the Makefile.boinc.template
+   McIntosh , 3rd May, 2014
+
+ SixTrack Version: 4.5.14 Eric
     -- Rebuilding WITHOUT any zip stuff.
    McIntosh , 3rd May, 2014
 
