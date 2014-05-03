@@ -2,6 +2,10 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.14 Eric
+    -- Rebuilding WITHOUT any zip stuff.
+   McIntosh , 3rd May, 2014
+
  SixTrack Version: 4.5.13 Adriana
     Modifications to Collimation Routines
     -- Add output file Coll_Scatter.dat (within the Jaw subroutine)  

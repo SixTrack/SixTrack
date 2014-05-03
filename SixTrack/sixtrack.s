@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.13'/
-      data moddate /'30.04.2014'/
+      data version /'4.5.14'/
+      data moddate /'03.05.2014'/
 +cd license
 !!SixTrack
 !!
@@ -23704,7 +23704,8 @@ C Should get me a NaN
 ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
 ! name hard-wired in our boinc_unzip_.
 ! Either it is only the fort.* input data or it is a restart.
-        call boinc_unzip()
+! Removed temporarily??? becuase of problems.
+!       call boinc_unzip()
         !call system('unzip Sixin.zip')
         go to 611
       endif
@@ -62569,7 +62570,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
                    !call system('../crend   >> crlog')
 +ei
 +if boinc
-      call boinc_zipitall()
+!     call boinc_zipitall()
 !     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
@@ -62582,7 +62583,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
                    !call system('../crend   >> crlog')
 +ei
 +if boinc
-      call boinc_zipitall()
+!     call boinc_zipitall()
 !     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
