@@ -23,7 +23,6 @@
 #include "boinc_api.h"
 #include "graphics_api.h"
 #include "str_util.h"   // iza
-#include "boinc_zip.h"
 
 // helper class that makes a C-string from a character array and length,
 // automatically deleted on destruction
@@ -118,12 +117,6 @@ extern "C" {
         boinc_fraction_done(test);
 	}
 
-    void boinc_zip_(){
-        char filename[256];
-        boinc_resolve_filename("fort.zip",filename,256);
-        boinc_zip(UNZIP_IT,filename,".");
-       }
-		
 }
 
 
