@@ -176,7 +176,7 @@
       parameter(nran = 2000000,ncom = 100,mran = 500,mpa = 6,nrco = 5,  &
 +ei
      &nema = 15)
-      parameter(mcor = 10,mcop = mcor+6, mbea = 15)
+      parameter(mcor = 10,mcop = mcor+6, mbea = 99)
       parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
       parameter(nmon1 = 600,ncor1 = 600)
       parameter(ntr = 20,nbb = 350)
@@ -7890,17 +7890,12 @@ cc2008
           call dacct(damap,nvar,aa2,nvar,aa2r,nvar)
           call dacct(damap,nvar,damap1,nvar,damap,nvar)
           call dacct(damap,nvar,damapi,nvar,damap,nvar)
-          if(lhc.eq.2) then
-            bbcu(ibb,1)=bbbx(ix)
-            bbcu(ibb,2)=bbby(ix)
-            bbcu(ibb,3)=bbbs(ix)
 +if debug
 !         write(*,*) 'bbcu set in umlalid1'
 !     call warr('umlid1bbcu',bbcu(ibb,1),ibb,1,0,0)
 !     call warr('umlid1bbcu',bbcu(ibb,2),ibb,2,0,0)
 !     call warr('umlid1bbcu',bbcu(ibb,3),ibb,3,0,0)
 +ei
-          else
             do ii=1,3
               call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
               call averaged(angno,aa2r,.false.,angno)
@@ -7948,7 +7943,6 @@ cc2008
                 endif
               enddo
             endif
-          endif
           if(lhc.eq.1) then
             dummy=bbcu(ibb,1)
             bbcu(ibb,1)=bbcu(ibb,2)
@@ -7963,6 +7957,11 @@ cc2008
             bbcu(ibb,6)=bbcu(ibb,10)
             bbcu(ibb,10)=dummy
           endif
+          if(lhc.eq.2) then
+            bbcu(ibb,1)=bbbx(ix)
+            bbcu(ibb,2)=bbby(ix)
+            bbcu(ibb,3)=bbbs(ix)
+          endif  
           if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
