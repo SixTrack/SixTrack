@@ -2,10 +2,18 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.16 Eric
+    -- Going back to Version 4513 (best so far)
+    -- Added Riccardo's physics from SVN Version 176 
+       From Javier: increase bb 6d max number of slices,
+       change logic for lhc option (strong beam optics):
+       lhc=0 symmetric optics; lhc=1 antysymmetric; lhc=2,
+       like lhc=0 but sigma 11,33,55 overwriten
+   McIntosh, Riccardo, Javier, 8th May, 2014
+
  SixTrack Version: 4.5.15 Eric
     -- Rebuilding with absolutely NO zip stuff
-    -- Modified the Makefile.boinc.template and README
-    -- boinc_api_fortran.cpp (sixtrack.s of course)
+    -- Modified the Makefile.boinc.template and removed boinc_unzip
    McIntosh , 3rd May, 2014
 
  SixTrack Version: 4.5.14 Eric

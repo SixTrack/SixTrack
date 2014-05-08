@@ -7,7 +7,7 @@
  * Last Modified    : 17/05/2002
  */
 #include <stdio.h>
-#include "logsix.h"
+#include "log.h"
 
 /*
  *  1) First reduction: exponent extraction      

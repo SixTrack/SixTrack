@@ -23,6 +23,7 @@
 #include "boinc_api.h"
 #include "graphics_api.h"
 #include "str_util.h"   // iza
+#include "boinc_zip.h"
 
 // helper class that makes a C-string from a character array and length,
 // automatically deleted on destruction
@@ -113,10 +114,6 @@ extern "C" {
         boinc_calling_thread_cpu_time(*d1_out, *d2_out);
     }*/
 		
-    void boinc_sixtrack_progress_(int* n,int* total)	{	double test =((double) *n) /((double) *total);
-        boinc_fraction_done(test);
-	}
-
 }
 
 
