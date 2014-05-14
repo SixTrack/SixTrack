@@ -2,6 +2,15 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.18 Adriana
+    -- Collimation changes
+    -- Line  29951: formatting in the output file 38 (tracks2.dat)
+    -- Lines 57712 and 57715: input data for tracking 
+       (carbon density and free path length respectively)
+    -- Lines 58583 and 58584 : correction of the calculation of 
+       momentum and energy in the subroutine CALC_ION_LOSS
+   Adriana and McIntosh , 14th May, 2014
+
  SixTrack Version: 4.5.17 Eric
     -- Removed boinc_zipitall calls
     -- added CLOSE 6 and 93 to routine abend

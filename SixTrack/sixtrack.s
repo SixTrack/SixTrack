@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.17'/
-      data moddate /'09.05.2014'/
+      data version /'4.5.18'/
+      data moddate /'14.05.2014'/
 +cd license
 !!SixTrack
 !!
@@ -29948,7 +29948,7 @@ C Should get me a NaN
 +if .not.hdf5   
 !          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
 !         write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-         write(38,'(i8,i4,f8.2,4(e11.5),e11.3,i4)')                      &
+         write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
      &rcxp0(j)*1d3+torbxp(ie),                                          &
@@ -30059,7 +30059,7 @@ C Should get me a NaN
      &                    hdfdee,hdftyp)
      
 +ei
-+if .not.hdf5 
++if .not.hdf5
           write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
 !          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
@@ -31106,7 +31106,7 @@ C Should get me a NaN
      &                    hdfdee,hdftyp)
 +ei
 +if .not.hdf5  
-!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &         
+!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &     
           write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
 !          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
@@ -57709,10 +57709,10 @@ c$$$     &           myalphay * cos(phiy))
       data (zatom(i),i=6,nrmat)/   6d0,      6d0/
 !GRD      data (Rho(i),i=1,nrmat)/ 1.848,  2.70,  8.96,   19.3,  11.35/
       data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-      data (rho(i),i=6,nrmat)/ 1.65d0, 4.52d0/
+      data (rho(i),i=6,nrmat)/ 1.67d0, 4.52d0/
 !GRD      data (RadL(i),i=1,nrmat)/ 0.353, 0.089, 0.0143, 0.0035, 0.0056/
       data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-      data (radl(i),i=6,nrmat)/ 0.188d0, 0.094d0/
+      data (radl(i),i=6,nrmat)/ 0.2557d0, 0.094d0/
       data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
 !GRD      data (EMR(i),i=1,nrmat)/  0.22, 0.302, 0.366,    0.0,  0.542/
 !MAY06-GRD value for Tungsten (W) not stated
@@ -58580,8 +58580,8 @@ C.**************************************************************************
       data mp/938.272013/ !proton mass [MeV/c^2]
 
 
-      enr=PC*1.0d3              !GeV -> MeV
-      mom=(enr*enr-mp*mp)**0.5  !p momentum [MeV/c]
+      mom=PC*1.0d3              ! [GeV/c] -> [MeV/c]
+      enr=(mom*mom+mp*mp)**0.5  ! [MeV]
       gammar=enr/mp
       betar=mom/enr
       bgr=betar*gammar
