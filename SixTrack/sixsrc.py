@@ -30,9 +30,10 @@ import re
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
+from pygments.token import Token
 
 lexer = get_lexer_by_name("fortran", stripall=True)
-formatter = HtmlFormatter(linenos=True, cssclass="default")
+formatter = HtmlFormatter(linenos=True, cssclass="default",anchorlinenos=True)
 
 
 def parse_comma_list(s):
@@ -96,6 +97,7 @@ class Source(object):
     self.fill_deps()
     self.find_unused_blocks()
     self.find_multiple_defined_blocks()
+    self.get_definitions()
   def get_fortran_files(self):
     return [ast.outfn for ast in self.asts]
   def get_source_names(self):
@@ -181,7 +183,7 @@ class Source(object):
   tp_source="""<!DOCTYPE html>
     <html>
     <body>
-    <h1><a href="index.html">SixTrack code browser</a></h1>
+    <h1><a href="index.html">SixTrack Source Browser</a></h1>
     <p>SixTrack use <em>astuce</em> files to generate Fortran files by
 assembling code <em>blocks</em> according to <em>flags</em>. </p>
     <p> Astuce files:</p>
@@ -192,7 +194,7 @@ assembling code <em>blocks</em> according to <em>flags</em>. </p>
     <p>Blocks defined: %s.</p>
     </body>
     </html>"""
-  tl_ast="""<li><a href="ast_%s.html">%s</a> generate
+  tl_ast="""<li><a href="ast_%s.html">%s</a> generates
             <a href="file_%s.html">%s</a></li>"""
   tl_flag='<a href="flag_%s.html">%s</a>'
   tl_block='<a href="block_%s.html">%s</a>'
@@ -226,6 +228,65 @@ assembling code <em>blocks</em> according to <em>flags</em>. </p>
       print fn
       out=ast.make_fortran(self,flags=flags)
       open(fn,'w').write(out)
+  def get_definitions(self):
+      rsub=re.compile('subroutine +([A-z0-9_]+) *\(',re.IGNORECASE)
+      rscall=re.compile('call +([A-z0-9_]+) *\(',re.IGNORECASE)
+      rfun=re.compile('function +([A-z0-9_]+) *\(',re.IGNORECASE)
+      rfcall=re.compile('([A-z0-9_]+)\(',re.IGNORECASE)
+      sdef={}
+      scall={}
+      fdef={}
+      fcall={}
+      ttt=[(rsub,sdef),(rscall,scall),(rfun,fdef),(rfcall,fcall)]
+      for block in self.blocks:
+        for sname,src in block.code.items():
+          for lineno,line in enumerate(src.splitlines()):
+            for reg,out in ttt:
+              res=reg.search(line)
+              if res:
+                name=res.groups()[0].lower()
+                data=(block.name,sname, lineno,line.strip())
+                out.setdefault(name,[]).append(data)
+      #for k,v in fcall.items():
+      #  if k not in fdef:
+      #    del fcall[k]
+      self.defs=Lookup()
+      for k in sdef:
+         ndef=Definition(k,'subroutine')
+         for bname,sname, lineno, ctx in sdef[k]:
+            ndef.defined_in.append([bname,sname, lineno, ctx])
+            if k not in scall:
+              print "Warning: Subrourine `%s' defined in `%s' not called"%(k,bname)
+         for calls in scall.get(k,[]):
+            bname,sname, lineno, ctx=calls
+            ndef.called_in.append([bname,sname, lineno, ctx])
+         setattr(self.defs,k,ndef)
+      for k in fdef:
+         ndef=Definition(k,'function')
+         for bname,sname, lineno, ctx in fdef[k]:
+            ndef.defined_in.append([bname,sname, lineno, ctx])
+            if k not in fcall:
+              print "Warning: Function `%s' defined in `%s' not called"%(k,bname)
+         for calls in fcall.get(k,[]):
+            bname,sname, lineno, ctx=calls
+            ndef.called_in.append([bname,sname, lineno, ctx])
+         setattr(self.defs,k,ndef)
+
+class Definition(object):
+  tp_def="""<!DOCTYPE html>
+    <html>
+    <body>
+    <h1><a href="index.html">SixTrack Source Browser</a>: Definition %s</h1>
+    %s
+    </body>
+    </html>"""
+  def __init__(self,name,deftype):
+    self.name=name
+    self.deftype=deftype
+    self.defined_in=[]
+    self.called_in=[]
+
+
 
 class Lookup(object):
   def __contains__(self,k):
@@ -263,7 +324,7 @@ class Ast(object):
     <link href="style.css" rel="stylesheet" type="text/css">
     </head>
     <body>
-    <h1><a href="index.html">SixTrack code browser</a>
+    <h1><a href="index.html">SixTrack Source Browser</a>
         Fortran file: %s</h1>
     <p>Generated from %s using flags %s, and blocks %s.</p>
     %s
@@ -405,7 +466,7 @@ class Block(object):
           else:
             state='skip'
         elif line.startswith('+ca'):
-          blockname=line.split()[1]
+          blockname=line.split()[1].lower()
           try:
             block=source.blocks[blockname]
             ffile.extend(block.make_fortran(source,flags,src))
@@ -442,6 +503,8 @@ class Block(object):
 
 def code2html(c):
   c=re.sub(r'(\+if +)([a-z0-9_]+)',r'\1<a href="flag_\2.html">\2</a>',c)
+  c=re.sub(r'(\.not\.)([a-z0-9_]+)',r'\1<a href="flag_\2.html">\2</a>',c)
+  c=re.sub(r'(\.and\.)([a-z0-9_]+)',r'\1<a href="flag_\2.html">\2</a>',c)
   c=re.sub(r'(\+ca +)([a-z0-9_]+)',r'\1<a href="block_\2.html">\2</a>',c)
   c=re.sub(r'(\+dk +)([a-z0-9_]+)',r'\1<a href="block_\2.html">\2</a>',c)
   return c
@@ -454,6 +517,11 @@ class FlagDict(dict):
       return dict.__getitem__(self,k)
     else:
       return False
+
+
+def readsrc(s):
+   ast=s.asts.sixve
+   srx=ast.make_fortran
 
 if __name__=='__main__':
   import sixsrc

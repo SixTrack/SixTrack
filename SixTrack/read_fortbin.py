@@ -109,8 +109,6 @@ def read_allfortbin(basedir='.'):
 
 
 
-
-
 if __name__=='__main__':
   import sys
   if len(sys.argv)>1:
@@ -120,10 +118,11 @@ if __name__=='__main__':
   print basedir
   head,part=read_allfortbin(basedir)
 
+  #pdist,x,xp,y,yp,sigma,delta,energy=part[1].T
 
-  #f=np.linspace(0,1,len(x1))
-  #tunx=np.fft.fft(x1+1j*xp1)
-  #tuny=np.fft.fft(y1+1j*yp1)
+  #f=np.linspace(0,1,len(x))
+  #tunx=np.fft.fft(x+1j*xp)
+  #tuny=np.fft.fft(y+1j*yp)
 
   #plot(f,abs(tunx),label='qx')
   #plot(f,abs(tuny),label='qy')
