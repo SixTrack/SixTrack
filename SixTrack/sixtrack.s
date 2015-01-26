@@ -50626,7 +50626,6 @@ C Should get me a NaN
       if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 270
       i1=i1+1
       i11=i1+1
-      write (*,*) "fasd",i11,nfft
       if(i2.ge.nlya.and.i11.gt.nfft.and.iapx.gt.npos.and.iapz.gt.npos)  &
      &goto 270
       if(i11.le.nfft) then
@@ -50964,7 +50963,6 @@ C Should get me a NaN
 +ei
         goto 550
       endif
-      write (*,*) "fasd11",di11,nfft
       emxa=emxa/di11
       emza=emza/di11
       emta=emta/di11

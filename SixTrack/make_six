@@ -118,7 +118,7 @@ if test $? != 0
 then
   ARCH64="false"
 fi
-gfortran_lib="-lgraflib -lgrafX11 -lpacklib"
+gfortran_lib=""
 sversion=`grep 'data version' sixtrack.s`
 echo $sversion
 # get string between /....../
@@ -432,13 +432,13 @@ then
         echo "     BOINC/CPSS are for tracking only (NOT da nor collimat)"
         exit 1
     fi
-#    if test "$bpm" = ""
-#    then
-#        show_options
-#        echo "    INVALID options selected:"
-#        echo "    bpm is for tracking only and not for desktops!"
-#        exit 1
-#    fi
+    if test "$bpm" = ""
+    then
+        show_options
+        echo "    INVALID options selected:"
+        echo "    bpm is for tracking only and not for desktops!"
+        exit 1
+    fi
 fi
 if test "$da" = "da"
 then
