@@ -25,8 +25,8 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
 OPTIONS := fast tilt tracking crlibm gfortran
-#OPTIONS := crlibm bnlelens gfortran boinc api O2
-NOPT  := 0
+#OPTIONS := crlibm bnlelens gfortran boinc api
+NOPT  :=
 
 # lists of known options
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows)
@@ -116,13 +116,16 @@ COMPILER := $(call if_any,$(COMPILER_OPTIONS),$(ENABLED),$(filter $(COMPILER_OPT
 
 # ifort configuration
 FC_ifort   := ifort
-FCF_ifort  := -O -mia32 $(call if_any,sse2 sse3,$(ENABLED),-m$(filter sse2 sse3,$(ENABLED)),) -fp-model source -fp-model strict -fp-model no-except
+FCF_ifort  := -O$(NOPT) -mia32 $(call if_any,sse2 sse3,$(ENABLED),-m$(filter sse2 sse3,$(ENABLED)),) -fp-model source -fp-model strict -fp-model no-except
 FCLD_ifort := -m32
 FCL_ifort  := -static -m32
 
 # gfortran configuration
 FC_gfortran   := gfortran -m32
 FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops
+ifneq ($(NOPT),)
+  FCF_gfortran:=$(FCF_gfortran) -O$(NOPT)
+endif
 FCLD_gfortran :=
 FCL_gfortran  := -static
 
@@ -249,7 +252,7 @@ ifeq ($(OS),Windows_NT)
   O_FILES         := $(patsubst %.o,%$(objects),$(O_FILES))
   WIN_ARCH        := /arch:$(call if_any,sse2 sse3,$(ENABLED),-m$(filter sse2 sse3,$(ENABLED)),IA32)
   WIN_IFORT       := /fp:source /fp:strict /fp:except-
-  WIN_OPTIONS     := /O2 /MT /names:lowercase /assume:underscore 
+  WIN_OPTIONS     := /O2 /MT /names:lowercase /assume:underscore
   ICL_WIN_OPTIONS := /I. /D_CRT_SECURE_NO_WARNINGS /Qstd=c99
   WIN_CRLIBM      := addition_scs.c atan.c atan_fast.c cosine.c csh_fast.c disable_xp.c division_scs.c double2scs.c dtoaf.c dtoa_c.c enable_xp.c ericc.c exp.c exp_fast.c log10.c log.c log_fast.c multiplication_scs.c rem_pio2.c round_near.c scs2double.c sine.c tan.c trigo_fast.c zero_scs.c
   # windows crlibm objects
