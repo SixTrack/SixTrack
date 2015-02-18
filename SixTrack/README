@@ -2,6 +2,12 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.19 Eric for Riccardo 
+    -- Uncommented the BUG fix? go to 360 in LIMI block
+    -- Fixed undefine variable time in sixda
+    -- Added SixTrack_da link for Frank
+   McIntosh , 14th February, 2015
+
  SixTrack Version: 4.5.18 Adriana
     -- Collimation changes
     -- Line  29951: formatting in the output file 38 (tracks2.dat)

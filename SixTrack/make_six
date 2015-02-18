@@ -1064,7 +1064,12 @@ then
   echo "It appears to have completed successfully."
   # and a link for Frank
   cd ..
-  ln -sf $ename/$ename SixTrack
+  if test "$da" != ""
+  then
+    ln -sf $ename/$ename SixTrack 
+  else
+    ln -sf $ename/$ename SixTrack_da
+  fi
   cd $ename
 else
   echo "It appears to have failed!!!"

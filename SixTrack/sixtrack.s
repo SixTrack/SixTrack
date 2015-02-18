@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.18'/
-      data moddate /'14.05.2014'/
+      data version /'4.5.19'/
+      data moddate /'14.02.2015'/
 +cd license
 !!SixTrack
 !!
@@ -16067,8 +16067,8 @@ cc2008
       write(*,10330) bez(j),irel,apxx,apzz
 +ei
   970 continue
-! Eric temporary fix for BUG???
-!     if(idat.ne.next) goto 960
+! Eric temporary fix for BUG??? Uncommnted for Riccardo 14/2/2015
+      if(idat.ne.next) goto 960
       goto 110
 !-----------------------------------------------------------------------
 !  ORBIT CORRECTION
@@ -20994,7 +20994,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
       call timex(time2)
-      time=time2-time1
+!     time=time2-time1
 +if cr
       write(lout,10020) time1-time0
 +ei
@@ -21002,10 +21002,10 @@ C Should get me a NaN
       write(*,10020) time1-time0
 +ei
 +if cr
-      write(lout,10030) nord,time
+      write(lout,10030) nord,time2-time1
 +ei
 +if .not.cr
-      write(*,10030) nord,time
+      write(*,10030) nord,time2-time1
 +ei
 !-----------------------------------------------------------------------
       return
@@ -22705,7 +22705,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
       call timex(time2)
-      time=time2-time1
+!     time=time2-time1
 +if cr
       write(lout,10020) time1-time0
 +ei
@@ -22713,10 +22713,10 @@ C Should get me a NaN
       write(*,10020) time1-time0
 +ei
 +if cr
-      write(lout,10030) nord,time
+      write(lout,10030) nord,time2-time1
 +ei
 +if .not.cr
-      write(*,10030) nord,time
+      write(*,10030) nord,time2-time1
 +ei
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
