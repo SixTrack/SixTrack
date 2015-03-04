@@ -8168,21 +8168,16 @@ cc2008
 !     magnetic rigidity
 !hr03 chi = sqrt(e0*e0-pmap*pmap)*c1e6/clight
       chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            !hr03
-!
+
       ix = ixcav
       tx = xrms(ix)
       ty = zrms(ix)
       dx = xpl(ix)
       dy = zpl(ix)
-!     embl = ek(ix)
-      mindex = int(ek(ix))
+      embl = ek(ix)
       l = wirel(ix)
-      embl = l*2000.0
       cur = ed(ix)
-!     NNORM = 1.0E-7*(1.602176565D-19)/e0f
-      NNORM=c1m7/chi
-!
-      IF (mindex.eq.1) THEN
+
 +if crlibm
 !hr03 leff = embl/cos_rn(tx)/cos_rn(ty)
       leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr03
@@ -8219,21 +8214,14 @@ cc2008
 +if .not.crlibm
       lin= lin*cos(ty)+dy  *sin(ty)
 +ei
-      ELSE
-      tx = tx*(pi/180.0d0)
-      ty = ty*(pi/180.0d0)
-      TX = TX*(pi/180.0d0)
-      TY = TY*(pi/180.0d0)
-      ENDIF
-!
+
       do 750 j=1, napx
-      
+
       xv(1,j) = xv(1,j) * c1m3
       xv(2,j) = xv(2,j) * c1m3
       yv(1,j) = yv(1,j) * c1m3
       yv(2,j) = yv(2,j) * c1m3
-      sigmv(j)= sigmv(j)*c1m3
-      IF (mindex.eq.1) THEN
+
 !      write(*,*) 'Start: ',j,xv(1,j),xv(2,j),yv(1,j),
 !     &yv(2,j)
 
@@ -8532,256 +8520,12 @@ cc2008
 !hr03&yv(2,j)**2)
       xv(2,j) = xv(2,j) - ((embl*0.5d0)*yv(2,j))/                       &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-!
-!     
-      ELSEIF (mindex.eq.3) THEN
-!-----------------------------------------------------------------------
-! MAP FOR TILTED STRAIGHT WIRE
-! TRANSVERSE KICK ONLY (Az)
-! THE MAP:
-! 1. Kick 
-!-----------------------------------------------------------------------
-! 1 KICK
-+if .not.crlibm
-      xi = xv(1,j)-dx
-      yi = xv(2,j)-dy
-      RTWO = xi**2+yi**2
-      lpro = 0.5*L*cos(tx)*cos(ty)
-      AT = xi*tan(tx)+yi*tan(ty)
-      KT = tan(tx)**2+tan(ty)**2+1.0
-      SONE = sqrt(KT)*(KT*lpro-AT)/                                     &
-     &((KT*RTWO-AT**2)*sqrt((KT*lpro-AT)**2/(KT*RTWO-AT**2)+1.0 ))
-      STWO = sqrt(KT)*(-KT*lpro-AT)/                                    &
-     &((KT*RTWO-AT**2)*sqrt((-KT*lpro-AT)**2/(KT*RTWO-AT**2)+1.0 ))
-      yv(1,j) = yv(1,j)-cur*NNORM*xi*L*SONE/(one+dpsv(j))+              &
-     &I*NNORM*xi*L*STWO/(one+dpsv(j))
-      yv(2,j) = yv(2,j)-cur*NNORM*yi*L*SONE/(one+dpsv(j))+              &
-     &I*NNORM*yi*L*STWO/(one+dpsv(j))
-+ei
-+if crlibm
-      xi = xv(1,j)-dx
-      yi = xv(2,j)-dy
-      RTWO = xi**2+yi**2
-      lpro = 0.5*L*cos_rn(tx)*cos_rn(ty)
-      AT = xi*tan_rn(tx)+yi*tan_rn(ty)
-      KT = tan_rn(tx)**2+tan_rn(ty)**2+one
-      SONE = sqrt(KT)*(KT*lpro-AT)/                                     &
-     &((KT*RTWO-AT**2)*sqrt((KT*lpro-AT)**2/(KT*RTWO-AT**2)+one ))
-      STWO = sqrt(KT)*(-KT*lpro-AT)/                                    &
-     &((KT*RTWO-AT**2)*sqrt((-KT*lpro-AT)**2/(KT*RTWO-AT**2)+one ))
-      yv(1,j) = yv(1,j)-cur*NNORM*xi*L*SONE/(one+dpsv(j))+              &
-     &I*NNORM*xi*L*STWO/(one+dpsv(j))
-      yv(2,j) = yv(2,j)-cur*NNORM*yi*L*SONE/(one+dpsv(j))+              &
-     &I*NNORM*yi*L*STWO/(one+dpsv(j))
-+ei
-!-----------------------------------------------------------------------
-       ELSEIF (mindex.eq.2) THEN
-!-----------------------------------------------------------------------
-! COMPLETE MAP FOR TILTED STRAIGHT WIRE
-! The MAP:
-! 1. Backward drift 
-! 2. Rotation tx, ty
-! 3. Drift L/2
-! 4. //wire kick
-! 5. Drift L/2
-! 6. Backward rotation -tx, -ty
-! 7. Shift X, Y
-! 8. Shift sigma
-! 9. Backward drift  
-!-----------------------------------------------------------------------
-+if .not.crlibm
-! 1 DRIFT
-      L_DRIFT = -0.5*L -dx*tan(tx) -dy*tan(ty) +                        &
-     &0.5*L*cos(tx)*(1.0-cos(ty))+0.5*L*(1.0-cos(tx))
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(1.0-rvv(j)/ps)*L_DRIFT
-!
-! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (tx, ty)
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgx = 1.0-tan(tx)*(yv(1,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(1,j) = XOLD/(cos(tx)*ktgx)
-      yv(1,j) = yv(1,j)*cos(tx) + ps*sin(tx)
-      xv(2,j) = YOLD + XOLD*tan(tx)/((1.0+dpsv(j))*ps*ktgx)
-      yv(2,j) = yv(2,j)
-      sigmv(j)= sigmv(j) - XOLD*tan(tx)*rvv(j)/(ktgx*ps)
-!     
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgy = 1.0-tan(ty)*(yv(2,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(2,j) = YOLD/(cos(ty)*ktgy)
-      yv(2,j) = yv(2,j)*cos(ty) + ps*sin(ty)
-      xv(1,j) = XOLD + YOLD*tan(ty)/((1.0+dpsv(j))*ps*ktgy)
-      yv(1,j) = yv(1,j)
-      sigmv(j)= sigmv(j) - YOLD*tan(ty)*rvv(j)/(ktgy*ps)
-!
-! 3 DRIFT
-      L_DRIFT = 0.5*L
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(1.0-rvv(j)/ps)*L_DRIFT
-!
-! 4 //WIRE KICK
-      xi = xv(1,j)-dx*cos(tx)
-      yi = xv(2,j)-dy*cos(ty)
-      RTWO = xi**2+yi**2
-      yv(1,j) = yv(1,j)-CUR*NNORM*xi*L*L*0.500/                         &
-     &( (1.0+dpsv(j))*RTWO**(3/2)*sqrt(L*L/(4*RTWO)+1.0))
-      yv(2,j) = yv(2,j)-CUR*NNORM*yi*L*L*0.500/                         &
-     &( (1.0+dpsv(j))*RTWO**(3/2)*sqrt(L*L/(4*RTWO)+1.0))
-!
-! 5 DRIFT
-      L_DRIFT = 0.5*L
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(1.0-rvv(j)/ps)*L_DRIFT
-!
-! 6 SYMPLECTIC BACKWARD ROTATION OF COORDINATE SYSTEM (-ty, tx) 
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgy = 1.0-tan(-ty)*(yv(2,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(2,j) = YOLD/(cos(-ty)*ktgy)
-      yv(2,j) = yv(2,j)*cos(-ty) + ps*sin(-ty)
-      xv(1,j) = XOLD + YOLD*tan(-ty)/((1.0+dpsv(j))*ps*ktgy)
-      yv(1,j) = yv(1,j)
-      sigmv(j)= sigmv(j) - YOLD*tan(-ty)*rvv(j)/(ktgy*ps)
-!
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgx = 1.0-tan(-tx)*(yv(1,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(1,j) = XOLD/(cos(-tx)*ktgx)
-      yv(1,j) = yv(1,j)*cos(-tx) + ps*sin(-tx)
-      xv(2,j) = YOLD + XOLD*tan(-tx)/((1.0+dpsv(j))*ps*ktgx)
-      yv(2,j) = yv(2,j)
-      sigmv(j)= sigmv(j) - XOLD*tan(-tx)*rvv(j)/(ktgx*ps)
-!
-! 7 X and Y SHIFTS
-      xv(1,j) = xv(1,j) -L*sin(tx)
-      xv(2,j) = xv(2,j) -L*cos(tx)*sin(ty) 
-!
-! 8 SIGMA SHIFT
-     L_DRIFT = L*cos(tx)*(1.0-cos(ty)) + L*(1.0-cos(tx))
-     sigmv(j)= sigmv(j) - L_DRIFT
-!
-! 9 DRIFT
-      L_DRIFT = -0.5*L +dx*tan(tx) +dy*tan(ty) +                        &
-     &0.5*L*cos(tx)*(1.0-cos(ty))+0.5*L*(1.0-cos(tx))
-      ps = sqrt((1.0 - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(1.0-rvv(j)/ps)*L_DRIFT
-!
-+ei
-!-----------------------------------------------------------------------
-+if crlibm
-! 1 DRIFT
-      L_DRIFT = -0.5*L -dx*tan_rn(tx) -dy*tan_rn(ty) +                  &
-     &0.5*L*cos_rn(tx)*(one-cos_rn(ty))+0.5*L*(one-cos_rn(tx))
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(one-rvv(j)/ps)*L_DRIFT
-!
-! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (tx, ty)
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgx = one-tan_rn(tx)*(yv(1,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(1,j) = XOLD/(cos_rn(tx)*ktgx)
-      yv(1,j) = yv(1,j)*cos_rn(tx) + ps*sin_rn(tx)
-      xv(2,j) = YOLD + XOLD*tan_rn(tx)/((one+dpsv(j))*ps*ktgx)
-      yv(2,j) = yv(2,j)
-      sigmv(j)= sigmv(j) - XOLD*tan_rn(tx)*rvv(j)/(ktgx*ps)
-!     
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgy = one-tan_rn(ty)*(yv(2,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(2,j) = YOLD/(cos_rn(ty)*ktgy)
-      yv(2,j) = yv(2,j)*cos_rn(ty) + ps*sin_rn(ty)
-      xv(1,j) = XOLD + YOLD*tan_rn(ty)/((one+dpsv(j))*ps*ktgy)
-      yv(1,j) = yv(1,j)
-      sigmv(j)= sigmv(j) - YOLD*tan_rn(ty)*rvv(j)/(ktgy*ps)
-!
-! 3 DRIFT
-      L_DRIFT = 0.5*L
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(one-rvv(j)/ps)*L_DRIFT
-!
-! 4 //WIRE KICK
-      xi = xv(1,j)-dx*cos_rn(tx)
-      yi = xv(2,j)-dy*cos_rn(ty)
-      RTWO = xi**2+yi**2
-      yv(1,j) = yv(1,j)-CUR*NNORM*xi*L*L*0.500/                         &
-     &( (one+dpsv(j))*RTWO**(3/2)*sqrt(L*L/(4*RTWO)+one))
-      yv(2,j) = yv(2,j)-CUR*NNORM*yi*L*L*0.500/                         &
-     &( (one+dpsv(j))*RTWO**(3/2)*sqrt(L*L/(4*RTWO)+one))
-!
-! 5 DRIFT
-      L_DRIFT = 0.5*L
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(one-rvv(j)/ps)*L_DRIFT
-!
-! 6 SYMPLECTIC BACKWARD ROTATION OF COORDINATE SYSTEM (-ty, -tx) 
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgy = one-tan_rn(-ty)*(yv(2,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(2,j) = YOLD/(cos_rn(-ty)*ktgy)
-      yv(2,j) = yv(2,j)*cos_rn(-ty) + ps*sin_rn(-ty)
-      xv(1,j) = XOLD + YOLD*tan_rn(-ty)/((one+dpsv(j))*ps*ktgy)
-      yv(1,j) = yv(1,j)
-      sigmv(j)= sigmv(j) - YOLD*tan_rn(-ty)*rvv(j)/(ktgy*ps)
-!
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 ) 
-      ktgx = one-tan_rn(-tx)*(yv(1,j)/ps)
-      XOLD = xv(1,j)
-      YOLD = xv(2,j)
-      xv(1,j) = XOLD/(cos_rn(-tx)*ktgx)
-      yv(1,j) = yv(1,j)*cos_rn(-tx) + ps*sin_rn(-tx)
-      xv(2,j) = YOLD + XOLD*tan_rn(-tx)/((one+dpsv(j))*ps*ktgx)
-      yv(2,j) = yv(2,j)
-      sigmv(j)= sigmv(j) - XOLD*tan_rn(-tx)*rvv(j)/(ktgx*ps)
-!
-! 7 X and Y SHIFTS
-      xv(1,j) = xv(1,j) -L*sin_rn(tx)
-      xv(2,j) = xv(2,j) -L*cos_rn(tx)*sin_rn(ty) 
-!
-! 8 SIGMA SHIFT
-      L_DRIFT = L*(one-cos_rn(tx))+L*cos_rn(tx)*(one-cos_rn(ty))
-      sigmv(j) = sigmv(j)-L_DRIFT
-!
-! 9 DRIFT
-      L_DRIFT = -0.5*L +dx*tan_rn(tx) +dy*tan_rn(ty) +                  &
-     &0.5*L*cos_rn(tx)*(one-cos_rn(ty))+0.5*L*(one-cos_rn(tx))
-      ps = sqrt((one - yv(1,j)**2) - yv(2,j)**2 )
-      xv(1,j)=xv(1,j)+L_DRIFT*(yv(1,j)/ps)
-      xv(2,j)=xv(2,j)+L_DRIFT*(yv(2,j)/ps)
-      sigmv(j)=sigmv(j)+(one-rvv(j)/ps)*L_DRIFT
-!
-!
-+ei
-!-----------------------------------------------------------------------
-! END OF WIRE MAP
-      ENDIF
-!
+
       xv(1,j) = xv(1,j) * c1e3
       xv(2,j) = xv(2,j) * c1e3
       yv(1,j) = yv(1,j) * c1e3
       yv(2,j) = yv(2,j) * c1e3
-      sigmv(j)= sigmv(j)*c1e3
+
 !      write(*,*) 'End: ',j,xv(1,j),xv(2,j),yv(1,j),                       &
 !     &yv(2,j)
 
@@ -22656,26 +22400,6 @@ C Should get me a NaN
      &'   A T T E N T I O N : BETATRON PHASE CALCULATION MIGHT BE WRONG'&
      &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
       end
-!-----------------------------------------------------------------------
-+cd wirevar
-      integer mindex !the index of the wire model
-      ! 1 - preexisting model
-      ! 2 - asinh potential - complete model
-      ! 3 - asinh potential - Az component (A projected on OZ)
-!-----------------------------------------------------------------------
-! WIRE ELEMENT, TEMP. VARIABLES
-!-----------------------------------------------------------------------
-      double precision ps !pz
-      double precision ktgx, ktgy !ktgx=(1-px*tan(tx)/ps)
-      double precision XOLD, YOLD
-      double precision RTWO, L_DRIFT !R2=x^2+y^2,
-      double precision KT, AT, lpro, SONE, STWO
-      double precision LPRO_, NNORM_
-      ! KT=tan(tx)^2+tan(ty)^2+1; AT=x*tan(tx)+y*tan(ty)
-      ! lpro=0.5*L*cos(tx)*cos(ty)  -projected L for tilted wire
-      double precision NNORM
-      double precision L_DRIFT_
-!-----------------------------------------------------------------------
 +dk wireda
       subroutine wireda
 !     This program sends a particle with coordinates (x,a,y,b,d)
@@ -22706,9 +22430,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer ix,idaa
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,e0f
-!      double precision L_DRIFT_, KTGX_, KTGY_, XOLD_, YOLD_
-+ca wirevar
+      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi
 +ca parpro
 +ca parnum
 +ca common
@@ -22733,23 +22455,6 @@ C Should get me a NaN
 *FOX  D V RE INT L ; D V RE INT ONE ; D V RE INT TWO ;
 *FOX  D V RE INT C1M7 ;
 *FOX  D V RE INT C1E3 ; D V RE INT C1M3 ;
-!-----------------------------------------------------------------------
-*FOX  D V DA INT S_ONE NORD NVAR ; D V DA INT S_TWO NORD NVAR ;
-*FOX  D V DA INT KT_ NORD NVAR   ; D V DA INT AT_ NORD NVAR ;
-*FOX  D V DA INT RTWO_ NORD NVAR ;  
-*FOX  D V RE INT LPRO_ ;
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-*FOX  D V RE INT NNORM_ ;
-!-----------------------------------------------------------------------
-*FOX  D V DA INT KTGX_ NORD NVAR ; D V DA INT KTGY_ NORD NVAR ;
-*FOX  D V DA INT XOLD_ NORD NVAR ; D V DA INT YOLD_ NORD NVAR ;
-*FOX  D V DA INT PS_ NORD NVAR ;
-!*FOX  D V RE INT KTGX_ ; D V RE INT KTGY_ ;
-!*FOX  D V RE INT XOLD_ ; D V RE INT YOLD_ ;
-!*FOX  D V DA INT PS_ NORD NVAR;
-*FOX  D V RE INT L_DRIFT_ ;
-!-----------------------------------------------------------------------
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
@@ -22767,14 +22472,10 @@ C Should get me a NaN
       ty = zrms(ix)
       dx = xpl(ix)
       dy = zpl(ix)
-!      embl = ek(ix)
-      mindex = int(ek(ix))
+      embl = ek(ix)
       l = wirel(ix)
-      embl = l*2000.0 ! embedding drift for model No 1
       cur = ed(ix)
-      NNORM_=1.0E-7/CHI
-!      
-      IF (mindex.eq.1) THEN
+
 +if crlibm
 !hr05 leff = embl/cos_rn(tx)/cos_rn(ty)
       leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr05
@@ -22811,17 +22512,13 @@ C Should get me a NaN
 +if .not.crlibm
       lin= lin*cos(ty)+dy  *sin(ty)
 +ei
-      ELSE
-      tx = tx*(pi/180.0d0)
-      ty = ty*(pi/180.0d0)
-      ENDIF
+
 
 *FOX  XX(1)=XX(1)*C1M3;
 *FOX  XX(2)=XX(2)*C1M3;
 *FOX  YY(1)=YY(1)*C1M3;
 *FOX  YY(2)=YY(2)*C1M3;
-*FOX  SIGMDA=SIGMDA*C1M3;
-      IF (mindex.eq.1) THEN
+
 !      CALL DRIFT(-EMBL/2)
 *FOX  XX(1)=XX(1)-EMBL/TWO*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
@@ -22886,143 +22583,11 @@ C Should get me a NaN
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
 *FOX  XX(2)=XX(2)-EMBL/TWO*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-!
-      ELSEIF (mindex.eq.3) THEN
-!-----------------------------------------------------------------------
-! MAP FOR TILTED STRAIGHT WIRE
-! TRANSVERSE KICK ONLY (Az)
-! THE MAP:
-! 1. Kick 
-!-----------------------------------------------------------------------
-! 1 KICK
-*FOX  XI=XX(1)-DX;
-*FOX  YI=XX(2)-DY;
-*FOX  RTWO_=XI*XI+YI*YI;
-*FOX  LPRO_=0.5*L*COS(TX)*COS(TY);
-*FOX  AT_=XI*TAN(TX)+YI*TAN(TY);
-*FOX  KT_=TAN(TX)*TAN(TX)+TAN(TY)*TAN(TY)+ONE;
-*FOX  S_ONE=SQRT(KT_)*(KT_*LPRO_-AT_)/    
-*FOX  SQRT((KT_*LPRO_-AT_)*(KT_*LPRO_-AT_)*(KT_*RTWO_-AT_*AT_)*
-*FOX  (KT_*RTWO_-AT_*AT_)+
-*FOX  (KT_*RTWO_-AT_*AT_)*(KT_*RTWO_-AT_*AT_)*(KT_*RTWO_-AT_*AT_));
-*FOX  S_TWO = SQRT(KT_)*(-KT_*LPRO_-AT_)/     
-*FOX  SQRT((-KT_*LPRO_-AT_)*(-KT_*LPRO_-AT_)*(KT_*RTWO_-AT_*AT_)*
-*FOX  (KT_*RTWO_-AT_*AT_)+
-*FOX  (KT_*RTWO_-AT_*AT_)*(KT_*RTWO_-AT_*AT_)*(KT_*RTWO_-AT_*AT_));
-*FOX  YY(1)=YY(1)-CUR*NNORM_*XI*L*S_ONE+CUR*NNORM_*XI*L*S_TWO;
-*FOX  YY(2)=YY(2)-CUR*NNORM_*YI*L*S_ONE+CUR*NNORM_*YI*L*S_TWO;
-!-----------------------------------------------------------------------
-      ELSEIF (mindex.eq.2) THEN
-!-----------------------------------------------------------------------
-! COMPLETE MAP FOR TILTED STRAIGHT WIRE
-! The MAP:
-! 1. Backward drift 
-! 2. Rotation TX, TY
-! 3. Drift L/2
-! 4. //wire kick
-! 5. Drift L/2
-! 6. Backward rotation -TY, -TX 
-! 7. Shift X, Y
-! 8. Shift SIGMDA
-! 9. Backward drift  
-!-----------------------------------------------------------------------
-! 1 DRIFT
-*FOX  L_DRIFT_=-0.5*L-DX*TAN(TX)-DY*TAN(TY)+
-*FOX  0.5*L*COS(TX)*(ONE-COS(TY))+0.5*L*(ONE-COS(TX));
-*FOX  PS_=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2));
-*FOX  XX(1)=XX(1)+L_DRIFT_*(YY(1)/PS_);
-*FOX  XX(2)=XX(2)+L_DRIFT_*(YY(2)/PS_);
-*FOX  SIGMDA=SIGMDA+(ONE-RV*(ONE+DPDA)/PS_)*L_DRIFT_;
-!
-! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (TX, TY)
-*FOX  PS_= SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)); 
-*FOX  KTGX_=ONE-TAN(TX)*(YY(1)/PS_);
-*FOX  XOLD_=XX(1);
-*FOX  YOLD_=XX(2);
-*FOX  XX(1)=XOLD_/(COS(TX)*KTGX_);
-*FOX  YY(1)=YY(1)*COS(TX) + PS_*SIN(TX);
-*FOX  XX(2)=YOLD_+XOLD_*TAN(TX)/(PS_*KTGX_);
-*FOX  YY(2)=YY(2);
-*FOX  SIGMDA=SIGMDA-XOLD_*TAN(TX)*RV*(ONE+DPDA)/(KTGX_*PS_);
-!     
-*FOX  PS_=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)); 
-*FOX  KTGY_=ONE-TAN(TY)*(YY(2)/PS_);
-*FOX  XOLD_=XX(1);
-*FOX  YOLD_=XX(2);
-*FOX  XX(2)=YOLD_/(COS(TY)*KTGY_);
-*FOX  YY(2)=YY(2)*COS(TY)+PS_*SIN(TY);
-*FOX  XX(1)=XOLD_+YOLD_*TAN(TY)/(PS_*KTGY_);
-*FOX  YY(1)=YY(1);
-*FOX  SIGMDA=SIGMDA-YOLD_*TAN(TY)*RV*(ONE+DPDA)/(KTGY_*PS_);
-!
-! 3 DRIFT
-*FOX  L_DRIFT_=0.5*L;
-*FOX  PS_=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2));
-*FOX  XX(1)=XX(1)+L_DRIFT_*(YY(1)/PS_);
-*FOX  XX(2)=XX(2)+L_DRIFT_*(YY(2)/PS_);
-*FOX  SIGMDA=SIGMDA+(ONE-RV*(ONE+DPDA)/PS_)*L_DRIFT_;
-!
-! 4 //WIRE KICK
-*FOX  XI=XX(1)-DX*COS(TX);
-*FOX  YI=XX(2)-DY*COS(TY);
-*FOX  RTWO_=XI*XI+YI*YI;
-*FOX  YY(1)=YY(1)-CUR*NNORM_*XI*L*L*0.500/
-*FOX  (SQRT(L*L*RTWO_*RTWO_)*0.250+RTWO_*RTWO_*RTWO_);
-*FOX  YY(2)=YY(2)-CUR*NNORM_*YI*L*L*0.500/
-*FOX  (SQRT(L*L*RTWO_*RTWO_)*0.250+RTWO_*RTWO_*RTWO_);
-!
-! 5 DRIFT
-*FOX  L_DRIFT_=0.5*L;
-*FOX  PS_=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2));
-*FOX  XX(1)=XX(1)+L_DRIFT_*(YY(1)/PS_);
-*FOX  XX(2)=XX(2)+L_DRIFT_*(YY(2)/PS_);
-*FOX  SIGMDA=SIGMDA+(ONE-RV*(ONE+DPDA)/PS_)*L_DRIFT_;
-!
-! 6 SYMPLECTIC BACKWARD ROTATION OF COORDINATE SYSTEM (-TY, -TX) 
-*FOX  PS_=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)); 
-*FOX  KTGY_=ONE-TAN(-TY)*(YY(2)/PS_);
-*FOX  XOLD_=XX(1);
-*FOX  YOLD_=XX(2);
-*FOX  XX(2)=YOLD_/(COS(-TY)*KTGY_);
-*FOX  YY(2)=YY(2)*COS(-TY)+PS_*SIN(-TY);
-*FOX  XX(1)=XOLD_+YOLD_*TAN(-TY)/(PS_*KTGY_);
-*FOX  YY(1)=YY(1);
-*FOX  SIGMDA=SIGMDA-YOLD_*TAN(-TY)*RV*(ONE+DPDA)/(KTGY_*PS_);
-!
-*FOX  PS_=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)); 
-*FOX  KTGX_=ONE-TAN(-TX)*(YY(1)/PS_);
-*FOX  XOLD_=XX(1);
-*FOX  YOLD_=XX(2);
-*FOX  XX(1)=XOLD_/(COS(-TX)*KTGX_);
-*FOX  YY(1)=YY(1)*COS(-TX)+PS_*SIN(-TX);
-*FOX  XX(2)=YOLD_+XOLD_*TAN(-TX)/(PS_*KTGX_);
-*FOX  YY(2)=YY(2);
-*FOX  SIGMDA=SIGMDA-XOLD_*TAN(-TX)*RV*(ONE+DPDA)/(KTGX_*PS_);
-!
-! 7 X and Y SHIFTS
-*FOX  XX(1)=XX(1)-L*SIN(TX);
-*FOX  XX(2)=XX(2)-L*COS(TX)*SIN(TY);
-!
-! 8 SIGMDA SHIFT
-*FOX  L_DRIFT_=L*COS(TX)*(ONE-COS(TY))+L*(ONE-COS(TX));
-*FOX  SIGMDA=SIGMDA-L_DRIFT_;
-!
-! 9 DRIFT
-*FOX  L_DRIFT_=-0.5*L+DX*TAN(TX)+DY*TAN(TY)+                        
-*FOX  0.5*L*COS(TX)*(ONE-COS(TY))+0.5*L*(ONE-COS(TX));
-*FOX  PS_=SQRT((ONE+DPDA)*(ONE+DPDA) - YY(1)*YY(1) - YY(2)*YY(2) );
-*FOX  XX(1)=XX(1)+L_DRIFT_*(YY(1)/PS_);
-*FOX  XX(2)=XX(2)+L_DRIFT_*(YY(2)/PS_);
-*FOX  SIGMDA=SIGMDA+(ONE-RV*(ONE+DPDA)/PS_)*L_DRIFT_;
-!
-      ENDIF
-! END OF THE WIRE DA MAP
-!-----------------------------------------------------------------------
+
 *FOX  XX(1)=XX(1)*C1E3;
 *FOX  XX(2)=XX(2)*C1E3;
 *FOX  YY(1)=YY(1)*C1E3;
 *FOX  YY(2)=YY(2)*C1E3;
-*FOX  SIGMDA=SIGMDA*C1E3;
 
 !     DADAL AUTOMATIC INCLUSION
       end
@@ -27712,7 +27277,6 @@ C Should get me a NaN
      &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
-+ca wirevar
 +if time
       double precision expt
 +ei
@@ -28218,7 +27782,6 @@ C Should get me a NaN
      &crabamp2,crabamp3,crabamp4
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
-+ca wirevar
 +if time
       double precision expt
 +ei
@@ -32222,7 +31785,6 @@ C Should get me a NaN
      &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
-+ca wirevar
 +if time
       double precision expt
 +ei
@@ -33838,7 +33400,6 @@ C Should get me a NaN
      &acdipamp1,crabamp,crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
-+ca wirevar
 +if time
       double precision expt
 +ei
@@ -34349,7 +33910,6 @@ C Should get me a NaN
      &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
-+ca wirevar
 +if time
       double precision expt
 +ei
@@ -35013,7 +34573,6 @@ C Should get me a NaN
      &acdipamp1, crabamp, crabfreq
       double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
       logical llost
-+ca wirevar
 +if time
       double precision expt
 +ei
