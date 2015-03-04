@@ -29942,7 +29942,7 @@ C Should get me a NaN
        hdfyp=rcyp0(j)*1d3+torbyp(ie)
        hdfdee=(ejv(j)-myenom)/myenom
        hdftyp=secondary(j)+tertiary(j)+other(j)
-       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+       CALL APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
      &                    hdfdee,hdftyp)
 +ei
 +if .not.hdf5   
@@ -64624,7 +64624,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
           data_dims(2)=mod(h5dims(2)-1,incr)+1
           offset(1)=0
           offset(2)=h5dims(2)-data_dims(2)
-
           !
           ! Select hyperslab in the dataset.
           !
@@ -64632,7 +64631,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
      &                               offset, data_dims , h5error)
           CALL h5screate_simple_f(h5rank, data_dims, memspace, h5error) 
 +if debug
-          print *,"DBG HDFw",h5dims,"off",offset,"ddims",data_dims
+      write (*,*) "DBG HDFw",h5dims,"off",offset,"ddims",data_dims
 +ei
           CALL H5dwrite_f(h5set_id, H5T_NATIVE_REAL, data_in2,          &
             data_dims, h5error,file_space_id = h5space_id, mem_space_id &
@@ -64652,66 +64651,52 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         INTEGER(HID_T) :: attr_id       ! Attribute identifier 
         INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier 
         INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier 
-        INTEGER(HSIZE_T) :: adims = 1 ! Attribute dimension
-        INTEGER     ::   arank = 1                      ! Attribure rank
-        INTEGER(SIZE_T) :: attrlen    ! Length of the attribute string
+        INTEGER(HSIZE_T) :: adims = 1   ! Attribute dimension
+        INTEGER     ::   arank = 1      ! Attribure rank
+        INTEGER(SIZE_T) :: attrlen      ! Length of the attribute string
 
-        CHARACTER*80 ::  attr_data  ! Attribute data
+        CHARACTER*80 ::  attr_data      ! Attribute data
         attr_data = "1=pid 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type"
+        attrlen = 80
         h5dims=(/9,0/)
-          !
+
           !Initialize FORTRAN predifined datatypes
-          !
           CALL h5open_f(h5error) 
 
           CALL h5fcreate_f(HFNAME, H5F_ACC_TRUNC_F, hfile_id, h5error)
-
-
-          !
+          
           !Create the data space with unlimited length.
-          !
-          maxdims = (/9, H5S_UNLIMITED_F/)
+          maxdims = (/INT(9,HSIZE_T), H5S_UNLIMITED_F/)
           CALL h5screate_simple_f(h5rank, h5dims, h5space_id, &
             h5error, maxdims)
-          !
           !Modify dataset creation properties, i.e. enable chunking
-          !
           CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, h5error)
           CALL h5pset_deflate_f (crp_list, 4, h5error)
-           
+          
           data_dims=(/9,incr/)
           CALL h5pset_chunk_f(crp_list, h5rank, data_dims, h5error)
           
-          !
           !Create a dataset with 9Xunlimited dimensions using cparms creation properties .
-          !
           CALL h5dcreate_f(hfile_id, h5setname, H5T_NATIVE_REAL, h5space_id, &
                            h5set_id, h5error, crp_list )
 
-          !
           ! Create datatype for the attribute.
-          !
           CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, h5error)
           CALL h5tset_size_f(atype_id, attrlen, h5error)
-          
-          !
+
+          !Create a dataspace for the attribute
+          CALL h5screate_f(H5S_SCALAR_F,aspace_id,h5error)
+
           ! Create dataset attribute.
-          !
           CALL h5acreate_f(h5set_id, aname, atype_id, aspace_id, &
                            attr_id, h5error)
           
-          !
           ! Write the attribute data.
-          !
           data_dims(1) = 1
           CALL h5awrite_f(attr_id, atype_id, attr_data, data_dims, h5error)
           data_dims(1) = 9
-          !
           ! Close the attribute. 
-          !
           CALL h5aclose_f(attr_id, h5error)
-
-
     
       END SUBROUTINE INITHDF5
 
@@ -64719,37 +64704,45 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
        USE SIXTRACKHDF5
        INTEGER turn,pid,typ
        DOUBLE PRECISION x,xp,y,yp,dee,s
-       
-          h5dims(2)=h5dims(2)+1
+
 
 +if debug
-       print *, "DBG HDF",mod(h5dims(2),incr),h5dims(2),incr
+      write (*,*) "DBG HDF app: using position mod(h5dims(2),incr)", &
+      & mod(h5dims(2),incr)
 +ei
-       data_in2(1,mod(h5dims(2),incr)+1)=pid
-       data_in2(2,mod(h5dims(2),incr)+1)=turn
-       data_in2(3,mod(h5dims(2),incr)+1)=s
-       data_in2(4,mod(h5dims(2),incr)+1)=x
-       data_in2(5,mod(h5dims(2),incr)+1)=xp
-       data_in2(6,mod(h5dims(2),incr)+1)=y
-       data_in2(7,mod(h5dims(2),incr)+1)=yp
-       data_in2(8,mod(h5dims(2),incr)+1)=dee
-       data_in2(9,mod(h5dims(2),incr)+1)=typ
+       data_in2(1,mod(h5dims(2),incr) + 1)=pid
+       data_in2(2,mod(h5dims(2),incr) + 1)=turn
+       data_in2(3,mod(h5dims(2),incr) + 1)=s
+       data_in2(4,mod(h5dims(2),incr) + 1)=x
+       data_in2(5,mod(h5dims(2),incr) + 1)=xp
+       data_in2(6,mod(h5dims(2),incr) + 1)=y
+       data_in2(7,mod(h5dims(2),incr) + 1)=yp
+       data_in2(8,mod(h5dims(2),incr) + 1)=dee
+       data_in2(9,mod(h5dims(2),incr) + 1)=typ
 
+       h5dims(2)=h5dims(2)+1
++if debug
+       write (*,*) "DBG HDF app: h5dims(2) now,", h5dims(2)		
++ei
 
++if debug
+!rkwee
+       write (*,*) "DBG HDF app: data_in2[-1]", pid, turn, &
+       & s, x, xp, y, yp, dee, typ
++ei
           !
           !Extend the dataset. Dataset becomes 10 x 3.
           !
           if (mod(h5dims(2),incr).eq.0) then
-              call WRITETOFILE()
+              CALL WRITETOFILE()
           endif
       END SUBROUTINE APPENDREADING
       
       SUBROUTINE CLOSEHDF5
        USE SIXTRACKHDF5
-
         
           if (mod(h5dims(2),incr).ne.0) then
-              call WRITETOFILE()
+              CALL WRITETOFILE()
           endif
 
        !
