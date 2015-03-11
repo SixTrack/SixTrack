@@ -250,7 +250,7 @@ ifeq ($(OS),Windows_NT)
   # path to BOINC Library
   BOINC           := $(Windows_BOINC_LIB_PATH)
   O_FILES         := $(patsubst %.o,%$(objects),$(O_FILES))
-  WIN_ARCH        := /arch:$(call if_any,sse2 sse3,$(ENABLED),-m$(filter sse2 sse3,$(ENABLED)),IA32)
+  WIN_ARCH        := /arch:$(call if_any,sse2 sse3,$(ENABLED),$(filter sse2 sse3,$(ENABLED)),IA32)
   WIN_IFORT       := /fp:source /fp:strict /fp:except-
   WIN_OPTIONS     := /O2 /MT /names:lowercase /assume:underscore
   ICL_WIN_OPTIONS := /I. /D_CRT_SECURE_NO_WARNINGS /Qstd=c99
