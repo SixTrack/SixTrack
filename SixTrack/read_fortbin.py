@@ -44,7 +44,7 @@ qy         1d Vertical Tune
 qs         1d Longitudinal Tune
 closorb    6d Closed Orbit vector
 dispvec    6d Dispersion vector
-rmatrix   36d Six-dimensional transfer map
+tamatrix   36d Six-dimensional transfer map
 mess1     50d 50 additional parameter
 mess2      1I ...
 """
@@ -118,6 +118,7 @@ if __name__=='__main__':
   print basedir
   head,part=read_allfortbin(basedir)
 
+
   #pdist,x,xp,y,yp,sigma,delta,energy=part[1].T
 
   #f=np.linspace(0,1,len(x))
@@ -127,9 +128,17 @@ if __name__=='__main__':
   #plot(f,abs(tunx),label='qx')
   #plot(f,abs(tuny),label='qy')
 
-
-
-
+#ta=array(head['tamatrix']).reshape(6,6)
+#betxI=ta[0,0]**2+ta[0,1]**2
+#
+#J=array([[ 0.,  1.,  0.,  0.,  0.,  0.],
+#         [-1.,  0.,  0.,  0.,  0.,  0.],
+#         [ 0.,  0.,  0.,  1.,  0.,  0.],
+#         [ 0.,  0., -1.,  0.,  0.,  0.],
+#         [ 0.,  0.,  0.,  0.,  0.,  1.],
+#         [ 0.,  0.,  0.,  0., -1.,  0.]])
+#
+#dot(ta.T,dot(J,ta))
 
 
 
