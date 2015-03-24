@@ -477,6 +477,12 @@ then
     values[12]=true
     echo "Option Checkpoint/Restart turned ON"
 fi
+if test "$collimat" = "" -a "$cr" = ""
+then
+    echo "Options collimat and cr are incompatible - please use only one."
+    exit 1
+fi
+
 # Set up compiler
 if test "$nagfor" = ""
 then
@@ -752,6 +758,20 @@ fi
 ename=${ename}_$myopt
 export ename
 
+#Test that the sixtrack.s is sane
+echo ""
+echo "Running 'gawk -f beauty/count.awk sixtrack.s' to check sanity of astuce directives in sixtrack.s:"
+if ! gawk -f beauty/count.awk sixtrack.s; then
+    echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in sixtrack.s \e[49m\e[0m"
+    echo "This most likely means that you added or removed a +if or +ei,"
+    echo " but forgot about its partner."
+    echo "You may also just be missing the command 'gawk' (GNU AWK),"
+    echo " needed to run this script."
+else
+    echo "--> count.awk completed without errors."
+fi
+
+#Print final message before actually starting the build
 echo ""
 echo "We are about to build $ename"
 echo "last modified on $moddate"
@@ -789,7 +809,7 @@ else
     export FORS='track sixve sixvefox dabnews lielib beamgas'
 fi
 rm -f *.ast
-for i in $FORS 
+for i in $FORS
 do
     cp ../ast_mask/$i.ast .
 done
@@ -1064,7 +1084,7 @@ show_options
 echo ""
 if test -s "$ename"
 then
-  echo "It appears to have completed successfully."
+  echo -e "\e[92mIt appears to have completed successfully.\e[39m"
   # and a link for Frank
   cd ..
   if test "$da" != ""
@@ -1075,7 +1095,7 @@ then
   fi
   cd $ename
 else
-  echo "It appears to have failed!!!"
+  echo -e "\e[91mIt appears to have failed!!!\e[39m"
   exit 2
 fi
 # Note that selecting boinc has forced cpss
