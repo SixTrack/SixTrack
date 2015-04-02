@@ -53,6 +53,7 @@ BEGIN {
   }
   if (count != 0) {
     print ("Error!!! Count=" count)
+    exit 1
   }
   print ("Maximum nesting level=" mcount)
 }
