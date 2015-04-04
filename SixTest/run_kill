@@ -1,0 +1,55 @@
+#!/bin/sh
+# Run all the test in $TESTS using $EXECS
+# EXECS should be a list of full paths to SixTrack executables
+# a platform may be $1 but is set to hostname anyway
+
+set -x
+
+# set BIN for comparisons
+export BIN=`pwd`/bin
+
+if test "$TESTS" = ""
+then
+  echo "No test specified in variable \$TESTS=\"$TESTS\" !!!"
+  exit 1
+fi
+if test "$EXECS" = ""
+then
+  echo "No SixTrack executable(s) specified in \$EXECS=\"$EXECS\" !!!"
+  echo "Please give full path to executable"
+  exit 2
+fi
+for EXEC in $EXECS
+do
+  echo $EXEC | egrep '_cr_|_boinc_|_cpss_|_lin|pni|win32|win64' > /dev/null 2>&1
+  if test $? -ne 0
+  then
+     echo "$EXEC is NOT a Checkpoint/Restart version!!!"
+  else
+    sixdir=`dirname $EXEC`
+    sixv=`basename $EXEC`
+    if test ! -x $EXEC
+    then
+      echo " $EXEC is not an executable file !!!"
+    else
+      dir=${BATCH}run_kill_$sixv
+      if test "$1" != ""
+      then
+        dir=${dir}_$1
+      else
+        hname=`hostname`
+        hname=`echo $hname | cut -d"." -f1`
+        dir=${dir}_$hname
+      fi
+      dir=${dir}_$$
+      mkdir -p $dir
+      cd $dir
+      rm -rf *
+      echo "Running      $sixv "
+      echo "checkpoint/restart version with random kill/restart"
+      echo "in directory $dir"
+      ../try_kill $sixdir $sixv $dir
+      cd ..
+    fi
+  fi
+done

@@ -1,0 +1,23 @@
+#!/bin/sh
+if test $# -eq 0 -o $# -gt 2
+then
+  echo "Please give a directory/version and optional [platform]"
+  echo "e.g. $SH0/SixTrack4300_crlibm_bnl_ifort_boinc_debug_O3/\\"
+  echo "SixTrack4300_crlibm_bnl_ifort_boinc_debug_O3 pcapi98"
+  exit 1
+fi
+sixdir=`dirname $1`
+sixv=`basename $1`
+dir=bnl_kill_$sixv
+if test "$2" != ""
+then
+  dir=${dir}_$2
+else
+  hname=`hostname`
+  hname=`echo $hname | cut -d"." -f1`
+  dir=${dir}_$hname
+fi
+mkdir -p $dir
+cd $dir
+rm -rf *
+../bnl_kill $sixdir $sixv $dir > try.out 2>&1
