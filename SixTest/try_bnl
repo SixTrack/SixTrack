@@ -1,0 +1,95 @@
+#!/bin/sh
+if test $# -ne 2
+then
+  echo "try_bnl called without 2 parameters!!!"
+  exit 1
+fi
+set -x
+#
+# use real $SS for now
+sixbin=$SS
+SS=$sixbin
+sixv=$1
+dir=$2
+#
+BOINC=""
+echo $sixv | grep 'boinc' >/dev/null
+if test $? -eq 0
+then
+  BOINC="BOINC"
+fi
+CPSS=""
+echo $sixv | grep 'cpss' >/dev/null
+if test $? -eq 0
+then
+  CPSS="CPSS"
+fi
+date
+echo "=== `hostname` ==="
+egrep 'model name' /proc/cpuinfo
+egrep 'cpu MHz|cache size' /proc/cpuinfo
+esize=`size -d $SS/$sixv/$sixv|sed -e'/dec/d' -e's/\t/ /g' -e's/  */ /'|cut -d" " -f1-4`
+echo ""
+echo "Size of $sixv $esize"
+turns=10000
+nwri=`expr $turns / 10`
+n=0
+for i in results
+do
+  while test "$n" -le 31
+  do
+    rm -f fort.* *.dat dump
+    cp ../data/* .
+    cp beambeamdist.dat fort.54
+    n=`expr $n + 1`
+    sed -e'1,$s/%napx%/'$n'/g' \
+        -e'1,$s/%turns%/'$turns'/g' \
+        -e'1,$s/%nwri%/'$nwri'/g' \
+    fort.3.bnl > fort.3
+    echo "===================================="
+    echo "Testing CASE $i, napx=$n"
+    echo "===================================="
+    echo "=== $sixv ==="
+    date
+    if test "$BOINC" = "" -a "$CPSS" = ""
+    then
+      time $SS/$sixv/$sixv > fort.6
+      date
+    else
+      time $SS/$sixv/$sixv -Wl,-p6,-m6
+      date
+      crsize=`ls -l fort.95 | cut -d" " -f6`
+      echo "napx=$n Size of C/R files (2), each of $crsize bytes"
+    fi
+    egrep 'Computing Time|Total Time' fort.6
+  done
+# and keep the results from the last time
+  if test "$CPSS" != ""
+  then
+    cp fort.52 $i/beambeam-output.dat.$dir
+    cp fort.53 $i/beambeam-lostID.dat.$dir
+    cp fort.51 $i/SixTwiss.dat.$dir
+    cp fort.97 $i/checkdist.dat.$dir
+    cp fort.10 $i/title.dat.$dir
+  elif test "$BOINC" != "" 
+  then
+    egrep 'title     ' fort.10 > tmp$$
+    sed -e's/title     //' tmp$$ > $i/title.dat.$dir
+    egrep 'output    ' fort.10 > tmp$$
+    sed -e's/output    //' tmp$$ > $i/beambeam-output.dat.$dir
+    egrep 'lostID    ' fort.10 tmp$$ > tmp$$
+    sed -e's/lostID    //' tmp$$ > $i/beambeam-lostID.dat.$dir
+    egrep 'checkdist ' fort.10 > tmp$$
+    sed -e's/checkdist //' tmp$$ > $i/checkdist.dat.$dir
+    egrep 'SixTwiss  ' fort.10 > tmp$$
+    sed -e's/SixTwiss  //' tmp$$ > $i/SixTwiss.dat.$dir
+    rm tmp$$
+  else
+    cp beambeam-output.dat $i/beambeam-output.dat.$dir
+    cp beambeam-lostID.dat $i/beambeam-lostID.dat.$dir
+    cp SixTwiss.dat $i/SixTwiss.dat.$dir
+    cp checkdist.dat $i/checkdist.dat.$dir
+    cp fort.10 $i/title.dat.$dir
+  fi
+done
+rm -f fort.* *.dat dump

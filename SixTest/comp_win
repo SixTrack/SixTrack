@@ -1,0 +1,8 @@
+#!/bin/sh
+for script in `cat allwin`
+do
+  echo "================"
+  echo "$script"
+  echo "================"
+  cp $script windows/$script
+done

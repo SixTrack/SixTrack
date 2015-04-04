@@ -1,0 +1,13 @@
+#!/bin/sh
+set -x
+for i in graphics
+do
+  echo "====================================" >> try.out
+  echo "Testing Graphics CASE $i" >> try.out
+  echo "====================================" >> try.out
+  for j in 2 3 8 16
+  do
+    cp $i/fort.$j.$i fort.$j
+  done
+  time $NAP/boincgraphics/sixtrackcrboincgraphics -Wl,-p6,-m6
+done

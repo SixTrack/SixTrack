@@ -1,0 +1,7 @@
+#!/bin/sh
+# Read and compare two fort.10s to stdout
+# old in fort.20 and new in fort.21
+stat=0
+$BIN/checkf10
+stat=$?
+exit $stat
