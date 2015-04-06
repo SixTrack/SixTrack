@@ -791,8 +791,8 @@ echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
 generate_makefile Makefile.template
-make astuce
-make dafor
+make -f Makefile astuce
+make -f Makefile dafor
 # Create and INITIALISE the build directory
 mkdir -p "$ename"
 cd "$ename"
@@ -976,8 +976,8 @@ then
        -e 's/%%FCF%%/'"${FCF}"'/g' \
     Makefile.template > Makefile
   echo "Making crlibm." 
-  make clean
-  make crlibm.a
+  make -f Makefile clean
+  make -f Makefile crlibm.a
   if test $? -ne 0
   then
     echo "Failed to make crlibm!!! Please inform McIntosh."
@@ -995,7 +995,7 @@ then
   generate_makefile ../Makefile.template Makefile
   # remove an existing executable
   rm -f $ename
-  make $ename
+  make -f Makefile $ename
 else
 # and now fix up the Makefile.boinc.template
 # for the build (local) using /afs/cern/.ch/project/sixtrack/boinc_linux32
@@ -1071,7 +1071,7 @@ else
   # and (at last) do a make API or not
   if test "$api" != ""
   then
-    make $ename
+    make -f Makefile $ename
   else
     make -f Makefile.boinc
   fi
