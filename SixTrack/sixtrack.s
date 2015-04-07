@@ -18018,8 +18018,7 @@ cc2008
          write(ch1,"(a5,I0)") "fort.", i2
       else if (getfields_nfields .eq. 5) then
          !Given fname
-         ch1(1:getfields_lfields(5)) = 
-     &        getfields_fields(5)(1:getfields_lfields(5))
+         ch1 = getfields_fields(5)(1:getfields_lfields(5))
       else
          !ERROR
          call prror(-1)
