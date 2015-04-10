@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.20'/
-      data moddate /'13.03.2015'/
+      data moddate /'10.04.2015'/
 +cd license
 !!SixTrack
 !!
@@ -44292,21 +44292,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       sets_dynk(nsets_dynk,1) =
      &     dynk_findFUNindex( getfields_fields(4)
      &     (1:getfields_lfields(4)), 1 ) ! function_name -> function index
-      if ( sets_dynk(nsets_dynk,1) .eq. -1 ) then
-+if cr
-         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "specified function ",
-     &        "'",getfields_fields(4)
-     &        (1:getfields_lfields(4)),"' not found."
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "specified function ",
-     &        "'",getfields_fields(4)
-     &        (1:getfields_lfields(4)),"' not found."
-+ei
-         call prror(51)
-      endif
       read(getfields_fields(5)(1:getfields_lfields(5)),*)
      &     sets_dynk(nsets_dynk,2) ! startTurn
       read(getfields_fields(6)(1:getfields_lfields(6)),*)
@@ -44341,6 +44326,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
          call prror(51)
       endif
+
       if (getfields_lfields(2) .gt. 16) then
          ! length of elements in BEZ array is 16
 +if cr
@@ -44363,7 +44349,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
          call prror(51)
       end if
-      if (sets_dynk(nsets_dynk,2) .gt. sets_dynk(nsets_dynk,3) ) then
+      
+      if (  (sets_dynk(nsets_dynk,3) .ne. -1) .and. !Not the special case
+     &      (sets_dynk(nsets_dynk,2) .gt. sets_dynk(nsets_dynk,3)) )then
 +if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
@@ -44384,6 +44372,33 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
          call prror(51)
       end if
+      
+      if ( (sets_dynk(nsets_dynk,2) .le. 0 ) .or.
+     &     (sets_dynk(nsets_dynk,3) .lt. -1) .or. 
+     &     (sets_dynk(nsets_dynk,3) .eq. 0 )     ) then
++if cr
+         write (lout,*) "*************************************"
+         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+         write (lout,*) "SET got turn number <= 0 "
+         write (lout,*) "(not last = -1 meaning infinity)"
+         write (lout,*) "first=",sets_dynk(nsets_dynk,2)
+         write (lout,*) "last =",sets_dynk(nsets_dynk,3)
+         write (lout,*) "SET #", nsets_dynk
+         write (lout,*) "*************************************"
++ei
++if .not.cr
+         write (*,*)    "*************************************"
+         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+         write (*,*)    "SET got turn number <= 0 "
+         write (*,*)    "(not last = -1 meaning infinity)"
+         write (*,*)    "first=",sets_dynk(nsets_dynk,2)
+         write (*,*)    "last =",sets_dynk(nsets_dynk,3)
+         write (*,*)    "SET #", nsets_dynk
+         write (*,*)    "*************************************"
++ei
+         call prror(51)
+      end if
+
       end subroutine
 
       integer function dynk_findFUNindex(funName, startfrom)
@@ -44461,6 +44476,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer dynk_findFUNindex , dynk_findSETindex
 
       integer ii, jj
+      integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
       logical sane
       sane = .true.
       
@@ -44481,40 +44497,92 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       end do
       
       ! Check that no SETS work on same elem/att at same time
+      biggestTurn = 1
+      do ii=1, nsets_dynk
+         if (sets_dynk(ii,3) .gt. biggestTurn) then
+            biggestTurn = sets_dynk(ii,3)
+         endif
+      end do
+      biggestTurn = biggestTurn+1 !Make sure it is unique
+      if (biggestTurn .le. 0) then
+         !In case of integer overflow
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "FATAL ERROR: Integer overflow in dynk_inputsanitycheck!"
+         call prror(-1)
+      endif
+      !Do the search!
       do ii=1, nsets_dynk-1
+         if (sets_dynk(ii,3).eq.-1) sets_dynk(ii,3) = biggestTurn
+!         write(*,*) "DBG: ii=",ii,
+!     &           csets_dynk(ii,1)," ", csets_dynk(ii,2)
+!         write(*,*)"DBG:", sets_dynk(ii,2),sets_dynk(ii,3)
+
          jj = ii
          do while (.true.)
+            !Only check SETs affecting the same elem/att
             jj = dynk_findSETindex(csets_dynk(ii,1),
      &                             csets_dynk(ii,2),jj+1)
+
+!            write(*,*)" DBG: jj=",jj, 
+!     &           csets_dynk(jj,1)," ", csets_dynk(jj,2)
+
             if (jj .eq. -1) exit ! next outer loop
+
+            if (sets_dynk(jj,3).eq.-1) sets_dynk(jj,3) = biggestTurn
+
+!            write(*,*)" DBG:", sets_dynk(jj,2),sets_dynk(jj,3)
+
             if ( sets_dynk(jj,2) .le. sets_dynk(ii,2) .and.
      &           sets_dynk(jj,3) .ge. sets_dynk(ii,2) ) then
                sane = .false.
 +if cr
-               write (lout,*)
+               write (lout,"(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
 +ei
 +if .not.cr
-               write (*,*) 
+               write (*,   "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
 +ei
-     &              "DYNK> Insane: Lower edge of SET #", jj,
-     &         "=", sets_dynk(jj,2)," <= lower edge of SET #",ii,
-     &         "=", sets_dynk(ii,2),"; and also higer edge of SET #",jj,
-     &         "=", sets_dynk(jj,3)," >= lower edge of SET #", ii
+     &              " DYNK> Insane: Lower edge of SET #", jj,
+     &        " =", sets_dynk(jj,2)," <= lower edge of SET #",ii,
+     &        " =", sets_dynk(ii,2),"; and also higer edge of SET #",jj,
+     &        " =", sets_dynk(jj,3)," >= lower edge of SET #", ii
+
             else if (sets_dynk(jj,3) .ge. sets_dynk(ii,3) .and.
      &               sets_dynk(jj,2) .le. sets_dynk(ii,3) ) then
                sane = .false.
 +if cr
-               write(lout,*)
+               write(lout, "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
 +ei
 +if .not.cr
-               write (*,*)
+               write (*,   "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
 +ei
-     &              "DYNK> Insane: Upper edge of SET #", jj,
-     &         "=", sets_dynk(jj,3)," >= upper edge of SET #",ii,
-     &         "=", sets_dynk(ii,3),"; and also lower edge of SET #",jj,
-     &         "=", sets_dynk(jj,2)," <= upper edge of SET #", ii
+     &              " DYNK> Insane: Upper edge of SET #", jj,
+     &        " =", sets_dynk(jj,3)," >= upper edge of SET #",ii,
+     &        " =", sets_dynk(ii,3),"; and also lower edge of SET #",jj,
+     &        " =", sets_dynk(jj,2)," <= upper edge of SET #", ii
+      
+            else if (sets_dynk(jj,2) .ge. sets_dynk(ii,2) .and.
+     &               sets_dynk(jj,3) .le. sets_dynk(ii,3) ) then
+               ! (other way round gets caugth by the first "if")
+               sane = .false.
++if cr
+               write(lout, "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)")
++ei
++if .not.cr
+               write (*,   "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)")
++ei
+     &              " DYNK> Insane: SET #", jj,
+     &        " = (", sets_dynk(jj,2),", ", sets_dynk(jj,3), ")",
+     &        " is inside SET #", ii, " = (", 
+     &                sets_dynk(ii,2),", ", sets_dynk(ii,3), ")"
             endif
+            if (sets_dynk(jj,3).eq.biggestTurn) sets_dynk(jj,3) = -1
          enddo
+         if (sets_dynk(ii,3).eq.biggestTurn) sets_dynk(ii,3) = -1
       enddo
 
       if (.not. sane) then
@@ -44998,7 +45066,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
          !Active in this turn?
          if (turn .ge. sets_dynk(ii,2) .and.
-     &       turn .le. sets_dynk(ii,3)) then
+     &       ( turn .le. sets_dynk(ii,3) .or. 
+     &         sets_dynk(ii,3) .eq. -1       ) ) then
             
             !Shifting
             shiftedTurn = turn + sets_dynk(ii,4)
