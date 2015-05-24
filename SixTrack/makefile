@@ -407,38 +407,48 @@ $(CRLIBM_DST)$/crlibm.a: |$(CRLIBM_DST)
 
 $(CRLIBM_DST)$/crlibm.a: $(CRLIBM_DST) $(OBJS)
 	$(info Building $(@F))
-	@ar -rv $(CRLIBM_DST)/crlibm.a $(OBJS) &>$(CRLIBM_DST)$/crlibm.log
+	@ar -rv $(CRLIBM_DST)/crlibm.a $(OBJS) &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(OBJ1): $(CRLIBM_DST)$/%.o: $(CRLIBM_SRC)$/%.c $(CRLIBM_SRC)/%.h $(HEAD1)
 	$(info Compiling $(@F))
-	@$(COMPILE1) -o $@ -c $< &>$*.log
+	@$(COMPILE1) -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(OBJ2): $(CRLIBM_DST)$/%.o: $(CRLIBM_SRC)$/%.c $(HEAD2)
 	$(info Compiling $(@F))
-	@$(COMPILE2) -o $@ -c $< &>$*.log
+	@$(COMPILE2) -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(CRLIBM_DST)$/rem_pio2.o: $(CRLIBM_SRC)$/rem_pio2.c $(CRLIBM_SRC)/coefpi2.h $(HEAD1)
 	$(info Compiling $(@F))
-	@$(COMPILE1) -o $@ -c $< &>$*.log
+	@$(COMPILE1) -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(CRLIBM_DST)/ericc.o: $(CRLIBM_SRC)$/ericc.c $(CRLIBM_SRC)$/crlibm.h $(CRLIBM_SRC)$/crlibm_private.h
 	$(info Compiling $(@F))
-	@$(COMPILE1) -o $@ -c $< &>$*.log
+	@$(COMPILE1) -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/disable_xp.o: $(CRLIBM_SRC)$/disable_xp.c
 	$(info Compiling $(@F))
-	@$(COMPILE1) -o $@ -c $< &>$*.log
+	@$(COMPILE1) -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/enable_xp.o: $(CRLIBM_SRC)$/enable_xp.c
 	$(info Compiling $(@F))
-	@$(COMPILE1) -o $@ -c $< &>$*.log
+	@$(COMPILE1) -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/round_near.o: $(CRLIBM_SRC)$/round_near.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$*.log
+	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/dtoa_c.o: $(CRLIBM_SRC)$/dtoa_c.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$*.log
+	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/dtoaf.o: $(CRLIBM_SRC)$/dtoaf.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$*.log
+	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(AST_FILES): $(DESTDIR)$/%.ast: $(SRC_AST)%.ast |$(DESTDIR)
 	$(info Copy $(@F))
@@ -457,11 +467,13 @@ $(F_FILES): %.f : %n.f $(DESTDIR)$/dafor
 
 $(O_FILES): %$(objects): %.f
 	$(info Building $(@F))
-	@$(FC) $(FCF) $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(obj_out)$@ $(c) $< >$*.log
+	@$(FC) $(FCF) $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(obj_out)$@ $(c) $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(BOINC_O_FILES): %.o : %.cpp
 	$(info Building $@)
-	@gcc -o $@ -m32 -c -I$(BOINCROOT) -I$(BOINCAPI) -I$(BOINCLIB) -I$(BOINCZIP) $< >$*.log
+	@gcc -o $@ -m32 -c -I$(BOINCROOT) -I$(BOINCAPI) -I$(BOINCLIB) -I$(BOINCZIP) $< &>$@.log
+	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(DESTDIR)$/astuce : astuce.f
 	$(info Building astuce)
