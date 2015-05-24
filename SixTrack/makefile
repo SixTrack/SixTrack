@@ -31,13 +31,12 @@ OPTIONS:=  $(filter-out  O3 O2 O1 O0,$(OPTIONS))
 
 NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, O3 $(OPTIONS)))))
 
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
 
 # list of valid user options
-USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 tilt tracking windows O0 O1 O2 O3)
+USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 sse41 sse42 tilt tracking windows O0 O1 O2 O3 O4)
 
-# list of valid astuce options
-ASTUCE_OPTIONS := $(sort beamgas big bignblz bnlelens boinc bpm collimat cr crlibm debug fast fio hdf5 ifort lf95 nagfor small tilt vvector)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows)
 
 # list of valid compiler options
 COMPILER_OPTIONS := g77 g95 gfortran ifort lf95 nagfor
@@ -118,7 +117,15 @@ COMPILER := $(call if_any,$(COMPILER_OPTIONS),$(ENABLED),$(filter $(COMPILER_OPT
 
 # ifort configuration
 FC_ifort   := ifort
-FCF_ifort  := -mia32 $(call if_any,sse2 sse3,$(ENABLED),-m$(filter sse2 sse3,$(ENABLED)),) -fp-model source -fp-model strict -fp-model no-except
+FCF_ifort := -mia32 -fp-model source -fp-model strict -fp-model no-except
+sseopt=$(filter sse2 sse3 sse41 see42,$(ENABLED))
+ifneq ($(sseopt),)
+  sse2:=sse2
+  sse3:=sse3
+  sse41:=sse4.1
+  sse42:=sse4.2
+  FCF_ifort:= $(FCF_ifort) -m$($(sseopt))
+endif
 ifneq ($(NOPT),)
   FCF_ifort := $(FCF_ifort) -O$(NOPT)
 endif
@@ -134,11 +141,44 @@ endif
 FCLD_gfortran :=
 FCL_gfortran  := -static
 
+# nagfor configuration
+NAGLIBC :=-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c
+FC_nagfor  := nagfor $(NAGLIBC)
+FCF_nagfor := -O$(NOPT) -abi=32 -dusty -maxcontin=60 -ieee=full -g90
+FCL_nagfor := -Bstatic -abi=32
+FCLD_nagfor:= -abi=32
+
+# pgf90 configuration
+FC_pgf90   :=pgf90
+FCF_pgf90  :=-m32 -Kieee
+ifneq ($(NOPT),)
+  FCF_pgf90:= $(FCF_pgf90)-fast
+endif
+FCL_pgf90  :=-Bstatic -m32
+FCLD_pgf90 :=-m32
+
+# g95 configuration
+#g95libc :=-L/usr/lib/ -lc -L/usr/lib/gcc/i386-redhat-linux/4.1.1 -lgcc_eh
+#g95libc :=-L/usr/lib/ -lc -L/usr/lib/gcc/i586-redhat-linux/4.4.0 -lgcc_eh
+#g95libc :=-L/usr/lib/ -lc -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lgcc_eh
+FC_g95  :=g95 $(g95libc)
+FCF_g95 :=-Wa,--32 -g -fno-second-underscore -funroll-loops
+FCL_g95 :=-static -m32 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c
+FCLD_g95:=-m32 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c
+
+# lf95 configuration
+FC_lf95  :=lf95
+FCF_lf95 :=--o0 --tp -Wa,--32 #o>0 produce wrong results
+FCL_lf95 :=-static -m32
+FCLD_lf95:=-m32
+
+
+
 # selecting the enabled compiler
-FC   := $(FC_$(COMPILER))
-FCF  := $(FCF_$(COMPILER))
-FCLD := $(FCLD_$(COMPILER))
-FCL  := $(FCL_$(COMPILER))
+FC   := $(FC_$(COMPILER))    #compiler
+FCF  := $(FCF_$(COMPILER))   #complile options
+FCLD := $(FCLD_$(COMPILER))  #dynamic link options
+FCL  := $(FCL_$(COMPILER))   #static link options
 
 # if ifort is not sourced displaying a messsage and exiting
 ifeq ($(filter ifort,$(ENABLED)),ifort)
@@ -282,6 +322,9 @@ S_FILES := dabnew.s lielib.s sixtrack.s
 # separate variable for source required on Windows
 SRC_AST := .$/ast_mask$/$/
 
+# separate variable for source required on Windows
+SRC_CRLIBM := .$/crlibm$/$/
+
 # SED command to remove inactive options and decks. Handling 4 situations when option to be removed is first, middle, last, or only
 ASTUCE_INACTIVE := $(filter-out $(ENABLED),$(ALL_OPTIONS))
 
@@ -290,20 +333,11 @@ ASTUCE_INACTIVE := $(filter-out $(ENABLED),$(ALL_OPTIONS))
 ASTUCE_INACTIVE := $(filter-out small,$(ASTUCE_INACTIVE))
 DECKS_INACTIVE  := $(filter-out $(ENABLED),$(DECKS_OPT))
 
+
 # preparing expression to convert .ast files (remove unselected options and unused decks)
 SED_EXP := $(foreach elem,$(ASTUCE_INACTIVE),s/\(^df .*\), *$(elem) *,\(.*\)/\1,\2/;s/\(^df .*\), *$(elem) *$$/\1/;s/\(^df  *$(elem) *,\)\(.*\)/df \2/;s/\(^df  *$(elem) *$$\)/df/; )
 SED_DCK := $(foreach elem,$(DECKS_INACTIVE),/^e  *$($(elem))/d;)
 SED_EXP := $(SED_EXP)$(SED_DCK)
-
-# performing file operations: creating DESTDIR and copying .s files
-buildDir := $(call if_any,crlibm,$(ENABLED),$(shell mkdir $(p) $(DESTDIR)$/crlibm),$(shell mkdir $(p) $(DESTDIR)))
-copySFILES := $(shell cp $(S_FILES) $(DESTDIR))
-
-# sed cand handle at most 192 words in an expression (experimentally determined) (expr for one option is 12 words long)
-# splitting original expression into 2 sections and storing them to files
-exportSED := $(shell echo $"$(wordlist 1,192,$(SED_EXP))$" > $(DESTDIR)$/sed_expr_1)
-exportSED := $(shell echo $"$(wordlist 193,384,$(SED_EXP))$" > $(DESTDIR)$/sed_expr_2)
-
 
 #CRLIBM variables
 # include compiler options and CRLIBM makefile
@@ -345,79 +379,101 @@ COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
 #################
 
 
-.PHONY: clean sixtrack help
+.PHONY: clean sixtrack help crlibm
 
 sixtrack: $(DESTDIR)$/sixtrack
 
-$(DESTDIR)$/sixtrack: $(DESTDIR)$/astuce $(DESTDIR)$/dafor $(O_FILES) $(BOINC_O_FILES) $(CRLIBM_O) $(WIN_CRLIBM_O)
-	@echo Building: $(DESTDIR)$/sixtrack
-	$(FC) $(SX_LINUX) $(output)$@ $(O_FILES) $(BOINC) $(CRLIBM_O) $(WIN_CRLIBM_O) $(SX_WINDOWS) $(SX_DARWIN)
+crlibm: $(CRLIBM_DST)$/crlibm.a
 
+$(DESTDIR)$/sixtrack: $(O_FILES) $(BOINC_O_FILES) $(CRLIBM_O) $(WIN_CRLIBM_O)
+	$(info Building: $(DESTDIR)$/sixtrack)
+	@$(FC) $(SX_LINUX) $(output)$@ $(O_FILES) $(BOINC) $(CRLIBM_O) $(WIN_CRLIBM_O) $(SX_WINDOWS) $(SX_DARWIN)
+
+
+# sed cand handle at most 192 words in an expression (experimentally determined) (expr for one option is 12 words long)
+# splitting original expression into 2 sections and storing them to files
+$(DESTDIR): $(S_FILES)
+	$(info Preparing $@)
+	@mkdir $(DESTDIR)
+	@cp $(S_FILES) $(DESTDIR)
+	@echo $"$(wordlist 1,192,$(SED_EXP))$" > $(DESTDIR)$/sed_expr_1
+	@echo $"$(wordlist 193,384,$(SED_EXP))$" > $(DESTDIR)$/sed_expr_2
 
 $(CRLIBM_DST): | $(DESTDIR)
-	mkdir -p $(CRLIBM_DST)
+	$(info Preparing $@)
+	@mkdir  $(CRLIBM_DST)
 
 $(CRLIBM_DST)$/crlibm.a: |$(CRLIBM_DST)
 
 $(CRLIBM_DST)$/crlibm.a: $(CRLIBM_DST) $(OBJS)
-	ar -rv $(CRLIBM_DST)/crlibm.a $(OBJS)
+	$(info Building $(@F))
+	@ar -rv $(CRLIBM_DST)/crlibm.a $(OBJS) &>$(CRLIBM_DST)$/crlibm.log
 
 $(OBJ1): $(CRLIBM_DST)$/%.o: $(CRLIBM_SRC)$/%.c $(CRLIBM_SRC)/%.h $(HEAD1)
-	$(COMPILE1) -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(COMPILE1) -o $@ -c $< &>$*.log
 
 $(OBJ2): $(CRLIBM_DST)$/%.o: $(CRLIBM_SRC)$/%.c $(HEAD2)
-	$(COMPILE2) -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(COMPILE2) -o $@ -c $< &>$*.log
 
 $(CRLIBM_DST)$/rem_pio2.o: $(CRLIBM_SRC)$/rem_pio2.c $(CRLIBM_SRC)/coefpi2.h $(HEAD1)
-	$(COMPILE1) -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(COMPILE1) -o $@ -c $< &>$*.log
 
 $(CRLIBM_DST)/ericc.o: $(CRLIBM_SRC)$/ericc.c $(CRLIBM_SRC)$/crlibm.h $(CRLIBM_SRC)$/crlibm_private.h
-	$(COMPILE1) -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(COMPILE1) -o $@ -c $< &>$*.log
 $(CRLIBM_DST)/disable_xp.o: $(CRLIBM_SRC)$/disable_xp.c
-	$(COMPILE1) -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(COMPILE1) -o $@ -c $< &>$*.log
 $(CRLIBM_DST)/enable_xp.o: $(CRLIBM_SRC)$/enable_xp.c
-	$(COMPILE1) -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(COMPILE1) -o $@ -c $< &>$*.log
 $(CRLIBM_DST)/round_near.o: $(CRLIBM_SRC)$/round_near.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$*.log
 $(CRLIBM_DST)/dtoa_c.o: $(CRLIBM_SRC)$/dtoa_c.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$*.log
 $(CRLIBM_DST)/dtoaf.o: $(CRLIBM_SRC)$/dtoaf.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $<
+	$(info Compiling $(@F))
+	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$*.log
 
-$(AST_FILES): $(DESTDIR)$/%.ast: $(SRC_AST)%.ast
-	$(info cp: $< $@)
+$(AST_FILES): $(DESTDIR)$/%.ast: $(SRC_AST)%.ast |$(DESTDIR)
+	$(info Copy $(@F))
 	@sed -f $(DESTDIR)$/sed_expr_1 $< > $(DESTDIR)$/temp_sed $; sed -f $(DESTDIR)$/sed_expr_2 $(DESTDIR)$/temp_sed > $@
 
-$(FN_FILES): %n.f : %.ast
-	$(info converting $@ to $<)
-	cd $(DESTDIR) $; .$/astuce < $(<F) $;
 
-$(F_FILES): %.f : %n.f
-	cp $< $(DESTDIR)/fort.1
-	cd $(DESTDIR) $; .$/dafor $;
-	cp $(DESTDIR)/fort.2 $@
+$(FN_FILES): %n.f : %.ast $(DESTDIR)$/astuce $(S_FILES)
+	$(info Applying astuce on $(@F))
+	@cd $(DESTDIR) $; .$/astuce < $(<F) >$(*F).astuce_log
+
+$(F_FILES): %.f : %n.f $(DESTDIR)$/dafor
+	$(info Applying dafor on $(@F))
+	@cp $< $(DESTDIR)/fort.1
+	@cd $(DESTDIR) $; .$/dafor >$(*F).dafor_log
+	@cp $(DESTDIR)/fort.2 $@
 
 $(O_FILES): %$(objects): %.f
-	$(info Building $@ from $<)
-	$(FC) $(FCF) $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(obj_out)$@ $(c) $<
+	$(info Building $(@F))
+	@$(FC) $(FCF) $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(obj_out)$@ $(c) $< >$*.log
 
 $(BOINC_O_FILES): %.o : %.cpp
-	$(info === Building BOINC_O_FILES $(BOINC_O_FILES)! ===)
-	gcc -o $@ -m32 -c -I$(BOINCROOT) -I$(BOINCAPI) -I$(BOINCLIB) -I$(BOINCZIP) $<
+	$(info Building $@)
+	@gcc -o $@ -m32 -c -I$(BOINCROOT) -I$(BOINCAPI) -I$(BOINCLIB) -I$(BOINCZIP) $< >$*.log
 
 $(DESTDIR)$/astuce : astuce.f
-	$(info ===== $(FC) $(FCF) $(output)$(DESTDIR)$/astuce $<)
-	$(FC) $(FCF) $(output)$(DESTDIR)$/astuce $<
+	$(info Building astuce)
+	@$(FC) $(FCF) $(output)$(DESTDIR)$/astuce $<
 
 $(DESTDIR)$/dafor : dafor.f
-	$(FC) $(FCF) $(output)$(DESTDIR)$/dafor $<
-
-# separate variable for source required on Windows
-SRC_CRLIBM := .$/crlibm$/$/
+	$(info Building dafor)
+	@$(FC) $(FCF) $(output)$(DESTDIR)$/dafor $<
 
 $(WIN_CRLIBM_O): %.obj: $(SRC_CRLIBM)%.c
-	$(info Building WIN_CRLIBM from $< to $(DESTDIR)$/crlibm$/$@)
-	icl $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(ICL_WIN_OPTIONS) /Fo$(DESTDIR)$/crlibm$/$@ /c $<
+	$(info Building $(@F))
+	@icl $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(ICL_WIN_OPTIONS) /Fo$(DESTDIR)$/crlibm$/$@ /c $<
 
 help:
 	@echo ***Usage example:
@@ -428,6 +484,7 @@ help:
 	@echo known options: $(ALL_OPTIONS)
 
 clean:
-	     rm -r .$/$(DESTDIR)
+	$(info Removing $(DESTDIR))
+	@if [[ -d $(DESTDIR) ]] $;then rm -r $(DESTDIR) $; else echo "No $(DESTDIR) found"$; fi
 
 # end of makefile
