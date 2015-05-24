@@ -24,15 +24,17 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran
+OPTIONS := fast tilt tracking crlibm gfortran O2
 #OPTIONS := crlibm bnlelens gfortran boinc api
-NOPT  :=
 
-# lists of known options
+OPTIONS:=  $(filter-out  O3 O2 O1 O0,$(OPTIONS))
+
+NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, O3 $(OPTIONS)))))
+
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows)
 
 # list of valid user options
-USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 tilt tracking windows)
+USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 tilt tracking windows O0 O1 O2 O3)
 
 # list of valid astuce options
 ASTUCE_OPTIONS := $(sort beamgas big bignblz bnlelens boinc bpm collimat cr crlibm debug fast fio hdf5 ifort lf95 nagfor small tilt vvector)
@@ -90,14 +92,14 @@ space +=
 # Build version of SixTrack
 VERSION:= $(shell grep "data version" sixtrack.s | sed -e "s/.*'\([0-9]\).\([0-9]*\).\([0-9]*\).*/\1\2\3/")
 
-DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(OPTIONS))_O$(NOPT)
+DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(ENABLED))_O$(NOPT)
 $(info Sixtrack build dir: $(DESTDIR))
 
 # options to enable from other combinations
 $(call enable,if_all,collimat da,,tracking)
 
 # diagnostics
-DEBUG:=no
+DEBUG:=yes
 ifneq ($(CONFLICT_D)$(CONFLICT_E)$(DEBUG),no)
 $(info Options provided: $(PROVIDED))
 $(info Options expanded: $(EXPANDED))
@@ -116,7 +118,10 @@ COMPILER := $(call if_any,$(COMPILER_OPTIONS),$(ENABLED),$(filter $(COMPILER_OPT
 
 # ifort configuration
 FC_ifort   := ifort
-FCF_ifort  := -O$(NOPT) -mia32 $(call if_any,sse2 sse3,$(ENABLED),-m$(filter sse2 sse3,$(ENABLED)),) -fp-model source -fp-model strict -fp-model no-except
+FCF_ifort  := -mia32 $(call if_any,sse2 sse3,$(ENABLED),-m$(filter sse2 sse3,$(ENABLED)),) -fp-model source -fp-model strict -fp-model no-except
+ifneq ($(NOPT),)
+  FCF_ifort := $(FCF_ifort) -O$(NOPT)
+endif
 FCLD_ifort := -m32
 FCL_ifort  := -static -m32
 
@@ -187,12 +192,6 @@ track_dafor     := \#
 sixve_dafor     := \#
 beamgas_dafor   := \#
 
-# preparing proper file names with extension
-O_FILES   := $(MASKS:=.o)
-AST_FILES := $(MASKS:=.ast)
-F_FILES   := $(MASKS:=n.f)
-# .s files to be copied
-S_FILES := dabnew.s lielib.s sixtrack.s
 
 #detecting operating system
 OPSYS := $(shell uname -s)
@@ -271,6 +270,17 @@ ifeq ($(OS),Windows_NT)
   endif
 endif
 
+# preparing proper file names with extension
+MASKS:= $(addprefix $(DESTDIR)$/,$(MASKS))
+O_FILES   := $(MASKS:=.o)
+AST_FILES := $(MASKS:=.ast)
+FN_FILES   := $(MASKS:=n.f)
+F_FILES   := $(MASKS:=.f)
+# .s files to be copied
+S_FILES := dabnew.s lielib.s sixtrack.s
+
+# separate variable for source required on Windows
+SRC_AST := .$/ast_mask$/$/
 
 # SED command to remove inactive options and decks. Handling 4 situations when option to be removed is first, middle, last, or only
 ASTUCE_INACTIVE := $(filter-out $(ENABLED),$(ALL_OPTIONS))
@@ -295,23 +305,10 @@ exportSED := $(shell echo $"$(wordlist 1,192,$(SED_EXP))$" > $(DESTDIR)$/sed_exp
 exportSED := $(shell echo $"$(wordlist 193,384,$(SED_EXP))$" > $(DESTDIR)$/sed_expr_2)
 
 
-
-#################
-#
-#     Rules
-#
-#################
-
-
-.PHONY: clean sixtrack info
-
-sixtrack: astuce dafor $(O_FILES) $(BOINC_O_FILES) $(CRLIBM_O) $(WIN_CRLIBM_O)
-	@echo Built: $(DESTDIR)$/sixtrack
-	$(FC) $(SX_LINUX) $(output)$(DESTDIR)$/$@ $(addprefix $(DESTDIR)$/,$(O_FILES)) $(BOINC) $(CRLIBM_O) $(addprefix $(DESTDIR)$/crlibm$/,$(WIN_CRLIBM_O)) $(SX_WINDOWS) $(SX_DARWIN)
-
+#CRLIBM variables
 # include compiler options and CRLIBM makefile
-CRLIBM_SRC := ./crlibm
-CRLIBM_DST := $(DESTDIR)/crlibm
+CRLIBM_SRC := .$/crlibm
+CRLIBM_DST := $(DESTDIR)$/crlibm
 
 CC = gcc
 OBJS := addition_scs.o multiplication_scs.o zero_scs.o \
@@ -322,130 +319,97 @@ OBJS := addition_scs.o multiplication_scs.o zero_scs.o \
      ericc.o csh_fast.o log10.o rem_pio2.o \
      dtoa_c.o dtoaf.o round_near.o disable_xp.o enable_xp.o
 
-OBJS := $(addprefix $(CRLIBM_DST)/,$(OBJS))
+OBJ1:= csh_fast.o trigo_fast.o tan.o sine.o cosine.o exp.o exp_fast.o logsix.o log_fast.o log10.o atan.o atan_fast.o
+OBJ2:= addition_scs.o double2scs.o multiplication_scs.o division_scs.o scs2double.o zero_scs.o
+OBJS := $(OBJ1) $(OBJ2) ericc.o disable_xp.o enable_xp.o round_near.o dtoaf.o dtoa_c.o rem_pio2.o
+
+OBJ1:= $(addprefix $(CRLIBM_DST)$/,$(OBJ1))
+OBJ2:= $(addprefix $(CRLIBM_DST)$/,$(OBJ2))
+OBJS:= $(addprefix $(CRLIBM_DST)$/,$(OBJS))
+
+HEAD1:= $(addprefix $(CRLIBM_SRC)$/,crlibm.h crlibm_private.h scs.h scs_config.h scs_private.h crlibm_config.h)
+HEAD2:= $(addprefix $(CRLIBM_SRC)$/,scs.h scs_config.h scs_private.h)
+
+AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing
+AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline
+DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
+CFLAGS = -g -O2 -m32
+
+COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
+COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
+
+#################
+#
+#     Rules
+#
+#################
+
+
+.PHONY: clean sixtrack help
+
+sixtrack: $(DESTDIR)$/sixtrack
+
+$(DESTDIR)$/sixtrack: $(DESTDIR)$/astuce $(DESTDIR)$/dafor $(O_FILES) $(BOINC_O_FILES) $(CRLIBM_O) $(WIN_CRLIBM_O)
+	@echo Building: $(DESTDIR)$/sixtrack
+	$(FC) $(SX_LINUX) $(output)$@ $(O_FILES) $(BOINC) $(CRLIBM_O) $(WIN_CRLIBM_O) $(SX_WINDOWS) $(SX_DARWIN)
+
 
 $(CRLIBM_DST): | $(DESTDIR)
 	mkdir -p $(CRLIBM_DST)
 
-$(info CRLIBM_DST: $(CRLIBM_DST))
-$(CRLIBM_DST)/crlibm.a: |$(CRLIBM_DST)
+$(CRLIBM_DST)$/crlibm.a: |$(CRLIBM_DST)
 
-
-$(CRLIBM_DST)/crlibm.a: $(CRLIBM_DST) $(OBJS)
+$(CRLIBM_DST)$/crlibm.a: $(CRLIBM_DST) $(OBJS)
 	ar -rv $(CRLIBM_DST)/crlibm.a $(OBJS)
 
-AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing
-DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
-CFLAGS = -g -O2 -m32
-COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
-$(CRLIBM_DST)/csh_fast.o: $(CRLIBM_SRC)/csh_fast.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/csh_fast.h
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/csh_fast.c
-$(CRLIBM_DST)/rem_pio2.o: $(CRLIBM_SRC)/rem_pio2.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/coefpi2.h 
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/rem_pio2.c
-$(CRLIBM_DST)/trigo_fast.o: $(CRLIBM_SRC)/trigo_fast.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/trigo_fast.h 
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/trigo_fast.c
-$(CRLIBM_DST)/tan.o: $(CRLIBM_SRC)/tan.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/tan.h 
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/tan.c
-$(CRLIBM_DST)/sine.o: $(CRLIBM_SRC)/sine.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/sine.h 
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/sine.c
-$(CRLIBM_DST)/cosine.o: $(CRLIBM_SRC)/cosine.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/cosine.h 
-	$(COMPILE1) -o $@  -c $(CRLIBM_SRC)/cosine.c
-$(CRLIBM_DST)/exp.o: $(CRLIBM_SRC)/exp.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-	$(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-	$(CRLIBM_SRC)/exp.h
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/exp.c
-$(CRLIBM_DST)/exp_fast.o: $(CRLIBM_SRC)/exp_fast.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-	$(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-	$(CRLIBM_SRC)/exp_fast.h
-	$(COMPILE1) -o $@  -c $(CRLIBM_SRC)/exp_fast.c
-$(CRLIBM_DST)/logsix.o: $(CRLIBM_SRC)/logsix.c $(CRLIBM_SRC)/logsix.h $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-	$(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/logsix.h
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/logsix.c
-$(CRLIBM_DST)/log_fast.o: $(CRLIBM_SRC)/log_fast.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-	$(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/log_fast.h
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/log_fast.c
-$(CRLIBM_DST)/log10.o: $(CRLIBM_SRC)/log10.c $(CRLIBM_SRC)/log10.h $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-	$(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/log10.h
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/log10.c
-$(CRLIBM_DST)/atan.o: $(CRLIBM_SRC)/atan.c $(CRLIBM_SRC)/atan.h $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/atan_fast.h
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/atan.c
-$(CRLIBM_DST)/atan_fast.o: $(CRLIBM_SRC)/atan_fast.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h $(CRLIBM_SRC)/scs.h \
-        $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h $(CRLIBM_SRC)/crlibm_config.h \
-        $(CRLIBM_SRC)/atan_fast.h
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/atan_fast.c
-$(CRLIBM_DST)/ericc.o: $(CRLIBM_SRC)/ericc.c $(CRLIBM_SRC)/crlibm.h $(CRLIBM_SRC)/crlibm_private.h 
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/ericc.c
-$(CRLIBM_DST)/disable_xp.o: $(CRLIBM_SRC)/disable_xp.c
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/disable_xp.c
-$(CRLIBM_DST)/enable_xp.o: $(CRLIBM_SRC)/enable_xp.c
-	$(COMPILE1) -o $@ -c $(CRLIBM_SRC)/enable_xp.c
-$(CRLIBM_DST)/round_near.o: $(CRLIBM_SRC)/round_near.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $(CRLIBM_SRC)/round_near.c
-$(CRLIBM_DST)/dtoa_c.o: $(CRLIBM_SRC)/dtoa_c.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $(CRLIBM_SRC)/dtoa_c.c
-$(CRLIBM_DST)/dtoaf.o: $(CRLIBM_SRC)/dtoaf.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $(CRLIBM_SRC)/dtoaf.c
+$(OBJ1): $(CRLIBM_DST)$/%.o: $(CRLIBM_SRC)$/%.c $(CRLIBM_SRC)/%.h $(HEAD1)
+	$(COMPILE1) -o $@ -c $<
 
-AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline 
-COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
+$(OBJ2): $(CRLIBM_DST)$/%.o: $(CRLIBM_SRC)$/%.c $(HEAD2)
+	$(COMPILE2) -o $@ -c $<
 
-$(CRLIBM_DST)/addition_scs.o: $(CRLIBM_SRC)/addition_scs.c $(CRLIBM_SRC)/scs.h $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h
-	$(COMPILE2) -o $@ -c $(CRLIBM_SRC)/addition_scs.c 
-$(CRLIBM_DST)/double2scs.o: $(CRLIBM_SRC)/double2scs.c $(CRLIBM_SRC)/scs.h $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h
-	$(COMPILE2) -o $@ -c $(CRLIBM_SRC)/double2scs.c
-$(CRLIBM_DST)/multiplication_scs.o: $(CRLIBM_SRC)/multiplication_scs.c $(CRLIBM_SRC)/scs.h $(CRLIBM_SRC)/scs_config.h \
-	$(CRLIBM_SRC)/scs_private.h
-	$(COMPILE2) -o $@ -c $(CRLIBM_SRC)/multiplication_scs.c
-$(CRLIBM_DST)/division_scs.o: $(CRLIBM_SRC)/division_scs.c $(CRLIBM_SRC)/scs.h $(CRLIBM_SRC)/scs_config.h \
-	$(CRLIBM_SRC)/scs_private.h
-	$(COMPILE2) -o $@ -c $(CRLIBM_SRC)/division_scs.c
-$(CRLIBM_DST)/scs2double.o: $(CRLIBM_SRC)/scs2double.c $(CRLIBM_SRC)/scs.h $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h
-	$(COMPILE2) -o $@ -c $(CRLIBM_SRC)/scs2double.c
-$(CRLIBM_DST)/zero_scs.o: $(CRLIBM_SRC)/zero_scs.c $(CRLIBM_SRC)/scs.h $(CRLIBM_SRC)/scs_config.h $(CRLIBM_SRC)/scs_private.h
-	$(COMPILE2) -o $@ -c $(CRLIBM_SRC)/zero_scs.c
+$(CRLIBM_DST)$/rem_pio2.o: $(CRLIBM_SRC)$/rem_pio2.c $(CRLIBM_SRC)/coefpi2.h $(HEAD1)
+	$(COMPILE1) -o $@ -c $<
 
+$(CRLIBM_DST)/ericc.o: $(CRLIBM_SRC)$/ericc.c $(CRLIBM_SRC)$/crlibm.h $(CRLIBM_SRC)$/crlibm_private.h
+	$(COMPILE1) -o $@ -c $<
+$(CRLIBM_DST)/disable_xp.o: $(CRLIBM_SRC)$/disable_xp.c
+	$(COMPILE1) -o $@ -c $<
+$(CRLIBM_DST)/enable_xp.o: $(CRLIBM_SRC)$/enable_xp.c
+	$(COMPILE1) -o $@ -c $<
+$(CRLIBM_DST)/round_near.o: $(CRLIBM_SRC)$/round_near.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $<
+$(CRLIBM_DST)/dtoa_c.o: $(CRLIBM_SRC)$/dtoa_c.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $<
+$(CRLIBM_DST)/dtoaf.o: $(CRLIBM_SRC)$/dtoaf.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $<
 
-# separate variable for source required on Windows
-SRC_AST := .$/ast_mask$/$/
+$(AST_FILES): $(DESTDIR)$/%.ast: $(SRC_AST)%.ast
+	$(info cp: $< $@)
+	@sed -f $(DESTDIR)$/sed_expr_1 $< > $(DESTDIR)$/temp_sed $; sed -f $(DESTDIR)$/sed_expr_2 $(DESTDIR)$/temp_sed > $@
 
-$(AST_FILES): %.ast: $(SRC_AST)%.ast
-	$(info cp: $< $(DESTDIR)$/$@)	
-	@sed -f $(DESTDIR)$/sed_expr_1 $< > $(DESTDIR)$/temp_sed $; sed -f $(DESTDIR)$/sed_expr_2 $(DESTDIR)$/temp_sed > $(DESTDIR)$/$@
+$(FN_FILES): %n.f : %.ast
+	$(info converting $@ to $<)
+	cd $(DESTDIR) $; .$/astuce < $(<F) $;
 
-$(F_FILES): %n.f : %.ast
-	$(info converting $@ to $<) 
-	cd $(DESTDIR) $; .$/astuce < $< $; $($(patsubst %n.f,%_dafor,$@)) cd $(DESTDIR) $; cp $@ fort.1 $; .$/dafor $; cp fort.2 $@
+$(F_FILES): %.f : %n.f
+	cp $< $(DESTDIR)/fort.1
+	cd $(DESTDIR) $; .$/dafor $;
+	cp $(DESTDIR)/fort.2 $@
 
-$(O_FILES): %$(objects): %n.f
+$(O_FILES): %$(objects): %.f
 	$(info Building $@ from $<)
-	$(FC) $(FCF) $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(obj_out)$(DESTDIR)$/$@  $(c) $(DESTDIR)$/$<
+	$(FC) $(FCF) $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(obj_out)$@ $(c) $<
 
 $(BOINC_O_FILES): %.o : %.cpp
 	$(info === Building BOINC_O_FILES $(BOINC_O_FILES)! ===)
-	gcc -o .$/$(DESTDIR)$/$@ -m32 -c -I$(BOINCROOT) -I$(BOINCAPI) -I$(BOINCLIB) -I$(BOINCZIP) $<
+	gcc -o $@ -m32 -c -I$(BOINCROOT) -I$(BOINCAPI) -I$(BOINCLIB) -I$(BOINCZIP) $<
 
-astuce : astuce.f
+$(DESTDIR)$/astuce : astuce.f
 	$(info ===== $(FC) $(FCF) $(output)$(DESTDIR)$/astuce $<)
 	$(FC) $(FCF) $(output)$(DESTDIR)$/astuce $<
 
-dafor : dafor.f
+$(DESTDIR)$/dafor : dafor.f
 	$(FC) $(FCF) $(output)$(DESTDIR)$/dafor $<
 
 # separate variable for source required on Windows
@@ -455,12 +419,13 @@ $(WIN_CRLIBM_O): %.obj: $(SRC_CRLIBM)%.c
 	$(info Building WIN_CRLIBM from $< to $(DESTDIR)$/crlibm$/$@)
 	icl $(WIN_ARCH) $(WIN_IFORT) $(WIN_OPTIONS) $(ICL_WIN_OPTIONS) /Fo$(DESTDIR)$/crlibm$/$@ /c $<
 
-info: 
+help:
 	@echo ***Usage example:
 	@echo Default OPTIONS: $(OPTIONS)
 	@echo Default COMPILER: gfortran
-	@echo run: make
-	@echo customized optiones run: make OPTIONS=[list of options]
+	@echo Usage: make or
+	@echo        make OPTIONS=[list of options]
+	@echo known options: $(ALL_OPTIONS)
 
 clean:
 	     rm -r .$/$(DESTDIR)
