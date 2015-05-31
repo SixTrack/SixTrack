@@ -15,8 +15,8 @@ SHELL:=/bin/bash
 
 # Library Path configuration
 # Mac
-MAC_BOINC_LIB_PATH     := ../../../*.a
-MAC_LIBS_PATH          := /opt/local/lib/gcc48/i386/libstdc++.a /opt/local/libexec/llvm-3.3/lib/clang/3.3/lib/darwin/libclang_rt.eprintf.a /opt/local/lib/gcc48/gcc/x86_64-apple-darwin12/4.8.3/i386/libgcc_eh.a
+#MAC_BOINC_LIB_PATH     := ../../../*.a
+#MAC_LIBS_PATH          := /opt/local/lib/gcc48/i386/libstdc++.a /opt/local/libexec/llvm-3.3/lib/clang/3.3/lib/darwin/libclang_rt.eprintf.a /opt/local/lib/gcc48/gcc/x86_64-apple-darwin12/4.8.3/i386/libgcc_eh.a
 
 #Windows
 Windows_BOINC_LIB_PATH := C:\andrei_6track\win32\libxp2\*.lib
@@ -262,7 +262,9 @@ ifeq ($(OPSYS),Darwin)
   # removing -static keywoard from linking step
   SX_LINUX := $(filter-out -static,$(SX_LINUX))
   # path to BOINC library
-  BOINC     := $(MAC_BOINC_LIB_PATH)
+  ifeq ($(filter boinc,$(ENABLED)),boinc)
+    BOINC     := $(MAC_BOINC_LIB_PATH)
+  endif
   #Mac specific libraries
   SX_DARWIN := $(MAC_LIBS_PATH)
 endif
