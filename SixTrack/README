@@ -2,6 +2,28 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.23 Eric's mods merged with Kyrre
+    -- Does NOT open fort.10 except for bnlelens with BOINC
+    -- Opens and writes in postpr and leaves open for sumpos
+    -- Subroutine abend checks fort.10 and if inexistent or
+       empty it writes 0d0s with turn number and CPU time
+    -- Replaced wzsubv with latest and greatest as developed for Frank
+    -- Put close check under if boinc
+    -- Added more CLOSE to closeUnits subroutine
+    -- Removed tabs, ^I form source
+    -- Fixed ampersands on calls to  h5 routines
+    -- Commented out boinc_zipitall calls
+    -- Added close 110/111 and added err= to close statements
+    -- Changed iostat variable to be consistently ierro
+    -- Added many iostat=ierro to many I/O statements
+    -- Fixed nasty bug for nagfor, checkdist.dat, if boinc 
+       where the last character of a line in fort.10 was undefined
+   McIntosh, 1st June, 2015
+
+ SixTrack Version: 4.5.20 kyrre et al
+    -- This is SVN version 201 onwards
+   Kyrre, April, 2015
+
  SixTrack Version: 4.5.19 Eric for Riccardo 
     -- Uncommented the BUG fix? go to 360 in LIMI block
     -- Fixed undefine variable time in sixda
