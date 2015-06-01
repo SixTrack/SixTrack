@@ -2,6 +2,10 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
+ SixTrack Version: 4.5.24 Eric
+    -- just uncommented the calls to zipitall
+   McIntosh, 1st June, 2015
+
  SixTrack Version: 4.5.23 Eric's mods merged with Kyrre
     -- Does NOT open fort.10 except for bnlelens with BOINC
     -- Opens and writes in postpr and leaves open for sumpos
