@@ -24,12 +24,12 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran O2
+OPTIONS := fast tilt tracking crlibm gfortran 03
 #OPTIONS := crlibm bnlelens gfortran boinc api
 
-OPTIONS:=  $(filter-out  O3 O2 O1 O0,$(OPTIONS))
+NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
 
-NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, O3 $(OPTIONS)))))
+
 
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
 
@@ -41,8 +41,6 @@ ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collima
 # list of valid compiler options
 COMPILER_OPTIONS := g77 g95 gfortran ifort lf95 nagfor
 
-# decks options to be checked in the .ast file
-DECKS_OPT := collimat cr cernlib naglib bnlelens debug
 
 # options dependencies (+)enable, -disable, !exclude
 
@@ -57,20 +55,27 @@ windows    := +boinc +crlibm
 
 # dictionary between options and patterns
 
+# decks options to be checked in the .ast file
+DECKS_OPT := collimat cr  bnlelens debug
+# if disabled <lhs>  delete deck <rhs> 
 collimat := nwrtcoll
 bnlelens := nwrtbnl
 cr       := checkpt
-cernlib  := plotdummy
-naglib   := nagdummy
 debug    := dumps
 
+# if enabled <lhs>  delete deck <rhs> 
+DECKS_OPT_INV := cernlib naglib
+cernlib  := plotdumy
+naglib   := nagdumy
 
 # clean-up, expand and classify OPTIONS
 
 expand      = $(foreach o,$1,$o $(if $($o),( $(call expand,$(patsubst +%,%,$($o))) ),))
 PROVIDED   := $(sort $(patsubst +%,%,$(OPTIONS)))
-EXPANDED   := $(strip $(call expand,$(PROVIDED)))
+#EXPANDED   := $(strip $(call expand,$(PROVIDED)))
+EXPANDED   := $(PROVIDED)
 ENABLED    := $(sort $(filter-out -% !% ( ),$(EXPANDED)))
+ENABLED    := $(filter-out O0 01 02 03,$(ENABLED))
 DISABLED   := $(sort $(patsubst -%,%,$(filter -%,$(EXPANDED))))
 EXCLUDED   := $(sort $(patsubst !%,%,$(filter !%,$(EXPANDED))))
 UNSELECTED := $(filter-out $(ENABLED),$(USER_OPTIONS))
@@ -126,9 +131,7 @@ ifneq ($(sseopt),)
   sse42:=sse4.2
   FCF_ifort:= $(FCF_ifort) -m$($(sseopt))
 endif
-ifneq ($(NOPT),)
-  FCF_ifort := $(FCF_ifort) -O$(NOPT)
-endif
+FCF_ifort := $(FCF_ifort) -O$(NOPT)
 FCLD_ifort := -m32
 FCL_ifort  := -static -m32
 
@@ -334,6 +337,8 @@ ASTUCE_INACTIVE := $(filter-out $(ENABLED),$(ALL_OPTIONS))
 # ifort doesn't compile with this options
 ASTUCE_INACTIVE := $(filter-out small,$(ASTUCE_INACTIVE))
 DECKS_INACTIVE  := $(filter-out $(ENABLED),$(DECKS_OPT))
+DECKS_INACTIVE  := $(DECKS_INACTIVE) $(filter $(ENABLED),$(DECKS_OPT_INV))
+
 
 
 # preparing expression to convert .ast files (remove unselected options and unused decks)
@@ -389,7 +394,7 @@ crlibm: $(CRLIBM_DST)$/crlibm.a
 
 $(DESTDIR)$/sixtrack: $(O_FILES) $(BOINC_O_FILES) $(CRLIBM_O) $(WIN_CRLIBM_O)
 	$(info Building: $(DESTDIR)$/sixtrack)
-	@$(FC) $(SX_LINUX) $(output)$@ $(O_FILES) $(BOINC) $(CRLIBM_O) $(WIN_CRLIBM_O) $(SX_WINDOWS) $(SX_DARWIN)
+	@$(FC)  $(output)$@ $(O_FILES) $(BOINC) $(CRLIBM_O) $(WIN_CRLIBM_O) $(SX_LINUX) $(SX_WINDOWS) $(SX_DARWIN)
 
 
 # sed cand handle at most 192 words in an expression (experimentally determined) (expr for one option is 12 words long)
