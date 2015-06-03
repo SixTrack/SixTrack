@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.24'/
-      data moddate /'01.06.2015'/
+      data version /'4.5.25'/
+      data moddate /'03.06.2015'/
 +cd license
 !!SixTrack
 !!
@@ -13635,8 +13635,6 @@ cc2008
           itionc(i)=kz(i)/abs(kz(i))
           kp(i)=6
         endif
-        phasc(i)=el(i)
-        el(i)=zero
       endif
 !--WIRE
       if(abs(kz(i)).eq.15) then
@@ -13659,8 +13657,9 @@ cc2008
 ! Handled by initialize_element subroutine:
 !-----------------------------------------
 !-- CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-!-- THIN LENS
+!-- THIN LENS (+/- 1-10)
 !-- MULTIPOLES (11)
+!-- CAVITY (+/- 12)
 !-- CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
       call initialize_element(i,.true.)
 
@@ -13688,10 +13687,16 @@ cc2008
 !--General
       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
       if(i.gt.nele-1) call prror(16)
-      if(abs(kz(i)).ne.12) kp(i)=0
+      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) )kp(i)=0
       bez(i)=idat
       bez0(i)=idat
       if(ncy2.eq.0) then
+        !If no active RF cavities are seen so far in the single element list,
+        ! add a CAV element to the end of the list.
+        ! This is then overwritten when reading the next element, so that if
+        ! and only if no active RF cavities are found, a CAV element can be
+        ! used in the structure to enable 6D tracking using the parameters
+        ! from the SYNC block.
         i=i+1
         il=i
         bez(i)=cavi
@@ -19072,7 +19077,7 @@ cc2008
                  sm(ix)=ed(ix)             ! Also done in envar() which is called from clorb()
                  smiv(1,i)=sm(ix)+smizf(i) ! Also done in program maincr
                  smi(i)=smiv(1,i)          ! Also done in program maincr
-+ca stra01                                 ! Also done in trauthin()/trauthick()
++ca stra01                                 ! Also done in trauthin()/trauthck()
                endif
             enddo
          endif
@@ -19293,6 +19298,22 @@ c$$$               endif
 c$$$            enddo
 c$$$         endif
 
+!--Cavities (ktrack = 2 for thin)
+      elseif(abs(kz(ix)).eq.12) then
+         !Moved from daten
+         phasc(ix) = el(ix)
+         el(ix) = zero
+         dynk_elemdata(ix,3) = phasc(ix)
+         if (.not.lfirst) then
+
+            ! Doesn't work, as i is not initialized here.
+            !if (.not.ktrack(i).eq.2) goto 100 !ERROR
+            
+            phasc(ix) = phasc(ix)*rad
+            
+            hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
+            hsyc(ix)=(c1m3*hsyc(ix))*dble(itionc(ix)) ! trauthin/trauthck
+         endif
 !--Crab Cavities
 !   Note: If setting something else than el(),
 !   DON'T call initialize_element on a crab, it will reset the phase to 0.
@@ -26930,8 +26951,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           ktrack(i)=2
           goto 290
         endif
-   40   kzz=kz(ix)
+        kzz=kz(ix)
         if(kzz.eq.0) then
+          ktrack(i)=31
+          goto 290
+        else if(kzz.eq.12) then
+          !Disabled cavity; enabled cavities have kp=6 and are handled above
+          ! Note: kz=-12 are transformed into +12 in daten after reading ENDE.
           ktrack(i)=31
           goto 290
         endif
@@ -34594,8 +34620,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           ktrack(i)=2
           goto 290
         endif
-   40   kzz=kz(ix)
+        kzz=kz(ix)
         if(kzz.eq.0) then
+          ktrack(i)=31
+          goto 290
+        else if(kzz.eq.12) then
+          !Disabled cavity; enabled cavities have kp=6 and are handled above
+          ! Note: kz=-12 are transformed into +12 in daten after reading ENDE.
           ktrack(i)=31
           goto 290
         endif
@@ -44959,6 +44990,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca crcoall
 +ei
++ca commondl
+
       !Functions
       double precision dynk_getvalue
       integer dynk_findSETindex
@@ -44967,7 +45000,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       !Temp variables
       integer ii,jj
       character(maxstrlen_dynk) element_name_s, att_name_s
-      logical found
+      logical found, badelem
       integer ix
       if (ldynkdebug) then
 +if cr
@@ -45001,7 +45034,70 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
             do jj=1,il
                if ( bez(jj).eq. element_name_s) then
+                  
                   found = .true.
+                  
+                  ! Check that the element type and attribute is supported
+                  ! Check that the element can be used now
+                  badelem = .false.
+                  if (abs(kz(jj)).ge.1 .and. abs(kz(jj)).le.10) then !thin kicks
+                     if (att_name_s .ne. "average_ms") then
+                        badelem = .true.
+                     endif
+                  elseif (abs(kz(jj)).eq.12) then !cavity
+                     if (.not. (att_name_s.eq."voltage"  .or.
+     &                    att_name_s.eq."harmonic"       .or.
+     &                    att_name_s.eq."lag_angle"          )) then
+                        badelem = .true.
+                     endif
+                     if (kp(jj).ne.6) then
++if cr
+                        write(lout,*) "DYNK> Insane - want to modify ",
++ei
++if .not.cr
+                        write(*,*)    "DYNK> Insane - want to modify ",
++ei
+
+     &                      "DISABLED RF cavity named '",element_name_s,
+     &                      ". Please make sure that the voltage and ",
+     &                      "harmonic number in the SINGLE ELEMENTS ",
+     &                      "block is not 0!"
+                        call prror(-1)
+                     endif
+                     if (nvar .eq. 5) then
++if cr
+                        write(lout,*) "DYNK> Insane - want to modify ",
++ei
++if .not.cr
+                        write(*,*)    "DYNK> Insane - want to modify ",
++ei
+     &                       "RF cavity named '", element_name_s, "', ",
+     &                       "but nvars=5 (from DIFF block)."
+                     endif
+
+                  elseif (abs(kz(jj)).eq.23 .or.   ! crab
+     &                    abs(kz(jj)).eq.26 .or.   ! cc multipole,  order 2
+     &                    abs(kz(jj)).eq.27 .or.   ! cc multipole,  order 3
+     &                    abs(kz(jj)).eq.28 ) then ! cc muiltipole, order 4
+                     if (.not. (att_name_s.eq."voltage"   .or.
+     &                          att_name_s.eq."frequency" .or.
+     &                          att_name_s.eq."phase"         )) then
+                        badelem = .true.
+                     endif
+                  endif
+                  
+                  if (badelem) then
++if cr
+                     write(lout,*) "DYNK> Insane - attribute '",
++ei
++if .not.cr
+                     write(*,*)    "DYNK> Insane - attribute '",
++ei
+     &                    att_name_s, "' is not valid for element '",
+     &                    element_name_s, "' which is of type",kz(jj)
+                     call prror(-1) 
+                  endif
+                  
                endif
             enddo
             if (.not. found) then
@@ -45013,8 +45109,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write (*,*)    "DYNK> Insane: Element '", element_name_s,
      &                        "' was not found"
 +ei
-!TODO: Check that the requested attribute actually exist for the given element type
-!TODO: Check that the requested element type is supported
                call prror(-1)
             endif
 
@@ -45678,18 +45772,23 @@ c$$$                  goto 100 !ERROR
 c$$$               endif
 c$$$               call initialize_element(ii, .false.)
 
-          !Not yet supported
-c$$$          elseif (abs(el_type).eq.12) then ! cavities 
-c$$$            if (att_name_stripped.eq."voltage") then ! [MV]
-c$$$               ed(ii) = dynk_computeFUN(funNum,turn)
-c$$$            elseif (att_name_stripped.eq."harmonic") then !
-c$$$               ek(ii) = dynk_computeFUN(funNum,turn)
-c$$$            elseif (att_name_stripped.eq."lag_angle") then ! [deg]
-c$$$               el(ii) = dynk_computeFUN(funNum,turn)
-c$$$            else
-c$$$               goto 100 !ERROR
-c$$$            endif
-c$$$            call initialize_element(ii, .false.)
+
+          elseif (abs(el_type).eq.12) then ! cavities 
+            if (att_name_stripped.eq."voltage") then ! [MV]
+               ed(ii) = newValue
+            elseif (att_name_stripped.eq."harmonic") then !
+               ek(ii) = newValue
+               el(ii) = dynk_elemdata(ii,3) !Need to reset el before calling initialize_element()
+               call initialize_element(ii, .false.)
+            elseif (att_name_stripped.eq."lag_angle") then ! [deg]
+               el(ii) = newValue
+               ! Note: el is set to 0 in initialize_element and in daten.
+               !  Calling initialize element on a cavity without setting el
+               !  will set phasc = 0!
+               call initialize_element(ii, .false.)
+            else
+               goto 100 !ERROR
+            endif
             
           !Not yet supported
 c$$$          elseif (abs(el_type).eq.16) then ! AC dipole 
@@ -45860,30 +45959,27 @@ c$$$            endif
                   goto 100 !ERROR
                endif
                
-            !Multipoles
-            elseif (abs(el_type).eq.11) then
-               if (att_name_s.eq."bending_str") then 
-                  dynk_getvalue = dynk_elemdata(ii,2)
-               elseif (att_name_s.eq."radius") then
+c$$$            !Multipoles (Not yet supported)
+c$$$            elseif (abs(el_type).eq.11) then
+c$$$               if (att_name_s.eq."bending_str") then 
+c$$$                  dynk_getvalue = dynk_elemdata(ii,2)
+c$$$               elseif (att_name_s.eq."radius") then
+c$$$                  dynk_getvalue = dynk_elemdata(ii,3)
+c$$$               else
+c$$$                  goto 100 !ERROR
+c$$$               endif
+               
+
+            elseif (abs(el_type).eq.12) then ! cavities
+               if     (att_name_s.eq."voltage"  ) then ! MV
+                  dynk_getvalue = ed(ii)
+               elseif (att_name_s.eq."harmonic" ) then ! harmonic number
+                  dynk_getvalue = ek(ii)
+               elseif (att_name_s.eq."lag_angle") then ! [deg]
                   dynk_getvalue = dynk_elemdata(ii,3)
                else
                   goto 100 !ERROR
                endif
-               
-            !Not yet supported
-c$$$            elseif (abs(el_type).eq.12) then ! cavities 
-c$$$               if (att_name_s.eq."voltage") then ! MV
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = ed(ii)                
-c$$$               elseif (att_name_s.eq."harmonic") then ! harmonic number
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = ek(ii)                
-c$$$               elseif (att_name_s.eq."lag_angle") then ! [deg]
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = el(ii)       
-c$$$               else
-c$$$                  goto 100 !ERROR
-c$$$               endif
              
             !Not yet supported
 c$$$            elseif (abs(el_type).eq.16) then ! AC dipole 
