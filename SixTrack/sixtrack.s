@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.25'/
-      data moddate /'03.06.2015'/
+      data version /'4.5.26'/
+      data moddate /'08.06.2015'/
 +cd license
 !!SixTrack
 !!
@@ -68043,7 +68043,7 @@ c$$$         backspace (93,iostat=ierro)
         write(93,*) 'UNIT ',i,' opened ',fopen
       enddo 
 !+ei
-      call boinc_zipitall()
+!     call boinc_zipitall()
 !     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
@@ -68063,7 +68063,7 @@ c$$$         backspace (93,iostat=ierro)
       enddo 
       close(6,err=31)
  31   continue
-      call boinc_zipitall()
+!     call boinc_zipitall()
 !     call boinc_finish_graphics()
       call boinc_finish(0)
 +ei
