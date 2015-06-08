@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Should be in run in the directory $SS
+# Should be in run in the directory $SVN
 new=$SH0
 for fnordir in `ls`
 do

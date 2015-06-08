@@ -2,9 +2,24 @@
 should first modify the README and then cut and paste
 the new text into the CVS notes when requested.
 
- SixTrack Version: 4.5.24 Eric
-    -- just uncommented the calls to zipitall
+ SixTrack Version: 4.5.26 
+    -- Removed the two calls to boinc_zipitall
+   McIntosh, 8th June, 2015
+ 
+ SixTrack Version: 4.5.25 Kyrre
+    --  Give DYNK the capability of changing RF cavity
+settings. The new features are documented in the draft SixTrack manual, found
+at: https://github.com/kyrsjo/SixtrackTools/raw/master/user_manual/six.pdf [github.com]
+When implementing this, a bug affecting RF cavities which were present in the SINGLE ELEMENTS and
+STRUCTURE INPUT list of fort.2 but switched off (voltage = 0). These were *in some cases* still present
+in the lattice, slightly affecting the beam. This is the case for the LHC sequence (200 MHz RF system).
+This means that simulation results will from now on be *slightly* different.
+   Kyrre, 3rd June, 2015
+
+ SixTrack Version: 4.5.24 eric
+    -- Reinstated the two call to boinc_zipitall
    McIntosh, 1st June, 2015
+   
 
  SixTrack Version: 4.5.23 Eric's mods merged with Kyrre
     -- Does NOT open fort.10 except for bnlelens with BOINC
