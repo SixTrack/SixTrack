@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.26'/
-      data moddate /'08.06.2015'/
+      data version /'4.5.27'/
+      data moddate /'15.07.2015'/
 +cd license
 !!SixTrack
 !!
@@ -1942,6 +1942,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd kickvso1
             yv(1,j)=yv(1,j)-xv(2,j)*strackx(i)
             yv(2,j)=yv(2,j)+xv(1,j)*strackx(i)
+!
+! TODO: Check if ejf0v should be e0f?? or oidpsv=ejf0v(j)/ejfv(j)=1/(1+delta)
+!
 !hr02       crkve=yv(1,j)-xv(1,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
       crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
 !hr02       cikve=yv(2,j)-xv(2,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
@@ -40676,7 +40679,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
++ca save ! Saving DPP?
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -43116,8 +43119,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
-      write (*,*) "FIO not supported in DYNK!"
-      stop 1
++if cr
+      write (lout,*) "FIO not supported in DYNK!"
++ei
++if .not.cr
+      write (*,*)    "FIO not supported in DYNK!"
++ei
+      call prror(-1)
 +ei
       
       if (nfuncs_dynk+1 .gt. maxfuncs_dynk) then
@@ -43132,6 +43140,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (*,*)    "Maximum number of FUN exceeded, please" //
      &        "parameter maxfuncs_dynk."
          write (*,*)    "Current value of maxfuncs_dynk:",maxfuncs_dynk
++ei
+         call prror(51)
+      endif
+      
+      if (getfields_lfields(2).gt.maxstrlen_dynk-1) then
++if cr
+         write(lout,*) "ERROR in DYNK block parsing (fort.3):"
+         write(lout,*) "Max length of a FUN name is", maxstrlen_dynk-1
+         write(lout,*) "Offending FUN: '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
++ei
++if .not.cr
+         write(*,*)    "ERROR in DYNK block parsing (fort.3):"
+         write(*,*)    "Max length of a FUN name is", maxstrlen_dynk-1
+         write(*,*)    "Offending FUN: '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
 +ei
          call prror(51)
       endif
@@ -43159,6 +43183,56 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk !ARG1
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
+
+         !Sanity checks
+         if (getfields_lfields(4) .gt. 16 .or.   ! length of BEZ elements
+     &       getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN GET got an element name with     "
+            write (lout,*) "length =", getfields_lfields(4), "> 16"
+            write (lout,*) "or > ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN GET got an element name with     "
+            write (*,*)    "length =", getfields_lfields(4), "> 16."
+            write (*,*)    "or > ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         end if
+         if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN GET got an attribute name with   "
+            write (lout,*) "length =", getfields_lfields(5)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN GET got an attribute name with   "
+            write (*,*)    "length =", getfields_lfields(5)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+
          ! Store data
          cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
@@ -43169,28 +43243,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+2
          
          fexpr_dynk(nfexpr_dynk) = -1.0 !Initialize a place in the array to store the value
-         
-         if (getfields_lfields(2) .gt. 16) then ! length of BEZ elements
-+if cr
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "SET FUN got an element name with     "
-            write (lout,*) "length =", getfields_lfields(4), "> 16."
-            write (lout,*) "The name was: '",getfields_fields(4)
-     &                                    (1:getfields_lfields(4)),"'"
-            write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*) "*************************************"
-            write (*,*) "ERROR in DYNK block parsing (fort.3):"
-            write (*,*) "SET FUN got an element name with     "
-            write (*,*) "length =", getfields_lfields(4), "> 16."
-            write (*,*) "The name was: '",getfields_fields(4)
-     &                                    (1:getfields_lfields(4)),"'"
-            write (*,*) "*************************************"
-+ei
-            call prror(51)
-         end if
 
       case ("FILE")
          ! FILE: Load the contents from a file
@@ -43211,6 +43263,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,3) = ncexpr_dynk+1 !Filename (in cexpr_dynk)
          funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk+1 !Data     (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1            !Below: Length of file
+
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FILE got a filename name with   "
+            write (lout,*) "length =", getfields_lfields(4)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FILE got a filenname with   "
+            write (*,*)    "length =", getfields_lfields(4)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+
          ! Store data
          cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
@@ -43357,6 +43435,30 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,3) = ncexpr_dynk+1 !Filename (in cexpr_dynk)
          funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk+1 !Data     (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1            !Below: Length of file (number of x,y sets)
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FILELIN got a filename name with   "
+            write (lout,*) "length =", getfields_lfields(4)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FILELIN got a filenname with   "
+            write (*,*)    "length =", getfields_lfields(4)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
          ! Store data
          cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
@@ -43711,7 +43813,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Store data
          cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         ! Sanity check
+         ! Sanity check (string lengths are done inside dynk_findFUNindex)
          if (funcs_dynk(nfuncs_dynk,3) .eq. -1 .or. 
      &       funcs_dynk(nfuncs_dynk,4) .eq. -1) then
 +if cr
@@ -43785,7 +43887,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Store data
          cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         ! Sanity check
+         ! Sanity check (string lengths are done inside dynk_findFUNindex)
          if (funcs_dynk(nfuncs_dynk,3) .eq. -1) then
 +if cr
             write (lout,*) "*************************************"
@@ -44484,7 +44586,50 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &     sets_dynk(nsets_dynk,3) ! endTurn
       read(getfields_fields(7)(1:getfields_lfields(7)),*)
      &     sets_dynk(nsets_dynk,4) ! turnShift
-
+      
+      !Sanity check on string lengths
+      if (getfields_lfields(2).gt.16 .or.
+     &    getfields_lfields(2).gt.maxstrlen_dynk-1) then
++if cr
+         write (lout,*) "*************************************"
+         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+         write (lout,*) "SET got an element name with length =",
+     &        getfields_lfields(2), "> 16 or > maxstrlen_dynk-1."
+         write (lout,*) "The name was: '",
+     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
+         write (lout,*) "*************************************"
++ei
++if .not.cr
+         write (*,*)    "*************************************"
+         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+         write (*,*)    "SET got an element name with length =",
+     &        getfields_lfields(2), "> 16 or > maxstrlen_dynk-1."
+         write (*,*)    "The name was: '",
+     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
+         write (*,*)    "*************************************"
++ei
+         call prror(51)
+      endif
+      
+      if (getfields_lfields(3).gt.maxstrlen_dynk-1) then
++if cr
+         write(lout,*) "ERROR in DYNK block parsing (fort.3) (SET):"
+         write(lout,*) "The attribute name '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(lout,*) "is too long! Max length is",
+     &        maxstrlen_dynk
++ei
++if .not.cr
+         write(*,*)    "ERROR in DYNK block parsing (fort.3) (SET):"
+         write(*,*)    "The attribute name '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(*,*)    "is too long! Max length is",
+     &        maxstrlen_dynk-1
++ei
+         call prror(51)         
+      endif
+      
+      !OK -- save them!
       csets_dynk(nsets_dynk,1)(1:getfields_lfields(2)) =
      &     getfields_fields(2)(1:getfields_lfields(2)) ! element_name
       csets_dynk(nsets_dynk,2)(1:getfields_lfields(3)) =
@@ -44512,29 +44657,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
          call prror(51)
       endif
-
-      if (getfields_lfields(2) .gt. 16) then
-         ! length of elements in BEZ array is 16
-+if cr
-         write (lout,*) "*************************************"
-         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "SET got an element name with length =",
-     &        getfields_lfields(2), "> 16."
-         write (lout,*) "The name was: '",
-     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
-         write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got an element name with length =",
-     &        getfields_lfields(2), "> 16."
-         write (*,*)    "The name was: '",
-     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
-         write (*,*)    "*************************************"
-+ei
-         call prror(51)
-      end if
       
       if (  (sets_dynk(nsets_dynk,3) .ne. -1) .and. !Not the special case
      &      (sets_dynk(nsets_dynk,2) .gt. sets_dynk(nsets_dynk,3)) )then
@@ -44587,24 +44709,73 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
       end subroutine
 
-      integer function dynk_findFUNindex(funName, startfrom)
+      integer function dynk_findFUNindex(funName_input, startfrom)
 !-----------------------------------------------------------------------
 !     K. Sjobak, BE-ABP/HSS
-!     last modified: 14-10-2014
+!     last modified: 14-07-2015
 !     Find and return the index in the ifuncs array to the
 !      function with name funName, which should be zero-padded.
 !     Return -1 if nothing was found.
+!
+!     Note: It is expected that the length of funName_input is
+!      equal or less than maxstrlen_dynk, and if it equal,
+!      that it is a zero-terminated string.
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
 +ca comdynk
-
++if cr
++ca crcoall
++ei
+      character(*) funName_input
       character(maxstrlen_dynk) funName
       integer startfrom
-      intent(in) funName, startfrom
+      intent(in) funName_input, startfrom
+
 
       integer ii
+
+C      write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)      
+
+      if (len(funName_input).gt.maxstrlen_dynk) then
++if cr
+         write (lout,*) "ERROR in dynk_findFUNindex"
+         write (lout,*) "len(funName_input) = ",len(funName_input),
+     &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1
++ei
++if .not.cr
+         write (*,*)    "ERROR in dynk_findFUNindex"
+         write (*,*)    "len(funName_input) = ",len(funName_input),
+     &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1      
++ei
+         call prror(-1)
+      endif
+      ! If the length is exactly maxstrlen_dynk, it should be zero-terminated.
+      if (( len(funName_input).eq.maxstrlen_dynk ) .and.
+     &    ( funName_input(len(funName_input):len(funName_input))
+     &     .ne.char(0)) ) then
++if cr
+         write (lout,*) "ERROR in dynk_findFUNindex"
+         write (lout,*) "Expected funName_input[-1]=NULL"
++ei
++if .not.cr
+         write (*,*) "ERROR in dynk_findFUNindex"
+         write (*,*) "Expected funName_input[-1]=NULL"
++ei
+         call prror(-1)
+      endif
       
+      do ii=1,len(funName_input)
+C         write(*,*) "DBGDBG a:", ii
+         funName(ii:ii) = funName_input(ii:ii)
+      enddo
+      funName(1:len(funName_input)) = funName_input
+      do ii=len(funName_input)+1,maxstrlen_dynk
+C         write(*,*) "DBGDBG b:", ii
+         funName(ii:ii) = char(0)
+      enddo
+C      write(*,*) "DBGDBG c:", funName, len(funName)
+
       dynk_findFUNindex = -1
 
       do ii=startfrom, nfuncs_dynk
@@ -44624,6 +44795,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     Find and return the index in the sets array to the set which
 !     matches element_name and att_name, which should be zero-padded.
 !     Return -1 if nothing was found.
+!
+!     Note: It is expected that the length of element_name and att_name
+!      is exactly maxstrlen_dynk .
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
@@ -45730,6 +45904,8 @@ C+ei
 C     Here comes the logic for setting the value of the attribute for all instances of the element...
       ! Get type
       do ii=1,il
+         ! TODO: Here one could find the right ii in dynk_pretrack,
+         ! and then avoid this loop / string-comparison
          if (element_name_stripped.eq.bez(ii)) then ! name found
             el_type=kz(ii)      ! type found
             
@@ -45890,6 +46066,9 @@ c$$$            endif
 !     last modified: 2101-2015
 !
 !     Returns the original value currently set by an element.
+!     
+!     Note: Expects that arguments element_name and att_name are
+!     zero-terminated strings of length maxstrlen_dynk!
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
@@ -45928,6 +46107,8 @@ c$$$            endif
       end if
 
       do ii=1,il
+         ! TODO: Here one could find the right ii in dynk_pretrack,
+         ! and then avoid this loop / string-comparison
          if (element_name_s.eq.bez(ii)) then ! name found
             el_type=kz(ii)
             if (ldoubleElement) then
@@ -46036,6 +46217,16 @@ c$$$               endif
          endif !bez
       enddo
       
+      if (ldynkdebug) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &   "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
+      end if
+
       return
       
       !Error handlers
@@ -63743,7 +63934,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       double precision x, u1, u2, twopi, r,cut
       save
       
-      flag = .true.
+      flag = .true. !Does this initialize only once, or is it executed every pass?
+                    !See ran_gauss(cut)
 
 +if crlibm
 !hr09 twopi=8d0*atan(1d0)
@@ -65631,12 +65823,20 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ei
 
       logical flag
+      DATA flag/.TRUE./
       real rndm4
       double precision x, u1, u2, twopi, r,cut
 +ca save
-
++if automatc
+      write(*,*) "ERROR in ran_gauss"
+      write(*,*) "Please review use of save block in this algorithm!"
+      write(*,*) "u1 and u2 should always be saved, and flag "//
+     &     "is automatically so due to DATA statement"
+      exit(1)
++ei
+      
 +if crlibm
-            twopi=8d0*atan_rn(1d0)
+            twopi=8d0*atan_rn(1d0) !Why not 2*pi, where pi is in block "common"?
 +ei
 +if .not.crlibm
             twopi=8d0*atan(1d0)
