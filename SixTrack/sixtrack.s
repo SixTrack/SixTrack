@@ -18035,7 +18035,7 @@ cc2008
       i2 = 0
       i3 = 0
 
-      if(ch1(:4).eq.'HIGH') then
+      if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
         goto 2000
       endif
