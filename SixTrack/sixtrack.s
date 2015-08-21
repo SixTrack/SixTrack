@@ -43150,12 +43150,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write(lout,*) "Max length of a FUN name is", maxstrlen_dynk-1
          write(lout,*) "Offending FUN: '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(lout,*) "length:", getfields_lfields(2)
 +ei
 +if .not.cr
          write(*,*)    "ERROR in DYNK block parsing (fort.3):"
          write(*,*)    "Max length of a FUN name is", maxstrlen_dynk-1
          write(*,*)    "Offending FUN: '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(*,*) "length:", getfields_lfields(2)
 +ei
          call prror(51)
       endif
@@ -43767,6 +43769,180 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
+
+      case("FIR")
+         ! FIR: Finite Impulse Response filter
+         ! y[n] = \sum_{i=0}^N b_i*x[n-i]
+         ! where N is the order of the filter, x[] is the results from
+         ! previous calls to the input function, and b_i is a set of coefficients.
+         ! The coefficients are loaded from an ASCII file, formatted with three columns,
+         ! the first one being the index 0...N, the second being the coefficients b_0...b_N,
+         ! and the third one being the initial values of x[n]..x[n-N].
+         ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
+
+         call dynk_checkargs(getfields_nfields,6,
+     &        "FUN funname FIR N filename baseFUN")
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
+         call dynk_checkspace(0,2*t,2)
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         nfexpr_dynk = nfexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 10          !TYPE (FIR)
+         funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk !ARG1 (start of float storage)
+         funcs_dynk(nfuncs_dynk,4) = t           !ARG2 (filter order N)
+         funcs_dynk(nfuncs_dynk,5) =             !ARG3 (filtered function)
+     &        dynk_findFUNindex( getfields_fields(6)
+     &                           (1:getfields_lfields(6)), 1)
+         !Store data
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        iexpr_dynk(niexpr_dynk) ! N
+         ! Sanity check
+         if (funcs_dynk(nfuncs_dynk,5).eq.-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FIR function wanting function '",
+     &            getfields_fields(6)(1:getfields_lfields(6)), "'"
+            write (lout,*) "This FUN is unknown!"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FIR function wanting function '",
+     &            getfields_fields(6)(1:getfields_lfields(6)), "'"
+            write (*,*)    "This FUN is unknown!"
+            write (*,*) "*************************************"
++ei
+            call dynk_dumpdata
+            call prror(51)
+         endif
+        if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FIR got a filename name with   "
+            write (lout,*) "length =", getfields_lfields(5)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FILE got a filenname with   "
+            write (*,*)    "length =", getfields_lfields(5)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+         
+         ncexpr_dynk = ncexpr_dynk+1
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(5)) = !FILE NAME
+     &        getfields_fields(5)(1:getfields_lfields(5))
+         
+         !Read the file
+         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
+     &        iostat=stat)
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():FILE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk), "'"
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():FILE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk), "'"
++ei
+            call prror(51)
+         endif
+         
+         do ii=0, funcs_dynk(nfuncs_dynk,4) 
++if .not.crlibm
+            read(664,*,iostat=stat) x, y
+            if (stat.ne.0) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk+1),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii=",ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk+1),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii=",ii
++ei
+               call prror(-1)
+            endif
++ei
++if crlibm
+            read(664,'(a)', iostat=stat) ch
+            if (stat.ne.0) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk+1),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii=",ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk+1),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii=",ii
++ei
+               call prror(-1)
+            endif
+            
+            call getfields_split(ch,
+     &           filefields_fields, filefields_lfields,
+     &           filefields_nfields, filefields_lerr )
+            if ( filefields_lerr ) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk+1),"'"
+               write(lout,*) "DYNK> Error in getfields_split"
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FILE"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error in getfields_split"
++ei
+               call prror(-1)
+            end if
+
+
++ei
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = y            
+         enddo
+
+         
+      case("IIR")
+         ! IIR: Infinite Impulse Response filter
+         ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
+         ! is the same as FIR except that it 
+         
+         write(*,*) "!!!IIR not yet implemented!!!" !it shall be FUN type index #11
+         call prror(-1)
+
+         call dynk_checkargs(getfields_nfields,5,
+     &        "FUN funname IIR N M filename baseFUN")
+         call dynk_checkspace(2,0,2)
+
 
       !!! Operators: #20-39 !!!
       case("ADD","SUB","MUL","DIV","POW")
@@ -45799,7 +45975,6 @@ C+ei
       retval = fexpr_dynk(funcs_dynk(funNum,3))
      & *COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1)
      &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-
 +ei
 +if .not.crlibm
       retval = fexpr_dynk(funcs_dynk(funNum,3))
@@ -46410,12 +46585,16 @@ c$$$               endif
          endif
       end do
       
+      if (ldynkdebug) then
 +if cr
-      write(lout,*)"DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+         write(lout,*)
 +ei
 +if .not.cr
-      write(*,*)   "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+         write(*,*)   
 +ei
+     &      "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+      endif
+
       dynk_isused = .false.
       return
       
