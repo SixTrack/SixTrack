@@ -43094,10 +43094,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Temp variables
       integer ii, stat, t
-      double precision x,y,               ! FILE, FILELIN
+      double precision x,y,z,             ! FILE, FILELIN, FIR/IIR
      &                 x1,x2,y1,y2,deriv, ! LINSEG, QUADSEG,
      &                 tinj,Iinj,Inom,A,D,R,te,                 !PELP (input)
      &                 derivI_te,I_te,bexp,aexp, t1,I1, td,tnom !PELP (calc)
+      
+      logical isFIR ! FIR/IIR
       
       ! define function return type
       integer dynk_findFUNindex
@@ -43770,7 +43772,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call prror(51)
          endif
 
-      case("FIR")
+      case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
          ! y[n] = \sum_{i=0}^N b_i*x[n-i]
          ! where N is the order of the filter, x[] is the results from
@@ -43779,20 +43781,67 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! the first one being the index 0...N, the second being the coefficients b_0...b_N,
          ! and the third one being the initial values of x[n]..x[n-N].
          ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
+         !
+         ! Format in fexpr_dynk:
+         ! b_0 <- funcs_dynk(<this>,3)
+         ! x[n]
+         ! b_1
+         ! x[n-1]
+         ! (etc., repeat funcs_dynk(<this>,4)+1 times)
+         !
+         ! IIR: Infinite Impulse Response filter
+         ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
+         ! where N=M. This is the same as FIR, except that it also uses
+         ! previous values of it's own output.
+         ! The input file is also identical, except adding an extra column
+         ! for the initial values of y[n]..y[n-N], where the first entry (y[n])
+         ! is ignored when computing the new results.
+         !
+         ! Format in fexpr_dynk:
+         ! b_0 <- funcs_dynk(<this>,3)
+         ! x[n]
+         ! y[n] (ignored for computation)
+         ! b_1
+         ! x[n-1]
+         ! y[n-1]
+         ! (etc., repeat funcs_dynk(<this>,4) times)
 
-         call dynk_dumpdata
 
          call dynk_checkargs(getfields_nfields,6,
-     &        "FUN funname FIR N filename baseFUN")
+     &        "FUN funname {FIR|IIR} N filename baseFUN")
+         select case( getfields_fields(3)(1:getfields_lfields(3)) )
+         case("FIR")
+            isFIR = .true.
+         case("IIR")
+            isFIR = .false.
+         case default
++if cr
+            write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+            write (lout,*) "DYNK> non-recognized type in inner switch1?"
++ei
++if .not.cr
+            write (*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+            write (*,*)    "DYNK> non-recognized type in inner switch1?"
++ei
+         end select
+         
          read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
-         call dynk_checkspace(0,2*t,2)
+         if (isFIR) then
+            call dynk_checkspace(0,2*t,2)
+         else
+            call dynk_checkspace(0,3*t,2)
+         endif
          
          ! Set pointers to start of funs data blocks
          nfuncs_dynk = nfuncs_dynk+1
          ncexpr_dynk = ncexpr_dynk+1
          ! Store pointers
          funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
-         funcs_dynk(nfuncs_dynk,2) = 10            !TYPE (FIR)
+         if (isFIR) then
+            funcs_dynk(nfuncs_dynk,2) = 10 !TYPE (FIR)
+         else
+            funcs_dynk(nfuncs_dynk,2) = 11 !TYPE (IIR)
+         endif
          funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk+1 !ARG1 (start of float storage)
          funcs_dynk(nfuncs_dynk,4) = t             !ARG2 (filter order N)
          funcs_dynk(nfuncs_dynk,5) =               !ARG3 (filtered function)
@@ -43806,10 +43855,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
          ! Sanity check
          if (funcs_dynk(nfuncs_dynk,5).eq.-1) then
+            call dynk_dumpdata
 +if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FIR function wanting function '",
+            write (lout,*) "FIR/IIR function wanting function '",
      &            getfields_fields(6)(1:getfields_lfields(6)), "'"
             write (lout,*) "This FUN is unknown!"
             write (lout,*) "*************************************"
@@ -43817,29 +43867,28 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
             write (*,*)    "*************************************"
             write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FIR function wanting function '",
+            write (*,*)    "FIR/IIR function wanting function '",
      &            getfields_fields(6)(1:getfields_lfields(6)), "'"
             write (*,*)    "This FUN is unknown!"
             write (*,*) "*************************************"
 +ei
-            call dynk_dumpdata
             call prror(51)
          endif
         if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
 +if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FUN FIR got a filename name with "
+            write (lout,*) "FUN FIR/IIR got a filename name with "
             write (lout,*) "length =", getfields_lfields(5)
             write (lout,*) "> ",maxstrlen_dynk-1
             write (lout,*) "The name was: '",getfields_fields(5)
-     &                                    (1:getfields_lfields(5),"'"
+     &                                    (1:getfields_lfields(5)),"'"
             write (lout,*) "*************************************"
 +ei
 +if .not.cr
             write (*,*)    "*************************************"
             write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN FIR got a filenname with "
+            write (*,*)    "FUN FIR/IIR got a filenname with "
             write (*,*)    "length =", getfields_lfields(5)
             write (*,*)    "> ",maxstrlen_dynk-1
             write (*,*)    "The name was: '",getfields_fields(5)
@@ -43852,13 +43901,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FUN FIR got N <= 0, this is not valid"
+            write (lout,*) "FUN FIR/IIR got N <= 0, this is not valid"
             write (lout,*) "*************************************"
 +ei
 +if .not.cr
             write (*,*)    "*************************************"
             write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN FIR got N <= 0, this is not valid"
+            write (*,*)    "FUN FIR/IIR got N <= 0, this is not valid"
             write (*,*)    "*************************************"
 +ei
             call prror(51)
@@ -43874,12 +43923,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        iostat=stat, status="OLD")
          if (stat .ne. 0) then
 +if cr
-            write(lout,*) "DYNK> dynk_parseFUN():FIR"
+            write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
             write(lout,*) "DYNK> Error opening file '",
      &           cexpr_dynk(ncexpr_dynk), "'"
 +ei
 +if .not.cr
-            write(*,*)    "DYNK> dynk_parseFUN():FIR"
+            write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
             write(*,*)    "DYNK> Error opening file '",
      &           cexpr_dynk(ncexpr_dynk), "'"
 +ei
@@ -43887,38 +43936,42 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          endif
          
          do ii=0, funcs_dynk(nfuncs_dynk,4) 
-            !Reading the FIR file without CRLIBM
+            !Reading the FIR/IIR file without CRLIBM
 +if .not.crlibm
-            read(664,*,iostat=stat) t, x, y
+            if (isFIR) then
+               read(664,*,iostat=stat) t, x, y
+            else
+               read(664,*,iostat=stat) t, x, y, z
+            endif
             if (stat.ne.0) then
 +if cr
-               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR"
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
                write(*,*)    "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
 +ei
                call prror(-1)
             endif
-+ei
++ei ! END + if .not.crlibm
 
-            !Reading the FIR file with CRLIBM
+            !Reading the FIR/IIR file with CRLIBM
 +if crlibm
             read(664,'(a)', iostat=stat) ch
             if (stat.ne.0) then
 +if cr
-               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR"
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
                write(*,*)    "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
@@ -43929,33 +43982,74 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call getfields_split(ch,
      &           filefields_fields, filefields_lfields,
      &           filefields_nfields, filefields_lerr )
+            
+            !Sanity checks
             if ( filefields_lerr ) then
 +if cr
-               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(lout,*) "DYNK> Error in getfields_split()"
 +ei
 +if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR"
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
                write(*,*)    "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(*,*)    "DYNK> Error in getfields_split()"
 +ei
                call prror(-1)
-               !todo: put data in t,x,y
             end if
+            if ( (      isFIR .and.filefields_nfields .ne. 3) .or.
+     &           ((.not.isFIR).and.filefields_nfields .ne. 4)     ) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(lout,*) "DYNK> Expected 3[4] fields ",
+     &              "(idx, fac, init, selfFac), got ",filefields_nfields
 +ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(*,*)    "DYNK> Expected 3[4] fields ",
+     &              "(idx, fac, init, selfFac), got ",filefields_nfields
++ei
+               call prror(-1)
+            endif
+            
+            !Read the data into t,x,y(,z):
+            read(filefields_fields(1)(1:filefields_lfields(1)),*) t
+            
+            x = round_near(errno, filefields_lfields(2)+1,
+     &           filefields_fields(2) )
+            if (errno.ne.0)
+     &           call rounderr(errno,filefields_fields,2,x)
+
+            y = round_near(errno, filefields_lfields(3)+1,
+     &           filefields_fields(3) )
+            if (errno.ne.0)
+     &           call rounderr(errno,filefields_fields,3,x)
+            
+            if (.not.isFIR) then
+               z = round_near(errno, filefields_lfields(4)+1,
+     &              filefields_fields(4) )
+               if (errno.ne.0)
+     &              call rounderr(errno,filefields_fields,4,x)
+            endif
+            
++ei ! END +if crlibm
+
             ! More sanity checks
             if (t .ne. ii) then
 +if cr
-               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
 +ei
 +if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR"
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
                write(*,*)    "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
                write(*,*)    "DYNK> Got line t =",t, ", expected ", ii
@@ -43968,22 +44062,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             fexpr_dynk(nfexpr_dynk) = x
             nfexpr_dynk = nfexpr_dynk+1
             fexpr_dynk(nfexpr_dynk) = y
+            if (.not.isFIR) then
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = z
+            endif
          enddo
-         call dynk_dumpdata()
-         stop(0)
-         
-      case("IIR")
-         ! IIR: Infinite Impulse Response filter
-         ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
-         ! is the same as FIR except that it 
-         
-         write(*,*) "!!!IIR not yet implemented!!!" !it shall be FUN type index #11
-         call prror(-1)
-
-         call dynk_checkargs(getfields_nfields,5,
-     &        "FUN funname IIR N M filename baseFUN")
-         call dynk_checkspace(2,0,2)
-
 
       !!! Operators: #20-39 !!!
       case("ADD","SUB","MUL","DIV","POW")
