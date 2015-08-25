@@ -43780,6 +43780,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! and the third one being the initial values of x[n]..x[n-N].
          ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
 
+         call dynk_dumpdata
+
          call dynk_checkargs(getfields_nfields,6,
      &        "FUN funname FIR N filename baseFUN")
          read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
@@ -43787,21 +43789,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
          ! Set pointers to start of funs data blocks
          nfuncs_dynk = nfuncs_dynk+1
-         nfexpr_dynk = nfexpr_dynk+1
          ncexpr_dynk = ncexpr_dynk+1
          ! Store pointers
-         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
-         funcs_dynk(nfuncs_dynk,2) = 10          !TYPE (FIR)
-         funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk !ARG1 (start of float storage)
-         funcs_dynk(nfuncs_dynk,4) = t           !ARG2 (filter order N)
-         funcs_dynk(nfuncs_dynk,5) =             !ARG3 (filtered function)
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 10            !TYPE (FIR)
+         funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk+1 !ARG1 (start of float storage)
+         funcs_dynk(nfuncs_dynk,4) = t             !ARG2 (filter order N)
+         funcs_dynk(nfuncs_dynk,5) =               !ARG3 (filtered function)
      &        dynk_findFUNindex( getfields_fields(6)
      &                           (1:getfields_lfields(6)), 1)
-         !Store data
+         !Store metadata
          cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
          read(getfields_fields(4)(1:getfields_lfields(4)),*)
      &        iexpr_dynk(niexpr_dynk) ! N
+         
          ! Sanity check
          if (funcs_dynk(nfuncs_dynk,5).eq.-1) then
 +if cr
@@ -43846,14 +43848,30 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
+         if ( iexpr_dynk(niexpr_dynk) .le. 0 ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FIR got N <= 0, this is not valid"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FIR got N <= 0, this is not valid"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
          
+         !More metadata
          ncexpr_dynk = ncexpr_dynk+1
          cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(5)) = !FILE NAME
      &        getfields_fields(5)(1:getfields_lfields(5))
          
          !Read the file
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
-     &        iostat=stat)
+     &        iostat=stat, status="OLD")
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
@@ -43869,38 +43887,41 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          endif
          
          do ii=0, funcs_dynk(nfuncs_dynk,4) 
+            !Reading the FIR file without CRLIBM
 +if .not.crlibm
-            read(664,*,iostat=stat) x, y
+            read(664,*,iostat=stat) t, x, y
             if (stat.ne.0) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR"
                write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk+1),"'"
-               write(lout,*) "DYNK> File ended unexpectedly at ii=",ii
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR"
                write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk+1),"'"
-               write(*,*)    "DYNK> File ended unexpectedly at ii=",ii
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
 +ei
                call prror(-1)
             endif
 +ei
+
+            !Reading the FIR file with CRLIBM
 +if crlibm
             read(664,'(a)', iostat=stat) ch
             if (stat.ne.0) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR"
                write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk+1),"'"
-               write(lout,*) "DYNK> File ended unexpectedly at ii=",ii
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR"
                write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk+1),"'"
-               write(*,*)    "DYNK> File ended unexpectedly at ii=",ii
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
 +ei
                call prror(-1)
             endif
@@ -43912,24 +43933,44 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR"
                write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk+1),"'"
-               write(lout,*) "DYNK> Error in getfields_split"
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error in getfields_split()"
 +ei
 +if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILE"
+               write(*,*)    "DYNK> dynk_parseFUN():FIR"
                write(*,*)    "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Error in getfields_split"
+               write(*,*)    "DYNK> Error in getfields_split()"
 +ei
                call prror(-1)
+               !todo: put data in t,x,y
             end if
-
-
 +ei
+            ! More sanity checks
+            if (t .ne. ii) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Got line t =",t, ", expected ", ii
++ei
+               call prror(-1)
+            endif
+            !Save data to arrays
+            !Store coefficients (x) and initial/earlier values (y) in interlaced order
             nfexpr_dynk = nfexpr_dynk+1
-            fexpr_dynk(nfexpr_dynk) = y            
+            fexpr_dynk(nfexpr_dynk) = x
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = y
          enddo
-
+         call dynk_dumpdata()
+         stop(0)
          
       case("IIR")
          ! IIR: Infinite Impulse Response filter
