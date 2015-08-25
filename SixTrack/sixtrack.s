@@ -43094,7 +43094,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Temp variables
       integer ii, stat, t
-      double precision x,y,z,             ! FILE, FILELIN, FIR/IIR
+      double precision x,y,z,u,           ! FILE, FILELIN, FIR/IIR
      &                 x1,x2,y1,y2,deriv, ! LINSEG, QUADSEG,
      &                 tinj,Iinj,Inom,A,D,R,te,                 !PELP (input)
      &                 derivI_te,I_te,bexp,aexp, t1,I1, td,tnom !PELP (calc)
@@ -43800,9 +43800,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Format in fexpr_dynk:
          ! b_0 <- funcs_dynk(<this>,3)
          ! x[n]
-         ! y[n] (ignored for computation)
+         ! a_0
+         ! y[n] (zeroed for computation, used to hold previously returned value)
          ! b_1
          ! x[n-1]
+         ! a_1
          ! y[n-1]
          ! (etc., repeat funcs_dynk(<this>,4) times)
 
@@ -43829,7 +43831,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (isFIR) then
             call dynk_checkspace(0,2*t,2)
          else
-            call dynk_checkspace(0,3*t,2)
+            call dynk_checkspace(0,4*t,2)
          endif
          
          ! Set pointers to start of funs data blocks
@@ -43941,7 +43943,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (isFIR) then
                read(664,*,iostat=stat) t, x, y
             else
-               read(664,*,iostat=stat) t, x, y, z
+               read(664,*,iostat=stat) t, x, y, z, u
             endif
             if (stat.ne.0) then
 +if cr
@@ -44000,25 +44002,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                call prror(-1)
             end if
             if ( (      isFIR .and.filefields_nfields .ne. 3) .or.
-     &           ((.not.isFIR).and.filefields_nfields .ne. 4)     ) then
+     &           ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"', line =", ii
-               write(lout,*) "DYNK> Expected 3[4] fields ",
-     &              "(idx, fac, init, selfFac), got ",filefields_nfields
+               write(lout,*) "DYNK> Expected 3[5] fields ",
+     &              "(idx, fac, init, selfFac, selfInit), ",
+     &              "got ",filefields_nfields
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
                write(*,*)    "DYNK> Error reading file '",
      &              cexpr_dynk(ncexpr_dynk),"', line =", ii
-               write(*,*)    "DYNK> Expected 3[4] fields ",
-     &              "(idx, fac, init, selfFac), got ",filefields_nfields
+               write(*,*)    "DYNK> Expected 3[5] fields ",
+     &              "(idx, fac, init, selfFac, selfInit), ",
+     &              "got ",filefields_nfields
 +ei
                call prror(-1)
             endif
             
-            !Read the data into t,x,y(,z):
+            !Read the data into t,x,y(,z,u):
             read(filefields_fields(1)(1:filefields_lfields(1)),*) t
             
             x = round_near(errno, filefields_lfields(2)+1,
@@ -44029,13 +44033,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             y = round_near(errno, filefields_lfields(3)+1,
      &           filefields_fields(3) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,3,x)
+     &           call rounderr(errno,filefields_fields,3,y)
             
             if (.not.isFIR) then
                z = round_near(errno, filefields_lfields(4)+1,
      &              filefields_fields(4) )
                if (errno.ne.0)
-     &              call rounderr(errno,filefields_fields,4,x)
+     &              call rounderr(errno,filefields_fields,4,z)
+               
+               u = round_near(errno, filefields_lfields(5)+1,
+     &              filefields_fields(5) )
+               if (errno.ne.0)
+     &              call rounderr(errno,filefields_fields,5,u)
             endif
             
 +ei ! END +if crlibm
@@ -44065,6 +44074,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (.not.isFIR) then
                nfexpr_dynk = nfexpr_dynk+1
                fexpr_dynk(nfexpr_dynk) = z
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = u
             endif
          enddo
 
@@ -45915,7 +45926,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       ! General temporaries
       integer foff !base offset into fexpr array
-      
+      integer ii,jj!Loop variable
+
       ! Other stuff
 +ca parnum
       double precision pi
@@ -45988,6 +46000,44 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! Change to mu, sigma
          retval = fexpr_dynk(funcs_dynk(funNum,4))
      &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
+         
+      case(10)                                                          ! FIR,IIR
+         foff = funcs_dynk(funNum,3)
+         !Shift storage 1 back
+         do ii=funcs_dynk(funNum,4)-1,0,-1
+            jj = ii*2
+            fexpr_dynk(foff+jj+3) = fexpr_dynk(foff+jj+1)
+         enddo
+         !Evaluate the next input function
+         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+         !Compute the filtered value
+         retval = 0.0
+         do ii=0,funcs_dynk(funNum,4)
+            jj = ii*2
+            retval = retval + 
+     &           fexpr_dynk(foff+jj)*fexpr_dynk(foff+jj+1)
+         enddo
+      case(11)
+         foff = funcs_dynk(funNum,3)
+         !Shift storage 1 back
+         do ii=funcs_dynk(funNum,4)-1,0,-1
+            jj = ii*2
+            fexpr_dynk(foff+jj+5) = fexpr_dynk(foff+jj+1)
+            fexpr_dynk(foff+jj+7) = fexpr_dynk(foff+jj+3)
+         enddo
+         !Evaluate the next input function
+         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+         fexpr_dynk(foff+3) = 0.0
+         !Compute the filtered value
+         retval = 0.0
+         do ii=0,funcs_dynk(funNum,4)
+            jj = ii*2
+            retval = retval +
+     &           fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) +
+     &           fexpr_dynk(foff+jj+2) * fexpr_dynk(foff+jj+3)
+         enddo
+         !To be shifted at the next evaluation
+         fexpr_dynk(foff+2) = retval
          
       case (20)                                                         ! ADD
          retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
