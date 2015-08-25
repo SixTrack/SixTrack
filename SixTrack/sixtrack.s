@@ -43829,7 +43829,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FUN FIR got a filename name with   "
+            write (lout,*) "FUN FIR got a filename name with "
             write (lout,*) "length =", getfields_lfields(5)
             write (lout,*) "> ",maxstrlen_dynk-1
             write (lout,*) "The name was: '",getfields_fields(5)
@@ -43839,7 +43839,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
             write (*,*)    "*************************************"
             write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN FILE got a filenname with   "
+            write (*,*)    "FUN FIR got a filenname with "
             write (*,*)    "length =", getfields_lfields(5)
             write (*,*)    "> ",maxstrlen_dynk-1
             write (*,*)    "The name was: '",getfields_fields(5)
@@ -43874,12 +43874,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        iostat=stat, status="OLD")
          if (stat .ne. 0) then
 +if cr
-            write(lout,*) "DYNK> dynk_parseFUN():FILE"
+            write(lout,*) "DYNK> dynk_parseFUN():FIR"
             write(lout,*) "DYNK> Error opening file '",
      &           cexpr_dynk(ncexpr_dynk), "'"
 +ei
 +if .not.cr
-            write(*,*)    "DYNK> dynk_parseFUN():FILE"
+            write(*,*)    "DYNK> dynk_parseFUN():FIR"
             write(*,*)    "DYNK> Error opening file '",
      &           cexpr_dynk(ncexpr_dynk), "'"
 +ei
