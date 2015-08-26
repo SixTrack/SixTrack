@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.27'/
-      data moddate /'15.07.2015'/
+      data version /'4.5.28'/
+      data moddate /'26.08.2015'/
 +cd license
 !!SixTrack
 !!
@@ -43781,12 +43781,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! the first one being the index 0...N, the second being the coefficients b_0...b_N,
          ! and the third one being the initial values of x[n]..x[n-N].
          ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
+         ! Note that this means that at the first call, x[0] is pushed into x[1] etc.,
+         ! and x[n-N] is deleted; i.e. the initial x[n-N] is never used.
          !
          ! Format in fexpr_dynk:
          ! b_0 <- funcs_dynk(<this>,3)
          ! x[n]
+         ! x_init[n] (holds the x[n]s from the input file, used to reset the FIR at the first turn)
          ! b_1
          ! x[n-1]
+         ! x_init[n-1]
          ! (etc., repeat funcs_dynk(<this>,4)+1 times)
          !
          ! IIR: Infinite Impulse Response filter
@@ -43800,12 +43804,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Format in fexpr_dynk:
          ! b_0 <- funcs_dynk(<this>,3)
          ! x[n]
-         ! a_0
+         ! x_init[n]
+         ! a_0  (a_0 is never used)
          ! y[n] (zeroed for computation, used to hold previously returned value)
+         ! y_init[n] (holds the y[n]s from the input file, used to reset the FIR at the first turn)
          ! b_1
          ! x[n-1]
+         ! x_init[n-1]
          ! a_1
          ! y[n-1]
+         ! y_init[n-1]
          ! (etc., repeat funcs_dynk(<this>,4) times)
 
 
@@ -43829,9 +43837,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
          read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
          if (isFIR) then
-            call dynk_checkspace(0,2*t,2)
+            call dynk_checkspace(0,3*(t+1),2)
          else
-            call dynk_checkspace(0,4*t,2)
+            call dynk_checkspace(0,6*(t+1),2)
          endif
          
          ! Set pointers to start of funs data blocks
@@ -44029,7 +44037,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           filefields_fields(2) )
             if (errno.ne.0)
      &           call rounderr(errno,filefields_fields,2,x)
-
+            
             y = round_near(errno, filefields_lfields(3)+1,
      &           filefields_fields(3) )
             if (errno.ne.0)
@@ -44068,14 +44076,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             !Save data to arrays
             !Store coefficients (x) and initial/earlier values (y) in interlaced order
             nfexpr_dynk = nfexpr_dynk+1
-            fexpr_dynk(nfexpr_dynk) = x
+            fexpr_dynk(nfexpr_dynk) = x      ! b_i
             nfexpr_dynk = nfexpr_dynk+1
-            fexpr_dynk(nfexpr_dynk) = y
+            fexpr_dynk(nfexpr_dynk) = 0.0    ! x[n-1], will be initialized in dynk_apply()
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = y      ! x_init[n-i]
             if (.not.isFIR) then
                nfexpr_dynk = nfexpr_dynk+1
-               fexpr_dynk(nfexpr_dynk) = z
+               fexpr_dynk(nfexpr_dynk) = z   ! a_i
                nfexpr_dynk = nfexpr_dynk+1
-               fexpr_dynk(nfexpr_dynk) = u
+               fexpr_dynk(nfexpr_dynk) = 0.0 ! y[n-i], will be initialized in dynk_apply()
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = u   ! y_init[n-i]
             endif
          enddo
 
@@ -45697,10 +45709,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          enddo
       enddo
 
-      !First-turn initialization, some parts which are specific for collimat.
-      ! (move to pretrack?)
+      !First-turn initialization, including some parts which are specific for collimat.
       if (turn .eq. 1) then
-         ! Reset RNGs
+         ! Reset RNGs and filters 
          do ii=1, nfuncs_dynk
             if (funcs_dynk(ii,2) .eq. 6) then !RANDG
                if (ldynkdebug) then
@@ -45710,7 +45721,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if .not.cr
                   write (*,*) 
 +ei
-     &              "DYNKDEBUG> Resetting RNG for FUN named '",
+     &               "DYNKDEBUG> Resetting RNG for FUN named '",
      & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
@@ -45718,7 +45729,40 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &         iexpr_dynk(funcs_dynk(ii,3) )
                iexpr_dynk(funcs_dynk(ii,3)+4) =
      &         iexpr_dynk(funcs_dynk(ii,3)+1)
+            else if (funcs_dynk(ii,2) .eq. 10) then !FIR
+               if (ldynkdebug) then
++if cr
+                  write (lout,*)
++ei
++if .not.cr
+                  write (*,*)
++ei
+     &               "DYNKDEBUG> Resetting FIR named '",
+     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+               do jj=0, funcs_dynk(ii,4)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*3+2)
+               enddo
+            else if (funcs_dynk(ii,2) .eq. 11) then !IIR
+               if (ldynkdebug) then
++if cr
+                  write (lout,*)
++ei
++if .not.cr
+                  write (*,*)
++ei
+     &               "DYNKDEBUG> Resetting IIR named '",
+     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+               do jj=0, funcs_dynk(ii,4)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+2)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+4) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+5)
+               enddo
             endif
+            
          enddo
 
          !Open dynksets.dat
@@ -46001,43 +46045,43 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          retval = fexpr_dynk(funcs_dynk(funNum,4))
      &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
          
-      case(10)                                                          ! FIR,IIR
+      case(10)                                                          ! FIR
          foff = funcs_dynk(funNum,3)
          !Shift storage 1 back
          do ii=funcs_dynk(funNum,4)-1,0,-1
-            jj = ii*2
-            fexpr_dynk(foff+jj+3) = fexpr_dynk(foff+jj+1)
+            jj = ii*3
+            fexpr_dynk(foff+jj+4) = fexpr_dynk(foff+jj+1)
          enddo
          !Evaluate the next input function
          fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
          !Compute the filtered value
          retval = 0.0
          do ii=0,funcs_dynk(funNum,4)
-            jj = ii*2
+            jj = ii*3
             retval = retval + 
      &           fexpr_dynk(foff+jj)*fexpr_dynk(foff+jj+1)
          enddo
-      case(11)
+      case(11)                                                          ! IIR
          foff = funcs_dynk(funNum,3)
          !Shift storage 1 back
          do ii=funcs_dynk(funNum,4)-1,0,-1
-            jj = ii*2
-            fexpr_dynk(foff+jj+5) = fexpr_dynk(foff+jj+1)
-            fexpr_dynk(foff+jj+7) = fexpr_dynk(foff+jj+3)
+            jj = ii*6
+            fexpr_dynk(foff+jj+7) = fexpr_dynk(foff+jj+1)
+            fexpr_dynk(foff+jj+10) = fexpr_dynk(foff+jj+4)
          enddo
          !Evaluate the next input function
          fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
-         fexpr_dynk(foff+3) = 0.0
+         fexpr_dynk(foff+4) = 0.0
          !Compute the filtered value
          retval = 0.0
          do ii=0,funcs_dynk(funNum,4)
-            jj = ii*2
+            jj = ii*6
             retval = retval +
      &           fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) +
-     &           fexpr_dynk(foff+jj+2) * fexpr_dynk(foff+jj+3)
+     &           fexpr_dynk(foff+jj+3) * fexpr_dynk(foff+jj+4)
          enddo
          !To be shifted at the next evaluation
-         fexpr_dynk(foff+2) = retval
+         fexpr_dynk(foff+4) = retval
          
       case (20)                                                         ! ADD
          retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
