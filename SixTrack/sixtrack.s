@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.27'/
-      data moddate /'15.07.2015'/
+      data version /'4.5.28'/
+      data moddate /'03.09.2015'/
 +cd license
 !!SixTrack
 !!
@@ -1075,7 +1075,8 @@
 +cd   dbdump
 
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 13-06-2014
+!     K. Sjobak, BE-ABP/HSS
+!     last modified: 03-09-2015
 !     COMMON for dumping the beam population
 !     always in main code
 
@@ -1098,6 +1099,8 @@
 !       post-processing tools, activating the dumpfmt flag (0=off, by default);
       logical ldumphighprec                  ! high precision printout required
                                              !   at all flagged SINGLE ELEMENTs
+      logical ldumpfront                     ! dump at the beginning of each element,
+                                             !  not at the end.
       logical ldump                          ! flag the SINGLE ELEMENT for
                                              !   dumping
       integer ndumpt                         ! dump every n turns at a flagged
@@ -1109,7 +1112,8 @@
       character dump_fname (0:nele)*(getfields_l_max_string)
       
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
-     &                dumpfmt(0:nele), ldumphighprec, dump_fname
+     &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
+     &                dump_fname
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -17916,7 +17920,8 @@ cc2008
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
 !  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!  last modified: 13-06-2014
+!  K.Sjobak, BE-ABP/HSS
+!  last modified: 03-09-2015
 !  always in main code
 !-----------------------------------------------------------------------
  2000 read(3,10020,end=1530,iostat=ierro) ch
@@ -18022,9 +18027,20 @@ cc2008
           write(lout,*) '        --> requested high precision dumping!'
 +ei
 +if .not.cr
-          write(*,*) ''
-          write(*,*) '        --> requested high precision dumping!'
+          write(*,*)    ''
+          write(*,*)    '        --> requested high precision dumping!'
 +ei
+        endif
+        if ( ldumpfront ) then
++if cr
+          write(lout,*) ''
+          write(lout,*) '        --> requested FRONT dumping!'
++ei
++if .not.cr
+          write(*,*)    ''
+          write(*,*)    '        --> requested FRONT dumping!'
++ei
+           
         endif
         goto 110
       endif
@@ -18038,8 +18054,11 @@ cc2008
       if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
         goto 2000
+      else if(ch(:5).eq.'FRONT') then
+         ldumpfront = .true.
+         goto 2000
       endif
-
+      
 !     requested element
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
@@ -29857,6 +29876,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -32599,7 +32623,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca lostpart
 +ei
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
  650  continue !END loop over structure elements
 
@@ -39311,10 +39337,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 13-06-2014
+!     K.Sjobak, BE-ABP/HSS
+!     last modified: 03-09-2015
 !     initialise common
 !     always in main code
       ldumphighprec = .false.
+      ldumpfront    = .false.
       do i=0,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
