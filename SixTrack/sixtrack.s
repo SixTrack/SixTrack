@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.27'/
-      data moddate /'15.07.2015'/
+      data version /'4.5.28'/
+      data moddate /'26.08.2015'/
 +cd license
 !!SixTrack
 !!
@@ -43094,10 +43094,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Temp variables
       integer ii, stat, t
-      double precision x,y,               ! FILE, FILELIN
+      double precision x,y,z,u,           ! FILE, FILELIN, FIR/IIR
      &                 x1,x2,y1,y2,deriv, ! LINSEG, QUADSEG,
      &                 tinj,Iinj,Inom,A,D,R,te,                 !PELP (input)
      &                 derivI_te,I_te,bexp,aexp, t1,I1, td,tnom !PELP (calc)
+      
+      logical isFIR ! FIR/IIR
       
       ! define function return type
       integer dynk_findFUNindex
@@ -43150,12 +43152,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write(lout,*) "Max length of a FUN name is", maxstrlen_dynk-1
          write(lout,*) "Offending FUN: '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(lout,*) "length:", getfields_lfields(2)
 +ei
 +if .not.cr
          write(*,*)    "ERROR in DYNK block parsing (fort.3):"
          write(*,*)    "Max length of a FUN name is", maxstrlen_dynk-1
          write(*,*)    "Offending FUN: '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(*,*) "length:", getfields_lfields(2)
 +ei
          call prror(51)
       endif
@@ -43767,6 +43771,325 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
+
+      case("FIR","IIR")
+         ! FIR: Finite Impulse Response filter
+         ! y[n] = \sum_{i=0}^N b_i*x[n-i]
+         ! where N is the order of the filter, x[] is the results from
+         ! previous calls to the input function, and b_i is a set of coefficients.
+         ! The coefficients are loaded from an ASCII file, formatted with three columns,
+         ! the first one being the index 0...N, the second being the coefficients b_0...b_N,
+         ! and the third one being the initial values of x[n]..x[n-N].
+         ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
+         ! Note that this means that at the first call, x[0] is pushed into x[1] etc.,
+         ! and x[n-N] is deleted; i.e. the initial x[n-N] is never used.
+         !
+         ! Format in fexpr_dynk:
+         ! b_0 <- funcs_dynk(<this>,3)
+         ! x[n]
+         ! x_init[n] (holds the x[n]s from the input file, used to reset the FIR at the first turn)
+         ! b_1
+         ! x[n-1]
+         ! x_init[n-1]
+         ! (etc., repeat funcs_dynk(<this>,4)+1 times)
+         !
+         ! IIR: Infinite Impulse Response filter
+         ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
+         ! where N=M. This is the same as FIR, except that it also uses
+         ! previous values of it's own output.
+         ! The input file is also identical, except adding an extra column
+         ! for the initial values of y[n]..y[n-N], where the first entry (y[n])
+         ! is ignored when computing the new results.
+         !
+         ! Format in fexpr_dynk:
+         ! b_0 <- funcs_dynk(<this>,3)
+         ! x[n]
+         ! x_init[n]
+         ! a_0  (a_0 is never used)
+         ! y[n] (zeroed for computation, used to hold previously returned value)
+         ! y_init[n] (holds the y[n]s from the input file, used to reset the FIR at the first turn)
+         ! b_1
+         ! x[n-1]
+         ! x_init[n-1]
+         ! a_1
+         ! y[n-1]
+         ! y_init[n-1]
+         ! (etc., repeat funcs_dynk(<this>,4) times)
+
+
+         call dynk_checkargs(getfields_nfields,6,
+     &        "FUN funname {FIR|IIR} N filename baseFUN")
+         select case( getfields_fields(3)(1:getfields_lfields(3)) )
+         case("FIR")
+            isFIR = .true.
+         case("IIR")
+            isFIR = .false.
+         case default
++if cr
+            write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+            write (lout,*) "DYNK> non-recognized type in inner switch1?"
++ei
++if .not.cr
+            write (*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+            write (*,*)    "DYNK> non-recognized type in inner switch1?"
++ei
+         end select
+         
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
+         if (isFIR) then
+            call dynk_checkspace(0,3*(t+1),2)
+         else
+            call dynk_checkspace(0,6*(t+1),2)
+         endif
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
+         if (isFIR) then
+            funcs_dynk(nfuncs_dynk,2) = 10 !TYPE (FIR)
+         else
+            funcs_dynk(nfuncs_dynk,2) = 11 !TYPE (IIR)
+         endif
+         funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk+1 !ARG1 (start of float storage)
+         funcs_dynk(nfuncs_dynk,4) = t             !ARG2 (filter order N)
+         funcs_dynk(nfuncs_dynk,5) =               !ARG3 (filtered function)
+     &        dynk_findFUNindex( getfields_fields(6)
+     &                           (1:getfields_lfields(6)), 1)
+         !Store metadata
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        iexpr_dynk(niexpr_dynk) ! N
+         
+         ! Sanity check
+         if (funcs_dynk(nfuncs_dynk,5).eq.-1) then
+            call dynk_dumpdata
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FIR/IIR function wanting function '",
+     &            getfields_fields(6)(1:getfields_lfields(6)), "'"
+            write (lout,*) "This FUN is unknown!"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FIR/IIR function wanting function '",
+     &            getfields_fields(6)(1:getfields_lfields(6)), "'"
+            write (*,*)    "This FUN is unknown!"
+            write (*,*) "*************************************"
++ei
+            call prror(51)
+         endif
+        if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FIR/IIR got a filename name with "
+            write (lout,*) "length =", getfields_lfields(5)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FIR/IIR got a filenname with "
+            write (*,*)    "length =", getfields_lfields(5)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+         if ( iexpr_dynk(niexpr_dynk) .le. 0 ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FIR/IIR got N <= 0, this is not valid"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FIR/IIR got N <= 0, this is not valid"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+         
+         !More metadata
+         ncexpr_dynk = ncexpr_dynk+1
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(5)) = !FILE NAME
+     &        getfields_fields(5)(1:getfields_lfields(5))
+         
+         !Read the file
+         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
+     &        iostat=stat, status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk), "'"
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk), "'"
++ei
+            call prror(51)
+         endif
+         
+         do ii=0, funcs_dynk(nfuncs_dynk,4) 
+            !Reading the FIR/IIR file without CRLIBM
++if .not.crlibm
+            if (isFIR) then
+               read(664,*,iostat=stat) t, x, y
+            else
+               read(664,*,iostat=stat) t, x, y, z, u
+            endif
+            if (stat.ne.0) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
++ei
+               call prror(-1)
+            endif
++ei ! END + if .not.crlibm
+
+            !Reading the FIR/IIR file with CRLIBM
++if crlibm
+            read(664,'(a)', iostat=stat) ch
+            if (stat.ne.0) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
++ei
+               call prror(-1)
+            endif
+            
+            call getfields_split(ch,
+     &           filefields_fields, filefields_lfields,
+     &           filefields_nfields, filefields_lerr )
+            
+            !Sanity checks
+            if ( filefields_lerr ) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error in getfields_split()"
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error in getfields_split()"
++ei
+               call prror(-1)
+            end if
+            if ( (      isFIR .and.filefields_nfields .ne. 3) .or.
+     &           ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(lout,*) "DYNK> Expected 3[5] fields ",
+     &              "(idx, fac, init, selfFac, selfInit), ",
+     &              "got ",filefields_nfields
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(*,*)    "DYNK> Expected 3[5] fields ",
+     &              "(idx, fac, init, selfFac, selfInit), ",
+     &              "got ",filefields_nfields
++ei
+               call prror(-1)
+            endif
+            
+            !Read the data into t,x,y(,z,u):
+            read(filefields_fields(1)(1:filefields_lfields(1)),*) t
+            
+            x = round_near(errno, filefields_lfields(2)+1,
+     &           filefields_fields(2) )
+            if (errno.ne.0)
+     &           call rounderr(errno,filefields_fields,2,x)
+            
+            y = round_near(errno, filefields_lfields(3)+1,
+     &           filefields_fields(3) )
+            if (errno.ne.0)
+     &           call rounderr(errno,filefields_fields,3,y)
+            
+            if (.not.isFIR) then
+               z = round_near(errno, filefields_lfields(4)+1,
+     &              filefields_fields(4) )
+               if (errno.ne.0)
+     &              call rounderr(errno,filefields_fields,4,z)
+               
+               u = round_near(errno, filefields_lfields(5)+1,
+     &              filefields_fields(5) )
+               if (errno.ne.0)
+     &              call rounderr(errno,filefields_fields,5,u)
+            endif
+            
++ei ! END +if crlibm
+
+            ! More sanity checks
+            if (t .ne. ii) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Got line t =",t, ", expected ", ii
++ei
+               call prror(-1)
+            endif
+            !Save data to arrays
+            !Store coefficients (x) and initial/earlier values (y) in interlaced order
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = x      ! b_i
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = 0.0    ! x[n-1], will be initialized in dynk_apply()
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = y      ! x_init[n-i]
+            if (.not.isFIR) then
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = z   ! a_i
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = 0.0 ! y[n-i], will be initialized in dynk_apply()
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = u   ! y_init[n-i]
+            endif
+         enddo
 
       !!! Operators: #20-39 !!!
       case("ADD","SUB","MUL","DIV","POW")
@@ -45386,10 +45709,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          enddo
       enddo
 
-      !First-turn initialization, some parts which are specific for collimat.
-      ! (move to pretrack?)
+      !First-turn initialization, including some parts which are specific for collimat.
       if (turn .eq. 1) then
-         ! Reset RNGs
+         ! Reset RNGs and filters 
          do ii=1, nfuncs_dynk
             if (funcs_dynk(ii,2) .eq. 6) then !RANDG
                if (ldynkdebug) then
@@ -45399,7 +45721,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if .not.cr
                   write (*,*) 
 +ei
-     &              "DYNKDEBUG> Resetting RNG for FUN named '",
+     &               "DYNKDEBUG> Resetting RNG for FUN named '",
      & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
@@ -45407,7 +45729,40 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &         iexpr_dynk(funcs_dynk(ii,3) )
                iexpr_dynk(funcs_dynk(ii,3)+4) =
      &         iexpr_dynk(funcs_dynk(ii,3)+1)
+            else if (funcs_dynk(ii,2) .eq. 10) then !FIR
+               if (ldynkdebug) then
++if cr
+                  write (lout,*)
++ei
++if .not.cr
+                  write (*,*)
++ei
+     &               "DYNKDEBUG> Resetting FIR named '",
+     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+               do jj=0, funcs_dynk(ii,4)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*3+2)
+               enddo
+            else if (funcs_dynk(ii,2) .eq. 11) then !IIR
+               if (ldynkdebug) then
++if cr
+                  write (lout,*)
++ei
++if .not.cr
+                  write (*,*)
++ei
+     &               "DYNKDEBUG> Resetting IIR named '",
+     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+               do jj=0, funcs_dynk(ii,4)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+2)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+4) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+5)
+               enddo
             endif
+            
          enddo
 
          !Open dynksets.dat
@@ -45615,7 +45970,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       ! General temporaries
       integer foff !base offset into fexpr array
-      
+      integer ii,jj!Loop variable
+
       ! Other stuff
 +ca parnum
       double precision pi
@@ -45688,6 +46044,44 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! Change to mu, sigma
          retval = fexpr_dynk(funcs_dynk(funNum,4))
      &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
+         
+      case(10)                                                          ! FIR
+         foff = funcs_dynk(funNum,3)
+         !Shift storage 1 back
+         do ii=funcs_dynk(funNum,4)-1,0,-1
+            jj = ii*3
+            fexpr_dynk(foff+jj+4) = fexpr_dynk(foff+jj+1)
+         enddo
+         !Evaluate the next input function
+         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+         !Compute the filtered value
+         retval = 0.0
+         do ii=0,funcs_dynk(funNum,4)
+            jj = ii*3
+            retval = retval + 
+     &           fexpr_dynk(foff+jj)*fexpr_dynk(foff+jj+1)
+         enddo
+      case(11)                                                          ! IIR
+         foff = funcs_dynk(funNum,3)
+         !Shift storage 1 back
+         do ii=funcs_dynk(funNum,4)-1,0,-1
+            jj = ii*6
+            fexpr_dynk(foff+jj+7) = fexpr_dynk(foff+jj+1)
+            fexpr_dynk(foff+jj+10) = fexpr_dynk(foff+jj+4)
+         enddo
+         !Evaluate the next input function
+         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+         fexpr_dynk(foff+4) = 0.0
+         !Compute the filtered value
+         retval = 0.0
+         do ii=0,funcs_dynk(funNum,4)
+            jj = ii*6
+            retval = retval +
+     &           fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) +
+     &           fexpr_dynk(foff+jj+3) * fexpr_dynk(foff+jj+4)
+         enddo
+         !To be shifted at the next evaluation
+         fexpr_dynk(foff+4) = retval
          
       case (20)                                                         ! ADD
          retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
@@ -45799,7 +46193,6 @@ C+ei
       retval = fexpr_dynk(funcs_dynk(funNum,3))
      & *COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1)
      &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-
 +ei
 +if .not.crlibm
       retval = fexpr_dynk(funcs_dynk(funNum,3))
@@ -46410,12 +46803,16 @@ c$$$               endif
          endif
       end do
       
+      if (ldynkdebug) then
 +if cr
-      write(lout,*)"DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+         write(lout,*)
 +ei
 +if .not.cr
-      write(*,*)   "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+         write(*,*)   
 +ei
+     &      "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+      endif
+
       dynk_isused = .false.
       return
       
