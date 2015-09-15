@@ -6149,8 +6149,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX      TRACKI(5)=(SIGMDA-DUMMY)*C1M3 ;
           dummy=dare(dpda)
 *FOX      TRACKI(6)=DPDA-DUMMY ;
-          call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc,          &
-     &dare(yp(1)),dare(yp(2)))
+          call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc)
           if(ibeco.eq.1) then
             beamoff1=dare(tracki(1))*c1e3
             beamoff2=dare(tracki(3))*c1e3
