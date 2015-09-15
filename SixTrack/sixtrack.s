@@ -13155,7 +13155,7 @@ cc2008
       double precision ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
-     &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0,separx,separy
+     &xang,xpl0,xplane,xrms0,zpl0,zrms0,separx,separy
       double precision mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
       character*16 sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character*16 fluc,chro,tune,iter,limi,orbi,deco
