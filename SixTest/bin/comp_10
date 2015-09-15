@@ -1,0 +1,100 @@
+#!/bin/sh
+prov=canonical
+# Now uses the variable TESTS
+export BIN=`pwd`/bin
+if test $# -eq 0
+then
+  echo "You need to give a Version name (or two)!!!"
+  exit
+fi
+newv=$1
+if test $# -eq 2
+then
+  prov=$1
+  newv=$2
+fi
+# Now try and find EXECS to compare
+rm -rf etmp$$
+touch etmp$$
+for e in $TESTS
+do
+  if test ! -d "$e"
+  then
+    echo "      ===================================="
+    echo "      CASE $i directory does not exist!!!"
+    echo "      ===================================="
+  else
+    cd $e
+    ls fort.10.*${newv}* >> ../etmp$$ 2>/dev/null
+    cd ..
+  fi
+done
+sort --unique etmp$$ > etmp2$$
+newvs=`cat etmp2$$ | sed -e's/fort.10.//'`
+rm -rf etmp*
+#BNL="bnl"
+#mybnl=`echo "$newv" | grep 'bnl'`
+#if test "$mybnl" = ""
+#then
+#  BNL=""
+#fi
+for v in $newvs
+do
+  echo "++++++++++++++++++++++++++++++++++++++"
+  echo "Comparing $prov to $v"
+  echo "++++++++++++++++++++++++++++++++++++++"
+  tests="$TESTS"
+  for i in $tests
+  do
+    if test ! -d "$i"
+    then
+      echo "      ===================================="
+      echo "      CASE $i directory does not exist!!!"
+      echo "      ===================================="
+    else
+      echo "      ===================================="
+      echo "      CASE $i"
+      echo "      ===================================="
+      if test -s $i/fort.10.$prov
+      then 
+        if test -s $i/fort.10.$v
+        then
+          mkdir -p tmp$$
+          if test "$i" != bnl
+          then
+            cd tmp$$
+            ln -s ../$i/fort.10.$prov fort.20
+            ln -s ../$i/fort.10.$v fort.21
+            $BIN/mycomptens
+            stat=$?
+            if test $stat -eq 0
+            then
+              echo "fort.10 SAME" 
+            else
+            echo "fort.10 DIFFERENT!!!"
+            fi
+            #$HOME/sixdesk/slap/scripts/checktens | egrep "SAME 22|SAME 23|DIFF 22|DIFF 23"
+            #$HOME/sixdesk/slap/scripts/checktens | egrep "DIFF 22|DIFF 23"
+            cd ..
+          else
+            echo "title.dat"
+            diff -b $i/title.dat.$prov $i/title.dat.$v
+            echo "beambeam-output.dat"
+            diff -b $i/beambeam-output.dat.$prov $i/beambeam-output.dat.$v
+            echo "beambeam-lostID.dat"
+            diff -b $i/beambeam-lostID.dat.$prov $i/beambeam-lostID.dat.$v
+            echo "SixTwiss.dat"
+            diff -b $i/SixTwiss.dat.$prov $i/SixTwiss.dat.$v
+            echo "checkdist.dat"
+            diff -b $i/checkdist.dat.$prov $i/checkdist.dat.$v
+          fi
+          rm -rf tmp$$
+        else
+          echo "      Not yet available $v"
+        fi
+      else
+        echo "      Not yet available $prov"
+      fi
+    fi
+  done
+done

@@ -1,0 +1,22 @@
+#!/bin/sh
+# The LSF queue e.g. 2nw can be $1
+# Only one EXEC should be passed at a time to get one job per exec
+# TESTS should be inherited by the batch job as well
+#
+Q=2nw
+if test $# -ne 0
+then
+  Q=$1
+fi
+export TRY=`pwd`
+echo "Testing $TESTS"
+MYEXECS=$EXECS
+n=0
+for ex in $MYEXECS
+do
+  n=`expr $n + 1`
+  EXECS=$ex
+  EXEC=`basename $ex`
+  echo "Submitting job batch_${EXEC}_$$_$n to LSF Q $Q"
+  bsub -q$Q -Jbatch_${EXEC}_$$_$n -o batch_${EXEC}_$$_$n.log batch.lsf
+done

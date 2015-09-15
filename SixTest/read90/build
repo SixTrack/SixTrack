@@ -1,0 +1,2 @@
+#!/bin/sh
+gfortran -O4 -m32 -o read90 read90.f90 dtoa*.o

@@ -477,6 +477,12 @@ then
     values[12]=true
     echo "Option Checkpoint/Restart turned ON"
 fi
+if test "$collimat" = "" -a "$cr" = ""
+then
+    echo "Options collimat and cr are incompatible - please use only one."
+    exit 1
+fi
+
 # Set up compiler
 if test "$nagfor" = ""
 then
@@ -624,29 +630,28 @@ fi
 if test "$hdf5" = ""
 then
     # H5ROOT is the location where you find the  HDF5 libs and include files for your compiler...
-    # Seems the mod files must be created with the EXACT same compiler.
+    # Seems the hdf5.mod files must be created with the EXACT same compiler.
     if test "$gfortran" = ""
     then
-        gccver=`gfortran -dumpversion`
-        if [[ $gccver == 4\.6\.* ]]
+        gccver=`gcc -dumpversion`
+        if [[ $gccver == 4\.4\.* ]]
         then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.7-gcc46"
-        elif [[ $gccver == 4\.5\.* ]]
-        then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.6-gcc45"
-        elif [[ $gccver == 4\.3\.* ]]
-        then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.6-gcc43"
-        else
-            echo "ERROR: hdf5 not available for gcc version $gccver, please disable hdf5 or use gcc version 4.3 or 4.5"
-            exit 1
-        fi
-    elif test "$ifort" = ""
-    then
-            export H5ROOT="/afs/cern.ch/user/y/ylevinse/scratch0/hdf5/hdf5-1.8.7-ifort"
+            # this was compiled for gcc 4.4.7-11 (standard on lxplus, Feb 2015)
+	    export H5ROOT="/afs/cern.ch/user/r/rkwee/public/hdf5/hdf5-1.8.14"
+	    # Alternative:
+            # export H5ROOT="/afs/cern.ch/work/k/kyrsjo/public/codes/hdf5/build-static-lxplus/install"
+	elif [[ $gccver == 4\.8\.* ]]
+	then
+            # this was compiled for gcc 4.8.2 (SLC7, Feb 2015)
+            export H5ROOT="/afs/cern.ch/work/k/kyrsjo/public/codes/hdf5/build-static/install"
+	else
+            echo "ERROR: hdf5 is not available in exactly the same compiler version as gfortran, please disable hdf5. Exiting .."
+	    exit 1
+	fi
     else
-            echo "ERROR: hdf5 not available, please disable hdf5"
-            exit 1
+        echo "ERROR: hdf5 not available, please disable hdf5."
+	echo "hdf5 _MUST_ be compiled with EXACTLY the same compiler version as gfortran was compiled. Exiting"
+        exit 1
     fi
     export FCF="$FCF -I${H5ROOT}/include"
 fi
@@ -712,6 +717,10 @@ if test "$beamgas" = ""
 then
     ename=$ename"beamgas_"
 fi
+if test "$hdf5" = ""
+then
+    ename=$ename"h5_"
+fi
 ename=$ename$FC
 if test "$fio" = ""
 then
@@ -749,6 +758,20 @@ fi
 ename=${ename}_$myopt
 export ename
 
+#Test that the sixtrack.s is sane
+echo ""
+echo "Running 'gawk -f beauty/count.awk sixtrack.s' to check sanity of astuce directives in sixtrack.s:"
+if ! gawk -f beauty/count.awk sixtrack.s; then
+    echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in sixtrack.s \e[49m\e[0m"
+    echo "This most likely means that you added or removed a +if or +ei,"
+    echo " but forgot about its partner."
+    echo "You may also just be missing the command 'gawk' (GNU AWK),"
+    echo " needed to run this script."
+else
+    echo "--> count.awk completed without errors."
+fi
+
+#Print final message before actually starting the build
 echo ""
 echo "We are about to build $ename"
 echo "last modified on $moddate"
@@ -768,8 +791,8 @@ echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
 generate_makefile Makefile.template
-make astuce
-make dafor
+make -f Makefile astuce
+make -f Makefile dafor
 # Create and INITIALISE the build directory
 mkdir -p "$ename"
 cd "$ename"
@@ -786,7 +809,7 @@ else
     export FORS='track sixve sixvefox dabnews lielib beamgas'
 fi
 rm -f *.ast
-for i in $FORS 
+for i in $FORS
 do
     cp ../ast_mask/$i.ast .
 done
@@ -912,7 +935,7 @@ then
                 # YIL: add hdf5 libs
                 if test "$hdf5" = ""
                 then
-                    export CERNLIB="-Wl,--start-group -L${H5ROOT}/lib32/ -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm -Wl,--end-group  $CERNLIB"
+                    export CERNLIB="-Wl,--start-group -I${H5ROOT}/include -L${H5ROOT}/lib -lszip -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5_f90cstub -lhdf5_hl_fortran -lz -lm -Wl,--end-group  $CERNLIB"
                 fi
             else
                 echo "Unknown MACHTYPE $MACHTYPE!!"
@@ -953,8 +976,8 @@ then
        -e 's/%%FCF%%/'"${FCF}"'/g' \
     Makefile.template > Makefile
   echo "Making crlibm." 
-  make clean
-  make crlibm.a
+  make -f Makefile clean
+  make -f Makefile crlibm.a
   if test $? -ne 0
   then
     echo "Failed to make crlibm!!! Please inform McIntosh."
@@ -972,7 +995,7 @@ then
   generate_makefile ../Makefile.template Makefile
   # remove an existing executable
   rm -f $ename
-  make $ename
+  make -f Makefile $ename
 else
 # and now fix up the Makefile.boinc.template
 # for the build (local) using /afs/cern/.ch/project/sixtrack/boinc_linux32
@@ -1048,7 +1071,7 @@ else
   # and (at last) do a make API or not
   if test "$api" != ""
   then
-    make $ename
+    make -f Makefile $ename
   else
     make -f Makefile.boinc
   fi
@@ -1061,13 +1084,18 @@ show_options
 echo ""
 if test -s "$ename"
 then
-  echo "It appears to have completed successfully."
+  echo -e "\e[92mIt appears to have completed successfully.\e[39m"
   # and a link for Frank
   cd ..
-  ln -sf $ename/$ename SixTrack
+  if test "$da" != ""
+  then
+    ln -sf $ename/$ename SixTrack 
+  else
+    ln -sf $ename/$ename SixTrack_da
+  fi
   cd $ename
 else
-  echo "It appears to have failed!!!"
+  echo -e "\e[91mIt appears to have failed!!!\e[39m"
   exit 2
 fi
 # Note that selecting boinc has forced cpss
