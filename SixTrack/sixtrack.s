@@ -306,7 +306,7 @@
       common/co6d/clo6(3),clop6(3)
       common/dkic/dki(nele,3)
       common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
-     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,5),track6d(6,npart),     &
+     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,17),track6d(6,npart),    &
      &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
@@ -1112,9 +1112,9 @@
 *FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ;
 *FOX  D V RE INT BEAMOFF4 ; D V RE INT BEAMOFF5 ; D V RE INT BEAMOFF6 ;
 *FOX  D V RE INT DPS1 ; D V RE INT RKBF ; D V RE INT RBF ;
-*FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ;
+*FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ; 
 *FOX  D V RE INT SIGMAN 2 NBB ; D V RE INT PTNFAC NELE ;
-*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ;
+*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 17;
 *FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 *FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
 *FOX  D V RE INT PARBE14 ; D V RE INT PI ;
@@ -4089,7 +4089,6 @@
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
       enddo
 +cd ccmul2
-! JBG RF CC Multipoles
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4174,7 +4173,6 @@
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
 +cd ccmul2s
-! JBG RF CC Multipoles 2
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4239,7 +4237,6 @@
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
 +cd ccmul3
-! JBG RF CC Multipoles
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4332,7 +4329,6 @@
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
 +cd ccmul3s
-! JBG RF CC Multipoles 2
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4400,7 +4396,6 @@
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
 +cd ccmul4
-! JBG RF CC Multipoles
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4510,7 +4505,6 @@
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
 +cd ccmul4s
-! JBG RF CC Multipoles
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4942,7 +4936,6 @@
           ix=ic(i)
           if(ix.gt.nblo) then
             ix=ix-nblo
-!hr03       if(kz(ix).eq.20.and.parbe(ix,2).eq.0) then
             if(kz(ix).eq.20.and.parbe(ix,2).eq.0d0) then                 !hr03
 !--round beam
               if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
@@ -4983,7 +4976,6 @@
       endif
 +cd beams21
 !--beam-beam element
-!hr08   if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.0) then
         if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.0d0) then         !hr08
           strack(i)=crad*ptnfac(ix)
           if(abs(strack(i)).le.pieni) then
@@ -5016,22 +5008,20 @@
           endif
           goto 290
 !--Hirata's 6D beam-beam kick
-!hr03   else if(kzz.eq.20.and.parbe(ix,2).gt.0) then
         else if(kzz.eq.20.and.parbe(ix,2).gt.0d0) then                   !hr03
           ktrack(i)=44
-!hr03     parbe(ix,4)=-crad*ptnfac(ix)*half*c1m6
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr03
           if(ibeco.eq.1) then
-            track6d(1,1)=ed(ix)*c1m3
+            track6d(1,1)=parbe(ix,5)*c1m3
             track6d(2,1)=zero
-            track6d(3,1)=ek(ix)*c1m3
+            track6d(3,1)=parbe(ix,6)*c1m3
             track6d(4,1)=zero
             track6d(5,1)=zero
             track6d(6,1)=zero
             napx0=napx
             napx=1
             call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp, &
-     &ibbc)
+     &ibbc,track6d(2,1),track6d(4,1))
             beamoff(1,imbb(i))=track6d(1,1)*c1e3
             beamoff(2,imbb(i))=track6d(3,1)*c1e3
             beamoff(4,imbb(i))=track6d(2,1)*c1e3
@@ -5054,7 +5044,6 @@
           ktrack(i)=54
           goto 290
         endif
-! JBG RF CC Multipoles
 +cd crab_mult
         if(kzz.eq.26) then
           ktrack(i)=57
@@ -5088,16 +5077,16 @@
 +cd beamcof
 *FOX  CRKVEBF=X(1) ;
 *FOX  CIKVEBF=X(2) ;
-!hr03       startco=dare(x(1))-clobeam(1,imbb(i))+ed(ix)
-            startco=(dare(x(1))-clobeam(1,imbb(i)))+ed(ix)               !hr03
+!hr03       startco=dare(x(1))-clobeam(1,imbb(i))+parbe(ix,5)
+            startco=(dare(x(1))-clobeam(1,imbb(i)))+parbe(ix,5)         !hr03
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,1,0,0,0)
 !     endif
 +ei
             call dapok(crkvebf,jj,startco)
-!hr03       startco=dare(x(2))-clobeam(2,imbb(i))+ek(ix)
-            startco=(dare(x(2))-clobeam(2,imbb(i)))+ek(ix)
+!hr03       startco=dare(x(2))-clobeam(2,imbb(i))+parbe(ix,6)
+            startco=(dare(x(2))-clobeam(2,imbb(i)))+parbe(ix,6)
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,2,0,0,0)
@@ -5113,12 +5102,12 @@
 *FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
 +cd beamr1of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+              crk=parbe(ix,5)
+              cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
+      crk=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
 !hr03         cik=-ed(ix)*bbcu(imbb(i),12)+ek(ix)*bbcu(imbb(i),11)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+      cik=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)!hr03
             endif
 !hr03       rho2b=crk*crk+cik*cik
             rho2b=crk**2+cik**2                                          !hr03
@@ -5300,12 +5289,12 @@
             zrbf=abs(cikvebf/rbf)
 +cd beama2of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+              crk=parbe(ix,5)
+              cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
+       crk=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
 !hr03         cik=-ed(ix)*bbcu(imbb(i),12)+ek(ix)*bbcu(imbb(i),11)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+       cik=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)!hr03
             endif
             xrb=abs(crk)/rb
             zrb=abs(cik)/rb
@@ -5555,9 +5544,9 @@
 +cd beamco
               if(ibbc.eq.0) then
 !hr03           crkveb(j)=xv(1,j)-clobeam(1,imbb(i))+ed(ix)
-                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+ed(ix)            !hr03
+                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+ed(ix)           !hr03
 !hr03           cikveb(j)=xv(2,j)-clobeam(2,imbb(i))+ek(ix)
-                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+ek(ix)            !hr03
+                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+ek(ix)           !hr03
               else
 !hr03           crkveb(j)=                                              &
 !hr03&(xv(1,j)-clobeam(1,imbb(i))+ed(ix))*bbcu(imbb(i),11)+             &
@@ -5874,16 +5863,16 @@
 !--Hirata's 6D beam-beam kick
             do j=1,napx
 !hr03         track6d(1,j)=(xv(1,j)+ed(ix)-clobeam(1,imbb(i)))*c1m3
-              track6d(1,j)=((xv(1,j)+ed(ix))-clobeam(1,imbb(i)))*c1m3    !hr03
+           track6d(1,j)=(xv(1,j)+parbe(ix,5)-clobeam(1,imbb(i)))*c1m3    !hr03
               track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-!hr03         track6d(3,j)=(xv(2,j)+ek(ix)-clobeam(2,imbb(i)))*c1m3
-              track6d(3,j)=((xv(2,j)+ek(ix))-clobeam(2,imbb(i)))*c1m3    !hr03
+!hr03         track6d(3,j)=(xv(2,j)-clobeam(2,imbb(i)))*c1m3
+           track6d(3,j)=(xv(2,j)+parbe(ix,6)-clobeam(2,imbb(i)))*c1m3    !hr03
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
             enddo
             call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp, &
-     &ibbc)
+     &ibbc,clobeam(4,imbb(i)),clobeam(5,imbb(i)))
             do j=1,napx
 !hr03         xv(1,j)=track6d(1,j)*c1e3+clobeam(1,imbb(i))-             &
               xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-           &!hr03
@@ -5912,6 +5901,8 @@
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr08
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
+          ed(IX)=parbe(ix,5) 
+          ek(IX)=parbe(ix,6) 
 *FOX      TRACKI(1)=(X(1)+ED(IX)-DUMMY)*C1M3 ;
 *FOX      YP(1)=Y(1)*(ONE+DPDA) ;
           dummy=dare(yp(1))
@@ -5925,7 +5916,8 @@
 *FOX      TRACKI(5)=(SIGMDA-DUMMY)*C1M3 ;
           dummy=dare(dpda)
 *FOX      TRACKI(6)=DPDA-DUMMY ;
-          call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc)
+          call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc,          &
+     &dare(yp(1)),dare(yp(2)))
           if(ibeco.eq.1) then
             beamoff1=dare(tracki(1))*c1e3
             beamoff2=dare(tracki(3))*c1e3
@@ -7921,47 +7913,22 @@ cc2008
 +ei
               endif
             enddo
-!hr12       if(parbe(ix,2).gt.0) then
-            if(parbe(ix,2).gt.0d0) then                                  !hr12
-              do ii=4,10
-                call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-                call averaged(angno,aa2r,.false.,angno)
-                do j=1,ndimf
-                  j1=2*j
-                  jj(j1-1)=1
-                  jj(j1)=1
-                  call dapek(angno,jj,angnoe(j))
-                  jj(j1-1)=0
-                  jj(j1)=0
-                enddo
-                if(ndimf.eq.3) then
-!hr03           bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2)+      &
-                bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
-     &emitz*angnoe(3))
-                else
-                  bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
-                endif
-              enddo
-            endif
-          if(lhc.eq.1) then
-            dummy=bbcu(ibb,1)
-            bbcu(ibb,1)=bbcu(ibb,2)
-            bbcu(ibb,2)=dummy
-            dummy=bbcu(ibb,4)
-            bbcu(ibb,4)=bbcu(ibb,9)
-            bbcu(ibb,9)=dummy
-            dummy=bbcu(ibb,5)
-            bbcu(ibb,5)=bbcu(ibb,7)
-            bbcu(ibb,7)=dummy
-            dummy=bbcu(ibb,6)
-            bbcu(ibb,6)=bbcu(ibb,10)
-            bbcu(ibb,10)=dummy
-          endif
-          if(lhc.eq.2) then
-            bbcu(ibb,1)=bbbx(ix)
-            bbcu(ibb,2)=bbby(ix)
-            bbcu(ibb,3)=bbbs(ix)
-          endif  
+      if(parbe(ix,2).gt.0d0) then 
+            bbcu(ibb,1)=parbe(ix,7)
+            bbcu(ibb,4)=parbe(ix,8)
+            bbcu(ibb,6)=parbe(ix,9)
+            bbcu(ibb,2)=parbe(ix,10)
+            bbcu(ibb,9)=parbe(ix,11)
+            bbcu(ibb,10)=parbe(ix,12)
+            bbcu(ibb,3)=parbe(ix,13)
+            bbcu(ibb,5)=parbe(ix,14)
+            bbcu(ibb,7)=parbe(ix,15)
+            bbcu(ibb,8)=parbe(ix,16)
+       endif
+       if(parbe(ix,2).eq.0d0) then
+            bbcu(ibb,1)=parbe(ix,1)
+            bbcu(ibb,2)=parbe(ix,3)
+       endif
           if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
@@ -7996,12 +7963,22 @@ cc2008
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
+!-------------------------------------
+!
+!
+!
+!-------------------------------------
 !hr08     if(parbe(ix,2).gt.0) then
-          if(parbe(ix,2).gt.0d0) then                                    !hr08
+          if(parbe(ix,2).ge.0d0) then                                    !hr08
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
           endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! Replaced
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!          
 +cd trom01
         if(kzz.eq.22) then
           do l=1,2
@@ -12840,7 +12817,8 @@ cc2008
       double precision ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,ram,rdev,rfr,rmean,rph,rsqsum,rsum,rv,tilt,u0,  &
-     &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
+     &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0,separx,separy
+      double precision mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
       character*16 sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character*16 fluc,chro,tune,iter,limi,orbi,deco
       character*16 beze,bez0,go,rect,elli,comb,sear,subr,reso,bezext
@@ -13310,7 +13288,6 @@ cc2008
            el(i)=0d0                                                     !hr05
         endif
       endif
-! JBG RF CC Multipoles
 !--CC Mult kick order 2
       if(abs(kz(i)).eq.26) then
         if(abs(ed(i)).le.pieni) then
@@ -13376,10 +13353,6 @@ cc2008
         endif
       endif
 !--BEAM-BEAM
-      if(kz(i).eq.20) then
-        ptnfac(i)=el(i)
-        el(i)=zero
-      endif
       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
       if(i.gt.nele-1) call prror(16)
       if(abs(kz(i)).ne.12) kp(i)=0
@@ -17428,17 +17401,23 @@ cc2008
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
-     & idat,i,xang,xplane,xstr
+     &idat,i,xang,xplane,separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
+     &mm9,mm10,mm11
 +if crlibm
       call disable_xp()
 +ei
 +ei
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) idat,i,xang,xplane,xstr
+      read(ch1,*) idat,i,xang,xplane,separx,separy,mm1,mm2,mm3,mm4,mm5, &
+     &mm6,mm7,mm8,mm9,mm10,mm11 
 +ei
 +if crlibm
       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        read(fields(2),*) i
+      endif
+      if (i.gt.0)then
       if (nf.gt.0) then
         read(fields(1),*) idat
         nf=nf-1
@@ -17456,22 +17435,129 @@ cc2008
         nf=nf-1
       endif
       if (nf.gt.0) then
-        xstr=fround(errno,fields,5)
+        separx=fround(errno,fields,5)
         nf=nf-1
+      endif
+      if (nf.gt.0) then
+        separy=fround(errno,fields,6)
+        nf=nf-1
+      endif
+
+      read(3,10020,end=1530,iostat=ierro) ch
+      lineno3=lineno3+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+      if (nf.gt.0) then
+        mm1=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm2=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm3=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm4=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm5=fround(errno,fields,5)
+        nf=nf-1
+      endif
+
+      read(3,10020,end=1530,iostat=ierro) ch
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      lineno3=lineno3+1
+      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields) 
+      if (nf.gt.0) then
+        mm6=fround(errno,fields,1)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm7=fround(errno,fields,2)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm8=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm9=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm10=fround(errno,fields,5)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm11=fround(errno,fields,6)
+        nf=nf-1
+      endif            
+      else
+      if (nf.gt.0) then
+        read(fields(1),*) idat
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        xang=fround(errno,fields,3)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        xplane=fround(errno,fields,4)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        separx=fround(errno,fields,5)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        separy=fround(errno,fields,6)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        mm1=fround(errno,fields,7)
+        nf=nf-1
+      endif
       endif
 +ei
 +ei
       if(i.lt.0) i=0
       do 1620 j=1,il
-      if(idat.eq.bez(j).and.kz(j).eq.20) then
+      if(idat.eq.bez(j).and.kz(j).eq.20.and.i.gt.0) then
         ibb6d=1
-!hr12   parbe(j,2)=i
-        parbe(j,2)=dble(i)                                               !hr12
+        parbe(j,17)=1
+        parbe(j,2)=dble(i)                                               
         parbe(j,1)=xang
         parbe(j,3)=xplane
-        parbe(j,5)=xstr
+        parbe(j,5)=separx
+        parbe(j,6)=separy
+        parbe(j,7)=mm1
+        parbe(j,8)=mm2
+        parbe(j,9)=mm3
+        parbe(j,10)=mm4
+        parbe(j,11)=mm5
+        parbe(j,12)=mm6
+        parbe(j,13)=mm7
+        parbe(j,14)=mm8
+        parbe(j,15)=mm9
+        parbe(j,16)=mm10
+        ptnfac(j)=mm11
         goto 1610
       endif
+      if(idat.eq.bez(j).and.kz(j).eq.20.and.i.eq.0) then
+        ibb6d=1
+        parbe(j,17)=0
+        parbe(j,2)=dble(i)                                               
+        parbe(j,1)=xang
+        parbe(j,3)=xplane
+        parbe(j,5)=separx
+        parbe(j,6)=separy
+        ptnfac(j)=mm1
+        goto 1610
+      endif      
  1620 continue
       goto 1610
 !-----------------------------------------------------------------------
@@ -17807,7 +17893,7 @@ cc2008
           write(*,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,       &
 +ei
      &ibeco,                                                            &
-     &ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
+     &ibtyp,sigz,sige,emitnx,emitny,e0
         else
 +if cr
           write(lout,10141)ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,&
@@ -17840,25 +17926,42 @@ cc2008
         write(*,*)
 +ei
       endif
-        if(ibb6d.eq.1) then
 +if cr
           write(lout,10144)
 +ei
 +if .not.cr
           write(*,10144)
 +ei
-          do j=1,il
+      do j=1,il
+       if(kz(j).eq.20.and.parbe(j,17).eq.1)then
 +if cr
-!hr12       if(parbe(j,2).gt.0) write(lout,10145) bez(j),               &
-            if(parbe(j,2).gt.0d0) write(lout,10145) bez(j),             &!hr12
+                                  write(lout,10145) bez(j),             &!hr12
 +ei
 +if .not.cr
-!hr12       if(parbe(j,2).gt.0) write(*,10145) bez(j),                  &
-            if(parbe(j,2).gt.0d0) write(*,10145) bez(j),                &!hr12
+                                  write(*,10145) bez(j),                &!hr12
 +ei
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3)
-          enddo
-        endif
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),      &
+     &parbe(j,7),parbe(j,8),parbe(j,9),parbe(j,10),parbe(j,11),         &
+     &parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+       endif
+      enddo  
++if cr
+          write(lout,10146)
++ei
++if .not.cr
+          write(*,10146)
++ei
+      do j=1,il
+       if(kz(j).eq.20.and.parbe(j,17).eq.0)then
++if cr
+                                  write(lout,10147) bez(j),             &!hr12
++ei
++if .not.cr
+                                  write(*,10147) bez(j),                &!hr12
++ei
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,4),parbe(j,5)
+       endif
+      enddo
 +if cr
       write(lout,10130)
 +ei
@@ -17969,7 +18072,6 @@ cc2008
      &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
      &t79,i1/                                                           &
      &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
@@ -18008,9 +18110,18 @@ cc2008
      &t66 ,f14.9/                                                       &
      &t10,'MOMENTUM COMPACTION',t66,f14.9/)
 10144 format(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//        &
-     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)
-10145 format(t10,a16,5x,i4,7x,d16.10,2x,d16.10)
+     &t10,'ELEMENT           #_OF_SLICES    XING_ANGLE',                &
+     &'  XING_PLANE   HOR_SEP     VER_SEP        S11        S12      ', &
+     &'  S22         S33         S34         S44         S13         ', &
+     &'S14         S23         S24'/t10,200('-')/)                         
+10145 format(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3, &
+     &2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,        & 
+     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)
+10146 format(//,t30,'4D BEAM-BEAM ELEMENTS'/t30,24('-')//               &
+     &t10,'ELEMENT           #_OF_SLICES        S11   ',                &
+     &'     S22       HOR_SEP     VER_SEP'/t10,80('-')/)                                         
+     
+10147 format(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)
 10150 format(//t43,'*** TRACKING PARAMETERS ***'/)
 10160 format(t10,'NUMBER OF REVOLUTIONS  ',t48,i8/ t10,                 &
      &'NUMBER OF REVERSE-REVOLUTIONS',t48,i8/ t10,                      &
@@ -20345,7 +20456,6 @@ C Should get me a NaN
              goto 480
           endif
 
-!hr08     if(kzz.eq.20.and.parbe(ix,2).eq.0) then
           if(kzz.eq.20.and.parbe(ix,2).eq.0d0) then                      !hr08
             if(nbeam.ge.1) then
               if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
@@ -20403,7 +20513,6 @@ C Should get me a NaN
             endif
             goto 480
           endif
-!hr08     if(kzz.eq.20.and.parbe(ix,2).gt.0) then
           if(kzz.eq.20.and.parbe(ix,2).gt.0d0) then                      !hr08
 +ca beam6dfi
             goto 480
@@ -20495,7 +20604,6 @@ C Should get me a NaN
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
-! JBG RF CC Multipoles
           if(kzz.eq.26) then
           xs=xsi(i)
           zs=zsi(i)
@@ -20517,7 +20625,6 @@ C Should get me a NaN
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
-! JBG RF CC Multipoles
           if(kzz.eq.-26) then
           xs=xsi(i)
           zs=zsi(i)
@@ -21608,7 +21715,6 @@ C Should get me a NaN
           goto 440
         endif
         if(kzz.eq.20.and.iqmodc.eq.4) goto 440
-!hr12   if(kzz.eq.20.and.parbe(ix,2).eq.0) then
         if(kzz.eq.20.and.parbe(ix,2).eq.0d0) then                        !hr12
           if(nbeam.ge.1) then
             if(ilinc.eq.0) then
@@ -21676,7 +21782,6 @@ C Should get me a NaN
           endif
           goto 440
         endif
-!hr12   if(kzz.eq.20.and.parbe(ix,2).gt.0) then
         if(kzz.eq.20.and.parbe(ix,2).gt.0d0) then                        !hr12
           if(ilinc.eq.0)then
             clobeam(1,imbb(i))=dare(x(1))
@@ -21732,20 +21837,17 @@ C Should get me a NaN
           goto 440
       endif
 
-! JBG RF CC Multipoles
         if(kzz.eq.26) then
-            ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
                 goto 440
             endif
-          xs=xsi(i) ! JBG change of variables for misal calculations
+          xs=xsi(i) 
           zs=zsi(i)
-+ca alignf ! JBG Including misalignments
++ca alignf 
 *FOX  CRABAMP2=ED(IX)/(ONE+DPDA) ;
 !       call dapri(EJF1,234)
 !       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
-        crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
+        crabfreq=ek(ix)*c1e3 
         crabpht2=crabph2(ix)
 *FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
 *FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT2);
@@ -21763,12 +21865,10 @@ C Should get me a NaN
           goto 440
       endif
           if(kzz.eq.-26) then
-            ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
                 goto 440
             endif
-          xs=xsi(i) ! JBG change of variables for misal calculations
+          xs=xsi(i) 
           zs=zsi(i)
 *FOX  CRABAMP2=ED(IX)/(ONE+DPDA) ;
              crabfreq=ek(ix)*c1e3
@@ -21788,9 +21888,7 @@ C Should get me a NaN
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.27) then
-            ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
                 goto 440
             endif 
           xs=xsi(i)
@@ -21817,9 +21915,7 @@ C Should get me a NaN
           goto 440
           endif
           if(kzz.eq.-27) then
-            ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
                 goto 440
             endif 
           xs=xsi(i)
@@ -21845,9 +21941,7 @@ C Should get me a NaN
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.28) then
-            ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
                 goto 440
             endif
           xs=xsi(i)
@@ -21875,9 +21969,7 @@ C Should get me a NaN
           goto 440
           endif
           if(kzz.eq.-28) then
-            ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
                 goto 440
             endif
           xs=xsi(i)
@@ -22943,12 +23035,11 @@ C Should get me a NaN
 +ei
       integer ibb,ibbc,ne,nsli,idaa
       double precision alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
-     &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
+     &sphi,star,tphi,sepax,sepay
 +ca parpro
 +ca parnum
 +ca commondl
-      ! JBG Increaseing param to dimension 5 for xstr
-      dimension param(nele,5),bcu(nbb,12),star(3,mbea)
+      dimension param(nele,16),bcu(nbb,12),star(3,mbea)
 +if bnlelens
 +ca rhicelens
 +ei
@@ -22959,35 +23050,30 @@ C Should get me a NaN
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
       nsli=param(ne,2)
       alpha=param(ne,3)
-      phi2=param(ne,5)
+      phi=param(ne,1)
+      sepax=param(ne,5)
+      sepay=param(ne,6)
 !hr05 f=param(ne,4)/nsli
       f=param(ne,4)/dble(nsli)                                           !hr05
 +if crlibm
       sphi=sin_rn(phi)
-      sphi2=sin_rn(phi2)
 +ei
 +if .not.crlibm
       sphi=sin(phi)
-      sphi2=sin(phi2)
 +ei
 +if crlibm
       cphi=cos_rn(phi)
-      cphi2=cos_rn(phi2)
 +ei
 +if .not.crlibm
       cphi=cos(phi)
-      cphi2=cos(phi2)
 +ei
 +if crlibm
       tphi=tan_rn(phi)
-      tphi2=tan_rn(phi2)
 +ei
 +if .not.crlibm
       tphi=tan(phi)
-      tphi2=tan(phi2)
 +ei
 +if crlibm
       salpha=sin_rn(alpha)
@@ -23002,9 +23088,9 @@ C Should get me a NaN
       calpha=cos(alpha)
 +ei
 !     define slices
-      call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
+      call stsld(star,cphi,sphi,sigzs,nsli,calpha,salpha,sepax,sepay)
       call boostf(sphi,cphi,tphi,salpha,calpha,track)
-      call sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
+      call sbcf(star,cphi,nsli,f,ibb,bcu,track,ibbc)
       call boostif(sphi,cphi,tphi,salpha,calpha,track)
 !     DADAL AUTOMATIC INCLUSION
       return
@@ -23027,7 +23113,8 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer idaa
-      double precision calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2    &
+      double precision sepax,sepay
+      double precision calpha,cphi,salpha,sphi,tphi                         &
 +ca parpro
 +ca parnum
 +ca commondl
@@ -23044,7 +23131,8 @@ C Should get me a NaN
 *FOX  D V DA INT H1Z NORD NVAR ; D V DA INT X1 NORD NVAR ;
 *FOX  D V DA INT Y1 NORD NVAR ;
 *FOX  D V RE EXT SPHI ; D V RE EXT CPHI ; D V RE EXT TPHI ;
-*FOX  D V RE EXT SPHI2 ; D V RE EXT CPHI2 ; D V RE EXT TPHI2 ;
+*FOX  D V RE EXT SEPAX ; D V RE EXT SEPAY ;
+*FOX  D V RE EXT XPWEAK ; D V RE EXT YPWEAK ;
 *FOX  D V RE EXT SALPHA ; D V RE EXT CALPHA ;
 *FOX  D V RE INT ONE ; D V RE INT C1E3 ;
 *FOX  D V DA INT DET NORD NVAR ; D V DA INT H1 NORD NVAR ;
@@ -23073,7 +23161,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       return
       end
-      subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
+      subroutine sbcf(star,cphi,nsli,f,ibb,bcu,track,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -23091,7 +23179,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
-      double precision bcu,cphi,cphi2,dare,f,sfac,star
+      double precision bcu,cphi,dare,f,sfac,star
 +ca parpro
 +ca parnum
 +ca commondl
@@ -23118,7 +23206,7 @@ C Should get me a NaN
 *FOX  D V IN EXT IBB ;
 *FOX  D V RE INT HALF ; D V RE INT TWO ; D V RE INT FOUR ;
 *FOX  D V RE INT ZERO ; D V RE INT ONE ; D V RE INT C1E3 ;
-*FOX  D V RE INT SFAC ; D V RE INT CPHI ; D V RE INT CPHI2 ;
+*FOX  D V RE INT SFAC ; D V RE INT CPHI ;
 *FOX  D V IN INT JSLI ;
 *FOX  D F RE DARE 1 ;
 *FOX  E D ;
@@ -23126,7 +23214,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       do 2000 jsli=1,nsli
 *FOX    S=(TRACK(5)-STAR(3,JSLI))*HALF ;
-*FOX    SP=S/CPHI2 ;
+*FOX    SP=S/CPHI ;
 *FOX    DUM(1)=BCU(IBB,1)+TWO*BCU(IBB,4)*SP+BCU(IBB,6)*SP*SP ;
 *FOX    DUM(2)=BCU(IBB,2)+TWO*BCU(IBB,9)*SP+BCU(IBB,10)*SP*SP ;
 *FOX    DUM(3)=BCU(IBB,3)+(BCU(IBB,5)+BCU(IBB,7))*SP+
@@ -23259,7 +23347,7 @@ C Should get me a NaN
 *FOX  D V DA INT Y1 NORD NVAR ; D V DA INT Z1 NORD NVAR ;
 *FOX  D V RE INT ONE ; D V RE INT TWO ;
 *FOX  D V RE EXT SPHI ; D V RE EXT CPHI ; D V RE EXT TPHI ;
-*FOX  D V RE EXT SPHI2 ; D V RE EXT CPHI2 ; D V RE EXT TPHI2 ;
+*FOX  D V RE EXT SEPAX ; D V RE EXT SEPAY ;
 *FOX  D V RE EXT SALPHA ; D V RE EXT CALPHA ;
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
@@ -28511,7 +28599,6 @@ C Should get me a NaN
 !           backspace 93
 !         endif
 +ei
-! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
 ! JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
@@ -30574,12 +30661,10 @@ C Should get me a NaN
           goto 640
   755     continue
           xory=1
-! JBG RF CC Multipoles
 +ca ccmul2
           goto 640
   758     continue
           xory=1
-! JBG RF CC Multipoles
 +ca ccmul2s
           goto 640
 !--NORMAL SEXTUPOLE
@@ -30591,12 +30676,10 @@ C Should get me a NaN
           goto 640
   756     continue
           xory=1
-! JBG RF CC Multipoles
 +ca ccmul3
           goto 640 
   759     continue
           xory=1
-! JBG RF CC Multipoles
 +ca ccmul3s
           goto 640 
 !--NORMAL OCTUPOLE
@@ -30609,12 +30692,10 @@ C Should get me a NaN
           goto 640
   757     continue
           xory=1
-! JBG RF CC Multipoles
 +ca ccmul4
           goto 640
   760     continue
           xory=1
-! JBG RF CC Multipoles
 +ca ccmul4s
           goto 640
 !--NORMAL DECAPOLE
@@ -37504,8 +37585,7 @@ C Should get me a NaN
         do 140 i1=1,3
           bezr(i1,i)=' '
   140   continue
-        ! JBG increasing parbe to dimension 5
-        do i1=1,5
+        do i1=1,17
           parbe(i,i1)=zero
         enddo
   150 continue
@@ -41931,7 +42011,6 @@ C Should get me a NaN
 +ei
 +if .not.collimat.and..not.bnlelens
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
-! JBG RF CC Multipoles to 500
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 500
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 500
 +ei
@@ -44351,7 +44430,6 @@ C Should get me a NaN
 +ca trom03
 +ca trom04
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
-! JBG RF CC Multipoles to 450
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
         dyy1=zero
@@ -45514,7 +45592,6 @@ C Should get me a NaN
  70     continue
 +ca trom10
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
-! JBG RF CC Multipoles to 350
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 350
         if(iorg.lt.0) mzu(k)=izu
@@ -46088,7 +46165,6 @@ C Should get me a NaN
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 770
-! JBG RF CC Multipoles to 770
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 770
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 770
         dyy1=zero
@@ -47590,7 +47666,6 @@ C Should get me a NaN
           clo0(2)=t(2,3)
           clop0(2)=t(2,4)
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 790
-! JBG RF CC Multipoles to 790
           if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 790
           if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 790
           dyy1=zero
@@ -48755,7 +48830,6 @@ C Should get me a NaN
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 740
-! JBG RF CC Multipoles to 740
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 740
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 740 
         dyy1=zero
@@ -53009,44 +53083,39 @@ C Should get me a NaN
 +ei
       integer ibb,ibbc,ibtyp,ne,np,nsli
       double precision alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
-     &sphi,tphi,track,star,phi2,cphi2,sphi2,tphi2
+     &sphi,tphi,track,star,sepax,sepay
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-      !JBG increased the dimension of param to 5 to include xstr
-      dimension param(nele,5),bcu(nbb,12)
+      dimension param(nele,14),bcu(nbb,12)
       dimension star(3,mbea)
 +ca save
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
-      nsli=param(ne,2)
+
       alpha=param(ne,3)
-      phi2=param(ne,5)
+      phi=param(ne,1)
+      nsli=param(ne,2)      
+      sepax=param(ne,4)
+      sepay=param(ne,5)
 !hr06 f=param(ne,4)/nsli
       f=param(ne,4)/dble(nsli)                                           !hr06
 +if crlibm
       sphi=sin_rn(phi)
-      sphi2=sin_rn(phi2)
 +ei
 +if .not.crlibm
       sphi=sin(phi)
-      sphi2=sin(phi2)
 +ei
 +if crlibm
       cphi=cos_rn(phi)
-      cphi2=cos_rn(phi2)
 +ei
 +if .not.crlibm
       cphi=cos(phi)
-      cphi2=cos(phi2)
 +ei
 +if crlibm
       tphi=tan_rn(phi)
-      tphi2=tan_rn(phi2)
 +ei
 +if .not.crlibm
       tphi=tan(phi)
-      tphi2=tan(phi2)
 +ei
 +if crlibm
       salpha=sin_rn(alpha)
@@ -53061,9 +53130,9 @@ C Should get me a NaN
       calpha=cos(alpha)
 +ei
 !     define slices
-      call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
+      call stsld(star,cphi,sphi,sigzs,nsli,calpha,salpha,sepax,sepay)
       call boost(np,sphi,cphi,tphi,salpha,calpha,track)
-      call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+      call sbc(np,star,cphi,nsli,f,ibtyp,ibb,bcu,track,ibbc)
       call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
       return
       end
@@ -53127,7 +53196,7 @@ C Should get me a NaN
  1000 continue
       return
       end
-      subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+      subroutine sbc(np,star,cphi,nsli,f,ibtyp,ibb,bcu,track,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -53148,7 +53217,7 @@ C Should get me a NaN
       integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
       double precision bbf0,bbfx,bbfy,bbgx,bbgy,bcu,costh,costhp,cphi,  &
      &dum,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,star,sx,       &
-     &sy,track,cphi2
+     &sy,track
 +ca parpro
 +ca parnum
       dimension track(6,npart),bcu(nbb,12)
@@ -53158,8 +53227,7 @@ C Should get me a NaN
       do 2000 jsli=1,nsli
         do 1000 i=1,np
           s=(track(5,i)-star(3,jsli))*half
-          !write(*,*)'JBG - cphi2',cphi2
-          sp=s/cphi2 
+          sp=s/cphi
 !hr06     dum(1)=bcu(ibb,1)+two*bcu(ibb,4)*sp+bcu(ibb,6)*sp*sp
           dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2       !hr06
 !hr06     dum(2)=bcu(ibb,2)+two*bcu(ibb,9)*sp+bcu(ibb,10)*sp*sp
@@ -53178,7 +53246,6 @@ C Should get me a NaN
          else
             ibbc1=0
           endif
-        !JBG New set of canonical set of variables at the Col point (CP)
 !hr06     sepx0=track(1,i)+track(2,i)*s-star(1,jsli)
           sepx0=(track(1,i)+track(2,i)*s)-star(1,jsli)                   !hr06
 !hr06     sepy0=track(3,i)+track(4,i)*s-star(2,jsli)
@@ -53460,7 +53527,8 @@ C Should get me a NaN
       endif
       return
       end
-      subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
+      subroutine stsld(star,cphi,sphi,sigzs,nsli,calpha,salpha,sepax,   &
+     &sepay)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -53479,8 +53547,8 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,nsli
-      double precision bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,   &
-     &salpha,sigz,sigzs,sphi,sphi2,star,yy
+      double precision bord,bord1,border,calpha,cphi,gauinv,pi,         &
+     &salpha,sigz,sigzs,sphi,star,yy,sepax,sepay
 +ca parpro
 +ca parnum
       dimension star(3,mbea)
@@ -53494,7 +53562,7 @@ C Should get me a NaN
 +if .not.crlibm
       pi=4d0*atan(1d0)
 +ei
-      sigz=sigzs/cphi2
+      sigz=sigzs/cphi
 ! DEFINE `STARRED' COORDINATES
 !  BORD is longitudinal border star(3,mbea) is the barycenter of region
 !  divided two borders.
@@ -53520,12 +53588,8 @@ C Should get me a NaN
 +ei
 !hr06&sqrt(2d0*pi)*dble(nsli)*sigz
         bord=bord1
-        !JBG When doing slicing phi=0 for crab crossing
-        ! star(1,i)=0.
-        ! star(2,i)=0. 
-        !JBG When doing slicing phi2 different tiltings of the strong beam
-        star(1,i)=(star(3,i)*sphi2)*calpha
-        star(2,i)=(star(3,i)*sphi2)*salpha  
+        star(1,i)=(star(3,i)*sphi)*calpha 
+        star(2,i)=(star(3,i)*sphi)*salpha  
 !hr06   star(1,i)=star(3,i)*sphi*calpha
         !star(1,i)=(star(3,i)*sphi)*calpha                                !hr06
 !hr06   star(2,i)=star(3,i)*sphi*salpha
