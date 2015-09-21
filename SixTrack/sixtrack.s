@@ -34505,7 +34505,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if ( ktrack(i) .ne. 1 ) then
          localBez = bez(ix)
       else
-         localBez = "BLOC"
+         localBez = bezb(ic(i))
       endif
       
       ! General format
