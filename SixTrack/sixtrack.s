@@ -26356,7 +26356,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
                       if (dumpfmt(i).eq.2) then !More header
                          write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i)
+     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i),
+     &  ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
 +if cr
                          dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -28747,6 +28748,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -29117,8 +29123,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
-
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   630   continue
         call lostpart(nthinerr)
@@ -33338,6 +33345,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -33769,7 +33781,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   650   continue
         call lostpart(nthinerr)
@@ -34476,6 +34490,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !     temporary variables
       integer j
+      character*16 localBez
 
 +if cr      
       !For accessing dumpfilepos
@@ -34487,18 +34502,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          dumpIdx = ix
       endif
 +ei
+      if ( ktrack(i) .ne. 1 ) then
+         localBez = bez(ix)
+      else
+         localBez = "BLOC"
+      endif
       
       ! General format
       if ( fmt .eq. 0 ) then
          if ( lhighprec ) then
             do j=1,napx
-               write(unit,1981) nturn, i, ix, bez(ix), dcum(i),         &
+               write(unit,1981) nturn, i, ix, localBez, dcum(i),        &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
          else
             do j=1,napx
-               write(unit,1982) nturn, i, ix, bez(ix), dcum(i),         &
+               write(unit,1982) nturn, i, ix, localBez, dcum(i),        &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
@@ -35144,6 +35164,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -35527,7 +35561,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   480     continue
           call lostpart(nthinerr)
@@ -35695,6 +35731,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -36179,7 +36229,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
 +if debug
   500 continue
@@ -36355,6 +36407,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -36790,7 +36856,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   500     continue
           call lostpart(nthinerr)
