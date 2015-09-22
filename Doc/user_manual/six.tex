@@ -1,50 +1,34 @@
-\documentclass[11pt]{report} 
-\usepackage{float} 
-\usepackage{graphics}
+\documentclass[a4paper,11pt]{report} 
+\usepackage[a4paper,margin=2cm]{geometry}
+
+%\usepackage{float} 
+%\usepackage{graphics}
 \usepackage[dvips]{epsfig,rotating} 
+
 \usepackage{verbatim}
-\usepackage{html}
-                   
-\textheight 25.5cm
-                   
-\textwidth 18cm \hoffset -2.7cm \voffset -2cm
-                   
-\setlength{\textwidth}{170mm} \setlength{\topmargin}{15mm}
-\setlength{\textheight}{240mm} \newcommand{\conack}{Conclusions and
-  Acknowledgements} \newcommand{\reftype}{Bibliography}
-\setcounter{secnumdepth}{3} \setcounter{tocdepth}{3}
 
-\renewcommand{\topfraction}{1.}  \renewcommand{\bottomfraction}{1.}
-\renewcommand{\textfraction}{0.}
+%\usepackage{html}
+\usepackage{hyperref}
 
-\pagestyle{headings} \raggedbottom
+\usepackage[table]{xcolor}
+\usepackage{longtable}
+\usepackage{multirow}
 
-\makeatletter \def\descriptionlabel#1{\hspace\labelsep \em #1}
-% heading for the \chapter command.
-\def\@makechapterhead#1{{ \parindent 0pt\raggedright\LARGE \bf \ifnum
-    \c@secnumdepth >\m@ne \@chapapp{} \thechapter.\ \ \fi
-    #1\par\nobreak\vskip 20pt }}
+\usepackage{todonotes}
+%\usepackage{draftwatermark}
 
-% heading for the \chapter* command.
-\def\@makeschapterhead#1{{ \parindent 0pt\raggedright\LARGE \bf
-    #1\par\nobreak\vskip 20pt}}
+\newenvironment{description_alligned}[1]
+{\begin{list}{}%
+    {\renewcommand\makelabel[1]{##1:\hfill}%
+      \settowidth\labelwidth{\makelabel{#1}}%
+      \setlength\leftmargin{\labelwidth}
+      \addtolength\leftmargin{\labelsep}}}
+  {\end{list}}
 
-% titles for the lists of figures and tables:
-\def\listoffigures{
- \section*{List of Figures}
- \@starttoc{lof} } \def\listoftables{
- \section*{List of Tables}
- \@starttoc{lot} }
-
-\newenvironment{Tabhere}%
-{\condbreak{3cm}\par\leavevmode\def\@captype{table}}{\par}
-\newenvironment{Fighere}%
-{\condbreak{3cm}\vspace{5mm}\leavevmode\def\@captype{figure}}{\par}
-\def\condbreak#1{\par\@tempdima=#1 \ifdim\pagetotal>0pt
-  \advance\@tempdima by -\pagegoal \advance\@tempdima by \pagetotal
-  \ifdim\@tempdima>0pt\newpage\fi\fi}
-
-\makeatother
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\pagestyle{headings}
+\raggedbottom
 
 \begin{document}
 
@@ -58,18 +42,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update January 2012
+  Update June 2015
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.2.16 \\
-  {Single Particle Tracking Code Treating Transverse Motion with
-    Synchrotron Oscillations
-    in a Symplectic Manner} \\
+  Version 4.5.25 \\
+  {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt
+  F. Schmidt, update by K. Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -104,11 +86,16 @@ tracking data.
   Geneva, Switzerland \\
   \today
 \end{center}
+
+\todo[inline]{Update titlepage}
+
 \end{titlepage}
 
-\cleardoublepage
+%\cleardoublepage
 \tableofcontents
-\listoftables \cleardoublepage \pagenumbering{arabic}
+\listoftables
+%\cleardoublepage
+\pagenumbering{arabic}
 
 \chapter{Introduction}
 
@@ -231,7 +218,7 @@ The following subroutines are taken from various packages:
 
 
 All versions can be downloaded from the web. Please first
-go to:
+go to: \todo{update}
 {\em http://cern.ch/Frank.Schmidt/Source}
 in case of problems contact the author
 via: \vspace*{1cm} \Large
@@ -628,7 +615,7 @@ The definition of the multipole strength in a block will be given in
   transition energy respectively.
 \item [u0] Circumference voltage in [MV]
 \item [harm] Harmonic number
-\item [lag] Lag angle in the cavity (zero is default)
+\item [lag] Lag angle [degrees] in the cavity (zero is default)
 \end{description}
 
 \subsubsection{Beam--Beam Separation} \label{BBS}
@@ -680,8 +667,30 @@ The length of the ramps and the flat top are specified in the
 ``Initial coordinates'' block~\ref{IniCoo} is used to compute the 
 deflection angle.
 
+\subsubsection{Dipole edge}
+\paragraph{Format} {\em name type ed ek}
+\begin{description}
+\item[name] May contain up to sixteen characters
+\item[type] Type identifier $24$
+\item[ed] First argument, meaning unknown
+\item[ek] Second argument, meaning unknown
+\end{description}
+
+This element needs more documentation and possibly testing -- not currently supported!
+
+\subsubsection{Solenoid}
+\paragraph{Format} {\em name type ed ek}
+\begin{description}
+\item[name] May contain up to sixteen characters
+\item[type] Type identifier $25$
+\item[ed] First argument, meaning unknown
+\item[ek] Second argument, meaning unknown
+\end{description}
+
+This element needs more documentation and possibly testing -- not currently supported! There are also a few things in the code which looks very strange.
 
 \subsubsection{Crab Cavity} \label{CrabCav}
+
 \paragraph{Format} {\em name type Voltage Frequency Phase}
 \begin{description}
 \item [name] May contain up to sixteen characters
@@ -692,6 +701,7 @@ deflection angle.
 \item [Phase] Phase of the excitation in radians.
 \end{description}
 
+\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
 
 \subsubsection{Beam Position Monitor} \label{BPM}
 \paragraph{Format} {\em BPMname 0 0 0 0}
@@ -922,18 +932,22 @@ variable
 
 \subsection{Power Supply Ripple} \label{PowRip}
 
-\subparagraph{Description} If power supply ripple is to be considered
+The RIPP block is been deprecated since release 4.5.20, and the functionality is now provided by the DYNK block (\ref{sec:DYNK}).
+A fort.3 file containing a RIPP block is therefore no longer valid, and will result in an error message.
+The description below is therefore only provided as a reference for those who need to convert old input files.
+
+\paragraph{Description} If power supply ripple is to be considered
 this input data block can be used. A nonlinear quadrupole is expected
 as a ripple element (type=2 and zero length in the single element list
 (~\ref{NonEle})), but in principle other nonlinear elements are also
 allowed.  Ripple depth, ripple frequency and starting phase of the
 ripple frequency are the input parameters.
 
-\subparagraph{Keyword} RIPP \subparagraph{Number of data lines}
-variable
+\paragraph{Keyword} RIPP
 
-\subparagraph{Format} {\em name ripple--depth ripple--frequency
-  start--phase nrturn}
+\paragraph{Number of data lines} variable
+
+\paragraph{Format} {\em name ripple--depth ripple--frequency start--phase nrturn}
 
 \begin{description}
 \item [name] Name of the nonlinear element in the ``single element''
@@ -946,6 +960,411 @@ variable
 \item [nrturn] Initial number of turns, for prolongation runs the
   number of turn already done
 \end{description}
+
+
+\subsection{Dynamic Kicks}
+\label{sec:DYNK}
+
+\paragraph{Description}
+The DYNamic Kicks module~\cite{DYNKpaper} allows time-dependent modification of the settings of single elements.
+The supported elements and attributes are listed in Table~\ref{tab:DYNK_SET}.
+%Currently supported are thin ``standard'' elements (type $\pm$1--$\pm$10~\ref{NonEle}) and crab cavities/RF multipoles (type $\pm$23, $\pm$26, $\pm$27 and $\pm$28~\ref{CrabCav}).
+%Different element types support different attributes, where the standard elements support setting the multipole strength $K_n$ while crab cavities support setting of the voltage, frequency, and phase relative to the bunch.
+The settings can be computed on-the fly using several functions, loaded from input files or a combination, as described in Table~\ref{tab:DYNK_FUN}.
+
+Further, unless explicitly switched off using a NOFILE statement, DYNK produces an output file ``dynksets.dat''.
+This file contains the setting of all elements and attributes for which DYNK is active.
+It is written in all turns of the simulation, even if DYNK is not active in that exact turn.
+
+\paragraph{Keyword} DYNK
+
+\paragraph{Number of data lines} variable
+
+\paragraph{Format}
+There are four types of statements possible in a DYNK block, listed below.
+On top of this, lines starting with ``/'' are treated as a comment and ignored.
+
+\subparagraph{FUN} \emph{FUN function-name function-type arg1 arg2 arg3 \ldots}\\
+This statement defines a function, i.e. something which when evaluated produces a numerical value which can be used to set the value of an element attribute.
+The functions in DYNK all have a unique name, and they may take up to 7 arguments (a limitation imposed by the internal parameter \emph{getfields\_n\_max\_fields}).
+The function type must be one of those listed in Table~\ref{tab:DYNK_FUN}.
+A function may be defined so that it uses the result of another function, which must be defined above it in the DYNK block.
+This requirement avoids any possibility for infinite recursion.
+The functions are only evaluated when needed, i.e. when used by a SET statement in that turn.
+The functions may thus be evaluated multiple times in one turn (if used by multiple SET statements which are active in that turn, or referenced by multiple other FUN statements which are themselves used more than once in that turn), or it may not be evaluated at all.
+%All functions types have an index, which is used internally in place of the function type name.
+The functions are always evaluated as a function of the current turn number $t$, which may be shifted by a turn-shift specified in a SET statement.
+
+\pagebreak
+%\begin{table}
+\begin{center}
+\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
+  %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+  \caption{Available function types in DYNK.}
+  \label{tab:DYNK_FUN} \\*
+  \hline
+  \rowcolor{blue!30}
+  Type name & Arguments & Description \\*
+  \hline
+  \endfirsthead
+
+  \hline
+  \rowcolor{blue!30}
+  Type name & Arguments & Description \\*
+  %\hline
+  \endhead
+
+  \rowcolor{gray!15}
+  \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+  \hline
+  \endfoot
+  
+  \hline
+  \endlastfoot
+
+  %\hline
+  \rowcolor{blue!15}
+  ``System'' functions & & \\*
+
+  GET        & \emph{element-name[string] function-name[string]} & 
+  Extracts the original value of a setting, i.e. as specified in the SINGLE ELEMENT section. \\*
+
+  FILE       & \emph{filename[string]} &
+  Loads the settings from file; the file is expected to be an ascii file with two columns where the first column is the turn number (should start at 1 and include all turns up to as long as is wanted), and the second column is the value for that turn number.\\*
+  
+  FILELIN    & \emph{filename[string]} &
+  Similar to FILE, but any double can be used as the turn number as long as they are monotonically rising.
+  When evaluated, the function interpolates from the line-segments specified in the file. \\*
+  
+  RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
+  Returns a pseudorandom number generated from a Gaussian distribution.
+  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
+  Note that every RANDG function defined in DYNK uses its own separate random number stream.\\
+
+  \hline
+  \rowcolor{blue!15}
+  2-operand operators & & \\*
+
+  ADD        & \emph{function-name-1[string] function-name-2[string]} &
+  Evaluate the functions referenced by \emph{function-name-1} and \emph{function-name-2}, and return the sum of the results.\\*
+
+  SUB        & \emph{function-name-1[string] function-name-2[string]} &
+  Similar to ADD, but return the result of function1 minus function2.\\*
+  
+  MUL        & \emph{function-name-1[string] function-name-2[string]} & 
+  Similar to ADD, but return the product of the results. \\*
+
+  DIV        & \emph{function-name-1[string] function-name-2[string]} & 
+  Similar to ADD, but return the result of function1 divided by function2\\*
+  
+  POW        & \emph{function-name-1[string] function-name-2[string]} & 
+  Similar to ADD, but return the result of function1 raised to the power of function2.\\
+  
+  \hline
+  \rowcolor{blue!15}
+  1-operand operators & & \\*
+
+  MINUS      & \emph{function-name} &
+  Returns the value of the named function, with the oposite sign. \\*
+
+  SQRT       & \emph{function-name} & 
+  Returns the square root of the value generated by the named function. \\*
+  
+  SIN        & \emph{function-name} & 
+  Returns the sine of the value generated by the named function. \\*
+  
+  COS        & \emph{function-name} &
+  Returns the cosine of the value generated by the named function. \\*
+  
+  LOG        & \emph{function-name} &
+  Returns the natural logarithm of the value generated by the named function. \\*
+  
+  LOG10      & \emph{function-name} &
+  Returns the common logarithm of the value generated by the named function. \\*
+  
+  EXP        & \emph{function-name} &
+  Returns the natural exponential function $e^x$, where $x$ is the value generated by the named function. \\
+  
+  \hline
+  \rowcolor{blue!15}
+  Polynomial and elliptical functions &  & \\*
+
+  CONST       & \emph{value[real]} & 
+  Always returns the value specified.\\*
+
+  TURN        & (none) & 
+  Return the turn number, i.e. $y(t) = t$.\\*
+
+  LIN         & \emph{a[real] b[real]} & 
+  Computed value from the linear function $y(t) = a\cdot t + b$. \\*
+
+  LINSEG      & \emph{x1[real] x2[real] y1[real] y2[real]} & 
+  The function is defined by a line segment between the points $(x_1,y_1)$ and $(x_2,y_2)$, and undefined for $x < x_1$ and $x>x_2$. 
+  It is required that $x_1 < x_2$.\\*
+
+  QUAD        & \emph{a[real] b[real] c[real]} & 
+  Computed value from the quadratic function $y(t) = a\cdot t^2 + b\cdot t + c$. \\*
+
+  QUADSEG     & \emph{x1[real] x2[real] y1[real] y2[real] deriv1[real]} & 
+  The quadratic function is defined by overlapping the quadratic curve segment which passes through the points $(x_1,y_1)$ and $(x_2,y_2)$, and $\mathrm{d}y/\mathrm{d}x$ at $x_1$ is \emph{deriv1}. 
+  The quadratic coefficients $a,b,c$ are calculated as $a = \frac{\emph{deriv1}}{x_1-x_2} + \frac{y_2-y_1}{(x_1-x_2)^2}$, $b=\frac{y_2-y_1}{x_2-x_1} - (x_1+x_2)\cdot a$ and $c = y_1 + \left(- x_1^2 \cdot a - x_1 \cdot b \right)$.\\
+
+  \hline
+  \rowcolor{blue!15}
+  Trancendental functions & & \\*
+
+  SINF        & \emph{A[real] omega[real] phi[real]} & 
+  Computes $y(t) = A\sin\left(\omega t + \phi\right)$.\\*
+
+  COSF        & \emph{A[real] omega[real] phi[real]} & 
+  Computes $y(t) = A\cos\left(\omega t + \phi\right)$.\\*
+  COSF\_RIPP  & \emph{A[real] period[real] phi[real]} & 
+  Computes $y(t) = A\cos\left(\frac{2\pi (t-1)}{\mathrm{period}} + \phi\right)$. 
+  This specialized cosine is provided for compatibility, to be used when replacing old \emph{RIPP} blocks.\\*
+
+  \hline
+  \rowcolor{blue!15}
+  Specialized functions & & \\*
+
+  PELP        & \emph{tinj[real] Iinj[real] Inom[real] A[real] D[real] R[real] te[real]} & 
+  This function describes a patched ``Parabolic-Exponential-Linear-Parabolic'' function, as used for ramping the LHC dipoles and described in~\cite[Appendix C]{SRussen:fieldComp} and~\cite{BurlaKing:CurrentRamp}. 
+  The parameters are:
+  \begin{itemize}
+  \setlength\itemsep{-0.3em}
+  \item The injection time \emph{tinj}, which is the time (in turn numbers) when the ramp starts.
+  \item The injection value \emph{Iinj}, which is the value when $t\le t_{inj}$
+  \item The final value \emph{Inom}, which is the value after the end of the ramp.
+  \item The acceleration parameter \emph{A}, which describes how fast the current is growing in the first (parabolic) segment.
+  \item The decelertation parameter \emph{D}, which describes how fast the current growths flattens out in the forth (parabolic) segment.
+  \item The ramp rate \emph{R}, which describes the maximum ramp rate, seen in the third (linear) segment.
+  \item The start time of the ramp \emph{te}, which describes at what time it switches from the parabolic (first) to the exponential (second) segment.
+  \end{itemize}
+  \\*
+\end{longtable}
+\end{center}
+%\end{tabular}
+%\end{table}
+
+
+\subparagraph{SET} \emph{SET element-name attribute-name function-name first-turn last-turn turn-shift}\\
+This statement defines an element setpoint, which changes an element/attribute to the value computed by the given function.
+The \emph{SET} becomes active when the turn number reaches \emph{first-turn}, and switches off once \emph{last-turn} has been passed.
+When switched off, the value applied in \texttt{last-turn} stays for the rest of the simulation, or until overwritten by another \emph{SET}.
+If \emph{last-turn} equals -1, the \emph{SET} is active untill the end of the simulation.
+The element type and attribute combinations which can be used in DYNK is shown in Table~\ref{tab:DYNK_SET}.
+
+The argument \emph{turn-shift} is an integer (positive, negative, or zero) number which is added to the current turn number before computing the function.
+Thus, in order to (as an example) apply an exponential decay from the value $v_0$ starting in turn $t_0$ using the function defined as $f(t) = V_0 \exp(-t/\tau)$,
+a \emph{turn-shift} $-t_0$ should be applied.
+
+\begin{table}
+
+\begin{center}
+%\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
+%\begin{longtable}{|l | l l l|}
+  %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+\caption{Element types and attributes available in DYNK.}
+\label{tab:DYNK_SET} %\\*
+\begin{tabular}{|l | l l p{6cm}|}
+
+  \hline
+  \rowcolor{blue!30}
+  Element type (idx) & Attribute & Units & Description \\*
+  \hline
+  % \endfirsthead
+
+  % \hline
+  % \rowcolor{blue!30}
+  % Element type (idx) & Attribute & Units & Description \\*
+  % %\hline
+  % \endhead
+
+  % \rowcolor{gray!15}
+  % \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+  % \hline
+  % \endfoot
+  
+  % \hline
+  % \endlastfoot
+
+  %\hline
+  \parbox{4cm}{~\\[-1mm] Standard thin elements\\ ($\pm$1 -- $\pm$10),\\ Section~\ref{NonEle}\\[-3mm]}
+    & \texttt{average\_ms} & radians * m\textsuperscript{-n} & See Table~\ref{T-NonEle} \\
+  \hline
+  \multirow{3}{*}{\parbox{4cm}{RF cavities ($\pm$12),\\ Section~\ref{Cavities}}}
+    & \texttt{voltage}     & MV      & One-turn accelerating voltage \\
+    & \texttt{harmonic}    & --      & Harmonic number of the cavity \\
+    & \texttt{lag\_angle}  & degrees & Lag angle of the cavity \\
+  \hline
+  \multirow{3}{*}{\parbox{4cm}{RF multipoles\\ ($\pm$23, $\pm$26 -- $\pm$28),\\ Section~\ref{CrabCav}}}
+    & \texttt{voltage}     & MV      & Kick voltage \\
+    & \texttt{frequency}   & MHz     & Frequency \\
+    & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
+
+  \hline
+
+%\end{longtable}
+\end{tabular}
+\end{center}
+\end{table}
+
+\subparagraph{NOFILE}
+The presence of this statement in a DYNK block switches off the normal writing of the output file ``dynksets.dat'' in every line, instead producing a file only containing the message ``\#\#\# DYNK file output was disabled with flag NOFILE in fort.3 \#\#\#''.
+This can be useful to save disk space in very long simulations.
+
+\subparagraph{DEBU}
+This statement switches on extra ``debugging'' output from DYNK.
+This can be useful if debugging the code or if debugging the input.
+
+\paragraph{Output file \emph{dynksets.dat}}
+When a DYNK block is present in the input file, a file ``dynksets.dat'' is created and in the current working directory.
+Unless a \emph{NOFILE} statement is present, this file contains first a header ``\# turn element attribute SETidx funname value'', followed by rows of data in the format specified in the header.
+This data is written for all element/attribute combinations and in all turns, wether a SET is active for this element/attribute in this turn or not.
+If no \emph{SET} is active when the line is written out, the \emph{SETidx} is written as -1, and the \emph{funname} is ``N/A''.
+If a SET is active when the line is written out, the \emph{SETidx} is the index of the currently active \emph{SET} statement, where the first statement occuring in fort.3 has index 1 etc.
+Similarly, the \emph{funname} is the name referencing the currently active \emph{FUN} statement.
+
+\paragraph{Examples}
+
+\subparagraph{Replacement of RIPP block}
+One use of the DYNK block is to replace the functionality of the RIPP block (Section~\ref{PowRip}).
+The FUN type COSF\_RIPP is provided for exactly this purpose, and provides an exact replacement.
+As an example, the RIPP block in the SixTest test-case prob1 looks like (slightly reduced in size):
+\begin{verbatim}
+RIPPLE OF POWER SUPPLIES------------------------------------------------
+         dmqx1f50l5+2      3.2315D-10    224.9
+         dmqx2af50l5+2    -3.2315D-10    224.9
+         dmqx1f10mel5+2    2.5246D-16    0.0011245
+NEXT
+\end{verbatim}
+This can be replaced by the following:
+\begin{verbatim}
+DYNK
+NOFILE
+FUN RIPP-dmqx1f50l5+2 COSF_RIPP 3.2315D-10 224.9 0.0
+SET dmqx1f50l5+2 average_ms RIPP-dmqx1f50l5+2 1 -1 0
+FUN RIPP-dmqx2af50l5+2 COSF_RIPP -3.2315D-10 224.9 0.0
+SET dmqx2af50l5+2 average_ms RIPP-dmqx2af50l5+2 1 -1 0
+FUN RIPP-dmqx1f20kl5+2 COSF_RIPP 2.5246D-12 0.56225 0.0
+SET dmqx1f20kl5+2 average_ms RIPP-dmqx1f20kl5+2 1 -1 0
+NEXT
+\end{verbatim}
+Here, each RIPP data line is replaced with two lines, one FUN statement for generating the function, and one SET statement for applying the value.
+Note that the SET statements have an end-time ``-1'', meaning it is used untill the end of the simulation.
+Also note the precense of the NOFILE flag, which is used to not generate a potentially very large (for very long simulations) dynkfile.dat output file.
+
+\subparagraph{Starting tracking inside a bump}
+
+This example was taken from the paper~\cite{DYNKpaper}, and demonstrates how a bump can be temporarilly disabled if the starting point of the tracking is inside of it.
+The reason for doing this is removing the neccessity of generating a starting distribution with the bump already applied.
+Here, the HL-LHC v1.1 lattice is used, with vertical crab cavities around the first interaction point (IP1, ATLAS), which is also the point where the tracking is started.
+The crab cavities opening the bump are called CRAB\_IP1\_L1$\cdots$4, while the closing cavities are CRAB\_IP1\_R1$\cdots$4.
+The DYNK block for this looks like:
+\begin{verbatim}
+DYNK
+FUN zero CONST 0.0
+FUN CV_1R1 Get CRAB_IP1_R1 voltage
+FUN CV_1R2 GET CRAB_IP1_R2 voltage
+FUN CV_1R3 GET CRAB_IP1_R3 voltage
+FUN CV_1R4 GET CRAB_IP1_R4 voltage
+SET CRAB_IP1_R1 voltage zero 1 1 0
+SET CRAB_IP1_R2 voltage zero 1 1 0
+SET CRAB_IP1_R3 voltage zero 1 1 0
+SET CRAB_IP1_R4 voltage zero 1 1 0
+SET CRAB_IP1_R1 voltage CV_1R1 2 2 0
+SET CRAB_IP1_R2 voltage CV_1R2 2 2 0
+SET CRAB_IP1_R3 voltage CV_1R3 2 2 0
+SET CRAB_IP1_R4 voltage CV_1R4 2 2 0
+NEXT
+\end{verbatim}
+
+Here, the function ``zero'' is defined such that it always returns 0.0, and is used to switch off the closing cavities in the first turn, i.e. when the beam exits the bump.
+Further, the functions CV\_1R1$\cdots$1R4 and CV\_1L are used to store the original value of the voltages, without having to explicitly enter them into the DYNK block.
+
+The SET statements then first sets the voltage of all the cavities to zero in turn 1, and then in turn 2 sets it to their respective ``switched on'' voltages.
+The SET statements end after turn 2, but the last values are retained.
+
+This means that when the simulation starts with the bunch in IP1, it exits the bump without any kicks from the closing crab cavities.
+It then comes around (still in turn 1), and encountered the switched-on opening cavities CRAB\_IP1\_L1$\cdots$4, which crabs the beam.
+After passing through IP1, the turn counter is increased from 1 to 2, triggering the SET statements to switch on the closing cavities CRAB\_IP1\_R1$\cdots$4 as well.
+
+\subparagraph{Ramp and exponential decay of crab voltage, combined with a linear drift of crab phase}
+\begin{figure}
+  \centering
+  \includegraphics{fail_voltagePhase2v2}
+  \caption{Singals generate by DYNK example for ramp + exponential decay of crab voltage, and also linear drift of crab phase. Only the signals for CRAB\_IP1\_L1 are shown. The plot is made from the data in dynksets.dat.}
+  \label{fig:DYNK_fail}
+\end{figure}
+
+This slightly more complicated example builds on the example given above.
+It shows how to change two parameters (voltage and phase) of several objects.
+It also demonstrates how functions can be chained together, making more complicated functions.
+Some of the resulting functions are shown in Figure~\ref{fig:DYNK_fail}, and the DYNK block here looks like:
+\begin{verbatim}
+DYNK
+/DEBUG
+FUN zero CONST 0.0
+FUN CV_R1 GET CRAB_IP1_R1 voltage
+FUN CV_R2 GET CRAB_IP1_R2 voltage
+FUN CV_R3 GET CRAB_IP1_R3 voltage
+FUN CV_R4 GET CRAB_IP1_R4 voltage
+FUN CV_L  GET CRAB_IP1_L1 voltage
+FUN ramp LIN 0.02 0
+FUN ramp_R1 MUL CV_R1 ramp
+FUN ramp_R2 MUL CV_R2 ramp
+FUN ramp_R3 MUL CV_R3 ramp
+FUN ramp_R4 MUL CV_R4 ramp
+FUN ramp_L  MUL CV_L  ramp
+SET CRAB_IP1_R1 voltage zero 1 10 0
+SET CRAB_IP1_R2 voltage zero 1 10 0
+SET CRAB_IP1_R3 voltage zero 1 10 0
+SET CRAB_IP1_R4 voltage zero 1 10 0
+SET CRAB_IP1_L1 voltage zero 1 9 0
+SET CRAB_IP1_L2 voltage zero 1 9 0
+SET CRAB_IP1_L3 voltage zero 1 9 0
+SET CRAB_IP1_L4 voltage zero 1 9 0
+/
+SET CRAB_IP1_R1 voltage ramp_R1 11 61 -11
+SET CRAB_IP1_R2 voltage ramp_R2 11 61 -11
+SET CRAB_IP1_R3 voltage ramp_R3 11 61 -11
+SET CRAB_IP1_R4 voltage ramp_R4 11 61 -11
+SET CRAB_IP1_L1 voltage ramp_L 10 60 -10
+SET CRAB_IP1_L2 voltage ramp_L 10 60 -10
+SET CRAB_IP1_L3 voltage ramp_L 10 60 -10
+SET CRAB_IP1_L4 voltage ramp_L 10 60 -10
+/
+/Voltage decay and detuning
+FUN expCore LIN -0.05 0.0
+FUN decay EXP expCore
+FUN decayScaled MUL decay CV_L
+SET CRAB_IP1_L1 voltage decayScaled 70 100 -70
+SET CRAB_IP1_L2 voltage decayScaled 70 100 -70
+SET CRAB_IP1_L3 voltage decayScaled 70 100 -70
+SET CRAB_IP1_L4 voltage decayScaled 70 100 -70
+FUN phasedrift LIN 0.3141592654 0.0
+SET CRAB_IP1_L1 phase phasedrift 70 100 -70
+SET CRAB_IP1_L2 phase phasedrift 70 100 -70
+SET CRAB_IP1_L3 phase phasedrift 70 100 -70
+SET CRAB_IP1_L4 phase phasedrift 70 100 -70
+NEXT
+\end{verbatim}
+The first functions defined here are the same as above, storing the default values (as defined in the single element list) for the relevant elements and also zero.
+Then follows a normalized linear ramp function ``ramp'', with gradient 0.02 = 1/50.
+This is then used by the ``specialized'' ramp functions ``ramp\_R1$\cdots$R4'', which scales ``ramp'' so that the end point is the standard voltages for $t\in 0\ldots50$.
+
+These functions are used to first set the crabs to 0.0 for the first 9 revolutions, and in the 10th revolution the ramp starts.
+As the ``ramp'' function is defined starting at turn 0, a shift -10 or -11 is applied to the ramps.
+The ramp is switched off after turn 60/61, leaving the crabs to be operating at the last SET value.
+
+Further, we want to demonstrate a failure in the crab voltage.
+This is done using an exponential decaying function $V(t) = V_0 \exp\left(-0.05 t\right)$, which is implemented as three chained functions:
+\begin{description_alligned}{decayScaled}
+\item[expCore] $f(t) = -0.05 t + 0.0$
+\item[decay] $g(t) = \exp(f(t)) = \exp(-0.05 t + 0.0)$
+\item[decayScaled] $h(t) = V_0 \cdot g(f(t)) = V_0 \cdot \exp(f(t)) = \exp(-0.05 t + 0.0)$
+\end{description_alligned}
+For the SET, the time $t$ is then shifted by -70 turns, so that the functions are evaluated starting at t=0.
 
 \subsection{Beam--Beam Element} \label{BeamBeam}
 
@@ -1201,8 +1620,8 @@ variable but at least 1
 
 \begin{description}
 \item [mode] ``ELEMENT'' for a printout after each single element
-  (~\ref{SinEle}); ``BLOCK'' for a printout after each structure block
-  (~\ref{BloDef})
+  (\ref{SinEle}); ``BLOCK'' for a printout after each structure block
+  (\ref{BloDef})
 \item [number--of--blocks] (integer) The number of the blocks in the
   structure to which the linear parameter will be printed. If this
   number is set to zero or is larger than the number of blocks, the
@@ -1219,7 +1638,7 @@ variable but at least 1
    longitudinal position, the phase advances at that location, 4
    $\beta$--, $\alpha$-- and $\gamma$--functions, 4 angles for
    coordinates and momenta respectively, plus the coupling angle
-   [rad]) are written in binary format on file \# 11.
+   [rad]) are written in ascii format on file \# 11.
  \end{itemize}
 \item [E\_I, E\_II] (floats) The two eigen--emittances to be chosen to
   determine the coupling angle. They are typically set to be equal.
@@ -1891,10 +2310,9 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
 
 \subparagraph{Format}
 \begin{itemize}
-\item data line 1: {\em numl numlr napx amp(1) amp0 ird imc}
+\item data line 1: {\em numl numlr napx amp(1) amp0 ird imc niu(1) niu(2) numlcp numlmax}
 \item data line 2: {\em idy(1) idy(2) idfor irew iclo6} \/(integers)
-\item data line 3: {\em nde(1) nde(2) nwr(1) nwr(2) nwr(3) nwr(4)
-    ntwin ibidu iexact} \/(integers)
+\item data line 3: {\em nde(1) nde(2) nwr(1) nwr(2) nwr(3) nwr(4) ntwin ibidu iexact} \/(integers)
 \end{itemize}
 
 \begin{description}
@@ -1932,6 +2350,9 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
   \/block (~\ref{IniCoo}).  The variation will be between \mbox{$ \pm
     \frac{\Delta p}{p_o} (\mathrm{max}) $} in steps of \mbox{$
     \frac{\Delta p}{p_o} (\mathrm{max}) $ / ({\em imc--1}\/).}
+\item[niu(1), niu(2)]
+\item[numlcp]
+\item[numlmax] 
 \item [idy(1), idy(2)] A tracking where one of the transversal motion
   planes shall be ignored is only possible when all coupling terms are
   switched off.  The part of the coupling that is due to closed orbit
@@ -2230,8 +2651,66 @@ synchrotron oscillation in a symplectic manner are given in the {\em
   calculated.
 \end{description}
 
-\chapter*{\conack}
-\addcontentsline{toc}{chapter}{\conack}
+\section{Extra output files}
+For some studies, extra output from the simulation is desired.
+How to do this is described below.
+
+\subsection{Dumping of beam population} \label{sec:DUMP}
+
+\paragraph{Description}
+The DUMP block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.
+This can be done in any SINGLE ELEMENTS which are directly mentioned in the STRUCTURE INPUT part of fort.2 (BLOCs cannot be used).
+The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
+
+\paragraph{Keyword}
+DUMP
+
+\paragraph{Number of data lines}
+variable, one for each element for which dump is active
+
+\paragraph{Format}
+\texttt{element\_name frequency unit format (filename)}\\
+or\\
+\texttt{HIGH}
+\subparagraph{element\_name}
+one of the SINGLE ELEMENTS or ALL to dump at the exit of all single elements.
+\subparagraph{frequency}
+how often the beam population should be dumped in number of turns.
+\subparagraph{unit}
+fortran unit number to use, should not be used in other parts of SixTrack.
+The unit number and filename may be shared between different DUMP outputs, as long as they have the same format and \texttt{element\_name} is not \texttt{ALL}.
+\subparagraph{format}
+an integer specifying the output format. The following is accepted:
+\begin{enumerate}
+\item[0] -- General format:\\
+  No header\\
+  Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
+\item[1] -- Format for aperture check:\\
+  Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
+  Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
+\item[2] -- Modified format for aperture check:\\  
+  Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+  A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+  Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+\end{enumerate}
+
+\subparagraph{filename} is the name of the file to write to. This argument may be omitted, and if so the output file is named fort.\texttt{UNIT}.
+
+\subparagraph{HIGH} If present anywhere in the DUMP block this triggers high-precission output, meaning more digits in the output files.
+
+\paragraph{Example}
+\begin{verbatim}
+DUMP
+/ALL 1 663 2
+/CRAB5 1 659 0
+ip1 1 660 2 IP1_DUMP.dat
+ip5 1 662 2
+mqml.10l4.b1..1 1 661 2 MQ_DUMP.dat
+NEXT
+\end{verbatim}
+
+
+\chapter*{Conclusions}
 
 Programs with large input structures like SixTrack tend to be far from
 perfect, even though a cumbersome chase for program bugs and a lot of
@@ -2239,7 +2718,7 @@ polishing on the input structure has been performed.  Plenty of
 comments and suggestions are therefore needed to further improve the
 program.
 
-\section*{Acknowledgement}
+\chapter{Acknowledgement}
 
 I would like to thank my colleagues at DESY and CERN to help to find
 nasty bugs and for a thorough check of the program. I would like to
@@ -2261,18 +2740,24 @@ code of Hirata~\cite{Hirata}.
 
 \newcounter{kwc} \setcounter{kwc}{0}
 
-\begin{table}[h]
-\caption{List of Keywords}
-\vspace{1em} \scriptsize \centering
-\begin{tabular}{|c|c|c|c|c|c|c|}
-  \hline \rule[-4mm]{0mm}{10mm} {\bf \#} & {\bf Keyword} &
-  \multicolumn{2}{c|}{\bf Input--data--block} & {\bf Short
-    Description} & {\bf \S } & {\bf Page} \\
-  \hline \rule[-3mm]{0mm}{8mm}
-  & & {\bf Title} & {\bf \# of Data--lines} & & & \\
+\begin{center}
+\scriptsize
+\begin{longtable}{|c|c|c|c|c|c|c|}
+
+  \caption{List of Keywords}\\
+  \hline 
+  \rule[-4mm]{0mm}{10mm} {\bf \#} & {\bf Keyword} & \multicolumn{2}{c|}{\bf Input--data--block} & {\bf Short Description} & {\bf \S } & {\bf Page} \\
+  \hline \rule[-3mm]{0mm}{8mm} & & {\bf Title} & {\bf \# of Data--lines} & & & \\
+  \endfirsthead
+  \hline 
+  \rule[-4mm]{0mm}{10mm} {\bf \#} & {\bf Keyword} & \multicolumn{2}{c|}{\bf Input--data--block} & {\bf Short Description} & {\bf \S } & {\bf Page} \\
+  \hline \rule[-3mm]{0mm}{8mm} & & {\bf Title} & {\bf \# of Data--lines} & & & \\
+  \endhead
+
+
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BEAM &
   BEAM--BEAM Element & 1 & 4-6D including Beam
-  Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\
+  Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & &\& Linear Coupling   & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BLOC &
@@ -2280,7 +2765,7 @@ code of Hirata~\cite{Hirata}.
   Linear Elements &~\ref{BloDef} & \pageref{BloDef} \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & BLOCK & & &
   Linear Parameters for each Structure &~\ref{LinOpt} &
-  \pageref{LinOpt} \\
+  \pageref{LinOpt} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Element & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & CAV & & &
@@ -2289,7 +2774,7 @@ code of Hirata~\cite{Hirata}.
   \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & CHRO &
   Chromaticity & 2 & Correcting Chromaticity with &~\ref{ChrCor} &
-  \pageref{ChrCor} \\
+  \pageref{ChrCor} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Correction & & Sextupoles & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & CORR &
@@ -2298,7 +2783,7 @@ code of Hirata~\cite{Hirata}.
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & COMB &
   Combination of & variable & Combining Different Elements
   &~\ref{ComEle}
-  & \pageref{ComEle} \\
+  & \pageref{ComEle} \\*
   \rule[-2mm]{0mm}{2mm}
   & & Elements & & for a Correction & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{2mm} \thekwc & COMM &
@@ -2312,27 +2797,35 @@ code of Hirata~\cite{Hirata}.
   & \pageref{LinDec} \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & DIFF &
   Differential & 1 & Calculating a One--turn Map with &~\ref{DifAlg} &
-  \pageref{DifAlg} \\
+  \pageref{DifAlg} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Algebra & & Differential Algebra & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & DISP &
   Displacement of & variable & Displacing Nonlinear
-  Elements &~\ref{DisEle} & \pageref{DisEle} \\
+  Elements &~\ref{DisEle} & \pageref{DisEle} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Elements & & & & \\
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & DUMP & 
+  & variable &
+  Writing the beam population to file &~\ref{sec:DUMP} &
+  \pageref{sec:DUMP} \\
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & DYNK & 
+  & variable &
+  Dynamic kicks &~\ref{sec:DYNK} &
+  \pageref{sec:DYNK} \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & EL & & &
   Elliptical Aperture Limitation &~\ref{ApeLim} &
   \pageref{ApeLim} \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ELEMENT & &
   & Linear Parameters after each Single &~\ref{LinOpt} &
-  \pageref{LinOpt} \\
+  \pageref{LinOpt} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Element & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm}
   \thekwc & ENDE & & & End of SixTrack Input Structure & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & FLUC &
   Random Fluctuation & 1 &
-  Seed for the Random Generator &~\ref{FluNum} & \pageref{FluNum} \\
+  Seed for the Random Generator &~\ref{FluNum} & \pageref{FluNum} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Starting Number & & & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & FREE & $
@@ -2340,7 +2833,7 @@ code of Hirata~\cite{Hirata}.
   File &~\ref{ProVer} & \pageref{ProVer} \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & GEOM & $
   2^{nd} $ Program Version & 0 & Input of Machine
-  Geometry in &~\ref{ProVer} & \pageref{ProVer} \\
+  Geometry in &~\ref{ProVer} & \pageref{ProVer} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & extra File & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & GO & & &
@@ -2348,7 +2841,7 @@ code of Hirata~\cite{Hirata}.
   \pageref{StrInp} \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``HCOR= ''
   & & & Specifies an Horizontal Orbit Corrector
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\
+  &~\ref{OrbCorr} & \pageref{OrbCorr} \\*
   & & & & Element (Dipole or Multipole) & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``HMON= ''
   & & & Specifies an Horizontal Orbit Monitor
@@ -2358,43 +2851,22 @@ code of Hirata~\cite{Hirata}.
   Coordinates &~\ref{IniCoo} & \pageref{IniCoo} \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & ITER &
   Iteration Errors & 4 & \# of Iterations and Precision
-  &~\ref{IteErr} & \pageref{IteErr} \\
+  &~\ref{IteErr} & \pageref{IteErr} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & for Correction Routines & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & LIMI &
   Aperture Limitation & variable & Collimators that stop the
-  Program &~\ref{ApeLim} & \pageref{ApeLim} \\
+  Program &~\ref{ApeLim} & \pageref{ApeLim} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & when being hit & & \\
-  \hline
-\end{tabular}
-\normalsize
-\end{table}
-
-\clearpage
-
-\begin{table}[t]
-\caption{List of Keywords (continued)}
-\vspace{1em} \scriptsize \centering
-\begin{tabular}{|c|c|c|c|c|c|c|}
-  \hline \rule[-4mm]{0mm}{10mm} {\bf \#} & {\bf Keyword} &
-  \multicolumn{2}{c|}{\bf Inputdatablock} & {\bf Short
-    Description} & {\bf \S } & {\bf Page} \\
-  \hline \rule[-3mm]{0mm}{8mm}
-  & & {\bf Title} & {\bf \# of Data--lines} & & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & LINE &
-  Linear Optics & 1 & Calculation of all Linear
-  Parameters &~\ref{LinOpt} & \pageref{LinOpt} \\
-  \rule[-2mm]{0mm}{5mm}
-  & & & & of the Accelerator & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & MULT &
   Multipole & max. 11 & Multipole Coefficients normal
-  and &~\ref{MulCoe} & \pageref{MulCoe} \\
+  and &~\ref{MulCoe} & \pageref{MulCoe} \\*
   \rule[-1mm]{0mm}{4mm}
-  & & skew Coefficients & & up to $ 10^{th} $ order & & \\
+  & & skew Coefficients & & up to $ 10^{th} $ order & & \\*
   \cline{5-7} \rule[-1mm]{0mm}{4mm} & & & & Combination of Different
   Multi-- &~\ref{OrgRan} &
-  \pageref{OrgRan} \\
+  \pageref{OrgRan} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & poles in the ORGA Input Block & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & NEXT & & &
@@ -2405,12 +2877,12 @@ code of Hirata~\cite{Hirata}.
   &~\ref{Normal} & \pageref{Normal} \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & ORBI &
   Orbit Adjustment & variable & Adjusting Orbit
-  to desired &~\ref{OrbCorr} & \pageref{OrbCorr} \\
+  to desired &~\ref{OrbCorr} & \pageref{OrbCorr} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Sigma Values & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & ORGA &
   Organisation of & variable + 1 & Arranging Random
-  Errors and &~\ref{OrgRan} & \pageref{OrgRan} \\
+  Errors and &~\ref{OrgRan} & \pageref{OrgRan} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Random Numbers & & Multipole sets & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & POST &
@@ -2418,7 +2890,7 @@ code of Hirata~\cite{Hirata}.
   Tracking Data &~\ref{PosPro} & \pageref{PosPro} \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & PRIN &
   Printout Selection & 0 & Initiates the Printing of &~\ref{PriSel} &
-  \pageref{PriSel} \\
+  \pageref{PriSel} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & the Input Data & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & RE & & &
@@ -2426,67 +2898,67 @@ code of Hirata~\cite{Hirata}.
   \pageref{ApeLim} \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & RESO &
   Resonance & 6 & Compensation of up to 3 &~\ref{ResCom} &
-  \pageref{ResCom} \\
+  \pageref{ResCom} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Compensation & & Different Resonances & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & RIPP &
-  Power Supply & variable & Invokes a Sinusoidal Tune &~\ref{PowRip} &
-  \pageref{PowRip} \\
+  Power Supply Ripple & variable & Invokes a Sinusoidal Tune &~\ref{PowRip} &
+  \pageref{PowRip} \\*
   \rule[-2mm]{0mm}{5mm}
-  & & Ripple & & Variation & & \\
+  & & \textit{(obsolete -- use DYNK)} & & Variation \textit{(obsolete -- use DYNK)} & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SEAR &
   Search for Resonance & variable & Evaluating Longitudinal
-  Positions &~\ref{SeaPla} & \pageref{SeaPla} \\
+  Positions &~\ref{SeaPla} & \pageref{SeaPla} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Compensation Positions & & for a Resonance Compensation & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SING &
   Single Elements & variable & Magnet Parameters of &~\ref{SinEle} &
-  \pageref{SinEle} \\
+  \pageref{SinEle} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Single Elements & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & STRU &
   Structure Input & variable & Structure of
-  Linear Blocks and &~\ref{StrInp} & \pageref{StrInp} \\
+  Linear Blocks and &~\ref{StrInp} & \pageref{StrInp} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Nonlinear Elements & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SUBR &
   Sub--resonance & 1 & Calculation of $ 1^{th} $
-  Order Reso-- &~\ref{SubCal} & \pageref{SubCal} \\
+  Order Reso-- &~\ref{SubCal} & \pageref{SubCal} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Calculation & & nances up to $ 9^{th} $ Multipole Order & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SYNC &
   Synchrotron & 2 & Parameters concerning Synchrotrons &~\ref{SynOsc}
   &
-  \pageref{SynOsc} \\
+  \pageref{SynOsc} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Oscillations & & Oscillation & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & TRAC &
   Tracking & 3 & All major Tracking Parameters for &~\ref{TraPar} &
-  \pageref{TraPar} \\
+  \pageref{TraPar} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Parameters & & the transversal Motion Plane & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & TUNE & Tune
   Variation & 2 or 4 & Adjusting the Horizontal and &~\ref{TunVar} &
-  \pageref{TunVar} \\
+  \pageref{TunVar} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Vertical Tunes & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & TROM & 
   ``Phase Trombone'' element & mult. of 14& Phase Shift Transparent
   &~\ref{Trombone} & 
-  \pageref{Trombone} \\
+  \pageref{Trombone} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & for Linear Optics & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``VCOR= ''
   & & & Specifies an Vertical Orbit Corrector
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\
+  &~\ref{OrbCorr} & \pageref{OrbCorr} \\*
   & & & & Element (Dipole or Multipole) & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``VMON= ''
   & & & Specifies an Vertical Orbit Monitor
   &~\ref{OrbCorr} & \pageref{OrbCorr} \\
   \hline
-\end{tabular}
+\end{longtable}
 \normalsize
-\end{table}
+\end{center}
 
 \chapter{List of Default Values} \label{Default}
 
@@ -2668,22 +3140,26 @@ version uses 50 Mb and the DA version 400 Mb.
 
 \chapter{Input and Output Files} \label{Files}
 
-The program uses a couple of files for its input and output
-procedures.
+The program uses a couple of files for its input and output procedures.
 
-\begin{table}[H]
-\caption{List of Input and Output Files}
-\vspace{1em} \centering
-\begin{tabular}{|c|c|c|c|c|}
-  \hline \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf
-    Output} & {\bf File Type} & {\bf Contents}
-  \\
+\begin{center}
+\begin{longtable}{|c|c|c|c|c|}
+  \caption{List of Input and Output Files.}\\
   \hline
+  \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents} \\
+  \hline
+  \endfirsthead
+  \hline
+  \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents} \\
+  \hline
+  \endhead
+  
+%  \hline
 %\rule[-1.25mm]{0mm}{7.5mm}
   \rule[-3.75mm]{0mm}{10mm}
   2 & X & & Ascii & Geometry and Strength Parameters \\
   \hline \rule[-3.75mm]{0mm}{10mm}
-  3 & X & & Ascii & Tracking Parameters \\
+  3 & X & & Ascii & Tracking Parameters \\*
   \hline \rule[-3.75mm]{0mm}{10mm} 4 & & X & Ascii & Geometry and
   strength Parameters (format as file \#
   2) \\
@@ -2692,54 +3168,44 @@ procedures.
   \hline \rule[-3.75mm]{0mm}{10mm}
   8 & X & & Ascii & Name, hor., ver. Misalignment and Tilt \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  9 & & X & Ascii & Internally used multipoles \\
+  9 & & X & Ascii & Internally used multipoles \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Format: $a16,\ 2 \times \{6 \times (1p,3d23.15),\
   (1p,2d23.15)\}$ \\ 
   \hline \rule[-3.75mm]{0mm}{10mm}
   10 & X & X & Ascii & Summary of Post--processing (auxiliary) \\
   \hline \rule[-3.75mm]{0mm}{10mm}
-  11 & & X & Binary & This file is used to dump linear \\
+  11 & & X & Ascii & This file is used to dump linear \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & coupling parameters at locations of choice \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  12 & & X & Ascii & End Coordinates of both Particles \\
+  12 & & X & Ascii & End Coordinates of both Particles \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Format: ($15 \times F10.6$) \\
   \hline \rule[-3.75mm]{0mm}{10mm}
   13 & X & & Ascii & Start Coordinates for a Prolongation \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  14 & & X & Ascii & Horizontal FFT Spectrum for detailed \\
+  14 & & X & Ascii & Horizontal FFT Spectrum for detailed \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Analysis; Format:  ($2 \times F10.6$) \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  15 & & X & Ascii & Vertical FFT Spectrum for detailed \\
+  15 & & X & Ascii & Vertical FFT Spectrum for detailed \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Analysis; Format: ($2 \times F10.6$) \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  16 & X & & Ascii & External multipole errors \\
+  16 & X & & Ascii & External multipole errors \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Format: $a16,\ 2 \times \{6 \times (1p,3d23.15),\
   (1p,2d23.15)\}$ \\ 
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  17 & & X & Ascii & Additional Map at \\
+  17 & & X & Ascii & Additional Map at \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & location of interest \\
-  \hline
-\end{tabular}
-\end{table}
-
-\clearpage
-
-\begin{table}[H]
-\caption{List of Input and Output Files (continued)}
-\vspace{1em} \centering
-\begin{tabular}{|c|c|c|c|c|}
-  \hline \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf
-    Output} & {\bf File Type} & {\bf Contents}
-  \\
+%  \hline
+%  \hline \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents}
+%  \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  18 & & X & Ascii & One--Turn Map with Differential \\
+  18 & & X & Ascii & One--Turn Map with Differential \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Algebra \\
   \hline \rule[-3.75mm]{0mm}{10mm}
@@ -2747,23 +3213,23 @@ procedures.
   \hline \rule[-3.75mm]{0mm}{10mm}
   20 & & X & Meta--file & PS--file of selected Plots \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  21 & & X & Ascii & Factorisation of the one--turn \\
+  21 & & X & Ascii & Factorisation of the one--turn \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & map \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  22 & & X & Ascii & Transformation in the \\
+  22 & & X & Ascii & Transformation in the \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Normal Form coordinates \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  23 & & X & Ascii & Hamiltonian in \\
+  23 & & X & Ascii & Hamiltonian in \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & action variables \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  24 & & X & Ascii & Tune--shift in action \\
+  24 & & X & Ascii & Tune--shift in action \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & coordinates \\
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  25 & & X & Ascii & Tune--shift in Cartesian \\
+  25 & & X & Ascii & Tune--shift in Cartesian \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & coordinates \\
   \hline \rule[-3.75mm]{0mm}{10mm}
@@ -2771,26 +3237,15 @@ procedures.
   \hline \rule[-3.75mm]{0mm}{10mm}
   27 & & X & Ascii & Name, hor., ver. Misalignment and Tilt \\
   \hline \rule[-1.75mm]{0mm}{10mm}
-  28 & & X & Ascii & Horizontal closed orbit displacement, \\
+  28 & & X & Ascii & Horizontal closed orbit displacement, \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & &   &       & measured at monitors \\
   \hline \rule[-1.75mm]{0mm}{10mm}
-  29 & & X & Ascii & Vertical closed orbit displacement, \\
+  29 & & X & Ascii & Vertical closed orbit displacement, \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & &   &       & measured at monitors \\
-  \hline
-\end{tabular}
-\end{table}
-
-\clearpage
-
-\begin{table}[H]
-\caption{List of Input and Output Files (continued)}
-\vspace{1em} \centering
-\begin{tabular}{|c|c|c|c|c|}
-  \hline \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf
-    Output} & {\bf File Type} & {\bf Contents}
-  \\
+%  \hline
+%  \hline \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents} \\
   \hline \rule[-3.75mm]{0mm}{10mm}
   30 & X & & Ascii & Name, Random strength, misalignments and tilt \\
   \hline \rule[-3.75mm]{0mm}{10mm}
@@ -2803,17 +3258,34 @@ procedures.
   34 & & X & Ascii & Multipole strength and linear lattice
     parameters~\cite{SODD} \\ 
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  90 -- k & & X & Binary & Tracking Data \\
+  90 -- k & & X & Binary & Tracking Data \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & $ 0 <= k <= 31 $ \\
   \hline \rule[-3.75mm]{0mm}{10mm}
+  92 & & X & Ascii & Checkpoint/Restart only: \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Program ``standard output'' (lout) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  93 & & X & Ascii & Checkpoint/Restart only: Log file \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  95 & X & X & Ascii & Checkpoint/Restart only: Data file 1 \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  96 & X & X & Ascii & Checkpoint/Restart only: Data file 2 \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
   98 & & X & Ascii & 6D coordinates at Cavity (1p,6(2x,e25.18)) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  664 & X &  & Ascii & DYNK reading FUN FILE(LIN) \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & (only during initialization) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  665 & & X & Ascii & DYNK output file \texttt{dynksets.dat} \\
   \hline
-\end{tabular}
-\end{table}
+\end{longtable}
+\end{center}
 
-\clearpage
+%\clearpage
 
+In addition to those files listed in the table, DUMP use arbitary file unit numbers as determined by the input file. The collimation module also uses many input/output files at various units, which are not listed here.
 
 \chapter{Data Structure of the Data--Files} \label{Header}
 
@@ -3399,6 +3871,7 @@ summary of the post--processing is given.
   Six--Dimensional Thin--Lens Maps by Exponentiation'', DESY 95--189
   (1995),
   \htmladdnormallink{http://cern.ch/Frank.Schmidt/report/ripken2.pdf}
+%  \url{http://cern.ch/Frank.Schmidt/report/ripken2.pdf}
   {http://cern.ch/Frank.Schmidt/report/ripken2.pdf}; D.P.~Barber,
   K.~Heinemann, G.~Ripken and F.~Schmidt, ``Symplectic Thin\,-\,Lens
   Transfer Maps for SixTrack: Treatment of Bending Magnets in Terms of
@@ -3525,69 +3998,83 @@ summary of the post--processing is given.
 %\bibitem{PATRAC} A.~Hilaire and A.~Warman, ``A
 %  program for single particle tracking'', CERN SPS/88--8 (AMS).
 %
-\addcontentsline{toc}{chapter}{~\reftype}
+\bibitem{DYNKpaper} K.~Sjobak, H.~Burkhardt, R.D.~Maria, A.~Mereghetti and A.~Santamaria,
+  ``General functionality for turn-dependent element properties in SixTrack''
+  2015, Procedings of IPAC'13, Richmond, VA, USA, May 2015.
+%
+\bibitem{SRussen:fieldComp} S.~Russenschuck,
+  ``Field computation for Accelerator Magnets'',
+  Wiley-VCH, 2010
+\bibitem{BurlaKing:CurrentRamp} P.~Burla, Q.~King and J.G.~Pett,
+  ``Optimisation of the current ramp for the LHC'',
+  Proceedings of the 1999 Particle Accelerator Conference, New York, 1999.
+  
+%
+%\addcontentsline{toc}{chapter}{~\reftype}
+\addcontentsline{toc}{chapter}{Bibliography}
 
 \end{thebibliography}
 \end{document}
-\chapter{MAD SixTrack Convertor} \label{MADSIXC}
 
-A special version of the MAD program has been generated that creates
-input files for SixTrack with the complete and exact description of
-the current accelerator model stored in MAD\@. This then allows a
-detailed comparison of the tracking results from both programs.
+% \chapter{MAD SixTrack Convertor} \label{MADSIXC}
 
-The programs SixTrack and MAD \cite {MAD} are both used for particle
-tracking in realistic machines such as the LHC with all expected field
-errors up to the highest order, and with displacement errors of
-quadrupoles and possibly other elements. The LHC lattice and error
-description, however, exists only in MAD format due to its much
-greater flexibility and readability. If one wants to compare tracking
-results of the two programs one needs therefore a conversion of the
-current machine inside MAD into SixTrack format. In particular the
-generated random field and displacement errors have to be transmitted
-correctly since they influence the outcome of the long--term tracking
-greatly.
+% A special version of the MAD program has been generated that creates
+% input files for SixTrack with the complete and exact description of
+% the current accelerator model stored in MAD\@. This then allows a
+% detailed comparison of the tracking results from both programs.
 
-To this end it was necessary to make a special MAD version that reads
-a machine description, expands it, generates the errors, and then
-performs the necessary transformations for SixTrack: different
-conventions for the signs of magnet forces, grouping of identical
-elements, concatenation of multiple drift spaces, creation of blocks
-of linear elements between nonlinear ones, a different description
-of field and position errors, and similar tedious questions had to be
-solved. The results of the transformation are then written into input
-files for SixTrack.
+% The programs SixTrack and MAD \cite {MAD} are both used for particle
+% tracking in realistic machines such as the LHC with all expected field
+% errors up to the highest order, and with displacement errors of
+% quadrupoles and possibly other elements. The LHC lattice and error
+% description, however, exists only in MAD format due to its much
+% greater flexibility and readability. If one wants to compare tracking
+% results of the two programs one needs therefore a conversion of the
+% current machine inside MAD into SixTrack format. In particular the
+% generated random field and displacement errors have to be transmitted
+% correctly since they influence the outcome of the long--term tracking
+% greatly.
 
-The special MAD version is actually a full MAD (except for plotting)
-with an additional module for the SixTrack output.  This then allows
-the user to perform orbit corrections and other calculations inside
-MAD, and have the resulting modifications of the machine be
-transferred to SixTrack.  All position errors (including tilt errors)
-and field errors are transmitted.
+% To this end it was necessary to make a special MAD version that reads
+% a machine description, expands it, generates the errors, and then
+% performs the necessary transformations for SixTrack: different
+% conventions for the signs of magnet forces, grouping of identical
+% elements, concatenation of multiple drift spaces, creation of blocks
+% of linear elements between nonlinear ones, a different description
+% of field and position errors, and similar tedious questions had to be
+% solved. The results of the transformation are then written into input
+% files for SixTrack.
 
-The converter works correctly for thin and thick lens lattices.  In
-the latter case, all dipoles and quadrupoles are split into two, and a
-multipole is inserted in the centre, except for orbit corrector
-magnets which are converted to thin lens.  Since MAD does not support
-field errors higher than third order for thick elements, the
-multipolar errors will have to be created with the corresponding thin
-lens model, or by some other means.
+% The special MAD version is actually a full MAD (except for plotting)
+% with an additional module for the SixTrack output.  This then allows
+% the user to perform orbit corrections and other calculations inside
+% MAD, and have the resulting modifications of the machine be
+% transferred to SixTrack.  All position errors (including tilt errors)
+% and field errors are transmitted.
 
-The special MAD version accepts one additional command:
-\begin{verbatim}
- sixt:
-      elem       = (up to 20) element names
-      lgelem     = (up to 20) lengths of the above elements
-      structure  = structure file name, default: "fort.2"
-      param_in   = name of a (mandatory, possibly empty)
-                   extra input file for MAD, default: "fort.3.in"
-      param_out  = parameter file name, default: "fort.3"
-      errors     = field errors file name, default: "fort.16"
-      poserr     = position errors file name, default: "fort.8"
-      cavall     = all cavities in the structure, default: one only.
-\end{verbatim}
-The element length facility is necessary to give SixTrack the real
-lengths of the dipoles (and possibly other elements) that are replaced
-by thin multipoles.  \\
-The parameter input file is copied to the start of the parameter
-output file which may be useful in certain situations.
+% The converter works correctly for thin and thick lens lattices.  In
+% the latter case, all dipoles and quadrupoles are split into two, and a
+% multipole is inserted in the centre, except for orbit corrector
+% magnets which are converted to thin lens.  Since MAD does not support
+% field errors higher than third order for thick elements, the
+% multipolar errors will have to be created with the corresponding thin
+% lens model, or by some other means.
+
+% The special MAD version accepts one additional command:
+% \begin{verbatim}
+%  sixt:
+%       elem       = (up to 20) element names
+%       lgelem     = (up to 20) lengths of the above elements
+%       structure  = structure file name, default: "fort.2"
+%       param_in   = name of a (mandatory, possibly empty)
+%                    extra input file for MAD, default: "fort.3.in"
+%       param_out  = parameter file name, default: "fort.3"
+%       errors     = field errors file name, default: "fort.16"
+%       poserr     = position errors file name, default: "fort.8"
+%       cavall     = all cavities in the structure, default: one only.
+% \end{verbatim}
+% The element length facility is necessary to give SixTrack the real
+% lengths of the dipoles (and possibly other elements) that are replaced
+% by thin multipoles.  \\
+% The parameter input file is copied to the start of the parameter
+% output file which may be useful in certain situations.
