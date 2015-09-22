@@ -18644,7 +18644,7 @@ cc2008
 +if .not.cr
                                   write(*,10147) bez(j),                &!hr12
 +ei
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,4),parbe(j,5)
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
        endif
       enddo
 +if cr
