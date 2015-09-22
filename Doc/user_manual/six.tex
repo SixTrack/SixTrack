@@ -14,6 +14,9 @@
 \usepackage{longtable}
 \usepackage{multirow}
 
+\usepackage{caption}
+\captionsetup[table]{skip=2pt}
+
 \usepackage{todonotes}
 %\usepackage{draftwatermark}
 
@@ -192,7 +195,6 @@ The following subroutines are taken from various packages:
 
 \begin{table}[h]
 \caption{External Routines}
-\vspace{1em}
 \label{T-ExtRou}
 \scriptsize \centering
 \begin{tabular}{|l|l|l|}
@@ -336,7 +338,6 @@ been added to avoid artificial crashes for special machines.
 
 \begin{table}[h]
 \caption{Iteration Errors}
-\vspace{1em}
 \label{T-IteErr}
 \scriptsize \centering
 \begin{tabular}{|l|l|l|l|l|l|l|}
@@ -452,7 +453,6 @@ focusing and a nonzero length.
 
 \begin{table}[h]
 \caption{Different Types of Linear Elements}
-\vspace{1em}
 \label{T-LinEle}
 \scriptsize \centering
 \begin{tabular}{|c|c|c|l|}
@@ -508,7 +508,6 @@ focusing and a nonzero length.
 
 \begin{table}[h]
 \caption{Different Types of Nonlinear Elements}
-\vspace{1em}
 \label{T-NonEle}
 \centering
 \begin{tabular}{|l|l|l|}
@@ -2098,12 +2097,13 @@ tune--shift using a set of correctors are given in the {\em Correction
 \item [name(i)] (char) {\em Ncor} \/names of zero--length elements
   (e.g sextupoles kicks, octupoles kicks etc.).
 \item [par1,\ldots,par5] Parameters for the correction. Their meaning
-  depend on the value of {\em ctype} \/and is explained in the
-  following table:
+  depend on the value of {\em ctype} \/and is explained in Table \ref{tab:CORR}.
 \end{description}
-\begin{table}[htb]
+\begin{table}
 \begin{center}
-\begin{tabular}{||c|c|c|c|c|c||}
+\caption{Tune-shift correction parameters}
+\label{tab:CORR}
+\begin{tabular}{|c|c|c|c|c|c|}
   \hline
   & & & & & \\
   & par1 & par2 & par3 & par4 & par5 \\
@@ -2548,8 +2548,7 @@ the two particles.
 \subparagraph{Format}
 \begin{itemize}
 \item first data line: {\em itra chi0 chid rat iver}
-\item data lines 2 to 16: {\em 15 initial coordinates in
-    table~}~\ref{T-IniCoo}
+\item data lines 2 to 16: {\em 15 initial coordinates as listed in Table}~\ref{T-IniCoo}
 \end{itemize}
 
 \begin{description}
@@ -2567,8 +2566,7 @@ the two particles.
   horizontal and vertical phase space projections
 \item [chid] Phase difference between first and second particles
 \item [rat] Denotes the emittance ratio ($e_{II}/e_I$) of horizontal
-  and vertical motion. For further information see the {\em Remarks}
-  \/of input block (~\ref{TraPar}).
+  and vertical motion. For further information see the \emph{Remarks} of the TRAC input block in Section~\ref{TraPar}.
 \item [iver] In tracking with coupling it is sometimes desired to
   start with zero vertical amplitude which can be painful if the
   emittance ratio {\em rat} \/is used to achieve it. For this purpose
@@ -2579,9 +2577,8 @@ the two particles.
 \end{itemize}
 \end{description}
 
-\begin{table}[H]
+\begin{table}
 \caption{Initial Coordinates of the 2 Particles}
-\vspace{1em}
 \label{T-IniCoo}
 \centering
 \begin{tabular}{|l|l|}
@@ -2999,7 +2996,6 @@ the {\em Iteration Errors} \/(~\ref{IteErr}) see table~\ref{T-IteErr}.
 
 \begin{table}[h]
 \caption{Default Tracking Parameters}
-\vspace{1em}
 \label{T-DTP}
 \scriptsize \centering
 \begin{tabular}{|c|c|c|c|c|}
@@ -3070,7 +3066,6 @@ version uses 50 Mb and the DA version 400 Mb.
 
 \begin{table}[h]
 \caption{Default Size Parameters}
-\vspace{1em}
 \label{T-DSP}
 \scriptsize \centering
 \begin{tabular}{|c|c|c|c|c|c|}
@@ -3322,7 +3317,6 @@ six of which are already specified in SixTrack\@.
 
 \begin{table}[h]
 \caption{Header of the Binary Data--Files}
-\vspace{1em}
 \label{T-HDF}
 \centering
 \begin{tabular}{|c|c|c|}
@@ -3398,7 +3392,6 @@ of SixTrack\@.
 
 \begin{table}[h]
 \caption{Format of the Binary Data}
-\vspace{1em}
 \label{T-FBD}
 \centering
 \begin{tabular}{|c|c|c|}
@@ -3466,7 +3459,6 @@ monitor respectively.
 
 \begin{table}[t]\small
 \caption{Post--processing Data}
-\vspace{1em}
 \label{T-PPD}
 \centering
 \begin{tabular}{|c|c|}
@@ -3597,7 +3589,6 @@ written in a binary format.
 
 \begin{table}[h]
 \caption{4D Linear Parameters}
-\vspace{1em}
 \label{t-4lp}
 \centering
 \begin{tabular}{|c|c|}
@@ -3682,7 +3673,6 @@ be as described in section~\ref{MulCoe}.
 \begin{table}[h]
 \caption{Format of file with external errors \# 16 and internal errors
 written to \# 9}
-\vspace{1em}
 \label{T-XME}
 \centering
 \begin{tabular}{|c|c|}
@@ -3735,7 +3725,6 @@ section~\ref{LinOpt}) is invoked with the ``ELEMENT 0'' option.
 \begin{table}[h]
 \caption{Format of file \# 34 for detuning and distortion calculation
   with external program ``SODD''~\cite{SODD}}
-\vspace{1em}
 \label{T-SODD}
 \centering
 \begin{tabular}{|c|c|}
