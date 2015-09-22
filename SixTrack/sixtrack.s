@@ -43797,9 +43797,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
          ! where N=M. This is the same as FIR, except that it also uses
          ! previous values of it's own output.
-         ! The input file is also identical, except adding an extra column
-         ! for the initial values of y[n]..y[n-N], where the first entry (y[n])
-         ! is ignored when computing the new results.
+         ! The input file is also identical, except adding two extra columns:
+         ! One for the coefficients a_0...a_N, and one for the
+         ! initial values of y[n]...y[n-N]. For both these columns,
+         ! the first row (a_0 and y[n]) are ignored.
          !
          ! Format in fexpr_dynk:
          ! b_0 <- funcs_dynk(<this>,3)
