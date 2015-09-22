@@ -42,11 +42,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update June 2015
+  Update September 2015
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.25 \\
+  Version 4.5.28 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -86,8 +86,6 @@ tracking data.
   Geneva, Switzerland \\
   \today
 \end{center}
-
-\todo[inline]{Update titlepage}
 
 \end{titlepage}
 
@@ -667,27 +665,27 @@ The length of the ramps and the flat top are specified in the
 ``Initial coordinates'' block~\ref{IniCoo} is used to compute the 
 deflection angle.
 
-\subsubsection{Dipole edge}
-\paragraph{Format} {\em name type ed ek}
-\begin{description}
-\item[name] May contain up to sixteen characters
-\item[type] Type identifier $24$
-\item[ed] First argument, meaning unknown
-\item[ek] Second argument, meaning unknown
-\end{description}
+% \subsubsection{Dipole edge}
+% \paragraph{Format} {\em name type ed ek}
+% \begin{description}
+% \item[name] May contain up to sixteen characters
+% \item[type] Type identifier $24$
+% \item[ed] First argument, meaning unknown
+% \item[ek] Second argument, meaning unknown
+% \end{description}
 
-This element needs more documentation and possibly testing -- not currently supported!
+% This element needs more documentation and possibly testing -- not currently supported!
 
-\subsubsection{Solenoid}
-\paragraph{Format} {\em name type ed ek}
-\begin{description}
-\item[name] May contain up to sixteen characters
-\item[type] Type identifier $25$
-\item[ed] First argument, meaning unknown
-\item[ek] Second argument, meaning unknown
-\end{description}
+% \subsubsection{Solenoid}
+% \paragraph{Format} {\em name type ed ek}
+% \begin{description}
+% \item[name] May contain up to sixteen characters
+% \item[type] Type identifier $25$
+% \item[ed] First argument, meaning unknown
+% \item[ek] Second argument, meaning unknown
+% \end{description}
 
-This element needs more documentation and possibly testing -- not currently supported! There are also a few things in the code which looks very strange.
+% This element needs more documentation and possibly testing -- not currently supported! There are also a few things in the code which looks very strange.
 
 \subsubsection{Crab Cavity} \label{CrabCav}
 
@@ -701,7 +699,7 @@ This element needs more documentation and possibly testing -- not currently supp
 \item [Phase] Phase of the excitation in radians.
 \end{description}
 
-\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
+%\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
 
 \subsubsection{Beam Position Monitor} \label{BPM}
 \paragraph{Format} {\em BPMname 0 0 0 0}
@@ -714,6 +712,11 @@ This element dumps the coordinates of the 1st particle to the file with name {\e
 The file contains 7 columns: $x$,$x'$, $y$,$y'$, $ct$,$\delta p/p$ and $E$.
 Usual SixTrack units are used. Any number of BPM elements can be used but
 the names must differ. 
+
+\subsubsection{Other element types}
+
+Some other elements, such as dipole edge (24), solenoid (25), multipole RF kicks ($\pm$26, $\pm$27, $\pm$28) are accepted by SixTrack, but they are not currently supported by the development team or tested for correctness.
+It is therefore advised to not use these elements.
 
 \subsection{Block Definitions} \label{BloDef}
 
