@@ -7604,12 +7604,15 @@ cc2008
      &                              dumpfmt(0), ldumphighprec )
             endif
           endif
-          if ( ldump(ix) ) then
-!           dump at this precise SINGLE ELEMENT
-            if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
-              call dump_beam_population( n, i, ix, dumpunit(ix),        &
-     &                             dumpfmt(ix), ldumphighprec )
-            endif
+          if ( ktrack(i) .ne. 1 ) then
+             ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
+             if ( ldump(ix) ) then
+                ! dump at this precise SINGLE ELEMENT
+                if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
+                   call dump_beam_population( n, i, ix, dumpunit(ix),
+     &                                     dumpfmt(ix), ldumphighprec )
+                endif
+             endif
           endif
 
 +cd lostpart
@@ -34444,13 +34447,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
 !     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 24-02-2015
+!     last modified: 21-09-2015
 !     dump beam particles
 !     always in main code
 !
 !     nturn     : Current turn number
 !     i         : Current structure element
-!     ix        : Corresponding single element
+!     ix        : Corresponding single element (<0 for BLOC, only for ALL)
 !     unit      : Unit to dump from
 !     fmt       : Dump output format (0/1/2)
 !     lhighprec : High precission output y/n
