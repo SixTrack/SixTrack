@@ -1389,7 +1389,11 @@ This is done using an exponential decaying function $V(t) = V_0 \exp\left(-0.05 
 \end{description_alligned}
 For the SET, the time $t$ is then shifted by -70 turns, so that the functions are evaluated starting at t=0.
 
+\subparagraph{Detuning a cavity (accelerating or crab)}~\\
+\todo[inline]{Write}
+
 \subsection{Beam--Beam Element} \label{BeamBeam}
+\todo[inline]{Update for JavierBB}
 
 \subparagraph{Description} The beam--beam kick, including a separation
 of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs}
@@ -2691,8 +2695,9 @@ variable, one for each element for which dump is active
 
 \paragraph{Format}
 \texttt{element\_name frequency unit format (filename)}\\
-or\\
-\texttt{HIGH}
+or \texttt{HIGH}\\
+or \texttt{FRONT}
+
 \subparagraph{element\_name}
 one of the SINGLE ELEMENTS or ALL to dump at the exit of all single elements.
 \subparagraph{frequency}
@@ -2718,6 +2723,10 @@ an integer specifying the output format. The following is accepted:
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted, and if so the output file is named fort.\texttt{UNIT}.
 
 \subparagraph{HIGH} If present anywhere in the DUMP block this triggers high-precission output, meaning more digits in the output files.
+
+\subparagraph{FRONT} If present anywhere in the DUMP block, this keyword triggers the DUMPed particles to be dumped in front of the element, i.e.\ before the kick.
+This works for all elements, including BLOCs, when combined with the ALL ``element name''.
+Note that FRONT is not yet supported for thick tracking, and trying to use this combination will produce a run-time error.
 
 \paragraph{Example}
 \begin{verbatim}
