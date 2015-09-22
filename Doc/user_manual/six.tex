@@ -1047,6 +1047,28 @@ The functions are always evaluated as a function of the current turn number $t$,
 
   \hline
   \rowcolor{blue!15}
+  Filters & & \\*
+  
+  FIR        & \emph{N[int] filename[string] baseFun[string]} &
+  Applies a Finite Impulse Response (FIR) filter of order \emph{N} to the function \emph{baseFun}.
+  The output is given as $y[t] = \sum_{i=0}^N b_i*x[t-i]$, where $t$ is the current turn and $x[t-0]$ is the result of the most recent call to \emph{baseFun}.
+  The coefficients $b_0 \ldots b_N$ and initial values of $x[t-0]\ldots x[t-N]$ are loaded from the given file \emph{filename}, which is a space-separated ascii file with three columns.
+  These columns are (1) row index \emph{[int]}, (2) coefficients $b_i$ \emph{[float]} and (3) initial values of the $x[]$ array \emph{[float]}.
+  The row indices are expected to go from $0$ to at least $N$ in steps of $1$.
+  Note that the filter is stepped once per call, i.e. the array $x[]$ is shifted once every time the FUN is called.
+  Also note that when called, the filter is first stepped, then the new value is filled into the first position in $x[]$, and finally the sum is evaluated.
+  This means that the last value in the $x[]$ array is never used, while the first value ($x[t-0]$) is immediately pushed into $x[t-1]$ before the first evaluation.\\*
+  
+  IIR        & \emph{N[int] filename[string] baseFun[string]} &
+  Applies an Infinite Impulse Response (IIR) filter of order \emph{N} to the function \emph{baseFun}.
+  This is very similar to FIR, except that it also uses its own previous outputs.
+  The sum is thus written as $y[t] = \sum_{i=0}^N b_i*x[t-i] + \sum_{i=1}^N a_i*y[t-i]$.
+  The file \emph{filename} is identical to that which is used for FIR, except for adding two more columns.
+  These columns are (4) $a_0\ldots a_N$ \emph{[float]} and (5) initial values for the $y[]$ array \emph{[float]}.
+  Note that $a_0$ is never used, and the value of $y[t-0]$ is pushed back to $y[t-1]$ before the first evaluation of the sum, such that $y[t-N]$ is never used.\\
+
+  \hline
+  \rowcolor{blue!15}
   2-operand operators & & \\*
 
   ADD        & \emph{function-name-1[string] function-name-2[string]} &
@@ -1161,8 +1183,7 @@ The argument \emph{turn-shift} is an integer (positive, negative, or zero) numbe
 Thus, in order to (as an example) apply an exponential decay from the value $v_0$ starting in turn $t_0$ using the function defined as $f(t) = V_0 \exp(-t/\tau)$,
 a \emph{turn-shift} $-t_0$ should be applied.
 
-\begin{table}
-
+\begin{table}[h]
 \begin{center}
 %\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
 %\begin{longtable}{|l | l l l|}
@@ -1173,7 +1194,7 @@ a \emph{turn-shift} $-t_0$ should be applied.
 
   \hline
   \rowcolor{blue!30}
-  Element type (idx) & Attribute & Units & Description \\*
+  Element type (idx) & Attribute & Units & Description \\
   \hline
   % \endfirsthead
 
