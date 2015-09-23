@@ -43880,7 +43880,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! the first one being the index 0...N, the second being the coefficients b_0...b_N,
          ! and the third one being the initial values of x[n]..x[n-N].
          ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
-         ! Note that this means that at the first call, x[0] is pushed into x[1] etc.,
+         ! Note that this means that at the first call, x[n-0] is pushed into x[n-1] etc.,
          ! and x[n-N] is deleted; i.e. the initial x[n-N] is never used.
          !
          ! Format in fexpr_dynk:
@@ -43896,10 +43896,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
          ! where N=M. This is the same as FIR, except that it also uses
          ! previous values of it's own output.
-         ! The input file is also identical, except adding an extra column
-         ! for the initial values of y[n]..y[n-N], where the first entry (y[n])
-         ! is ignored when computing the new results.
-         !
+         ! The input file is also identical, except adding two extra columns:
+         ! One for the coefficients a_0...a_N, and one for the
+         ! initial values of y[n]...y[n-N]. For both these columns,
+         ! the first row (a_0 and y[n]) are ignored.
+         ! For the first of these columns, the first value (a_0) is ignored and never used,
+         ! while y[n-0] is pushed into y[n-1] at the first evaluation,
+         ! such that the initial x[n-N] is never used (just like for x[n-N]).
+         ! 
          ! Format in fexpr_dynk:
          ! b_0 <- funcs_dynk(<this>,3)
          ! x[n]
