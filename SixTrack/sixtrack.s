@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.28'/
-      data moddate /'26.08.2015'/
+      data version /'4.5.29'/
+      data moddate /'21.09.2015'/
 +cd license
 !!SixTrack
 !!
@@ -1075,7 +1075,8 @@
 +cd   dbdump
 
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 13-06-2014
+!     K. Sjobak, BE-ABP/HSS
+!     last modified: 03-09-2015
 !     COMMON for dumping the beam population
 !     always in main code
 
@@ -1098,6 +1099,8 @@
 !       post-processing tools, activating the dumpfmt flag (0=off, by default);
       logical ldumphighprec                  ! high precision printout required
                                              !   at all flagged SINGLE ELEMENTs
+      logical ldumpfront                     ! dump at the beginning of each element,
+                                             !  not at the end.
       logical ldump                          ! flag the SINGLE ELEMENT for
                                              !   dumping
       integer ndumpt                         ! dump every n turns at a flagged
@@ -1109,7 +1112,8 @@
       character dump_fname (0:nele)*(getfields_l_max_string)
       
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
-     &                dumpfmt(0:nele), ldumphighprec, dump_fname
+     &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
+     &                dump_fname
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -7600,12 +7604,15 @@ cc2008
      &                              dumpfmt(0), ldumphighprec )
             endif
           endif
-          if ( ldump(ix) ) then
-!           dump at this precise SINGLE ELEMENT
-            if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
-              call dump_beam_population( n, i, ix, dumpunit(ix),        &
-     &                             dumpfmt(ix), ldumphighprec )
-            endif
+          if ( ktrack(i) .ne. 1 ) then
+             ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
+             if ( ldump(ix) ) then
+                ! dump at this precise SINGLE ELEMENT
+                if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
+                   call dump_beam_population( n, i, ix, dumpunit(ix),
+     &                                     dumpfmt(ix), ldumphighprec )
+                endif
+             endif
           endif
 
 +cd lostpart
@@ -17916,7 +17923,8 @@ cc2008
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
 !  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!  last modified: 13-06-2014
+!  K.Sjobak, BE-ABP/HSS
+!  last modified: 03-09-2015
 !  always in main code
 !-----------------------------------------------------------------------
  2000 read(3,10020,end=1530,iostat=ierro) ch
@@ -18022,9 +18030,20 @@ cc2008
           write(lout,*) '        --> requested high precision dumping!'
 +ei
 +if .not.cr
-          write(*,*) ''
-          write(*,*) '        --> requested high precision dumping!'
+          write(*,*)    ''
+          write(*,*)    '        --> requested high precision dumping!'
 +ei
+        endif
+        if ( ldumpfront ) then
++if cr
+          write(lout,*) ''
+          write(lout,*) '        --> requested FRONT dumping!'
++ei
++if .not.cr
+          write(*,*)    ''
+          write(*,*)    '        --> requested FRONT dumping!'
++ei
+           
         endif
         goto 110
       endif
@@ -18038,8 +18057,11 @@ cc2008
       if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
         goto 2000
+      else if(ch(:5).eq.'FRONT') then
+         ldumpfront = .true.
+         goto 2000
       endif
-
+      
 !     requested element
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
@@ -26337,7 +26359,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
                       if (dumpfmt(i).eq.2) then !More header
                          write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i)
+     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i),
+     &  ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
 +if cr
                          dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -28728,6 +28751,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -29098,8 +29126,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
-
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   630   continue
         call lostpart(nthinerr)
@@ -29857,6 +29886,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -32599,7 +32633,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca lostpart
 +ei
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
  650  continue !END loop over structure elements
 
@@ -33312,6 +33348,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -33743,7 +33784,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   650   continue
         call lostpart(nthinerr)
@@ -34404,13 +34447,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
 !     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 24-02-2015
+!     last modified: 21-09-2015
 !     dump beam particles
 !     always in main code
 !
 !     nturn     : Current turn number
 !     i         : Current structure element
-!     ix        : Corresponding single element
+!     ix        : Corresponding single element (<0 for BLOC, only for ALL)
 !     unit      : Unit to dump from
 !     fmt       : Dump output format (0/1/2)
 !     lhighprec : High precission output y/n
@@ -34450,6 +34493,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !     temporary variables
       integer j
+      character*16 localBez
 
 +if cr      
       !For accessing dumpfilepos
@@ -34461,18 +34505,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          dumpIdx = ix
       endif
 +ei
+      if ( ktrack(i) .ne. 1 ) then
+         localBez = bez(ix)
+      else
+         localBez = bezb(ic(i))
+      endif
       
       ! General format
       if ( fmt .eq. 0 ) then
          if ( lhighprec ) then
             do j=1,napx
-               write(unit,1981) nturn, i, ix, bez(ix), dcum(i),         &
+               write(unit,1981) nturn, i, ix, localBez, dcum(i),        &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
          else
             do j=1,napx
-               write(unit,1982) nturn, i, ix, bez(ix), dcum(i),         &
+               write(unit,1982) nturn, i, ix, localBez, dcum(i),        &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
@@ -35118,6 +35167,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -35501,7 +35564,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   480     continue
           call lostpart(nthinerr)
@@ -35669,6 +35734,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -36153,7 +36232,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
 +if debug
   500 continue
@@ -36329,6 +36410,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -36764,7 +36859,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   500     continue
           call lostpart(nthinerr)
@@ -39311,10 +39408,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 13-06-2014
+!     K.Sjobak, BE-ABP/HSS
+!     last modified: 03-09-2015
 !     initialise common
 !     always in main code
       ldumphighprec = .false.
+      ldumpfront    = .false.
       do i=0,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
