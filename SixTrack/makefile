@@ -137,7 +137,7 @@ FCL_ifort  := -static -m32
 
 # gfortran configuration
 FC_gfortran   := gfortran -m32
-FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops
+FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2
 ifneq ($(NOPT),)
   FCF_gfortran:=$(FCF_gfortran) -O$(NOPT)
 endif
