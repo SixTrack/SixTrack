@@ -5803,8 +5803,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               else
                 crkveb(j)=ed(ix)*bbcu(imbb(i),11)+                      &
      &ek(ix)*bbcu(imbb(i),12)
-!hr03           cikveb(j)=-ed(ix)*bbcu(imbb(i),12)+                     &
-!hr03&ek(ix)*bbcu(imbb(i),11)
                 cikveb(j)=ek(ix)*bbcu(imbb(i),11)-                      &!hr03
      &ed(ix)*bbcu(imbb(i),12)                                            !hr03
               endif
