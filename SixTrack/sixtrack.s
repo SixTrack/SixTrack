@@ -44193,6 +44193,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                fexpr_dynk(nfexpr_dynk) = u   ! y_init[n-i]
             endif
          enddo
+         close(664)
 
       !!! Operators: #20-39 !!!
       case("ADD","SUB","MUL","DIV","POW")
