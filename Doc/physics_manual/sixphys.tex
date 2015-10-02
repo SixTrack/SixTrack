@@ -802,45 +802,93 @@ elements $(x_{co},x'_{co},y_{co},y'_{co},\sigma_{co})$.
 \end{align}
 
 \subsection{Wire}
+The generic formula for vector potential of straight current wire centered in Cartesian coordinate system, with length L is:  
+\begin{align}
+	{A(x,y,s)_i} =\frac{I\mu_0cos(c_i)}{4\pi}*(asinh\frac{L/2-a}{\sqrt{b-a^2}}-asinh\frac{-L/2-a}{\sqrt{b-a^2}})
+\end{align}
+where:
+index $i$ is $x,y,s$; ${a=xcos(c_x)+ycos(c_y)+scos(c_s)}$ and ${b=x^2+y^2+z^2}$; $cos(c_i)$ - direction cosine.
 
- Step 0. Internal change of variables
+For the wire parallel to longitudinal axis:
+\begin{align}
+	{A(x,y,s)_s} =\frac{I\mu_0}{4\pi}*(asinh\frac{L/2-s}{\sqrt{x^2+y^2}}-asinh\frac{-L/2-s}{\sqrt{x^2+y^2}}), {A(x,y,s)_x}=0, {A(x,y,s)_y}=0;
+\end{align}  
+and the Hamiltonian $H=-A_s$. 
 
- Step 1. xy- shift
-  \begin{align}
-    x & \to x + \Delta x  &
-    y & \to y + \Delta y
-  \end{align}
+For the firs order integrator the "kick" could be performed as:
+\begin{align}
+ p_x=\int\limits_{-L{emb}/2}^{+L{emb}/2}{\frac{dA(x,y,s)_s}{dx}ds} \\
+ p_y=\int\limits_{-L{emb}/2}^{+L{emb}/2}{\frac{dA(x,y,s)_s}{dy}ds};
+\end{align}
+where Lemb - embedding drift (or integration length) which takes into account the fringe filed of the wire.
+
+Symplectic rotation (\cite{forest99}) of coordinate system is included to the transport map to compute it for the wire with arbitrary orientation.  
+
+The wire element is described by 7 parameters: 
+tilt in respect of OY - ty; tilt in respect of OX - tx; wire current - I; wire length - L; embedding drift - Lemb; dx, dy - horizontal and vertical distances between wire midpoint and closed orbit (or origin of coordinate system).    
+
+The first order transport map for "thin element" includes:
+
+ Step 1. Shift to the origin:
+ \begin{align*}
+ XI &  \to x-dx &
+ YI &  \to y-dy
+ \end{align*}
+
+ Step 2. Symplectic rotation (\cite{forest99}) 
  
- Step 2. Polar drift
- 
+ Rotation on $\theta$ (OX tilt):
  \begin{align}
+p_z & \to \sqrt{1-p_x^2-p_y^2} \\
 p_x & \to   p_x \cos \theta + p_z \sin\theta &
 p_z & \to - p_x \sin \theta + p_z \cos\theta \\
-z   &= -x \sin \theta & x' &= p_x/p_z &  y' &= p_y/p_z \\
-x   & \to x \cos\theta - x' z  &
-y   & \to y - x' z  \\
-\sigma & \to \sigma + \frac{\beta_0}{\beta_z}  \cdot z.
-\end{align}
-where $\theta$ is the angle ....
- 
- Step 3. Kick log) or Kick sinh)
- 
- \begin{align}
-     x' &\to x' - \frac{\frac{cur\cdot10^{-7}}{chi}\cdot x_i}{x_i^2+y_i^2}
-     \left[\sqrt{(3/2 l)^2+x_i^2+y_i^2}-\sqrt{(l/2)^2+x_i^2+y_i^2} \right] \\
-     y' &\to y' - \frac{\frac{cur\cdot10^{-7}}{chi}\cdot y_i}{x_i^2+y_i^2}
-     \left[\sqrt{(3/2)^2+x_i^2+y_i^2}-\sqrt{(l/2)^2+x_i^2+y_i^2} \right]
+L & \to XI sin\theta \\
+XI & \to XI \cos\theta - L p_x/p_z  &
+YI & \to YI - L p_y/p_z  
 \end{align}
 
+Rotation on $\phi$ (OY tilt):
+\begin{align}
+p_z & \to \sqrt{1-p_x^2-p_y^2} \\
+p_y & \to   p_y \cos \phi + p_z \sin\phi &
+p_z & \to - p_y \sin \phi + p_z \cos\phi \\
+L & \to YI sin\phi \\
+YI & \to YI \cos\phi - L p_y/p_z  &
+XI & \to XI - L p_x/p_z  
+\end{align}
+
+  Step 3. Wire "kick"
   
- Step 4. - Polar drift
- 
- Step 5. - xy shift
+  \begin{align*}
+  N & \to 10^{-7} I (e/P_0) &
+  R & \to XI^2 + YI^2
+  \end{align*}
+  
+ \begin{align}
+     p_x &\to p_x - \frac{N\cdot XI}{R}
+     \left[\sqrt{(L_{emb}+L)^2+4R}-\sqrt{(L_{emb}-L)^2+4R} \right] \\
+    p_y &\to p_y - \frac{N\cdot YI}{R}
+    \left[\sqrt{(L_{emb}+L)^2+4R}-\sqrt{(L_{emb}-L)^2+4R} \right] 
+\end{align}
 
- Step 6. Restoring variables 
+ Step 4. Backward rotation
  
+ Rotation on $-\phi$ (OY tilt):
+ \begin{align}
+ p_z & \to \sqrt{1-p_x^2-p_y^2} \\
+ p_y & \to   p_y \cos \phi - p_z \sin\phi &
+ p_z & \to   p_y \sin \phi + p_z \cos\phi 
+ \end{align}
  
+ Rotation on $-\theta$ (OX tilt):
+ \begin{align}
+ p_z & \to \sqrt{1-p_x^2-p_y^2} \\
+ p_x & \to   p_x \cos \theta - p_z \sin\theta &
+ p_z & \to   p_x \sin \theta + p_z \cos\theta 
+ \end{align}
  
+Note: the map doesn't change x,y (and $\sigma$ as given for "thin element"). 
+
 %For each part we define $p_z=\sqrt{(1+\delta)^2-x'^2-y'^2}$, using %the current values for $x'$ and $y'$.
 
 % Step 1. Initial backwards drift of length $L=\frac{embl}{2}$.
