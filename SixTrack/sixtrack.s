@@ -29467,6 +29467,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                 ) then
                      nsig = nsig_tcstcdq
                   endif
+               elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
+     &                 bez(myix)(1:4).eq.'tcsp') then
+                  if(bez(myix)(9:11).eq.'6.B'.or.
+     &                 bez(myix)(9:11).eq.'6.b') then
+                     nsig = nsig_tcstcdq
+                  endif
                elseif(bez(myix)(1:4).eq.'TCSM' .or.                     &
      &                 bez(myix)(1:4).eq.'tcsm') then
                   if(bez(myix)(8:10).eq.'3.B' .or.                      &
@@ -29490,18 +29496,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   nsig = nsig_tcdq
 ! YIL11: Checking only the IR value for TCT's..
                elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcth' ) then                  &
-                  if(bez(myix)(8:8).eq.'1') then
+     &                bez(myix)(1:4).eq.'tcth' .or.
+     &                bez(myix)(1:4).eq.'TCTPH' .or.                    & 
+     &                bez(myix)(1:4).eq.'tctph') then                   &
+                  if(bez(myix)(8:8).eq.'1' .or.                         &                                                                                                                                       
+     &                 bez(myix)(9:9).eq.'1' ) then
                      nsig = nsig_tcth1
-                  elseif(bez(myix)(8:8).eq.'2') then
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'2' ) then
                      nsig = nsig_tcth2
-                  elseif(bez(myix)(8:8).eq.'5') then
+                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
+     &                 bez(myix)(9:9).eq.'5' ) then
                      nsig = nsig_tcth5
-                  elseif(bez(myix)(8:8).eq.'8') then
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'8' ) then
                      nsig = nsig_tcth8
                   endif
                elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
-     &                 bez(myix)(1:4).eq.'tctv' ) then
+     &                bez(myix)(1:4).eq.'tctv'.or.
+     &                bez(myix)(1:4).eq.'TCTPV' .or.                    &
+     &                bez(myix)(1:4).eq.'tctpv' ) then
                   if(bez(myix)(8:8).eq.'1' .or.                         &
      &                 bez(myix)(9:9).eq.'1' ) then
                      nsig = nsig_tctv1
@@ -30020,6 +30034,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             ) then
                 nsig = nsig_tcstcdq
               endif
+            elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
+     &             bez(myix)(1:4).eq.'tcsp') then
+             if(bez(myix)(9:11).eq.'6.B'.or.
+     &          bez(myix)(9:11).eq.'6.b') then
+                nsig = nsig_tcstcdq
+              endif
             elseif(bez(myix)(1:4).eq.'TCSM' .or.                        &
      &             bez(myix)(1:4).eq.'tcsm') then
               if(bez(myix)(8:10).eq.'3.B' .or.                          &
@@ -30042,32 +30062,40 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             bez(myix)(1:4).eq.'tcdq') then
               nsig = nsig_tcdq
 ! YIL11: Checking only the IR value for TCT's..
-            elseif(bez(myix)(1:4).eq.'TCTH' .or.                        &
-     &             bez(myix)(1:4).eq.'tcth' ) then                      &
-              if(bez(myix)(8:8).eq.'1') then
-                nsig = nsig_tcth1
-              elseif(bez(myix)(8:8).eq.'2') then
-                nsig = nsig_tcth2
-              elseif(bez(myix)(8:8).eq.'5') then
-                nsig = nsig_tcth5
-              elseif(bez(myix)(8:8).eq.'8') then
-                nsig = nsig_tcth8
-              endif
-            elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
-     &             bez(myix)(1:4).eq.'tctv' ) then
-              if(bez(myix)(8:8).eq.'1' .or.                             &
-     &             bez(myix)(9:9).eq.'1') then
-                 nsig = nsig_tctv1
-              elseif(bez(myix)(8:8).eq.'2' .or.                         &
-     &             bez(myix)(9:9).eq.'2') then
-                 nsig = nsig_tctv2
-              elseif(bez(myix)(8:8).eq.'5' .or.                         &
-     &             bez(myix)(9:9).eq.'5') then
-                 nsig = nsig_tctv5
-              elseif(bez(myix)(8:8).eq.'8' .or.                         &
-     &             bez(myix)(9:9).eq.'8') then
-                 nsig = nsig_tctv8
-              endif
+               elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
+     &                bez(myix)(1:4).eq.'tcth' .or.
+     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
+     &                bez(myix)(1:5).eq.'tctph') then                   &
+                  if(bez(myix)(8:8).eq.'1' .or.                         &                                                                                                                                       
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tcth1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tcth2
+                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tcth5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tcth8
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
+     &                bez(myix)(1:4).eq.'tctv'.or.
+     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
+     &                bez(myix)(1:5).eq.'tctpv' ) then
+                  if(bez(myix)(8:8).eq.'1' .or.                         &
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tctv1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tctv2
+                  elseif(bez(myix)(8:8).eq.'5' .or.                     &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tctv5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tctv8
+                  endif
             elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
      &             bez(myix)(1:3).eq.'tdi') then
               nsig = nsig_tdi
