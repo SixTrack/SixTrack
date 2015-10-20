@@ -18135,6 +18135,31 @@ cc2008
          read(getfields_fields(7)(1:getfields_lfields(7)),*) i5
       endif
       
+!Check that first/last turn is sane
+      if ( i5.ne.-1 ) then
+         if ( i5 .lt. i4 ) then
++if cr
+            write(lout,*)
++ei
++if .not.cr
+            write(*,*)
++ei
+     &           "Error in DUMP: Expect last turn >= first turn, ",
+     &           "unless last turn = -1 (infinity), got", i4,i5
+           call prror(-1)
+         endif
+      endif
+      if ( i4 .lt. 1 ) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "Error in DUMP: Expect first turn >= 1, got", i4
+         call prror(-1)
+      endif
+
 !     find it in the list of SINGLE ELEMENTs:
       do j=1,il
          if(bez(j).eq.idat) goto 2001
