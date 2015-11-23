@@ -24,7 +24,7 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran 03
+OPTIONS := fast tilt tracking crlibm gfortran O3
 #OPTIONS := crlibm bnlelens gfortran boinc api
 
 NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
@@ -75,7 +75,7 @@ PROVIDED   := $(sort $(patsubst +%,%,$(OPTIONS)))
 #EXPANDED   := $(strip $(call expand,$(PROVIDED)))
 EXPANDED   := $(PROVIDED)
 ENABLED    := $(sort $(filter-out -% !% ( ),$(EXPANDED)))
-ENABLED    := $(filter-out O0 01 02 03,$(ENABLED))
+ENABLED    := $(filter-out O0 O1 O2 O3,$(ENABLED))
 DISABLED   := $(sort $(patsubst -%,%,$(filter -%,$(EXPANDED))))
 EXCLUDED   := $(sort $(patsubst !%,%,$(filter !%,$(EXPANDED))))
 UNSELECTED := $(filter-out $(ENABLED),$(USER_OPTIONS))
@@ -137,7 +137,7 @@ FCL_ifort  := -static -m32
 
 # gfortran configuration
 FC_gfortran   := gfortran -m32
-FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops
+FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2
 ifneq ($(NOPT),)
   FCF_gfortran:=$(FCF_gfortran) -O$(NOPT)
 endif
