@@ -2693,6 +2693,7 @@ How to do this is described below.
 The DUMP block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.
 This can be done in any SINGLE ELEMENTS which are directly mentioned in the STRUCTURE INPUT part of fort.2 (BLOCs cannot be used).
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
+Please note that each single element can only be selected once; it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence.
 
 \paragraph{Keyword}
 DUMP
@@ -2701,7 +2702,7 @@ DUMP
 variable, one for each element for which dump is active
 
 \paragraph{Format}
-\texttt{element\_name frequency unit format (filename)}\\
+\texttt{element\_name frequency unit format (filename) (first last)}\\
 or \texttt{HIGH}\\
 or \texttt{FRONT}
 
@@ -2727,7 +2728,11 @@ an integer specifying the output format. The following is accepted:
   Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
 \end{enumerate}
 
-\subparagraph{filename} is the name of the file to write to. This argument may be omitted, and if so the output file is named fort.\texttt{UNIT}.
+\subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
+
+\subparagraph{first} is the first turn where this dump should be active. This argument may be omitted if \texttt{last} is also omitted, and if so it defaults to turn 1.
+
+\subparagraph{last} is the last turn where this dump should be active, -1 meaning ``untill the end of the simulation''. This argument may be omitted if \texttt{first} is also omitted, and if so it defaults to -1.
 
 \subparagraph{HIGH} If present anywhere in the DUMP block this triggers high-precission output, meaning more digits in the output files.
 
