@@ -18162,7 +18162,22 @@ cc2008
 
 !     find it in the list of SINGLE ELEMENTs:
       do j=1,il
-         if(bez(j).eq.idat) goto 2001
+         if(bez(j).eq.idat) then
+            if (ldump(j)) then !Only enable once/element!
++if cr
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "Element '",idat, "' was specified",
+     &              " more than once"
++ei
++if .not.cr
+               write(*,*)    "Error in parsing DUMP block:"
+               write(*,*)    "Element '",idat, "' was specified",
+     &              " more than once"
++ei
+               call prror(-1)
+            endif
+            goto 2001
+         endif
       enddo
       if ( idat(:3).eq.'ALL' ) then
          j=0
