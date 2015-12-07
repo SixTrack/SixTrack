@@ -622,26 +622,29 @@ The definition of the multipole strength in a block will be given in
 \item [lag] Lag angle [degrees] in the cavity (zero is default)
 \end{description}
 
-\subsubsection{Beam--Beam Separation} \label{BBS}
-\paragraph{Format} {\em name type h-sep v-sep strength-ratio ${\sigma\_\rm{hor}}^2$ ${\sigma\_\rm{ver}}^2$ ${\sigma\_\rm{lon}}^2$}
+\subsubsection{Beam--Beam Lens} \label{BBS}
+The beam-beam lens input definition was fully moved to the BEAM input block~\ref{BeamBeam}. Only the element name and type and the location within
+the lattice remian in the fort.2 element definition.
+\paragraph{Format} {\em name type}
+% \paragraph{Format} {\em name type h-sep v-sep strength-ratio ${\sigma\_\rm{hor}}^2$ ${\sigma\_\rm{ver}}^2$ ${\sigma\_\rm{lon}}^2$}
 \begin{description}
 \item [name] May contain up to sixteen characters
 \item [type] 20
-\item [h-sep] Horizontal beam--beam separation [mm]
-\item [v-sep] Vertical beam--beam separation [mm]
-\item [strength-ratio] Strength ratio with respect to the nominal
-  beam--beam kick strength. This is useful, in particular for 4D, to
-  allow for splitting one beam--beam kick into several (longitudinally
-  close by) kicks.
-\item [${\sigma\_\rm{hor}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$
-\item [${\sigma\_\rm{ver}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the vertical $\sigma$ for the strong beam $\rm{[mm^2]}$
-\item [${\sigma\_\rm{lon}}^2$] this variable is for future purposes, at the present it is always equal to zero.
+% \item [h-sep] Horizontal beam--beam separation [mm]
+% \item [v-sep] Vertical beam--beam separation [mm]
+% \item [strength-ratio] Strength ratio with respect to the nominal
+%   beam--beam kick strength. This is useful, in particular for 4D, to
+%   allow for splitting one beam--beam kick into several (longitudinally
+%   close by) kicks.
+% \item [${\sigma\_\rm{hor}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$
+% \item [${\sigma\_\rm{ver}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the vertical $\sigma$ for the strong beam $\rm{[mm^2]}$
+% \item [${\sigma\_\rm{lon}}^2$] this variable is for future purposes, at the present it is always equal to zero.
 
 \end{description}
 
-\paragraph{Remark}
-These beam--beam elements become active when the ``Beam--Beam'' input
-block~\ref{BeamBeam} is used.
+% \paragraph{Remark}
+% These beam--beam elements become active when the ``Beam--Beam'' input
+% block~\ref{BeamBeam} is used.
 
 \subsubsection{``Phase--trombone'' or matrix element} \label{PT}
 \paragraph{Format} {\em name type}
@@ -1418,7 +1421,13 @@ space~\cite{ripbeam}.
 \begin{itemize}
 \item first data line: {\em partnum emitnx emitny sigz sige ibeco
     ibtyp lhc ibbc} 
-\item other data lines: {\em name ibsix xang xplane}
+%\item other data lines: {\em name ibsix xang xplane}
+\item other data lines - 4D BB lens (1 line per element): \\
+{\em name ibsix $\Sigma_{xx}$ $\Sigma_{yy}$ h-sep v-sep strength-ratio}
+\item other data lines - 6D BB lens (3 lines per element): \\
+{\em name ibsix xang xplane h-sep v-sep} \\
+{\em $\Sigma_{xx}$ $\Sigma_{xxp}$ $\Sigma_{xpxp}$ $\Sigma_{yy}$ $\Sigma_{yyp}$} \\
+{\em $\Sigma_{ypyp}$ $\Sigma_{xy}$ $\Sigma_{xpy}$ $\Sigma_{xpyp}$ $\Sigma_{yyp}$ strength-ratio} \\
 \end{itemize}
 
 \begin{description}
@@ -1432,25 +1441,30 @@ space~\cite{ripbeam}.
   recommended to always subtract it as it is not yet calculated in a
   selfconsistent manner.
 \item [ibtyp] (integer) Switch (0 = off; 1 = on) to use the fast
-  beam--beam algorithms developped in collaboration with G.A.~Erskine
+  beam--beam algorithms developed in collaboration with G.A.~Erskine
   and E.~McIntosh.  The linear optics are calculated with ``exact''
   beam--beam kicks.
-\item [lhc] For the LHC with its anti--symmetric IR the separation of
-  the beams in one plane can be calculated by the $\beta$--function of
-  the other plane. For flat beams (not anti-symmetric optics) the separation
-  can be loaded from the fort.2 file. (0 = off; 1 = anti-symmetric; 2 = load from file).
+\item [lhc] This parameter is kept for now only for RHIC studies when equal to 9.
 \item [ibbc] Linear coupling considered in 4D and 6D (0 = off; 1 = on).
-\item [name] Name of 6D beam--beam element. Beam--beam elements that
-  do not appear will be treated as 4D kicks.
-\item [ibsix] (integer) Number of slices of the 6D beam--beam kick.
+\item [name] Name of the beam--beam element. 
+\item [ibsix] (integer) Number of slices of the 6D beam--beam element.
   If {\it ibsix} is set to 0 this element is treated as a 4D element.
+  If {\it ibsix} is larger or equal 1 this element is treated as a 6D element.
+\item [$\Sigma_{xx}$] Horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$.
+\item [$\Sigma_{yy}$] Vorizontal $\sigma$ for the strong beam $\rm{[mm^2]}$.
+\item [h-sep] Horizontal beam--beam separation [mm]
+\item [v-sep] Vertical beam--beam separation [mm]
+\item [strength-ratio] Strength ratio with respect to the nominal
+      beam--beam kick strength. This is useful to
+      allow for splitting one beam--beam kick into several (longitudinally
+      close by) kicks.
 \item [xang] (float) Half crossing angle at this particular element [rad].
 \item [xplane] (float) Crossing plane angle [rad].
+\item [$\Sigma_{i,j}$] Second order momenta matrix for the strong beam in units of mm and mrad. For example $\Sigma_{xxp}$ in [mm\ mrad]
 \end{description}
 
 \subparagraph{Remark} These beam--beam elements have beam--beam have
-to appear in the single element list (~\ref{NonEle}) (type 20) together
-with their horizontal and vertical beam--beam separations
+to appear in the single element list (~\ref{NonEle}) (type 20)
 (see~\ref{BBS}).
 
 \subsection{``Phase Trombone'' Element} \label{Trombone}
@@ -2793,7 +2807,7 @@ code of Hirata~\cite{Hirata}.
 
 
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BEAM &
-  BEAM--BEAM Element & 1 & 4-6D including Beam
+  BEAM--BEAM Element & variable & 4-6D including Beam
   Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & &\& Linear Coupling   & & \\
@@ -3160,10 +3174,10 @@ version uses 50 Mb and the DA version 400 Mb.
   Number of Correctors for Micado Closed Orbit Correction & 600 & NCOR1
   &~\ref{OrbCorr} & \pageref{OrbCorr} \\
   \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Beam--Beam Elements & 160 & NBB
+  Number of Beam--Beam Elements & 350 & NBB
   &~\ref{BeamBeam} & \pageref{BeamBeam} \\
   \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Slices for 6D Beam--Beam Kick & 15 & MBEA
+  Number of Slices for 6D Beam--Beam Kick & 99 & MBEA
   &~\ref{BeamBeam} & \pageref{BeamBeam} \\
   \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
   Number of ``Phase Trombone'' Elements & 20 & NTR
