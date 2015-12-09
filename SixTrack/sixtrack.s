@@ -5783,32 +5783,32 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beamco
               if(ibbc.eq.0) then
 !hr03           crkveb(j)=xv(1,j)-clobeam(1,imbb(i))+ed(ix)
-                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+ed(ix)           !hr03
+                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
 !hr03           cikveb(j)=xv(2,j)-clobeam(2,imbb(i))+ek(ix)
-                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+ek(ix)           !hr03
+                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6)
               else
 !hr03           crkveb(j)=                                              &
 !hr03&(xv(1,j)-clobeam(1,imbb(i))+ed(ix))*bbcu(imbb(i),11)+             &
 !hr03&(xv(2,j)-clobeam(2,imbb(i))+ek(ix))*bbcu(imbb(i),12)
                 crkveb(j)=                                              &!hr03
-     &((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),11)+           &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),12)             !hr03
+     &((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),11)+
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),12)
 !hr03           cikveb(j)=                                              &
 !hr03&-(xv(1,j)-clobeam(1,imbb(i))+ed(ix))*bbcu(imbb(i),12)+            &
 !hr03&(xv(2,j)-clobeam(2,imbb(i))+ek(ix))*bbcu(imbb(i),11)
                 cikveb(j)=                                              &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),11)            &!hr03
-     &-((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),12)            !hr03
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),11)
+     &-((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),12)
               endif
 +cd beamcoo
               if(ibbc.eq.0) then
-                crkveb(j)=ed(ix)
-                cikveb(j)=ek(ix)
+                crkveb(j)=parbe(ix,5)
+                cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=ed(ix)*bbcu(imbb(i),11)+                      &
-     &ek(ix)*bbcu(imbb(i),12)
-                cikveb(j)=ek(ix)*bbcu(imbb(i),11)-                      &!hr03
-     &ed(ix)*bbcu(imbb(i),12)                                            !hr03
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+
+     &parbe(ix,6)*bbcu(imbb(i),12)
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-
+     &parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
 !hr08       rho2b(j)=crkveb(j)*crkveb(j)+cikveb(j)*cikveb(j)
@@ -8221,22 +8221,11 @@ cc2008
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
-!-------------------------------------
-!
-!
-!
-!-------------------------------------
-!hr08     if(parbe(ix,2).gt.0) then
-          if(parbe(ix,2).ge.0d0) then                                    !hr08
+          if(parbe(ix,2).gt.0) then
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
           endif
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
-! Replaced
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!          
 +cd trom01
         if(kzz.eq.22) then
           do l=1,2
