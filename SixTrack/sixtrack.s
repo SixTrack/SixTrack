@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.29'/
-      data moddate /'21.09.2015'/
+      data version /'4.5.30'/
+      data moddate /'1.12.2015'/
 +cd license
 !!SixTrack
 !!
@@ -1105,6 +1105,8 @@
                                              !   dumping
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
+      integer dumpfirst                      ! First turn for DUMP to be active
+      integer dumplast                       ! Last turn for this DUMP to be active (-1=all)
       integer dumpunit                       ! fortran unit for dump at a
                                              !   flagged SINGLE ELEMENT
       integer dumpfmt                        ! flag the format of the dump
@@ -1112,6 +1114,7 @@
       character dump_fname (0:nele)*(getfields_l_max_string)
       
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
+     &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
      &                dump_fname
 +cd dbdumpcr
@@ -7600,8 +7603,12 @@ cc2008
           if ( ldump(0) ) then
 !           dump at all SINGLE ELEMENTs
             if ( ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1 ) then
-              call dump_beam_population( n, i, ix, dumpunit(0),         &
-     &                              dumpfmt(0), ldumphighprec )
+               if (   (n.ge.dumpfirst(ix)) .and. 
+     &              ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+     &              ) then
+                  call dump_beam_population( n, i, ix, dumpunit(0),
+     &                 dumpfmt(0), ldumphighprec )
+               endif
             endif
           endif
           if ( ktrack(i) .ne. 1 ) then
@@ -7609,8 +7616,12 @@ cc2008
              if ( ldump(ix) ) then
                 ! dump at this precise SINGLE ELEMENT
                 if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
-                   call dump_beam_population( n, i, ix, dumpunit(ix),
-     &                                     dumpfmt(ix), ldumphighprec )
+                   if (   (n.ge.dumpfirst(ix)) .and. 
+     &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+     &                ) then
+                      call dump_beam_population( n, i, ix, dumpunit(ix),
+     &                     dumpfmt(ix), ldumphighprec )
+                   endif
                 endif
              endif
           endif
@@ -13177,7 +13188,8 @@ cc2008
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
      &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
-     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft
+     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,   &
+     &i4,i5
 +if time
       integer ifiend35
       double precision tcnst
@@ -17963,7 +17975,8 @@ cc2008
 !           write(lout,'(t10,a50)')
 !     &          ' required dump at ALL SINGLE ELEMENTs'
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0)
+     &          dumpunit(0), dump_fname(0), dumpfmt(0),
+     &          dumpfirst(0), dumplast(0)
         endif
 +ei
 +if .not.cr
@@ -17971,7 +17984,8 @@ cc2008
 !           write(*,'(t10,a50)')
 !     &          ' required dump at ALL SINGLE ELEMENTs'
            write(*,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0)
+     &          dumpunit(0), dump_fname(0), dumpfmt(0),
+     &          dumpfirst(0), dumplast(0)
         endif
 +ei
         do ii=1,il
@@ -17982,7 +17996,8 @@ cc2008
 +if .not.cr
             write(*,10470)
 +ei
-     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii), dumpfmt(ii)
+     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
+     &     dumpfirst(ii), dumplast(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
             kk = 0
@@ -18050,9 +18065,11 @@ cc2008
 
 !     initialise reading variables, to avoid storing non sense values
       idat = ' '
-      i1 = 0
-      i2 = 0
-      i3 = 0
+      i1 = 0  ! frequency
+      i2 = 0  ! unit
+      i3 = 0  ! format
+      i4 = 1  ! first turn
+      i5 = -1 ! last turn
 
       if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
@@ -18067,17 +18084,18 @@ cc2008
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) call prror(51)
       
-      if (.not. ((getfields_nfields .eq. 4) .or. 
-     &           (getfields_nfields .eq. 5))    ) then
+      if ( (getfields_nfields .lt. 4) .or. 
+     &     (getfields_nfields .gt. 7) .or.
+     &     (getfields_nfields .eq. 6)      ) then
 +if cr
          write(lout,*) "ERROR in DUMP:"
-         write(lout,*) "Expected 4 or 5 arguments, got",
+         write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",
      &        getfields_nfields
          write(lout,*)
 +ei
 +if .not.cr
          write(*,*)    "ERROR in DUMP:"
-         write(*,*)    "Expected 4 or 5 arguments, got",
+         write(*,*)    "Expected 4 to 7 (but not 6)arguments, got",
      &        getfields_nfields
          write(*,*)
 +ei
@@ -18104,17 +18122,62 @@ cc2008
       if (getfields_nfields .eq. 4) then
          !Automatic fname
          write(ch1,"(a5,I0)") "fort.", i2
-      else if (getfields_nfields .eq. 5) then
+      else if ( (getfields_nfields .eq. 5) .or. 
+     &          (getfields_nfields .eq. 7)     ) then
          !Given fname
          ch1 = getfields_fields(5)(1:getfields_lfields(5))
       else
          !ERROR
          call prror(-1)
       endif
+      if (getfields_nfields .eq. 7) then
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) i4
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) i5
+      endif
       
+!Check that first/last turn is sane
+      if ( i5.ne.-1 ) then
+         if ( i5 .lt. i4 ) then
++if cr
+            write(lout,*)
++ei
++if .not.cr
+            write(*,*)
++ei
+     &           "Error in DUMP: Expect last turn >= first turn, ",
+     &           "unless last turn = -1 (infinity), got", i4,i5
+           call prror(-1)
+         endif
+      endif
+      if ( i4 .lt. 1 ) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "Error in DUMP: Expect first turn >= 1, got", i4
+         call prror(-1)
+      endif
+
 !     find it in the list of SINGLE ELEMENTs:
       do j=1,il
-         if(bez(j).eq.idat) goto 2001
+         if(bez(j).eq.idat) then
+            if (ldump(j)) then !Only enable once/element!
++if cr
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "Element '",idat, "' was specified",
+     &              " more than once"
++ei
++if .not.cr
+               write(*,*)    "Error in parsing DUMP block:"
+               write(*,*)    "Element '",idat, "' was specified",
+     &              " more than once"
++ei
+               call prror(-1)
+            endif
+            goto 2001
+         endif
       enddo
       if ( idat(:3).eq.'ALL' ) then
          j=0
@@ -18146,6 +18209,8 @@ cc2008
       dumpunit(j) = i2
       dumpfmt(j)  = i3
       dump_fname(j) = ch1
+      dumpfirst(j) = i4
+      dumplast(j) = i5
 !     go to next line
       goto 2000
 
@@ -18757,7 +18822,8 @@ cc2008
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'ELEMENT NAME',8x,'EVERY # TURNs',2x,
-     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT') !DUMP/STAT/BMAT
+     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,
+     &"FirstTurn",6x,"LastTurn") !DUMP/STAT/BMAT
 10070 format(1x,i3,1x,a16,1x,i3,1x,d16.10,1x,d16.10,1x,d16.10,1x,d13.7, &
      &1x,d12.6,1x,d13.7,1x,d12.6)
 10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
@@ -18777,7 +18843,7 @@ cc2008
      &'   |    ',a16,'   |               |               |')
 10400 format(5x,'| ELEMENTS |                              |          ' &
      &,'     |               |    ',a16,'   |    ',a16,'   |')
-10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6) !BMAT/STAT/DUMP
+10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12) !BMAT/STAT/DUMP
 10472 format(t10,a)                           !BMAT/STAT/DUMP
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
      &t10,'TROMBONE #      NAME'/)
@@ -39445,6 +39511,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do i=0,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
+        dumpfirst(i) = 0
+        dumplast(i)  = 0
         dumpunit(i) = 0
         dumpfmt(i)  = 0
         do j=1,getfields_l_max_string
