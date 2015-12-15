@@ -222,7 +222,7 @@
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
      &crzb(npart),cbxb(npart),cbzb(npart)
 +cd common
-      integer iav,ibb6d,ibbc,ibeco,ibidu,ibtyp,ic,icext,icextal,iclo,   &
+      integer iav,ibbc,ibeco,ibidu,ibtyp,ic,icext,icextal,iclo,         &
      &iclo6,iclo6r,icode,icoe,icomb,icomb0,iconv,icow,icr,idam,idfor,   &
      &idis,idp,ierro,iffw,ifh,iicav,il,ilin,imad,imbb,                  &
      &imc,imtr,iorg,iout,                                               &
@@ -310,7 +310,7 @@
      &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
-      common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
+      common/bb6d/ bbcu(nbb,12),imbb(nblz)
       common/wireco/ wirel(nele)
       common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
      &nturn3(nele), nturn4(nele)
@@ -1376,7 +1376,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,                   &
+     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,imbb,                         &
 +if vvector
      &as,al,sigm,dps,idz,dp1,itra,                                      &
 +ei
@@ -17834,7 +17834,6 @@ cc2008
       if(i.lt.0) i=0
       do 1620 j=1,il
       if(idat.eq.bez(j).and.kz(j).eq.20.and.i.gt.0) then
-        ibb6d=1
         parbe(j,17)=1
         parbe(j,2)=dble(i)                                               
         parbe(j,1)=xang
@@ -17855,7 +17854,6 @@ cc2008
         goto 1610
       endif
       if(idat.eq.bez(j).and.kz(j).eq.20.and.i.eq.0) then
-        ibb6d=1
         parbe(j,17)=0
         parbe(j,2)=dble(i)                                               
         parbe(j,1)=xang
@@ -18595,7 +18593,7 @@ cc2008
 +if .not.cr
           write(*,10141) ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,  &
 +ei
-     &ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
+     &ibeco,ibtyp,sigz,sige,emitnx,emitny,e0
         endif
       else
 +if cr
@@ -18768,7 +18766,6 @@ cc2008
      &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
      &t79,i1/                                                           &
      &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
@@ -39127,7 +39124,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       ncor=0
       idptr=0
       nbeam=0
-      ibb6d=0
       ibeco=1
       ibtyp=0
       lhc=1
@@ -68792,7 +68788,6 @@ c$$$         backspace (93,iostat=ierro)
       write(99,*) 'rrtr ',rrtr
       write(99,*) 'imtr ',imtr
       write(99,*) 'bbcu ',bbcu
-      write(99,*) 'ibb6d ',ibb6d
       write(99,*) 'imbb ',imbb
       write(99,*) 'as ',as
       write(99,*) 'al ',al
@@ -69297,7 +69292,6 @@ c$$$         backspace (93,iostat=ierro)
       write(99) rrtr
       write(99) imtr
       write(99) bbcu
-      write(99) ibb6d
       write(99) imbb
       write(99) as
       write(99) al
@@ -69798,7 +69792,6 @@ c$$$         backspace (93,iostat=ierro)
       write(99,100) 'rrtr ',rrtr
       write(99,100) 'imtr ',imtr
       write(99,100) 'bbcu ',bbcu
-      write(99,100) 'ibb6d ',ibb6d
       write(99,100) 'imbb ',imbb
       write(99,100) 'as ',as
       write(99,100) 'al ',al
