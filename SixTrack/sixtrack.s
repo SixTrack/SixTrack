@@ -159,17 +159,24 @@
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
      &nzfz = 300000,mmul = 20)
 +ei
-+ei
++ei ! / collimat
 +if collimat
 +if beamgas
       parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
      &nzfz = 300000,mmul = 11)
-+ei
++ei ! / beamgas
 +if .not.beamgas
++if bignblz
+      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
+     &nzfz = 300000,mmul = 11)
++ei ! / bignblz
++if .not.bignblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
      &nzfz = 300000,mmul = 11)
-+ei
-+ei
++ei ! / not bignblz
++ei ! / not beamgas
++ei ! / collimat
+
 +if collimat
       parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
 +ei

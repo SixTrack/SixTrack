@@ -399,6 +399,13 @@ then
         exit 1
     fi
     BEAMGAS="beamgas.o"
+    if test "$bignblz" = ""
+    then
+	show_options
+        echo "     INVALID options selected:"
+        echo "     beamgas is not compatible with bignblz"
+        exit 1
+    fi
 elif test "$hdf5" = ""
 then
     if test "$collimat" != ""
