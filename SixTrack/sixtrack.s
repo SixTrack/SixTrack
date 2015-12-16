@@ -60572,12 +60572,18 @@ c$$$               endif
          mat = 12
       else
 +if cr
-         write(lout,*) 'ERR>  Material not found. STOP', c_material
+         write(lout,*)
+         write(lout,*) 'ERR>  In subroutine collimate2:'
+         write(lout,*) 'ERR>  Material "', c_material, '" not found.'
+         write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
 +ei
 +if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP', c_material
+         write(*,*)
+         write(*,*)    'ERR>  In subroutine collimate2:'
+         write(*,*)    'ERR>  Material "', c_material, '" not found.'
+         write(*,*)    'ERR>  Check your CollDB! Stopping now.'
 +ei
-!        STOP
+         STOP
       endif
 !
         length  = c_length
