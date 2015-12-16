@@ -245,7 +245,7 @@
      &qzt,r00,rad,rat,ratio,ratioe,rrtr,rtc,rts,rvf,                    &
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
-     &acdipph, crabph, bbbx, bbby, bbbs,                                &
+     &acdipph, crabph,                                                  &
      &crabph2, crabph3, crabph4
 +if time
       double precision tcnst35,exterr35,zfz35
@@ -258,7 +258,6 @@
       common/kons/pi,pi2,pisqrt,rad
       common/str /il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
       common/ell /ed(nele),el(nele),ek(nele),sm(nele),kz(nele),kp(nele)
-      common/bbb /bbbx(nele), bbby(nele), bbbs(nele)
       common/pla /xpl(nele),xrms(nele),zpl(nele),zrms(nele)
       common/str2 /mel(nblo),mtyp(nblo,nelb),mstr(nblo)
       common/mat/a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
@@ -8221,11 +8220,11 @@ cc2008
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
-          if(parbe(ix,2).gt.0) then
+!          if(parbe(ix,2).gt.0) then
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
-          endif
+!          endif
 +cd trom01
         if(kzz.eq.22) then
           do l=1,2
@@ -13539,7 +13538,7 @@ cc2008
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
-     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+     & idat,kz(i),ed(i),ek(i),el(i)
 +if crlibm
       call disable_xp()
 +ei
@@ -13547,8 +13546,8 @@ cc2008
 +if .not.fio
 +if .not.crlibm
 !     write (*,*) 'ERIC'
-      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-!     write (*,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i)
+!     write (*,*) idat,kz(i),ed(i),ek(i),el(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
@@ -13577,18 +13576,6 @@ cc2008
       endif
       if (nf.gt.0) then
         el(i)=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbbx(i)=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbby(i)=fround(errno,fields,7)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbbs(i)=fround(errno,fields,8)
         nf=nf-1
       endif
 +ei
@@ -25375,10 +25362,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(ichrom.eq.1.or.ichrom.eq.3) call chroma
         if(iskew.ne.0) call decoup
         if(ilin.eq.1.or.ilin.eq.3) call linopt(dp1)
-+if debug
-!     call dumpbin('bbb',96,996)
-!     call abend('bbb                                               ')
-+ei
 !--beam-beam element
         nlino=nlin
         nlin=0
