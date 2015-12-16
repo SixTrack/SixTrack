@@ -27376,7 +27376,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     always in main code
       if (ldynk) call dynk_pretrack
 
++if collimat
+      if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then
++ei
++if .not.collimat
       if(idp.eq.0.or.ition.eq.0) then
++ei
 +if cr
         write(lout,*) ''
         write(lout,*) 'Calling thin4d subroutine'
@@ -27389,6 +27394,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         call thin4d(nthinerr)
       else
++if collimat
+        if (idp.eq.0.or.ition.eq.0) then
++if cr
+           write(lout,*) ""
+           write(lout,*) "******* WARNING *******"
+           write(lout,*) "Calling 6D tracking due to collimation!"
+           write(lout,*) "Would normally have called thin4d"
+           write(lout,*) ""
++ei
++if .not.cr
+           write(*,*)    ""
+           write(*,*)    "******* WARNING *******"
+           write(*,*)    "Calling 6D tracking due to collimation!"
+           write(*,*)    "Would normally have called thin4d"
+           write(*,*)    ""
++ei
+        endif
++ei
+
 !hr01   hsy(3)=c1m3*hsy(3)*ition
         hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
         do 310 jj=1,nele
@@ -27405,6 +27429,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           write(*,*)    ''
           write(*,*)    'Calling thin6dua subroutine'
           write(*,*)    ''
++ei
+
++if collimat
+          if (do_coll) then
++if cr
+            write(lout,*)
+            write(lout,*) "ERROR"
+            write(lout,*) "thin6dua not supported by collimation"
++ei
++if .not.cr
+            write(*,*)
+            write(*,*)    "ERROR"
+            write(*,*)    "thin6dua not supported by collimation"
++ei
+            STOP
+          endif
 +ei
           call thin6dua(nthinerr)
         else
@@ -34742,8 +34782,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension nbeaux(nbb)
 +ca comdynk
       logical dynk_isused
++if collimat
++ca database
++ei
+
 +ca save
 !-----------------------------------------------------------------------
++if collimat
+      if (do_coll) then
++if cr
+         write(lout,*) "Error: in trauthck and do_coll is TRUE"
+         write(lout,*) "Collimation is not supported for thick tracking"
++ei
++if .not.cr
+         write(*,*)    "Error: in trauthck and do_coll is TRUE"
+         write(*,*)    "Collimation is not supported for thick tracking"
++ei
+         STOP
+      endif
++ei
+
       do 5 i=1,npart
         nlostp(i)=i
    5  continue
