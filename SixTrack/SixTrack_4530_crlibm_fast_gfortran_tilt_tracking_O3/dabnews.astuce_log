@@ -1,0 +1,190 @@
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         ASTUCE - start of execution                      +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  please enter input (SOURCE) file name
+ dabnew.s                                                    
+  please enter output (ftn) file name
+ dabnewsn.f                                                  
+
+
+ change the master character (current =+) with a line
+
+ *=...
+
+ where "..." stands for the new one.
+
+ Set flags and deck names in HISTE fashion, i.e.
+
+ DF flag1,flag2,etc. and
+ E deck1,deck2.deck3,deck4,...
+
+ Defaults: no flag given: no flag set; no deck given: ALL decks
+ EX or E.O.F. or (under VM) empty <CR> will terminate
+
+
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         User request summary                             +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ master character changed to: +
+
+ no. of flags:    4
+
+   CRLIBM    FAST      SMALL     TILT    
+
+ no. of decks:   97
+
+ BRAN    
+ DAABS   
+ DAADD   
+ DAALL   
+ DAALLNO 
+ DACAD   
+ DACCT   
+ DACCTT  
+ DACDI   
+ DACEX   
+ DACEXT  
+ DACFU   
+ DACFUT  
+ DACHK   
+ DACLR   
+ DACMA   
+ DACMU   
+ DACMUT  
+ DACOM   
+ DACON   
+ DACOP   
+ DACSU   
+ DACYCLE 
+ DADAL   
+ DADCD   
+ DADEB   
+ DADER   
+ DADERT  
+ DADIC   
+ DADIV   
+ DAEPS   
+ DAEXC   
+ DAEXCT  
+ DAEXTER 
+ DAEXX   
+ DAEXXT  
+ DAFUN   
+ DAFUNT  
+ DAGAUSS 
+ DAINF   
+ DAINI   
+ DAINV   
+ DAINVT  
+ DAKEY   
+ DALIN   
+ DALINT  
+ DALLSTA 
+ DAMCH   
+ DAMONO  
+ DAMUL   
+ DAMULIN 
+ DAMULT  
+ DANCD   
+ DANORM2 
+ DANORM2T
+ DANORMR 
+ DANORMRT
+ DANOT   
+ DANUM   
+ DAORDER 
+ DAPAC   
+ DAPEK   
+ DAPIN   
+ DAPINT  
+ DAPOI   
+ DAPOK   
+ DAPOS   
+ DAPRI   
+ DAPRI6  
+ DAPRI77 
+ DAPRIMAX
+ DARAN   
+ DARE    
+ DAREA   
+ DAREA6  
+ DAREA77 
+ DASHIFT 
+ DASQR   
+ DASQRT  
+ DASUB   
+ DASUC   
+ DASWAP  
+ DATRA   
+ DATRASH 
+ DATRASHN
+ DAVAR   
+ DEHASH  
+ ETRED   
+ GETDANOT
+ HASH    
+ LUBKSB  
+ LUDCMP  
+ MATINV  
+ MTREE   
+ PPUSH   
+ PPUSH1  
+ PPUSHPR 
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         pass one starting (comdecks...)                  +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         pass two starting (extract)                      +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+ ++++++ SUMMARY ++++++
+
+    8078 lines read from input unit   11
+    6992 lines written onto unit      12
+
+ no. of flags       :    9
+  BIG      BOINC    CR       CRLIBM   CTRACK   DEBUG    FIO      LF95    
+  SMALL   
+
+ no. of COMDECKs    :    7
+  ALLOC    ALLOCTOT CRCOALL  CRLIBCO  DABINC   DANAME   DASCR   
+
+ no. of DECKs       :  102
+  DAINI    DAEXTER  DALLSTA  DAALLNO  DAALL    DADAL    DAVAR    DACON   
+  DANOT    GETDANOT DAEPS    DAPEK    DAPOK    DACLR    DACOP    DATRASHN
+  DAADD    DASUB    DAMULIN  DAEXX    DAEXXT   DACEX    DACEXT   DAEXC   
+  DAEXCT   DAMUL    DAMULT   DADIV    DASQR    DASQRT   DACAD    DACSU   
+  DASUC    DACMU    DACMUT   DACDI    DADIC    DACMA    DALIN    DALINT  
+  DAFUN    DAFUNT   DAABS    DACOM    DAPOS    DACCT    DACCTT   MTREE   
+  PPUSHPR  PPUSH    PPUSH1   DAINV    DAINVT   MATINV   LUDCMP   LUBKSB  
+  DAPIN    DAPINT   DADER    DADERT   DAPOI    DACFUR   DACFURT  DACFU   
+  DACFUI   DACFUIT  DACFUT   DAPRI    DAPRI77  DASHIFT  DAREA    DAREA77 
+  DADEB    DANUM    DAINF    DAPAC    DACHK    DAMCH    DADCD    DANCD   
+  DATRA    ETRED    HASH     DEHASH   DASWAP   DAGAUSS  DARAN    BRAN    
+  DANORM2  DANORM2T DANORMR  DANORMRT DAKEY    DAPRI6   DAREA6   DARE    
+  DAPRIMAX DAMONO   DACYCLE  DAORDER  DATRASH  DUMPS   
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         ASTUCE - normal job termination                  +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+

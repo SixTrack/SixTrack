@@ -1,0 +1,11 @@
+In file included from crlibm/tan.c:11:
+In file included from crlibm/tan.h:2:
+In file included from crlibm/crlibm_private.h:12:
+crlibm/scs_private.h:77:47: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+ static const db_number max_double        = {{0xFFFFFFFF ,                             0x7FEFFFFF }}; 
+                                             ~^~~~~~~~~~
+crlibm/tan.c:14:6: warning: incompatible redeclaration of library function 'tan' [-Wincompatible-library-redeclaration]
+void tan(scs_ptr);
+     ^
+crlibm/tan.c:14:6: note: 'tan' is a builtin with type 'double (double)'
+2 warnings generated.

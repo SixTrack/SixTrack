@@ -1,0 +1,21 @@
+In file included from crlibm/log10.c:9:
+In file included from crlibm/log10.h:2:
+In file included from crlibm/crlibm_private.h:12:
+crlibm/scs_private.h:77:47: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+ static const db_number max_double        = {{0xFFFFFFFF ,                             0x7FEFFFFF }}; 
+                                             ~^~~~~~~~~~
+In file included from crlibm/log10.c:9:
+crlibm/log10.h:8:28: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+static const db_number NaN=DB_NAN;
+                           ^~~~~~
+crlibm/crlibm_private.h:164:34: note: expanded from macro 'DB_NAN'
+ #define DB_NAN    {{0x00000000 ,0xfff80000}}
+                    ~            ^~~~~~~~~~
+In file included from crlibm/log10.c:9:
+crlibm/log10.h:11:29: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+static const db_number NInf=DB_NINF;
+                            ^~~~~~~
+crlibm/crlibm_private.h:167:34: note: expanded from macro 'DB_NINF'
+ #define DB_NINF   {{0x00000000 ,0xfff00000}}
+                    ~            ^~~~~~~~~~
+3 warnings generated.

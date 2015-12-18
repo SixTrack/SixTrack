@@ -1,0 +1,205 @@
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         ASTUCE - start of execution                      +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  please enter input (SOURCE) file name
+ lielib.s                                                    
+  please enter output (ftn) file name
+ lielibn.f                                                   
+
+
+ change the master character (current =+) with a line
+
+ *=...
+
+ where "..." stands for the new one.
+
+ Set flags and deck names in HISTE fashion, i.e.
+
+ DF flag1,flag2,etc. and
+ E deck1,deck2.deck3,deck4,...
+
+ Defaults: no flag given: no flag set; no deck given: ALL decks
+ EX or E.O.F. or (under VM) empty <CR> will terminate
+
+
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         User request summary                             +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ master character changed to: +
+
+ no. of flags:    3
+
+   CRLIBM    FAST      TILT    
+
+ no. of decks:  110
+
+ AVEPOL  
+ AVERAGED
+ COMCFU  
+ COMPCJG 
+ COUPLEAN
+ CPART   
+ CTOI    
+ CTOR    
+ CTORD   
+ CTORFLO 
+ DACLRD  
+ DACMUD  
+ DACOPD  
+ DADAL1  
+ DAFLO   
+ DAFLOD  
+ DALIND  
+ DAPEK0  
+ DAPOK0  
+ DAPOKZER
+ DAPRID  
+ DAPRIRES
+ DAREAD  
+ DAVAR0  
+ DFILT   
+ DHDJ    
+ DHDJFLO 
+ DIFD    
+ DLIE    
+ EIG6    
+ ETALL   
+ ETALL1  
+ ETALLNOM
+ ETCCT   
+ ETCCTPAR
+ ETCJG   
+ ETCOM   
+ ETCTR   
+ ETDIV   
+ ETINI   
+ ETINV   
+ ETMTREE 
+ ETPIN   
+ ETPOI   
+ ETPPULNV
+ ETPPUSH 
+ ETPPUSH2
+ ETRTC   
+ ETY     
+ ETY2    
+ ETYT    
+ EXP1D   
+ EXPFLO  
+ EXPFLOD 
+ EXPND2  
+ FACFLO  
+ FACFLOD 
+ FEXPO   
+ FEXPO1  
+ FILT    
+ FILTRES 
+ FLOFAC  
+ FLOFACG 
+ FLOWPARA
+ GETTURA 
+ GOFIX   
+ H2PLUFLO
+ HYPER   
+ IDPRSET 
+ INITPERT
+ INPUTRES
+ INTD    
+ ITOC    
+ KILLNONL
+ LIEFACT 
+ LIEINIT 
+ LIENOT  
+ LIEPEEK 
+ MAPFLOL 
+ MAPNORM 
+ MAPNORMF
+ MIDBFLO 
+ MOVEAROU
+ MOVEMUL 
+ MULND2  
+ NUANAFLO
+ ORDERFLO
+ PERTPEEK
+ PLANAR  
+ PPUSHLNV
+ PRRESFLO
+ REELFLO 
+ RESPOKE 
+ RESVEC  
+ REXT    
+ ROTFLO  
+ ROTIFLO 
+ RTOC    
+ RTOCD   
+ RTOCFLO 
+ SETIDPR 
+ SIMIL   
+ SYMPL3  
+ TAKE    
+ TAKED   
+ TRANSVER
+ TRX     
+ TRXFLO  
+ XGAM    
+ XGBM    
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         pass one starting (comdecks...)                  +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         pass two starting (extract)                      +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+ ++++++ SUMMARY ++++++
+
+    5404 lines read from input unit   11
+    4629 lines written onto unit      12
+
+ no. of flags       :    3
+  CR       CRLIBM   DEBUG   
+
+ no. of COMDECKs    :   17
+  CHOICE   COAST    CRCOALL  CRLIBCO  DANO     DASCR    FILTR    II      
+  INTEGRAT ISTABLE  PRINTING RESFILE  RESON    STABLE   TUNEDEF  TUNERAD 
+  VECFLOW 
+
+ no. of DECKs       :  109
+  LIEINIT  FLOWPARA PERTPEEK INPUTRES RESPOKE  LIEPEEK  LIENOT   ETALLNOM
+  ETALL    ETALL1   DADAL1   ETPPULNV ETMTREE  ETPPUSH  ETPPUSH2 PPUSHLNV
+  ETCCT    TRX      TRXFLO   SIMIL    ETINI    ETINV    ETPIN    DAPEK0  
+  DAPOK0   DAPOKZER DAVAR0   COMCFU   TAKE     TAKED    DACLRD   DACOPD  
+  DACMUD   DALIND   DAREAD   DAPRID   PRRESFLO FILTRES  DAFLO    DAFLOD  
+  INTD     DIFD     EXPFLO   EXPFLOD  FACFLO   FACFLOD  FEXPO    ETCOM   
+  ETPOI    EXP1D    EXPND2   FLOFACG  FLOFAC   LIEFACT  MAPNORM  GETTURA 
+  SETIDPR  IDPRSET  MAPNORMF GOFIX    TRANSVER ORDERFLO NUANAFLO XGAM    
+  XGBM     FILT     DFILT    DHDJFLO  DHDJ     H2PLUFLO ROTFLO   ROTIFLO 
+  HYPER    CTOR     RTOC     CTORFLO  RTOCFLO  CTORD    RTOCD    RESVEC  
+  REELFLO  COMPCJG  MIDBFLO  MAPFLOL  MULND2   MOVEAROU MOVEMUL  INITPERT
+  DLIE     REXT     CPART    CTOI     ITOC     ETRTC    ETCTR    ETCJG   
+  EIG6     ETY      ETYT     ETY2     ETDIV    SYMPL3   AVERAGED AVEPOL  
+  COUPLEAN PLANAR   KILLNONL FEXPO1   ETCCTPAR
+
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +                                                          +
+    +         ASTUCE - normal job termination                  +
+    +                                                          +
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+

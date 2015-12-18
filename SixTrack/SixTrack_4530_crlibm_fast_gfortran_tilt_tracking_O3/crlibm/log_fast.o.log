@@ -1,0 +1,375 @@
+In file included from crlibm/log_fast.c:12:
+In file included from crlibm/crlibm_private.h:12:
+crlibm/scs_private.h:77:47: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+ static const db_number max_double        = {{0xFFFFFFFF ,                             0x7FEFFFFF }}; 
+                                             ~^~~~~~~~~~
+In file included from crlibm/log_fast.c:13:
+crlibm/log_fast.h:14:28: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+static const db_number NaN=DB_NAN;
+                           ^~~~~~
+crlibm/crlibm_private.h:164:34: note: expanded from macro 'DB_NAN'
+ #define DB_NAN    {{0x00000000 ,0xfff80000}}
+                    ~            ^~~~~~~~~~
+In file included from crlibm/log_fast.c:13:
+crlibm/log_fast.h:17:29: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+static const db_number NInf=DB_NINF;
+                            ^~~~~~~
+crlibm/crlibm_private.h:167:34: note: expanded from macro 'DB_NINF'
+ #define DB_NINF   {{0x00000000 ,0xfff00000}}
+                    ~            ^~~~~~~~~~
+In file included from crlibm/log_fast.c:13:
+crlibm/log_fast.h:246:27: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+db_number const ln2hi = {{0xFEFA3800,0x3FE62E42}} /* +6.9314718056e-01 */;
+                         ~^~~~~~~~~~
+crlibm/log_fast.h:247:27: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+db_number const ln2lo = {{0x93C76730,0x3D2EF357}} /* +5.4979230187e-14 */;
+                         ~^~~~~~~~~~
+crlibm/log_fast.h:265:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x0738A3D8,0xBFD522AE}} /* -3.3024168687e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:267:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xB389EBAD,0xBFEEF8BD}} /* -9.6786389414e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:267:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xB389EBAD,0xBFEEF8BD}} /* -9.6786389414e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:268:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xCF571D65,0x3FECBA31}} /* +8.9772882935e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:269:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x31660877,0xBFEDF9F1}} /* -9.3676051758e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:271:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEAA38290,0xBFF3578D}} /* -1.2088755766e+00 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:271:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEAA38290,0xBFF3578D}} /* -1.2088755766e+00 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:272:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x941D24AB,0x3FF710F5}} /* +1.4416404520e+00 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:273:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x69BEEF1D,0xBFFC14A5}} /* -1.7550405627e+00 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:274:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xB4CBD27B,0x40015D1B}} /* +2.1704630017e+00 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:275:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x7BA86632,0xC005BE06}} /* -2.7177858029e+00 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:277:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xC0ECB526,0xC011A4BD}} /* -4.4108801026e+00 */
+ ~^~~~~~~~~~
+crlibm/log_fast.h:277:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xC0ECB526,0xC011A4BD}} /* -4.4108801026e+00 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:281:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x6CB3B379,0xBFCF991C}} /* -2.4686007793e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:283:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEB1C432D,0xBFEA36E2}} /* -8.1920000000e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:283:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEB1C432D,0xBFEA36E2}} /* -8.1920000000e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:284:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x80F29213,0x3FE65E9F}} /* +6.9905066667e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:285:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE2308C3F,0xBFE5798E}} /* -6.7108864000e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:285:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE2308C3F,0xBFE5798E}} /* -6.7108864000e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:286:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE1793910,0x3FE5FD7F}} /* +6.8719476736e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:287:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xAC3CC49E,0xBFE774CC}} /* -7.3300775185e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:287:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xAC3CC49E,0xBFE774CC}} /* -7.3300775185e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:289:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9C89806A,0xBFECD2B2}} /* -9.0071993421e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:289:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9C89806A,0xBFECD2B2}} /* -9.0071993421e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:290:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xF663DD55,0x3FF065A0}} /* +1.0248117089e+00 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:291:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x64D28253,0xBFF2E3A7}} /* -1.1805795611e+00 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:293:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x1E7E75E1,0xBFF9EC69}} /* -1.6202174369e+00 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:297:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x6B543DB2,0xBFC5BF40}} /* -1.6989903680e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:298:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xBDA12F68,0x3FF2F684}} /* +1.1851851852e+00 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:299:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE0BF08C7,0xBFE67980}} /* -7.0233196159e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:299:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE0BF08C7,0xBFE67980}} /* -7.0233196159e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:301:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x1B62B9D2,0xBFDF91BD}} /* -4.9327018427e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:302:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x8242EF01,0x3FDDEEAF}} /* +4.6769321175e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:303:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xA36B029B,0xBFDD9015}} /* -4.6191922148e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:303:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xA36B029B,0xBFDD9015}} /* -4.6191922148e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:305:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x26663631,0xBFDF24F6}} /* -4.8663095236e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:307:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xECA216B7,0xBFE17FB2}} /* -5.4683824747e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:307:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xECA216B7,0xBFE17FB2}} /* -5.4683824747e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:309:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x21A51E4E,0xBFE492F3}} /* -6.4293819972e-01 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:313:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x5D594989,0xBFB9335E}} /* -9.8440072813e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:315:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x24872744,0xBFE37B48}} /* -6.0879904875e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:317:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x3D37E454,0xBFD7B881}} /* -3.7063628176e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:319:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x346E99D3,0xBFD3413F}} /* -3.0085735436e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:321:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9976A7ED,0xBFD19561}} /* -2.7474250781e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:321:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9976A7ED,0xBFD19561}} /* -2.7474250781e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:323:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x8299A6A4,0xBFD120AC}} /* -2.6761925463e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:323:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x8299A6A4,0xBFD120AC}} /* -2.6761925463e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:325:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x858B6D5D,0xBFD1720B}} /* -2.7258575479e-01 */
+ ~^~~~~~~~~~
+crlibm/log_fast.h:325:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x858B6D5D,0xBFD1720B}} /* -2.7258575479e-01 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:331:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x00000000,0xBFE00000}} /* -5.0000000000e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:333:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x000000A9,0xBFD00000}} /* -2.5000000000e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:334:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x99958511,0x3FC99999}} /* +1.9999999999e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:335:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x554BF922,0xBFC55555}} /* -1.6666666665e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:336:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xA3AEF673,0x3FC24924}} /* +1.4285715096e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:337:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x1CE3E886,0xBFC00000}} /* -1.2500001345e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:339:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE1BDC076,0xBFB99941}} /* -9.9994771588e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:339:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE1BDC076,0xBFB99941}} /* -9.9994771588e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:340:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xBC144107,0x3FB78146}} /* +9.1816349905e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:341:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x0AA58754,0xBFB595CF}} /* -8.4317150211e-02 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:347:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xFCD6E9E0,0xBFD948B0}} /* -3.9506172840e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:347:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xFCD6E9E0,0xBFD948B0}} /* -3.9506172840e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:348:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x80FEB690,0x3FCDF756}} /* +2.3411065386e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:349:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xAB547A1A,0xBFC3FA39}} /* -1.5607376924e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:349:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xAB547A1A,0xBFC3FA39}} /* -1.5607376924e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:350:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x98A29957,0x3FBC6990}} /* +1.1098579146e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:351:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x6791851B,0xBFB50BD3}} /* -8.2211697374e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:352:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xA288F0A9,0x3FB00902}} /* +6.2637486154e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:353:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x5F283335,0xBFA8F192}} /* -4.8718046299e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:354:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE7508F6E,0x3FA3B540}} /* +3.8492229687e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:355:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xBFE2263F,0xBF9F8850}} /* -3.0793439590e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:355:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xBFE2263F,0xBF9F8850}} /* -3.0793439590e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:357:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x99AF0E14,0xBF94F85D}} /* -2.0478689675e-02 */
+ ~^~~~~~~~~~
+crlibm/log_fast.h:357:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x99AF0E14,0xBF94F85D}} /* -2.0478689675e-02 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:361:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xC79A9A22,0x3FCC8FF7}} /* +2.2314355131e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:362:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9999999A,0x3FE99999}} /* +8.0000000000e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:363:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x47AE147B,0xBFD47AE1}} /* -3.2000000000e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:364:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xC3ECE2B2,0x3FC5D867}} /* +1.7066666667e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:365:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEB1C436A,0xBFBA36E2}} /* -1.0240000000e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:365:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEB1C436A,0xBFBA36E2}} /* -1.0240000000e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:366:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xA0B52722,0x3FB0C6F7}} /* +6.5535999999e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:367:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x80EFFFCD,0xBFA65E9F}} /* -4.3690666665e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:367:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x80EFFFCD,0xBFA65E9F}} /* -4.3690666665e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:368:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x96E552E6,0x3F9EADA7}} /* +2.9959314904e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:369:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEF8F2073,0xBF95798E}} /* -2.0971520778e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:369:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEF8F2073,0xBF95798E}} /* -2.0971520778e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:371:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xDA92B978,0xBF85FD5B}} /* -1.0737149818e-02 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:371:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xDA92B978,0xBF85FD5B}} /* -1.0737149818e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:372:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xDB58E5DE,0x3F801A73}} /* +7.8629542651e-03 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:373:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x588CDC6F,0xBF77A54B}} /* -5.7728713226e-03 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:377:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xC21C5EC2,0x3FD4618B}} /* +3.1845373112e-01 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:379:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x6BE69C90,0xBFD0ECF5}} /* -2.6446280992e-01 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:381:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x2E70C789,0xBFB1E7A0}} /* -6.9940577829e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:383:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x10D62349,0xBF99410F}} /* -2.4662242320e-02 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:385:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x91387428,0xBF84094D}} /* -9.7833690589e-03 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:385:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x91387428,0xBF84094D}} /* -9.7833690589e-03 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:386:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xF6A6C05D,0x3F79E7BE}} /* +6.3245257865e-03 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:387:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEBD82341,0xBF70F4C1}} /* -4.1396689462e-03 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:387:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xEBD82341,0xBF70F4C1}} /* -4.1396689462e-03 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:388:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9251A7CF,0x3F668CAC}} /* +2.7526255167e-03 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:389:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x0A9A7DB2,0xBF5E184B}} /* -1.8368466212e-03 */
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:403:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x792F85DD,0xBC6F6650}} /* -1.3617434188e-17 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:404:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xF7DDA2CA,0xBC7EB9DF}} /* -2.6650620715e-17 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:404:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xF7DDA2CA,0xBC7EB9DF}} /* -2.6650620715e-17 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:409:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xE8EE7A2B,0x3C21F5B3}} /* +4.8680071630e-19 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:416:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xA4B8A6F9,0x3C71A77F}} /* +1.5312656901e-17 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:422:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xAAF9039B,0xBC03E91A}} /* -1.3491922402e-19 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:422:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xAAF9039B,0xBC03E91A}} /* -1.3491922402e-19 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:427:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xDBC40302,0xBC3615B0}} /* -1.1972156066e-18 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:427:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0xDBC40302,0xBC3615B0}} /* -1.1972156066e-18 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:433:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x97A41961,0xBC64F68B}} /* -9.0912813346e-18 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:433:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x97A41961,0xBC64F68B}} /* -9.0912813346e-18 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:434:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9DE4BE41,0xBC89A0B0}} /* -4.4456964079e-17 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:434:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x9DE4BE41,0xBC89A0B0}} /* -4.4456964079e-17 */ ,
+ ~           ^~~~~~~~~~
+crlibm/log_fast.h:439:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x97512C50,0x3C7F42DE}} /* +2.7114776544e-17 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:440:3: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x934D136D,0xBC7749EB}} /* -2.0199771409e-17 */ ,
+ ~^~~~~~~~~~
+crlibm/log_fast.h:440:14: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+{{0x934D136D,0xBC7749EB}} /* -2.0199771409e-17 */ ,
+ ~           ^~~~~~~~~~
+121 warnings generated.
