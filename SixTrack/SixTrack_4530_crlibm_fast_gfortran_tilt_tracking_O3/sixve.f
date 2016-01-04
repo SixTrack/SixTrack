@@ -412,13 +412,15 @@ C     Store the SET statements
 !----------------------------------------------------------------------*
       implicit none
       integer fmaunit,nf,i,ierro,id,turn,kt,np,nfft
+!      double precision, dimension(60,10) :: x !(particle number, turn number)
+!      double precision pos(*),x(*),px(*),y(*),py(*),sig(*),delta(*)
       double precision pos,x,px,y,py,sig,delta
       character(len=*), intent(in) :: fnin
       character(len=*), intent(out) :: fnout
-!units for in and output files
+!      file units for in and output files
       dimension fmaunit(2)
       save
-      nf=size(fmaunit)
+      nf=2
       do i=1,nf
         fmaunit(i)=20000+i*10
       enddo
@@ -429,15 +431,17 @@ C     Store the SET statements
         read(fmaunit(1),*,iostat=ierro) 
       enddo
 !normalize + find tunes
+!todo: replace this part by a loop over the particles -> save everything in array
       do
         read(fmaunit(1),*,iostat=ierro) id,turn,pos,x,px,y,py,          &
      &  sig,delta,kt
+        write(fmaunit(2),*) ierro
         if(ierro.gt.0) then
           call prror(51);exit !to do: fix error message
-        else if(ierro.lt.0) then
+        else if(ierro.lt.0) then !end of file reached
           exit
         else
-          write(fmaunit(2),*), id,turn,pos,x,px,y,py,sig,delta,kt
+          write(fmaunit(2),*) id,turn,pos,x,px,y,py,sig,delta,kt
         endif
       enddo
       do i=1,nf
