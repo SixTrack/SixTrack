@@ -25301,6 +25301,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call sumpos
         goto 520
       endif
+!MF do fma
+      call fma('IP3_DUMP_1','fma_1',60,10)
+      call fma('IP3_DUMP_2','fma_2',60,10)
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -58003,6 +58006,58 @@ c$$$               endif
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
       end
+      subroutine fma(fnin,fnout,np,nfft)
+!----------------------------------------------------------------------*
+! purpose:                                                             *
+!   calculate tunes q1,q2 and q3 after normalisation of phase space    *
+!   coordinates modification                                           *
+! input:                                                               *
+!   fnin: filename of file with particle ampltidues from dump          *
+!         subroutine                                                   *
+! output:                                                              *
+!   fnout: filename of file with                                       *
+!          q1,q2,q3,eps1_0,eps2_0,eps3_0,eps1_min,eps2_min,eps3_min,   *
+!             eps1_max,eps2_max,eps3_max,eps1_avg,eps2_avg,eps3_avg    *
+!----------------------------------------------------------------------*
+      implicit none
+      integer fmaunit,nf,i,ierro,id,turn,kt,np,nfft
+!      double precision, dimension(60,10) :: x !(particle number, turn number)
+!      double precision pos(*),x(*),px(*),y(*),py(*),sig(*),delta(*)
+      double precision pos,x,px,y,py,sig,delta
+      character(len=*), intent(in) :: fnin
+      character(len=*), intent(out) :: fnout
+!      file units for in and output files
+      dimension fmaunit(2)
+      save
+      nf=2
+      do i=1,nf
+        fmaunit(i)=20000+i*10
+      enddo
+      open(fmaunit(1),file=fnin)
+      open(fmaunit(2),file=fnout)
+!skip header
+      do i=1,2
+        read(fmaunit(1),*,iostat=ierro)
+      enddo
+!normalize + find tunes
+!todo: replace this part by a loop over the particles -> save everything in array
+      do
+        read(fmaunit(1),*,iostat=ierro) id,turn,pos,x,px,y,py,          &
+     &  sig,delta,kt
+        if(ierro.gt.0) then
+          write(*,*) 'ERROR in subroutine FMA'
+          call prror(-1)
+        else if(ierro.lt.0) then !end of file reached
+          exit
+        else
+          write(fmaunit(2),*) id,turn,pos,x,px,y,py,sig,delta,kt
+        endif
+      enddo
+      do i=1,nf
+        close(fmaunit(i))
+      enddo
+      return
+      end subroutine
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
 !      A(N) IS A COMPLEX ARRAY. THE INPUT IS A(N)=(X(N),0.0), WHERE
