@@ -1124,6 +1124,15 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd fma
+      integer fma_max,fma_numfiles
+      parameter (fma_max=100)
+      character fma_fname1 (fma_max)*(getfields_l_max_string)
+      character fma_fname2 (fma_max)*(getfields_l_max_string)
+      common /fma_var/ fma_fname1,fma_fname2,fma_numfiles
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd   comgetfields
 
 !     A.Mereghetti, for the FLUKA Team
@@ -13250,7 +13259,7 @@ cc2008
 +ca comgetfields
 +ca dbdump
 +ca comdynk
-
++ca fma
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -13271,7 +13280,9 @@ cc2008
 !     - dynamic kicks
       character*16 dynk
       data dynk /'DYNK'/
-
+!     - fma
+      character*16 fma
+      data fma /'FMA'/
 +ca save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
@@ -13518,6 +13529,7 @@ cc2008
 !     brand new input block for dynamic kicks
 !     always in main code
       if(idat.eq.dynk) goto 2200
+      if(idat.eq.fma) goto 2300
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -18372,6 +18384,42 @@ cc2008
       write (lout,*) "*****************************"
 +ei
       call prror(51)
+!-----------------------------------------------------------------------
+!  FMA
+!  A.Mereghetti, for the FLUKA Team
+!  K.Sjobak & A. Santamaria, BE-ABP/HSS
+!  last modified: 21-01-2014
+!  always in main code
+!-----------------------------------------------------------------------
+ 2300 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(-1)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2300 ! skip comment line
+
+      if (ch(:4).eq.next) then
+         goto 110 ! loop BLOCK
+      endif
+      if(fma_numfiles.ge.fma_max) then
+        write(*,*) 'ERROR: too many fmas'
+        call prror(-1)
+      endif
+      fma_numfiles=fma_numfiles+1
+! split char in separate variables (space separated)
+!getfields_lfields = number of variables 
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
+        write(*,*) 'ERROR in FMA input block'
+        call prror(-1)
+      endif
+      if(getfields_nfields.ne.2) call prror(-1)
+      fma_fname1(fma_numfiles)=getfields_fields(1)
+      fma_fname2(fma_numfiles)=getfields_fields(2)
+      write(*,*) 'MF FMA: ',fma_numfiles,
+     &  fma_fname1(fma_numfiles)(1:getfields_lfields(1)),
+     &  fma_fname2(fma_numfiles)(1:getfields_lfields(2))
+      goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
@@ -24679,6 +24727,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdumpcr
 +ei
 +ca comdynk
++ca fma
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -25302,8 +25351,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 520
       endif
 !MF do fma
-      call fma('IP3_DUMP_1','fma_1',60,10)
-      call fma('IP3_DUMP_2','fma_2',60,10)
+      call fma_mk('IP3_DUMP_1','fma_1',60,10)
+      call fma_mk('IP3_DUMP_2','fma_2',60,10)
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -38994,6 +39043,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca comdynkcr
 +ei
++ca fma
 +ca save
 !-----------------------------------------------------------------------
 !
@@ -39524,6 +39574,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
         dumpfilepos(i) = -1
 +ei
+      enddo
+!--FMA------------------------------------------------------------------
+      fma_numfiles=0
+      do i=0,fma_max
+        do j=1,getfields_l_max_string
+          fma_fname1(i)(j:j) = char(0)
+          fma_fname2(i)(j:j) = char(0)
+        enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
@@ -58006,7 +58064,7 @@ c$$$               endif
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
       end
-      subroutine fma(fnin,fnout,np,nfft)
+      subroutine fma_mk(fnin,fnout,np,nfft)
 !----------------------------------------------------------------------*
 ! purpose:                                                             *
 !   calculate tunes q1,q2 and q3 after normalisation of phase space    *
