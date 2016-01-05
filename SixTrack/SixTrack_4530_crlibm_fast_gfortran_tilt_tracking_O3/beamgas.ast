@@ -1,6 +1,0 @@
-sixtrack.s
-beamgasn.f
-df crlibm,tilt,fast
-e beamGasK
-e hdf5K 
-ex
