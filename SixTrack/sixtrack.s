@@ -18386,10 +18386,8 @@ cc2008
       call prror(51)
 !-----------------------------------------------------------------------
 !  FMA
-!  A.Mereghetti, for the FLUKA Team
-!  K.Sjobak & A. Santamaria, BE-ABP/HSS
-!  last modified: 21-01-2014
-!  always in main code
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS
+!  last modified: 04-01-2016
 !-----------------------------------------------------------------------
  2300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(-1)
@@ -18401,7 +18399,7 @@ cc2008
          goto 110 ! loop BLOCK
       endif
       if(fma_numfiles.ge.fma_max) then
-        write(*,*) 'ERROR: too many fmas'
+        write(*,*) 'ERROR: you can only do ',fma_max,' number of FMAs'
         call prror(-1)
       endif
       fma_numfiles=fma_numfiles+1
@@ -25351,8 +25349,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 520
       endif
 !MF do fma
-      call fma_mk('IP3_DUMP_1','fma_1',60,10)
-      call fma_mk('IP3_DUMP_2','fma_2',60,10)
+!      call fma_mk('IP3_DUMP_1','fma_1',60,10)
+!      call fma_mk('IP3_DUMP_2','fma_2',60,10)
+      call fma_mk
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -58064,7 +58063,14 @@ c$$$               endif
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
       end
-      subroutine fma_mk(fnin,fnout,np,nfft)
+      subroutine fma_mk
+      implicit none
++ca comgetfields
++ca fma
+      write(*,*) 'MF: fma_mk',fma_numfiles
+      return
+      end subroutine
+      subroutine fma_getq(fnin,fnout,np,nfft)
 !----------------------------------------------------------------------*
 ! purpose:                                                             *
 !   calculate tunes q1,q2 and q3 after normalisation of phase space    *
@@ -58084,15 +58090,14 @@ c$$$               endif
       double precision pos,x,px,y,py,sig,delta
       character(len=*), intent(in) :: fnin
       character(len=*), intent(out) :: fnout
-!      file units for in and output files
       dimension fmaunit(2)
       save
       nf=2
       do i=1,nf
-        fmaunit(i)=20000+i*10
+        fmaunit(i)=20010+i*10
       enddo
-      open(fmaunit(1),file=fnin)
-      open(fmaunit(2),file=fnout)
+      open(2001010,file=fnin)
+      open(2001020,file=fnout)
 !skip header
       do i=1,2
         read(fmaunit(1),*,iostat=ierro)
@@ -58103,7 +58108,7 @@ c$$$               endif
         read(fmaunit(1),*,iostat=ierro) id,turn,pos,x,px,y,py,          &
      &  sig,delta,kt
         if(ierro.gt.0) then
-          write(*,*) 'ERROR in subroutine FMA'
+          write(*,*) 'ERROR in subroutine FMA: '
           call prror(-1)
         else if(ierro.lt.0) then !end of file reached
           exit
