@@ -563,9 +563,8 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
-      integer max_ncoll,max_npart,maxn,numeff,outlun,nc
-      parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
-     &maxn=20000,outlun=54)
+      integer max_ncoll,maxn,numeff,outlun,nc
+      parameter (max_ncoll=100,nc=32,numeff=19,maxn=20000,outlun=54)
 +cd database
 !GRD
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
@@ -953,9 +952,8 @@
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
      &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
-     &indiv(npart),lint(npart),x_out(max_npart),xp_out(max_npart),      &
-     &y_out(max_npart),yp_out(max_npart),p_out(max_npart),              &
-     &s_out(max_npart),keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,   &
+     &indiv(npart),lint(npart),
+     &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
      &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
 !
       double precision c_length    !length in m
