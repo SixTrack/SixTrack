@@ -1,7 +1,0 @@
-sixtrack.s
-trackn.f
-df vvector,crlibm,tilt,fast
-e tra_thck
-e tra_thin
-e dynktrack
-ex
