@@ -564,8 +564,6 @@
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
       integer max_ncoll,max_npart,maxn,numeff,outlun,nc
-!UPGRADE January 2005
-!     PARAMETER (MAX_NCOLL=68,MAX_NPART=20000,nc=32,NUMEFF=19,
       parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
      &maxn=20000,outlun=54)
 +cd database
@@ -17203,26 +17201,14 @@ cc2008
 +if .not.collimat
 +if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) "     collimation not forseen in this version"
-+ei
-+if .not.cr
-      write(*,*) "     collimation not forseen in this version"
-+ei
-+if cr
       write(lout,*) "     please use proper version"
-+ei
-+if .not.cr
-      write(*,*) "     please use proper version"
-+ei
-+if cr
       write(lout,*)
 +ei
 +if .not.cr
+      write(*,*)
+      write(*,*)    "     collimation not forseen in this version"
+      write(*,*)    "     please use proper version"
       write(*,*)
 +ei
  1287 continue
@@ -17246,6 +17232,7 @@ cc2008
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
+
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & nloop,myenom
@@ -17253,14 +17240,33 @@ cc2008
 +if .not.fio
       if(iclr.eq.2) read(ch1,*) nloop,myenom
 +ei
-!JUNE2005
-+if fio
-!      if(iclr.eq.3) read(ch1,*,round='nearest')                        &
-     & mynex,mdex,myney,mdey
+      !Does not work for bnlelens, but collimat+bnlelens doesn't work anyway...
+      !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
+      if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
++if cr
+         write(lout,*) ""
+         write(lout,*) "Error in parsing COLL block in fort.3"
+         write(lout,*) "nloop =", nloop
+         write(lout,*) "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
+         write(lout,*) "maxn  =", maxn
+         write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
+         write(lout,*) "Please reduce the number of particles or loops"
+         write(lout,*) ""
+        call abend('                                                  ')
 +ei
-+if .not.fio
-!      if(iclr.eq.3) read(ch1,*) mynex,mdex,myney,mdey
++if .not.cr
+         write(*,*)    ""
+         write(*,*)    "Error in parsing COLL block in fort.3"
+         write(*,*)    "nloop =", nloop
+         write(*,*)    "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
+         write(*,*)    "maxn  =", maxn
+         write(*,*)    "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
+         write(*,*)    "Please reduce the number of particles or loops"
+         write(*,*)    ""
+         stop
 +ei
+      endif
+
 +if fio
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & do_thisdis,mynex,mdex,myney,mdey,       &
@@ -17297,89 +17303,6 @@ cc2008
      &nsig_tcli,                                                        &
 !     &nsig_tcth,nsig_tctv,                                              &
      &nsig_tcdq,nsig_tcstcdq,nsig_tdi
-!APRIL2005
-+if fio
-!      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
-+ei
-+if .not.fio
-!      if(iclr.eq.5) read(ch1,*)                                         &
-+ei
-!     &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-!     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8
-+if fio
-!      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
-!    & emitx0,emity0
-+ei
-+if .not.fio
-!      if(iclr.eq.6) read(ch1,*) emitx0,emity0
-+ei
-+if fio
-!      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
-!    & do_select,do_nominal,                   &
-+ei
-+if .not.fio
-!      if(iclr.eq.7) read(ch1,*) do_select,do_nominal,                   &
-+ei
-!     &rnd_seed,dowrite_dist,name_sel,do_oneside,                        &
-!     &dowrite_impact,dowrite_secondary,dowrite_amplitude
-+if fio
-!      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
-!    & xbeat,xbeatphase,ybeat,                                           &
-+ei
-+if .not.fio
-!      if(iclr.eq.8) read(ch1,*) xbeat,xbeatphase,ybeat,                 &
-+ei
-!     &ybeatphase
-+if fio
-!      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-!    & c_rmstilt_prim,c_rmstilt_sec,                                     &
-+ei
-+if .not.fio
-!      if(iclr.eq.9) read(ch1,*) c_rmstilt_prim,c_rmstilt_sec,           &
-+ei
-!     &c_systilt_prim,c_systilt_sec
-+if fio
-!      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
-!    & radial,nr,ndr
-+ei
-+if .not.fio
-!      if(iclr.eq.10) read(ch1,*) radial,nr,ndr
-+ei
-+if fio
-!      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
-!    & driftsx,driftsy,cut_input,                                        &
-+ei
-+if .not.fio
-!      if(iclr.eq.11) read(ch1,*) driftsx,driftsy,cut_input,             &
-+ei
-!     &systilt_antisymm
-+if fio
-!      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
-!    & ipencil,pencil_offset
-+ei
-+if .not.fio
-!      if(iclr.eq.12) read(ch1,*) ipencil,pencil_offset
-+ei
-!!APRIL2005
-+if fio
-!      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
-     & coll_db,ibeam
-+ei
-+if .not.fio
-!      if(iclr.eq.13) read(ch1,*) coll_db,ibeam
-+ei
-!!APRIL2005
-+if fio
-!      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
-!    & dowritetracks, cern, castordir,                                   &
-+ei
-+if .not.fio
-!      if(iclr.eq.14) read(ch1,*) dowritetracks, cern, castordir,        &
-+ei
-!     &jobnumber, sigsecut2, sigsecut3
-!!
-!      if(iclr.ne.14) goto 1285
-!SEPT2005
 +if fio
       if(iclr.eq.5) read(ch1,*,round='nearest')                         &
 +ei
@@ -18089,7 +18012,7 @@ cc2008
 !     requested element
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(51)
+      if ( getfields_lerr ) call prror(-1)
       
       if ( (getfields_nfields .lt. 4) .or. 
      &     (getfields_nfields .gt. 7) .or.
@@ -28305,7 +28228,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD FOR NOT FAST TRACKING ONLY
 !hr08         ejfv(i)=sqrt(ejv(i)*ejv(i)-pma*pma)
               ejfv(i)=sqrt(ejv(i)**2-pma**2)                             !hr08
-              rvv(j)=(ejv(i)*e0f)/(e0*ejfv(i))
+              rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
               dpsv(i)=(ejfv(i)-e0f)/e0f
               oidpsv(i)=one/(one+dpsv(i))
 !hr08         dpsv1(i)=dpsv(i)*c1e3*oidpsv(i)
@@ -42403,17 +42326,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       write(*,10000)
 +ei
-      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 ,           &
-     &110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 ,                &
-     &210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 ,                &
-     &310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 ,                &
-     &410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 ,                &
-     &510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 ,                &
-     &610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 ,                &
-     &710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 ,                &
-     &810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 ,                &
-     &910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000,                &
-     &1010,1020,1030,1040,1050),ier
+      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !10       &
+     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !20       &
+     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !30       &
+     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 , !40       &
+     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 , !50       &
+     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 , !60       &
+     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 , !70       &
+     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 , !80       &
+     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 , !90       &
+     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !100      &
+     &     1010,1020,1030,1040,1050),ier
       goto 1870
 +if cr
    10 write(lout,10010)
@@ -43246,7 +43169,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10490 format(t10,'ONLY UP TO 3 SUBRESONANCES CAN BE COMPENSATED')
 10500 format(t10,'THE MULTIPOLE ORDER FOR THE SUBRESONANCE COMPENSATION'&
      &,' SHOULD NOT EXCEED THE VALUE 9')
-10510 format(t10,'PROBLEMS WITH FILE 3 WITH DYNAMIC KIKS')
+10510 format(t10,'PROBLEMS WITH FILE 3 WITH DYNAMIC KICKS')
 10520 format(t10,'MAXIMUM ORDER OF THE ONE TURN MAP IS ',i4, /,         &
      &' NEMA HAS TO BE LARGER THAN NORD')
 10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT',      &
@@ -62570,13 +62493,11 @@ c$$$               endif
      &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,        &
      &     myx, myxp, myy, myyp, myp, mys)
  
-!
       implicit none
-!
-      integer max_ncoll,max_npart,maxn,numeff,outlun,nc
-      parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
-     &maxn=20000,outlun=54)
 
++ca collpara
+
+      ! Don't load the common blocks for these variables
       logical cut_input
       integer i,j,mynp,nloop
       double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
