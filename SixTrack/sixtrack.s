@@ -838,9 +838,8 @@
       common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
      &mybetay,rselect
 !
-      integer absorbed(npart),counted(npart,numeff)
       double precision neff(numeff),rsig(numeff)
-      common  /eff/ neff,rsig,counted,absorbed
+      common  /eff/ neff,rsig
 !
       integer  nimpact(50)
       double precision sumimpact(50),sqsumimpact(50)
@@ -911,10 +910,8 @@
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
       integer counted_r(maxn,numeff),counted_x(maxn,numeff),            &
-     &counted_y(maxn,numeff),                                           &
-     &ieffmax_r(npart),ieffmax_x(npart),ieffmax_y(npart)
-      common /counting/ counted_r,counted_x,counted_y,ieffmax_r,        &
-     &ieffmax_x, ieffmax_y
+     &counted_y(maxn,numeff)
+      common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
@@ -28234,16 +28231,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD
 !APRIL2005
 !              dpsv(i)  = 0d0
-              absorbed(i) = 0
+              nlostp(i)=i
               do ieff =1, numeff
                  counted_r(i,ieff) = 0
                  counted_x(i,ieff) = 0
                  counted_y(i,ieff) = 0
               end do
-!GRD INITIALIZE MAX COUNTERS
-              ieffmax_r(i) = 0
-              ieffmax_x(i) = 0
-              ieffmax_y(i) = 0
             end do
 !
 !++  Initialize random number generator
