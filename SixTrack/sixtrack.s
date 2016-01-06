@@ -1125,11 +1125,13 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd fma
-      integer fma_max,fma_numfiles
+      integer fma_numfiles                                   !number of FMAs
+      integer fma_max                                        !max. number of FMAs
       parameter (fma_max=100)
-      character fma_fname1 (fma_max)*(getfields_l_max_string)
-      character fma_fname2 (fma_max)*(getfields_l_max_string)
-      common /fma_var/ fma_fname1,fma_fname2,fma_numfiles
+      character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
+      character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
+      integer :: fma_t(fma_max,4)                            !time windows [turns] used for FMA
+      common /fma_var/ fma_fname,fma_method,fma_numfiles
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -18411,12 +18413,21 @@ cc2008
         write(*,*) 'ERROR in FMA input block'
         call prror(-1)
       endif
-      if(getfields_nfields.ne.2) call prror(-1)
-      fma_fname1(fma_numfiles)=getfields_fields(1)
-      fma_fname2(fma_numfiles)=getfields_fields(2)
+      if(getfields_nfields.ne.6) then
+        write(*,*) 'ERROR: wrong number of input parameters for FMA'
+        call prror(-1)
+      endif
+      fma_fname(fma_numfiles)=getfields_fields(1)
+      fma_method(fma_numfiles)=getfields_fields(2)
+      do i=1,4
+        read(getfields_fields(2+i)(1:getfields_lfields(2+i)),*)
+     &    fma_t(fma_numfiles,i)
+      enddo
       write(*,*) 'MF FMA: ',fma_numfiles,
-     &  fma_fname1(fma_numfiles)(1:getfields_lfields(1)),
-     &  fma_fname2(fma_numfiles)(1:getfields_lfields(2))
+     &  fma_fname(fma_numfiles)(1:getfields_lfields(1)),
+     &  fma_method(fma_numfiles)(1:getfields_lfields(2)),
+     &  fma_t(fma_numfiles,1),fma_t(fma_numfiles,2),
+     &  fma_t(fma_numfiles,3),fma_t(fma_numfiles,4)
       goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
@@ -39578,8 +39589,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       fma_numfiles=0
       do i=0,fma_max
         do j=1,getfields_l_max_string
-          fma_fname1(i)(j:j) = char(0)
-          fma_fname2(i)(j:j) = char(0)
+          fma_fname(i)(j:j) = char(0)
+          fma_method(i)(j:j) = char(0)
+        enddo
+        do j=1,4
+          fma_t(i,j)=0
         enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
@@ -58067,7 +58081,23 @@ c$$$               endif
       implicit none
 +ca comgetfields
 +ca fma
-      write(*,*) 'MF: fma_mk',fma_numfiles
+!+ca comdynk
+!      character(maxstrlen_dynk) dynk_stringzerotrim
+      integer i
+      character(len=getfields_l_max_string) :: ch
+      character fma_fnout (fma_max,2)*(getfields_l_max_string) !outputfile name
+      do i=1,fma_numfiles
+        write(ch,"(I3.3)") i
+        fma_fnout(i,1)='FMA_t1t2_' // trim(adjustl(ch))
+        fma_fnout(i,2)='FMA_t3t4_' // trim(adjustl(ch))
+!        write(*,*) 'FMA: calculate tunes for file '
+!     &   ,trim(dynk_stringzerotrim(fma_fname(i))),' using method '
+!     &   ,trim(dynk_stringzerotrim(fma_method(i)))
+        write(*,*) 'MF: fma_mk',fma_numfiles
+     &   ,fma_fnout(i,1)(1:getfields_l_max_string)
+     &   ,fma_fnout(i,2)(1:getfields_l_max_string)
+!        call fma_getq(fma_fname(i))
+      enddo
       return
       end subroutine
       subroutine fma_getq(fnin,fnout,np,nfft)
