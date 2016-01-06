@@ -468,6 +468,19 @@ then
     echo "Option crlibm turned ON"
   fi
 fi
+if test "$collimat" = "" -a "$crlibm" = ""
+then
+    #Collimat is not really compatible with collimation
+    echo
+    echo -e "\e[91m ***** WARNING ***** \e[39m"
+    echo -e "\e[91mTrying to build SixTrack with both\e[39m"
+    echo -e "\e[91mCOLLIMAT and CRLIBM \e[39m"
+    echo -e "\e[91mThis will most likely NOT work correctly \e[39m"
+    echo
+    echo -e "\e[91mHit ENTER to continue or ^C to cancel. \e[39m"
+    read junk
+fi
+
 if test "$collimat" != "" -a "$cpss" = ""
 then
     # We will build for windows and Linux boinc and cpss 
@@ -790,9 +803,10 @@ echo ""
 show_options
 echo ""
 echo "And compiler options:"
-echo "FC = $FC"
-echo "FCF = $FCF"
-echo "FCL = $FCL"
+echo "FC   = '$FC'"
+echo "FCF  = '$FCF'"
+echo "FCL  = '$FCL'  (For linking SixTrack)"
+echo "FCLD = '$FCLD' (For linking astuce and dafor)"
 echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
