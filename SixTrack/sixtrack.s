@@ -1125,11 +1125,14 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd fma
-      integer fma_max,fma_numfiles
+      integer fma_max                                        !max. number of FMAs
       parameter (fma_max=100)
-      character fma_fname1 (fma_max)*(getfields_l_max_string)
-      character fma_fname2 (fma_max)*(getfields_l_max_string)
-      common /fma_var/ fma_fname1,fma_fname2,fma_numfiles
+      integer fma_numfiles                                   !number of FMAs
+      character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
+      character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
+      integer, dimension(fma_max) :: fma_npart,fma_tfirst,fma_tlast
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,
+     &                 fma_npart,fma_tfirst,fma_tlast
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -18386,9 +18389,8 @@ cc2008
       call prror(51)
 !-----------------------------------------------------------------------
 !  FMA
-!  A.Mereghetti, for the FLUKA Team
-!  K.Sjobak & A. Santamaria, BE-ABP/HSS
-!  last modified: 21-01-2014
+!  M. Fitterer, R. De Maria, K. Sjoebaek, BE/ABP-HSS
+!  last modified: 07-01-2016
 !  always in main code
 !-----------------------------------------------------------------------
  2300 read(3,10020,end=1530,iostat=ierro) ch
@@ -18401,24 +18403,25 @@ cc2008
          goto 110 ! loop BLOCK
       endif
       if(fma_numfiles.ge.fma_max) then
-        write(*,*) 'ERROR: too many fmas'
-        call prror(-1)
+        write(*,*) 'ERROR: you can only do ',fma_max,' number of FMAs'
+        call prror(-1) 
       endif
       fma_numfiles=fma_numfiles+1
-! split char in separate variables (space separated)
-!getfields_lfields = number of variables 
+!     read in input parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-        write(*,*) 'ERROR in FMA input block'
+        write(*,*) 'ERROR in FMA block: getfields_lerr='
+     & , getfields_lerr
         call prror(-1)
       endif
-      if(getfields_nfields.ne.2) call prror(-1)
-      fma_fname1(fma_numfiles)=getfields_fields(1)
-      fma_fname2(fma_numfiles)=getfields_fields(2)
-      write(*,*) 'MF FMA: ',fma_numfiles,
-     &  fma_fname1(fma_numfiles)(1:getfields_lfields(1)),
-     &  fma_fname2(fma_numfiles)(1:getfields_lfields(2))
+      if(getfields_nfields.ne.2) then
+        write(*,*) 'ERROR in FMA block: wrong number of input '         &
+     &    ,'parameters: ninput = ', getfields_nfields, ' != 2'
+        call prror(-1)
+      endif
+      fma_fname(fma_numfiles)=getfields_fields(1)
+      fma_method(fma_numfiles)=getfields_fields(2)
       goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
@@ -39578,9 +39581,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--FMA------------------------------------------------------------------
       fma_numfiles=0
       do i=0,fma_max
+        fma_npart(i) = 0
+        fma_tfirst(i) = 0
+        fma_tlast(i) = 0
         do j=1,getfields_l_max_string
-          fma_fname1(i)(j:j) = char(0)
-          fma_fname2(i)(j:j) = char(0)
+          fma_fname(i)(j:j) = char(0)
+          fma_method(i)(j:j) = char(0)
         enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
