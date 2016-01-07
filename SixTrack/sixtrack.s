@@ -64119,15 +64119,14 @@ c$$$     &           myalphay * cos(phiy))
 !      save h,dh,bn
 +ca interac
       double precision h,dh,theta,rlen0,rlen,ae,be,bn0,s
-      double precision thetaz_mcs,thetax_mcs,gauss2,initial_xp,
-     &radl_mat,rad_len ! Claudia 2013 added variables
+      double precision radl_mat,rad_len ! Claudia 2013 added variables
 
-      common/varcla/gauss2,initial_xp   !Claudia
 
 !   bn=sqrt(3)/(number of sigmas for s-determination(=4))
       data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
 !
 !++
+
       radl_mat=radl(mat)
 !     theta=13.6d-3*(1.d0-dpop)/p0          !Claudia
       theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
@@ -64148,18 +64147,15 @@ c$$$     &           myalphay * cos(phiy))
       if(x.le.0.d0) then
 !hr09  s=rlen0-rlen+s
        s=(rlen0-rlen)+s                                                  !hr09
-       thetax_mcs=((xp-initial_xp)/gauss2)*theta       !Claudia
        goto 20
       end if
       if(s+dh.ge.rlen) then
        s=rlen0
-       thetax_mcs=((xp-initial_xp)/gauss2)*theta       !Claudia
        goto 20
       end if
       rlen=rlen-s
       goto 10
 20    call scamcs(z,zp,s,radl_mat)
-      thetaz_mcs=((zp-initial_xp)/gauss2)*theta        !Claudia
       s=s*radl(mat)
 !hr09 x=x*theta*radl(mat)
       x=(x*theta)*radl(mat)                                              !hr09
@@ -64178,8 +64174,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca crlibco
 +ei
       double precision v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-      double precision gauss2,initial_xp,radl_mat
-      common/varcla/gauss2,initial_xp                       !Claudia
+      double precision radl_mat
       real rndm4
       x0=xx
       xp0=xxp
