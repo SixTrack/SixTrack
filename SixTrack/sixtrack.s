@@ -25354,8 +25354,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 520
       endif
 !MF do fma
-      call fma_mk('IP3_DUMP_1','fma_1',60,10)
-      call fma_mk('IP3_DUMP_2','fma_2',60,10)
+!      call fma_mk('IP3_DUMP_1','fma_1',60,10)
+!      call fma_mk('IP3_DUMP_2','fma_2',60,10)
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -26421,15 +26421,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              else if ( dumpfmt(i).eq.2 ) then
                 if (i.eq.0) then
                    write(dumpunit(i),*)
-     &  '# DUMP format #2, ALL ELEMENTS, dump period=', ndumpt(i)
+     &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
+                   write(dumpunit(i),*)
+     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+     &  ', last turn=', dumplast(i)
                 else
                    write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i)
+     &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
+                   write(dumpunit(i),*)
+     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+     &  ', last turn=', dumplast(i)
                 endif
                 write(dumpunit(i),*)
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack'
 +if cr
-                dumpfilepos(i) = dumpfilepos(i) + 2
+                dumpfilepos(i) = dumpfilepos(i) + 4
 +ei
              end if
           else
