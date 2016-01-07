@@ -1125,13 +1125,11 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd fma
-      integer fma_numfiles                                   !number of FMAs
-      integer fma_max                                        !max. number of FMAs
+      integer fma_max,fma_numfiles
       parameter (fma_max=100)
-      character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
-      character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      integer :: fma_t(fma_max,4)                            !time windows [turns] used for FMA
-      common /fma_var/ fma_fname,fma_method,fma_numfiles
+      character fma_fname1 (fma_max)*(getfields_l_max_string)
+      character fma_fname2 (fma_max)*(getfields_l_max_string)
+      common /fma_var/ fma_fname1,fma_fname2,fma_numfiles
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -18388,8 +18386,10 @@ cc2008
       call prror(51)
 !-----------------------------------------------------------------------
 !  FMA
-!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS
-!  last modified: 04-01-2016
+!  A.Mereghetti, for the FLUKA Team
+!  K.Sjobak & A. Santamaria, BE-ABP/HSS
+!  last modified: 21-01-2014
+!  always in main code
 !-----------------------------------------------------------------------
  2300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(-1)
@@ -18401,7 +18401,7 @@ cc2008
          goto 110 ! loop BLOCK
       endif
       if(fma_numfiles.ge.fma_max) then
-        write(*,*) 'ERROR: you can only do ',fma_max,' number of FMAs'
+        write(*,*) 'ERROR: too many fmas'
         call prror(-1)
       endif
       fma_numfiles=fma_numfiles+1
@@ -18413,21 +18413,12 @@ cc2008
         write(*,*) 'ERROR in FMA input block'
         call prror(-1)
       endif
-      if(getfields_nfields.ne.6) then
-        write(*,*) 'ERROR: wrong number of input parameters for FMA'
-        call prror(-1)
-      endif
-      fma_fname(fma_numfiles)=getfields_fields(1)
-      fma_method(fma_numfiles)=getfields_fields(2)
-      do i=1,4
-        read(getfields_fields(2+i)(1:getfields_lfields(2+i)),*)
-     &    fma_t(fma_numfiles,i)
-      enddo
+      if(getfields_nfields.ne.2) call prror(-1)
+      fma_fname1(fma_numfiles)=getfields_fields(1)
+      fma_fname2(fma_numfiles)=getfields_fields(2)
       write(*,*) 'MF FMA: ',fma_numfiles,
-     &  fma_fname(fma_numfiles)(1:getfields_lfields(1)),
-     &  fma_method(fma_numfiles)(1:getfields_lfields(2)),
-     &  fma_t(fma_numfiles,1),fma_t(fma_numfiles,2),
-     &  fma_t(fma_numfiles,3),fma_t(fma_numfiles,4)
+     &  fma_fname1(fma_numfiles)(1:getfields_lfields(1)),
+     &  fma_fname2(fma_numfiles)(1:getfields_lfields(2))
       goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
@@ -25360,7 +25351,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 520
       endif
 !MF do fma
-      call fma_mk
+      call fma_mk('IP3_DUMP_1','fma_1',60,10)
+      call fma_mk('IP3_DUMP_2','fma_2',60,10)
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -39587,11 +39579,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       fma_numfiles=0
       do i=0,fma_max
         do j=1,getfields_l_max_string
-          fma_fname(i)(j:j) = char(0)
-          fma_method(i)(j:j) = char(0)
-        enddo
-        do j=1,4
-          fma_t(i,j)=0
+          fma_fname1(i)(j:j) = char(0)
+          fma_fname2(i)(j:j) = char(0)
         enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
@@ -58075,30 +58064,7 @@ c$$$               endif
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
       end
-      subroutine fma_mk
-      implicit none
-+ca comgetfields
-+ca fma
-!+ca comdynk
-!      character(maxstrlen_dynk) dynk_stringzerotrim
-      integer i
-      character(len=getfields_l_max_string) :: ch
-      character fma_fnout (fma_max,2)*(getfields_l_max_string) !outputfile name
-      do i=1,fma_numfiles
-        write(ch,"(I3.3)") i
-        fma_fnout(i,1)='FMA_t1t2_' // trim(adjustl(ch))
-        fma_fnout(i,2)='FMA_t3t4_' // trim(adjustl(ch))
-!        write(*,*) 'FMA: calculate tunes for file '
-!     &   ,trim(dynk_stringzerotrim(fma_fname(i))),' using method '
-!     &   ,trim(dynk_stringzerotrim(fma_method(i)))
-        write(*,*) 'MF: fma_mk',fma_numfiles
-     &   ,fma_fnout(i,1)(1:getfields_l_max_string)
-     &   ,fma_fnout(i,2)(1:getfields_l_max_string)
-!        call fma_getq(fma_fname(i))
-      enddo
-      return
-      end subroutine
-      subroutine fma_getq(fnin,fnout,np,nfft)
+      subroutine fma_mk(fnin,fnout,np,nfft)
 !----------------------------------------------------------------------*
 ! purpose:                                                             *
 !   calculate tunes q1,q2 and q3 after normalisation of phase space    *
@@ -58118,14 +58084,15 @@ c$$$               endif
       double precision pos,x,px,y,py,sig,delta
       character(len=*), intent(in) :: fnin
       character(len=*), intent(out) :: fnout
+!      file units for in and output files
       dimension fmaunit(2)
       save
       nf=2
       do i=1,nf
-        fmaunit(i)=20010+i*10
+        fmaunit(i)=20000+i*10
       enddo
-      open(2001010,file=fnin)
-      open(2001020,file=fnout)
+      open(fmaunit(1),file=fnin)
+      open(fmaunit(2),file=fnout)
 !skip header
       do i=1,2
         read(fmaunit(1),*,iostat=ierro)
@@ -58136,7 +58103,7 @@ c$$$               endif
         read(fmaunit(1),*,iostat=ierro) id,turn,pos,x,px,y,py,          &
      &  sig,delta,kt
         if(ierro.gt.0) then
-          write(*,*) 'ERROR in subroutine FMA: '
+          write(*,*) 'ERROR in subroutine FMA'
           call prror(-1)
         else if(ierro.lt.0) then !end of file reached
           exit
