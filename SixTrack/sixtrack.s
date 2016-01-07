@@ -43277,7 +43277,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! define function return type
       integer dynk_findFUNindex
-
+      
+      logical lopen
+      
 +if crlibm
       integer nchars
       parameter (nchars=160) !Same as in daten
@@ -43475,8 +43477,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+1
          
          !Open the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():FILE ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
+         
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
-     &        iostat=stat)
+     &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
@@ -43645,8 +43662,24 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+1
          
          !Open the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
-     &        iostat=stat)
+     &        iostat=stat,status='OLD')
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
@@ -44107,6 +44140,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        getfields_fields(5)(1:getfields_lfields(5))
          
          !Read the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat, status="OLD")
          if (stat .ne. 0) then
