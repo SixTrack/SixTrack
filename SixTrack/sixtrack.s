@@ -25360,8 +25360,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 520
       endif
 !MF do fma
-!      call fma_mk('IP3_DUMP_1','fma_1',60,10)
-!      call fma_mk('IP3_DUMP_2','fma_2',60,10)
       call fma_mk
       do 90 i=1,20
         fake(1,i)=zero
