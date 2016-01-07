@@ -1128,11 +1128,19 @@
       integer fma_max                                        !max. number of FMAs
       parameter (fma_max=100)
       integer fma_numfiles                                   !number of FMAs
+      integer fma_flag                                       !flag = 1 if FMA input block exists
       character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
       integer, dimension(fma_max) :: fma_npart,fma_tfirst,fma_tlast
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
      &                 fma_npart,fma_tfirst,fma_tlast
+
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd szt
+      integer maxstrlen
+      parameter (maxstrlen=20)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -10125,6 +10133,8 @@ cc2008
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( lopen ) close(dumpunit(i))
+!MF
+            write(*,*) '2 close file with ',dumpunit(i)
         endif
       enddo
 !     A.Mereghetti, for the FLUKA Team
@@ -18402,10 +18412,12 @@ cc2008
       if (ch(:4).eq.next) then
          goto 110 ! loop BLOCK
       endif
+ 
       if(fma_numfiles.ge.fma_max) then
         write(*,*) 'ERROR: you can only do ',fma_max,' number of FMAs'
         call prror(-1) 
       endif
+
       fma_numfiles=fma_numfiles+1
 !     read in input parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
@@ -18420,8 +18432,10 @@ cc2008
      &    ,'parameters: ninput = ', getfields_nfields, ' != 2'
         call prror(-1)
       endif
+
       fma_fname(fma_numfiles)=getfields_fields(1)
       fma_method(fma_numfiles)=getfields_fields(2)
+      fma_flag = 1 !0 to skip fma calculation
       goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
@@ -24731,6 +24745,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comdynk
 +ca fma
++ca szt
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -24743,6 +24758,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
      &taus,x11,x13
       integer idummy(6)
+      character(maxstrlen) stringzerotrim
       character*10 cmonth
       character*4 cpto
 +if cr
@@ -25353,9 +25369,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call sumpos
         goto 520
       endif
-!MF do fma
-!      call fma_mk('IP3_DUMP_1','fma_1',60,10)
-!      call fma_mk('IP3_DUMP_2','fma_2',60,10)
+!     start FMA analysis
+      if(fma_flag.eq.1) then
+        call fma_mk
+      endif
+!     end FMA analysis
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -26422,20 +26440,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 if (i.eq.0) then
                    write(dumpunit(i),*)
      &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                   write(dumpunit(i),*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+                   write(dumpunit(i),fmt='(A,I6,A,I6,A,I6)')
+     &  ' # dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
                 else
                    write(dumpunit(i),*)
      &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                   write(dumpunit(i),*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+                   write(dumpunit(i),fmt='(A,I6,A,I6,A,I6)')
+     &  ' # dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
                 endif
                 write(dumpunit(i),*)
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack'
 +if cr
-                dumpfilepos(i) = dumpfilepos(i) + 4
+                dumpfilepos(i) = dumpfilepos(i) + 3
 +ei
              end if
           else
@@ -39053,6 +39071,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynkcr
 +ei
 +ca fma
++ca szt
 +ca save
 !-----------------------------------------------------------------------
 !
@@ -39585,7 +39604,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       enddo
 !--FMA------------------------------------------------------------------
-      fma_numfiles=0
+      fma_flag = 0
+      fma_numfiles = 0
       do i=0,fma_max
         fma_npart(i) = 0
         fma_tfirst(i) = 0
@@ -39595,6 +39615,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           fma_method(i)(j:j) = char(0)
         enddo
       enddo
+
+!--STRINGZEROTRIM------------------------------------------------------
+!   no variables need to be initialized
+      
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 03-09-2014
@@ -58076,57 +58100,59 @@ c$$$               endif
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
       end
-      subroutine fma_mk(fnin,fnout,np,nfft)
-!----------------------------------------------------------------------*
-! purpose:                                                             *
-!   calculate tunes q1,q2 and q3 after normalisation of phase space    *
-!   coordinates modification                                           *
-! input:                                                               *
-!   fnin: filename of file with particle ampltidues from dump          *
-!         subroutine                                                   *
-! output:                                                              *
-!   fnout: filename of file with                                       *
-!          q1,q2,q3,eps1_0,eps2_0,eps3_0,eps1_min,eps2_min,eps3_min,   *
-!             eps1_max,eps2_max,eps3_max,eps1_avg,eps2_avg,eps3_avg    *
-!----------------------------------------------------------------------*
+      function stringzerotrim(instring)
+!----------------------------------------------------------------------------
+!     K. Sjobak, BE-ABP/HSS
+!     last modified: 30-10-2014
+!     Replace "\0" with ' ' in strings.
+!     Usefull before output, else "write (*,*)" will actually write all the \0s
+!
+!     Warning: Do not add any write(*,*) inside this function:
+!     if this function is called by a write(*,*) and then does a write,
+!     the program may deadlock!
+!----------------------------------------------------------------------------
       implicit none
-      integer fmaunit,nf,i,ierro,id,turn,kt,np,nfft
-!      double precision, dimension(60,10) :: x !(particle number, turn number)
-!      double precision pos(*),x(*),px(*),y(*),py(*),sig(*),delta(*)
-      double precision pos,x,px,y,py,sig,delta
-      character(len=*), intent(in) :: fnin
-      character(len=*), intent(out) :: fnout
-!      file units for in and output files
-      dimension fmaunit(2)
-      save
-      nf=2
-      do i=1,nf
-        fmaunit(i)=20000+i*10
-      enddo
-      open(fmaunit(1),file=fnin)
-      open(fmaunit(2),file=fnout)
-!skip header
-      do i=1,2
-        read(fmaunit(1),*,iostat=ierro)
-      enddo
-!normalize + find tunes
-!todo: replace this part by a loop over the particles -> save everything in array
-      do
-        read(fmaunit(1),*,iostat=ierro) id,turn,pos,x,px,y,py,          &
-     &  sig,delta,kt
-        if(ierro.gt.0) then
-          write(*,*) 'ERROR in subroutine FMA'
-          call prror(-1)
-        else if(ierro.lt.0) then !end of file reached
-          exit
-        else
-          write(fmaunit(2),*) id,turn,pos,x,px,y,py,sig,delta,kt
-        endif
-      enddo
-      do i=1,nf
-        close(fmaunit(i))
-      enddo
-      return
++ca szt
+      character(maxstrlen) stringzerotrim, instring
+      intent(in) instring
+      integer ii
+      do ii=1,maxstrlen
+         if ( instring(ii:ii) .ne. char(0) ) then
+            stringzerotrim(ii:ii) = instring(ii:ii)
+         else 
+            stringzerotrim(ii:ii) = ' '
+         end if
+      end do
+      stringzerotrim = trim(stringzerotrim)
+      end function
+      subroutine fma_mk
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: return files used for fma analysis                          *
+!           -> calculate particle amplitudes and tunes using the        *
+!              normalized coordinates for input files                   *
+!              fma_fname(fma_numfiles)                                  *
+!-----------------------------------------------------------------------*
+      implicit none
+      integer uin !file unit
+      integer ierro
+      character(len=100) :: ch
+      uin=200101
+      open(uin,file='IP3_DUMP_1')
+      read(uin,fmt='(A)',iostat=ierro) ch
+      write(*,*) 'mytest 1',ch
+      read(uin,fmt='(A)',iostat=ierro) ch
+      write(*,*) 'mytest 1',ch
+      close(uin)
+      uin=200106
+      open(uin,file='IP3_DUMP_2')
+      read(uin,fmt='(A)',iostat=ierro) ch
+      write(*,*) 'mytest 2',ch
+      read(uin,fmt='(A)',iostat=ierro) ch
+      write(*,*) 'mytest 2',ch
+      close(uin)
       end subroutine
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
@@ -66733,6 +66759,8 @@ c$$$         backspace (93,iostat=ierro)
 C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
+!MF
+            write(*,*) 'close file with ',dumpunit(i)
             open(dumpunit(i),file=dump_fname(i), status='old',
      &           position='append', form='formatted',action='write')
          endif
