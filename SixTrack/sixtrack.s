@@ -1128,10 +1128,11 @@
       integer fma_max                                        !max. number of FMAs
       parameter (fma_max=100)
       integer fma_numfiles                                   !number of FMAs
+      integer fma_flag                                       !flag = 1 if FMA input block exists
       character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
       integer, dimension(fma_max) :: fma_npart,fma_tfirst,fma_tlast
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
      &                 fma_npart,fma_tfirst,fma_tlast
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -18422,6 +18423,7 @@ cc2008
       endif
       fma_fname(fma_numfiles)=getfields_fields(1)
       fma_method(fma_numfiles)=getfields_fields(2)
+      fma_flag = 1 !0 to skip fma calculation
       goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
@@ -25353,9 +25355,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call sumpos
         goto 520
       endif
-!MF do fma
-!      call fma_mk('IP3_DUMP_1','fma_1',60,10)
-!      call fma_mk('IP3_DUMP_2','fma_2',60,10)
+!     start FMA analysis
+      if(fma_flag.eq.1) then
+        call fma_mk('IP3_DUMP_1','fma_1',60,10)
+      endif
+!     end FMA analysis
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -39585,7 +39589,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       enddo
 !--FMA------------------------------------------------------------------
-      fma_numfiles=0
+      fma_flag = 0
+      fma_numfiles = 0
       do i=0,fma_max
         fma_npart(i) = 0
         fma_tfirst(i) = 0
