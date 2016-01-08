@@ -25364,11 +25364,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call sumpos
         goto 520
       endif
-!     start FMA analysis
-      if(fma_flag) then
-        call fma_postpr
-      endif
-!     end FMA analysis
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -26436,13 +26431,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                    write(dumpunit(i),*)
      &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
                    write(dumpunit(i),fmt=*)
-     &  ' # dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
                 else
                    write(dumpunit(i),*)
      &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
                    write(dumpunit(i),fmt=*)
-     &  ' # dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
                 endif
                 write(dumpunit(i),*)
@@ -26835,6 +26830,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   510     if(ndafi.ge.1) call sumpos
         endif
   520 continue
+!     start fma
+      if(fma_flag) then
+        write(*,*) 'Calling FMA_POSTPR'
+        call fma_postpr
+      endif
 !--HPLOTTING END
       if(ipos.eq.1.and.                                                 &
      &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
@@ -58117,6 +58117,23 @@ c$$$               endif
       end do
       stringzerotrim = trim(stringzerotrim)
       end function
+      subroutine fma_error(ierro,str,subroutine_name)
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: error messages for fma analysis                             *
+!-----------------------------------------------------------------------*
+      implicit none
+      integer,       intent(in)  :: ierro
+      character (*), intent (in) :: subroutine_name
+      character (*), intent (in) :: str             !error message
+      if(ierro.ne.0) then
+        write(*,*) 'ERROR in ',subroutine_name,': ',
+     & str,', iostat=',ierro
+        call prror(-1)
+      endif
+      end subroutine
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -58134,39 +58151,55 @@ c$$$               endif
 +ca dbdump
 +ca fma
       integer :: i,j,ierro
-      logical :: lopen,lexist
+      integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
+      logical :: lopen              !flag to check if file is already open
+      logical :: lexist             !flag to check if file fma_fname exists
+      logical :: lheader            !flag for skipping the header
       character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch
-      lopen=.false.
+
       do i=1,fma_numfiles
         lexist=.false.
         do j=1,nele !START: loop over dump files
+
           if(.not. lexist) then !file has not yet been found
             if(trim(stringzerotrim(fma_fname(i))).eq.
-     & trim(stringzerotrim(dump_fname(j)))) then
-              write(*,*) 'file found!',fma_fname(i),dump_fname(j),
-     & dumpunit(j)
-!    file is open for writing -> close + open for reading
+     &trim(stringzerotrim(dump_fname(j)))) then 
+              lexist=.true. !set lexist = true if the file fma_fname(j) exists
+
+!    check if file is open for writing -> close + open for reading
               inquire(unit=dumpunit(j),opened=lopen)
-              write(*,*) 'lopen=',lopen,dumpunit(j)
-              if(lopen) then
-                write(*,*) 'close file ',dumpunit(j)
-                close(dumpunit(j))
-              endif
-!              open(dumpunit(j),file=dump_fname(j),status='old',
-!     & iostat=ierro,action='read')
-!              if(ierro.ne.0) then
-!                write(*,*) 'ERROR in fma_postpr: cannot open file ',
-!     & trim(stringzerotrim(dump_fname(j))), ' for reading with ',
-!     & 'iostat=',ierro
-!                call prror(-1)
-!              endif
-!              close(dumpunit(j))
-              lexist=.true.
+              if(lopen) close(dumpunit(j))
+              open(dumpunit(j),file=dump_fname(j),status='old',
+     &iostat=ierro,action='read')
+              call fma_error(ierro,'cannot open file '//trim(stringzero &
+     &trim(dump_fname(j))),'fma_postpr')
+
+!    now we can start reading in the file
+!    skip header
+              lheader=.true.
+              do while(lheader)
+                read(dumpunit(j),'(A)',iostat=ierro) ch
+                call getfields_split( ch, getfields_fields, 
+     &getfields_lfields,getfields_nfields, getfields_lerr )
+                if(getfields_lerr) call fma_error(1,'when calling       &
+     &getfields_split.','fma_postpr')
+                if(ch(1:1).ne.'#') lheader=.false. !skip header lines
+              enddo
+              backspace(dumpunit(j),iostat=ierro)
+
+!    start reading the particle amplitudes
+              fma_npart=0
+              fma_tfirst=0
+              fma_tlast=0
+!              do
+!              enddo
+              close(dumpunit(j))
             endif
           endif
-         enddo
+         enddo !END: loop over dump files
       enddo
+
       end subroutine
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
