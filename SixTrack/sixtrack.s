@@ -58152,6 +58152,7 @@ c$$$               endif
 +ca fma
       integer :: i,j,ierro
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
+      double precision pos,x,px,y,py,sig,delta
       logical :: lopen              !flag to check if file is already open
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lheader            !flag for skipping the header
@@ -58192,8 +58193,9 @@ c$$$               endif
               fma_npart=0
               fma_tfirst=0
               fma_tlast=0
-!              do
-!              enddo
+              do
+                
+              enddo
               close(dumpunit(j))
             endif
           endif
