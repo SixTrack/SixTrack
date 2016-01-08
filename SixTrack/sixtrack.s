@@ -1128,12 +1128,10 @@
       integer fma_max                                        !max. number of FMAs
       parameter (fma_max=100)
       integer fma_numfiles                                   !number of FMAs
-      integer fma_flag                                       !flag = 1 if FMA input block exists
+      logical fma_flag                                       !FMA input block exists
       character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      integer, dimension(fma_max) :: fma_npart,fma_tfirst,fma_tlast
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
-     &                 fma_npart,fma_tfirst,fma_tlast
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag
 
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -10133,8 +10131,6 @@ cc2008
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( lopen ) close(dumpunit(i))
-!MF
-            write(*,*) '2 close file with ',dumpunit(i)
         endif
       enddo
 !     A.Mereghetti, for the FLUKA Team
@@ -18435,7 +18431,7 @@ cc2008
 
       fma_fname(fma_numfiles)=getfields_fields(1)
       fma_method(fma_numfiles)=getfields_fields(2)
-      fma_flag = 1 !0 to skip fma calculation
+      fma_flag = .true.
       goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
@@ -24758,7 +24754,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
      &taus,x11,x13
       integer idummy(6)
-      character(maxstrlen) stringzerotrim
       character*10 cmonth
       character*4 cpto
 +if cr
@@ -25370,8 +25365,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 520
       endif
 !     start FMA analysis
-      if(fma_flag.eq.1) then
-        call fma_mk
+      if(fma_flag) then
+        call fma_postpr
       endif
 !     end FMA analysis
       do 90 i=1,20
@@ -26440,13 +26435,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 if (i.eq.0) then
                    write(dumpunit(i),*)
      &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                   write(dumpunit(i),fmt='(A,I6,A,I6,A,I6)')
+                   write(dumpunit(i),fmt=*)
      &  ' # dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
                 else
                    write(dumpunit(i),*)
      &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                   write(dumpunit(i),fmt='(A,I6,A,I6,A,I6)')
+                   write(dumpunit(i),fmt=*)
      &  ' # dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
                 endif
@@ -39063,6 +39058,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdcum
 +ca comgetfields
 +ca dbdump
++ca fma
++ca szt
 +if cr
 +ca dbdumpcr
 +ei
@@ -39070,8 +39067,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca comdynkcr
 +ei
-+ca fma
-+ca szt
 +ca save
 !-----------------------------------------------------------------------
 !
@@ -39604,12 +39599,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       enddo
 !--FMA------------------------------------------------------------------
-      fma_flag = 0
+      fma_flag = .false.
       fma_numfiles = 0
       do i=0,fma_max
-        fma_npart(i) = 0
-        fma_tfirst(i) = 0
-        fma_tlast(i) = 0
         do j=1,getfields_l_max_string
           fma_fname(i)(j:j) = char(0)
           fma_method(i)(j:j) = char(0)
@@ -58125,7 +58117,7 @@ c$$$               endif
       end do
       stringzerotrim = trim(stringzerotrim)
       end function
-      subroutine fma_mk
+      subroutine fma_postpr
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
 !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
@@ -58136,23 +58128,45 @@ c$$$               endif
 !              fma_fname(fma_numfiles)                                  *
 !-----------------------------------------------------------------------*
       implicit none
-      integer uin !file unit
-      integer ierro
-      character(len=100) :: ch
-      uin=200101
-      open(uin,file='IP3_DUMP_1')
-      read(uin,fmt='(A)',iostat=ierro) ch
-      write(*,*) 'mytest 1',ch
-      read(uin,fmt='(A)',iostat=ierro) ch
-      write(*,*) 'mytest 1',ch
-      close(uin)
-      uin=200106
-      open(uin,file='IP3_DUMP_2')
-      read(uin,fmt='(A)',iostat=ierro) ch
-      write(*,*) 'mytest 2',ch
-      read(uin,fmt='(A)',iostat=ierro) ch
-      write(*,*) 'mytest 2',ch
-      close(uin)
++ca szt
++ca comgetfields
++ca parpro
++ca dbdump
++ca fma
+      integer :: i,j,ierro
+      logical :: lopen,lexist
+      character(len=maxstrlen) :: stringzerotrim
+      character(len=getfields_l_max_string) :: ch
+      lopen=.false.
+      do i=1,fma_numfiles
+        lexist=.false.
+        do j=1,nele !START: loop over dump files
+          if(.not. lexist) then !file has not yet been found
+            if(trim(stringzerotrim(fma_fname(i))).eq.
+     & trim(stringzerotrim(dump_fname(j)))) then
+              write(*,*) 'file found!',fma_fname(i),dump_fname(j),
+     & dumpunit(j)
+!    file is open for writing -> close + open for reading
+              inquire(unit=dumpunit(j),opened=lopen)
+              write(*,*) 'lopen=',lopen,dumpunit(j)
+              if(lopen) then
+                write(*,*) 'close file ',dumpunit(j)
+                close(dumpunit(j))
+              endif
+!              open(dumpunit(j),file=dump_fname(j),status='old',
+!     & iostat=ierro,action='read')
+!              if(ierro.ne.0) then
+!                write(*,*) 'ERROR in fma_postpr: cannot open file ',
+!     & trim(stringzerotrim(dump_fname(j))), ' for reading with ',
+!     & 'iostat=',ierro
+!                call prror(-1)
+!              endif
+!              close(dumpunit(j))
+              lexist=.true.
+            endif
+          endif
+         enddo
+      enddo
       end subroutine
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
@@ -66759,8 +66773,6 @@ c$$$         backspace (93,iostat=ierro)
 C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
-!MF
-            write(*,*) 'close file with ',dumpunit(i)
             open(dumpunit(i),file=dump_fname(i), status='old',
      &           position='append', form='formatted',action='write')
          endif
