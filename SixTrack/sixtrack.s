@@ -1127,13 +1127,12 @@
 +cd fma
       integer, parameter :: fma_max =200                     !max. number of FMAs
       integer, parameter :: fma_npart_max = 10000            !max. number of particles
-      integer, parameter :: fma_nturn_max = 1000000             !max. number of turns used for fft
+      integer, parameter :: fma_nturn_max = 1000000          !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
       character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
       common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag
-
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -39599,7 +39598,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         dumpfilepos(i) = -1
 +ei
       enddo
-!--FMA------------------------------------------------------------------
       fma_flag = .false.
       fma_numfiles = 0
       do i=0,fma_max
