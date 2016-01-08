@@ -1125,8 +1125,9 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd fma
-      integer fma_max                                        !max. number of FMAs
-      parameter (fma_max=100)
+      integer, parameter :: fma_max =200                     !max. number of FMAs
+      integer, parameter :: fma_npart_max = 10000            !max. number of particles
+      integer, parameter :: fma_nturn_max = 1000000             !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
       character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
@@ -58150,12 +58151,20 @@ c$$$               endif
 +ca parpro
 +ca dbdump
 +ca fma
-      integer :: i,j,ierro
++ca common !normalisation matrix tasm
+      integer :: i,j
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
+!     dummy to read in particle amplitudes
+      integer :: id,turn,kt
       double precision pos,x,px,y,py,sig,delta
+!     array to store aprticle amplitudes
+      integer, dimension(fma_npart_max,fma_nturn_max) :: a_id,a_turn,   & 
+     &a_kt
+      double precision, dimension(fma_npart_max,fma_nturn_max) :: a_pos,&
+     &a_x,a_px,a_y,a_py,a_sig,a_delta
       logical :: lopen              !flag to check if file is already open
       logical :: lexist             !flag to check if file fma_fname exists
-      logical :: lheader            !flag for skipping the header
+      logical :: lread              !flag for file reading
       character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch
 
@@ -58178,24 +58187,29 @@ c$$$               endif
 
 !    now we can start reading in the file
 !    skip header
-              lheader=.true.
-              do while(lheader)
+              do
                 read(dumpunit(j),'(A)',iostat=ierro) ch
+                call fma_error(ierro,'while reading file ' //           &
+     &dump_fname(j),'fma_postpr')
                 call getfields_split( ch, getfields_fields, 
      &getfields_lfields,getfields_nfields, getfields_lerr )
                 if(getfields_lerr) call fma_error(1,'when calling       &
      &getfields_split.','fma_postpr')
-                if(ch(1:1).ne.'#') lheader=.false. !skip header lines
+                if(ch(1:1).ne.'#') exit !skip header lines
               enddo
               backspace(dumpunit(j),iostat=ierro)
 
+!TODO: read directly in variables -> normalize -> link library -> write output files
+!-> check that npart*nturn agrees with read lines
 !    start reading the particle amplitudes
-              fma_npart=0
-              fma_tfirst=0
-              fma_tlast=0
               do
-                
-              enddo
+                read(dumpunit(j),*,iostat=ierro) id,turn,pos,x,px,y,py, &
+     &sig,delta,kt
+                if(ierro.gt.0) call fma_error(ierro,'while reading ' // &
+     &'file ' // dump_fname(j),'fma_postpr') !read error
+                if(ierro.lt.0) exit !eof
+                write(*,*) 'reading ',trim(dump_fname(j))
+              enddo 
               close(dumpunit(j))
             endif
           endif
