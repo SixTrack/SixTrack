@@ -1126,13 +1126,15 @@
 !
 +cd fma
       integer, parameter :: fma_max =200                     !max. number of FMAs
-      integer, parameter :: fma_npart_max = 10000            !max. number of particles
-      integer, parameter :: fma_nturn_max = 1000000          !max. number of turns used for fft
+      integer, parameter :: fma_npart_max = 500            !max. number of particles
+      integer, parameter :: fma_nturn_max = 5000            !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
-      character fma_fname (fma_max)*(getfields_l_max_string) !name of input file from dump
+      character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag
+      integer fma_nturn  (fma_max)                           !number of turns used for fft
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,      &
+     &fma_nturn
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1151,7 +1153,7 @@
 
 *     parameters for the parser
       integer getfields_n_max_fields, getfields_l_max_string
-      parameter ( getfields_n_max_fields = 10  ) ! max number of returned fields
+      parameter ( getfields_n_max_fields = 20  ) ! max number of returned fields
       parameter ( getfields_l_max_string = 161 ) ! max len of parsed line and its fields
                                                  ! (nchars in daten +1 to always make room for \0)
 
@@ -39601,6 +39603,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       fma_flag = .false.
       fma_numfiles = 0
       do i=0,fma_max
+        fma_nturn(i) = 0
         do j=1,getfields_l_max_string
           fma_fname(i)(j:j) = char(0)
           fma_method(i)(j:j) = char(0)
@@ -58150,22 +58153,20 @@ c$$$               endif
 +ca dbdump
 +ca fma
 +ca common !normalisation matrix tasm
-      integer :: i,j
+      integer :: i,j,k,l !for do loops
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
-!     dummy to read in particle amplitudes
-      integer :: id,turn,kt
-      double precision pos,x,px,y,py,sig,delta
-!     array to store aprticle amplitudes
-      integer, dimension(fma_npart_max,fma_nturn_max) :: a_id,a_turn,   & 
-     &a_kt
-      double precision, dimension(fma_npart_max,fma_nturn_max) :: a_pos,&
-     &a_x,a_px,a_y,a_py,a_sig,a_delta
       logical :: lopen              !flag to check if file is already open
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lread              !flag for file reading
       character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch
-
+      integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
+      double precision, dimension(fma_npart_max,fma_nturn_max) :: nx,   &
+     &nxp,ny,nyp,nsig,ndelta
+!     dummy variables for readin + normalisation
+      integer :: id,kt
+      double precision :: pos
+      double precision, dimension(6) :: x !x,xp,y,yp,sig,delta
       do i=1,fma_numfiles
         lexist=.false.
         do j=1,nele !START: loop over dump files
@@ -58174,6 +58175,16 @@ c$$$               endif
             if(trim(stringzerotrim(fma_fname(i))).eq.
      &trim(stringzerotrim(dump_fname(j)))) then 
               lexist=.true. !set lexist = true if the file fma_fname(j) exists
+              write(*,*) 'start FMA analysis using file ',              &
+     &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
+     &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
+
+!    check the format, if dumpfmt != 2 abort
+              if(dumpfmt(j).ne.2) then
+                write(*,*) 'ERROR in fma_postpr: input file has wrong ',&
+     &'format! Choose format=2 in DUMP block.'
+                call prror(-1)
+              endif
 
 !    check if file is open for writing -> close + open for reading
               inquire(unit=dumpunit(j),opened=lopen)
@@ -58184,7 +58195,7 @@ c$$$               endif
      &trim(dump_fname(j))),'fma_postpr')
 
 !    now we can start reading in the file
-!    skip header
+!    - skip header
               do
                 read(dumpunit(j),'(A)',iostat=ierro) ch
                 call fma_error(ierro,'while reading file ' //           &
@@ -58193,27 +58204,58 @@ c$$$               endif
      &getfields_lfields,getfields_nfields, getfields_lerr )
                 if(getfields_lerr) call fma_error(1,'when calling       &
      &getfields_split.','fma_postpr')
-                if(ch(1:1).ne.'#') exit !skip header lines
+                if(getfields_fields(1)(1:getfields_lfields(1)).ne.'#')  &
+     &exit !skip header lines
               enddo
+              write(*,*) 'MF: ierro=',ierro,'header ', ch
               backspace(dumpunit(j),iostat=ierro)
+          
+              open(200100+i*10,status='new',iostat=ierro,action='write')!MF remove
+              open(200101+i*10,status='new',iostat=ierro,action='write')!MF remove
+              fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
 
-!TODO: read directly in variables -> normalize -> link library -> write output files
-!-> check that npart*nturn agrees with read lines
-!    start reading the particle amplitudes
-              do
-                read(dumpunit(j),*,iostat=ierro) id,turn,pos,x,px,y,py, &
-     &sig,delta,kt
-                if(ierro.gt.0) call fma_error(ierro,'while reading ' // &
-     &'file ' // dump_fname(j),'fma_postpr') !read error
-                if(ierro.lt.0) exit !eof
-                write(*,*) 'reading ',trim(dump_fname(j))
-              enddo 
+              if(fma_nturn(i).gt.fma_nturn_max) then
+                write(*,*) 'ERROR in fma_postpr: only ',fma_nturn_max,  &
+     &' turns allowed for fma and ',fma_nturn(i),' used!'
+                write(*,*) '->reset fma_nturn to ', fma_nturn_max
+              endif
+
+!    - read in particle amplitudes + normalize a(part,turn)
+              do k=1,fma_nturn(i) !loop over turns
+                do l=1,napx !loop over particles
+                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,x,  &
+     &x(1),x(2),x(3),x(4),x(5),x(6),kt
+                  if(ierro.ne.0) call fma_error(ierro,'while reading '  &
+     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
+                  write(200100+i*10,1986) id,turn(l,k),pos,             &
+     &x(1),x(2),x(3),x(4),x(5),x(6),kt!MF remove
+                !normalize particle amplitudes
+                do
+                 exit 
+                enddo
+                enddo
+              enddo
+
+              close(200100+i*10)!MF remove
+              close(200101+i*10)!MF remove
               close(dumpunit(j))
             endif
           endif
          enddo !END: loop over dump files
       enddo
+!TODO: read directly in variables -> normalize -> link library -> write output files
+!-> check that npart*nturn agrees with read lines
+!    start reading the particle amplitudes
 
+
+ 1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
+ 1982 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE16.9))  !fmt 0 / not hiprec
+ 
+ 1983 format (2(1x,I8),1X,F12.5,5(1X,1PE25.18),1X,I8)  !fmt 1 / hiprec
+ 1984 format (2(1x,I8),1X,F12.5,5(1X,1PE16.9),1X,I8)   !fmt 1 / not hiprec
+ 
+ 1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
+ 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec      
       end subroutine
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
