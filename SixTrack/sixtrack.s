@@ -1103,6 +1103,11 @@
                                              !  not at the end.
       logical ldump                          ! flag the SINGLE ELEMENT for
                                              !   dumping
+      integer, parameter :: dump_struc_max = 20000 !maximum number of structure elements (used for FMA)
+      integer dump_struc                     ! inidice of the structure element (used for FMA)
+
+      double precision :: dump_tas (dump_struc_max,6,6) ! tas matrix used for nomalisation in the fma
+
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
       integer dumpfirst                      ! First turn for DUMP to be active
@@ -1116,7 +1121,8 @@
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
      &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
-     &                dump_fname
+     &                dump_fname,dump_struc(0:dump_struc_max),
+     &                dump_tas
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -1479,6 +1485,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     call abend('after  qmodda 1 3                                 ')
 +ei
               if(ilin.ge.2) then
+                write(*,*) 'MF: ilin 1481',ilin
                 nlinoo=nlin
                 nlin=nlino
                 ilinc=1
@@ -7911,9 +7918,11 @@ cc2008
           iwrite=0
           if(nlin.eq.0) then
             iwrite=1
+            write(*,*) 'MF: line 7915'
           else
             do ii=1,nlin
               if(typ.eq.bezl(ii)) iwrite=1
+              write(*,*) 'MF: line 7918'
             enddo
           endif
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
@@ -7968,9 +7977,15 @@ cc2008
      &rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)                    !hr03
             enddo
           endif
+          write(*,*) 'MF: line 7974 damap,nvar,aa2,nvar,damap,nvar',    &
+     &damap(1),nvar,aa2,nvar,damap(1),nvar
           call dacct(damap,nvar,aa2,nvar,damap,nvar)
+          write(*,*) 'MF: line 7977 damap,nvar,aa2,nvar,damap,nvar',    &
+     &damap(1),nvar,aa2,nvar,damap(1),nvar
+!         calculate optics parameter for element typ
           do j=1,ndimf
             ii=2*j
+            write(*,*) 'MF: line 7976 j,ii,ndimf',j,ii,ndimf
             if(j.eq.1) then
               i2=4
               i3=6
@@ -8005,8 +8020,32 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
+            write(*,*) 'MF: line 8024 angp(1,ii-1),angp(1,ii)',         &
+     &angp(1,ii-1),angp(1,ii)
+!           write t-matrix as header in dump file for fma analysis
+            if(fma_flag) then
+              if(dump_struc(i).ne.0) then
+                dump_tas(i,1 ,ii-1) =angp(1,ii-1)
+                dump_tas(i,ii,ii-1)=au(ii,ii-1)
+                dump_tas(i,1 ,ii  )=angp(1,ii)
+                dump_tas(i,ii,ii  )=au(ii,ii)
+                dump_tas(i,i2-1,i2-1)=au(i2-1,i2-1)
+                dump_tas(i,i2  ,i2-1)=au(i2,i2-1)
+                dump_tas(i,i2-1,i2  )=au(i2-1,i2)
+                dump_tas(i,i2  ,i2  )=au(i2,i2)
+                dump_tas(i,i3-1,i3-1)=au(i3-1,i3-1)
+                dump_tas(i,i3  ,i3-1)=au(i3,i3-1)
+                dump_tas(i,i3-1,i3  )=au(i3-1,i3)
+                dump_tas(i,i3  ,i3  )=au(i3,i3)
+                write(*,*) 'MF: i,ldump(i),dump_fname(i),nele,iu',i,    &
+     &ldump(i), dump_fname(i),nele,iu,dump_struc(i)
+                write(*,*) 'MF: dumpfilepos(i)',dumpfilepos(i)
+              endif
+            endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
             b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
+            write(*,*) 'MF: line 8014 j,b1(j)',j,b1(j)
+            write(*,*) 'MF: ii,damap(ii-1)',ii,damap(ii-1)
 !hr08       b2(j)=au(i2-1,i2-1)*au(i2-1,i2-1)+au(i2-1,i2)*au(i2-1,i2)
             b2(j)=au(i2-1,i2-1)**2+au(i2-1,i2)**2                        !hr08
 !hr08       b3(j)=au(i3-1,i3-1)*au(i3-1,i3-1)+au(i3-1,i3)*au(i3-1,i3)
@@ -8050,12 +8089,27 @@ cc2008
               dphi(j)=zero
             endif
             phi(j)=phi(j)+dphi(j)
+          enddo !MF: end optics calculation
+          do j=1,ndimf
+            write(*,*) 'MF: t from optics',1,2*j-1,dump_tas(i,1,2*j-1)
+            write(*,*) 'MF: t from optics',1,2*j,  dump_tas(i,1,2*j)
+            write(*,*) 'MF: t from optics',2,2*j-1,dump_tas(i,2,2*j-1)
+            write(*,*) 'MF: t from optics',2,2*j,  dump_tas(i,2,2*j)
+            write(*,*) 'MF: t from optics',3,2*j-1,dump_tas(i,3,2*j-1)
+            write(*,*) 'MF: t from optics',3,2*j,  dump_tas(i,3,2*j)
+            write(*,*) 'MF: t from optics',4,2*j-1,dump_tas(i,4,2*j-1)
+            write(*,*) 'MF: t from optics',4,2*j,  dump_tas(i,4,2*j)
+            write(*,*) 'MF: t from optics',5,2*j-1,dump_tas(i,5,2*j-1)
+            write(*,*) 'MF: t from optics',5,2*j,  dump_tas(i,5,2*j)
+            write(*,*) 'MF: t from optics',6,2*j-1,dump_tas(i,6,2*j-1)
+            write(*,*) 'MF: t from optics',6,2*j,  dump_tas(i,6,2*j)
           enddo
           do j=1,ndimf
             ii=2*j
             angp(2,ii-1)=angp(1,ii-1)
             angp(2,ii)=angp(1,ii)
           enddo
+!         write optics parameter for each element (LINE block)
           if(iwrite.eq.1) then
             iii=i
             if(typ(:8).eq.'START   ') iii=0
@@ -14900,6 +14954,10 @@ cc2008
       endif
 !-----------------------------------------------------------------------
 !  LINEAR OPTICS CALCULATION
+!  - in the 4D case (ilin=1) the subroutine linopt is called
+!  - in the 6d case (ilin=2) the optics parameters are calculated and 
+!    printed in the subroutine umlauda (calculated in the common block
+!    umlalid)
 !-----------------------------------------------------------------------
  660  continue
       ilin0=1
@@ -14909,12 +14967,15 @@ cc2008
       if(ch(1:1).eq.'/') goto 660
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
+      write(*,*) 'MF: ch1:',ch1
 +if fio
 +if crlibm
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
      & idat,nt,ilin0,ntco,eui,euii
+      write(*,*) 'MF: 1 idat,nt,ilin0,ntco,eui,euii',idat,nt,ilin0,ntco,  &
+     &eui,euii
 +if crlibm
       call disable_xp()
 +ei
@@ -14922,6 +14983,8 @@ cc2008
 +if .not.fio
 +if .not.crlibm
       read(ch1,*) idat,nt,ilin0,ntco,eui,euii
+      write(*,*) 'MF: 2 idat,nt,ilin0,ntco,eui,euii',idat,nt,ilin0,ntco,  &
+     &eui,euii
 +ei
 +if crlibm
       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
@@ -14949,6 +15012,8 @@ cc2008
         euii=fround(errno,fields,6)
         nf=nf-1
       endif
+      write(*,*) 'MF: 3 idat,nt,ilin0,ntco,eui,euii',idat,nt,ilin0,ntco,  &
+     &eui,euii
 +ei
 +ei
       iprint=0
@@ -18011,6 +18076,7 @@ cc2008
      &          dumpfirst(0), dumplast(0)
         endif
 +ei
+        write(*,*) 'MF: il,mper*mbloz',il,mper*mbloz
         do ii=1,il
           if(ldump(ii)) then
 +if cr
@@ -18021,12 +18087,16 @@ cc2008
 +ei
      &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
      &     dumpfirst(ii), dumplast(ii)
+           write(*,*) 'MF: bez(ii)',bez(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
             kk = 0
             do jj=1,mper*mbloz      ! Loop over all structure elements
               if ( ic(jj)-nblo .eq. ii ) then
                 write (ch1,*) jj    ! internal write for left-adjusting
+                dump_struc(jj) = ii
+                write(*,*) 'MF: jj,ii,ic(jj),nblo,ch1,dump_struc(jj)',  &
+     &jj,ii,ic(jj),nblo,ch1,dump_struc(jj)
 +if cr
                 write (lout,10472)
 +ei
@@ -18062,6 +18132,12 @@ cc2008
             endif
           endif
         enddo
+
+        do jj=1,mper*mbloz
+          if(dump_struc(jj).ne.0) then
+            write(*,*) 'MF: jj,dump_struc(jj)',jj,dump_struc(jj)
+          endif
+       enddo
         if ( ldumphighprec ) then
 +if cr
           write(lout,*) ''
@@ -22268,7 +22344,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
-     &aa2r,a1,a1r,xy,h,df
+     &aa2r,a1,a1r,xy,h,df,ifma
       double precision al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
      &beamoff2,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
      &cik,coefh2,coefv1,coefv2,cp,crk,crxb,crzb,cx,d,dicu,dare,det1,dp, &
@@ -22303,6 +22379,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
+!     for FMA analysis
++ca comgetfields
++ca dbdump
++ca dbdumpcr
++ca fma
+!     for FMA analysis
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -22532,6 +22614,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('biu                                               ')
 !     endif
 +ei
+      write(*,*) 'MF: line 22570 iu',iu
+!     start loop over single elements
       do 430 i=1,iu
         if(iqmodc.eq.2.or.iqmodc.eq.4) then
           if(i.eq.niu(1)) then
@@ -22575,6 +22659,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +if .not.cr
           write(*,10020)
+          write(*,*) 'MF: line 22586' 
 +ei
 +if cr
           write(lout,10010)
@@ -22584,6 +22669,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
           tl=zero
 +ca umlalid
+        write(*,*) 'MF: line 22629' 
         endif
 +if debug
 !     call wda('biflag',0d0,2,0,0,0)
@@ -22601,6 +22687,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
             if(icav.eq.0) then
+              write(*,*) 'MF: line 22631' 
 *FOX  CORRNEW(1)=X(1) ;
 *FOX  CORRNEW(2)=YP(1) ;
 *FOX  CORRNEW(3)=X(2) ;
@@ -22638,7 +22725,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('bdaccct                                           ')
 !     endif
 +ei
+              write(*,*) 'MF: line 22650' 
               call dacct(corrau2,nvar,corrau1,nvar,corrnew,nvar)
+              write(*,*) 'MF: line 22651'
             endif
 +if debug
 !     call wda('adacct?',0d0,2,0,0,0)
@@ -22693,6 +22782,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               endif
               if(ipch.ne.0) then
                 call envquad(jx,ipch)
+                write(*,*) 'MF: line 22706'
 +if debug
 !     call wda('aenvquad',0d0,2,0,0,0)
 !     if (umcalls.eq.8) then
@@ -22717,6 +22807,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               jx=mtyp(ix,jb)
               typ=bez(jx)
               tl=tl+el(jx)
+              write(*,*) 'MF: line 22731'
 +ca umlalid
               if(i.eq.nt) goto 470
             enddo
@@ -23483,6 +23574,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call dacop(dpda1,damap(5))
       endif
       if(iqmodc.eq.2.or.iqmodc.eq.4.or.ilin.ge.2) then
+        write(*,*) 'MF: ilin 23494 ',ilin
         rewind 18
 !Eric
         rewind 111
@@ -23516,6 +23608,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           jj(i)=1
           do ii=1,nd2
             call dapek(aa2(ii),jj,tas)
+            write(*,*) 'MF: call dapek, tas(1,1)'
             if(i.eq.6.and.ii.ne.6) tas=tas*c1e3
             if(ii.eq.6.and.i.ne.6) tas=tas*c1m3
             tasm(ii,i)=tas
@@ -25433,7 +25526,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(iqmod.ne.0) call qmod0
         if(ichrom.eq.1.or.ichrom.eq.3) call chroma
         if(iskew.ne.0) call decoup
-        if(ilin.eq.1.or.ilin.eq.3) call linopt(dp1)
+        !MF remove
+        if(ilin.eq.1.or.ilin.eq.3) then
+          write(*,*) 'MF: linopt line 25438, dp1',dp1
+          call linopt(dp1)
+        endif
 +if debug
 !     call dumpbin('bbb',96,996)
 !     call abend('bbb                                               ')
@@ -25608,6 +25705,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 qwc(i)=dble(int(qwc(i)))+wxys(i)
               enddo
               if(ilin.ge.2) then
+                write(*,*) 'MF: ilin 25624 ', ilin
 +if debug
 !     call dumpbin('bmydaini',999,9999)
 !     call abend('before mydaini                                    ')
@@ -25654,6 +25752,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               if(nvar2.le.5) ition=itiono
               if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
               if(ilin.ge.2) then
+                write(*,*) 'MF: ilin 25671 ',ilin
                 nlinoo=nlin
                 nlin=nlino
                 iqmodc=2
@@ -38529,7 +38628,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--FOR THE MOMENTUM-SCAN THE MOMENTUM IS THE SAME FOR BOTH PARTICLES
       exz(1,6)=dp1
       exz(2,6)=dp1
-      if(ilin.eq.1.or.ilin.eq.3) call linopt(dp1)
+      if(ilin.eq.1.or.ilin.eq.3) then
+        write(*,*) 'MF: ilin 38548 ',ilin
+        call linopt(dp1)
+      endif
       if(isub.eq.1) call subre(dp1)
       if(ise.eq.1) call search(dp1)
       if(napx.eq.0) goto 160
@@ -38635,6 +38737,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(nvar2.le.5) ition=itiono
         if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
         if(ilin.ge.2) then
+          write(*,*) 'MF: ilin 38656 ',ilin
           nlinoo=nlin
           nlin=nlino
           iqmodc=2
@@ -38817,6 +38920,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,10050) dp1
 +ei
       call anfb(tas)
+      write(*,*) 'MF: calling anfb(tas), tas(1,1)',tas(1,1)
       if(iclo6.eq.2) then
         x(1,1) = x(1,1) + clo6(1)
         x(1,2) = x(1,2) + clo6(2)
@@ -39586,6 +39690,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     always in main code
       ldumphighprec = .false.
       ldumpfront    = .false.
+      do i1=1,mper*mbloz
+        dump_struc(i)=0
+        do i2=1,6
+          do i3=1,6
+            dump_tas(i1,i2,i3)=0
+          enddo
+        enddo
+      enddo
       do i=0,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
@@ -47273,6 +47385,7 @@ c$$$               endif
 +ei
 +ca save
 !-----------------------------------------------------------------------
+      write(*,*) 'MF: entering linopt'
       nhmoni=0
       nvmoni=0
       nhcorr=0
@@ -48176,7 +48289,7 @@ c$$$               endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,istart,iwrite,ixwl,l,ll,nr
+      integer i,istart,iwrite,ixwl,l,ll,nr,mm
       double precision al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character*16 typ
 +ca parpro
@@ -48206,11 +48319,14 @@ c$$$               endif
           if(typ.eq.bezl(i)) iwrite=1
    10   continue
       endif
+      write(*,*) 'MF: iwrite',iwrite
       if(iwrite.eq.1) then
         do 20 l=1,2
           ll=2*l
 !hr06     b1(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
           b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
+          write(*,*) 'MF: ll,ll-1,ll+1',ll,ll-1,ll+1,',b1(',l,')=',     &
+     &b1(l),'t(ll,ll-1),t(ll+1,ll-1)',t(ll,ll-1),t(ll+1,ll-1)
 !hr06     b2(l)=t(6-ll,ll-1)*t(6-ll,ll-1)+t(7-ll,ll-1)*t(7-ll,ll-1)
           b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
 !hr06     al1(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
@@ -48226,6 +48342,12 @@ c$$$               endif
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
    20   continue
+      write(*,*) 'MF: nr,typ,tl,ixwl,b1(1) - 1',nr,typ,tl,ixwl,b1(1)
+      do l=1,6
+        do mm=1,6
+         write(*,*) l,mm,t(l,mm)
+        enddo
+      enddo
 +if collimat.and..not.bnlelens
         tbetax(max(ielem,1))  = b1(1)
         tbetay(max(ielem,1))  = b1(2)
@@ -48736,6 +48858,7 @@ c$$$               endif
      &(i)=bez(i)
         nlin=nlin+1
    60 continue
+      write(*,*) 'MF: linopt line 48750'
       call linopt(zero)
       call phasad(zero,qwc1)
 
@@ -48941,6 +49064,7 @@ c$$$               endif
         endif
 
         if(ihflag.eq.1.and.ivflag.eq.1) goto 140
+        write(*,*) 'MF: linopt line 48957'
         call linopt(zero)
         call phasad(zero,qwc1)
   110 continue
@@ -49015,6 +49139,7 @@ c$$$               endif
               bka(im,1)=bka(im,1)*hfac
             endif
   150     continue
+          write(*,*) 'MF: linopt line 49031'
           call linopt(zero)
           do 160 i=1,nhmoni
 !hr06       b(i)=bclorb(i,1)
@@ -56222,12 +56347,14 @@ c$$$               endif
       ia=ia-nstart
 !--LYAPUNOV
       if(ntwin.eq.2) then
+!     first particle
         x(1,1)=c
         x(1,2)=d
         x(1,3)=e
         x(1,4)=f
         x(1,5)=g
         x(1,6)=h
+!     twin particle
         x(2,1)=c1
         x(2,2)=d1
         x(2,3)=e1
@@ -56264,6 +56391,7 @@ c$$$               endif
         e1=e1-di0(2)*h
         f1=f1-dip0(2)*h
       endif
+!     calculation first particle
 !--EMITTANCES
       xp0=bet0(1)*d+alf0(1)*c
       zp0=bet0(2)*f+alf0(2)*e
@@ -56328,6 +56456,7 @@ c$$$               endif
       evx=txyz(1)**2+txyz(2)**2                                          !hr06
 !hr06 evz=txyz(3)*txyz(3)+txyz(4)*txyz(4)
       evz=txyz(3)**2+txyz(4)**2                                          !hr06
+!     calculation second particle
       xyzv2(1)=c1
       xyzv2(2)=d1
       xyzv2(3)=e1
@@ -58153,7 +58282,7 @@ c$$$               endif
         call prror(-1)
       endif
       end subroutine
-      subroutine fma_norm_phase_space_matrix(t)
+      subroutine fma_norm_phase_space_matrix(t,fma_its6d)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
 !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
@@ -58168,7 +58297,7 @@ c$$$               endif
       double precision i,j            !iterators
       double precision, dimension(6,6), intent(inout) :: t !inverse of tasm
       double precision :: tasum       !dummy variable for 6d matrix check
-      integer :: its6d                !flag for 6d
+      integer, intent(inout) :: fma_its6d                !flag for 6d
       integer, dimension(6) :: idummy !dummy variable for matrix inversion
       integer ierro                   !error messages
 !     set values close to 1 equal to 1
@@ -58189,17 +58318,15 @@ c$$$               endif
       endif
 !     check if 6d tracking is used
       tasum=zero
-      its6d=0
+      fma_its6d=0
       do 170 i=1,6
-!hr06   tasum=tasum+abs(t(i,5))+abs(t(i,6))
-        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))                            !hr06
+        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))
   170 continue
       do 180 i=1,4
-!hr06   tasum=tasum+abs(t(5,i))+abs(t(6,i))
-        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))                            !hr06
+        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))
   180 continue
       tasum=tasum-two
-      if(abs(tasum).ge.pieni) its6d=1
+      if(abs(tasum).ge.pieni) fma_its6d=1
       write(*,*) 'MF: t fma_norm_phase_space_matrix'
       call dinv(6,t,6,idummy,ierro)
       do i=1,6
@@ -58226,33 +58353,53 @@ c$$$               endif
 +ca fma
 +ca commonta !normalisation matrix tasm
 +ca common !napx = number of particles 
-      integer :: i,j,k,l !for do loops
++ca parnum   !numbers (zero,one,two etc.)
++ca commonc
+      integer :: i,j,k,l,m,n !for do loops
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
       logical :: lopen              !flag to check if file is already open
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lread              !flag for file reading
+      integer :: fma_its6d              !flag for 6d
       character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
       double precision, dimension(6,6) :: t ! normalisation matrix = inverse of tasm
-      double precision, dimension(fma_npart_max,fma_nturn_max) :: nx,   &
-     &nxp,ny,nyp,nsig,ndelta
+      double precision, dimension(fma_npart_max,fma_nturn_max) :: nxyzv !normalized phase space variables
 !     dummy variables for readin + normalisation
       integer :: id,kt
       double precision :: pos
-      double precision, dimension(6) :: x !x,xp,y,yp,sig,delta
+      double precision, dimension(6) :: xyzv !phase space variables x,x',y,y',sig,delta
+!      - read in ta matrix and closed orbit for all particles
+!      - store them in ta_fma(npart,6,6) and clo(npart,3),clop(npart,3) for later
+!      - invert the ta_fma matrices and store them in t(npart,6,6)
+!      - use these stored variables for normalisation
+!      rewind nfile
+!      ia=0
+!      read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
+!     &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
+!     &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
+!     &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
+!     &ta(2,1),ta(2,2),ta(2,3),ta(2,4),ta(2,5),ta(2,6), ta(3,1),ta(3,2), &
+!     &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
+!     &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
+!     &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
+!     &dnumlr,sigcor,dpscor
+      write(*,*) 'MF: ilinc',ilinc
       write(*,*) 'MF: tasm'
       do i=1,6
         do j=1,6
           write(*,*) tasm(i,j)
         enddo
       enddo
+!     initialize variables
       do i=1,6
         do j=1,6
           t(i,j) = 0
         enddo
       enddo
-      call fma_norm_phase_space_matrix(t) !get the phase space normalisation matrix
+      its6d=0
+      call fma_norm_phase_space_matrix(t,fma_its6d) !get the phase space normalisation matrix
       write(*,*) 'MF: t in fma_postpr'
       do i=1,6
         do j=1,6
@@ -58312,22 +58459,33 @@ c$$$               endif
                 write(*,*) '->reset fma_nturn to ', fma_nturn_max
               endif
 
-!    - read in particle amplitudes + normalize a(part,turn)
+!    - read in particle amplitudes a(part,turn)
               do k=1,fma_nturn(i) !loop over turns
                 do l=1,napx !loop over particles
-                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,x,  &
-     &x(1),x(2),x(3),x(4),x(5),x(6),kt
+                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
+     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
                   if(ierro.ne.0) call fma_error(ierro,'while reading '  &
      &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
+!     MF: write phase space coordinates for debugging
                   write(200100+i*10,1986) id,turn(l,k),pos,             &
-     &x(1),x(2),x(3),x(4),x(5),x(6),kt!MF remove
-                !normalize particle amplitudes
-                do
-                 exit 
-                enddo
+     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
+!    - remove closed orbit
+!!    - convert to canonical variables
+!                  if(fma_its6d.eq.1) then
+!                    xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3)) 
+!                    xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
+!                  endif
+!    - normalize nxyz=t*xyz where t=tasm^-1
+!                  write(*,*) 'MF: print t-matrix used for normalisation'
+!                  do m=1,6
+!                    nxyz(l,k,m)=zero
+!                    do n=1,6
+!                      nxyz(l,k,m)=nxyz(l,k,m)+t(n,m)*xyzv(n)
+!                      write(*,*) m,n,t(n,m)
+!                    enddo
+!                  enddo
                 enddo
               enddo
-
               close(200100+i*10)!MF remove
               close(200101+i*10)!MF remove
               close(dumpunit(j))
@@ -58335,24 +58493,6 @@ c$$$               endif
           endif
          enddo !END: loop over dump files
       enddo
-!TODO: read directly in variables -> normalize -> link library -> write output files
-!-> check that npart*nturn agrees with read lines
-!    start reading the particle amplitudes
-!!--CONVERT TO CANONICAL VARIABLES
-!      if(its6d.eq.1) then
-!!hr06   xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
-!        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-!!hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
-!        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
-!      endif
-!      write(*,*) 'MF: print t-matrix used for normalisation'
-!      do 220 iq=1,6
-!        txyz(iq)=zero
-!        do 220 jq=1,6
-!          txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
-!          write(*,*) t(jq,iq)
-!  220 continue
-      
 
  1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
  1982 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE16.9))  !fmt 0 / not hiprec

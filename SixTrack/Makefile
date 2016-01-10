@@ -2,9 +2,9 @@ SHELL = /bin/sh
 
 FC = gfortran
 FCF =  -frecord-marker=4 -O4 -m32 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2
-FCL = -static -m32 -L/usr/lib/gcc/i686-linux-gnu/4.8/
-FCLD = -m32 -L/usr/lib/gcc/i686-linux-gnu/4.8/
-FCLMAP = -Wl,--print-map -static -m32 -L/usr/lib/gcc/i686-linux-gnu/4.8/
+FCL = -static -m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1
+FCLD = -m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1
+FCLMAP = -Wl,--print-map -static -m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1
 CRLIBM = 
 CERNLIB = 
 gfortran_lib = 
