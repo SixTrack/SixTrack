@@ -56004,6 +56004,14 @@ c$$$               endif
       pixr=zero
       pizr=zero
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
+!     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
+!     t  = inverser(ta), units mm,mrad,mm,mrad,mm,1
+      write(*,*) 'MF: definition of ta line 56009'
+      do i=1,6
+        do j=1,6
+          write(*,*) ta(i,j)
+        enddo
+      enddo
       do 160 i=1,6
         do 160 j=1,6
   160 t(i,j)=ta(j,i)
@@ -56031,7 +56039,13 @@ c$$$               endif
   180 continue
       tasum=tasum-two
       if(abs(tasum).ge.pieni) its6d=1
+      write(*,*) 'MF: invert the t matrix line 56040'
       call dinv(6,t,6,idummy,nerror)
+      do i=1,6
+        do j=1,6
+          write(*,*) t(j,i)
+        enddo
+      enddo
       if(nerror.eq.-1) then
 +if cr
         write(lout,10290) nfile
@@ -56293,10 +56307,12 @@ c$$$               endif
 !hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
         xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
       endif
+      write(*,*) 'MF: print t-matrix used for normalisation'
       do 220 iq=1,6
         txyz(iq)=zero
         do 220 jq=1,6
           txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
+          write(*,*) t(jq,iq)
   220 continue
 !--INITIAL COORDINATES
       if(nprint.eq.1.and.ia.eq.0) then
@@ -56897,6 +56913,7 @@ c$$$               endif
 !hr06     xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
           xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                        !hr06
         endif
+!MF normalisation with t-matrix 56900
         do 320 iq=1,6
           txyz(iq)=zero
           do 320 jq=1,6
@@ -58136,6 +58153,61 @@ c$$$               endif
         call prror(-1)
       endif
       end subroutine
+      subroutine fma_norm_phase_space_matrix(t)
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: invert the matrix of eigenvecors tasm                       *
+!           (code copied from postpr only that ta is here tasm)         *
+!           x(normalized)=tasm^-1 x                                     *
+!-----------------------------------------------------------------------*
+      implicit none
++ca commonta !normalisation matrix tasm
++ca parnum   !numbers (zero,one,two etc.)
+      double precision i,j            !iterators
+      double precision, dimension(6,6), intent(inout) :: t !inverse of tasm
+      double precision :: tasum       !dummy variable for 6d matrix check
+      integer :: its6d                !flag for 6d
+      integer, dimension(6) :: idummy !dummy variable for matrix inversion
+      integer ierro                   !error messages
+!     set values close to 1 equal to 1
+      do 160 i=1,6
+        do 160 j=1,6
+  160 t(i,j)=tasm(j,i)
+      if(abs(t(1,1)).le.pieni.and.abs(t(2,2)).le.pieni) then
+        t(1,1)=one
+        t(2,2)=one
+      endif
+      if(abs(t(3,3)).le.pieni.and.abs(t(4,4)).le.pieni) then
+        t(3,3)=one
+        t(4,4)=one
+      endif
+      if(abs(t(5,5)).le.pieni.and.abs(t(6,6)).le.pieni) then
+        t(5,5)=one
+        t(6,6)=one
+      endif
+!     check if 6d tracking is used
+      tasum=zero
+      its6d=0
+      do 170 i=1,6
+!hr06   tasum=tasum+abs(t(i,5))+abs(t(i,6))
+        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))                            !hr06
+  170 continue
+      do 180 i=1,4
+!hr06   tasum=tasum+abs(t(5,i))+abs(t(6,i))
+        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))                            !hr06
+  180 continue
+      tasum=tasum-two
+      if(abs(tasum).ge.pieni) its6d=1
+      write(*,*) 'MF: t fma_norm_phase_space_matrix'
+      call dinv(6,t,6,idummy,ierro)
+      do i=1,6
+        do j=1,6
+          write(*,*) t(i,j)
+        enddo
+      enddo
+      end subroutine fma_norm_phase_space_matrix
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -58152,7 +58224,8 @@ c$$$               endif
 +ca parpro
 +ca dbdump
 +ca fma
-+ca common !normalisation matrix tasm
++ca commonta !normalisation matrix tasm
++ca common !napx = number of particles 
       integer :: i,j,k,l !for do loops
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
       logical :: lopen              !flag to check if file is already open
@@ -58161,12 +58234,31 @@ c$$$               endif
       character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
+      double precision, dimension(6,6) :: t ! normalisation matrix = inverse of tasm
       double precision, dimension(fma_npart_max,fma_nturn_max) :: nx,   &
      &nxp,ny,nyp,nsig,ndelta
 !     dummy variables for readin + normalisation
       integer :: id,kt
       double precision :: pos
       double precision, dimension(6) :: x !x,xp,y,yp,sig,delta
+      write(*,*) 'MF: tasm'
+      do i=1,6
+        do j=1,6
+          write(*,*) tasm(i,j)
+        enddo
+      enddo
+      do i=1,6
+        do j=1,6
+          t(i,j) = 0
+        enddo
+      enddo
+      call fma_norm_phase_space_matrix(t) !get the phase space normalisation matrix
+      write(*,*) 'MF: t in fma_postpr'
+      do i=1,6
+        do j=1,6
+          write(*,*) t(i,j)
+        enddo
+      enddo
       do i=1,fma_numfiles
         lexist=.false.
         do j=1,nele !START: loop over dump files
@@ -58246,7 +58338,21 @@ c$$$               endif
 !TODO: read directly in variables -> normalize -> link library -> write output files
 !-> check that npart*nturn agrees with read lines
 !    start reading the particle amplitudes
-
+!!--CONVERT TO CANONICAL VARIABLES
+!      if(its6d.eq.1) then
+!!hr06   xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
+!        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
+!!hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
+!        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
+!      endif
+!      write(*,*) 'MF: print t-matrix used for normalisation'
+!      do 220 iq=1,6
+!        txyz(iq)=zero
+!        do 220 jq=1,6
+!          txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
+!          write(*,*) t(jq,iq)
+!  220 continue
+      
 
  1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
  1982 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE16.9))  !fmt 0 / not hiprec
@@ -58256,7 +58362,7 @@ c$$$               endif
  
  1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec      
-      end subroutine
+      end subroutine fma_postpr
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
 !      A(N) IS A COMPLEX ARRAY. THE INPUT IS A(N)=(X(N),0.0), WHERE
