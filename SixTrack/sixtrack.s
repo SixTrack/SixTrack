@@ -56222,12 +56222,14 @@ c$$$               endif
       ia=ia-nstart
 !--LYAPUNOV
       if(ntwin.eq.2) then
+!     first particle
         x(1,1)=c
         x(1,2)=d
         x(1,3)=e
         x(1,4)=f
         x(1,5)=g
         x(1,6)=h
+!     twin particle
         x(2,1)=c1
         x(2,2)=d1
         x(2,3)=e1
@@ -56264,6 +56266,7 @@ c$$$               endif
         e1=e1-di0(2)*h
         f1=f1-dip0(2)*h
       endif
+!     calculation first particle
 !--EMITTANCES
       xp0=bet0(1)*d+alf0(1)*c
       zp0=bet0(2)*f+alf0(2)*e
@@ -56328,6 +56331,7 @@ c$$$               endif
       evx=txyz(1)**2+txyz(2)**2                                          !hr06
 !hr06 evz=txyz(3)*txyz(3)+txyz(4)*txyz(4)
       evz=txyz(3)**2+txyz(4)**2                                          !hr06
+!     calculation second particle
       xyzv2(1)=c1
       xyzv2(2)=d1
       xyzv2(3)=e1
@@ -58153,7 +58157,7 @@ c$$$               endif
         call prror(-1)
       endif
       end subroutine
-      subroutine fma_norm_phase_space_matrix(t)
+      subroutine fma_norm_phase_space_matrix(t,fma_its6d)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
 !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
@@ -58168,7 +58172,7 @@ c$$$               endif
       double precision i,j            !iterators
       double precision, dimension(6,6), intent(inout) :: t !inverse of tasm
       double precision :: tasum       !dummy variable for 6d matrix check
-      integer :: its6d                !flag for 6d
+      integer, intent(inout) :: fma_its6d                !flag for 6d
       integer, dimension(6) :: idummy !dummy variable for matrix inversion
       integer ierro                   !error messages
 !     set values close to 1 equal to 1
@@ -58189,17 +58193,15 @@ c$$$               endif
       endif
 !     check if 6d tracking is used
       tasum=zero
-      its6d=0
+      fma_its6d=0
       do 170 i=1,6
-!hr06   tasum=tasum+abs(t(i,5))+abs(t(i,6))
-        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))                            !hr06
+        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))
   170 continue
       do 180 i=1,4
-!hr06   tasum=tasum+abs(t(5,i))+abs(t(6,i))
-        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))                            !hr06
+        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))
   180 continue
       tasum=tasum-two
-      if(abs(tasum).ge.pieni) its6d=1
+      if(abs(tasum).ge.pieni) fma_its6d=1
       write(*,*) 'MF: t fma_norm_phase_space_matrix'
       call dinv(6,t,6,idummy,ierro)
       do i=1,6
@@ -58226,33 +58228,50 @@ c$$$               endif
 +ca fma
 +ca commonta !normalisation matrix tasm
 +ca common !napx = number of particles 
-      integer :: i,j,k,l !for do loops
+      integer :: i,j,k,l,m,n !for do loops
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
       logical :: lopen              !flag to check if file is already open
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lread              !flag for file reading
+      integer :: fma_its6d              !flag for 6d
       character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
       double precision, dimension(6,6) :: t ! normalisation matrix = inverse of tasm
-      double precision, dimension(fma_npart_max,fma_nturn_max) :: nx,   &
-     &nxp,ny,nyp,nsig,ndelta
+      double precision, dimension(fma_npart_max,fma_nturn_max) :: nxyzv !normalized phase space variables
 !     dummy variables for readin + normalisation
       integer :: id,kt
       double precision :: pos
-      double precision, dimension(6) :: x !x,xp,y,yp,sig,delta
+      double precision, dimension(6) :: xyzv !phase space variables x,x',y,y',sig,delta
+!      - read in ta matrix and closed orbit for all particles
+!      - store them in ta_fma(npart,6,6) and clo(npart,3),clop(npart,3) for later
+!      - invert the ta_fma matrices and store them in t(npart,6,6)
+!      - use these stored variables for normalisation
+!      rewind nfile
+!      ia=0
+!      read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
+!     &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
+!     &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
+!     &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
+!     &ta(2,1),ta(2,2),ta(2,3),ta(2,4),ta(2,5),ta(2,6), ta(3,1),ta(3,2), &
+!     &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
+!     &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
+!     &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
+!     &dnumlr,sigcor,dpscor
       write(*,*) 'MF: tasm'
       do i=1,6
         do j=1,6
           write(*,*) tasm(i,j)
         enddo
       enddo
+!     initialize variables
       do i=1,6
         do j=1,6
           t(i,j) = 0
         enddo
       enddo
-      call fma_norm_phase_space_matrix(t) !get the phase space normalisation matrix
+      its6d=0
+      call fma_norm_phase_space_matrix(t,fma_its6d) !get the phase space normalisation matrix
       write(*,*) 'MF: t in fma_postpr'
       do i=1,6
         do j=1,6
@@ -58312,22 +58331,33 @@ c$$$               endif
                 write(*,*) '->reset fma_nturn to ', fma_nturn_max
               endif
 
-!    - read in particle amplitudes + normalize a(part,turn)
+!    - read in particle amplitudes a(part,turn)
               do k=1,fma_nturn(i) !loop over turns
                 do l=1,napx !loop over particles
-                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,x,  &
-     &x(1),x(2),x(3),x(4),x(5),x(6),kt
+                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
+     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
                   if(ierro.ne.0) call fma_error(ierro,'while reading '  &
      &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
+!     MF: write phase space coordinates for debugging
                   write(200100+i*10,1986) id,turn(l,k),pos,             &
-     &x(1),x(2),x(3),x(4),x(5),x(6),kt!MF remove
-                !normalize particle amplitudes
-                do
-                 exit 
-                enddo
+     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
+!    - remove closed orbit
+!!    - convert to canonical variables
+!                  if(fma_its6d.eq.1) then
+!                    xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3)) 
+!                    xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
+!                  endif
+!    - normalize nxyz=t*xyz where t=tasm^-1
+!                  write(*,*) 'MF: print t-matrix used for normalisation'
+!                  do m=1,6
+!                    nxyz(l,k,m)=zero
+!                    do n=1,6
+!                      nxyz(l,k,m)=nxyz(l,k,m)+t(n,m)*xyzv(n)
+!                      write(*,*) m,n,t(n,m)
+!                    enddo
+!                  enddo
                 enddo
               enddo
-
               close(200100+i*10)!MF remove
               close(200101+i*10)!MF remove
               close(dumpunit(j))
@@ -58335,24 +58365,6 @@ c$$$               endif
           endif
          enddo !END: loop over dump files
       enddo
-!TODO: read directly in variables -> normalize -> link library -> write output files
-!-> check that npart*nturn agrees with read lines
-!    start reading the particle amplitudes
-!!--CONVERT TO CANONICAL VARIABLES
-!      if(its6d.eq.1) then
-!!hr06   xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
-!        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-!!hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
-!        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
-!      endif
-!      write(*,*) 'MF: print t-matrix used for normalisation'
-!      do 220 iq=1,6
-!        txyz(iq)=zero
-!        do 220 jq=1,6
-!          txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
-!          write(*,*) t(jq,iq)
-!  220 continue
-      
 
  1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
  1982 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE16.9))  !fmt 0 / not hiprec
