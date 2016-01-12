@@ -8020,26 +8020,68 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
-            write(*,*) 'MF: line 8024 angp(1,ii-1),angp(1,ii)',         &
-     &angp(1,ii-1),angp(1,ii)
-!           write t-matrix as header in dump file for fma analysis
+!           save t-matrix as header in dump file for fma analysis
             if(fma_flag) then
               if(dump_struc(i).ne.0) then
-                dump_tas(i,1 ,ii-1) =angp(1,ii-1)
-                dump_tas(i,ii,ii-1)=au(ii,ii-1)
-                dump_tas(i,1 ,ii  )=angp(1,ii)
-                dump_tas(i,ii,ii  )=au(ii,ii)
-                dump_tas(i,i2-1,i2-1)=au(i2-1,i2-1)
-                dump_tas(i,i2  ,i2-1)=au(i2,i2-1)
-                dump_tas(i,i2-1,i2  )=au(i2-1,i2)
-                dump_tas(i,i2  ,i2  )=au(i2,i2)
-                dump_tas(i,i3-1,i3-1)=au(i3-1,i3-1)
-                dump_tas(i,i3  ,i3-1)=au(i3,i3-1)
-                dump_tas(i,i3-1,i3  )=au(i3-1,i3)
-                dump_tas(i,i3  ,i3  )=au(i3,i3)
-                write(*,*) 'MF: i,ldump(i),dump_fname(i),nele,iu',i,    &
-     &ldump(i), dump_fname(i),nele,iu,dump_struc(i)
-                write(*,*) 'MF: dumpfilepos(i)',dumpfilepos(i)
+                write(*,*) 'MF: line 8030 define tas matrix i,ii',i,ii
+                dump_tas(i,ii-1,ii-1)=angp(1,ii-1)
+                dump_tas(i,ii-1,ii  )=angp(1,ii)
+                dump_tas(i,ii  ,ii-1)=au(ii,ii-1)
+                dump_tas(i,ii  ,ii  )=au(ii,ii  )
+
+                dump_tas(i,ii-1,i2-1)=au(i2-1,i2-1)
+                dump_tas(i,ii  ,i2-1)=au(i2  ,i2-1)
+                dump_tas(i,ii-1,i2  )=au(i2-1,i2  )
+                dump_tas(i,ii  ,i2  )=au(i2  ,i2  )
+                dump_tas(i,ii-1,i3-1)=au(i3-1,i3-1)
+                dump_tas(i,ii  ,i3-1)=au(i3  ,i3-1)
+                dump_tas(i,ii-1,i3  )=au(i3-1,i3  )
+                dump_tas(i,ii  ,i3  )=au(i3  ,i3  )
+!                if(j.eq.1) then
+!                  dump_tas(i,1,1)=angp(1,1)
+!                  dump_tas(i,1,2)=angp(1,2)
+!                  dump_tas(i,2,1)=au(2,1)
+!                  dump_tas(i,2,2)=au(2,2)
+!
+!                  dump_tas(i,1,3)=au(3,3)
+!                  dump_tas(i,2,3)=au(4,3)
+!                  dump_tas(i,1,4)=au(3,4)
+!                  dump_tas(i,2,4)=au(4,4)
+!                  dump_tas(i,1,5)=au(5,5)
+!                  dump_tas(i,2,5)=au(6,5)
+!                  dump_tas(i,1,6)=au(5,6)
+!                  dump_tas(i,2,6)=au(6,6)
+!                endif
+!                if(j.eq.2) then
+!                  dump_tas(i,3,3)=angp(1,3)
+!                  dump_tas(i,3,4)=angp(1,4)
+!                  dump_tas(i,4,3)=au(4,3)
+!                  dump_tas(i,4,4)=au(4,4)
+!
+!                  dump_tas(i,3,1)=au(1,1)
+!                  dump_tas(i,4,1)=au(2,1)
+!                  dump_tas(i,3,2)=au(1,2)
+!                  dump_tas(i,4,2)=au(2,2)
+!                  dump_tas(i,3,5)=au(5,5)
+!                  dump_tas(i,4,5)=au(6,5)
+!                  dump_tas(i,3,6)=au(5,6)
+!                  dump_tas(i,4,6)=au(6,6)
+!                endif
+!                if(j.eq.3) then
+!                  dump_tas(i,5,5)=angp(1,5)
+!                  dump_tas(i,5,6)=angp(1,6)
+!                  dump_tas(i,6,5)=au(6,5)
+!                  dump_tas(i,6,6)=au(6,6)
+!
+!                  dump_tas(i,5,1)=au(1,1)
+!                  dump_tas(i,6,1)=au(2,1)
+!                  dump_tas(i,5,2)=au(1,2)
+!                  dump_tas(i,6,2)=au(2,2)
+!                  dump_tas(i,5,3)=au(3,3)
+!                  dump_tas(i,6,3)=au(4,3)
+!                  dump_tas(i,5,4)=au(3,4)
+!                  dump_tas(i,6,4)=au(4,4)
+!                endif
               endif
             endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
@@ -8090,20 +8132,20 @@ cc2008
             endif
             phi(j)=phi(j)+dphi(j)
           enddo !MF: end optics calculation
-          do j=1,ndimf
-            write(*,*) 'MF: t from optics',1,2*j-1,dump_tas(i,1,2*j-1)
-            write(*,*) 'MF: t from optics',1,2*j,  dump_tas(i,1,2*j)
-            write(*,*) 'MF: t from optics',2,2*j-1,dump_tas(i,2,2*j-1)
-            write(*,*) 'MF: t from optics',2,2*j,  dump_tas(i,2,2*j)
-            write(*,*) 'MF: t from optics',3,2*j-1,dump_tas(i,3,2*j-1)
-            write(*,*) 'MF: t from optics',3,2*j,  dump_tas(i,3,2*j)
-            write(*,*) 'MF: t from optics',4,2*j-1,dump_tas(i,4,2*j-1)
-            write(*,*) 'MF: t from optics',4,2*j,  dump_tas(i,4,2*j)
-            write(*,*) 'MF: t from optics',5,2*j-1,dump_tas(i,5,2*j-1)
-            write(*,*) 'MF: t from optics',5,2*j,  dump_tas(i,5,2*j)
-            write(*,*) 'MF: t from optics',6,2*j-1,dump_tas(i,6,2*j-1)
-            write(*,*) 'MF: t from optics',6,2*j,  dump_tas(i,6,2*j)
-          enddo
+!          do j=1,ndimf
+!            write(*,*) 'MF: t from optics',1,2*j-1,dump_tas(i,1,2*j-1)
+!            write(*,*) 'MF: t from optics',1,2*j,  dump_tas(i,1,2*j)
+!            write(*,*) 'MF: t from optics',2,2*j-1,dump_tas(i,2,2*j-1)
+!            write(*,*) 'MF: t from optics',2,2*j,  dump_tas(i,2,2*j)
+!            write(*,*) 'MF: t from optics',3,2*j-1,dump_tas(i,3,2*j-1)
+!            write(*,*) 'MF: t from optics',3,2*j,  dump_tas(i,3,2*j)
+!            write(*,*) 'MF: t from optics',4,2*j-1,dump_tas(i,4,2*j-1)
+!            write(*,*) 'MF: t from optics',4,2*j,  dump_tas(i,4,2*j)
+!            write(*,*) 'MF: t from optics',5,2*j-1,dump_tas(i,5,2*j-1)
+!            write(*,*) 'MF: t from optics',5,2*j,  dump_tas(i,5,2*j)
+!            write(*,*) 'MF: t from optics',6,2*j-1,dump_tas(i,6,2*j-1)
+!            write(*,*) 'MF: t from optics',6,2*j,  dump_tas(i,6,2*j)
+!          enddo
           do j=1,ndimf
             ii=2*j
             angp(2,ii-1)=angp(1,ii-1)
@@ -58352,7 +58394,7 @@ c$$$               endif
 +ca dbdump
 +ca fma
 +ca commonta !normalisation matrix tasm
-+ca common !napx = number of particles 
++ca common   !napx = number of particles 
 +ca parnum   !numbers (zero,one,two etc.)
 +ca commonc
       integer :: i,j,k,l,m,n !for do loops
