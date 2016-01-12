@@ -1104,9 +1104,10 @@
       logical ldump                          ! flag the SINGLE ELEMENT for
                                              !   dumping
       integer, parameter :: dump_struc_max = 20000 !maximum number of structure elements (used for FMA)
-      integer dump_struc                     ! inidice of the structure element (used for FMA)
+      integer dump_struc                     ! indice of the structure element (used for FMA)
 
-      double precision :: dump_tas (dump_struc_max,6,6) ! tas matrix used for nomalisation in the fma
+      double precision :: dump_tas (dump_struc_max,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
+      double precision :: dump_clo (dump_struc_max,6)   ! closed orbit used for FMA (normalisation of phase space)
 
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
@@ -1122,7 +1123,7 @@
      &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
      &                dump_fname,dump_struc(0:dump_struc_max),
-     &                dump_tas
+     &                dump_tas,dump_clo
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -1138,7 +1139,7 @@
       logical fma_flag                                       !FMA input block exists
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      integer fma_nturn  (fma_max)                           !number of turns used for fft
+      integer fma_nturn (fma_max)                           !number of turns used for fft
       common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,      &
      &fma_nturn
 !
@@ -8016,23 +8017,28 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
-!           save t-matrix as header in dump file for fma analysis
+!           store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block commen variables (dbdump)
             if(fma_flag) then
               if(dump_struc(i).ne.0) then
-                write(*,*) 'MF: line 8030 define tas matrix i,ii',i,ii
-                dump_tas(i,ii-1,ii-1)=angp(1,ii-1)
-                dump_tas(i,ii-1,ii  )=angp(1,ii)
-                dump_tas(i,ii  ,ii-1)=au(ii,ii-1)
-                dump_tas(i,ii  ,ii  )=au(ii,ii  )
-
-                dump_tas(i,ii-1,i2-1)=au(i2-1,i2-1)
-                dump_tas(i,ii  ,i2-1)=au(i2  ,i2-1)
-                dump_tas(i,ii-1,i2  )=au(i2-1,i2  )
-                dump_tas(i,ii  ,i2  )=au(i2  ,i2  )
-                dump_tas(i,ii-1,i3-1)=au(i3-1,i3-1)
-                dump_tas(i,ii  ,i3-1)=au(i3  ,i3-1)
-                dump_tas(i,ii-1,i3  )=au(i3-1,i3  )
-                dump_tas(i,ii  ,i3  )=au(i3  ,i3  )
+                write(*,*) 'MF: line 8030 define tas matrix i,ii,',     &
+     &'angp(1,1)',i,ii,angp(1,1)
+                dump_tas(dump_struc(i),ii-1,ii-1)=angp(1,ii-1)
+                dump_tas(dump_struc(i),ii-1,ii  )=angp(1,ii)
+                dump_tas(dump_struc(i),ii  ,ii-1)=au(ii,ii-1)
+                dump_tas(dump_struc(i),ii  ,ii  )=au(ii,ii  )
+                dump_tas(dump_struc(i),ii-1,i2-1)=au(i2-1,i2-1)
+                dump_tas(dump_struc(i),ii  ,i2-1)=au(i2  ,i2-1)
+                dump_tas(dump_struc(i),ii-1,i2  )=au(i2-1,i2  )
+                dump_tas(dump_struc(i),ii  ,i2  )=au(i2  ,i2  )
+                dump_tas(dump_struc(i),ii-1,i3-1)=au(i3-1,i3-1)
+                dump_tas(dump_struc(i),ii  ,i3-1)=au(i3  ,i3-1)
+                dump_tas(dump_struc(i),ii-1,i3  )=au(i3-1,i3  )
+                dump_tas(dump_struc(i),ii  ,i3  )=au(i3  ,i3  )
+!    closed orbit in units mm,mrad,mm,mrad,1
+                dump_clo(dump_struc(i),2*j-1)=c(j)
+                dump_clo(dump_struc(i),2*j)  =cp(j)
+                write(*,*) 'MF: c(j)',  c(j) 
+                write(*,*) 'MF: cp(j)',cp(j) 
 !                if(j.eq.1) then
 !                  dump_tas(i,1,1)=angp(1,1)
 !                  dump_tas(i,1,2)=angp(1,2)
@@ -8126,20 +8132,6 @@ cc2008
             endif
             phi(j)=phi(j)+dphi(j)
           enddo !MF: end optics calculation
-!          do j=1,ndimf
-!            write(*,*) 'MF: t from optics',1,2*j-1,dump_tas(i,1,2*j-1)
-!            write(*,*) 'MF: t from optics',1,2*j,  dump_tas(i,1,2*j)
-!            write(*,*) 'MF: t from optics',2,2*j-1,dump_tas(i,2,2*j-1)
-!            write(*,*) 'MF: t from optics',2,2*j,  dump_tas(i,2,2*j)
-!            write(*,*) 'MF: t from optics',3,2*j-1,dump_tas(i,3,2*j-1)
-!            write(*,*) 'MF: t from optics',3,2*j,  dump_tas(i,3,2*j)
-!            write(*,*) 'MF: t from optics',4,2*j-1,dump_tas(i,4,2*j-1)
-!            write(*,*) 'MF: t from optics',4,2*j,  dump_tas(i,4,2*j)
-!            write(*,*) 'MF: t from optics',5,2*j-1,dump_tas(i,5,2*j-1)
-!            write(*,*) 'MF: t from optics',5,2*j,  dump_tas(i,5,2*j)
-!            write(*,*) 'MF: t from optics',6,2*j-1,dump_tas(i,6,2*j-1)
-!            write(*,*) 'MF: t from optics',6,2*j,  dump_tas(i,6,2*j)
-!          enddo
           do j=1,ndimf
             ii=2*j
             angp(2,ii-1)=angp(1,ii-1)
@@ -18130,9 +18122,9 @@ cc2008
             do jj=1,mper*mbloz      ! Loop over all structure elements
               if ( ic(jj)-nblo .eq. ii ) then
                 write (ch1,*) jj    ! internal write for left-adjusting
-                dump_struc(jj) = ii
-                write(*,*) 'MF: jj,ii,ic(jj),nblo,ch1,dump_struc(jj)',  &
-     &jj,ii,ic(jj),nblo,ch1,dump_struc(jj)
+                dump_struc(jj) = ii ! match structure element to single element dump_struc(idx_single_element) = idx_structure_element
+                write(*,*) 'MF: jj,ii,dump_struc(jj)',jj,ii,            &
+     &dump_struc(jj)
 +if cr
                 write (lout,10472)
 +ei
@@ -39727,8 +39719,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       ldumphighprec = .false.
       ldumpfront    = .false.
       do i1=1,mper*mbloz
-        dump_struc(i)=0
         do i2=1,6
+          dump_clo(i1,i2)=0
           do i3=1,6
             dump_tas(i1,i2,i3)=0
           enddo
@@ -58417,11 +58409,12 @@ c$$$               endif
       character(len=getfields_l_max_string) :: ch
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of tas -> x_normalized=fma_tas_inv*x
-      double precision, dimension(fma_npart_max,fma_nturn_max) :: nxyzv !normalized phase space variables
+      double precision, dimension(fma_npart_max,fma_nturn_max,6) ::     &
+     &nxyzv !normalized phase space variables
 !     dummy variables for readin + normalisation
       integer :: id,kt
       double precision :: pos
-      double precision, dimension(6) :: xyzv !phase space variables x,x',y,y',sig,delta
+      double precision, dimension(6) :: xyzv,nxyzvdummy !phase space variables x,x',y,y',sig,delta
 !     initialize variables
       do i=1,6
         do j=1,6
@@ -58480,12 +58473,14 @@ c$$$               endif
                 write(*,*) '->reset fma_nturn_max > ', fma_nturn_max
               endif
 
-!    MF: dump amplitudes in dummy files for debuggin (200100,200101)
+!    MF: dump amplitudes in dummy files for debugging (200100,200101)
               open(200100+i*10,status='new',iostat=ierro,action='write')!MF remove, x,x',y,y' ...
-              open(200101+i*10,status='new',iostat=ierro,action='write')!MF remove
+              open(200101+i*10,status='new',iostat=ierro,action='write')!MF remove, nx,nx',ny,ny'
+              open(200102+i*10,status='new',iostat=ierro,action='write')!MF remove, tune
 
 !    - now we have done all checks, we only need the normalisation matrix
 !      note: dump_tas is converted to units [mm,mrad,mm,mrad,mm,1]
+              write(*,*) dump_tas(j,1,1)
               call fma_norm_phase_space_matrix(fma_tas_inv,             &
      &dump_tas(j,1:6,1:6))
               write(*,*) 'MF: fma_tas_inv in fma_postpr'
@@ -58494,36 +58489,52 @@ c$$$               endif
                   write(*,*) fma_tas_inv(k,l)
                 enddo
               enddo
+              write(*,*) 'MF: closed orbit in fma_postpr'
+              do k=1,6
+                  write(*,*) dump_clo(j,k)
+              enddo
 
 !    - read in particle amplitudes a(part,turn)
-!              do k=1,fma_nturn(i) !loop over turns
-!                do l=1,napx !loop over particles
-!                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
-!     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
-!                  if(ierro.ne.0) call fma_error(ierro,'while reading '  &
-!     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
-!!     MF: write phase space coordinates for debugging
-!                  write(200100+i*10,1986) id,turn(l,k),pos,             &
-!     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
-!!    - remove closed orbit
-!!!    - convert to canonical variables
-!!                  if(fma_its6d.eq.1) then
-!!                    xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3)) 
-!!                    xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
-!!                  endif
-!!    - normalize nxyz=t*xyz where t=tasm^-1
-!!                  write(*,*) 'MF: print t-matrix used for normalisation'
-!!                  do m=1,6
-!!                    nxyz(l,k,m)=zero
-!!                    do n=1,6
-!!                      nxyz(l,k,m)=nxyz(l,k,m)+t(n,m)*xyzv(n)
-!!                      write(*,*) m,n,t(n,m)
-!!                    enddo
-!!                  enddo
-!                enddo
-!              enddo
+              do k=1,fma_nturn(i) !loop over turns
+                do l=1,napx !loop over particles
+                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
+     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
+                  if(ierro.ne.0) call fma_error(ierro,'while reading '  &
+     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
+!     MF: write phase space coordinates for debugging - remove later
+                  write(200100+i*10,1986) id,turn(l,k),pos,             &
+     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
+!    - convert to mm,mrad,mm,mrad,1
+                  dump_clo(j,6)=dump_clo(j,6)*1.e-3
+!                  do m=1,6
+!                    write(*,*) 'MF: dump_clo(j,k)',dump_clo(j,m)
+!                  enddo
+!    - remove closed orbit except for xyzv(6)
+                  do m=1,5
+                    xyzv(m)=xyzv(m)-dump_clo(j,m)
+                  enddo
+!    - convert to canonical variables
+                  xyzv(2)=xyzv(2)*((one+xyzv(6))+dump_clo(j,6)) 
+                  xyzv(4)=xyzv(4)*((one+xyzv(6))+dump_clo(j,6))
+!    - remove closed orbit also from xyzv(6)
+                  xyzv(6)=xyzv(6)-dump_clo(j,6)
+!    - normalize nxyz=fma_tas_inv*xyz
+                  do m=1,6
+                    nxyzvdummy(m)=zero
+                    do n=1,6
+                      nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*     &
+     &xyzv(n)
+                    enddo
+                    nxyzv(l,k,m)=nxyzvdummy(m)
+                  enddo
+                  write(200101+i*10,1986) id,turn(l,k),pos,             &
+     &nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),nxyzv(l,k,4),nxyzv(l,k,5), &
+     &nxyzv(l,k,6),kt!MF: remove
+                enddo
+              enddo
               close(200100+i*10)!MF remove
               close(200101+i*10)!MF remove
+              close(200102+i*10)!MF remove
               close(dumpunit(j))
             endif
           endif
