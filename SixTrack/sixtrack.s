@@ -58412,25 +58412,17 @@ c$$$               endif
       integer :: id,kt
       double precision :: pos
       double precision, dimension(6) :: xyzv !phase space variables x,x',y,y',sig,delta
-!      - read in ta matrix and closed orbit for all particles
-!      - store them in ta_fma(npart,6,6) and clo(npart,3),clop(npart,3) for later
-!      - invert the ta_fma matrices and store them in t(npart,6,6)
-!      - use these stored variables for normalisation
-!      rewind nfile
-!      ia=0
-!      read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
-!     &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
-!     &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
-!     &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
-!     &ta(2,1),ta(2,2),ta(2,3),ta(2,4),ta(2,5),ta(2,6), ta(3,1),ta(3,2), &
-!     &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
-!     &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
-!     &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
-!     &dnumlr,sigcor,dpscor
       write(*,*) 'MF: tasm'
       do i=1,6
         do j=1,6
-          write(*,*) tasm(i,j)
+          write(*,*) i,j,tasm(i,j)
+          if(i.ne.6.and.j.eq.6) then
+            write(*,*) i,j,dump_tas(1,i,j)*1.e3
+          else if(i.eq.6) then
+            write(*,*) i,j,dump_tas(1,i,j)*1.e-3
+          else
+            write(*,*) i,j,dump_tas(1,i,j)
+          endif
         enddo
       enddo
 !     initialize variables
