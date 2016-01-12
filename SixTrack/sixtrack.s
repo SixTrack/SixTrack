@@ -7977,15 +7977,11 @@ cc2008
      &rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)                    !hr03
             enddo
           endif
-          write(*,*) 'MF: line 7974 damap,nvar,aa2,nvar,damap,nvar',    &
-     &damap(1),nvar,aa2,nvar,damap(1),nvar
           call dacct(damap,nvar,aa2,nvar,damap,nvar)
-          write(*,*) 'MF: line 7977 damap,nvar,aa2,nvar,damap,nvar',    &
-     &damap(1),nvar,aa2,nvar,damap(1),nvar
+          write(*,*) 'MF: line 7977 get tas'
 !         calculate optics parameter for element typ
           do j=1,ndimf
             ii=2*j
-            write(*,*) 'MF: line 7976 j,ii,ndimf',j,ii,ndimf
             if(j.eq.1) then
               i2=4
               i3=6
@@ -8086,8 +8082,6 @@ cc2008
             endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
             b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
-            write(*,*) 'MF: line 8014 j,b1(j)',j,b1(j)
-            write(*,*) 'MF: ii,damap(ii-1)',ii,damap(ii-1)
 !hr08       b2(j)=au(i2-1,i2-1)*au(i2-1,i2-1)+au(i2-1,i2)*au(i2-1,i2)
             b2(j)=au(i2-1,i2-1)**2+au(i2-1,i2)**2                        !hr08
 !hr08       b3(j)=au(i3-1,i3-1)*au(i3-1,i3-1)+au(i3-1,i3)*au(i3-1,i3)
@@ -58324,56 +58318,73 @@ c$$$               endif
         call prror(-1)
       endif
       end subroutine
-      subroutine fma_norm_phase_space_matrix(t,fma_its6d)
+      subroutine fma_norm_phase_space_matrix(fma_tas_inv,fma_tas)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
 !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
 !  last modified: 04-01-2016                                            *
-!  purpose: invert the matrix of eigenvecors tasm                       *
-!           (code copied from postpr only that ta is here tasm)         *
-!           x(normalized)=tasm^-1 x                                     *
+!  purpose: invert the matrix of eigenvecors tas                        *
+!           (code copied from postpr only that ta is here fma_tas)      *
+!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
+!           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
       implicit none
-+ca commonta !normalisation matrix tasm
 +ca parnum   !numbers (zero,one,two etc.)
++ca commonta
       double precision i,j            !iterators
-      double precision, dimension(6,6), intent(inout) :: t !inverse of tasm
-      double precision :: tasum       !dummy variable for 6d matrix check
-      integer, intent(inout) :: fma_its6d                !flag for 6d
-      integer, dimension(6) :: idummy !dummy variable for matrix inversion
+      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
+      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
       integer ierro                   !error messages
-!     set values close to 1 equal to 1
-      do 160 i=1,6
-        do 160 j=1,6
-  160 t(i,j)=tasm(j,i)
-      if(abs(t(1,1)).le.pieni.and.abs(t(2,2)).le.pieni) then
-        t(1,1)=one
-        t(2,2)=one
-      endif
-      if(abs(t(3,3)).le.pieni.and.abs(t(4,4)).le.pieni) then
-        t(3,3)=one
-        t(4,4)=one
-      endif
-      if(abs(t(5,5)).le.pieni.and.abs(t(6,6)).le.pieni) then
-        t(5,5)=one
-        t(6,6)=one
-      endif
-!     check if 6d tracking is used
-      tasum=zero
-      fma_its6d=0
-      do 170 i=1,6
-        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))
-  170 continue
-      do 180 i=1,4
-        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))
-  180 continue
-      tasum=tasum-two
-      if(abs(tasum).ge.pieni) fma_its6d=1
-      write(*,*) 'MF: t fma_norm_phase_space_matrix'
-      call dinv(6,t,6,idummy,ierro)
+!     dummy variables
+      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
+      integer, dimension(6) :: idummy !for matrix inversion
+!     convert matrix from SI units [mm,mrad,mm,mrad,mm,1.e-3] to [mm,mrad,mm,mrad,mm,1]
+      do i=1,5
+        fma_tas(i,6)=fma_tas(i,6)*1.e3
+        fma_tas(6,i)=fma_tas(6,i)*1.e-3
+      enddo
+!     MF: check tas -- remove later
+      write(*,*) 'MF: check tasm'
       do i=1,6
         do j=1,6
-          write(*,*) t(i,j)
+          write(*,*) tasm(i,j)-fma_tas(i,j)
+        enddo
+      enddo
+!     invert matrix
+!     - set values close to 1 equal to 1
+      do 160 i=1,6
+        do 160 j=1,6
+  160 fma_tas_inv(i,j)=fma_tas(j,i)
+      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
+     &pieni) then
+        fma_tas_inv(1,1)=one
+        fma_tas_inv(2,2)=one
+      endif
+      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
+     &pieni) then
+        fma_tas_inv(3,3)=one
+        fma_tas_inv(4,4)=one
+      endif
+      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
+     &pieni) then
+        fma_tas_inv(5,5)=one
+        fma_tas_inv(6,6)=one
+      endif
+!     - invert: dinv returns the transposed matrix
+      call dinv(6,fma_tas_inv,6,idummy,ierro)
+      call fma_error(ierro,'matrix inversion failed!',                  &
+     &'fma_norm_phase_space_matrix')
+!     - transpose fma_tas_inv
+      tdummy=fma_tas_inv
+      do i=1,6
+        do j=1,6
+          fma_tas_inv(i,j)=tdummy(j,i)
+        enddo
+      enddo
+      write(*,*) 'MF: fma_tas_inv'
+      do i=1,6
+        do j=1,6
+          write(*,*) fma_tas_inv(i,j)
         enddo
       enddo
       end subroutine fma_norm_phase_space_matrix
@@ -58393,7 +58404,7 @@ c$$$               endif
 +ca parpro
 +ca dbdump
 +ca fma
-+ca commonta !normalisation matrix tasm
++ca commonta !normalisation matrix tasm -> remove later
 +ca common   !napx = number of particles 
 +ca parnum   !numbers (zero,one,two etc.)
 +ca commonc
@@ -58402,51 +58413,30 @@ c$$$               endif
       logical :: lopen              !flag to check if file is already open
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lread              !flag for file reading
-      integer :: fma_its6d              !flag for 6d
       character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
-      double precision, dimension(6,6) :: t ! normalisation matrix = inverse of tasm
+      double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of tas -> x_normalized=fma_tas_inv*x
       double precision, dimension(fma_npart_max,fma_nturn_max) :: nxyzv !normalized phase space variables
 !     dummy variables for readin + normalisation
       integer :: id,kt
       double precision :: pos
       double precision, dimension(6) :: xyzv !phase space variables x,x',y,y',sig,delta
-      write(*,*) 'MF: tasm'
-      do i=1,6
-        do j=1,6
-          write(*,*) i,j,tasm(i,j)
-          if(i.ne.6.and.j.eq.6) then
-            write(*,*) i,j,dump_tas(1,i,j)*1.e3
-          else if(i.eq.6) then
-            write(*,*) i,j,dump_tas(1,i,j)*1.e-3
-          else
-            write(*,*) i,j,dump_tas(1,i,j)
-          endif
-        enddo
-      enddo
 !     initialize variables
       do i=1,6
         do j=1,6
-          t(i,j) = 0
+          fma_tas_inv(i,j) = 0
         enddo
       enddo
-      its6d=0
-      call fma_norm_phase_space_matrix(t,fma_its6d) !get the phase space normalisation matrix
-      write(*,*) 'MF: t in fma_postpr'
-      do i=1,6
-        do j=1,6
-          write(*,*) t(i,j)
-        enddo
-      enddo
+!      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
         lexist=.false.
         do j=1,nele !START: loop over dump files
 
-          if(.not. lexist) then !file has not yet been found
+          if(.not. lexist) then ! check if file has already been found
             if(trim(stringzerotrim(fma_fname(i))).eq.
      &trim(stringzerotrim(dump_fname(j)))) then 
-              lexist=.true. !set lexist = true if the file fma_fname(j) exists
+              lexist=.true.     !set lexist = true if the file fma_fname(j) exists
               write(*,*) 'start FMA analysis using file ',              &
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
      &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
@@ -58458,7 +58448,8 @@ c$$$               endif
                 call prror(-1)
               endif
 
-!    check if file is open for writing -> close + open for reading
+!    check if file is open for writing -> save position in file to resume later
+!    then close + open for reading
               inquire(unit=dumpunit(j),opened=lopen)
               if(lopen) close(dumpunit(j))
               open(dumpunit(j),file=dump_fname(j),status='old',
@@ -58481,44 +58472,57 @@ c$$$               endif
               enddo
               write(*,*) 'MF: ierro=',ierro,'header ', ch
               backspace(dumpunit(j),iostat=ierro)
-          
-              open(200100+i*10,status='new',iostat=ierro,action='write')!MF remove
-              open(200101+i*10,status='new',iostat=ierro,action='write')!MF remove
-              fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
 
+              fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
               if(fma_nturn(i).gt.fma_nturn_max) then
                 write(*,*) 'ERROR in fma_postpr: only ',fma_nturn_max,  &
      &' turns allowed for fma and ',fma_nturn(i),' used!'
-                write(*,*) '->reset fma_nturn to ', fma_nturn_max
+                write(*,*) '->reset fma_nturn_max > ', fma_nturn_max
               endif
 
-!    - read in particle amplitudes a(part,turn)
-              do k=1,fma_nturn(i) !loop over turns
-                do l=1,napx !loop over particles
-                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
-     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
-                  if(ierro.ne.0) call fma_error(ierro,'while reading '  &
-     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
-!     MF: write phase space coordinates for debugging
-                  write(200100+i*10,1986) id,turn(l,k),pos,             &
-     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
-!    - remove closed orbit
-!!    - convert to canonical variables
-!                  if(fma_its6d.eq.1) then
-!                    xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3)) 
-!                    xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
-!                  endif
-!    - normalize nxyz=t*xyz where t=tasm^-1
-!                  write(*,*) 'MF: print t-matrix used for normalisation'
-!                  do m=1,6
-!                    nxyz(l,k,m)=zero
-!                    do n=1,6
-!                      nxyz(l,k,m)=nxyz(l,k,m)+t(n,m)*xyzv(n)
-!                      write(*,*) m,n,t(n,m)
-!                    enddo
-!                  enddo
+!    MF: dump amplitudes in dummy files for debuggin (200100,200101)
+              open(200100+i*10,status='new',iostat=ierro,action='write')!MF remove, x,x',y,y' ...
+              open(200101+i*10,status='new',iostat=ierro,action='write')!MF remove
+
+!    - now we have done all checks, we only need the normalisation matrix
+!      note: dump_tas is converted to units [mm,mrad,mm,mrad,mm,1]
+              call fma_norm_phase_space_matrix(fma_tas_inv,             &
+     &dump_tas(j,1:6,1:6))
+
+              write(*,*) 'MF: fma_tas_inv'
+              do k=1,6
+                do l=1,6
+                  write(*,*) fma_tas_inv(k,l)
                 enddo
               enddo
+
+!!    - read in particle amplitudes a(part,turn)
+!              do k=1,fma_nturn(i) !loop over turns
+!                do l=1,napx !loop over particles
+!                  read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
+!     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
+!                  if(ierro.ne.0) call fma_error(ierro,'while reading '  &
+!     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
+!!     MF: write phase space coordinates for debugging
+!                  write(200100+i*10,1986) id,turn(l,k),pos,             &
+!     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
+!!    - remove closed orbit
+!!!    - convert to canonical variables
+!!                  if(fma_its6d.eq.1) then
+!!                    xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3)) 
+!!                    xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
+!!                  endif
+!!    - normalize nxyz=t*xyz where t=tasm^-1
+!!                  write(*,*) 'MF: print t-matrix used for normalisation'
+!!                  do m=1,6
+!!                    nxyz(l,k,m)=zero
+!!                    do n=1,6
+!!                      nxyz(l,k,m)=nxyz(l,k,m)+t(n,m)*xyzv(n)
+!!                      write(*,*) m,n,t(n,m)
+!!                    enddo
+!!                  enddo
+!                enddo
+!              enddo
               close(200100+i*10)!MF remove
               close(200101+i*10)!MF remove
               close(dumpunit(j))
