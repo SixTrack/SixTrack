@@ -58427,7 +58427,6 @@ c$$$               endif
 !     &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
 !     &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
 !     &dnumlr,sigcor,dpscor
-      write(*,*) 'MF: ilinc',ilinc
       write(*,*) 'MF: tasm'
       do i=1,6
         do j=1,6
