@@ -159,7 +159,7 @@
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
      &nzfz = 300000,mmul = 20)
 +ei
-+ei ! / collimat
++ei ! / not collimat
 +if collimat
 +if beamgas
       parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
@@ -8336,11 +8336,7 @@ cc2008
             phi(l)=phi(l)+dphi/pie
           enddo
 
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         update nr
           nr=nr+1
-
 +if .not.collimat.and..not.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
@@ -13872,26 +13868,26 @@ cc2008
 ! reading character strings so OK
       read(ch1,*) idat,(ilm0(m),m=1,40)
       if(idat.eq.idum) goto 270
-      i=i+1
+      i=i+1 ! Current BLOC number
       if(i.gt.nblo-1) call prror(18)
       bezb(i)=idat
       k0=0
-      mblo=i
+      mblo=i ! Update total number of BLOCs
   270 ka=k0+1
       ke=k0+40
       do 300 l=ka,ke
         if(l.gt.nelb) call prror(26)
         ilm(l)=ilm0(l-k0)
         if(ilm(l).eq.idum) goto 310
-        mel(i)=l
-        beze(i,l)=ilm(l)
-        do 280 j=1,il
+        mel(i)=l         ! Number of single elements in this block
+        beze(i,l)=ilm(l) ! Name of the current single element
+        do 280 j=1,il    ! Search for the single element idx j
           if(bez0(j).eq.ilm(l)) goto 290
   280   continue
         erbez=ilm(l)
         call prror(19)
-  290   mtyp(i,l)=j
-        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j)
+  290   mtyp(i,l)=j ! Block i / sub-element l has single element index j
+        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j) ! Count block length (kz=8 -> edge focusing->skip!)
   300 continue
   310 k0=l-1
       goto 220
@@ -29876,7 +29872,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               yv(2,j) = 0d0
               ejv(j)  = myenom
               sigmv(j)= 0d0
-              part_abs(j) = 10000*ie + iturn
+              part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
               secondary(j) = 0
               tertiary(j)  = 0
 !APRIL2005
@@ -47140,7 +47136,7 @@ c$$$               endif
           else
 !            BLOC
 +if cr
-             write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
+             write(lout,10020) ientry,ix,bezb(ix),dcum(ientry)
 +ei
 +if .not.cr
              write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
@@ -47177,7 +47173,7 @@ c$$$               endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,iflag,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,  &
+      integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,
      &nmz,nr,dj
       double precision aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
      &ci,cikve,clo0,clop0,cr,crkve,crkveuk,di00,dip00,dphi,dpp,dpp1,    &
@@ -47257,7 +47253,6 @@ c$$$               endif
         ci(i)=zero
    40 continue
       etl=zero
-      nr=0
       dpr(1)=dpp*c1e3
       dpr(6)=one
       dpp1=dpp+ded
@@ -47332,39 +47327,45 @@ c$$$               endif
         write(*,10010)
 +ei
       endif
-      iflag=0
+
+!--START OF THE MACHINE
       idum='START'
+      nr=0
 +if .not.collimat.and..not.bnlelens
       call writelin(nr,idum,etl,phi,t,1)
 +ei
 +if collimat.or.bnlelens
-!GRDRHIC
-      k=0 !ALWAYS initialize k
-      call writelin(nr,idum,etl,phi,t,1,k)
-!GRDRHIC
+      call writelin(nr,idum,etl,phi,t,1,0)
 +ei
       if(ntco.ne.0) then
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
-!--SINGLE TURN BLOCKLOOP
+
+
+!--STRUCTURE ELEMENT LOOP
+      write(*,*) "START STRUCTURE ELEMENT LOOP, single turn"
       if(nt.le.0.or.nt.gt.iu) nt=iu
       izu=0
       do 500 k=1,nt
+        write(*,*) "IN ELEMENT LOOP, k=",k, ic(k),ic(k)-nblo
         ix=ic(k)
-        if(ix.gt.nblo) goto 220
+        if(ix.gt.nblo) goto 220 !Not a BLOCK
         if(ithick.eq.1.and.iprint.eq.1) goto 160
-        jj=0
-        dj=1
-        if(ix.gt.0) goto 90
-!hr13   ix=-ix
-        ix=-1*ix                                                         !hr13
-        jj=mel(ix)+1
-        dj=-1
-   90   jm=mel(ix)
-!--BLOCKELEMENTLOOP
+
+        jj=0 !initial idx
+        dj=1 !step
+        
+        if (ix.le.0) then
+           ix=-1*ix             !hr13
+           jj=mel(ix)+1         !initial idx
+           dj=-1                !step
+        endif
+        jm=mel(ix)
+!-- Loop over elements inside the block
         do 150 j=1,jm
-          jj=jj+dj
-          jk=mtyp(ix,jj)
+          write(*,*) "Loop over elements inside the block",j,jm
+          jj=jj+dj       ! Subelement index of current sub=element
+          jk=mtyp(ix,jj) ! Single-element index of the current sub-element
 +if .not.bnlelens
           if(ithick.eq.1.and.kz(jk).ne.0) goto 120
 +ei
@@ -47376,31 +47377,36 @@ c$$$               endif
           endif
 !GRDRHIC
 +ei
-+if .not.collimat.and..not.bnlelens
+
           if(ithick.eq.0.and.kz(jk).ne.0) then
-
-!           A.Mereghetti, for the FLUKA Team
-!           last modified: 17-07-2013
-!           this is somehow an un-desired situation (thin lens tracking, 
-!             with a non-drift element in a BLOC), but let's dump
-!             the available information (as done in the collimation version)
-            nr=nr+1
             etl=etl+el(jk)
-            call writelin(nr,bez(jk),etl,phi,t,ix)
-            if(ntco.ne.0) then
-              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
-            endif
-
+c$$$            nr=nr+1
+c$$$+if .not.collimat.and..not.bnlelens
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix)
+c$$$+ei
+c$$$+if collimat.or.bnlelens
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,k)
+c$$$+ei
+c$$$            if(ntco.ne.0) then
+c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
+c$$$            endif
++if cr
+            write(lout,*) "ERROR in LINOPT:"
+            write(lout,*) "In block ", bezb(ix),
+     &           "found a thick non-drift element",
+     &           bez(jk), "while ithick=1. This should not be possible!"
++ei            
++if .not.cr
+            write(*,*)    "ERROR in LINOPT:"
+            write(*,*)    "In block ", bezb(ix),
+     &           "found a thick non-drift element",
+     &           bez(jk), "while ithick=1. This should not be possible!"
++ei
+            call prror(-1)
             goto 500
           endif
-+ei
-+if collimat.or.bnlelens
-          if(ithick.eq.0.and.kz(jk).ne.0) then
-             call writelin(nr,bez(jk),etl,phi,t,ix,k)
-             goto 500
-          endif
-+ei
-!--PURE DRIFTLENGTH
+
+!--IN BLOCK: PURE DRIFTLENGTH (above: If ITHICK=1 and kz!=0, goto 120->MAGNETELEMENT)
           etl=etl+el(jk)
           do 100 l=1,2
             ll=2*l
@@ -47431,18 +47437,20 @@ c$$$               endif
 !hr06       if(-dphi.gt.pieni) dphi=dphi+pi
             if((-1d0*dphi).gt.pieni) dphi=dphi+pi                        !hr06
   110     phi(l)=phi(l)+dphi/pie
-          nr=nr+1
-+if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix)
-+ei
-+if collimat.or.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
-+ei
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
-          endif
+
+c$$$          nr=nr+1
+c$$$+if .not.collimat.and..not.bnlelens
+c$$$          call writelin(nr,bez(jk),etl,phi,t,ix)
+c$$$+ei
+c$$$+if collimat.or.bnlelens
+c$$$          call writelin(nr,bez(jk),etl,phi,t,ix,k)
+c$$$+ei
+c$$$          if(ntco.ne.0) then
+c$$$            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
+c$$$          endif
           goto 150
-!--MAGNETELEMENT
+
+!--IN BLOCK: MAGNETELEMENT
   120     continue
           if(kz(jk).ne.8) etl=etl+el(jk)
           do l=1,2
@@ -47495,26 +47503,35 @@ c$$$               endif
             if(kz(jk).ne.8.and.-1d0*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi/pie
           enddo
-          nr=nr+1
-+if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix)
-+ei
-+if collimat.or.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
-+ei
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
-          endif
+          
+c$$$          nr=nr+1
+c$$$+if .not.collimat.and..not.bnlelens
+c$$$          call writelin(nr,bez(jk),etl,phi,t,ix)
+c$$$+ei
+c$$$+if collimat.or.bnlelens
+c$$$          call writelin(nr,bez(jk),etl,phi,t,ix,k) !k??
+c$$$+ei
+c$$$          if(ntco.ne.0) then
+c$$$            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
+c$$$          endif
+          
   150   continue !End of loop over elements inside block
+
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix)   ! This IX is not meaningful in WRITELIN
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,k) ! This IX is not meaningful in WRITELIN
 +ei
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
+        endif
+
         goto 500
-!--BETACALCULATION FOR SERIES OF BLOCKS
-  160   continue
+
+!--BETACALCULATION FOR SERIES OF BLOCKS (ix.ge.nblo.and.ithick.eq.1.and.iprint.eq.1)
+  160   continue !if ithick=1 and iprint=1:
         if(ix.le.0) goto 190
 !--REGULAR RUN THROUGH BLOCKS
         etl=etl+elbe(ix)
@@ -47551,6 +47568,7 @@ c$$$               endif
      &(ix,l,5)                                                           !hr06
 !hr06  170   t(i,ll)=bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll)+dpr(i)*bl1(ix,l,6)
   170   t(i,ll)=(bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll))+dpr(i)*bl1(ix,l,6) !hr06
+
         do 180 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
@@ -47567,18 +47585,21 @@ c$$$               endif
 !hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   180   phi(l)=phi(l)+dphi/pie
+
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix)   ! This IX is not meaningful in WRITELIN
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,k) ! This IX is not meaningful in WRITELIN
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
+        
         goto 500
-!--REVERSE RUN THROUGH BLOCKS
+
+!--REVERSE RUN THROUGH BLOCKS (ix.le.0)
   190   ix=-ix
         etl=etl+elbe(ix)
         do 200 l=1,2
@@ -47614,6 +47635,7 @@ c$$$               endif
      &(ix,l,5)                                                           !hr06
 !hr06  200   t(i,ll)=bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll)+dpr(i)*bl2(ix,l,6)
   200   t(i,ll)=(bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll))+dpr(i)*bl2(ix,l,6) !hr06
+
         do 210 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
@@ -47629,47 +47651,53 @@ c$$$               endif
 !hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   210   phi(l)=phi(l)+dphi/pie
+
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix)   ! This IX is not meaningful in WRITELIN
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,k) ! This IX is not meaningful in WRITELIN
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
+        
         goto 500
-!--NL-INSERTION
+
+!--NOT A BLOCK / Nonlinear insertion
   220   ix=ix-nblo
         qu=zero
         qv=zero
         dyy1=zero
         dyy2=zero
         kpz=kp(ix)
+        kzz=kz(ix)
+        write(*,*) "KZZ=",kzz,"IX=",ix, "KPZ=", kpz
+        write(*,*) "BEZ=", bez(ix)
+
+ ! Cavity
 +if .not.collimat.and..not.bnlelens
         if(kpz.eq.6) then
-
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's dump the available information (as done in the collimation
-!           version)
++ei
++if collimat.or.bnlelens
+        if(abs(kzz).eq.12) then
++ei
           nr=nr+1
++if .not.collimat.and..not.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix)
++ei
++if collimat.or.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,k)
++ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
 
           goto 500
         endif
-+ei
-+if collimat.or.bnlelens
-        if(kpz.eq.6) then
-           call writelin(nr,bez(ix),etl,phi,t,ix,k)
-           goto 500
-        endif
-+ei
-        kzz=kz(ix)
+        
+        !Beam Beam element .and. fort.3 has BB block
         if(kzz.eq.20.and.nbeam.ge.1) then
           nbeam=k
           nr=nr+1
@@ -47679,33 +47707,38 @@ c$$$               endif
 +if collimat.or.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's add coupling calculation
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
           goto 500
 
         endif
-+ca trom01
+
++ca trom01 !if kzz==22, starts a do over l; Update t matrix
 +ca trom03
-+ca trom06
++ca trom06 !endif, ends the do over l; increase nr, writelin and cpltwis
+
 +if collimat.or.bnlelens
-!GRDRHIC
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
+        ! Marker, beam-beam, phase-trombone, or crab cavity (incl. multipole)
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
+     &     .or. abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) then
+          
+          nr=nr+1
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+          endif
           goto 500
         endif
-! JBG RF CC Multipoles to 500
-        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 500
-        if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 500
 +ei
 +if .not.collimat.and..not.bnlelens
+        ! Marker, beam-beam or phase-trombone -> next element
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
-! JBG RF CC Multipoles to 500
+        ! RF CC Multipoles -> next element
         if (abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
 +ei
+      
+        ! Update the matrix etc. for supported blocks
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -47716,22 +47749,24 @@ c$$$               endif
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-        if(kzz.lt.0) goto 370
+        if(kzz.lt.0) goto 370 !Skew
         goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320, !10
      &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500, !20
      &       500, 500, 500, 325, 326, 500, 500, 500),kzz       !28
 
+        ! Un-recognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
 +if collimat.or.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
-! Not sure whether to add this
-!        if(ntco.ne.0) then
-!          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!        endif
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+        endif
         goto 500
+
 !--HORIZONTAL DIPOLE
   230   ekk=ekk*c1e3
 +ca kickl01h
@@ -47828,6 +47863,7 @@ c$$$               endif
 +ca kicklso1
 +ca kickqso1
         goto 480
+!--Multipole block
   330   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
@@ -47857,23 +47893,18 @@ c$$$               endif
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
+          
           nr=nr+1
 +if collimat.or.bnlelens
-! --> THAT'S THE IMPORTANT ONE !!!!
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
 
 +if .not.collimat.and..not.bnlelens
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's dump the available information (as done in the collimation
-!           version)
           call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
-! Not sure??
-!          if(ntco.ne.0) then
-!            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!          endif
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+          endif
 
           goto 500
         endif
@@ -47901,17 +47932,20 @@ c$$$               endif
 !--SKEW ELEMENTS
   370   kzz=-kzz
         goto(380,390,400,410,420,430,440,450,460,470),kzz
+        
+        ! Unrecognized element in the above GOTO (incl. kzz=-12,kp.ne.6 for non-collimat/bnlelens)
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix)
 +ei
 +if collimat.or.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix,k)
 +ei
-!Unsure???
-!        if(ntco.ne.0) then
-!          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!        endif
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+        endif
         goto 500
+
 !--VERTICAL DIPOLE
   380   ekk=ekk*c1e3
 +ca kickl01v
@@ -48040,6 +48074,7 @@ c$$$               endif
             write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
           endif
         endif
+        
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
         call writelin(nr,bez(ix),etl,phi,t,ix)
@@ -48050,7 +48085,9 @@ c$$$               endif
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
-  500 continue
+        
+  500 continue ! END LOOP OVER ELEMENTS
+      
       call clorb(ded)
       do 510 l=1,2
         clo0(l)=clo(l)
@@ -48113,7 +48150,7 @@ c$$$               endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,istart,iwrite,ixwl,l,ll,nr
+      integer i,iwrite,ixwl,l,ll,nr
       double precision al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character*16 typ
 +ca parpro
@@ -48133,8 +48170,6 @@ c$$$               endif
 +ei
 +ca save
 !-----------------------------------------------------------------------
-      istart=0
-      if(typ.eq.'START') istart=1
       iwrite=0
       if(nlin.eq.0) then
         iwrite=1
@@ -48163,32 +48198,11 @@ c$$$               endif
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
    20   continue
-+if collimat.and..not.bnlelens
-        tbetax(max(ielem,1))  = b1(1)
-        tbetay(max(ielem,1))  = b1(2)
-        talphax(max(ielem,1)) = al1(1)
-        talphay(max(ielem,1)) = al1(2)
-        torbx(max(ielem,1))   = c(1)
-        torbxp(max(ielem,1))  = cp(1)
-        torby(max(ielem,1))   = c(2)
-        torbyp(max(ielem,1))  = cp(2)
-        tdispx(max(ielem,1))  = d(1)
-        tdispy(max(ielem,1))  = d(2)
-+ei
-+if collimat.and.bnlelens
-        tbetax(max(ielem,1))  = b1(1)
-        tbetay(max(ielem,1))  = b1(2)
-        talphax(max(ielem,1)) = al1(1)
-        talphay(max(ielem,1)) = al1(2)
-        torbx(max(ielem,1))   = c(1)
-        torbxp(max(ielem,1))  = cp(1)
-        torby(max(ielem,1))   = c(2)
-        torbyp(max(ielem,1))  = cp(2)
-        tdispx(max(ielem,1))  = d(1)
-        tdispy(max(ielem,1))  = d(2)
-+ei
+
++if collimat.or.bnlelens
 +if .not.collimat.and.bnlelens
         if (lhc.eq.9) then
++ei
           tbetax(max(ielem,1))  = b1(1)
           tbetay(max(ielem,1))  = b1(2)
           talphax(max(ielem,1)) = al1(1)
@@ -48199,8 +48213,11 @@ c$$$               endif
           torbyp(max(ielem,1))  = cp(2)
           tdispx(max(ielem,1))  = d(1)
           tdispy(max(ielem,1))  = d(2)
++if .not.collimat.and.bnlelens
         endif
 +ei
++ei
+
       if(ncorru.eq.0) then
 +if cr
           write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),&
@@ -48241,6 +48258,8 @@ c$$$               endif
           write(*,10040)
 +ei
         else
+          ! PROBLEM: If calling with a BLOCK, kp(ixwl) is not really meaningful
+          ! or related to the current BLOCK...
           if(kp(ixwl).eq.3) then
             nhmoni=nhmoni+1
             betam(nhmoni,1)=b1(1)
