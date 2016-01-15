@@ -8338,10 +8338,10 @@ cc2008
 
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -47332,10 +47332,10 @@ c$$$               endif
       idum='START'
       nr=0
 +if .not.collimat.and..not.bnlelens
-      call writelin(nr,idum,etl,phi,t,1)
+      call writelin(nr,idum,etl,phi,t,1,.false.)
 +ei
 +if collimat.or.bnlelens
-      call writelin(nr,idum,etl,phi,t,1,0)
+      call writelin(nr,idum,etl,phi,t,1,.false.,0)
 +ei
       if(ntco.ne.0) then
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
@@ -47343,11 +47343,9 @@ c$$$               endif
 
 
 !--STRUCTURE ELEMENT LOOP
-      write(*,*) "START STRUCTURE ELEMENT LOOP, single turn"
       if(nt.le.0.or.nt.gt.iu) nt=iu
       izu=0
       do 500 k=1,nt
-        write(*,*) "IN ELEMENT LOOP, k=",k, ic(k),ic(k)-nblo
         ix=ic(k)
         if(ix.gt.nblo) goto 220 !Not a BLOCK
         if(ithick.eq.1.and.iprint.eq.1) goto 160
@@ -47363,7 +47361,6 @@ c$$$               endif
         jm=mel(ix)
 !-- Loop over elements inside the block
         do 150 j=1,jm
-          write(*,*) "Loop over elements inside the block",j,jm
           jj=jj+dj       ! Subelement index of current sub=element
           jk=mtyp(ix,jj) ! Single-element index of the current sub-element
 +if .not.bnlelens
@@ -47372,7 +47369,7 @@ c$$$               endif
 +if bnlelens
 !GRDRHIC
           if(ithick.eq.1.and.kz(jk).ne.0) then
-             call writelin(nr,bez(jk),etl,phi,t,ix,k)
+             call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
              goto 120
           endif
 !GRDRHIC
@@ -47380,16 +47377,18 @@ c$$$               endif
 
           if(ithick.eq.0.and.kz(jk).ne.0) then
             etl=etl+el(jk)
+            
 c$$$            nr=nr+1
 c$$$+if .not.collimat.and..not.bnlelens
-c$$$            call writelin(nr,bez(jk),etl,phi,t,ix)
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
 c$$$+ei
 c$$$+if collimat.or.bnlelens
-c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,k)
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
 c$$$+ei
 c$$$            if(ntco.ne.0) then
 c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 c$$$            endif
+            
 +if cr
             write(lout,*) "ERROR in LINOPT:"
             write(lout,*) "In block ", bezb(ix),
@@ -47438,16 +47437,17 @@ c$$$            endif
             if((-1d0*dphi).gt.pieni) dphi=dphi+pi                        !hr06
   110     phi(l)=phi(l)+dphi/pie
 
-c$$$          nr=nr+1
-c$$$+if .not.collimat.and..not.bnlelens
-c$$$          call writelin(nr,bez(jk),etl,phi,t,ix)
-c$$$+ei
-c$$$+if collimat.or.bnlelens
-c$$$          call writelin(nr,bez(jk),etl,phi,t,ix,k)
-c$$$+ei
-c$$$          if(ntco.ne.0) then
-c$$$            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
-c$$$          endif
+          nr=nr+1
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
++ei
++if collimat.or.bnlelens
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
++ei
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
+          endif
+          
           goto 150
 
 !--IN BLOCK: MAGNETELEMENT
@@ -47504,25 +47504,25 @@ c$$$          endif
             phi(l)=phi(l)+dphi/pie
           enddo
           
-c$$$          nr=nr+1
-c$$$+if .not.collimat.and..not.bnlelens
-c$$$          call writelin(nr,bez(jk),etl,phi,t,ix)
-c$$$+ei
-c$$$+if collimat.or.bnlelens
-c$$$          call writelin(nr,bez(jk),etl,phi,t,ix,k) !k??
-c$$$+ei
-c$$$          if(ntco.ne.0) then
-c$$$            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
-c$$$          endif
+          nr=nr+1
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
++ei
++if collimat.or.bnlelens
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
++ei
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
+          endif
           
   150   continue !End of loop over elements inside block
 
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)   ! This IX is not meaningful in WRITELIN
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k) ! This IX is not meaningful in WRITELIN
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
@@ -47588,10 +47588,10 @@ c$$$          endif
 
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)   ! This IX is not meaningful in WRITELIN
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k) ! This IX is not meaningful in WRITELIN
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
@@ -47654,10 +47654,10 @@ c$$$          endif
 
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)   ! This IX is not meaningful in WRITELIN
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k) ! This IX is not meaningful in WRITELIN
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
@@ -47673,8 +47673,6 @@ c$$$          endif
         dyy2=zero
         kpz=kp(ix)
         kzz=kz(ix)
-        write(*,*) "KZZ=",kzz,"IX=",ix, "KPZ=", kpz
-        write(*,*) "BEZ=", bez(ix)
 
  ! Cavity
 +if .not.collimat.and..not.bnlelens
@@ -47685,10 +47683,10 @@ c$$$          endif
 +ei
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -47702,10 +47700,10 @@ c$$$          endif
           nbeam=k
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -47724,7 +47722,7 @@ c$$$          endif
      &     .or. abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) then
           
           nr=nr+1
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
@@ -47757,10 +47755,10 @@ c$$$          endif
         ! Un-recognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -47895,12 +47893,11 @@ c$$$          endif
           izu=izu+2*mmul
           
           nr=nr+1
-+if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
-+ei
-
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
++ei
++if collimat.or.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -47936,10 +47933,10 @@ c$$$          endif
         ! Unrecognized element in the above GOTO (incl. kzz=-12,kp.ne.6 for non-collimat/bnlelens)
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -48077,10 +48074,10 @@ c$$$          endif
         
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -48135,10 +48132,10 @@ c$$$          endif
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
       end
 +if collimat.or.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl,ielem)
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ei
 +if .not.collimat.and..not.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl)
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
 !-----------------------------------------------------------------------
 !  WRITE OUT LINEAR OPTICS PARAMETERS
@@ -48153,6 +48150,8 @@ c$$$          endif
       integer i,iwrite,ixwl,l,ll,nr
       double precision al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character*16 typ
+      ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
+      logical isBLOC
 +ca parpro
 +ca parnum
 +ca common
@@ -48258,31 +48257,27 @@ c$$$          endif
           write(*,10040)
 +ei
         else
-          ! PROBLEM: If calling with a BLOCK, kp(ixwl) is not really meaningful
-          ! or related to the current BLOCK...
-          if(kp(ixwl).eq.3) then
-            nhmoni=nhmoni+1
-            betam(nhmoni,1)=b1(1)
-!hr06       pam(nhmoni,1)=p1(1)*2*pi
-            pam(nhmoni,1)=(p1(1)*2d0)*pi                                 !hr06
-            bclorb(nhmoni,1)=c(1)
-          else if(kp(ixwl).eq.4) then
-            nhcorr=nhcorr+1
-            betac(nhcorr,1)=b1(1)
-!hr06       pac(nhcorr,1)=p1(1)*2*pi
-            pac(nhcorr,1)=(p1(1)*2d0)*pi                                 !hr06
-          else if(kp(ixwl).eq.-3) then
-            nvmoni=nvmoni+1
-            betam(nvmoni,2)=b1(2)
-!hr06       pam(nvmoni,2)=p1(2)*2*pi
-            pam(nvmoni,2)=(p1(2)*2d0)*pi                                 !hr06
-            bclorb(nvmoni,2)=c(2)
-          else if(kp(ixwl).eq.-4) then
-            nvcorr=nvcorr+1
-            betac(nvcorr,2)=b1(2)
-!hr06       pac(nvcorr,2)=p1(2)*2*pi
-            pac(nvcorr,2)=(p1(2)*2d0)*pi
-          endif
+           if(.not.isBLOC) then
+              if(kp(ixwl).eq.3) then
+                 nhmoni=nhmoni+1
+                 betam(nhmoni,1)=b1(1)
+                 pam(nhmoni,1)=(p1(1)*2d0)*pi
+                 bclorb(nhmoni,1)=c(1)
+              else if(kp(ixwl).eq.4) then
+                 nhcorr=nhcorr+1
+                 betac(nhcorr,1)=b1(1)
+                 pac(nhcorr,1)=(p1(1)*2d0)*pi
+              else if(kp(ixwl).eq.-3) then
+                 nvmoni=nvmoni+1
+                 betam(nvmoni,2)=b1(2)
+                 pam(nvmoni,2)=(p1(2)*2d0)*pi
+                 bclorb(nvmoni,2)=c(2)
+              else if(kp(ixwl).eq.-4) then
+                 nvcorr=nvcorr+1
+                 betac(nvcorr,2)=b1(2)
+                 pac(nvcorr,2)=(p1(2)*2d0)*pi
+              endif
+           endif
         endif
       endif
 !-----------------------------------------------------------------------
