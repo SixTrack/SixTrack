@@ -21246,7 +21246,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         fake(2,i)=zero
    15 continue
       time1=0.
-      call timex(time1)
+      call timexsix(time1)
       if(niu(1).gt.1) then
         do i=1,2
           ii=2*i
@@ -22329,7 +22329,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   520 continue
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
-      call timex(time2)
+      call timexsix(time2)
 !     time=time2-time1
 +if cr
       write(lout,10020) time1-time0
@@ -24057,7 +24057,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
-      call timex(time2)
+      call timexsix(time2)
 !     time=time2-time1
 +if cr
       write(lout,10020) time1-time0
@@ -25160,7 +25160,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,10010) version,moddate
 +ei
       tlim=1e7
-      call timest(tlim)
+      call timestsix(tlim)
       call datime(idate,itime)
       write(cdate,'(I6.6)') idate
       write(ctime,'(I4.4)') itime
@@ -25245,8 +25245,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       time2=0.0
       time3=0.0
       tlim=1e7
-      call timest(tlim)
-      call timex(time0)
+      call timestsix(tlim)
+      call timexsix(time0)
       do 10 i=1,nblz
         xsi(i)=zero
         zsi(i)=zero
@@ -26664,7 +26664,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                    !call system('../crmain  >> crlog')
 +ei
       time1=0.
-      call timex(time1)
+      call timexsix(time1)
 ! time1 is now pre-processing CPU
 ! note that this will be reset evry restart as we redo pre-processing
       pretime=time1-time0
@@ -26676,7 +26676,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('atrack                                            ')
 +ei
       time2=0.
-      call timex(time2)
+      call timexsix(time2)
 ! trtime is now the tracking time, BUT we must add other time for C/R
       trtime=time2-time1
 +if cr
@@ -26971,7 +26971,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call hplend
       endif
       time3=0.
-      call timex(time3)
+      call timexsix(time3)
 ! Note that crpoint no longer destroys time2
       posttime=time3-time2
 +if debug
@@ -38548,9 +38548,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,10000) version,moddate
 +ei
       tlim=1e7
-      call timest(tlim)
+      call timestsix(tlim)
       time0=0.
-      call timex(time0)
+      call timexsix(time0)
       idate=0
       itime=0
       call datime(idate,itime)
@@ -39906,9 +39906,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca save
 !-----------------------------------------------------------------------
       tlim=1e7
-      call timest(tlim)
+      call timestsix(tlim)
       time0=0.
-      call timex(time0)
+      call timexsix(time0)
 !--Initialization
 +if crlibm
       x2pi=atan_rn(one)*8d0
@@ -40065,7 +40065,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call dadal(bb2,1)
       call dadal(haux,1)
       time1=0.
-      call timex(time1)
+      call timexsix(time1)
       time = time1-time0
 +if cr
       write(lout,10000) no,time
@@ -55623,9 +55623,9 @@ c$$$               endif
 !--TIME START
       pieni2=1d-8
       tlim=1e7
-      call timest(tlim)
+      call timestsix(tlim)
       tim1=0.
-      call timex(tim1)
+      call timexsix(tim1)
       do 10 i=1,npos
         do 10 j=1,3
           phase(j,i)=zero
@@ -58080,7 +58080,7 @@ c$$$               endif
       rewind 15
 !--TIME COUNT
       tim2=0.
-      call timex(tim2)
+      call timexsix(tim2)
 +if cr
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 +ei
@@ -58323,7 +58323,7 @@ c$$$               endif
       implicit none
 +ca parnum   !numbers (zero,one,two etc.)
 +ca commonta
-      double precision i,j            !iterators
+      integer :: i,j            !iterators
       double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
       double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
       integer ierro                   !error messages
@@ -58389,7 +58389,10 @@ c$$$               endif
 !           -> calculate particle amplitudes and tunes using the        *
 !              normalized coordinates for input files                   *
 !              fma_fname(fma_numfiles)                                  *
-!-----------------------------------------------------------------------*
+!  output format: q1,q2,q3,eps1_0,eps2_0,eps3_0,eps1_min,eps2_min,      *
+!                 eps3_min,eps1_max,eps2_max,eps3_max,eps1_avg,         *
+!                 eps2_avg,eps3_avg,phi1_0                              *
+!----------------------------------------------------------------------*
       implicit none
 +ca szt
 +ca comgetfields
@@ -58400,6 +58403,9 @@ c$$$               endif
 +ca common   !napx = number of particles 
 +ca parnum   !numbers (zero,one,two etc.)
 +ca commonc
++if crlibm
++ca crlibco
++ei
       integer :: i,j,k,l,m,n !for do loops
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
       logical :: lopen              !flag to check if file is already open
@@ -58410,17 +58416,30 @@ c$$$               endif
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of tas -> x_normalized=fma_tas_inv*x
       double precision, dimension(fma_npart_max,fma_nturn_max,6) ::     &
-     &nxyzv !normalized phase space variables
+     &nxyzv ! normalized phase space variables
+      double precision, dimension(fma_npart_max,fma_nturn_max,3) ::     &
+     &epsnxyzv ! normalized emittances
+      double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
+     &tunenewt,tuneabt2,tuneabt,tunenewt1
 !     dummy variables for readin + normalisation
       integer :: id,kt
       double precision :: pos
       double precision, dimension(6) :: xyzv,nxyzvdummy !phase space variables x,x',y,y',sig,delta
+      double precision, dimension(3) :: q123 !tune q1,q2,q3
+      double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
+     &eps123_avg !initial,minimum,maximum,average emittance
+      double precision, dimension(3) :: phi123_0  !initial phase
 !     initialize variables
       do i=1,6
         do j=1,6
           fma_tas_inv(i,j) = 0
         enddo
       enddo
+!     fma_six = data file for storing the results of the FMA analysis
+      open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,   &
+     &action='write',form='formatted')
+      call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
+     &'fma_postpr')
 !      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
         lexist=.false.
@@ -58474,9 +58493,10 @@ c$$$               endif
               endif
 
 !    MF: dump amplitudes in dummy files for debugging (200100,200101)
-              open(200100+i*10,status='new',iostat=ierro,action='write')!MF remove, x,x',y,y' ...
-              open(200101+i*10,status='new',iostat=ierro,action='write')!MF remove, nx,nx',ny,ny'
-              open(200102+i*10,status='new',iostat=ierro,action='write')!MF remove, tune
+              open(200100+i*10,status='scratch',iostat=ierro,           &
+     &action='write')!MF remove, x,x',y,y' ...
+              open(200101+i*10,status='scratch',iostat=ierro,           &
+     &action='write')!MF remove, nx,nx',ny,ny'
 
 !    - now we have done all checks, we only need the normalisation matrix
 !      note: dump_tas is converted to units [mm,mrad,mm,mrad,mm,1]
@@ -58499,9 +58519,10 @@ c$$$               endif
                 do l=1,napx !loop over particles
                   read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
      &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
-                  if(ierro.ne.0) call fma_error(ierro,'while reading '  &
+                  if(ierro.gt.0) call fma_error(ierro,'while reading '  &
      &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
 !     MF: write phase space coordinates for debugging - remove later
+                  
                   write(200100+i*10,1986) id,turn(l,k),pos,             &
      &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
 !    - convert to mm,mrad,mm,mrad,1
@@ -58525,30 +58546,96 @@ c$$$               endif
                       nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*     &
      &xyzv(n)
                     enddo
-                    nxyzv(l,k,m)=nxyzvdummy(m)
+!      a) convert nxyzv(6) to 1.e-3 in orde to obtain circles in the normalized phase space
+                    if(m.eq.6) then
+                      nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
+                    else 
+                      nxyzv(l,k,m)=nxyzvdummy(m)
+                    endif
+!      b) calculate emittance of mode 1,2,3
+                    if(mod(m,2).eq.0) then
+                    write(*,*) 'MF: norm emit',nxyzvdummy((m-1)),       &
+     &nxyzvdummy(m)
+                      epsnxyzv(l,k,m/2)=nxyzvdummy((m-1))**2+           &
+     &nxyzvdummy(m)**2
+                    endif
                   enddo
                   write(200101+i*10,1986) id,turn(l,k),pos,             &
      &nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),nxyzv(l,k,4),nxyzv(l,k,5), &
      &nxyzv(l,k,6),kt!MF: remove
                 enddo
               enddo
+              do l=1,napx ! loop over particles
+                do m=1,3 ! loop over modes (hor.,vert.,long.)
+                  write(*,*) 'MF: method=',fma_method(i)
+                  if(fma_method(i).eq.'TUNELASK') then
+                    q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNEFFTI') then
+                    q123(m)=tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNEFFT') then
+                    q123(m)=tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),  &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNEAPA') then
+                    q123(m)=tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),  &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNEFIT') then
+                    q123(m)=tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),  &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNENEWT') then
+                    q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNEABT2') then
+                    q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNEABT') then
+                    q123(m)=tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),  &
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else if(fma_method(i).eq.'TUNENEWT1') then
+                    q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),&
+     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+!                  else
+!                    call fma_error(-1,'FMA method '//trim(stringzero    &
+!     &trim(fma_method(i)))//' not known! Note method name must be in'//  &
+!     &'capital letters!','fma_postpr')
+                  endif
+                  if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise
+                  eps123_0(m)=epsnxyzv(l,1,m)                          ! initial amplitude 
++if crlibm
+                  phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)  &
+     &+1))                                                             ! inital phase
++ei
++if .not.crlibm
+                  phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
++ei
+                  eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m),    &
+     &fma_nturn(i))      ! minimum emittance
+                  eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m),    &
+     &fma_nturn(i))      ! maximum emittance
+                  eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/      &
+     &fma_nturn(i) ! average emittance
+                enddo
+                write(2001001,1988) trim(stringzerotrim(fma_fname(i))), &
+     &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
+     &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
+     &eps123_max(2),eps123_max(3),eps123_avg(1),eps123_avg(2),          &
+     &eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3),                &
+     &phi123_0(1),phi123_0(2),phi123_0(3)
+              enddo
               close(200100+i*10)!MF remove
               close(200101+i*10)!MF remove
-              close(200102+i*10)!MF remove
               close(dumpunit(j))
             endif
           endif
          enddo !END: loop over dump files
-      enddo
+      enddo !END: loop over fma files
+      close(2001001)!MF remove
 
- 1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
- 1982 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE16.9))  !fmt 0 / not hiprec
- 
- 1983 format (2(1x,I8),1X,F12.5,5(1X,1PE25.18),1X,I8)  !fmt 1 / hiprec
- 1984 format (2(1x,I8),1X,F12.5,5(1X,1PE16.9),1X,I8)   !fmt 1 / not hiprec
- 
- 1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
+ 1984 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec      
+
+ 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))   !fmt for fma output file      
       end subroutine fma_postpr
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
@@ -67399,7 +67486,7 @@ C            backspace (dumpunit(i),iostat=ierro)
       else
         rewind lout
       endif
-      call timex(time3)
+      call timexsix(time3)
 ! Hope this is correct
 ! Maybe not!!!! this should be accumulative over multiple C/Rs
       time3=(time3-time1)+crtime3
@@ -68306,7 +68393,7 @@ c$$$         backspace (93,iostat=ierro)
       nt=values(5)*100+values(6)
       return
       end
-      subroutine timest(r1)
+      subroutine timestsix(r1)
       implicit none
 +if cr
 +ca crcoall
@@ -68321,14 +68408,14 @@ c$$$         backspace (93,iostat=ierro)
       endif
       return
       end
-      subroutine timex(r1)
+      subroutine timexsix(r1)
       implicit none
 +if cr
 +ca crcoall
 +ei
 +ca commtim
 +ca save
-      call timest(0.0)
+      call timestsix(0.0)
       call cpu_time(timenow)
       r1=timenow-timestart
       return
@@ -68436,7 +68523,7 @@ c$$$         backspace (93,iostat=ierro)
       enddo
       sumda(52)=dble(ttot)
 !     the CPU
-      call timex(time1)
+      call timexsix(time1)
       trtime=time1-time0
 +if cr
       trtime=trtime+crtime3  
