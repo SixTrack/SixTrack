@@ -562,6 +562,7 @@ then
   then
     myopt="O4"
   fi
+#  export FCF=" -frecord-marker=4 -$myopt -m32 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all -O0 -g"
   export FCF=" -frecord-marker=4 -$myopt -m32 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2"
   export FCL="-static -m32"
   export FCLD="-m32"
