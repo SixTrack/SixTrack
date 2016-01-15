@@ -58389,10 +58389,10 @@ c$$$               endif
 !           -> calculate particle amplitudes and tunes using the        *
 !              normalized coordinates for input files                   *
 !              fma_fname(fma_numfiles)                                  *
-!  output format: q1,q2,q3,eps1_0,eps2_0,eps3_0,eps1_min,eps2_min,      *
-!                 eps3_min,eps1_max,eps2_max,eps3_max,eps1_avg,         *
-!                 eps2_avg,eps3_avg,phi1_0                              *
-!----------------------------------------------------------------------*
+!  output format: q1,q2,q3,eps1_min,eps2_min,eps3_min,eps1_max,         *
+!                 eps2_max,eps3_max,eps1_avg, eps2_avg,eps3_avg,        *
+!                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
+!-----------------------------------------------------------------------*
       implicit none
 +ca szt
 +ca comgetfields
@@ -58440,6 +58440,10 @@ c$$$               endif
      &action='write',form='formatted')
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
+!     write the header
+      write(2001001,*) '# inputfile method id q1 q2 q3 eps1_min eps2_min&
+     & eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg eps3_avg ep&
+     &s1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0'
 !      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
         lexist=.false.
