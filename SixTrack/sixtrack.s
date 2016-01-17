@@ -1133,13 +1133,13 @@
 !
 +cd fma
       integer, parameter :: fma_max =200                     !max. number of FMAs
-      integer, parameter :: fma_npart_max = 500            !max. number of particles
-      integer, parameter :: fma_nturn_max = 5000            !max. number of turns used for fft
+      integer, parameter :: fma_npart_max = 70               !max. number of particles (64 allowed in sixtrack
+      integer, parameter :: fma_nturn_max = 5000             !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      integer fma_nturn (fma_max)                           !number of turns used for fft
+      integer fma_nturn (fma_max)                            !number of turns used for fft
       common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,      &
      &fma_nturn
 !
@@ -1486,7 +1486,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     call abend('after  qmodda 1 3                                 ')
 +ei
               if(ilin.ge.2) then
-                write(*,*) 'MF: ilin 1481',ilin
                 nlinoo=nlin
                 nlin=nlino
                 ilinc=1
@@ -7919,11 +7918,9 @@ cc2008
           iwrite=0
           if(nlin.eq.0) then
             iwrite=1
-            write(*,*) 'MF: line 7915'
           else
             do ii=1,nlin
               if(typ.eq.bezl(ii)) iwrite=1
-              write(*,*) 'MF: line 7918'
             enddo
           endif
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
@@ -7979,7 +7976,6 @@ cc2008
             enddo
           endif
           call dacct(damap,nvar,aa2,nvar,damap,nvar)
-          write(*,*) 'MF: line 7977 get tas'
 !         calculate optics parameter for element typ
           do j=1,ndimf
             ii=2*j
@@ -8020,8 +8016,6 @@ cc2008
 !           store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block commen variables (dbdump)
             if(fma_flag) then
               if(dump_struc(i).ne.0) then
-                write(*,*) 'MF: line 8030 define tas matrix i,ii,',     &
-     &'angp(1,1)',i,ii,angp(1,1)
                 dump_tas(dump_struc(i),ii-1,ii-1)=angp(1,ii-1)
                 dump_tas(dump_struc(i),ii-1,ii  )=angp(1,ii)
                 dump_tas(dump_struc(i),ii  ,ii-1)=au(ii,ii-1)
@@ -8034,56 +8028,9 @@ cc2008
                 dump_tas(dump_struc(i),ii  ,i3-1)=au(i3  ,i3-1)
                 dump_tas(dump_struc(i),ii-1,i3  )=au(i3-1,i3  )
                 dump_tas(dump_struc(i),ii  ,i3  )=au(i3  ,i3  )
-!    closed orbit in units mm,mrad,mm,mrad,1
+!    closed orbit in units mm,mrad,mm,mrad,1 (check the "1")
                 dump_clo(dump_struc(i),2*j-1)=c(j)
                 dump_clo(dump_struc(i),2*j)  =cp(j)
-                write(*,*) 'MF: c(j)',  c(j) 
-                write(*,*) 'MF: cp(j)',cp(j) 
-!                if(j.eq.1) then
-!                  dump_tas(i,1,1)=angp(1,1)
-!                  dump_tas(i,1,2)=angp(1,2)
-!                  dump_tas(i,2,1)=au(2,1)
-!                  dump_tas(i,2,2)=au(2,2)
-!
-!                  dump_tas(i,1,3)=au(3,3)
-!                  dump_tas(i,2,3)=au(4,3)
-!                  dump_tas(i,1,4)=au(3,4)
-!                  dump_tas(i,2,4)=au(4,4)
-!                  dump_tas(i,1,5)=au(5,5)
-!                  dump_tas(i,2,5)=au(6,5)
-!                  dump_tas(i,1,6)=au(5,6)
-!                  dump_tas(i,2,6)=au(6,6)
-!                endif
-!                if(j.eq.2) then
-!                  dump_tas(i,3,3)=angp(1,3)
-!                  dump_tas(i,3,4)=angp(1,4)
-!                  dump_tas(i,4,3)=au(4,3)
-!                  dump_tas(i,4,4)=au(4,4)
-!
-!                  dump_tas(i,3,1)=au(1,1)
-!                  dump_tas(i,4,1)=au(2,1)
-!                  dump_tas(i,3,2)=au(1,2)
-!                  dump_tas(i,4,2)=au(2,2)
-!                  dump_tas(i,3,5)=au(5,5)
-!                  dump_tas(i,4,5)=au(6,5)
-!                  dump_tas(i,3,6)=au(5,6)
-!                  dump_tas(i,4,6)=au(6,6)
-!                endif
-!                if(j.eq.3) then
-!                  dump_tas(i,5,5)=angp(1,5)
-!                  dump_tas(i,5,6)=angp(1,6)
-!                  dump_tas(i,6,5)=au(6,5)
-!                  dump_tas(i,6,6)=au(6,6)
-!
-!                  dump_tas(i,5,1)=au(1,1)
-!                  dump_tas(i,6,1)=au(2,1)
-!                  dump_tas(i,5,2)=au(1,2)
-!                  dump_tas(i,6,2)=au(2,2)
-!                  dump_tas(i,5,3)=au(3,3)
-!                  dump_tas(i,6,3)=au(4,3)
-!                  dump_tas(i,5,4)=au(3,4)
-!                  dump_tas(i,6,4)=au(4,4)
-!                endif
               endif
             endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
@@ -8131,7 +8078,7 @@ cc2008
               dphi(j)=zero
             endif
             phi(j)=phi(j)+dphi(j)
-          enddo !MF: end optics calculation
+          enddo !end optics calculation
           do j=1,ndimf
             ii=2*j
             angp(2,ii-1)=angp(1,ii-1)
@@ -14995,15 +14942,12 @@ cc2008
       if(ch(1:1).eq.'/') goto 660
       if(ch(:4).eq.next) goto 110
       call intepr(1,1,ch,ch1)
-      write(*,*) 'MF: ch1:',ch1
 +if fio
 +if crlibm
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
      & idat,nt,ilin0,ntco,eui,euii
-      write(*,*) 'MF: 1 idat,nt,ilin0,ntco,eui,euii',idat,nt,ilin0,ntco,  &
-     &eui,euii
 +if crlibm
       call disable_xp()
 +ei
@@ -15011,8 +14955,6 @@ cc2008
 +if .not.fio
 +if .not.crlibm
       read(ch1,*) idat,nt,ilin0,ntco,eui,euii
-      write(*,*) 'MF: 2 idat,nt,ilin0,ntco,eui,euii',idat,nt,ilin0,ntco,  &
-     &eui,euii
 +ei
 +if crlibm
       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
@@ -15040,8 +14982,6 @@ cc2008
         euii=fround(errno,fields,6)
         nf=nf-1
       endif
-      write(*,*) 'MF: 3 idat,nt,ilin0,ntco,eui,euii',idat,nt,ilin0,ntco,  &
-     &eui,euii
 +ei
 +ei
       iprint=0
@@ -18104,7 +18044,6 @@ cc2008
      &          dumpfirst(0), dumplast(0)
         endif
 +ei
-        write(*,*) 'MF: il,mper*mbloz',il,mper*mbloz
         do ii=1,il
           if(ldump(ii)) then
 +if cr
@@ -18115,7 +18054,6 @@ cc2008
 +ei
      &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
      &     dumpfirst(ii), dumplast(ii)
-           write(*,*) 'MF: bez(ii)',bez(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
             kk = 0
@@ -18123,8 +18061,6 @@ cc2008
               if ( ic(jj)-nblo .eq. ii ) then
                 write (ch1,*) jj    ! internal write for left-adjusting
                 dump_struc(jj) = ii ! match structure element to single element dump_struc(idx_single_element) = idx_structure_element
-                write(*,*) 'MF: jj,ii,dump_struc(jj)',jj,ii,            &
-     &dump_struc(jj)
 +if cr
                 write (lout,10472)
 +ei
@@ -18161,11 +18097,6 @@ cc2008
           endif
         enddo
 
-        do jj=1,mper*mbloz
-          if(dump_struc(jj).ne.0) then
-            write(*,*) 'MF: jj,dump_struc(jj)',jj,dump_struc(jj)
-          endif
-       enddo
         if ( ldumphighprec ) then
 +if cr
           write(lout,*) ''
@@ -22642,7 +22573,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('biu                                               ')
 !     endif
 +ei
-      write(*,*) 'MF: line 22570 iu',iu
 !     start loop over single elements
       do 430 i=1,iu
         if(iqmodc.eq.2.or.iqmodc.eq.4) then
@@ -22687,7 +22617,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +if .not.cr
           write(*,10020)
-          write(*,*) 'MF: line 22586' 
 +ei
 +if cr
           write(lout,10010)
@@ -22697,7 +22626,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
           tl=zero
 +ca umlalid
-        write(*,*) 'MF: line 22629' 
         endif
 +if debug
 !     call wda('biflag',0d0,2,0,0,0)
@@ -22715,7 +22643,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
             if(icav.eq.0) then
-              write(*,*) 'MF: line 22631' 
 *FOX  CORRNEW(1)=X(1) ;
 *FOX  CORRNEW(2)=YP(1) ;
 *FOX  CORRNEW(3)=X(2) ;
@@ -22753,9 +22680,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('bdaccct                                           ')
 !     endif
 +ei
-              write(*,*) 'MF: line 22650' 
               call dacct(corrau2,nvar,corrau1,nvar,corrnew,nvar)
-              write(*,*) 'MF: line 22651'
             endif
 +if debug
 !     call wda('adacct?',0d0,2,0,0,0)
@@ -22810,7 +22735,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               endif
               if(ipch.ne.0) then
                 call envquad(jx,ipch)
-                write(*,*) 'MF: line 22706'
 +if debug
 !     call wda('aenvquad',0d0,2,0,0,0)
 !     if (umcalls.eq.8) then
@@ -22835,7 +22759,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               jx=mtyp(ix,jb)
               typ=bez(jx)
               tl=tl+el(jx)
-              write(*,*) 'MF: line 22731'
 +ca umlalid
               if(i.eq.nt) goto 470
             enddo
@@ -23602,7 +23525,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call dacop(dpda1,damap(5))
       endif
       if(iqmodc.eq.2.or.iqmodc.eq.4.or.ilin.ge.2) then
-        write(*,*) 'MF: ilin 23494 ',ilin
         rewind 18
 !Eric
         rewind 111
@@ -23636,7 +23558,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           jj(i)=1
           do ii=1,nd2
             call dapek(aa2(ii),jj,tas)
-            write(*,*) 'MF: call dapek, tas(1,1)'
             if(i.eq.6.and.ii.ne.6) tas=tas*c1e3
             if(ii.eq.6.and.i.ne.6) tas=tas*c1m3
             tasm(ii,i)=tas
@@ -25556,7 +25477,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(iskew.ne.0) call decoup
         !MF remove
         if(ilin.eq.1.or.ilin.eq.3) then
-          write(*,*) 'MF: linopt line 25438, dp1',dp1
           call linopt(dp1)
         endif
 +if debug
@@ -25733,7 +25653,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 qwc(i)=dble(int(qwc(i)))+wxys(i)
               enddo
               if(ilin.ge.2) then
-                write(*,*) 'MF: ilin 25624 ', ilin
 +if debug
 !     call dumpbin('bmydaini',999,9999)
 !     call abend('before mydaini                                    ')
@@ -25780,7 +25699,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               if(nvar2.le.5) ition=itiono
               if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
               if(ilin.ge.2) then
-                write(*,*) 'MF: ilin 25671 ',ilin
                 nlinoo=nlin
                 nlin=nlino
                 iqmodc=2
@@ -38657,7 +38575,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       exz(1,6)=dp1
       exz(2,6)=dp1
       if(ilin.eq.1.or.ilin.eq.3) then
-        write(*,*) 'MF: ilin 38548 ',ilin
         call linopt(dp1)
       endif
       if(isub.eq.1) call subre(dp1)
@@ -38765,7 +38682,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(nvar2.le.5) ition=itiono
         if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
         if(ilin.ge.2) then
-          write(*,*) 'MF: ilin 38656 ',ilin
           nlinoo=nlin
           nlin=nlino
           iqmodc=2
@@ -38948,7 +38864,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,10050) dp1
 +ei
       call anfb(tas)
-      write(*,*) 'MF: calling anfb(tas), tas(1,1)',tas(1,1)
       if(iclo6.eq.2) then
         x(1,1) = x(1,1) + clo6(1)
         x(1,2) = x(1,2) + clo6(2)
@@ -47413,7 +47328,6 @@ c$$$               endif
 +ei
 +ca save
 !-----------------------------------------------------------------------
-      write(*,*) 'MF: entering linopt'
       nhmoni=0
       nvmoni=0
       nhcorr=0
@@ -48347,14 +48261,11 @@ c$$$               endif
           if(typ.eq.bezl(i)) iwrite=1
    10   continue
       endif
-      write(*,*) 'MF: iwrite',iwrite
       if(iwrite.eq.1) then
         do 20 l=1,2
           ll=2*l
 !hr06     b1(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
           b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
-          write(*,*) 'MF: ll,ll-1,ll+1',ll,ll-1,ll+1,',b1(',l,')=',     &
-     &b1(l),'t(ll,ll-1),t(ll+1,ll-1)',t(ll,ll-1),t(ll+1,ll-1)
 !hr06     b2(l)=t(6-ll,ll-1)*t(6-ll,ll-1)+t(7-ll,ll-1)*t(7-ll,ll-1)
           b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
 !hr06     al1(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
@@ -48370,12 +48281,6 @@ c$$$               endif
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
    20   continue
-      write(*,*) 'MF: nr,typ,tl,ixwl,b1(1) - 1',nr,typ,tl,ixwl,b1(1)
-      do l=1,6
-        do mm=1,6
-         write(*,*) l,mm,t(l,mm)
-        enddo
-      enddo
 +if collimat.and..not.bnlelens
         tbetax(max(ielem,1))  = b1(1)
         tbetay(max(ielem,1))  = b1(2)
@@ -48886,7 +48791,6 @@ c$$$               endif
      &(i)=bez(i)
         nlin=nlin+1
    60 continue
-      write(*,*) 'MF: linopt line 48750'
       call linopt(zero)
       call phasad(zero,qwc1)
 
@@ -49092,7 +48996,6 @@ c$$$               endif
         endif
 
         if(ihflag.eq.1.and.ivflag.eq.1) goto 140
-        write(*,*) 'MF: linopt line 48957'
         call linopt(zero)
         call phasad(zero,qwc1)
   110 continue
@@ -49167,7 +49070,6 @@ c$$$               endif
               bka(im,1)=bka(im,1)*hfac
             endif
   150     continue
-          write(*,*) 'MF: linopt line 49031'
           call linopt(zero)
           do 160 i=1,nhmoni
 !hr06       b(i)=bclorb(i,1)
@@ -56158,13 +56060,7 @@ c$$$               endif
       pizr=zero
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
 !     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
-!     t  = inverser(ta), units mm,mrad,mm,mrad,mm,1
-      write(*,*) 'MF: definition of ta line 56009'
-      do i=1,6
-        do j=1,6
-          write(*,*) ta(i,j)
-        enddo
-      enddo
+!     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
       do 160 i=1,6
         do 160 j=1,6
   160 t(i,j)=ta(j,i)
@@ -56192,13 +56088,7 @@ c$$$               endif
   180 continue
       tasum=tasum-two
       if(abs(tasum).ge.pieni) its6d=1
-      write(*,*) 'MF: invert the t matrix line 56040'
       call dinv(6,t,6,idummy,nerror)
-      do i=1,6
-        do j=1,6
-          write(*,*) t(j,i)
-        enddo
-      enddo
       if(nerror.eq.-1) then
 +if cr
         write(lout,10290) nfile
@@ -56463,12 +56353,10 @@ c$$$               endif
 !hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
         xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
       endif
-      write(*,*) 'MF: print t-matrix used for normalisation'
       do 220 iq=1,6
         txyz(iq)=zero
         do 220 jq=1,6
           txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
-          write(*,*) t(jq,iq)
   220 continue
 !--INITIAL COORDINATES
       if(nprint.eq.1.and.ia.eq.0) then
@@ -58301,12 +58189,21 @@ c$$$               endif
 !  purpose: error messages for fma analysis                             *
 !-----------------------------------------------------------------------*
       implicit none
++if cr
++ca crcoall
++ei
       integer,       intent(in)  :: ierro
       character (*), intent (in) :: subroutine_name
       character (*), intent (in) :: str             !error message
       if(ierro.ne.0) then
++if .not.cr
         write(*,*) 'ERROR in ',subroutine_name,': ',
      & str,', iostat=',ierro
++ei
++if cr
+        write(lout,*) 'ERROR in ',subroutine_name,': ',
+     & str,', iostat=',ierro
++ei
         call prror(-1)
       endif
       end subroutine
@@ -58334,13 +58231,6 @@ c$$$               endif
       do i=1,5
         fma_tas(i,6)=fma_tas(i,6)*1.e3
         fma_tas(6,i)=fma_tas(6,i)*1.e-3
-      enddo
-!     MF: check tas -- remove later
-      write(*,*) 'MF: check tasm'
-      do i=1,6
-        do j=1,6
-          write(*,*) tasm(i,j)-fma_tas(i,j)
-        enddo
       enddo
 !     invert matrix
 !     - set values close to 1 equal to 1
@@ -58373,12 +58263,6 @@ c$$$               endif
           fma_tas_inv(i,j)=tdummy(j,i)
         enddo
       enddo
-      write(*,*) 'MF: fma_tas_inv'
-      do i=1,6
-        do j=1,6
-          write(*,*) fma_tas_inv(i,j)
-        enddo
-      enddo
       end subroutine fma_norm_phase_space_matrix
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
@@ -58398,6 +58282,7 @@ c$$$               endif
 +ca comgetfields
 +ca parpro
 +ca dbdump
++ca dbdumpcr
 +ca fma
 +ca commonta !normalisation matrix tasm -> remove later
 +ca common   !napx = number of particles 
@@ -58405,6 +58290,9 @@ c$$$               endif
 +ca commonc
 +if crlibm
 +ca crlibco
++ei
++if cr
++ca crcoall
 +ei
       integer :: i,j,k,l,m,n !for do loops
       integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
@@ -58444,6 +58332,7 @@ c$$$               endif
       write(2001001,*) '# inputfile method id q1 q2 q3 eps1_min eps2_min&
      & eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg eps3_avg ep&
      &s1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0'
+
 !      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
         lexist=.false.
@@ -58453,18 +58342,31 @@ c$$$               endif
             if(trim(stringzerotrim(fma_fname(i))).eq.
      &trim(stringzerotrim(dump_fname(j)))) then 
               lexist=.true.     !set lexist = true if the file fma_fname(j) exists
++if .not.cr
               write(*,*) 'start FMA analysis using file ',              &
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
      &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
++ei
++if cr
+              write(lout,*) 'start FMA analysis using file ',           &
+     &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
+     &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
++ei
 
 !    check the format, if dumpfmt != 2 abort
               if(dumpfmt(j).ne.2) then
-                write(*,*) 'ERROR in fma_postpr: input file has wrong ',&
-     &'format! Choose format=2 in DUMP block.'
++if .not.cr
+                write(*,*) 'ERROR in fma_postpr: input file has ',      &
+     &'wrong format! Choose format=2 in DUMP block.'
++ei
++if cr
+                write(lout,*) 'ERROR in fma_postpr: input file has ',   &
+     &'wrong format! Choose format=2 in DUMP block.'
++ei
                 call prror(-1)
               endif
 
-!    check if file is open for writing -> save position in file to resume later
+!    check if file is open for writing (resume to original position before exiting the subroutine)
 !    then close + open for reading
               inquire(unit=dumpunit(j),opened=lopen)
               if(lopen) close(dumpunit(j))
@@ -58486,37 +58388,30 @@ c$$$               endif
                 if(getfields_fields(1)(1:getfields_lfields(1)).ne.'#')  &
      &exit !skip header lines
               enddo
-              write(*,*) 'MF: ierro=',ierro,'header ', ch
               backspace(dumpunit(j),iostat=ierro)
 
               fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
               if(fma_nturn(i).gt.fma_nturn_max) then
-                write(*,*) 'ERROR in fma_postpr: only ',fma_nturn_max,  &
-     &' turns allowed for fma and ',fma_nturn(i),' used!'
++if .not.cr
+                write(*,*) 'ERROR in fma_postpr: only ',                &
+     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
                 write(*,*) '->reset fma_nturn_max > ', fma_nturn_max
++ei
++if cr
+                write(lout,*) 'ERROR in fma_postpr: only ',             &
+     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
+                write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
++ei
               endif
 
 !    MF: dump amplitudes in dummy files for debugging (200100,200101)
-              open(200100+i*10,status='scratch',iostat=ierro,           &
-     &action='write')!MF remove, x,x',y,y' ...
               open(200101+i*10,status='scratch',iostat=ierro,           &
      &action='write')!MF remove, nx,nx',ny,ny'
 
 !    - now we have done all checks, we only need the normalisation matrix
 !      note: dump_tas is converted to units [mm,mrad,mm,mrad,mm,1]
-              write(*,*) dump_tas(j,1,1)
               call fma_norm_phase_space_matrix(fma_tas_inv,             &
      &dump_tas(j,1:6,1:6))
-              write(*,*) 'MF: fma_tas_inv in fma_postpr'
-              do k=1,6
-                do l=1,6
-                  write(*,*) fma_tas_inv(k,l)
-                enddo
-              enddo
-              write(*,*) 'MF: closed orbit in fma_postpr'
-              do k=1,6
-                  write(*,*) dump_clo(j,k)
-              enddo
 
 !    - read in particle amplitudes a(part,turn)
               do k=1,fma_nturn(i) !loop over turns
@@ -58527,13 +58422,8 @@ c$$$               endif
      &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
 !     MF: write phase space coordinates for debugging - remove later
                   
-                  write(200100+i*10,1986) id,turn(l,k),pos,             &
-     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt!MF: remove
-!    - convert to mm,mrad,mm,mrad,1
+!    - convert to mm,mrad,mm,mrad,1 -> MF: check units!!!
                   dump_clo(j,6)=dump_clo(j,6)*1.e-3
-!                  do m=1,6
-!                    write(*,*) 'MF: dump_clo(j,k)',dump_clo(j,m)
-!                  enddo
 !    - remove closed orbit except for xyzv(6)
                   do m=1,5
                     xyzv(m)=xyzv(m)-dump_clo(j,m)
@@ -58558,8 +58448,6 @@ c$$$               endif
                     endif
 !      b) calculate emittance of mode 1,2,3
                     if(mod(m,2).eq.0) then
-                    write(*,*) 'MF: norm emit',nxyzvdummy((m-1)),       &
-     &nxyzvdummy(m)
                       epsnxyzv(l,k,m/2)=nxyzvdummy((m-1))**2+           &
      &nxyzvdummy(m)**2
                     endif
@@ -58569,12 +58457,11 @@ c$$$               endif
      &nxyzv(l,k,6),kt!MF: remove
                 enddo
               enddo
+!     calculate tunes of particles using the methods in plato_seq.f
               do l=1,napx ! loop over particles
                 do m=1,3 ! loop over modes (hor.,vert.,long.)
-                  write(*,*) 'MF: method=',fma_method(i)
                   if(trim(stringzerotrim(fma_method(i))).eq.'TUNELASK') &
      &then
-                    write(*,*) 'MF: tunelask'
                     q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), &
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
                   else if(trim(stringzerotrim(fma_method(i))).eq.       &
@@ -58611,7 +58498,7 @@ c$$$               endif
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
                   else
                     call fma_error(-1,'FMA method '//trim(stringzero    &
-     &trim(fma_method(i)))//' not known! Note method name must be in'//  &
+     &trim(fma_method(i)))//' not known! Note method name must be in'// &
      &'capital letters!','fma_postpr')
                   endif
                   if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
@@ -58637,9 +58524,18 @@ c$$$               endif
      &eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3),                &
      &phi123_0(1),phi123_0(2),phi123_0(3)
               enddo
-              close(200100+i*10)!MF remove
               close(200101+i*10)!MF remove
               close(dumpunit(j))
+!     Kyrre: resume position in dumpfile if file was open, otherwise close it
+              if(lopen) then
+                open(dumpunit(j),file=dump_fname(j), status='old',      &
+     &form='formatted',action='readwrite')
+                do k=1,dumpfilepos(j)
+                  read(dumpunit(j),'(A)',iostat=ierro) ch
+                  call fma_error(ierro,'while resuming file ' //        &
+     &dump_fname(j),'fma_postpr')
+                enddo
+              endif
             endif
           endif
          enddo !END: loop over dump files
