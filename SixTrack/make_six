@@ -56,7 +56,7 @@ show_options()
 {
     ons="The following selections are ON  :"
     offs="The following selections are OFF :"
-    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27
     do
         if test ${values[$i]} = "true"
         then
@@ -106,8 +106,9 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api       cernlib naglib da    collimat cpss  boinc cr    nagfor   pgf90   g95   gfortran bpm beamgas bnlelens bignblz debug hdf5  ifort fio SSE lf95)
-values=(junk  true true     true false  false     true    true   false false    false false false false    false false false    false false    false   false false false false false false false)
+options=(junk tilt tracking fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz)
+values=( junk true true     true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false)
+#Element 0    1    2        3    4      5     6       7      8     9        10    11    12    13     14    15    16       17    18      19       20      21    22    23    24    25    26    27
 
 # Overide for Darwin
 OSTYPE=`uname -s`
@@ -156,6 +157,7 @@ bpm="bpm"
 beamgas="beamgas"
 bnlelens="bnlelens"
 bignblz="bignblz"
+hugenblz="hugenblz"
 debug="debug"
 hdf5="hdf5"
 ifort="ifort"
@@ -173,6 +175,7 @@ do
             rm -rf SixTrack_* 
             exit
             ;;
+	#Options to switch things OFF
         -tilt) tilt="tilt"
             values[1]=false
             ;;
@@ -248,8 +251,11 @@ do
         -lf95) lf95="lf95"
             values[26]=false
             ;;
-
-
+        -hugenblz) hugenblz="hugenblz"
+            values[27]=false
+            ;;
+	
+	#Options to switch things ON
         tilt) tilt=""
             values[1]=true
             ;;
@@ -325,41 +331,46 @@ do
         lf95) lf95=""
             values[26]=true
             ;;
-    sse2) SSE=sse2
-    values[25]=true
-    ;;
-    sse3) SSE=sse3
-    values[25]=true
-    ;;
-    sse41) SSE=sse4.1
-    values[25]=true
-    ;;
-    sse42) SSE=sse4.2
-    values[25]=true
-    ;;
-    O) myopt=O
-    ;;
-    O0) myopt=O0
-    ;;
-    o0) myopt=o0
-    ;;
-    O1) myopt=O1
-    ;;
-    o1) myopt=o1
-    ;;
-    O2) myopt=O2
-    ;;
-    o2) myopt=o2
-    ;;
-    O3) myopt=O3
-    ;;
-    o3) myopt=o3
-    ;;
-    O4) myopt=O4
-    ;;
-    o4) myopt=o4
-    ;;
-
+	hugenblz) hugenblz=""
+            values[27]=true
+            ;;
+	
+	#Compiler flags are special
+	sse2) SSE=sse2
+	    values[25]=true
+	    ;;
+	sse3) SSE=sse3
+	    values[25]=true
+	    ;;
+	sse41) SSE=sse4.1
+	    values[25]=true
+	    ;;
+	sse42) SSE=sse4.2
+	    values[25]=true
+	    ;;
+	O) myopt=O
+	    ;;
+	O0) myopt=O0
+	    ;;
+	o0) myopt=o0
+	    ;;
+	O1) myopt=O1
+	    ;;
+	o1) myopt=o1
+	    ;;
+	O2) myopt=O2
+	    ;;
+	o2) myopt=o2
+	    ;;
+	O3) myopt=O3
+	    ;;
+	o3) myopt=o3
+	    ;;
+	O4) myopt=O4
+	    ;;
+	o4) myopt=o4
+	    ;;
+	
         *) echo "Illegal option $1"
             exit 1
             ;;
@@ -406,6 +417,22 @@ then
         echo "     beamgas is not compatible with bignblz"
         exit 1
     fi
+    if test "$hugenblz" = ""
+    then
+	show_options
+        echo "     INVALID options selected:"
+        echo "     beamgas is not compatible with hugenblz"
+        exit 1
+    fi
+elif test "$bignblz" = ""
+then
+    if test "$hugenblz" = ""
+    then
+	show_options
+        echo "     INVALID options selected:"
+        echo "     bignblz and hugenblz are not compatible, please use only one of them!"
+        exit 1
+    fi 
 elif test "$hdf5" = ""
 then
     if test "$collimat" != ""
@@ -761,6 +788,11 @@ if test "$bignblz" = ""
 then
     ename=$ename"_bignblz"
 fi
+if test "$hugenblz" = ""
+then
+    ename=$ename"_hugenblz"
+fi
+
 if test "$debug" = ""
 then
     ename=$ename"_debug"
@@ -836,12 +868,16 @@ do
     cp ../ast_mask/$i.ast .
 done
 # Update the .ast flags based on options
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$ifort" "$lf95" 
+echo "Deleting un-used flags and decks from .ast files..."
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$ifort" "$lf95" "$hugenblz"
 do
+    #echo "opt=" $opt
     if test "$opt" != ""
     then
         for i in `ls *.ast`
         do
+	    #echo "i="$i
+	    #cp $i $i.bak
             sed -e 's/\(^df .*\), *'$opt' *,\(.*\)/\1,\2/' \
                 -e 's/\(^df .*\), *'$opt' *$/\1/' \
                 -e 's/\(^df  *'$opt' *,\)\(.*\)/df \2/'  \
@@ -853,6 +889,9 @@ do
                 exit 3
             fi
             mv tmp$$ $i
+
+	    #diff $i.bak $i
+	    #rm $i.bak
         done
     fi
 done
@@ -887,7 +926,10 @@ do
         done
     fi
 done
+echo "Done!"
+
 # Then generate the .f files
+echo "Running ASTUCE..."
 for i in $FORS
 do
     ../astuce < $i.ast

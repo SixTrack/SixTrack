@@ -155,7 +155,11 @@
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 300000,mmul = 20)
 +ei
-+if .not.bignblz
++if hugenblz
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
+     &nzfz = 300000,mmul = 20)
++ei
++if .not.bignblz.and..not.hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
      &nzfz = 300000,mmul = 20)
 +ei
@@ -170,7 +174,11 @@
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 300000,mmul = 11)
 +ei ! / bignblz
-+if .not.bignblz
++if hugenblz
+      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
+     &nzfz = 300000,mmul = 11)
++ei ! / hugenblz
++if .not.bignblz.and..not.hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
      &nzfz = 300000,mmul = 11)
 +ei ! / not bignblz
