@@ -8021,7 +8021,7 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
-!           store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block commen variables (dbdump)
+!           store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
             if(fma_flag) then
               if(dump_struc(i).ne.0) then
                 dump_tas(dump_struc(i),ii-1,ii-1)=angp(1,ii-1)
@@ -8036,9 +8036,13 @@ cc2008
                 dump_tas(dump_struc(i),ii  ,i3-1)=au(i3  ,i3-1)
                 dump_tas(dump_struc(i),ii-1,i3  )=au(i3-1,i3  )
                 dump_tas(dump_struc(i),ii  ,i3  )=au(i3  ,i3  )
-!    closed orbit in units mm,mrad,mm,mrad,1 (check the "1")
+!    closed orbit in units mm,mrad,mm,mrad,1
                 dump_clo(dump_struc(i),2*j-1)=c(j)
-                dump_clo(dump_struc(i),2*j)  =cp(j)
+                if (j.eq.3) then
+                  dump_clo(dump_struc(i),2*j)  =cp(j)*c1m3
+                else
+                  dump_clo(dump_struc(i),2*j)  =cp(j)
+                endif
               endif
             endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
@@ -8163,6 +8167,7 @@ cc2008
 +if .not.cr
               write(*,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),c(3),&
 +ei
+! unit of cp(3) is 1.e-3 -> no unit conversion
      &cp(3)*c1m3
 +if cr
               write(lout,10080) b2(3),al2(3),g2(3)
@@ -56400,6 +56405,7 @@ c$$$            endif
       if(its6d.eq.1) then
 !hr06   xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
         xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
+        write(*,*) 'MF: clop(3)=',clop(3)
 !hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
         xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
       endif
@@ -56407,6 +56413,7 @@ c$$$            endif
         txyz(iq)=zero
         do 220 jq=1,6
           txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
+          write(*,*) 'MF: t(',jq,',',iq,')=',t(jq,iq)
   220 continue
 !--INITIAL COORDINATES
       if(nprint.eq.1.and.ia.eq.0) then
@@ -58454,35 +58461,43 @@ c$$$            endif
 +ei
               endif
 
-!    MF: dump amplitudes in dummy files for debugging (200100,200101)
-              open(200101+i*10,status='scratch',iostat=ierro,           &
-     &action='write')!MF remove, nx,nx',ny,ny'
-
 !    - now we have done all checks, we only need the normalisation matrix
 !      note: dump_tas is converted to units [mm,mrad,mm,mrad,mm,1]
               call fma_norm_phase_space_matrix(fma_tas_inv,             &
      &dump_tas(j,1:6,1:6))
 
-!    - read in particle amplitudes a(part,turn)
+!    MF: dump amplitudes in dummy files for debugging (200101)
+              open(200101+i*10,status='replace',iostat=ierro,           &
+     &action='write')!MF remove, nx,nx',ny,ny'
+!    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
+!      units: x,px,y,py,sig,dp/p = [mm,mrad,mm,mrad,1]
+              write(200101+i*10,1987) '# closorb',dump_clo(j,1),        &
+     &dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),          &
+     &dump_clo(j,6)
+!    - write tas-matrix in header of file with normalized phase space coordinates (200101+i*10)
+!      units: x,x',y,y',sig,dp/p [mm,mrad,mm,mrad,1]
+              write(200101+i*10,'(A20)') '# tamatrix'
+              do m=1,6
+                do n=1,6
+                  write(200101+i*10,'(A20,1x,1PE16.9)') '# ',           &
+     &fma_tas_inv(m,n)
+                enddo
+              enddo
+
+!    - read in particle amplitudes a(part,turn), x,x',y,y',sigma,dE/E
               do k=1,fma_nturn(i) !loop over turns
                 do l=1,napx !loop over particles
                   read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
      &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
                   if(ierro.gt.0) call fma_error(ierro,'while reading '  &
      &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
-!     MF: write phase space coordinates for debugging - remove later
-                  
-!    - convert to mm,mrad,mm,mrad,1 -> MF: check units!!!
-                  dump_clo(j,6)=dump_clo(j,6)*1.e-3
-!    - remove closed orbit except for xyzv(6)
-                  do m=1,5
+!    - remove closed orbit
+                  do m=1,6
                     xyzv(m)=xyzv(m)-dump_clo(j,m)
                   enddo
 !    - convert to canonical variables
                   xyzv(2)=xyzv(2)*((one+xyzv(6))+dump_clo(j,6)) 
                   xyzv(4)=xyzv(4)*((one+xyzv(6))+dump_clo(j,6))
-!    - remove closed orbit also from xyzv(6)
-                  xyzv(6)=xyzv(6)-dump_clo(j,6)
 !    - normalize nxyz=fma_tas_inv*xyz
                   do m=1,6
                     nxyzvdummy(m)=zero
@@ -58490,7 +58505,8 @@ c$$$            endif
                       nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*     &
      &xyzv(n)
                     enddo
-!      a) convert nxyzv(6) to 1.e-3 in orde to obtain circles in the normalized phase space
+!      a) convert nxyzv(6) to 1.e-3 in order to obtain circles in the normalized phase space
+!         unit conversion: mm,mrad,mm,mrad,mm,1 -> mm,mrad,mm,mrad,mm,1.e-3
                     if(m.eq.6) then
                       nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
                     else 
@@ -58592,10 +58608,9 @@ c$$$            endif
       enddo !END: loop over fma files
       close(2001001)!MF remove
 
- 1984 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
- 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec      
-
- 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))   !fmt for fma output file      
+ 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine      
+ 1987 format (A20,1x,6(1X,1PE16.9))                    !fmt for closed orbit header      
+ 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file      
       end subroutine fma_postpr
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
