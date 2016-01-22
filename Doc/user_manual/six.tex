@@ -45,11 +45,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update September 2015
+  Update January 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.28 \\
+  Version 4.5.31 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -1400,7 +1400,6 @@ For the SET, the time $t$ is then shifted by -70 turns, so that the functions ar
 \todo[inline]{Write}
 
 \subsection{Beam--Beam Element} \label{BeamBeam}
-\todo[inline]{Update for JavierBB}
 
 \subparagraph{Description} The beam--beam kick, including a separation
 of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs}
@@ -1673,6 +1672,7 @@ variable but at least 1
    $\beta$--, $\alpha$-- and $\gamma$--functions, 4 angles for
    coordinates and momenta respectively, plus the coupling angle
    [rad]) are written in ascii format on file \# 11.
+   This write-out happens every \emph{ntco} turns.
  \end{itemize}
 \item [E\_I, E\_II] (floats) The two eigen--emittances to be chosen to
   determine the coupling angle. They are typically set to be equal.
@@ -2353,7 +2353,7 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
 \begin{description}
 \item [numl] (integer) Number of turns in the forward direction
 \item [numlr] (integer) Number of turns in the backward direction
-\item [napx] (integer) Number of amplitude variations
+\item [napx] (integer) Number of amplitude variations (i.e.\ particle pairs)
 \item [amp(1), amp0] (floats) Start and end amplitude (any sign) in
   the horizontal phase space plane for the amplitude variations. The
   vertical amplitude is calculated using the ratio between the
