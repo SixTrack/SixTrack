@@ -1142,7 +1142,7 @@
 +cd fma
       integer, parameter :: fma_max =200                     !max. number of FMAs
       integer, parameter :: fma_npart_max = 70               !max. number of particles (64 allowed in sixtrack
-      integer, parameter :: fma_nturn_max = 5000             !max. number of turns used for fft
+      integer, parameter :: fma_nturn_max = 10000             !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
