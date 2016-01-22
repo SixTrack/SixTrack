@@ -8036,12 +8036,13 @@ cc2008
                 dump_tas(dump_struc(i),ii  ,i3-1)=au(i3  ,i3-1)
                 dump_tas(dump_struc(i),ii-1,i3  )=au(i3-1,i3  )
                 dump_tas(dump_struc(i),ii  ,i3  )=au(i3  ,i3  )
-!    closed orbit in units mm,mrad,mm,mrad,1
+!    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
+!    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
                 dump_clo(dump_struc(i),2*j-1)=c(j)
-                if (j.eq.3) then
+                if (j.eq.3) then !dp/p
                   dump_clo(dump_struc(i),2*j)  =cp(j)*c1m3
-                else
-                  dump_clo(dump_struc(i),2*j)  =cp(j)
+                else ! xp,yp
+                  dump_clo(dump_struc(i),2*j)  =cp(j)/(one+cp(6)*c1m3)
                 endif
               endif
             endif
@@ -8167,8 +8168,7 @@ cc2008
 +if .not.cr
               write(*,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),c(3),&
 +ei
-! unit of cp(3) is 1.e-3 -> no unit conversion
-     &cp(3)*c1m3
+     &cp(3)
 +if cr
               write(lout,10080) b2(3),al2(3),g2(3)
 +ei
@@ -56405,7 +56405,6 @@ c$$$            endif
       if(its6d.eq.1) then
 !hr06   xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
         xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-        write(*,*) 'MF: clop(3)=',clop(3)
 !hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
         xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
       endif
@@ -56413,7 +56412,6 @@ c$$$            endif
         txyz(iq)=zero
         do 220 jq=1,6
           txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
-          write(*,*) 'MF: t(',jq,',',iq,')=',t(jq,iq)
   220 continue
 !--INITIAL COORDINATES
       if(nprint.eq.1.and.ia.eq.0) then
@@ -58284,7 +58282,7 @@ c$$$            endif
 !     dummy variables
       double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
       integer, dimension(6) :: idummy !for matrix inversion
-!     convert matrix from SI units [mm,mrad,mm,mrad,mm,1.e-3] to [mm,mrad,mm,mrad,mm,1]
+!     convert matrix from SI units x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3] to [mm,mrad,mm,mrad,mm,1]
       do i=1,5
         fma_tas(i,6)=fma_tas(i,6)*1.e3
         fma_tas(6,i)=fma_tas(6,i)*1.e-3
@@ -58386,9 +58384,11 @@ c$$$            endif
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
 !     write the header
-      write(2001001,*) '# inputfile method id q1 q2 q3 eps1_min eps2_min&
-     & eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg eps3_avg ep&
-     &s1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0'
+      write(2001001,*) adjustl('# eps1*,eps2*,eps3* all in 1.e-6*m,     &
+     &phi* [rad]')
+      write(2001001,*) adjustl('# inputfile method id q1 q2 q3 eps1_min &
+     &eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg eps&
+     &3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0')
 
 !      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
@@ -58470,21 +58470,23 @@ c$$$            endif
               open(200101+i*10,status='replace',iostat=ierro,           &
      &action='write')!MF remove, nx,nx',ny,ny'
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
-!      units: x,px,y,py,sig,dp/p = [mm,mrad,mm,mrad,1]
-              write(200101+i*10,1987) '# closorb',dump_clo(j,1),        &
-     &dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),          &
+!      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1]
+              write(200101+i*10,1987) adjustl('# closorb'),dump_clo(j,1)&
+     &,dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),         &
      &dump_clo(j,6)
 !    - write tas-matrix in header of file with normalized phase space coordinates (200101+i*10)
-!      units: x,x',y,y',sig,dp/p [mm,mrad,mm,mrad,1]
-              write(200101+i*10,'(A20)') '# tamatrix'
+!      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
+              write(200101+i*10,'(A17)') adjustl('# inverse(tamatrix)')
               do m=1,6
                 do n=1,6
-                  write(200101+i*10,'(A20,1x,1PE16.9)') '# ',           &
+                  write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),   &
      &fma_tas_inv(m,n)
                 enddo
               enddo
-
-!    - read in particle amplitudes a(part,turn), x,x',y,y',sigma,dE/E
+              write(200101+i*10,*) adjustl('# id turn pos[m] nx[1.e-3'//&
+     &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 '//     &
+     &'sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt')
+!    - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
               do k=1,fma_nturn(i) !loop over turns
                 do l=1,napx !loop over particles
                   read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,    &
@@ -58505,8 +58507,8 @@ c$$$            endif
                       nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*     &
      &xyzv(n)
                     enddo
-!      a) convert nxyzv(6) to 1.e-3 in order to obtain circles in the normalized phase space
-!         unit conversion: mm,mrad,mm,mrad,mm,1 -> mm,mrad,mm,mrad,mm,1.e-3
+!      a) convert nxyzv(6) to 1.e-3 sqrt(m)
+!         unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
                     if(m.eq.6) then
                       nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
                     else 
@@ -58609,7 +58611,7 @@ c$$$            endif
       close(2001001)!MF remove
 
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine      
- 1987 format (A20,1x,6(1X,1PE16.9))                    !fmt for closed orbit header      
+ 1987 format (A10,1x,6(1X,1PE16.9))                    !fmt for closed orbit header      
  1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file      
       end subroutine fma_postpr
       subroutine fft(ar,ai,m,n)
