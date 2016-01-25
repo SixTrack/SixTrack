@@ -26461,7 +26461,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &  ', last turn=', dumplast(i)
                 endif
                 write(dumpunit(i),*)
-     &'#ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
+     &  'ktrack'
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 3
 +ei
@@ -58498,10 +58499,10 @@ c$$$            endif
                 read(dumpunit(j),'(A)',iostat=ierro) ch
                 call fma_error(ierro,'while reading file ' //           &
      &dump_fname(j),'fma_postpr')
-                call getfields_split( ch, getfields_fields, 
+                call getfields_split( ch, getfields_fields,             &
      &getfields_lfields,getfields_nfields, getfields_lerr )
-                if(getfields_lerr) call fma_error(1,'when calling       &
-     &getfields_split.','fma_postpr')
+                if(getfields_lerr) call fma_error(1,'when calling '//   &
+     &'getfields_split.','fma_postpr')
                 if(getfields_fields(1)(1:getfields_lfields(1)).ne.'#')  &
      &exit !skip header lines
               enddo
