@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.31'/
-      data moddate /'18.01.2016'/
+      data version /'4.5.32'/
+      data moddate /'22.01.2016'/
 +cd license
 !!SixTrack
 !!
@@ -150,37 +150,41 @@
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
      &nrco,ntr,nzfz
       parameter(npart = 64,nmac = 1)
+!Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
+! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
+! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
+! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
-     &nzfz = 300000,mmul = 20)
+     &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
-     &nzfz = 300000,mmul = 20)
+     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array
 +ei
 +if .not.bignblz.and..not.hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
-     &nzfz = 300000,mmul = 20)
+     &nzfz = 300000,mmul = 20) !up to 6'000 multipoles
 +ei
 +ei ! / not collimat
 +if collimat
 +if beamgas
       parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
-     &nzfz = 300000,mmul = 11)
+     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / beamgas
 +if .not.beamgas
 +if bignblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
-     &nzfz = 300000,mmul = 11)
+     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / bignblz
 +if hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
-     &nzfz = 300000,mmul = 11)
+     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles
 +ei ! / hugenblz
 +if .not.bignblz.and..not.hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
-     &nzfz = 300000,mmul = 11)
+     &nzfz = 144000,mmul = 11) !up to 4500 multipoles
 +ei ! / not bignblz
 +ei ! / not beamgas
 +ei ! / collimat
@@ -4304,7 +4308,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         do j=1,napx
 !hr03    crabamp=ed(ix)/(ejfv(j))*c1e3
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
-!        write(*,*) crabamp, ejfv(j), clight, "HELLO"
 
 +if .not.tilt
 +if crlibm
@@ -13703,6 +13706,21 @@ cc2008
       endif
 +ei
 +ei
+      !Check that the name is unique
+      do j=1,i-1
+         if ( bez(j).eq.idat ) then
++if cr
+            write(lout,*) "ERROR in DATEN:"
+            write(lout,*) "Got multiple copies of element ", bez(j)
++ei
++if .not.cr
+            write(*,*)    "ERROR in DATEN:"
+            write(*,*)    "Got multiple copies of element ", bez(j)
++ei
+            call prror(-1)
+         endif
+      enddo
+
       if(kz(i).eq.25) then
         ed(i)=ed(i)/two
         ek(i)=ek(i)/two
@@ -13981,7 +13999,7 @@ cc2008
       i2=1
       ! Look for repetition with syntax N( ... )
       do 420 ii=1,80
-        if(ch(ii:ii).eq.kl) then
+        if(ch(ii:ii).eq.kl) then !kl='('
           if(ii.gt.1) then
             do 370 jj=1,ii-1
   370       if(ch(jj:jj).ne.' ') goto 380
@@ -13994,7 +14012,7 @@ cc2008
           i2=ii+1
           goto 430
         endif
-        if(ch(ii:ii).eq.kr) then
+        if(ch(ii:ii).eq.kr) then !kr=')'
           if(iw0.le.0) goto 330
           idi=i-ia
           do 410 k=1,iw0
@@ -14006,6 +14024,7 @@ cc2008
           goto 330
         endif
   420 continue
+      ! Create the structure
   430 call intepr(3,i2,ch,ch1)
 ! reading character strings so OK
       read(ch1,*) (ilm0(k),k=1,40)
@@ -14013,20 +14032,26 @@ cc2008
         if(ilm0(k).eq.idum) goto 490
         if(ilm0(k).eq.go) goto 480
         i=i+1
-        do 440 j=1,mblo
+        do 440 j=1,mblo !is it a BLOC?
           if(bezb(j).eq.ilm0(k)) goto 470
   440   continue
-        do 450 l=1,il
+        do 450 l=1,il   !is it a SINGLE ELEMENT?
           if(bez0(l).eq.ilm0(k)) goto 460
   450   continue
+        ! It was neither BLOC or SINGLE ELEMENT! ERROR!
         erbez=ilm0(k)
         call prror(20)
+        
+        ! Handle SINGLE ELEMENT
   460   continue
         ic(i)=l+nblo
         if(bez0(l).eq.cavi) icy=icy+1
         goto 490
+
+        !Handle BLOC
   470   ic(i)=j
         goto 490
+        !Handle GO
   480   kanf=i+1
   490 continue
       mbloz=i
@@ -16220,7 +16245,8 @@ cc2008
 +ei
       do 890 i=1,3
       do 890 j=1,nele
-  890 bezr(i,j)=idum
+  890 bezr(i,j)=idum !Initialize all bezr to idum=' '
+      
   900 iorg=iorg+1
   910 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -16228,42 +16254,55 @@ cc2008
       if(ch(1:1).eq.'/') goto 910
       if(ch(:4).eq.next) goto 110
       call intepr(3,1,ch,ch1)
-! bezr are character strings, should be OK
+      ! bezr are character strings, should be OK
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
-      if(idat.ne.next) then
-      if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum) write  &
-     &(6,10360) idat
-      if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum) write  &
-     &(6,10390) idat,bezr(2,iorg)
-      if(idat.ne.mult) bezr(1,iorg)=idat
-      if(idat.eq.mult.and.bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum)&
-     &then
+      if(idat.ne.next) then !Isn't this already checked for above?
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)
 +if cr
-        write(lout,10400)bezr(2,iorg),bezr(3,iorg)
+     &        write(lout,10360) idat
 +ei
 +if .not.cr
-        write(*,10400)bezr(2,iorg),bezr(3,iorg)
+     &        write(*,10360)    idat
 +ei
-        im=im+1
-        j0=0
-        j1=0
-        do 920 i=1,il
-          if(bez(i).eq.bezr(2,iorg)) j1=i
-  920   if(bez(i).eq.bezr(3,iorg)) j0=i
-        if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
-     &call prror(29)
-        irm(j0)=im
-        benkc(j0)=benkc(j1)
-        r00(j0)=r00(j1)
-        imo=irm(j1)
-        nmu(j0)=nmu(j1)
-        do 930 i1=1,nmu(j0)
-          bk0(im,i1)=bk0(imo,i1)
-          bka(im,i1)=bka(imo,i1)
-          ak0(im,i1)=ak0(imo,i1)
-  930   aka(im,i1)=aka(imo,i1)
-      endif
-      goto 900
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)
++if cr
+     &        write(lout,10390) idat,bezr(2,iorg)
++ei
++if .not.cr
+     &        write(*,10390)    idat,bezr(2,iorg)
++ei
+         if(idat.ne.mult)
+     &        bezr(1,iorg)=idat
+         if(idat.eq.mult.and.
+     &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
++if cr
+            write(lout,10400) bezr(2,iorg),bezr(3,iorg)
++ei
++if .not.cr
+            write(*,10400)    bezr(2,iorg),bezr(3,iorg)
++ei
+            im=im+1
+            j0=0
+            j1=0
+            do 920 i=1,il
+               if(bez(i).eq.bezr(2,iorg)) j1=i
+ 920           if(bez(i).eq.bezr(3,iorg)) j0=i
+            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
+     &              call prror(29)
+
+            irm(j0)=im
+            benkc(j0)=benkc(j1)
+            r00(j0)=r00(j1)
+            imo=irm(j1)
+            nmu(j0)=nmu(j1)
+            do 930 i1=1,nmu(j0)
+               bk0(im,i1)=bk0(imo,i1)
+               bka(im,i1)=bka(imo,i1)
+               ak0(im,i1)=ak0(imo,i1)
+ 930           aka(im,i1)=aka(imo,i1)
+
+         endif
+         goto 900
       endif
 +if cr
       write(lout,10130)
@@ -26403,7 +26442,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
              if ( dumpfmt(i).eq.1 ) then
                 write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack'
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -26422,7 +26461,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &  ', last turn=', dumplast(i)
                 endif
                 write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack'
+     &'#ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 3
 +ei
@@ -49906,7 +49945,7 @@ c$$$            endif
       nra1=nran
       iorg=iorg-1
       if(iorg.ge.0) then
-        if(iorg.eq.0) then
+        if(iorg.eq.0) then !iorg == 0
           do 50 i=1,iu
             ix=ic(i)
             if(ix.le.nblo) goto 50
@@ -49918,20 +49957,29 @@ c$$$            endif
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
+            if(izu.gt.nzfz) then
++if cr
+              write(lout,*) "ERROR in ORD: nzfz was too small"
++ei
++if .not.cr
+              write(*,*)    "ERROR in ORD: nzfz was too small"
++ei
+              call prror(-1)
+            endif
    50     continue
-        else
+        else ! iorg.gt.0
           do 70 i=1,iorg
             do 60 j=1,il
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+     &               call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+     &               call prror(31)
                 jra(i,4)=kz(j)
               endif
    60       continue
@@ -49940,8 +49988,8 @@ c$$$            endif
             if(kzz1.ne.0.and.kzz2.eq.0) then
               jra(i,5)=nra1
               nra1=nra1+mran*3
-              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni) nra1=nra1   &
-     &+mran*2*mmul
+              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)
+     &             nra1=nra1+mran*2*mmul
               if(nra1.gt.nzfz) call prror(32)
             endif
             if(kzz1.eq.11.and.(kzz2.ne.11.and.kzz2.ne.0)) call prror(33)
@@ -49977,7 +50025,7 @@ c$$$            endif
             if(izu.gt.nran) call prror(30)
   110     continue
         endif
-      else
+      else !iorg < 0 (in case of no ORGA block in fort.3)
         do 115 i=1,iu
           ix=ic(i)
           if(ix.le.nblo) goto 115
@@ -49988,10 +50036,21 @@ c$$$            endif
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
+          if(izu.gt.nzfz) then
++if cr
+            write(lout,*) "ERROR in ORD: nzfz was too small"
++ei
++if .not.cr
+            write(*,*)    "ERROR in ORD: nzfz was too small"
++ei
+            call prror(-1)
+          endif
   115   continue
       endif
+      
+      ! "GO" was not the first structure element -> Reshuffle the structure
       if(kanf.ne.1) then
-!-- Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
         kanf1=kanf-1
         do 130 i=1,kanf1
           if(iorg.ge.0) ilfr(i)=mzu(i)
@@ -50048,6 +50107,7 @@ c$$$            endif
 +ei
   170   continue
       endif
+      
       izu=0
       do 190 i=1,iu
         ix=ic(i)
