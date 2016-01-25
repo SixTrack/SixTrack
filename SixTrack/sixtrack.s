@@ -1115,11 +1115,9 @@
                                              !  not at the end.
       logical ldump                          ! flag the SINGLE ELEMENT for
                                              !   dumping
-      integer, parameter :: dump_struc_max = 20000 !maximum number of structure elements (used for FMA)
-      integer dump_struc                     ! indice of the structure element (used for FMA)
 
-      double precision :: dump_tas (dump_struc_max,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
-      double precision :: dump_clo (dump_struc_max,6)   ! closed orbit used for FMA (normalisation of phase space)
+      double precision :: dump_tas (nblz,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
+      double precision :: dump_clo (nblz,6)   ! closed orbit used for FMA (normalisation of phase space)
 
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
@@ -1134,8 +1132,7 @@
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
      &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
-     &                dump_fname,dump_struc(0:dump_struc_max),
-     &                dump_tas,dump_clo
+     &                dump_fname,dump_tas,dump_clo
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -1146,7 +1143,7 @@
 +cd fma
       integer, parameter :: fma_max =200                     !max. number of FMAs
       integer, parameter :: fma_npart_max = 70               !max. number of particles (64 allowed in sixtrack
-      integer, parameter :: fma_nturn_max = 10000             !max. number of turns used for fft
+      integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
@@ -8026,26 +8023,28 @@ cc2008
             jj(i3)=0
 !           store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
             if(fma_flag) then
-              if(dump_struc(i).ne.0) then
-                dump_tas(dump_struc(i),ii-1,ii-1)=angp(1,ii-1)
-                dump_tas(dump_struc(i),ii-1,ii  )=angp(1,ii)
-                dump_tas(dump_struc(i),ii  ,ii-1)=au(ii,ii-1)
-                dump_tas(dump_struc(i),ii  ,ii  )=au(ii,ii  )
-                dump_tas(dump_struc(i),ii-1,i2-1)=au(i2-1,i2-1)
-                dump_tas(dump_struc(i),ii  ,i2-1)=au(i2  ,i2-1)
-                dump_tas(dump_struc(i),ii-1,i2  )=au(i2-1,i2  )
-                dump_tas(dump_struc(i),ii  ,i2  )=au(i2  ,i2  )
-                dump_tas(dump_struc(i),ii-1,i3-1)=au(i3-1,i3-1)
-                dump_tas(dump_struc(i),ii  ,i3-1)=au(i3  ,i3-1)
-                dump_tas(dump_struc(i),ii-1,i3  )=au(i3-1,i3  )
-                dump_tas(dump_struc(i),ii  ,i3  )=au(i3  ,i3  )
+              if(ic(i)-nblo.gt.0) then !check if structure element is a block
+                if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+                  dump_tas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
+                  dump_tas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
+                  dump_tas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)
+                  dump_tas(ic(i)-nblo,ii  ,ii  )=au(ii,ii  )
+                  dump_tas(ic(i)-nblo,ii-1,i2-1)=au(i2-1,i2-1)
+                  dump_tas(ic(i)-nblo,ii  ,i2-1)=au(i2  ,i2-1)
+                  dump_tas(ic(i)-nblo,ii-1,i2  )=au(i2-1,i2  )
+                  dump_tas(ic(i)-nblo,ii  ,i2  )=au(i2  ,i2  )
+                  dump_tas(ic(i)-nblo,ii-1,i3-1)=au(i3-1,i3-1)
+                  dump_tas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
+                  dump_tas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
+                  dump_tas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
 !    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
 !    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
-                dump_clo(dump_struc(i),2*j-1)=c(j)
-                if (j.eq.3) then !dp/p
-                  dump_clo(dump_struc(i),2*j)  =cp(j)*c1m3
-                else ! xp,yp
-                  dump_clo(dump_struc(i),2*j)  =cp(j)/(one+cp(6)*c1m3)
+                  dump_clo(ic(i)-nblo,2*j-1)=c(j)
+                  if (j.eq.3) then !dp/p
+                    dump_clo(ic(i)-nblo,2*j)  =cp(j)*c1m3
+                  else ! xp,yp
+                    dump_clo(ic(i)-nblo,2*j)  =cp(j)/(one+cp(3)*c1m3)
+                  endif
                 endif
               endif
             endif
@@ -18033,7 +18032,6 @@ cc2008
             do jj=1,mper*mbloz      ! Loop over all structure elements
               if ( ic(jj)-nblo .eq. ii ) then
                 write (ch1,*) jj    ! internal write for left-adjusting
-                dump_struc(jj) = ii ! match structure element to single element dump_struc(idx_single_element) = idx_structure_element
 +if cr
                 write (lout,10472)
 +ei
