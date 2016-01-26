@@ -1132,7 +1132,8 @@
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
      &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
-     &                dump_fname,dump_tas,dump_clo
+     &                dump_fname
+      common /dumpOptics/ dump_tas,dump_clo
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
