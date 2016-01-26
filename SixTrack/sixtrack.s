@@ -1184,7 +1184,7 @@
 ! which is defined in deck "stringhandling".
 ! Used in DYNK and FMA.
       integer stringzerotrim_maxlen
-      parameter (stringzerotrim_maxlen=20)
+      parameter (stringzerotrim_maxlen=20) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
       
       character(stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
