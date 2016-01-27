@@ -58414,7 +58414,7 @@ c$$$            endif
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lread              !flag for file reading
       character(len=maxstrlen) :: stringzerotrim
-      character(len=getfields_l_max_string) :: ch
+      character(len=getfields_l_max_string) :: ch,ch1
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of tas -> x_normalized=fma_tas_inv*x
       double precision, dimension(fma_npart_max,fma_nturn_max,6) ::     &
@@ -58497,12 +58497,8 @@ c$$$            endif
                 read(dumpunit(j),'(A)',iostat=ierro) ch
                 call fma_error(ierro,'while reading file ' //           &
      &dump_fname(j),'fma_postpr')
-                call getfields_split( ch, getfields_fields,             &
-     &getfields_lfields,getfields_nfields, getfields_lerr )
-                if(getfields_lerr) call fma_error(1,'when calling '//   &
-     &'getfields_split.','fma_postpr')
-                if(getfields_fields(1)(1:getfields_lfields(1)).ne.'#')  &
-     &exit !skip header lines
+                ch1=adjustl(trim(ch))
+                if(ch1(1:1).ne.'#')  exit
               enddo
               backspace(dumpunit(j),iostat=ierro)
 
