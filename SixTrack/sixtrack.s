@@ -161,7 +161,7 @@
 +ei
 +if hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
-     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array
+     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
@@ -180,7 +180,7 @@
 +ei ! / bignblz
 +if hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
-     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles
+     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
 +ei ! / hugenblz
 +if .not.bignblz.and..not.hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
@@ -1132,7 +1132,8 @@
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
      &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
-     &                dump_fname,dump_tas,dump_clo
+     &                dump_fname
+      common /dumpOptics/ dump_tas,dump_clo
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -1154,14 +1155,7 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd szt
-      integer maxstrlen
-      parameter (maxstrlen=20)
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd   comgetfields
-
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 29-08-2014
 !     some variables / parameters for a more flexible parsing of input lines
@@ -1182,7 +1176,17 @@
       integer getfields_lfields( getfields_n_max_fields )
 *     an error flag
       logical getfields_lerr
-
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd stringzerotrim
+! Definitions necessary for using the "stringzerotrim" function,
+! which is defined in deck "stringhandling".
+! Used in DYNK and FMA.
+      integer stringzerotrim_maxlen
+      parameter (stringzerotrim_maxlen=20) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
+      
+      character(stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1197,6 +1201,7 @@
 !     
 !     See TWIKI for documentation
 !
+!     Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
 
 
 *     general-purpose variables
@@ -1206,7 +1211,8 @@
 
 C     Store the FUN statements
       integer maxfuncs_dynk, maxdata_dynk, maxstrlen_dynk
-      parameter (maxfuncs_dynk=100,maxdata_dynk=50000,maxstrlen_dynk=20)
+      parameter (maxfuncs_dynk=100,maxdata_dynk=50000,
+     &     maxstrlen_dynk=stringzerotrim_maxlen)
 
       integer funcs_dynk (maxfuncs_dynk,5) ! 1 row/FUN, cols are: 
                                            ! (1) = function name in fort.3 (points within cexpr_dynk),
@@ -1259,6 +1265,7 @@ C     Store the SET statements
 
 +cd comdynkcr
 C     Block with data/fields needed for checkpoint/restart of DYNK
+      
       ! Number of records written to dynkfile (dynksets.dat)
       integer dynkfilepos, dynkfilepos_cr
       
@@ -9994,6 +10001,7 @@ cc2008
 +ca common
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
       integer i
       logical lopen
@@ -13309,6 +13317,7 @@ cc2008
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca fma
       dimension icel(ncom,20),iss(2),iqq(5)
@@ -19109,88 +19118,6 @@ cc2008
       ch1(i2:i3)=ch(i1:nchars)//' / '
       return
       end
-
-      subroutine getfields_split( tmpline, getfields_fields,
-     &         getfields_lfields, getfields_nfields, getfields_lerr)
-!
-!-----------------------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 24-02-2015
-!     parse a line and split it into its fields
-!       fields are returned as 0-terminated and padded string
-!     always in main code
-!-----------------------------------------------------------------------
-!
-      implicit none
-+ca   comgetfields
-+if cr
-+ca crcoall
-+ei
-      
-      character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
-
-      intent(in) tmpline
-      intent(out) getfields_fields, getfields_lfields,
-     &     getfields_nfields, getfields_lerr
-      
-*     runtime variables
-      integer ii, jj
-      logical lchar
-      integer lenstr, istart
-
-*     initialise output variables
-      getfields_lerr = .false.
-      getfields_nfields=0
-      do ii=1,getfields_n_max_fields
-         do jj=1,getfields_l_max_string
-            getfields_fields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
-         enddo
-         getfields_lfields(ii)=0
-      enddo
-
-*     parse the line
-      lchar = .false.
-      do ii=1, getfields_l_max_string-1 !For \0 termination
-         if ( tmpline(ii:ii) .eq. ' ' ) then
-*           blank char
-            if ( lchar ) then
-*              end of a string: record it
-               getfields_lfields(getfields_nfields)          = lenstr
-               getfields_fields (getfields_nfields)
-     &              (1:getfields_lfields(getfields_nfields)) =
-     &              tmpline(istart:
-     &               istart+getfields_lfields(getfields_nfields))
-               lchar = .false.
-            endif
-         else
-*           non-blank char
-            if ( .not. lchar ) then
-*              a new what starts
-               getfields_nfields = getfields_nfields +1
-               if ( getfields_nfields.gt.getfields_n_max_fields ) then
-+if cr
-                  write (lout,*)'error! too many fields in line:'
-                  write (lout,*) tmpline
-                  write (lout,*)'please increase getfields_n_max_fields'
-+ei
-+if .not.cr
-                  write (*,*)   'error! too many fields in line:'
-                  write (*,*)   tmpline
-                  write (*,*)   'please increase getfields_n_max_fields'
-+ei
-                  getfields_lerr = .true.
-                  exit !Break do
-               endif
-               istart = ii
-               lchar = .true.
-               lenstr = 0
-            endif
-            lenstr = lenstr+1
-         endif
-      enddo
-
-      end subroutine
       
       subroutine initialize_element(ix,lfirst)
 !
@@ -19219,6 +19146,7 @@ cc2008
 +ca commonmn
 +ca commontr
 +ca commonxz
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -20011,6 +19939,119 @@ C Should get me a NaN
       wi=vi
       return
       end
++dk stringhandling
+      subroutine getfields_split( tmpline, getfields_fields,
+     &         getfields_lfields, getfields_nfields, getfields_lerr)
+!
+!-----------------------------------------------------------------------
+!     A.Mereghetti, for the FLUKA Team
+!     K.Sjobak and A.Santamaria, BE-ABP-HSS
+!     last modified: 24-02-2015
+!     parse a line and split it into its fields
+!       fields are returned as 0-terminated and padded string
+!     always in main code
+!-----------------------------------------------------------------------
+!
+      implicit none
++ca   comgetfields
++if cr
++ca crcoall
++ei
+      
+      character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
+
+      intent(in) tmpline
+      intent(out) getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr
+      
+*     runtime variables
+      integer ii, jj
+      logical lchar
+      integer lenstr, istart
+
+*     initialise output variables
+      getfields_lerr = .false.
+      getfields_nfields=0
+      do ii=1,getfields_n_max_fields
+         do jj=1,getfields_l_max_string
+            getfields_fields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
+         enddo
+         getfields_lfields(ii)=0
+      enddo
+
+*     parse the line
+      lchar = .false.
+      do ii=1, getfields_l_max_string-1 !For \0 termination
+         if ( tmpline(ii:ii) .eq. ' ' ) then
+*           blank char
+            if ( lchar ) then
+*              end of a string: record it
+               getfields_lfields(getfields_nfields)          = lenstr
+               getfields_fields (getfields_nfields)
+     &              (1:getfields_lfields(getfields_nfields)) =
+     &              tmpline(istart:
+     &               istart+getfields_lfields(getfields_nfields))
+               lchar = .false.
+            endif
+         else
+*           non-blank char
+            if ( .not. lchar ) then
+*              a new what starts
+               getfields_nfields = getfields_nfields +1
+               if ( getfields_nfields.gt.getfields_n_max_fields ) then
++if cr
+                  write (lout,*)'error! too many fields in line:'
+                  write (lout,*) tmpline
+                  write (lout,*)'please increase getfields_n_max_fields'
++ei
++if .not.cr
+                  write (*,*)   'error! too many fields in line:'
+                  write (*,*)   tmpline
+                  write (*,*)   'please increase getfields_n_max_fields'
++ei
+                  getfields_lerr = .true.
+                  exit !Break do
+               endif
+               istart = ii
+               lchar = .true.
+               lenstr = 0
+            endif
+            lenstr = lenstr+1
+         endif
+      enddo
+
+      end subroutine
+
+      function stringzerotrim(instring)
+!----------------------------------------------------------------------------
+!     K. Sjobak, BE-ABP/HSS
+!     last modified: 30-10-2014
+!     Replace "\0" with ' ' in strings.
+!     Usefull before output, else "write (*,*)" will actually write all the \0s
+!
+!     Warning: Do not add any write(*,*) inside this function:
+!     if this function is called by a write(*,*) and then does a write,
+!     the program may deadlock!
+!----------------------------------------------------------------------------
+      implicit none
++ca stringzerotrim
+      character(stringzerotrim_maxlen) instring
+      intent(in) instring
+      
+      integer ii
+      
+      do ii=1,stringzerotrim_maxlen
+         if ( instring(ii:ii) .ne. char(0) ) then
+            stringzerotrim(ii:ii) = instring(ii:ii)
+         else 
+            stringzerotrim(ii:ii) = ' '
+         end if
+      end do
+      stringzerotrim = trim(stringzerotrim)
+
+      end function
+
+
 +dk ranecu
       subroutine ranecu(rvec,len,mcut)
       implicit none
@@ -22274,7 +22315,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
-     &aa2r,a1,a1r,xy,h,df,ifma
+     &aa2r,a1,a1r,xy,h,df
       double precision al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
      &beamoff2,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
      &cik,coefh2,coefv1,coefv2,cp,crk,crxb,crzb,cx,d,dicu,dare,det1,dp, &
@@ -24754,9 +24795,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca dbdumpcr
 +ei
++ca stringzerotrim
 +ca comdynk
 +ca fma
-+ca szt
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -27103,6 +27144,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
++ca stringzerotrim
 +ca comdynk
       logical dynk_isused
 +ca save
@@ -28873,6 +28915,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca dbdcum
 +ca save
@@ -29417,6 +29460,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca dbdcum
 +ca save
@@ -33492,6 +33536,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca dbdcum
 +ca save
@@ -34862,6 +34907,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commontr
 +ca beamdim
       dimension nbeaux(nbb)
++ca stringzerotrim
 +ca comdynk
       logical dynk_isused
 +if collimat
@@ -35335,6 +35381,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca save
 !-----------------------------------------------------------------------
@@ -35881,6 +35928,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca save
 +if debug
@@ -36574,6 +36622,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca save
 !-----------------------------------------------------------------------
@@ -39134,10 +39183,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comgetfields
 +ca dbdump
 +ca fma
-+ca szt
 +if cr
 +ca dbdumpcr
 +ei
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca comdynkcr
@@ -39691,9 +39740,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         enddo
       enddo
 
-!--STRINGZEROTRIM------------------------------------------------------
-!   no variables need to be initialized
-      
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 03-09-2014
@@ -43450,7 +43496,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     
       implicit none
-+ca parpro      
++ca parpro
++ca stringzerotrim
 +ca comdynk
 +ca comgetfields
 +if cr
@@ -45227,6 +45274,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer iblocks,fblocks,cblocks
       intent(in) iblocks,fblocks,cblocks
 +ca parpro
++ca stringzerotrim
 +ca comdynk      
 
 +if cr
@@ -45264,6 +45312,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
 +ca comgetfields
 
@@ -45361,7 +45410,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write(lout,*) "The attribute name '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "is too long! Max length is",
-     &        maxstrlen_dynk
+     &        maxstrlen_dynk-1
 +ei
 +if .not.cr
          write(*,*)    "ERROR in DYNK block parsing (fort.3) (SET):"
@@ -45467,6 +45516,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -45545,6 +45595,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
       character(maxstrlen_dynk) element_name, att_name
       integer startfrom
@@ -45572,6 +45623,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -45720,12 +45772,12 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     Dump arrays with DYNK FUN and SET data to the std. output for debugging
 !----------------------------------------------------------------------------
       implicit none
-+ca parpro      
++ca parpro
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
 +ei
-      character(maxstrlen_dynk) dynk_stringzerotrim
 
       integer ii
 +if cr
@@ -45810,7 +45862,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if .not.cr
          write(*,*)
 +ei
-     &   ii, ":", "'"//trim(dynk_stringzerotrim(cexpr_dynk(ii)))//"'"
+     &   ii, ":", "'"//trim(stringzerotrim(cexpr_dynk(ii)))//"'"
       end do
 
 +if cr
@@ -45831,8 +45883,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          write (*,*) 
 +ei
      &        ii, ":", sets_dynk(ii,:),
-     &        "'"//trim(dynk_stringzerotrim(csets_dynk(ii,1)))//
-     &  "' ", "'"//trim(dynk_stringzerotrim(csets_dynk(ii,2)))//"'"
+     &        "'"//trim(stringzerotrim(csets_dynk(ii,1)))//
+     &  "' ", "'"//trim(stringzerotrim(csets_dynk(ii,2)))//"'"
       end do
       
 +if cr
@@ -45849,8 +45901,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          write (*,   '(1x,I8,1x,A,1x,E16.9)')
 +ei
      &       ii, ": '"//
-     &       trim(dynk_stringzerotrim(csets_unique_dynk(ii,1)))//"' '"//
-     &       trim(dynk_stringzerotrim(csets_unique_dynk(ii,2)))//"' = ",
+     &       trim(stringzerotrim(csets_unique_dynk(ii,1)))//"' '"//
+     &       trim(stringzerotrim(csets_unique_dynk(ii,2)))//"' = ",
      &        fsets_origvalue_dynk(ii)
       end do
 
@@ -45862,36 +45914,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
       
       end subroutine
-
-      function dynk_stringzerotrim(instring)
-!----------------------------------------------------------------------------
-!     K. Sjobak, BE-ABP/HSS
-!     last modified: 30-10-2014
-!     Replace "\0" with ' ' in strings.
-!     Usefull before output, else "write (*,*)" will actually write all the \0s
-!
-!     Warning: Do not add any write(*,*) inside this function:
-!     if this function is called by a write(*,*) and then does a write,
-!     the program may deadlock!
-!----------------------------------------------------------------------------
-      implicit none
-+ca parpro
-+ca comdynk
-      character(maxstrlen_dynk) dynk_stringzerotrim, instring
-      intent(in) instring
-
-      integer ii
-
-      do ii=1,maxstrlen_dynk
-         if ( instring(ii:ii) .ne. char(0) ) then
-            dynk_stringzerotrim(ii:ii) = instring(ii:ii)
-         else 
-            dynk_stringzerotrim(ii:ii) = ' '
-         end if
-      end do
-      dynk_stringzerotrim = trim(dynk_stringzerotrim)
-
-      end function
       
       subroutine dynk_pretrack
 !-----------------------------------------------------------------------
@@ -45904,6 +45926,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       implicit none
 +ca parpro
 +ca common
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -45913,7 +45936,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       !Functions
       double precision dynk_getvalue
       integer dynk_findSETindex
-      character(maxstrlen_dynk) dynk_stringzerotrim
 
       !Temp variables
       integer ii,jj
@@ -45943,10 +45965,10 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             
             ! Sanity check: Does the element actually exist?
             element_name_s =
-     &           trim(dynk_stringzerotrim(
+     &           trim(stringzerotrim(
      &           csets_unique_dynk(nsets_unique_dynk,1) ))
             att_name_s     =
-     &           trim(dynk_stringzerotrim(
+     &           trim(stringzerotrim(
      &           csets_unique_dynk(nsets_unique_dynk,2) ))
             found = .false.
 
@@ -46079,6 +46101,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca common
 +ca commonmn
 +ca commontr
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca comdynkcr
@@ -46098,7 +46121,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       logical lopen
 !     functions
       double precision dynk_computeFUN
-      character(maxstrlen_dynk) dynk_stringzerotrim
       integer dynk_findSETindex
       
       double precision dynk_getvalue, getvaldata, newValue
@@ -46143,7 +46165,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   write (*,*) 
 +ei
      &               "DYNKDEBUG> Resetting RNG for FUN named '",
-     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
                iexpr_dynk(funcs_dynk(ii,3)+3) =
@@ -46159,7 +46181,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   write (*,*)
 +ei
      &               "DYNKDEBUG> Resetting FIR named '",
-     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
                do jj=0, funcs_dynk(ii,4)
                   fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) =
@@ -46174,7 +46196,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   write (*,*)
 +ei
      &               "DYNKDEBUG> Resetting IIR named '",
-     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
                do jj=0, funcs_dynk(ii,4)
                   fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) =
@@ -46245,8 +46267,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                newValue = fsets_origvalue_dynk(ii)
                if (ldynkdebug) then
                   write (*,*) "DYNKDEBUG> Resetting: '",
-     &         trim(dynk_stringzerotrim(csets_unique_dynk(ii,1))),
-     &         "':'",trim(dynk_stringzerotrim(csets_unique_dynk(ii,2))),
+     &         trim(stringzerotrim(csets_unique_dynk(ii,1))),
+     &         "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))),
      &         "', newValue=", newValue
                endif
 
@@ -46281,8 +46303,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                write     (*,'(1x,A,I5,A,I8,A,E16.9)')
 +ei
      &              "DYNKDEBUG> Applying set #", ii, " on '"//
-     &           trim(dynk_stringzerotrim(csets_dynk(ii,1)))//
-     &           "':'"// trim(dynk_stringzerotrim(csets_dynk(ii,2)))//
+     &           trim(stringzerotrim(csets_dynk(ii,1)))//
+     &           "':'"// trim(stringzerotrim(csets_dynk(ii,2)))//
      &           "', shiftedTurn=",shiftedTurn,", value=",newValue
             endif
             call dynk_setvalue(csets_dynk(ii,1),
@@ -46340,10 +46362,10 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             
             write(665,'(I12,1x,A,1x,A,1x,I4,1x,A,E16.9)')
      &           turn, 
-     &           dynk_stringzerotrim(csets_unique_dynk(jj,1)),
-     &           dynk_stringzerotrim(csets_unique_dynk(jj,2)),
+     &           stringzerotrim(csets_unique_dynk(jj,1)),
+     &           stringzerotrim(csets_unique_dynk(jj,2)),
      &           whichSET(jj),
-     &           dynk_stringzerotrim(whichFUN(jj)),
+     &           stringzerotrim(whichFUN(jj)),
      &           getvaldata
          enddo
          
@@ -46369,6 +46391,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
       integer funNum, turn
       intent (in) funNum, turn
@@ -46681,8 +46704,8 @@ C+ei
 +ca common
 +ca commonmn
 +ca commontr
++ca stringzerotrim
 +ca comdynk
-
 +if cr
 +ca crcoall
 +ei
@@ -46691,7 +46714,6 @@ C+ei
       double precision newValue
       intent (in) element_name, att_name, newValue
       !Functions
-      character(maxstrlen_dynk) dynk_stringzerotrim
       ! temp variables
       integer el_type, ii
       character(maxstrlen_dynk) element_name_stripped
@@ -46700,8 +46722,8 @@ C+ei
       logical ldoubleElement
       ldoubleElement = .false.
       
-      element_name_stripped = trim(dynk_stringzerotrim(element_name))
-      att_name_stripped = trim(dynk_stringzerotrim(att_name))
+      element_name_stripped = trim(stringzerotrim(element_name))
+      att_name_stripped = trim(stringzerotrim(att_name))
 
       if ( ldynkdebug ) then
 +if cr
@@ -46890,6 +46912,7 @@ c$$$            endif
 +ca common
 +ca commonmn
 +ca commontr
++ca stringzerotrim
 +ca comdynk
 
 +if cr
@@ -46900,14 +46923,13 @@ c$$$            endif
       intent(in) element_name, att_name
       
       integer el_type, ii
-      character(maxstrlen_dynk) dynk_stringzerotrim
       character(maxstrlen_dynk) element_name_s, att_name_s
       
       logical ldoubleElement
       ldoubleElement = .false.  ! For sanity check
       
-      element_name_s = trim(dynk_stringzerotrim(element_name))
-      att_name_s = trim(dynk_stringzerotrim(att_name))
+      element_name_s = trim(stringzerotrim(element_name))
+      att_name_s = trim(stringzerotrim(att_name))
       
       if (ldynkdebug) then
 +if cr
@@ -47172,6 +47194,7 @@ c$$$               endif
 
 +ca parpro
 +ca common
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -47180,8 +47203,6 @@ c$$$               endif
       integer, intent(in) :: i
       integer ix,k
       character(maxstrlen_dynk) element_name_stripped
-
-      character(maxstrlen_dynk) dynk_stringzerotrim
 
       !Sanity check
       if (i .gt. iu .or. i .le. 0) then
@@ -47208,7 +47229,7 @@ c$$$               endif
       
       do k=1,nsets_dynk
          element_name_stripped =
-     &        trim(dynk_stringzerotrim(csets_dynk(k,1)))
+     &        trim(stringzerotrim(csets_dynk(k,1)))
          if (bez(ix) .eq. element_name_stripped) then
             dynk_isused = .true.
             if (ldynkdebug)
@@ -58270,31 +58291,7 @@ c$$$            endif
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
       end
-      function stringzerotrim(instring)
-!----------------------------------------------------------------------------
-!     K. Sjobak, BE-ABP/HSS
-!     last modified: 30-10-2014
-!     Replace "\0" with ' ' in strings.
-!     Usefull before output, else "write (*,*)" will actually write all the \0s
-!
-!     Warning: Do not add any write(*,*) inside this function:
-!     if this function is called by a write(*,*) and then does a write,
-!     the program may deadlock!
-!----------------------------------------------------------------------------
-      implicit none
-+ca szt
-      character(maxstrlen) stringzerotrim, instring
-      intent(in) instring
-      integer ii
-      do ii=1,maxstrlen
-         if ( instring(ii:ii) .ne. char(0) ) then
-            stringzerotrim(ii:ii) = instring(ii:ii)
-         else 
-            stringzerotrim(ii:ii) = ' '
-         end if
-      end do
-      stringzerotrim = trim(stringzerotrim)
-      end function
+
       subroutine fma_error(ierro,str,subroutine_name)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -58392,7 +58389,7 @@ c$$$            endif
 !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
 !-----------------------------------------------------------------------*
       implicit none
-+ca szt
++ca stringzerotrim
 +ca comgetfields
 +ca parpro
 +ca dbdump
@@ -58501,7 +58498,7 @@ c$$$            endif
                 if(ch1(1:1).ne.'#')  exit
               enddo
               backspace(dumpunit(j),iostat=ierro)
-
+!   read in particle amplitudes
               fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
               if(fma_nturn(i).gt.fma_nturn_max) then
 +if .not.cr
@@ -66605,6 +66602,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca rhicelens
 +ei
 +ca crco
++ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
 +ca comgetfields
@@ -67429,6 +67427,7 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
++ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
       double precision dynk_getvalue
@@ -67956,6 +67955,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca rhicelens
 +ei
 +ca crco
++ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
       double precision dynk_newValue
