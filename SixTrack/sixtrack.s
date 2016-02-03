@@ -58411,7 +58411,6 @@ c$$$            endif
       logical :: lopen              !flag to check if file is already open
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lread              !flag for file reading
-      character(len=maxstrlen) :: stringzerotrim
       character(len=getfields_l_max_string) :: ch,ch1
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of tas -> x_normalized=fma_tas_inv*x
