@@ -30176,8 +30176,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             elseif(bez(myix)(1:4).eq.'TCLP' .or.                        &
      &             bez(myix)(1:4).eq.'tclp' .or.                        &
      &             bez(myix)(1:4).eq.'TCL.' .or.                        &
-     &             bez(myix)(1:4).eq.'tcl.'.or.                         &                                                                                                  
-     &             bez(myix)(1:4).eq.'TCLX' .or.                        &                                                                                                                   
+     &             bez(myix)(1:4).eq.'tcl.'.or.                         &
+     &             bez(myix)(1:4).eq.'TCLX' .or.                        &
      &             bez(myix)(1:4).eq.'tclx') then
               nsig = nsig_tclp
             elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
@@ -30187,8 +30187,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             bez(myix)(1:4).eq.'tcxr') then
               nsig = nsig_tcxrp
             elseif(bez(myix)(1:5).eq.'TCRYO' .or.                       &
-     &             bez(myix)(1:5).eq.'tcryo'.or. 
-     &             bez(myix)(1:5).eq.'TCLD.' .or.                       &  
+     &             bez(myix)(1:5).eq.'tcryo'.or.
+     &             bez(myix)(1:5).eq.'TCLD.' .or.                       &
      &             bez(myix)(1:5).eq.'tcld.') then
               nsig = nsig_tcryo
             elseif(bez(myix)(1:3).eq.'COL' .or.                         &
