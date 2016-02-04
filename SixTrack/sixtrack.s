@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.26'/
-      data moddate /'08.06.2015'/
+      data version /'4.5.32'/
+      data moddate /'22.01.2016'/
 +cd license
 !!SixTrack
 !!
@@ -150,26 +150,45 @@
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
      &nrco,ntr,nzfz
       parameter(npart = 64,nmac = 1)
+!Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
+! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
+! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
+! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
-     &nzfz = 300000,mmul = 20)
+     &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
-+if .not.bignblz
++if hugenblz
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
+     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array
++ei
++if .not.bignblz.and..not.hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
-     &nzfz = 300000,mmul = 20)
+     &nzfz = 300000,mmul = 20) !up to 6'000 multipoles
 +ei
-+ei
++ei ! / not collimat
 +if collimat
 +if beamgas
       parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
-     &nzfz = 300000,mmul = 11)
-+ei
+     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
++ei ! / beamgas
 +if .not.beamgas
++if bignblz
+      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
+     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
++ei ! / bignblz
++if hugenblz
+      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
+     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles
++ei ! / hugenblz
++if .not.bignblz.and..not.hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
-     &nzfz = 300000,mmul = 11)
-+ei
-+ei
+     &nzfz = 144000,mmul = 11) !up to 4500 multipoles
++ei ! / not bignblz
++ei ! / not beamgas
++ei ! / collimat
+
 +if collimat
       parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
 +ei
@@ -556,11 +575,8 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
-      integer max_ncoll,max_npart,maxn,numeff,outlun,nc
-!UPGRADE January 2005
-!     PARAMETER (MAX_NCOLL=68,MAX_NPART=20000,nc=32,NUMEFF=19,
-      parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
-     &maxn=20000,outlun=54)
+      integer max_ncoll,maxn,numeff,outlun,nc
+      parameter (max_ncoll=100,nc=32,numeff=19,maxn=20000,outlun=54)
 +cd database
 !GRD
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
@@ -834,9 +850,8 @@
       common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
      &mybetay,rselect
 !
-      integer absorbed(npart),counted(npart,numeff)
       double precision neff(numeff),rsig(numeff)
-      common  /eff/ neff,rsig,counted,absorbed
+      common  /eff/ neff,rsig
 !
       integer  nimpact(50)
       double precision sumimpact(50),sqsumimpact(50)
@@ -907,10 +922,8 @@
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
       integer counted_r(maxn,numeff),counted_x(maxn,numeff),            &
-     &counted_y(maxn,numeff),                                           &
-     &ieffmax_r(npart),ieffmax_x(npart),ieffmax_y(npart)
-      common /counting/ counted_r,counted_x,counted_y,ieffmax_r,        &
-     &ieffmax_x, ieffmax_y
+     &counted_y(maxn,numeff)
+      common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
@@ -948,9 +961,8 @@
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
      &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
-     &indiv(npart),lint(npart),x_out(max_npart),xp_out(max_npart),      &
-     &y_out(max_npart),yp_out(max_npart),p_out(max_npart),              &
-     &s_out(max_npart),keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,   &
+     &indiv(npart),lint(npart),
+     &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
      &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
 !
       double precision c_length    !length in m
@@ -1075,7 +1087,8 @@
 +cd   dbdump
 
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 13-06-2014
+!     K. Sjobak, BE-ABP/HSS
+!     last modified: 03-09-2015
 !     COMMON for dumping the beam population
 !     always in main code
 
@@ -1098,10 +1111,14 @@
 !       post-processing tools, activating the dumpfmt flag (0=off, by default);
       logical ldumphighprec                  ! high precision printout required
                                              !   at all flagged SINGLE ELEMENTs
+      logical ldumpfront                     ! dump at the beginning of each element,
+                                             !  not at the end.
       logical ldump                          ! flag the SINGLE ELEMENT for
                                              !   dumping
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
+      integer dumpfirst                      ! First turn for DUMP to be active
+      integer dumplast                       ! Last turn for this DUMP to be active (-1=all)
       integer dumpunit                       ! fortran unit for dump at a
                                              !   flagged SINGLE ELEMENT
       integer dumpfmt                        ! flag the format of the dump
@@ -1109,7 +1126,9 @@
       character dump_fname (0:nele)*(getfields_l_max_string)
       
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
-     &                dumpfmt(0:nele), ldumphighprec, dump_fname
+     &                dumpfirst(0:nele), dumplast(0:nele),
+     &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
+     &                dump_fname
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -1942,6 +1961,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd kickvso1
             yv(1,j)=yv(1,j)-xv(2,j)*strackx(i)
             yv(2,j)=yv(2,j)+xv(1,j)*strackx(i)
+!
+! TODO: Check if ejf0v should be e0f?? or oidpsv=ejf0v(j)/ejfv(j)=1/(1+delta)
+!
 !hr02       crkve=yv(1,j)-xv(1,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
       crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
 !hr02       cikve=yv(2,j)-xv(2,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
@@ -4259,7 +4281,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         do j=1,napx
 !hr03    crabamp=ed(ix)/(ejfv(j))*c1e3
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
-!        write(*,*) crabamp, ejfv(j), clight, "HELLO"
 
 +if .not.tilt
 +if crlibm
@@ -7593,16 +7614,27 @@ cc2008
           if ( ldump(0) ) then
 !           dump at all SINGLE ELEMENTs
             if ( ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1 ) then
-              call dump_beam_population( n, i, ix, dumpunit(0),         &
-     &                              dumpfmt(0), ldumphighprec )
+               if (   (n.ge.dumpfirst(ix)) .and. 
+     &              ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+     &              ) then
+                  call dump_beam_population( n, i, ix, dumpunit(0),
+     &                 dumpfmt(0), ldumphighprec )
+               endif
             endif
           endif
-          if ( ldump(ix) ) then
-!           dump at this precise SINGLE ELEMENT
-            if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
-              call dump_beam_population( n, i, ix, dumpunit(ix),        &
-     &                             dumpfmt(ix), ldumphighprec )
-            endif
+          if ( ktrack(i) .ne. 1 ) then
+             ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
+             if ( ldump(ix) ) then
+                ! dump at this precise SINGLE ELEMENT
+                if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
+                   if (   (n.ge.dumpfirst(ix)) .and. 
+     &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+     &                ) then
+                      call dump_beam_population( n, i, ix, dumpunit(ix),
+     &                     dumpfmt(ix), ldumphighprec )
+                   endif
+                endif
+             endif
           endif
 
 +cd lostpart
@@ -8315,16 +8347,12 @@ cc2008
             phi(l)=phi(l)+dphi/pie
           enddo
 
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         update nr
           nr=nr+1
-
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -13167,7 +13195,8 @@ cc2008
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
      &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
-     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft
+     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,   &
+     &i4,i5
 +if time
       integer ifiend35
       double precision tcnst
@@ -13620,6 +13649,21 @@ cc2008
       endif
 +ei
 +ei
+      !Check that the name is unique
+      do j=1,i-1
+         if ( bez(j).eq.idat ) then
++if cr
+            write(lout,*) "ERROR in DATEN:"
+            write(lout,*) "Got multiple copies of element ", bez(j)
++ei
++if .not.cr
+            write(*,*)    "ERROR in DATEN:"
+            write(*,*)    "Got multiple copies of element ", bez(j)
++ei
+            call prror(-1)
+         endif
+      enddo
+
       if(kz(i).eq.25) then
         ed(i)=ed(i)/two
         ek(i)=ek(i)/two
@@ -13850,26 +13894,26 @@ cc2008
 ! reading character strings so OK
       read(ch1,*) idat,(ilm0(m),m=1,40)
       if(idat.eq.idum) goto 270
-      i=i+1
+      i=i+1 ! Current BLOC number
       if(i.gt.nblo-1) call prror(18)
       bezb(i)=idat
       k0=0
-      mblo=i
+      mblo=i ! Update total number of BLOCs
   270 ka=k0+1
       ke=k0+40
       do 300 l=ka,ke
         if(l.gt.nelb) call prror(26)
         ilm(l)=ilm0(l-k0)
         if(ilm(l).eq.idum) goto 310
-        mel(i)=l
-        beze(i,l)=ilm(l)
-        do 280 j=1,il
+        mel(i)=l         ! Number of single elements in this block
+        beze(i,l)=ilm(l) ! Name of the current single element
+        do 280 j=1,il    ! Search for the single element idx j
           if(bez0(j).eq.ilm(l)) goto 290
   280   continue
         erbez=ilm(l)
         call prror(19)
-  290   mtyp(i,l)=j
-        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j)
+  290   mtyp(i,l)=j ! Block i / sub-element l has single element index j
+        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j) ! Count block length (kz=8 -> edge focusing->skip!)
   300 continue
   310 k0=l-1
       goto 220
@@ -13898,7 +13942,7 @@ cc2008
       i2=1
       ! Look for repetition with syntax N( ... )
       do 420 ii=1,80
-        if(ch(ii:ii).eq.kl) then
+        if(ch(ii:ii).eq.kl) then !kl='('
           if(ii.gt.1) then
             do 370 jj=1,ii-1
   370       if(ch(jj:jj).ne.' ') goto 380
@@ -13911,7 +13955,7 @@ cc2008
           i2=ii+1
           goto 430
         endif
-        if(ch(ii:ii).eq.kr) then
+        if(ch(ii:ii).eq.kr) then !kr=')'
           if(iw0.le.0) goto 330
           idi=i-ia
           do 410 k=1,iw0
@@ -13923,6 +13967,7 @@ cc2008
           goto 330
         endif
   420 continue
+      ! Create the structure
   430 call intepr(3,i2,ch,ch1)
 ! reading character strings so OK
       read(ch1,*) (ilm0(k),k=1,40)
@@ -13930,20 +13975,26 @@ cc2008
         if(ilm0(k).eq.idum) goto 490
         if(ilm0(k).eq.go) goto 480
         i=i+1
-        do 440 j=1,mblo
+        do 440 j=1,mblo !is it a BLOC?
           if(bezb(j).eq.ilm0(k)) goto 470
   440   continue
-        do 450 l=1,il
+        do 450 l=1,il   !is it a SINGLE ELEMENT?
           if(bez0(l).eq.ilm0(k)) goto 460
   450   continue
+        ! It was neither BLOC or SINGLE ELEMENT! ERROR!
         erbez=ilm0(k)
         call prror(20)
+        
+        ! Handle SINGLE ELEMENT
   460   continue
         ic(i)=l+nblo
         if(bez0(l).eq.cavi) icy=icy+1
         goto 490
+
+        !Handle BLOC
   470   ic(i)=j
         goto 490
+        !Handle GO
   480   kanf=i+1
   490 continue
       mbloz=i
@@ -16133,7 +16184,8 @@ cc2008
 +ei
       do 890 i=1,3
       do 890 j=1,nele
-  890 bezr(i,j)=idum
+  890 bezr(i,j)=idum !Initialize all bezr to idum=' '
+      
   900 iorg=iorg+1
   910 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -16141,42 +16193,55 @@ cc2008
       if(ch(1:1).eq.'/') goto 910
       if(ch(:4).eq.next) goto 110
       call intepr(3,1,ch,ch1)
-! bezr are character strings, should be OK
+      ! bezr are character strings, should be OK
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
-      if(idat.ne.next) then
-      if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum) write  &
-     &(6,10360) idat
-      if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum) write  &
-     &(6,10390) idat,bezr(2,iorg)
-      if(idat.ne.mult) bezr(1,iorg)=idat
-      if(idat.eq.mult.and.bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum)&
-     &then
+      if(idat.ne.next) then !Isn't this already checked for above?
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)
 +if cr
-        write(lout,10400)bezr(2,iorg),bezr(3,iorg)
+     &        write(lout,10360) idat
 +ei
 +if .not.cr
-        write(*,10400)bezr(2,iorg),bezr(3,iorg)
+     &        write(*,10360)    idat
 +ei
-        im=im+1
-        j0=0
-        j1=0
-        do 920 i=1,il
-          if(bez(i).eq.bezr(2,iorg)) j1=i
-  920   if(bez(i).eq.bezr(3,iorg)) j0=i
-        if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
-     &call prror(29)
-        irm(j0)=im
-        benkc(j0)=benkc(j1)
-        r00(j0)=r00(j1)
-        imo=irm(j1)
-        nmu(j0)=nmu(j1)
-        do 930 i1=1,nmu(j0)
-          bk0(im,i1)=bk0(imo,i1)
-          bka(im,i1)=bka(imo,i1)
-          ak0(im,i1)=ak0(imo,i1)
-  930   aka(im,i1)=aka(imo,i1)
-      endif
-      goto 900
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)
++if cr
+     &        write(lout,10390) idat,bezr(2,iorg)
++ei
++if .not.cr
+     &        write(*,10390)    idat,bezr(2,iorg)
++ei
+         if(idat.ne.mult)
+     &        bezr(1,iorg)=idat
+         if(idat.eq.mult.and.
+     &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
++if cr
+            write(lout,10400) bezr(2,iorg),bezr(3,iorg)
++ei
++if .not.cr
+            write(*,10400)    bezr(2,iorg),bezr(3,iorg)
++ei
+            im=im+1
+            j0=0
+            j1=0
+            do 920 i=1,il
+               if(bez(i).eq.bezr(2,iorg)) j1=i
+ 920           if(bez(i).eq.bezr(3,iorg)) j0=i
+            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
+     &              call prror(29)
+
+            irm(j0)=im
+            benkc(j0)=benkc(j1)
+            r00(j0)=r00(j1)
+            imo=irm(j1)
+            nmu(j0)=nmu(j1)
+            do 930 i1=1,nmu(j0)
+               bk0(im,i1)=bk0(imo,i1)
+               bka(im,i1)=bka(imo,i1)
+               ak0(im,i1)=ak0(imo,i1)
+ 930           aka(im,i1)=aka(imo,i1)
+
+         endif
+         goto 900
       endif
 +if cr
       write(lout,10130)
@@ -17174,26 +17239,14 @@ cc2008
 +if .not.collimat
 +if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) "     collimation not forseen in this version"
-+ei
-+if .not.cr
-      write(*,*) "     collimation not forseen in this version"
-+ei
-+if cr
       write(lout,*) "     please use proper version"
-+ei
-+if .not.cr
-      write(*,*) "     please use proper version"
-+ei
-+if cr
       write(lout,*)
 +ei
 +if .not.cr
+      write(*,*)
+      write(*,*)    "     collimation not forseen in this version"
+      write(*,*)    "     please use proper version"
       write(*,*)
 +ei
  1287 continue
@@ -17217,6 +17270,7 @@ cc2008
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
+
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & nloop,myenom
@@ -17224,14 +17278,33 @@ cc2008
 +if .not.fio
       if(iclr.eq.2) read(ch1,*) nloop,myenom
 +ei
-!JUNE2005
-+if fio
-!      if(iclr.eq.3) read(ch1,*,round='nearest')                        &
-     & mynex,mdex,myney,mdey
+      !Does not work for bnlelens, but collimat+bnlelens doesn't work anyway...
+      !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
+      if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
++if cr
+         write(lout,*) ""
+         write(lout,*) "Error in parsing COLL block in fort.3"
+         write(lout,*) "nloop =", nloop
+         write(lout,*) "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
+         write(lout,*) "maxn  =", maxn
+         write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
+         write(lout,*) "Please reduce the number of particles or loops"
+         write(lout,*) ""
+        call abend('                                                  ')
 +ei
-+if .not.fio
-!      if(iclr.eq.3) read(ch1,*) mynex,mdex,myney,mdey
++if .not.cr
+         write(*,*)    ""
+         write(*,*)    "Error in parsing COLL block in fort.3"
+         write(*,*)    "nloop =", nloop
+         write(*,*)    "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
+         write(*,*)    "maxn  =", maxn
+         write(*,*)    "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
+         write(*,*)    "Please reduce the number of particles or loops"
+         write(*,*)    ""
+         stop
 +ei
+      endif
+
 +if fio
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & do_thisdis,mynex,mdex,myney,mdey,       &
@@ -17268,89 +17341,6 @@ cc2008
      &nsig_tcli,                                                        &
 !     &nsig_tcth,nsig_tctv,                                              &
      &nsig_tcdq,nsig_tcstcdq,nsig_tdi
-!APRIL2005
-+if fio
-!      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
-+ei
-+if .not.fio
-!      if(iclr.eq.5) read(ch1,*)                                         &
-+ei
-!     &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-!     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8
-+if fio
-!      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
-!    & emitx0,emity0
-+ei
-+if .not.fio
-!      if(iclr.eq.6) read(ch1,*) emitx0,emity0
-+ei
-+if fio
-!      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
-!    & do_select,do_nominal,                   &
-+ei
-+if .not.fio
-!      if(iclr.eq.7) read(ch1,*) do_select,do_nominal,                   &
-+ei
-!     &rnd_seed,dowrite_dist,name_sel,do_oneside,                        &
-!     &dowrite_impact,dowrite_secondary,dowrite_amplitude
-+if fio
-!      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
-!    & xbeat,xbeatphase,ybeat,                                           &
-+ei
-+if .not.fio
-!      if(iclr.eq.8) read(ch1,*) xbeat,xbeatphase,ybeat,                 &
-+ei
-!     &ybeatphase
-+if fio
-!      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-!    & c_rmstilt_prim,c_rmstilt_sec,                                     &
-+ei
-+if .not.fio
-!      if(iclr.eq.9) read(ch1,*) c_rmstilt_prim,c_rmstilt_sec,           &
-+ei
-!     &c_systilt_prim,c_systilt_sec
-+if fio
-!      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
-!    & radial,nr,ndr
-+ei
-+if .not.fio
-!      if(iclr.eq.10) read(ch1,*) radial,nr,ndr
-+ei
-+if fio
-!      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
-!    & driftsx,driftsy,cut_input,                                        &
-+ei
-+if .not.fio
-!      if(iclr.eq.11) read(ch1,*) driftsx,driftsy,cut_input,             &
-+ei
-!     &systilt_antisymm
-+if fio
-!      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
-!    & ipencil,pencil_offset
-+ei
-+if .not.fio
-!      if(iclr.eq.12) read(ch1,*) ipencil,pencil_offset
-+ei
-!!APRIL2005
-+if fio
-!      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
-     & coll_db,ibeam
-+ei
-+if .not.fio
-!      if(iclr.eq.13) read(ch1,*) coll_db,ibeam
-+ei
-!!APRIL2005
-+if fio
-!      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
-!    & dowritetracks, cern, castordir,                                   &
-+ei
-+if .not.fio
-!      if(iclr.eq.14) read(ch1,*) dowritetracks, cern, castordir,        &
-+ei
-!     &jobnumber, sigsecut2, sigsecut3
-!!
-!      if(iclr.ne.14) goto 1285
-!SEPT2005
 +if fio
       if(iclr.eq.5) read(ch1,*,round='nearest')                         &
 +ei
@@ -17913,7 +17903,8 @@ cc2008
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
 !  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!  last modified: 13-06-2014
+!  K.Sjobak, BE-ABP/HSS
+!  last modified: 03-09-2015
 !  always in main code
 !-----------------------------------------------------------------------
  2000 read(3,10020,end=1530,iostat=ierro) ch
@@ -17952,7 +17943,8 @@ cc2008
 !           write(lout,'(t10,a50)')
 !     &          ' required dump at ALL SINGLE ELEMENTs'
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0)
+     &          dumpunit(0), dump_fname(0), dumpfmt(0),
+     &          dumpfirst(0), dumplast(0)
         endif
 +ei
 +if .not.cr
@@ -17960,7 +17952,8 @@ cc2008
 !           write(*,'(t10,a50)')
 !     &          ' required dump at ALL SINGLE ELEMENTs'
            write(*,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0)
+     &          dumpunit(0), dump_fname(0), dumpfmt(0),
+     &          dumpfirst(0), dumplast(0)
         endif
 +ei
         do ii=1,il
@@ -17971,7 +17964,8 @@ cc2008
 +if .not.cr
             write(*,10470)
 +ei
-     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii), dumpfmt(ii)
+     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
+     &     dumpfirst(ii), dumplast(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
             kk = 0
@@ -18019,40 +18013,57 @@ cc2008
           write(lout,*) '        --> requested high precision dumping!'
 +ei
 +if .not.cr
-          write(*,*) ''
-          write(*,*) '        --> requested high precision dumping!'
+          write(*,*)    ''
+          write(*,*)    '        --> requested high precision dumping!'
 +ei
+        endif
+        if ( ldumpfront ) then
++if cr
+          write(lout,*) ''
+          write(lout,*) '        --> requested FRONT dumping!'
++ei
++if .not.cr
+          write(*,*)    ''
+          write(*,*)    '        --> requested FRONT dumping!'
++ei
+           
         endif
         goto 110
       endif
 
 !     initialise reading variables, to avoid storing non sense values
       idat = ' '
-      i1 = 0
-      i2 = 0
-      i3 = 0
+      i1 = 0  ! frequency
+      i2 = 0  ! unit
+      i3 = 0  ! format
+      i4 = 1  ! first turn
+      i5 = -1 ! last turn
 
-      if(ch1(:4).eq.'HIGH') then
+      if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
         goto 2000
+      else if(ch(:5).eq.'FRONT') then
+         ldumpfront = .true.
+         goto 2000
       endif
-
+      
 !     requested element
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(51)
+      if ( getfields_lerr ) call prror(-1)
       
-      if (.not. ((getfields_nfields .eq. 4) .or. 
-     &           (getfields_nfields .eq. 5))    ) then
+      if ( (getfields_nfields .lt. 4) .or. 
+     &     (getfields_nfields .gt. 7) .or.
+     &     (getfields_nfields .eq. 6)      ) then
 +if cr
          write(lout,*) "ERROR in DUMP:"
-         write(lout,*) "Expected 4 or 5 arguments, got",
+         write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",
      &        getfields_nfields
          write(lout,*)
 +ei
 +if .not.cr
          write(*,*)    "ERROR in DUMP:"
-         write(*,*)    "Expected 4 or 5 arguments, got",
+         write(*,*)    "Expected 4 to 7 (but not 6)arguments, got",
      &        getfields_nfields
          write(*,*)
 +ei
@@ -18079,17 +18090,62 @@ cc2008
       if (getfields_nfields .eq. 4) then
          !Automatic fname
          write(ch1,"(a5,I0)") "fort.", i2
-      else if (getfields_nfields .eq. 5) then
+      else if ( (getfields_nfields .eq. 5) .or. 
+     &          (getfields_nfields .eq. 7)     ) then
          !Given fname
          ch1 = getfields_fields(5)(1:getfields_lfields(5))
       else
          !ERROR
          call prror(-1)
       endif
+      if (getfields_nfields .eq. 7) then
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) i4
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) i5
+      endif
       
+!Check that first/last turn is sane
+      if ( i5.ne.-1 ) then
+         if ( i5 .lt. i4 ) then
++if cr
+            write(lout,*)
++ei
++if .not.cr
+            write(*,*)
++ei
+     &           "Error in DUMP: Expect last turn >= first turn, ",
+     &           "unless last turn = -1 (infinity), got", i4,i5
+           call prror(-1)
+         endif
+      endif
+      if ( i4 .lt. 1 ) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "Error in DUMP: Expect first turn >= 1, got", i4
+         call prror(-1)
+      endif
+
 !     find it in the list of SINGLE ELEMENTs:
       do j=1,il
-         if(bez(j).eq.idat) goto 2001
+         if(bez(j).eq.idat) then
+            if (ldump(j)) then !Only enable once/element!
++if cr
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "Element '",idat, "' was specified",
+     &              " more than once"
++ei
++if .not.cr
+               write(*,*)    "Error in parsing DUMP block:"
+               write(*,*)    "Element '",idat, "' was specified",
+     &              " more than once"
++ei
+               call prror(-1)
+            endif
+            goto 2001
+         endif
       enddo
       if ( idat(:3).eq.'ALL' ) then
          j=0
@@ -18121,6 +18177,8 @@ cc2008
       dumpunit(j) = i2
       dumpfmt(j)  = i3
       dump_fname(j) = ch1
+      dumpfirst(j) = i4
+      dumplast(j) = i5
 !     go to next line
       goto 2000
 
@@ -18732,7 +18790,8 @@ cc2008
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'ELEMENT NAME',8x,'EVERY # TURNs',2x,
-     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT') !DUMP/STAT/BMAT
+     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,
+     &"FirstTurn",6x,"LastTurn") !DUMP/STAT/BMAT
 10070 format(1x,i3,1x,a16,1x,i3,1x,d16.10,1x,d16.10,1x,d16.10,1x,d13.7, &
      &1x,d12.6,1x,d13.7,1x,d12.6)
 10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
@@ -18752,7 +18811,7 @@ cc2008
      &'   |    ',a16,'   |               |               |')
 10400 format(5x,'| ELEMENTS |                              |          ' &
      &,'     |               |    ',a16,'   |    ',a16,'   |')
-10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6) !BMAT/STAT/DUMP
+10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12) !BMAT/STAT/DUMP
 10472 format(t10,a)                           !BMAT/STAT/DUMP
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
      &t10,'TROMBONE #      NAME'/)
@@ -26268,7 +26327,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
              if ( dumpfmt(i).eq.1 ) then
                 write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack'
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -26281,7 +26340,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i)
                 endif
                 write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack'
+     &'#ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 2
 +ei
@@ -26334,7 +26393,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
                       if (dumpfmt(i).eq.2) then !More header
                          write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i)
+     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i),
+     &  ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
 +if cr
                          dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -27277,7 +27337,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     always in main code
       if (ldynk) call dynk_pretrack
 
++if collimat
+      if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then
++ei
++if .not.collimat
       if(idp.eq.0.or.ition.eq.0) then
++ei
 +if cr
         write(lout,*) ''
         write(lout,*) 'Calling thin4d subroutine'
@@ -27290,6 +27355,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         call thin4d(nthinerr)
       else
++if collimat
+        if (idp.eq.0.or.ition.eq.0) then
++if cr
+           write(lout,*) ""
+           write(lout,*) "******* WARNING *******"
+           write(lout,*) "Calling 6D tracking due to collimation!"
+           write(lout,*) "Would normally have called thin4d"
+           write(lout,*) ""
++ei
++if .not.cr
+           write(*,*)    ""
+           write(*,*)    "******* WARNING *******"
+           write(*,*)    "Calling 6D tracking due to collimation!"
+           write(*,*)    "Would normally have called thin4d"
+           write(*,*)    ""
++ei
+        endif
++ei
+
 !hr01   hsy(3)=c1m3*hsy(3)*ition
         hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
         do 310 jj=1,nele
@@ -27306,6 +27390,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           write(*,*)    ''
           write(*,*)    'Calling thin6dua subroutine'
           write(*,*)    ''
++ei
+
++if collimat
+          if (do_coll) then
++if cr
+            write(lout,*)
+            write(lout,*) "ERROR"
+            write(lout,*) "thin6dua not supported by collimation"
++ei
++if .not.cr
+            write(*,*)
+            write(*,*)    "ERROR"
+            write(*,*)    "thin6dua not supported by collimation"
++ei
+            STOP
+          endif
 +ei
           call thin6dua(nthinerr)
         else
@@ -28166,7 +28266,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD FOR NOT FAST TRACKING ONLY
 !hr08         ejfv(i)=sqrt(ejv(i)*ejv(i)-pma*pma)
               ejfv(i)=sqrt(ejv(i)**2-pma**2)                             !hr08
-              rvv(j)=(ejv(i)*e0f)/(e0*ejfv(i))
+              rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
               dpsv(i)=(ejfv(i)-e0f)/e0f
               oidpsv(i)=one/(one+dpsv(i))
 !hr08         dpsv1(i)=dpsv(i)*c1e3*oidpsv(i)
@@ -28174,16 +28274,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD
 !APRIL2005
 !              dpsv(i)  = 0d0
-              absorbed(i) = 0
+              nlostp(i)=i
               do ieff =1, numeff
                  counted_r(i,ieff) = 0
                  counted_x(i,ieff) = 0
                  counted_y(i,ieff) = 0
               end do
-!GRD INITIALIZE MAX COUNTERS
-              ieffmax_r(i) = 0
-              ieffmax_x(i) = 0
-              ieffmax_y(i) = 0
             end do
 !
 !++  Initialize random number generator
@@ -28725,6 +28821,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -29095,8 +29196,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
-
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   630   continue
         call lostpart(nthinerr)
@@ -29433,6 +29535,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   endif
                   if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')&
      &                 ) then
+                     nsig = nsig_tcstcdq
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
+     &                 bez(myix)(1:4).eq.'tcsp') then
+                  if(bez(myix)(9:11).eq.'6.B'.or.
+     &                 bez(myix)(9:11).eq.'6.b') then
                      nsig = nsig_tcstcdq
                   endif
                elseif(bez(myix)(1:4).eq.'TCSM' .or.                     &
@@ -29815,7 +29923,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               yv(2,j) = 0d0
               ejv(j)  = myenom
               sigmv(j)= 0d0
-              part_abs(j) = 10000*ie + iturn
+              part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
               secondary(j) = 0
               tertiary(j)  = 0
 !APRIL2005
@@ -29866,6 +29974,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -32626,7 +32739,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca lostpart
 +ei
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
  650  continue !END loop over structure elements
 
@@ -33339,6 +33454,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -33770,7 +33890,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   650   continue
         call lostpart(nthinerr)
@@ -34431,13 +34553,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
 !     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 24-02-2015
+!     last modified: 21-09-2015
 !     dump beam particles
 !     always in main code
 !
 !     nturn     : Current turn number
 !     i         : Current structure element
-!     ix        : Corresponding single element
+!     ix        : Corresponding single element (<0 for BLOC, only for ALL)
 !     unit      : Unit to dump from
 !     fmt       : Dump output format (0/1/2)
 !     lhighprec : High precission output y/n
@@ -34477,6 +34599,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !     temporary variables
       integer j
+      character*16 localBez
 
 +if cr      
       !For accessing dumpfilepos
@@ -34488,18 +34611,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          dumpIdx = ix
       endif
 +ei
+      if ( ktrack(i) .ne. 1 ) then
+         localBez = bez(ix)
+      else
+         localBez = bezb(ic(i))
+      endif
       
       ! General format
       if ( fmt .eq. 0 ) then
          if ( lhighprec ) then
             do j=1,napx
-               write(unit,1981) nturn, i, ix, bez(ix), dcum(i),         &
+               write(unit,1981) nturn, i, ix, localBez, dcum(i),        &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
          else
             do j=1,napx
-               write(unit,1982) nturn, i, ix, bez(ix), dcum(i),         &
+               write(unit,1982) nturn, i, ix, localBez, dcum(i),        &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
@@ -34619,8 +34747,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension nbeaux(nbb)
 +ca comdynk
       logical dynk_isused
++if collimat
++ca database
++ei
+
 +ca save
 !-----------------------------------------------------------------------
++if collimat
+      if (do_coll) then
++if cr
+         write(lout,*) "Error: in trauthck and do_coll is TRUE"
+         write(lout,*) "Collimation is not supported for thick tracking"
++ei
++if .not.cr
+         write(*,*)    "Error: in trauthck and do_coll is TRUE"
+         write(*,*)    "Collimation is not supported for thick tracking"
++ei
+         STOP
+      endif
++ei
+
       do 5 i=1,npart
         nlostp(i)=i
    5  continue
@@ -35145,6 +35291,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+      
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+      
 +if time
 +ca timefct
 +ei
@@ -35528,7 +35688,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   480     continue
           call lostpart(nthinerr)
@@ -35696,6 +35858,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -36180,7 +36356,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
 +if debug
   500 continue
@@ -36356,6 +36534,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bpm
 +ca bpmdata
 +ei bpm
+
+      if (ldumpfront) then
++if cr
+         write (lout,*) 
++ei
++if .not.cr
+         write (*,*)
++ei
+     & "DUMP/FRONT not yet supported on thick elements "//
+     & "due to lack of test cases. Please contact developers!"
+      stop
+!+ca dumplines
+      endif
+
 +if time
 +ca timefct
 +ei
@@ -36791,7 +36983,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca lostpart
 
+      if (.not. ldumpfront) then
 +ca dumplines
+      endif
 
   500     continue
           call lostpart(nthinerr)
@@ -39338,13 +39532,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 13-06-2014
+!     K.Sjobak, BE-ABP/HSS
+!     last modified: 03-09-2015
 !     initialise common
 !     always in main code
       ldumphighprec = .false.
+      ldumpfront    = .false.
       do i=0,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
+        dumpfirst(i) = 0
+        dumplast(i)  = 0
         dumpunit(i) = 0
         dumpfmt(i)  = 0
         do j=1,getfields_l_max_string
@@ -40706,7 +40904,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
++ca save ! Saving DPP?
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -42170,17 +42368,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       write(*,10000)
 +ei
-      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 ,           &
-     &110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 ,                &
-     &210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 ,                &
-     &310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 ,                &
-     &410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 ,                &
-     &510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 ,                &
-     &610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 ,                &
-     &710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 ,                &
-     &810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 ,                &
-     &910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000,                &
-     &1010,1020,1030,1040,1050),ier
+      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !10       &
+     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !20       &
+     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !30       &
+     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 , !40       &
+     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 , !50       &
+     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 , !60       &
+     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 , !70       &
+     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 , !80       &
+     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 , !90       &
+     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !100      &
+     &     1010,1020,1030,1040,1050),ier
       goto 1870
 +if cr
    10 write(lout,10010)
@@ -43013,7 +43211,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10490 format(t10,'ONLY UP TO 3 SUBRESONANCES CAN BE COMPENSATED')
 10500 format(t10,'THE MULTIPOLE ORDER FOR THE SUBRESONANCE COMPENSATION'&
      &,' SHOULD NOT EXCEED THE VALUE 9')
-10510 format(t10,'PROBLEMS WITH FILE 3 WITH DYNAMIC KIKS')
+10510 format(t10,'PROBLEMS WITH FILE 3 WITH DYNAMIC KICKS')
 10520 format(t10,'MAXIMUM ORDER OF THE ONE TURN MAP IS ',i4, /,         &
      &' NEMA HAS TO BE LARGER THAN NORD')
 10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT',      &
@@ -43121,14 +43319,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Temp variables
       integer ii, stat, t
-      double precision x,y,               ! FILE, FILELIN
+      double precision x,y,z,u,           ! FILE, FILELIN, FIR/IIR
      &                 x1,x2,y1,y2,deriv, ! LINSEG, QUADSEG,
      &                 tinj,Iinj,Inom,A,D,R,te,                 !PELP (input)
      &                 derivI_te,I_te,bexp,aexp, t1,I1, td,tnom !PELP (calc)
       
+      logical isFIR ! FIR/IIR
+      
       ! define function return type
       integer dynk_findFUNindex
-
+      
+      logical lopen
+      
 +if crlibm
       integer nchars
       parameter (nchars=160) !Same as in daten
@@ -43146,8 +43348,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
-      write (*,*) "FIO not supported in DYNK!"
-      stop 1
++if cr
+      write (lout,*) "FIO not supported in DYNK!"
++ei
++if .not.cr
+      write (*,*)    "FIO not supported in DYNK!"
++ei
+      call prror(-1)
 +ei
       
       if (nfuncs_dynk+1 .gt. maxfuncs_dynk) then
@@ -43162,6 +43369,24 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (*,*)    "Maximum number of FUN exceeded, please" //
      &        "parameter maxfuncs_dynk."
          write (*,*)    "Current value of maxfuncs_dynk:",maxfuncs_dynk
++ei
+         call prror(51)
+      endif
+      
+      if (getfields_lfields(2).gt.maxstrlen_dynk-1) then
++if cr
+         write(lout,*) "ERROR in DYNK block parsing (fort.3):"
+         write(lout,*) "Max length of a FUN name is", maxstrlen_dynk-1
+         write(lout,*) "Offending FUN: '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(lout,*) "length:", getfields_lfields(2)
++ei
++if .not.cr
+         write(*,*)    "ERROR in DYNK block parsing (fort.3):"
+         write(*,*)    "Max length of a FUN name is", maxstrlen_dynk-1
+         write(*,*)    "Offending FUN: '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(*,*) "length:", getfields_lfields(2)
 +ei
          call prror(51)
       endif
@@ -43189,6 +43414,56 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk !ARG1
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
+
+         !Sanity checks
+         if (getfields_lfields(4) .gt. 16 .or.   ! length of BEZ elements
+     &       getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN GET got an element name with     "
+            write (lout,*) "length =", getfields_lfields(4), "> 16"
+            write (lout,*) "or > ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN GET got an element name with     "
+            write (*,*)    "length =", getfields_lfields(4), "> 16."
+            write (*,*)    "or > ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         end if
+         if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN GET got an attribute name with   "
+            write (lout,*) "length =", getfields_lfields(5)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN GET got an attribute name with   "
+            write (*,*)    "length =", getfields_lfields(5)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+
          ! Store data
          cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
@@ -43199,28 +43474,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+2
          
          fexpr_dynk(nfexpr_dynk) = -1.0 !Initialize a place in the array to store the value
-         
-         if (getfields_lfields(2) .gt. 16) then ! length of BEZ elements
-+if cr
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "SET FUN got an element name with     "
-            write (lout,*) "length =", getfields_lfields(4), "> 16."
-            write (lout,*) "The name was: '",getfields_fields(4)
-     &                                    (1:getfields_lfields(4)),"'"
-            write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*) "*************************************"
-            write (*,*) "ERROR in DYNK block parsing (fort.3):"
-            write (*,*) "SET FUN got an element name with     "
-            write (*,*) "length =", getfields_lfields(4), "> 16."
-            write (*,*) "The name was: '",getfields_fields(4)
-     &                                    (1:getfields_lfields(4)),"'"
-            write (*,*) "*************************************"
-+ei
-            call prror(51)
-         end if
 
       case ("FILE")
          ! FILE: Load the contents from a file
@@ -43241,6 +43494,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,3) = ncexpr_dynk+1 !Filename (in cexpr_dynk)
          funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk+1 !Data     (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1            !Below: Length of file
+
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FILE got a filename name with   "
+            write (lout,*) "length =", getfields_lfields(4)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FILE got a filenname with   "
+            write (*,*)    "length =", getfields_lfields(4)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+
          ! Store data
          cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
@@ -43249,8 +43528,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+1
          
          !Open the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():FILE ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
+         
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
-     &        iostat=stat)
+     &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
@@ -43387,6 +43681,30 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,3) = ncexpr_dynk+1 !Filename (in cexpr_dynk)
          funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk+1 !Data     (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1            !Below: Length of file (number of x,y sets)
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FILELIN got a filename name with   "
+            write (lout,*) "length =", getfields_lfields(4)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FILELIN got a filenname with   "
+            write (*,*)    "length =", getfields_lfields(4)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(4)
+     &                                    (1:getfields_lfields(4)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
          ! Store data
          cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
@@ -43395,8 +43713,24 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+1
          
          !Open the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
-     &        iostat=stat)
+     &        iostat=stat,status='OLD')
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
@@ -43696,6 +44030,346 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call prror(51)
          endif
 
+      case("FIR","IIR")
+         ! FIR: Finite Impulse Response filter
+         ! y[n] = \sum_{i=0}^N b_i*x[n-i]
+         ! where N is the order of the filter, x[] is the results from
+         ! previous calls to the input function, and b_i is a set of coefficients.
+         ! The coefficients are loaded from an ASCII file, formatted with three columns,
+         ! the first one being the index 0...N, the second being the coefficients b_0...b_N,
+         ! and the third one being the initial values of x[n]..x[n-N].
+         ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
+         ! Note that this means that at the first call, x[n-0] is pushed into x[n-1] etc.,
+         ! and x[n-N] is deleted; i.e. the initial x[n-N] is never used.
+         !
+         ! Format in fexpr_dynk:
+         ! b_0 <- funcs_dynk(<this>,3)
+         ! x[n]
+         ! x_init[n] (holds the x[n]s from the input file, used to reset the FIR at the first turn)
+         ! b_1
+         ! x[n-1]
+         ! x_init[n-1]
+         ! (etc., repeat funcs_dynk(<this>,4)+1 times)
+         !
+         ! IIR: Infinite Impulse Response filter
+         ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
+         ! where N=M. This is the same as FIR, except that it also uses
+         ! previous values of it's own output.
+         ! The input file is also identical, except adding two extra columns:
+         ! One for the coefficients a_0...a_N, and one for the
+         ! initial values of y[n]...y[n-N]. For both these columns,
+         ! the first row (a_0 and y[n]) are ignored.
+         ! For the first of these columns, the first value (a_0) is ignored and never used,
+         ! while y[n-0] is pushed into y[n-1] at the first evaluation,
+         ! such that the initial x[n-N] is never used (just like for x[n-N]).
+         ! 
+         ! Format in fexpr_dynk:
+         ! b_0 <- funcs_dynk(<this>,3)
+         ! x[n]
+         ! x_init[n]
+         ! a_0  (a_0 is never used)
+         ! y[n] (zeroed for computation, used to hold previously returned value)
+         ! y_init[n] (holds the y[n]s from the input file, used to reset the FIR at the first turn)
+         ! b_1
+         ! x[n-1]
+         ! x_init[n-1]
+         ! a_1
+         ! y[n-1]
+         ! y_init[n-1]
+         ! (etc., repeat funcs_dynk(<this>,4) times)
+
+
+         call dynk_checkargs(getfields_nfields,6,
+     &        "FUN funname {FIR|IIR} N filename baseFUN")
+         select case( getfields_fields(3)(1:getfields_lfields(3)) )
+         case("FIR")
+            isFIR = .true.
+         case("IIR")
+            isFIR = .false.
+         case default
++if cr
+            write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+            write (lout,*) "DYNK> non-recognized type in inner switch1?"
++ei
++if .not.cr
+            write (*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+            write (*,*)    "DYNK> non-recognized type in inner switch1?"
++ei
+         end select
+         
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
+         if (isFIR) then
+            call dynk_checkspace(0,3*(t+1),2)
+         else
+            call dynk_checkspace(0,6*(t+1),2)
+         endif
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
+         if (isFIR) then
+            funcs_dynk(nfuncs_dynk,2) = 10 !TYPE (FIR)
+         else
+            funcs_dynk(nfuncs_dynk,2) = 11 !TYPE (IIR)
+         endif
+         funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk+1 !ARG1 (start of float storage)
+         funcs_dynk(nfuncs_dynk,4) = t             !ARG2 (filter order N)
+         funcs_dynk(nfuncs_dynk,5) =               !ARG3 (filtered function)
+     &        dynk_findFUNindex( getfields_fields(6)
+     &                           (1:getfields_lfields(6)), 1)
+         !Store metadata
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        iexpr_dynk(niexpr_dynk) ! N
+         
+         ! Sanity check
+         if (funcs_dynk(nfuncs_dynk,5).eq.-1) then
+            call dynk_dumpdata
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FIR/IIR function wanting function '",
+     &            getfields_fields(6)(1:getfields_lfields(6)), "'"
+            write (lout,*) "This FUN is unknown!"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FIR/IIR function wanting function '",
+     &            getfields_fields(6)(1:getfields_lfields(6)), "'"
+            write (*,*)    "This FUN is unknown!"
+            write (*,*) "*************************************"
++ei
+            call prror(51)
+         endif
+        if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FIR/IIR got a filename name with "
+            write (lout,*) "length =", getfields_lfields(5)
+            write (lout,*) "> ",maxstrlen_dynk-1
+            write (lout,*) "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FIR/IIR got a filenname with "
+            write (*,*)    "length =", getfields_lfields(5)
+            write (*,*)    "> ",maxstrlen_dynk-1
+            write (*,*)    "The name was: '",getfields_fields(5)
+     &                                    (1:getfields_lfields(5)),"'"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+         if ( iexpr_dynk(niexpr_dynk) .le. 0 ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN FIR/IIR got N <= 0, this is not valid"
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN FIR/IIR got N <= 0, this is not valid"
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
+         
+         !More metadata
+         ncexpr_dynk = ncexpr_dynk+1
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(5)) = !FILE NAME
+     &        getfields_fields(5)(1:getfields_lfields(5))
+         
+         !Read the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
+         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
+     &        iostat=stat, status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk), "'"
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk), "'"
++ei
+            call prror(51)
+         endif
+         
+         do ii=0, funcs_dynk(nfuncs_dynk,4) 
+            !Reading the FIR/IIR file without CRLIBM
++if .not.crlibm
+            if (isFIR) then
+               read(664,*,iostat=stat) t, x, y
+            else
+               read(664,*,iostat=stat) t, x, y, z, u
+            endif
+            if (stat.ne.0) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
++ei
+               call prror(-1)
+            endif
++ei ! END + if .not.crlibm
+
+            !Reading the FIR/IIR file with CRLIBM
++if crlibm
+            read(664,'(a)', iostat=stat) ch
+            if (stat.ne.0) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
++ei
+               call prror(-1)
+            endif
+            
+            call getfields_split(ch,
+     &           filefields_fields, filefields_lfields,
+     &           filefields_nfields, filefields_lerr )
+            
+            !Sanity checks
+            if ( filefields_lerr ) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error in getfields_split()"
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error in getfields_split()"
++ei
+               call prror(-1)
+            end if
+            if ( (      isFIR .and.filefields_nfields .ne. 3) .or.
+     &           ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(lout,*) "DYNK> Expected 3[5] fields ",
+     &              "(idx, fac, init, selfFac, selfInit), ",
+     &              "got ",filefields_nfields
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(*,*)    "DYNK> Expected 3[5] fields ",
+     &              "(idx, fac, init, selfFac, selfInit), ",
+     &              "got ",filefields_nfields
++ei
+               call prror(-1)
+            endif
+            
+            !Read the data into t,x,y(,z,u):
+            read(filefields_fields(1)(1:filefields_lfields(1)),*) t
+            
+            x = round_near(errno, filefields_lfields(2)+1,
+     &           filefields_fields(2) )
+            if (errno.ne.0)
+     &           call rounderr(errno,filefields_fields,2,x)
+            
+            y = round_near(errno, filefields_lfields(3)+1,
+     &           filefields_fields(3) )
+            if (errno.ne.0)
+     &           call rounderr(errno,filefields_fields,3,y)
+            
+            if (.not.isFIR) then
+               z = round_near(errno, filefields_lfields(4)+1,
+     &              filefields_fields(4) )
+               if (errno.ne.0)
+     &              call rounderr(errno,filefields_fields,4,z)
+               
+               u = round_near(errno, filefields_lfields(5)+1,
+     &              filefields_fields(5) )
+               if (errno.ne.0)
+     &              call rounderr(errno,filefields_fields,5,u)
+            endif
+            
++ei ! END +if crlibm
+
+            ! More sanity checks
+            if (t .ne. ii) then
++if cr
+               write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
+               write(lout,*) "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
++ei
++if .not.cr
+               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
+               write(*,*)    "DYNK> Error reading file '",
+     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Got line t =",t, ", expected ", ii
++ei
+               call prror(-1)
+            endif
+            !Save data to arrays
+            !Store coefficients (x) and initial/earlier values (y) in interlaced order
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = x      ! b_i
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = 0.0    ! x[n-1], will be initialized in dynk_apply()
+            nfexpr_dynk = nfexpr_dynk+1
+            fexpr_dynk(nfexpr_dynk) = y      ! x_init[n-i]
+            if (.not.isFIR) then
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = z   ! a_i
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = 0.0 ! y[n-i], will be initialized in dynk_apply()
+               nfexpr_dynk = nfexpr_dynk+1
+               fexpr_dynk(nfexpr_dynk) = u   ! y_init[n-i]
+            endif
+         enddo
+         close(664)
+
       !!! Operators: #20-39 !!!
       case("ADD","SUB","MUL","DIV","POW")
          ! Two-argument operators  y = OP(f1, f2)
@@ -43741,7 +44415,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Store data
          cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         ! Sanity check
+         ! Sanity check (string lengths are done inside dynk_findFUNindex)
          if (funcs_dynk(nfuncs_dynk,3) .eq. -1 .or. 
      &       funcs_dynk(nfuncs_dynk,4) .eq. -1) then
 +if cr
@@ -43815,7 +44489,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Store data
          cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         ! Sanity check
+         ! Sanity check (string lengths are done inside dynk_findFUNindex)
          if (funcs_dynk(nfuncs_dynk,3) .eq. -1) then
 +if cr
             write (lout,*) "*************************************"
@@ -44514,7 +45188,50 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &     sets_dynk(nsets_dynk,3) ! endTurn
       read(getfields_fields(7)(1:getfields_lfields(7)),*)
      &     sets_dynk(nsets_dynk,4) ! turnShift
-
+      
+      !Sanity check on string lengths
+      if (getfields_lfields(2).gt.16 .or.
+     &    getfields_lfields(2).gt.maxstrlen_dynk-1) then
++if cr
+         write (lout,*) "*************************************"
+         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+         write (lout,*) "SET got an element name with length =",
+     &        getfields_lfields(2), "> 16 or > maxstrlen_dynk-1."
+         write (lout,*) "The name was: '",
+     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
+         write (lout,*) "*************************************"
++ei
++if .not.cr
+         write (*,*)    "*************************************"
+         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+         write (*,*)    "SET got an element name with length =",
+     &        getfields_lfields(2), "> 16 or > maxstrlen_dynk-1."
+         write (*,*)    "The name was: '",
+     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
+         write (*,*)    "*************************************"
++ei
+         call prror(51)
+      endif
+      
+      if (getfields_lfields(3).gt.maxstrlen_dynk-1) then
++if cr
+         write(lout,*) "ERROR in DYNK block parsing (fort.3) (SET):"
+         write(lout,*) "The attribute name '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(lout,*) "is too long! Max length is",
+     &        maxstrlen_dynk
++ei
++if .not.cr
+         write(*,*)    "ERROR in DYNK block parsing (fort.3) (SET):"
+         write(*,*)    "The attribute name '"//
+     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
+         write(*,*)    "is too long! Max length is",
+     &        maxstrlen_dynk-1
++ei
+         call prror(51)         
+      endif
+      
+      !OK -- save them!
       csets_dynk(nsets_dynk,1)(1:getfields_lfields(2)) =
      &     getfields_fields(2)(1:getfields_lfields(2)) ! element_name
       csets_dynk(nsets_dynk,2)(1:getfields_lfields(3)) =
@@ -44542,29 +45259,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
          call prror(51)
       endif
-
-      if (getfields_lfields(2) .gt. 16) then
-         ! length of elements in BEZ array is 16
-+if cr
-         write (lout,*) "*************************************"
-         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "SET got an element name with length =",
-     &        getfields_lfields(2), "> 16."
-         write (lout,*) "The name was: '",
-     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
-         write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got an element name with length =",
-     &        getfields_lfields(2), "> 16."
-         write (*,*)    "The name was: '",
-     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
-         write (*,*)    "*************************************"
-+ei
-         call prror(51)
-      end if
       
       if (  (sets_dynk(nsets_dynk,3) .ne. -1) .and. !Not the special case
      &      (sets_dynk(nsets_dynk,2) .gt. sets_dynk(nsets_dynk,3)) )then
@@ -44617,24 +45311,73 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
       end subroutine
 
-      integer function dynk_findFUNindex(funName, startfrom)
+      integer function dynk_findFUNindex(funName_input, startfrom)
 !-----------------------------------------------------------------------
 !     K. Sjobak, BE-ABP/HSS
-!     last modified: 14-10-2014
+!     last modified: 14-07-2015
 !     Find and return the index in the ifuncs array to the
 !      function with name funName, which should be zero-padded.
 !     Return -1 if nothing was found.
+!
+!     Note: It is expected that the length of funName_input is
+!      equal or less than maxstrlen_dynk, and if it equal,
+!      that it is a zero-terminated string.
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
 +ca comdynk
-
++if cr
++ca crcoall
++ei
+      character(*) funName_input
       character(maxstrlen_dynk) funName
       integer startfrom
-      intent(in) funName, startfrom
+      intent(in) funName_input, startfrom
+
 
       integer ii
+
+C      write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)      
+
+      if (len(funName_input).gt.maxstrlen_dynk) then
++if cr
+         write (lout,*) "ERROR in dynk_findFUNindex"
+         write (lout,*) "len(funName_input) = ",len(funName_input),
+     &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1
++ei
++if .not.cr
+         write (*,*)    "ERROR in dynk_findFUNindex"
+         write (*,*)    "len(funName_input) = ",len(funName_input),
+     &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1      
++ei
+         call prror(-1)
+      endif
+      ! If the length is exactly maxstrlen_dynk, it should be zero-terminated.
+      if (( len(funName_input).eq.maxstrlen_dynk ) .and.
+     &    ( funName_input(len(funName_input):len(funName_input))
+     &     .ne.char(0)) ) then
++if cr
+         write (lout,*) "ERROR in dynk_findFUNindex"
+         write (lout,*) "Expected funName_input[-1]=NULL"
++ei
++if .not.cr
+         write (*,*) "ERROR in dynk_findFUNindex"
+         write (*,*) "Expected funName_input[-1]=NULL"
++ei
+         call prror(-1)
+      endif
       
+      do ii=1,len(funName_input)
+C         write(*,*) "DBGDBG a:", ii
+         funName(ii:ii) = funName_input(ii:ii)
+      enddo
+      funName(1:len(funName_input)) = funName_input
+      do ii=len(funName_input)+1,maxstrlen_dynk
+C         write(*,*) "DBGDBG b:", ii
+         funName(ii:ii) = char(0)
+      enddo
+C      write(*,*) "DBGDBG c:", funName, len(funName)
+
       dynk_findFUNindex = -1
 
       do ii=startfrom, nfuncs_dynk
@@ -44654,6 +45397,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     Find and return the index in the sets array to the set which
 !     matches element_name and att_name, which should be zero-padded.
 !     Return -1 if nothing was found.
+!
+!     Note: It is expected that the length of element_name and att_name
+!      is exactly maxstrlen_dynk .
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
@@ -45242,10 +45988,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          enddo
       enddo
 
-      !First-turn initialization, some parts which are specific for collimat.
-      ! (move to pretrack?)
+      !First-turn initialization, including some parts which are specific for collimat.
       if (turn .eq. 1) then
-         ! Reset RNGs
+         ! Reset RNGs and filters 
          do ii=1, nfuncs_dynk
             if (funcs_dynk(ii,2) .eq. 6) then !RANDG
                if (ldynkdebug) then
@@ -45255,7 +46000,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
                   write (*,*) 
 +ei
-     &              "DYNKDEBUG> Resetting RNG for FUN named '",
+     &               "DYNKDEBUG> Resetting RNG for FUN named '",
      & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
@@ -45263,7 +46008,40 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         iexpr_dynk(funcs_dynk(ii,3) )
                iexpr_dynk(funcs_dynk(ii,3)+4) =
      &         iexpr_dynk(funcs_dynk(ii,3)+1)
+            else if (funcs_dynk(ii,2) .eq. 10) then !FIR
+               if (ldynkdebug) then
++if cr
+                  write (lout,*)
++ei
++if .not.cr
+                  write (*,*)
++ei
+     &               "DYNKDEBUG> Resetting FIR named '",
+     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+               do jj=0, funcs_dynk(ii,4)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*3+2)
+               enddo
+            else if (funcs_dynk(ii,2) .eq. 11) then !IIR
+               if (ldynkdebug) then
++if cr
+                  write (lout,*)
++ei
++if .not.cr
+                  write (*,*)
++ei
+     &               "DYNKDEBUG> Resetting IIR named '",
+     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+               do jj=0, funcs_dynk(ii,4)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+2)
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+4) =
+     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+5)
+               enddo
             endif
+            
          enddo
 
          !Open dynksets.dat
@@ -45471,7 +46249,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! General temporaries
       integer foff !base offset into fexpr array
-      
+      integer ii,jj!Loop variable
+
       ! Other stuff
 +ca parnum
       double precision pi
@@ -45544,6 +46323,44 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Change to mu, sigma
          retval = fexpr_dynk(funcs_dynk(funNum,4))
      &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
+         
+      case(10)                                                          ! FIR
+         foff = funcs_dynk(funNum,3)
+         !Shift storage 1 back
+         do ii=funcs_dynk(funNum,4)-1,0,-1
+            jj = ii*3
+            fexpr_dynk(foff+jj+4) = fexpr_dynk(foff+jj+1)
+         enddo
+         !Evaluate the next input function
+         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+         !Compute the filtered value
+         retval = 0.0
+         do ii=0,funcs_dynk(funNum,4)
+            jj = ii*3
+            retval = retval + 
+     &           fexpr_dynk(foff+jj)*fexpr_dynk(foff+jj+1)
+         enddo
+      case(11)                                                          ! IIR
+         foff = funcs_dynk(funNum,3)
+         !Shift storage 1 back
+         do ii=funcs_dynk(funNum,4)-1,0,-1
+            jj = ii*6
+            fexpr_dynk(foff+jj+7) = fexpr_dynk(foff+jj+1)
+            fexpr_dynk(foff+jj+10) = fexpr_dynk(foff+jj+4)
+         enddo
+         !Evaluate the next input function
+         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+         fexpr_dynk(foff+4) = 0.0
+         !Compute the filtered value
+         retval = 0.0
+         do ii=0,funcs_dynk(funNum,4)
+            jj = ii*6
+            retval = retval +
+     &           fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) +
+     &           fexpr_dynk(foff+jj+3) * fexpr_dynk(foff+jj+4)
+         enddo
+         !To be shifted at the next evaluation
+         fexpr_dynk(foff+4) = retval
          
       case (20)                                                         ! ADD
          retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
@@ -45655,7 +46472,6 @@ C+ei
       retval = fexpr_dynk(funcs_dynk(funNum,3))
      & *COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1)
      &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-
 +ei
 +if .not.crlibm
       retval = fexpr_dynk(funcs_dynk(funNum,3))
@@ -45760,6 +46576,8 @@ C+ei
 C     Here comes the logic for setting the value of the attribute for all instances of the element...
       ! Get type
       do ii=1,il
+         ! TODO: Here one could find the right ii in dynk_pretrack,
+         ! and then avoid this loop / string-comparison
          if (element_name_stripped.eq.bez(ii)) then ! name found
             el_type=kz(ii)      ! type found
             
@@ -45920,6 +46738,9 @@ c$$$            endif
 !     last modified: 2101-2015
 !
 !     Returns the original value currently set by an element.
+!     
+!     Note: Expects that arguments element_name and att_name are
+!     zero-terminated strings of length maxstrlen_dynk!
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
@@ -45958,6 +46779,8 @@ c$$$            endif
       end if
 
       do ii=1,il
+         ! TODO: Here one could find the right ii in dynk_pretrack,
+         ! and then avoid this loop / string-comparison
          if (element_name_s.eq.bez(ii)) then ! name found
             el_type=kz(ii)
             if (ldoubleElement) then
@@ -46066,6 +46889,16 @@ c$$$               endif
          endif !bez
       enddo
       
+      if (ldynkdebug) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &   "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
+      end if
+
       return
       
       !Error handlers
@@ -46249,12 +47082,16 @@ c$$$               endif
          endif
       end do
       
+      if (ldynkdebug) then
 +if cr
-      write(lout,*)"DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+         write(lout,*)
 +ei
 +if .not.cr
-      write(*,*)   "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+         write(*,*)   
 +ei
+     &      "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+      endif
+
       dynk_isused = .false.
       return
       
@@ -46354,7 +47191,7 @@ c$$$               endif
           else
 !            BLOC
 +if cr
-             write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
+             write(lout,10020) ientry,ix,bezb(ix),dcum(ientry)
 +ei
 +if .not.cr
              write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
@@ -46391,7 +47228,7 @@ c$$$               endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,iflag,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,  &
+      integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,
      &nmz,nr,dj
       double precision aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
      &ci,cikve,clo0,clop0,cr,crkve,crkveuk,di00,dip00,dphi,dpp,dpp1,    &
@@ -46471,7 +47308,6 @@ c$$$               endif
         ci(i)=zero
    40 continue
       etl=zero
-      nr=0
       dpr(1)=dpp*c1e3
       dpr(6)=one
       dpp1=dpp+ded
@@ -46546,75 +47382,85 @@ c$$$               endif
         write(*,10010)
 +ei
       endif
-      iflag=0
+
+!--START OF THE MACHINE
       idum='START'
+      nr=0
 +if .not.collimat.and..not.bnlelens
-      call writelin(nr,idum,etl,phi,t,1)
+      call writelin(nr,idum,etl,phi,t,1,.false.)
 +ei
 +if collimat.or.bnlelens
-!GRDRHIC
-      k=0 !ALWAYS initialize k
-      call writelin(nr,idum,etl,phi,t,1,k)
-!GRDRHIC
+      call writelin(nr,idum,etl,phi,t,1,.false.,0)
 +ei
       if(ntco.ne.0) then
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
-!--SINGLE TURN BLOCKLOOP
+
+
+!--STRUCTURE ELEMENT LOOP
       if(nt.le.0.or.nt.gt.iu) nt=iu
       izu=0
       do 500 k=1,nt
         ix=ic(k)
-        if(ix.gt.nblo) goto 220
+        if(ix.gt.nblo) goto 220 !Not a BLOCK
         if(ithick.eq.1.and.iprint.eq.1) goto 160
-        jj=0
-        dj=1
-        if(ix.gt.0) goto 90
-!hr13   ix=-ix
-        ix=-1*ix                                                         !hr13
-        jj=mel(ix)+1
-        dj=-1
-   90   jm=mel(ix)
-!--BLOCKELEMENTLOOP
+
+        jj=0 !initial idx
+        dj=1 !step
+        
+        if (ix.le.0) then
+           ix=-1*ix             !hr13
+           jj=mel(ix)+1         !initial idx
+           dj=-1                !step
+        endif
+        jm=mel(ix)
+!-- Loop over elements inside the block
         do 150 j=1,jm
-          jj=jj+dj
-          jk=mtyp(ix,jj)
+          jj=jj+dj       ! Subelement index of current sub=element
+          jk=mtyp(ix,jj) ! Single-element index of the current sub-element
 +if .not.bnlelens
           if(ithick.eq.1.and.kz(jk).ne.0) goto 120
 +ei
 +if bnlelens
 !GRDRHIC
           if(ithick.eq.1.and.kz(jk).ne.0) then
-             call writelin(nr,bez(jk),etl,phi,t,ix,k)
+             call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
              goto 120
           endif
 !GRDRHIC
 +ei
-+if .not.collimat.and..not.bnlelens
+
           if(ithick.eq.0.and.kz(jk).ne.0) then
-
-!           A.Mereghetti, for the FLUKA Team
-!           last modified: 17-07-2013
-!           this is somehow an un-desired situation (thin lens tracking, 
-!             with a non-drift element in a BLOC), but let's dump
-!             the available information (as done in the collimation version)
-            nr=nr+1
             etl=etl+el(jk)
-            call writelin(nr,bez(jk),etl,phi,t,ix)
-            if(ntco.ne.0) then
-              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
-            endif
-
+            
+c$$$            nr=nr+1
+c$$$+if .not.collimat.and..not.bnlelens
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
+c$$$+ei
+c$$$+if collimat.or.bnlelens
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
+c$$$+ei
+c$$$            if(ntco.ne.0) then
+c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
+c$$$            endif
+            
++if cr
+            write(lout,*) "ERROR in LINOPT:"
+            write(lout,*) "In block ", bezb(ix),
+     &           "found a thick non-drift element",
+     &           bez(jk), "while ithick=1. This should not be possible!"
++ei            
++if .not.cr
+            write(*,*)    "ERROR in LINOPT:"
+            write(*,*)    "In block ", bezb(ix),
+     &           "found a thick non-drift element",
+     &           bez(jk), "while ithick=1. This should not be possible!"
++ei
+            call prror(-1)
             goto 500
           endif
-+ei
-+if collimat.or.bnlelens
-          if(ithick.eq.0.and.kz(jk).ne.0) then
-             call writelin(nr,bez(jk),etl,phi,t,ix,k)
-             goto 500
-          endif
-+ei
-!--PURE DRIFTLENGTH
+
+!--IN BLOCK: PURE DRIFTLENGTH (above: If ITHICK=1 and kz!=0, goto 120->MAGNETELEMENT)
           etl=etl+el(jk)
           do 100 l=1,2
             ll=2*l
@@ -46645,18 +47491,21 @@ c$$$               endif
 !hr06       if(-dphi.gt.pieni) dphi=dphi+pi
             if((-1d0*dphi).gt.pieni) dphi=dphi+pi                        !hr06
   110     phi(l)=phi(l)+dphi/pie
+
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
+          
           goto 150
-!--MAGNETELEMENT
+
+!--IN BLOCK: MAGNETELEMENT
   120     continue
           if(kz(jk).ne.8) etl=etl+el(jk)
           do l=1,2
@@ -46709,26 +47558,35 @@ c$$$               endif
             if(kz(jk).ne.8.and.-1d0*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi/pie
           enddo
+          
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
+          
   150   continue !End of loop over elements inside block
+
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
+        endif
+
         goto 500
-!--BETACALCULATION FOR SERIES OF BLOCKS
-  160   continue
+
+!--BETACALCULATION FOR SERIES OF BLOCKS (ix.ge.nblo.and.ithick.eq.1.and.iprint.eq.1)
+  160   continue !if ithick=1 and iprint=1:
         if(ix.le.0) goto 190
 !--REGULAR RUN THROUGH BLOCKS
         etl=etl+elbe(ix)
@@ -46765,6 +47623,7 @@ c$$$               endif
      &(ix,l,5)                                                           !hr06
 !hr06  170   t(i,ll)=bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll)+dpr(i)*bl1(ix,l,6)
   170   t(i,ll)=(bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll))+dpr(i)*bl1(ix,l,6) !hr06
+
         do 180 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
@@ -46781,18 +47640,21 @@ c$$$               endif
 !hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   180   phi(l)=phi(l)+dphi/pie
+
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
+        
         goto 500
-!--REVERSE RUN THROUGH BLOCKS
+
+!--REVERSE RUN THROUGH BLOCKS (ix.le.0)
   190   ix=-ix
         etl=etl+elbe(ix)
         do 200 l=1,2
@@ -46828,6 +47690,7 @@ c$$$               endif
      &(ix,l,5)                                                           !hr06
 !hr06  200   t(i,ll)=bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll)+dpr(i)*bl2(ix,l,6)
   200   t(i,ll)=(bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll))+dpr(i)*bl2(ix,l,6) !hr06
+
         do 210 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
@@ -46843,83 +47706,92 @@ c$$$               endif
 !hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   210   phi(l)=phi(l)+dphi/pie
+
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
+        
         goto 500
-!--NL-INSERTION
+
+!--NOT A BLOCK / Nonlinear insertion
   220   ix=ix-nblo
         qu=zero
         qv=zero
         dyy1=zero
         dyy2=zero
         kpz=kp(ix)
+        kzz=kz(ix)
+
+ ! Cavity
 +if .not.collimat.and..not.bnlelens
         if(kpz.eq.6) then
-
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's dump the available information (as done in the collimation
-!           version)
++ei
++if collimat.or.bnlelens
+        if(abs(kzz).eq.12) then
++ei
           nr=nr+1
-          call writelin(nr,bez(ix),etl,phi,t,ix)
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
++ei
++if collimat.or.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
 
           goto 500
         endif
-+ei
-+if collimat.or.bnlelens
-        if(kpz.eq.6) then
-           call writelin(nr,bez(ix),etl,phi,t,ix,k)
-           goto 500
-        endif
-+ei
-        kzz=kz(ix)
+        
+        !Beam Beam element .and. fort.3 has BB block
         if(kzz.eq.20.and.nbeam.ge.1) then
           nbeam=k
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's add coupling calculation
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
           goto 500
 
         endif
-+ca trom01
+
++ca trom01 !if kzz==22, starts a do over l; Update t matrix
 +ca trom03
-+ca trom06
++ca trom06 !endif, ends the do over l; increase nr, writelin and cpltwis
+
 +if collimat.or.bnlelens
-!GRDRHIC
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        ! Marker, beam-beam, phase-trombone, or crab cavity (incl. multipole)
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
+     &     .or. abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) then
+          
+          nr=nr+1
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+          endif
           goto 500
         endif
-! JBG RF CC Multipoles to 500
-        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 500
-        if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 500
 +ei
 +if .not.collimat.and..not.bnlelens
+        ! Marker, beam-beam or phase-trombone -> next element
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
-! JBG RF CC Multipoles to 500
+        ! RF CC Multipoles -> next element
         if (abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
 +ei
+      
+        ! Update the matrix etc. for supported blocks
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -46930,22 +47802,24 @@ c$$$               endif
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-        if(kzz.lt.0) goto 370
+        if(kzz.lt.0) goto 370 !Skew
         goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320, !10
      &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500, !20
      &       500, 500, 500, 325, 326, 500, 500, 500),kzz       !28
 
+        ! Un-recognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
-! Not sure whether to add this
-!        if(ntco.ne.0) then
-!          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!        endif
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+        endif
         goto 500
+
 !--HORIZONTAL DIPOLE
   230   ekk=ekk*c1e3
 +ca kickl01h
@@ -47042,6 +47916,7 @@ c$$$               endif
 +ca kicklso1
 +ca kickqso1
         goto 480
+!--Multipole block
   330   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
@@ -47071,23 +47946,17 @@ c$$$               endif
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
+          
           nr=nr+1
-+if collimat.or.bnlelens
-! --> THAT'S THE IMPORTANT ONE !!!!
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
-+ei
-
 +if .not.collimat.and..not.bnlelens
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's dump the available information (as done in the collimation
-!           version)
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
-! Not sure??
-!          if(ntco.ne.0) then
-!            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!          endif
++if collimat.or.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+          endif
 
           goto 500
         endif
@@ -47115,17 +47984,20 @@ c$$$               endif
 !--SKEW ELEMENTS
   370   kzz=-kzz
         goto(380,390,400,410,420,430,440,450,460,470),kzz
+        
+        ! Unrecognized element in the above GOTO (incl. kzz=-12,kp.ne.6 for non-collimat/bnlelens)
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
-!Unsure???
-!        if(ntco.ne.0) then
-!          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!        endif
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+        endif
         goto 500
+
 !--VERTICAL DIPOLE
   380   ekk=ekk*c1e3
 +ca kickl01v
@@ -47254,17 +48126,20 @@ c$$$               endif
             write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
           endif
         endif
+        
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
-  500 continue
+        
+  500 continue ! END LOOP OVER ELEMENTS
+      
       call clorb(ded)
       do 510 l=1,2
         clo0(l)=clo(l)
@@ -47312,10 +48187,10 @@ c$$$               endif
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
       end
 +if collimat.or.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl,ielem)
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ei
 +if .not.collimat.and..not.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl)
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
 !-----------------------------------------------------------------------
 !  WRITE OUT LINEAR OPTICS PARAMETERS
@@ -47327,9 +48202,11 @@ c$$$               endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,istart,iwrite,ixwl,l,ll,nr
+      integer i,iwrite,ixwl,l,ll,nr
       double precision al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character*16 typ
+      ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
+      logical isBLOC
 +ca parpro
 +ca parnum
 +ca common
@@ -47347,8 +48224,6 @@ c$$$               endif
 +ei
 +ca save
 !-----------------------------------------------------------------------
-      istart=0
-      if(typ.eq.'START') istart=1
       iwrite=0
       if(nlin.eq.0) then
         iwrite=1
@@ -47377,32 +48252,11 @@ c$$$               endif
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
    20   continue
-+if collimat.and..not.bnlelens
-        tbetax(max(ielem,1))  = b1(1)
-        tbetay(max(ielem,1))  = b1(2)
-        talphax(max(ielem,1)) = al1(1)
-        talphay(max(ielem,1)) = al1(2)
-        torbx(max(ielem,1))   = c(1)
-        torbxp(max(ielem,1))  = cp(1)
-        torby(max(ielem,1))   = c(2)
-        torbyp(max(ielem,1))  = cp(2)
-        tdispx(max(ielem,1))  = d(1)
-        tdispy(max(ielem,1))  = d(2)
-+ei
-+if collimat.and.bnlelens
-        tbetax(max(ielem,1))  = b1(1)
-        tbetay(max(ielem,1))  = b1(2)
-        talphax(max(ielem,1)) = al1(1)
-        talphay(max(ielem,1)) = al1(2)
-        torbx(max(ielem,1))   = c(1)
-        torbxp(max(ielem,1))  = cp(1)
-        torby(max(ielem,1))   = c(2)
-        torbyp(max(ielem,1))  = cp(2)
-        tdispx(max(ielem,1))  = d(1)
-        tdispy(max(ielem,1))  = d(2)
-+ei
+
++if collimat.or.bnlelens
 +if .not.collimat.and.bnlelens
         if (lhc.eq.9) then
++ei
           tbetax(max(ielem,1))  = b1(1)
           tbetay(max(ielem,1))  = b1(2)
           talphax(max(ielem,1)) = al1(1)
@@ -47413,8 +48267,11 @@ c$$$               endif
           torbyp(max(ielem,1))  = cp(2)
           tdispx(max(ielem,1))  = d(1)
           tdispy(max(ielem,1))  = d(2)
++if .not.collimat.and.bnlelens
         endif
 +ei
++ei
+
       if(ncorru.eq.0) then
 +if cr
           write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),&
@@ -47455,29 +48312,27 @@ c$$$               endif
           write(*,10040)
 +ei
         else
-          if(kp(ixwl).eq.3) then
-            nhmoni=nhmoni+1
-            betam(nhmoni,1)=b1(1)
-!hr06       pam(nhmoni,1)=p1(1)*2*pi
-            pam(nhmoni,1)=(p1(1)*2d0)*pi                                 !hr06
-            bclorb(nhmoni,1)=c(1)
-          else if(kp(ixwl).eq.4) then
-            nhcorr=nhcorr+1
-            betac(nhcorr,1)=b1(1)
-!hr06       pac(nhcorr,1)=p1(1)*2*pi
-            pac(nhcorr,1)=(p1(1)*2d0)*pi                                 !hr06
-          else if(kp(ixwl).eq.-3) then
-            nvmoni=nvmoni+1
-            betam(nvmoni,2)=b1(2)
-!hr06       pam(nvmoni,2)=p1(2)*2*pi
-            pam(nvmoni,2)=(p1(2)*2d0)*pi                                 !hr06
-            bclorb(nvmoni,2)=c(2)
-          else if(kp(ixwl).eq.-4) then
-            nvcorr=nvcorr+1
-            betac(nvcorr,2)=b1(2)
-!hr06       pac(nvcorr,2)=p1(2)*2*pi
-            pac(nvcorr,2)=(p1(2)*2d0)*pi
-          endif
+           if(.not.isBLOC) then
+              if(kp(ixwl).eq.3) then
+                 nhmoni=nhmoni+1
+                 betam(nhmoni,1)=b1(1)
+                 pam(nhmoni,1)=(p1(1)*2d0)*pi
+                 bclorb(nhmoni,1)=c(1)
+              else if(kp(ixwl).eq.4) then
+                 nhcorr=nhcorr+1
+                 betac(nhcorr,1)=b1(1)
+                 pac(nhcorr,1)=(p1(1)*2d0)*pi
+              else if(kp(ixwl).eq.-3) then
+                 nvmoni=nvmoni+1
+                 betam(nvmoni,2)=b1(2)
+                 pam(nvmoni,2)=(p1(2)*2d0)*pi
+                 bclorb(nvmoni,2)=c(2)
+              else if(kp(ixwl).eq.-4) then
+                 nvcorr=nvcorr+1
+                 betac(nvcorr,2)=b1(2)
+                 pac(nvcorr,2)=(p1(2)*2d0)*pi
+              endif
+           endif
         endif
       endif
 !-----------------------------------------------------------------------
@@ -48947,7 +49802,7 @@ c$$$               endif
       nra1=nran
       iorg=iorg-1
       if(iorg.ge.0) then
-        if(iorg.eq.0) then
+        if(iorg.eq.0) then !iorg == 0
           do 50 i=1,iu
             ix=ic(i)
             if(ix.le.nblo) goto 50
@@ -48959,20 +49814,29 @@ c$$$               endif
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
+            if(izu.gt.nzfz) then
++if cr
+              write(lout,*) "ERROR in ORD: nzfz was too small"
++ei
++if .not.cr
+              write(*,*)    "ERROR in ORD: nzfz was too small"
++ei
+              call prror(-1)
+            endif
    50     continue
-        else
+        else ! iorg.gt.0
           do 70 i=1,iorg
             do 60 j=1,il
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+     &               call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+     &               call prror(31)
                 jra(i,4)=kz(j)
               endif
    60       continue
@@ -48981,8 +49845,8 @@ c$$$               endif
             if(kzz1.ne.0.and.kzz2.eq.0) then
               jra(i,5)=nra1
               nra1=nra1+mran*3
-              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni) nra1=nra1   &
-     &+mran*2*mmul
+              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)
+     &             nra1=nra1+mran*2*mmul
               if(nra1.gt.nzfz) call prror(32)
             endif
             if(kzz1.eq.11.and.(kzz2.ne.11.and.kzz2.ne.0)) call prror(33)
@@ -49018,7 +49882,7 @@ c$$$               endif
             if(izu.gt.nran) call prror(30)
   110     continue
         endif
-      else
+      else !iorg < 0 (in case of no ORGA block in fort.3)
         do 115 i=1,iu
           ix=ic(i)
           if(ix.le.nblo) goto 115
@@ -49029,10 +49893,21 @@ c$$$               endif
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
+          if(izu.gt.nzfz) then
++if cr
+            write(lout,*) "ERROR in ORD: nzfz was too small"
++ei
++if .not.cr
+            write(*,*)    "ERROR in ORD: nzfz was too small"
++ei
+            call prror(-1)
+          endif
   115   continue
       endif
+      
+      ! "GO" was not the first structure element -> Reshuffle the structure
       if(kanf.ne.1) then
-!-- Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
         kanf1=kanf-1
         do 130 i=1,kanf1
           if(iorg.ge.0) ilfr(i)=mzu(i)
@@ -49089,6 +49964,7 @@ c$$$               endif
 +ei
   170   continue
       endif
+      
       izu=0
       do 190 i=1,iu
         ix=ic(i)
@@ -59807,12 +60683,18 @@ c$$$               endif
          mat = 12
       else
 +if cr
-         write(lout,*) 'ERR>  Material not found. STOP', c_material
+         write(lout,*)
+         write(lout,*) 'ERR>  In subroutine collimate2:'
+         write(lout,*) 'ERR>  Material "', c_material, '" not found.'
+         write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
 +ei
 +if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP', c_material
+         write(*,*)
+         write(*,*)    'ERR>  In subroutine collimate2:'
+         write(*,*)    'ERR>  Material "', c_material, '" not found.'
+         write(*,*)    'ERR>  Check your CollDB! Stopping now.'
 +ei
-!        STOP
+         STOP
       endif
 !
         length  = c_length
@@ -61741,13 +62623,11 @@ c$$$               endif
      &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,        &
      &     myx, myxp, myy, myyp, myp, mys)
  
-!
       implicit none
-!
-      integer max_ncoll,max_npart,maxn,numeff,outlun,nc
-      parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
-     &maxn=20000,outlun=54)
 
++ca collpara
+
+      ! Don't load the common blocks for these variables
       logical cut_input
       integer i,j,mynp,nloop
       double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
@@ -63329,15 +64209,14 @@ c$$$     &           myalphay * cos(phiy))
 !      save h,dh,bn
 +ca interac
       double precision h,dh,theta,rlen0,rlen,ae,be,bn0,s
-      double precision thetaz_mcs,thetax_mcs,gauss2,initial_xp,
-     &radl_mat,rad_len ! Claudia 2013 added variables
+      double precision radl_mat,rad_len ! Claudia 2013 added variables
 
-      common/varcla/gauss2,initial_xp   !Claudia
 
 !   bn=sqrt(3)/(number of sigmas for s-determination(=4))
       data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
 !
 !++
+
       radl_mat=radl(mat)
 !     theta=13.6d-3*(1.d0-dpop)/p0          !Claudia
       theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
@@ -63358,18 +64237,15 @@ c$$$     &           myalphay * cos(phiy))
       if(x.le.0.d0) then
 !hr09  s=rlen0-rlen+s
        s=(rlen0-rlen)+s                                                  !hr09
-       thetax_mcs=((xp-initial_xp)/gauss2)*theta       !Claudia
        goto 20
       end if
       if(s+dh.ge.rlen) then
        s=rlen0
-       thetax_mcs=((xp-initial_xp)/gauss2)*theta       !Claudia
        goto 20
       end if
       rlen=rlen-s
       goto 10
 20    call scamcs(z,zp,s,radl_mat)
-      thetaz_mcs=((zp-initial_xp)/gauss2)*theta        !Claudia
       s=s*radl(mat)
 !hr09 x=x*theta*radl(mat)
       x=(x*theta)*radl(mat)                                              !hr09
@@ -63388,8 +64264,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca crlibco
 +ei
       double precision v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-      double precision gauss2,initial_xp,radl_mat
-      common/varcla/gauss2,initial_xp                       !Claudia
+      double precision radl_mat
       real rndm4
       x0=xx
       xp0=xxp
@@ -63773,7 +64648,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       double precision x, u1, u2, twopi, r,cut
       save
       
-      flag = .true.
+      flag = .true. !Does this initialize only once, or is it executed every pass?
+                    !See ran_gauss(cut)
 
 +if crlibm
 !hr09 twopi=8d0*atan(1d0)
@@ -63816,303 +64692,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       end
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-
-
-
-!
-!
-! $Id: sixtrack.s,v 1.38 2010-04-13 00:15:50 frs Exp $
-!
-! $Log: not supported by cvs2svn $
-! Revision 1.37  2010/03/08 11:06:32  mcintosh
-!   SixTrack Version: 4.2.8 eric
-!     -- Commented out the boinc graphic init, finish and progress calls
-!     -- Commented out the routines in myboinc.f
-!   McIntosh 7th March, 2010
-!
-! Revision 1.36  2010/02/12 14:48:00  mcintosh
-!   SixTrack Version: 4.2.7 eric
-!     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
-!   McIntosh February, 2010
-!
-! Revision 1.35  2010/01/15 14:30:43  mcintosh
-!
-!   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
-!     -- Added Closed Orbit to sumda(53:58) for fort.10.
-!     -- Changed a couple of constants in "Wire" to use c1m7.
-!   Frank Schmidt/McIntosh 15th January, 2010
-!
-! Revision 1.34  2009/10/06 09:00:56  frs
-! Version 4205
-!
-! Revision 1.33  2009/10/05 07:42:10  frs
-! Number of BB encouters up to 350
-!
-! Revision 1.32  2009/08/27 13:04:10  adriana
-!
-!
-! Correct wrong 'if collimat' to '+if collimat' statement - adriana
-!
-! Revision 1.31  2009/08/27 12:29:11  adriana
-!
-!
-!    SixTrack Version: 4.2.4 Revision 1.31 adriana
-!      C. Bracco / A. Rossi / Th. Weiler
-!      Changes in the collimation part:
-!      -- Added and updated alignment errors (tilt, offset,
-!         gap-size): all values of alignment errors can be kept
-!         identical for different runs, by applying the same seed.
-!         Therefore the random function myran_gauss and rndm5 have
-!         been added and the inputs fort.3 adapted.
-!      -- Alignment errors are also applied for deformed jaws.
-!      -- Added to the pencil beam section the possibility to
-!         generate different particle distributions (Gaussian and
-!         rectangular in x and y) on the selected collimator.
-!      -- Changes to the do_select option to get the multi-turn
-!         halo information for all particle packets.
-!      C. Bracco / A. Rossi / Th. Weiler
-!
-!    make_six map option corrected (E.McIntosh)
-!
-!
-! Revision 1.31 2009/08/12 adriana
-!   SixTrack Version: 4.2.4  
-!     C. Bracco / A. Rossi / Th. Weiler
-!     Changes in the collimation part:
-!     -- Added and updated alignment errors (tilt, offset,
-!        gap-size): all values of alignment errors can be kept
-!        identical for different runs, by applying the same seed.
-!        Therefore the random function myran_gauss and rndm5 have
-!        been added and the inputs fort.3 adapted.
-!     -- Alignment errors are also applied for deformed jaws.
-!     -- Added to the pencil beam section the possibility to
-!        generate different particle distributions (Gaussian and
-!        rectangular in x and y) on the selected collimator.
-!     -- Changes to the do_select option to get the multi-turn
-!        halo information for all particle packets.
-!     C. Bracco / A. Rossi / Th. Weiler
-!
-! Revision 1.30  2009/07/29 13:09:44  frs
-! Fix the missing phase advance in the solenoid. This thin element is special
-! in the sense that the it creates a direct phase advance that has to be
-! calculated at every element occurrence.
-!
-! Revision 1.29  2009/07/24 15:18:12  frs
-! First attempt at thin solenoid (work done by Yipeng Sun)
-! The tune calculation in the traditional SixTrack part seems slightly off.
-! DA part seems okay and in agreement with MAD-X.
-!
-! Revision 1.27  2009/05/14 08:40:22  frs
-! Adding dipedge element which allows to track all relevent elements
-! except the solenoids
-!
-! Revision 1.26  2008/11/11 08:54:00  mcintosh
-!
-!   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
-!     -- Small fix to phase trombone from Guillaume and Yun
-!    McIntosh 11th November, 2008
-!
-! Revision 1.25  2008/10/21 15:49:21  mcintosh
-!
-!   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
-!     -- Write CRPOINT messages 5 times maximum
-!     -- Set n_cut and n_nocut to 0 after printing
-!    McIntosh 21st October, 2008
-!
-! Revision 1.24  2008/10/03 15:34:32  mcintosh
-!   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
-!     -- Now endfile SixTwiss, checkdist, and beambeam-output
-!        and fort.10 fort.97 fort.51.
-!     -- Debug code for SIGSEV on BNL in crstart.
-!     -- Implemented additional debug dump routines (needs testing)
-!     -- Remove n_cut=0 and n_nocut=0 (wrongly added by me)
-!     -- Re-instated the second C/R file fort.96 and added
-!        code to check extended checkpoint in crcheck.
-!     -- Two versions of writelin (extra 7th argument for collimat and bnlelens)
-!     -- Moved REAL time2 to COMMON ttime and read95/read96 to COMMON as well.
-!    McIntosh 3rd October, 2008
-!
-! Revision 1.23  2008/09/08 15:37:55  mcintosh
-!   SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
-!     -- If bnlelens AND lhc.eq.9 AND NOT boinc
-!        write one line to fort.10 containing the sixtit(1:60)
-!        if boinc AND NOT restart write and add one to bnlrecs
-!        Cleaned up all read/write[]( to read/write(
-!        Fixed all calls to rndm4 in +collimat to be to dble(rndm4())
-!    McIntosh 8th September, 2008
-!
-! Revision 1.22  2008/09/02 13:48:08  mcintosh
-!   SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
-!     -- Fixed the SixTwiss output to write one line F20.13
-!        and most importantly changed the bnlrec count for C/R
-!    McIntosh 2nd September, 2008
-!
-! Revision 1.21  2008/08/31 21:51:08  mcintosh
-!   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
-!     -- make_six copies only necessary .ast and .f files
-!        Sorted .f files for crlibm for windows and makes a
-!        link from the new executable to SixTrack
-!     -- SixTrack for BNL only, use fort.54 for beambeamdist.dat for
-!        BOINC and CPSS. Use fort.52, fort.53, fort.51 and fort.97
-!        for beambeam-output.dat, beambeam-lostID.dat, SixTwiss.dat,
-!        and checkdist.dat for CPSS but ONLY fort.10 for BOINC.
-!    McIntosh 31st August, 2008
-!
-! Revision 1.20  2008/08/23 12:03:30  mcintosh
-!   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
-!     -- Added SixTwiss output to all tracking routines if bnldata
-!     -- Use napx to write checkdist if bnlelens
-!     -- Do NOT write a second C/R file fort.96
-!   McIntosh 23rd August, 2008
-!
-! Revision 1.19  2008/08/23 08:50:26  mcintosh
-!   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
-!     -- Fixed a problem with binary output files when
-!        using the bnlelens option for normal DA runs.
-!     -- Removed redundant plotting initialisation.
-!     -- Forced -cernlib for +windows in make_six.
-!     -- Added !GRDRHIC/!GRD-042008 comments.
-!   McIntosh 23rd August, 2008
-!
-! Revision 1.18  2008/08/22 09:54:43  mcintosh
-!
-!   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
-!     -- Fixed a problem with the collimat option (my fault)
-!        Need a regression test for this.
-!     -- Added C/R for synuthck, 6d thick lens and variable IL.
-!        Modified crpoint,crcheck, and crstart and the size of the C/R file.
-!     -- If bnlelens, use napx rather napx00/npart for number of pairs
-!     -- Most important is that bnlens option is now an addition to the
-!        normal tracking so that the SAME executable can be used for
-!        normal DA and bnlelens LHC=9 runs (important for BOINC/CPSS)
-!        but LHC=9 does NOT write binary files nor post-process.
-!   McIntosh 20th August, 2008
-!
-! Revision 1.17  2008/08/19 08:48:40  mcintosh
-!   SixTrack Version: 4.1.7 CVS Version 1.17 McIntosh
-!     -- make_six has a new 'debug' option to aid SixTrack development.
-!     -- If debug is selected, a new flag to ASTUTE SixTrack makes
-!        available Unit 99 for messages and dumps and a set of dump
-!        routines (of which only a full dump in this version).
-!     -- A  couple of write(* in SUBRE are now handled by C/R.
-!     -- A couple of bugs with C/R and IDFOR have been fixed.
-!     -- All subsequent changes noted here are for the 'bnlelens'
-!        and other SixTrack functionality should be unchanged
-!        (except that fort.95 and 96 are used for Checkpoint/Restart,
-!        C/R, instead of 12 and 13.)
-!     -- The bnlelens option has been implemented in comdecks bnlin and
-!        bnlout principally so it works for all six tracking routines.
-!        This has been tested only for THCK6D so far.
-!        There are now no changes to trauthck and trauthin.
-!     -- The C/R option for 6d and thick lens is disabled unless
-!        debug is selected.
-!     -- C/R now handles additional variables and correctly positions
-!        the beambeam-output.dat and beambeam-lostID.dat files.
-!     -- The binary files 90-59 are not used; no post-processing is
-!        performed. All OPEN/CLOSE have been moved to the standard comdecks
-!        and the variables moved to COMMON initialised by COMNUL.
-!     -- The READDIS routine for bnlelens is renamed to BNLRDIS to
-!        avoid confusion with collimation and it uses UNIT 54 to
-!        read beambeamdist.dat which may now have only one sample.
-!     -- The n_cut and n_nocut variables are set to zero before the j loop.
-!   McIntosh 18th August, 2008
-!
-! Revision 1.16  2008/08/05 19:06:46  mcintosh
-!   SixTrack Version 4.1.6
-!      -- and of course I forgot the SixTrack Version....
-!      -- Version and moddate set to 4.1.6, I am
-!         skipping 4.1.4 and 4.1.5 and then CVS and SixTrack versions
-!         should correspond. Otherwise we get confused. Eric.
-!
-! Revision 1.15  2008/08/05 18:52:27  mcintosh
-!
-!   SixTrack Version: 4.1.4
-!      -- Second interim update for BNL.
-!      -- synuthck replaced computed goto by IF's due to
-!         particularly nasty Lahey lf95 bug.
-!      -- Patched make_six mkwindows to sort out logsix.c and .h
-!         until we can sort out CVS
-!      -- Under +if bnlelens set ch1 to "" in subroutine intepr
-!      -- Under +if bnlelens replaced  rvv(j)= by rvv(i)= in trauthck
-!      -- Under +if bnlelens added k=0 before 1st linopt call to writelin
-!
-! Revision 1.14  2008/07/30 14:33:22  mcintosh
-! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
-! Eric McIntosh.
-! It is an interim update to facilitate development with BNL.
-! make_six creates a directory and executable name based on options.
-! make_six now supports [+-]bignblz which sets nblz to 200,000!!! if selected.
-! The Makefile creates a map and uses -g in FC for NAG.
-! crlibm is cleaned up for Linux/Windows and logsix.dat and logsix.h are used
-! instead of log.c and log.h and inlining is handled with an IFDEF.
-! In bnlelens Unit 97 (not 98) is used for checkdist.dat.
-! A problem with open(10... and open(99 is fixed for NAG.
-! sigsecut2 comment is cleaned up.
-!
-! Revision 1.13  2008/07/11 17:10:36  rtomas
-! Fixed "2d0*pi" bug in crab cavity kick
-!
-! Revision 1.12  2008/07/11 16:05:43  mcintosh
-! Version 4.1.1
-! New make_six with new flags bpm and bnlelens and the ast's.
-! sixtrack.s: moved GRDRHIC comments inside +if bnlelens
-! Changed some writelin statements to be consistent; under investigation.
-! Fixed FORMAT bug in bnlelens.
-!
-! Revision 1.11  2008/07/11 10:33:26  mcintosh
-! Version 4.1.0 the first commited version with Guillaume's preliminary changes
-! for "bnlelens" using the deck "rhicelens" required for RHIC BEAM-BEAM studies.
-! make_six now determines the version and modification date from sixtrack.s, and
-! displays them, sets the BOINC variable correctly for the Makefile. The program
-! maincr to call worker is added to myboinc.f.
-!
-! Revision 1.10  2008/07/10 10:30:54  frs
-! bpmdata are only written to files units > 100 if bpm flag in track.ast.
-!
-! Revision 1.9  2008/06/24 14:12:42  mcintosh
-! Version 4.0.10; the version and last modification date
-! for both SixTrack and SixTrack_da are now specified in
-! a common deck at the very beginning of sixtrack.s.
-! Version is an 8 character string [v]v.[v]v.[v]v and
-! moddate a 10 character string dd.mm.yyyy. The version is
-! stored in floating-point in sumda(52) for BOINC in particular.
-! In this way fort.10 identifies the version which produced it.
-! In addition make_six will soon be changed to use "version".
-!
-! Small format changes to a couple of comments and the SIXDA
-! date/time corrected.
-!
-! Revision 1.8  2008/06/19 13:15:24  frs
-! Version 4009 with sumda(52) set to 4009.0
-!
-! Revision 1.7  2008/01/15 17:47:51  frs
-! replace CRAB /c1e3 by *c1m3
-!
-! Revision 1.4  2007/07/05 18:58:44  frs
-! increase number of elements nblz=20000
-!
-! Revision 1.3  2007/05/06 21:24:28  frs
-! 1) Program stops if a Single Element Name is longer than 16 characters
-! (error # 104).
-! 2) MMUL increased from 11 to 20 for the .not.collimat version (request by
-! Ralph Assmann).
-! 3) Program stops if in a "MULT" block the multipole order is larger than
-! the maximum allowed order MMUL (error # 105).
-!
-! Revision 1.2  2006/09/26 15:51:04  robertde
-!
-!
-! Latest version for the collimation studies to include the Beam 2 lattice;
-! clean-up of the unit number for output files.
-!
-! Revision 1.2  1997/09/22 13:45:47  mclareni
-! Correct error in initializing RANLUX by using RLUXIN with the output of
-! RLUXUT from a previous run.
-!
-! Revision 1.1.1.1  1996/04/01 15:02:55  mclareni
-! Mathlib gen
-!
 !
       subroutine ranlux(rvec,lenv)
 !         Subtract-and-borrow random number generator proposed by
@@ -64889,277 +65468,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
   555 format(' FUNCTION IS ZERO FROM X=',e12.5,' TO ',e12.5)
       end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-! $Id: sixtrack.s,v 1.38 2010-04-13 00:15:50 frs Exp $
-!
-! $Log: not supported by cvs2svn $
-! Revision 1.37  2010/03/08 11:06:32  mcintosh
-!   SixTrack Version: 4.2.8 eric
-!     -- Commented out the boinc graphic init, finish and progress calls
-!     -- Commented out the routines in myboinc.f
-!   McIntosh 7th March, 2010
-!
-! Revision 1.36  2010/02/12 14:48:00  mcintosh
-!   SixTrack Version: 4.2.7 eric
-!     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
-!   McIntosh February, 2010
-!
-! Revision 1.35  2010/01/15 14:30:43  mcintosh
-!
-!   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
-!     -- Added Closed Orbit to sumda(53:58) for fort.10.
-!     -- Changed a couple of constants in "Wire" to use c1m7.
-!   Frank Schmidt/McIntosh 15th January, 2010
-!
-! Revision 1.34  2009/10/06 09:00:56  frs
-! Version 4205
-!
-! Revision 1.33  2009/10/05 07:42:10  frs
-! Number of BB encouters up to 350
-!
-! Revision 1.32  2009/08/27 13:04:10  adriana
-!
-!
-! Correct wrong 'if collimat' to '+if collimat' statement - adriana
-!
-! Revision 1.31  2009/08/27 12:29:11  adriana
-!
-!
-!    SixTrack Version: 4.2.4 Revision 1.31 adriana
-!      C. Bracco / A. Rossi / Th. Weiler
-!      Changes in the collimation part:
-!      -- Added and updated alignment errors (tilt, offset,
-!         gap-size): all values of alignment errors can be kept
-!         identical for different runs, by applying the same seed.
-!         Therefore the random function myran_gauss and rndm5 have
-!         been added and the inputs fort.3 adapted.
-!      -- Alignment errors are also applied for deformed jaws.
-!      -- Added to the pencil beam section the possibility to
-!         generate different particle distributions (Gaussian and
-!         rectangular in x and y) on the selected collimator.
-!      -- Changes to the do_select option to get the multi-turn
-!         halo information for all particle packets.
-!      C. Bracco / A. Rossi / Th. Weiler
-!
-!    make_six map option corrected (E.McIntosh)
-!
-! Revision 1.30  2009/07/29 13:09:44  frs
-! Fix the missing phase advance in the solenoid. This thin element is special
-! in the sense that the it creates a direct phase advance that has to be
-! calculated at every element occurrence.
-!
-! Revision 1.29  2009/07/24 15:18:12  frs
-! First attempt at thin solenoid (work done by Yipeng Sun)
-! The tune calculation in the traditional SixTrack part seems slightly off.
-! DA part seems okay and in agreement with MAD-X.
-!
-! Revision 1.27  2009/05/14 08:40:22  frs
-! Adding dipedge element which allows to track all relevent elements
-! except the solenoids
-!
-! Revision 1.26  2008/11/11 08:54:00  mcintosh
-!
-!   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
-!     -- Small fix to phase trombone from Guillaume and Yun
-!    McIntosh 11th November, 2008
-!
-! Revision 1.25  2008/10/21 15:49:21  mcintosh
-!
-!   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
-!     -- Write CRPOINT messages 5 times maximum
-!     -- Set n_cut and n_nocut to 0 after printing
-!    McIntosh 21st October, 2008
-!
-! Revision 1.24  2008/10/03 15:34:32  mcintosh
-!   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
-!     -- Now endfile SixTwiss, checkdist, and beambeam-output
-!        and fort.10 fort.97 fort.51.
-!     -- Debug code for SIGSEV on BNL in crstart.
-!     -- Implemented additional debug dump routines (needs testing)
-!     -- Remove n_cut=0 and n_nocut=0 (wrongly added by me)
-!     -- Re-instated the second C/R file fort.96 and added
-!        code to check extended checkpoint in crcheck.
-!     -- Two versions of writelin (extra 7th argument for collimat and bnlelens)
-!     -- Moved REAL time2 to COMMON ttime and read95/read96 to COMMON as well.
-!    McIntosh 3rd October, 2008
-!
-! Revision 1.23  2008/09/08 15:37:55  mcintosh
-!   SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
-!     -- If bnlelens AND lhc.eq.9 AND NOT boinc
-!        write one line to fort.10 containing the sixtit(1:60)
-!        if boinc AND NOT restart write and add one to bnlrecs
-!        Cleaned up all read/write[]( to read/write(
-!        Fixed all calls to rndm4 in +collimat to be to dble(rndm4())
-!    McIntosh 8th September, 2008
-!
-! Revision 1.22  2008/09/02 13:48:08  mcintosh
-!   SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
-!     -- Fixed the SixTwiss output to write one line F20.13
-!        and most importantly changed the bnlrec count for C/R
-!    McIntosh 2nd September, 2008
-!
-! Revision 1.21  2008/08/31 21:51:08  mcintosh
-!   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
-!     -- make_six copies only necessary .ast and .f files
-!        Sorted .f files for crlibm for windows and makes a
-!        link from the new executable to SixTrack
-!     -- SixTrack for BNL only, use fort.54 for beambeamdist.dat for
-!        BOINC and CPSS. Use fort.52, fort.53, fort.51 and fort.97
-!        for beambeam-output.dat, beambeam-lostID.dat, SixTwiss.dat,
-!        and checkdist.dat for CPSS but ONLY fort.10 for BOINC.
-!    McIntosh 31st August, 2008
-!
-! Revision 1.20  2008/08/23 12:03:30  mcintosh
-!   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
-!     -- Added SixTwiss output to all tracking routines if bnldata
-!     -- Use napx to write checkdist if bnlelens
-!     -- Do NOT write a second C/R file fort.96
-!   McIntosh 23rd August, 2008
-!
-! Revision 1.19  2008/08/23 08:50:26  mcintosh
-!   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
-!     -- Fixed a problem with binary output files when
-!        using the bnlelens option for normal DA runs.
-!     -- Removed redundant plotting initialisation.
-!     -- Forced -cernlib for +windows in make_six.
-!     -- Added !GRDRHIC/!GRD-042008 comments.
-!   McIntosh 23rd August, 2008
-!
-! Revision 1.18  2008/08/22 09:54:43  mcintosh
-!
-!   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
-!     -- Fixed a problem with the collimat option (my fault)
-!        Need a regression test for this.
-!     -- Added C/R for synuthck, 6d thick lens and variable IL.
-!        Modified crpoint,crcheck, and crstart and the size of the C/R file.
-!     -- If bnlelens, use napx rather napx00/npart for number of pairs
-!     -- Most important is that bnlens option is now an addition to the
-!        normal tracking so that the SAME executable can be used for
-!        normal DA and bnlelens LHC=9 runs (important for BOINC/CPSS)
-!        but LHC=9 does NOT write binary files nor post-process.
-!   McIntosh 20th August, 2008
-!
-! Revision 1.17  2008/08/19 08:48:40  mcintosh
-!   SixTrack Version: 4.1.7 CVS Version 1.17 McIntosh
-!     -- make_six has a new 'debug' option to aid SixTrack development.
-!     -- If debug is selected, a new flag to ASTUTE SixTrack makes
-!        available Unit 99 for messages and dumps and a set of dump
-!        routines (of which only a full dump in this version).
-!     -- A  couple of write(* in SUBRE are now handled by C/R.
-!     -- A couple of bugs with C/R and IDFOR have been fixed.
-!     -- All subsequent changes noted here are for the 'bnlelens'
-!        and other SixTrack functionality should be unchanged
-!        (except that fort.95 and 96 are used for Checkpoint/Restart,
-!        C/R, instead of 12 and 13.)
-!     -- The bnlelens option has been implemented in comdecks bnlin and
-!        bnlout principally so it works for all six tracking routines.
-!        This has been tested only for THCK6D so far.
-!        There are now no changes to trauthck and trauthin.
-!     -- The C/R option for 6d and thick lens is disabled unless
-!        debug is selected.
-!     -- C/R now handles additional variables and correctly positions
-!        the beambeam-output.dat and beambeam-lostID.dat files.
-!     -- The binary files 90-59 are not used; no post-processing is
-!        performed. All OPEN/CLOSE have been moved to the standard comdecks
-!        and the variables moved to COMMON initialised by COMNUL.
-!     -- The READDIS routine for bnlelens is renamed to BNLRDIS to
-!        avoid confusion with collimation and it uses UNIT 54 to
-!        read beambeamdist.dat which may now have only one sample.
-!     -- The n_cut and n_nocut variables are set to zero before the j loop.
-!   McIntosh 18th August, 2008
-!
-! Revision 1.16  2008/08/05 19:06:46  mcintosh
-!   SixTrack Version 4.1.6
-!      -- and of course I forgot the SixTrack Version....
-!      -- Version and moddate set to 4.1.6, I am
-!         skipping 4.1.4 and 4.1.5 and then CVS and SixTrack versions
-!         should correspond. Otherwise we get confused. Eric.
-!
-! Revision 1.15  2008/08/05 18:52:27  mcintosh
-!
-!   SixTrack Version: 4.1.4
-!      -- Second interim update for BNL.
-!      -- synuthck replaced computed goto by IF's due to
-!         particularly nasty Lahey lf95 bug.
-!      -- Patched make_six mkwindows to sort out logsix.c and .h
-!         until we can sort out CVS
-!      -- Under +if bnlelens set ch1 to "" in subroutine intepr
-!      -- Under +if bnlelens replaced  rvv(j)= by rvv(i)= in trauthck
-!      -- Under +if bnlelens added k=0 before 1st linopt call to writelin
-!
-! Revision 1.14  2008/07/30 14:33:22  mcintosh
-! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
-! Eric McIntosh.
-! It is an interim update to facilitate development with BNL.
-! make_six creates a directory and executable name based on options.
-! make_six now supports [+-]bignblz which sets nblz to 200,000!!! if selected.
-! The Makefile creates a map and uses -g in FC for NAG.
-! crlibm is cleaned up for Linux/Windows and logsix.dat and logsix.h are used
-! instead of log.c and log.h and inlining is handled with an IFDEF.
-! In bnlelens Unit 97 (not 98) is used for checkdist.dat.
-! A problem with open(10... and open(99 is fixed for NAG.
-! sigsecut2 comment is cleaned up.
-!
-! Revision 1.13  2008/07/11 17:10:36  rtomas
-! Fixed "2d0*pi" bug in crab cavity kick
-!
-! Revision 1.12  2008/07/11 16:05:43  mcintosh
-! Version 4.1.1
-! New make_six with new flags bpm and bnlelens and the ast's.
-! sixtrack.s: moved GRDRHIC comments inside +if bnlelens
-! Changed some writelin statements to be consistent; under investigation.
-! Fixed FORMAT bug in bnlelens.
-!
-! Revision 1.11  2008/07/11 10:33:26  mcintosh
-! Version 4.1.0 the first commited version with Guillaume's preliminary changes
-! for "bnlelens" using the deck "rhicelens" required for RHIC BEAM-BEAM studies.
-! make_six now determines the version and modification date from sixtrack.s, and
-! displays them, sets the BOINC variable correctly for the Makefile. The program
-! maincr to call worker is added to myboinc.f.
-!
-! Revision 1.10  2008/07/10 10:30:54  frs
-! bpmdata are only written to files units > 100 if bpm flag in track.ast.
-!
-! Revision 1.9  2008/06/24 14:12:42  mcintosh
-! Version 4.0.10; the version and last modification date
-! for both SixTrack and SixTrack_da are now specified in
-! a common deck at the very beginning of sixtrack.s.
-! Version is an 8 character string [v]v.[v]v.[v]v and
-! moddate a 10 character string dd.mm.yyyy. The version is
-! stored in floating-point in sumda(52) for BOINC in particular.
-! In this way fort.10 identifies the version which produced it.
-! In addition make_six will soon be changed to use "version".
-!
-! Small format changes to a couple of comments and the SIXDA
-! date/time corrected.
-!
-! Revision 1.8  2008/06/19 13:15:24  frs
-! Version 4009 with sumda(52) set to 4009.0
-!
-! Revision 1.7  2008/01/15 17:47:51  frs
-! replace CRAB /c1e3 by *c1m3
-!
-! Revision 1.4  2007/07/05 18:58:44  frs
-! increase number of elements nblz=20000
-!
-! Revision 1.3  2007/05/06 21:24:28  frs
-! 1) Program stops if a Single Element Name is longer than 16 characters
-! (error # 104).
-! 2) MMUL increased from 11 to 20 for the .not.collimat version (request by
-! Ralph Assmann).
-! 3) Program stops if in a "MULT" block the multipole order is larger than
-! the maximum allowed order MMUL (error # 105).
-!
-! Revision 1.2  2006/09/26 15:51:04  robertde
-!
-!
-! Latest version for the collimation studies to include the Beam 2 lattice;
-! clean-up of the unit number for output files.
-!
-! Revision 1.1.1.1  1996/04/01 15:02:13  mclareni
-! Mathlib gen
-!
-!
       subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
 
 !     RES = Estimated Integral of F from A to B,
@@ -65270,277 +65578,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       end
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-!
-! $Id: sixtrack.s,v 1.38 2010-04-13 00:15:50 frs Exp $
-!
-! $Log: not supported by cvs2svn $
-! Revision 1.37  2010/03/08 11:06:32  mcintosh
-!   SixTrack Version: 4.2.8 eric
-!     -- Commented out the boinc graphic init, finish and progress calls
-!     -- Commented out the routines in myboinc.f
-!   McIntosh 7th March, 2010
-!
-! Revision 1.36  2010/02/12 14:48:00  mcintosh
-!   SixTrack Version: 4.2.7 eric
-!     -- Just fixed NOT to close 51, 52,53 if bnlelens and BOINC.
-!   McIntosh February, 2010
-!
-! Revision 1.35  2010/01/15 14:30:43  mcintosh
-!
-!   SixTrack Version: 4.2.6 Revision  1.34 eric and frs
-!     -- Added Closed Orbit to sumda(53:58) for fort.10.
-!     -- Changed a couple of constants in "Wire" to use c1m7.
-!   Frank Schmidt/McIntosh 15th January, 2010
-!
-! Revision 1.34  2009/10/06 09:00:56  frs
-! Version 4205
-!
-! Revision 1.33  2009/10/05 07:42:10  frs
-! Number of BB encouters up to 350
-!
-! Revision 1.32  2009/08/27 13:04:10  adriana
-!
-!
-! Correct wrong 'if collimat' to '+if collimat' statement - adriana
-!
-! Revision 1.31  2009/08/27 12:29:11  adriana
-!
-!
-!    SixTrack Version: 4.2.4 Revision 1.31 adriana
-!      C. Bracco / A. Rossi / Th. Weiler
-!      Changes in the collimation part:
-!      -- Added and updated alignment errors (tilt, offset,
-!         gap-size): all values of alignment errors can be kept
-!         identical for different runs, by applying the same seed.
-!         Therefore the random function myran_gauss and rndm5 have
-!         been added and the inputs fort.3 adapted.
-!      -- Alignment errors are also applied for deformed jaws.
-!      -- Added to the pencil beam section the possibility to
-!         generate different particle distributions (Gaussian and
-!         rectangular in x and y) on the selected collimator.
-!      -- Changes to the do_select option to get the multi-turn
-!         halo information for all particle packets.
-!      C. Bracco / A. Rossi / Th. Weiler
-!
-!    make_six map option corrected (E.McIntosh)
-!
-! Revision 1.30  2009/07/29 13:09:44  frs
-! Fix the missing phase advance in the solenoid. This thin element is special
-! in the sense that the it creates a direct phase advance that has to be
-! calculated at every element occurrence.
-!
-! Revision 1.29  2009/07/24 15:18:12  frs
-! First attempt at thin solenoid (work done by Yipeng Sun)
-! The tune calculation in the traditional SixTrack part seems slightly off.
-! DA part seems okay and in agreement with MAD-X.
-!
-! Revision 1.27  2009/05/14 08:40:22  frs
-! Adding dipedge element which allows to track all relevent elements
-! except the solenoids
-!
-! Revision 1.26  2008/11/11 08:54:00  mcintosh
-!
-!   SixTrack Version: 4.1.16 CVS Version 1.25 McIntosh
-!     -- Small fix to phase trombone from Guillaume and Yun
-!    McIntosh 11th November, 2008
-!
-! Revision 1.25  2008/10/21 15:49:21  mcintosh
-!
-!   SixTrack Version: 4.1.15 CVS Version 1.25 McIntosh
-!     -- Write CRPOINT messages 5 times maximum
-!     -- Set n_cut and n_nocut to 0 after printing
-!    McIntosh 21st October, 2008
-!
-! Revision 1.24  2008/10/03 15:34:32  mcintosh
-!   SixTrack Version: 4.1.14 CVS Version 1.24 McIntosh
-!     -- Now endfile SixTwiss, checkdist, and beambeam-output
-!        and fort.10 fort.97 fort.51.
-!     -- Debug code for SIGSEV on BNL in crstart.
-!     -- Implemented additional debug dump routines (needs testing)
-!     -- Remove n_cut=0 and n_nocut=0 (wrongly added by me)
-!     -- Re-instated the second C/R file fort.96 and added
-!        code to check extended checkpoint in crcheck.
-!     -- Two versions of writelin (extra 7th argument for collimat and bnlelens)
-!     -- Moved REAL time2 to COMMON ttime and read95/read96 to COMMON as well.
-!    McIntosh 3rd October, 2008
-!
-! Revision 1.23  2008/09/08 15:37:55  mcintosh
-!   SixTrack Version: 4.1.13 CVS Version 1.23 McIntosh
-!     -- If bnlelens AND lhc.eq.9 AND NOT boinc
-!        write one line to fort.10 containing the sixtit(1:60)
-!        if boinc AND NOT restart write and add one to bnlrecs
-!        Cleaned up all read/write[]( to read/write(
-!        Fixed all calls to rndm4 in +collimat to be to dble(rndm4())
-!    McIntosh 8th September, 2008
-!
-! Revision 1.22  2008/09/02 13:48:08  mcintosh
-!   SixTrack Version: 4.1.12 CVS Version 1.22 McIntosh
-!     -- Fixed the SixTwiss output to write one line F20.13
-!        and most importantly changed the bnlrec count for C/R
-!    McIntosh 2nd September, 2008
-!
-! Revision 1.21  2008/08/31 21:51:08  mcintosh
-!   SixTrack Version: 4.1.11 CVS Version 1.21 McIntosh
-!     -- make_six copies only necessary .ast and .f files
-!        Sorted .f files for crlibm for windows and makes a
-!        link from the new executable to SixTrack
-!     -- SixTrack for BNL only, use fort.54 for beambeamdist.dat for
-!        BOINC and CPSS. Use fort.52, fort.53, fort.51 and fort.97
-!        for beambeam-output.dat, beambeam-lostID.dat, SixTwiss.dat,
-!        and checkdist.dat for CPSS but ONLY fort.10 for BOINC.
-!    McIntosh 31st August, 2008
-!
-! Revision 1.20  2008/08/23 12:03:30  mcintosh
-!   SixTrack Version: 4.1.10 CVS Version 1.20 McIntosh
-!     -- Added SixTwiss output to all tracking routines if bnldata
-!     -- Use napx to write checkdist if bnlelens
-!     -- Do NOT write a second C/R file fort.96
-!   McIntosh 23rd August, 2008
-!
-! Revision 1.19  2008/08/23 08:50:26  mcintosh
-!   SixTrack Version: 4.1.9 CVS Version 1.19 McIntosh
-!     -- Fixed a problem with binary output files when
-!        using the bnlelens option for normal DA runs.
-!     -- Removed redundant plotting initialisation.
-!     -- Forced -cernlib for +windows in make_six.
-!     -- Added !GRDRHIC/!GRD-042008 comments.
-!   McIntosh 23rd August, 2008
-!
-! Revision 1.18  2008/08/22 09:54:43  mcintosh
-!
-!   SixTrack Version: 4.1.8 CVS Version 1.18 McIntosh
-!     -- Fixed a problem with the collimat option (my fault)
-!        Need a regression test for this.
-!     -- Added C/R for synuthck, 6d thick lens and variable IL.
-!        Modified crpoint,crcheck, and crstart and the size of the C/R file.
-!     -- If bnlelens, use napx rather napx00/npart for number of pairs
-!     -- Most important is that bnlens option is now an addition to the
-!        normal tracking so that the SAME executable can be used for
-!        normal DA and bnlelens LHC=9 runs (important for BOINC/CPSS)
-!        but LHC=9 does NOT write binary files nor post-process.
-!   McIntosh 20th August, 2008
-!
-! Revision 1.17  2008/08/19 08:48:40  mcintosh
-!   SixTrack Version: 4.1.7 CVS Version 1.17 McIntosh
-!     -- make_six has a new 'debug' option to aid SixTrack development.
-!     -- If debug is selected, a new flag to ASTUTE SixTrack makes
-!        available Unit 99 for messages and dumps and a set of dump
-!        routines (of which only a full dump in this version).
-!     -- A  couple of write(* in SUBRE are now handled by C/R.
-!     -- A couple of bugs with C/R and IDFOR have been fixed.
-!     -- All subsequent changes noted here are for the 'bnlelens'
-!        and other SixTrack functionality should be unchanged
-!        (except that fort.95 and 96 are used for Checkpoint/Restart,
-!        C/R, instead of 12 and 13.)
-!     -- The bnlelens option has been implemented in comdecks bnlin and
-!        bnlout principally so it works for all six tracking routines.
-!        This has been tested only for THCK6D so far.
-!        There are now no changes to trauthck and trauthin.
-!     -- The C/R option for 6d and thick lens is disabled unless
-!        debug is selected.
-!     -- C/R now handles additional variables and correctly positions
-!        the beambeam-output.dat and beambeam-lostID.dat files.
-!     -- The binary files 90-59 are not used; no post-processing is
-!        performed. All OPEN/CLOSE have been moved to the standard comdecks
-!        and the variables moved to COMMON initialised by COMNUL.
-!     -- The READDIS routine for bnlelens is renamed to BNLRDIS to
-!        avoid confusion with collimation and it uses UNIT 54 to
-!        read beambeamdist.dat which may now have only one sample.
-!     -- The n_cut and n_nocut variables are set to zero before the j loop.
-!   McIntosh 18th August, 2008
-!
-! Revision 1.16  2008/08/05 19:06:46  mcintosh
-!   SixTrack Version 4.1.6
-!      -- and of course I forgot the SixTrack Version....
-!      -- Version and moddate set to 4.1.6, I am
-!         skipping 4.1.4 and 4.1.5 and then CVS and SixTrack versions
-!         should correspond. Otherwise we get confused. Eric.
-!
-! Revision 1.15  2008/08/05 18:52:27  mcintosh
-!
-!   SixTrack Version: 4.1.4
-!      -- Second interim update for BNL.
-!      -- synuthck replaced computed goto by IF's due to
-!         particularly nasty Lahey lf95 bug.
-!      -- Patched make_six mkwindows to sort out logsix.c and .h
-!         until we can sort out CVS
-!      -- Under +if bnlelens set ch1 to "" in subroutine intepr
-!      -- Under +if bnlelens replaced  rvv(j)= by rvv(i)= in trauthck
-!      -- Under +if bnlelens added k=0 before 1st linopt call to writelin
-!
-! Revision 1.14  2008/07/30 14:33:22  mcintosh
-! This update is marked as SixTrack Version 4.1.3 30th July, 2008.
-! Eric McIntosh.
-! It is an interim update to facilitate development with BNL.
-! make_six creates a directory and executable name based on options.
-! make_six now supports [+-]bignblz which sets nblz to 200,000!!! if selected.
-! The Makefile creates a map and uses -g in FC for NAG.
-! crlibm is cleaned up for Linux/Windows and logsix.dat and logsix.h are used
-! instead of log.c and log.h and inlining is handled with an IFDEF.
-! In bnlelens Unit 97 (not 98) is used for checkdist.dat.
-! A problem with open(10... and open(99 is fixed for NAG.
-! sigsecut2 comment is cleaned up.
-!
-! Revision 1.13  2008/07/11 17:10:36  rtomas
-! Fixed "2d0*pi" bug in crab cavity kick
-!
-! Revision 1.12  2008/07/11 16:05:43  mcintosh
-! Version 4.1.1
-! New make_six with new flags bpm and bnlelens and the ast's.
-! sixtrack.s: moved GRDRHIC comments inside +if bnlelens
-! Changed some writelin statements to be consistent; under investigation.
-! Fixed FORMAT bug in bnlelens.
-!
-! Revision 1.11  2008/07/11 10:33:26  mcintosh
-! Version 4.1.0 the first commited version with Guillaume's preliminary changes
-! for "bnlelens" using the deck "rhicelens" required for RHIC BEAM-BEAM studies.
-! make_six now determines the version and modification date from sixtrack.s, and
-! displays them, sets the BOINC variable correctly for the Makefile. The program
-! maincr to call worker is added to myboinc.f.
-!
-! Revision 1.10  2008/07/10 10:30:54  frs
-! bpmdata are only written to files units > 100 if bpm flag in track.ast.
-!
-! Revision 1.9  2008/06/24 14:12:42  mcintosh
-! Version 4.0.10; the version and last modification date
-! for both SixTrack and SixTrack_da are now specified in
-! a common deck at the very beginning of sixtrack.s.
-! Version is an 8 character string [v]v.[v]v.[v]v and
-! moddate a 10 character string dd.mm.yyyy. The version is
-! stored in floating-point in sumda(52) for BOINC in particular.
-! In this way fort.10 identifies the version which produced it.
-! In addition make_six will soon be changed to use "version".
-!
-! Small format changes to a couple of comments and the SIXDA
-! date/time corrected.
-!
-! Revision 1.8  2008/06/19 13:15:24  frs
-! Version 4009 with sumda(52) set to 4009.0
-!
-! Revision 1.7  2008/01/15 17:47:51  frs
-! replace CRAB /c1e3 by *c1m3
-!
-! Revision 1.4  2007/07/05 18:58:44  frs
-! increase number of elements nblz=20000
-!
-! Revision 1.3  2007/05/06 21:24:28  frs
-! 1) Program stops if a Single Element Name is longer than 16 characters
-! (error # 104).
-! 2) MMUL increased from 11 to 20 for the .not.collimat version (request by
-! Ralph Assmann).
-! 3) Program stops if in a "MULT" block the multipole order is larger than
-! the maximum allowed order MMUL (error # 105).
-!
-! Revision 1.2  2006/09/26 15:51:04  robertde
-!
-! Latest version for the collimation studies to include the Beam 2 lattice;
-! clean-up of the unit number for output files.
-!
-! Revision 1.1.1.1  1996/04/01 15:02:14  mclareni
-! Mathlib gen
-!
-!
       subroutine rgs56p(f,a,b,res,err)
       implicit none
 +if cr
@@ -65661,12 +65698,20 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ei
 
       logical flag
+      DATA flag/.TRUE./
       real rndm4
       double precision x, u1, u2, twopi, r,cut
 +ca save
-
++if automatc
+      write(*,*) "ERROR in ran_gauss"
+      write(*,*) "Please review use of save block in this algorithm!"
+      write(*,*) "u1 and u2 should always be saved, and flag "//
+     &     "is automatically so due to DATA statement"
+      exit(1)
++ei
+      
 +if crlibm
-            twopi=8d0*atan_rn(1d0)
+            twopi=8d0*atan_rn(1d0) !Why not 2*pi, where pi is in block "common"?
 +ei
 +if .not.crlibm
             twopi=8d0*atan(1d0)
