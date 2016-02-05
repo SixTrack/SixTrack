@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.32'/
-      data moddate /'22.01.2016'/
+      data version /'4.5.33'/
+      data moddate /'05.02.2016'/
 +cd license
 !!SixTrack
 !!
@@ -29605,7 +29605,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                elseif(bez(myix)(1:4).eq.'TCLP' .or.                     &
      &                 bez(myix)(1:4).eq.'tclp' .or.                    &
      &                 bez(myix)(1:4).eq.'TCL.' .or.                    &
-     &                 bez(myix)(1:4).eq.'tcl.') then
+     &                 bez(myix)(1:4).eq.'tcl.'.or.                     &                                                                                                  
+     &                 bez(myix)(1:4).eq.'TCLX' .or.                    &                                                                                                                   
+     &                 bez(myix)(1:4).eq.'tclx') then
                   nsig = nsig_tclp
                elseif(bez(myix)(1:4).eq.'TCLI' .or.                     &
      &                 bez(myix)(1:4).eq.'tcli') then
@@ -29615,7 +29617,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   nsig = nsig_tcxrp
 !     TW 04/2008 ---- start adding TCRYO
                elseif(bez(myix)(1:5).eq.'TCRYO' .or.                    &
-     &                 bez(myix)(1:5).eq.'tcryo') then
+     &                 bez(myix)(1:5).eq.'tcryo'.or.                    &
+     &                 bez(myix)(1:5).eq.'TCLD.' .or.                   &
+     &                 bez(myix)(1:5).eq.'tcld.') then
                   nsig = nsig_tcryo
 !     TW 04/2008 ---- end adding TCRYO
                elseif(bez(myix)(1:3).eq.'COL' .or.                      &
@@ -29642,6 +29646,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                      nsig = nsig_tctv1
                   endif
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+               else
+                  write(*,*) "WARNING: Problem detected while "//
+     &                 "writing twisslike.out' and " //
+     &                 "'sigmasettings.out': Collimator name '" //
+     &                 bez(myix) // "' was not recognized!"
+                  write(*,*) " ->Setting nsig=1000.0."
+                  nsig = 1000.0
                endif
 !     FEBRUAR2007
                do i = 1, db_ncoll
@@ -30172,7 +30183,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             elseif(bez(myix)(1:4).eq.'TCLP' .or.                        &
      &             bez(myix)(1:4).eq.'tclp' .or.                        &
      &             bez(myix)(1:4).eq.'TCL.' .or.                        &
-     &             bez(myix)(1:4).eq.'tcl.') then
+     &             bez(myix)(1:4).eq.'tcl.'.or.                         &
+     &             bez(myix)(1:4).eq.'TCLX' .or.                        &
+     &             bez(myix)(1:4).eq.'tclx') then
               nsig = nsig_tclp
             elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
      &             bez(myix)(1:4).eq.'tcli') then
@@ -30181,7 +30194,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             bez(myix)(1:4).eq.'tcxr') then
               nsig = nsig_tcxrp
             elseif(bez(myix)(1:5).eq.'TCRYO' .or.                       &
-     &             bez(myix)(1:5).eq.'tcryo') then
+     &             bez(myix)(1:5).eq.'tcryo'.or.
+     &             bez(myix)(1:5).eq.'TCLD.' .or.                       &
+     &             bez(myix)(1:5).eq.'tcld.') then
               nsig = nsig_tcryo
             elseif(bez(myix)(1:3).eq.'COL' .or.                         &
      &             bez(myix)(1:3).eq.'col') then
@@ -30206,6 +30221,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &               bez(myix)(1:5).eq.'colh2') then
                 nsig = nsig_tctv1
               endif
+           else
+              if(firstrun.and.iturn.eq.1) then
+                 write(*,*) "WARNING: When setting opening for the "//
+     &                " collimator named '" // bez(myix) //
+     &                "' from fort.3, the name was not recognized."
+                 write(*,*) " -> Setting nsig=1000.0."
+              endif
+              nsig=1000.0
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
             endif
 !APRIL2005
