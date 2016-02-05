@@ -29646,6 +29646,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                      nsig = nsig_tctv1
                   endif
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+               else
+                  write(*,*) "WARNING: Problem detected while "//
+     &                 "writing twisslike.out' and " //
+     &                 "'sigmasettings.out': Collimator name '" //
+     &                 bez(myix) // "' was not recognized!"
+                  write(*,*) " ->Setting nsig=1000.0."
+                  nsig = 1000.0
                endif
 !     FEBRUAR2007
                do i = 1, db_ncoll
@@ -30214,6 +30221,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &               bez(myix)(1:5).eq.'colh2') then
                 nsig = nsig_tctv1
               endif
+           else
+              if(firstrun.and.iturn.eq.1) then
+                 write(*,*) "WARNING: When setting opening for the "//
+     &                " collimator named '" // bez(myix) //
+     &                "' from fort.3, the name was not recognized."
+                 write(*,*) " -> Setting nsig=1000.0."
+              endif
+              nsig=1000.0
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
             endif
 !APRIL2005
