@@ -1021,7 +1021,7 @@
 +cd interac
       integer nrmat,nmat,mat,irmat,mcurr
 !     parameter(nmat=12,nrmat=5)
-      parameter(nmat=12,nrmat=7)
+      parameter(nmat=15,nrmat=12)
       double precision xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
@@ -54801,11 +54801,21 @@ C Should get me a NaN
          mat = 6
       elseif (c_material.eq.'C2') then
          mat = 7
+      elseif (c_material.eq.'MoGR') then
+         mat = 8
+      elseif (c_material.eq.'CuCD') then
+         mat = 9
+      elseif (c_material.eq.'Mo') then
+         mat = 10
+      elseif (c_material.eq.'Glid') then
+         mat = 11
+      elseif (c_material.eq.'Iner') then
+         mat = 12
 !02/2008 TW added vacuum and black absorber (was missing) 
       elseif (c_material.eq.'VA') then
-         mat = 11
+         mat = 14
       elseif (c_material.eq.'BL') then
-         mat = 12
+         mat = 15
       else
 +if cr
          write(lout,*) 'ERR>  Material not found. STOP', c_material
@@ -55619,6 +55629,16 @@ C Should get me a NaN
          mat = 6
       elseif (c_material.eq.'C2') then
          mat = 7
+      elseif (c_material.eq.'MoGR') then
+         mat = 8
+      elseif (c_material.eq.'CuCD') then
+         mat = 9
+      elseif (c_material.eq.'Mo') then
+         mat = 10
+      elseif (c_material.eq.'Glid') then
+         mat = 11
+      elseif (c_material.eq.'Iner') then
+         mat = 12
       else
 +if cr
          write(lout,*) 'ERR>  Material not found. STOP', c_material
@@ -57690,11 +57710,12 @@ c$$$     &           myalphay * cos(phiy))
 !
 !      data irmat/5/
 !
-      data irmat/7/
+      data irmat/12/
 !
 ! Reference data at pRef=450Gev
 !      data (mname(i),i=1,nrmat)/ 'Be' , 'Al' , 'Cu' , 'W'  , 'Pb' /
-      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2' /
+      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2',      &
+     & 'MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
 !
       data mname(nmat-1), mname(nmat)/'vacu','blac'/
 !GRD
@@ -57702,37 +57723,52 @@ c$$$     &           myalphay * cos(phiy))
 !GRD
 !      data (Anuc(i),i=1,nrmat)/ 9.01, 26.98, 63.55, 183.85, 207.19/
       data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
-      data (anuc(i),i=6,nrmat)/12.01d0,12.01d0/
+      data (anuc(i),i=6,7)/12.01d0,12.01d0/
+      data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
 !
 !GRD      data (Z(i),i=1,nrmat)/       4,    13,    29,     74,     82/
       data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
-      data (zatom(i),i=6,nrmat)/   6d0,      6d0/
+      data (zatom(i),i=6,7)/ 6d0, 6d0/
+      data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
+!
 !GRD      data (Rho(i),i=1,nrmat)/ 1.848,  2.70,  8.96,   19.3,  11.35/
       data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-      data (rho(i),i=6,nrmat)/ 1.67d0, 4.52d0/
+      data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
+      data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
+!
 !GRD      data (RadL(i),i=1,nrmat)/ 0.353, 0.089, 0.0143, 0.0035, 0.0056/
       data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-      data (radl(i),i=6,nrmat)/ 0.2557d0, 0.094d0/
+      data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
+      data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, &
+     & 0.00385d0/
       data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
+!
 !GRD      data (EMR(i),i=1,nrmat)/  0.22, 0.302, 0.366,    0.0,  0.542/
 !MAY06-GRD value for Tungsten (W) not stated
 !      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.0d0, 0.542d0/
       data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
 !MAY06-GRD end of changes
-      data (emr(i),i=6,nrmat)/  0.25d0, 0.25d0/
+      data (emr(i),i=6,7)/  0.25d0, 0.25d0/
+      data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0,       &
+     & 0.578d0/
+!
 !GRD      data tLcut,(Hcut(i),i=1,nrmat)/0.9982e-3,0.02,0.02,3*0.01/
       data tlcut / 0.0009982d0/
       data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
-      data (hcut(i),i=6,nrmat)/0.02d0, 0.02d0/
+      data (hcut(i),i=6,7)/0.02d0, 0.02d0/
+      data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
+!
 !      data (dpodx(i),i=1,nrmat)/ nrmat*0.d0 /
 !GRD      data (dpodx(i),i=1,nrmat)/ .55, .81, 2.69, 5.79, 3.4 /
       data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
-      data (dpodx(i),i=6,nrmat)/ .75d0, 1.5d0 /
+      data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
 !October 2013
-!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
+!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementa
       data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-      data (exenergy(i),i=6,nrmat)/ 78e-9, 78.0e-9 /
-
+      data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
+      data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
+     & 682.2e-9/
+ 
 !
 ! All cross-sections are in barns,nuclear values from RPP at 20geV
 ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
@@ -57741,7 +57777,7 @@ c$$$     &           myalphay * cos(phiy))
 ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
 ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
 !
-
+ 
 ! Claudia 2013: updated cross section values. Unit: Barn. Old:
 !      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0, 0.0035d-2/
 !      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0, 0.034d-2/
@@ -57754,11 +57790,15 @@ c$$$     &           myalphay * cos(phiy))
       data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
       data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
       data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
-      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0 , 0.768d-2/
-      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0 , 0.907d-2/
+      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
+      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
       data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
       data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
-
+      data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
+      data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
+      data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
+      data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
+      data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
 !
 ! pp cross-sections and parameters for energy dependence
       data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
@@ -57769,7 +57809,9 @@ c$$$     &           myalphay * cos(phiy))
 !      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,0.0d0,455.3d0/
       data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
 !MAY06-GRD end of changes
-      data (bnref(i),i=6,nrmat)/70.d0, 70.d0/
+      data (bnref(i),i=6,7)/70.d0, 70.d0/
+      data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0,      &
+     & 392.1d0/
 !GRD LAST 2 ONES INTERPOLATED
 !
 ! Cprob to choose an interaction in iChoix
@@ -58508,7 +58550,7 @@ c$$$     &           myalphay * cos(phiy))
       function get_dpodx(p,mat_i)          !Claudia
       implicit none
       integer nrmat,nmat,mat,irmat
-      parameter(nmat=12,nrmat=7)
+      parameter(nmat=15,nrmat=12)
       common/materia/mat
       double precision anuc,zatom,rho,emr,exenergy
       double precision PE,me,mp,K,gamma_p
@@ -58558,7 +58600,7 @@ C.**************************************************************************
 
       IMPLICIT none
       integer IS,irmat,nmat
-      parameter(nmat=12)
+      parameter(nmat=15)
       double precision PC,DZ,EnLo,exenergy,exEn
       double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
       double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
