@@ -812,7 +812,7 @@
      &     alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 !
-      character*2 c_material     !material
+      character*4 c_material     !material
 !
       common /cut/ cut_input
       common /mu/ mux, muy
@@ -880,7 +880,7 @@
 !      integer   mclock_liar
 !
       character*16 db_name1(max_ncoll),db_name2(max_ncoll)
-      character*2 db_material(max_ncoll)
+      character*4 db_material(max_ncoll)
 !APRIL2005
       double precision db_nsig(max_ncoll),db_length(max_ncoll),         &
      &db_offset(max_ncoll),db_rotation(max_ncoll),                      &
@@ -956,7 +956,7 @@
       double precision c_aperture  !aperture in m
       double precision c_offset    !offset in m
       double precision c_tilt(2)   !tilt in radian
-      character*2      c_material  !material
+      character*4      c_material  !material
 !
 !
 !
