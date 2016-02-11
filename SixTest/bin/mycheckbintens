@@ -1,0 +1,4 @@
+#!/bin/sh
+# Read and compare two fort.110s to stdout
+# old in fort.20 and new in fort.21
+$BIN/checkf110

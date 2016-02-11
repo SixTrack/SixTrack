@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Should be in run in the directory $SVN
+new=$SH0
+for fnordir in `ls`
+do
+  if test -d $fnordir
+  then
+    echo $fnordir | grep 'SixTrack_' 
+    if test $? -ne 0
+    then
+      echo ""
+      echo "====================="
+      echo "$fnordir (directory)"
+      echo "====================="
+      cd $fnordir
+      for fn in `ls`
+      do
+        echo "$fn"
+        echo "====================="
+        diff $fn $new/$fnordir/$fn
+      done
+      cd ..
+    fi
+  else
+    echo ""
+    echo "====================="
+    echo "$fnordir"
+    echo "====================="
+    diff $fnordir $new/$fnordir
+  fi
+done
