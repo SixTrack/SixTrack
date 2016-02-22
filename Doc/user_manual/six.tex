@@ -1462,6 +1462,56 @@ space~\cite{ripbeam}.
 \item [$\Sigma_{i,j}$] Second order momenta matrix for the strong beam in units of mm and mrad. For example $\Sigma_{xxp}$ in [mm\ mrad]
 \end{description}
 
+\subparagraph{Sign Convention} Some clarifications regarding the sign convention used
+for the separation and crossing angle variables.
+\begin{itemize}
+ \item Separations:
+ \begin{enumerate}
+  \item The separation is added to the transverse coordinates of each particles just before the beam-beam subroutines (see Fig.~\ref{fig:BB_sep}).
+  \begin{eqnarray*}
+   \tilde x_i=x_i+sep_x-CO_x \\
+   \tilde y_i=y_i+sep_y-CO_y 
+  \end{eqnarray*}
+  \item Lorentz boost applied to the updated coordinates.
+  \item The separation used for the actual beam-beam kick (sep$_{x,y,kick}$) is the difference between the centroid of the strong slice (X$^{\dag}$,Y$^{\dag}$) and the each particle (x$_i$,y$_i$).
+  \item Antiboost to return to accelerator frame.
+  \item The separation is removed and the closed orbit is added back. Tracking continues.
+  \begin{eqnarray*}
+   \tilde x_i=x_i-sep_x+CO_x \\
+   \tilde y_i=y_i-sep_y+CO_y
+   \end{eqnarray*}
+ \end{enumerate}
+ \begin{figure}[h]
+ \begin{center}
+ \includegraphics[width=0.8\textwidth]{BB_sep.eps}\label{fig:BB_sep}
+ \caption{Coordinate manipulation taking into consideration the beam-beam lens separation as stated in point 1 of the separation sign convention.}
+ \end{center}
+\end{figure}
+ \item Crossing angles:
+ \begin{enumerate}
+  \item The closed orbit is removed just before the beam-beam subroutines.
+  \begin{eqnarray*}
+   \tilde x'_i=x'_i-CO_{x'} \\
+   \tilde y'_i=y'_i-CO_{y'}
+  \end{eqnarray*}
+  \item Lorentz boost applied to the updated coordinates.
+  \item Apply Synchro-Betatron Mapping.
+  \item Antiboost to return to accelerator frame.
+  \item The closed orbit is added back. Tracking continues.
+  \begin{eqnarray*}
+   \tilde x'_i=x'_i+CO_{x'} \\
+   \tilde y'_i=y'_i+CO_{y'}
+  \end{eqnarray*}
+ \end{enumerate}
+ \begin{figure}[h]
+ \begin{center}
+ \includegraphics[width=0.8\textwidth]{BB_xsing.eps}\label{fig:BB_xsing}
+ \caption{Coordinate manipulation to move from the accelerator frame to a head-on collision frame (Figures left and center). A positve crossing angle is considered as shown in the left figure.
+ Then Lorentz boost and Synchro-Betatron Mapping are applied (right).}
+ \end{center}
+\end{figure}
+\end{itemize}
+
 \subparagraph{Remark} These beam--beam elements have beam--beam have
 to appear in the single element list (~\ref{NonEle}) (type 20)
 (see~\ref{BBS}).
