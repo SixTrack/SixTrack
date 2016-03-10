@@ -47789,7 +47789,8 @@ c$$$            endif
 +if collimat.or.bnlelens
         ! Marker, beam-beam, phase-trombone, or crab cavity (incl. multipole)
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
-     &     .or. abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) then
+     &     .or. abs(kzz).eq.23.or.abs(kzz).eq.26.or.
+     &          abs(kzz).eq.27.or.abs(kzz).eq.28) then
           
           nr=nr+1
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -47803,7 +47804,8 @@ c$$$            endif
         ! Marker, beam-beam or phase-trombone -> next element
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
         ! RF CC Multipoles -> next element
-        if (abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
+        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.
+     &      abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
 +ei
       
         ! Update the matrix etc. for supported blocks
