@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.32'/
-      data moddate /'22.01.2016'/
+      data version /'4.5.33'/
+      data moddate /'05.02.2016'/
 +cd license
 !!SixTrack
 !!
@@ -29759,8 +29759,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! YIL11: Checking only the IR value for TCT's..
                elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
      &                bez(myix)(1:4).eq.'tcth' .or.
-     &                bez(myix)(1:4).eq.'TCTPH' .or.                    & 
-     &                bez(myix)(1:4).eq.'tctph') then                   &
+     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
+     &                bez(myix)(1:5).eq.'tctph') then                   &
                   if(bez(myix)(8:8).eq.'1' .or.                         &                                                                                                                                       
      &                 bez(myix)(9:9).eq.'1' ) then
                      nsig = nsig_tcth1
@@ -29776,8 +29776,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   endif
                elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
      &                bez(myix)(1:4).eq.'tctv'.or.
-     &                bez(myix)(1:4).eq.'TCTPV' .or.                    &
-     &                bez(myix)(1:4).eq.'tctpv' ) then
+     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
+     &                bez(myix)(1:5).eq.'tctpv' ) then
                   if(bez(myix)(8:8).eq.'1' .or.                         &
      &                 bez(myix)(9:9).eq.'1' ) then
                      nsig = nsig_tctv1
@@ -29797,7 +29797,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                elseif(bez(myix)(1:4).eq.'TCLP' .or.                     &
      &                 bez(myix)(1:4).eq.'tclp' .or.                    &
      &                 bez(myix)(1:4).eq.'TCL.' .or.                    &
-     &                 bez(myix)(1:4).eq.'tcl.') then
+     &                 bez(myix)(1:4).eq.'tcl.'.or.                     &                                                                                                  
+     &                 bez(myix)(1:4).eq.'TCLX' .or.                    &                                                                                                                   
+     &                 bez(myix)(1:4).eq.'tclx') then
                   nsig = nsig_tclp
                elseif(bez(myix)(1:4).eq.'TCLI' .or.                     &
      &                 bez(myix)(1:4).eq.'tcli') then
@@ -29807,7 +29809,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   nsig = nsig_tcxrp
 !     TW 04/2008 ---- start adding TCRYO
                elseif(bez(myix)(1:5).eq.'TCRYO' .or.                    &
-     &                 bez(myix)(1:5).eq.'tcryo') then
+     &                 bez(myix)(1:5).eq.'tcryo'.or.                    &
+     &                 bez(myix)(1:5).eq.'TCLD.' .or.                   &
+     &                 bez(myix)(1:5).eq.'tcld.') then
                   nsig = nsig_tcryo
 !     TW 04/2008 ---- end adding TCRYO
                elseif(bez(myix)(1:3).eq.'COL' .or.                      &
@@ -29834,6 +29838,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                      nsig = nsig_tctv1
                   endif
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+               else
+                  write(*,*) "WARNING: Problem detected while "//
+     &                 "writing twisslike.out' and " //
+     &                 "'sigmasettings.out': Collimator name '" //
+     &                 bez(myix) // "' was not recognized!"
+                  write(*,*) " ->Setting nsig=1000.0."
+                  nsig = 1000.0
                endif
 !     FEBRUAR2007
                do i = 1, db_ncoll
@@ -30328,16 +30339,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                bez(myix)(1:4).eq.'tcth' .or.
      &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
      &                bez(myix)(1:5).eq.'tctph') then                   &
-                  if(bez(myix)(8:8).eq.'1' .or.                         &                                                                                                                                       
+                  if(bez(myix)(8:8).eq.'1' .or.                         &
      &                 bez(myix)(9:9).eq.'1' ) then
                      nsig = nsig_tcth1
-                  elseif(bez(myix)(8:8).eq.'2' .or.                     &                                                                                                                                           
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
      &                 bez(myix)(9:9).eq.'2' ) then
                      nsig = nsig_tcth2
                   elseif(bez(myix)(8:8).eq.'5'.or.                      &
      &                 bez(myix)(9:9).eq.'5' ) then
                      nsig = nsig_tcth5
-                  elseif(bez(myix)(8:8).eq.'8' .or.                     &                                                                                                                                           
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
      &                 bez(myix)(9:9).eq.'8' ) then
                      nsig = nsig_tcth8
                   endif
@@ -30364,7 +30375,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             elseif(bez(myix)(1:4).eq.'TCLP' .or.                        &
      &             bez(myix)(1:4).eq.'tclp' .or.                        &
      &             bez(myix)(1:4).eq.'TCL.' .or.                        &
-     &             bez(myix)(1:4).eq.'tcl.') then
+     &             bez(myix)(1:4).eq.'tcl.'.or.                         &
+     &             bez(myix)(1:4).eq.'TCLX' .or.                        &
+     &             bez(myix)(1:4).eq.'tclx') then
               nsig = nsig_tclp
             elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
      &             bez(myix)(1:4).eq.'tcli') then
@@ -30373,7 +30386,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             bez(myix)(1:4).eq.'tcxr') then
               nsig = nsig_tcxrp
             elseif(bez(myix)(1:5).eq.'TCRYO' .or.                       &
-     &             bez(myix)(1:5).eq.'tcryo') then
+     &             bez(myix)(1:5).eq.'tcryo'.or.
+     &             bez(myix)(1:5).eq.'TCLD.' .or.                       &
+     &             bez(myix)(1:5).eq.'tcld.') then
               nsig = nsig_tcryo
             elseif(bez(myix)(1:3).eq.'COL' .or.                         &
      &             bez(myix)(1:3).eq.'col') then
@@ -30398,6 +30413,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &               bez(myix)(1:5).eq.'colh2') then
                 nsig = nsig_tctv1
               endif
+           else
+              if(firstrun.and.iturn.eq.1) then
+                 write(*,*) "WARNING: When setting opening for the "//
+     &                " collimator named '" // bez(myix) //
+     &                "' from fort.3, the name was not recognized."
+                 write(*,*) " -> Setting nsig=1000.0."
+              endif
+              nsig=1000.0
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
             endif
 !APRIL2005
@@ -47960,7 +47983,8 @@ c$$$            endif
 +if collimat.or.bnlelens
         ! Marker, beam-beam, phase-trombone, or crab cavity (incl. multipole)
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
-     &     .or. abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) then
+     &     .or. abs(kzz).eq.23.or.abs(kzz).eq.26.or.
+     &          abs(kzz).eq.27.or.abs(kzz).eq.28) then
           
           nr=nr+1
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -47974,7 +47998,8 @@ c$$$            endif
         ! Marker, beam-beam or phase-trombone -> next element
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
         ! RF CC Multipoles -> next element
-        if (abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
+        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.
+     &      abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
 +ei
       
         ! Update the matrix etc. for supported blocks
