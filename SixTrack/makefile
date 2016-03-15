@@ -255,7 +255,7 @@ SIXTRACK     := sixtrack
 WIN_CRLIBM_O :=
 
 #linking options on Linux
-SX_LINUX     := $(FCL) $(BOINC_O_FILES:%=$(DESTDIR)$/%) $(CERNLIB) libmathlib.a libkernlib-shift.a
+SX_LINUX     := $(FCL) $(BOINC_O_FILES:%=$(DESTDIR)$/%) $(CERNLIB)
 
 # Darwin
 ifeq ($(OPSYS),Darwin)

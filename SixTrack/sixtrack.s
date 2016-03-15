@@ -25505,7 +25505,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(iqmod.ne.0) call qmod0
         if(ichrom.eq.1.or.ichrom.eq.3) call chroma
         if(iskew.ne.0) call decoup
-        !MF remove
         if(ilin.eq.1.or.ilin.eq.3) then
           call linopt(dp1)
         endif
@@ -58475,6 +58474,17 @@ c$$$            endif
       double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
      &eps123_avg !initial,minimum,maximum,average emittance
       double precision, dimension(3) :: phi123_0  !initial phase
++if fio
+! Do not support FIO, it is not supported by any compilers.
++if cr
+      write (lout,*) "FIO not supported in FMA!"
++ei
++if .not.cr
+      write (*,*)    "FIO not supported in FMA!"
++ei
+      call prror(-1)
++ei
+
 !     initialize variables
       do i=1,6
         do j=1,6
@@ -58513,23 +58523,15 @@ c$$$            endif
 
 !    check the format, if dumpfmt != 2 abort
             if(dumpfmt(j).ne.2) then
-+if .not.cr
-              write(*,*) 'ERROR in fma_postpr: input file has ',        &
-     &'wrong format! Choose format=2 in DUMP block.'
-+ei
-+if cr
-              write(lout,*) 'ERROR in fma_postpr: input file has ',     &
-     &'wrong format! Choose format=2 in DUMP block.'
-+ei
-              call prror(-1)
-            endif
+              call fma_error(-1,'input file has wrong format! Choose for&
+     &mat=2 in DUMP block.','fma_postpr')
 
 !    open dump file for reading, resume to original position before exiting the subroutine
             inquire(unit=dumpunit(j),opened=lopen)
             if(lopen) then
               close(dumpunit(j))
             else ! file has to be open if nothing went wrong
-              call fma_error(ierro,'file '//trim(stringzero             &
+              call fma_error(-1,'file '//trim(stringzero                &
      &trim(dump_fname(j)))//' has to be open','fma_postpr')
             endif
             open(dumpunit(j),file=dump_fname(j),status='old',
@@ -58703,24 +58705,20 @@ c$$$            endif
             enddo
             close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
             close(dumpunit(j))
-!     close, then open, then go to end of file, Kyrre: resume position in dumpfile if file was open, otherwise close it
-            if(lopen) then
-              open(dumpunit(j),file=dump_fname(j), status='old',        &
-     &form='formatted',action='readwrite')
-              do k=1,dumpfilepos(j)
-                read(dumpunit(j),'(A)',iostat=ierro) ch
-                call fma_error(ierro,'while resuming file ' //          &
-     &dump_fname(j),'fma_postpr')
-              enddo
-            endif
+!    resume initial position of dumpfile = end of file
+            open(dumpunit(j),file=dump_fname(j), status='old',          &
+     &form='formatted',action='readwrite',position='append',            &
+     &iostat=ierro)
+            call fma_error(ierro,'while resuming file '//dump_fname(j), &
+     &'fma_postpr')
           endif !END: if fma_fname(i) matches dump_fname(j)
-          if( lexist ) then ! if file has been already found, jump to next file fma_fname(i)
+!    if file has been already found, jump to next file fma_fname(i)
+          if( lexist ) then
             exit
           endif 
         enddo !END: loop over dump files
         if(.not. lexist) then !if no dumpfile has been found, raise error and abort
-! MF define ierro
-          call fma_error(ierro,'dump file '//trim(stringzero            &
+          call fma_error(-1,'dump file '//trim(stringzero               &
      &trim(fma_fname(i)))//' does not exist! Please check that filenames&
      & in FMA block agree with the ones in the DUMP block!'             &
      &,'fma_postpr')
