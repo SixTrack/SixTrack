@@ -58561,11 +58561,13 @@ c$$$            endif
               write(*,*) 'ERROR in fma_postpr: only ',                  &
      &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
               write(*,*) '->reset fma_nturn_max > ', fma_nturn_max
+              call prror(-1)
 +ei
 +if cr
               write(lout,*) 'ERROR in fma_postpr: only ',               &
      &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
               write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
+              call prror(-1)
 +ei
             endif
 
@@ -58660,7 +58662,7 @@ c$$$            endif
      &'TUNENEWT') then
                   q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),   &
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                else if(trim(stringzerotrim(f  ma_method(i))).eq.       &
+                else if(trim(stringzerotrim(fma_method(i))).eq.         &
      &'TUNEABT2') then
                   q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),   &
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
@@ -58701,7 +58703,7 @@ c$$$            endif
             enddo
             close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
             close(dumpunit(j))
-!     Kyrre: resume position in dumpfile if file was open, otherwise close it
+!     close, then open, then go to end of file, Kyrre: resume position in dumpfile if file was open, otherwise close it
             if(lopen) then
               open(dumpunit(j),file=dump_fname(j), status='old',        &
      &form='formatted',action='readwrite')
@@ -58717,6 +58719,7 @@ c$$$            endif
           endif 
         enddo !END: loop over dump files
         if(.not. lexist) then !if no dumpfile has been found, raise error and abort
+! MF define ierro
           call fma_error(ierro,'dump file '//trim(stringzero            &
      &trim(fma_fname(i)))//' does not exist! Please check that filenames&
      & in FMA block agree with the ones in the DUMP block!'             &
