@@ -25505,7 +25505,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(iqmod.ne.0) call qmod0
         if(ichrom.eq.1.or.ichrom.eq.3) call chroma
         if(iskew.ne.0) call decoup
-        !MF remove
         if(ilin.eq.1.or.ilin.eq.3) then
           call linopt(dp1)
         endif
@@ -58459,6 +58458,13 @@ c$$$            endif
       logical :: lexist             !flag to check if file fma_fname exists
       logical :: lread              !flag for file reading
       character(len=getfields_l_max_string) :: ch,ch1
+      character filefields_fields
+     &     ( getfields_n_max_fields )*( getfields_l_max_string )
+      integer filefields_nfields
+      integer filefields_lfields( getfields_n_max_fields )
+      logical filefields_lerr
+      double precision round_near
+
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of tas -> x_normalized=fma_tas_inv*x
       double precision, dimension(fma_npart_max,fma_nturn_max,6) ::     &
@@ -58475,6 +58481,17 @@ c$$$            endif
       double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
      &eps123_avg !initial,minimum,maximum,average emittance
       double precision, dimension(3) :: phi123_0  !initial phase
++if fio
+! Do not support FIO, it is not supported by any compilers.
++if cr
+      write (lout,*) "FIO not supported in FMA!"
++ei
++if .not.cr
+      write (*,*)    "FIO not supported in FMA!"
++ei
+      call prror(-1)
++ei
+
 !     initialize variables
       do i=1,6
         do j=1,6
@@ -58513,23 +58530,15 @@ c$$$            endif
 
 !    check the format, if dumpfmt != 2 abort
             if(dumpfmt(j).ne.2) then
-+if .not.cr
-              write(*,*) 'ERROR in fma_postpr: input file has ',        &
-     &'wrong format! Choose format=2 in DUMP block.'
-+ei
-+if cr
-              write(lout,*) 'ERROR in fma_postpr: input file has ',     &
-     &'wrong format! Choose format=2 in DUMP block.'
-+ei
-              call prror(-1)
+              call fma_error(-1,'input file has wrong format! Choose for&
+     &mat=2 in DUMP block.','fma_postpr')
             endif
-
 !    open dump file for reading, resume to original position before exiting the subroutine
             inquire(unit=dumpunit(j),opened=lopen)
             if(lopen) then
               close(dumpunit(j))
             else ! file has to be open if nothing went wrong
-              call fma_error(ierro,'file '//trim(stringzero             &
+              call fma_error(-1,'file '//trim(stringzero                &
      &trim(dump_fname(j)))//' has to be open','fma_postpr')
             endif
             open(dumpunit(j),file=dump_fname(j),status='old',
@@ -58599,10 +58608,69 @@ c$$$            endif
 !    - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             do k=1,fma_nturn(i) !loop over turns
               do l=1,napx !loop over particles
++if .not.crlibm
                 read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,      &
      &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
                 if(ierro.gt.0) call fma_error(ierro,'while reading '    &
      &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
++ei
++if crlibm
+                read(dumpunit(j),'(a)', iostat=ierro) ch
+                if(ierro.gt.0) call fma_error(ierro,'while reading '    &
+     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
+            call getfields_split(ch,
+     &           filefields_fields, filefields_lfields,
+     &           filefields_nfields, filefields_lerr)
+            if( filefields_lerr ) call fma_error(-1,'while reading '    &
+     &//' particles from file ' // dump_fname(j) // 'in function getfiel&
+     &ds_split','fma_postpr') !error in getfields_split while reading
+!    check if number of fields is correct
+            if( filefields_nfields  .ne. 10 ) then 
++if cr
+              write(lout,*) 'ERROR in fma_postpr while reading particles
+     &from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields expec&
+     &ted from getfields_split, got ',filefields_nfields, ' and ch =',ch
++ei
++if .not.cr
+              write(*,*) 'ERROR in fma_postpr while reading particles
+     &from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields expec&
+     &ted from getfields_split, got ',filefields_nfields, ' and ch =',ch
++ei
+              call prror(-1)
+            endif
+            read(filefields_fields(1)(1:filefields_lfields(1)),*) id
+            read(filefields_fields(2)(1:filefields_lfields(2)),*) 
+     &turn(l,k)
+            pos = round_near(ierro, filefields_lfields(3)+1,
+     &filefields_fields(3) )
+            if (ierro.ne.0)
+     &        call rounderr(ierro,filefields_fields,3,pos)
+            xyzv(1) = round_near(ierro, filefields_lfields(4)+1,
+     &filefields_fields(4) )
+            if (ierro.ne.0)
+     &        call rounderr(ierro,filefields_fields,4,xyzv(1))
+            xyzv(2) = round_near(ierro, filefields_lfields(5)+1,
+     &filefields_fields(5) )
+            if (ierro.ne.0)
+     &        call rounderr(ierro,filefields_fields,5,xyzv(2))
+            xyzv(3) = round_near(ierro, filefields_lfields(6)+1,
+     &filefields_fields(6) )
+            if (ierro.ne.0)
+     &        call rounderr(ierro,filefields_fields,6,xyzv(3))
+            xyzv(4) = round_near(ierro, filefields_lfields(7)+1,
+     &filefields_fields(7) )
+            if (ierro.ne.0)
+     &        call rounderr(ierro,filefields_fields,7,xyzv(4))
+            xyzv(5) = round_near(ierro, filefields_lfields(8)+1,
+     &filefields_fields(8) )
+            if (ierro.ne.0)
+     &        call rounderr(ierro,filefields_fields,8,xyzv(5))
+            xyzv(6) = round_near(ierro, filefields_lfields(9)+1,
+     &filefields_fields(9) )
+            if (ierro.ne.0)
+     &        call rounderr(ierro,filefields_fields,9,xyzv(6))
+            read(filefields_fields(10)(1:filefields_lfields(10)),*) kt
++ei !end crlibm
 !    - remove closed orbit
                 do m=1,6
                   xyzv(m)=xyzv(m)-dump_clo(j,m)
@@ -58703,24 +58771,20 @@ c$$$            endif
             enddo
             close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
             close(dumpunit(j))
-!     close, then open, then go to end of file, Kyrre: resume position in dumpfile if file was open, otherwise close it
-            if(lopen) then
-              open(dumpunit(j),file=dump_fname(j), status='old',        &
-     &form='formatted',action='readwrite')
-              do k=1,dumpfilepos(j)
-                read(dumpunit(j),'(A)',iostat=ierro) ch
-                call fma_error(ierro,'while resuming file ' //          &
-     &dump_fname(j),'fma_postpr')
-              enddo
-            endif
+!    resume initial position of dumpfile = end of file
+            open(dumpunit(j),file=dump_fname(j), status='old',          &
+     &form='formatted',action='readwrite',position='append',            &
+     &iostat=ierro)
+            call fma_error(ierro,'while resuming file '//dump_fname(j), &
+     &'fma_postpr')
           endif !END: if fma_fname(i) matches dump_fname(j)
-          if( lexist ) then ! if file has been already found, jump to next file fma_fname(i)
+!    if file has been already found, jump to next file fma_fname(i)
+          if( lexist ) then
             exit
           endif 
         enddo !END: loop over dump files
         if(.not. lexist) then !if no dumpfile has been found, raise error and abort
-! MF define ierro
-          call fma_error(ierro,'dump file '//trim(stringzero            &
+          call fma_error(-1,'dump file '//trim(stringzero               &
      &trim(fma_fname(i)))//' does not exist! Please check that filenames&
      & in FMA block agree with the ones in the DUMP block!'             &
      &,'fma_postpr')
