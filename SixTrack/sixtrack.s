@@ -1118,7 +1118,7 @@
                                              !   dumping
 
       double precision :: dump_tas (nblz,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
-      double precision :: dump_clo (nblz,6)   ! closed orbit used for FMA (normalisation of phase space)
+      double precision :: dump_clo (nblz,6)   ! closed orbit used for FMA (normalisation of phase space)  -> check units used in dump_clo (is x' or px used?)
 
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
@@ -8047,6 +8047,7 @@ cc2008
                   dump_tas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
 !    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
 !    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
+!     -> check units used in dump_clo (is x' or px used?) 
                   dump_clo(ic(i)-nblo,2*j-1)=c(j)
                   if (j.eq.3) then !dp/p
                     dump_clo(ic(i)-nblo,2*j)  =cp(j)*c1m3
@@ -58671,7 +58672,7 @@ c$$$            endif
      &        call rounderr(ierro,filefields_fields,9,xyzv(6))
             read(filefields_fields(10)(1:filefields_lfields(10)),*) kt
 +ei !end crlibm
-!    - remove closed orbit
+!    - remove closed orbit -> check units used in dump_clo (is x' or px used?)
                 do m=1,6
                   xyzv(m)=xyzv(m)-dump_clo(j,m)
                 enddo
