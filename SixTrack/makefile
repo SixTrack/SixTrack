@@ -136,12 +136,12 @@ FCLD_ifort := -m32
 FCL_ifort  := -static -m32
 
 # gfortran configuration
-FC_gfortran   := gfortran -m32
+FC_gfortran   := gfortran -m32 
 FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2
 ifneq ($(NOPT),)
   FCF_gfortran:=$(FCF_gfortran) -O$(NOPT)
 endif
-FCLD_gfortran :=
+FCLD_gfortran := 
 FCL_gfortran  := -static
 
 # nagfor configuration
@@ -202,7 +202,7 @@ endif
 CRLIBM_O := $(call if_any,crlibm,$(ENABLED),$(DESTDIR)/crlibm/crlibm.a,)
 
 # cernlib
-CERNLIB  := $(call if_any,cernlib,$(ENABLED),-L./lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh,)
+CERNLIB  := $(call if_any,cernlib,$(ENABLED),-L./lib32 -lmathlib -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh,)
 
 # boinc
 ifeq ($(filter boinc,$(ENABLED)),boinc)
@@ -318,6 +318,7 @@ endif
 # preparing proper file names with extension
 MASKS:= $(addprefix $(DESTDIR)$/,$(MASKS))
 O_FILES   := $(MASKS:=.o)
+O_FILES   := $(O_FILES) plato_seq.o
 AST_FILES := $(MASKS:=.ast)
 FN_FILES   := $(MASKS:=n.f)
 F_FILES   := $(MASKS:=.f)

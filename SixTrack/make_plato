@@ -1,0 +1,3 @@
+#/bin/bash
+
+gfortran -m32 plato_seq.f -o plato_seq.o -c
