@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.33'/
-      data moddate /'11.03.2016'/
+      data version /'4.5.34'/
+      data moddate /'23.03.2016'/
 +cd license
 !!SixTrack
 !!
@@ -63539,7 +63539,7 @@ c$$$     &           myalphay * cos(phiy))
                 bsd = 2.d0 * bpp
               elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
 !hr09           bsd = (106.d0-17.d0*xm2) *  bpp / 26.d0
-                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 26.d0                !hr09
+                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 36.d0                !hr09
               elseif ( xm2 .gt. 5.d0 ) then
 !hr09           bsd = 7.d0 * bpp / 12.d0
                 bsd = (7.d0 * bpp) / 12.d0                               !hr09
