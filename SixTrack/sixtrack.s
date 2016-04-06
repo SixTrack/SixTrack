@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.34'/
-      data moddate /'23.03.2016'/
+      data moddate /'06.04.2016'/
 +cd license
 !!SixTrack
 !!
@@ -46342,7 +46342,21 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
             call dynk_dumpdata
             call prror(-1)
+         elseif (turn .lt. 1) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
+            write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
+            write(lout,*)"DYNK> Turn < 1, check your turn-shift!"
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():FILE****"
+            write(*,*)   "DYNK> funNum =", funNum, "turn=", turn
+            write(*,*)   "DYNK> Turn < 1, check your turn-shift!"
++ei
+            call dynk_dumpdata
+            call prror(-1)
          endif
+
          retval = fexpr_dynk(funcs_dynk(funNum,4)+turn-1)
       case(2)                                                           ! FILELIN
          filelin_start    = funcs_dynk(funNum,4)
