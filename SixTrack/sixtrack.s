@@ -10126,8 +10126,18 @@ cc2008
 !     last modified: 02-09-2014
 !     close units for logging dynks
 !     always in main code
-      if (ldynk) close(665,err=665)
- 665    continue
+      if (ldynk) then
+         close(665,err=665)
+ 665     continue
+         do i=1,nfuncs_dynk
+            if ( funcs_dynk(i,2).eq.3) then !PIPE
+               close(iexpr_dynk(funcs_dynk(i,3))) !InPipe
+               write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)") "CLOSEUNITS"
+               close(iexpr_dynk(funcs_dynk(i,3))+1) !OutPipe
+            endif
+         end do
+      end if
+      
 
       return
       end subroutine
@@ -44006,7 +44016,181 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          nfexpr_dynk = nfexpr_dynk + 2*t
          funcs_dynk(nfuncs_dynk,5) = t
          close(664)
+         
+      case("PIPE")
+         ! PIPE: Use a pair of UNIX FIFOs.
+         ! Another program is expected to hook onto the other end of the pipe,
+         ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
+         ! That program should then send a value back (in ASCII), which will be the new setting.
+         
+         call dynk_checkargs(getfields_nfields,7,
+     &        "FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+         call dynk_checkspace(1,0,4)
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         niexpr_dynk = niexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 3             !TYPE (PIPE)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk   !UnitNR (set below)
+         funcs_dynk(nfuncs_dynk,4) = -1            !Not used
+         funcs_dynk(nfuncs_dynk,5) = -1            !Not used
+         
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(5) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(6) .gt. maxstrlen_dynk-1      ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN PIPE got one or more strings which "
+            write (lout,*) "was too long (>",maxstrlen_dynk-1,")"
+            write (lout,*) "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (lout,*) "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN PIPE got one or more strings which "
+            write (*,*)    "was too long (>",maxstrlen_dynk-1,")"
+            write (*,*)    "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (*,*)    "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
 
+         ! Store data
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !inPipe
+     &        getfields_fields(4)(1:getfields_lfields(4))
+         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = !outPipe
+     &        getfields_fields(5)(1:getfields_lfields(5))
+         cexpr_dynk(ncexpr_dynk+3)(1:getfields_lfields(6)) = !ID
+     &        getfields_fields(6)(1:getfields_lfields(6))
+         ncexpr_dynk = ncexpr_dynk+3
+         
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) !fileUnit
+     &        iexpr_dynk(niexpr_dynk)
+         
+         !TODO: Several FUN should be able to share the same file (thus the ID...)
+         !      When this is done, the CLOSEUNITS subroutine should also be updated.
+         
+         ! Open the inPipe
+         inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
++if cr
+         write(*,lout) "DYNK> Opening input pipe '"//
+     &cexpr_dynk(ncexpr_dynk-2)//"' for FUN '"//
+     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
+     &cexpr_dynk(ncexpr_dynk)//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening input pipe '"//
+     &cexpr_dynk(ncexpr_dynk-2)//"' for FUN '"//
+     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
+     &cexpr_dynk(ncexpr_dynk)//"'"
++ei
+         open(unit=iexpr_dynk(niexpr_dynk),
+     &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "'"
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "'"
++ei
+            call prror(51)
+         endif
+
+         ! Open the outPipe
++if cr
+         write(*,lout) "DYNK> Opening output pipe '"//
+     &cexpr_dynk(ncexpr_dynk-1)//"' for FUN '"//
+     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
+     &cexpr_dynk(ncexpr_dynk)//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening output pipe '"//
+     &cexpr_dynk(ncexpr_dynk-1)//"' for FUN '"//
+     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
+     &cexpr_dynk(ncexpr_dynk)//"'"
++ei
+         inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
+         open(unit=iexpr_dynk(niexpr_dynk)+1,
+     &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "'"
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "'"
++ei
+            call prror(51)
+         endif
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)')
+     &        "DYNK INITIALIZING ID="//
+     &        cexpr_dynk(ncexpr_dynk)//" for FUN="//
+     &        cexpr_dynk(ncexpr_dynk-3)
+         
+         
       case ("RANDG")
          ! RANDG: Gausian random number with mu, sigma, and optional cutoff
          
@@ -44075,7 +44259,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
-
+         
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
          ! y[n] = \sum_{i=0}^N b_i*x[n-i]
