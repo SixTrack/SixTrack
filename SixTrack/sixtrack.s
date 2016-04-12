@@ -44186,7 +44186,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call prror(51)
          endif
          write(iexpr_dynk(niexpr_dynk)+1,'(a)')
-     &        "DYNK INITIALIZING ID="//
+     &        "DYNKPIPE !******************!"   !Once per file, see TODO
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
+     &        "INIT ID="//
      &        cexpr_dynk(ncexpr_dynk)//" for FUN="//
      &        cexpr_dynk(ncexpr_dynk-3)
          
@@ -46551,9 +46553,19 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &       fexpr_dynk(filelin_start +  filelin_xypoints:
      &                  filelin_start +2*filelin_xypoints-1),
      &        filelin_xypoints )
+      case(3)                                                           ! PIPE
+         write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
+     &        "GET ID="//
+     &        cexpr_dynk(funcs_dynk(funNum,2)+3)//" TURN=",turn
++if .not.crlibm
+         read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
++ei
++if crlibm
+      retval 0.0
++ei
          
       case (6)                                                          ! RANDG
-         ! Save old seeds and loud our current seeds
+         ! Save old seeds and load our current seeds
          call recuut(tmpseed1,tmpseed2)
          call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3),
      &               iexpr_dynk(funcs_dynk(funNum,3)+4) )
