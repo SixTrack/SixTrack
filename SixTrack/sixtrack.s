@@ -44114,15 +44114,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
 +if cr
          write(*,lout) "DYNK> Opening input pipe '"//
-     &cexpr_dynk(ncexpr_dynk-2)//"' for FUN '"//
-     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
-     &cexpr_dynk(ncexpr_dynk)//"'"
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening input pipe '"//
-     &cexpr_dynk(ncexpr_dynk-2)//"' for FUN '"//
-     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
-     &cexpr_dynk(ncexpr_dynk)//"'"
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
@@ -44144,15 +44150,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Open the outPipe
 +if cr
          write(*,lout) "DYNK> Opening output pipe '"//
-     &cexpr_dynk(ncexpr_dynk-1)//"' for FUN '"//
-     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
-     &cexpr_dynk(ncexpr_dynk)//"'"
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening output pipe '"//
-     &cexpr_dynk(ncexpr_dynk-1)//"' for FUN '"//
-     &cexpr_dynk(ncexpr_dynk-3)//"', ID='"//
-     &cexpr_dynk(ncexpr_dynk)//"'"
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
          inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
          if (lopen) then
