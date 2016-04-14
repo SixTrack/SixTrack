@@ -1259,6 +1259,43 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd combdex
+!     Beam Distribution EXchange
+!     At one or more elements, exchange the current beam distribution
+!     for one given by an external program.
+!     K. Sjobak BE/ABP-HSS, 2016
+!     Based on FLUKA coupling version by
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
+!     
+      
+      logical bdex_enable               ! Is BDEX in use?
+      logical bdex_debug                ! Debug mode?
+      
+      integer bdex_elementStatus(nele)  ! BDEX in use for this element?
+                                        ! 0: No.
+                                        ! 1: Do a particle exchange at this element.
+                                        ! Other values are reserved for future use.
+      integer bdex_elementChannel(nele) ! Which BDEX channel does this element use?
+                                        ! This points in the bdex_channel arrays.
+      
+      integer bdex_maxchannels, bdex_nchannels
+      parameter (bdex_maxchannels=10)
+      
+      integer bdex_channels(bdex_maxchannels,2) ! Basic data for the bdex_channels, one row/channel
+                                                ! Column 1: Type of channel. Values:
+                                                !           0: Channel not in use
+                                                !           1: PIPE channel
+                                                ! Column 2: Meaning varies, based on the value of col. 1:
+                                                !           If col 1 is PIPE, then it is the unit number to use (first of two consecutive).
+      
+      common /bdexdb/
+     &     bdex_elementStatus, bdex_elementChannel,
+     &     bdex_channels, bdex_nchannels,
+     &     bdex_enable, bdex_debug
+      
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd timefct
 +if crlibm
           expt =  exp_rn(-dble(n)/tcnst35(i))
@@ -13257,6 +13294,7 @@ cc2008
 +ca comgetfields
 +ca dbdump
 +ca comdynk
++ca combdex
 
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
@@ -13278,6 +13316,10 @@ cc2008
 !     - dynamic kicks
       character*16 dynk
       data dynk /'DYNK'/
+!     - Beam Distribution EXchange
+      character*16 bdex
+      data bdex /'BDEX'/
+
 
 +ca save
 !-----------------------------------------------------------------------
@@ -13525,6 +13567,8 @@ cc2008
 !     brand new input block for dynamic kicks
 !     always in main code
       if(idat.eq.dynk) goto 2200
+!     Beam distribution Exchange
+      if(idat.eq.bdex) goto 2300
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -18295,9 +18339,9 @@ cc2008
 +ei
 +if .not.cr
             write (*,*)
-            write (*,*) "******************************************"
-            write (*,*) "** More than one DYNK block encountered **"
-            write (*,*) "******************************************"
+            write (*,*)    "******************************************"
+            write (*,*)    "** More than one DYNK block encountered **"
+            write (*,*)    "******************************************"
 +ei
             call prror(51)
          else
@@ -18305,7 +18349,6 @@ cc2008
          endif
          call dynk_inputsanitycheck
          goto 110 ! loop BLOCK
-
       else
 +if cr
          write (lout,*)
@@ -18321,7 +18364,8 @@ cc2008
          write (*,*)
          write (*,*) "*******************************************"
          write (*,*) "ERROR while parsing DYNK block in fort.3"
-         write (*,*) "Expected keywords FUN, SET, DEBU, NOFILE or NEXT"
+         write (*,*)
+     &        "Expected keywords FUN, SET, DEBU, NOFILE or NEXT"
          write (*,*) "Got ch:"
          write (*,*) "'"//ch//"'"
          write (*,*) "*******************************************"
@@ -18329,17 +18373,108 @@ cc2008
          call prror(51)
       endif
       ! Should never arrive here
-+if .not.cr
-      write (*,*) "*****************************"
-      write (*,*) "*LOGIC ERROR IN PARSING DYNK*"
-      write (*,*) "*****************************"
-+ei
 +if cr
       write (lout,*) "*****************************"
       write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
       write (lout,*) "*****************************"
 +ei
++if .not.cr
+      write (*,*)    "*****************************"
+      write (*,*)    "*LOGIC ERROR IN PARSING DYNK*"
+      write (*,*)    "*****************************"
++ei
       call prror(51)
+
+!-----------------------------------------------------------------------
+!  BDEX = Beam Distribution EXchange
+!  K.Sjobak, BE/ABP-HSS 2016
+!  Based on FLUKA coupling version by
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
+!-----------------------------------------------------------------------
+ 2300 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(51)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2300 ! skip comment line
+
+      ! Which type of block? Look at start of string (no leading blanks allowed)
+      if (ch(:4).eq."DEBU") then
+         bdex_debug = .true.
++if cr
+         write (lout,*)
++ei
++if .not.cr
+         write (*,*)
++ei
+     &        "BDEX> BDEX block debugging is ON"
+         goto 2300 !loop BDEX
+      else if (ch(:4).eq.next) then
+         if (bdex_debug) then
++if cr
+            write (lout,*)
++ei
++if .not.cr
+            write (*,*)
++ei
+     &           "BDEXDEBUG> Finished parsing BDEX block"
+         endif
+         if (bdex_enable) then
++if cr
+            write (lout,*)
+            write (lout,*) "******************************************"
+            write (lout,*) "** More than one BDEX block encountered **"
+            write (lout,*) "******************************************"
++ei
++if .not.cr
+            write (*,*)
+            write (*,*)    "******************************************"
+            write (*,*)    "** More than one BDEX block encountered **"
+            write (*,*)    "******************************************"
++ei
+            call prror(-1)
+         endif
+         
+         !While debugging BDEX parser:
+         write(*,*) "Stopping here."
+         stop
+      else
++if cr
+         write (lout,*)
+         write (lout,*) "*******************************************"
+         write (lout,*) "ERROR while parsing BDEX block in fort.3"
+         write (lout,*)
+     &        "Expected keywords DEBU or NEXT"
+         write (lout,*) "Got ch:"
+         write (lout,*) "'"//ch//"'"
+         write (lout,*) "*******************************************"
++ei
++if .not.cr
+         write (*,*)
+         write (*,*)    "*******************************************"
+         write (*,*)    "ERROR while parsing BDEX block in fort.3"
+         write (*,*)
+     &        "Expected keywords DEBU or NEXT"
+         write (*,*)    "Got ch:"
+         write (*,*)    "'"//ch//"'"
+         write (*,*)    "*******************************************"
++ei
+         call prror(-1)
+         
+      endif
+
+      ! Should never arrive here
++if cr
+      write (lout,*) "*****************************"
+      write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
+      write (lout,*) "*****************************"
++ei
++if .not.cr
+      write (*,*)    "*****************************"
+      write (*,*)    "*LOGIC ERROR IN PARSING BDEX*"
+      write (*,*)    "*****************************"
++ei
+
+
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
