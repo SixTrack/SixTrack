@@ -43851,7 +43851,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -43995,7 +43995,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -46487,7 +46487,10 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       !Functions to call
       double precision dynk_lininterp
       character(maxstrlen_dynk) dynk_stringzerotrim
-      
++if crlibm
+      double precision round_near
++ei
+
 +if crlibm
 +ca crlibco
 +ei
@@ -46505,6 +46508,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       ! General temporaries
       integer foff !base offset into fexpr array
       integer ii,jj!Loop variable
+
++if crlibm
+      !String handling tempraries for PIPE, preformatting for round_near
+      integer errno !for round_near
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
++ca comgetfields
++ei
 
       ! Other stuff
 +ca parnum
@@ -46586,7 +46598,37 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
 +ei
 +if crlibm
-      retval = 0.0
+         read(iexpr_dynk(funcs_dynk(funNum,3)),"(a)") ch
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &                             getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_lerr=", getfields_lerr
++ei
+            call prror(-1)
+         endif
+         if (getfields_nfields .ne. 1) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_nfields=", getfields_nfields
+            write(lout,*)"DYNK> Expected a single number."
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_nfields=", getfields_nfields
+            write(*,*)   "DYNK> Expected a single number."
++ei
+            call prror(-1)
+         endif
+         retval = round_near(errno,
+     &        getfields_lfields(1)+1, getfields_fields(1) )
+         if (errno.ne.0)
+     &        call rounderr( errno,getfields_fields,1,retval )
 +ei
          
       case (6)                                                          ! RANDG
