@@ -43387,6 +43387,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       logical lopen
       
+      character(maxstrlen_dynk) dynk_stringzerotrim
+
 +if crlibm
       integer nchars
       parameter (nchars=160) !Same as in daten
@@ -44017,7 +44019,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,5) = t
          close(664)
          
-      case("PIPE")
+      case ("PIPE")
          ! PIPE: Use a pair of UNIX FIFOs.
          ! Another program is expected to hook onto the other end of the pipe,
          ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
@@ -44189,8 +44191,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        "DYNKPIPE !******************!"   !Once per file, see TODO
          write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
      &        "INIT ID="//
-     &        cexpr_dynk(ncexpr_dynk)//" for FUN="//
-     &        cexpr_dynk(ncexpr_dynk-3)
+     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk)))
+     &        //" for FUN="//
+     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
          
          
       case ("RANDG")
@@ -46465,6 +46468,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       !Functions to call
       double precision dynk_lininterp
+      character(maxstrlen_dynk) dynk_stringzerotrim
+      
 +if crlibm
 +ca crlibco
 +ei
@@ -46556,7 +46561,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       case(3)                                                           ! PIPE
          write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
      &        "GET ID="//
-     &        cexpr_dynk(funcs_dynk(funNum,2)+3)//" TURN=",turn
+     &        trim(dynk_stringzerotrim(
+     &        cexpr_dynk(funcs_dynk(funNum,2)+3)
+     &        ))//" TURN=",turn
 +if .not.crlibm
          read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
 +ei
