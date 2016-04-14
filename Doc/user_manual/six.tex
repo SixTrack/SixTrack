@@ -1045,6 +1045,9 @@ The functions are always evaluated as a function of the current turn number $t$,
   Similar to FILE, but any double can be used as the turn number as long as they are monotonically rising.
   When evaluated, the function interpolates from the line-segments specified in the file. \\*
   
+  PIPE       & \emph{inPipeName[string] outPipeName[string] ID[string] fileUnit[int]} &
+  \todo[inline]{Description of PIPE\ldots} \\*
+  
   RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
   Returns a pseudorandom number generated from a Gaussian distribution.
   The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
@@ -1397,6 +1400,9 @@ This is done using an exponential decaying function $V(t) = V_0 \exp\left(-0.05 
 For the SET, the time $t$ is then shifted by -70 turns, so that the functions are evaluated starting at t=0.
 
 \subparagraph{Detuning a cavity (accelerating or crab)}~\\
+\todo[inline]{Write}
+
+\subparagraph{Using the PIPE function}~\\
 \todo[inline]{Write}
 
 \subsection{Beam--Beam Element} \label{BeamBeam}
