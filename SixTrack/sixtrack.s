@@ -44029,6 +44029,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        "FUN funname PIPE inPipeName outPipeName ID fileUnit" )
          call dynk_checkspace(1,0,4)
          
++if cr
+         write(lout,*) "DYNK FUN PIPE not supported in CR version"
+         write(lout,*) "Sorry :("
+         call prror(-1)
++ei
+         
          ! Set pointers to start of funs data blocks
          nfuncs_dynk = nfuncs_dynk+1
          niexpr_dynk = niexpr_dynk+1
@@ -44113,7 +44119,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          end if
          
 +if cr
-         write(*,lout) "DYNK> Opening input pipe '"//
+         write(lout,*) "DYNK> Opening input pipe '"//
      &trim(dynk_stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
      &trim(dynk_stringzerotrim(
@@ -44149,7 +44155,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
          ! Open the outPipe
 +if cr
-         write(*,lout) "DYNK> Opening output pipe '"//
+         write(lout,*) "DYNK> Opening output pipe '"//
      &trim(dynk_stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
      &trim(dynk_stringzerotrim(
@@ -46580,7 +46586,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
 +ei
 +if crlibm
-      retval 0.0
+      retval = 0.0
 +ei
          
       case (6)                                                          ! RANDG
