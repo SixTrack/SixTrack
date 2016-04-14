@@ -46562,7 +46562,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
      &        "GET ID="//
      &        trim(dynk_stringzerotrim(
-     &        cexpr_dynk(funcs_dynk(funNum,2)+3)
+     &        cexpr_dynk(funcs_dynk(funNum,1)+3)
      &        ))//" TURN=",turn
 +if .not.crlibm
          read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
