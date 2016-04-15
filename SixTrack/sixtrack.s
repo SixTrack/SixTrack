@@ -18397,6 +18397,12 @@ cc2008
 
       if(ch(1:1).eq.'/') goto 2300 ! skip comment line
 
++if cr
+      write(lout,*) "BDEX not supported in CR version."
+      write(lout,*) "Sorry :("
+      call prror(-1)
++ei
+
       ! Which type of block? Look at start of string (no leading blanks allowed)
       if (ch(:4).eq."DEBU") then
          bdex_debug = .true.
@@ -18408,6 +18414,65 @@ cc2008
 +ei
      &        "BDEX> BDEX block debugging is ON"
          goto 2300 !loop BDEX
+
+      else if (ch(:4).eq."ELEM") then
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) call prror(-1)
+         if (bdex_debug) then
++if cr
+            write (lout,'(1x,A,I4,A)')
++ei
++if .not.cr
+            write    (*,'(1x,A,I4,A)')
++ei
+     &           "BDEXDEBUG> Got a ELEM block, len=",
+     &           len(ch), ": '"// trim(ch)// "'"
+            do ii=1,getfields_nfields
++if cr
+               write (lout,*)
++ei
++if .not.cr
+               write (*,*)
++ei
+     &              "BDEXDEBUG> Field(",ii,") ='",
+     &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+            enddo
+         endif
+         
+         !Parse ELEM
+         
+         goto 2300 !loop BDEX
+         
+      else if (ch(:4).eq."CHAN") then
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) call prror(-1)
+         if (bdex_debug) then
++if cr
+            write (lout,'(1x,A,I4,A)')
++ei
++if .not.cr
+            write    (*,'(1x,A,I4,A)')
++ei
+     &           "BDEXDEBUG> Got a CHAN block, len=",
+     &           len(ch), ": '"// trim(ch)// "'"
+            do ii=1,getfields_nfields
++if cr
+               write (lout,*)
++ei
++if .not.cr
+               write (*,*)
++ei
+     &              "BDEXDEBUG> Field(",ii,") ='",
+     &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+            enddo
+         endif
+
+         !Parse CHAN
+
+         goto 2300 !Loop BDEX
+         
       else if (ch(:4).eq.next) then
          if (bdex_debug) then
 +if cr
@@ -18473,7 +18538,7 @@ cc2008
       write (*,*)    "*LOGIC ERROR IN PARSING BDEX*"
       write (*,*)    "*****************************"
 +ei
-
+      call prror(-1)
 
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
