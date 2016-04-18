@@ -1292,6 +1292,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                                                 !           If col 1 is PIPE, it points to the first (of two) files in bdex_stringStorage.
                                                 ! Column 4: Meaning varies, based on the value of col. 1:
                                                 !           If col 1 is PIPE, then it is the unit number to use (first of two consecutive).
+      character( getfields_l_max_string )
+     &     bdex_channelNames(bdex_maxchannels)    ! The names of the BDEX channel
       
       integer bdex_maxStore, bdex_nstringStorage
       parameter ( bdex_maxStore=20 ) !Number of places in the bdex_xxStorage arrays
@@ -18469,7 +18471,18 @@ cc2008
          endif
          
          !Parse ELEM
-         
+         if ( getfields_nfields .ne. 3 ) then
++if cr
+            write(lout,*)"ELEM expects the following arguments:"
+            write(lout,*)"ELEM chanName elemname"
++ei
++if .not.cr
+            write(*,*)   "ELEM expects the following arguments:"
+            write(*,*)   "ELEM chanName elemname"
++ei
+            call prror(-1)
+         endif
+
          goto 2300 !loop BDEX
          
       else if (ch(:4).eq."CHAN") then
@@ -18498,24 +18511,26 @@ cc2008
          endif
 
          !Parse CHAN
-         select case( trim(dynk_stringzerotrim( getfields_fields(2) )) )
+         select case( trim(dynk_stringzerotrim( getfields_fields(3) )) )
          case ("PIPE")
             !PIPE: Use a pair of pipes to communicate the particle distributions
             !Arguments: InFileName OutFileName format fileUnit
-            if ( getfields_nfields .ne. 6 ) then
+            if ( getfields_nfields .ne. 7 ) then
 +if cr
                write(lout,*)"CHAN PIPE expects the following arguments:"
-               write(lout,*)"InFileName OutFileName format fileUnit"
+               write(lout,*)
+     &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
 +ei
 +if .not.cr
                write(*,*)   "CHAN PIPE expects the following arguments:"
-               write(*,*)   "InFileName OutFileName format fileUnit"
+               write(*,*)
+     &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
 +ei
                call prror(-1)
             endif
             
             bdex_nchannels = bdex_nchannels+1
-            if (bdex_nchannels.ge.bdex_maxchannels) then
+            if (bdex_nchannels.gt.bdex_maxchannels) then
 +if cr
                write(lout,*) "BDEX: max channels exceeded!"
 +ei
@@ -18525,7 +18540,7 @@ cc2008
                call prror(-1)
             endif
             
-            if (bdex_nchannels+2.ge.bdex_maxchannels) then
+            if (bdex_nStringStorage+2.gt.bdex_maxStore) then
 +if cr
                write(lout,*) "BDEX: maxStore exceeded for strings!"
 +ei
@@ -18535,23 +18550,26 @@ cc2008
                call prror(-1)
             endif
             
-            !Store data
-            bdex_channels(bdex_nchannels,1) = 1                   !TYPE is PIPE
+            !Store config data
+            bdex_channelNames(bdex_nchannels)(1:getfields_lfields(2)) = ! channelName
+     &           getfields_fields(2)(1:getfields_lfields(2))
             
-            read(getfields_fields(5)(1:getfields_lfields(5)),*)   !Output Format
-     &           bdex_channels(bdex_nchannels,2)
+            bdex_channels(bdex_nchannels,1) = 1                         ! TYPE is PIPE
             
             bdex_nstringStorage = bdex_nstringStorage+1
             bdex_channels(bdex_nchannels,3) = bdex_nstringStorage
-            bdex_stringStorage(bdex_nstringStorage)               !inPipe
-     &           (1:getfields_lfields(3)) =
-     &        getfields_fields(3)(1:getfields_lfields(3))
-            bdex_nstringStorage = bdex_nstringStorage+1
-            bdex_stringStorage(bdex_nstringStorage)               !outPipe
+            bdex_stringStorage(bdex_nstringStorage)                     ! inPipe
      &           (1:getfields_lfields(4)) =
      &        getfields_fields(4)(1:getfields_lfields(4))
+            bdex_nstringStorage = bdex_nstringStorage+1
+            bdex_stringStorage(bdex_nstringStorage)                     ! outPipe
+     &           (1:getfields_lfields(5)) =
+     &        getfields_fields(5)(1:getfields_lfields(5))
 
-            read(getfields_fields(6)(1:getfields_lfields(6)),*) !fileUnit
+            read(getfields_fields(6)(1:getfields_lfields(6)),*)          ! Output Format
+     &           bdex_channels(bdex_nchannels,2)
+
+            read(getfields_fields(7)(1:getfields_lfields(7)),*)          ! fileUnit
      &           bdex_channels(bdex_nchannels,4)
             
             ! Open the inPipe
@@ -18667,14 +18685,18 @@ cc2008
          case default
             !Unknown
 +if cr
-            write(lout,*) "Error in BDEX block parsing:"
+            write(lout,*) "Error in BDEX CHAN block parsing:"
             write(lout,*) "Unknown keyword '"//
+     &         trim(dynk_stringzerotrim(getfields_fields(3)))//"'"
+            write(lout,*) "Expected PIPE or TCPIP"
 +ei
 +if .not.cr
-            write(*,*)    "Error in BDEX block parsing:"
+            write(*,*)    "Error in BDEX CHAN block parsing:"
             write(*,*)    "Unknown keyword '"//
+     &         trim(dynk_stringzerotrim(getfields_fields(3)))//"'"
+            write(*,*)    "Expected PIPE or TCPIP"
 +ei
-     &         trim(dynk_stringzerotrim(getfields_fields(2)))//"'"
+
             call prror(-1)
 
          end select
