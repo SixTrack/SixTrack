@@ -30605,8 +30605,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
                    write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
      &                 "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx
+                   !TODO: CRLIBM!
+                   
+                   !Write out particles
                    do j=1,napx
-                     !TODO: CRLIBM!
                      write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
      &                     xv(1,j),yv(1,j),xv(2,j),xv(2,j),sigmv(j),
      &                     ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
@@ -30614,7 +30616,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                    enddo
                    write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
      &                 "BDEX WAITING..."
-                   !Todo: Read back particles
+                   
+                   !Read back particles
+                   read(bdex_channels(bdex_elementChannel(ix),4),*) napx
+                   if (bdex_debug) then
++if cr
+                      write(lout,*)
++ei
++if .not.cr
+                      write(*,*)
++ei
+     &                "BDEXDEBUG> Reading",napx, "particles back..."
+                   endif
+                   do j=1,napx
+                      read(bdex_channels(bdex_elementChannel(ix),4),*)
+     &                     xv(1,j),yv(1,j),xv(2,j),xv(2,j),sigmv(j),
+     &                     ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
+     &                     dpsv1(j),nlostp(j)
+                   enddo
+                   
                    write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
      &                 "BDEX TRACKING..."
 
