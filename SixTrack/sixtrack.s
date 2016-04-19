@@ -30599,11 +30599,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
                    write(*,*)    "BDEXDEBUG> "//
 +ei
-     &"Doing particle exchange in bez=",bez(ix),
-     &"elementStatus=",bdex_elementStatus(ix)
+     &"Doing particle exchange in bez=",bez(ix)
                 endif
                 
-                !TODO...
+                if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
+                   write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
+     &                 "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx
+                   do j=1,napx
+                     !TODO: CRLIBM!
+                     write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
+     &                     xv(1,j),yv(1,j),xv(2,j),xv(2,j),sigmv(j),
+     &                     ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
+     &                     dpsv1(j),nlostp(j)
+                   enddo
+                   write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
+     &                 "BDEX WAITING..."
+                   !Todo: Read back particles
+                   write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
+     &                 "BDEX TRACKING..."
+
+                endif
                 
              else
 +if cr
