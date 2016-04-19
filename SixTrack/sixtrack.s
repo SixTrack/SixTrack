@@ -18432,6 +18432,11 @@ cc2008
       write(lout,*) "Sorry :("
       call prror(-1)
 +ei
++if collimat
+      write(*,*) "BDEX not supported in COLLIMAT version."
+      write(*,*) "Sorry :("
+      call prror(-1)
++ei
 
       ! Which type of block? Look at start of string (no leading blanks allowed)
       if (ch(:4).eq."DEBU") then
@@ -18485,7 +18490,7 @@ cc2008
          
          jj = -1
          do ii=1,il !match the single element
-            if ( bez(j) .eq.
+            if ( bez(ii) .eq.
      &           getfields_fields(3)(1:getfields_lfields(3)) ) then
                jj=ii
                exit !breaks the loop
@@ -18501,6 +18506,18 @@ cc2008
      &"BDEX> ERROR: The element '"//
      &getfields_fields(3)(1:getfields_lfields(3)) //"' was not found "//
      &"in the single element list."
+            call prror(-1)
+         endif
+
+         if (kz(jj).ne.0) then
++if cr
+            write(lout,*) "BDEX> Error: The element",bez(jj),
+     & "is not a marker."
++ei
++if .not.cr
+            write(*,*)    "BDEX> Error: The element",bez(jj),
+     & "is not a marker."
++ei
             call prror(-1)
          endif
 
@@ -18772,10 +18789,41 @@ cc2008
             bdex_enable = .true.
          endif
          
-         !While debugging BDEX parser:
-         call closeUnits
-         write(*,*) "Stopping here."
-         stop
+         if (bdex_debug) then
++if cr
+            ! TODO - no CR support in BDEX, so I'll try to avoid the double-writes here...
++ei
++if .not.cr
+            write(*,*) "BDEXDEBUG> Done parsing block, data dump:"
+            write(*,*) "BDEXDEBUG> bdex_enable = ", bdex_enable
+            write(*,*) "BDEXDEBUG> bdex_debug  = ", bdex_debug
+            do ii=1,il
+               if ( bdex_elementStatus(ii).ne.0) then
+                  write(*,*) "BDEXDEBUG> Single element number", ii,
+     &"named ",bez(ii), "bdex_elementStatus(#)=",bdex_elementStatus(ii),
+     &"bdex_elementChannel(#)=",bdex_elementChannel(ii)
+               endif
+            enddo
+            write(*,*) "BDEXDEBUG> bdex_nchannels=",bdex_nchannels,
+     &           ">=",bdex_maxchannels
+            do ii=1,bdex_nchannels
+               write(*,*) "BDEXDEBUG> Channel #",ii,
+     &"bdex_channelNames(#)='"//
+     &trim(dynk_stringzerotrim(bdex_channelNames(ii)))//"'",
+     &"bdex_channels(#,:)=",bdex_channels(ii,1),bdex_channels(ii,2),
+     &bdex_channels(ii,3),bdex_channels(ii,4)
+            enddo
+            write(*,*) "BDEXDEBUG> bdex_nstringStorage=",
+     &bdex_nstringStorage,">=",bdex_maxStore
+            do ii=1,bdex_nstringStorage
+               write(*,*) "BDEXDEBUG> #",ii,"= '"//
+     &trim(dynk_stringzerotrim(bdex_stringStorage(ii)))//"'"
+            enddo
+            write(*,*) "BDEXDEBUG> Dump completed."
++ei
+         endif
+!         stop
+         goto 110 ! loop BLOCK
       else
 +if cr
          write (lout,*)
@@ -29799,6 +29847,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca dbdcum
++ca combdex
 +ca save
 !-----------------------------------------------------------------------
 +if fast
@@ -30538,6 +30587,37 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !           backspace (93,iostat=ierro)
 !         endif
 +ei
+
+          if ( bdex_enable .and. kz(ix).eq.0 .and.
+     &         bdex_elementStatus(ix).ne.0 ) then
+             if (bdex_elementStatus(ix).eq.1) then
+                !Particle exchange
+                if (bdex_debug) then
++if cr
+                   write(lout,*) "BDEXDEBUG> "//
++ei
++if .not.cr
+                   write(*,*)    "BDEXDEBUG> "//
++ei
+     &"Doing particle exchange in bez=",bez(ix),
+     &"elementStatus=",bdex_elementStatus(ix)
+                endif
+                
+                !TODO...
+                
+             else
++if cr
+                write(lout,*) "BDEX> elementStatus=",
+     &bdex_elementStatus(i), "not understood."
++ei
++if .not.cr
+                write(*,*)    "BDEX> elementStatus=",
+     &bdex_elementStatus(i), "not understood."
++ei
+                call prror(-1)
+             endif
+          endif
+
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
 ! JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
