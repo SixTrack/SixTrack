@@ -18482,6 +18482,48 @@ cc2008
 +ei
             call prror(-1)
          endif
+         
+         jj = -1
+         do ii=1,il !match the single element
+            if ( bez(j) .eq.
+     &           getfields_fields(3)(1:getfields_lfields(3)) ) then
+               jj=ii
+               exit !breaks the loop
+            endif
+         enddo
+         if (jj.eq.-1) then
++if cr
+            write(lout,*)
++ei
++if .not.cr
+            write(*,*)
++ei
+     &"BDEX> ERROR: The element '"//
+     &getfields_fields(3)(1:getfields_lfields(3)) //"' was not found "//
+     &"in the single element list."
+            call prror(-1)
+         endif
+
+         bdex_elementStatus(jj)=1 !Particle exchange at this element
+         
+         bdex_elementChannel(jj) = -1
+         do ii=1,bdex_nchannels !Match channel name
+            if ( bdex_channelNames(ii)(1:getfields_lfields(2)) .eq.
+     &             getfields_fields(2)(1:getfields_lfields(2)) ) then
+               bdex_elementChannel(jj)=ii
+            endif
+         enddo
+         if ( bdex_elementChannel(jj).eq.-1 ) then
++if cr
+            write(lout,*) "BDEX> ERROR: The channel '"//
+     &getfields_fields(2)(1:getfields_lfields(2)) //"' was not found"
++ei
++if .not.cr
+            write(*,*)    "BDEX> ERROR: The channel '"//
+     &getfields_fields(2)(1:getfields_lfields(2)) //"' was not found"
++ei
+            call prror(-1)
+         endif
 
          goto 2300 !loop BDEX
          
@@ -18511,7 +18553,7 @@ cc2008
          endif
 
          !Parse CHAN
-         select case( trim(dynk_stringzerotrim( getfields_fields(3) )) )
+         select case( trim(dynk_stringzerotrim( getfields_fields(3) )) ) !Could I rather just use the length of the field?
          case ("PIPE")
             !PIPE: Use a pair of pipes to communicate the particle distributions
             !Arguments: InFileName OutFileName format fileUnit
@@ -18576,7 +18618,7 @@ cc2008
             inquire( unit=bdex_channels(bdex_nchannels,4),opened=lopen )
             if (lopen) then
 +if cr
-               write(lout,*)"BDEX> ERROR in daten():PIPE "
+               write(lout,*)"BDEX> ERROR in daten():BDEX:CHAN:PIPE"
                write(lout,*)"BDEX> unit=",
      &              bdex_channels(bdex_nchannels,4),
      &              "for file '"//bdex_stringStorage(
@@ -18584,7 +18626,7 @@ cc2008
      &              //"' was already taken"
 +ei
 +if .not.cr
-               write(*,*)   "BDEX> ERROR in daten():PIPE "
+               write(*,*)   "BDEX> ERROR in daten():BDEX:CHAN:PIPE"
                write(*,*)   "BDEX> unit =",
      &              bdex_channels(bdex_nchannels,4),
      &              "for file '"//bdex_stringStorage(
