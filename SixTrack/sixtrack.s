@@ -44143,12 +44143,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
             write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "'"
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():PIPE"
             write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "'"
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
 +ei
             call prror(51)
          endif
@@ -44196,12 +44196,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
             write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "'"
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():PIPE"
             write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "'"
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
 +ei
             call prror(51)
          endif
