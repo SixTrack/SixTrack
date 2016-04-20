@@ -826,6 +826,17 @@ if ! gawk -f beauty/count.awk sixtrack.s; then
 else
     echo "--> count.awk completed without errors."
 fi
+echo "Running 'gawk -f beauty/count.awk plato_seq.s' to check sanity of astuce directives in plato_seq.s:"
+if ! gawk -f beauty/count.awk plato_seq.s; then
+    echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in plato_seq.s \e[49m\e[0m"
+    echo "This most likely means that you added or removed a +if or +ei,"
+    echo " but forgot about its partner."
+    echo "You may also just be missing the command 'gawk' (GNU AWK),"
+    echo " needed to run this script."
+else
+    echo "--> count.awk completed without errors."
+fi
+
 
 #Print final message before actually starting the build
 echo ""
@@ -854,17 +865,16 @@ make -f Makefile dafor
 mkdir -p "$ename"
 cd "$ename"
 rm -rf *
-for dots in dabnew  lielib  sixtrack
+for dots in dabnew  lielib  sixtrack plato_seq
 do
     ln -sf ../${dots}.s ${dots}.s
 done
-ln -sf ../plato_seq.f plato_seq.f #TODO: make plato_seq.s + .ast(s)
 # Use only necessary .ast (and .f later)
 if test "$da" = ""
 then
-    export FORS='sixda sixsc sixscfox dabnew lielib beamgas'
+    export FORS='sixda sixsc sixscfox dabnew lielib beamgas' #PLATO here also?
 else
-    export FORS='track sixve sixvefox dabnews lielib beamgas'
+    export FORS='track sixve sixvefox dabnews lielib beamgas plato_seq'
 fi
 rm -f *.ast
 for i in $FORS

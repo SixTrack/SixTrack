@@ -218,8 +218,8 @@ endif
 MASKS_DAFOR := sixvefox sixscfox sixda
 
 #different masks depending on DA
-MASKS_DA   := lielib dabnews sixscfox sixsc sixda
-MASKS_OT   := track sixve sixvefox dabnews lielib beamgas
+MASKS_DA   := lielib dabnews sixscfox sixsc sixda #PLATO here too?
+MASKS_OT   := track sixve sixvefox dabnews lielib beamgas plato_seq
 MASKS      := $(call if_any,da,$(ENABLED),$(MASKS_DA),$(MASKS_OT))
 
 # preparing fortran files to be preprocessed with dafor. 
@@ -318,12 +318,11 @@ endif
 # preparing proper file names with extension
 MASKS:= $(addprefix $(DESTDIR)$/,$(MASKS))
 O_FILES   := $(MASKS:=.o)
-O_FILES   := $(O_FILES) plato_seq.o
 AST_FILES := $(MASKS:=.ast)
 FN_FILES   := $(MASKS:=n.f)
 F_FILES   := $(MASKS:=.f)
 # .s files to be copied
-S_FILES := dabnew.s lielib.s sixtrack.s plato_seq.f #TODO: plato should be processed by CRLIBM
+S_FILES := dabnew.s lielib.s sixtrack.s plato_seq.s
 
 # separate variable for source required on Windows
 SRC_AST := .$/ast_mask$/$/
@@ -385,7 +384,6 @@ COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
 #     Rules
 #
 #################
-
 
 .PHONY: clean sixtrack help crlibm
 
