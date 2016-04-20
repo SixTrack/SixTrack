@@ -1,3 +1,4 @@
++dk plato_seq
 *
 * $Id: cfft.F,v 1.1.1.1 1996/02/15 17:48:48 mclareni Exp $
 *
