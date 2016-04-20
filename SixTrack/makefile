@@ -318,11 +318,12 @@ endif
 # preparing proper file names with extension
 MASKS:= $(addprefix $(DESTDIR)$/,$(MASKS))
 O_FILES   := $(MASKS:=.o)
+O_FILES   := $(O_FILES) plato_seq.o
 AST_FILES := $(MASKS:=.ast)
 FN_FILES   := $(MASKS:=n.f)
 F_FILES   := $(MASKS:=.f)
 # .s files to be copied
-S_FILES := dabnew.s lielib.s sixtrack.s
+S_FILES := dabnew.s lielib.s sixtrack.s plato_seq.f #TODO: plato should be processed by CRLIBM
 
 # separate variable for source required on Windows
 SRC_AST := .$/ast_mask$/$/
