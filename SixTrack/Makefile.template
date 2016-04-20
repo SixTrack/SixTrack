@@ -30,8 +30,13 @@ astuce: astuce.o
 myboinc.o: myboinc.f
 	$(FC) -c $(FCF) myboinc.f
 
-%%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o $(BEAMGAS) $(BOINC) $(CRLIBM)
-	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o $(BEAMGAS) \
+plato_seq.o: plato_seq.f
+	$(FC) -c $(FCF) plato_seq.f -o plato_seq.o
+
+
+
+%%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) $(BOINC) $(CRLIBM)
+	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) \
 	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib) > sixtrack.map 2>&1
 
 %%SIXTRACK_DA%%: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)

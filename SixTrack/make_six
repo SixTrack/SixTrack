@@ -592,10 +592,10 @@ then
 #  export FCF=" -frecord-marker=4 -$myopt -m32 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all -O0 -g"
   export FCF=" -frecord-marker=4 -$myopt -m32 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2"
 #MF
-#  export FCL="-static -m32"
-#  export FCLD="-m32"
-  export FCL="-static -m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1"
-  export FCLD="-m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1"
+  export FCL="-static -m32"
+  export FCLD="-m32"
+#  export FCL="-static -m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1"
+#  export FCLD="-m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1"
 elif test "$lf95" = ""
 then
   export FC="lf95"
@@ -858,6 +858,7 @@ for dots in dabnew  lielib  sixtrack
 do
     ln -sf ../${dots}.s ${dots}.s
 done
+ln -sf ../plato_seq.f plato_seq.f #TODO: make plato_seq.s + .ast(s)
 # Use only necessary .ast (and .f later)
 if test "$da" = ""
 then
@@ -932,7 +933,7 @@ done
 echo "Done!"
 
 # Then generate the .f files
-echo "Running ASTUCE..."
+echo "Running ASTUCE and DAFOR..."
 for i in $FORS
 do
     ../astuce < $i.ast
