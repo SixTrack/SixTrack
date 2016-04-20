@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.33'/
-      data moddate /'05.02.2016'/
+      data version /'4.5.34'/
+      data moddate /'06.04.2016'/
 +cd license
 !!SixTrack
 !!
@@ -28014,6 +28014,37 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       iturn = 1
       ie    = 1
       n_tot_absorbed = 0
+      
+      if (int(mynp/napx00) .eq. 0) then
++if cr
+         write (lout,*) ""
+         write (lout,*) "********************************************"
+         write (lout,*) "Error in setting up collimation tracking:"
+         write (lout,*) "Number of samples is zero!"
+         write (lout,*) "Did you forget the COLL block in fort.3?"
+         write (lout,*) "If you want to do standard (not collimation)"//
+     &                  " tracking, please use the standard SixTrack."
+         write (lout,*) "Value of do_coll = ", do_coll
+         write (lout,*) "Value of mynp    = ", mynp
+         write (lout,*) "Value of napx00  = ", napx00
+         write (lout,*) "********************************************"
++ei
++if .not.cr
+         write (*,*)    ""
+         write (*,*)    "********************************************"
+         write (*,*)    "Error in setting up collimation tracking:"
+         write (*,*)    "Number of samples is zero!"
+         write (*,*)    "Did you forget the COLL block in fort.3?"
+         write (*,*)    "If you want to do standard (not collimation)"//
+     &                  " tracking, please use the standard SixTrack."
+         write (*,*)    "Value of do_coll = ", do_coll
+         write (*,*)    "Value of mynp    = ", mynp
+         write (*,*)    "Value of napx00  = ", napx00
+         write (*,*)    "********************************************"
++ei
+         call prror(-1)
+      endif
+      
 !
 !================================================================================
 !Ralph make loop over 1e6/napx, a read xv(1,j) etc
@@ -46331,7 +46362,21 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
             call dynk_dumpdata
             call prror(-1)
+         elseif (turn .lt. 1) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
+            write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
+            write(lout,*)"DYNK> Turn < 1, check your turn-shift!"
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():FILE****"
+            write(*,*)   "DYNK> funNum =", funNum, "turn=", turn
+            write(*,*)   "DYNK> Turn < 1, check your turn-shift!"
++ei
+            call dynk_dumpdata
+            call prror(-1)
          endif
+
          retval = fexpr_dynk(funcs_dynk(funNum,4)+turn-1)
       case(2)                                                           ! FILELIN
          filelin_start    = funcs_dynk(funNum,4)
@@ -63046,26 +63091,46 @@ c$$$     &           myalphay * cos(phiy))
 +ca dbmkdist
 
       character*80   filename_dis
-
+      
+      logical lopen
+      integer stat
+      
       save
 
-      write(*,*) "Reading input bunch from ", filename_dis
+      write(*,*) "Reading input bunch from file ", filename_dis
 
-      open(unit=54, file=filename_dis)
+      inquire( unit=53, opened=lopen )
+      if (lopen) then
+         write(*,*) "ERROR in subroutine readdis: "//
+     &        "FORTRAN Unit 53 was already open!"
+         goto 20
+      endif
+      open(unit=53, file=filename_dis, iostat=stat,
+     &     status="OLD",action="read")
+      if (stat.ne.0)then
+         write(*,*) "Error in subroutine readdis: "//
+     &        "Could not open the file."
+         write(*,*) "Got iostat=",stat
+         goto 20
+      endif
 
       do j=1,mynp
-         read(54,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j),     &
+         read(53,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j),     &
      &        mys(j), myp(j)
       enddo
-
+      
  10   mynp = j - 1
-      write(*,*) "Number of particles in the bunch = ",mynp
+      write(*,*) "Number of particles read from the file = ",mynp
 
-      close(54)
+      close(53)
 
       return
+      
  20   continue
-      call abend('I/O Error on Unit 54                              ')
+!      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
+      write(*,*) "I/O Error on Unit 53 in subroutine readdis"
+      call prror(-1)
+      
       end
 !
 !========================================================================
@@ -63508,7 +63573,7 @@ c$$$     &           myalphay * cos(phiy))
                 bsd = 2.d0 * bpp
               elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
 !hr09           bsd = (106.d0-17.d0*xm2) *  bpp / 26.d0
-                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 26.d0                !hr09
+                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 36.d0                !hr09
               elseif ( xm2 .gt. 5.d0 ) then
 !hr09           bsd = 7.d0 * bpp / 12.d0
                 bsd = (7.d0 * bpp) / 12.d0                               !hr09
@@ -65795,13 +65860,30 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca database
 +ca dbcommon
 !
+
+      logical lopen
+
 +ca save
 !
 !--------------------------------------------------------------------
 !++  Read collimator database
 !
 !      write(*,*) 'reading collimator database'
-      open(unit=53,file=coll_db)
+      inquire( unit=53, opened=lopen )
+      if (lopen) then
+         write(*,*) "ERROR in subroutine readcollimator: "//
+     &        "FORTRAN Unit 53 was already open!"
+         call prror(-1)
+      endif
+
+      open(unit=53,file=coll_db, iostat=ios,
+     &     status="OLD",action="read")
+      if (ios.ne.0)then
+         write(*,*) "Error in subroutine readcollimator: "//
+     &        "Could not open the file ",coll_db
+         write(*,*) "Got iostat=",ios
+         call prror(-1)
+      endif
 !
 !      write(*,*) 'inside collimator database'
 !      I = 0
@@ -65811,11 +65893,11 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !     write(*,*) 'ios = ',ios
       if (ios.ne.0) then
         write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
-        stop
+        call prror(-1)
       endif
       if (db_ncoll.gt.max_ncoll) then
          write(*,*) 'ERR> db_ncoll > max_ncoll '
-         stop
+         call prror(-1)
       endif
 !
       do j=1,db_ncoll
@@ -65827,58 +65909,58 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
 !
         read(53,*,iostat=ios) db_name2(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
 !
         read(53,*,iostat=ios) db_nsig(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
 !GRD
         read(53,*,iostat=ios) db_material(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_length(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_rotation(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_offset(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_bx(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_by(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
       enddo
 !
