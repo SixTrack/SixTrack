@@ -45,11 +45,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update September 2015
+  Update January 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.28 \\
+  Version 4.5.31 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -1400,7 +1400,6 @@ For the SET, the time $t$ is then shifted by -70 turns, so that the functions ar
 \todo[inline]{Write}
 
 \subsection{Beam--Beam Element} \label{BeamBeam}
-\todo[inline]{Update for JavierBB}
 
 \subparagraph{Description} The beam--beam kick, including a separation
 of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs}
@@ -1673,6 +1672,7 @@ variable but at least 1
    $\beta$--, $\alpha$-- and $\gamma$--functions, 4 angles for
    coordinates and momenta respectively, plus the coupling angle
    [rad]) are written in ascii format on file \# 11.
+   This write-out happens every \emph{ntco} turns.
  \end{itemize}
 \item [E\_I, E\_II] (floats) The two eigen--emittances to be chosen to
   determine the coupling angle. They are typically set to be equal.
@@ -2353,7 +2353,7 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
 \begin{description}
 \item [numl] (integer) Number of turns in the forward direction
 \item [numlr] (integer) Number of turns in the backward direction
-\item [napx] (integer) Number of amplitude variations
+\item [napx] (integer) Number of amplitude variations (i.e.\ particle pairs)
 \item [amp(1), amp0] (floats) Start and end amplitude (any sign) in
   the horizontal phase space plane for the amplitude variations. The
   vertical amplitude is calculated using the ratio between the
@@ -2693,6 +2693,7 @@ How to do this is described below.
 The DUMP block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.
 This can be done in any SINGLE ELEMENTS which are directly mentioned in the STRUCTURE INPUT part of fort.2 (BLOCs cannot be used).
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
+Please note that each single element can only be selected once; it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence.
 
 \paragraph{Keyword}
 DUMP
@@ -2701,7 +2702,7 @@ DUMP
 variable, one for each element for which dump is active
 
 \paragraph{Format}
-\texttt{element\_name frequency unit format (filename)}\\
+\texttt{element\_name frequency unit format (filename) (first last)}\\
 or \texttt{HIGH}\\
 or \texttt{FRONT}
 
@@ -2727,7 +2728,11 @@ an integer specifying the output format. The following is accepted:
   Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
 \end{enumerate}
 
-\subparagraph{filename} is the name of the file to write to. This argument may be omitted, and if so the output file is named fort.\texttt{UNIT}.
+\subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
+
+\subparagraph{first} is the first turn where this dump should be active. This argument may be omitted if \texttt{last} is also omitted, and if so it defaults to turn 1.
+
+\subparagraph{last} is the last turn where this dump should be active, -1 meaning ``untill the end of the simulation''. This argument may be omitted if \texttt{first} is also omitted, and if so it defaults to -1.
 
 \subparagraph{HIGH} If present anywhere in the DUMP block this triggers high-precission output, meaning more digits in the output files.
 

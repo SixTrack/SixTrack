@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.29'/
-      data moddate /'21.09.2015'/
+      data version /'4.5.34'/
+      data moddate /'20.04.2016'/
 +cd license
 !!SixTrack
 !!
@@ -151,26 +151,45 @@
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
      &nrco,ntr,nzfz
       parameter(npart = 64,nmac = 1)
+!Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
+! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
+! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
+! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
-     &nzfz = 300000,mmul = 20)
+     &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
-+if .not.bignblz
++if hugenblz
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
+     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array
++ei
++if .not.bignblz.and..not.hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
-     &nzfz = 300000,mmul = 20)
+     &nzfz = 300000,mmul = 20) !up to 6'000 multipoles
 +ei
-+ei
++ei ! / not collimat
 +if collimat
 +if beamgas
       parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
-     &nzfz = 300000,mmul = 11)
-+ei
+     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
++ei ! / beamgas
 +if .not.beamgas
++if bignblz
+      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
+     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
++ei ! / bignblz
++if hugenblz
+      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
+     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles
++ei ! / hugenblz
++if .not.bignblz.and..not.hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
-     &nzfz = 300000,mmul = 11)
-+ei
-+ei
+     &nzfz = 144000,mmul = 11) !up to 4500 multipoles
++ei ! / not bignblz
++ei ! / not beamgas
++ei ! / collimat
+
 +if collimat
       parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
 +ei
@@ -557,11 +576,8 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
-      integer max_ncoll,max_npart,maxn,numeff,outlun,nc
-!UPGRADE January 2005
-!     PARAMETER (MAX_NCOLL=68,MAX_NPART=20000,nc=32,NUMEFF=19,
-      parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
-     &maxn=20000,outlun=54)
+      integer max_ncoll,maxn,numeff,outlun,nc
+      parameter (max_ncoll=100,nc=32,numeff=19,maxn=20000,outlun=54)
 +cd database
 !GRD
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
@@ -835,9 +851,8 @@
       common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
      &mybetay,rselect
 !
-      integer absorbed(npart),counted(npart,numeff)
       double precision neff(numeff),rsig(numeff)
-      common  /eff/ neff,rsig,counted,absorbed
+      common  /eff/ neff,rsig
 !
       integer  nimpact(50)
       double precision sumimpact(50),sqsumimpact(50)
@@ -908,10 +923,8 @@
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
       integer counted_r(maxn,numeff),counted_x(maxn,numeff),            &
-     &counted_y(maxn,numeff),                                           &
-     &ieffmax_r(npart),ieffmax_x(npart),ieffmax_y(npart)
-      common /counting/ counted_r,counted_x,counted_y,ieffmax_r,        &
-     &ieffmax_x, ieffmax_y
+     &counted_y(maxn,numeff)
+      common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
@@ -949,9 +962,8 @@
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
      &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
-     &indiv(npart),lint(npart),x_out(max_npart),xp_out(max_npart),      &
-     &y_out(max_npart),yp_out(max_npart),p_out(max_npart),              &
-     &s_out(max_npart),keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,   &
+     &indiv(npart),lint(npart),
+     &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
      &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
 !
       double precision c_length    !length in m
@@ -1106,6 +1118,8 @@
                                              !   dumping
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
+      integer dumpfirst                      ! First turn for DUMP to be active
+      integer dumplast                       ! Last turn for this DUMP to be active (-1=all)
       integer dumpunit                       ! fortran unit for dump at a
                                              !   flagged SINGLE ELEMENT
       integer dumpfmt                        ! flag the format of the dump
@@ -1113,6 +1127,7 @@
       character dump_fname (0:nele)*(getfields_l_max_string)
       
       common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
+     &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
      &                dump_fname
 +cd dbdumpcr
@@ -4267,7 +4282,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         do j=1,napx
 !hr03    crabamp=ed(ix)/(ejfv(j))*c1e3
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
-!        write(*,*) crabamp, ejfv(j), clight, "HELLO"
 
 +if .not.tilt
 +if crlibm
@@ -7601,8 +7615,12 @@ cc2008
           if ( ldump(0) ) then
 !           dump at all SINGLE ELEMENTs
             if ( ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1 ) then
-              call dump_beam_population( n, i, ix, dumpunit(0),         &
-     &                              dumpfmt(0), ldumphighprec )
+               if (   (n.ge.dumpfirst(ix)) .and. 
+     &              ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+     &              ) then
+                  call dump_beam_population( n, i, ix, dumpunit(0),
+     &                 dumpfmt(0), ldumphighprec )
+               endif
             endif
           endif
           if ( ktrack(i) .ne. 1 ) then
@@ -7610,8 +7628,12 @@ cc2008
              if ( ldump(ix) ) then
                 ! dump at this precise SINGLE ELEMENT
                 if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
-                   call dump_beam_population( n, i, ix, dumpunit(ix),
-     &                                     dumpfmt(ix), ldumphighprec )
+                   if (   (n.ge.dumpfirst(ix)) .and. 
+     &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+     &                ) then
+                      call dump_beam_population( n, i, ix, dumpunit(ix),
+     &                     dumpfmt(ix), ldumphighprec )
+                   endif
                 endif
              endif
           endif
@@ -8326,16 +8348,12 @@ cc2008
             phi(l)=phi(l)+dphi/pie
           enddo
 
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         update nr
           nr=nr+1
-
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
@@ -12969,7 +12987,8 @@ cc2008
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
      &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
-     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft
+     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,   &
+     &i4,i5
 +if time
       integer ifiend35
       double precision tcnst
@@ -13422,6 +13441,21 @@ cc2008
       endif
 +ei
 +ei
+      !Check that the name is unique
+      do j=1,i-1
+         if ( bez(j).eq.idat ) then
++if cr
+            write(lout,*) "ERROR in DATEN:"
+            write(lout,*) "Got multiple copies of element ", bez(j)
++ei
++if .not.cr
+            write(*,*)    "ERROR in DATEN:"
+            write(*,*)    "Got multiple copies of element ", bez(j)
++ei
+            call prror(-1)
+         endif
+      enddo
+
       if(kz(i).eq.25) then
         ed(i)=ed(i)/two
         ek(i)=ek(i)/two
@@ -13652,26 +13686,26 @@ cc2008
 ! reading character strings so OK
       read(ch1,*) idat,(ilm0(m),m=1,40)
       if(idat.eq.idum) goto 270
-      i=i+1
+      i=i+1 ! Current BLOC number
       if(i.gt.nblo-1) call prror(18)
       bezb(i)=idat
       k0=0
-      mblo=i
+      mblo=i ! Update total number of BLOCs
   270 ka=k0+1
       ke=k0+40
       do 300 l=ka,ke
         if(l.gt.nelb) call prror(26)
         ilm(l)=ilm0(l-k0)
         if(ilm(l).eq.idum) goto 310
-        mel(i)=l
-        beze(i,l)=ilm(l)
-        do 280 j=1,il
+        mel(i)=l         ! Number of single elements in this block
+        beze(i,l)=ilm(l) ! Name of the current single element
+        do 280 j=1,il    ! Search for the single element idx j
           if(bez0(j).eq.ilm(l)) goto 290
   280   continue
         erbez=ilm(l)
         call prror(19)
-  290   mtyp(i,l)=j
-        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j)
+  290   mtyp(i,l)=j ! Block i / sub-element l has single element index j
+        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j) ! Count block length (kz=8 -> edge focusing->skip!)
   300 continue
   310 k0=l-1
       goto 220
@@ -13700,7 +13734,7 @@ cc2008
       i2=1
       ! Look for repetition with syntax N( ... )
       do 420 ii=1,80
-        if(ch(ii:ii).eq.kl) then
+        if(ch(ii:ii).eq.kl) then !kl='('
           if(ii.gt.1) then
             do 370 jj=1,ii-1
   370       if(ch(jj:jj).ne.' ') goto 380
@@ -13713,7 +13747,7 @@ cc2008
           i2=ii+1
           goto 430
         endif
-        if(ch(ii:ii).eq.kr) then
+        if(ch(ii:ii).eq.kr) then !kr=')'
           if(iw0.le.0) goto 330
           idi=i-ia
           do 410 k=1,iw0
@@ -13725,6 +13759,7 @@ cc2008
           goto 330
         endif
   420 continue
+      ! Create the structure
   430 call intepr(3,i2,ch,ch1)
 ! reading character strings so OK
       read(ch1,*) (ilm0(k),k=1,40)
@@ -13732,20 +13767,26 @@ cc2008
         if(ilm0(k).eq.idum) goto 490
         if(ilm0(k).eq.go) goto 480
         i=i+1
-        do 440 j=1,mblo
+        do 440 j=1,mblo !is it a BLOC?
           if(bezb(j).eq.ilm0(k)) goto 470
   440   continue
-        do 450 l=1,il
+        do 450 l=1,il   !is it a SINGLE ELEMENT?
           if(bez0(l).eq.ilm0(k)) goto 460
   450   continue
+        ! It was neither BLOC or SINGLE ELEMENT! ERROR!
         erbez=ilm0(k)
         call prror(20)
+        
+        ! Handle SINGLE ELEMENT
   460   continue
         ic(i)=l+nblo
         if(bez0(l).eq.cavi) icy=icy+1
         goto 490
+
+        !Handle BLOC
   470   ic(i)=j
         goto 490
+        !Handle GO
   480   kanf=i+1
   490 continue
       mbloz=i
@@ -15935,7 +15976,8 @@ cc2008
 +ei
       do 890 i=1,3
       do 890 j=1,nele
-  890 bezr(i,j)=idum
+  890 bezr(i,j)=idum !Initialize all bezr to idum=' '
+      
   900 iorg=iorg+1
   910 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -15943,42 +15985,55 @@ cc2008
       if(ch(1:1).eq.'/') goto 910
       if(ch(:4).eq.next) goto 110
       call intepr(3,1,ch,ch1)
-! bezr are character strings, should be OK
+      ! bezr are character strings, should be OK
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
-      if(idat.ne.next) then
-      if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum) write  &
-     &(6,10360) idat
-      if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum) write  &
-     &(6,10390) idat,bezr(2,iorg)
-      if(idat.ne.mult) bezr(1,iorg)=idat
-      if(idat.eq.mult.and.bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum)&
-     &then
+      if(idat.ne.next) then !Isn't this already checked for above?
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)
 +if cr
-        write(lout,10400)bezr(2,iorg),bezr(3,iorg)
+     &        write(lout,10360) idat
 +ei
 +if .not.cr
-        write(*,10400)bezr(2,iorg),bezr(3,iorg)
+     &        write(*,10360)    idat
 +ei
-        im=im+1
-        j0=0
-        j1=0
-        do 920 i=1,il
-          if(bez(i).eq.bezr(2,iorg)) j1=i
-  920   if(bez(i).eq.bezr(3,iorg)) j0=i
-        if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
-     &call prror(29)
-        irm(j0)=im
-        benkc(j0)=benkc(j1)
-        r00(j0)=r00(j1)
-        imo=irm(j1)
-        nmu(j0)=nmu(j1)
-        do 930 i1=1,nmu(j0)
-          bk0(im,i1)=bk0(imo,i1)
-          bka(im,i1)=bka(imo,i1)
-          ak0(im,i1)=ak0(imo,i1)
-  930   aka(im,i1)=aka(imo,i1)
-      endif
-      goto 900
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)
++if cr
+     &        write(lout,10390) idat,bezr(2,iorg)
++ei
++if .not.cr
+     &        write(*,10390)    idat,bezr(2,iorg)
++ei
+         if(idat.ne.mult)
+     &        bezr(1,iorg)=idat
+         if(idat.eq.mult.and.
+     &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
++if cr
+            write(lout,10400) bezr(2,iorg),bezr(3,iorg)
++ei
++if .not.cr
+            write(*,10400)    bezr(2,iorg),bezr(3,iorg)
++ei
+            im=im+1
+            j0=0
+            j1=0
+            do 920 i=1,il
+               if(bez(i).eq.bezr(2,iorg)) j1=i
+ 920           if(bez(i).eq.bezr(3,iorg)) j0=i
+            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
+     &              call prror(29)
+
+            irm(j0)=im
+            benkc(j0)=benkc(j1)
+            r00(j0)=r00(j1)
+            imo=irm(j1)
+            nmu(j0)=nmu(j1)
+            do 930 i1=1,nmu(j0)
+               bk0(im,i1)=bk0(imo,i1)
+               bka(im,i1)=bka(imo,i1)
+               ak0(im,i1)=ak0(imo,i1)
+ 930           aka(im,i1)=aka(imo,i1)
+
+         endif
+         goto 900
       endif
 +if cr
       write(lout,10130)
@@ -16976,26 +17031,14 @@ cc2008
 +if .not.collimat
 +if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) "     collimation not forseen in this version"
-+ei
-+if .not.cr
-      write(*,*) "     collimation not forseen in this version"
-+ei
-+if cr
       write(lout,*) "     please use proper version"
-+ei
-+if .not.cr
-      write(*,*) "     please use proper version"
-+ei
-+if cr
       write(lout,*)
 +ei
 +if .not.cr
+      write(*,*)
+      write(*,*)    "     collimation not forseen in this version"
+      write(*,*)    "     please use proper version"
       write(*,*)
 +ei
  1287 continue
@@ -17019,6 +17062,7 @@ cc2008
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
+
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & nloop,myenom
@@ -17026,14 +17070,33 @@ cc2008
 +if .not.fio
       if(iclr.eq.2) read(ch1,*) nloop,myenom
 +ei
-!JUNE2005
-+if fio
-!      if(iclr.eq.3) read(ch1,*,round='nearest')                        &
-     & mynex,mdex,myney,mdey
+      !Does not work for bnlelens, but collimat+bnlelens doesn't work anyway...
+      !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
+      if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
++if cr
+         write(lout,*) ""
+         write(lout,*) "Error in parsing COLL block in fort.3"
+         write(lout,*) "nloop =", nloop
+         write(lout,*) "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
+         write(lout,*) "maxn  =", maxn
+         write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
+         write(lout,*) "Please reduce the number of particles or loops"
+         write(lout,*) ""
+        call abend('                                                  ')
 +ei
-+if .not.fio
-!      if(iclr.eq.3) read(ch1,*) mynex,mdex,myney,mdey
++if .not.cr
+         write(*,*)    ""
+         write(*,*)    "Error in parsing COLL block in fort.3"
+         write(*,*)    "nloop =", nloop
+         write(*,*)    "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
+         write(*,*)    "maxn  =", maxn
+         write(*,*)    "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
+         write(*,*)    "Please reduce the number of particles or loops"
+         write(*,*)    ""
+         stop
 +ei
+      endif
+
 +if fio
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & do_thisdis,mynex,mdex,myney,mdey,       &
@@ -17070,89 +17133,6 @@ cc2008
      &nsig_tcli,                                                        &
 !     &nsig_tcth,nsig_tctv,                                              &
      &nsig_tcdq,nsig_tcstcdq,nsig_tdi
-!APRIL2005
-+if fio
-!      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
-+ei
-+if .not.fio
-!      if(iclr.eq.5) read(ch1,*)                                         &
-+ei
-!     &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-!     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8
-+if fio
-!      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
-!    & emitx0,emity0
-+ei
-+if .not.fio
-!      if(iclr.eq.6) read(ch1,*) emitx0,emity0
-+ei
-+if fio
-!      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
-!    & do_select,do_nominal,                   &
-+ei
-+if .not.fio
-!      if(iclr.eq.7) read(ch1,*) do_select,do_nominal,                   &
-+ei
-!     &rnd_seed,dowrite_dist,name_sel,do_oneside,                        &
-!     &dowrite_impact,dowrite_secondary,dowrite_amplitude
-+if fio
-!      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
-!    & xbeat,xbeatphase,ybeat,                                           &
-+ei
-+if .not.fio
-!      if(iclr.eq.8) read(ch1,*) xbeat,xbeatphase,ybeat,                 &
-+ei
-!     &ybeatphase
-+if fio
-!      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-!    & c_rmstilt_prim,c_rmstilt_sec,                                     &
-+ei
-+if .not.fio
-!      if(iclr.eq.9) read(ch1,*) c_rmstilt_prim,c_rmstilt_sec,           &
-+ei
-!     &c_systilt_prim,c_systilt_sec
-+if fio
-!      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
-!    & radial,nr,ndr
-+ei
-+if .not.fio
-!      if(iclr.eq.10) read(ch1,*) radial,nr,ndr
-+ei
-+if fio
-!      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
-!    & driftsx,driftsy,cut_input,                                        &
-+ei
-+if .not.fio
-!      if(iclr.eq.11) read(ch1,*) driftsx,driftsy,cut_input,             &
-+ei
-!     &systilt_antisymm
-+if fio
-!      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
-!    & ipencil,pencil_offset
-+ei
-+if .not.fio
-!      if(iclr.eq.12) read(ch1,*) ipencil,pencil_offset
-+ei
-!!APRIL2005
-+if fio
-!      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
-     & coll_db,ibeam
-+ei
-+if .not.fio
-!      if(iclr.eq.13) read(ch1,*) coll_db,ibeam
-+ei
-!!APRIL2005
-+if fio
-!      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
-!    & dowritetracks, cern, castordir,                                   &
-+ei
-+if .not.fio
-!      if(iclr.eq.14) read(ch1,*) dowritetracks, cern, castordir,        &
-+ei
-!     &jobnumber, sigsecut2, sigsecut3
-!!
-!      if(iclr.ne.14) goto 1285
-!SEPT2005
 +if fio
       if(iclr.eq.5) read(ch1,*,round='nearest')                         &
 +ei
@@ -17755,7 +17735,8 @@ cc2008
 !           write(lout,'(t10,a50)')
 !     &          ' required dump at ALL SINGLE ELEMENTs'
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0)
+     &          dumpunit(0), dump_fname(0), dumpfmt(0),
+     &          dumpfirst(0), dumplast(0)
         endif
 +ei
 +if .not.cr
@@ -17763,7 +17744,8 @@ cc2008
 !           write(*,'(t10,a50)')
 !     &          ' required dump at ALL SINGLE ELEMENTs'
            write(*,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0)
+     &          dumpunit(0), dump_fname(0), dumpfmt(0),
+     &          dumpfirst(0), dumplast(0)
         endif
 +ei
         do ii=1,il
@@ -17774,7 +17756,8 @@ cc2008
 +if .not.cr
             write(*,10470)
 +ei
-     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii), dumpfmt(ii)
+     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
+     &     dumpfirst(ii), dumplast(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
             kk = 0
@@ -17842,9 +17825,11 @@ cc2008
 
 !     initialise reading variables, to avoid storing non sense values
       idat = ' '
-      i1 = 0
-      i2 = 0
-      i3 = 0
+      i1 = 0  ! frequency
+      i2 = 0  ! unit
+      i3 = 0  ! format
+      i4 = 1  ! first turn
+      i5 = -1 ! last turn
 
       if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
@@ -17857,19 +17842,20 @@ cc2008
 !     requested element
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(51)
+      if ( getfields_lerr ) call prror(-1)
       
-      if (.not. ((getfields_nfields .eq. 4) .or. 
-     &           (getfields_nfields .eq. 5))    ) then
+      if ( (getfields_nfields .lt. 4) .or. 
+     &     (getfields_nfields .gt. 7) .or.
+     &     (getfields_nfields .eq. 6)      ) then
 +if cr
          write(lout,*) "ERROR in DUMP:"
-         write(lout,*) "Expected 4 or 5 arguments, got",
+         write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",
      &        getfields_nfields
          write(lout,*)
 +ei
 +if .not.cr
          write(*,*)    "ERROR in DUMP:"
-         write(*,*)    "Expected 4 or 5 arguments, got",
+         write(*,*)    "Expected 4 to 7 (but not 6)arguments, got",
      &        getfields_nfields
          write(*,*)
 +ei
@@ -17896,17 +17882,62 @@ cc2008
       if (getfields_nfields .eq. 4) then
          !Automatic fname
          write(ch1,"(a5,I0)") "fort.", i2
-      else if (getfields_nfields .eq. 5) then
+      else if ( (getfields_nfields .eq. 5) .or. 
+     &          (getfields_nfields .eq. 7)     ) then
          !Given fname
          ch1 = getfields_fields(5)(1:getfields_lfields(5))
       else
          !ERROR
          call prror(-1)
       endif
+      if (getfields_nfields .eq. 7) then
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) i4
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) i5
+      endif
       
+!Check that first/last turn is sane
+      if ( i5.ne.-1 ) then
+         if ( i5 .lt. i4 ) then
++if cr
+            write(lout,*)
++ei
++if .not.cr
+            write(*,*)
++ei
+     &           "Error in DUMP: Expect last turn >= first turn, ",
+     &           "unless last turn = -1 (infinity), got", i4,i5
+           call prror(-1)
+         endif
+      endif
+      if ( i4 .lt. 1 ) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "Error in DUMP: Expect first turn >= 1, got", i4
+         call prror(-1)
+      endif
+
 !     find it in the list of SINGLE ELEMENTs:
       do j=1,il
-         if(bez(j).eq.idat) goto 2001
+         if(bez(j).eq.idat) then
+            if (ldump(j)) then !Only enable once/element!
++if cr
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "Element '",idat, "' was specified",
+     &              " more than once"
++ei
++if .not.cr
+               write(*,*)    "Error in parsing DUMP block:"
+               write(*,*)    "Element '",idat, "' was specified",
+     &              " more than once"
++ei
+               call prror(-1)
+            endif
+            goto 2001
+         endif
       enddo
       if ( idat(:3).eq.'ALL' ) then
          j=0
@@ -17938,6 +17969,8 @@ cc2008
       dumpunit(j) = i2
       dumpfmt(j)  = i3
       dump_fname(j) = ch1
+      dumpfirst(j) = i4
+      dumplast(j) = i5
 !     go to next line
       goto 2000
 
@@ -18549,7 +18582,8 @@ cc2008
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'ELEMENT NAME',8x,'EVERY # TURNs',2x,
-     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT') !DUMP/STAT/BMAT
+     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,
+     &"FirstTurn",6x,"LastTurn") !DUMP/STAT/BMAT
 10070 format(1x,i3,1x,a16,1x,i3,1x,d16.10,1x,d16.10,1x,d16.10,1x,d13.7, &
      &1x,d12.6,1x,d13.7,1x,d12.6)
 10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
@@ -18569,7 +18603,7 @@ cc2008
      &'   |    ',a16,'   |               |               |')
 10400 format(5x,'| ELEMENTS |                              |          ' &
      &,'     |               |    ',a16,'   |    ',a16,'   |')
-10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6) !BMAT/STAT/DUMP
+10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12) !BMAT/STAT/DUMP
 10472 format(t10,a)                           !BMAT/STAT/DUMP
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
      &t10,'TROMBONE #      NAME'/)
@@ -26039,7 +26073,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
              if ( dumpfmt(i).eq.1 ) then
                 write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack'
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -26052,7 +26086,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i)
                 endif
                 write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack'
+     &'#ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 2
 +ei
@@ -27049,7 +27083,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     always in main code
       if (ldynk) call dynk_pretrack
 
++if collimat
+      if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then
++ei
++if .not.collimat
       if(idp.eq.0.or.ition.eq.0) then
++ei
 +if cr
         write(lout,*) ''
         write(lout,*) 'Calling thin4d subroutine'
@@ -27062,6 +27101,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         call thin4d(nthinerr)
       else
++if collimat
+        if (idp.eq.0.or.ition.eq.0) then
++if cr
+           write(lout,*) ""
+           write(lout,*) "******* WARNING *******"
+           write(lout,*) "Calling 6D tracking due to collimation!"
+           write(lout,*) "Would normally have called thin4d"
+           write(lout,*) ""
++ei
++if .not.cr
+           write(*,*)    ""
+           write(*,*)    "******* WARNING *******"
+           write(*,*)    "Calling 6D tracking due to collimation!"
+           write(*,*)    "Would normally have called thin4d"
+           write(*,*)    ""
++ei
+        endif
++ei
+
 !hr01   hsy(3)=c1m3*hsy(3)*ition
         hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
         do 310 jj=1,nele
@@ -27078,6 +27136,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           write(*,*)    ''
           write(*,*)    'Calling thin6dua subroutine'
           write(*,*)    ''
++ei
+
++if collimat
+          if (do_coll) then
++if cr
+            write(lout,*)
+            write(lout,*) "ERROR"
+            write(lout,*) "thin6dua not supported by collimation"
++ei
++if .not.cr
+            write(*,*)
+            write(*,*)    "ERROR"
+            write(*,*)    "thin6dua not supported by collimation"
++ei
+            STOP
+          endif
 +ei
           call thin6dua(nthinerr)
         else
@@ -27686,6 +27760,37 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       iturn = 1
       ie    = 1
       n_tot_absorbed = 0
+      
+      if (int(mynp/napx00) .eq. 0) then
++if cr
+         write (lout,*) ""
+         write (lout,*) "********************************************"
+         write (lout,*) "Error in setting up collimation tracking:"
+         write (lout,*) "Number of samples is zero!"
+         write (lout,*) "Did you forget the COLL block in fort.3?"
+         write (lout,*) "If you want to do standard (not collimation)"//
+     &                  " tracking, please use the standard SixTrack."
+         write (lout,*) "Value of do_coll = ", do_coll
+         write (lout,*) "Value of mynp    = ", mynp
+         write (lout,*) "Value of napx00  = ", napx00
+         write (lout,*) "********************************************"
++ei
++if .not.cr
+         write (*,*)    ""
+         write (*,*)    "********************************************"
+         write (*,*)    "Error in setting up collimation tracking:"
+         write (*,*)    "Number of samples is zero!"
+         write (*,*)    "Did you forget the COLL block in fort.3?"
+         write (*,*)    "If you want to do standard (not collimation)"//
+     &                  " tracking, please use the standard SixTrack."
+         write (*,*)    "Value of do_coll = ", do_coll
+         write (*,*)    "Value of mynp    = ", mynp
+         write (*,*)    "Value of napx00  = ", napx00
+         write (*,*)    "********************************************"
++ei
+         call prror(-1)
+      endif
+      
 !
 !================================================================================
 !Ralph make loop over 1e6/napx, a read xv(1,j) etc
@@ -27938,7 +28043,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD FOR NOT FAST TRACKING ONLY
 !hr08         ejfv(i)=sqrt(ejv(i)*ejv(i)-pma*pma)
               ejfv(i)=sqrt(ejv(i)**2-pma**2)                             !hr08
-              rvv(j)=(ejv(i)*e0f)/(e0*ejfv(i))
+              rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
               dpsv(i)=(ejfv(i)-e0f)/e0f
               oidpsv(i)=one/(one+dpsv(i))
 !hr08         dpsv1(i)=dpsv(i)*c1e3*oidpsv(i)
@@ -27946,16 +28051,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD
 !APRIL2005
 !              dpsv(i)  = 0d0
-              absorbed(i) = 0
+              nlostp(i)=i
               do ieff =1, numeff
                  counted_r(i,ieff) = 0
                  counted_x(i,ieff) = 0
                  counted_y(i,ieff) = 0
               end do
-!GRD INITIALIZE MAX COUNTERS
-              ieffmax_r(i) = 0
-              ieffmax_x(i) = 0
-              ieffmax_y(i) = 0
             end do
 !
 !++  Initialize random number generator
@@ -29213,6 +29314,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                 ) then
                      nsig = nsig_tcstcdq
                   endif
+               elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
+     &                 bez(myix)(1:4).eq.'tcsp') then
+                  if(bez(myix)(9:11).eq.'6.B'.or.
+     &                 bez(myix)(9:11).eq.'6.b') then
+                     nsig = nsig_tcstcdq
+                  endif
                elseif(bez(myix)(1:4).eq.'TCSM' .or.                     &
      &                 bez(myix)(1:4).eq.'tcsm') then
                   if(bez(myix)(8:10).eq.'3.B' .or.                      &
@@ -29236,18 +29343,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   nsig = nsig_tcdq
 ! YIL11: Checking only the IR value for TCT's..
                elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcth' ) then                  &
-                  if(bez(myix)(8:8).eq.'1') then
+     &                bez(myix)(1:4).eq.'tcth' .or.
+     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
+     &                bez(myix)(1:5).eq.'tctph') then                   &
+                  if(bez(myix)(8:8).eq.'1' .or.                         &                                                                                                                                       
+     &                 bez(myix)(9:9).eq.'1' ) then
                      nsig = nsig_tcth1
-                  elseif(bez(myix)(8:8).eq.'2') then
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'2' ) then
                      nsig = nsig_tcth2
-                  elseif(bez(myix)(8:8).eq.'5') then
+                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
+     &                 bez(myix)(9:9).eq.'5' ) then
                      nsig = nsig_tcth5
-                  elseif(bez(myix)(8:8).eq.'8') then
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'8' ) then
                      nsig = nsig_tcth8
                   endif
                elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
-     &                 bez(myix)(1:4).eq.'tctv' ) then
+     &                bez(myix)(1:4).eq.'tctv'.or.
+     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
+     &                bez(myix)(1:5).eq.'tctpv' ) then
                   if(bez(myix)(8:8).eq.'1' .or.                         &
      &                 bez(myix)(9:9).eq.'1' ) then
                      nsig = nsig_tctv1
@@ -29267,7 +29382,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                elseif(bez(myix)(1:4).eq.'TCLP' .or.                     &
      &                 bez(myix)(1:4).eq.'tclp' .or.                    &
      &                 bez(myix)(1:4).eq.'TCL.' .or.                    &
-     &                 bez(myix)(1:4).eq.'tcl.') then
+     &                 bez(myix)(1:4).eq.'tcl.'.or.                     &                                                                                                  
+     &                 bez(myix)(1:4).eq.'TCLX' .or.                    &                                                                                                                   
+     &                 bez(myix)(1:4).eq.'tclx') then
                   nsig = nsig_tclp
                elseif(bez(myix)(1:4).eq.'TCLI' .or.                     &
      &                 bez(myix)(1:4).eq.'tcli') then
@@ -29277,7 +29394,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   nsig = nsig_tcxrp
 !     TW 04/2008 ---- start adding TCRYO
                elseif(bez(myix)(1:5).eq.'TCRYO' .or.                    &
-     &                 bez(myix)(1:5).eq.'tcryo') then
+     &                 bez(myix)(1:5).eq.'tcryo'.or.                    &
+     &                 bez(myix)(1:5).eq.'TCLD.' .or.                   &
+     &                 bez(myix)(1:5).eq.'tcld.') then
                   nsig = nsig_tcryo
 !     TW 04/2008 ---- end adding TCRYO
                elseif(bez(myix)(1:3).eq.'COL' .or.                      &
@@ -29304,6 +29423,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                      nsig = nsig_tctv1
                   endif
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+               else
+                  write(*,*) "WARNING: Problem detected while "//
+     &                 "writing twisslike.out' and " //
+     &                 "'sigmasettings.out': Collimator name '" //
+     &                 bez(myix) // "' was not recognized!"
+                  write(*,*) " ->Setting nsig=1000.0."
+                  nsig = 1000.0
                endif
 !     FEBRUAR2007
                do i = 1, db_ncoll
@@ -29581,7 +29707,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               yv(2,j) = 0d0
               ejv(j)  = myenom
               sigmv(j)= 0d0
-              part_abs(j) = 10000*ie + iturn
+              part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
               secondary(j) = 0
               tertiary(j)  = 0
 !APRIL2005
@@ -29766,6 +29892,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             ) then
                 nsig = nsig_tcstcdq
               endif
+            elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
+     &             bez(myix)(1:4).eq.'tcsp') then
+             if(bez(myix)(9:11).eq.'6.B'.or.
+     &          bez(myix)(9:11).eq.'6.b') then
+                nsig = nsig_tcstcdq
+              endif
             elseif(bez(myix)(1:4).eq.'TCSM' .or.                        &
      &             bez(myix)(1:4).eq.'tcsm') then
               if(bez(myix)(8:10).eq.'3.B' .or.                          &
@@ -29788,39 +29920,49 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             bez(myix)(1:4).eq.'tcdq') then
               nsig = nsig_tcdq
 ! YIL11: Checking only the IR value for TCT's..
-            elseif(bez(myix)(1:4).eq.'TCTH' .or.                        &
-     &             bez(myix)(1:4).eq.'tcth' ) then                      &
-              if(bez(myix)(8:8).eq.'1') then
-                nsig = nsig_tcth1
-              elseif(bez(myix)(8:8).eq.'2') then
-                nsig = nsig_tcth2
-              elseif(bez(myix)(8:8).eq.'5') then
-                nsig = nsig_tcth5
-              elseif(bez(myix)(8:8).eq.'8') then
-                nsig = nsig_tcth8
-              endif
-            elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
-     &             bez(myix)(1:4).eq.'tctv' ) then
-              if(bez(myix)(8:8).eq.'1' .or.                             &
-     &             bez(myix)(9:9).eq.'1') then
-                 nsig = nsig_tctv1
-              elseif(bez(myix)(8:8).eq.'2' .or.                         &
-     &             bez(myix)(9:9).eq.'2') then
-                 nsig = nsig_tctv2
-              elseif(bez(myix)(8:8).eq.'5' .or.                         &
-     &             bez(myix)(9:9).eq.'5') then
-                 nsig = nsig_tctv5
-              elseif(bez(myix)(8:8).eq.'8' .or.                         &
-     &             bez(myix)(9:9).eq.'8') then
-                 nsig = nsig_tctv8
-              endif
+               elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
+     &                bez(myix)(1:4).eq.'tcth' .or.
+     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
+     &                bez(myix)(1:5).eq.'tctph') then                   &
+                  if(bez(myix)(8:8).eq.'1' .or.                         &
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tcth1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tcth2
+                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tcth5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tcth8
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
+     &                bez(myix)(1:4).eq.'tctv'.or.
+     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
+     &                bez(myix)(1:5).eq.'tctpv' ) then
+                  if(bez(myix)(8:8).eq.'1' .or.                         &
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tctv1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tctv2
+                  elseif(bez(myix)(8:8).eq.'5' .or.                     &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tctv5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tctv8
+                  endif
             elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
      &             bez(myix)(1:3).eq.'tdi') then
               nsig = nsig_tdi
             elseif(bez(myix)(1:4).eq.'TCLP' .or.                        &
      &             bez(myix)(1:4).eq.'tclp' .or.                        &
      &             bez(myix)(1:4).eq.'TCL.' .or.                        &
-     &             bez(myix)(1:4).eq.'tcl.') then
+     &             bez(myix)(1:4).eq.'tcl.'.or.                         &
+     &             bez(myix)(1:4).eq.'TCLX' .or.                        &
+     &             bez(myix)(1:4).eq.'tclx') then
               nsig = nsig_tclp
             elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
      &             bez(myix)(1:4).eq.'tcli') then
@@ -29829,7 +29971,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             bez(myix)(1:4).eq.'tcxr') then
               nsig = nsig_tcxrp
             elseif(bez(myix)(1:5).eq.'TCRYO' .or.                       &
-     &             bez(myix)(1:5).eq.'tcryo') then
+     &             bez(myix)(1:5).eq.'tcryo'.or.
+     &             bez(myix)(1:5).eq.'TCLD.' .or.                       &
+     &             bez(myix)(1:5).eq.'tcld.') then
               nsig = nsig_tcryo
             elseif(bez(myix)(1:3).eq.'COL' .or.                         &
      &             bez(myix)(1:3).eq.'col') then
@@ -29854,6 +29998,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &               bez(myix)(1:5).eq.'colh2') then
                 nsig = nsig_tctv1
               endif
+           else
+              if(firstrun.and.iturn.eq.1) then
+                 write(*,*) "WARNING: When setting opening for the "//
+     &                " collimator named '" // bez(myix) //
+     &                "' from fort.3, the name was not recognized."
+                 write(*,*) " -> Setting nsig=1000.0."
+              endif
+              nsig=1000.0
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
             endif
 !APRIL2005
@@ -34387,8 +34539,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension nbeaux(nbb)
 +ca comdynk
       logical dynk_isused
++if collimat
++ca database
++ei
+
 +ca save
 !-----------------------------------------------------------------------
++if collimat
+      if (do_coll) then
++if cr
+         write(lout,*) "Error: in trauthck and do_coll is TRUE"
+         write(lout,*) "Collimation is not supported for thick tracking"
++ei
++if .not.cr
+         write(*,*)    "Error: in trauthck and do_coll is TRUE"
+         write(*,*)    "Collimation is not supported for thick tracking"
++ei
+         STOP
+      endif
++ei
+
       do 5 i=1,npart
         nlostp(i)=i
    5  continue
@@ -39163,6 +39333,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do i=0,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
+        dumpfirst(i) = 0
+        dumplast(i)  = 0
         dumpunit(i) = 0
         dumpfmt(i)  = 0
         do j=1,getfields_l_max_string
@@ -41988,17 +42160,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       write(*,10000)
 +ei
-      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 ,           &
-     &110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 ,                &
-     &210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 ,                &
-     &310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 ,                &
-     &410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 ,                &
-     &510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 ,                &
-     &610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 ,                &
-     &710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 ,                &
-     &810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 ,                &
-     &910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000,                &
-     &1010,1020,1030,1040,1050),ier
+      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !10       &
+     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !20       &
+     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !30       &
+     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 , !40       &
+     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 , !50       &
+     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 , !60       &
+     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 , !70       &
+     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 , !80       &
+     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 , !90       &
+     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !100      &
+     &     1010,1020,1030,1040,1050),ier
       goto 1870
 +if cr
    10 write(lout,10010)
@@ -42831,7 +43003,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10490 format(t10,'ONLY UP TO 3 SUBRESONANCES CAN BE COMPENSATED')
 10500 format(t10,'THE MULTIPOLE ORDER FOR THE SUBRESONANCE COMPENSATION'&
      &,' SHOULD NOT EXCEED THE VALUE 9')
-10510 format(t10,'PROBLEMS WITH FILE 3 WITH DYNAMIC KIKS')
+10510 format(t10,'PROBLEMS WITH FILE 3 WITH DYNAMIC KICKS')
 10520 format(t10,'MAXIMUM ORDER OF THE ONE TURN MAP IS ',i4, /,         &
      &' NEMA HAS TO BE LARGER THAN NORD')
 10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT',      &
@@ -42948,7 +43120,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! define function return type
       integer dynk_findFUNindex
-
+      
+      logical lopen
+      
 +if crlibm
       integer nchars
       parameter (nchars=160) !Same as in daten
@@ -43146,8 +43320,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+1
          
          !Open the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():FILE ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
+         
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
-     &        iostat=stat)
+     &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
@@ -43205,6 +43394,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
+               call prror(-1)
             end if
 
             read(filefields_fields(1)(1:filefields_lfields(1)),*) t
@@ -43316,8 +43506,24 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ncexpr_dynk = ncexpr_dynk+1
          
          !Open the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
-     &        iostat=stat)
+     &        iostat=stat,status='OLD')
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
@@ -43375,6 +43581,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
+               call prror(-1)
             end if
 
             x = round_near(errno, filefields_lfields(1)+1,
@@ -43519,6 +43726,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
+              call prror(-1)
             end if
 
             x = round_near(errno, filefields_lfields(1)+1,
@@ -43676,12 +43884,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          case default
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write (lout,*) "DYNK> non-recognized type in inner switch1?"
+            write (lout,*) "DYNK> non-recognized type in inner switch?"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-            write (*,*)    "DYNK> non-recognized type in inner switch1?"
+            write (*,*)    "DYNK> non-recognized type in inner switch?"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
+            call prror(-1)
          end select
          
          read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
@@ -43778,6 +43991,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        getfields_fields(5)(1:getfields_lfields(5))
          
          !Read the file
+         inquire( unit=664, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
+            write(lout,*)"DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
++if .not.cr
+            write(*,*)
+     &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
+            write(*,*)   "DYNK> unit 664 for file '"//
+     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
++ei
+            call prror(-1)
+         end if
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat, status="OLD")
          if (stat .ne. 0) then
@@ -43969,10 +44198,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN() : 2-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN() : 2-arg function"
             write (*,*)    "DYNK> non-recognized type in inner switch"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
             call prror(51)
          end select
@@ -44046,10 +44279,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN() : 1-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch?"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN() : 1-arg function"
             write (*,*)    "DYNK> non-recognized type in inner switch?"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
             call prror(51)
          end select
@@ -44406,10 +44643,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN() : SINF/COSF"
             write (lout,*) "DYNK> non-recognized type in inner switch"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN() : SINF/COSF"
             write (*,*)    "DYNK> non-recognized type in inner switch"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
             call prror(51)
          end select
@@ -45867,7 +46108,21 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
             call dynk_dumpdata
             call prror(-1)
+         elseif (turn .lt. 1) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
+            write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
+            write(lout,*)"DYNK> Turn < 1, check your turn-shift!"
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():FILE****"
+            write(*,*)   "DYNK> funNum =", funNum, "turn=", turn
+            write(*,*)   "DYNK> Turn < 1, check your turn-shift!"
++ei
+            call dynk_dumpdata
+            call prror(-1)
          endif
+
          retval = fexpr_dynk(funcs_dynk(funNum,4)+turn-1)
       case(2)                                                           ! FILELIN
          filelin_start    = funcs_dynk(funNum,4)
@@ -46762,7 +47017,7 @@ c$$$               endif
           else
 !            BLOC
 +if cr
-             write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
+             write(lout,10020) ientry,ix,bezb(ix),dcum(ientry)
 +ei
 +if .not.cr
              write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
@@ -46799,7 +47054,7 @@ c$$$               endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,iflag,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,  &
+      integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,
      &nmz,nr,dj
       double precision aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
      &ci,cikve,clo0,clop0,cr,crkve,crkveuk,di00,dip00,dphi,dpp,dpp1,    &
@@ -46879,7 +47134,6 @@ c$$$               endif
         ci(i)=zero
    40 continue
       etl=zero
-      nr=0
       dpr(1)=dpp*c1e3
       dpr(6)=one
       dpp1=dpp+ded
@@ -46954,75 +47208,85 @@ c$$$               endif
         write(*,10010)
 +ei
       endif
-      iflag=0
+
+!--START OF THE MACHINE
       idum='START'
+      nr=0
 +if .not.collimat.and..not.bnlelens
-      call writelin(nr,idum,etl,phi,t,1)
+      call writelin(nr,idum,etl,phi,t,1,.false.)
 +ei
 +if collimat.or.bnlelens
-!GRDRHIC
-      k=0 !ALWAYS initialize k
-      call writelin(nr,idum,etl,phi,t,1,k)
-!GRDRHIC
+      call writelin(nr,idum,etl,phi,t,1,.false.,0)
 +ei
       if(ntco.ne.0) then
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
-!--SINGLE TURN BLOCKLOOP
+
+
+!--STRUCTURE ELEMENT LOOP
       if(nt.le.0.or.nt.gt.iu) nt=iu
       izu=0
       do 500 k=1,nt
         ix=ic(k)
-        if(ix.gt.nblo) goto 220
+        if(ix.gt.nblo) goto 220 !Not a BLOCK
         if(ithick.eq.1.and.iprint.eq.1) goto 160
-        jj=0
-        dj=1
-        if(ix.gt.0) goto 90
-!hr13   ix=-ix
-        ix=-1*ix                                                         !hr13
-        jj=mel(ix)+1
-        dj=-1
-   90   jm=mel(ix)
-!--BLOCKELEMENTLOOP
+
+        jj=0 !initial idx
+        dj=1 !step
+        
+        if (ix.le.0) then
+           ix=-1*ix             !hr13
+           jj=mel(ix)+1         !initial idx
+           dj=-1                !step
+        endif
+        jm=mel(ix)
+!-- Loop over elements inside the block
         do 150 j=1,jm
-          jj=jj+dj
-          jk=mtyp(ix,jj)
+          jj=jj+dj       ! Subelement index of current sub=element
+          jk=mtyp(ix,jj) ! Single-element index of the current sub-element
 +if .not.bnlelens
           if(ithick.eq.1.and.kz(jk).ne.0) goto 120
 +ei
 +if bnlelens
 !GRDRHIC
           if(ithick.eq.1.and.kz(jk).ne.0) then
-             call writelin(nr,bez(jk),etl,phi,t,ix,k)
+             call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
              goto 120
           endif
 !GRDRHIC
 +ei
-+if .not.collimat.and..not.bnlelens
+
           if(ithick.eq.0.and.kz(jk).ne.0) then
-
-!           A.Mereghetti, for the FLUKA Team
-!           last modified: 17-07-2013
-!           this is somehow an un-desired situation (thin lens tracking, 
-!             with a non-drift element in a BLOC), but let's dump
-!             the available information (as done in the collimation version)
-            nr=nr+1
             etl=etl+el(jk)
-            call writelin(nr,bez(jk),etl,phi,t,ix)
-            if(ntco.ne.0) then
-              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
-            endif
-
+            
+c$$$            nr=nr+1
+c$$$+if .not.collimat.and..not.bnlelens
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
+c$$$+ei
+c$$$+if collimat.or.bnlelens
+c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
+c$$$+ei
+c$$$            if(ntco.ne.0) then
+c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
+c$$$            endif
+            
++if cr
+            write(lout,*) "ERROR in LINOPT:"
+            write(lout,*) "In block ", bezb(ix),
+     &           "found a thick non-drift element",
+     &           bez(jk), "while ithick=1. This should not be possible!"
++ei            
++if .not.cr
+            write(*,*)    "ERROR in LINOPT:"
+            write(*,*)    "In block ", bezb(ix),
+     &           "found a thick non-drift element",
+     &           bez(jk), "while ithick=1. This should not be possible!"
++ei
+            call prror(-1)
             goto 500
           endif
-+ei
-+if collimat.or.bnlelens
-          if(ithick.eq.0.and.kz(jk).ne.0) then
-             call writelin(nr,bez(jk),etl,phi,t,ix,k)
-             goto 500
-          endif
-+ei
-!--PURE DRIFTLENGTH
+
+!--IN BLOCK: PURE DRIFTLENGTH (above: If ITHICK=1 and kz!=0, goto 120->MAGNETELEMENT)
           etl=etl+el(jk)
           do 100 l=1,2
             ll=2*l
@@ -47053,18 +47317,21 @@ c$$$               endif
 !hr06       if(-dphi.gt.pieni) dphi=dphi+pi
             if((-1d0*dphi).gt.pieni) dphi=dphi+pi                        !hr06
   110     phi(l)=phi(l)+dphi/pie
+
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
+          
           goto 150
-!--MAGNETELEMENT
+
+!--IN BLOCK: MAGNETELEMENT
   120     continue
           if(kz(jk).ne.8) etl=etl+el(jk)
           do l=1,2
@@ -47117,26 +47384,35 @@ c$$$               endif
             if(kz(jk).ne.8.and.-1d0*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi/pie
           enddo
+          
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(jk),etl,phi,t,ix,k)
+          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
 +ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
+          
   150   continue !End of loop over elements inside block
+
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
+        endif
+
         goto 500
-!--BETACALCULATION FOR SERIES OF BLOCKS
-  160   continue
+
+!--BETACALCULATION FOR SERIES OF BLOCKS (ix.ge.nblo.and.ithick.eq.1.and.iprint.eq.1)
+  160   continue !if ithick=1 and iprint=1:
         if(ix.le.0) goto 190
 !--REGULAR RUN THROUGH BLOCKS
         etl=etl+elbe(ix)
@@ -47173,6 +47449,7 @@ c$$$               endif
      &(ix,l,5)                                                           !hr06
 !hr06  170   t(i,ll)=bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll)+dpr(i)*bl1(ix,l,6)
   170   t(i,ll)=(bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll))+dpr(i)*bl1(ix,l,6) !hr06
+
         do 180 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
@@ -47189,18 +47466,21 @@ c$$$               endif
 !hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   180   phi(l)=phi(l)+dphi/pie
+
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
+        
         goto 500
-!--REVERSE RUN THROUGH BLOCKS
+
+!--REVERSE RUN THROUGH BLOCKS (ix.le.0)
   190   ix=-ix
         etl=etl+elbe(ix)
         do 200 l=1,2
@@ -47236,6 +47516,7 @@ c$$$               endif
      &(ix,l,5)                                                           !hr06
 !hr06  200   t(i,ll)=bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll)+dpr(i)*bl2(ix,l,6)
   200   t(i,ll)=(bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll))+dpr(i)*bl2(ix,l,6) !hr06
+
         do 210 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
@@ -47251,83 +47532,94 @@ c$$$               endif
 !hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   210   phi(l)=phi(l)+dphi/pie
+
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bezb(ix),etl,phi,t,ix,k)
+        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
+        
         goto 500
-!--NL-INSERTION
+
+!--NOT A BLOCK / Nonlinear insertion
   220   ix=ix-nblo
         qu=zero
         qv=zero
         dyy1=zero
         dyy2=zero
         kpz=kp(ix)
+        kzz=kz(ix)
+
+ ! Cavity
 +if .not.collimat.and..not.bnlelens
         if(kpz.eq.6) then
-
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's dump the available information (as done in the collimation
-!           version)
++ei
++if collimat.or.bnlelens
+        if(abs(kzz).eq.12) then
++ei
           nr=nr+1
-          call writelin(nr,bez(ix),etl,phi,t,ix)
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
++ei
++if collimat.or.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
 
           goto 500
         endif
-+ei
-+if collimat.or.bnlelens
-        if(kpz.eq.6) then
-           call writelin(nr,bez(ix),etl,phi,t,ix,k)
-           goto 500
-        endif
-+ei
-        kzz=kz(ix)
+        
+        !Beam Beam element .and. fort.3 has BB block
         if(kzz.eq.20.and.nbeam.ge.1) then
           nbeam=k
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's add coupling calculation
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
           goto 500
 
         endif
-+ca trom01
+
++ca trom01 !if kzz==22, starts a do over l; Update t matrix
 +ca trom03
-+ca trom06
++ca trom06 !endif, ends the do over l; increase nr, writelin and cpltwis
+
 +if collimat.or.bnlelens
-!GRDRHIC
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        ! Marker, beam-beam, phase-trombone, or crab cavity (incl. multipole)
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
+     &     .or. abs(kzz).eq.23.or.abs(kzz).eq.26.or.
+     &          abs(kzz).eq.27.or.abs(kzz).eq.28) then
+          
+          nr=nr+1
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+          endif
           goto 500
         endif
-! JBG RF CC Multipoles to 500
-        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 500
-        if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 500
 +ei
 +if .not.collimat.and..not.bnlelens
+        ! Marker, beam-beam or phase-trombone -> next element
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
-! JBG RF CC Multipoles to 500
-        if (abs(kzz).eq.26.or.abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
+        ! RF CC Multipoles -> next element
+        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.
+     &      abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
 +ei
+      
+        ! Update the matrix etc. for supported blocks
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -47338,22 +47630,24 @@ c$$$               endif
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-        if(kzz.lt.0) goto 370
+        if(kzz.lt.0) goto 370 !Skew
         goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320, !10
      &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500, !20
      &       500, 500, 500, 325, 326, 500, 500, 500),kzz       !28
 
+        ! Un-recognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
-! Not sure whether to add this
-!        if(ntco.ne.0) then
-!          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!        endif
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+        endif
         goto 500
+
 !--HORIZONTAL DIPOLE
   230   ekk=ekk*c1e3
 +ca kickl01h
@@ -47450,6 +47744,7 @@ c$$$               endif
 +ca kicklso1
 +ca kickqso1
         goto 480
+!--Multipole block
   330   r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
@@ -47479,23 +47774,17 @@ c$$$               endif
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
+          
           nr=nr+1
-+if collimat.or.bnlelens
-! --> THAT'S THE IMPORTANT ONE !!!!
-          call writelin(nr,bez(ix),etl,phi,t,ix,k)
-+ei
-
 +if .not.collimat.and..not.bnlelens
-!         A.Mereghetti, for the FLUKA Team
-!         last modified: 17-07-2013
-!         let's dump the available information (as done in the collimation
-!           version)
-          call writelin(nr,bez(ix),etl,phi,t,ix)
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
-! Not sure??
-!          if(ntco.ne.0) then
-!            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!          endif
++if collimat.or.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
+          if(ntco.ne.0) then
+            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+          endif
 
           goto 500
         endif
@@ -47523,17 +47812,20 @@ c$$$               endif
 !--SKEW ELEMENTS
   370   kzz=-kzz
         goto(380,390,400,410,420,430,440,450,460,470),kzz
+        
+        ! Unrecognized element in the above GOTO (incl. kzz=-12,kp.ne.6 for non-collimat/bnlelens)
+        nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
-!Unsure???
-!        if(ntco.ne.0) then
-!          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!        endif
+        if(ntco.ne.0) then
+          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+        endif
         goto 500
+
 !--VERTICAL DIPOLE
   380   ekk=ekk*c1e3
 +ca kickl01v
@@ -47662,17 +47954,20 @@ c$$$               endif
             write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
           endif
         endif
+        
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 +ei
 +if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,k)
+        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
 +ei
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
-  500 continue
+        
+  500 continue ! END LOOP OVER ELEMENTS
+      
       call clorb(ded)
       do 510 l=1,2
         clo0(l)=clo(l)
@@ -47720,10 +48015,10 @@ c$$$               endif
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
       end
 +if collimat.or.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl,ielem)
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ei
 +if .not.collimat.and..not.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl)
+      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
 !-----------------------------------------------------------------------
 !  WRITE OUT LINEAR OPTICS PARAMETERS
@@ -47735,9 +48030,11 @@ c$$$               endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,istart,iwrite,ixwl,l,ll,nr
+      integer i,iwrite,ixwl,l,ll,nr
       double precision al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character*16 typ
+      ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
+      logical isBLOC
 +ca parpro
 +ca parnum
 +ca common
@@ -47755,8 +48052,6 @@ c$$$               endif
 +ei
 +ca save
 !-----------------------------------------------------------------------
-      istart=0
-      if(typ.eq.'START') istart=1
       iwrite=0
       if(nlin.eq.0) then
         iwrite=1
@@ -47785,32 +48080,11 @@ c$$$               endif
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
    20   continue
-+if collimat.and..not.bnlelens
-        tbetax(max(ielem,1))  = b1(1)
-        tbetay(max(ielem,1))  = b1(2)
-        talphax(max(ielem,1)) = al1(1)
-        talphay(max(ielem,1)) = al1(2)
-        torbx(max(ielem,1))   = c(1)
-        torbxp(max(ielem,1))  = cp(1)
-        torby(max(ielem,1))   = c(2)
-        torbyp(max(ielem,1))  = cp(2)
-        tdispx(max(ielem,1))  = d(1)
-        tdispy(max(ielem,1))  = d(2)
-+ei
-+if collimat.and.bnlelens
-        tbetax(max(ielem,1))  = b1(1)
-        tbetay(max(ielem,1))  = b1(2)
-        talphax(max(ielem,1)) = al1(1)
-        talphay(max(ielem,1)) = al1(2)
-        torbx(max(ielem,1))   = c(1)
-        torbxp(max(ielem,1))  = cp(1)
-        torby(max(ielem,1))   = c(2)
-        torbyp(max(ielem,1))  = cp(2)
-        tdispx(max(ielem,1))  = d(1)
-        tdispy(max(ielem,1))  = d(2)
-+ei
+
++if collimat.or.bnlelens
 +if .not.collimat.and.bnlelens
         if (lhc.eq.9) then
++ei
           tbetax(max(ielem,1))  = b1(1)
           tbetay(max(ielem,1))  = b1(2)
           talphax(max(ielem,1)) = al1(1)
@@ -47821,8 +48095,11 @@ c$$$               endif
           torbyp(max(ielem,1))  = cp(2)
           tdispx(max(ielem,1))  = d(1)
           tdispy(max(ielem,1))  = d(2)
++if .not.collimat.and.bnlelens
         endif
 +ei
++ei
+
       if(ncorru.eq.0) then
 +if cr
           write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),&
@@ -47863,29 +48140,27 @@ c$$$               endif
           write(*,10040)
 +ei
         else
-          if(kp(ixwl).eq.3) then
-            nhmoni=nhmoni+1
-            betam(nhmoni,1)=b1(1)
-!hr06       pam(nhmoni,1)=p1(1)*2*pi
-            pam(nhmoni,1)=(p1(1)*2d0)*pi                                 !hr06
-            bclorb(nhmoni,1)=c(1)
-          else if(kp(ixwl).eq.4) then
-            nhcorr=nhcorr+1
-            betac(nhcorr,1)=b1(1)
-!hr06       pac(nhcorr,1)=p1(1)*2*pi
-            pac(nhcorr,1)=(p1(1)*2d0)*pi                                 !hr06
-          else if(kp(ixwl).eq.-3) then
-            nvmoni=nvmoni+1
-            betam(nvmoni,2)=b1(2)
-!hr06       pam(nvmoni,2)=p1(2)*2*pi
-            pam(nvmoni,2)=(p1(2)*2d0)*pi                                 !hr06
-            bclorb(nvmoni,2)=c(2)
-          else if(kp(ixwl).eq.-4) then
-            nvcorr=nvcorr+1
-            betac(nvcorr,2)=b1(2)
-!hr06       pac(nvcorr,2)=p1(2)*2*pi
-            pac(nvcorr,2)=(p1(2)*2d0)*pi
-          endif
+           if(.not.isBLOC) then
+              if(kp(ixwl).eq.3) then
+                 nhmoni=nhmoni+1
+                 betam(nhmoni,1)=b1(1)
+                 pam(nhmoni,1)=(p1(1)*2d0)*pi
+                 bclorb(nhmoni,1)=c(1)
+              else if(kp(ixwl).eq.4) then
+                 nhcorr=nhcorr+1
+                 betac(nhcorr,1)=b1(1)
+                 pac(nhcorr,1)=(p1(1)*2d0)*pi
+              else if(kp(ixwl).eq.-3) then
+                 nvmoni=nvmoni+1
+                 betam(nvmoni,2)=b1(2)
+                 pam(nvmoni,2)=(p1(2)*2d0)*pi
+                 bclorb(nvmoni,2)=c(2)
+              else if(kp(ixwl).eq.-4) then
+                 nvcorr=nvcorr+1
+                 betac(nvcorr,2)=b1(2)
+                 pac(nvcorr,2)=(p1(2)*2d0)*pi
+              endif
+           endif
         endif
       endif
 !-----------------------------------------------------------------------
@@ -49355,7 +49630,7 @@ c$$$               endif
       nra1=nran
       iorg=iorg-1
       if(iorg.ge.0) then
-        if(iorg.eq.0) then
+        if(iorg.eq.0) then !iorg == 0
           do 50 i=1,iu
             ix=ic(i)
             if(ix.le.nblo) goto 50
@@ -49367,20 +49642,29 @@ c$$$               endif
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
+            if(izu.gt.nzfz) then
++if cr
+              write(lout,*) "ERROR in ORD: nzfz was too small"
++ei
++if .not.cr
+              write(*,*)    "ERROR in ORD: nzfz was too small"
++ei
+              call prror(-1)
+            endif
    50     continue
-        else
+        else ! iorg.gt.0
           do 70 i=1,iorg
             do 60 j=1,il
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+     &               call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+     &               call prror(31)
                 jra(i,4)=kz(j)
               endif
    60       continue
@@ -49389,8 +49673,8 @@ c$$$               endif
             if(kzz1.ne.0.and.kzz2.eq.0) then
               jra(i,5)=nra1
               nra1=nra1+mran*3
-              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni) nra1=nra1   &
-     &+mran*2*mmul
+              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)
+     &             nra1=nra1+mran*2*mmul
               if(nra1.gt.nzfz) call prror(32)
             endif
             if(kzz1.eq.11.and.(kzz2.ne.11.and.kzz2.ne.0)) call prror(33)
@@ -49426,7 +49710,7 @@ c$$$               endif
             if(izu.gt.nran) call prror(30)
   110     continue
         endif
-      else
+      else !iorg < 0 (in case of no ORGA block in fort.3)
         do 115 i=1,iu
           ix=ic(i)
           if(ix.le.nblo) goto 115
@@ -49437,10 +49721,21 @@ c$$$               endif
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
+          if(izu.gt.nzfz) then
++if cr
+            write(lout,*) "ERROR in ORD: nzfz was too small"
++ei
++if .not.cr
+            write(*,*)    "ERROR in ORD: nzfz was too small"
++ei
+            call prror(-1)
+          endif
   115   continue
       endif
+      
+      ! "GO" was not the first structure element -> Reshuffle the structure
       if(kanf.ne.1) then
-!-- Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
         kanf1=kanf-1
         do 130 i=1,kanf1
           if(iorg.ge.0) ilfr(i)=mzu(i)
@@ -49497,6 +49792,7 @@ c$$$               endif
 +ei
   170   continue
       endif
+      
       izu=0
       do 190 i=1,iu
         ix=ic(i)
@@ -60215,12 +60511,18 @@ c$$$               endif
          mat = 12
       else
 +if cr
-         write(lout,*) 'ERR>  Material not found. STOP', c_material
+         write(lout,*)
+         write(lout,*) 'ERR>  In subroutine collimate2:'
+         write(lout,*) 'ERR>  Material "', c_material, '" not found.'
+         write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
 +ei
 +if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP', c_material
+         write(*,*)
+         write(*,*)    'ERR>  In subroutine collimate2:'
+         write(*,*)    'ERR>  Material "', c_material, '" not found.'
+         write(*,*)    'ERR>  Check your CollDB! Stopping now.'
 +ei
-!        STOP
+         STOP
       endif
 !
         length  = c_length
@@ -62149,13 +62451,11 @@ c$$$               endif
      &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,        &
      &     myx, myxp, myy, myyp, myp, mys)
  
-!
       implicit none
-!
-      integer max_ncoll,max_npart,maxn,numeff,outlun,nc
-      parameter (max_ncoll=100,max_npart=20000,nc=32,numeff=19,         &
-     &maxn=20000,outlun=54)
 
++ca collpara
+
+      ! Don't load the common blocks for these variables
       logical cut_input
       integer i,j,mynp,nloop
       double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
@@ -62537,26 +62837,46 @@ c$$$     &           myalphay * cos(phiy))
 +ca dbmkdist
 
       character*80   filename_dis
-
+      
+      logical lopen
+      integer stat
+      
       save
 
-      write(*,*) "Reading input bunch from ", filename_dis
+      write(*,*) "Reading input bunch from file ", filename_dis
 
-      open(unit=54, file=filename_dis)
+      inquire( unit=53, opened=lopen )
+      if (lopen) then
+         write(*,*) "ERROR in subroutine readdis: "//
+     &        "FORTRAN Unit 53 was already open!"
+         goto 20
+      endif
+      open(unit=53, file=filename_dis, iostat=stat,
+     &     status="OLD",action="read")
+      if (stat.ne.0)then
+         write(*,*) "Error in subroutine readdis: "//
+     &        "Could not open the file."
+         write(*,*) "Got iostat=",stat
+         goto 20
+      endif
 
       do j=1,mynp
-         read(54,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j),     &
+         read(53,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j),     &
      &        mys(j), myp(j)
       enddo
-
+      
  10   mynp = j - 1
-      write(*,*) "Number of particles in the bunch = ",mynp
+      write(*,*) "Number of particles read from the file = ",mynp
 
-      close(54)
+      close(53)
 
       return
+      
  20   continue
-      call abend('I/O Error on Unit 54                              ')
+!      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
+      write(*,*) "I/O Error on Unit 53 in subroutine readdis"
+      call prror(-1)
+      
       end
 !
 !========================================================================
@@ -62999,7 +63319,7 @@ c$$$     &           myalphay * cos(phiy))
                 bsd = 2.d0 * bpp
               elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
 !hr09           bsd = (106.d0-17.d0*xm2) *  bpp / 26.d0
-                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 26.d0                !hr09
+                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 36.d0                !hr09
               elseif ( xm2 .gt. 5.d0 ) then
 !hr09           bsd = 7.d0 * bpp / 12.d0
                 bsd = (7.d0 * bpp) / 12.d0                               !hr09
@@ -63737,15 +64057,14 @@ c$$$     &           myalphay * cos(phiy))
 !      save h,dh,bn
 +ca interac
       double precision h,dh,theta,rlen0,rlen,ae,be,bn0,s
-      double precision thetaz_mcs,thetax_mcs,gauss2,initial_xp,
-     &radl_mat,rad_len ! Claudia 2013 added variables
+      double precision radl_mat,rad_len ! Claudia 2013 added variables
 
-      common/varcla/gauss2,initial_xp   !Claudia
 
 !   bn=sqrt(3)/(number of sigmas for s-determination(=4))
       data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
 !
 !++
+
       radl_mat=radl(mat)
 !     theta=13.6d-3*(1.d0-dpop)/p0          !Claudia
       theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
@@ -63766,18 +64085,15 @@ c$$$     &           myalphay * cos(phiy))
       if(x.le.0.d0) then
 !hr09  s=rlen0-rlen+s
        s=(rlen0-rlen)+s                                                  !hr09
-       thetax_mcs=((xp-initial_xp)/gauss2)*theta       !Claudia
        goto 20
       end if
       if(s+dh.ge.rlen) then
        s=rlen0
-       thetax_mcs=((xp-initial_xp)/gauss2)*theta       !Claudia
        goto 20
       end if
       rlen=rlen-s
       goto 10
 20    call scamcs(z,zp,s,radl_mat)
-      thetaz_mcs=((zp-initial_xp)/gauss2)*theta        !Claudia
       s=s*radl(mat)
 !hr09 x=x*theta*radl(mat)
       x=(x*theta)*radl(mat)                                              !hr09
@@ -63796,8 +64112,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca crlibco
 +ei
       double precision v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-      double precision gauss2,initial_xp,radl_mat
-      common/varcla/gauss2,initial_xp                       !Claudia
+      double precision radl_mat
       real rndm4
       x0=xx
       xp0=xxp
@@ -65291,13 +65606,30 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca database
 +ca dbcommon
 !
+
+      logical lopen
+
 +ca save
 !
 !--------------------------------------------------------------------
 !++  Read collimator database
 !
 !      write(*,*) 'reading collimator database'
-      open(unit=53,file=coll_db)
+      inquire( unit=53, opened=lopen )
+      if (lopen) then
+         write(*,*) "ERROR in subroutine readcollimator: "//
+     &        "FORTRAN Unit 53 was already open!"
+         call prror(-1)
+      endif
+
+      open(unit=53,file=coll_db, iostat=ios,
+     &     status="OLD",action="read")
+      if (ios.ne.0)then
+         write(*,*) "Error in subroutine readcollimator: "//
+     &        "Could not open the file ",coll_db
+         write(*,*) "Got iostat=",ios
+         call prror(-1)
+      endif
 !
 !      write(*,*) 'inside collimator database'
 !      I = 0
@@ -65307,11 +65639,11 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !     write(*,*) 'ios = ',ios
       if (ios.ne.0) then
         write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
-        stop
+        call prror(-1)
       endif
       if (db_ncoll.gt.max_ncoll) then
          write(*,*) 'ERR> db_ncoll > max_ncoll '
-         stop
+         call prror(-1)
       endif
 !
       do j=1,db_ncoll
@@ -65323,58 +65655,58 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
 !
         read(53,*,iostat=ios) db_name2(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
 !
         read(53,*,iostat=ios) db_nsig(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
 !GRD
         read(53,*,iostat=ios) db_material(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_length(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_rotation(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_offset(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_bx(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
         read(53,*,iostat=ios) db_by(j)
 !        write(*,*) 'ios = ',ios
         if (ios.ne.0) then
           write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-          stop
+          call prror(-1)
         endif
       enddo
 !

@@ -13,7 +13,8 @@ crlibm.a: $(OBJS)
 	ar -rv crlibm.a $(OBJS)
 AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing
 DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
-CFLAGS = -g -O2 -m32
+CMATHFLAGS = -mfpmath=sse -msse2
+CFLAGS = -g -O2 -m32 $(CMATHFLAGS)
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
 csh_fast.o: csh_fast.c crlibm.h crlibm_private.h scs.h \
         scs_config.h scs_private.h crlibm_config.h \
@@ -74,11 +75,11 @@ disable_xp.o: disable_xp.c
 enable_xp.o: enable_xp.c
 	$(COMPILE1) -c enable_xp.c
 round_near.o: round_near.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -c round_near.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic $(CMATHFLAGS) -c round_near.c
 dtoa_c.o: dtoa_c.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -c dtoa_c.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic $(CMATHFLAGS) -c dtoa_c.c
 dtoaf.o: dtoaf.c
-	$(CC) -m32 -std=c99 -W -Wall -pedantic -c dtoaf.c
+	$(CC) -m32 -std=c99 -W -Wall -pedantic $(CMATHFLAGS) -c dtoaf.c
 
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline 
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
