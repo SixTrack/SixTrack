@@ -8029,7 +8029,8 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
-!           store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
+!    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
+!    units dump_tas: mm,mrad,mm,mrad,mm,1.e-3
             if(fma_flag) then
               if(ic(i)-nblo.gt.0) then !check if structure element is a block
                 if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
@@ -8045,6 +8046,30 @@ cc2008
                   dump_tas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
                   dump_tas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
                   dump_tas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
+               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',ii-1,
+     &')=',dump_tas(ic(i)-nblo,ii-1,ii-1)
+              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',ii, 
+     &')=',dump_tas(ic(i)-nblo,ii-1,ii  )
+              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',ii-1, 
+     &')=',dump_tas(ic(i)-nblo,ii  ,ii-1)
+              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',ii, 
+     &')=',dump_tas(ic(i)-nblo,ii  ,ii  )
+              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i2-1, 
+     &')=',dump_tas(ic(i)-nblo,ii-1,i2-1)
+              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i2-1, 
+     &')=',dump_tas(ic(i)-nblo,ii  ,i2-1)
+              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i2, 
+     &')=',dump_tas(ic(i)-nblo,ii-1,i2  )
+               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i2, 
+     &')=',         dump_tas(ic(i)-nblo,ii  ,i2  )
+               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i3-1, 
+     &')=',          dump_tas(ic(i)-nblo,ii-1,i3-1)
+               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i3-1, 
+     &')=',         dump_tas(ic(i)-nblo,ii  ,i3-1)
+               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i3, 
+     &')=',         dump_tas(ic(i)-nblo,ii-1,i3  )
+               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i3, 
+     &')=',          dump_tas(ic(i)-nblo,ii  ,i3  )
 !    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
 !    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
 !     -> check units used in dump_clo (is x' or px used?) 
@@ -8056,6 +8081,9 @@ cc2008
                   endif
                 endif
               endif
+            b1(j)=angp(1,ii-1)**2+angp(1,ii)**2
+            write(*,*) 'MF: j,ii, angp(1,ii-1),angp(1,ii),b1(j)=',j,ii
+     &,angp(1,ii-1),angp(1,ii),b1(j)
             endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
             b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
@@ -55994,6 +56022,7 @@ c$$$            endif
       ta65=ta(6,5)*c1e3
 !hr06 bet0(1)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       bet0(1)=ta(1,1)**2+ta(1,2)**2                                      !hr06
+      write(*,*) 'MF: ta(1,1),ta(1,2),bet0(1)',ta(1,1),ta(1,2),bet0(1)
 !hr06 bet0x2 =ta(1,3)*ta(1,3)+ta(1,4)*ta(1,4)
       bet0x2 =ta(1,3)**2+ta(1,4)**2                                      !hr06
 !hr06 bet0x3 =ta(1,5)*ta(1,5)+ta16*ta16
@@ -56277,6 +56306,7 @@ c$$$            endif
 !     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
       do 160 i=1,6
         do 160 j=1,6
+      write(*,*) 'MF: ta(j,i)', ta(j,i)
   160 t(i,j)=ta(j,i)
       if(abs(t(1,1)).le.pieni.and.abs(t(2,2)).le.pieni) then
         t(1,1)=one
@@ -56303,6 +56333,9 @@ c$$$            endif
       tasum=tasum-two
       if(abs(tasum).ge.pieni) its6d=1
       call dinv(6,t,6,idummy,nerror)
+      do 611 i=1,6
+        do 611 j=1,6
+  611 write(*,*) 'MF: t(j,i)', t(j,i)
       if(nerror.eq.-1) then
 +if cr
         write(lout,10290) nfile
@@ -58417,16 +58450,13 @@ c$$$            endif
 !     dummy variables
       double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
       integer, dimension(6) :: idummy !for matrix inversion
-!     convert matrix from SI units x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3] to [mm,mrad,mm,mrad,mm,1]
-      do i=1,5
-        fma_tas(i,6)=fma_tas(i,6)*1.e3
-        fma_tas(6,i)=fma_tas(6,i)*1.e-3
-      enddo
+!     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
 !     - set values close to 1 equal to 1
       do 160 i=1,6
         do 160 j=1,6
   160 fma_tas_inv(i,j)=fma_tas(j,i)
+      write(*,*) 'MF: fma_tas ',fma_tas(j,i)
       if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
      &pieni) then
         fma_tas_inv(1,1)=one
@@ -58613,7 +58643,12 @@ c$$$            endif
             endif
 
 !    - now we have done all checks, we only need the normalisation matrix
-!      note: dump_tas is converted to units [mm,mrad,mm,mrad,mm,1]
+!      convert dump_tas from [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1]
+!      note: closed orbit dump_clo already converted in linopt part
+            do m=1,5
+              dump_tas(j,m,6)=dump_tas(j,m,6)*1.e3
+              dump_tas(j,6,m)=dump_tas(j,6,m)*1.e-3
+            enddo
             call fma_norm_phase_space_matrix(fma_tas_inv,               &
      &dump_tas(j,1:6,1:6))
 
@@ -58621,13 +58656,20 @@ c$$$            endif
             open(200101+i*10,file='NORM_'//dump_fname(j),               &
      &status='replace',iostat=ierro,action='write')! nx,nx',ny,ny'
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
-!      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1]
+!      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
             write(200101+i*10,1987) adjustl('# closorb'),dump_clo(j,1)  &
      &,dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),         &
      &dump_clo(j,6)
-!    - write tas-matrix in header of file with normalized phase space coordinates (200101+i*10)
+!    - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
-            write(200101+i*10,'(A17)') adjustl('# inverse(tamatrix)')
+            write(200101+i*10,'(A17)') adjustl('# tamatrix')
+            do m=1,6
+              do n=1,6
+                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),     &
+     &dump_tas(j,m,n)
+              enddo
+            enddo
+            write(200101+i*10,'(A17)') adjustl('# inv(tamatrix)')
             do m=1,6
               do n=1,6
                 write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),     &
