@@ -30602,8 +30602,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
           if ( bdex_enable .and. kz(ix).eq.0 .and.
      &         bdex_elementStatus(ix).ne.0 ) then
-             if (bdex_elementStatus(ix).eq.1) then
-                !Particle exchange
+
+             if (bdex_elementStatus(ix).eq.1) then !Particle exchange
                 if (bdex_debug) then
 +if cr
                    write(lout,*) "BDEXDEBUG> "//
@@ -30630,26 +30630,38 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                 "BDEX WAITING..."
                    
                    !Read back particles
-                   read(bdex_channels(bdex_elementChannel(ix),4),*) napx
-                   if (bdex_debug) then
+                   read(bdex_channels(bdex_elementChannel(ix),4),*) j
+                   if ( j .eq. -1) then !Don't change the distribution at all
+                     if (bdex_debug) then
 +if cr
-                      write(lout,*)
+                       write(lout,*)
 +ei
 +if .not.cr
-                      write(*,*)
+                       write(*,*)
 +ei
-     &                "BDEXDEBUG> Reading",napx, "particles back..."
+     &                  "BDEXDEBUG> No change in distribution."
+                     endif
+                   else
+                     napx=j
+                     if (bdex_debug) then
++if cr
+                       write(lout,*)
++ei
++if .not.cr
+                       write(*,*)
++ei
+     &                   "BDEXDEBUG> Reading",napx, "particles back..."
+                     endif
+                     do j=1,napx
+                       read(bdex_channels(bdex_elementChannel(ix),4),*)
+     &                       xv(1,j),yv(1,j),xv(2,j),xv(2,j),sigmv(j),
+     &                       ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
+     &                       dpsv1(j),nlostp(j)
+                     enddo
                    endif
-                   do j=1,napx
-                      read(bdex_channels(bdex_elementChannel(ix),4),*)
-     &                     xv(1,j),yv(1,j),xv(2,j),xv(2,j),sigmv(j),
-     &                     ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
-     &                     dpsv1(j),nlostp(j)
-                   enddo
                    
                    write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
      &                 "BDEX TRACKING..."
-
                 endif
                 
              else
