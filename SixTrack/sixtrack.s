@@ -29811,7 +29811,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
        INTEGER hdfturn,hdfpid,hdftyp
        DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 +ei
-      integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
+      integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr,ii
       double precision c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,  &
      &xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
@@ -29860,6 +29860,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca combdex
++if crlibm
+!Needed for string conversions for BDEX
+      character*8192 ch
+      integer dtostr
++ei
 +ca save
 !-----------------------------------------------------------------------
 +if fast
@@ -30617,15 +30622,46 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
                    write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
      &                 "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx
-                   !TODO: CRLIBM!
                    
                    !Write out particles
++if crlibm
+                   do j=1,napx
+                     do k=1,8192
+                        ch(k:k)=' '
+                     enddo
+                     ii=1
+                     ii=dtostr(xv(1,j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(yv(1,j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(xv(2,j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(yv(2,j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(sigmv(j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(ejv(j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(ejfv(j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(rvv(j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(dpsv(j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(oidpsv(j),ch(ii:ii+24))+1+ii
+                     ii=dtostr(dpsv1(j),ch(ii:ii+24))+1+ii
+                     
+                     if (ii .ne. 1+(24+1)*11) then !Also check if too big?
+                        write(*,*) "ERRORRRRR! ii=",ii
+                        write(*,*) "ch=",ch
+                     endif
+                     
+                     write(ch(ii:ii+24),'(i24)') nlostp(j)
+                     
+                     write(
+     &     bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') ch(1:ii+24)
+
+                   enddo
++ei
++if .not.crlibm
                    do j=1,napx
                      write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
-     &                     xv(1,j),yv(1,j),xv(2,j),xv(2,j),sigmv(j),
+     &                     xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),
      &                     ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
      &                     dpsv1(j),nlostp(j)
                    enddo
++ei
                    write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
      &                 "BDEX WAITING..."
                    
@@ -30654,7 +30690,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                      endif
                      do j=1,napx
                        read(bdex_channels(bdex_elementChannel(ix),4),*)
-     &                       xv(1,j),yv(1,j),xv(2,j),xv(2,j),sigmv(j),
+     &                       xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),
      &                       ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
      &                       dpsv1(j),nlostp(j)
                      enddo
