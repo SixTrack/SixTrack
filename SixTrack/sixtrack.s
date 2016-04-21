@@ -29303,6 +29303,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca dbdcum
++ca combdex
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -29382,6 +29383,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if time
 +ca timefct
 +ei
+
+          if (bdex_enable) then
++if cr
+             write(*,lout) "BDEX> BDEX only available for thin6d"
++ei
++if .not.cr
+             write(*,*)    "BDEX> BDEX only available for thin6d"
++ei
+             call prror(-1)
+          endif
+          
           goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630, !10
      &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210, !20
      &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !30
@@ -34012,6 +34024,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca dbdcum
++ca combdex
 +ca save
 !-----------------------------------------------------------------------
 +if fast
@@ -34090,13 +34103,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca bpmdata
 +ei bpm
       
-      if (ldumpfront) then
+          if (ldumpfront) then
 +ca dumplines
-      endif
+          endif
       
 +if time
 +ca timefct
 +ei
+
+          if (bdex_enable) then
+             !TODO - if you have a test case, please contact developers!
++if cr
+             write(*,lout) "BDEX> BDEX only available for thin6d"
++ei
++if .not.cr
+             write(*,*)    "BDEX> BDEX only available for thin6d"
++ei
+             call prror(-1)
+          endif
+
 !--------count44
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
@@ -35854,6 +35879,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comgetfields
 +ca dbdump
 +ca comdynk
++ca combdex
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -35943,6 +35969,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if time
 +ca timefct
 +ei
+            endif
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
++if cr
+               write(*,lout) "BDEX> BDEX only available for thin6d"
++ei
++if .not.cr
+               write(*,*)    "BDEX> BDEX only available for thin6d"
++ei
+               call prror(-1)
             endif
 
 !----------count=43
@@ -36400,6 +36437,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comgetfields
 +ca dbdump
 +ca comdynk
++ca combdex
 +ca save
 +if debug
 !-----------------------------------------------------------------------
@@ -36518,6 +36556,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     endif
 !     if (i.eq.676) stop
 +ei
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
++if cr
+               write(*,lout) "BDEX> BDEX only available for thin6d"
++ei
++if .not.cr
+               write(*,*)    "BDEX> BDEX only available for thin6d"
++ei
+               call prror(-1)
+            endif
+
 !----------count 44
 !----------count 54! Eric
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
@@ -37093,6 +37143,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comgetfields
 +ca dbdump
 +ca comdynk
++ca combdex
 +ca save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -37187,7 +37238,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca timefct
 +ei
             endif
-
+            
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
++if cr
+               write(*,lout) "BDEX> BDEX only available for thin6d"
++ei
++if .not.cr
+               write(*,*)    "BDEX> BDEX only available for thin6d"
++ei
+               call prror(-1)
+            endif
 !----------count 56
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
