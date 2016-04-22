@@ -29386,7 +29386,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
           if (bdex_enable) then
 +if cr
-             write(*,lout) "BDEX> BDEX only available for thin6d"
+             write(lout,*) "BDEX> BDEX only available for thin6d"
 +ei
 +if .not.cr
              write(*,*)    "BDEX> BDEX only available for thin6d"
@@ -34162,7 +34162,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if (bdex_enable) then
              !TODO - if you have a test case, please contact developers!
 +if cr
-             write(*,lout) "BDEX> BDEX only available for thin6d"
+             write(lout,*) "BDEX> BDEX only available for thin6d"
 +ei
 +if .not.cr
              write(*,*)    "BDEX> BDEX only available for thin6d"
@@ -36022,7 +36022,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
 +if cr
-               write(*,lout) "BDEX> BDEX only available for thin6d"
+               write(lout,*) "BDEX> BDEX only available for thin6d"
 +ei
 +if .not.cr
                write(*,*)    "BDEX> BDEX only available for thin6d"
@@ -36608,7 +36608,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
 +if cr
-               write(*,lout) "BDEX> BDEX only available for thin6d"
+               write(lout,*) "BDEX> BDEX only available for thin6d"
 +ei
 +if .not.cr
                write(*,*)    "BDEX> BDEX only available for thin6d"
@@ -37290,7 +37290,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
 +if cr
-               write(*,lout) "BDEX> BDEX only available for thin6d"
+               write(lout,*) "BDEX> BDEX only available for thin6d"
 +ei
 +if .not.cr
                write(*,*)    "BDEX> BDEX only available for thin6d"
