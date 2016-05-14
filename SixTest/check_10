@@ -55,50 +55,48 @@ do
       echo "      ===================================="
       echo "      CASE $i"
       echo "      ===================================="
-      if test -e $i/fort.10.$prov
+      if test -e $i/fort.10.$prov    		#checking file existence
       then 
-        if test -e $i/fort.10.$v
-          then
-          if test ! -s $i/fort.10.$prov -a ! -s $i/fort.10.$v 		#checking file size 
-    	  then 
-	    echo "Warning: Both for.10.$prov and fort.10.$v are zero size but still continuing the test"
-	  else
-	    if test -s $i/fort.10.$prov -a -s $i/fort.10.$v
-	    then
-              mkdir -p tmp$$
-              if test "$i" != bnl
+        if test -e $i/fort.10.$v		#checking file existnece
+        then
+          if test  -s $i/fort.10.$prov -a -s $i/fort.10.$v 		#checking both file size to be non-zero 
+	  then
+            mkdir -p tmp$$
+            if test "$i" != bnl
+            then
+              cd tmp$$
+              ln -s ../$i/fort.10.$prov fort.20
+              ln -s ../$i/fort.10.$v fort.21
+              $BIN/mychecktens
+              stat=$?
+              if test $stat -eq 0
               then
-                cd tmp$$
-                ln -s ../$i/fort.10.$prov fort.20
-                ln -s ../$i/fort.10.$v fort.21
-                $BIN/mychecktens
-                stat=$?
-                if test $stat -eq 0
-                then
-                  echo "fort.10 SAME"
-                else
-                echo "fort.10 DIFFERENT!!!"
-                fi
-                #$HOME/sixdesk/slap/scripts/checktens | egrep "SAME 22|SAME 23|DIFF 22|DIFF 23"
-                #$HOME/sixdesk/slap/scripts/checktens | egrep "DIFF 22|DIFF 23"
-                cd ..
+                echo "fort.10 SAME"
               else
-                echo "title.dat"
-                diff -b $i/title.dat.$prov $i/title.dat.$v
-                echo "beambeam-output.dat"
-                diff -b $i/beambeam-output.dat.$prov $i/beambeam-output.dat.$v
-                echo "beambeam-lostID.dat"
-                diff -b $i/beambeam-lostID.dat.$prov $i/beambeam-lostID.dat.$v
-                echo "SixTwiss.dat"
-                diff -b $i/SixTwiss.dat.$prov $i/SixTwiss.dat.$v
-                echo "checkdist.dat"
-                diff -b $i/checkdist.dat.$prov $i/checkdist.dat.$v
+                echo "fort.10 DIFFERENT!!!"
               fi
-              rm -rf tmp$$
-	    else
-	      echo "Error : One of the file is zero size while other is not, Exiting with error!!"
-	    fi
-	  fi
+              #$HOME/sixdesk/slap/scripts/checktens | egrep "SAME 22|SAME 23|DIFF 22|DIFF 23"
+              #$HOME/sixdesk/slap/scripts/checktens | egrep "DIFF 22|DIFF 23"
+              cd ..
+            else
+              echo "title.dat"
+              diff -b $i/title.dat.$prov $i/title.dat.$v
+              echo "beambeam-output.dat"
+              diff -b $i/beambeam-output.dat.$prov $i/beambeam-output.dat.$v
+              echo "beambeam-lostID.dat"
+              diff -b $i/beambeam-lostID.dat.$prov $i/beambeam-lostID.dat.$v
+              echo "SixTwiss.dat"
+              diff -b $i/SixTwiss.dat.$prov $i/SixTwiss.dat.$v
+              echo "checkdist.dat"
+              diff -b $i/checkdist.dat.$prov $i/checkdist.dat.$v
+            fi
+            rm -rf tmp$$
+	  elif test ! -s $i/fort.10.$prov -a ! -s $i/fort.10.$v
+	  then
+	    echo "Warning: Both fort.10.$prov and fort.10.$v are zero size"
+	  else  
+	    echo "Error : One of the file is zero size while other is not, Exiting with error!!"
+          fi
         else
           echo "      Not yet available $v"
         fi
