@@ -55,15 +55,15 @@ do
       echo "      ===================================="
       echo "      CASE $i"
       echo "      ===================================="
-      if test -e $i/fort.10.$prov    		#checking file existence
+      if test -f $i/fort.10.$prov    		#checking file existence(and normal type)
       then 
-        if test -e $i/fort.10.$v		#checking file existnece
+        if test -f $i/fort.10.$v		#checking file existnece(and normal type)
         then
           if test  -s $i/fort.10.$prov -a -s $i/fort.10.$v 		#checking both file size to be non-zero 
-	  then
+          then
             mkdir -p tmp$$
             if test "$i" != bnl
-            then
+             then
               cd tmp$$
               ln -s ../$i/fort.10.$prov fort.20
               ln -s ../$i/fort.10.$v fort.21
@@ -91,11 +91,13 @@ do
               diff -b $i/checkdist.dat.$prov $i/checkdist.dat.$v
             fi
             rm -rf tmp$$
-	  elif test ! -s $i/fort.10.$prov -a ! -s $i/fort.10.$v
-	  then
-	    echo "Warning: Both fort.10.$prov and fort.10.$v are zero size"
-	  else  
-	    echo "Error : One of the file is zero size while other is not, Exiting with error!!"
+          elif test ! -s $i/fort.10.$prov -a ! -s $i/fort.10.$v                                #checking both file size to be zero
+          then
+            echo "Warning: Both fort.10.$prov and fort.10.$v are zero size"
+            echo "fort.10 SAME"
+          else                                                                                 #checking only one to be non-zero
+            echo "Error : One of the files is zero size while other is not"
+            echo "fort.10 DIFFERENT!!!"
           fi
         else
           echo "      Not yet available $v"
