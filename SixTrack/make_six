@@ -497,7 +497,7 @@ then
 fi
 if test "$collimat" = "" -a "$crlibm" = ""
 then
-    #Collimat is not really compatible with crlibm
+    #Collimat is not really compatible with collimation
     echo
     echo -e "\e[91m ***** WARNING ***** \e[39m"
     echo -e "\e[91mTrying to build SixTrack with both\e[39m"
