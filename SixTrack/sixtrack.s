@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.34'/
-      data moddate /'06.04.2016'/
+      data moddate /'20.04.2016'/
 +cd license
 !!SixTrack
 !!
@@ -43660,6 +43660,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
+               call prror(-1)
             end if
 
             read(filefields_fields(1)(1:filefields_lfields(1)),*) t
@@ -43846,6 +43847,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
+               call prror(-1)
             end if
 
             x = round_near(errno, filefields_lfields(1)+1,
@@ -43990,6 +43992,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
+              call prror(-1)
             end if
 
             x = round_near(errno, filefields_lfields(1)+1,
@@ -44342,12 +44345,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          case default
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write (lout,*) "DYNK> non-recognized type in inner switch1?"
+            write (lout,*) "DYNK> non-recognized type in inner switch?"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-            write (*,*)    "DYNK> non-recognized type in inner switch1?"
+            write (*,*)    "DYNK> non-recognized type in inner switch?"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
+            call prror(-1)
          end select
          
          read(getfields_fields(4)(1:getfields_lfields(4)),*) t ! N
@@ -44651,10 +44659,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN() : 2-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN() : 2-arg function"
             write (*,*)    "DYNK> non-recognized type in inner switch"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
             call prror(51)
          end select
@@ -44728,10 +44740,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN() : 1-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch?"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN() : 1-arg function"
             write (*,*)    "DYNK> non-recognized type in inner switch?"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
             call prror(51)
          end select
@@ -45088,10 +45104,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN() : SINF/COSF"
             write (lout,*) "DYNK> non-recognized type in inner switch"
+            write (lout,*) "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN() : SINF/COSF"
             write (*,*)    "DYNK> non-recognized type in inner switch"
+            write (*,*)    "DYNK> Got: '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
 +ei
             call prror(51)
          end select

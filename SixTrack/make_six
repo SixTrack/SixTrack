@@ -989,14 +989,7 @@ then
                 fi
             elif [[ "$MACHTYPE" == *x86_64* ]]
             then
-                # YIL: for gfortran 4.4/4.5 don't say which directory to use...
-                if ( ${FC} --version | grep 4.4. > /dev/null ) || ( ${FC} --version | grep 4.5. > /dev/null )
-                then 
-                    export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh"
-                else
-                    export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
-                fi
-                # YIL: add hdf5 libs
+		export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh"
                 if test "$hdf5" = ""
                 then
                     export CERNLIB="-Wl,--start-group -I${H5ROOT}/include -L${H5ROOT}/lib -lszip -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5_f90cstub -lhdf5_hl_fortran -lz -lm -Wl,--end-group  $CERNLIB"
