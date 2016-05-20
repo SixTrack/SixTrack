@@ -237,18 +237,23 @@ assembling code <em>blocks</em> according to <em>flags</em>. </p>
     page=self.tp_source%(ast,flag,block)
     fh=open(os.path.join(basedir,'index.html'),'w')
     fh.write(page)
+    fh.close()
     for n in self.asts:
       fh=open(os.path.join(basedir,'ast_%s.html'%n.name),'w')
       fh.write(n.make_html())
+      fh.close()
       fname=n.outfn.replace('n.f','')
       fh=open(os.path.join(basedir,'file_%s.html'%fname),'w')
       fh.write(n.make_fortran_html(self))
+      fh.close()
     for n in self.flags:
       fh=open(os.path.join(basedir,'flag_%s.html'%n.name),'w')
       fh.write(n.make_html())
+      fh.close()
     for n in self.blocks:
       fh=open(os.path.join(basedir,'block_%s.html'%n.name),'w')
       fh.write(n.make_html())
+      fh.close()
   def write_fortran(self,basedir='build',flags=None):
     if not os.path.exists(basedir):
       os.mkdir(basedir)
@@ -256,7 +261,9 @@ assembling code <em>blocks</em> according to <em>flags</em>. </p>
       fn=os.path.join(basedir,ast.outfn)
       print fn
       out=ast.make_fortran(self,flags=flags)
-      open(fn,'w').write(out)
+      fh=open(fn,'w')
+      fh=fh.write(out)
+      fh.close()
   def get_definitions(self):
       rsub=re.compile('subroutine +([A-z0-9_]+) *\(',re.IGNORECASE)
       rscall=re.compile('call +([A-z0-9_]+) *\(',re.IGNORECASE)
@@ -377,7 +384,10 @@ class Ast(object):
         self.flags.extend(parse_comma_list(l[3:]))
       elif l.startswith('e'):
         self.blocks.extend(parse_comma_list(l[2:]))
-    self.code=open(fname).read()
+    fh.close()
+    fh=open(fname)
+    self.code=fh.read()
+    fh.close()
   def __repr__(self):
     return "<Ast: %s -> %s>"%(self.src,self.outfn)
   def print_all(self):
@@ -487,6 +497,8 @@ class Block(object):
       #print state,ifstate,line[:40]
       if state=='print':
         if line.startswith('+if'):
+          if len(line.split())!=2:
+            raise ValueError("Error when parsing line '"+line+"', too many spaces (there should only be one, between '+if' and the expression itself).")
           condcode=line.split()[1].replace('.',' ')
           cond=eval(condcode.strip(),{},vl)
           #print line,'->',cond
