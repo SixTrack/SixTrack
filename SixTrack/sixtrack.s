@@ -46311,7 +46311,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if crlibm
       pi = 4d0*atan_rn(1d0)
 +ei
-+if .not. crlibm
++if .not.crlibm
       pi = 4d0*atan(1d0)
 +ei
       
