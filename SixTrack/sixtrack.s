@@ -9992,7 +9992,6 @@ cc2008
  34    continue
       close(35,err=35)
  35    continue
-+if .not.fluka
       close(59,err=59)
  59    continue
       close(60,err=60)
@@ -10057,7 +10056,6 @@ cc2008
  89    continue
       close(90,err=90)
  90    continue
-+ei
       close(98,err=98)
  98    continue
 +if bnlelens
@@ -17602,9 +17600,6 @@ cc2008
 !-----------------------------------------------------------------------
       idial=1
       numlr=0
-+if .not.llyap
-!     NUML=1
-+ei
       napx=1
       imc=1
       preda=1.d-38
@@ -18832,9 +18827,7 @@ cc2008
       save
 !-----------------------------------------------------------------------
       ii=0
-+if .not.hhp
       rewind 2
-+ei
  1    read(2,*,end=90) ch
       lineno2=lineno2+1
       if(ch(:1).eq.'/') then
