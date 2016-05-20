@@ -139,12 +139,7 @@
 !GRDRHIC
 !GRD-042008
 +ei
-+cd save
-+if automatc
-+ei
-+if .not.automatc
-      save
-+ei
+
 +cd parpro
       integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
@@ -10153,7 +10148,7 @@ cc2008
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(3)
       data sgn/100*1.d0/ainv,bmat,cmat,cvec,dvec/48*0.d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi2in=1d0/(8d0*atan_rn(1d0))
@@ -10545,7 +10540,7 @@ cc2008
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -10797,7 +10792,7 @@ cc2008
       dimension tham(0:3)
 +ca commadha
 +ca commadh1
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 jcomp=0,3
         tham(jcomp)=0d0
@@ -10955,7 +10950,7 @@ cc2008
       real user
       double precision fder,fun,objf,objgrd,x
       dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
-+ca save
+      save
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -11297,7 +11292,7 @@ cc2008
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(2)
       data sgn/100*1d0/ainv,bmat,cmat,cvec,dvec/48*0d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi2in=1d0/(8d0*atan_rn(1d0))
@@ -11688,7 +11683,7 @@ cc2008
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rewind 23
 !-----------------------------------------------------------------------
@@ -11970,7 +11965,7 @@ cc2008
 +ca commadha
 +ca commadh2
       dimension thamp(0:1),thama(0:4)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(iamp.eq.0) then
 !-----------------------------------------------------------------------
@@ -12273,7 +12268,7 @@ cc2008
      &tunedy,tunex,tuney,weight,x
       dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
       dimension iuser(*),tunedx(10),tunedy(10)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 30 jel=0,1
         do 20 jord=1,iuser(1)
@@ -12619,7 +12614,7 @@ cc2008
       parameter(xlim = 5.33d0)
       parameter(ylim = 4.29d0)
       dimension rx(33),ry(33)
-+ca save
+      save
 !-----------------------------------------------------------------------
       x=abs(xx)
       y=abs(yy)
@@ -12790,7 +12785,7 @@ cc2008
       integer in,out,ins,outs
       dimension ins(npart),outs(npart)
 !-----------------------------------------------------------------------
-+ca save
+      save
       in=0
       out=0
       do i=1,n
@@ -13009,7 +13004,7 @@ cc2008
 +ca parbeam
       parameter ( a1 = 0.5124242248d0, a2 = 0.0517653588d0 )
       parameter ( b1 = 0.2752551286d0, b2 = 2.7247448714d0 )
-+ca save
+      save
 !-----------------------------------------------------------------------
       if ( x.ge.xcut .or. y.ge.ycut ) goto 1000
       xh = hrecip*x
@@ -13114,7 +13109,7 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(numx.eq.1) phas0=phas
       if(numx.le.nde(1)) phas=zero
@@ -13154,7 +13149,7 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
 +if crlibm
@@ -13266,7 +13261,7 @@ cc2008
       character*16 dynk
       data dynk /'DYNK'/
 
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
@@ -18804,19 +18799,7 @@ cc2008
      &t10,'TROMBONE #      NAME'/)
 10710 format(t22,i4,5x,a16)
       end
-+if iibm
-      subroutine xuflow (i)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      integer i
-      return
-      end
-+ei
+      
       subroutine write4
 !-----------------------------------------------------------------------
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
@@ -18846,7 +18829,7 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ii=0
 +if .not.hhp
@@ -18936,7 +18919,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if bnlelens
 !GRDRHIC
@@ -19769,7 +19752,7 @@ C Should get me a NaN
       double precision wi,wr,x,y
 +ca parpro
 +ca parbeam
-+ca save
+      save
 !-----------------------------------------------------------------------
       hrecip = 1.d0/h
       kstep = nx+2
@@ -19803,7 +19786,7 @@ C Should get me a NaN
 !     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
       parameter (c=1.12837916709551257d0,p=46768052394588893.3825d0)
       dimension rr(37),ri(37)
-+ca save
+      save
 !-----------------------------------------------------------------------
       xa=abs(x)
       ya=abs(y)
@@ -19911,7 +19894,7 @@ C Should get me a NaN
 +ca parnum
       dimension rvec(*),r(2)
       data iseed1,iseed2 / 12345, 67890 /
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi = four*atan_rn(one)
@@ -19991,7 +19974,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -20498,7 +20481,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -20876,7 +20859,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -20992,7 +20975,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
       dimension fake(2,20),dpdav2(6),jj(100)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -22199,7 +22182,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -23567,7 +23550,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -23739,7 +23722,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonxz
 +ca commonm1
 +ca commond1
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -23880,7 +23863,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -23940,7 +23923,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT XX NORD NVAR ; D V DA EXT YY NORD NVAR ;
@@ -24076,7 +24059,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ;
@@ -24158,7 +24141,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ; D V DA INT A NORD NVAR ;
@@ -24223,7 +24206,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ;
@@ -24372,7 +24355,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ; D V DA INT A1 NORD NVAR ;
@@ -24446,7 +24429,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT SEPX NORD NVAR ; D V DA EXT SEPY NORD NVAR ;
@@ -25000,9 +24983,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +if debug
                    !call system('../crmain  >> crlog')
-+ei
-+if iibm
-      call xuflow(0)
 +ei
 !     A normal start, time0 is beginning
       pretime=0.0
@@ -26967,7 +26947,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comdynk
       logical dynk_isused
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
         nlostp(i)=i
@@ -28768,7 +28748,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca dbdcum
-+ca save
+      save
 !-----------------------------------------------------------------------
       nthinerr=0
 +if bnlelens
@@ -29312,7 +29292,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca dbdcum
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
@@ -33410,7 +33390,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca dbdcum
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
@@ -33986,7 +33966,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       data ncalls /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       ncalls=ncalls+1 
@@ -34195,7 +34175,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       data ncalls /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       ncalls=ncalls+1 
@@ -34272,7 +34252,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1a
 +ca lost2
@@ -34311,7 +34291,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1a
 +ca lost2a
@@ -34351,7 +34331,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1b
 +ca lost2a
@@ -34391,7 +34371,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1c
 +ca lost2a
@@ -34430,7 +34410,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 20 ia=1,napx,2
         if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
@@ -34501,7 +34481,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       id=0
       do 10 ia=1,napxo,2
@@ -34784,7 +34764,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca database
 +ei
 
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if collimat
       if (do_coll) then
@@ -35252,7 +35232,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comgetfields
 +ca dbdump
 +ca comdynk
-+ca save
+      save
 !-----------------------------------------------------------------------
       nthinerr=0
       idz1=idz(1)
@@ -35798,7 +35778,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comgetfields
 +ca dbdump
 +ca comdynk
-+ca save
+      save
 +if debug
 !-----------------------------------------------------------------------
 !===================================================================
@@ -36491,7 +36471,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comgetfields
 +ca dbdump
 +ca comdynk
-+ca save
+      save
 !-----------------------------------------------------------------------
       nthinerr=0
       idz1=idz(1)
@@ -37070,7 +37050,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 +if cr
 +if debug
@@ -37719,7 +37699,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca rhicelens
 +ei
 !-----------------------------------------------------------------------
-+ca save
+      save
 !-----------------------------------------------------------------------
       dimension ekv(npart,nele),fokqv(npart),dpsv(npart)
       dimension rvv(npart),oidpsv(npart)
@@ -38397,9 +38377,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       data lineno /0/
 +ei
 +ca version
-+if iibm
-      call xuflow(0)
-+ei
 +ca open
 +if cr
       write(lout,10000) version,moddate
@@ -39054,7 +39031,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca comdynkcr
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 +if bnlelens
@@ -39647,7 +39624,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       character*18 a18
       character*58 a58
       dimension jj(100)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do i=1,100
         jj(i)=0
@@ -39735,7 +39712,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
       dimension rot(6),xy(6),df(6)
       dimension angle(3),rad(3)
-+ca save
+      save
 !-----------------------------------------------------------------------
       tlim=1e7
       call timest(tlim)
@@ -39941,7 +39918,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca parnum
 +ca commonds
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=four*atan_rn(one)
@@ -40020,7 +39997,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commons
 +ca commont1
       dimension tas(6,6),x1(6),x2(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10030)
@@ -40186,7 +40163,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ierro=0
       call matrix(dpp,am)
@@ -40434,7 +40411,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
         jm=mel(k)
@@ -40498,7 +40475,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
         jm=mel(k)
@@ -40572,7 +40549,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       cor=0d0
       coro=1d38
@@ -40740,7 +40717,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10000)
@@ -40937,7 +40914,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save ! Saving DPP?
+      save ! Saving DPP?
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -41040,7 +41017,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
 +if cr
@@ -41465,7 +41442,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonas
 +ca commonc
       dimension am(6,6),idummy(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(nndim.lt.2.or.nndim.gt.3) call prror(95)
 !--------------------
@@ -41553,7 +41530,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonas
 +ca commonc
       dimension am(6,6),idummy(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(nndim.lt.2.or.nndim.gt.3) call prror(95)
 !--------------------
@@ -41634,7 +41611,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -41700,7 +41677,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 20 j=1,icoe
         ico0=icomb0(j)
@@ -41751,7 +41728,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -42074,7 +42051,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -42393,7 +42370,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10000)
@@ -47188,7 +47165,7 @@ c$$$               endif
 +if cr
 +ca crcoall
 +ei
-+ca save
+      save
 
 !     temporary variables
       double precision tmpdcum, ds
@@ -47326,7 +47303,7 @@ c$$$               endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nhmoni=0
       nvmoni=0
@@ -48291,7 +48268,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       iwrite=0
       if(nlin.eq.0) then
@@ -48448,7 +48425,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       iwrite=0
       if(nlin.eq.0) then
@@ -48607,7 +48584,7 @@ c$$$            endif
 +ca parnum
       dimension rmat(dimtot,dimakt),vec(dimakt)
       data eps /1d-20/
-+ca save
+      save
 !-----------------------------------------------------------------------
       kod=1
       do 50 j=1,dimakt
@@ -48673,7 +48650,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=2,5
         do 10 l=1,2
@@ -48727,7 +48704,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rzero=0.0
       rzero1=0.0
@@ -49214,7 +49191,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       kcorru=0
       kcorr=0
@@ -49339,7 +49316,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       izu=0
       do 10 i=1,iu
@@ -49413,7 +49390,7 @@ c$$$            endif
       dimension a(nmon1,ncor1),b(nmon1),x(ncor1),ipiv(ncor1),r(nmon1)
       dimension rho(3*ncor1),xiter(ncor1),xrms(ncor1),xptp(ncor1)
       dimension rmss(ncor1),ptop(ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
 ! --- calcul du premier pivot
@@ -49612,7 +49589,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
       nc=n-k
@@ -49649,7 +49626,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
 !hr06 h=0.0d0
@@ -49684,7 +49661,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1),rho(3*ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
       do 10 i= 1,k,1
@@ -49723,7 +49700,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 !hr06 sig=0.0d0
       sig=0.0                                                            !hr06
@@ -49760,7 +49737,7 @@ c$$$            endif
       integer i,imax,imin,m,maxmin
       real ave,ptp,r,rms,xave,xrms
       dimension r(m)
-+ca save
+      save
 !-----------------------------------------------------------------------
       xave = 0.0
       xrms = 0.0
@@ -49796,7 +49773,7 @@ c$$$            endif
       integer i,m,maxmin,n
       real a,curent
       dimension a(n)
-+ca save
+      save
 !-----------------------------------------------------------------------
       maxmin=1
       if (n.lt.1) return
@@ -49839,7 +49816,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,nblz
         ilf(i)=0
@@ -50117,7 +50094,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
 !GRD
@@ -50620,7 +50597,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,3
         bb(i)=zero
@@ -50961,7 +50938,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if debug
 !     call warr('qwc',qwc(1),1,0,0,0)
@@ -51386,7 +51363,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,mmul
         aa(i)=zero
@@ -51836,7 +51813,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       do 10 i=1,ium
@@ -52631,7 +52608,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ntao=nta
       nteo=nte
@@ -53042,7 +53019,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ntao=nta
       nteo=nte
@@ -53209,7 +53186,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       ipl=1
@@ -54345,7 +54322,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension dfac(10),dtu(2,5),ep(2),beta(2),dtup(2,5,0:4,0:4)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(iv.lt.2) then
 +if cr
@@ -54504,7 +54481,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       do 10 i=1,ium
@@ -55261,7 +55238,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,6
         bb(i)=zero
@@ -55561,7 +55538,7 @@ c$$$            endif
       integer nnuml
 +ei
 +ca version
-+ca save
+      save
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=1d-8
@@ -58213,7 +58190,7 @@ c$$$            endif
       double precision ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
 +ca parnum
       dimension ar(n),ai(n)
-+ca save
+      save
 !-----------------------------------------------------------------------
       n=2**m
       nv2=n/2
@@ -58292,7 +58269,7 @@ c$$$            endif
 +ei
 +ca parnum
       double precision a,b,c
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
 +if crlibm
@@ -58319,7 +58296,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
 +ca commphin
-+ca save
+      save
 !---------------------------------------------------------------------
 +if crlibm
 !hr06 tpi=8*atan_rn(one)
@@ -58359,7 +58336,7 @@ c$$$            endif
 +ca parnum
 +ca commphin
       dimension xinv(ninv),invx(ninv)
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(a).le.b) then
         do 10 i=1,ninv
@@ -58388,7 +58365,7 @@ c$$$            endif
 +ei
       double precision a,b,c,d,e
 +ca parnum
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(a).gt.pieni) then
         if(c.gt.pieni.and.b.gt.pieni) then
@@ -58429,7 +58406,7 @@ c$$$            endif
       dimension qwc(3),clo(3),clop(3)
       dimension x(mpa,2),y(mpa,2),sigm(mpa),dps(mpa)
       dimension di0(2),dip0(2)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=four*atan_rn(one)
@@ -58662,7 +58639,7 @@ c$$$            endif
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rewind 10
       do 10 i=1,1000
@@ -58844,7 +58821,7 @@ c$$$            endif
       !JBG increased the dimension of param to 5 to include xstr
       dimension param(nele,5),bcu(nbb,12)
       dimension star(3,mbea)
-+ca save
+      save
 !-----------------------------------------------------------------------
       phi=param(ne,1)
       nsli=param(ne,2)
@@ -58918,7 +58895,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
 !hr06   h=track(6,i)+one-sqrt((one+track(6,i))**2-                      &
@@ -58981,7 +58958,7 @@ c$$$            endif
 +ca parnum
       dimension track(6,npart),bcu(nbb,12)
       dimension star(3,mbea),dum(13)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 2000 jsli=1,nsli
         do 1000 i=1,np
@@ -59131,7 +59108,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
 !hr06   h1d=sqrt((one+track(6,i))**2-track(2,i)**2-track(4,i)**2)
@@ -59206,7 +59183,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       data sqrpi2/3.544907701811032d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(sigxx.eq.sigyy) then
         x=sepx**2+sepy**2
@@ -59314,7 +59291,7 @@ c$$$            endif
       dimension star(3,mbea)
 !-----------------------------------------------------------------------
       data border /8d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=4d0*atan_rn(1d0)
@@ -59398,7 +59375,7 @@ c$$$            endif
      &e4/ 3.9399134d+05/, e3/-4.6004775d+04/, e2/ 2.2566998d+03/,       &
      &e1/-6.8317697d+01/, e0/ 2.8224654d+00/
       data f0/-8.1807613d-02/, f1/-2.8358733d+00/, f2/ 1.4902469d+00/
-+ca save
+      save
 !-----------------------------------------------------------------------
       p=p0-0.5d0
       p1=abs(p)
@@ -59489,7 +59466,7 @@ c$$$            endif
       data      code(25),kntm(25),kntr(25) / 'F406.1', 255,   0 /
       data      code(26),kntm(26),kntr(26) / 'G100.1', 255, 255 /
       data      code(27),kntm(27),kntr(27) / 'G100.2', 255, 255 /
-+ca save
+      save
 !-----------------------------------------------------------------------
       logf  =  lgfile
          l  =  0
@@ -59580,7 +59557,7 @@ c$$$            endif
       character*6 name
       dimension ir(n),a(idim,n)
       data name/'RINV'/,kprnt/0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !  TEST FOR PARAMETER ERRORS.
@@ -59707,7 +59684,7 @@ c$$$            endif
       character*6 name
       dimension ir(n),a(idim,n)
       data name/'DINV'/,kprnt/0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !  TEST FOR PARAMETER ERRORS.
@@ -59832,7 +59809,7 @@ c$$$            endif
       integer idim,k,kprnt,lgfile,n
       character*6 name
       logical mflag,rflag
-+ca save
+      save
 !-----------------------------------------------------------------------
       call kermtr('F010.1',lgfile,mflag,rflag)
       if(mflag) then
@@ -59887,7 +59864,7 @@ c$$$            endif
       data      zero, one           /  0., 1.  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s11)  =  dble(x)*dble(y) + s11
       ipairf(j,k)  =  j*2**12 + k
@@ -59980,7 +59957,7 @@ c$$$            endif
       data      zero, one           /  0.d0, 1.d0  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       ipairf(j,k)  =  j*2**12 + k
 !hr07 pivotf(x)    =  abs(sngl(x))
@@ -60068,7 +60045,7 @@ c$$$            endif
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' RFEQN'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s21)  =  dble(x)*dble(y) + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
@@ -60130,7 +60107,7 @@ c$$$            endif
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' DFEQN'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s21)  =  x*y + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
@@ -60193,7 +60170,7 @@ c$$$            endif
       dimension ir(*),a(idim,*)
       data      zero      /  0.d0  /
       data      hname               /  ' RFINV'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s31)  =  dble(x)*dble(y) + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
@@ -60274,7 +60251,7 @@ c$$$            endif
       dimension ir(*),a(idim,*)
       data      hname               /  ' DFINV'  /
       data      zero      /  0.d0  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s31)  =  x*y + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
@@ -60349,7 +60326,7 @@ c$$$            endif
       integer idim,k,lgfile,n
       character*6 name
       logical mflag,rflag
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(name(2:2) .eq. 'S') then
          call kermtr('F012.1',lgfile,mflag,rflag)
@@ -60415,7 +60392,7 @@ c$$$            endif
       double precision sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
 !hr07 dimension x(*),y(*)
       dimension x(l),y(l)                                                !hr07
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !     CALCULATE SUMS
@@ -60486,7 +60463,7 @@ c$$$            endif
       double precision w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
 !hr07 dimension x(*),y(*),w(*)
       dimension x(l),y(l),w(l)                                           !hr07
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !     CALCULATE SUMS
@@ -60607,7 +60584,7 @@ c$$$            endif
 !     j_slices = 1 for the a non sliced collimator!
       integer j_slices
 !
-+ca save
+      save
 !
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
@@ -61432,7 +61409,7 @@ c$$$            endif
 !DEBUG
       integer event
 !DEBUG
-+ca save
+      save
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
 !
@@ -62178,7 +62155,7 @@ c$$$            endif
 +ca dbmkdist
       double precision pi
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -62376,7 +62353,7 @@ c$$$            endif
 !
       double precision iix, iiy, phix, phiy
 !
-+ca save
+      save
 !
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -62719,7 +62696,7 @@ c$$$     &           myalphay * cos(phiy))
       double precision long_cut
       double precision a_st, b_st
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -63022,7 +62999,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca dbmkdist
       double precision pi
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -63246,7 +63223,7 @@ c$$$     &           myalphay * cos(phiy))
       double precision a_st, b_st
       integer startpar
 !
-+ca save
+      save
 
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -64546,7 +64523,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ei
       integer len, in
       real rndm4, a
-+ca save IN,a
+      save IN,a
       parameter ( len =  30000 )
       dimension a(len)
       data in/1/
@@ -65615,7 +65592,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if crlibm
 +ca crlibco
 +ei
-+ca save
+      save
 !
       integer    mclock
       integer    count_rate, count_max
@@ -65674,14 +65651,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       DATA flag/.TRUE./
       real rndm4
       double precision x, u1, u2, twopi, r,cut
-+ca save
-+if automatc
-      write(*,*) "ERROR in ran_gauss"
-      write(*,*) "Please review use of save block in this algorithm!"
-      write(*,*) "u1 and u2 should always be saved, and flag "//
-     &     "is automatically so due to DATA statement"
-      exit(1)
-+ei
+      save
       
 +if crlibm
             twopi=8d0*atan_rn(1d0) !Why not 2*pi, where pi is in block "common"?
@@ -65734,7 +65704,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 
       logical lopen
 
-+ca save
+      save
 !
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -66059,7 +66029,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if boinc
       character*256 filename
 +ei
-+ca save
+      save
       restart=.false.
       read95=.false.
       read96=.false.
@@ -66892,7 +66862,7 @@ C            backspace (dumpunit(i),iostat=ierro)
       character*256 filename
 +ei
       data ncalls /0/
-+ca save
+      save
 !     call system('echo "CPSTART `date`" >> crtimes')
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
@@ -67404,7 +67374,7 @@ c$$$         backspace (93,iostat=ierro)
 
       integer j,l,k,m,i
       character*256 filename
-+ca save
+      save
       write(93,*)                                                       &
      &'SIXTRACR CRSTART called crnumlcr',crnumlcr
       endfile (93,iostat=ierro)
@@ -67849,7 +67819,7 @@ c$$$         backspace (93,iostat=ierro)
       character*10 time
       character*5 zone
       integer values(8),mm(3),nd,nt
-+ca save
+      save
       call date_and_time(date,time,zone,values)
       mm(3)=mod(values(1),100)
 !     mm(3) = mod (mm(3),100)
@@ -67874,7 +67844,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commtim
       logical start
       data start /.false./
-+ca save
+      save
       if (.not.start) then
         start=.true.
         call cpu_time(timestart)
@@ -67887,7 +67857,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca crcoall
 +ei
 +ca commtim
-+ca save
+      save
       call timest(0.0)
       call cpu_time(timenow)
       r1=timenow-timestart
@@ -67912,7 +67882,7 @@ c$$$         backspace (93,iostat=ierro)
       integer errno,l1,l2
       integer dtostr
       integer ich
-+ca save
+      save
         write(93,*)                                                     &
      &'SIXTRACR STOP/ABEND called and closing files'
         endfile (93,iostat=ierro)
@@ -68151,7 +68121,7 @@ c$$$         backspace (93,iostat=ierro)
       integer i1,i2,i3
       real r1,r2,r3,r4,r5
       character c1
-+ca save
+      save
       return
       end
       subroutine hdelet(i1)
@@ -68159,7 +68129,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hlimit(i1)
@@ -68167,7 +68137,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplax(c1,c2)
@@ -68175,7 +68145,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       character c1,c2
-+ca save
+      save
       return
       end
       subroutine hplcap(i1)
@@ -68183,14 +68153,14 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplend()
       implicit none
       integer lout
       common /crflags/lout
-+ca save
+      save
       return
       end
       subroutine hplint(i1)
@@ -68198,7 +68168,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplopt(c1,i1)
@@ -68207,7 +68177,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       character c1
-+ca save
+      save
       return
       end
       subroutine hplot(i1,c1,c2,i2)
@@ -68216,7 +68186,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1,i2
       character c1,c2
-+ca save
+      save
       return
       end
       subroutine hplset(c1,r1)
@@ -68225,7 +68195,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       real r1
       character c1
-+ca save
+      save
       return
       end
       subroutine hplsiz(r1,r2,c1)
@@ -68234,7 +68204,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       real r1,r2
       character c1
-+ca save
+      save
       return
       end
       subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
@@ -68244,7 +68214,7 @@ c$$$         backspace (93,iostat=ierro)
       integer i1
       real r1,r2,r3,r4,r5
       character c1
-+ca save
+      save
       return
       end
       subroutine htitle(c1)
@@ -68252,7 +68222,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       character c1
-+ca save
+      save
       return
       end
       subroutine ipl(i1,r1,r2)
@@ -68261,7 +68231,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       real r1(*),r2(*)
-+ca save
+      save
       return
       end
       subroutine ipm(i1,r1,r2)
@@ -68270,7 +68240,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       real r1,r2
-+ca save
+      save
       return
       end
       subroutine iselnt(i1)
@@ -68278,7 +68248,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine igmeta(i1,i2)
@@ -68286,7 +68256,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1,i2
-+ca save
+      save
       return
       end
 +dk nagdumy
@@ -68368,7 +68338,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,100) 'bl1 ',bl1
       write(99,100) 'bl2 ',bl2
@@ -68408,7 +68378,7 @@ c$$$         backspace (93,iostat=ierro)
       integer j
       character*(*) dumpname
       character*10 mydump,myzfz
-+ca save
+      save
       mydump=dumpname
       myzfz='zfz'
       write(101) mydump,n,i
@@ -68449,7 +68419,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j,k
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
      &(xv(1,j),j=1,k),                                                  &
@@ -68499,7 +68469,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
      &n_cut,                                                            &
@@ -68547,7 +68517,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j,l,m,k
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*) (aek(j),j=1,napxo)
       write(99,*) (afok(j),j=1,napxo)
@@ -68619,7 +68589,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,*) 'time0 ',time0
@@ -69121,7 +69091,7 @@ c$$$         backspace (93,iostat=ierro)
       integer n,i
       character*(*) dumpname
       character*10 mydump
-+ca save
+      save
       mydump=dumpname
       write(99) mydump
       write(99) n
@@ -69625,7 +69595,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,100) 'time0 ',time0
