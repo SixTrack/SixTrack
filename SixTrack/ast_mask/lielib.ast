@@ -1,6 +1,6 @@
 lielib.s
 lielibn.f
-df crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,ifort,lf95
+df crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
 e LIEINIT
 e FLOWPARA
 e PERTPEEK
