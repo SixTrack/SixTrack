@@ -46,7 +46,7 @@ def parse_astuce(filenames):
   blocks={}
   stats={}
   for filename in filenames:
-    fh=open(filename)
+    fh=open(filename) #Open the source file
     code=[]
     def store():
       if len(code)>0:
@@ -66,12 +66,12 @@ def parse_astuce(filenames):
         block.block_used.add(blockname)
       elif line.startswith('+if'):
         statement=line.split()[1]
-        flags=[]
         for token  in statement.split('.'):
           if token not in ['and','or','not','']:
             block.flag_used.add(token)
       stats.setdefault(line,[]).append((iline,name))
     store()
+    fh.close()
   return blocks,stats
 
 class Source(object):
@@ -92,11 +92,19 @@ class Source(object):
     self._basedir=basedir
     self.process()
   def process(self):
+    print "parse_asts():"
     self.parse_asts()
+    print "parse_sources():"
     self.parse_sources()
+    print "fill_deps():"
     self.fill_deps()
+    print "find_unused_flags():"
+    self.find_unused_flags()
+    print "find_unused_blocks():"
     self.find_unused_blocks()
+    print "find_multiple_defined_blocks():"
     self.find_multiple_defined_blocks()
+    print "get_definitions():"
     self.get_definitions()
   def get_fortran_files(self):
     return [ast.outfn for ast in self.asts]
@@ -161,6 +169,27 @@ class Source(object):
         for b in cd:
           if a!=b:
             print "Warning: ...and source code differs"
+  
+  def find_unused_flags(self):
+    "Find flags which are defined in the source, but not in any asts (and vice versa)"
+    # Compile a list of flags seen in the sources
+    allflagnamesSource = set()
+    for block in self.blocks:
+      for flag in block.flag_used:
+        allflagnamesSource.add(flag)
+    #Find those that are only seen in either astuce OR in the sources
+    for flag in self.flags:
+      if not flag.name in allflagnamesSource:
+        print "Warning: Flag %s in astuce file(s) %s, but not in any source file" % (flag.name, list(flag.used_in_ast))
+    for flagname in allflagnamesSource:
+      foundFlag = False
+      for flag in self.flags:
+        if flag.name == flagname:
+          foundFlag = True
+          break
+      if not foundFlag:
+        print "Warning: Flag %s in source file, but not in any astuce file" % flagname
+    
   def search(self,regex):
     reg=re.compile(regex)
     for d in self.blocks:
@@ -256,7 +285,7 @@ assembling code <em>blocks</em> according to <em>flags</em>. </p>
          for bname,sname, lineno, ctx in sdef[k]:
             ndef.defined_in.append([bname,sname, lineno, ctx])
             if k not in scall:
-              print "Warning: Subrourine `%s' defined in `%s' not called"%(k,bname)
+              print "Warning: Subroutine `%s' defined in `%s' not called"%(k,bname)
          for calls in scall.get(k,[]):
             bname,sname, lineno, ctx=calls
             ndef.called_in.append([bname,sname, lineno, ctx])
