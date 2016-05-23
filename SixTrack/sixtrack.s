@@ -39612,8 +39612,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       niexpr_dynk = 0
       nfexpr_dynk = 0
       ncexpr_dynk = 0
+
+      do i=1,maxfuncs_dynk
+         funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
+         funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
+         funcs_dynk(i,3)= 0
+         funcs_dynk(i,4)= 0
+         funcs_dynk(i,5)= 0
+      enddo
       
       do i=1,maxdata_dynk
+         iexpr_dynk(i) = 0
+         fexpr_dynk(i) = 0.0
          do j=1,maxstrlen_dynk
             cexpr_dynk(i)(j:j) = char(0)
          enddo
@@ -39622,10 +39632,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       nsets_dynk = 0
 
       do i=1, maxsets_dynk
+         sets_dynk(i,1) = 0 !FUN idx ( index in funcs_dynk; 0 is invalid )
+         sets_dynk(i,2) = 0
+         sets_dynk(i,3) = 0
+         sets_dynk(i,4) = 0
+         
          do j=1, maxstrlen_dynk
             csets_dynk(i,1)(j:j) = char(0)
             csets_dynk(i,2)(j:j) = char(0)
+            csets_unique_dynk(i,1)(j:j) = char(0)
+            csets_unique_dynk(i,2)(j:j) = char(0)
          enddo
+         fsets_origvalue_dynk(i) = 0.0
       enddo
       
       do i=1,nele
