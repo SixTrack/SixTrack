@@ -82,8 +82,27 @@ C.............................................................
 C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
 C.............................................................
-      DUEPI=DATAN(1D0)*8D0
++if crlibm
+      DUEPI=ATAN_RN(1D0)*8D0
+      write(*,*) 'atan,atan_rn',ATAN(1D0),ATAN_RN(1D0)
+      write(*,*) 'maxn,log(2d0),float(maxn),log(float(maxn))',MAXN,
+     &LOG(2D0),FLOAT(MAXN),LOG(FLOAT(MAXN))
+      write(*,*) 'logrn'
+      write(*,*) 'logrn2d0',
+     &log(2d0),LOG_RN(2.0D0)
+      write(*,*) 'logrnmaxn',
+     &LOG_RN(FLOAT(MAXN))
+      write(*,*) 'logrn',
+     &LOG_RN(FLOAT(MAXN))/LOG_RN(2D0)
+      write(*,*) 'int(logrn)',
+     &INT(LOG_RN(FLOAT(MAXN))/LOG_RN(2D0))
+      MFT=INT(LOG_RN(FLOAT(MAXN))/LOG_RN(2D0)) 
+!      MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
++ei
++if .not.crlibm
+      DUEPI=ATAN(1D0)*8D0
       MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
++ei
       NPOINT=2**MFT
       MAXN2=MAXN/2
       STEP=DUEPI/MAXN
@@ -219,7 +238,12 @@ C............................................................
         STOP
       ENDIF
 C............................................................
-      DUEPI=8*DATAN(1D0)
++if crlibm
+      DUEPI=8*ATAN_RN(1D0)
++ei
++if .not.crlibm
+      DUEPI=8*ATAN(1D0)
++ei
 C.............................................................
       C=DFLOAT(MAX)/2D0-DFLOAT(INT(MAX/2D0))
       MAX1=MAX
