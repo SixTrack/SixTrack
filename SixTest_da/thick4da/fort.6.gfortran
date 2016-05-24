@@ -1,8 +1,8 @@
 
-         SIXTRACK DA VERSION 4.5.19   (with tilt)  --  (last change: 14.02.2015)
+         SIXTRACK DA VERSION 4.5.34   (with tilt)  --  (last change: 20.04.2016)
 
 
-SIXTRACK starts on: 16th of February  2015, 35 minutes after 13.                
+SIXTRACK starts on: 24th of   May     2016, 22 minutes after 14.                
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -248,80 +248,80 @@ SIXTRACK starts on: 16th of February  2015, 35 minutes after 13.
                              (BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)
 
 
-     1 BLOC1             2  d_c6t_531        DXPM            
-     2 BLOC2             7  d_c6t_532        D0MP06           d_c6t_533        Q1I6             d_c6t_534        Q2I6            
+      1 BLOC1             2  d_c6t_531        DXPM            
+      2 BLOC2             7  d_c6t_532        D0MP06           d_c6t_533        Q1I6             d_c6t_534        Q2I6            
                             d_c6t_535       
-     3 BLOC3             7  d_c6t_536        Q3I6             d_c6t_537        Q4IT6            OQS4             Q4I6            
+      3 BLOC3             7  d_c6t_536        Q3I6             d_c6t_537        Q4IT6            OQS4             Q4I6            
                             d_c6t_538       
-     4 BLOC4            13  d_c6t_539        Q5IT6            OQS              Q5I6             d_c6t_540        QJQ             
+      4 BLOC4            13  d_c6t_539        Q5IT6            OQS              Q5I6             d_c6t_540        QJQ             
                             d_c6t_541        D5I              d_c6t_542        Q6IT6            OQS              Q6I6            
                             d_c6t_543       
-     5 BLOC5             9  d_c6t_544        DS               d_c6t_545        QJQ              d_c6t_546        Q7I6            
+      5 BLOC5             9  d_c6t_544        DS               d_c6t_545        QJQ              d_c6t_546        Q7I6            
                             d_c6t_547        QDA6             d_c6t_543       
-     6 BLOC6             3  d_c6t_549        D                d_c6t_550       
-     7 BLOC7             5  d_c6t_551        QFA6             d_c6t_552        DS               d_c6t_553       
-     8 BLOC8             3  d_c6t_554        QD               d_c6t_543       
-     9 BLOC9             1  d_c6t_556       
-    10 BLOC10            3  d_c6t_557        D                d_c6t_558       
-    11 BLOC11            5  d_c6t_554        QF               d_c6t_560        D                d_c6t_558       
-    12 BLOC12            5  d_c6t_554        QD               d_c6t_560        D                d_c6t_558       
-    13 BLOC13            3  d_c6t_549        D                d_c6t_558       
-    14 BLOC14            7  d_c6t_554        QF               d_c6t_540        QJQ              d_c6t_604        D               
+      6 BLOC6             3  d_c6t_549        D                d_c6t_550       
+      7 BLOC7             5  d_c6t_551        QFA6             d_c6t_552        DS               d_c6t_553       
+      8 BLOC8             3  d_c6t_554        QD               d_c6t_543       
+      9 BLOC9             1  d_c6t_556       
+     10 BLOC10            3  d_c6t_557        D                d_c6t_558       
+     11 BLOC11            5  d_c6t_554        QF               d_c6t_560        D                d_c6t_558       
+     12 BLOC12            5  d_c6t_554        QD               d_c6t_560        D                d_c6t_558       
+     13 BLOC13            3  d_c6t_549        D                d_c6t_558       
+     14 BLOC14            7  d_c6t_554        QF               d_c6t_540        QJQ              d_c6t_604        D               
                             d_c6t_558       
-    15 BLOC15            3  d_c6t_633        DS               d_c6t_634       
-    16 BLOC16            3  d_c6t_554        QFA6             d_c6t_543       
-    17 BLOC17            9  d_c6t_551        QDA6             d_c6t_547        Q7I6             d_c6t_641        QJQ             
+     15 BLOC15            3  d_c6t_633        DS               d_c6t_634       
+     16 BLOC16            3  d_c6t_554        QFA6             d_c6t_543       
+     17 BLOC17            9  d_c6t_551        QDA6             d_c6t_547        Q7I6             d_c6t_641        QJQ             
                             d_c6t_642        DS               d_c6t_643       
-    18 BLOC18           13  d_c6t_551        Q6I6             OQS              Q6IT6            d_c6t_542        D5I             
+     18 BLOC18           13  d_c6t_551        Q6I6             OQS              Q6IT6            d_c6t_542        D5I             
                             d_c6t_646        QJQ              d_c6t_647        Q5I6             OQS              Q5IT6           
                             d_c6t_648       
-    19 BLOC19            5  d_c6t_649        Q4I6             OQS4             Q4IT6            d_c6t_650       
-    20 BLOC20            1  d_c6t_651       
-    21 BLOC21            3  d_c6t_652        Q3I6             d_c6t_653       
-    22 BLOC22            7  d_c6t_654        Q2I6             d_c6t_534        Q1I6             d_c6t_533        D0MP06          
+     19 BLOC19            5  d_c6t_649        Q4I6             OQS4             Q4IT6            d_c6t_650       
+     20 BLOC20            1  d_c6t_651       
+     21 BLOC21            3  d_c6t_652        Q3I6             d_c6t_653       
+     22 BLOC22            7  d_c6t_654        Q2I6             d_c6t_534        Q1I6             d_c6t_533        D0MP06          
                             d_c6t_532       
-    23 BLOC23            3  DXPM             d_c6t_658        DXMM            
-    24 BLOC24            7  d_c6t_532        D0PP08           d_c6t_533        Q1O8             d_c6t_534        Q2O8            
+     23 BLOC23            3  DXPM             d_c6t_658        DXMM            
+     24 BLOC24            7  d_c6t_532        D0PP08           d_c6t_533        Q1O8             d_c6t_534        Q2O8            
                             d_c6t_535       
-    25 BLOC25            7  d_c6t_536        Q3O8             d_c6t_537        Q4OT8            OQS4             Q4O8            
+     25 BLOC25            7  d_c6t_536        Q3O8             d_c6t_537        Q4OT8            OQS4             Q4O8            
                             d_c6t_538       
-    26 BLOC26            5  d_c6t_539        Q5OT8            OQS              Q6I6             d_c6t_543       
-    27 BLOC27           11  d_c6t_668        D5O              d_c6t_669        Q6OT8            OQS              Q5I6            
+     26 BLOC26            5  d_c6t_539        Q5OT8            OQS              Q6I6             d_c6t_543       
+     27 BLOC27           11  d_c6t_668        D5O              d_c6t_669        Q6OT8            OQS              Q5I6            
                             d_c6t_540        QJQ              d_c6t_671        DS               d_c6t_672       
-    28 BLOC28            9  d_c6t_673        Q7O8             d_c6t_547        QFB8             d_c6t_540        QJQ             
+     28 BLOC28            9  d_c6t_673        Q7O8             d_c6t_547        QFB8             d_c6t_540        QJQ             
                             d_c6t_676        D                d_c6t_677       
-    29 BLOC29            3  d_c6t_551        QDA6             d_c6t_554       
-    30 BLOC30            3  d_c6t_680        DS               d_c6t_672       
-    31 BLOC31            3  d_c6t_683        QF               d_c6t_554       
-    32 BLOC32            5  d_c6t_685        D                d_c6t_686        QD               d_c6t_554       
-    33 BLOC33            5  d_c6t_685        D                d_c6t_686        QF               d_c6t_554       
-    34 BLOC34            7  d_c6t_685        D                d_c6t_725        QJQ              d_c6t_647        QF              
+     29 BLOC29            3  d_c6t_551        QDA6             d_c6t_554       
+     30 BLOC30            3  d_c6t_680        DS               d_c6t_672       
+     31 BLOC31            3  d_c6t_683        QF               d_c6t_554       
+     32 BLOC32            5  d_c6t_685        D                d_c6t_686        QD               d_c6t_554       
+     33 BLOC33            5  d_c6t_685        D                d_c6t_686        QF               d_c6t_554       
+     34 BLOC34            7  d_c6t_685        D                d_c6t_725        QJQ              d_c6t_647        QF              
                             d_c6t_554       
-    35 BLOC35            3  d_c6t_685        D                d_c6t_677       
-    36 BLOC36            3  d_c6t_551        QD               d_c6t_554       
-    37 BLOC37            5  d_c6t_761        DS               d_c6t_762        QDA6             d_c6t_543       
-    38 BLOC38            9  d_c6t_764        D                d_c6t_725        QJQ              d_c6t_647        QFB8            
+     35 BLOC35            3  d_c6t_685        D                d_c6t_677       
+     36 BLOC36            3  d_c6t_551        QD               d_c6t_554       
+     37 BLOC37            5  d_c6t_761        DS               d_c6t_762        QDA6             d_c6t_543       
+     38 BLOC38            9  d_c6t_764        D                d_c6t_725        QJQ              d_c6t_647        QFB8            
                             d_c6t_547        Q7O8             d_c6t_768       
-    39 BLOC39           11  d_c6t_769        DS               d_c6t_770        QJQ              d_c6t_647        Q5I6            
+     39 BLOC39           11  d_c6t_769        DS               d_c6t_770        QJQ              d_c6t_647        Q5I6            
                             OQS              Q6OT8            d_c6t_669        D5O              d_c6t_773       
-    40 BLOC40            5  d_c6t_551        Q6I6             OQS              Q5OT8            d_c6t_648       
-    41 BLOC41           17  d_c6t_649        Q4O8             OQS4             Q4OT8            d_c6t_777        YKA1            
+     40 BLOC40            5  d_c6t_551        Q6I6             OQS              Q5OT8            d_c6t_648       
+     41 BLOC41           17  d_c6t_649        Q4O8             OQS4             Q4OT8            d_c6t_777        YKA1            
                             OSKA             YKA1             OSKA             YKA1             OSKA             YKA1            
                             OSKA             YKA1             d_c6t_778        Q3O8             d_c6t_653       
-    42 BLOC42            7  d_c6t_654        Q2O8             d_c6t_534        Q1O8             d_c6t_533        D0PP08          
+     42 BLOC42            7  d_c6t_654        Q2O8             d_c6t_534        Q1O8             d_c6t_533        D0PP08          
                             d_c6t_532       
-    43 BLOC43            5  DXMM             d_c6t_784        PHOBOS           d_c6t_785        DXPM            
-    44 BLOC44            7  d_c6t_649        Q4I6             OQS4             Q4IT6            d_c6t_537        Q3I6            
+     43 BLOC43            5  DXMM             d_c6t_784        PHOBOS           d_c6t_785        DXPM            
+     44 BLOC44            7  d_c6t_649        Q4I6             OQS4             Q4IT6            d_c6t_537        Q3I6            
                             d_c6t_653       
-    45 BLOC45            7  d_c6t_649        Q4O8             OQS4             Q4OT8            d_c6t_537        Q3O8            
+     45 BLOC45            7  d_c6t_649        Q4O8             OQS4             Q4OT8            d_c6t_537        Q3O8            
                             d_c6t_653       
-    46 BLOC46            3  DXMM             d_c6t_658        DXPM            
-    47 BLOC47            4  DXPM             d_c6t_1160       QAC              d_c6t_1161      
-    48 BLOC48            2  d_c6t_1162       DXMM            
-    49 BLOC49           13  d_c6t_761        DS               d_c6t_1266       YKI4             d_c6t_1267       YKI4            
+     46 BLOC46            3  DXMM             d_c6t_658        DXPM            
+     47 BLOC47            4  DXPM             d_c6t_1160       QAC              d_c6t_1161      
+     48 BLOC48            2  d_c6t_1162       DXMM            
+     49 BLOC49           13  d_c6t_761        DS               d_c6t_1266       YKI4             d_c6t_1267       YKI4            
                             d_c6t_1267       YKI4             d_c6t_1267       YKI4             d_c6t_1270       QDA6            
                             d_c6t_543       
-    50 BLOC50            2  DXMM             d_c6t_531       
+     50 BLOC50            2  DXMM             d_c6t_531       
 
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -802,8 +802,8 @@ SIXTRACK starts on: 16th of February  2015, 35 minutes after 13.
    -1.000000000000012        0.000000000000000        0.000000000000000        0.000000000000000    
     0.000000000000000        0.000000000000000        0.000000000000000        1.000000000000001    
     0.000000000000000        0.000000000000000       -1.000000000000001        0.000000000000000    
- deviation for symplecticity   6.217248937900838E-013  %
-  0.222999999958367       0.235000000032523     
+ deviation for symplecticity    6.2172489379008383E-013  %
+  0.22299999995836700       0.23500000003252317     
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -814,9 +814,9 @@ SIXTRACK starts on: 16th of February  2015, 35 minutes after 13.
                      TUNE         CLO            CLOP              BET0           ALF0           GAMMA      
 
            X   28.2230000000  0.0000000      0.0000000        10.052411807   -0.0055513377    0.099481680
-                                                               0.000000000    0.0000000000    0.000000000
+                                                               0.000000000   -0.0000000000    0.000000000
            Y   29.2350000000  0.0000000      0.0000000        10.144662357   -0.0147478694    0.098595445
-                                                               0.000000000    0.0000000000    0.000000000
+                                                               0.000000000   -0.0000000000    0.000000000
 
 
          REL. MOMENTUM DEVIATION= 0.0000000000000000
@@ -905,13 +905,13 @@ SIXTRACK starts on: 16th of February  2015, 35 minutes after 13.
 
   ENTERING MAP 
  INITIAL COORDINATES
-   1.00000000000000       5.522393842866050E-004
-  0.317675456544122       4.618227770298272E-004
-  0.000000000000000E+000  0.000000000000000E+000
+   1.0000000000000000        5.5223938428660497E-004
+  0.31767545654412249        4.6182277702982717E-004
+   0.0000000000000000        0.0000000000000000     
  END COORDINATES
-  0.124187882148474      -9.852822464454543E-002
- -0.185479703729084      -2.567099139424489E-002
-  0.000000000000000E+000  0.000000000000000E+000
+  0.12418788214847365       -9.8528224644545429E-002
+ -0.18547970372908440       -2.5670991394244894E-002
+   0.0000000000000000        0.0000000000000000     
 
 
          ******************************
@@ -919,9 +919,9 @@ SIXTRACK starts on: 16th of February  2015, 35 minutes after 13.
          ******************************
 
 
-          The Preparating Calculations took       0.352 second(s) of Computing Time
+          The Preparating Calculations took       0.289 second(s) of Computing Time
 
-          DA-Calculation of Order :       8 took        1.522 second(s) of CPU Time
+          DA-Calculation of Order :       8 took        0.920 second(s) of CPU Time
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
