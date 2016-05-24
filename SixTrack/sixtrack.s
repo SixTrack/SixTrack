@@ -8046,30 +8046,6 @@ cc2008
                   dump_tas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
                   dump_tas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
                   dump_tas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
-               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',ii-1,
-     &')=',dump_tas(ic(i)-nblo,ii-1,ii-1)
-              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',ii, 
-     &')=',dump_tas(ic(i)-nblo,ii-1,ii  )
-              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',ii-1, 
-     &')=',dump_tas(ic(i)-nblo,ii  ,ii-1)
-              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',ii, 
-     &')=',dump_tas(ic(i)-nblo,ii  ,ii  )
-              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i2-1, 
-     &')=',dump_tas(ic(i)-nblo,ii-1,i2-1)
-              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i2-1, 
-     &')=',dump_tas(ic(i)-nblo,ii  ,i2-1)
-              write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i2, 
-     &')=',dump_tas(ic(i)-nblo,ii-1,i2  )
-               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i2, 
-     &')=',         dump_tas(ic(i)-nblo,ii  ,i2  )
-               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i3-1, 
-     &')=',          dump_tas(ic(i)-nblo,ii-1,i3-1)
-               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i3-1, 
-     &')=',         dump_tas(ic(i)-nblo,ii  ,i3-1)
-               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii-1,',',i3, 
-     &')=',         dump_tas(ic(i)-nblo,ii-1,i3  )
-               write(*,*) 'MF: dump_tas(',ic(i)-nblo,',',ii,',',i3, 
-     &')=',          dump_tas(ic(i)-nblo,ii  ,i3  )
 !    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
 !    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
 !     -> check units used in dump_clo (is x' or px used?) 
@@ -8081,9 +8057,6 @@ cc2008
                   endif
                 endif
               endif
-            b1(j)=angp(1,ii-1)**2+angp(1,ii)**2
-            write(*,*) 'MF: j,ii, angp(1,ii-1),angp(1,ii),b1(j)=',j,ii
-     &,angp(1,ii-1),angp(1,ii),b1(j)
             endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
             b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
@@ -56022,7 +55995,6 @@ c$$$            endif
       ta65=ta(6,5)*c1e3
 !hr06 bet0(1)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       bet0(1)=ta(1,1)**2+ta(1,2)**2                                      !hr06
-      write(*,*) 'MF: ta(1,1),ta(1,2),bet0(1)',ta(1,1),ta(1,2),bet0(1)
 !hr06 bet0x2 =ta(1,3)*ta(1,3)+ta(1,4)*ta(1,4)
       bet0x2 =ta(1,3)**2+ta(1,4)**2                                      !hr06
 !hr06 bet0x3 =ta(1,5)*ta(1,5)+ta16*ta16
@@ -56306,7 +56278,6 @@ c$$$            endif
 !     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
       do 160 i=1,6
         do 160 j=1,6
-      write(*,*) 'MF: ta(j,i)', ta(j,i)
   160 t(i,j)=ta(j,i)
       if(abs(t(1,1)).le.pieni.and.abs(t(2,2)).le.pieni) then
         t(1,1)=one
@@ -56333,9 +56304,6 @@ c$$$            endif
       tasum=tasum-two
       if(abs(tasum).ge.pieni) its6d=1
       call dinv(6,t,6,idummy,nerror)
-      do 611 i=1,6
-        do 611 j=1,6
-  611 write(*,*) 'MF: t(j,i)', t(j,i)
       if(nerror.eq.-1) then
 +if cr
         write(lout,10290) nfile
@@ -58456,7 +58424,6 @@ c$$$            endif
       do 160 i=1,6
         do 160 j=1,6
   160 fma_tas_inv(i,j)=fma_tas(j,i)
-      write(*,*) 'MF: fma_tas ',fma_tas(j,i)
       if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
      &pieni) then
         fma_tas_inv(1,1)=one
