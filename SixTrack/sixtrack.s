@@ -8029,7 +8029,8 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
-!           store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
+!    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
+!    units dump_tas: mm,mrad,mm,mrad,mm,1.e-3
             if(fma_flag) then
               if(ic(i)-nblo.gt.0) then !check if structure element is a block
                 if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
@@ -58417,11 +58418,7 @@ c$$$            endif
 !     dummy variables
       double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
       integer, dimension(6) :: idummy !for matrix inversion
-!     convert matrix from SI units x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3] to [mm,mrad,mm,mrad,mm,1]
-      do i=1,5
-        fma_tas(i,6)=fma_tas(i,6)*1.e3
-        fma_tas(6,i)=fma_tas(6,i)*1.e-3
-      enddo
+!     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
 !     - set values close to 1 equal to 1
       do 160 i=1,6
@@ -58613,7 +58610,12 @@ c$$$            endif
             endif
 
 !    - now we have done all checks, we only need the normalisation matrix
-!      note: dump_tas is converted to units [mm,mrad,mm,mrad,mm,1]
+!      convert dump_tas from [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1]
+!      note: closed orbit dump_clo already converted in linopt part
+            do m=1,5
+              dump_tas(j,m,6)=dump_tas(j,m,6)*1.e3
+              dump_tas(j,6,m)=dump_tas(j,6,m)*1.e-3
+            enddo
             call fma_norm_phase_space_matrix(fma_tas_inv,               &
      &dump_tas(j,1:6,1:6))
 
@@ -58621,13 +58623,20 @@ c$$$            endif
             open(200101+i*10,file='NORM_'//dump_fname(j),               &
      &status='replace',iostat=ierro,action='write')! nx,nx',ny,ny'
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
-!      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1]
+!      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
             write(200101+i*10,1987) adjustl('# closorb'),dump_clo(j,1)  &
      &,dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),         &
      &dump_clo(j,6)
-!    - write tas-matrix in header of file with normalized phase space coordinates (200101+i*10)
+!    - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
-            write(200101+i*10,'(A17)') adjustl('# inverse(tamatrix)')
+            write(200101+i*10,'(A17)') adjustl('# tamatrix')
+            do m=1,6
+              do n=1,6
+                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),     &
+     &dump_tas(j,m,n)
+              enddo
+            enddo
+            write(200101+i*10,'(A17)') adjustl('# inv(tamatrix)')
             do m=1,6
               do n=1,6
                 write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),     &
