@@ -4464,7 +4464,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
-        write(*,*)'xp,yp before',yv(1,j),yv(2,j)
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
@@ -4472,7 +4471,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-        write(*,*)'xp,yp after',yv(1,j),yv(2,j)
 +ei
 +ei
       ejf0v(j)=ejfv(j)
