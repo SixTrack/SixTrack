@@ -1045,8 +1045,13 @@ fi
 if test "$da" = ""
 then
   # Fix up the Makefile
-  #Eric?????
-  export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
+  if test "$naglib" != ""; then
+    #These "hard" specifications of -L is probably a bad idea,
+    # but let's at least disable it when NAGLIB isn't avaiable!
+    export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
+  else
+    export NAGLIBC=""
+  fi 
   SIXTRACK_DA=$ename
   SIXTRACK="dummy"
   generate_makefile ../Makefile.template Makefile

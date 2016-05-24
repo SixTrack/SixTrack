@@ -68442,7 +68442,7 @@ c$$$         backspace (93,iostat=ierro)
      +objf,objgrd,r,x,iwork,liwork,work,lwork,
      +iuser,user,ifail)
       implicit none
-      integer n,nclin,ncnln,lda,ldcj,ldr,iter,
+      integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe,
      +istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,
      +iuser(*),ifail
       real a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),
