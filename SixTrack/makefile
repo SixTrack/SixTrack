@@ -24,7 +24,7 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran vvector O3
+OPTIONS := fast tilt tracking crlibm gfortran vvector cernlib O3
 #OPTIONS := crlibm bnlelens gfortran boinc api
 
 NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
