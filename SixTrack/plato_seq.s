@@ -104,7 +104,7 @@ C.............................................................
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
-      MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
+      MFT=INT(LOG(DBLE(MAXN))/LOG(2D0)) 
 +ei
       NPOINT=2**MFT
       MAXN2=MAXN/2
@@ -296,7 +296,7 @@ C..................................ESTIMATION OF TUNE WITH FFT
 +ei
 +if .not.crlibm
       PI=ATAN(1D0)*4D0
-      MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
+      MFT=INT(LOG(DBLE(MAXN))/LOG(2D0)) 
 +ei
       DUEPI=2*PI
       NPOINT=2**MFT
@@ -363,22 +363,40 @@ C AUTHOR:     E. TODESCO - INFN AND CERN
 C
 
       DOUBLE PRECISION FUNCTION TUNEABT2(X,XP,MAXN)              
+      IMPLICIT NONE
+      INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Y)
-      IMPLICIT COMPLEX*16(Z)
+      INTEGER MAXN,NPOINT,MFT,MF,NPMIN,NPMAX,NFTMAX,NN,NFT
+      DOUBLE PRECISION X,XP,PI,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,
+     &CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
+      COMPLEX*16 Z
       COMPLEX*16 ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
+
++ca crlibco
+
 C..................................ESTIMATION OF TUNE WITH FFT 
-      PI=DATAN(1D0)*4D0
++if crlibm
+      PI=ATAN_RN(1D0)*4D0
+      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
++ei
++if .not.crlibm
+      PI=ATAN(1D0)*4D0
+      MFT=INT(LOG(DBLE(MAXN))/LOG(2D0)) 
++ei
       DUEPI=2*PI
-      MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
       NPOINT=2**MFT
       STEP=DUEPI/NPOINT/2D+0
 C.............................................................
       SUM=0D0            !..CHECKS FOR COMPLEX OR REAL DATA
       DO MF=1,NPOINT
-        Z(MF)=DCMPLX(X(MF),XP(MF))*DSIN(STEP*MF)**2
++if crlibm
+        Z(MF)=DCMPLX(X(MF),XP(MF))*SIN_RN(STEP*MF)**2
++ei
++if .not.crlibm
+        Z(MF)=DCMPLX(X(MF),XP(MF))*SIN(STEP*MF)**2
++ei
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
       ENDDO 
@@ -412,22 +430,33 @@ C.............................................................
         NN=NFTMAX-1
       ENDIF
 C..........................................INTERPOLATION
-      CO=DCOS(2*PI/DFLOAT(NPOINT))
-      SI=DSIN(2*PI/DFLOAT(NPOINT))
++if crlibm
+      CO=COS_RN(2*PI/DFLOAT(NPOINT))
+      SI=SIN_RN(2*PI/DFLOAT(NPOINT))
++ei
++if .not.crlibm
+      CO=COS(2*PI/DFLOAT(NPOINT))
+      SI=SIN(2*PI/DFLOAT(NPOINT))
++ei
       SCRA1=CO**2*(P1+P2)**2-2*P1*P2*(2*CO**2-CO-1)       
       SCRA2=(P1+P2*CO)*(P1-P2)
       SCRA3=P1**2+P2**2+2*P1*P2*CO
       SCRA4=(-SCRA2+P2*SQRT(SCRA1))/SCRA3
++if crlibm
+      ASSK=DFLOAT(NN)+NPOINT/2/PI*ASIN_RN(SI*SCRA4)
++ei
++if .not.crlibm
       ASSK=DFLOAT(NN)+NPOINT/2/PI*ASIN(SI*SCRA4)
++ei
       TUNEABT2=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT)
 C............................................................  
       RETURN 
 C............................................................  
       END
 
-CDECK  ID>, FFT.
+CDECK  ID>, FFT_PLATO.
 C============================================================
-C           COMPUTES THE FFT   (DOUBLE PRECISION)
+C           COMPUTES THE FFT_PLATO   (DOUBLE PRECISION)
 C           AUTHOR: NUMERICAL RECEIPES, PG. 395
 C           NN IS THE NUMBER OF DATA: MUST BE A POWER OF 2
 C           ISIGN=1: DIRECT FT
@@ -436,8 +465,7 @@ C           DATA IS A COMPLEX ARRAY WITH THE SIGNAL IN INPUT
 C                                   WITH THE FT IN OUTPUT
 C           ORIGINAL ROUTINE IS WRITTEN FOR REAL NUMBERS (FFT_PLATO_REAL)
 C             TO AVOID TYPE CONVERSION PROBLEMS, THIS ROUTINE USES COMPLEX
-C             NUMBERS
-C           GOOD LUCK, BABY
+C             NUMBERS AND HAS BE REWRITTEN ACCORDINGLY
 C
 
       SUBROUTINE FFT_PLATO(DATA,NN,ISIGN)
@@ -499,15 +527,18 @@ C
       END IF
 C.............................................................      
       END
-CDECK  ID>, FFT.
+CDECK  ID>, FFT_PLATO_REAL.
 C============================================================
-C           COMPUTES THE FFT   (DOUBLE PRECISION)
+C           COMPUTES THE FFT_PLATO_REAL   (DOUBLE PRECISION)
 C           AUTHOR: NUMERICAL RECEIPES, PG. 395
 C           NN IS THE NUMBER OF DATA: MUST BE A POWER OF 2
 C           ISIGN=1: DIRECT FT
 C           ISIGN=-1: INVERSE FT
 C           DATA IS A COMPLEX ARRAY WITH THE SIGNAL IN INPUT
 C                                   WITH THE FT IN OUTPUT
+C           NOTE THAT REAL*8 DATA(*) THAT CONTAINS THE COMPLEX
+C             NUMBER IN THE FOLLOWING ORDER:
+C             REAL(DATA(1)),IMAG(DATA(1)),REAL(DATA(2)),IMAG(DATA(2)),...
 C           GOOD LUCK, BABY
 C
 
