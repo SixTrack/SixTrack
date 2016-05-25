@@ -424,6 +424,81 @@ C............................................................
       RETURN 
 C............................................................  
       END
+
+CDECK  ID>, FFT.
+C============================================================
+C           COMPUTES THE FFT   (DOUBLE PRECISION)
+C           AUTHOR: NUMERICAL RECEIPES, PG. 395
+C           NN IS THE NUMBER OF DATA: MUST BE A POWER OF 2
+C           ISIGN=1: DIRECT FT
+C           ISIGN=-1: INVERSE FT
+C           DATA IS A COMPLEX ARRAY WITH THE SIGNAL IN INPUT
+C                                   WITH THE FT IN OUTPUT
+C           ORIGINAL ROUTINE IS WRITTEN FOR REAL NUMBERS (FFT_PLATO_REAL)
+C             TO AVOID TYPE CONVERSION PROBLEMS, THIS ROUTINE USES COMPLEX
+C             NUMBERS
+C           GOOD LUCK, BABY
+C
+
+      SUBROUTINE FFT_PLATO(DATA,NN,ISIGN)
+      IMPLICIT NONE
+      INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
+      REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
+      COMPLEX*16 DATA(*)
+
++ca crlibco
+
+      N=2*NN
+      J=1
+      DO 11 I=1,N,2
+        IF(J.GT.I) THEN
+          TEMPR=REAL(DATA(J/2+1))
+          TEMPI=AIMAG(DATA(J/2+1))
+          DATA(J/2+1)=DATA(I/2+1)
+          DATA(I/2+1)=cmplx(TEMPR,TEMPI)
+        END IF
+        M=N/2
+ 1      IF((M.GE.2).AND.(J.GT.M)) THEN
+          J=J-M
+          M=M/2
+        GOTO 1
+        END IF
+        J=J+M
+ 11     CONTINUE
+      MMAX=2
+ 2    IF(N.GT.MMAX) THEN
+        ISTEP=2*MMAX
++if crlibm
+        THETA=8.D0*ATAN_RN(1.D0)/(ISIGN*MMAX)
+        WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
+        WPI=SIN_RN(THETA)
++ei
++if .not.crlibm
+        THETA=8.D0*ATAN(1.D0)/(ISIGN*MMAX)
+        WPR=-2.D0*SIN(0.5D0*THETA)**2
+        WPI=SIN(THETA)
++ei
+        WR=1.D0
+        WI=0.D0
+        DO 13 M=1,MMAX,2
+          DO 12 I=M,N,ISTEP
+            J=I+MMAX
+            TEMPR=WR*REAL(DATA(J/2+1))-WI*AIMAG(DATA(J/2+1))
+            TEMPI=WR*AIMAG(DATA(J/2+1))+WI*REAL(DATA(J/2+1))
+            DATA(J/2+1)=cmplx(REAL(DATA(I/2+1))-TEMPR,
+     &AIMAG(DATA(I/2+1))-TEMPI)
+            DATA(I/2+1)=cmplx(REAL(DATA(I/2+1))+TEMPR,
+     &AIMAG(DATA(I/2+1))+TEMPI)
+ 12       CONTINUE
+          WTEMP=WR
+          WR=WR*WPR-WI*WPI+WR
+          WI=WI*WPR+WTEMP*WPI+WI
+ 13     CONTINUE
+        MMAX=ISTEP
+        GOTO 2
+      END IF
+C.............................................................      
+      END
 CDECK  ID>, FFT.
 C============================================================
 C           COMPUTES THE FFT   (DOUBLE PRECISION)
@@ -436,7 +511,7 @@ C                                   WITH THE FT IN OUTPUT
 C           GOOD LUCK, BABY
 C
 
-      SUBROUTINE FFT_PLATO(DATA,NN,ISIGN)
+      SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPI,TEMPR
       REAL*8 DATA(*)
 
