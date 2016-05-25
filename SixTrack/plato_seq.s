@@ -219,7 +219,7 @@ C.............................................................
 C.............................................................
       RETURN
 C.............................................................
-      END 
+      END
 CDECK  ID>, FIT.
 C============================================================
 C COMPUTES THE STRAIGHT LINE WHICH FITS A SET OF N 2D 
@@ -266,6 +266,7 @@ C.............................................................
       RETURN
 C.............................................................
       END
+
 CDECK  ID>, TUNEABT.
 C=============================================================
 C COMPUTES THE TUNE USING FFT INTERPOLATED METHOD.
@@ -276,16 +277,28 @@ C AUTHOR:     E. TODESCO - INFN AND CERN
 C
 
       DOUBLE PRECISION FUNCTION TUNEABT(X,XP,MAXN)              
+      IMPLICIT NONE
+      INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Y)
-      IMPLICIT COMPLEX*16(Z)
+      INTEGER MAXN,NPOINT,MF,NPMIN,NPMAX,NFTMAX,NFT
+      DOUBLE PRECISION X,XP,PI,DUEPI,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
+      COMPLEX*16 Z
       COMPLEX*16 ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
+
++ca crlibco
+
 C..................................ESTIMATION OF TUNE WITH FFT 
-      PI=DATAN(1D0)*4D0
-      DUEPI=2*PI
++if crlibm
+      PI=ATAN_RN(1D0)*4D0
+      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
++ei
++if .not.crlibm
+      PI=ATAN(1D0)*4D0
       MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
++ei
+      DUEPI=2*PI
       NPOINT=2**MFT
       STEP=DUEPI/NPOINT/2D+0
 C.............................................................
@@ -316,13 +329,24 @@ C................................................INTERPOLATION
       CF1=ABS(ZSING(NFTMAX-1))
       CF2=ABS(ZSING(NFTMAX))
       CF3=ABS(ZSING(NFTMAX+1))
++if crlibm
       IF (CF3.GT.CF1) THEN      
         ASSK=DFLOAT(NFTMAX)+NPOINT/PI*
-     .       ATAN2(CF3*DSIN(PI/NPOINT),CF2+CF3*DCOS(PI/NPOINT))
+     .       ATAN2_RN(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
         ASSK=DFLOAT(NFTMAX-1)+NPOINT/PI*
-     .       ATAN2(CF2*DSIN(PI/NPOINT),CF1+CF2*DCOS(PI/NPOINT))
+     .       ATAN2_RN(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
       ENDIF
++ei
++if .not.crlibm
+      IF (CF3.GT.CF1) THEN      
+        ASSK=DFLOAT(NFTMAX)+NPOINT/PI*
+     .       ATAN2(CF3*SIN(PI/NPOINT),CF2+CF3*COS(PI/NPOINT))
+      ELSEIF (CF3.LE.CF1) THEN                   
+        ASSK=DFLOAT(NFTMAX-1)+NPOINT/PI*
+     .       ATAN2(CF2*SIN(PI/NPOINT),CF1+CF2*COS(PI/NPOINT))
+      ENDIF
++ei
       TUNEABT=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT)
 C............................................................  
       RETURN 
