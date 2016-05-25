@@ -1,3 +1,7 @@
++cd crlibco
+      double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
+     &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
+
 +dk plato_seq
 *
 * $Id: cfft.F,v 1.1.1.1 1996/02/15 17:48:48 mclareni Exp $
@@ -67,13 +71,17 @@ C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME
 C                                   MODIFICATIONS
 C
 
-      DOUBLE PRECISION FUNCTION TUNENEWT1(X,XP,MAXN)              
+      DOUBLE PRECISION FUNCTION TUNENEWT1(X,XP,MAXN)
+      
       PARAMETER(MAXITER=100000)
       IMPLICIT DOUBLE PRECISION (A-H,O-Y)
       IMPLICIT COMPLEX*16(Z)
       COMPLEX*8 ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
+      
++ca crlibco
+      
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
@@ -229,9 +237,13 @@ C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       DOUBLE PRECISION FUNCTION TUNEFIT(X,XP,MAX)
+      
       PARAMETER(MAXITER=100000)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
+      DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER)
+      
++ca crlibco
+      
 C............................................................
       IF (MAX.LE.0) THEN
         WRITE(6,*) '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
