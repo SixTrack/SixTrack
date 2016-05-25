@@ -543,8 +543,12 @@ C           GOOD LUCK, BABY
 C
 
       SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
-      REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPI,TEMPR
+      IMPLICIT NONE
+      INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
+      REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
       REAL*8 DATA(*)
+
++ca crlibco
 
       N=2*NN
       J=1
@@ -568,9 +572,16 @@ C
       MMAX=2
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
-        THETA=8.D0*DATAN(1.D0)/(ISIGN*MMAX)
-        WPR=-2.D0*DSIN(0.5D0*THETA)**2
-        WPI=DSIN(THETA)
++if crlibm
+        THETA=8.D0*ATAN_RN(1.D0)/(ISIGN*MMAX)
+        WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
+        WPI=SIN_RN(THETA)
++ei
++if .not.crlibm
+        THETA=8.D0*ATAN(1.D0)/(ISIGN*MMAX)
+        WPR=-2.D0*SIN(0.5D0*THETA)**2
+        WPI=SIN(THETA)
++ei
         WR=1.D0
         WI=0.D0
         DO 13 M=1,MMAX,2
