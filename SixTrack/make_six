@@ -844,7 +844,7 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
-generate_makefile Makefile.template
+generate_makefile Makefile_makesix.template
 make -f Makefile astuce
 make -f Makefile dafor
 # Create and INITIALISE the build directory
@@ -1049,7 +1049,7 @@ then
   export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
   SIXTRACK_DA=$ename
   SIXTRACK="dummy"
-  generate_makefile ../Makefile.template Makefile
+  generate_makefile ../Makefile_makesix.template Makefile
   # remove an existing executable
   rm -f $ename
   make -f Makefile $ename
@@ -1077,7 +1077,7 @@ else
   mv beamgas.f beamgas.f90
   # mv sixve.f sixve.f90
   # mv track.f track.f90
-  generate_makefile ../Makefile.template Makefile
+  generate_makefile ../Makefile_makesix.template Makefile
  # do the setup for Windows anway
   echo ""
   echo "Setting up for Windows (as well)"
