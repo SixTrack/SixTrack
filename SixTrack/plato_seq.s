@@ -154,16 +154,28 @@ C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       DOUBLE PRECISION FUNCTION TUNEFIT(X,XP,MAX)
+      IMPLICIT NONE
+      INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      INTEGER MAX,MAX1,MAX2,N
+      DOUBLE PRECISION X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,&
+     &TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
+
++ca crlibco
+
 C............................................................
       IF (MAX.LE.0) THEN
         WRITE(6,*) '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
         STOP
       ENDIF
 C............................................................
++if crlibm
+      DUEPI=8*ATAN_RN(1D0)
++ei
++if .not.crlibm
       DUEPI=8*DATAN(1D0)
++ei
 C.............................................................
       C=DFLOAT(MAX)/2D0-DFLOAT(INT(MAX/2D0))
       MAX1=MAX
@@ -179,11 +191,20 @@ C.............................................................
         R2=DSQRT(X(N+1)**2+XP(N+1)**2)
         CTHETA=(X(N)*X(N+1)+XP(N)*XP(N+1))/R1/R2
         STHETA=(-X(N)*XP(N+1)+X(N+1)*XP(N))/R1/R2
++if crlibm
         IF (STHETA.GE.0) THEN
-          THETA=DACOS(CTHETA)
+          THETA=ACOS_RN(CTHETA)
           ELSE
-          THETA=DUEPI-DACOS(CTHETA) 
+          THETA=DUEPI-ACOS_RN(CTHETA) 
         END IF
++ei
++if .not.crlibm
+        IF (STHETA.GE.0) THEN
+          THETA=ACOS(CTHETA)
+          ELSE
+          THETA=DUEPI-ACOS(CTHETA) 
+        END IF
++ei
         PA=PA+THETA
         TUNEAPA=PA/DUEPI
         SUMAPM=SUMAPM+TUNEAPA
@@ -211,7 +232,9 @@ C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE FIT(X,Y,N,A,B)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
+      INTEGER N,I
+      DOUBLE PRECISION X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
       DIMENSION X(*),Y(*)
 C............................................................
       IF (N.LE.0) THEN
