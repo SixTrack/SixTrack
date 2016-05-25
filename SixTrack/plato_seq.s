@@ -100,20 +100,7 @@ C    ESTIMATION OF TUNE WITH FFT
 C.............................................................
 +if crlibm
       DUEPI=ATAN_RN(1D0)*8D0
-      write(*,*) 'atan,atan_rn',ATAN(1D0),ATAN_RN(1D0)
-      write(*,*) 'maxn,log(2d0),float(maxn),log(float(maxn))',MAXN,
-     &LOG(2D0),FLOAT(MAXN),LOG(FLOAT(MAXN))
-      write(*,*) 'logrn'
-      write(*,*) 'logrn2d0',
-     &log(2d0),LOG_RN(2.0D0)
-      write(*,*) 'logrnmaxn',
-     &LOG_RN(FLOAT(MAXN))
-      write(*,*) 'logrn',
-     &LOG_RN(FLOAT(MAXN))/LOG_RN(2D0)
-      write(*,*) 'int(logrn)',
-     &INT(LOG_RN(FLOAT(MAXN))/LOG_RN(2D0))
-      MFT=INT(LOG_RN(FLOAT(MAXN))/LOG_RN(2D0)) 
-!      MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
+      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0))
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
@@ -156,6 +143,7 @@ C............................................................
       RETURN 
 C............................................................  
       END
+
 CDECK  ID>, TUNSFFT.
 C=============================================================
 C COMPUTES THE TUNE USING FFT.
@@ -245,25 +233,16 @@ C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       DOUBLE PRECISION FUNCTION TUNEFIT(X,XP,MAX)
-      
       PARAMETER(MAXITER=100000)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER)
-      
-+ca crlibco
-      
+      DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 C............................................................
       IF (MAX.LE.0) THEN
         WRITE(6,*) '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
         STOP
       ENDIF
 C............................................................
-+if crlibm
-      DUEPI=8*ATAN_RN(1D0)
-+ei
-+if .not.crlibm
-      DUEPI=8*ATAN(1D0)
-+ei
+      DUEPI=8*DATAN(1D0)
 C.............................................................
       C=DFLOAT(MAX)/2D0-DFLOAT(INT(MAX/2D0))
       MAX1=MAX
@@ -783,7 +762,7 @@ C
 C............................................................
       PARAMETER(MAXITER=100000)
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX*8 Z(MAXITER) !Single precision, to match CFFT
+      COMPLEX  Z(MAXITER)
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNEFFT): TOO MANY ITERATES'
@@ -851,7 +830,7 @@ C
 C............................................................
       PARAMETER(MAXITER=100000)
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX*8 Z(MAXITER) !Single precision, to match CFFT
+      COMPLEX  Z(MAXITER)
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNEFFTI): TOO MANY ITERATES'
@@ -940,7 +919,7 @@ C............................................................
       PARAMETER(MAXITER=100000)
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
       DOUBLE PRECISION X(*),PX(*)
-      COMPLEX*8 ZSING(MAXITER) !Single precision, to match CFFT
+      COMPLEX*8 ZSING(MAXITER)
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
       DUEPI=8*DATAN(1D+0)
 C...............................CHECK OF THE ITERATION NUMBER
