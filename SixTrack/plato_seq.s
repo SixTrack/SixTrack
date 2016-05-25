@@ -11,7 +11,10 @@
 * Kernlib
 *
       SUBROUTINE CFFT(A,MSIGN)
-      COMPLEX A(1),U,W,T
+      IMPLICIT NONE
+      COMPLEX*8 A(1),U,W,T !Single precission complex, COMPLEX*8 is the same as COMPLEX(4)
+      INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
+      REAL*4 C,S ! Single precission real, REAL*4 is the same as REAL(4).
       IF(MSIGN.EQ.0) RETURN
       M=IABS(MSIGN)
       N=2**M
@@ -76,7 +79,7 @@ C
       PARAMETER(MAXITER=100000)
       IMPLICIT DOUBLE PRECISION (A-H,O-Y)
       IMPLICIT COMPLEX*16(Z)
-      COMPLEX*8 ZSING(MAXITER)
+      COMPLEX*8 ZSING(MAXITER) !Single precision, to match CFFT
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
       
@@ -117,7 +120,7 @@ C.............................................................
 C.............................................................
       SUM=0D0
       DO MF=1,MAXN
-        Z(MF)=DCMPLX(X(MF),XP(MF))
+        Z(MF)=DCMPLX(X(MF),XP(MF)) !Returns COMPLEX*16 / COMPLEX(8)
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
       ENDDO 
@@ -775,7 +778,7 @@ C
 C............................................................
       PARAMETER(MAXITER=100000)
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX  Z(MAXITER)
+      COMPLEX*8 Z(MAXITER) !Single precision, to match CFFT
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNEFFT): TOO MANY ITERATES'
@@ -843,7 +846,7 @@ C
 C............................................................
       PARAMETER(MAXITER=100000)
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX  Z(MAXITER)
+      COMPLEX*8 Z(MAXITER) !Single precision, to match CFFT
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNEFFTI): TOO MANY ITERATES'
@@ -932,7 +935,7 @@ C............................................................
       PARAMETER(MAXITER=100000)
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
       DOUBLE PRECISION X(*),PX(*)
-      COMPLEX*8 ZSING(MAXITER)
+      COMPLEX*8 ZSING(MAXITER) !Single precision, to match CFFT
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
       DUEPI=8*DATAN(1D+0)
 C...............................CHECK OF THE ITERATION NUMBER
