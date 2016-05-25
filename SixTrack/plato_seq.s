@@ -616,12 +616,19 @@ C                                   MODIFICATIONS
 C
 
       DOUBLE PRECISION FUNCTION TUNENEWT(X,XP,MAXN)              
+      IMPLICIT NONE
+      INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Y)
-      IMPLICIT COMPLEX*16(Z)
+      INTEGER MAXN,MFT,NPOINT,MAXN2,MF,NPMAX,NPMIN,NFTMAX,NFT
+      DOUBLE PRECISION X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,
+     &TUNE
+      COMPLEX*16 Z
       COMPLEX*8 ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
+
++ca crlibco
+
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
@@ -630,15 +637,26 @@ C.............................................................
 C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
 C.............................................................
-      DUEPI=DATAN(1D0)*8D0
-      MFT=INT(LOG(FLOAT(MAXN))/LOG(2D0)) 
++if crlibm
+      DUEPI=ATAN_RN(1D0)*8D0
+      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
++ei
++if .not.crlibm
+      DUEPI=ATAN(1D0)*8D0
+      MFT=INT(LOG(DBLE(MAXN))/LOG(2D0)) 
++ei
       NPOINT=2**MFT
       MAXN2=MAXN/2
       STEP=DUEPI/MAXN
 C.............................................................
       SUM=0D0
       DO MF=1,MAXN
-        Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+DCOS(STEP*(MF-MAXN2)))
++if crlibm
+        Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS_RN(STEP*(MF-MAXN2)))
++ei
++if .not.crlibm
+        Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS(STEP*(MF-MAXN2)))
++ei
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
       ENDDO 
@@ -676,12 +694,25 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE ZFUN(TUNE,Z,MAXN,TUNEA1,DELTAT)
+      IMPLICIT NONE
+      INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      IMPLICIT DOUBLE PRECISION (A-H,O-U)
-      IMPLICIT COMPLEX*16 (V-Z)
+      INTEGER ND,MAXN,NUM,NTEST,NCONT,NFT,NC
+      DOUBLE PRECISION DUEPI,ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2,
+     &TUNE1,TUNE2,DTUNE1,DTUNE2,RATIO,TUNE3,DTUNE3,TUNETEST,TUNEVAL,
+     &TUNEVMAX,TUNE
+      COMPLEX*16 ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
+
++ca crlibco
+
 C............................................................  
-      DUEPI=DATAN(1D0)*8D0
++if crlibm
+      DUEPI=ATAN_RN(1D0)*8D0
++ei
++if .not.crlibm
+      DUEPI=ATAN(1D0)*8D0
++ei
       ERR=1D-10
       ZU=DCMPLX(0D0,1D0)
 C............................................................
@@ -693,14 +724,19 @@ C............................................................
         ZD(ND)=ZU*ND*Z(ND)
       ENDDO
 C............................................................  
-      ZTUNE1=CDEXP(-ZU*DUEPI*TUNEA1)
++if crlibm
+      ZTUNE1=EXP_RN(-ZU*DUEPI*TUNEA1)
++ei
++if .not.crlibm
+      ZTUNE1=EXP(-ZU*DUEPI*TUNEA1)
++ei
       CALL CALC(ZTUNE1,ZF,Z,MAXN)
       CALL CALC(ZTUNE1,ZFD,ZD,MAXN)
       DTUNEA1=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
       NUM=1
       DO NTEST=1, 10
         TUNEA2=TUNEA1+DELTAT
-        ZTUNE2=CDEXP(-ZU*DUEPI*TUNEA2)
+        ZTUNE2=EXP(-ZU*DUEPI*TUNEA2)
         CALL CALC(ZTUNE2,ZF,Z,MAXN)
         CALL CALC(ZTUNE2,ZFD,ZD,MAXN)
         DTUNEA2=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
@@ -712,7 +748,7 @@ C............................................................
            DO NCONT=1,100
               RATIO=-DTUNE1/DTUNE2
               TUNE3=(TUNE1+RATIO*TUNE2)/(1.D0+RATIO)
-              ZTUNE3=CDEXP(-ZU*DUEPI*TUNE3)
+              ZTUNE3=EXP(-ZU*DUEPI*TUNE3)
               CALL CALC(ZTUNE3,ZF,Z,MAXN)
               CALL CALC(ZTUNE3,ZFD,ZD,MAXN)
               DTUNE3=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
@@ -725,10 +761,10 @@ C............................................................
                  TUNE2=TUNE3
                  DTUNE2=DTUNE3         
               ENDIF
-              IF (DABS(TUNE2-TUNE1).LE.ERR) GOTO 100
+              IF (ABS(TUNE2-TUNE1).LE.ERR) GOTO 100
            ENDDO
 100        TUNETEST(NUM)=TUNE3
-           TUNEVAL(NUM)=CDABS(ZF)
+           TUNEVAL(NUM)=ABS(ZF)
            NUM=NUM+1
         ENDIF
         TUNEA1=TUNEA2
@@ -753,8 +789,9 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE CALC(ZV,ZPP,ZP,MAXD)
-      IMPLICIT DOUBLE PRECISION (A-H,O-T)
-      IMPLICIT COMPLEX*16 (U-Z)
+      IMPLICIT NONE
+      INTEGER MAXD,NP
+      COMPLEX*16 ZV,ZPP,ZP
       DIMENSION ZP(*)
       ZPP=ZP(MAXD)
 C............................................................  
@@ -765,6 +802,7 @@ C............................................................
       RETURN
 C............................................................  
       END
+
 CDECK  ID>, TUNEAPA.
 C=============================================================
 C COMPUTES THE TUNE AS THE AVERAGE PHASE ADVANCE ON A TWO
@@ -1066,7 +1104,7 @@ C.........................................BISECTION PROCEDURE
           DO N=1,MAX
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
      .        *(1D0+DCOS(STEP*(2*N-MAX1)))
-            Z(N)=ZC*CDEXP(-(0D+0,1D+0)*OME*N)
+            Z(N)=ZC*EXP(-(0D+0,1D+0)*OME*N)
           ENDDO
 C..COMPUTATION OF SCALAR PRODUCT WITH ITERATED BODE ALGORITHM
           FOME=(0D0,0D0)
@@ -1080,7 +1118,7 @@ C..COMPUTATION OF SCALAR PRODUCT WITH ITERATED BODE ALGORITHM
 C..........SEARCH FOR MAXIMUM OF SCALAR PRODUCT AND DEFINITION
 C..........OF THE NEW INTERVAL (OMEMIN,OMEMAX) WHERE TO
 C........................................RESTART THE PROCEDURE
-          ABSFOM=CDABS(FOME)
+          ABSFOM=ABS(FOME)
           IF (ABSFOM.GT.FOMEGA) THEN
             FOMEGA=ABSFOM
             TUNELASK=-OME/DUEPI
