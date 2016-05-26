@@ -58495,7 +58495,8 @@ c$$$            endif
       double precision round_near
 
       integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
-      double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of tas -> x_normalized=fma_tas_inv*x
+      double precision, dimension(6,6) :: fma_tas ! dump_tas in units [mm,mrad,mm,mrad,mm,1]
+      double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of fma_tas (same units) -> x_normalized=fma_tas_inv*x
       double precision, dimension(fma_npart_max,fma_nturn_max,6) ::     &
      &nxyzv ! normalized phase space variables
       double precision, dimension(fma_npart_max,fma_nturn_max,3) ::     &
@@ -58610,14 +58611,20 @@ c$$$            endif
             endif
 
 !    - now we have done all checks, we only need the normalisation matrix
-!      convert dump_tas from [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1]
+!         units: dump_tas [mm,mrad,mm,mrad,1.e-3]
+!                fma_tas  [mm,mrad,mm,mrad,1]
 !      note: closed orbit dump_clo already converted in linopt part
+            do m=1,6
+              do n=1,6
+                fma_tas(m,n)=dump_tas(j,m,n)
+              enddo
+            enddo
             do m=1,5
-              dump_tas(j,m,6)=dump_tas(j,m,6)*1.e3
-              dump_tas(j,6,m)=dump_tas(j,6,m)*1.e-3
+              fma_tas(m,6)=fma_tas(m,6)*1.e3
+              fma_tas(6,m)=fma_tas(6,m)*1.e-3
             enddo
             call fma_norm_phase_space_matrix(fma_tas_inv,               &
-     &dump_tas(j,1:6,1:6))
+     &fma_tas(1:6,1:6))
 
 !    dump normalized particle amplitudes for debugging (200101+i*10)
             open(200101+i*10,file='NORM_'//dump_fname(j),               &
@@ -58633,7 +58640,7 @@ c$$$            endif
             do m=1,6
               do n=1,6
                 write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),     &
-     &dump_tas(j,m,n)
+     &fma_tas(m,n)
               enddo
             enddo
             write(200101+i*10,'(A17)') adjustl('# inv(tamatrix)')
