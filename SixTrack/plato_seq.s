@@ -282,10 +282,9 @@ C
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MF,NPMIN,NPMAX,NFTMAX,NFT
       DOUBLE PRECISION X,XP,PI,DUEPI,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
-      COMPLEX*16 Z
-      COMPLEX*16 ZSING(MAXITER)
+      COMPLEX*16 Z,ZSING
       DIMENSION X(MAXITER),XP(MAXITER)
-      DIMENSION Z(MAXITER)
+      DIMENSION Z(MAXITER),ZSING(MAXITER)
 
 +ca crlibco
 
@@ -454,36 +453,45 @@ C............................................................
 C............................................................  
       END
 
-CDECK  ID>, FFT_PLATO.
+CDECK  ID>, FFT_PLATO_REAL.
 C============================================================
-C           COMPUTES THE FFT_PLATO   (DOUBLE PRECISION)
+C           COMPUTES THE FFT_PLATO_REAL   (DOUBLE PRECISION)
 C           AUTHOR: NUMERICAL RECEIPES, PG. 395
 C           NN IS THE NUMBER OF DATA: MUST BE A POWER OF 2
 C           ISIGN=1: DIRECT FT
 C           ISIGN=-1: INVERSE FT
 C           DATA IS A COMPLEX ARRAY WITH THE SIGNAL IN INPUT
 C                                   WITH THE FT IN OUTPUT
-C           ORIGINAL ROUTINE IS WRITTEN FOR REAL NUMBERS (FFT_PLATO_REAL)
-C             TO AVOID TYPE CONVERSION PROBLEMS, THIS ROUTINE USES COMPLEX
-C             NUMBERS AND HAS BE REWRITTEN ACCORDINGLY
+C           NOTE THAT REAL*8 DATA(*) THAT CONTAINS THE COMPLEX
+C             NUMBER IN THE FOLLOWING ORDER:
+C             REAL(DATA(1)),IMAG(DATA(1)),REAL(DATA(2)),IMAG(DATA(2)),...
+C           GOOD LUCK, BABY
 C
 
-      SUBROUTINE FFT_PLATO(DATA,NN,ISIGN)
+      SUBROUTINE FFT_PLATO(CDATA,NN,ISIGN)
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
-      COMPLEX*16 DATA(*)
+      COMPLEX*16 CDATA(NN)
+      REAL*8 DATA(2*NN)
 
 +ca crlibco
 
       N=2*NN
+C create real array DATA out of complex array CDATA
+      DO I=1,N,2
+        DATA(I)=REAL(CDATA(I/2+1))
+        DATA(I+1)=AIMAG(CDATA(I/2+1))
+      ENDDO
       J=1
       DO 11 I=1,N,2
         IF(J.GT.I) THEN
-          TEMPR=REAL(DATA(J/2+1))
-          TEMPI=AIMAG(DATA(J/2+1))
-          DATA(J/2+1)=DATA(I/2+1)
-          DATA(I/2+1)=cmplx(TEMPR,TEMPI)
+          TEMPR=DATA(J)
+          TEMPI=DATA(J+1)
+          DATA(J)=DATA(I)
+          DATA(J+1)=DATA(I+1)
+          DATA(I)=TEMPR
+          DATA(I+1)=TEMPI
         END IF
         M=N/2
  1      IF((M.GE.2).AND.(J.GT.M)) THEN
@@ -511,12 +519,12 @@ C
         DO 13 M=1,MMAX,2
           DO 12 I=M,N,ISTEP
             J=I+MMAX
-            TEMPR=WR*REAL(DATA(J/2+1))-WI*AIMAG(DATA(J/2+1))
-            TEMPI=WR*AIMAG(DATA(J/2+1))+WI*REAL(DATA(J/2+1))
-            DATA(J/2+1)=cmplx(REAL(DATA(I/2+1))-TEMPR,
-     &AIMAG(DATA(I/2+1))-TEMPI)
-            DATA(I/2+1)=cmplx(REAL(DATA(I/2+1))+TEMPR,
-     &AIMAG(DATA(I/2+1))+TEMPI)
+            TEMPR=WR*DATA(J)-WI*DATA(J+1)
+            TEMPI=WR*DATA(J+1)+WI*DATA(J)
+            DATA(J)=DATA(I)-TEMPR
+            DATA(J+1)=DATA(I+1)-TEMPI
+            DATA(I)=DATA(I)+TEMPR
+            DATA(I+1)=DATA(I+1)+TEMPI
  12       CONTINUE
           WTEMP=WR
           WR=WR*WPR-WI*WPI+WR
@@ -525,8 +533,12 @@ C
         MMAX=ISTEP
         GOTO 2
       END IF
+      DO I=1,N,2
+        CDATA(I/2+1)=COMPLEX(DATA(I),DATA(I+1))
+      ENDDO
 C.............................................................      
       END
+
 CDECK  ID>, FFT_PLATO_REAL.
 C============================================================
 C           COMPUTES THE FFT_PLATO_REAL   (DOUBLE PRECISION)
@@ -549,7 +561,6 @@ C
       REAL*8 DATA(*)
 
 +ca crlibco
-
       N=2*NN
       J=1
       DO 11 I=1,N,2
@@ -603,6 +614,7 @@ C
       END IF
 C.............................................................      
       END
+
 CDECK  ID>, TUNENEWT.
 C=============================================================
 C COMPUTES THE TUNE USING A DISCRETE VERSION OF LASKAR METHOD.
