@@ -1065,6 +1065,7 @@ C......................................NORMALIZATION TO [0,1]
       ENDIF
 C............................................................
       END
+
 CDECK  ID>, TUNELASK.
 C=============================================================
 C COMPUTE THE TUNE OF A 2D MAP BY MEANS OF LASKAR METHOD.
@@ -1085,8 +1086,13 @@ C
 
       DOUBLE PRECISION FUNCTION TUNELASK(X,PX,MAX)
 C............................................................
+      IMPLICIT NONE
+      INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      IMPLICIT DOUBLE PRECISION(A-H,O-Z)
+      INTEGER MAX,NPOINT,MF,NFTMAX,NPMIN,NPMAX,NFT,JITER,JMAX,MAX1,JIT,
+     &I,K,JOM,J,N,MBODE,MFT
+      DOUBLE PRECISION DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,
+     &OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
       DOUBLE PRECISION X(*),PX(*)
       COMPLEX*8 ZSING(MAXITER)
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
@@ -1094,10 +1100,11 @@ C............................................................
 +ca crlibco
 
 +if crlibm
+      DUEPI=8*ATAN_RN(1D+0)
 +ei
 +if .not.crlibm
+      DUEPI=8*ATAN(1D+0)
 +ei
-      DUEPI=8*DATAN(1D+0)
 C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNELASK): TOO MANY ITERATIONS'
@@ -1110,7 +1117,12 @@ C............................................................
       ENDIF
 C.................................ESTIMATION OF TUNE WITH FFT
       SUM=0D0
-      MFT=INT(LOG(FLOAT(MAX))/LOG(2D+0))
++if crlibm
+      MFT=INT(LOG_RN(DBLE(MAX))/LOG_RN(2D+0))
++ei
++if .not.crlibm
+      MFT=INT(LOG(DBLE(MAX))/LOG(2D+0))
++ei
       NPOINT=2**MFT
       DO MF=1,NPOINT
         ZSING(MF)=X(MF)-(0.,1.)*PX(MF)
@@ -1141,8 +1153,8 @@ C..............PROCEDURE: THE INTERVAL (OMEMIN,OMEMAX) IS
 C..............DIVIDED IN JMAX-1 SUBINTERVAL AND THIS
 C..............SUBDIVISION IS ITERATED JITER TIMES
       FSIGMA=1D+0
-      OMEMIN=TUNEFOU*DUEPI-FSIGMA*DUEPI/NPOINT
-      OMEMAX=TUNEFOU*DUEPI+FSIGMA*DUEPI/NPOINT
+      OMEMIN=TUNEFOU*DUEPI-(FSIGMA*DUEPI)/NPOINT
+      OMEMAX=TUNEFOU*DUEPI+(FSIGMA*DUEPI)/NPOINT
 C.....JITER=8 PROVIDES A PRECISION WHICH IS 1.5E-4 * 1/2**MFT
       JITER=8
 C................JMAX=7 IS THE VALUE WHICH MINIMIZES CPU TIME
@@ -1155,9 +1167,18 @@ C.........................................BISECTION PROCEDURE
         DO J=1,JMAX
           OME=OMEMIN+(OMEMAX-OMEMIN)/(JMAX-1D+0)*(J-1D+0)
           DO N=1,MAX
++if crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
-     .        *(1D0+DCOS(STEP*(2*N-MAX1)))
+     .        *(1D0+COS_RN(STEP*(2*N-MAX1)))
+            TMPR=REAL(-(0D+0,1D+0)*OME*N)
+            TMPI=AIMAG(-(0D+0,1D+0)*OME*N)
+            Z(N)=ZC*(EXP_RN(TMPR)*DCMPLX(COS_RN(TMPI),SIN_RN(TMPI))) !exp_rn is only defined for real numbers -> decompose in real and imaginary part
++ei
++if .not.crlibm
+            ZC=(X(N)-(0D+0,1D+0)*PX(N))
+     .        *(1D0+COS(STEP*(2*N-MAX1)))
             Z(N)=ZC*EXP(-(0D+0,1D+0)*OME*N)
++ei
           ENDDO
 C..COMPUTATION OF SCALAR PRODUCT WITH ITERATED BODE ALGORITHM
           FOME=(0D0,0D0)
