@@ -52,6 +52,12 @@
 # uname -s for Darwin SSE as sse2 or sse3
 # and added SSE4.1 and SSE4.2 (just in case)
 # Note that SSE$.1 and SSE4.2 are specified as sse41 sse42 (aesthetics)
+
+#Possible debug options, uncomment to use
+#set -e #Stop on error - This is sometimes problematic due to the use of $? in the script.
+#set -v #Verbose: Print input lines as they are read from the shell script file
+#set -x #XTrace:  Print command traces before executing
+
 show_options()
 {
     ons="The following selections are ON  :"
@@ -82,7 +88,7 @@ generate_makefile()
     then
         outfile=$2
     else
-        outfile=Makefile
+        outfile=Makefile_makesix
     fi
         sed  "s#%%FC%%#${FC}#g" $1 | \
         sed  "s#%%FCF%%#${FCF}#g" | \
@@ -168,11 +174,12 @@ BOINC=""
 while test $# != 0
 do
     case $1 in
-        clean) echo "Cleaning crlibm, astuce and dafor and removing ALL SixTrack_* directories."
+        clean) echo "Cleaning crlibm, astuce and dafor, Makefile_makesix and removing ALL SixTrack_* directories."
             rm -f SixTrack
             rm -f *.o dafor astuce
             rm -f crlibm/crlibm.a crlibm/*.o
-            rm -rf SixTrack_* 
+            rm -rf SixTrack_*
+            rm -rf Makefile_makesix
             exit
             ;;
 	#Options to switch things OFF
@@ -409,7 +416,6 @@ then
         echo "     beamgas requires collimat"
         exit 1
     fi
-    BEAMGAS="beamgas.o"
     if test "$bignblz" = ""
     then
 	show_options
@@ -424,7 +430,11 @@ then
         echo "     beamgas is not compatible with hugenblz"
         exit 1
     fi
-elif test "$bignblz" = ""
+    BEAMGAS="beamgas.o"
+else
+    BEAMGAS=""
+fi
+if test "$bignblz" = ""
 then
     if test "$hugenblz" = ""
     then
@@ -432,30 +442,19 @@ then
         echo "     INVALID options selected:"
         echo "     bignblz and hugenblz are not compatible, please use only one of them!"
         exit 1
-    fi 
-elif test "$hdf5" = ""
+    fi
+fi
+if test "$hdf5" = ""
 then
     if test "$collimat" != ""
     then
         show_options
         echo "     INVALID options selected:"
-        echo "     hdf5 makes no sense without collimat"
+        echo "     hdf5 is only for the tracks-file in collimation studies"
+        echo "     -> hdf5 makes no sense without collimat"
         exit 1
     fi
-    BEAMGAS="beamgas.o"
-else
-    BEAMGAS=""
-fi
-if [ ! "$hdf5" ]
-then
-    if [ "$collimat" ]
-    then
-        show_options
-        echo "     INVALID options selected:"
-        echo "     hdf5 is only for the tracks-file in"
-        echo "     collimation studies"
-        exit 1
-    fi
+    BEAMGAS="beamgas.o" #The hdf5 code is contained in beamgas.o -- look in ast_mask/beamgas.ast
 fi
 if test "$da" = "" -o "$collimat" = ""
 then
@@ -844,9 +843,9 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
-generate_makefile Makefile.template
-make -f Makefile astuce
-make -f Makefile dafor
+generate_makefile Makefile_makesix.template
+make -f Makefile_makesix astuce
+make -f Makefile_makesix dafor
 # Create and INITIALISE the build directory
 mkdir -p "$ename"
 cd "$ename"
@@ -958,11 +957,7 @@ if test "$cernlib" != ""
 then
     if [[ "$OSTYPE" == Linux ]]
     then
-        ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
-        stat1=$?
-        ls -l /usr/X11R6/lib/libX11.a > /dev/null 2>&1
-        stat2=$?
-        if test $stat1 -eq 0 -a $stat2 -eq 0
+        if test -f /cern/pro/bin/cernlib -a -f /usr/X11R6/lib/libX11.a
         then
             if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
             then
@@ -989,14 +984,7 @@ then
                 fi
             elif [[ "$MACHTYPE" == *x86_64* ]]
             then
-                # YIL: for gfortran 4.4/4.5 don't say which directory to use...
-                if ( ${FC} --version | grep 4.4. > /dev/null ) || ( ${FC} --version | grep 4.5. > /dev/null )
-                then 
-                    export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh"
-                else
-                    export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -ldl -lpthread -lgcc_eh"
-                fi
-                # YIL: add hdf5 libs
+		export CERNLIB="-L../lib32 -lgraflib -lgrafX11 -lpacklib_noshift -lkernlib_noshift -lg2c -lX11 -lxcb -lXau -lXdmcp -ldl -lpthread -lgcc_eh"
                 if test "$hdf5" = ""
                 then
                     export CERNLIB="-Wl,--start-group -I${H5ROOT}/include -L${H5ROOT}/lib -lszip -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5_f90cstub -lhdf5_hl_fortran -lz -lm -Wl,--end-group  $CERNLIB"
@@ -1014,6 +1002,7 @@ then
         exit 2
     fi
 fi
+
 # and naglib
 if test "$naglib" != ""
 then
@@ -1035,13 +1024,13 @@ then
   mkdir -p crlibm
   cp -r ../crlibm/* crlibm
   cd crlibm
-# and fix the Makefile.template
+# and fix the Makefile_makesix.template
   sed  -e 's/%%FC%%/'"${FC}"'/g' \
        -e 's/%%FCF%%/'"${FCF}"'/g' \
-    Makefile.template > Makefile
+    Makefile_makesix.template > Makefile_makesix
   echo "Making crlibm." 
-  make -f Makefile clean
-  make -f Makefile crlibm.a
+  make -f Makefile_makesix clean
+  make -f Makefile_makesix crlibm.a
   if test $? -ne 0
   then
     echo "Failed to make crlibm!!! Please inform McIntosh."
@@ -1052,14 +1041,19 @@ fi
 if test "$da" = ""
 then
   # Fix up the Makefile
-  #Eric?????
-  export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
+  if test "$naglib" != ""; then
+    #These "hard" specifications of -L is probably a bad idea,
+    # but let's at least disable it when NAGLIB isn't avaiable!
+    export NAGLIBC="-L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -lg2c"
+  else
+    export NAGLIBC=""
+  fi 
   SIXTRACK_DA=$ename
   SIXTRACK="dummy"
-  generate_makefile ../Makefile.template Makefile
+  generate_makefile ../Makefile_makesix.template Makefile_makesix
   # remove an existing executable
   rm -f $ename
-  make -f Makefile $ename
+  make -f Makefile_makesix $ename
 else
 # and now fix up the Makefile.boinc.template
 # for the build (local) using /afs/cern/.ch/project/sixtrack/boinc_linux32
@@ -1075,16 +1069,17 @@ else
       export BOINC="myboinc.o"
       cp ../myboinc.f .
     fi
-    generate_makefile ../Makefile.boinc.template Makefile.boinc 
+    echo "Generate makefile for BOINC"
+    generate_makefile ../Makefile_makesix.boinc.template Makefile_makesix.boinc
 # and try the same for MACs
-    generate_makefile ../Makefile.boinc.mac.template Makefile.boinc.mac
-    generate_makefile ../make_mac.template make_mac
+    generate_makefile ../Makefile_makesix.boinc.mac.template Makefile_makesix.boinc.mac
+    generate_makefile ../make_makesix_mac.template make_makesix_mac
   fi
   #YIL addition: creating beamgas.f90 instead of beamgas.f
   mv beamgas.f beamgas.f90
   # mv sixve.f sixve.f90
   # mv track.f track.f90
-  generate_makefile ../Makefile.template Makefile
+  generate_makefile ../Makefile_makesix.template Makefile_makesix
  # do the setup for Windows anway
   echo ""
   echo "Setting up for Windows (as well)"
@@ -1094,7 +1089,7 @@ else
   cp ../boinc_zipitall.cpp .  
   cp ../compile_fortran.bat.template .
   cp ../link_intel.bat.template .
-  cp ../make_windows.template .
+  cp ../make_makesix_windows.template .
   if test "$api" != ""
   then
     cp ../myboinc.f .
@@ -1118,8 +1113,8 @@ else
   fi
   sed -e's/%%ARCH%%/'$ARCH'/g' compile_fortran.bat.template > tmp$$
   mv tmp$$ compile_fortran.bat
-  sed -e's/%%SIXTRACK%%/'$ename'/g' make_windows.template > tmp$$
-  mv tmp$$ make_windows
+  sed -e's/%%SIXTRACK%%/'$ename'/g' make_makesix_windows.template > tmp$$
+  mv tmp$$ make_makesix_windows
   sed -e's/%%SIXTRACK%%/'$ename'/g' link_intel.bat.template > tmp$$
   mv tmp$$ link_intel.bat
   if test "$api" != ""
@@ -1135,9 +1130,9 @@ else
   # and (at last) do a make API or not
   if test "$api" != ""
   then
-    make -f Makefile $ename
+    make -f Makefile_makesix $ename
   else
-    make -f Makefile.boinc
+    make -f Makefile_makesix.boinc
   fi
 fi
 echo "       "
