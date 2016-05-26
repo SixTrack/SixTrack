@@ -830,8 +830,14 @@ C
  
       DOUBLE PRECISION FUNCTION TUNEAPA(X,P,N)
 C............................................................
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DOUBLE PRECISION X(*),P(*)
+      IMPLICIT NONE
+      INTEGER N,I
+      DOUBLE PRECISION X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,
+     &ADVSIG,ADVMIN,ADVMAX
+      DIMENSION X(*),P(*)
+
++ca crlibco
+
 C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
 C............................................................
@@ -840,7 +846,12 @@ C............................................................
         STOP
       ENDIF
 C............................................................
-      PI=4*DATAN(1.D0)
++if crlibm
+      PI=4*ATAN_RN(1.D0)
++ei
++if .not.crlibm
+      PI=4*ATAN(1.D0)
++ei
       ADV=0.D0
       ADV1=10D0
       ADV2=-10D0
@@ -849,7 +860,12 @@ C.....................EVALUATION OF THE AVERAGE PHASE ADVANCE
       DO I=1,N-1
         S1=X(I+1)*X(I)+P(I+1)*P(I)
         S2=SQRT((X(I)*X(I)+P(I)*P(I))*(X(I+1)*X(I+1)+P(I+1)*P(I+1)))
-        S3=DACOS(S1/S2)
++if crlibm
+        S3=ACOS_RN(S1/S2)
++ei
++if .not.crlibm
+        S3=ACOS(S1/S2)
++ei
         IF(-X(I+1)*P(I)+P(I+1)*X(I).LT.0) S3=-S3
         ADV=ADV+S3
 C............................................................
