@@ -1151,8 +1151,9 @@
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
       integer fma_nturn (fma_max)                            !number of turns used for fft
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,      &
-     &fma_nturn
+      integer fma_norm_flag (fma_max)                        !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
+     &fma_norm_flag,fma_nturn
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -18454,7 +18455,7 @@ cc2008
      &       'ERROR in FMA block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
-      if(getfields_nfields.ne.2) then
+      if(getfields_nfields.eq.1 .or. getfields_nfields.ge.4) then
 +if cr
         write(lout,*)
 +ei
@@ -18462,12 +18463,18 @@ cc2008
         write(*,*)
 +ei
      &       'ERROR in FMA block: wrong number of input ',
-     &       'parameters: ninput = ', getfields_nfields, ' != 2'
+     &       'parameters: ninput = ', getfields_nfields, ' != 2 (or 3)'
         call prror(-1)
       endif
 
       fma_fname(fma_numfiles)=getfields_fields(1)
       fma_method(fma_numfiles)=getfields_fields(2)
+      if(getfields_nfields.eq.2) then
+        fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
+      endif
+      if(getfields_nfields.eq.3) then
+        read (getfields_fields(3),'(I10)') fma_norm_flag(fma_numfiles)
+      endif
       fma_flag = .true.
       goto 2300
 !-----------------------------------------------------------------------
@@ -39812,6 +39819,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       fma_numfiles = 0
       do i=1,fma_max
         fma_nturn(i) = 0
+        fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
         do j=1,getfields_l_max_string
           fma_fname(i)(j:j) = char(0)
           fma_method(i)(j:j) = char(0)
@@ -58498,7 +58506,7 @@ c$$$            endif
       double precision, dimension(6,6) :: fma_tas ! dump_tas in units [mm,mrad,mm,mrad,mm,1]
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of fma_tas (same units) -> x_normalized=fma_tas_inv*x
       double precision, dimension(fma_npart_max,fma_nturn_max,6) ::     &
-     &nxyzv ! normalized phase space variables
+     &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
       double precision, dimension(fma_npart_max,fma_nturn_max,3) ::     &
      &epsnxyzv ! normalized emittances
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
@@ -58506,7 +58514,7 @@ c$$$            endif
 !     dummy variables for readin + normalisation + loops
       integer :: id,kt,counter
       double precision :: pos
-      double precision, dimension(6) :: xyzv,nxyzvdummy !phase space variables x,x',y,y',sig,delta
+      double precision, dimension(6) :: xyzvdummy,nxyzvdummy !phase space variables x,x',y,y',sig,delta
       double precision, dimension(3) :: q123 !tune q1,q2,q3
       double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
      &eps123_avg !initial,minimum,maximum,average emittance
@@ -58623,115 +58631,129 @@ c$$$            endif
               fma_tas(m,6)=fma_tas(m,6)*1.e3
               fma_tas(6,m)=fma_tas(6,m)*1.e-3
             enddo
-            call fma_norm_phase_space_matrix(fma_tas_inv,               &
+            call fma_norm_phase_space_matrix(fma_tas_inv, 
      &fma_tas(1:6,1:6))
 
 !    dump normalized particle amplitudes for debugging (200101+i*10)
-            open(200101+i*10,file='NORM_'//dump_fname(j),               &
+            open(200101+i*10,file='NORM_'//dump_fname(j),
      &status='replace',iostat=ierro,action='write')! nx,nx',ny,ny'
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
-            write(200101+i*10,1987) adjustl('# closorb'),dump_clo(j,1)  &
-     &,dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),         &
+            write(200101+i*10,1987) adjustl('# closorb'),dump_clo(j,1)
+     &,dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),
      &dump_clo(j,6)
 !    - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
             write(200101+i*10,'(A17)') adjustl('# tamatrix')
             do m=1,6
               do n=1,6
-                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),     &
+                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),
      &fma_tas(m,n)
-              enddo
+            enddo
             enddo
             write(200101+i*10,'(A17)') adjustl('# inv(tamatrix)')
             do m=1,6
               do n=1,6
-                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),     &
+                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),
      &fma_tas_inv(m,n)
               enddo
             enddo
-            write(200101+i*10,*) adjustl('# id turn pos[m] nx[1.e-3'//  &
-     &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 '//     &
+            write(200101+i*10,*) adjustl('# id turn pos[m] nx[1.e-3'//
+     &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 '//
      &'sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt')
 !    - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             do k=1,fma_nturn(i) !loop over turns
               do l=1,napx !loop over particles
 +if .not.crlibm
                 read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,      &
-     &xyzv(1),xyzv(2),xyzv(3),xyzv(4),xyzv(5),xyzv(6),kt
+     &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
+     &xyzvdummy(6),kt
                 if(ierro.gt.0) call fma_error(ierro,'while reading '    &
      &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
 +ei
 +if crlibm
                 read(dumpunit(j),'(a)', iostat=ierro) ch
                 if(ierro.gt.0) call fma_error(ierro,'while reading '    &
-     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
-            call getfields_split(ch,
-     &           filefields_fields, filefields_lfields,
-     &           filefields_nfields, filefields_lerr)
-            if( filefields_lerr ) call fma_error(-1,'while reading '    &
+     &//' particles from file' // dump_fname(j) // '. Check that tracked
+     & turns is larger than number of turns used for FFT!','fma_postpr')!read error
+                call getfields_split(ch,filefields_fields,
+     &filefields_lfields,filefields_nfields, filefields_lerr)
+                if( filefields_lerr ) call fma_error(-1,'while reading '&
      &//' particles from file ' // dump_fname(j) // 'in function getfiel&
      &ds_split','fma_postpr') !error in getfields_split while reading
 !    check if number of fields is correct
-            if( filefields_nfields  .ne. 10 ) then 
+                if( filefields_nfields  .ne. 10 ) then 
 +if cr
-              write(lout,*) 'ERROR in fma_postpr while reading particles
-     &from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields expec&
-     &ted from getfields_split, got ',filefields_nfields, ' and ch =',ch
+                  write(lout,*) 'ERROR in fma_postpr while reading parti&
+     &cles from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields &
+     &expected from getfields_split, got ',filefields_nfields, ' and ch &
+     &=',ch
 +ei
 +if .not.cr
-              write(*,*) 'ERROR in fma_postpr while reading particles
-     &from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields expec&
-     &ted from getfields_split, got ',filefields_nfields, ' and ch =',ch
+                  write(*,*) 'ERROR in fma_postpr while reading particle&
+     &s from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields exp&
+     &ected from getfields_split, got ',filefields_nfields, ' and ch =',&
+     &ch
 +ei
-              call prror(-1)
-            endif
-            read(filefields_fields(1)(1:filefields_lfields(1)),*) id
-            read(filefields_fields(2)(1:filefields_lfields(2)),*) 
+                  call prror(-1)
+                endif
+                read(filefields_fields(1)(1:filefields_lfields(1)),*) id
+                read(filefields_fields(2)(1:filefields_lfields(2)),*) 
      &turn(l,k)
-            pos = round_near(ierro, filefields_lfields(3)+1,
+                pos = round_near(ierro, filefields_lfields(3)+1,
      &filefields_fields(3) )
-            if (ierro.ne.0)
-     &        call rounderr(ierro,filefields_fields,3,pos)
-            xyzv(1) = round_near(ierro, filefields_lfields(4)+1,
-     &filefields_fields(4) )
-            if (ierro.ne.0)
-     &        call rounderr(ierro,filefields_fields,4,xyzv(1))
-            xyzv(2) = round_near(ierro, filefields_lfields(5)+1,
-     &filefields_fields(5) )
-            if (ierro.ne.0)
-     &        call rounderr(ierro,filefields_fields,5,xyzv(2))
-            xyzv(3) = round_near(ierro, filefields_lfields(6)+1,
-     &filefields_fields(6) )
-            if (ierro.ne.0)
-     &        call rounderr(ierro,filefields_fields,6,xyzv(3))
-            xyzv(4) = round_near(ierro, filefields_lfields(7)+1,
-     &filefields_fields(7) )
-            if (ierro.ne.0)
-     &        call rounderr(ierro,filefields_fields,7,xyzv(4))
-            xyzv(5) = round_near(ierro, filefields_lfields(8)+1,
-     &filefields_fields(8) )
-            if (ierro.ne.0)
-     &        call rounderr(ierro,filefields_fields,8,xyzv(5))
-            xyzv(6) = round_near(ierro, filefields_lfields(9)+1,
-     &filefields_fields(9) )
-            if (ierro.ne.0)
-     &        call rounderr(ierro,filefields_fields,9,xyzv(6))
-            read(filefields_fields(10)(1:filefields_lfields(10)),*) kt
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,3,pos)
+                xyzvdummy(1) = round_near(ierro, filefields_lfields(4)+1
+     &,filefields_fields(4) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,4,xyzvdummy(1))
+                xyzvdummy(2) = round_near(ierro, filefields_lfields(5)+1
+     &,filefields_fields(5) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,5,xyzvdummy(2))
+                xyzvdummy(3) = round_near(ierro, filefields_lfields(6)+1
+     &,filefields_fields(6) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,6,xyzvdummy(3))
+                xyzvdummy(4) = round_near(ierro, filefields_lfields(7)+1
+     &,filefields_fields(7) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,7,xyzvdummy(4))
+                xyzvdummy(5) = round_near(ierro, filefields_lfields(8)+1
+     &,filefields_fields(8) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,8,xyzvdummy(5))
+                xyzvdummy(6) = round_near(ierro, filefields_lfields(9)+1
+     &,filefields_fields(9) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,9,xyzvdummy(6))
+                read(filefields_fields(10)(1:filefields_lfields(10)),*) 
+     &kt
 +ei !end crlibm
 !    - remove closed orbit -> check units used in dump_clo (is x' or px used?)
                 do m=1,6
-                  xyzv(m)=xyzv(m)-dump_clo(j,m)
+                  xyzvdummy(m)=xyzvdummy(m)-dump_clo(j,m)
+                enddo
+!    - for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
+                do m=1,6
+                  if(m.eq.6) then
+                    xyzv(l,k,m)=xyzvdummy(m)*c1e3
+                  else 
+                    xyzv(l,k,m)=xyzvdummy(m)
+                  endif
                 enddo
 !    - convert to canonical variables
-                xyzv(2)=xyzv(2)*((one+xyzv(6))+dump_clo(j,6)) 
-                xyzv(4)=xyzv(4)*((one+xyzv(6))+dump_clo(j,6))
+                xyzvdummy(2)=xyzvdummy(2)*((one+xyzvdummy(6))+
+     &dump_clo(j,6)) 
+                xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
+     &dump_clo(j,6))
 !    - normalize nxyz=fma_tas_inv*xyz
                 do m=1,6
                   nxyzvdummy(m)=zero
                   do n=1,6
                     nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*       &
-     &xyzv(n)
+     &xyzvdummy(n)
                   enddo
 !      a) convert nxyzv(6) to 1.e-3 sqrt(m)
 !         unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
@@ -58752,44 +58774,91 @@ c$$$            endif
               enddo
             enddo
 !     calculate tunes of particles using the methods in plato_seq.f
+!     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
+!         fma_norm_flag > 0 use normalized coordinates
             do l=1,napx ! loop over particles
               do m=1,3 ! loop over modes (hor.,vert.,long.)
-                if(trim(stringzerotrim(fma_method(i))).eq.'TUNELASK')   &
+                if(trim(stringzerotrim(fma_method(i))).eq.'TUNELASK')   
      &then
-                  q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),   &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunelask(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), 
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
+                  endif
+                else if(trim(stringzerotrim(fma_method(i))).eq.         
      &'TUNEFFTI') then
-                  q123(m)=tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),   &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneffti(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
+                  endif
+                else if(trim(stringzerotrim(fma_method(i))).eq.         
      &'TUNEFFT') then
-                  q123(m)=tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),    &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunefft(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
+                  endif
+                else if(trim(stringzerotrim(fma_method(i))).eq.         
      &'TUNEAPA') then
-                  q123(m)=tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),    &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneapa(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
+                  endif
+                else if(trim(stringzerotrim(fma_method(i))).eq.         
      &'TUNEFIT') then
-                  q123(m)=tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),    &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunefit(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
+                  endif
+                else if(trim(stringzerotrim(fma_method(i))).eq.         
      &'TUNENEWT') then
-                  q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),   &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunenewt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  endif
                 else if(trim(stringzerotrim(fma_method(i))).eq.         &
      &'TUNEABT2') then
-                  q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),   &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneabt2(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  endif
                 else if(trim(stringzerotrim(fma_method(i))).eq.         &
      &'TUNEABT') then
-                  q123(m)=tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),    &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneabt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  endif
                 else if(trim(stringzerotrim(fma_method(i))).eq.         &
      &'TUNENEWT1') then
-                  q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),  &
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunenewt1(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  else
+                    q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  endif
                  else
                   call fma_error(-1,'FMA method '//trim(stringzero      &
      &trim(fma_method(i)))//' not known! Note method name must be in'// &
