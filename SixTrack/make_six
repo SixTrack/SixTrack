@@ -416,7 +416,6 @@ then
         echo "     beamgas requires collimat"
         exit 1
     fi
-    BEAMGAS="beamgas.o"
     if test "$bignblz" = ""
     then
 	show_options
@@ -431,7 +430,11 @@ then
         echo "     beamgas is not compatible with hugenblz"
         exit 1
     fi
-elif test "$bignblz" = ""
+    BEAMGAS="beamgas.o"
+else
+    BEAMGAS=""
+fi
+if test "$bignblz" = ""
 then
     if test "$hugenblz" = ""
     then
@@ -439,30 +442,19 @@ then
         echo "     INVALID options selected:"
         echo "     bignblz and hugenblz are not compatible, please use only one of them!"
         exit 1
-    fi 
-elif test "$hdf5" = ""
+    fi
+fi
+if test "$hdf5" = ""
 then
     if test "$collimat" != ""
     then
         show_options
         echo "     INVALID options selected:"
-        echo "     hdf5 makes no sense without collimat"
+        echo "     hdf5 is only for the tracks-file in collimation studies"
+        echo "     -> hdf5 makes no sense without collimat"
         exit 1
     fi
-    BEAMGAS="beamgas.o"
-else
-    BEAMGAS=""
-fi
-if [ ! "$hdf5" ]
-then
-    if [ "$collimat" ]
-    then
-        show_options
-        echo "     INVALID options selected:"
-        echo "     hdf5 is only for the tracks-file in"
-        echo "     collimation studies"
-        exit 1
-    fi
+    BEAMGAS="beamgas.o" #The hdf5 code is contained in beamgas.o -- look in ast_mask/beamgas.ast
 fi
 if test "$da" = "" -o "$collimat" = ""
 then
