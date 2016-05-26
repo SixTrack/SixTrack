@@ -911,7 +911,11 @@ C
  
       DOUBLE PRECISION FUNCTION TUNEFFT(X,P,N)
 C............................................................
+      IMPLICIT NONE
+      INTEGER MAXITER
       PARAMETER(MAXITER=100000)
+      INTEGER N,M,NPOINT,I,NPMIN,NPMAX
+      DOUBLE PRECISION SUM,AMAX
       DOUBLE PRECISION X(*),P(*)
       COMPLEX  Z(MAXITER)
 C..................................................CHECK OF N
@@ -979,9 +983,17 @@ C
  
       DOUBLE PRECISION FUNCTION TUNEFFTI(X,P,N)
 C............................................................
+      IMPLICIT NONE
+      INTEGER*4 MAXITER
       PARAMETER(MAXITER=100000)
+      INTEGER*4 N,M,NPOINT,NPMAX,NPMIN,ITUNE,I
+      REAL*4 SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
+     &X213,A,B
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX  Z(MAXITER)
+      COMPLEX Z(MAXITER)
+
++ca crlibco
+
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         WRITE(6,*) '***ERROR(TUNEFFTI): TOO MANY ITERATES'
@@ -1032,8 +1044,14 @@ C..............................EVALUATION OF THE NEARBY PEAKS
 C...............................INTERPOLATION WITH A GAUSSIAN
       X12=X1-X2
       X13=X1-X3
++if crlibm
+      Y12=LOG_RN(DBLE(Y1/Y2))
+      Y13=LOG_RN(DBLE(Y1/Y3))
++ei
++if .not.crlibm
       Y12=LOG(Y1/Y2)
       Y13=LOG(Y1/Y3)
++ei
       X212=X1*X1-X2*X2
       X213=X1*X1-X3*X3
 C........COMPUTATION OF THE POSITION OF THE INTERPOLATED PEAK
@@ -1072,6 +1090,13 @@ C............................................................
       DOUBLE PRECISION X(*),PX(*)
       COMPLEX*8 ZSING(MAXITER)
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
+
++ca crlibco
+
++if crlibm
++ei
++if .not.crlibm
++ei
       DUEPI=8*DATAN(1D+0)
 C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
