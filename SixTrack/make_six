@@ -52,6 +52,12 @@
 # uname -s for Darwin SSE as sse2 or sse3
 # and added SSE4.1 and SSE4.2 (just in case)
 # Note that SSE$.1 and SSE4.2 are specified as sse41 sse42 (aesthetics)
+
+#Possible debug options, uncomment to use
+#set -e #Stop on error - This is sometimes problematic due to the use of $? in the script.
+#set -v #Verbose: Print input lines as they are read from the shell script file
+#set -x #XTrace:  Print command traces before executing
+
 show_options()
 {
     ons="The following selections are ON  :"
@@ -82,7 +88,7 @@ generate_makefile()
     then
         outfile=$2
     else
-        outfile=Makefile
+        outfile=Makefile_makesix
     fi
         sed  "s#%%FC%%#${FC}#g" $1 | \
         sed  "s#%%FCF%%#${FCF}#g" | \
@@ -168,11 +174,12 @@ BOINC=""
 while test $# != 0
 do
     case $1 in
-        clean) echo "Cleaning crlibm, astuce and dafor and removing ALL SixTrack_* directories."
+        clean) echo "Cleaning crlibm, astuce and dafor, Makefile_makesix and removing ALL SixTrack_* directories."
             rm -f SixTrack
             rm -f *.o dafor astuce
             rm -f crlibm/crlibm.a crlibm/*.o
-            rm -rf SixTrack_* 
+            rm -rf SixTrack_*
+            rm -rf Makefile_makesix
             exit
             ;;
 	#Options to switch things OFF
@@ -844,9 +851,9 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 # Make astuce and dafor (required for sixvefox and sixscfox)
-generate_makefile Makefile.template
-make -f Makefile astuce
-make -f Makefile dafor
+generate_makefile Makefile_makesix.template
+make -f Makefile_makesix astuce
+make -f Makefile_makesix dafor
 # Create and INITIALISE the build directory
 mkdir -p "$ename"
 cd "$ename"
@@ -958,11 +965,7 @@ if test "$cernlib" != ""
 then
     if [[ "$OSTYPE" == Linux ]]
     then
-        ls -l /cern/pro/bin/cernlib > /dev/null 2>&1
-        stat1=$?
-        ls -l /usr/X11R6/lib/libX11.a > /dev/null 2>&1
-        stat2=$?
-        if test $stat1 -eq 0 -a $stat2 -eq 0
+        if test -f /cern/pro/bin/cernlib -a -f /usr/X11R6/lib/libX11.a
         then
             if [[ "$MACHTYPE" == *i386* || "$MACHTYPE" == *i486* ]]
             then
@@ -1007,6 +1010,7 @@ then
         exit 2
     fi
 fi
+
 # and naglib
 if test "$naglib" != ""
 then
@@ -1028,13 +1032,13 @@ then
   mkdir -p crlibm
   cp -r ../crlibm/* crlibm
   cd crlibm
-# and fix the Makefile.template
+# and fix the Makefile_makesix.template
   sed  -e 's/%%FC%%/'"${FC}"'/g' \
        -e 's/%%FCF%%/'"${FCF}"'/g' \
-    Makefile.template > Makefile
+    Makefile_makesix.template > Makefile_makesix
   echo "Making crlibm." 
-  make -f Makefile clean
-  make -f Makefile crlibm.a
+  make -f Makefile_makesix clean
+  make -f Makefile_makesix crlibm.a
   if test $? -ne 0
   then
     echo "Failed to make crlibm!!! Please inform McIntosh."
@@ -1054,10 +1058,10 @@ then
   fi 
   SIXTRACK_DA=$ename
   SIXTRACK="dummy"
-  generate_makefile ../Makefile.template Makefile
+  generate_makefile ../Makefile_makesix.template Makefile_makesix
   # remove an existing executable
   rm -f $ename
-  make -f Makefile $ename
+  make -f Makefile_makesix $ename
 else
 # and now fix up the Makefile.boinc.template
 # for the build (local) using /afs/cern/.ch/project/sixtrack/boinc_linux32
@@ -1073,16 +1077,17 @@ else
       export BOINC="myboinc.o"
       cp ../myboinc.f .
     fi
-    generate_makefile ../Makefile.boinc.template Makefile.boinc 
+    echo "Generate makefile for BOINC"
+    generate_makefile ../Makefile_makesix.boinc.template Makefile_makesix.boinc
 # and try the same for MACs
-    generate_makefile ../Makefile.boinc.mac.template Makefile.boinc.mac
-    generate_makefile ../make_mac.template make_mac
+    generate_makefile ../Makefile_makesix.boinc.mac.template Makefile_makesix.boinc.mac
+    generate_makefile ../make_makesix_mac.template make_makesix_mac
   fi
   #YIL addition: creating beamgas.f90 instead of beamgas.f
   mv beamgas.f beamgas.f90
   # mv sixve.f sixve.f90
   # mv track.f track.f90
-  generate_makefile ../Makefile.template Makefile
+  generate_makefile ../Makefile_makesix.template Makefile_makesix
  # do the setup for Windows anway
   echo ""
   echo "Setting up for Windows (as well)"
@@ -1092,7 +1097,7 @@ else
   cp ../boinc_zipitall.cpp .  
   cp ../compile_fortran.bat.template .
   cp ../link_intel.bat.template .
-  cp ../make_windows.template .
+  cp ../make_makesix_windows.template .
   if test "$api" != ""
   then
     cp ../myboinc.f .
@@ -1116,8 +1121,8 @@ else
   fi
   sed -e's/%%ARCH%%/'$ARCH'/g' compile_fortran.bat.template > tmp$$
   mv tmp$$ compile_fortran.bat
-  sed -e's/%%SIXTRACK%%/'$ename'/g' make_windows.template > tmp$$
-  mv tmp$$ make_windows
+  sed -e's/%%SIXTRACK%%/'$ename'/g' make_makesix_windows.template > tmp$$
+  mv tmp$$ make_makesix_windows
   sed -e's/%%SIXTRACK%%/'$ename'/g' link_intel.bat.template > tmp$$
   mv tmp$$ link_intel.bat
   if test "$api" != ""
@@ -1133,9 +1138,9 @@ else
   # and (at last) do a make API or not
   if test "$api" != ""
   then
-    make -f Makefile $ename
+    make -f Makefile_makesix $ename
   else
-    make -f Makefile.boinc
+    make -f Makefile_makesix.boinc
   fi
 fi
 echo "       "
