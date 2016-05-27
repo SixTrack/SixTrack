@@ -24,12 +24,16 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran vvector cernlib O3
 #OPTIONS := crlibm bnlelens gfortran boinc api
 
+#code to add/remove options given by user from default(stored in DEFAULTS variable) and then doing option parsing
+DEFAULTS := fast tilt tracking crlibm gfortran vvector O3
+OPTIONS := $(DEFAULTS) $(ADD)
+OPTIONS := $(filter-out fio,$(OPTIONS))    # fio is always off
+OPTIONS := $(filter-out $(REMOVE),$(OPTIONS))
+$(info final options $(OPTIONS))
+#solving dependency for rest options
 NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
-
-
 
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
 
