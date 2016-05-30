@@ -62,7 +62,7 @@ show_options()
 {
     ons="The following selections are ON  :"
     offs="The following selections are OFF :"
-    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27
+    for i in $( seq 1 26 )
     do
         if test ${values[$i]} = "true"
         then
@@ -74,6 +74,21 @@ show_options()
     echo "$ons"
     echo "$offs"
 }
+
+#Default definitions, to avoid external definitions intruding into generate_makefile()
+# in case the variables were not defined here in make_six
+FC=""
+FCF=""
+FCLD=""
+FCLMAP=""
+CRLIBM=""
+CERNLIB=""
+gfortran_lib=""
+BOINC=""
+NAGLIBC=""
+BEAMGAS=""
+SIXTRACK=""
+SIXTRACK_DA=""
 generate_makefile() 
 {
     # Function generates a Makefile from the input file defined
@@ -112,9 +127,9 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt tracking fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz)
-values=( junk true true     true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false)
-#Element 0    1    2        3    4      5     6       7      8     9        10    11    12    13     14    15    16       17    18      19       20      21    22    23    24    25    26    27
+options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz)
+values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false)
+#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26
 
 # Overide for Darwin
 OSTYPE=`uname -s`
@@ -125,7 +140,6 @@ if test $? != 0
 then
   ARCH64="false"
 fi
-gfortran_lib=""
 sversion=`grep 'data version' sixtrack.s`
 echo $sversion
 # get string between /....../
@@ -141,7 +155,6 @@ command_lin=$*
 # Now we have the default settings
 # we have ON
 tilt=""
-tracking=""
 fast=""
 crlibm="NULL"
 cernlib="cernlib"
@@ -169,8 +182,7 @@ hdf5="hdf5"
 ifort="ifort"
 lf95="lf95"
 fio="fio"
-# in case BOINC is defined already!
-BOINC=""
+
 while test $# != 0
 do
     case $1 in
@@ -186,174 +198,170 @@ do
         -tilt) tilt="tilt"
             values[1]=false
             ;;
-        -tracking) tracking="tracking"
+        -fast) fast="fast"
             values[2]=false
             ;;
-        -fast) fast="fast"
+        -crlibm) crlibm="crlibm"
             values[3]=false
             ;;
-        -crlibm) crlibm="crlibm"
+        -api) api="api"
             values[4]=false
             ;;
-        -api) api="api"
+        -cernlib) cernlib=""
             values[5]=false
             ;;
-        -cernlib) cernlib=""
+        -naglib) naglib=""
             values[6]=false
             ;;
-        -naglib) naglib=""
+        -da) da="da"
             values[7]=false
             ;;
-        -da) da="da"
+        -collimat) collimat="collimat"
             values[8]=false
             ;;
-        -collimat) collimat="collimat"
+        -cpss) cpss="cpss"
             values[9]=false
             ;;
-        -cpss) cpss="cpss"
+        -boinc) boinc="boinc"
             values[10]=false
             ;;
-        -boinc) boinc="boinc"
+        -cr) cr="cr"
             values[11]=false
             ;;
-        -cr) cr="cr"
+        -nag) nagfor="nagfor"
             values[12]=false
             ;;
-        -nag) nagfor="nagfor"
+        -pgf90) pgf90="pgf90"
             values[13]=false
             ;;
-        -pgf90) pgf90="pgf90"
+        -g95) g95="g95"
             values[14]=false
             ;;
-        -g95) g95="g95"
+        -gfortran) gfortran="gfortran"
             values[15]=false
             ;;
-        -gfortran) gfortran="gfortran"
+        -bpm) bpm="bpm"
             values[16]=false
             ;;
-        -bpm) bpm="bpm"
+        -beamgas) beamgas="beamgas"
             values[17]=false
             ;;
-        -beamgas) beamgas="beamgas"
+        -bnlelens) bnlelens="bnlelens"
             values[18]=false
             ;;
-        -bnlelens) bnlelens="bnlelens"
+        -bignblz) bignblz="bignblz"
             values[19]=false
             ;;
-        -bignblz) bignblz="bignblz"
+        -debug) debug="debug"
             values[20]=false
             ;;
-        -debug) debug="debug"
+        -hdf5) hdf5="hdf5"
             values[21]=false
             ;;
-        -hdf5) hdf5="hdf5"
+        -ifort) ifort="ifort"
             values[22]=false
             ;;
-        -ifort) ifort="ifort"
+        -fio) fio="fio"
             values[23]=false
             ;;
-        -fio) fio="fio"
-            values[24]=false
-            ;;
+	#-SSE) : [24] (see below)
         -lf95) lf95="lf95"
-            values[26]=false
+            values[25]=false
             ;;
         -hugenblz) hugenblz="hugenblz"
-            values[27]=false
+            values[26]=false
             ;;
 	
 	#Options to switch things ON
         tilt) tilt=""
             values[1]=true
             ;;
-        tracking) tracking=""
+        fast) fast=""
             values[2]=true
             ;;
-        fast) fast=""
+        crlibm) crlibm=""
             values[3]=true
             ;;
-        crlibm) crlibm=""
+        api) api=""
             values[4]=true
             ;;
-        api) api=""
+        cernlib) cernlib="cernlib"
             values[5]=true
             ;;
-        cernlib) cernlib="cernlib"
+        naglib) naglib="naglib"
             values[6]=true
             ;;
-        naglib) naglib="naglib"
+        da) da=""
             values[7]=true
             ;;
-        da) da=""
+        collimat) collimat=""
             values[8]=true
             ;;
-        collimat) collimat=""
+        cpss) cpss=""
             values[9]=true
             ;;
-        cpss) cpss=""
+        boinc) boinc=""
             values[10]=true
             ;;
-        boinc) boinc=""
+        cr) cr=""
             values[11]=true
             ;;
-        cr) cr=""
+        nagfor) nagfor=""
             values[12]=true
             ;;
-        nagfor) nagfor=""
+        pgf90) pgf90=""
             values[13]=true
             ;;
-        pgf90) pgf90=""
+        g95) g95=""
             values[14]=true
             ;;
-        g95) g95=""
+        gfortran) gfortran=""
             values[15]=true
             ;;
-        gfortran) gfortran=""
+        bpm) bpm=""
             values[16]=true
             ;;
-        bpm) bpm=""
+        beamgas) beamgas=""
             values[17]=true
             ;;
-        beamgas) beamgas=""
+        bnlelens) bnlelens=""
             values[18]=true
             ;;
-        bnlelens) bnlelens=""
+        bignblz) bignblz=""
             values[19]=true
             ;;
-        bignblz) bignblz=""
+        debug) debug=""
             values[20]=true
             ;;
-        debug) debug=""
+        hdf5) hdf5=""
             values[21]=true
             ;;
-        hdf5) hdf5=""
+        ifort) ifort=""
             values[22]=true
             ;;
-        ifort) ifort=""
+        fio) fio=""
             values[23]=true
             ;;
-        fio) fio=""
-            values[24]=true
-            ;;
+	#SSE) : [24] (see below)
         lf95) lf95=""
-            values[26]=true
+            values[25]=true
             ;;
 	hugenblz) hugenblz=""
-            values[27]=true
+            values[26]=true
             ;;
 	
 	#Compiler flags are special
 	sse2) SSE=sse2
-	    values[25]=true
+	    values[24]=true
 	    ;;
 	sse3) SSE=sse3
-	    values[25]=true
+	    values[24]=true
 	    ;;
 	sse41) SSE=sse4.1
-	    values[25]=true
+	    values[24]=true
 	    ;;
 	sse42) SSE=sse4.2
-	    values[25]=true
+	    values[24]=true
 	    ;;
 	O) myopt=O
 	    ;;
@@ -391,10 +399,6 @@ then
   echo "     INVALID options selected:"
   echo "     Select only one of da or collimat!"
   exit 1
-elif test "$da" != "" -a "$collimat" != ""
-then
-  tracking=""
-  values[2]=true
 fi
 if test "$fio" = ""
 then
@@ -842,6 +846,7 @@ echo "FCLD = '$FCLD' (For linking astuce and dafor)"
 echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
+
 # Make astuce and dafor (required for sixvefox and sixscfox)
 generate_makefile Makefile_makesix.template
 make -f Makefile_makesix astuce
@@ -868,7 +873,7 @@ do
 done
 # Update the .ast flags based on options
 echo "Deleting un-used flags and decks from .ast files..."
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$ifort" "$lf95" "$hugenblz"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz"
 do
     #echo "opt=" $opt
     if test "$opt" != ""
@@ -1017,7 +1022,6 @@ then
   fi
 fi
 # and crlibm
-export CRLIBM=""
 if test "$crlibm" = ""
 then
   export CRLIBM="crlibm/crlibm.a"
