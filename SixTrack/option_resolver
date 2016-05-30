@@ -1,0 +1,93 @@
+#!/bin/bash
+OPTIONS=$@
+Error_message=""
+
+#Testing Option hdf5
+if echo ${OPTIONS[@]} | grep -w -q "hdf5"; then			# -w for complete matching, -q for not printing
+  if ! echo ${OPTIONS[@]} | grep -w -q "colimat"; then
+      OPTIONS=("${OPTIONS[@]}" "collimat")
+  fi
+fi
+
+#Testing Option hugenblz and bigenblz
+if echo ${OPTIONS[@]} | grep -w -q "hugenblz"; then
+  if echo ${OPTIONS[@]} | grep -w -q "bignblz"; then
+    Error_message+="hugenblz and bignblz are incompatible."
+  fi 
+fi
+
+#Testing Option beamgas
+if echo ${OPTIONS[@]} | grep -w -q "beamgas"; then			
+   if ! echo ${OPTIONS[@]} | grep -w -q "collimat"; then
+      OPTIONS=("${OPTIONS[@]}" "collimat")
+   fi 
+  if echo ${OPTIONS[@]} | grep -w -q "hugenblz"; then
+     Error_message+="beamgas and hugenblz are incompatible."
+  fi
+  if echo ${OPTIONS[@]} | grep -w -q "bignblz"; then
+      Error_message+="beamgas and bignblz are incompatible."
+  fi
+fi
+
+#Testing Option bonic
+
+if echo ${OPTIONS[@]} | grep -w -q "bonic"; then
+  if ! echo ${OPTIONS[@]} | grep -w -q "cpss"; then
+      OPTIONS=("${OPTIONS[@]}" "cpss")
+  fi
+fi
+
+#Testing Option da
+if echo ${OPTIONS[@]} | grep -w -q "da"; then			
+  if echo ${OPTIONS[@]} | grep -w -q "cpss"; then
+     Error_message+="da and cpss are incompatible."
+  fi
+  if echo ${OPTIONS[@]} | grep -w -q "bpm"; then
+     Error_message+="da and bpm are incompatible."
+  fi
+else
+   if echo ${OPTIONS[@]} | grep -w -q "naglib"; then
+     Error_message+="naglib without da is incompatible."
+  fi 
+fi
+
+#Testing Option Collimat
+if echo ${OPTIONS[@]} | grep -w -q "collimat"; then			
+  if echo ${OPTIONS[@]} | grep -w -q "da"; then
+     Error_message+="collimat and da are incompatible."
+  fi
+   if echo ${OPTIONS[@]} | grep -w -q "cpss"; then
+     Error_message+="collimat and cpss are incompatible."
+  fi
+   if echo ${OPTIONS[@]} | grep -w -q "bpm"; then
+     Error_message+="collimat and bpm are incompatible."
+  fi
+   if echo ${OPTIONS[@]} | grep -w -q "cr"; then
+     Error_message+="collimat and cr are incompatible."
+  fi
+  if echo ${OPTIONS[@]} | grep -w -q "crlibm"; then
+     OPTIONS=("${OPTIONS[@]}" "Warning")
+  fi
+else
+  if echo ${OPTIONS[@]} | grep -w -q "cpss"; then
+    # if echo ${OPTIONS[@]} | grep -w -q "cernlib"; then
+     # Error_message+="cpss and cerlib without collimat are incompatible." 
+    # fi
+     if ! echo ${OPTIONS[@]} | grep -w -q "crlibm"; then
+      OPTIONS=("${OPTIONS[@]}" "crlibm")
+     fi
+     if ! echo ${OPTIONS[@]} | grep -w -q "cr"; then
+      OPTIONS=("${OPTIONS[@]}" "cr")
+     fi  
+  fi
+  if ! echo ${OPTIONS[@]} | grep -w -q "da"; then   
+    if ! echo ${OPTIONS[@]} | grep -w -q "tracking"; then
+     OPTIONS=("${OPTIONS[@]}" "tracking")
+    fi 
+  fi
+fi
+if echo ${Error_message} | grep -w -q "incompatible"; then
+echo ${Error_message}
+else
+echo ${OPTIONS[@]}
+fi
