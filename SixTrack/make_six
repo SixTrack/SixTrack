@@ -68,6 +68,21 @@ show_options()
     echo "$ons"
     echo "$offs"
 }
+
+#Default definitions, to avoid external definitions intruding into generate_makefile()
+# in case the variables were not defined here in make_six
+FC=""
+FCF=""
+FCLD=""
+FCLMAP=""
+CRLIBM=""
+CERNLIB=""
+gfortran_lib=""
+BOINC=""
+NAGLIBC=""
+BEAMGAS=""
+SIXTRACK=""
+SIXTRACK_DA=""
 generate_makefile() 
 {
     # Function generates a Makefile from the input file defined
@@ -119,7 +134,6 @@ if test $? != 0
 then
   ARCH64="false"
 fi
-gfortran_lib=""
 sversion=`grep 'data version' sixtrack.s`
 echo $sversion
 # get string between /....../
@@ -162,8 +176,7 @@ hdf5="hdf5"
 ifort="ifort"
 lf95="lf95"
 fio="fio"
-# in case BOINC is defined already!
-BOINC=""
+
 while test $# != 0
 do
     case $1 in
@@ -834,6 +847,7 @@ echo "FCLD = '$FCLD' (For linking astuce and dafor)"
 echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
+
 # Make astuce and dafor (required for sixvefox and sixscfox)
 generate_makefile Makefile.template
 make -f Makefile astuce
@@ -1012,7 +1026,6 @@ then
   fi
 fi
 # and crlibm
-export CRLIBM=""
 if test "$crlibm" = ""
 then
   export CRLIBM="crlibm/crlibm.a"
