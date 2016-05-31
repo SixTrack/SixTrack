@@ -42,21 +42,20 @@ DEFAULTS := fast tilt crlibm cernlib gfortran vvector O3
 OPTIONS := $(DEFAULTS) $(ADD)
 OPTIONS := $(filter-out fio,$(OPTIONS))    # currently fio is always off
 OPTIONS := $(filter-out $(REMOVE),$(OPTIONS))
-$(info USER GIVEN OPTIONS- $(OPTIONS) )
+#$(info USER GIVEN OPTIONS- $(OPTIONS) )
 #solving dependency for rest options
-SORTED_OPTIONS:= $(shell ./option_resolver $(OPTIONS))
+SORTED_OPTIONS:= $(shell ./option_resolver1.sh "$(DEFAULTS)" "$(ADD)")
 temp=$(shell echo $(SORTED_OPTIONS) | grep -o "incompatible")
-temp1=$(shell echo $(SORTED_OPTIONS) | grep -o "Warning")
+#temp1=$(shell echo $(SORTED_OPTIONS) | grep -o "Warning")
 ifeq ($(temp),incompatible)
-    $(error $(SORTED_OPTIONS))
+   $(error $(SORTED_OPTIONS))
+#else
+#ifeq ($(temp1),Warning) 
+# $(info Warning- Building with crlibm and collimat most probably will not work ) 
+# OPTIONS := $(filter-out Warning,$(SORTED_OPTIONS))
 else
-ifeq ($(temp1),Warning) 
- $(info Warning- Building with crlibm and collimat most probably will not work ) 
- OPTIONS := $(filter-out Warning,$(SORTED_OPTIONS))
-else
-    
-    OPTIONS :=$(SORTED_OPTIONS)
-endif
+  OPTIONS :=$(SORTED_OPTIONS)
+#endif
 endif
 $(info FINAL OPTIONS- $(OPTIONS))
 NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
