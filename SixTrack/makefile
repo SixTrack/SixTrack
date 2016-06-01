@@ -24,7 +24,7 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran O3
+OPTIONS := fast tilt tracking crlibm gfortran vvector cernlib O3
 #OPTIONS := crlibm bnlelens gfortran boinc api
 
 NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
@@ -34,9 +34,9 @@ NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
 
 # list of valid user options
-USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 sse41 sse42 tilt tracking windows O0 O1 O2 O3 O4)
+USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 sse41 sse42 tilt tracking vvector hugenblz windows O0 O1 O2 O3 O4)
 
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz)
 
 # list of valid compiler options
 COMPILER_OPTIONS := g77 g95 gfortran ifort lf95 nagfor
@@ -374,7 +374,7 @@ HEAD2:= $(addprefix $(CRLIBM_SRC)$/,scs.h scs_config.h scs_private.h)
 AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline
 DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
-CFLAGS = -g -O2 -m32
+CFLAGS = -g -O2 -m32 -mfpmath=sse -msse2
 
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
