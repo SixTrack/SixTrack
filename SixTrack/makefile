@@ -29,25 +29,16 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 #code to add/remove options given by user from default(stored in DEFAULTS variable) and then doing option parsing
 DEFAULTS := fast tilt crlibm cernlib gfortran vvector O3
-#DEFAULTS := hugenblz bignblz hdf5
 DEFAULTS := $(filter-out $(REMOVE),$(DEFAULTS))
-OPTIONS := $(DEFAULTS) $(ADD)
 # OPTIONS := $(filter-out fio,$(OPTIONS))    # commenting out assuming not needed as of now
 
 #solving dependency for rest options
 SORTED_OPTIONS:= $(shell ./option_resolver.sh "$(DEFAULTS)" "$(ADD)")
 temp=$(shell echo "$(SORTED_OPTIONS)" | grep -o "incompatible" )
-temp1=$(shell echo "$(SORTED_OPTIONS)" | grep -o "crlibm")
-temp2=$(shell echo "$(SORTED_OPTIONS)" | grep -o "collimat")
 ifeq ($(temp),incompatible)
    $(error $(SORTED_OPTIONS))
 else
-ifeq ($(temp1)$(temp2),crlibmcollimat)
-$(info Warning- Building with crlibm and collimat most probably will not work ) 
  OPTIONS := $(SORTED_OPTIONS)
-else
- OPTIONS := $(SORTED_OPTIONS)
-endif
 endif
 $(info FINAL OPTIONS- $(SORTED_OPTIONS))
 

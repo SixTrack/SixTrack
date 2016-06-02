@@ -97,7 +97,7 @@ option_check1()
         unset dummy_all
       fi
       if echo ${add[@]} | grep -w -q "$item";then
-        error=("added option $item (either given by user explicitly or required as dependency) is incompatible with absence of ${options[${i}]}")
+        error=("added option $item (either given by user explicitly or required as dependency) is incompatible with absence of ${options1[${i}]}")
       fi 
     done
 
@@ -108,16 +108,17 @@ option_check1()
 #put empty parenthesis("") if no exclusions or dependencies(this is important for avoiding worng indexing)
 
 put "hdf5" "collimat" ""
+put "bonic" "cpss" ""
+put "beamgas""collimat" "bignblz hugenblz"
 put "hugenblz" "" "bignblz"
-put "beamgas" "" "hugenblz bignblz"
 put "da" "" "collimat cpss bpm"
-put "naglib" "da" ""
-put "cpss" "" "vvector"
-put "collimat" "" "da cpss bpm cr"
+put "collimat" "" "da cpss bpm cr crlibm"
+put "cpss" "crlibm cr" "cernlib" 
 
 # add below the case which are to be followed in absence of certain options
-put_not "collimat" "" ""   
+#as put_not "option" "needed dependencies" "exclusions"
 
+put_not "da" "" "naglib"
 
 while [[ $k -lt 10  && ${all_lasttime[@]} != ${all[@]} ]];do             #running test max 10 times just to ensure no new conflict arise in items added
 unset error
