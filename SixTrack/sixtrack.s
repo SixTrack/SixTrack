@@ -21182,7 +21182,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         fake(2,i)=zero
    15 continue
       time1=0.
-      call timexsix(time1)
+      call timex(time1)
       if(niu(1).gt.1) then
         do i=1,2
           ii=2*i
@@ -22265,7 +22265,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   520 continue
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
-      call timexsix(time2)
+      call timex(time2)
 !     time=time2-time1
 +if cr
       write(lout,10020) time1-time0
@@ -23983,7 +23983,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
-      call timexsix(time2)
+      call timex(time2)
 !     time=time2-time1
 +if cr
       write(lout,10020) time1-time0
@@ -25086,7 +25086,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,10010) version,moddate
 +ei
       tlim=1e7
-      call timestsix(tlim)
+      call timest(tlim)
       call datime(idate,itime)
       write(cdate,'(I6.6)') idate
       write(ctime,'(I4.4)') itime
@@ -25168,8 +25168,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       time2=0.0
       time3=0.0
       tlim=1e7
-      call timestsix(tlim)
-      call timexsix(time0)
+      call timest(tlim)
+      call timex(time0)
       do 10 i=1,nblz
         xsi(i)=zero
         zsi(i)=zero
@@ -26584,7 +26584,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                    !call system('../crmain  >> crlog')
 +ei
       time1=0.
-      call timexsix(time1)
+      call timex(time1)
 ! time1 is now pre-processing CPU
 ! note that this will be reset evry restart as we redo pre-processing
       pretime=time1-time0
@@ -26596,7 +26596,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('atrack                                            ')
 +ei
       time2=0.
-      call timexsix(time2)
+      call timex(time2)
 ! trtime is now the tracking time, BUT we must add other time for C/R
       trtime=time2-time1
 +if cr
@@ -26896,7 +26896,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call hplend
       endif
       time3=0.
-      call timexsix(time3)
+      call timex(time3)
 ! Note that crpoint no longer destroys time2
       posttime=time3-time2
 +if debug
@@ -38586,9 +38586,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,10000) version,moddate
 +ei
       tlim=1e7
-      call timestsix(tlim)
+      call timest(tlim)
       time0=0.
-      call timexsix(time0)
+      call timex(time0)
       idate=0
       itime=0
       call datime(idate,itime)
@@ -39957,9 +39957,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       save
 !-----------------------------------------------------------------------
       tlim=1e7
-      call timestsix(tlim)
+      call timest(tlim)
       time0=0.
-      call timexsix(time0)
+      call timex(time0)
 !--Initialization
 +if crlibm
       x2pi=atan_rn(one)*8d0
@@ -40116,7 +40116,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call dadal(bb2,1)
       call dadal(haux,1)
       time1=0.
-      call timexsix(time1)
+      call timex(time1)
       time = time1-time0
 +if cr
       write(lout,10000) no,time
@@ -55760,9 +55760,9 @@ c$$$            endif
 !--TIME START
       pieni2=1d-8
       tlim=1e7
-      call timestsix(tlim)
+      call timest(tlim)
       tim1=0.
-      call timexsix(tim1)
+      call timex(tim1)
       do 10 i=1,npos
         do 10 j=1,3
           phase(j,i)=zero
@@ -58203,7 +58203,7 @@ c$$$            endif
       rewind 15
 !--TIME COUNT
       tim2=0.
-      call timexsix(tim2)
+      call timex(tim2)
 +if cr
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 +ei
@@ -67689,7 +67689,7 @@ C            backspace (dumpunit(i),iostat=ierro)
       else
         rewind lout
       endif
-      call timexsix(time3)
+      call timex(time3)
 ! Hope this is correct
 ! Maybe not!!!! this should be accumulative over multiple C/Rs
       time3=(time3-time1)+crtime3
@@ -68597,7 +68597,7 @@ c$$$         backspace (93,iostat=ierro)
       nt=values(5)*100+values(6)
       return
       end
-      subroutine timestsix(r1)
+      subroutine timest(r1)
       implicit none
 +if cr
 +ca crcoall
@@ -68612,14 +68612,14 @@ c$$$         backspace (93,iostat=ierro)
       endif
       return
       end
-      subroutine timexsix(r1)
+      subroutine timex(r1)
       implicit none
 +if cr
 +ca crcoall
 +ei
 +ca commtim
       save
-      call timestsix(0.0)
+      call timest(0.0)
       call cpu_time(timenow)
       r1=timenow-timestart
       return
@@ -68727,7 +68727,7 @@ c$$$         backspace (93,iostat=ierro)
       enddo
       sumda(52)=dble(ttot)
 !     the CPU
-      call timexsix(time1)
+      call timex(time1)
       trtime=time1-time0
 +if cr
       trtime=trtime+crtime3  
