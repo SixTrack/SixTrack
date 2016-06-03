@@ -18421,7 +18421,7 @@ cc2008
         call prror(-1) 
       endif
 
-      fma_numfiles=fma_numfiles+1
+      fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
 !     read in input parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
@@ -18447,14 +18447,63 @@ cc2008
         call prror(-1)
       endif
 
-      fma_fname(fma_numfiles)=getfields_fields(1)
-      fma_method(fma_numfiles)=getfields_fields(2)
+      fma_fname(fma_numfiles)  =
+     &     getfields_fields(1)(1:getfields_lfields(1))
+      fma_method(fma_numfiles) =
+     &     getfields_fields(2)(1:getfields_lfields(2))
       if(getfields_nfields.eq.2) then
         fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
       endif
       if(getfields_nfields.eq.3) then
         read (getfields_fields(3),'(I10)') fma_norm_flag(fma_numfiles)
       endif
+
+      ! Input sanity checks
+      if (.not. (
+     &    trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNELASK"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFTI"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEAPA"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFIT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1")
+     &   ) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "ERROR in DATEN::FMA: The FMA method '"//
+     &        trim(stringzerotrim(fma_method(fma_numfiles)))
+     &        //"' is unknown. FMA index = ", fma_numfiles
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &       "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//
+     &       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT2, TUNEABT2. "//
+     &       "Note that it is case-sensitive, so use uppercase only."
+         call prror(-1)
+      end if
+
+      if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or.
+     &           fma_norm_flag(fma_numfiles).eq.1      )) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0."//
+     &        "Got:", fma_norm_flag(fma_numfiles),
+     &        "FMA index =",fma_numfiles
+      end if
+      
       fma_flag = .true.
       goto 2300
 !-----------------------------------------------------------------------
@@ -58531,6 +58580,7 @@ c$$$            endif
       double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
      &eps123_avg !initial,minimum,maximum,average emittance
       double precision, dimension(3) :: phi123_0  !initial phase
+
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
 +if cr
@@ -58790,92 +58840,95 @@ c$$$            endif
 !         fma_norm_flag > 0 use normalized coordinates
             do l=1,napx ! loop over particles
               do m=1,3 ! loop over modes (hor.,vert.,long.)
-                if(trim(stringzerotrim(fma_method(i))).eq.'TUNELASK')   
-     &then
-                  if(fma_norm_flag(i) .eq. 0) then
+                 select case( trim(stringzerotrim(fma_method(i))) )
+                 case('TUNELASK')
+                 if(fma_norm_flag(i) .eq. 0) then
                     q123(m)=tunelask(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), 
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         
-     &'TUNEFFTI') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneffti(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         
-     &'TUNEFFT') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunefft(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         
-     &'TUNEAPA') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneapa(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         
-     &'TUNEFIT') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunefit(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         
-     &'TUNENEWT') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunenewt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
-     &'TUNEABT2') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneabt2(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
-     &'TUNEABT') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneabt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
-                else if(trim(stringzerotrim(fma_method(i))).eq.         &
-     &'TUNENEWT1') then
-                  if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunenewt1(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  else
-                    q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                  endif
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
                  else
-                  call fma_error(-1,'FMA method '//trim(stringzero      &
-     &trim(fma_method(i)))//' not known! Note method name must be in'// &
-     &'capital letters!','fma_postpr')
-                endif
+                    q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), 
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEFFTI')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneffti(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEFFT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunefft(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEAPA')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneapa(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEFIT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunefit(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                  
+                 case('TUNENEWT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunenewt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEABT2')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneabt2(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEABT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneabt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNENEWT1')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunenewt1(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case default
+                    call fma_error(-1,'FMA method '//
+     &                   trim(stringzerotrim(fma_method(i)))//
+     &                   ' not known! Note method name must be in'//
+     &                   ' capital letters!','fma_postpr')
+                 end select
+                 
                 if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
                 eps123_0(m)=epsnxyzv(l,1,m)                          ! initial amplitude 
 +if crlibm
