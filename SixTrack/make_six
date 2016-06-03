@@ -596,9 +596,6 @@ then
   export FCF=" -frecord-marker=4 -$myopt -m32 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2"
   export FCL="-static -m32"
   export FCLD="-m32"
-# ubuntu specific fixes
-#  export FCL="-static -m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1"
-#  export FCLD="-m32 -L/usr/lib/gcc/i686-linux-gnu/5.2.1"
 elif test "$lf95" = ""
 then
   export FC="lf95"
@@ -876,7 +873,7 @@ done
 # Use only necessary .ast (and .f later)
 if test "$da" = ""
 then
-    export FORS='sixda sixsc sixscfox dabnew lielib beamgas' #PLATO here also?
+    export FORS='sixda sixsc sixscfox dabnew lielib beamgas'
 else
     export FORS='track sixve sixvefox dabnews lielib beamgas plato_seq'
 fi

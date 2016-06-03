@@ -218,7 +218,7 @@ endif
 MASKS_DAFOR := sixvefox sixscfox sixda
 
 #different masks depending on DA
-MASKS_DA   := lielib dabnews sixscfox sixsc sixda #PLATO here too?
+MASKS_DA   := lielib dabnews sixscfox sixsc sixda
 MASKS_OT   := track sixve sixvefox dabnews lielib beamgas plato_seq
 MASKS      := $(call if_any,da,$(ENABLED),$(MASKS_DA),$(MASKS_OT))
 
