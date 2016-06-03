@@ -62,12 +62,14 @@ do
     cp ../$i/beambeamdist.dat beambeamdist.dat
     cp beambeamdist.dat fort.54
   fi
+  
   echo "First (only) time pro with no checkpoints"
   date
   time $sixdir/$sixv > fort.6 2>&1 
   date
   egrep 'Computing Time|Total Time' fort.6
   ls -l
+  
   cp fort.6 ../$i/fort.6.$dir
   cp fort.10 ../$i/fort.10.$dir
   if test -s fort.110
@@ -82,6 +84,7 @@ do
   then
     cp fort.210 ../$i/fort.210.$dir
   fi
+  
   if test "$i" = "bnl"
   then
     if test "$CPSS" != "" -o "$CR" != ""
@@ -111,5 +114,27 @@ do
       cp SixTwiss.dat ../$i/SixTwiss.dat.$dir
       cp checkdist.dat ../$i/checkdist.dat.$dir
     fi
+  fi
+  
+  if test -s ../$i/extra_checks.txt; then
+      echo "Found extra_checks.txt, copying more files..."
+      while read checkfiles command; do
+	  echo "Got files :: command :"
+	  echo $checkfiles :: $command
+	  if test ! "$checkfiles" -o ! "$command" ; then
+	      echo "   Invalid line."
+	      continue
+	  fi
+	  
+	  for file in $checkfiles; do
+	      #f=$(echo $file | sed 's/.canonical//')
+	      f=$file
+	      echo "   Copying file '"$f"':"
+	      cp $file ../$i/$f.$dir
+	  done
+      done < ../$i/extra_checks.txt
+  else
+      echo "No extra_checks.txt was found."
+      echo $(pwd)
   fi
 done
