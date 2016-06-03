@@ -1081,7 +1081,6 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd   dbdump
-
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
 !     K. Sjobak, BE-ABP/HSS
 !     last modified: 03-09-2015
@@ -1130,6 +1129,9 @@
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
      &                dump_fname
       common /dumpOptics/ dump_tas,dump_clo
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -1138,15 +1140,17 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd fma
-      integer, parameter :: fma_max =200                     !max. number of FMAs
-      integer, parameter :: fma_npart_max = 70               !max. number of particles (64 allowed in sixtrack
+!     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
+!     Common block for the FMA analysis postprocessing
+      integer, parameter :: fma_max       = 200              !max. number of FMAs
+      integer, parameter :: fma_npart_max = 70               !max. number of particles (64 allowed in sixtrack)
       integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      integer fma_nturn (fma_max)                            !number of turns used for fft
-      integer fma_norm_flag (fma_max)                        !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
+      integer fma_nturn    (fma_max)                         !number of turns used for fft
+      integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
       common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
      &fma_norm_flag,fma_nturn
 !
@@ -1180,6 +1184,7 @@
 ! Definitions necessary for using the "stringzerotrim" function,
 ! which is defined in deck "stringhandling".
 ! Used in DYNK and FMA.
+! K. Sjobak, BE-ABP/HSS
       integer stringzerotrim_maxlen
       parameter (stringzerotrim_maxlen=20) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
       
@@ -1262,7 +1267,6 @@ C     Store the SET statements
 
 +cd comdynkcr
 C     Block with data/fields needed for checkpoint/restart of DYNK
-      
       ! Number of records written to dynkfile (dynksets.dat)
       integer dynkfilepos, dynkfilepos_cr
       
