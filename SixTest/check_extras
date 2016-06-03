@@ -1,0 +1,84 @@
+#!/bin/sh
+prov=canonical
+# Now uses the variable TESTS
+export BIN=`pwd`/bin
+if test $# -eq 0
+then
+  echo "You need to give a Version name (or two)!!!"
+  exit
+fi
+newv=$1
+if test $# -eq 2
+then
+  prov=$1
+  newv=$2
+fi
+# Now try and find EXECS to compare
+rm -rf etmp$$
+touch etmp$$
+for e in $TESTS
+do
+  if test ! -d "$e"
+  then
+    echo "      ===================================="
+    echo "      CASE $e directory does not exist!!!"
+    echo "      ===================================="
+  else
+    #There may be several versions of the new version!
+    #But they should all make a fort.10, so this is an acceptable way
+    #of finding the names of the new versions.
+    cd $e
+    ls fort.10.*${newv}* >> ../etmp$$ 2>/dev/null
+    cd ..
+  fi
+done
+sort --unique etmp$$ > etmp2$$
+newvs=`cat etmp2$$ | sed -e's/fort.10.//'`
+rm -rf etmp*
+#BNL="bnl"
+#mybnl=`echo "$newv" | grep 'bnl'`
+#if test "$mybnl" = ""
+#then
+#  BNL=""
+#fi
+for v in $newvs
+do
+  echo "++++++++++++++++++++++++++++++++++++++"
+  echo "Comparing $prov to $v"
+  echo "++++++++++++++++++++++++++++++++++++++"
+  tests="$TESTS"
+  for i in $tests
+  do
+    if test ! -d "$i"
+    then
+      echo "      ===================================="
+      echo "      CASE $i directory does not exist!!!"
+      echo "      ===================================="
+    else
+      echo "      ===================================="
+      echo "      CASE $i"
+      echo "      ===================================="
+
+      #Get the names of the files to check
+      if test ! -s $i/extra_checks.txt; then
+        echo "No extra_checks.txt in this folder, skipping!"
+        continue
+      fi
+
+      echo "Reading $i/extra_checks.txt"
+      while read checkfile command; do
+         echo "Got file :: command :"
+         echo $checkfile :: $command
+         if test ! "$checkfile" -o ! "$command" ; then
+            echo "   Invalid line."
+	    continue
+	 fi
+	 # Todo: Check that the file exists...
+	 # Todo: Work in tmp folder
+	 # Todo: In case of wildcards, checkfile gets expanded. This is not good.
+	 echo "Running '$command $i/$checkfile.$prov $i/$checkfile.$v'":
+	 echo $($command $i/$checkfile.$prov $i/$checkfile.$v)
+      done < $i/extra_checks.txt
+    fi
+  done
+done
