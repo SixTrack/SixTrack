@@ -28,7 +28,10 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 #OPTIONS := crlibm bnlelens gfortran boinc api
 
 #code to add/remove options given by user from default(stored in DEFAULTS variable) and then doing option parsing
-DEFAULTS := fast tilt crlibm cernlib gfortran vvector O3
+#new options are added for options - m32 and m64 for 32 bit and 64 bit respectivley(m32 is default)
+#sys_version stores the value of m32 or m64 flag
+
+DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
 DEFAULTS := $(filter-out $(REMOVE),$(DEFAULTS))
 # OPTIONS := $(filter-out fio,$(OPTIONS))    # commenting out assuming not needed as of now
 
@@ -40,18 +43,17 @@ ifeq ($(temp),incompatible)
 else
  OPTIONS := $(SORTED_OPTIONS)
 endif
-$(info FINAL OPTIONS- $(SORTED_OPTIONS))
-
+$(info FINAL OPTIONS- $(OPTIONS))
+sys_version := $(filter m32 m64,$(OPTIONS))
 NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
 
 
-
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows m32 m64 O0 O1 O2 O3 O4)
 
 # list of valid user options
-USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 sse41 sse42 tilt tracking vvector hugenblz windows O0 O1 O2 O3 O4)
+USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 sse41 sse42 tilt tracking vvector hugenblz windows m32 m64 O0 O1 O2 O3 O4)
 
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz m32 m64)
 
 # list of valid compiler options
 COMPILER_OPTIONS := g77 g95 gfortran ifort lf95 nagfor
@@ -151,7 +153,12 @@ FCLD_ifort := -m32
 FCL_ifort  := -static -m32
 
 # gfortran configuration
+ifeq ($(sys_version),m64)
+FC_gfortran   := gfortran -m64
+endif
+ifeq ($(sys_version),m32)
 FC_gfortran   := gfortran -m32
+endif
 FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2
 ifneq ($(NOPT),)
   FCF_gfortran:=$(FCF_gfortran) -O$(NOPT)
@@ -389,7 +396,12 @@ HEAD2:= $(addprefix $(CRLIBM_SRC)$/,scs.h scs_config.h scs_private.h)
 AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline
 DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
+ifeq ($(sys_version),m64)
+CFLAGS = -g -O2 -m64 -mfpmath=sse -msse2
+endif
+ifeq ($(sys_version),m32)
 CFLAGS = -g -O2 -m32 -mfpmath=sse -msse2
+endif
 
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
@@ -461,15 +473,15 @@ $(CRLIBM_DST)/enable_xp.o: $(CRLIBM_SRC)$/enable_xp.c
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/round_near.o: $(CRLIBM_SRC)$/round_near.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@$(CC) -$(sys_version) -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/dtoa_c.o: $(CRLIBM_SRC)$/dtoa_c.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@$(CC) -$(sys_version) -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/dtoaf.o: $(CRLIBM_SRC)$/dtoaf.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@$(CC) -$(sys_version) -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(AST_FILES): $(DESTDIR)$/%.ast: $(SRC_AST)%.ast |$(DESTDIR)

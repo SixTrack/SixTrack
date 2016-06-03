@@ -114,11 +114,13 @@ put "hugenblz" "" "bignblz"
 put "da" "" "collimat cpss bpm"
 put "collimat" "" "da cpss bpm cr crlibm"
 put "cpss" "crlibm cr" "cernlib" 
+put "m64" "" "ifort nagfor pgf90 g95 lf95 cernlib bonic m32"
 
 # add below the case which are to be followed in absence of certain options
 #as put_not "option" "needed dependencies" "exclusions"
 
 put_not "da" "" "naglib"
+put_not "m64" "m32" ""
 
 while [[ $k -lt 10  && ${all_lasttime[@]} != ${all[@]} ]];do             #running test max 10 times just to ensure no new conflict arise in items added
 unset error
