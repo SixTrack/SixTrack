@@ -2,7 +2,7 @@
 #
 if test $# -ne 3
 then
-  echo "try_kill called without 3 parameters!!!"
+  echo "try_pro called without 3 parameters!!!"
   exit 1
 fi
 sixdir=$1
@@ -126,7 +126,7 @@ do
 	      continue
 	  fi
 	  
-	  for file in $checkfiles; do
+	  for file in $checkfiles; do # Second layer in case of wildcards (bad idea as it was implemented)
 	      #f=$(echo $file | sed 's/.canonical//')
 	      f=$file
 	      echo "   Copying file '"$f"':"
@@ -135,6 +135,5 @@ do
       done < ../$i/extra_checks.txt
   else
       echo "No extra_checks.txt was found."
-      echo $(pwd)
   fi
 done
