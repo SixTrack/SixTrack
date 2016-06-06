@@ -19,6 +19,7 @@
 
 \usepackage{todonotes}
 %\usepackage{draftwatermark}
+\usepackage{tabularx}
 
 \newenvironment{description_alligned}[1]
 {\begin{list}{}%
@@ -45,16 +46,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update January 2016
+  Update June 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.31 \\
+  Version 4.5.34 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by K. Sjobak
+  F. Schmidt, update by M.~Fitterer and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -2782,9 +2783,31 @@ For the DUMP block (Sec.~\ref{sec:DUMP}) the frequency has to be 1 (dump every t
 \subparagraph{filename}
 one of the outputfiles specified in the FMA block preceding DUMP block.
 \subparagraph{method}
-method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|
+method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|. A short description of the different methods is given in Table~\ref{fma:tab:1}.
 \subparagraph{fma\_flag\_norm}
-flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|)
+flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|).
+
+\begin{table}[H]
+	\begin{center}
+		\caption{Available tune calculation methods in SixTrack.}
+		\label{fma:tab:1}
+		\begin{tabularx}{\textwidth}{|l|l|X|}
+			\hline
+\textbf{Library} & \textbf{method} & \textbf{Description} \\\hline
+PLATO \cite{plato1,plato2}
+& TUNELASK &	Compute the tune of a 2d map by means of laskar method. A first indication of the position of the tune is obtained by means of a FFT. Refinement is obtained through a newton procedure.\\\cline{2-3}
+& TUNEFIT &	Computes the tune using a modified apa algorithm. The first step consists of taking the average of the tune computed with the APA method, then a best fit is performed.\\\cline{2-3}
+& TUNENEWT1 &	Computes the tune using a discrete version of laskar method. It includes a newton method for the search of the frequency.\\\cline{2-3}
+& TUNENEWT &	Computes the tune using a discrete version of laskar method. It includes a newton method for the search of the frequency.\\\cline{2-3}
+& TUNEABT &	Computes the tune using FFT interpolated method.\\\cline{2-3}
+& TUNEABT2 &	Computes the tune using the interpolated FFT method with hanning filter.\\\cline{2-3}
+& TUNEFFT &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$, where the maximum number of iterates is fixed in the parameter n.\\\cline{2-3}
+& TUNEFFTI &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$. Then, the FFT is interpolated fitting the three points around the maximum using a Gaussian. The tune is computed as the maximum of the Gaussian.\\\cline{2-3}
+& TUNEAPA &	Computes the tune as the average phase advance on a two dimensional plane, given n iterates of a map. \\\hline
+	\end{tabularx}
+\end{center}
+\end{table}
+
 \paragraph{Example}
 An input block to compare the tunes at element IP3 calculated over the interval $[1,4096]$ and $[5905,10000]$, and using the method \verb|TUNELASK| would look like:
 \begin{verbatim}
@@ -2806,7 +2829,7 @@ NEXT
 \end{verbatim}
 where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). 
 
-Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycle at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
+Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
 
 \chapter*{Conclusions}
 
@@ -4084,6 +4107,15 @@ summary of the post--processing is given.
   ``Comparison of methods to determine long--term stability in proton
   storage rings'', 1991, Particle Accelerators, Vol. \underline{35},
   pp. 249--256.  
+
+\bibitem{plato1} R.~Bartolini, A.~Bazzani, M.~Giovannozzi, W.~Scandale, E.~Todesco,``Tune evaluation in simulations and experiments'',Part. Accel. 52 147
+
+\bibitem{plato2} M.~Giovannozzi, E.~Todesco, A.~Bazzani and R.~Bartolini (1997). ``PLATO: a program library for the analysis of nonlinear betatronic motion'', Nucl. Instrum. and Methods A 388 1
+
+\bibitem{sixdesk1} SixDesk manual, see SixTrack website, \url{http://sixtrack.web.cern.ch/SixTrack/}
+
+\bibitem{sixdesk2} SixDesk manual, \url{https://www.overleaf.com/1345694dwypbp#/3325092/}
+
 %
 %\bibitem{PATRAC} A.~Hilaire and A.~Warman, ``A
 %  program for single particle tracking'', CERN SPS/88--8 (AMS).
