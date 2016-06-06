@@ -534,7 +534,7 @@ C create real array DATA out of complex array CDATA
         GOTO 2
       END IF
       DO I=1,N,2
-        CDATA(I/2+1)=COMPLEX(DATA(I),DATA(I+1))
+        CDATA(I/2+1)=CMPLX(DATA(I),DATA(I+1))
       ENDDO
 C.............................................................      
       END
