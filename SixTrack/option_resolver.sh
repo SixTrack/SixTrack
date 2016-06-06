@@ -6,7 +6,7 @@ all=("${defaults[@]}" "${add[@]}")
 
 #simulating map-kinda structure(only bash4.0 natively supports map structure)
 declare -i key=0
-declare -i key1=0
+declare -i key_ifnot=0
 declare -i i=0
 declare -i k=0
 declare -a dummy_all
@@ -21,12 +21,12 @@ put()
 
 }
 
-put_not()
+put_ifnot()
 {
-    key1=$key1+1
-    options1=("${options1[@]}" "$1") ;
-    options_needs1=("${options_needs1[@]}" "$2")
-    options_excludes1=("${options_excludes1[@]}" "$3");
+    key_ifnot=$key_ifnot+1
+    options_ifnot=("${options_ifnot[@]}" "$1") ;
+    options_ifnot_needs=("${options_ifnot_needs[@]}" "$2")
+    options_ifnot_excludes=("${options_ifnot_excludes[@]}" "$3");
 
 }
 
@@ -72,22 +72,22 @@ option_check()
 
 }
 
-option_check1()
+options_ifnot_check()
 {      # this checks if required options in "absence" of certain option are present and excluding options are absent
        # if excluding options are in add array, then this gives error
 
     j="$1";
-    needed1=("${options_needs1[${j}]}")
-    excluded1=("${options_excludes1[${j}]}")
+    needed_ifnot=("${options_ifnot_needs[${j}]}")
+    excluded_ifnot=("${options_ifnot_excludes[${j}]}")
 
-    for item in ${needed1[@]};do
+    for item in ${needed_ifnot[@]};do
       if ! echo ${all[@]} | grep -w -q "$item";then
         all=("${all[@]}" "$item")
         add=("${add[@]}" "$item")
       fi
     done
 
-    for item in ${excluded1[@]};do
+    for item in ${excluded_ifnot[@]};do
       if echo ${defaults[@]} | grep -w -q "$item";then
         #code to remove conflicting default item from all provided options
         for index in ${all[@]};do
@@ -97,7 +97,7 @@ option_check1()
         unset dummy_all
       fi
       if echo ${add[@]} | grep -w -q "$item";then
-        error=("added option $item (either given by user explicitly or required as dependency) is incompatible with absence of ${options1[${i}]}")
+        error=("added option $item (either given by user explicitly or required as dependency) is incompatible with absence of ${options_ifnot[${i}]}")
       fi 
     done
 
@@ -117,10 +117,10 @@ put "cpss" "crlibm cr" "cernlib"
 put "m64" "" "ifort nagfor pgf90 g95 lf95 cernlib bonic m32"
 
 # add below the case which are to be followed in absence of certain options
-#as put_not "option" "needed dependencies" "exclusions"
+#as put_ifnot "option" "needed dependencies" "exclusions"
 
-put_not "da" "" "naglib"
-put_not "m64" "m32" ""
+put_ifnot "da" "" "naglib"
+put_ifnot "m64" "m32" ""
 
 while [[ $k -lt 10  && ${all_lasttime[@]} != ${all[@]} ]];do             #running test max 10 times just to ensure no new conflict arise in items added
 unset error
@@ -132,9 +132,9 @@ done
 i=$i+1 
 done
 i=0
-while [ $i -lt $key1 ];do                         
- if ! echo ${all[@]} | grep -w -q "${options1[$i]}";then
-  option_check1 "$i"
+while [ $i -lt $key_ifnot ];do                         
+ if ! echo ${all[@]} | grep -w -q "${options_ifnot[$i]}";then
+  options_ifnot_check "$i"
  fi
 i=$i+1 
 done
