@@ -89,9 +89,10 @@ do
 	 fi
 	 
 	 # Todo: Work in tmp folder, like for check_10
-	 
-	 echo "Running '$command $i/$checkfile.$prov $i/$checkfile.$v'":
-	 RESULTS=$($command $i/$checkfile.$prov $i/$checkfile.$v)
+
+	 COMMAND="$command $i/$checkfile.$prov $i/$checkfile.$v"
+	 echo "Running '$COMMAND'":
+	 RESULTS=$($COMMAND)
 	 echo $RESULTS
 	 if [ "$RESULTS" != "" ] ; then
 	     echo
@@ -104,8 +105,12 @@ do
 
       if [ $FAIL = "Y" ]; then
 	  echo -e "\e[91m      *****************************************\e[39m"
-	  echo -e "\e[91m      Problem with test $i \e[39m"
+	  echo -e "\e[91m      Test $i FAILED\e[39m"
 	  echo -e "\e[91m      *****************************************\e[39m"
+      else
+	  echo -e "\e[92m      *****************************************\e[39m"
+	  echo -e "\e[92m      Test $i SUCESS\e[39m"
+	  echo -e "\e[92m      *****************************************\e[39m"
       fi
     fi
   done
