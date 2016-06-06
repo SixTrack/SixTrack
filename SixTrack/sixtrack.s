@@ -1143,7 +1143,7 @@
 !     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
 !     Common block for the FMA analysis postprocessing
       integer, parameter :: fma_max       = 200              !max. number of FMAs
-      integer, parameter :: fma_npart_max = 70               !max. number of particles (64 allowed in sixtrack)
+      integer, parameter :: fma_npart_max = 64               !max. number of particles (64 allowed in sixtrack)
       integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
