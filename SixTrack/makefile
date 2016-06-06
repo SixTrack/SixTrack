@@ -22,57 +22,34 @@ SHELL:=/bin/bash
 Windows_BOINC_LIB_PATH := C:\andrei_6track\win32\libxp2\*.lib
 Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\User32.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\psapi.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\AdvAPI32.Lib"
 
-# default options, can be overriden by the command line
-#OPTIONS := fast tilt tracking crlibm ifort
-#OPTIONS := fast tilt tracking crlibm gfortran vvector cernlib O3
-#OPTIONS := crlibm bnlelens gfortran boinc api
+# user can run make as make add="p q" remove="x y" in order to add p,q and remove x,y where p q x y must belong to ALL_OPTIONS
+# new options are added for executable - m32 and m64 for 32 bit and 64 bit respectivley(m32 is default)
+# resolving of dependencies is done using option_resolver.sh script
 
-#code to add/remove options given by user from default(stored in DEFAULTS variable) and then doing option parsing
-#new options are added for options - m32 and m64 for 32 bit and 64 bit respectivley(m32 is default)
-#sys_version stores the value of m32 or m64 flag
-
-DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
-DEFAULTS := $(filter-out $(REMOVE),$(DEFAULTS))
-# OPTIONS := $(filter-out fio,$(OPTIONS))    # commenting out assuming not needed as of now
-
-#solving dependency for rest options
-SORTED_OPTIONS:= $(shell ./option_resolver.sh "$(DEFAULTS)" "$(ADD)")
-temp=$(shell echo "$(SORTED_OPTIONS)" | grep -o "incompatible" )
-ifeq ($(temp),incompatible)
-   $(error $(SORTED_OPTIONS))
-else
- OPTIONS := $(SORTED_OPTIONS)
-endif
-$(info FINAL OPTIONS- $(OPTIONS))
-sys_version := $(filter m32 m64,$(OPTIONS))
-NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
-
-
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows m32 m64 O0 O1 O2 O3 O4)
-
-# list of valid user options
-USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 sse41 sse42 tilt tracking vvector hugenblz windows m32 m64 O0 O1 O2 O3 O4)
-
+#list of all options (need to be looked at for removing obsolete options)
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz m32 m64)
 
-# list of valid compiler options
+DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
+DEFAULTS := $(filter-out $(remove),$(DEFAULTS))
+OPTIONS := $(filter-out fio,$(OPTIONS))
+SORTED_OPTIONS:= $(shell ./option_resolver.sh "$(DEFAULTS)" "$(add)")
+temp=$(shell echo "$(SORTED_OPTIONS)" | grep -o "incompatible" )
+ifeq ($(temp),incompatible)
+  $(error $(SORTED_OPTIONS))
+else
+  OPTIONS := $(sort $(SORTED_OPTIONS))
+endif
+
+#sys_version stores the value of m32 or m64 flag
+#ENABLED variable (removing optimization flag from chosen options) and NOPT is remnant of older option resolving and is used in many places
+sys_version := $(filter m32 m64,$(OPTIONS))
+NOPT := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
+ENABLED := $(filter-out O$(NOPT),$(OPTIONS))
+
+#list of valid compiler options
 COMPILER_OPTIONS := g77 g95 gfortran ifort lf95 nagfor
 
-
-# options dependencies (+)enable, -disable, !exclude
-
-beamgas    := +collimat
-boinc      := +cpss
-bpm        := !da !collimat
-collimat   := -crlibm !da
-cpss       := +cr !da !collimat
-da         := -naglib !collimat
-hdf5       := +collimat
-windows    := +boinc +crlibm
-
-# dictionary between options and patterns
-
-# decks options to be checked in the .ast file
+#decks options to be checked in the .ast file
 DECKS_OPT := collimat cr  bnlelens debug
 # if disabled <lhs>  delete deck <rhs> 
 collimat := nwrtcoll
@@ -80,25 +57,10 @@ bnlelens := nwrtbnl
 cr       := checkpt
 debug    := dumps
 
-# if enabled <lhs>  delete deck <rhs> 
+#if enabled <lhs>  delete deck <rhs> 
 DECKS_OPT_INV := cernlib naglib
 cernlib  := plotdumy
 naglib   := nagdumy
-
-# clean-up, expand and classify OPTIONS
-
-expand      = $(foreach o,$1,$o $(if $($o),( $(call expand,$(patsubst +%,%,$($o))) ),))
-PROVIDED   := $(sort $(patsubst +%,%,$(OPTIONS)))
-#EXPANDED   := $(strip $(call expand,$(PROVIDED)))
-EXPANDED   := $(PROVIDED)
-ENABLED    := $(sort $(filter-out -% !% ( ),$(EXPANDED)))
-ENABLED    := $(filter-out O0 O1 O2 O3,$(ENABLED))
-DISABLED   := $(sort $(patsubst -%,%,$(filter -%,$(EXPANDED))))
-EXCLUDED   := $(sort $(patsubst !%,%,$(filter !%,$(EXPANDED))))
-UNSELECTED := $(filter-out $(ENABLED),$(USER_OPTIONS))
-CONFLICT_D := $(filter $(DISABLED),$(ENABLED))
-CONFLICT_E := $(filter $(EXCLUDED),$(ENABLED))
-
 
 # Macro of enabling more options
 is_equ = $(if $(patsubst $1,,$2),,t)
@@ -111,26 +73,10 @@ space  =
 space +=
 
 # Build version of SixTrack
-VERSION:= $(shell grep "data version" sixtrack.s | sed -e "s/.*'\([0-9]\).\([0-9]*\).\([0-9]*\).*/\1\2\3/")
-
+VERSION := $(shell grep "data version" sixtrack.s | sed -e "s/.*'\([0-9]\).\([0-9]*\).\([0-9]*\).*/\1\2\3/")
 DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(ENABLED))_O$(NOPT)
+$(info Final Options after resolving dependencies: $(OPTIONS))
 $(info Sixtrack build dir: $(DESTDIR))
-
-# options to enable from other combinations
-$(call enable,if_all,collimat da,,tracking)
-
-# diagnostics
-DEBUG:=yes
-ifneq ($(CONFLICT_D)$(CONFLICT_E)$(DEBUG),no)
-$(info Options provided: $(PROVIDED))
-$(info Options expanded: $(EXPANDED))
-$(info Options enabled:  $(ENABLED))
-$(info Options disabled: $(DISABLED))
-$(info Options excluded: $(EXCLUDED))
-$(info Conflict with disabled: $(CONFLICT_D))
-$(info Conflict with excluded: $(CONFLICT_E))
-$(if $(CONFLICT_D)$(CONFLICT_E),$(error ERROR: please select a consistent set of options),)
-endif
 
 # compilers configuration
 # currently supported ifort and gfortran
