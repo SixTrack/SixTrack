@@ -118,21 +118,23 @@ do
   
   if test -s ../$i/extra_checks.txt; then
       echo "Found extra_checks.txt, copying more files..."
-      while read checkfiles command; do
-	  echo "Got files :: command :"
-	  echo $checkfiles :: $command
-	  if test ! "$checkfiles" -o ! "$command" ; then
-	      echo "   Invalid line."
+      set -f #Disable wildcard expansion
+      while read checkfile command; do
+	  echo "   Got file :: command = " $checkfile :: $command
+	  if test ! "$checkfile" -o ! "$command" ; then
+	      echo "      Invalid line! Skipping."
 	      continue
 	  fi
+
+	  if ! test -f $checkfile ; then
+	      echo "      File '$checkfile' not found, skipping!"
+	  fi
 	  
-	  for file in $checkfiles; do # Second layer in case of wildcards (bad idea as it was implemented)
-	      #f=$(echo $file | sed 's/.canonical//')
-	      f=$file
-	      echo "   Copying file '"$f"':"
-	      cp $file ../$i/$f.$dir
-	  done
+	  #echo "   Copying file '"$checkfile"':"
+	  cp $checkfile ../$i/$checkfile.$dir
+	  
       done < ../$i/extra_checks.txt
+      set +f #Renable wildcards (glob)
   else
       echo "No extra_checks.txt was found."
   fi
