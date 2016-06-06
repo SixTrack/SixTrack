@@ -26933,7 +26933,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
         write(lout,*)'Calling FMA_POSTPR'
 +ei
-+if .not. cr
++if .not.cr
         write(*,*)   'Calling FMA_POSTPR'
 +ei
         call fma_postpr
