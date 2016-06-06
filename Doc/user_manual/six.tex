@@ -2755,7 +2755,7 @@ NEXT
 \subsection{FMA analysis} \label{sec:FMA}
 
 \paragraph{Description}
-The FMA block generates the basic files needed for frequency map analysis (FMA). Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the DUMP block, see Sec.~\ref{sec:DUMP}. For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the LINE block (linear optics calculation in 6D, \ref{LinOpt}). The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the FMA block either in physical coordinates ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized phase space coordinates and dumped to the file \verb|fma_sixtrack| together with the minimum, maximum and average normalized particle amplitudes and phases. 
+The FMA block generates the basic files needed for frequency map analysis (FMA). Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the DUMP block, see Sec.~\ref{sec:DUMP}. For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the LINE block (linear optics calculation in 6D, \ref{LinOpt}). The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the FMA block either in physical coordinates ($x$,$x'$,$y$,$y'$,$z$,$dE/E$) or normalized phase space coordinates and dumped to the file \verb|fma_sixtrack| together with the minimum, maximum and average normalized particle amplitudes and phases. 
 
 \paragraph{Keyword}
 FMA
@@ -2763,7 +2763,7 @@ FMA
 \paragraph{Number of data lines}
 variable, one for each file with particle amplitudes and tune calculation method
 
-\paragraph{Format}
+\paragraph{Format of input block}
 The FMA block has to be proceeded by the LINE block (calculation of the normalization matrix) and the DUMP block (dump particle coordinates).
 \begin{verbatim}
 DUMP
@@ -2807,7 +2807,43 @@ PLATO \cite{plato1,plato2}
 	\end{tabularx}
 \end{center}
 \end{table}
+\paragraph{Output file format}
+The FMA block returns the output files \verb|NORM_filename*| containing the normalized phase space coordinates, where \verb|filename| are the filenames specified in the dump block, and the file \verb|fma_sixtrack| containing the initial, average, minimum and maximum amplitudes and the calculated tunes for each specified filename and method. The structure of the \verb|NORM_filename*| is described in Table~\ref{fma:tab:2} and of the \verb|fma_sixtrack| in Table~\ref{fma:tab:3}.
+\begin{table}[H]
+	\begin{center}
+	\caption{Format of the NORM files}\label{fma:tab:2}
+	\begin{tabularx}{\textwidth}{|c|c|X|}
+		\hline
+		{\bf Line Number} & {\bf Type} & {\bf Description} \\
+		\hline
+		1 & header & closed orbit  $x$,$x'$,$y$,$y'$,$z$,$dE/E$, units are $[\rm mm,mrad,mm,mrad,1]$. \\\hline
+		2-38 & header & matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$. \\\hline
+		39-75 & header & inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \hbox{$z_{\rm norm}=\rm{ta}\cdot z$}. Matrix \texttt{inv(tamatrix)} is given in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$.\\\hline
+		76 & header & header with units:\\
+		& & \verb| # id turn pos[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)]| \\
+		& & \quad \verb| ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] |\\
+		& & \quad \verb| ndp/p[1.e-3 sqrt(m)] kt| \\\hline
+		77 - eof & Lines & see header in line 76: particle id, turn number position s[m], normalized coordinates $[10^{-3} \sqrt{\rm m}]$, ktrack (type of element)\\\hline
+	\end{tabularx}
+\end{center}
+\end{table}
 
+\begin{table}[H]
+	\begin{center}
+		\caption{Format of the fma\_sixtrack file}\label{fma:tab:3}
+		\begin{tabularx}{\textwidth}{|c|c|X|}
+			\hline
+			{\bf Line Number} & {\bf Type} & {\bf Description} \\
+			\hline
+			1-2 & header & header with units and description:\\
+			& & \verb|   # eps0*,eps2*,eps3* all in 1.e-6*m,     phi* [rad] | \\
+			& & \verb|  # inputfile method id q1 q2 q3 eps1_min eps2_min eps3_min | \\
+			& & \quad \verb| eps1_max eps2_max eps3_max eps1_avg eps2_avg eps3_avg |\\
+			& & \quad \verb| eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0| \\\hline
+			3 - eof & Lines & see header in line 1-2: The lines are ordered as particles 1-npart for (inputfile1,method1), then  particles 1-npart for (inputfile2,method2), etc.. The minimum (min), maximum (max) and average (avg) are taken over the number of turns in the inputfile (fiel specified in the FMA and DUMP block). Units are $\mu \rm m$ for \verb|eps*| and rad for \verb|phi*|, where \verb|phi*| is the angle in the normalized phase space coordinates.\\\hline
+		\end{tabularx}
+	\end{center}
+\end{table}
 \paragraph{Example}
 An input block to compare the tunes at element IP3 calculated over the interval $[1,4096]$ and $[5905,10000]$, and using the method \verb|TUNELASK| would look like:
 \begin{verbatim}
