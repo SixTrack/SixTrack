@@ -1,4 +1,5 @@
 #!/bin/sh
+#set -x #Xtrace on (for debugging)
 prov=canonical
 # Now uses the variable TESTS
 export BIN=`pwd`/bin
@@ -65,20 +66,47 @@ do
         continue
       fi
 
+      FAIL=N
+      
       echo "Reading $i/extra_checks.txt"
+      set -f #Disable wildcard expansion
       while read checkfile command; do
-         echo "Got file :: command :"
-         echo $checkfile :: $command
+         echo "Got file :: command = " $checkfile :: $command
          if test ! "$checkfile" -o ! "$command" ; then
             echo "   Invalid line."
 	    continue
 	 fi
-	 # Todo: Check that the file exists...
-	 # Todo: Work in tmp folder
-	 # Todo: In case of wildcards, checkfile gets expanded. This is not good.
+
+	 if ! test -f $i/$checkfile.$prov ; then
+	     echo -e "\e[91mCanonical $i/$checkfile.$v not found, skipping \e[39m"
+	     FAIL=Y
+	     continue
+	 fi
+	 if ! test -f $i/$checkfile.$v ; then
+	     echo -e "\e[91mTest file $i/$checkfile.$v not found, skipping \e[39m"
+	     FAIL=Y
+	     continue
+	 fi
+	 
+	 # Todo: Work in tmp folder, like for check_10
+	 
 	 echo "Running '$command $i/$checkfile.$prov $i/$checkfile.$v'":
-	 echo $($command $i/$checkfile.$prov $i/$checkfile.$v)
+	 RESULTS=$($command $i/$checkfile.$prov $i/$checkfile.$v)
+	 echo $RESULTS
+	 if [ "$RESULTS" != "" ] ; then
+	     echo
+	     echo -e "\e[91mFiles '$i/$checkfile.$prov' and '$i/$checkfile.$v' are DIFFERENT!! \e[39m"
+	     FAIL=Y
+	     echo
+	 fi
       done < $i/extra_checks.txt
+      set +f #Renable wildcards (glob)
+
+      if [ $FAIL = "Y" ]; then
+	  echo -e "\e[91m      *****************************************\e[39m"
+	  echo -e "\e[91m      Problem with test $i \e[39m"
+	  echo -e "\e[91m      *****************************************\e[39m"
+      fi
     fi
   done
 done
