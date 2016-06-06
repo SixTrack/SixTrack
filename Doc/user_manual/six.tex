@@ -3398,13 +3398,17 @@ The program uses a couple of files for its input and output procedures.
   & & & & (only during initialization) \\
   \hline \rule[-3.75mm]{0mm}{10mm}
   665 & & X & Ascii & DYNK output file \texttt{dynksets.dat} \\
-  \hline
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  2001001 & & X & Ascii & FMA output file \texttt{fma\_sixtrack} \\\hline \rule[-3.75mm]{0mm}{10mm}
+  200101+i*10 & & X & Ascii & FMA output file \texttt{NORM\_*}, \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & where $i=1,\ldots,\mathrm{number \ of \ dumpfiles}$ \\\hline
 \end{longtable}
 \end{center}
 
 %\clearpage
 
-In addition to those files listed in the table, DUMP use arbitary file unit numbers as determined by the input file. The collimation module also uses many input/output files at various units, which are not listed here.
+In addition to those files listed in the table, DUMP uses arbitary file unit numbers as determined by the input file. The collimation module also uses many input/output files at various units, which are not listed here.
 
 \chapter{Data Structure of the Data--Files} \label{Header}
 

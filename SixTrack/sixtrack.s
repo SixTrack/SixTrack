@@ -7990,7 +7990,8 @@ cc2008
             enddo
           endif
           call dacct(damap,nvar,aa2,nvar,damap,nvar)
-!         calculate optics parameter for element typ
+!         calculate linear 6D optics parameter for each element
+!         by calculating the matrix of eigenvectors (tas)
           do j=1,ndimf
             ii=2*j
             if(j.eq.1) then
