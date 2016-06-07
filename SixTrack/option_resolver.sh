@@ -2,9 +2,24 @@
 
 defaults=$1
 add=$2
-all=("${defaults[@]}" "${add[@]}")
+remove=$3
+user_given=("${add[@]}" "${remove[@]}")
+list=$4
 
+declare -a unknown
+
+#checking if given options exist in allowed list 
+for index in ${user_given[@]};do
+if ! echo ${list[@]} | grep -w -q "$index";then
+unknown+=($index)
+fi
+done
+if ! [ ${#unknown[@]} -eq 0 ];then
+error=("error - following options dont exist: ${unknown[@]}")
+else
+#this means user didnt give unkown option and dependency resolving should be done now
 #simulating map-kinda structure(only bash4.0 natively supports map structure)
+all=("${defaults[@]}" "${add[@]}")
 declare -i key=0
 declare -i key_ifnot=0
 declare -i i=0
@@ -65,7 +80,7 @@ option_check()
         unset dummy_all
         break
         else
-        error=("added option $item (either given by user explicitly or required as dependency) is incompatible with ${options[${i}]}")
+        error=("error - added option $item (either given by user explicitly or required as dependency) is incompatible with ${options[${i}]}")
         fi
       fi 
     done
@@ -97,7 +112,7 @@ options_ifnot_check()
         unset dummy_all
       fi
       if echo ${add[@]} | grep -w -q "$item";then
-        error=("added option $item (either given by user explicitly or required as dependency) is incompatible with absence of ${options_ifnot[${i}]}")
+        error=("error - added option $item (either given by user explicitly or required as dependency) is incompatible with absence of ${options_ifnot[${i}]}")
       fi 
     done
 
@@ -141,8 +156,11 @@ done
 i=0
 k=$k+1
 done
-if echo ${error} | grep -w -q "incompatible";then
-echo ${error}
+fi
+
+#finally providing make with either error or correct options
+if ! [ ${#error[@]} -eq 0 ];then
+echo ${error[@]}
 else
 echo ${all[@]}
 fi
