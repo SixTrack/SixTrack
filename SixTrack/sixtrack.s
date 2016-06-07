@@ -18456,7 +18456,8 @@ cc2008
         fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
       endif
       if(getfields_nfields.eq.3) then
-        read (getfields_fields(3),'(I10)') fma_norm_flag(fma_numfiles)
+         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
+     &        fma_norm_flag(fma_numfiles)
       endif
 
       ! Input sanity checks
