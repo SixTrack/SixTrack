@@ -24,12 +24,7 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 
 # default options, can be overriden by the command line
 #OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran vvector cernlib O3
 #OPTIONS := crlibm bnlelens gfortran boinc api
-
-NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
-
-
 
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
 
@@ -41,6 +36,29 @@ ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collima
 # list of valid compiler options
 COMPILER_OPTIONS := g77 g95 gfortran ifort lf95 nagfor
 
+#code to add/remove options given by user from default(stored in DEFAULTS variable) and then doing option parsing
+DEFAULTS := fast tilt crlibm cernlib gfortran vvector O3
+#DEFAULTS := hugenblz bignblz hdf5
+OPTIONS := $(DEFAULTS) $(ADD)
+OPTIONS := $(filter-out fio,$(OPTIONS))    # currently fio is always off
+OPTIONS := $(filter-out $(REMOVE),$(OPTIONS))
+#$(info USER GIVEN OPTIONS- $(OPTIONS) )
+#solving dependency for rest options
+SORTED_OPTIONS:= $(shell ./option_resolver1.sh "$(DEFAULTS)" "$(ADD)")
+temp=$(shell echo $(SORTED_OPTIONS) | grep -o "incompatible")
+#temp1=$(shell echo $(SORTED_OPTIONS) | grep -o "Warning")
+ifeq ($(temp),incompatible)
+   $(error $(SORTED_OPTIONS))
+#else
+#ifeq ($(temp1),Warning) 
+# $(info Warning- Building with crlibm and collimat most probably will not work ) 
+# OPTIONS := $(filter-out Warning,$(SORTED_OPTIONS))
+else
+  OPTIONS :=$(SORTED_OPTIONS)
+#endif
+endif
+$(info FINAL OPTIONS- $(OPTIONS))
+NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
 
 # options dependencies (+)enable, -disable, !exclude
 
