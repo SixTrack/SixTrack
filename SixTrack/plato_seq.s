@@ -41,7 +41,7 @@
       S=ISIGN(1,MSIGN)
       LE=2
       DO 20 L=2,M
-      W=CMPLX(C,S)
+      W=CMPLX(C,S,kind(1.d0))
       U=W
       C=SQRT(C*.5+.5)
       S=AIMAG(W)/(C+C)
@@ -534,7 +534,7 @@ C create real array DATA out of complex array CDATA
         GOTO 2
       END IF
       DO I=1,N,2
-        CDATA(I/2+1)=CMPLX(DATA(I),DATA(I+1))
+        CDATA(I/2+1)=CMPLX(DATA(I),DATA(I+1),kind(1.d0))
       ENDDO
 C.............................................................      
       END
