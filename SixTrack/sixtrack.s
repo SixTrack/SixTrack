@@ -44076,6 +44076,67 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          !TODO: Several FUN should be able to share the same file (thus the ID...)
          !      When this is done, the CLOSEUNITS subroutine should also be updated.
          
+         ! Look if the fileUnit or filenames are used in a different FUN PIPE
+         t=0 !Used to hold the index of the other pipe; t=0 if no older pipe -> open files.
+         do ii=1,nfuncs_dynk-1
+            if (funcs_dynk(ii,2) .eq. 3) then !It's a PIPE
+               !Does any of the settings match?
+               if ( iexpr_dynk(funcs_dynk(ii,3)).eq.      !Unit number
+     &              iexpr_dynk(niexpr_dynk)           .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+1).eq.    !InPipe filename
+     &              cexpr_dynk(ncexpr_dynk-2)         .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+2).eq.    !OutPipe filename
+     &              cexpr_dynk(ncexpr_dynk-1)         ) then
+                  !Does *all* of the settings match?
+                  if ( iexpr_dynk(funcs_dynk(ii,3)).eq.   !Unit number
+     &                 iexpr_dynk(niexpr_dynk)           .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+1).eq. !InPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-2)         .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+2).eq. !OutPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-1)         ) then
+                     t=ii
++if cr
+                     write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                     write(*,*)    "DYNK> "//
++ei
+     & "PIPE FUN '"//cexpr_dynk(funcs_dynk(nfuncs_dynk,1))//
+     & "' using same settings as previously defined FUN '"   //
+     & cexpr_dynk(funcs_dynk(ii,1))//"' -> reusing files!"
+                     if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
+     &                   cexpr_dynk(ncexpr_dynk)           ) then
++if cr
+                        write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                        write(*,*)    "DYNK> "//
++ei
+     &               "ERROR: IDs must be different when sharing PIPEs."
+                        call prror(-1)
+                     endif
+                     exit !break loop
+                  else !Partial match
++if cr !Nested too deep, sorry about crappy alignment...
+      write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(lout,*) "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
++if .not.cr
+      write(*,*)    "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(*,*)    "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(*,*)    "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
+                     call prror(-1)
+                  endif
+               endif
+            endif
+         end do
+         
          ! Open the inPipe
          inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
          if (lopen) then
