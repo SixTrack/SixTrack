@@ -58696,35 +58696,35 @@ c$$$            endif
               fma_tas(6,m)=fma_tas(6,m)*1.e-3
             enddo
             call fma_norm_phase_space_matrix(fma_tas_inv, 
-     &fma_tas(1:6,1:6))
+     &                                       fma_tas(1:6,1:6) )
 
 !    dump normalized particle amplitudes for debugging (200101+i*10)
             open(200101+i*10,file='NORM_'//dump_fname(j),
-     &status='replace',iostat=ierro,action='write')! nx,nx',ny,ny'
+     &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
-            write(200101+i*10,1987) adjustl('# closorb'),dump_clo(j,1)
-     &,dump_clo(j,2),dump_clo(j,3),dump_clo(j,4),dump_clo(j,5),
-     &dump_clo(j,6)
+            write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
+     &           dump_clo(j,1),dump_clo(j,2),dump_clo(j,3),
+     &           dump_clo(j,4),dump_clo(j,5),dump_clo(j,6)
 !    - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
-            write(200101+i*10,'(A17)') adjustl('# tamatrix')
+            write(200101+i*10,'(a)') '# tamatrix'
             do m=1,6
               do n=1,6
-                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),
-     &fma_tas(m,n)
+                write(200101+i*10,'(a,1x,1PE16.9)') '# ',
+     &                fma_tas(m,n)
             enddo
             enddo
-            write(200101+i*10,'(A17)') adjustl('# inv(tamatrix)')
+            write(200101+i*10,'(a)') '# inv(tamatrix)'
             do m=1,6
               do n=1,6
-                write(200101+i*10,'(A2,1x,1PE16.9)') adjustl('# '),
-     &fma_tas_inv(m,n)
+                write(200101+i*10,'(a,1x,1PE16.9)') '# ',
+     &                fma_tas_inv(m,n)
               enddo
             enddo
-            write(200101+i*10,*) adjustl('# id turn pos[m] nx[1.e-3'//
-     &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 '//
-     &'sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt')
+            write(200101+i*10,'(a)') '# id turn pos[m] nx[1.e-3'//
+     &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3'//
+     &' sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt'
 !    - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             do k=1,fma_nturn(i) !loop over turns
               do l=1,napx !loop over particles
@@ -58976,9 +58976,8 @@ c$$$            endif
       enddo !END: loop over fma files
       close(2001001) !filename: fma_sixtrack
 
- 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine      
- 1987 format (A10,1x,6(1X,1PE16.9))                    !fmt for closed orbit header      
- 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file      
+ 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
+ 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
       end subroutine fma_postpr
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
