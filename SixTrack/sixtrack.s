@@ -10109,9 +10109,15 @@ cc2008
  665     continue
          do i=1,nfuncs_dynk
             if ( funcs_dynk(i,2).eq.3) then !PIPE
-               close(iexpr_dynk(funcs_dynk(i,3))) !InPipe
-               write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)") "CLOSEUNITS"
-               close(iexpr_dynk(funcs_dynk(i,3))+1) !OutPipe
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
+               if ( lopen ) close(iexpr_dynk(funcs_dynk(i,3))) !InPipe
+
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
+               if ( lopen ) then
+                  write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")
+     &                 "CLOSEUNITS"
+                  close(iexpr_dynk(funcs_dynk(i,3))+1) !OutPipe
+               endif
             endif
          end do
       end if
@@ -44073,9 +44079,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          read(getfields_fields(7)(1:getfields_lfields(7)),*) !fileUnit
      &        iexpr_dynk(niexpr_dynk)
          
-         !TODO: Several FUN should be able to share the same file (thus the ID...)
-         !      When this is done, the CLOSEUNITS subroutine should also be updated.
-         
          ! Look if the fileUnit or filenames are used in a different FUN PIPE
          t=0 !Used to hold the index of the other pipe; t=0 if no older pipe -> open files.
          do ii=1,nfuncs_dynk-1
@@ -44136,7 +44139,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                endif
             endif
          end do
-         
+
+         if (t.eq.0) then !Must open a new set of files
          ! Open the inPipe
          inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
          if (lopen) then
@@ -44243,7 +44247,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call prror(51)
          endif
          write(iexpr_dynk(niexpr_dynk)+1,'(a)')
-     &        "DYNKPIPE !******************!"   !Once per file, see TODO
+     &        "DYNKPIPE !******************!" !Once per file
+         endif !End "if (t.eq.0)"/must open new files
          write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
      &        "INIT ID="//
      &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk)))
