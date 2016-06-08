@@ -139,12 +139,7 @@
 !GRDRHIC
 !GRD-042008
 +ei
-+cd save
-+if automatc
-+ei
-+if .not.automatc
-      save
-+ei
+
 +cd parpro
       integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
@@ -4519,7 +4514,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
-        write(*,*)'xp,yp before',yv(1,j),yv(2,j)
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
@@ -4527,7 +4521,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-        write(*,*)'xp,yp after',yv(1,j),yv(2,j)
 +ei
 +ei
       ejf0v(j)=ejfv(j)
@@ -9971,19 +9964,6 @@ cc2008
    50         continue
             endif
    60     continue
-+dk flush
-+if hhp
-      subroutine flush(i)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      integer i
-      end
-+ei
 +dk close
       subroutine closeUnits
       implicit none
@@ -10061,7 +10041,6 @@ cc2008
  34    continue
       close(35,err=35)
  35    continue
-+if .not.fluka
       close(59,err=59)
  59    continue
       close(60,err=60)
@@ -10126,7 +10105,6 @@ cc2008
  89    continue
       close(90,err=90)
  90    continue
-+ei
       close(98,err=98)
  98    continue
 +if bnlelens
@@ -10177,8 +10155,29 @@ cc2008
 !     last modified: 02-09-2014
 !     close units for logging dynks
 !     always in main code
-      if (ldynk) close(665,err=665)
- 665    continue
+      if (ldynk) then
+         ! dynksets.dat
+         inquire(unit=665, opened=lopen)
+         if (lopen) close(665,err=665)
+ 665     continue
+         
+         do i=1,nfuncs_dynk
+            if ( funcs_dynk(i,2).eq.3) then !PIPE FUN
+               ! InPipe
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
+               if ( lopen ) close(iexpr_dynk(funcs_dynk(i,3)))
+               
+               ! OutPipe
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
+               if ( lopen ) then
+                  write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")
+     &                 "CLOSEUNITS"
+                  close(iexpr_dynk(funcs_dynk(i,3))+1)
+               endif
+            endif
+         end do
+      end if
+      
 
 !     Close BDEX
       if (bdex_enable) then
@@ -10227,7 +10226,7 @@ cc2008
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(3)
       data sgn/100*1.d0/ainv,bmat,cmat,cvec,dvec/48*0.d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi2in=1d0/(8d0*atan_rn(1d0))
@@ -10619,7 +10618,7 @@ cc2008
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -10871,7 +10870,7 @@ cc2008
       dimension tham(0:3)
 +ca commadha
 +ca commadh1
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 jcomp=0,3
         tham(jcomp)=0d0
@@ -11029,7 +11028,7 @@ cc2008
       real user
       double precision fder,fun,objf,objgrd,x
       dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
-+ca save
+      save
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -11371,7 +11370,7 @@ cc2008
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(2)
       data sgn/100*1d0/ainv,bmat,cmat,cvec,dvec/48*0d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi2in=1d0/(8d0*atan_rn(1d0))
@@ -11762,7 +11761,7 @@ cc2008
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rewind 23
 !-----------------------------------------------------------------------
@@ -12044,7 +12043,7 @@ cc2008
 +ca commadha
 +ca commadh2
       dimension thamp(0:1),thama(0:4)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(iamp.eq.0) then
 !-----------------------------------------------------------------------
@@ -12347,7 +12346,7 @@ cc2008
      &tunedy,tunex,tuney,weight,x
       dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
       dimension iuser(*),tunedx(10),tunedy(10)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 30 jel=0,1
         do 20 jord=1,iuser(1)
@@ -12693,7 +12692,7 @@ cc2008
       parameter(xlim = 5.33d0)
       parameter(ylim = 4.29d0)
       dimension rx(33),ry(33)
-+ca save
+      save
 !-----------------------------------------------------------------------
       x=abs(xx)
       y=abs(yy)
@@ -12864,7 +12863,7 @@ cc2008
       integer in,out,ins,outs
       dimension ins(npart),outs(npart)
 !-----------------------------------------------------------------------
-+ca save
+      save
       in=0
       out=0
       do i=1,n
@@ -13083,7 +13082,7 @@ cc2008
 +ca parbeam
       parameter ( a1 = 0.5124242248d0, a2 = 0.0517653588d0 )
       parameter ( b1 = 0.2752551286d0, b2 = 2.7247448714d0 )
-+ca save
+      save
 !-----------------------------------------------------------------------
       if ( x.ge.xcut .or. y.ge.ycut ) goto 1000
       xh = hrecip*x
@@ -13188,7 +13187,7 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(numx.eq.1) phas0=phas
       if(numx.le.nde(1)) phas=zero
@@ -13228,7 +13227,7 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
 +if crlibm
@@ -13340,6 +13339,7 @@ cc2008
 !     - dynamic kicks
       character*16 dynk
       data dynk /'DYNK'/
+      
 !     - Beam Distribution EXchange
       character*16 bdex
       data bdex /'BDEX'/
@@ -13351,7 +13351,8 @@ cc2008
       integer stat
       logical lopen
       
-+ca save
+      save
+      
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
@@ -17694,9 +17695,6 @@ cc2008
 !-----------------------------------------------------------------------
       idial=1
       numlr=0
-+if .not.llyap
-!     NUML=1
-+ei
       napx=1
       imc=1
       preda=1.d-38
@@ -19339,19 +19337,7 @@ cc2008
      &t10,'TROMBONE #      NAME'/)
 10710 format(t22,i4,5x,a16)
       end
-+if iibm
-      subroutine xuflow (i)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      integer i
-      return
-      end
-+ei
+      
       subroutine write4
 !-----------------------------------------------------------------------
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
@@ -19381,12 +19367,10 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ii=0
-+if .not.hhp
       rewind 2
-+ei
  1    read(2,*,end=90) ch
       lineno2=lineno2+1
       if(ch(:1).eq.'/') then
@@ -19471,7 +19455,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if bnlelens
 !GRDRHIC
@@ -20304,7 +20288,7 @@ C Should get me a NaN
       double precision wi,wr,x,y
 +ca parpro
 +ca parbeam
-+ca save
+      save
 !-----------------------------------------------------------------------
       hrecip = 1.d0/h
       kstep = nx+2
@@ -20338,7 +20322,7 @@ C Should get me a NaN
 !     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
       parameter (c=1.12837916709551257d0,p=46768052394588893.3825d0)
       dimension rr(37),ri(37)
-+ca save
+      save
 !-----------------------------------------------------------------------
       xa=abs(x)
       ya=abs(y)
@@ -20446,7 +20430,7 @@ C Should get me a NaN
 +ca parnum
       dimension rvec(*),r(2)
       data iseed1,iseed2 / 12345, 67890 /
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi = four*atan_rn(one)
@@ -20526,7 +20510,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -21033,7 +21017,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -21411,7 +21395,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -21527,7 +21511,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
       dimension fake(2,20),dpdav2(6),jj(100)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -22734,7 +22718,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -24102,7 +24086,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -24274,7 +24258,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonxz
 +ca commonm1
 +ca commond1
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -24415,7 +24399,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -24475,7 +24459,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT XX NORD NVAR ; D V DA EXT YY NORD NVAR ;
@@ -24611,7 +24595,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ;
@@ -24693,7 +24677,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ; D V DA INT A NORD NVAR ;
@@ -24758,7 +24742,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ;
@@ -24907,7 +24891,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ; D V DA INT A1 NORD NVAR ;
@@ -24981,7 +24965,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT SEPX NORD NVAR ; D V DA EXT SEPY NORD NVAR ;
@@ -25535,9 +25519,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +if debug
                    !call system('../crmain  >> crlog')
-+ei
-+if iibm
-      call xuflow(0)
 +ei
 !     A normal start, time0 is beginning
       pretime=0.0
@@ -27502,7 +27483,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comdynk
       logical dynk_isused
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
         nlostp(i)=i
@@ -29304,7 +29285,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca combdex
-+ca save
+      
+      save
+      
 !-----------------------------------------------------------------------
       nthinerr=0
 +if bnlelens
@@ -29865,7 +29848,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       character*8192 ch
       integer dtostr
 +ei
-+ca save
+      save
+
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
@@ -34073,7 +34057,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca combdex
-+ca save
+      save
+
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
@@ -34661,7 +34646,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       data ncalls /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       ncalls=ncalls+1 
@@ -34870,7 +34855,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       data ncalls /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       ncalls=ncalls+1 
@@ -34947,7 +34932,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1a
 +ca lost2
@@ -34986,7 +34971,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1a
 +ca lost2a
@@ -35026,7 +35011,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1b
 +ca lost2a
@@ -35066,7 +35051,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1c
 +ca lost2a
@@ -35105,7 +35090,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 20 ia=1,napx,2
         if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
@@ -35176,7 +35161,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       id=0
       do 10 ia=1,napxo,2
@@ -35459,7 +35444,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca database
 +ei
 
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if collimat
       if (do_coll) then
@@ -35928,7 +35913,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca combdex
-+ca save
+      save
+
 !-----------------------------------------------------------------------
       nthinerr=0
       idz1=idz(1)
@@ -36486,7 +36472,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca combdex
-+ca save
+      save
+      
 +if debug
 !-----------------------------------------------------------------------
 !===================================================================
@@ -37192,7 +37179,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca comdynk
 +ca combdex
-+ca save
+      save
 !-----------------------------------------------------------------------
       nthinerr=0
       idz1=idz(1)
@@ -37781,7 +37768,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 +if cr
 +if debug
@@ -38430,7 +38417,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca rhicelens
 +ei
 !-----------------------------------------------------------------------
-+ca save
+      save
 !-----------------------------------------------------------------------
       dimension ekv(npart,nele),fokqv(npart),dpsv(npart)
       dimension rvv(npart),oidpsv(npart)
@@ -39108,9 +39095,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       data lineno /0/
 +ei
 +ca version
-+if iibm
-      call xuflow(0)
-+ei
 +ca open
 +if cr
       write(lout,10000) version,moddate
@@ -39766,7 +39750,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynkcr
 +ei
 +ca combdex
-+ca save
+      save
+
 !-----------------------------------------------------------------------
 !
 +if bnlelens
@@ -40311,8 +40296,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       niexpr_dynk = 0
       nfexpr_dynk = 0
       ncexpr_dynk = 0
+
+      do i=1,maxfuncs_dynk
+         funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
+         funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
+         funcs_dynk(i,3)= 0
+         funcs_dynk(i,4)= 0
+         funcs_dynk(i,5)= 0
+      enddo
       
       do i=1,maxdata_dynk
+         iexpr_dynk(i) = 0
+         fexpr_dynk(i) = 0.0
          do j=1,maxstrlen_dynk
             cexpr_dynk(i)(j:j) = char(0)
          enddo
@@ -40321,10 +40316,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       nsets_dynk = 0
 
       do i=1, maxsets_dynk
+         sets_dynk(i,1) = 0 !FUN idx ( index in funcs_dynk; 0 is invalid )
+         sets_dynk(i,2) = 0
+         sets_dynk(i,3) = 0
+         sets_dynk(i,4) = 0
+         
          do j=1, maxstrlen_dynk
             csets_dynk(i,1)(j:j) = char(0)
             csets_dynk(i,2)(j:j) = char(0)
+            csets_unique_dynk(i,1)(j:j) = char(0)
+            csets_unique_dynk(i,2)(j:j) = char(0)
          enddo
+         fsets_origvalue_dynk(i) = 0.0
       enddo
       
       do i=1,nele
@@ -40380,7 +40383,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       character*18 a18
       character*58 a58
       dimension jj(100)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do i=1,100
         jj(i)=0
@@ -40468,7 +40471,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
       dimension rot(6),xy(6),df(6)
       dimension angle(3),rad(3)
-+ca save
+      save
 !-----------------------------------------------------------------------
       tlim=1e7
       call timest(tlim)
@@ -40674,7 +40677,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca parnum
 +ca commonds
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=four*atan_rn(one)
@@ -40753,7 +40756,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commons
 +ca commont1
       dimension tas(6,6),x1(6),x2(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10030)
@@ -40919,7 +40922,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ierro=0
       call matrix(dpp,am)
@@ -41167,7 +41170,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
         jm=mel(k)
@@ -41231,7 +41234,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
         jm=mel(k)
@@ -41305,7 +41308,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       cor=0d0
       coro=1d38
@@ -41473,7 +41476,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10000)
@@ -41670,7 +41673,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save ! Saving DPP?
+      save ! Saving DPP?
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -41773,7 +41776,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
 +if cr
@@ -42198,7 +42201,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonas
 +ca commonc
       dimension am(6,6),idummy(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(nndim.lt.2.or.nndim.gt.3) call prror(95)
 !--------------------
@@ -42286,7 +42289,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonas
 +ca commonc
       dimension am(6,6),idummy(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(nndim.lt.2.or.nndim.gt.3) call prror(95)
 !--------------------
@@ -42367,7 +42370,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -42433,7 +42436,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 20 j=1,icoe
         ico0=icomb0(j)
@@ -42484,7 +42487,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -42807,7 +42810,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -43126,7 +43129,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10000)
@@ -44097,6 +44100,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       logical lopen
       
+      character(maxstrlen_dynk) dynk_stringzerotrim
+
 +if crlibm
       integer nchars
       parameter (nchars=160) !Same as in daten
@@ -44561,7 +44566,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -44706,7 +44711,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -44729,7 +44734,262 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          nfexpr_dynk = nfexpr_dynk + 2*t
          funcs_dynk(nfuncs_dynk,5) = t
          close(664)
+         
+      case ("PIPE")
+         ! PIPE: Use a pair of UNIX FIFOs.
+         ! Another program is expected to hook onto the other end of the pipe,
+         ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
+         ! That program should then send a value back (in ASCII), which will be the new setting.
+         
+         call dynk_checkargs(getfields_nfields,7,
+     &        "FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+         call dynk_checkspace(1,0,4)
+         
++if cr
+         write(lout,*) "DYNK FUN PIPE not supported in CR version"
+         write(lout,*) "Sorry :("
+         call prror(-1)
++ei
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         niexpr_dynk = niexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 3             !TYPE (PIPE)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk   !UnitNR (set below)
+         funcs_dynk(nfuncs_dynk,4) = -1            !Not used
+         funcs_dynk(nfuncs_dynk,5) = -1            !Not used
+         
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(5) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(6) .gt. maxstrlen_dynk-1      ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN PIPE got one or more strings which "
+            write (lout,*) "was too long (>",maxstrlen_dynk-1,")"
+            write (lout,*) "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (lout,*) "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN PIPE got one or more strings which "
+            write (*,*)    "was too long (>",maxstrlen_dynk-1,")"
+            write (*,*)    "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (*,*)    "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
 
+         ! Store data
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !inPipe
+     &        getfields_fields(4)(1:getfields_lfields(4))
+         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = !outPipe
+     &        getfields_fields(5)(1:getfields_lfields(5))
+         cexpr_dynk(ncexpr_dynk+3)(1:getfields_lfields(6)) = !ID
+     &        getfields_fields(6)(1:getfields_lfields(6))
+         ncexpr_dynk = ncexpr_dynk+3
+         
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) !fileUnit
+     &        iexpr_dynk(niexpr_dynk)
+         
+         ! Look if the fileUnit or filenames are used in a different FUN PIPE
+         t=0 !Used to hold the index of the other pipe; t=0 if no older pipe -> open files.
+         do ii=1,nfuncs_dynk-1
+            if (funcs_dynk(ii,2) .eq. 3) then !It's a PIPE
+               !Does any of the settings match?
+               if ( iexpr_dynk(funcs_dynk(ii,3)).eq.      !Unit number
+     &              iexpr_dynk(niexpr_dynk)           .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+1).eq.    !InPipe filename
+     &              cexpr_dynk(ncexpr_dynk-2)         .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+2).eq.    !OutPipe filename
+     &              cexpr_dynk(ncexpr_dynk-1)         ) then
+                  !Does *all* of the settings match?
+                  if ( iexpr_dynk(funcs_dynk(ii,3)).eq.   !Unit number
+     &                 iexpr_dynk(niexpr_dynk)           .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+1).eq. !InPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-2)         .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+2).eq. !OutPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-1)         ) then
+                     t=ii
++if cr
+                     write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                     write(*,*)    "DYNK> "//
++ei
+     & "PIPE FUN '"//cexpr_dynk(funcs_dynk(nfuncs_dynk,1))//
+     & "' using same settings as previously defined FUN '"   //
+     & cexpr_dynk(funcs_dynk(ii,1))//"' -> reusing files!"
+                     if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
+     &                   cexpr_dynk(ncexpr_dynk)           ) then
++if cr
+                        write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                        write(*,*)    "DYNK> "//
++ei
+     &               "ERROR: IDs must be different when sharing PIPEs."
+                        call prror(-1)
+                     endif
+                     exit !break loop
+                  else !Partial match
++if cr !Nested too deep, sorry about crappy alignment...
+      write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(lout,*) "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
++if .not.cr
+      write(*,*)    "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(*,*)    "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(*,*)    "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
+                     call prror(-1)
+                  endif
+               endif
+            endif
+         end do
+
+         if (t.eq.0) then !Must open a new set of files
+         ! Open the inPipe
+         inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
++if cr
+         write(lout,*) "DYNK> Opening input pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening input pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
+         open(unit=iexpr_dynk(niexpr_dynk),
+     &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
++ei
+            call prror(51)
+         endif
+
+         ! Open the outPipe
++if cr
+         write(lout,*) "DYNK> Opening output pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening output pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
+         inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
+         open(unit=iexpr_dynk(niexpr_dynk)+1,
+     &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
++ei
+            call prror(51)
+         endif
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)')
+     &        "DYNKPIPE !******************!" !Once per file
+         endif !End "if (t.eq.0)"/must open new files
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
+     &        "INIT ID="//
+     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk)))
+     &        //" for FUN="//
+     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
+         
+         
       case ("RANDG")
          ! RANDG: Gausian random number with mu, sigma, and optional cutoff
          
@@ -44798,7 +45058,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
-
+         
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
          ! y[n] = \sum_{i=0}^N b_i*x[n-i]
@@ -47019,6 +47279,11 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       !Functions to call
       double precision dynk_lininterp
+      character(maxstrlen_dynk) dynk_stringzerotrim
++if crlibm
+      double precision round_near
++ei
+
 +if crlibm
 +ca crlibco
 +ei
@@ -47037,6 +47302,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       integer foff !base offset into fexpr array
       integer ii,jj!Loop variable
 
++if crlibm
+      !String handling tempraries for PIPE, preformatting for round_near
+      integer errno !for round_near
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
++ca comgetfields
++ei
+
       ! Other stuff
 +ca parnum
       double precision pi
@@ -47044,7 +47318,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if crlibm
       pi = 4d0*atan_rn(1d0)
 +ei
-+if .not. crlibm
++if .not.crlibm
       pi = 4d0*atan(1d0)
 +ei
       
@@ -47107,9 +47381,51 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &       fexpr_dynk(filelin_start +  filelin_xypoints:
      &                  filelin_start +2*filelin_xypoints-1),
      &        filelin_xypoints )
+      case(3)                                                           ! PIPE
+         write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
+     &        "GET ID="//
+     &        trim(dynk_stringzerotrim(
+     &        cexpr_dynk(funcs_dynk(funNum,1)+3)
+     &        ))//" TURN=",turn
++if .not.crlibm
+         read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
++ei
++if crlibm
+         read(iexpr_dynk(funcs_dynk(funNum,3)),"(a)") ch
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &                             getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_lerr=", getfields_lerr
++ei
+            call prror(-1)
+         endif
+         if (getfields_nfields .ne. 1) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_nfields=", getfields_nfields
+            write(lout,*)"DYNK> Expected a single number."
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_nfields=", getfields_nfields
+            write(*,*)   "DYNK> Expected a single number."
++ei
+            call prror(-1)
+         endif
+         retval = round_near(errno,
+     &        getfields_lfields(1)+1, getfields_fields(1) )
+         if (errno.ne.0)
+     &        call rounderr( errno,getfields_fields,1,retval )
++ei
          
       case (6)                                                          ! RANDG
-         ! Save old seeds and loud our current seeds
+         ! Save old seeds and load our current seeds
          call recuut(tmpseed1,tmpseed2)
          call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3),
      &               iexpr_dynk(funcs_dynk(funNum,3)+4) )
@@ -47921,7 +48237,7 @@ c$$$               endif
 +if cr
 +ca crcoall
 +ei
-+ca save
+      save
 
 !     temporary variables
       double precision tmpdcum, ds
@@ -48059,7 +48375,7 @@ c$$$               endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nhmoni=0
       nvmoni=0
@@ -49024,7 +49340,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       iwrite=0
       if(nlin.eq.0) then
@@ -49181,7 +49497,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       iwrite=0
       if(nlin.eq.0) then
@@ -49340,7 +49656,7 @@ c$$$            endif
 +ca parnum
       dimension rmat(dimtot,dimakt),vec(dimakt)
       data eps /1d-20/
-+ca save
+      save
 !-----------------------------------------------------------------------
       kod=1
       do 50 j=1,dimakt
@@ -49406,7 +49722,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=2,5
         do 10 l=1,2
@@ -49460,7 +49776,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rzero=0.0
       rzero1=0.0
@@ -49947,7 +50263,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       kcorru=0
       kcorr=0
@@ -50072,7 +50388,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       izu=0
       do 10 i=1,iu
@@ -50146,7 +50462,7 @@ c$$$            endif
       dimension a(nmon1,ncor1),b(nmon1),x(ncor1),ipiv(ncor1),r(nmon1)
       dimension rho(3*ncor1),xiter(ncor1),xrms(ncor1),xptp(ncor1)
       dimension rmss(ncor1),ptop(ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
 ! --- calcul du premier pivot
@@ -50345,7 +50661,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
       nc=n-k
@@ -50382,7 +50698,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
 !hr06 h=0.0d0
@@ -50417,7 +50733,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1),rho(3*ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
       do 10 i= 1,k,1
@@ -50456,7 +50772,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 !hr06 sig=0.0d0
       sig=0.0                                                            !hr06
@@ -50493,7 +50809,7 @@ c$$$            endif
       integer i,imax,imin,m,maxmin
       real ave,ptp,r,rms,xave,xrms
       dimension r(m)
-+ca save
+      save
 !-----------------------------------------------------------------------
       xave = 0.0
       xrms = 0.0
@@ -50529,7 +50845,7 @@ c$$$            endif
       integer i,m,maxmin,n
       real a,curent
       dimension a(n)
-+ca save
+      save
 !-----------------------------------------------------------------------
       maxmin=1
       if (n.lt.1) return
@@ -50572,7 +50888,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,nblz
         ilf(i)=0
@@ -50850,7 +51166,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
 !GRD
@@ -51353,7 +51669,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,3
         bb(i)=zero
@@ -51694,7 +52010,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if debug
 !     call warr('qwc',qwc(1),1,0,0,0)
@@ -52119,7 +52435,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,mmul
         aa(i)=zero
@@ -52569,7 +52885,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       do 10 i=1,ium
@@ -53364,7 +53680,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ntao=nta
       nteo=nte
@@ -53775,7 +54091,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ntao=nta
       nteo=nte
@@ -53942,7 +54258,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       ipl=1
@@ -55078,7 +55394,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension dfac(10),dtu(2,5),ep(2),beta(2),dtup(2,5,0:4,0:4)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(iv.lt.2) then
 +if cr
@@ -55237,7 +55553,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       do 10 i=1,ium
@@ -55994,7 +56310,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,6
         bb(i)=zero
@@ -56294,7 +56610,7 @@ c$$$            endif
       integer nnuml
 +ei
 +ca version
-+ca save
+      save
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=1d-8
@@ -58946,7 +59262,7 @@ c$$$            endif
       double precision ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
 +ca parnum
       dimension ar(n),ai(n)
-+ca save
+      save
 !-----------------------------------------------------------------------
       n=2**m
       nv2=n/2
@@ -59025,7 +59341,7 @@ c$$$            endif
 +ei
 +ca parnum
       double precision a,b,c
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
 +if crlibm
@@ -59052,7 +59368,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
 +ca commphin
-+ca save
+      save
 !---------------------------------------------------------------------
 +if crlibm
 !hr06 tpi=8*atan_rn(one)
@@ -59092,7 +59408,7 @@ c$$$            endif
 +ca parnum
 +ca commphin
       dimension xinv(ninv),invx(ninv)
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(a).le.b) then
         do 10 i=1,ninv
@@ -59121,7 +59437,7 @@ c$$$            endif
 +ei
       double precision a,b,c,d,e
 +ca parnum
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(a).gt.pieni) then
         if(c.gt.pieni.and.b.gt.pieni) then
@@ -59162,7 +59478,7 @@ c$$$            endif
       dimension qwc(3),clo(3),clop(3)
       dimension x(mpa,2),y(mpa,2),sigm(mpa),dps(mpa)
       dimension di0(2),dip0(2)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=four*atan_rn(one)
@@ -59395,7 +59711,7 @@ c$$$            endif
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rewind 10
       do 10 i=1,1000
@@ -59551,123 +59867,7 @@ c$$$            endif
 10030 format(3x,i2,13x,i2,19x,i2,13x,i8)
 10040 format(65('-')//131('-'))
       end
-+dk prolong
-      program prolong
-!-----------------------------------------------------------------------
-!  WRITES LAST COORDINATES ON 12 TO 13 FOR PROLONGATION
-!-----------------------------------------------------------------------
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      integer ia,ie,ierro,ifipa,ilapa,itopa
-      double precision dp0v,dpsv,e0,ejfv,ejv,ekkv,file13,sigmv,xv,yv
-      character*80 sixtit,commen
-      character*8  cdate,ctime,progrm
-+ca parpro
-      dimension xv(2,npart),yv(2,npart),ekkv(npart)
-      dimension sigmv(npart),dpsv(npart),dp0v(npart)
-      dimension ejv(npart),ejfv(npart)
-+ca save
-!-----------------------------------------------------------------------
-+if boinc
-      call boincrf('fort.12',filename)
-+if fio
-      open(12,err=50,file=filename,form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(12,err=50,file=filename,form='FORMATTED')
-+ei
-+ei
-+if .not.boinc
-+if fio
-      open(12,err=50,file='fort.12',form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(12,err=50,file='fort.12',form='FORMATTED')
-+ei
-+ei
-+if boinc
-      call boincrf('fort.13',filename)
-+if fio
-      open(13,err=50,file=filename,form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(13,err=50,file=filename,form='FORMATTED')
-+ei
-+ei
-+if .not.boinc
-+if fio
-      open(13,err=50,file='fort.13',form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(13,err=50,file='fort.13',form='FORMATTED')
-+ei
-+ei
-!-----------------------------------------------------------------------
-      read(90,end=60,iostat=ierro) sixtit,commen,cdate,ctime, progrm,   &
-     &ifipa,ilapa,itopa
-      if(ierro.ne.0) then
-+if cr
-        write(lout,*) 'PROBLEMS READING FILE # 90'
-+ei
-+if .not.cr
-        write(*,*) 'PROBLEMS READING FILE # 90'
-+ei
-        goto 60
-      endif
-   10 continue
-      do 20 ia=1,itopa,2
-        ie+ia+1
-        read(12,10000,end=30,iostat=ierro)                              &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),           &
-     &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
-     &e0,ejv(ia),ejv(ie)
-+if cr
-       if(ierro.ne.0) write(lout,*) 'Warning: fort.12 has ',
-+ei
-+if .not.cr
-       if(ierro.ne.0) write(*,*) 'Warning: fort.12 has ',               &
-+ei
-     &'corrupted input probably due to lost particles'
-   20 continue
-      goto 10
-   30 do 40 ia=1,itopa,2
-        ie+ia+1
-        write(13,10000,iostat=ierro)                                    &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),           &
-     &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
-     &e0,ejv(ia),ejv(ie)
-+if cr
-       if(ierro.ne.0) write(lout,*) 'Warning: fort.13 has ',
-+ei
-+if .not.cr
-       if(ierro.ne.0) write(*,*) 'Warning: fort.13 has ',               &
-+ei
-     &'corrupted output probably due to lost particles'
-   40 continue
-      goto 60
-+if cr
-   50 write(lout,*) 'ERROR IN OPENING FILES'
-+ei
-+if .not.cr
-   50 write(*,*) 'ERROR IN OPENING FILES'
-+ei
-   60 continue
-      close 12
-      close 13
-!-----------------------------------------------------------------------
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
-10000 format(10x,f47.33)
-      end
+      
 +dk beam6d
       subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 !-----------------------------------------------------------------------
@@ -59693,7 +59893,7 @@ c$$$            endif
       !JBG increased the dimension of param to 5 to include xstr
       dimension param(nele,5),bcu(nbb,12)
       dimension star(3,mbea)
-+ca save
+      save
 !-----------------------------------------------------------------------
       phi=param(ne,1)
       nsli=param(ne,2)
@@ -59767,7 +59967,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
 !hr06   h=track(6,i)+one-sqrt((one+track(6,i))**2-                      &
@@ -59830,7 +60030,7 @@ c$$$            endif
 +ca parnum
       dimension track(6,npart),bcu(nbb,12)
       dimension star(3,mbea),dum(13)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 2000 jsli=1,nsli
         do 1000 i=1,np
@@ -59980,7 +60180,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
 !hr06   h1d=sqrt((one+track(6,i))**2-track(2,i)**2-track(4,i)**2)
@@ -60055,7 +60255,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       data sqrpi2/3.544907701811032d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(sigxx.eq.sigyy) then
         x=sepx**2+sepy**2
@@ -60163,7 +60363,7 @@ c$$$            endif
       dimension star(3,mbea)
 !-----------------------------------------------------------------------
       data border /8d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=4d0*atan_rn(1d0)
@@ -60247,7 +60447,7 @@ c$$$            endif
      &e4/ 3.9399134d+05/, e3/-4.6004775d+04/, e2/ 2.2566998d+03/,       &
      &e1/-6.8317697d+01/, e0/ 2.8224654d+00/
       data f0/-8.1807613d-02/, f1/-2.8358733d+00/, f2/ 1.4902469d+00/
-+ca save
+      save
 !-----------------------------------------------------------------------
       p=p0-0.5d0
       p1=abs(p)
@@ -60338,7 +60538,7 @@ c$$$            endif
       data      code(25),kntm(25),kntr(25) / 'F406.1', 255,   0 /
       data      code(26),kntm(26),kntr(26) / 'G100.1', 255, 255 /
       data      code(27),kntm(27),kntr(27) / 'G100.2', 255, 255 /
-+ca save
+      save
 !-----------------------------------------------------------------------
       logf  =  lgfile
          l  =  0
@@ -60429,7 +60629,7 @@ c$$$            endif
       character*6 name
       dimension ir(n),a(idim,n)
       data name/'RINV'/,kprnt/0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !  TEST FOR PARAMETER ERRORS.
@@ -60556,7 +60756,7 @@ c$$$            endif
       character*6 name
       dimension ir(n),a(idim,n)
       data name/'DINV'/,kprnt/0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !  TEST FOR PARAMETER ERRORS.
@@ -60681,7 +60881,7 @@ c$$$            endif
       integer idim,k,kprnt,lgfile,n
       character*6 name
       logical mflag,rflag
-+ca save
+      save
 !-----------------------------------------------------------------------
       call kermtr('F010.1',lgfile,mflag,rflag)
       if(mflag) then
@@ -60736,7 +60936,7 @@ c$$$            endif
       data      zero, one           /  0., 1.  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s11)  =  dble(x)*dble(y) + s11
       ipairf(j,k)  =  j*2**12 + k
@@ -60829,7 +61029,7 @@ c$$$            endif
       data      zero, one           /  0.d0, 1.d0  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       ipairf(j,k)  =  j*2**12 + k
 !hr07 pivotf(x)    =  abs(sngl(x))
@@ -60917,7 +61117,7 @@ c$$$            endif
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' RFEQN'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s21)  =  dble(x)*dble(y) + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
@@ -60979,7 +61179,7 @@ c$$$            endif
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' DFEQN'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s21)  =  x*y + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
@@ -61042,7 +61242,7 @@ c$$$            endif
       dimension ir(*),a(idim,*)
       data      zero      /  0.d0  /
       data      hname               /  ' RFINV'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s31)  =  dble(x)*dble(y) + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
@@ -61123,7 +61323,7 @@ c$$$            endif
       dimension ir(*),a(idim,*)
       data      hname               /  ' DFINV'  /
       data      zero      /  0.d0  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s31)  =  x*y + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
@@ -61198,7 +61398,7 @@ c$$$            endif
       integer idim,k,lgfile,n
       character*6 name
       logical mflag,rflag
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(name(2:2) .eq. 'S') then
          call kermtr('F012.1',lgfile,mflag,rflag)
@@ -61264,7 +61464,7 @@ c$$$            endif
       double precision sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
 !hr07 dimension x(*),y(*)
       dimension x(l),y(l)                                                !hr07
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !     CALCULATE SUMS
@@ -61335,7 +61535,7 @@ c$$$            endif
       double precision w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
 !hr07 dimension x(*),y(*),w(*)
       dimension x(l),y(l),w(l)                                           !hr07
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !     CALCULATE SUMS
@@ -61456,7 +61656,7 @@ c$$$            endif
 !     j_slices = 1 for the a non sliced collimator!
       integer j_slices
 !
-+ca save
+      save
 !
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
@@ -62281,7 +62481,7 @@ c$$$            endif
 !DEBUG
       integer event
 !DEBUG
-+ca save
+      save
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
 !
@@ -63027,7 +63227,7 @@ c$$$            endif
 +ca dbmkdist
       double precision pi
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -63225,7 +63425,7 @@ c$$$            endif
 !
       double precision iix, iiy, phix, phiy
 !
-+ca save
+      save
 !
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -63568,7 +63768,7 @@ c$$$     &           myalphay * cos(phiy))
       double precision long_cut
       double precision a_st, b_st
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -63871,7 +64071,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca dbmkdist
       double precision pi
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -64095,7 +64295,7 @@ c$$$     &           myalphay * cos(phiy))
       double precision a_st, b_st
       integer startpar
 !
-+ca save
+      save
 
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -65395,7 +65595,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ei
       integer len, in
       real rndm4, a
-+ca save IN,a
+      save IN,a
       parameter ( len =  30000 )
       dimension a(len)
       data in/1/
@@ -66464,7 +66664,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if crlibm
 +ca crlibco
 +ei
-+ca save
+      save
 !
       integer    mclock
       integer    count_rate, count_max
@@ -66523,14 +66723,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       DATA flag/.TRUE./
       real rndm4
       double precision x, u1, u2, twopi, r,cut
-+ca save
-+if automatc
-      write(*,*) "ERROR in ran_gauss"
-      write(*,*) "Please review use of save block in this algorithm!"
-      write(*,*) "u1 and u2 should always be saved, and flag "//
-     &     "is automatically so due to DATA statement"
-      exit(1)
-+ei
+      save
       
 +if crlibm
             twopi=8d0*atan_rn(1d0) !Why not 2*pi, where pi is in block "common"?
@@ -66583,7 +66776,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 
       logical lopen
 
-+ca save
+      save
 !
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -66908,7 +67101,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if boinc
       character*256 filename
 +ei
-+ca save
+      save
       restart=.false.
       read95=.false.
       read96=.false.
@@ -67741,7 +67934,7 @@ C            backspace (dumpunit(i),iostat=ierro)
       character*256 filename
 +ei
       data ncalls /0/
-+ca save
+      save
 !     call system('echo "CPSTART `date`" >> crtimes')
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
@@ -68253,7 +68446,7 @@ c$$$         backspace (93,iostat=ierro)
 
       integer j,l,k,m,i
       character*256 filename
-+ca save
+      save
       write(93,*)                                                       &
      &'SIXTRACR CRSTART called crnumlcr',crnumlcr
       endfile (93,iostat=ierro)
@@ -68698,7 +68891,7 @@ c$$$         backspace (93,iostat=ierro)
       character*10 time
       character*5 zone
       integer values(8),mm(3),nd,nt
-+ca save
+      save
       call date_and_time(date,time,zone,values)
       mm(3)=mod(values(1),100)
 !     mm(3) = mod (mm(3),100)
@@ -68723,7 +68916,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commtim
       logical start
       data start /.false./
-+ca save
+      save
       if (.not.start) then
         start=.true.
         call cpu_time(timestart)
@@ -68736,7 +68929,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca crcoall
 +ei
 +ca commtim
-+ca save
+      save
       call timest(0.0)
       call cpu_time(timenow)
       r1=timenow-timestart
@@ -68761,7 +68954,7 @@ c$$$         backspace (93,iostat=ierro)
       integer errno,l1,l2
       integer dtostr
       integer ich
-+ca save
+      save
         write(93,*)                                                     &
      &'SIXTRACR STOP/ABEND called and closing files'
         endfile (93,iostat=ierro)
@@ -69000,7 +69193,7 @@ c$$$         backspace (93,iostat=ierro)
       integer i1,i2,i3
       real r1,r2,r3,r4,r5
       character c1
-+ca save
+      save
       return
       end
       subroutine hdelet(i1)
@@ -69008,7 +69201,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hlimit(i1)
@@ -69016,7 +69209,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplax(c1,c2)
@@ -69024,7 +69217,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       character c1,c2
-+ca save
+      save
       return
       end
       subroutine hplcap(i1)
@@ -69032,14 +69225,14 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplend()
       implicit none
       integer lout
       common /crflags/lout
-+ca save
+      save
       return
       end
       subroutine hplint(i1)
@@ -69047,7 +69240,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplopt(c1,i1)
@@ -69056,7 +69249,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       character c1
-+ca save
+      save
       return
       end
       subroutine hplot(i1,c1,c2,i2)
@@ -69065,7 +69258,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1,i2
       character c1,c2
-+ca save
+      save
       return
       end
       subroutine hplset(c1,r1)
@@ -69074,7 +69267,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       real r1
       character c1
-+ca save
+      save
       return
       end
       subroutine hplsiz(r1,r2,c1)
@@ -69083,7 +69276,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       real r1,r2
       character c1
-+ca save
+      save
       return
       end
       subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
@@ -69093,7 +69286,7 @@ c$$$         backspace (93,iostat=ierro)
       integer i1
       real r1,r2,r3,r4,r5
       character c1
-+ca save
+      save
       return
       end
       subroutine htitle(c1)
@@ -69101,7 +69294,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       character c1
-+ca save
+      save
       return
       end
       subroutine ipl(i1,r1,r2)
@@ -69110,7 +69303,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       real r1(*),r2(*)
-+ca save
+      save
       return
       end
       subroutine ipm(i1,r1,r2)
@@ -69119,7 +69312,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       real r1,r2
-+ca save
+      save
       return
       end
       subroutine iselnt(i1)
@@ -69127,7 +69320,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine igmeta(i1,i2)
@@ -69135,7 +69328,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1,i2
-+ca save
+      save
       return
       end
 +dk nagdumy
@@ -69144,7 +69337,7 @@ c$$$         backspace (93,iostat=ierro)
      +objf,objgrd,r,x,iwork,liwork,work,lwork,
      +iuser,user,ifail)
       implicit none
-      integer n,nclin,ncnln,lda,ldcj,ldr,iter,
+      integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe,
      +istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,
      +iuser(*),ifail
       real a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),
@@ -69217,7 +69410,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,100) 'bl1 ',bl1
       write(99,100) 'bl2 ',bl2
@@ -69257,7 +69450,7 @@ c$$$         backspace (93,iostat=ierro)
       integer j
       character*(*) dumpname
       character*10 mydump,myzfz
-+ca save
+      save
       mydump=dumpname
       myzfz='zfz'
       write(101) mydump,n,i
@@ -69298,7 +69491,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j,k
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
      &(xv(1,j),j=1,k),                                                  &
@@ -69348,7 +69541,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
      &n_cut,                                                            &
@@ -69396,7 +69589,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j,l,m,k
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*) (aek(j),j=1,napxo)
       write(99,*) (afok(j),j=1,napxo)
@@ -69468,7 +69661,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,*) 'time0 ',time0
@@ -69970,7 +70163,7 @@ c$$$         backspace (93,iostat=ierro)
       integer n,i
       character*(*) dumpname
       character*10 mydump
-+ca save
+      save
       mydump=dumpname
       write(99) mydump
       write(99) n
@@ -70474,7 +70667,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,100) 'time0 ',time0
@@ -71759,92 +71952,3 @@ c$$$         backspace (93,iostat=ierro)
 
 
 +ei
-+dk libX11dummy
-void XAllocColor(void) { }
-void XBell(void) { }
-void XChangeWindowAttributes(void) { }
-void XClearWindow(void) { }
-void XCloseDisplay(void) { }
-void XCopyArea(void) { }
-void XCopyGC(void) { }
-void XCreateBitmapFromData(void) { }
-void XCreateFontCursor(void) { }
-void XCreateGC(void) { }
-void XCreateImage(void) { }
-void XCreatePixmap(void) { }
-void XCreatePixmapCursor(void) { }
-void XCreateWindow(void) { }
-void XDefineCursor(void) { }
-void XDestroyWindow(void) { }
-void XDrawArc(void) { }
-void XDrawImageString(void) { }
-void XDrawLine(void) { }
-void XDrawLines(void) { }
-void XDrawPoint(void) { }
-void XDrawPoints(void) { }
-void XDrawRectangle(void) { }
-void XDrawSegments(void) { }
-void XDrawString(void) { }
-void XEventsQueued(void) { }
-void XFillArc(void) { }
-void XFillPolygon(void) { }
-void XFillRectangle(void) { }
-void XFlush(void) { }
-void XFree(void) { }
-void XFreeColors(void) { }
-void XFreeFont(void) { }
-void XFreeFontNames(void) { }
-void XFreeGC(void) { }
-void XFreePixmap(void) { }
-void XGetAtomName(void) { }
-void XGetFontProperty(void) { }
-void XGetGCValues(void) { }
-void XGetGeometry(void) { }
-void XGetImage(void) { }
-void XGetInputFocus(void) { }
-void XGetKeyboardControl(void) { }
-void XGetPixel(void) { }
-void XGetSubImage(void) { }
-void XInternAtom(void) { }
-void XListFonts(void) { }
-void XLoadQueryFont(void) { }
-void XLookupString(void) { }
-void XMapWindow(void) { }
-void XMoveWindow(void) { }
-void XNextEvent(void) { }
-void XOpenDisplay(void) { }
-void XPutImage(void) { }
-void XPutPixel(void) { }
-void XQueryColors(void) { }
-void XQueryPointer(void) { }
-void XRaiseWindow(void) { }
-void XResizeWindow(void) { }
-void XServerVendor(void) { }
-void XSetBackground(void) { }
-void XSetClassHint(void) { }
-void XSetClipMask(void) { }
-void XSetClipRectangles(void) { }
-void XSetDashes(void) { }
-void XSetFillStyle(void) { }
-void XSetFont(void) { }
-void XSetForeground(void) { }
-void XSetFunction(void) { }
-void XSetIconName(void) { }
-void XSetInputFocus(void) { }
-void XSetLineAttributes(void) { }
-void XSetNormalHints(void) { }
-void XSetStipple(void) { }
-void XSetTSOrigin(void) { }
-void XSetWindowBackground(void) { }
-void XSetWMHints(void) { }
-void XSetWMProtocols(void) { }
-void XStoreName(void) { }
-void XSync(void) { }
-void XSynchronize(void) { }
-void XTextExtents(void) { }
-void XTextWidth(void) { }
-void XTranslateCoordinates(void) { }
-void XUndefineCursor(void) { }
-void XWarpPointer(void) { }
-void XWindowEvent(void) { }
-void XWriteBitmapFile(void) { }
