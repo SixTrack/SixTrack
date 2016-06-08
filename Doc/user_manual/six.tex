@@ -45,11 +45,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update January 2016
+  Update June 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.31 \\
+  Version 4.5.34 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -1424,9 +1424,9 @@ Note that when SixTrack ends, the output pipe will be closed, so the recieving \
 After opening the output pipe, SixTrack writes the line \texttt{DYNKPIPE~!******************!} to this file.
 It then writes a line similar to \texttt{INIT~ID=myID1~for~FUN=pipe1} for each FUN using this output pipe.
 
-During tracking, when one of the PIPE FUNs are called SixTrack writes a line similar to
-\texttt{GET ID=myID1 TURN=~1} to the output file.
-It then waits for a single floating point number to be written (in ascii) to the input file, which is then read and returned from the FUN.
+During tracking, when one of the PIPE FUNs are called SixTrack writes a line similar to \texttt{GET ID=myID1 TURN=~1} to the output pipe.
+Note that the turn number is the one passed to the FUN from SET, i.e. including any turn-shift.
+It then waits for a single floating point number to be written (in ascii) to the input pipe, which is then read and returned from the FUN.
 
 \subsection{Beam--Beam Element} \label{BeamBeam}
 
