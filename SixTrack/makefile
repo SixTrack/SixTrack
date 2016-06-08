@@ -27,7 +27,7 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 # resolving of dependencies is done using option_resolver.sh script
 
 #list of all options (need to be looked at for removing obsolete options)
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz m32 m64)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz m32 m64 O3)
 
 DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
 DEFAULTS := $(filter-out $(remove),$(DEFAULTS))
