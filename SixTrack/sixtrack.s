@@ -1143,7 +1143,6 @@
 !     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
 !     Common block for the FMA analysis postprocessing
       integer, parameter :: fma_max       = 200              !max. number of FMAs
-      integer, parameter :: fma_npart_max = 64               !max. number of particles (64 allowed in sixtrack)
       integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
@@ -58565,12 +58564,12 @@ c$$$            endif
       logical filefields_lerr
       double precision round_near
 
-      integer, dimension(fma_npart_max,fma_nturn_max) :: turn 
+      integer, dimension(npart,fma_nturn_max) :: turn ! npart = max. number of particles
       double precision, dimension(6,6) :: fma_tas ! dump_tas in units [mm,mrad,mm,mrad,mm,1]
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of fma_tas (same units) -> x_normalized=fma_tas_inv*x
-      double precision, dimension(fma_npart_max,fma_nturn_max,6) ::     &
+      double precision, dimension(npart,fma_nturn_max,6) ::
      &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
-      double precision, dimension(fma_npart_max,fma_nturn_max,3) ::     &
+      double precision, dimension(npart,fma_nturn_max,3) ::
      &epsnxyzv ! normalized emittances
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
      &tunenewt,tuneabt2,tuneabt,tunenewt1
@@ -58606,11 +58605,11 @@ c$$$            endif
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
 !     write the header
-      write(2001001,*) adjustl('# eps1*,eps2*,eps3* all in 1.e-6*m,     &
-     &phi* [rad]')
-      write(2001001,*) adjustl('# inputfile method id q1 q2 q3 eps1_min &
-     &eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg eps&
-     &3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0')
+      write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
+     &'phi* [rad]'
+      write(2001001,'(a)') '# inputfile method id q1 q2 q3 eps1_min '//
+     &'eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg'//
+     &' eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0'
 
 !      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
