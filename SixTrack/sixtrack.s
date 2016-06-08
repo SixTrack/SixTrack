@@ -10105,18 +10105,23 @@ cc2008
 !     close units for logging dynks
 !     always in main code
       if (ldynk) then
-         close(665,err=665)
+         ! dynksets.dat
+         inquire(unit=665, opened=lopen)
+         if (lopen) close(665,err=665)
  665     continue
+         
          do i=1,nfuncs_dynk
-            if ( funcs_dynk(i,2).eq.3) then !PIPE
+            if ( funcs_dynk(i,2).eq.3) then !PIPE FUN
+               ! InPipe
                inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
-               if ( lopen ) close(iexpr_dynk(funcs_dynk(i,3))) !InPipe
-
+               if ( lopen ) close(iexpr_dynk(funcs_dynk(i,3)))
+               
+               ! OutPipe
                inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
                if ( lopen ) then
                   write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")
      &                 "CLOSEUNITS"
-                  close(iexpr_dynk(funcs_dynk(i,3))+1) !OutPipe
+                  close(iexpr_dynk(funcs_dynk(i,3))+1)
                endif
             endif
          end do
