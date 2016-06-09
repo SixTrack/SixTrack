@@ -1266,7 +1266,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       logical bdex_enable               ! Is BDEX in use?
       logical bdex_debug                ! Debug mode?
       
-      integer bdex_elementStatus(nele)  ! BDEX in use for this element?
+      integer bdex_elementAction(nele)  ! BDEX in use for this element?
                                         ! 0: No.
                                         ! 1: Do a particle exchange at this element.
                                         ! Other values are reserved for future use.
@@ -1296,7 +1296,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &     bdex_stringStorage ( bdex_maxStore )
       
       common /bdexdb/
-     &     bdex_elementStatus, bdex_elementChannel,
+     &     bdex_elementAction, bdex_elementChannel,
      &     bdex_channels, bdex_stringStorage,
      &     bdex_nchannels, bdex_nstringStorage,
      &     bdex_enable, bdex_debug
@@ -18474,14 +18474,14 @@ cc2008
          endif
          
          !Parse ELEM
-         if ( getfields_nfields .ne. 3 ) then
+         if ( getfields_nfields .ne. 4 ) then
 +if cr
             write(lout,*)"ELEM expects the following arguments:"
-            write(lout,*)"ELEM chanName elemname"
+            write(lout,*)"ELEM chanName elemName action"
 +ei
 +if .not.cr
             write(*,*)   "ELEM expects the following arguments:"
-            write(*,*)   "ELEM chanName elemname"
+            write(*,*)   "ELEM chanName elemName action"
 +ei
             call prror(-1)
          endif
@@ -18507,19 +18507,30 @@ cc2008
             call prror(-1)
          endif
 
-         if (kz(jj).ne.0) then
+         if (kz(jj).ne.0 .or. el(jj).gt.pieni) then
 +if cr
-            write(lout,*) "BDEX> Error: The element",bez(jj),
-     & "is not a marker."
+            write(lout,*) "BDEX> Error: The element ",bez(jj),
+     & "is not a marker. kz=", kz(jj), "el=",el(jj)
 +ei
 +if .not.cr
-            write(*,*)    "BDEX> Error: The element",bez(jj),
-     & "is not a marker."
+            write(*,*)    "BDEX> Error: The element ",bez(jj),
+     & "is not a marker. kz=", kz(jj), "el=",el(jj)
 +ei
             call prror(-1)
          endif
 
-         bdex_elementStatus(jj)=1 !Particle exchange at this element
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) ! Action
+     &        bdex_elementAction(jj)
+         if (bdex_elementAction(jj).ne.1) then
++if cr
+            write(lout,*)
++ei
++if .not.cr
+            write(*,*)
++ei
+     &   "BDEX> Error: Only action 1 (exchange) is currently supported."
+            call prror(-1)
+         endif
          
          bdex_elementChannel(jj) = -1
          do ii=1,bdex_nchannels !Match channel name
@@ -18566,9 +18577,20 @@ cc2008
      &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
             enddo
          endif
-
+         
+         if ( getfields_nfields .lt. 3 ) then
++if cr
+            write(lout,*)"CHAN expects at least 3 arguments!"
++ei
++if .not.cr
+            write(*,*)   "CHAN expects at least 3 arguments!"
++ei
+            call prror(-1)
+         endif
+         
          !Parse CHAN
          select case( trim(dynk_stringzerotrim( getfields_fields(3) )) ) !Could I rather just use the length of the field?
+         
          case ("PIPE")
             !PIPE: Use a pair of pipes to communicate the particle distributions
             !Arguments: InFileName OutFileName format fileUnit
@@ -18796,9 +18818,9 @@ cc2008
             write(*,*) "BDEXDEBUG> bdex_enable = ", bdex_enable
             write(*,*) "BDEXDEBUG> bdex_debug  = ", bdex_debug
             do ii=1,il
-               if ( bdex_elementStatus(ii).ne.0) then
+               if ( bdex_elementAction(ii).ne.0 ) then
                   write(*,*) "BDEXDEBUG> Single element number", ii,
-     &"named ",bez(ii), "bdex_elementStatus(#)=",bdex_elementStatus(ii),
+     &"named ",bez(ii), "bdex_elementAction(#)=",bdex_elementAction(ii),
      &"bdex_elementChannel(#)=",bdex_elementChannel(ii)
                endif
             enddo
@@ -30590,9 +30612,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
           if ( bdex_enable .and. kz(ix).eq.0 .and.
-     &         bdex_elementStatus(ix).ne.0 ) then
+     &         bdex_elementAction(ix).ne.0 ) then
 
-             if (bdex_elementStatus(ix).eq.1) then !Particle exchange
+             if (bdex_elementAction(ix).eq.1) then !Particle exchange
                 if (bdex_debug) then
 +if cr
                    write(lout,*) "BDEXDEBUG> "//
@@ -30604,8 +30626,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 endif
                 
                 if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
-                   write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
-     &                 "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx
+                   write(bdex_channels(bdex_elementChannel(ix),4)+1,
+     &                  '(a,i10,1x,a,a,1x,a,i10,1x,a,i5)')
+     &                 "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx !TODO: Fix the format!
                    
                    !Write out particles
 +if crlibm
@@ -30627,8 +30650,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                      ii=dtostr(dpsv1(j),ch(ii:ii+24))+1+ii
                      
                      if (ii .ne. 1+(24+1)*11) then !Also check if too big?
-                        write(*,*) "ERRORRRRR! ii=",ii
++if cr
+                        write(lout,*) "BDEX> ERROR, ii=",ii
+                        write(lout,*) "ch=",ch
++ei
++if .not.cr
+                        write(*,*) "BDEX> ERROR, ii=",ii
                         write(*,*) "ch=",ch
++ei
+                        call prror(-1)
                      endif
                      
                      write(ch(ii:ii+24),'(i24)') nlostp(j)
@@ -30651,7 +30681,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                    
                    !Read back particles
                    read(bdex_channels(bdex_elementChannel(ix),4),*) j
-                   if ( j .eq. -1) then !Don't change the distribution at all
+                   if ( j .eq. -1 ) then !Don't change the distribution at all
                      if (bdex_debug) then
 +if cr
                        write(lout,*)
@@ -30662,6 +30692,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                  "BDEXDEBUG> No change in distribution."
                      endif
                    else
+                     if (j.gt.npart) then
++if cr
+                       write(lout,*) "BDEX> ERROR: j=",j,">",npart
++ei
++if .not.cr
+                       write(*,*)    "BDEX> ERROR: j=",j,">",npart
++ei
+                       call prror(-1)
+                     endif
                      napx=j
                      if (bdex_debug) then
 +if cr
@@ -30686,12 +30725,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 
              else
 +if cr
-                write(lout,*) "BDEX> elementStatus=",
-     &bdex_elementStatus(i), "not understood."
+                write(lout,*) "BDEX> elementAction=",
+     &bdex_elementAction(i), "not understood."
 +ei
 +if .not.cr
-                write(*,*)    "BDEX> elementStatus=",
-     &bdex_elementStatus(i), "not understood."
+                write(*,*)    "BDEX> elementAction=",
+     &bdex_elementAction(i), "not understood."
 +ei
                 call prror(-1)
              endif
@@ -40343,7 +40382,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       bdex_enable=.false.
       bdex_debug =.false.
       do i=1, nele
-         bdex_elementStatus(i) = 0
+         bdex_elementAction(i) = 0
          bdex_elementChannel(i) = 0
       end do
       bdex_nchannels=0
