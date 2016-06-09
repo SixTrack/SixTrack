@@ -12,6 +12,9 @@ if len(sys.argv) != 3:
 oPipeName = sys.argv[1] #/tmp/pip3
 iPipeName = sys.argv[2] #/tmp/pip4
 
+#COPYBACK=False
+COPYBACK=True
+
 print "Opening", oPipeName, "for writing"
 oPipe = open(oPipeName,'w')
 print "Opening", iPipeName, "for reading"
@@ -45,12 +48,17 @@ while True:
         #print waiting
         assert waiting=="BDEX WAITING..."
         print "Got", NAPX, "particles"
-
-        oPipe.write(str(NAPX)+"\n")
-        for j in xrange(NAPX):
-            oPipe.write(particles[j]+"\n")
-        oPipe.flush()
-        print "Wrote them back!"
+        
+        if (COPYBACK==True):
+            oPipe.write(str(NAPX)+"\n")
+            for j in xrange(NAPX):
+                oPipe.write(particles[j]+"\n")
+            oPipe.flush()
+            print "Wrote them back!"
+        else:
+            oPipe.write("-1\n")
+            oPipe.flush()
+            print "Wrote -1 -> No change"
         
         tracking=iPipe.readline().strip()
         #print tracking
