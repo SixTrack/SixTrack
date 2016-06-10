@@ -10173,8 +10173,29 @@ cc2008
 !     last modified: 02-09-2014
 !     close units for logging dynks
 !     always in main code
-      if (ldynk) close(665,err=665)
- 665    continue
+      if (ldynk) then
+         ! dynksets.dat
+         inquire(unit=665, opened=lopen)
+         if (lopen) close(665,err=665)
+ 665     continue
+         
+         do i=1,nfuncs_dynk
+            if ( funcs_dynk(i,2).eq.3) then !PIPE FUN
+               ! InPipe
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
+               if ( lopen ) close(iexpr_dynk(funcs_dynk(i,3)))
+               
+               ! OutPipe
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
+               if ( lopen ) then
+                  write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")
+     &                 "CLOSEUNITS"
+                  close(iexpr_dynk(funcs_dynk(i,3))+1)
+               endif
+            endif
+         end do
+      end if
+      
 
       return
       end subroutine
@@ -43634,6 +43655,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       logical lopen
       
+      character(maxstrlen_dynk) dynk_stringzerotrim
+
 +if crlibm
       integer nchars
       parameter (nchars=160) !Same as in daten
@@ -44098,7 +44121,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -44243,7 +44266,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -44266,7 +44289,262 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          nfexpr_dynk = nfexpr_dynk + 2*t
          funcs_dynk(nfuncs_dynk,5) = t
          close(664)
+         
+      case ("PIPE")
+         ! PIPE: Use a pair of UNIX FIFOs.
+         ! Another program is expected to hook onto the other end of the pipe,
+         ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
+         ! That program should then send a value back (in ASCII), which will be the new setting.
+         
+         call dynk_checkargs(getfields_nfields,7,
+     &        "FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+         call dynk_checkspace(1,0,4)
+         
++if cr
+         write(lout,*) "DYNK FUN PIPE not supported in CR version"
+         write(lout,*) "Sorry :("
+         call prror(-1)
++ei
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         niexpr_dynk = niexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 3             !TYPE (PIPE)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk   !UnitNR (set below)
+         funcs_dynk(nfuncs_dynk,4) = -1            !Not used
+         funcs_dynk(nfuncs_dynk,5) = -1            !Not used
+         
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(5) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(6) .gt. maxstrlen_dynk-1      ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN PIPE got one or more strings which "
+            write (lout,*) "was too long (>",maxstrlen_dynk-1,")"
+            write (lout,*) "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (lout,*) "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN PIPE got one or more strings which "
+            write (*,*)    "was too long (>",maxstrlen_dynk-1,")"
+            write (*,*)    "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (*,*)    "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
 
+         ! Store data
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !inPipe
+     &        getfields_fields(4)(1:getfields_lfields(4))
+         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = !outPipe
+     &        getfields_fields(5)(1:getfields_lfields(5))
+         cexpr_dynk(ncexpr_dynk+3)(1:getfields_lfields(6)) = !ID
+     &        getfields_fields(6)(1:getfields_lfields(6))
+         ncexpr_dynk = ncexpr_dynk+3
+         
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) !fileUnit
+     &        iexpr_dynk(niexpr_dynk)
+         
+         ! Look if the fileUnit or filenames are used in a different FUN PIPE
+         t=0 !Used to hold the index of the other pipe; t=0 if no older pipe -> open files.
+         do ii=1,nfuncs_dynk-1
+            if (funcs_dynk(ii,2) .eq. 3) then !It's a PIPE
+               !Does any of the settings match?
+               if ( iexpr_dynk(funcs_dynk(ii,3)).eq.      !Unit number
+     &              iexpr_dynk(niexpr_dynk)           .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+1).eq.    !InPipe filename
+     &              cexpr_dynk(ncexpr_dynk-2)         .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+2).eq.    !OutPipe filename
+     &              cexpr_dynk(ncexpr_dynk-1)         ) then
+                  !Does *all* of the settings match?
+                  if ( iexpr_dynk(funcs_dynk(ii,3)).eq.   !Unit number
+     &                 iexpr_dynk(niexpr_dynk)           .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+1).eq. !InPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-2)         .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+2).eq. !OutPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-1)         ) then
+                     t=ii
++if cr
+                     write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                     write(*,*)    "DYNK> "//
++ei
+     & "PIPE FUN '"//cexpr_dynk(funcs_dynk(nfuncs_dynk,1))//
+     & "' using same settings as previously defined FUN '"   //
+     & cexpr_dynk(funcs_dynk(ii,1))//"' -> reusing files!"
+                     if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
+     &                   cexpr_dynk(ncexpr_dynk)           ) then
++if cr
+                        write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                        write(*,*)    "DYNK> "//
++ei
+     &               "ERROR: IDs must be different when sharing PIPEs."
+                        call prror(-1)
+                     endif
+                     exit !break loop
+                  else !Partial match
++if cr !Nested too deep, sorry about crappy alignment...
+      write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(lout,*) "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
++if .not.cr
+      write(*,*)    "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(*,*)    "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(*,*)    "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
+                     call prror(-1)
+                  endif
+               endif
+            endif
+         end do
+
+         if (t.eq.0) then !Must open a new set of files
+         ! Open the inPipe
+         inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
++if cr
+         write(lout,*) "DYNK> Opening input pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening input pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
+         open(unit=iexpr_dynk(niexpr_dynk),
+     &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
++ei
+            call prror(51)
+         endif
+
+         ! Open the outPipe
++if cr
+         write(lout,*) "DYNK> Opening output pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening output pipe '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(dynk_stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
+         inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
+         open(unit=iexpr_dynk(niexpr_dynk)+1,
+     &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
++ei
+            call prror(51)
+         endif
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)')
+     &        "DYNKPIPE !******************!" !Once per file
+         endif !End "if (t.eq.0)"/must open new files
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
+     &        "INIT ID="//
+     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk)))
+     &        //" for FUN="//
+     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
+         
+         
       case ("RANDG")
          ! RANDG: Gausian random number with mu, sigma, and optional cutoff
          
@@ -44335,7 +44613,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
-
+         
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
          ! y[n] = \sum_{i=0}^N b_i*x[n-i]
@@ -46532,6 +46810,11 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       !Functions to call
       double precision dynk_lininterp
+      character(maxstrlen_dynk) dynk_stringzerotrim
++if crlibm
+      double precision round_near
++ei
+
 +if crlibm
 +ca crlibco
 +ei
@@ -46549,6 +46832,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       ! General temporaries
       integer foff !base offset into fexpr array
       integer ii,jj!Loop variable
+
++if crlibm
+      !String handling tempraries for PIPE, preformatting for round_near
+      integer errno !for round_near
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
++ca comgetfields
++ei
 
       ! Other stuff
 +ca parnum
@@ -46620,9 +46912,51 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &       fexpr_dynk(filelin_start +  filelin_xypoints:
      &                  filelin_start +2*filelin_xypoints-1),
      &        filelin_xypoints )
+      case(3)                                                           ! PIPE
+         write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
+     &        "GET ID="//
+     &        trim(dynk_stringzerotrim(
+     &        cexpr_dynk(funcs_dynk(funNum,1)+3)
+     &        ))//" TURN=",turn
++if .not.crlibm
+         read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
++ei
++if crlibm
+         read(iexpr_dynk(funcs_dynk(funNum,3)),"(a)") ch
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &                             getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_lerr=", getfields_lerr
++ei
+            call prror(-1)
+         endif
+         if (getfields_nfields .ne. 1) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_nfields=", getfields_nfields
+            write(lout,*)"DYNK> Expected a single number."
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_nfields=", getfields_nfields
+            write(*,*)   "DYNK> Expected a single number."
++ei
+            call prror(-1)
+         endif
+         retval = round_near(errno,
+     &        getfields_lfields(1)+1, getfields_fields(1) )
+         if (errno.ne.0)
+     &        call rounderr( errno,getfields_fields,1,retval )
++ei
          
       case (6)                                                          ! RANDG
-         ! Save old seeds and loud our current seeds
+         ! Save old seeds and load our current seeds
          call recuut(tmpseed1,tmpseed2)
          call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3),
      &               iexpr_dynk(funcs_dynk(funNum,3)+4) )

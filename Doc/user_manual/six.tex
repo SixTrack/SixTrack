@@ -1046,6 +1046,14 @@ The functions are always evaluated as a function of the current turn number $t$,
   Similar to FILE, but any double can be used as the turn number as long as they are monotonically rising.
   When evaluated, the function interpolates from the line-segments specified in the file. \\*
   
+  PIPE       & \emph{inPipeName[string] outPipeName[string] ID[string] fileUnit[int]} &
+  Uses a pair of UNIX FIFOs, through which it can communicate with an external program.
+  When evaluated, it sends a message through the outpipe, and then waits for a message on the inpipe which should contain the value the FUN should returned.
+  The ID is used in case several DYNK PIPE FUNs are using the same outPipe and inPipe, so that the controlling external program can choose what to calculate.
+  Note that it will use both \texttt{fileUnit} and \texttt{fileUnit+1}, and if several PIPE FUNs are using the same file, they must also use the same \texttt{fileUnit}.
+  For more details, see the example below.
+  Also note that PIPE is not available in the checkpoint/restart version of SixTrack.\\*
+  
   RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
   Returns a pseudorandom number generated from a Gaussian distribution.
   The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
@@ -1399,6 +1407,27 @@ For the SET, the time $t$ is then shifted by -70 turns, so that the functions ar
 
 \subparagraph{Detuning a cavity (accelerating or crab)}~\\
 \todo[inline]{Write}
+
+\subparagraph{Using the PIPE function}~\\
+%Note: This example is referenced from the FUN table.
+
+To use the PIPE functionality, add a FUN and SET to the DYNK block such as:
+\begin{verbatim}
+FUN pipe1 PIPE /tmp/pip1 /tmp/pip2 myID1 4242
+SET  ACFCA.AR1.B1 voltage pipe1 10 -1 -9
+\end{verbatim}
+Then create the two pipes using the \texttt{mkfifo} UNIX command, e.g.\ \texttt{mkfifo~pip1} and \texttt{mkfifo~pip2} in the chosen directory.
+When starting SixTrack, it will first open the input pipe (while reading the DYNK block), and wait for the external program to do the same.
+This can be simulated by running \texttt{cat~>~pip1}; it is also possible to open the input pipe before starting SixTrack.
+After opening the input pipe, SixTrack will open the output pipe, again this can be simulated by running \texttt{cat~pip2}, and again this pipe may be opened before starting SixTrack.
+Note that when SixTrack ends, the output pipe will be closed, so the recieving \texttt{cat} process is terminated.
+
+After opening the output pipe, SixTrack writes the line \texttt{DYNKPIPE~!******************!} to this file.
+It then writes a line similar to \texttt{INIT~ID=myID1~for~FUN=pipe1} for each FUN using this output pipe.
+
+During tracking, when one of the PIPE FUNs are called SixTrack writes a line similar to \texttt{GET ID=myID1 TURN=~1} to the output pipe.
+Note that the turn number is the one passed to the FUN from SET, i.e. including any turn-shift.
+It then waits for a single floating point number to be written (in ascii) to the input pipe, which is then read and returned from the FUN.
 
 \subsection{Beam--Beam Element} \label{BeamBeam}
 
