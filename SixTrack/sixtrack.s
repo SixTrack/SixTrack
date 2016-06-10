@@ -30655,8 +30655,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                         write(lout,*) "ch=",ch
 +ei
 +if .not.cr
-                        write(*,*) "BDEX> ERROR, ii=",ii
-                        write(*,*) "ch=",ch
+                        write(*,*)    "BDEX> ERROR, ii=",ii
+                        write(*,*)    "ch=",ch
 +ei
                         call prror(-1)
                      endif
@@ -30676,8 +30676,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                     dpsv1(j),nlostp(j)
                    enddo
 +ei
-                   write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
-     &                 "BDEX WAITING..."
+                   write(bdex_channels(bdex_elementChannel(ix),4)+1,
+     &                   '(a)') "BDEX WAITING..."
                    
                    !Read back particles
                    read(bdex_channels(bdex_elementChannel(ix),4),*) j
@@ -30719,8 +30719,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                      enddo
                    endif
                    
-                   write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
-     &                 "BDEX TRACKING..."
+                   write(bdex_channels(bdex_elementChannel(ix),4)+1,
+     &                  '(a)') "BDEX TRACKING..."
                 endif
                 
              else
