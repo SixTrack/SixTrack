@@ -43654,8 +43654,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer dynk_findFUNindex
       
       logical lopen
-      
-      character(maxstrlen_dynk) dynk_stringzerotrim
 
 +if crlibm
       integer nchars
@@ -44450,20 +44448,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
 +if cr
          write(lout,*) "DYNK> Opening input pipe '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening input pipe '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
          open(unit=iexpr_dynk(niexpr_dynk),
@@ -44486,20 +44484,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Open the outPipe
 +if cr
          write(lout,*) "DYNK> Opening output pipe '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening output pipe '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(dynk_stringzerotrim(
+     &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
          inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
@@ -44540,9 +44538,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          endif !End "if (t.eq.0)"/must open new files
          write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
      &        "INIT ID="//
-     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk)))
+     &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))
      &        //" for FUN="//
-     &        trim(dynk_stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
+     &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
          
          
       case ("RANDG")
@@ -46810,7 +46808,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       !Functions to call
       double precision dynk_lininterp
-      character(maxstrlen_dynk) dynk_stringzerotrim
 +if crlibm
       double precision round_near
 +ei
@@ -46915,7 +46912,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       case(3)                                                           ! PIPE
          write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
      &        "GET ID="//
-     &        trim(dynk_stringzerotrim(
+     &        trim(stringzerotrim(
      &        cexpr_dynk(funcs_dynk(funNum,1)+3)
      &        ))//" TURN=",turn
 +if .not.crlibm
