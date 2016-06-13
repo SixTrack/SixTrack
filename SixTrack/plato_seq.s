@@ -189,8 +189,8 @@ C.............................................................
 C.............................................................
         R1=DSQRT(X(N)**2+XP(N)**2)
         R2=DSQRT(X(N+1)**2+XP(N+1)**2)
-        CTHETA=(X(N)*X(N+1)+XP(N)*XP(N+1))/R1/R2
-        STHETA=(-X(N)*XP(N+1)+X(N+1)*XP(N))/R1/R2
+        CTHETA=((X(N)*X(N+1)+XP(N)*XP(N+1))/R1)/R2
+        STHETA=((-X(N)*XP(N+1)+X(N+1)*XP(N))/R1)/R2
 +if crlibm
         IF (STHETA.GE.0) THEN
           THETA=ACOS_RN(CTHETA)
@@ -209,7 +209,7 @@ C.............................................................
         TUNEAPA=PA/DUEPI
         SUMAPM=SUMAPM+TUNEAPA
         IF (N.GE.MAX2) THEN
-          TUNE(N-MAX2+1)=SUMAPM/DFLOAT(N)/DFLOAT(N+1)*2.D0
+          TUNE(N-MAX2+1)=((SUMAPM/DFLOAT(N))/DFLOAT(N+1))*2.D0
           U(N-MAX2+1)=1.D0/N
         ENDIF
 C.............................................................
@@ -330,23 +330,23 @@ C................................................INTERPOLATION
       CF3=ABS(ZSING(NFTMAX+1))
 +if crlibm
       IF (CF3.GT.CF1) THEN      
-        ASSK=DFLOAT(NFTMAX)+NPOINT/PI*
+        ASSK=DFLOAT(NFTMAX)+(NPOINT/PI)*
      .       ATAN2_RN(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
-        ASSK=DFLOAT(NFTMAX-1)+NPOINT/PI*
+        ASSK=DFLOAT(NFTMAX-1)+(NPOINT/PI)*
      .       ATAN2_RN(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
       ENDIF
 +ei
 +if .not.crlibm
       IF (CF3.GT.CF1) THEN      
-        ASSK=DFLOAT(NFTMAX)+NPOINT/PI*
+        ASSK=DFLOAT(NFTMAX)+(NPOINT/PI)*
      .       ATAN2(CF3*SIN(PI/NPOINT),CF2+CF3*COS(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
-        ASSK=DFLOAT(NFTMAX-1)+NPOINT/PI*
+        ASSK=DFLOAT(NFTMAX-1)+(NPOINT/PI)*
      .       ATAN2(CF2*SIN(PI/NPOINT),CF1+CF2*COS(PI/NPOINT))
       ENDIF
 +ei
-      TUNEABT=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT)
+      TUNEABT=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT) !1D+0 = 1D0, i.e. double precision 1.0?
 C............................................................  
       RETURN 
 C............................................................  
@@ -386,7 +386,7 @@ C..................................ESTIMATION OF TUNE WITH FFT
 +ei
       DUEPI=2*PI
       NPOINT=2**MFT
-      STEP=DUEPI/NPOINT/2D+0
+      STEP=(DUEPI/NPOINT)/2D+0
 C.............................................................
       SUM=0D0            !..CHECKS FOR COMPLEX OR REAL DATA
       DO MF=1,NPOINT
@@ -430,22 +430,22 @@ C.............................................................
       ENDIF
 C..........................................INTERPOLATION
 +if crlibm
-      CO=COS_RN(2*PI/DFLOAT(NPOINT))
-      SI=SIN_RN(2*PI/DFLOAT(NPOINT))
+      CO=COS_RN((2*PI)/DFLOAT(NPOINT))
+      SI=SIN_RN((2*PI)/DFLOAT(NPOINT))
 +ei
 +if .not.crlibm
-      CO=COS(2*PI/DFLOAT(NPOINT))
-      SI=SIN(2*PI/DFLOAT(NPOINT))
+      CO=COS((2*PI)/DFLOAT(NPOINT))
+      SI=SIN((2*PI)/DFLOAT(NPOINT))
 +ei
-      SCRA1=CO**2*(P1+P2)**2-2*P1*P2*(2*CO**2-CO-1)       
+      SCRA1=CO**2*(P1+P2)**2-((2*P1)*P2)*((2*CO**2-CO)-1)
       SCRA2=(P1+P2*CO)*(P1-P2)
-      SCRA3=P1**2+P2**2+2*P1*P2*CO
+      SCRA3=(P1**2+P2**2)+((2*P1)*P2)*CO
       SCRA4=(-SCRA2+P2*SQRT(SCRA1))/SCRA3
 +if crlibm
-      ASSK=DFLOAT(NN)+NPOINT/2/PI*ASIN_RN(SI*SCRA4)
+      ASSK=DFLOAT(NN)+((NPOINT/2)/PI)*ASIN_RN(SI*SCRA4)
 +ei
 +if .not.crlibm
-      ASSK=DFLOAT(NN)+NPOINT/2/PI*ASIN(SI*SCRA4)
+      ASSK=DFLOAT(NN)+((NPOINT/2)/PI)*ASIN(SI*SCRA4)
 +ei
       TUNEABT2=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT)
 C............................................................  
@@ -453,9 +453,9 @@ C............................................................
 C............................................................  
       END
 
-CDECK  ID>, FFT_PLATO_REAL.
+CDECK  ID>, FFT_PLATO.
 C============================================================
-C           COMPUTES THE FFT_PLATO_REAL   (DOUBLE PRECISION)
+C           COMPUTES THE FFT_PLATO   (DOUBLE PRECISION)
 C           AUTHOR: NUMERICAL RECEIPES, PG. 395
 C           NN IS THE NUMBER OF DATA: MUST BE A POWER OF 2
 C           ISIGN=1: DIRECT FT
@@ -505,12 +505,12 @@ C create real array DATA out of complex array CDATA
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
 +if crlibm
-        THETA=8.D0*ATAN_RN(1.D0)/(ISIGN*MMAX)
+        THETA=(8.D0*ATAN_RN(1.D0))/(ISIGN*MMAX)
         WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
         WPI=SIN_RN(THETA)
 +ei
 +if .not.crlibm
-        THETA=8.D0*ATAN(1.D0)/(ISIGN*MMAX)
+        THETA=(8.D0*ATAN(1.D0))/(ISIGN*MMAX)
         WPR=-2.D0*SIN(0.5D0*THETA)**2
         WPI=SIN(THETA)
 +ei
@@ -527,8 +527,8 @@ C create real array DATA out of complex array CDATA
             DATA(I+1)=DATA(I+1)+TEMPI
  12       CONTINUE
           WTEMP=WR
-          WR=WR*WPR-WI*WPI+WR
-          WI=WI*WPR+WTEMP*WPI+WI
+          WR=(WR*WPR-WI*WPI)+WR
+          WI=(WI*WPR+WTEMP*WPI)+WI
  13     CONTINUE
         MMAX=ISTEP
         GOTO 2
@@ -584,12 +584,12 @@ C
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
 +if crlibm
-        THETA=8.D0*ATAN_RN(1.D0)/(ISIGN*MMAX)
+        THETA=(8.D0*ATAN_RN(1.D0))/(ISIGN*MMAX)
         WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
         WPI=SIN_RN(THETA)
 +ei
 +if .not.crlibm
-        THETA=8.D0*ATAN(1.D0)/(ISIGN*MMAX)
+        THETA=(8.D0*ATAN(1.D0))/(ISIGN*MMAX)
         WPR=-2.D0*SIN(0.5D0*THETA)**2
         WPI=SIN(THETA)
 +ei
@@ -606,8 +606,8 @@ C
             DATA(I+1)=DATA(I+1)+TEMPI
  12       CONTINUE
           WTEMP=WR
-          WR=WR*WPR-WI*WPI+WR
-          WI=WI*WPR+WTEMP*WPI+WI
+          WR=(WR*WPR-WI*WPI)+WR
+          WI=(WI*WPR+WTEMP*WPI)+WI
  13     CONTINUE
         MMAX=ISTEP
         GOTO 2
@@ -627,7 +627,7 @@ C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME
 C                                   MODIFICATIONS
 C
 
-      DOUBLE PRECISION FUNCTION TUNENEWT(X,XP,MAXN)              
+      DOUBLE PRECISION FUNCTION TUNENEWT(X,XP,MAXN)
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -733,14 +733,14 @@ C............................................................
       DELTAT=DELTAT/5.D0
 C............................................................  
       DO ND=1,MAXN
-        ZD(ND)=ZU*ND*Z(ND)
+        ZD(ND)=(ZU*ND)*Z(ND)
       ENDDO
 C............................................................  
 +if crlibm
-      ZTUNE1=EXP_RN(-ZU*DUEPI*TUNEA1)
+      ZTUNE1=EXP_RN((-ZU*DUEPI)*TUNEA1)
 +ei
 +if .not.crlibm
-      ZTUNE1=EXP(-ZU*DUEPI*TUNEA1)
+      ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
 +ei
       CALL CALC(ZTUNE1,ZF,Z,MAXN)
       CALL CALC(ZTUNE1,ZFD,ZD,MAXN)
@@ -748,7 +748,7 @@ C............................................................
       NUM=1
       DO NTEST=1, 10
         TUNEA2=TUNEA1+DELTAT
-        ZTUNE2=EXP(-ZU*DUEPI*TUNEA2)
+        ZTUNE2=EXP((-ZU*DUEPI)*TUNEA2)
         CALL CALC(ZTUNE2,ZF,Z,MAXN)
         CALL CALC(ZTUNE2,ZFD,ZD,MAXN)
         DTUNEA2=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
@@ -760,7 +760,7 @@ C............................................................
            DO NCONT=1,100
               RATIO=-DTUNE1/DTUNE2
               TUNE3=(TUNE1+RATIO*TUNE2)/(1.D0+RATIO)
-              ZTUNE3=EXP(-ZU*DUEPI*TUNE3)
+              ZTUNE3=EXP((-ZU*DUEPI)*TUNE3)
               CALL CALC(ZTUNE3,ZF,Z,MAXN)
               CALL CALC(ZTUNE3,ZFD,ZD,MAXN)
               DTUNE3=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
@@ -876,22 +876,22 @@ C............................................................
 C............................................................
       ENDDO
 C...............................................COMPUTES SIGMA
-      ADVSIG=DSQRT(ADVS/(N-1)/4/PI/PI-
-     .            (ADV/(N-1)/2/PI)*(ADV/(N-1)/2/PI))
+      ADVSIG=DSQRT((((ADVS/(N-1))/4)/PI)/PI-
+     .            (((ADV/(N-1))/2)/PI)*(((ADV/(N-1))/2)/PI))
 C......................................NORMALIZATION TO [0,1]
       ADV1=-ADV1
       IF(ADV1.LT.0) ADV1=1+ADV1
       ADV2=-ADV2
       IF(ADV2.LT.0) ADV2=1+ADV2
 C...........................................FINDS MIN AND MAX
-      ADVMIN=MIN(ADV1,ADV2)/2/PI
-      ADVMAX=MAX(ADV1,ADV2)/2/PI
+      ADVMIN=(MIN(ADV1,ADV2)/2)/PI
+      ADVMAX=(MAX(ADV1,ADV2)/2)/PI
 C......................................NORMALIZATION TO [0,1]
       ADV=-ADV
       IF(ADV.LT.0) THEN
-        TUNEAPA=1+ADV/(N-1)/2/PI
+        TUNEAPA=1+((ADV/(N-1))/2)/PI
       ELSE
-        TUNEAPA=ADV/(N-1)/2/PI
+        TUNEAPA=((ADV/(N-1))/2)/PI
       ENDIF
 C.............................................................
       END
@@ -1057,7 +1057,7 @@ C...............................INTERPOLATION WITH A GAUSSIAN
 C........COMPUTATION OF THE POSITION OF THE INTERPOLATED PEAK
       A=X212*Y13-X213*Y12
       B=X12*Y13-X13*Y12
-      TUNEFFTI=(A/2/B-1)/NPOINT
+      TUNEFFTI=((A/2)/B-1)/NPOINT
 C......................................NORMALIZATION TO [0,1]
       TUNEFFTI=-TUNEFFTI
       IF(TUNEFFTI.LE.0) THEN
@@ -1160,18 +1160,18 @@ C.....JITER=8 PROVIDES A PRECISION WHICH IS 1.5E-4 * 1/2**MFT
 C................JMAX=7 IS THE VALUE WHICH MINIMIZES CPU TIME
       JMAX=7
       MAX1=MAX-1
-      STEP=DUEPI*.5D0/MAX1
+      STEP=(DUEPI*.5D0)/MAX1
 C.........................................BISECTION PROCEDURE
       DO JIT=1,JITER
         FOMEGA=0D+0
         DO J=1,JMAX
-          OME=OMEMIN+(OMEMAX-OMEMIN)/(JMAX-1D+0)*(J-1D+0)
+          OME=OMEMIN+((OMEMAX-OMEMIN)/(JMAX-1D+0))*(J-1D+0)
           DO N=1,MAX
 +if crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
      .        *(1D0+COS_RN(STEP*(2*N-MAX1)))
-            TMPR=REAL(-(0D+0,1D+0)*OME*N)
-            TMPI=AIMAG(-(0D+0,1D+0)*OME*N)
+            TMPR=REAL((-(0D+0,1D+0)*OME)*N)
+            TMPI=AIMAG((-(0D+0,1D+0)*OME)*N)
             Z(N)=ZC*(EXP_RN(TMPR)*DCMPLX(COS_RN(TMPI),SIN_RN(TMPI))) !exp_rn is only defined for real numbers -> decompose in real and imaginary part
 +ei
 +if .not.crlibm
@@ -1185,10 +1185,10 @@ C..COMPUTATION OF SCALAR PRODUCT WITH ITERATED BODE ALGORITHM
           MBODE=(MAX-5)/4
           DO I=0,MBODE
             K=4*I
-            FOME=FOME+(7D0*(Z(1+K)+Z(5+K))+32D0*(Z(2+K)+Z(4+K))
+            FOME=FOME+((7D0*(Z(1+K)+Z(5+K))+32D0*(Z(2+K)+Z(4+K)))
      .               +12D0*Z(3+K))
           ENDDO
-          FOME=.5D0*FOME/45D0/DFLOAT(MBODE+1)
+          FOME=((.5D0*FOME)/45D0)/DFLOAT(MBODE+1)
 C..........SEARCH FOR MAXIMUM OF SCALAR PRODUCT AND DEFINITION
 C..........OF THE NEW INTERVAL (OMEMIN,OMEMAX) WHERE TO
 C........................................RESTART THE PROCEDURE
@@ -1199,8 +1199,8 @@ C........................................RESTART THE PROCEDURE
             JOM=J
           ENDIF
         ENDDO
-        OMEMIN=OMEMIN+(OMEMAX-OMEMIN)/(JMAX-1D+0)*(JOM-2D+0)
-        OMEMAX=OMEMIN+(OMEMAX-OMEMIN)/(JMAX-1D+0)*JOM
+        OMEMIN=OMEMIN+((OMEMAX-OMEMIN)/(JMAX-1D+0))*(JOM-2D+0)
+        OMEMAX=OMEMIN+((OMEMAX-OMEMIN)/(JMAX-1D+0))*JOM
       ENDDO
 C......................................NORMALIZATION TO [0,1]
       TUNELASK=-TUNELASK
