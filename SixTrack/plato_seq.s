@@ -1,6 +1,9 @@
 +cd crlibco
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
++cd crcoall
+      integer lout
+      common /crflags/lout
 
 +dk plato_seq
 *
@@ -89,11 +92,18 @@ C
       DIMENSION Z(MAXITER)
       
 +ca crlibco
-      
++if cr
++ca crcoall
++ei
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
-        WRITE(6,*) '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
-        STOP
++if cr
+         WRITE(lout,'(a)') '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
++ei
++if .not.cr
+         WRITE(*,   '(a)') '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
++ei
+         call prror(-1)
       ENDIF
 C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
@@ -163,11 +173,19 @@ C
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
 +ca crlibco
-
++if cr
++ca crcoall
++ei
 C............................................................
       IF (MAX.LE.0) THEN
-        WRITE(6,*) '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
-        STOP
++if cr
+         WRITE(lout,'(a)')
++ei
++if .not.cr
+         WRITE(*,   '(a)')
++ei
+     &        '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
+        call prror(-1)
       ENDIF
 C............................................................
 +if crlibm
@@ -236,10 +254,19 @@ C
       INTEGER N,I
       DOUBLE PRECISION X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
       DIMENSION X(*),Y(*)
++if cr
++ca crcoall
++ei
 C............................................................
       IF (N.LE.0) THEN
-        WRITE(6,*) '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
-        STOP
++if cr
+        WRITE(lout,'(a)')
++ei
++if .not.cr
+        WRITE(*,   '(a)')
++ei
+     &       '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
+        call prror(-1)
       ENDIF
 C.............................................................
       X2M=0.D0
@@ -640,11 +667,18 @@ C
       DIMENSION Z(MAXITER)
 
 +ca crlibco
-
++if cr
++ca crcoall
++ei
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
-        WRITE(6,*) '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
-        STOP
++if cr
+        WRITE(lout,'(a)') '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
++ei
++if .not.cr
+        WRITE(*,   '(a)') '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
++ei
+        call prror(-1)
       ENDIF
 C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
@@ -837,13 +871,21 @@ C............................................................
       DIMENSION X(*),P(*)
 
 +ca crlibco
-
++if cr
++ca crcoall
++ei
 C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
 C............................................................
       IF (N.LE.0) THEN
-        WRITE(6,*) '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
-        STOP
++if cr
+        WRITE(lout,'(a)')
++ei
++if .not.cr
+        WRITE(*,   '(a)')
++ei
+     &       '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
+        call prror(-1)
       ENDIF
 C............................................................
 +if crlibm
@@ -918,15 +960,30 @@ C............................................................
       DOUBLE PRECISION SUM,AMAX
       DOUBLE PRECISION X(*),P(*)
       COMPLEX  Z(MAXITER)
++if cr
++ca crcoall
++ei
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-        WRITE(6,*) '***ERROR(TUNEFFT): TOO MANY ITERATES'
-         STOP
++if cr
+        write(lout,'(a)')
++ei
++if .not.cr
+        write(*,   '(a)')
++ei
+     &       '***ERROR(TUNEFFT): TOO MANY ITERATES'
+        call prror(-1)
       ENDIF
 C............................................................
       IF (N.LE.0) THEN
-        WRITE(6,*) '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
-        STOP
++if cr
+        write(lout,'(a)')
++ei
++if .not.cr
+        write(*,   '(a)')
++ei
+     &       '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
+        call prror(-1)
       ENDIF
 C............................................COMPUTATION OF M
       DO M=1,50
@@ -993,16 +1050,30 @@ C............................................................
       COMPLEX Z(MAXITER)
 
 +ca crlibco
-
++if cr
++ca crcoall
++ei
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-        WRITE(6,*) '***ERROR(TUNEFFTI): TOO MANY ITERATES'
-         STOP
++if cr
+        write(lout,'(a)')
++ei
++if .not.cr
+        write(*,   '(a)')
++ei
+     &       '***ERROR(TUNEFFTI): TOO MANY ITERATES'
+        call prror(-1)
       ENDIF
 C............................................................
       IF (N.LE.0) THEN
-        WRITE(6,*) '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
-        STOP
++if cr
+        write(lout,'(a)')
++ei
++if .not.cr
+        write(*,   '(a)')
++ei
+     &       '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
+        call prror(-1)
       ENDIF
 C............................................COMPUTATION OF M
       DO M=1,50
@@ -1098,7 +1169,9 @@ C............................................................
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
 
 +ca crlibco
-
++if cr
++ca crcoall
++ei
 +if crlibm
       DUEPI=8*ATAN_RN(1D+0)
 +ei
@@ -1107,13 +1180,25 @@ C............................................................
 +ei
 C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
-        WRITE(6,*) '***ERROR(TUNELASK): TOO MANY ITERATIONS'
-        STOP
++if cr
+        write(lout,'(a)')
++ei
++if .not.cr
+        write(*,   '(a)')
++ei
+     &       '***ERROR(TUNELASK): TOO MANY ITERATIONS'
+        call prror(-1)
       ENDIF
 C............................................................
       IF (MAX.LE.0) THEN
-        WRITE(6,*) '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
-        STOP
++if cr
+        write(lout,'(a)')
++ei
++if .not.cr
+        write(*,   '(a)')
++ei
+     &       '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
+        call prror(-1)
       ENDIF
 C.................................ESTIMATION OF TUNE WITH FFT
       SUM=0D0
