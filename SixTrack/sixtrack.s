@@ -18265,7 +18265,7 @@ cc2008
 !  always in main code
 !-----------------------------------------------------------------------
  2200 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(51)
+      if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
       if(ch(1:1).eq.'/') goto 2200 ! skip comment line
@@ -18417,12 +18417,12 @@ cc2008
       call prror(51)
 !-----------------------------------------------------------------------
 !  FMA
-!  M. Fitterer, R. De Maria, K. Sjoebaek, BE/ABP-HSS
+!  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
 !  last modified: 07-01-2016
 !  always in main code
 !-----------------------------------------------------------------------
  2300 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(-1)
+      if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
       if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
@@ -58799,6 +58799,7 @@ c$$$            endif
         call prror(-1)
       endif
       end subroutine
+      
       subroutine fma_norm_phase_space_matrix(fma_tas_inv,fma_tas)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -58852,6 +58853,7 @@ c$$$            endif
         enddo
       enddo
       end subroutine fma_norm_phase_space_matrix
+      
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -58930,11 +58932,24 @@ c$$$            endif
           fma_tas_inv(i,j) = 0
         enddo
       enddo
+      
 !     fma_six = data file for storing the results of the FMA analysis
+      inquire(unit=2001001,opened=lopen)
+      if(lopen) then
++if cr
+         write(lout,*) "ERROR in FMA: Tried to open unit 2001001",
++ei
++if .not.cr
+         write(*,*)    "ERROR in FMA: Tried to open unit 2001001",
++ei
+     &        "for file 'fma_sixtrack', but it was already taken?"
+         call prror(-1)
+      endif
       open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,   &
      &action='write',form='formatted')
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
+      
 !     write the header
       write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
      &'phi* [rad]'
@@ -59028,7 +59043,20 @@ c$$$            endif
             call fma_norm_phase_space_matrix(fma_tas_inv, 
      &                                       fma_tas(1:6,1:6) )
 
-!    dump normalized particle amplitudes for debugging (200101+i*10)
+!     dump normalized particle amplitudes for debugging (200101+i*10)
+            inquire(unit=200101+i*10,opened=lopen)
+            if(lopen) then
++if cr
+               write(lout,*) "ERROR in FMA: Tried to open unit",
++ei
++if .not.cr
+               write(*,*)    "ERROR in FMA: Tried to open unit",
++ei
+     &            200101+i*10, "for file 'NORM_"//dump_fname(j)//
+     &            "', but it was already taken?!?"
+               call prror(-1)
+            endif
+           
             open(200101+i*10,file='NORM_'//dump_fname(j),
      &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
@@ -59309,6 +59337,7 @@ c$$$            endif
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
  1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
       end subroutine fma_postpr
+      
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
 !      A(N) IS A COMPLEX ARRAY. THE INPUT IS A(N)=(X(N),0.0), WHERE
