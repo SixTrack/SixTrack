@@ -11,7 +11,7 @@ thousand turns along with  the fort.6 and fort.10 output.
 TESTS
 The following test cases may be used (amongst others):
 bnl exact crabamp javier thick4 lost tilt dipedge bb notilt lostnotilt
-lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1.
+lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma.
 To each directory there is a corresponding directory with suffix "in"
 e.g.crabampin for crabamp containing the input files fort.2, 3, 8, and 16,
 a fort.zip for BOINC, and fort.6.canonical and fort.10.canonical and 
@@ -100,11 +100,14 @@ try scripts try_pro, try, and try_kill.
 
 RESULTS
 By default the script check_10 "pattern" compares the fort.10s in $TESTS
-which match "pattern" to the fort.10.canonical (likewise check_90_).
+which match "pattern" to the fort.10.canonical (likewise check_90).
 Similarly the script check_results will compare fort.6 as well but this is not
 generally useful when different compilers are being used. The current canonical
 versions were produced with ifort. The script comp_10 is similar to check10
 but in addition prints the magnitude of result differences.
+Finally, the script check_extras will compare any files listed in
+the text file extra_checks.txt in the test folder using
+the tool (e.g. "diff") listed.
 
 Note that fort.10's should be IDENTICAL (the comparisons ignore the SixTrack version
 Word 52 of each line in fort.10 and the CPU time in Word 60).

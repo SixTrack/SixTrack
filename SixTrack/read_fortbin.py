@@ -44,8 +44,8 @@ qy         1d Vertical Tune
 qs         1d Longitudinal Tune
 closorb    6d Closed Orbit vector
 dispvec    6d Dispersion vector
-tamatrix   36d Six-dimensional transfer map
-mess1     50d 50 additional parameter
+tamatrix   36d Six-dimensional map for normalisation
+mess1      50d 50 additional parameter
 mess2      1I ...
 """
 """
@@ -65,8 +65,8 @@ x        1d x (mm)
 xp       1d x'(mrad)
 y        1d y (mm)
 yp       1d y'(mrad)
-sig      1d Path-length sigma=s - v0 t
-delta    1d DeltaP/P0
+sig      1d Path-length sigma=s - v0 t (mm)
+delta    1d DeltaP/P0 (1)
 energy   1d Energy (Mev)
 """
 
