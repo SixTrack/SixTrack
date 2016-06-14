@@ -1,7 +1,7 @@
 \documentclass[a4paper,11pt]{report} 
 \usepackage[a4paper,margin=2cm]{geometry}
 
-%\usepackage{float} 
+\usepackage{float} 
 %\usepackage{graphics}
 \usepackage[dvips]{epsfig,rotating} 
 
@@ -19,6 +19,7 @@
 
 \usepackage{todonotes}
 %\usepackage{draftwatermark}
+\usepackage{tabularx}
 
 \newenvironment{description_alligned}[1]
 {\begin{list}{}%
@@ -45,16 +46,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update January 2016
+  Update June 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.31 \\
+  Version 4.5.35 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by K. Sjobak
+  F. Schmidt, update by M.~Fitterer and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -1045,6 +1046,14 @@ The functions are always evaluated as a function of the current turn number $t$,
   Similar to FILE, but any double can be used as the turn number as long as they are monotonically rising.
   When evaluated, the function interpolates from the line-segments specified in the file. \\*
   
+  PIPE       & \emph{inPipeName[string] outPipeName[string] ID[string] fileUnit[int]} &
+  Uses a pair of UNIX FIFOs, through which it can communicate with an external program.
+  When evaluated, it sends a message through the outpipe, and then waits for a message on the inpipe which should contain the value the FUN should returned.
+  The ID is used in case several DYNK PIPE FUNs are using the same outPipe and inPipe, so that the controlling external program can choose what to calculate.
+  Note that it will use both \texttt{fileUnit} and \texttt{fileUnit+1}, and if several PIPE FUNs are using the same file, they must also use the same \texttt{fileUnit}.
+  For more details, see the example below.
+  Also note that PIPE is not available in the checkpoint/restart version of SixTrack.\\*
+  
   RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
   Returns a pseudorandom number generated from a Gaussian distribution.
   The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
@@ -1398,6 +1407,27 @@ For the SET, the time $t$ is then shifted by -70 turns, so that the functions ar
 
 \subparagraph{Detuning a cavity (accelerating or crab)}~\\
 \todo[inline]{Write}
+
+\subparagraph{Using the PIPE function}~\\
+%Note: This example is referenced from the FUN table.
+
+To use the PIPE functionality, add a FUN and SET to the DYNK block such as:
+\begin{verbatim}
+FUN pipe1 PIPE /tmp/pip1 /tmp/pip2 myID1 4242
+SET  ACFCA.AR1.B1 voltage pipe1 10 -1 -9
+\end{verbatim}
+Then create the two pipes using the \texttt{mkfifo} UNIX command, e.g.\ \texttt{mkfifo~pip1} and \texttt{mkfifo~pip2} in the chosen directory.
+When starting SixTrack, it will first open the input pipe (while reading the DYNK block), and wait for the external program to do the same.
+This can be simulated by running \texttt{cat~>~pip1}; it is also possible to open the input pipe before starting SixTrack.
+After opening the input pipe, SixTrack will open the output pipe, again this can be simulated by running \texttt{cat~pip2}, and again this pipe may be opened before starting SixTrack.
+Note that when SixTrack ends, the output pipe will be closed, so the recieving \texttt{cat} process is terminated.
+
+After opening the output pipe, SixTrack writes the line \texttt{DYNKPIPE~!******************!} to this file.
+It then writes a line similar to \texttt{INIT~ID=myID1~for~FUN=pipe1} for each FUN using this output pipe.
+
+During tracking, when one of the PIPE FUNs are called SixTrack writes a line similar to \texttt{GET ID=myID1 TURN=~1} to the output pipe.
+Note that the turn number is the one passed to the FUN from SET, i.e. including any turn-shift.
+It then waits for a single floating point number to be written (in ascii) to the input pipe, which is then read and returned from the FUN.
 
 \subsection{Beam--Beam Element} \label{BeamBeam}
 
@@ -2716,16 +2746,16 @@ The unit number and filename may be shared between different DUMP outputs, as lo
 \subparagraph{format}
 an integer specifying the output format. The following is accepted:
 \begin{enumerate}
-\item[0] -- General format:\\
-  No header\\
-  Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
-\item[1] -- Format for aperture check:\\
-  Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
-  Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
-\item[2] -- Modified format for aperture check:\\  
-  Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
-  A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
-  Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+	\item[0] -- General format:\\
+	No header\\
+	Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
+	\item[1] -- Format for aperture check:\\
+	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
+	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
+	\item[2] -- Modified format for aperture check:\\  
+	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
@@ -2751,6 +2781,120 @@ mqml.10l4.b1..1 1 661 2 MQ_DUMP.dat
 NEXT
 \end{verbatim}
 
+\subsection{FMA analysis} \label{sec:FMA}
+
+\paragraph{Description}
+The FMA block generates the basic files needed for frequency map analysis (FMA). Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the DUMP block, see Sec.~\ref{sec:DUMP}. For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the LINE block (linear optics calculation in 6D, \ref{LinOpt}). The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the FMA block either in physical coordinates ($x$,$x'$,$y$,$y'$,$z$,$dE/E$) or normalized phase space coordinates and dumped to the file \verb|fma_sixtrack| together with the minimum, maximum and average normalized particle amplitudes and phases. 
+
+\paragraph{Keyword}
+FMA
+
+\paragraph{Number of data lines}
+variable, one for each file with particle amplitudes and tune calculation method
+
+\paragraph{Format of input block}
+The FMA block has to be proceeded by the LINE block (calculation of the normalization matrix) and the DUMP block (dump particle coordinates).
+\begin{verbatim}
+DUMP
+element_name_1 1 unit_1 2 filename_1 first_turn_1 last_turn_1
+element_name_2 1 unit_2 2 filename_2 first_turn_2 last_turn_3
+NEXT
+LINE
+ELEMENT  0 2 1 emit_1 emit_2
+NEXT
+FMA
+filename_1 method_1 fma_flag_norm_1
+filename_2 method_2 fma_flag_norm_2
+NEXT
+\end{verbatim}
+For the DUMP block (Sec.~\ref{sec:DUMP}) the frequency has to be 1 (dump every turn) and the file format has to be 2. For the linear optics calculation \ref{LinOpt}, the optics needs to be calculated at eatch element (mode ELEMENT), the number-of-blocks is then 0 and 6D linear optics calculation is required (\verb|ilin = 2|) in order to decouple the 6D motion. 
+
+\subparagraph{filename}
+one of the outputfiles specified in the FMA block preceding DUMP block.
+\subparagraph{method}
+method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|. A short description of the different methods is given in Table~\ref{fma:tab:1}.
+\subparagraph{fma\_flag\_norm}
+flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|).
+
+\begin{table}[H]
+	\begin{center}
+		\caption{Available tune calculation methods in SixTrack.}
+		\label{fma:tab:1}
+		\begin{tabularx}{\textwidth}{|l|l|X|}
+			\hline
+\textbf{Library} & \textbf{method} & \textbf{Description} \\\hline
+PLATO \cite{plato1,plato2}
+& TUNELASK &	Compute the tune of a 2d map by means of laskar method. A first indication of the position of the tune is obtained by means of a FFT. Refinement is obtained through a newton procedure.\\\cline{2-3}
+& TUNEFIT &	Computes the tune using a modified apa algorithm. The first step consists of taking the average of the tune computed with the APA method, then a best fit is performed.\\\cline{2-3}
+& TUNENEWT1 &	Computes the tune using a discrete version of laskar method. It includes a newton method for the search of the frequency.\\\cline{2-3}
+& TUNENEWT &	Computes the tune using a discrete version of laskar method. It includes a newton method for the search of the frequency.\\\cline{2-3}
+& TUNEABT &	Computes the tune using FFT interpolated method.\\\cline{2-3}
+& TUNEABT2 &	Computes the tune using the interpolated FFT method with hanning filter.\\\cline{2-3}
+& TUNEFFT &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$, where the maximum number of iterates is fixed in the parameter n.\\\cline{2-3}
+& TUNEFFTI &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$. Then, the FFT is interpolated fitting the three points around the maximum using a Gaussian. The tune is computed as the maximum of the Gaussian.\\\cline{2-3}
+& TUNEAPA &	Computes the tune as the average phase advance on a two dimensional plane, given n iterates of a map. \\\hline
+	\end{tabularx}
+\end{center}
+\end{table}
+\paragraph{Output file format}
+The FMA block returns the output files \verb|NORM_filename*| containing the normalized phase space coordinates, where \verb|filename| are the filenames specified in the dump block, and the file \verb|fma_sixtrack| containing the initial, average, minimum and maximum amplitudes and the calculated tunes for each specified filename and method. The structure of the \verb|NORM_filename*| is described in Table~\ref{fma:tab:2} and of the \verb|fma_sixtrack| in Table~\ref{fma:tab:3}.
+\begin{table}[H]
+	\begin{center}
+	\caption{Format of the NORM files}\label{fma:tab:2}
+	\begin{tabularx}{\textwidth}{|c|c|X|}
+		\hline
+		{\bf Line Number} & {\bf Type} & {\bf Description} \\
+		\hline
+		1 & header & closed orbit  $x$,$x'$,$y$,$y'$,$z$,$dE/E$, units are $[\rm mm,mrad,mm,mrad,1]$. \\\hline
+		2-38 & header & matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$. \\\hline
+		39-75 & header & inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \hbox{$z_{\rm norm}=\rm{ta}\cdot z$}. Matrix \texttt{inv(tamatrix)} is given in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$.\\\hline
+		76 & header & header with units:\\
+		& & \verb| # id turn pos[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)]| \\
+		& & \quad \verb| ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] |\\
+		& & \quad \verb| ndp/p[1.e-3 sqrt(m)] kt| \\\hline
+		77 - eof & Lines & see header in line 76: particle id, turn number position s[m], normalized coordinates $[10^{-3} \sqrt{\rm m}]$, ktrack (type of element)\\\hline
+	\end{tabularx}
+\end{center}
+\end{table}
+
+\begin{table}[H]
+	\begin{center}
+		\caption{Format of the fma\_sixtrack file}\label{fma:tab:3}
+		\begin{tabularx}{\textwidth}{|c|c|X|}
+			\hline
+			{\bf Line Number} & {\bf Type} & {\bf Description} \\
+			\hline
+			1-2 & header & header with units and description:\\
+			& & \verb|   # eps0*,eps2*,eps3* all in 1.e-6*m,     phi* [rad] | \\
+			& & \verb|  # inputfile method id q1 q2 q3 eps1_min eps2_min eps3_min | \\
+			& & \quad \verb| eps1_max eps2_max eps3_max eps1_avg eps2_avg eps3_avg |\\
+			& & \quad \verb| eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0| \\\hline
+			3 - eof & Lines & see header in line 1-2: The lines are ordered as particles 1-npart for (inputfile1,method1), then  particles 1-npart for (inputfile2,method2), etc.. The minimum (min), maximum (max) and average (avg) are taken over the number of turns in the inputfile (fiel specified in the FMA and DUMP block). Units are $\mu \rm m$ for \verb|eps*| and rad for \verb|phi*|, where \verb|phi*| is the angle in the normalized phase space coordinates.\\\hline
+		\end{tabularx}
+	\end{center}
+\end{table}
+\paragraph{Example}
+An input block to compare the tunes at element IP3 calculated over the interval $[1,4096]$ and $[5905,10000]$, and using the method \verb|TUNELASK| would look like:
+\begin{verbatim}
+DUMP
+IP3 1 1030 2 IP3_DUMP_1 1 4096
+IP3..1 1 1031 2 IP3_DUMP_2 5905 10000
+IP3..2 1 1032 2 IP3_DUMP_3 1 4096
+IP3..3 1 1033 2 IP3_DUMP_4 5905 10000
+NEXT
+LINE
+ELEMENT  0 2 1 3.75 3.75
+NEXT
+FMA
+IP3_DUMP_1 TUNELASK
+IP3_DUMP_2 TUNELASK
+IP3_DUMP_3 TUNELASK 0
+IP3_DUMP_4 TUNELASK 0
+NEXT
+\end{verbatim}
+where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). 
+
+Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
 
 \chapter*{Conclusions}
 
@@ -2870,6 +3014,7 @@ code of Hirata~\cite{Hirata}.
   Seed for the Random Generator &~\ref{FluNum} & \pageref{FluNum} \\*
   \rule[-2mm]{0mm}{5mm}
   & & Starting Number & & & & \\
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & FMA & & variable & Frequency Map Analysis &~\ref{sec:FMA} & \pageref{sec:FMA} \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & FREE & $
   1^{st} $ Program Version & 0 & Free Format Input from one
   File &~\ref{ProVer} & \pageref{ProVer} \\
@@ -3319,13 +3464,17 @@ The program uses a couple of files for its input and output procedures.
   & & & & (only during initialization) \\
   \hline \rule[-3.75mm]{0mm}{10mm}
   665 & & X & Ascii & DYNK output file \texttt{dynksets.dat} \\
-  \hline
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  2001001 & & X & Ascii & FMA output file \texttt{fma\_sixtrack} \\\hline \rule[-3.75mm]{0mm}{10mm}
+  200101+i*10 & & X & Ascii & FMA output file \texttt{NORM\_*}, \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & where $i=1,\ldots,\mathrm{number \ of \ FMAs}$ \\\hline
 \end{longtable}
 \end{center}
 
 %\clearpage
 
-In addition to those files listed in the table, DUMP use arbitary file unit numbers as determined by the input file. The collimation module also uses many input/output files at various units, which are not listed here.
+In addition to those files listed in the table, DUMP uses arbitary file unit numbers as determined by the input file. The collimation module also uses many input/output files at various units, which are not listed here.
 
 \chapter{Data Structure of the Data--Files} \label{Header}
 
@@ -4028,6 +4177,15 @@ summary of the post--processing is given.
   ``Comparison of methods to determine long--term stability in proton
   storage rings'', 1991, Particle Accelerators, Vol. \underline{35},
   pp. 249--256.  
+
+\bibitem{plato1} R.~Bartolini, A.~Bazzani, M.~Giovannozzi, W.~Scandale, E.~Todesco,``Tune evaluation in simulations and experiments'',Part. Accel. 52 147
+
+\bibitem{plato2} M.~Giovannozzi, E.~Todesco, A.~Bazzani and R.~Bartolini (1997). ``PLATO: a program library for the analysis of nonlinear betatronic motion'', Nucl. Instrum. and Methods A 388 1
+
+\bibitem{sixdesk1} SixDesk manual, see SixTrack website, \url{http://sixtrack.web.cern.ch/SixTrack/}
+
+\bibitem{sixdesk2} SixDesk manual, \url{https://www.overleaf.com/1345694dwypbp#/3325092/}
+
 %
 %\bibitem{PATRAC} A.~Hilaire and A.~Warman, ``A
 %  program for single particle tracking'', CERN SPS/88--8 (AMS).
@@ -4048,6 +4206,7 @@ summary of the post--processing is given.
 \addcontentsline{toc}{chapter}{Bibliography}
 
 \end{thebibliography}
+
 \end{document}
 
 % \chapter{MAD SixTrack Convertor} \label{MADSIXC}
