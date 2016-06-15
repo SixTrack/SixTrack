@@ -15,6 +15,7 @@
 import struct
 import os
 import numpy as np
+import gzip
 
 def _read(fh,fmt):
   out={}
@@ -71,7 +72,13 @@ energy   1d Energy (Mev)
 """
 
 def read_fortbin(fn):
-  fh=open(fn,'rb')
+  if os.path.isfile(fn):
+    fh=open(fn,'rb')
+  elif os.path.isfile(fn+'.gz'):
+    fh=gzip.open(fn+'.gz','rb')
+  else:
+    print 'ERROR: file %s not found!'%fn
+    return
   header=_read(fh,fmt_head)
   partfirst=header['partfirst']
   partlast=header['partlast']
