@@ -26106,6 +26106,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
           if (.not.restart) then
 +ei
++if .not.stf
           write(91-ia2,iostat=ierro) sixtit,commen,cdate, ctime,progrm, &
      &ia,ia,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),clo6v     &
      &(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v(3,ia),        &
@@ -26128,6 +26129,35 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           endfile (91-ia2,iostat=ierro)
           backspace (91-ia2,iostat=ierro)
           binrecs(ia2)=1
+          endif
++ei
++ei
++if stf
+	  if (ia.eq.1) then
+          write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
+     &ia,ia,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),clo6v     &
+     &(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v(3,ia),        &
+     &clop6v(3,ia), di0xs(ia),dip0xs(ia),di0zs(ia),dip0zs(ia),zero,     &
+     &one, tas(ia,1,1),tas(ia,1,2),tas(ia,1,3),tas(ia,1,4),tas          &
+     &(ia,1,5), tas(ia,1,6), tas(ia,2,1),tas(ia,2,2),tas(ia,2,3),tas    &
+     &(ia,2,4),tas(ia,2,5), tas(ia,2,6), tas(ia,3,1),tas(ia,3,2),tas    &
+     &(ia,3,3),tas(ia,3,4),tas(ia,3,5), tas(ia,3,6), tas(ia,4,1),tas    &
+     &(ia,4,2),tas(ia,4,3),tas(ia,4,4),tas(ia,4,5), tas(ia,4,6), tas    &
+     &(ia,5,1),tas(ia,5,2),tas(ia,5,3),tas(ia,5,4),tas(ia,5,5), tas     &
+     &(ia,5,6), tas(ia,6,1),tas(ia,6,2),tas(ia,6,3),tas(ia,6,4),tas     &
+     &(ia,6,5), tas(ia,6,6),                                            &
+     &dble(mmac),dble(nms(ia)),dble(izu0),                              &
+     &dble(numlr),sigcor,dpscor,zero,zero,zero,zero,                    &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
++if cr
+          endfile (90,iostat=ierro)
+          backspace (90,iostat=ierro)
+          binrecs(ia2)=1
+          endif
++ei
           endif
 +ei
         else
@@ -26154,6 +26184,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
           if (.not.restart) then
 +ei
++if .not.stf
           write(91-ia2,iostat=ierro) sixtit,commen,cdate, ctime,progrm, &
      &ia,ia+1,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),        &
      &clo6v(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v          &
@@ -26177,6 +26208,35 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           backspace (91-ia2,iostat=ierro)
           binrecs(ia2)=1
           endif
++ei
++ei
++if stf
+	  if (ia.eq.1) then
+          write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
+     &ia,ia+1,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),        &
+     &clo6v(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v          &
+     &(3,ia),clop6v(3,ia), di0xs(ia),dip0xs(ia),di0zs(ia),dip0zs        &
+     &(ia),zero,one, tas(ia,1,1),tas(ia,1,2),tas(ia,1,3),tas            &
+     &(ia,1,4),tas(ia,1,5), tas(ia,1,6), tas(ia,2,1),tas(ia,2,2),tas    &
+     &(ia,2,3),tas(ia,2,4),tas(ia,2,5), tas(ia,2,6), tas(ia,3,1),tas    &
+     &(ia,3,2),tas(ia,3,3),tas(ia,3,4),tas(ia,3,5), tas(ia,3,6), tas    &
+     &(ia,4,1),tas(ia,4,2),tas(ia,4,3),tas(ia,4,4),tas(ia,4,5), tas     &
+     &(ia,4,6), tas(ia,5,1),tas(ia,5,2),tas(ia,5,3),tas(ia,5,4),tas     &
+     &(ia,5,5), tas(ia,5,6), tas(ia,6,1),tas(ia,6,2),tas(ia,6,3),tas    &
+     &(ia,6,4),tas(ia,6,5), tas(ia,6,6),                                &
+     &dble(mmac),dble(nms(ia)),dble(izu0),                              &
+     &dble(numlr),sigcor,dpscor,zero,zero,zero,zero,                    &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
++if cr
+          endfile (90,iostat=ierro)
+          backspace (90,iostat=ierro)
+          binrecs(ia2)=1
+          endif
++ei
+	  endif
 +ei
         endif
         if(ierro.ne.0) then
@@ -34042,15 +34102,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             ia2=(nlostp(ia)+1)/2
             ie=ia+1
             if(ntwin.ne.2) then
++if .not.stf
               write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
      &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0
               endfile (91-ia2,iostat=ierro)
               backspace (91-ia2,iostat=ierro)
++ei
++if stf
+              write(90,iostat=ierro)                                    &
+     &numx,nlostp(ia),dam(ia),                                          &
+     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0
+              endfile (90,iostat=ierro)
+              backspace (90,iostat=ierro)
++ei
 +if cr
               binrecs(ia2)=binrecs(ia2)+1
 +ei
             else
++if .not.stf
               write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
      &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0,        &
@@ -34058,6 +34128,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),e0
               endfile (91-ia2,iostat=ierro)
               backspace (91-ia2,iostat=ierro)
++ei
++if stf
+              write(90,iostat=ierro)                                    &
+     &numx,nlostp(ia),dam(ia),                                          &
+     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0,        &
+     &nlostp(ia)+1,dam(ia),                                             &
+     &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),e0
+              endfile (90,iostat=ierro)
+              backspace (90,iostat=ierro)
++ei
 +if cr
               binrecs(ia2)=binrecs(ia2)+1
 +ei
