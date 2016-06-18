@@ -25234,6 +25234,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei
 +ei
++if .not.stf
         do 70 i=1,ndafi
 +if .not.cr
           call postpr(91-i)
@@ -25245,6 +25246,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           call postpr(91-i,nnuml)
 +ei
    70   continue
++ei
++if stf
+!         code for postprocessing for singletrackfile
++ei
         call sumpos
         goto 520
       endif
@@ -26733,6 +26738,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei
 +ei
++if .not.stf
         iposc=0
         if(ipos.eq.1) then
           do 480 ia=1,napxo,2
@@ -26768,6 +26774,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   510     if(ndafi.ge.1) call sumpos
         endif
   520 continue
++ei
++if stf
+!       code for postprocessing when singletrackfile
++ei
 !--HPLOTTING END
       if(ipos.eq.1.and.                                                 &
      &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
