@@ -1708,9 +1708,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         strack(i)=zero
         strackx(i)=ed(IX)
         strackz(i)=ek(IX)
-+cd hel
-! hel parameters are defined in separate HEL block
-        strack(i)=zero
 +cd stra03
 +if .not.tilt
         strack(i)=smiv(1,i)*c1m3
@@ -5234,7 +5231,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +cd beams1
-!--beam-beam element
+!start: beam-beam element
       if(nbeam.ge.1) then
         do 15 i=1,nbb
           nbeaux(i)=0
@@ -5282,6 +5279,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           endif
         enddo
       endif
+!end: beam-beam element
 +cd beams21
 !--beam-beam element
 !hr08   if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.0) then
@@ -5345,6 +5343,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd wirektrack
         if(kzz.eq.15) then
           ktrack(i)=45
+          goto 290
+        endif
+!Hollow electron lens
++cd hel
+        if(kzz.eq.29) then
+          ktrack(i)=63
           goto 290
         endif
 +cd crab1
@@ -27394,6 +27398,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beama4o
 +ca beams24
 +ca wirektrack
++ca hel
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -27486,11 +27491,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   146   continue
 +ca solenoid
         ktrack(i)=56
-        goto 290
-!--hel
-  147   continue
-+ca hel
-        ktrack(i)=63
         goto 290
 !--Multipole block (also in initialize_element)
   150   r0=ek(ix)
@@ -35252,6 +35252,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beama4o
 +ca beams24
 +ca wirektrack
++ca hel
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -35344,11 +35345,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   146   continue 
 +ca solenoid
         ktrack(i)=56
-        goto 290
-!--hel
-  147   continue
-+ca hel
-        ktrack(i)=63
         goto 290
 !--Multipole block (also in initialize_element)
   150   r0=ek(ix)
