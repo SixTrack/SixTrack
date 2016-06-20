@@ -2058,6 +2058,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !hr02&rvv(j)*ejf0v(j)/ejfv(j)*ejf0v(j)/ejfv(j)
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
++cd kickhel ! i = element, j = particle
+            yv(1,j)=yv(1,j)+1.e-9
+            yv(2,j)=yv(2,j)+1.e-9
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -29191,7 +29194,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !30
      &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370, !40
      &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630, !50
-     &         745, 746, 751,  752, 753, 754),ktrack(i) !ktrack=1 -> goto 10, 630 = skip element,...
+     &         745, 746, 751,  752, 753, 754, 761),ktrack(i) !ktrack=1 -> goto 10, 630 = skip element,...
           goto 630
    10     stracki=strack(i) 
           if(iexact.eq.0) then ! exact drift
@@ -29534,6 +29537,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   754      continue
          do j=1,napx
 +ca kickvso1
+         enddo
+          goto 620
+!--hel
+  761      continue
+         do j=1,napx
++ca kickhel
          enddo
           goto 620
 
@@ -30398,7 +30407,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
      &650,650,650,650,650,745,746,751,752,753,754,755,758,756,759,757,  &
-     &760),ktrack(i)
+     &760,761),ktrack(i)
 +ei
 +if collimat
 !          if (myktrack .eq. 1) then !BLOCK of linear elements
@@ -30412,7 +30421,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        640, 410, 250, 270, 290, 310, 330, 350, 370, 390, !40
      &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !50
      &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !60
-     &        757, 760 ),myktrack
+     &        757, 760, 761 ),myktrack
           write (*,*) "WARNING: Non-handled element in thin6d()!",
      &                " i=", i, "ix=", ix, "myktrack=",  myktrack,
      &                " bez(ix)='", bez(ix),"' SKIPPED"
@@ -32864,6 +32873,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 640
+!--hel
+  761      continue
+         do j=1,napx
++ca kickhel
+         enddo
+         goto 640
 !----------------------------
 
 ! Wire.
@@ -33840,7 +33855,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
      &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
      &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752,753,754),ktrack(i)
+     &650,650,650,650,650,745,746,751,752,753,754,761),ktrack(i)
           goto 650
    10     stracki=strack(i)
           if(iexact.eq.0) then
@@ -34248,6 +34263,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 640
+!--hel
+  761      continue
+         do j=1,napx
++ca kickhel
+         enddo
+         goto 640
 
 !----------------------------
 
@@ -35690,7 +35711,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             goto(20,480,740,480,480,480,480,480,480,480,40,60,80,100,   &
      &120,140,160,180,200,220,270,290,310,330,350,370,390,410,          &
      &430,450,470,240,500,520,540,560,580,600,620,640,680,700,720,      &
-     &480,748,480,480,480,480,480,745,746,751,752,753,754),ktrack(i)
+     &480,748,480,480,480,480,480,745,746,751,752,753,754,761),ktrack(i)
             goto 480
    20       do 30 j=1,napx
               puxve=xv(1,j)
@@ -36048,6 +36069,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso1
           enddo
           goto 470
+!--hel
+  761      continue
+         do j=1,napx
++ca kickhel
+         enddo
+         goto 470
 
 !----------------------------
 
@@ -36265,7 +36292,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753,754),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752,753,754,761)         &
+     &,ktrack(i)
             goto 500
    20       jmel=mel(ix)
 +if bnlelens
@@ -36717,6 +36745,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 490
+!--hel
+  761      continue
+         do j=1,napx
++ca kickhel
+         enddo
+         goto 490
 
 !----------------------------
 
@@ -36935,7 +36969,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
      &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
      &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753,754),ktrack(i)
+     &,730,748,500,500,500,500,500,745,746,751,752,753,754,761),        &
+     &ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do 30 jb=1,jmel
@@ -37345,6 +37380,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 490
+!--hel
+  761      continue
+         do j=1,napx
++ca kickhel
+         enddo
+         goto 490
 
 !----------------------------
 
