@@ -1139,7 +1139,7 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd hel
++cd helparam
 !     M. Fitterer, for CERN BE-ABP/HSS and FNAL
 !     Common block for hollow electron lens definition
       integer, parameter :: hel_num_max = 200 ! maximum number of single element hels
@@ -1708,6 +1708,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         strack(i)=zero
         strackx(i)=ed(IX)
         strackz(i)=ek(IX)
++cd hel
+! hel parameters are defined in separate HEL block
+        strack(i)=zero
 +cd stra03
 +if .not.tilt
         strack(i)=smiv(1,i)*c1m3
@@ -13343,7 +13346,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca fma
-+ca hel
++ca helparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -27484,6 +27487,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca solenoid
         ktrack(i)=56
         goto 290
+!--hel
+  147   continue
++ca hel
+        ktrack(i)=63
+        goto 290
 !--Multipole block (also in initialize_element)
   150   r0=ek(ix)
         nmz=nmu(ix)
@@ -35337,6 +35345,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca solenoid
         ktrack(i)=56
         goto 290
+!--hel
+  147   continue
++ca hel
+        ktrack(i)=63
+        goto 290
 !--Multipole block (also in initialize_element)
   150   r0=ek(ix)
         nmz=nmu(ix)
@@ -39441,7 +39454,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca comdynkcr
 +ei
-+ca hel
++ca helparam
       save
 !-----------------------------------------------------------------------
 !
