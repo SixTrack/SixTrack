@@ -1139,6 +1139,19 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd hel
+!     M. Fitterer, for CERN BE-ABP/HSS and FNAL
+!     Common block for hollow electron lens definition
+      integer, parameter :: hel_num_max = 200 ! maximum number of single element hels
+      integer :: hel_num
+      character hel_name  (hel_num_max)*(getfields_l_max_string)! name of elens
+      double precision :: hel_theta_max(hel_num_max) ! maximum kick strength [mrad]
+      double precision :: hel_r2(hel_num_max)        ! outer radius R2 [mm]
+      double precision :: hel_r2ovr1(hel_num_max)    ! R2/R1 where R1 is the inner radius
+      double precision :: hel_offset_x(hel_num_max),
+     &hel_offset_y(hel_num_max) ! hor./vert. offset of HEL [mm]
+      integer :: hel_bend_entrance(hel_num_max),
+     &hel_bend_exit(hel_num_max) ! switch for HEL bends
 +cd fma
 !     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
 !     Common block for the FMA analysis postprocessing
@@ -4309,7 +4322,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
         crabfreq=ek(ix)*c1e3
 
-        do j=1,napx
+        do j=1,napx ! loop over particles
 !hr03    crabamp=ed(ix)/(ejfv(j))*c1e3
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
 
@@ -13327,6 +13340,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca fma
++ca hel
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -13350,6 +13364,9 @@ cc2008
 !     - fma
       character*16 fma
       data fma /'FMA'/
+!     - hel
+      character*16 hel
+      data hel /'HEL'/
 
       save
 !-----------------------------------------------------------------------
@@ -13598,6 +13615,7 @@ cc2008
 !     always in main code
       if(idat.eq.dynk) goto 2200
       if(idat.eq.fma) goto 2300
+      if(idat.eq.hel) goto 2400
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -13668,7 +13686,7 @@ cc2008
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
-     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i) !read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam
 +if crlibm
       call disable_xp()
 +ei
@@ -18415,6 +18433,81 @@ cc2008
       write (lout,*) "*****************************"
 +ei
       call prror(51)
+!-----------------------------------------------------------------------
+!  Hollow Electron Lense
+!  M. Fitterer,  FNAL
+!  last modified: 20-06-2016
+!  always in main code
+!-----------------------------------------------------------------------
+ 2400 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+         goto 110 ! loop to next BLOCK in fort.3
+      endif
+ 
+      if(hel_num.ge.hel_num_max) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR: you can only define ',hel_num_max,' number of HEL!'
+        call prror(-1) 
+      endif
+
+      hel_num=hel_num+1 !Initially initialized to 0 in COMNUL
+!     read in input parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in HEL block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+      if(getfields_nfields.ne.8) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in HEL block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 8'
+        call prror(-1)
+      endif
+
+      hel_name(hel_num)  =
+     &     getfields_fields(1)(1:getfields_lfields(1))
+      read (getfields_fields(2)(1:getfields_lfields(2)),*)
+     &hel_theta_max(hel_num)
+      read (getfields_fields(3)(1:getfields_lfields(3)),*)
+     &hel_r2(hel_num)
+      read (getfields_fields(4)(1:getfields_lfields(4)),*)
+     &hel_r2ovr1(hel_num)
+      read (getfields_fields(5)(1:getfields_lfields(5)),*)
+     &hel_offset_x(hel_num)
+      read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     &hel_offset_y(hel_num)
+      read (getfields_fields(7)(1:getfields_lfields(7)),'(I10)')
+     &hel_bend_entrance(hel_num)
+      read (getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
+     &hel_bend_exit(hel_num)
+      write (*,*) 'MF: HEL param:',hel_num,hel_name(hel_num),
+     &hel_theta_max(hel_num),hel_r2(hel_num),hel_r2ovr1(hel_num),
+     &hel_offset_x(hel_num),hel_offset_y(hel_num),
+     &hel_bend_entrance(hel_num),hel_bend_exit(hel_num)
+      goto 2400
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !  FMA
 !  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
@@ -29045,7 +29138,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do 640, n=numlcr,nnuml
 +ei
 +if .not.cr
-      do 640 n=1,numl
+      do 640 n=1,numl !loop over turns
 +ei
 +if boinc
 !        call boinc_sixtrack_progress(n,numl)
@@ -29074,7 +29167,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
 
 
-        do 630 i=1,iu
+        do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order or single elements
 +if bnlelens
 +ca bnltwiss
 +ei
@@ -29098,10 +29191,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !30
      &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370, !40
      &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630, !50
-     &         745, 746, 751,  752, 753, 754),ktrack(i)
+     &         745, 746, 751,  752, 753, 754),ktrack(i) !ktrack=1 -> goto 10, 630 = skip element,...
           goto 630
-   10     stracki=strack(i)
-          if(iexact.eq.0) then
+   10     stracki=strack(i) 
+          if(iexact.eq.0) then ! exact drift
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
               xv(2,j)=xv(2,j)+stracki*yv(2,j)
@@ -29112,7 +29205,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           goto 630
 !--HORIZONTAL DIPOLE
    30     do 40 j=1,napx
-+ca kickv01h
++ca kickv01h ! astuce block with kick for element
    40     continue
           goto 620
 !--NORMAL QUADRUPOLE
@@ -39307,6 +39400,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca comdynkcr
 +ei
++ca hel
       save
 !-----------------------------------------------------------------------
 !
@@ -39846,6 +39940,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         dumpfilepos(i) = -1
 +ei
       enddo
+!--FMA ANALYSIS---------------------------------------------------------
+!     M. Fitterer, FNAL
+!     last modified: 2016
       fma_flag = .false.
       fma_numfiles = 0
       do i=1,fma_max
@@ -39856,7 +39953,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           fma_method(i)(j:j) = char(0)
         enddo
       enddo
-
+!--HEL - HOLLOW ELECTRON LENSE---------------------------------------------------------
+!     M. Fitterer, FNAL
+!     last modified: 2016
+      hel_num = 0
+      do i=1,hel_num_max
+        hel_theta_max(i) = 0
+        hel_r2(i) = 0
+        hel_r2ovr1(i) = 1.5
+        hel_offset_x(i) = 0
+        hel_offset_y(i) = 0
+        hel_bend_entrance(i) = 0
+        hel_bend_exit(i) = 0
+        do j=1,getfields_l_max_string
+          hel_name(i)(j:j) = char(0)
+        enddo
+      enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 03-09-2014
