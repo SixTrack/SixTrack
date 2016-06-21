@@ -77,6 +77,21 @@ DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(ENABLED))_O$(NOPT)
 $(info Final Options after resolving dependencies: $(OPTIONS))
 $(info Sixtrack build dir: $(DESTDIR))
 
+#Source checks
+ifneq ($(shell gawk -f beauty/count.awk sixtrack.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/count.awk sixtrack.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/count.awk plato_seq.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/count.awk plato_seq.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/check_astuce_ifs.awk sixtrack.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/check_astuce_ifs.awk sixtrack.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/check_astuce_ifs.awk plato_seq.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/check_astuce_ifs.awk plato_seq.s' failed!")
+endif
+$(info Source code checks PASS!)
+
 # compilers configuration
 # currently supported ifort and gfortran
 # detecting the selected compiler. If none selected, gfortran is default
