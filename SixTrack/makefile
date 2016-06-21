@@ -5,7 +5,6 @@
 # |  TODO:
 # |  hdf5
 # |  g77, g95, lf95, nagfor
-# |  logic for 64bit
 # |
 # |
 # o---------------------------------------------------------------------o
@@ -196,27 +195,10 @@ ifeq ($(filter boinc,$(ENABLED)),boinc)
   BOINC_O_FILES  :=  boinc_api_fortran.o boinc_zipitall.o
 endif
 
-# prepare AST rule files for ASTUCE and DAFOR
-MASKS_DAFOR := sixvefox sixscfox sixda
-
 #different masks depending on DA
 MASKS_DA   := lielib dabnews sixscfox sixsc sixda
 MASKS_OT   := track sixve sixvefox dabnews lielib beamgas plato_seq
 MASKS      := $(call if_any,da,$(ENABLED),$(MASKS_DA),$(MASKS_OT))
-
-# preparing fortran files to be preprocessed with dafor. 
-# variable is empty if to be preprocessed by dafor, else contains a comment
-# added the d to the name to not conflict with options management
-sixvefox_dafor  := 
-sixscfox_dafor  := 
-sixda_dafor     := 
-lielib_dafor    := \#
-dabnews_dafor   := \#
-sixsc_dafor     := \#
-track_dafor     := \#
-sixve_dafor     := \#
-beamgas_dafor   := \#
-
 
 #detecting operating system
 OPSYS := $(shell uname -s)
