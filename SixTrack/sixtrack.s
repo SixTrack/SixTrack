@@ -249,7 +249,8 @@
      &napxo,nbeam,nch,ncororb,ncorrep,ncorru,ncy,ndafi,nde,nhcorr,      &
      &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrr,nskew,                 &
      &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
-     &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml
+     &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml,  &
+     &inhel,exhel
       double precision a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
      &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
@@ -262,7 +263,7 @@
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4,lhel,tmaxhel,r2hel,r2ovr1hel,oxhel,     &
-     &oyhel,inhel,exhel
+     &oyhel
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -2061,8 +2062,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickhel ! i = element, j = particle
-            yv(1,j)=yv(1,j)+1.e-9
-            yv(2,j)=yv(2,j)+1.e-9
+            write(*,*) 'MF: tracking HEL'
+            yv(1,j)=yv(1,j)
+            yv(2,j)=yv(2,j)
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -5347,8 +5349,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           ktrack(i)=45
           goto 290
         endif
-!Hollow electron lens
 +cd hel
+!Hollow electron lens (HEL)
         if(kzz.eq.29) then
           ktrack(i)=63
           goto 290
@@ -13841,6 +13843,8 @@ cc2008
       if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) )kp(i)=0
       bez(i)=idat
       bez0(i)=idat
+      write(*,*) 'MF: single element parameters 1 - ',idat,bez(i),kz(i),
+     &ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
       if(ncy2.eq.0) then
         !If no active RF cavities are seen so far in the single element list,
         ! add a CAV element to the end of the list.
@@ -13857,8 +13861,8 @@ cc2008
         il=i
         i=i+1
       endif
-      write(*,*) 'MF: single element parameters',idat,bez(i),kz(i),ed(i)
-     &,ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+      write(*,*) 'MF: single element parameters 2 - ',idat,bez(i),kz(i),
+     &ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
       goto 130
 !-----------------------------------------------------------------------
 !  DATENBLOCK DISPLACEMENT OF ELEMENTS
@@ -18011,6 +18015,133 @@ cc2008
       enddo
       goto 1700
 !-----------------------------------------------------------------------
+!  Hollow Electron Lense, kz=29,ktrack=63
+!  M. Fitterer,  FNAL
+!  last modified: 20-06-2016
+!-----------------------------------------------------------------------
+ 2400 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+! check if HELs occur in single element list -> if yes set parameters
+! inserted here in order to loop only once over single element list
+        do j=1,nele !loop over single elements
+          do j1=1,hel_num !loop over HELs
+            if(bez(j).eq.hel_name(j1)) then
+              if(kz(j).ne.29) then !check type parameter kz
++if cr
+                write(lout,*)
++ei
++if .not.cr
+                write(*,*)
++ei
+     &'ERROR: HEL ',bez(j),' found, mismatch in '//
+     &'type parameter, kz(',j,')=',kz(j),'!=29!'
+                call prror(-1) 
+              else
+! lhel(i) is defined in fort.2 single element block: el(i) is saved in
+! lhel(i) and then set to zero el(i)=0
+                tmaxhel(j)=hel_theta_max(j1)
+                r2hel(j)=hel_r2(j1)
+                r2ovr1hel(j)=hel_r2ovr1(j1)
+                oxhel(j)=hel_offset_x(j1)
+                oyhel(j)=hel_offset_y(j1)
+                inhel(j)=hel_bend_entrance(j1)
+                exhel(j)=hel_bend_exit(j1)
+                write(*,*) 'MF: HEL found with ',j1,j,bez(j),kz(j),el(j)
+     &,ed(j),ek(j),tmaxhel(j),r2hel(j),r2ovr1hel(j),oxhel(j),oyhel(j),
+     &inhel(j),exhel(j)
+              endif
+            endif
+          end do
+        enddo
+! loop to next BLOCK in fort.3
+        goto 110 
+      endif
+ 
+      if(hel_num.ge.nele) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR: you can only define ',nele,' number of HEL!'
+        call prror(-1) 
+      endif
+
+      hel_num=hel_num+1 !Initially initialized to 0 in COMNUL
+!     read in HEL parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in HEL block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+      if(getfields_nfields.ne.8) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in HEL block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 8'
+        call prror(-1)
+      endif
++if fio
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in HEL block: fortran IO format currently not ',
+     &       'supported!'
+        call prror(-1)
++ei
++if .not.fio
+      hel_name(hel_num)  =
+     &     getfields_fields(1)(1:getfields_lfields(1))
++if .not.crlibm
+      read (getfields_fields(2)(1:getfields_lfields(2)),*)
+     & hel_theta_max(hel_num)
+      read (getfields_fields(3)(1:getfields_lfields(3)),*)
+     & hel_r2(hel_num)
+      read (getfields_fields(4)(1:getfields_lfields(4)),*)
+     & hel_r2ovr1(hel_num)
+      read (getfields_fields(5)(1:getfields_lfields(5)),*)
+     & hel_offset_x(hel_num)
+      read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     & hel_offset_y(hel_num)
++ei
++if crlibm
+      hel_theta_max(hel_num)=fround(errno,getfields_fields,2)
+      hel_r2(hel_num)=fround(errno,getfields_fields,3)
+      hel_r2ovr1(hel_num)=fround(errno,getfields_fields,4)
+      hel_offset_x(hel_num)=fround(errno,getfields_fields,5)
+      hel_offset_y(hel_num)=fround(errno,getfields_fields,6)
++ei
+      read (getfields_fields(7)(1:getfields_lfields(7)),'(I10)')
+     &hel_bend_entrance(hel_num)
+      read (getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
+     &hel_bend_exit(hel_num)
+      write (*,*) 'MF: HEL param:',hel_num,hel_name(hel_num),
+     &hel_theta_max(hel_num),hel_r2(hel_num),hel_r2ovr1(hel_num),
+     &hel_offset_x(hel_num),hel_offset_y(hel_num),
+     &hel_bend_entrance(hel_num),hel_bend_exit(hel_num)
++ei
+      goto 2400
+!-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
 !  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
 !  K.Sjobak, BE-ABP/HSS
@@ -18451,80 +18582,6 @@ cc2008
       write (lout,*) "*****************************"
 +ei
       call prror(51)
-!-----------------------------------------------------------------------
-!  Hollow Electron Lense
-!  M. Fitterer,  FNAL
-!  last modified: 20-06-2016
-!  always in main code
-!-----------------------------------------------------------------------
- 2400 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
-
-      if (ch(:4).eq.next) then
-         goto 110 ! loop to next BLOCK in fort.3
-      endif
- 
-      if(hel_num.ge.nele) then
-+if cr
-        write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-     &       'ERROR: you can only define ',nele,' number of HEL!'
-        call prror(-1) 
-      endif
-
-      hel_num=hel_num+1 !Initially initialized to 0 in COMNUL
-!     read in input parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,
-     &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) then
-+if cr
-        write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-     &       'ERROR in HEL block: getfields_lerr=', getfields_lerr
-        call prror(-1)
-      endif
-      if(getfields_nfields.ne.8) then
-+if cr
-        write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-     &       'ERROR in HEL block: wrong number of input ',
-     &       'parameters: ninput = ', getfields_nfields, ' != 8'
-        call prror(-1)
-      endif
-
-      hel_name(hel_num)  =
-     &     getfields_fields(1)(1:getfields_lfields(1))
-      read (getfields_fields(2)(1:getfields_lfields(2)),*)
-     &hel_theta_max(hel_num)
-      read (getfields_fields(3)(1:getfields_lfields(3)),*)
-     &hel_r2(hel_num)
-      read (getfields_fields(4)(1:getfields_lfields(4)),*)
-     &hel_r2ovr1(hel_num)
-      read (getfields_fields(5)(1:getfields_lfields(5)),*)
-     &hel_offset_x(hel_num)
-      read (getfields_fields(6)(1:getfields_lfields(6)),*)
-     &hel_offset_y(hel_num)
-      read (getfields_fields(7)(1:getfields_lfields(7)),'(I10)')
-     &hel_bend_entrance(hel_num)
-      read (getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
-     &hel_bend_exit(hel_num)
-      write (*,*) 'MF: HEL param:',hel_num,hel_name(hel_num),
-     &hel_theta_max(hel_num),hel_r2(hel_num),hel_r2ovr1(hel_num),
-     &hel_offset_x(hel_num),hel_offset_y(hel_num),
-     &hel_bend_entrance(hel_num),hel_bend_exit(hel_num)
-      goto 2400
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !  FMA
@@ -27413,10 +27470,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beama4o
 +ca beams24
 +ca wirektrack
-+ca hel
 +ca acdip1
 +ca crab1
 +ca crab_mult
++ca hel
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
@@ -29217,7 +29274,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !30
      &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370, !40
      &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630, !50
-     &         745, 746, 751,  752, 753, 754, 761),ktrack(i) !ktrack=1 -> goto 10, 630 = skip element,...
+     &         745, 746, 751,  752, 753, 754, 761),ktrack(i) ! 630 = skip element
           goto 630
    10     stracki=strack(i) 
           if(iexact.eq.0) then ! exact drift
@@ -29568,11 +29625,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickhel
          enddo
           goto 620
-
-
-!----------------------------
-
-! Wire.
+!--Wire
 
   748     continue
 +ca wire
@@ -40023,6 +40076,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     last modified: 2016
       hel_num = 0
       do i=1,nele
+! helparam - used for reading in from HEL block in fort.3
         hel_theta_max(i) = 0
         hel_r2(i) = 0
         hel_r2ovr1(i) = 1.5
@@ -40033,6 +40087,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         do j=1,getfields_l_max_string
           hel_name(i)(j:j) = char(0)
         enddo
+! HEL parameters (common variables) used in single element definition
+        lhel(i) = 0
+        tmaxhel(i) = 0
+        r2hel(i) = 0
+        r2ovr1hel(i) = 1.5
+        oxhel(i) = 0
+        oyhel(i) = 0
+        inhel(i) = 0
+        exhel(i) = 0
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
