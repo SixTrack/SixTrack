@@ -261,7 +261,8 @@
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
-     &crabph2, crabph3, crabph4
+     &crabph2, crabph3, crabph4,lhel,tmaxhel,r2hel,r2ovr1hel,oxhel,     &
+     &oyhel,inhel,exhel
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -331,6 +332,8 @@
      &nturn3(nele), nturn4(nele)
       common/crabco/ crabph(nele),crabph2(nele),                        &
      &crabph3(nele),crabph4(nele)
+      common/helco/ lhel(nele),tmaxhel(nele),r2hel(nele),               &
+     &r2ovr1hel(nele),oxhel(nele),oyhel(nele),inhel(nele),exhel(nele) !length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag)
 +cd commons
       integer idz,itra
 +if vvector
@@ -1142,16 +1145,15 @@
 +cd helparam
 !     M. Fitterer, for CERN BE-ABP/HSS and FNAL
 !     Common block for hollow electron lens definition
-      integer, parameter :: hel_num_max = 200 ! maximum number of single element hels
       integer :: hel_num
-      character hel_name  (hel_num_max)*(getfields_l_max_string)! name of elens
-      double precision :: hel_theta_max(hel_num_max) ! maximum kick strength [mrad]
-      double precision :: hel_r2(hel_num_max)        ! outer radius R2 [mm]
-      double precision :: hel_r2ovr1(hel_num_max)    ! R2/R1 where R1 is the inner radius
-      double precision :: hel_offset_x(hel_num_max),
-     &hel_offset_y(hel_num_max) ! hor./vert. offset of HEL [mm]
-      integer :: hel_bend_entrance(hel_num_max),
-     &hel_bend_exit(hel_num_max) ! switch for HEL bends
+      character hel_name  (nele)*(getfields_l_max_string)! name of elens
+      double precision :: hel_theta_max(nele) ! maximum kick strength [mrad]
+      double precision :: hel_r2(nele)        ! outer radius R2 [mm]
+      double precision :: hel_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
+      double precision :: hel_offset_x(nele),
+     &hel_offset_y(nele) ! hor./vert. offset of HEL [mm]
+      integer :: hel_bend_entrance(nele),
+     &hel_bend_exit(nele) ! switch for HEL bends
 +cd fma
 !     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
 !     Common block for the FMA analysis postprocessing
@@ -13524,6 +13526,8 @@ cc2008
       if(idat(1:1).eq.'/') goto 90
       if(idat.ne.free.and.idat.ne.geom) call prror(1)
       imod=1
+! imod=1: free, definition of elements in fort.3
+! imod=2: geom, definition of elements in fort.2
       if(idat.eq.geom) imod=2
 +if cr
       write(lout,10130)
@@ -13568,6 +13572,7 @@ cc2008
         nunit=2
         lineno2=lineno2+1
         if(idat(1:1).eq.'/') goto 100
+! single elements
         if(idat.eq.sing) goto 120
 +if cr
           write(lout,*) "idat = '"//idat//"'"
@@ -13689,14 +13694,14 @@ cc2008
         endif
       enddo
  165  if(i1.gt.72) call prror(104)
-      call intepr(1,1,ch,ch1)
+      call intepr(1,1,ch,ch1) ! read in single element
 !     write (*,*) 'ch1:'//ch1//':'
 +if fio
 +if crlibm
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
-     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i) !read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam
+     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i) !read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
 +if crlibm
       call disable_xp()
 +ei
@@ -13704,15 +13709,15 @@ cc2008
 +if .not.fio
 +if .not.crlibm
 !     write (*,*) 'ERIC'
-      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)!read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
 !     write (*,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
       if (nunit.eq.2) then
-        call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields)
+        call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields) !fort.2 input
       elseif (nunit.eq.3) then
-        call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields)
+        call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields) !fort.3 input
       else
       call abend('ERIC!!! daten nunit NOT 2 nor 3!!!                ') 
       endif
@@ -13751,7 +13756,7 @@ cc2008
 +ei
 +ei
       !Check that the name is unique
-      do j=1,i-1
+      do j=1,i-1! i = index of current line
          if ( bez(j).eq.idat ) then
 +if cr
             write(lout,*) "ERROR in DATEN:"
@@ -13806,6 +13811,7 @@ cc2008
 !-- MULTIPOLES (11)
 !-- CAVITY (+/- 12)
 !-- CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
+!-- HOLLOW ELECTRON LENSE (29)
       call initialize_element(i,.true.)
 
 !--ACDIPOLE
@@ -13851,6 +13857,8 @@ cc2008
         il=i
         i=i+1
       endif
+      write(*,*) 'MF: single element parameters',idat,bez(i),kz(i),ed(i)
+     &,ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
       goto 130
 !-----------------------------------------------------------------------
 !  DATENBLOCK DISPLACEMENT OF ELEMENTS
@@ -14107,7 +14115,7 @@ cc2008
   500 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
+      if(ch(1:1).ne.'/') then !iclr = line number in initial coordinate block
         iclr=iclr+1
       else
         goto 500
@@ -18459,14 +18467,14 @@ cc2008
          goto 110 ! loop to next BLOCK in fort.3
       endif
  
-      if(hel_num.ge.hel_num_max) then
+      if(hel_num.ge.nele) then
 +if cr
         write(lout,*)
 +ei
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR: you can only define ',hel_num_max,' number of HEL!'
+     &       'ERROR: you can only define ',nele,' number of HEL!'
         call prror(-1) 
       endif
 
@@ -19456,7 +19464,7 @@ cc2008
 !--Multipoles
       elseif(kz(ix).eq.11) then
          
-         !MULT support removed untill we have a proper use case.
+         !MULT support removed until we have a proper use case.
 c$$$         if (lfirst) then
 c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
 c$$$            dynk_elemdata(ix,2) = ed(ix) !Bending strenght
@@ -19483,7 +19491,7 @@ c$$$         end if
          endif
          !Otherwise, i.e. when el=0, dki(:,1) = dki(:,2) = dki(:,3) = 0.0
 
-         !MULT support removed untill we have a proper use case.
+         !MULT support removed until we have a proper use case.
 c$$$         !All multipoles:
 c$$$         if(.not.lfirst) then
 c$$$            do i=1,iu
@@ -19591,6 +19599,13 @@ c$$$         endif
          !Moved from daten()
          crabph4(ix)=el(ix)
          el(ix)=0d0
+!--Hollow Electron Lense
+!  note: kz(ix) = +29 - profile is always radially symmetric
+      else if(abs(kz(ix)).eq.29) then
+         lhel(ix) = el(ix)
+         el(ix) =0d0
+         ed(ix) =0d0
+         ek(ix) =0d0
       endif
       
       return
@@ -40007,7 +40022,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     M. Fitterer, FNAL
 !     last modified: 2016
       hel_num = 0
-      do i=1,hel_num_max
+      do i=1,nele
         hel_theta_max(i) = 0
         hel_r2(i) = 0
         hel_r2ovr1(i) = 1.5
