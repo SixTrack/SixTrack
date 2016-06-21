@@ -31,7 +31,6 @@ ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collima
 
 DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
 DEFAULTS := $(filter-out $(remove),$(DEFAULTS))
-OPTIONS := $(filter-out fio,$(OPTIONS))
 SORTED_OPTIONS:= $(shell ./option_resolver.sh "$(DEFAULTS)" "$(add)" "$(remove)" "$(ALL_OPTIONS)")
 temp=$(shell echo "$(SORTED_OPTIONS)" | grep -o "error" )
 ifeq ($(temp),error)
