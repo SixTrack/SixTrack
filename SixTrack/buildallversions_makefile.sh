@@ -58,6 +58,10 @@ echo
 echo "da hdf5 (not actually compatible)"
 make add="da hdf5"       
 
+echo
+echo "naglib"
+make add="naglib"
+
 #Fails (bug):
 echo
 echo "da m64 naglib"
