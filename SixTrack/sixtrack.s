@@ -250,7 +250,7 @@
      &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrr,nskew,                 &
      &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
      &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml,  &
-     &inhel,exhel
+     &typehel,inhel,exhel
       double precision a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
      &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
@@ -333,8 +333,8 @@
      &nturn3(nele), nturn4(nele)
       common/crabco/ crabph(nele),crabph2(nele),                        &
      &crabph3(nele),crabph4(nele)
-      common/helco/ lhel(nele),tmaxhel(nele),r2hel(nele),               &
-     &r2ovr1hel(nele),oxhel(nele),oyhel(nele),inhel(nele),exhel(nele) !length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag)
+      common/helco/ typehel(nele),lhel(nele),tmaxhel(nele),r2hel(nele), &
+     &r2ovr1hel(nele),oxhel(nele),oyhel(nele),inhel(nele),exhel(nele) !type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag)
 +cd commons
       integer idz,itra
 +if vvector
@@ -1147,7 +1147,9 @@
 !     M. Fitterer, for CERN BE-ABP/HSS and FNAL
 !     Common block for hollow electron lens definition
       integer :: hel_num
-      character hel_name  (nele)*(getfields_l_max_string)! name of elens
+      character hel_name (nele)*(getfields_l_max_string)! name of elens
+      ! type of elens: annular (hollow elense, uniform profile)
+      character hel_type (nele)*(getfields_l_max_string)
       double precision :: hel_theta_max(nele) ! maximum kick strength [mrad]
       double precision :: hel_r2(nele)        ! outer radius R2 [mm]
       double precision :: hel_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
@@ -18048,7 +18050,29 @@ cc2008
         do j=1,nele !loop over single elements
           do j1=1,hel_num !loop over HELs
             if(bez(j).eq.hel_name(j1)) then
-              if(kz(j).ne.29) then !check type parameter kz
+              if(kz(j).eq.29) then !check type parameter kz
+! lhel(i) is defined in fort.2 single element block: el(i) is saved in
+! lhel(i) and then set to zero el(i)=0
+                select case (hel_type(j1))
+                  case ('ANNULAR') ! uniform annular profile
+                    typehel(j) = 1
+                  case default
+                    write(*,*) 'ERROR: HEL type ',hel_type(j1),' not ',
+     &'recognized! Options for type are (upper case letters): ANNULAR.'
+                    call prror(-1)
+                end select
+                tmaxhel(j)=hel_theta_max(j1)
+                r2hel(j)=hel_r2(j1)
+                r2ovr1hel(j)=hel_r2ovr1(j1)
+                oxhel(j)=hel_offset_x(j1)
+                oyhel(j)=hel_offset_y(j1)
+                inhel(j)=hel_bend_entrance(j1)
+                exhel(j)=hel_bend_exit(j1)
+                write(*,*) 'MF: HEL found with ',j,bez(j),kz(j),el(j)
+     &,ed(j),ek(j),typehel(j),tmaxhel(j),r2hel(j),r2ovr1hel(j),
+     &oxhel(j),oyhel(j),
+     &inhel(j),exhel(j)
+              else
 +if cr
                 write(lout,*)
 +ei
@@ -18058,19 +18082,6 @@ cc2008
      &'ERROR: HEL ',bez(j),' found: mismatch in '//
      &'type parameter, kz(',j,')=',kz(j),'!=29!'
                 call prror(-1) 
-              else
-! lhel(i) is defined in fort.2 single element block: el(i) is saved in
-! lhel(i) and then set to zero el(i)=0
-                tmaxhel(j)=hel_theta_max(j1)
-                r2hel(j)=hel_r2(j1)
-                r2ovr1hel(j)=hel_r2ovr1(j1)
-                oxhel(j)=hel_offset_x(j1)
-                oyhel(j)=hel_offset_y(j1)
-                inhel(j)=hel_bend_entrance(j1)
-                exhel(j)=hel_bend_exit(j1)
-                write(*,*) 'MF: HEL found with ',j,bez(j),kz(j),el(j)
-     &,ed(j),ek(j),tmaxhel(j),r2hel(j),r2ovr1hel(j),oxhel(j),oyhel(j),
-     &inhel(j),exhel(j)
               endif
             endif
           end do
@@ -18104,7 +18115,7 @@ cc2008
      &       'ERROR in HEL block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
-      if(getfields_nfields.ne.8) then
+      if(getfields_nfields.ne.9) then
 +if cr
         write(lout,*)
 +ei
@@ -18112,7 +18123,7 @@ cc2008
         write(*,*)
 +ei
      &       'ERROR in HEL block: wrong number of input ',
-     &       'parameters: ninput = ', getfields_nfields, ' != 8'
+     &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
       endif
 +if fio
@@ -18129,32 +18140,34 @@ cc2008
 +if .not.fio
       hel_name(hel_num)  =
      &     getfields_fields(1)(1:getfields_lfields(1))
+      hel_type(hel_num)  =
+     &     getfields_fields(2)(1:getfields_lfields(2))
 +if .not.crlibm
-      read (getfields_fields(2)(1:getfields_lfields(2)),*)
-     & hel_theta_max(hel_num)
       read (getfields_fields(3)(1:getfields_lfields(3)),*)
-     & hel_r2(hel_num)
+     & hel_theta_max(hel_num)
       read (getfields_fields(4)(1:getfields_lfields(4)),*)
-     & hel_r2ovr1(hel_num)
+     & hel_r2(hel_num)
       read (getfields_fields(5)(1:getfields_lfields(5)),*)
-     & hel_offset_x(hel_num)
+     & hel_r2ovr1(hel_num)
       read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     & hel_offset_x(hel_num)
+      read (getfields_fields(7)(1:getfields_lfields(7)),*)
      & hel_offset_y(hel_num)
 +ei
 +if crlibm
-      hel_theta_max(hel_num)=fround(errno,getfields_fields,2)
-      hel_r2(hel_num)=fround(errno,getfields_fields,3)
-      hel_r2ovr1(hel_num)=fround(errno,getfields_fields,4)
-      hel_offset_x(hel_num)=fround(errno,getfields_fields,5)
-      hel_offset_y(hel_num)=fround(errno,getfields_fields,6)
+      hel_theta_max(hel_num)=fround(errno,getfields_fields,3)
+      hel_r2(hel_num)=fround(errno,getfields_fields,4)
+      hel_r2ovr1(hel_num)=fround(errno,getfields_fields,5)
+      hel_offset_x(hel_num)=fround(errno,getfields_fields,6)
+      hel_offset_y(hel_num)=fround(errno,getfields_fields,7)
 +ei
-      read (getfields_fields(7)(1:getfields_lfields(7)),'(I10)')
-     &hel_bend_entrance(hel_num)
       read (getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
+     &hel_bend_entrance(hel_num)
+      read (getfields_fields(9)(1:getfields_lfields(9)),'(I10)')
      &hel_bend_exit(hel_num)
-      write (*,*) 'MF: HEL param:',hel_num,hel_name(hel_num),
-     &hel_theta_max(hel_num),hel_r2(hel_num),hel_r2ovr1(hel_num),
-     &hel_offset_x(hel_num),hel_offset_y(hel_num),
+      write (*,*) 'MF: HEL param:',hel_num,hel_type(hel_num),
+     &hel_name(hel_num),hel_theta_max(hel_num),hel_r2(hel_num),
+     &hel_r2ovr1(hel_num),hel_offset_x(hel_num),hel_offset_y(hel_num),
      &hel_bend_entrance(hel_num),hel_bend_exit(hel_num)
 +ei
       goto 2400
@@ -40106,6 +40119,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hel_bend_exit(i) = 0
         do j=1,getfields_l_max_string
           hel_name(i)(j:j) = char(0)
+          hel_type(i)(j:j) = char(0)
         enddo
 ! HEL parameters (common variables) used in single element definition
         lhel(i) = 0
