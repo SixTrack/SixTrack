@@ -5,7 +5,6 @@
 # |  TODO:
 # |  hdf5
 # |  g77, g95, lf95, nagfor
-# |  logic for 64bit
 # |
 # |
 # o---------------------------------------------------------------------o
@@ -31,7 +30,6 @@ ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collima
 
 DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
 DEFAULTS := $(filter-out $(remove),$(DEFAULTS))
-OPTIONS := $(filter-out fio,$(OPTIONS))
 SORTED_OPTIONS:= $(shell ./option_resolver.sh "$(DEFAULTS)" "$(add)" "$(remove)" "$(ALL_OPTIONS)")
 temp=$(shell echo "$(SORTED_OPTIONS)" | grep -o "error" )
 ifeq ($(temp),error)
@@ -77,6 +75,21 @@ VERSION := $(shell grep "data version" sixtrack.s | sed -e "s/.*'\([0-9]\).\([0-
 DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(ENABLED))_O$(NOPT)
 $(info Final Options after resolving dependencies: $(OPTIONS))
 $(info Sixtrack build dir: $(DESTDIR))
+
+#Source checks
+ifneq ($(shell gawk -f beauty/count.awk sixtrack.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/count.awk sixtrack.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/count.awk plato_seq.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/count.awk plato_seq.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/check_astuce_ifs.awk sixtrack.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/check_astuce_ifs.awk sixtrack.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/check_astuce_ifs.awk plato_seq.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/check_astuce_ifs.awk plato_seq.s' failed!")
+endif
+$(info Source code checks PASS!)
 
 # compilers configuration
 # currently supported ifort and gfortran
@@ -182,27 +195,10 @@ ifeq ($(filter boinc,$(ENABLED)),boinc)
   BOINC_O_FILES  :=  boinc_api_fortran.o boinc_zipitall.o
 endif
 
-# prepare AST rule files for ASTUCE and DAFOR
-MASKS_DAFOR := sixvefox sixscfox sixda
-
 #different masks depending on DA
 MASKS_DA   := lielib dabnews sixscfox sixsc sixda
-MASKS_OT   := track sixve sixvefox dabnews lielib beamgas
+MASKS_OT   := track sixve sixvefox dabnews lielib beamgas plato_seq
 MASKS      := $(call if_any,da,$(ENABLED),$(MASKS_DA),$(MASKS_OT))
-
-# preparing fortran files to be preprocessed with dafor. 
-# variable is empty if to be preprocessed by dafor, else contains a comment
-# added the d to the name to not conflict with options management
-sixvefox_dafor  := 
-sixscfox_dafor  := 
-sixda_dafor     := 
-lielib_dafor    := \#
-dabnews_dafor   := \#
-sixsc_dafor     := \#
-track_dafor     := \#
-sixve_dafor     := \#
-beamgas_dafor   := \#
-
 
 #detecting operating system
 OPSYS := $(shell uname -s)
@@ -290,7 +286,7 @@ AST_FILES := $(MASKS:=.ast)
 FN_FILES   := $(MASKS:=n.f)
 F_FILES   := $(MASKS:=.f)
 # .s files to be copied
-S_FILES := dabnew.s lielib.s sixtrack.s
+S_FILES := dabnew.s lielib.s sixtrack.s plato_seq.s
 
 # separate variable for source required on Windows
 SRC_AST := .$/ast_mask$/$/
@@ -357,7 +353,6 @@ COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
 #     Rules
 #
 #################
-
 
 .PHONY: clean sixtrack help crlibm
 

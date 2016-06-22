@@ -119,22 +119,25 @@ else
 
   }
 
-
-  #add new cases below as::  put "option" "needed dependencies" "exclusions"
-  #put empty parenthesis("") if no exclusions or dependencies(this is important for avoiding worng indexing)
-
+  ## LIST OF DEPENDENCIES: ##
+  
+  # Add new cases below as::  put "option" "needed dependencies" "exclusions"
+  # put empty parenthesis("") if no exclusions or dependencies(this is important for avoiding worng indexing)
   put "hdf5" "collimat" ""
-  put "bonic" "cpss" ""
-  put "beamgas""collimat" "bignblz hugenblz"
+  put "bonic" "cpss crlibm" ""
+  put "api" "boinc" ""
+  put "beamgas" "collimat" "bignblz hugenblz"
   put "hugenblz" "" "bignblz"
   put "da" "" "collimat cpss bpm"
   put "collimat" "" "da cpss bpm cr crlibm"
   put "cpss" "crlibm cr" "cernlib" 
-  put "m64" "" "ifort nagfor pgf90 g95 lf95 cernlib bonic m32"
-
-  # add below the case which are to be followed in absence of certain options
-  #as put_ifnot "option" "needed dependencies" "exclusions"
-
+  put "m64" "" "ifort nagfor pgf90 g95 lf95 cernlib bonic m32 naglib"
+  put "beamgas" "collimat" ""
+  
+  # Add below the case which are to be followed in absence of certain options
+  # as put_ifnot "option" "needed dependencies" "exclusions"
+  # i.e. 'put_ifnot "da" "" "naglib"' means "if not da, then naglib is forbidden",
+  # and 'put_ifnot "m64" "m32" ""' means "if not m64, then m32 is required".
   put_ifnot "da" "" "naglib"
   put_ifnot "m64" "m32" ""
 
