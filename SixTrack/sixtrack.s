@@ -2063,6 +2063,22 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickhel ! i = element, j = particle
             write(*,*) 'MF: tracking HEL'
+            write(*,*) 'parameters i-3',i-3,ktrack(i-3),bez(i-3),kz(i-3)
+     &,el(i-3),ed(i-3),ek(i-3),tmaxhel(i-3),r2hel(i-3),r2ovr1hel(i-3),
+     &oxhel(i-3),oyhel(i-3),inhel(i-3),exhel(i-3)
+            write(*,*) 'parameters i-2',i-2,ktrack(i-2),bez(i-2),kz(i-2)
+     &,el(i-2),ed(i-2),ek(i-2),tmaxhel(i-2),r2hel(i-2),r2ovr1hel(i-2),
+     &oxhel(i-2),oyhel(i-2),inhel(i-2),exhel(i-2)
+            write(*,*) 'parameters i-1',i-1,ktrack(i-1),bez(i-1),kz(i-1)
+     &,el(i-1),ed(i-1),ek(i-1),tmaxhel(i-1),r2hel(i-1),r2ovr1hel(i-1),
+     &oxhel(i-1),oyhel(i-1),inhel(i-1),exhel(i-1)
+            write(*,*) 'parameters i',i,ktrack(i),bez(i),kz(i),el(i)
+     &,ed(i),ek(i),tmaxhel(i),r2hel(i),r2ovr1hel(i),oxhel(i),oyhel(i),
+     &inhel(i),exhel(i)
+            write(*,*) 'parameters i+1',i+1,ktrack(i+1),bez(i+1),kz(i+1)
+     &,el(i+1),ed(i+1),ek(i+1),tmaxhel(i+1),r2hel(i+1),r2ovr1hel(i+1),
+     &oxhel(i+1),oyhel(i+1),inhel(i+1),exhel(i+1)
+
             yv(1,j)=yv(1,j)
             yv(2,j)=yv(2,j)
 +cd kickv01v
@@ -4336,7 +4352,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if .not.tilt
 +if crlibm
 !hr03   yv(xory,j)=yv(xory,j) - crabamp*                                &
-!hr03&sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
+!hr03&sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + frabph(ix))
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))         !hr03
 !hr03 dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
@@ -13632,6 +13648,7 @@ cc2008
 !     always in main code
       if(idat.eq.dynk) goto 2200
       if(idat.eq.fma) goto 2300
+      write(*,*) 'MF: in fort.3',idat,hel
       if(idat.eq.hel) goto 2400
 
       if(idat.eq.next) goto 110
@@ -18023,7 +18040,7 @@ cc2008
       if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
-      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
+      if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
 
       if (ch(:4).eq.next) then
 ! check if HELs occur in single element list -> if yes set parameters
@@ -18038,7 +18055,7 @@ cc2008
 +if .not.cr
                 write(*,*)
 +ei
-     &'ERROR: HEL ',bez(j),' found, mismatch in '//
+     &'ERROR: HEL ',bez(j),' found: mismatch in '//
      &'type parameter, kz(',j,')=',kz(j),'!=29!'
                 call prror(-1) 
               else
@@ -18051,7 +18068,7 @@ cc2008
                 oyhel(j)=hel_offset_y(j1)
                 inhel(j)=hel_bend_entrance(j1)
                 exhel(j)=hel_bend_exit(j1)
-                write(*,*) 'MF: HEL found with ',j1,j,bez(j),kz(j),el(j)
+                write(*,*) 'MF: HEL found with ',j,bez(j),kz(j),el(j)
      &,ed(j),ek(j),tmaxhel(j),r2hel(j),r2ovr1hel(j),oxhel(j),oyhel(j),
      &inhel(j),exhel(j)
               endif
@@ -29250,7 +29267,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
 
 
-        do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order or single elements
+        do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements
 +if bnlelens
 +ca bnltwiss
 +ei
@@ -29622,6 +29639,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--hel
   761      continue
          do j=1,napx
+         write(*,*) 'MF: thin4d i=',i
 +ca kickhel
          enddo
           goto 620
@@ -32952,6 +32970,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--hel
   761      continue
          do j=1,napx
+         write(*,*) 'MF: thin6d i=',i
 +ca kickhel
          enddo
          goto 640
@@ -34342,6 +34361,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--hel
   761      continue
          do j=1,napx
+         write(*,*) 'MF: thin6dua i=',i
 +ca kickhel
          enddo
          goto 640
