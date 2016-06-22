@@ -263,7 +263,7 @@
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4,lelens,tmaxelens,r2elens,r2ovr1elens,   &
-     &oxelens,oyelens
+     &oxelens,oyelens,xelens,yelens,rrelens,frrelens,r1elens
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -335,7 +335,7 @@
      &crabph3(nele),crabph4(nele)
       common/elensco/ typeelens(nele),lelens(nele),tmaxelens(nele),
      &r2elens(nele),r2ovr1elens(nele),oxelens(nele),oyelens(nele),
-     &inelens(nele),exelens(nele) !type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag)
+     &inelens(nele),exelens(nele),rrelens,frrelens,r1elens !type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag), (xelens,yelens,rrelens,frrelens,r1elens) = temporary variables
 +cd commons
       integer idz,itra
 +if vvector
@@ -2069,26 +2069,72 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             write(*,*) 'parameters i-3',i-3,ktrack(i-3),bez(i-3),kz(i-3)
      &,el(i-3),ed(i-3),ek(i-3),tmaxelens(i-3),r2elens(i-3),
      &r2ovr1elens(i-3),
-     &oxelens(i-3),oyelens(i-3),inelens(i-3),exelens(i-3)
+     &oxelens(i-3),oyelens(i-3),inelens(i-3),exelens(i-3),typeelens(i-3)
             write(*,*) 'parameters i-2',i-2,ktrack(i-2),bez(i-2),kz(i-2)
      &,el(i-2),ed(i-2),ek(i-2),tmaxelens(i-2),r2elens(i-2),
      &r2ovr1elens(i-2),
-     &oxelens(i-2),oyelens(i-2),inelens(i-2),exelens(i-2)
+     &oxelens(i-2),oyelens(i-2),inelens(i-2),exelens(i-2),typeelens(i-2)
             write(*,*) 'parameters i-1',i-1,ktrack(i-1),bez(i-1),kz(i-1)
      &,el(i-1),ed(i-1),ek(i-1),tmaxelens(i-1),r2elens(i-1),
      &r2ovr1elens(i-1),
-     &oxelens(i-1),oyelens(i-1),inelens(i-1),exelens(i-1)
+     &oxelens(i-1),oyelens(i-1),inelens(i-1),exelens(i-1),typeelens(i-1)
             write(*,*) 'parameters i',i,ktrack(i),bez(i),kz(i),el(i)
      &,ed(i),ek(i),tmaxelens(i),r2elens(i),r2ovr1elens(i),oxelens(i),
      &oyelens(i),
-     &inelens(i),exelens(i)
+     &inelens(i),exelens(i),typeelens(i)
             write(*,*) 'parameters i+1',i+1,ktrack(i+1),bez(i+1),kz(i+1)
      &,el(i+1),ed(i+1),ek(i+1),tmaxelens(i+1),r2elens(i+1),
      &r2ovr1elens(i+1),
-     &oxelens(i+1),oyelens(i+1),inelens(i+1),exelens(i+1)
-
-            yv(1,j)=yv(1,j)
-            yv(2,j)=yv(2,j)
+     &oxelens(i+1),oyelens(i+1),inelens(i+1),exelens(i+1),typeelens(i+1)
+            select case (typeelens(i))
+              case (1)
+! ANNULAR: hollow elens with uniform annular profile for collimation
+! Space charge density is:
+! 0     if r < R1
+! Const if R1 < r < R2
+! 0     if r > R2
+! Parameters:
+!   tmaxelens is the maximum kick in radians
+!   r2elens is R2 in mm
+!   r2ovr1elens = R2 / R1 (by default, 1.5)
+!   oxelens - x offset
+!   oyelens - y offset
+!   inelens - switch bends on at entrance
+!   exelens - switch bends on at exit
+! internal parameters to calculate kick:
+!   xelens = x(proton) + oxelens
+!   yelens = y(proton) + oyelens
+!   rrelens = sqrt(xelens**2+yelens**2)
+!   r1elens = radius R1 [mm]
+!   frrelens = shape function [1/mm]
+                if (abs(oxelens(i)).ge.pieni) then
+                  xelens=xv(1,j)+oxelens(i)
+                endif
+                if (abs(oyelens(i)).ge.pieni) then
+                  yelens=xv(2,j)+oyelens(i)
+                endif
+                rrelens=sqrt((xelens)**2+(yelens**2)) ! radius p-beam
+                r1elens=r2elens(i)/r2ovr1elens(i) ! inner radius elens
+                if (rrelens.ge.r1elens) then ! rrelens < r1 -> no kick from elens
+                  if (rrelens.lt.r2elens(i)) then ! r1 <= rrelens < r2
+                    frrelens = (r2elens(i)/(rrelens**2))*
+     &(((rrelens/r1elens)**2-1)/(r2ovr1elens(i)**2 - 1))
+                  endif
+                  if (rrelens.ge.r2elens(i)) then ! r1 < r2 <= rrelens
+                    frrelens = r2elens(i)/(rrelens**2)
+                  endif
+                  yv(1,j)=yv(1,j)-tmaxelens(i)*frrelens*xv(1,j)
+                  yv(2,j)=yv(2,j)-tmaxelens(i)*frrelens*xv(2,j)
+                endif
+              case default
++if cr
+               write(lout,*) 'ERROR in deck kickelens: typeelens='
++ei
++if .not.cr
+               write(*,*) 'ERROR in deck kickelens: typeelens='
++ei
+     &,typeelens(i),' not recognized. Possible values for type are: 1.'
+               end select
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
