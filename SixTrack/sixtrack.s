@@ -250,7 +250,7 @@
      &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrr,nskew,                 &
      &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
      &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml,  &
-     &typehel,inhel,exhel
+     &typeelens,inelens,exelens
       double precision a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
      &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
@@ -262,8 +262,8 @@
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
-     &crabph2, crabph3, crabph4,lhel,tmaxhel,r2hel,r2ovr1hel,oxhel,     &
-     &oyhel
+     &crabph2, crabph3, crabph4,lelens,tmaxelens,r2elens,r2ovr1elens,   &
+     &oxelens,oyelens
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -333,8 +333,9 @@
      &nturn3(nele), nturn4(nele)
       common/crabco/ crabph(nele),crabph2(nele),                        &
      &crabph3(nele),crabph4(nele)
-      common/helco/ typehel(nele),lhel(nele),tmaxhel(nele),r2hel(nele), &
-     &r2ovr1hel(nele),oxhel(nele),oyhel(nele),inhel(nele),exhel(nele) !type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag)
+      common/elensco/ typeelens(nele),lelens(nele),tmaxelens(nele),
+     &r2elens(nele),r2ovr1elens(nele),oxelens(nele),oyelens(nele),
+     &inelens(nele),exelens(nele) !type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag)
 +cd commons
       integer idz,itra
 +if vvector
@@ -1143,20 +1144,20 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd helparam
++cd elensparam
 !     M. Fitterer, for CERN BE-ABP/HSS and FNAL
 !     Common block for hollow electron lens definition
-      integer :: hel_num
-      character hel_name (nele)*(getfields_l_max_string)! name of elens
-      ! type of elens: annular (hollow elense, uniform profile)
-      character hel_type (nele)*(getfields_l_max_string)
-      double precision :: hel_theta_max(nele) ! maximum kick strength [mrad]
-      double precision :: hel_r2(nele)        ! outer radius R2 [mm]
-      double precision :: hel_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
-      double precision :: hel_offset_x(nele),
-     &hel_offset_y(nele) ! hor./vert. offset of HEL [mm]
-      integer :: hel_bend_entrance(nele),
-     &hel_bend_exit(nele) ! switch for HEL bends
+      integer :: elens_num
+      character elens_name (nele)*(getfields_l_max_string)! name of elens
+      ! type of elens: annular = hollow elens, uniform profile, typeelens=1
+      character elens_type (nele)*(getfields_l_max_string)
+      double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
+      double precision :: elens_r2(nele)        ! outer radius R2 [mm]
+      double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
+      double precision :: elens_offset_x(nele),
+     &elens_offset_y(nele) ! hor./vert. offset of elens [mm]
+      integer :: elens_bend_entrance(nele),
+     &elens_bend_exit(nele) ! switch for elens bends
 +cd fma
 !     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
 !     Common block for the FMA analysis postprocessing
@@ -2063,23 +2064,28 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !hr02&rvv(j)*ejf0v(j)/ejfv(j)*ejf0v(j)/ejfv(j)
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
-+cd kickhel ! i = element, j = particle
++cd kickelens ! i = element, j = particle
             write(*,*) 'MF: tracking HEL'
             write(*,*) 'parameters i-3',i-3,ktrack(i-3),bez(i-3),kz(i-3)
-     &,el(i-3),ed(i-3),ek(i-3),tmaxhel(i-3),r2hel(i-3),r2ovr1hel(i-3),
-     &oxhel(i-3),oyhel(i-3),inhel(i-3),exhel(i-3)
+     &,el(i-3),ed(i-3),ek(i-3),tmaxelens(i-3),r2elens(i-3),
+     &r2ovr1elens(i-3),
+     &oxelens(i-3),oyelens(i-3),inelens(i-3),exelens(i-3)
             write(*,*) 'parameters i-2',i-2,ktrack(i-2),bez(i-2),kz(i-2)
-     &,el(i-2),ed(i-2),ek(i-2),tmaxhel(i-2),r2hel(i-2),r2ovr1hel(i-2),
-     &oxhel(i-2),oyhel(i-2),inhel(i-2),exhel(i-2)
+     &,el(i-2),ed(i-2),ek(i-2),tmaxelens(i-2),r2elens(i-2),
+     &r2ovr1elens(i-2),
+     &oxelens(i-2),oyelens(i-2),inelens(i-2),exelens(i-2)
             write(*,*) 'parameters i-1',i-1,ktrack(i-1),bez(i-1),kz(i-1)
-     &,el(i-1),ed(i-1),ek(i-1),tmaxhel(i-1),r2hel(i-1),r2ovr1hel(i-1),
-     &oxhel(i-1),oyhel(i-1),inhel(i-1),exhel(i-1)
+     &,el(i-1),ed(i-1),ek(i-1),tmaxelens(i-1),r2elens(i-1),
+     &r2ovr1elens(i-1),
+     &oxelens(i-1),oyelens(i-1),inelens(i-1),exelens(i-1)
             write(*,*) 'parameters i',i,ktrack(i),bez(i),kz(i),el(i)
-     &,ed(i),ek(i),tmaxhel(i),r2hel(i),r2ovr1hel(i),oxhel(i),oyhel(i),
-     &inhel(i),exhel(i)
+     &,ed(i),ek(i),tmaxelens(i),r2elens(i),r2ovr1elens(i),oxelens(i),
+     &oyelens(i),
+     &inelens(i),exelens(i)
             write(*,*) 'parameters i+1',i+1,ktrack(i+1),bez(i+1),kz(i+1)
-     &,el(i+1),ed(i+1),ek(i+1),tmaxhel(i+1),r2hel(i+1),r2ovr1hel(i+1),
-     &oxhel(i+1),oyhel(i+1),inhel(i+1),exhel(i+1)
+     &,el(i+1),ed(i+1),ek(i+1),tmaxelens(i+1),r2elens(i+1),
+     &r2ovr1elens(i+1),
+     &oxelens(i+1),oyelens(i+1),inelens(i+1),exelens(i+1)
 
             yv(1,j)=yv(1,j)
             yv(2,j)=yv(2,j)
@@ -5367,7 +5373,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           ktrack(i)=45
           goto 290
         endif
-+cd hel
++cd elens
 !Hollow electron lens (HEL)
         if(kzz.eq.29) then
           ktrack(i)=63
@@ -13372,7 +13378,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca fma
-+ca helparam
++ca elensparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -13396,9 +13402,9 @@ cc2008
 !     - fma
       character*16 fma
       data fma /'FMA'/
-!     - hel
-      character*16 hel
-      data hel /'HEL'/
+!     - elens
+      character*16 elens
+      data elens /'ELEN'/
 
       save
 !-----------------------------------------------------------------------
@@ -13650,8 +13656,8 @@ cc2008
 !     always in main code
       if(idat.eq.dynk) goto 2200
       if(idat.eq.fma) goto 2300
-      write(*,*) 'MF: in fort.3',idat,hel
-      if(idat.eq.hel) goto 2400
+      write(*,*) 'MF: in fort.3',idat,elens
+      if(idat.eq.elens) goto 2400
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -18045,44 +18051,47 @@ cc2008
       if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
 
       if (ch(:4).eq.next) then
-! check if HELs occur in single element list -> if yes set parameters
+! check if elenss occur in single element list -> if yes set parameters
 ! inserted here in order to loop only once over single element list
         do j=1,nele !loop over single elements
-          do j1=1,hel_num !loop over HELs
-            if(bez(j).eq.hel_name(j1)) then
-              if(kz(j).eq.29) then !check type parameter kz
-! lhel(i) is defined in fort.2 single element block: el(i) is saved in
-! lhel(i) and then set to zero el(i)=0
-                select case (hel_type(j1))
+          do j1=1,elens_num !loop over elenss
+            if(bez(j).eq.elens_name(j1)) then
+                select case (elens_type(j1))
                   case ('ANNULAR') ! uniform annular profile
-                    typehel(j) = 1
-                  case default
-                    write(*,*) 'ERROR: HEL type ',hel_type(j1),' not ',
-     &'recognized! Options for type are (upper case letters): ANNULAR.'
-                    call prror(-1)
-                end select
-                tmaxhel(j)=hel_theta_max(j1)
-                r2hel(j)=hel_r2(j1)
-                r2ovr1hel(j)=hel_r2ovr1(j1)
-                oxhel(j)=hel_offset_x(j1)
-                oyhel(j)=hel_offset_y(j1)
-                inhel(j)=hel_bend_entrance(j1)
-                exhel(j)=hel_bend_exit(j1)
-                write(*,*) 'MF: HEL found with ',j,bez(j),kz(j),el(j)
-     &,ed(j),ek(j),typehel(j),tmaxhel(j),r2hel(j),r2ovr1hel(j),
-     &oxhel(j),oyhel(j),
-     &inhel(j),exhel(j)
-              else
+                    typeelens(j) = 1
+                    if(kz(j).eq.29) then !check type parameter kz
+! lelens(i) is defined in fort.2 single element block: el(i) is saved in
+! lelens(i) and then set to zero el(i)=0
+                      tmaxelens(j)=elens_theta_max(j1)
+                      r2elens(j)=elens_r2(j1)
+                      r2ovr1elens(j)=elens_r2ovr1(j1)
+                      oxelens(j)=elens_offset_x(j1)
+                      oyelens(j)=elens_offset_y(j1)
+                      inelens(j)=elens_bend_entrance(j1)
+                      exelens(j)=elens_bend_exit(j1)
+                      write(*,*) 'MF: elens found with ',j,bez(j),kz(j),
+     &el(j),ed(j),ek(j),typeelens(j),tmaxelens(j),r2elens(j),
+     &r2ovr1elens(j),
+     &oxelens(j),oyelens(j),
+     &inelens(j),exelens(j)
+                    else
 +if cr
-                write(lout,*)
+                      write(lout,*)
 +ei
 +if .not.cr
-                write(*,*)
+                      write(*,*)
 +ei
-     &'ERROR: HEL ',bez(j),' found: mismatch in '//
+     &'ERROR: ELENS ',bez(j),' found: mismatch in '//
      &'type parameter, kz(',j,')=',kz(j),'!=29!'
                 call prror(-1) 
-              endif
+                    endif
+                  case default
+                    write(*,*) 'ERROR: ELENSE type ',elens_type(j1),
+     &'not recognized!'
+                    write(*,*) 'Options for type are (upper case ',
+     &'letters): ANNULAR.'
+                    call prror(-1)
+                end select
             endif
           end do
         enddo
@@ -18090,19 +18099,19 @@ cc2008
         goto 110 
       endif
  
-      if(hel_num.ge.nele) then
+      if(elens_num.ge.nele) then
 +if cr
         write(lout,*)
 +ei
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR: you can only define ',nele,' number of HEL!'
+     &       'ERROR: you can only define ',nele,' number of ELENS!'
         call prror(-1) 
       endif
 
-      hel_num=hel_num+1 !Initially initialized to 0 in COMNUL
-!     read in HEL parameters
+      elens_num=elens_num+1 !Initially initialized to 0 in COMNUL
+!     read in elens parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
@@ -18112,7 +18121,7 @@ cc2008
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR in HEL block: getfields_lerr=', getfields_lerr
+     &       'ERROR in ELENS block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
       if(getfields_nfields.ne.9) then
@@ -18122,7 +18131,7 @@ cc2008
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR in HEL block: wrong number of input ',
+     &       'ERROR in ELENS block: wrong number of input ',
      &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
       endif
@@ -18133,42 +18142,43 @@ cc2008
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR in HEL block: fortran IO format currently not ',
+     &       'ERROR in ELENS block: fortran IO format currently not ',
      &       'supported!'
         call prror(-1)
 +ei
 +if .not.fio
-      hel_name(hel_num)  =
+      elens_name(elens_num)  =
      &     getfields_fields(1)(1:getfields_lfields(1))
-      hel_type(hel_num)  =
+      elens_type(elens_num)  =
      &     getfields_fields(2)(1:getfields_lfields(2))
 +if .not.crlibm
       read (getfields_fields(3)(1:getfields_lfields(3)),*)
-     & hel_theta_max(hel_num)
+     & elens_theta_max(elens_num)
       read (getfields_fields(4)(1:getfields_lfields(4)),*)
-     & hel_r2(hel_num)
+     & elens_r2(elens_num)
       read (getfields_fields(5)(1:getfields_lfields(5)),*)
-     & hel_r2ovr1(hel_num)
+     & elens_r2ovr1(elens_num)
       read (getfields_fields(6)(1:getfields_lfields(6)),*)
-     & hel_offset_x(hel_num)
+     & elens_offset_x(elens_num)
       read (getfields_fields(7)(1:getfields_lfields(7)),*)
-     & hel_offset_y(hel_num)
+     & elens_offset_y(elens_num)
 +ei
 +if crlibm
-      hel_theta_max(hel_num)=fround(errno,getfields_fields,3)
-      hel_r2(hel_num)=fround(errno,getfields_fields,4)
-      hel_r2ovr1(hel_num)=fround(errno,getfields_fields,5)
-      hel_offset_x(hel_num)=fround(errno,getfields_fields,6)
-      hel_offset_y(hel_num)=fround(errno,getfields_fields,7)
+      elens_theta_max(elens_num)=fround(errno,getfields_fields,3)
+      elens_r2(elens_num)=fround(errno,getfields_fields,4)
+      elens_r2ovr1(elens_num)=fround(errno,getfields_fields,5)
+      elens_offset_x(elens_num)=fround(errno,getfields_fields,6)
+      elens_offset_y(elens_num)=fround(errno,getfields_fields,7)
 +ei
       read (getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
-     &hel_bend_entrance(hel_num)
+     &elens_bend_entrance(elens_num)
       read (getfields_fields(9)(1:getfields_lfields(9)),'(I10)')
-     &hel_bend_exit(hel_num)
-      write (*,*) 'MF: HEL param:',hel_num,hel_type(hel_num),
-     &hel_name(hel_num),hel_theta_max(hel_num),hel_r2(hel_num),
-     &hel_r2ovr1(hel_num),hel_offset_x(hel_num),hel_offset_y(hel_num),
-     &hel_bend_entrance(hel_num),hel_bend_exit(hel_num)
+     &elens_bend_exit(elens_num)
+      write (*,*) 'MF: elens param:',elens_num,elens_type(elens_num),
+     &elens_name(elens_num),elens_theta_max(elens_num),
+     &elens_r2(elens_num),elens_r2ovr1(elens_num),
+     &elens_offset_x(elens_num),elens_offset_y(elens_num),
+     &elens_bend_entrance(elens_num),elens_bend_exit(elens_num)
 +ei
       goto 2400
 !-----------------------------------------------------------------------
@@ -19689,7 +19699,7 @@ c$$$         endif
 !--Hollow Electron Lense
 !  note: kz(ix) = +29 - profile is always radially symmetric
       else if(abs(kz(ix)).eq.29) then
-         lhel(ix) = el(ix)
+         lelens(ix) = el(ix)
          el(ix) =0d0
          ed(ix) =0d0
          ek(ix) =0d0
@@ -27503,7 +27513,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca acdip1
 +ca crab1
 +ca crab_mult
-+ca hel
++ca elens
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
@@ -29649,11 +29659,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso1
          enddo
           goto 620
-!--hel
+!--elens
   761      continue
          do j=1,napx
          write(*,*) 'MF: thin4d i=',i
-+ca kickhel
++ca kickelens
          enddo
           goto 620
 !--Wire
@@ -32980,11 +32990,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 640
-!--hel
+!--elens
   761      continue
          do j=1,napx
          write(*,*) 'MF: thin6d i=',i
-+ca kickhel
++ca kickelens
          enddo
          goto 640
 !----------------------------
@@ -34371,11 +34381,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 640
-!--hel
+!--elens
   761      continue
          do j=1,napx
          write(*,*) 'MF: thin6dua i=',i
-+ca kickhel
++ca kickelens
          enddo
          goto 640
 
@@ -35353,7 +35363,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beama4o
 +ca beams24
 +ca wirektrack
-+ca hel
++ca elens
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -36179,10 +36189,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso1
           enddo
           goto 470
-!--hel
+!--elens
   761      continue
          do j=1,napx
-+ca kickhel
++ca kickelens
          enddo
          goto 470
 
@@ -36855,10 +36865,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 490
-!--hel
+!--elens
   761      continue
          do j=1,napx
-+ca kickhel
++ca kickelens
          enddo
          goto 490
 
@@ -37490,10 +37500,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 490
-!--hel
+!--elens
   761      continue
          do j=1,napx
-+ca kickhel
++ca kickelens
          enddo
          goto 490
 
@@ -39551,7 +39561,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca comdynkcr
 +ei
-+ca helparam
++ca elensparam
       save
 !-----------------------------------------------------------------------
 !
@@ -40104,32 +40114,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           fma_method(i)(j:j) = char(0)
         enddo
       enddo
-!--HEL - HOLLOW ELECTRON LENSE---------------------------------------------------------
+!--ELEN - ELECTRON LENSE---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
-      hel_num = 0
+      elens_num = 0
       do i=1,nele
-! helparam - used for reading in from HEL block in fort.3
-        hel_theta_max(i) = 0
-        hel_r2(i) = 0
-        hel_r2ovr1(i) = 1.5
-        hel_offset_x(i) = 0
-        hel_offset_y(i) = 0
-        hel_bend_entrance(i) = 0
-        hel_bend_exit(i) = 0
+! elensparam - used for reading in from ELEN block in fort.3
+        elens_theta_max(i) = 0
+        elens_r2(i) = 0
+        elens_r2ovr1(i) = 1.5
+        elens_offset_x(i) = 0
+        elens_offset_y(i) = 0
+        elens_bend_entrance(i) = 0
+        elens_bend_exit(i) = 0
         do j=1,getfields_l_max_string
-          hel_name(i)(j:j) = char(0)
-          hel_type(i)(j:j) = char(0)
+          elens_name(i)(j:j) = char(0)
+          elens_type(i)(j:j) = char(0)
         enddo
-! HEL parameters (common variables) used in single element definition
-        lhel(i) = 0
-        tmaxhel(i) = 0
-        r2hel(i) = 0
-        r2ovr1hel(i) = 1.5
-        oxhel(i) = 0
-        oyhel(i) = 0
-        inhel(i) = 0
-        exhel(i) = 0
+! elens parameters (common variables) used in single element definition
+        lelens(i) = 0
+        tmaxelens(i) = 0
+        r2elens(i) = 0
+        r2ovr1elens(i) = 1.5
+        oxelens(i) = 0
+        oyelens(i) = 0
+        inelens(i) = 0
+        exelens(i) = 0
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
