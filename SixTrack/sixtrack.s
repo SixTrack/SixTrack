@@ -264,6 +264,7 @@
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4,lelens,tmaxelens,r2elens,r2ovr1elens,   &
      &oxelens,oyelens,xelens,yelens,rrelens,frrelens,r1elens
+      logical checkelensflag
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -335,7 +336,8 @@
      &crabph3(nele),crabph4(nele)
       common/elensco/ typeelens(nele),lelens(nele),tmaxelens(nele),
      &r2elens(nele),r2ovr1elens(nele),oxelens(nele),oyelens(nele),
-     &inelens(nele),exelens(nele),rrelens,frrelens,r1elens !type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag), (xelens,yelens,rrelens,frrelens,r1elens) = temporary variables
+     &inelens(nele),exelens(nele),rrelens,frrelens,r1elens,
+     &checkelensflag!type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag), (xelens,yelens,rrelens,frrelens,r1elens) = temporary variables
 +cd commons
       integer idz,itra
 +if vvector
@@ -2065,27 +2067,27 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickelens ! i = element, j = particle
-            write(*,*) 'MF: tracking HEL'
-            write(*,*) 'parameters i-3',i-3,ktrack(i-3),bez(i-3),kz(i-3)
-     &,el(i-3),ed(i-3),ek(i-3),tmaxelens(i-3),r2elens(i-3),
-     &r2ovr1elens(i-3),
-     &oxelens(i-3),oyelens(i-3),inelens(i-3),exelens(i-3),typeelens(i-3)
-            write(*,*) 'parameters i-2',i-2,ktrack(i-2),bez(i-2),kz(i-2)
-     &,el(i-2),ed(i-2),ek(i-2),tmaxelens(i-2),r2elens(i-2),
-     &r2ovr1elens(i-2),
-     &oxelens(i-2),oyelens(i-2),inelens(i-2),exelens(i-2),typeelens(i-2)
-            write(*,*) 'parameters i-1',i-1,ktrack(i-1),bez(i-1),kz(i-1)
-     &,el(i-1),ed(i-1),ek(i-1),tmaxelens(i-1),r2elens(i-1),
-     &r2ovr1elens(i-1),
-     &oxelens(i-1),oyelens(i-1),inelens(i-1),exelens(i-1),typeelens(i-1)
-            write(*,*) 'parameters i',i,ktrack(i),bez(i),kz(i),el(i)
-     &,ed(i),ek(i),tmaxelens(i),r2elens(i),r2ovr1elens(i),oxelens(i),
-     &oyelens(i),
-     &inelens(i),exelens(i),typeelens(i)
-            write(*,*) 'parameters i+1',i+1,ktrack(i+1),bez(i+1),kz(i+1)
-     &,el(i+1),ed(i+1),ek(i+1),tmaxelens(i+1),r2elens(i+1),
-     &r2ovr1elens(i+1),
-     &oxelens(i+1),oyelens(i+1),inelens(i+1),exelens(i+1),typeelens(i+1)
+!            write(*,*) 'MF: tracking HEL'
+!            write(*,*) 'parameters i-3',i-3,ktrack(i-3),bez(i-3),kz(i-3)
+!     &,el(i-3),ed(i-3),ek(i-3),tmaxelens(i-3),r2elens(i-3),
+!     &r2ovr1elens(i-3),
+!     &oxelens(i-3),oyelens(i-3),inelens(i-3),exelens(i-3),typeelens(i-3)
+!            write(*,*) 'parameters i-2',i-2,ktrack(i-2),bez(i-2),kz(i-2)
+!     &,el(i-2),ed(i-2),ek(i-2),tmaxelens(i-2),r2elens(i-2),
+!     &r2ovr1elens(i-2),
+!     &oxelens(i-2),oyelens(i-2),inelens(i-2),exelens(i-2),typeelens(i-2)
+!            write(*,*) 'parameters i-1',i-1,ktrack(i-1),bez(i-1),kz(i-1)
+!     &,el(i-1),ed(i-1),ek(i-1),tmaxelens(i-1),r2elens(i-1),
+!     &r2ovr1elens(i-1),
+!     &oxelens(i-1),oyelens(i-1),inelens(i-1),exelens(i-1),typeelens(i-1)
+!            write(*,*) 'parameters i',i,ktrack(i),bez(i),kz(i),el(i)
+!     &,ed(i),ek(i),tmaxelens(i),r2elens(i),r2ovr1elens(i),oxelens(i),
+!     &oyelens(i),
+!     &inelens(i),exelens(i),typeelens(i)
+!            write(*,*) 'parameters i+1',i+1,ktrack(i+1),bez(i+1),kz(i+1)
+!     &,el(i+1),ed(i+1),ek(i+1),tmaxelens(i+1),r2elens(i+1),
+!     &r2ovr1elens(i+1),
+!     &oxelens(i+1),oyelens(i+1),inelens(i+1),exelens(i+1),typeelens(i+1)
             select case (typeelens(i))
               case (1)
 ! ANNULAR: hollow elens with uniform annular profile for collimation
@@ -2107,6 +2109,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !   rrelens = sqrt(xelens**2+yelens**2)
 !   r1elens = radius R1 [mm]
 !   frrelens = shape function [1/mm]
+
+! kick from ideal annular profile
+! apply offset
                 if (abs(oxelens(i)).ge.pieni) then
                   xelens=xv(1,j)+oxelens(i)
                 endif
@@ -2126,6 +2131,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                   yv(1,j)=yv(1,j)-tmaxelens(i)*frrelens*xv(1,j)
                   yv(2,j)=yv(2,j)-tmaxelens(i)*frrelens*xv(2,j)
                 endif
+! include bends at entrance and exit of elens
               case default
 +if cr
                write(lout,*) 'ERROR in deck kickelens: typeelens='
@@ -13702,7 +13708,7 @@ cc2008
 !     always in main code
       if(idat.eq.dynk) goto 2200
       if(idat.eq.fma) goto 2300
-      write(*,*) 'MF: in fort.3',idat,elens
+!      write(*,*) 'MF: in fort.3',idat,elens
       if(idat.eq.elens) goto 2400
 
       if(idat.eq.next) goto 110
@@ -13912,6 +13918,7 @@ cc2008
       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
       if(i.gt.nele-1) call prror(16)
       if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) )kp(i)=0
+! set element name
       bez(i)=idat
       bez0(i)=idat
       write(*,*) 'MF: single element parameters 1 - ',idat,bez(i),kz(i),
@@ -18097,53 +18104,78 @@ cc2008
       if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
 
       if (ch(:4).eq.next) then
-! check if elenss occur in single element list -> if yes set parameters
-! inserted here in order to loop only once over single element list
+! = end of block: inserted here in order to loop only once over single element list
+! check if elens occur in single element list -> if yes set parameters
         do j=1,nele !loop over single elements
-          do j1=1,elens_num !loop over elenss
-            if(bez(j).eq.elens_name(j1)) then
+          if(kz(j).eq.29) then ! elens is single element type kz(j) = 29
+            checkelensflag=.FALSE. ! flag to check that elens is defined in ELEN block
+            do j1=1,elens_num !loop over elens
+              if(bez(j).eq.elens_name(j1)) then
+                checkelensflag=.TRUE.
                 select case (elens_type(j1))
                   case ('ANNULAR') ! uniform annular profile
                     typeelens(j) = 1
-                    if(kz(j).eq.29) then !check type parameter kz
 ! lelens(i) is defined in fort.2 single element block: el(i) is saved in
 ! lelens(i) and then set to zero el(i)=0
-                      tmaxelens(j)=elens_theta_max(j1)
-                      r2elens(j)=elens_r2(j1)
-                      r2ovr1elens(j)=elens_r2ovr1(j1)
-                      oxelens(j)=elens_offset_x(j1)
-                      oyelens(j)=elens_offset_y(j1)
-                      inelens(j)=elens_bend_entrance(j1)
-                      exelens(j)=elens_bend_exit(j1)
-                      write(*,*) 'MF: elens found with ',j,bez(j),kz(j),
+                    tmaxelens(j)=elens_theta_max(j1) ! max kick [murad]
+                    r2elens(j)=elens_r2(j1)          ! r2 [mm]
+                    r2ovr1elens(j)=elens_r2ovr1(j1)  ! r2/r1 [1]
+                    oxelens(j)=elens_offset_x(j1)    ! offset x [mm]
+                    oyelens(j)=elens_offset_y(j1)    ! offset y [mm]
+                    inelens(j)=elens_bend_entrance(j1)! flag bends entrance/exit
+                    exelens(j)=elens_bend_exit(j1)
+! print a summary of elens parameters
++if cr
+                    write(lout,
++ei
++if .not.cr
+                    write(*,
++ei
+     &fmt='((A,/),(A,A,/),5(A,D9.3,A,/),(A,/),2(A,I4,/))'),
+     &'ELENS found in list of single elements with: ',
+     &'type     = ',elens_type(j1),
+     &'thetamax = ',tmaxelens(j),' mrad',
+     &'r2       = ',r2elens(j),' mm',
+     &'r2/r1    = ',r2ovr1elens(j),'',
+     &'offset_x = ',oxelens(j),' mm',
+     &'offset_y = ',oyelens(j),' mm',
+     &'enable bends at:',
+     &'  entrance = ',inelens(j),
+     &'  exit     = ',exelens(j)
+      write(*,*) 'MF: ELENS found: ',j,bez(j),kz(j),
      &el(j),ed(j),ek(j),typeelens(j),tmaxelens(j),r2elens(j),
      &r2ovr1elens(j),
      &oxelens(j),oyelens(j),
      &inelens(j),exelens(j)
-                    else
+                  case default
 +if cr
-                      write(lout,*)
+                    write(lout,*)
 +ei
 +if .not.cr
-                      write(*,*)
+                    write(*,*)
 +ei
-     &'ERROR: ELENS ',bez(j),' found: mismatch in '//
-     &'type parameter, kz(',j,')=',kz(j),'!=29!'
-                call prror(-1) 
-                    endif
-                  case default
-                    write(*,*) 'ERROR: ELENSE type ',elens_type(j1),
-     &'not recognized!'
-                    write(*,*) 'Options for type are (upper case ',
-     &'letters): ANNULAR.'
+     &'ERROR: ELENS type ',elens_type(j1),'not recognized! Options for',
+     &' type are (upper case letters): ANNULAR.'
                     call prror(-1)
                 end select
+              endif ! bez(j).eq.elens_name(j1)
+            enddo ! loop over ELEN block elements 
+            if (.not.checkelensflag) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: single element ',trim(bez(j)),' of type ',kz(j),
+     &' ( = elens) not found in ELEN block! Please define element in ',
+     &'ELEN block in fort.3!'
+              call prror(-1)
             endif
-          end do
-        enddo
-! loop to next BLOCK in fort.3
-        goto 110 
-      endif
+          endif ! kz(j) = 29
+        enddo ! loop over single elements
+        goto 110 ! go to next BLOCK in fort.3
+      endif ! end if .eq. next
  
       if(elens_num.ge.nele) then
 +if cr
@@ -18220,12 +18252,61 @@ cc2008
      &elens_bend_entrance(elens_num)
       read (getfields_fields(9)(1:getfields_lfields(9)),'(I10)')
      &elens_bend_exit(elens_num)
-      write (*,*) 'MF: elens param:',elens_num,elens_type(elens_num),
-     &elens_name(elens_num),elens_theta_max(elens_num),
-     &elens_r2(elens_num),elens_r2ovr1(elens_num),
-     &elens_offset_x(elens_num),elens_offset_y(elens_num),
-     &elens_bend_entrance(elens_num),elens_bend_exit(elens_num)
+! do some checks of the input parameters
+      if(elens_type(elens_num).ne.'ANNULAR') then
++if cr
+        write(lout,*)
 +ei
++if .not.cr
+        write(*,*)
++ei
+     &'ERROR: ELENS type ',elens_type(j1),'not recognized! Options for',
+     &' type are (upper case letters): ANNULAR.'
+        call prror(-1)
+      end if
+      if(elens_r2ovr1(elens_num).le.1) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &'ERROR: ELENS radius ratio r2/r1 must be larger than 1, but is ',
+     &elens_r2ovr1(j1),'<1'
+        call prror(-1)
+      end if
+      if(elens_bend_entrance(elens_num).ne.1 .and. elens_bend_entrance(
+     &elens_num).ne.-1 .and. elens_bend_entrance(elens_num).ne.0) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &'ERROR: ELENS flag for taking bends at entrance into account must'
+     &//' be -1,0,1, but elens_bend_entrance =',
+     &elens_bend_entrance(elens_num)
+        call prror(-1)
+      end if
+      if(elens_bend_exit(elens_num).ne.1 .and. elens_bend_exit(
+     &elens_num).ne.-1 .and. elens_bend_exit(elens_num).ne.0) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &'ERROR: ELENS flag for taking bends at exit into account must'
+     &//' be -1,0,1, but elens_bend_exit =',
+     &elens_bend_exit(elens_num)
+        call prror(-1)
+      end if
+!      write (*,*) 'MF: elens param:',elens_num,elens_type(elens_num),
+!     &elens_name(elens_num),elens_theta_max(elens_num),
+!     &elens_r2(elens_num),elens_r2ovr1(elens_num),
+!     &elens_offset_x(elens_num),elens_offset_y(elens_num),
+!     &elens_bend_entrance(elens_num),elens_bend_exit(elens_num)
++ei !endif of .not.fio
       goto 2400
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
@@ -19471,7 +19552,7 @@ cc2008
 +ei
 
       !Temp variables
-      integer i
+      integer i,j1
 
 !--Nonlinear Elements
 ! TODO: Merge these cases into 1 + subcases?
@@ -33039,7 +33120,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--elens
   761      continue
          do j=1,napx
-         write(*,*) 'MF: thin6d i=',i
+!         write(*,*) 'MF: thin6d i=',i
 +ca kickelens
          enddo
          goto 640
@@ -34430,7 +34511,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--elens
   761      continue
          do j=1,napx
-         write(*,*) 'MF: thin6dua i=',i
+!         write(*,*) 'MF: thin6dua i=',i
 +ca kickelens
          enddo
          goto 640
