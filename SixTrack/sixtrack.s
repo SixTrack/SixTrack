@@ -264,7 +264,6 @@
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4,lelens,tmaxelens,r2elens,r2ovr1elens,   &
      &oxelens,oyelens,xelens,yelens,rrelens,frrelens,r1elens
-      logical checkelensflag
 +if time
       double precision tcnst35,exterr35,zfz35
       integer icext35
@@ -336,8 +335,7 @@
      &crabph3(nele),crabph4(nele)
       common/elensco/ typeelens(nele),lelens(nele),tmaxelens(nele),
      &r2elens(nele),r2ovr1elens(nele),oxelens(nele),oyelens(nele),
-     &inelens(nele),exelens(nele),rrelens,frrelens,r1elens,
-     &checkelensflag!type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag), (xelens,yelens,rrelens,frrelens,r1elens) = temporary variables
+     &inelens(nele),exelens(nele)!type,length,max. kick,outer radius,outer radius/inner radius,offset x, offset y,bends entrance (flag), bends exit (flag), (xelens,yelens,rrelens,frrelens,r1elens) = temporary variables
 +cd commons
       integer idz,itra
 +if vvector
@@ -2080,16 +2078,16 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     &,el(i-1),ed(i-1),ek(i-1),tmaxelens(i-1),r2elens(i-1),
 !     &r2ovr1elens(i-1),
 !     &oxelens(i-1),oyelens(i-1),inelens(i-1),exelens(i-1),typeelens(i-1)
-            write(*,*) 'MF: parameters ',i,ktrack(i),bez(i),kz(i),el(i)
-     &,ed(i),ek(i)
-            write(*,*) 'elen',tmaxelens(i),r2elens(i),r2ovr1elens(i),
-     &oxelens(i),oyelens(i),
-     &inelens(i),exelens(i),typeelens(i)
+            write(*,*) 'MF: parameters ',ix,ktrack(ix),bez(ix),kz(ix),
+     &el(ix),ed(ix),ek(ix)
+            write(*,*) 'elen',tmaxelens(ix),r2elens(ix),r2ovr1elens(ix),
+     &oxelens(ix),oyelens(ix),
+     &inelens(ix),exelens(ix),typeelens(ix)
 !            write(*,*) 'parameters i+1',i+1,ktrack(i+1),bez(i+1),kz(i+1)
 !     &,el(i+1),ed(i+1),ek(i+1),tmaxelens(i+1),r2elens(i+1),
 !     &r2ovr1elens(i+1),
 !     &oxelens(i+1),oyelens(i+1),inelens(i+1),exelens(i+1),typeelens(i+1)
-            select case (typeelens(i))
+            select case (typeelens(ix))
               case (1)
 ! ANNULAR: hollow elens with uniform annular profile for collimation
 ! Space charge density is:
@@ -2113,24 +2111,24 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 
 ! kick from ideal annular profile
 ! apply offset
-                if (abs(oxelens(i)).ge.pieni) then
-                  xelens=xv(1,j)+oxelens(i)
+                if (abs(oxelens(ix)).ge.pieni) then
+                  xelens=xv(1,j)+oxelens(ix)
                 endif
-                if (abs(oyelens(i)).ge.pieni) then
-                  yelens=xv(2,j)+oyelens(i)
+                if (abs(oyelens(ix)).ge.pieni) then
+                  yelens=xv(2,j)+oyelens(ix)
                 endif
                 rrelens=sqrt((xelens)**2+(yelens**2)) ! radius p-beam
-                r1elens=r2elens(i)/r2ovr1elens(i) ! inner radius elens
+                r1elens=r2elens(ix)/r2ovr1elens(ix) ! inner radius elens
                 if (rrelens.ge.r1elens) then ! rrelens < r1 -> no kick from elens
-                  if (rrelens.lt.r2elens(i)) then ! r1 <= rrelens < r2
-                    frrelens = (r2elens(i)/(rrelens**2))*
-     &(((rrelens/r1elens)**2-1)/(r2ovr1elens(i)**2 - 1))
+                  if (rrelens.lt.r2elens(ix)) then ! r1 <= rrelens < r2
+                    frrelens = (r2elens(ix)/(rrelens**2))*
+     &(((rrelens/r1elens)**2-1)/(r2ovr1elens(ix)**2 - 1))
                   endif
-                  if (rrelens.ge.r2elens(i)) then ! r1 < r2 <= rrelens
-                    frrelens = r2elens(i)/(rrelens**2)
+                  if (rrelens.ge.r2elens(ix)) then ! r1 < r2 <= rrelens
+                    frrelens = r2elens(ix)/(rrelens**2)
                   endif
-                  yv(1,j)=yv(1,j)-tmaxelens(i)*frrelens*xv(1,j)
-                  yv(2,j)=yv(2,j)-tmaxelens(i)*frrelens*xv(2,j)
+                  yv(1,j)=yv(1,j)-tmaxelens(ix)*frrelens*xv(1,j)
+                  yv(2,j)=yv(2,j)-tmaxelens(ix)*frrelens*xv(2,j)
                 endif
 ! include bends at entrance and exit of elens
               case default
@@ -2140,7 +2138,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if .not.cr
                write(*,*) 'ERROR in deck kickelens: typeelens='
 +ei
-     &,typeelens(i),' not recognized. Possible values for type are: 1.'
+     &,typeelens(ix),' not recognized. Possible values for type are: 1.'
                 call prror(-1) 
               end select
 +cd kickv01v
@@ -4414,7 +4412,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if .not.tilt
 +if crlibm
 !hr03   yv(xory,j)=yv(xory,j) - crabamp*                                &
-!hr03&sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + frabph(ix))
+!hr03&sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))         !hr03
 !hr03 dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
@@ -13391,6 +13389,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      logical checkelensflag !flag for checking if elens is defined in ELEN block in fort.3
 +if crlibm
       integer maxf,nofields
       parameter (maxf=30)
@@ -19830,8 +19829,6 @@ c$$$         endif
       else if(abs(kz(ix)).eq.29) then
          lelens(ix) = el(ix)
          el(ix) =0d0
-         ed(ix) =0d0
-         ek(ix) =0d0
       endif
       
       return
@@ -29425,7 +29422,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
           ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
           ! as no dependency on ix in this case.
-          ix=ic(i)-nblo
+          ix=ic(i)-nblo ! ix = index of single element
 !Should this be inside "if ktrack .ne. 1"? (time/bpm)
 +if bpm
 +ca bpmdata
@@ -40251,7 +40248,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! elensparam - used for reading in from ELEN block in fort.3
         elens_theta_max(i) = 0
         elens_r2(i) = 0
-        elens_r2ovr1(i) = 1.5
+        elens_r2ovr1(i) = 0
         elens_offset_x(i) = 0
         elens_offset_y(i) = 0
         elens_bend_entrance(i) = 0
@@ -40264,7 +40261,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         lelens(i) = 0
         tmaxelens(i) = 0
         r2elens(i) = 0
-        r2ovr1elens(i) = 1.5
+        r2ovr1elens(i) = 0
         oxelens(i) = 0
         oyelens(i) = 0
         inelens(i) = 0
