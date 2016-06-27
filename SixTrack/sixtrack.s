@@ -2080,10 +2080,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     &,el(i-1),ed(i-1),ek(i-1),tmaxelens(i-1),r2elens(i-1),
 !     &r2ovr1elens(i-1),
 !     &oxelens(i-1),oyelens(i-1),inelens(i-1),exelens(i-1),typeelens(i-1)
-!            write(*,*) 'parameters i',i,ktrack(i),bez(i),kz(i),el(i)
-!     &,ed(i),ek(i),tmaxelens(i),r2elens(i),r2ovr1elens(i),oxelens(i),
-!     &oyelens(i),
-!     &inelens(i),exelens(i),typeelens(i)
+            write(*,*) 'MF: parameters ',i,ktrack(i),bez(i),kz(i),el(i)
+     &,ed(i),ek(i)
+            write(*,*) 'elen',tmaxelens(i),r2elens(i),r2ovr1elens(i),
+     &oxelens(i),oyelens(i),
+     &inelens(i),exelens(i),typeelens(i)
 !            write(*,*) 'parameters i+1',i+1,ktrack(i+1),bez(i+1),kz(i+1)
 !     &,el(i+1),ed(i+1),ek(i+1),tmaxelens(i+1),r2elens(i+1),
 !     &r2ovr1elens(i+1),
@@ -2140,7 +2141,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                write(*,*) 'ERROR in deck kickelens: typeelens='
 +ei
      &,typeelens(i),' not recognized. Possible values for type are: 1.'
-               end select
+                call prror(-1) 
+              end select
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -18131,9 +18133,9 @@ cc2008
 +if .not.cr
                     write(*,
 +ei
-     &fmt='((A,/),(A,A,/),5(A,D9.3,A,/),(A,/),2(A,I4,/))'),
+     &fmt='((A,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),2(A,I4,/))'),
      &'ELENS found in list of single elements with: ',
-     &'type     = ',elens_type(j1),
+     &'type     = ',elens_type(j1),' = ',typeelens(j),
      &'thetamax = ',tmaxelens(j),' mrad',
      &'r2       = ',r2elens(j),' mm',
      &'r2/r1    = ',r2ovr1elens(j),'',
@@ -18301,11 +18303,11 @@ cc2008
      &elens_bend_exit(elens_num)
         call prror(-1)
       end if
-!      write (*,*) 'MF: elens param:',elens_num,elens_type(elens_num),
-!     &elens_name(elens_num),elens_theta_max(elens_num),
-!     &elens_r2(elens_num),elens_r2ovr1(elens_num),
-!     &elens_offset_x(elens_num),elens_offset_y(elens_num),
-!     &elens_bend_entrance(elens_num),elens_bend_exit(elens_num)
+      write (*,*) 'MF: elens param:',elens_num,elens_type(elens_num),
+     &elens_name(elens_num),elens_theta_max(elens_num),
+     &elens_r2(elens_num),elens_r2ovr1(elens_num),
+     &elens_offset_x(elens_num),elens_offset_y(elens_num),
+     &elens_bend_entrance(elens_num),elens_bend_exit(elens_num)
 +ei !endif of .not.fio
       goto 2400
 !-----------------------------------------------------------------------
@@ -29789,7 +29791,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--elens
   761      continue
          do j=1,napx
-         write(*,*) 'MF: thin4d i=',i
+!         write(*,*) 'MF: thin4d i=',i
 +ca kickelens
          enddo
           goto 620
