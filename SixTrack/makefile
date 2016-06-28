@@ -18,8 +18,8 @@ SHELL:=/bin/bash
 #MAC_LIBS_PATH          := /opt/local/lib/gcc48/i386/libstdc++.a /opt/local/libexec/llvm-3.3/lib/clang/3.3/lib/darwin/libclang_rt.eprintf.a /opt/local/lib/gcc48/gcc/x86_64-apple-darwin12/4.8.3/i386/libgcc_eh.a
 
 #Windows
-Windows_BOINC_LIB_PATH := C:\andrei_6track\win32\libxp2\*.lib
-Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\User32.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\psapi.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\AdvAPI32.Lib"
+#Windows_BOINC_LIB_PATH := C:\andrei_6track\win32\libxp2\*.lib
+#Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\User32.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\psapi.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\AdvAPI32.Lib"
 
 # user can run make as make add="p q" remove="x y" in order to add p,q and remove x,y where p q x y must belong to ALL_OPTIONS
 # new options are added for executable - m32 and m64 for 32 bit and 64 bit respectivley(m32 is default)
@@ -240,44 +240,44 @@ endif
 # OPSYS variable not working on Windows. Running uname -s from cmd return Windows
 # running the same command from make returns a different value
 # better OS detection for Windows needed
-ifeq ($(OS),Windows_NT)
-  $(info Building on windows)
-  / := $(strip \ )
-  ; := &
-  c := /c
-  " := #"
-  p := 
-  SX_LINUX        := 
-  FCF             := 
-  BOINC_O_FILES   := 
-  output          := /exe:
-  objects         := .obj
-  obj_out         := /Fo
-  # SixTrack wiki shows compilation for ifort only
-  FC              := ifort
-  # path to BOINC Library
-  BOINC           := $(Windows_BOINC_LIB_PATH)
-  O_FILES         := $(patsubst %.o,%$(objects),$(O_FILES))
-  WIN_ARCH        := /arch:$(call if_any,sse2 sse3,$(ENABLED),$(filter sse2 sse3,$(ENABLED)),IA32)
-  WIN_IFORT       := /fp:source /fp:strict /fp:except-
-  WIN_OPTIONS     := /O2 /MT /names:lowercase /assume:underscore
-  ICL_WIN_OPTIONS := /I. /D_CRT_SECURE_NO_WARNINGS /Qstd=c99
-  WIN_CRLIBM      := addition_scs.c atan.c atan_fast.c cosine.c csh_fast.c disable_xp.c division_scs.c double2scs.c dtoaf.c dtoa_c.c enable_xp.c ericc.c exp.c exp_fast.c log10.c log.c log_fast.c multiplication_scs.c rem_pio2.c round_near.c scs2double.c sine.c tan.c trigo_fast.c zero_scs.c
-  # windows crlibm objects
-  WIN_CRLIBM_O    := $(patsubst %.c,%$(objects),$(WIN_CRLIBM))
-  # setting Linux crlibm objects to blank to remove any dependency in the rules
-  CRLIBM_O        :=
-  MS_SDK          := $(Windows_MS_SDK_PATH)
-  # Windows linking options
-  SX_WINDOWS      := /VERBOSE:LIB $(WIN_OPTIONS)  $(MS_SDK) /link
-  ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-     $(info AMD64 achitecture)
-  endif
+# ifeq ($(OS),Windows_NT)
+#   $(info Building on windows)
+#   / := $(strip \ )
+#   ; := &
+#   c := /c
+#   " := #"
+#   p := 
+#   SX_LINUX        := 
+#   FCF             := 
+#   BOINC_O_FILES   := 
+#   output          := /exe:
+#   objects         := .obj
+#   obj_out         := /Fo
+#   # SixTrack wiki shows compilation for ifort only
+#   FC              := ifort
+#   # path to BOINC Library
+#   BOINC           := $(Windows_BOINC_LIB_PATH)
+#   O_FILES         := $(patsubst %.o,%$(objects),$(O_FILES))
+#   WIN_ARCH        := /arch:$(call if_any,sse2 sse3,$(ENABLED),$(filter sse2 sse3,$(ENABLED)),IA32)
+#   WIN_IFORT       := /fp:source /fp:strict /fp:except-
+#   WIN_OPTIONS     := /O2 /MT /names:lowercase /assume:underscore
+#   ICL_WIN_OPTIONS := /I. /D_CRT_SECURE_NO_WARNINGS /Qstd=c99
+#   WIN_CRLIBM      := addition_scs.c atan.c atan_fast.c cosine.c csh_fast.c disable_xp.c division_scs.c double2scs.c dtoaf.c dtoa_c.c enable_xp.c ericc.c exp.c exp_fast.c log10.c log.c log_fast.c multiplication_scs.c rem_pio2.c round_near.c scs2double.c sine.c tan.c trigo_fast.c zero_scs.c
+#   # windows crlibm objects
+#   WIN_CRLIBM_O    := $(patsubst %.c,%$(objects),$(WIN_CRLIBM))
+#   # setting Linux crlibm objects to blank to remove any dependency in the rules
+#   CRLIBM_O        :=
+#   MS_SDK          := $(Windows_MS_SDK_PATH)
+#   # Windows linking options
+#   SX_WINDOWS      := /VERBOSE:LIB $(WIN_OPTIONS)  $(MS_SDK) /link
+#   ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+#      $(info AMD64 achitecture)
+#   endif
 
-  ifeq ($(PROCESSOR_ARCHITECTURE),x86)
-     $(info x86 Architecture)
-  endif
-endif
+#   ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+#      $(info x86 Architecture)
+#   endif
+# endif
 
 # preparing proper file names with extension
 MASKS:= $(addprefix $(DESTDIR)$/,$(MASKS))
