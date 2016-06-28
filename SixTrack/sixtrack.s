@@ -2101,21 +2101,24 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !   frrelens = shape function [1/mm]
 
 ! kick from ideal annular profile
-! apply offset
-                if (abs(elens_offset_x(ix)).ge.pieni) then
-                  xelens=xv(1,j)+elens_offset_x(ix)
-                endif
-                if (abs(elens_offset_y(ix)).ge.pieni) then
-                  yelens=xv(2,j)+elens_offset_y(ix)
-                endif
+! 1) apply offset of e-lens
+                xelens=xv(1,j)+elens_offset_x(ix)
+                yelens=xv(2,j)+elens_offset_y(ix)
+! 2) calculate radius
                 rrelens=sqrt((xelens)**2+(yelens**2)) ! radius p-beam
                 r1elens=elens_r2(ix)/elens_r2ovr1(ix) ! inner radius elens
-                if (rrelens.ge.r1elens) then ! rrelens < r1 -> no kick from elens
+!                write(*,*) 'MF: xelens,yelens,rrelens,r1elens,'//
+!     &'elens_r2(ix)',xelens,yelens,rrelens,r1elens,elens_r2(ix)
+! 3) calculate kick
+                if (rrelens.gt.r1elens) then ! rrelens <= r1 -> no kick from elens
+!                  write(*,*) 'MF: elens r1 < rr'
                   if (rrelens.lt.elens_r2(ix)) then ! r1 <= rrelens < r2
+!                    write(*,*) 'MF: elens r1 < rr < r2'
                     frrelens = (elens_r2(ix)/(rrelens**2))*
-     &(((rrelens/r1elens)**2-1)/(elens_r2ovr1(ix)**2 - 1))
+     &((((rrelens**2)/(r1elens**2))-1)/(elens_r2ovr1(ix)**2 - 1))
                   endif
                   if (rrelens.ge.elens_r2(ix)) then ! r1 < r2 <= rrelens
+!                    write(*,*) 'MF: elens r2 < rr'
                     frrelens = elens_r2(ix)/(rrelens**2)
                   endif
                   yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xv(1,j)
