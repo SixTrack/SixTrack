@@ -319,12 +319,12 @@ CC = gcc
 OBJS := addition_scs.o multiplication_scs.o zero_scs.o \
      division_scs.o double2scs.o scs2double.o zero_scs.o \
      trigo_fast.o tan.o sine.o cosine.o \
-     exp.o logsix.o exp_fast.o log_fast.o \
+     exp.o log.o exp_fast.o log_fast.o \
      atan.o atan_fast.o division_scs.o \
      ericc.o csh_fast.o log10.o rem_pio2.o \
      dtoa_c.o dtoaf.o round_near.o disable_xp.o enable_xp.o
 
-OBJ1:= csh_fast.o trigo_fast.o tan.o sine.o cosine.o exp.o exp_fast.o logsix.o log_fast.o log10.o atan.o atan_fast.o
+OBJ1:= csh_fast.o trigo_fast.o tan.o sine.o cosine.o exp.o exp_fast.o log.o log_fast.o log10.o atan.o atan_fast.o
 OBJ2:= addition_scs.o double2scs.o multiplication_scs.o division_scs.o scs2double.o zero_scs.o
 OBJS := $(OBJ1) $(OBJ2) ericc.o disable_xp.o enable_xp.o round_near.o dtoaf.o dtoa_c.o rem_pio2.o
 
