@@ -25248,7 +25248,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    70   continue
 +ei
 +if stf
-!         code for postprocessing for singletrackfile
+        do 70 i=1,ndafi
++if .not.cr
+          call postpr(90,i)
++ei
++if cr
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile (93,iostat=ierro)
+          backspace (93,iostat=ierro)
+          call postpr(90,nnuml,i)
++ei
+  70      continue
 +ei
         call sumpos
         goto 520
@@ -26138,7 +26148,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei
 +if stf
-	  if (ia.eq.1) then
           write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
      &ia,ia,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),clo6v     &
      &(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v(3,ia),        &
@@ -26163,7 +26172,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-          endif
 +ei
         else
 +if bnlelens
@@ -26216,7 +26224,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei
 +if stf
-	  if (ia.eq.1) then
           write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
      &ia,ia+1,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),        &
      &clo6v(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v          &
@@ -26241,7 +26248,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-	  endif
 +ei
         endif
         if(ierro.ne.0) then
@@ -26776,7 +26782,41 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   520 continue
 +ei
 +if stf
-!       code for postprocessing when singletrackfile
+        iposc=0
+        if(ipos.eq.1) then
+          do 480 ia=1,napxo,2
+            ia2=(ia+1)/2
+            iposc=iposc+1
++if .not.cr
+          call postpr(90,ia2)
++ei
++if cr
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile (93,iostat=ierro)
+          backspace (93,iostat=ierro)
+          call postpr(90,nnuml,ia2)
++ei
+  480     continue
+          if(iposc.ge.1) call sumpos
+        endif
+        goto 520
+  490   if(ipos.eq.1) then
+          ndafi2=ndafi
+          do 500 ia=1,ndafi2
+            if(ia.gt.ndafi) goto 510
++if .not.cr
+          call postpr(90,ia)
++ei
++if cr
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile (93,iostat=ierro)
+          backspace (93,iostat=ierro)
+          call postpr(90,nnuml,ia)
++ei
+  500     continue
+  510     if(ndafi.ge.1) call sumpos
+        endif
+  520 continue
 +ei
 !--HPLOTTING END
       if(ipos.eq.1.and.                                                 &
@@ -55890,11 +55930,22 @@ c$$$            endif
      &g16.10/14x,a16,2x,g16.10,1x,g16.10/14x,a16,2x,g16.10,1x,g16.10)
       end
 +dk postpr
++if .not.stf
 +if .not.cr
       subroutine postpr(nfile)
 +ei
 +if cr
       subroutine postpr(nfile,nnuml)
++ei
++ei
++if stf
++if .not.cr
+      subroutine postpr(nfile,posi)
++ei
++if cr
+      subroutine postpr(nfile,nnuml,posi)
++ei
++ei
 +ei
 !-----------------------------------------------------------------------
 !  POST PROCESSING
@@ -55927,6 +55978,7 @@ c$$$            endif
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
+      integer posi
       real tim1,tim2,fxs,fzs
       double precision const,dle,slope,tle,varlea,wgh
       double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
@@ -56081,6 +56133,7 @@ c$$$            endif
 !----------------------------------------------------------------------
       rewind nfile
       ia=0
++if .not.stf
       read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
      &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
      &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
@@ -56145,6 +56198,38 @@ c$$$            endif
 +ei
         endif
       endif
++ei
++if stf
+ 555  read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
+     &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
+     &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
+     &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
+     &ta(2,1),ta(2,2),ta(2,3),ta(2,4),ta(2,5),ta(2,6), ta(3,1),ta(3,2), &
+     &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
+     &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
+     &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
+     &dnumlr,sigcor,dpscor
+      if(ifipa.ne.posi) then
+	goto 555
+      endif
+      if(ierro.gt.0) then
++if cr
+        write(lout,10320) nfile
+        goto 551
++ei
++if .not.cr
+        write(*,10320) nfile
+        goto 550
++ei
+      endif
++if .not.cr
+      sumda(1)=numl
++ei
++if cr
+      sumda(1)=nnuml
++ei
++ei
++if .not.stf
 !--PREVENT FAULTY POST-PROCESSING
       read(nfile,end=530,iostat=ierro) iaa
       if(ierro.gt.0) then
@@ -56166,10 +56251,17 @@ c$$$            endif
 +ei
         goto 550
       endif
++ei
 !hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
  600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
       rewind nfile
++if stf
+      do i=1,itopa
++ei
       read(nfile)
++if stf
+      enddo
++ei
 !hr06 sumda(5)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       sumda(5)=ta(1,1)**2+ta(1,2)**2                                     !hr06
 !hr06 sumda(6)=ta(3,3)*ta(3,3)+ta(3,4)*ta(3,4)
