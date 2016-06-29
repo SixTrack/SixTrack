@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.34'/
-      data moddate /'20.04.2016'/
+      data version /'4.5.35'/
+      data moddate /'13.06.2016'/
 +cd license
 !!SixTrack
 !!
@@ -15,7 +15,8 @@
 !!S. Redaelli, G. Robert-Demolaize,
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
-!!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,  CERN
+!!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
+!!M. Fitterer CERN
 !!G. Robert-Demolaize, BNL
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
@@ -139,12 +140,7 @@
 !GRDRHIC
 !GRD-042008
 +ei
-+cd save
-+if automatc
-+ei
-+if .not.automatc
-      save
-+ei
+
 +cd parpro
       integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
@@ -161,7 +157,7 @@
 +ei
 +if hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
-     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array
+     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
       parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
@@ -180,7 +176,7 @@
 +ei ! / bignblz
 +if hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
-     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles
+     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
 +ei ! / hugenblz
 +if .not.bignblz.and..not.hugenblz
       parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
@@ -1085,7 +1081,6 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd   dbdump
-
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
 !     K. Sjobak, BE-ABP/HSS
 !     last modified: 03-09-2015
@@ -1115,6 +1110,10 @@
                                              !  not at the end.
       logical ldump                          ! flag the SINGLE ELEMENT for
                                              !   dumping
+
+      double precision :: dump_tas (nblz,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
+      double precision :: dump_clo (nblz,6)   ! closed orbit used for FMA (normalisation of phase space)  -> check units used in dump_clo (is x' or px used?)
+
       integer ndumpt                         ! dump every n turns at a flagged
                                              !   SINGLE ELEMENT (dump frequency)
       integer dumpfirst                      ! First turn for DUMP to be active
@@ -1129,6 +1128,10 @@
      &                dumpfirst(0:nele), dumplast(0:nele),
      &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
      &                dump_fname
+      common /dumpOptics/ dump_tas,dump_clo
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
@@ -1136,8 +1139,23 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd fma
+!     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
+!     Common block for the FMA analysis postprocessing
+      integer, parameter :: fma_max       = 200              !max. number of FMAs
+      integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
+      integer fma_numfiles                                   !number of FMAs
+      logical fma_flag                                       !FMA input block exists
+      character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
+      character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
+      integer fma_nturn    (fma_max)                         !number of turns used for fft
+      integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
+     &fma_norm_flag,fma_nturn
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd   comgetfields
-
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 29-08-2014
 !     some variables / parameters for a more flexible parsing of input lines
@@ -1158,7 +1176,18 @@
       integer getfields_lfields( getfields_n_max_fields )
 *     an error flag
       logical getfields_lerr
-
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd stringzerotrim
+! Definitions necessary for using the "stringzerotrim" function,
+! which is defined in deck "stringhandling".
+! Used in DYNK and FMA.
+! K. Sjobak, BE-ABP/HSS
+      integer stringzerotrim_maxlen
+      parameter (stringzerotrim_maxlen=20) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
+      
+      character(stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1173,6 +1202,7 @@
 !     
 !     See TWIKI for documentation
 !
+!     Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
 
 
 *     general-purpose variables
@@ -1182,7 +1212,8 @@
 
 C     Store the FUN statements
       integer maxfuncs_dynk, maxdata_dynk, maxstrlen_dynk
-      parameter (maxfuncs_dynk=100,maxdata_dynk=50000,maxstrlen_dynk=20)
+      parameter (maxfuncs_dynk=100,maxdata_dynk=50000,
+     &     maxstrlen_dynk=stringzerotrim_maxlen)
 
       integer funcs_dynk (maxfuncs_dynk,5) ! 1 row/FUN, cols are: 
                                            ! (1) = function name in fort.3 (points within cexpr_dynk),
@@ -4469,7 +4500,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
-        write(*,*)'xp,yp before',yv(1,j),yv(2,j)
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
@@ -4477,7 +4507,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-        write(*,*)'xp,yp after',yv(1,j),yv(2,j)
 +ei
 +ei
       ejf0v(j)=ejfv(j)
@@ -7960,6 +7989,8 @@ cc2008
             enddo
           endif
           call dacct(damap,nvar,aa2,nvar,damap,nvar)
+!         calculate linear 6D optics parameter for each element
+!         by calculating the matrix of eigenvectors (tas)
           do j=1,ndimf
             ii=2*j
             if(j.eq.1) then
@@ -7996,6 +8027,35 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
+!    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
+!    units dump_tas: mm,mrad,mm,mrad,mm,1.e-3
+            if(fma_flag) then
+              if(ic(i)-nblo.gt.0) then !check if structure element is a block
+                if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+                  dump_tas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
+                  dump_tas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
+                  dump_tas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)
+                  dump_tas(ic(i)-nblo,ii  ,ii  )=au(ii,ii  )
+                  dump_tas(ic(i)-nblo,ii-1,i2-1)=au(i2-1,i2-1)
+                  dump_tas(ic(i)-nblo,ii  ,i2-1)=au(i2  ,i2-1)
+                  dump_tas(ic(i)-nblo,ii-1,i2  )=au(i2-1,i2  )
+                  dump_tas(ic(i)-nblo,ii  ,i2  )=au(i2  ,i2  )
+                  dump_tas(ic(i)-nblo,ii-1,i3-1)=au(i3-1,i3-1)
+                  dump_tas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
+                  dump_tas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
+                  dump_tas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
+!    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
+!    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
+!     -> check units used in dump_clo (is x' or px used?) 
+                  dump_clo(ic(i)-nblo,2*j-1)=c(j)
+                  if (j.eq.3) then !dp/p
+                    dump_clo(ic(i)-nblo,2*j)  =cp(j)*c1m3
+                  else ! xp,yp
+                    dump_clo(ic(i)-nblo,2*j)  =cp(j)/(one+cp(3)*c1m3)
+                  endif
+                endif
+              endif
+            endif
 !hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
             b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
 !hr08       b2(j)=au(i2-1,i2-1)*au(i2-1,i2-1)+au(i2-1,i2)*au(i2-1,i2)
@@ -8041,12 +8101,13 @@ cc2008
               dphi(j)=zero
             endif
             phi(j)=phi(j)+dphi(j)
-          enddo
+          enddo !end optics calculation
           do j=1,ndimf
             ii=2*j
             angp(2,ii-1)=angp(1,ii-1)
             angp(2,ii)=angp(1,ii)
           enddo
+!         write optics parameter for each element (LINE block)
           if(iwrite.eq.1) then
             iii=i
             if(typ(:8).eq.'START   ') iii=0
@@ -8117,7 +8178,7 @@ cc2008
 +if .not.cr
               write(*,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),c(3),&
 +ei
-     &cp(3)*c1m3
+     &cp(3)
 +if cr
               write(lout,10080) b2(3),al2(3),g2(3)
 +ei
@@ -9921,19 +9982,6 @@ cc2008
    50         continue
             endif
    60     continue
-+dk flush
-+if hhp
-      subroutine flush(i)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      integer i
-      end
-+ei
 +dk close
       subroutine closeUnits
       implicit none
@@ -9941,6 +9989,7 @@ cc2008
 +ca common
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
       integer i
       logical lopen
@@ -10010,7 +10059,6 @@ cc2008
  34    continue
       close(35,err=35)
  35    continue
-+if .not.fluka
       close(59,err=59)
  59    continue
       close(60,err=60)
@@ -10075,7 +10123,6 @@ cc2008
  89    continue
       close(90,err=90)
  90    continue
-+ei
       close(98,err=98)
  98    continue
 +if bnlelens
@@ -10126,8 +10173,29 @@ cc2008
 !     last modified: 02-09-2014
 !     close units for logging dynks
 !     always in main code
-      if (ldynk) close(665,err=665)
- 665    continue
+      if (ldynk) then
+         ! dynksets.dat
+         inquire(unit=665, opened=lopen)
+         if (lopen) close(665,err=665)
+ 665     continue
+         
+         do i=1,nfuncs_dynk
+            if ( funcs_dynk(i,2).eq.3) then !PIPE FUN
+               ! InPipe
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
+               if ( lopen ) close(iexpr_dynk(funcs_dynk(i,3)))
+               
+               ! OutPipe
+               inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
+               if ( lopen ) then
+                  write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")
+     &                 "CLOSEUNITS"
+                  close(iexpr_dynk(funcs_dynk(i,3))+1)
+               endif
+            endif
+         end do
+      end if
+      
 
       return
       end subroutine
@@ -10166,7 +10234,7 @@ cc2008
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(3)
       data sgn/100*1.d0/ainv,bmat,cmat,cvec,dvec/48*0.d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi2in=1d0/(8d0*atan_rn(1d0))
@@ -10558,7 +10626,7 @@ cc2008
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -10810,7 +10878,7 @@ cc2008
       dimension tham(0:3)
 +ca commadha
 +ca commadh1
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 jcomp=0,3
         tham(jcomp)=0d0
@@ -10968,7 +11036,7 @@ cc2008
       real user
       double precision fder,fun,objf,objgrd,x
       dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
-+ca save
+      save
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -11310,7 +11378,7 @@ cc2008
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(2)
       data sgn/100*1d0/ainv,bmat,cmat,cvec,dvec/48*0d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi2in=1d0/(8d0*atan_rn(1d0))
@@ -11701,7 +11769,7 @@ cc2008
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rewind 23
 !-----------------------------------------------------------------------
@@ -11983,7 +12051,7 @@ cc2008
 +ca commadha
 +ca commadh2
       dimension thamp(0:1),thama(0:4)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(iamp.eq.0) then
 !-----------------------------------------------------------------------
@@ -12286,7 +12354,7 @@ cc2008
      &tunedy,tunex,tuney,weight,x
       dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
       dimension iuser(*),tunedx(10),tunedy(10)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 30 jel=0,1
         do 20 jord=1,iuser(1)
@@ -12632,7 +12700,7 @@ cc2008
       parameter(xlim = 5.33d0)
       parameter(ylim = 4.29d0)
       dimension rx(33),ry(33)
-+ca save
+      save
 !-----------------------------------------------------------------------
       x=abs(xx)
       y=abs(yy)
@@ -12803,7 +12871,7 @@ cc2008
       integer in,out,ins,outs
       dimension ins(npart),outs(npart)
 !-----------------------------------------------------------------------
-+ca save
+      save
       in=0
       out=0
       do i=1,n
@@ -13022,7 +13090,7 @@ cc2008
 +ca parbeam
       parameter ( a1 = 0.5124242248d0, a2 = 0.0517653588d0 )
       parameter ( b1 = 0.2752551286d0, b2 = 2.7247448714d0 )
-+ca save
+      save
 !-----------------------------------------------------------------------
       if ( x.ge.xcut .or. y.ge.ycut ) goto 1000
       xh = hrecip*x
@@ -13127,7 +13195,7 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(numx.eq.1) phas0=phas
       if(numx.le.nde(1)) phas=zero
@@ -13167,7 +13235,7 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
 +if crlibm
@@ -13256,8 +13324,9 @@ cc2008
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
-
++ca fma
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -13278,8 +13347,11 @@ cc2008
 !     - dynamic kicks
       character*16 dynk
       data dynk /'DYNK'/
+!     - fma
+      character*16 fma
+      data fma /'FMA'/
 
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
@@ -13525,6 +13597,7 @@ cc2008
 !     brand new input block for dynamic kicks
 !     always in main code
       if(idat.eq.dynk) goto 2200
+      if(idat.eq.fma) goto 2300
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -14906,6 +14979,10 @@ cc2008
       endif
 !-----------------------------------------------------------------------
 !  LINEAR OPTICS CALCULATION
+!  - in the 4D case (ilin=1) the subroutine linopt is called
+!  - in the 6d case (ilin=2) the optics parameters are calculated and 
+!    printed in the subroutine umlauda (calculated in the common block
+!    umlalid)
 !-----------------------------------------------------------------------
  660  continue
       ilin0=1
@@ -17620,9 +17697,6 @@ cc2008
 !-----------------------------------------------------------------------
       idial=1
       numlr=0
-+if .not.llyap
-!     NUML=1
-+ei
       napx=1
       imc=1
       preda=1.d-38
@@ -18007,6 +18081,7 @@ cc2008
             endif
           endif
         enddo
+
         if ( ldumphighprec ) then
 +if cr
           write(lout,*) ''
@@ -18190,7 +18265,7 @@ cc2008
 !  always in main code
 !-----------------------------------------------------------------------
  2200 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(51)
+      if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
       if(ch(1:1).eq.'/') goto 2200 ! skip comment line
@@ -18340,6 +18415,119 @@ cc2008
       write (lout,*) "*****************************"
 +ei
       call prror(51)
+!-----------------------------------------------------------------------
+!  FMA
+!  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
+!  last modified: 07-01-2016
+!  always in main code
+!-----------------------------------------------------------------------
+ 2300 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+         goto 110 ! loop to next BLOCK in fort.3
+      endif
+ 
+      if(fma_numfiles.ge.fma_max) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR: you can only do ',fma_max,' number of FMAs'
+        call prror(-1) 
+      endif
+
+      fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
+!     read in input parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in FMA block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+      if(getfields_nfields.eq.1 .or. getfields_nfields.ge.4) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in FMA block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 2 (or 3)'
+        call prror(-1)
+      endif
+
+      fma_fname(fma_numfiles)  =
+     &     getfields_fields(1)(1:getfields_lfields(1))
+      fma_method(fma_numfiles) =
+     &     getfields_fields(2)(1:getfields_lfields(2))
+      if(getfields_nfields.eq.2) then
+        fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
+      endif
+      if(getfields_nfields.eq.3) then
+         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
+     &        fma_norm_flag(fma_numfiles)
+      endif
+
+      ! Input sanity checks
+      if (.not. (
+     &    trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNELASK"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFTI"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEAPA"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFIT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1")
+     &   ) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "ERROR in DATEN::FMA: The FMA method '"//
+     &        trim(stringzerotrim(fma_method(fma_numfiles)))
+     &        //"' is unknown. FMA index = ", fma_numfiles
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &       "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//
+     &       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT2, TUNEABT2. "//
+     &       "Note that it is case-sensitive, so use uppercase only."
+         call prror(-1)
+      end if
+
+      if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or.
+     &           fma_norm_flag(fma_numfiles).eq.1      )) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0."//
+     &        "Got:", fma_norm_flag(fma_numfiles),
+     &        "FMA index =",fma_numfiles
+      end if
+      
+      fma_flag = .true.
+      goto 2300
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
@@ -18817,19 +19005,7 @@ cc2008
      &t10,'TROMBONE #      NAME'/)
 10710 format(t22,i4,5x,a16)
       end
-+if iibm
-      subroutine xuflow (i)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      integer i
-      return
-      end
-+ei
+      
       subroutine write4
 !-----------------------------------------------------------------------
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
@@ -18859,12 +19035,10 @@ cc2008
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ii=0
-+if .not.hhp
       rewind 2
-+ei
  1    read(2,*,end=90) ch
       lineno2=lineno2+1
       if(ch(:1).eq.'/') then
@@ -18949,7 +19123,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if bnlelens
 !GRDRHIC
@@ -19008,88 +19182,6 @@ cc2008
       ch1(i2:i3)=ch(i1:nchars)//' / '
       return
       end
-
-      subroutine getfields_split( tmpline, getfields_fields,
-     &         getfields_lfields, getfields_nfields, getfields_lerr)
-!
-!-----------------------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 24-02-2015
-!     parse a line and split it into its fields
-!       fields are returned as 0-terminated and padded string
-!     always in main code
-!-----------------------------------------------------------------------
-!
-      implicit none
-+ca   comgetfields
-+if cr
-+ca crcoall
-+ei
-      
-      character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
-
-      intent(in) tmpline
-      intent(out) getfields_fields, getfields_lfields,
-     &     getfields_nfields, getfields_lerr
-      
-*     runtime variables
-      integer ii, jj
-      logical lchar
-      integer lenstr, istart
-
-*     initialise output variables
-      getfields_lerr = .false.
-      getfields_nfields=0
-      do ii=1,getfields_n_max_fields
-         do jj=1,getfields_l_max_string
-            getfields_fields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
-         enddo
-         getfields_lfields(ii)=0
-      enddo
-
-*     parse the line
-      lchar = .false.
-      do ii=1, getfields_l_max_string-1 !For \0 termination
-         if ( tmpline(ii:ii) .eq. ' ' ) then
-*           blank char
-            if ( lchar ) then
-*              end of a string: record it
-               getfields_lfields(getfields_nfields)          = lenstr
-               getfields_fields (getfields_nfields)
-     &              (1:getfields_lfields(getfields_nfields)) =
-     &              tmpline(istart:
-     &               istart+getfields_lfields(getfields_nfields))
-               lchar = .false.
-            endif
-         else
-*           non-blank char
-            if ( .not. lchar ) then
-*              a new what starts
-               getfields_nfields = getfields_nfields +1
-               if ( getfields_nfields.gt.getfields_n_max_fields ) then
-+if cr
-                  write (lout,*)'error! too many fields in line:'
-                  write (lout,*) tmpline
-                  write (lout,*)'please increase getfields_n_max_fields'
-+ei
-+if .not.cr
-                  write (*,*)   'error! too many fields in line:'
-                  write (*,*)   tmpline
-                  write (*,*)   'please increase getfields_n_max_fields'
-+ei
-                  getfields_lerr = .true.
-                  exit !Break do
-               endif
-               istart = ii
-               lchar = .true.
-               lenstr = 0
-            endif
-            lenstr = lenstr+1
-         endif
-      enddo
-
-      end subroutine
       
       subroutine initialize_element(ix,lfirst)
 !
@@ -19118,6 +19210,7 @@ cc2008
 +ca commonmn
 +ca commontr
 +ca commonxz
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -19782,7 +19875,7 @@ C Should get me a NaN
       double precision wi,wr,x,y
 +ca parpro
 +ca parbeam
-+ca save
+      save
 !-----------------------------------------------------------------------
       hrecip = 1.d0/h
       kstep = nx+2
@@ -19816,7 +19909,7 @@ C Should get me a NaN
 !     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
       parameter (c=1.12837916709551257d0,p=46768052394588893.3825d0)
       dimension rr(37),ri(37)
-+ca save
+      save
 !-----------------------------------------------------------------------
       xa=abs(x)
       ya=abs(y)
@@ -19910,6 +20003,119 @@ C Should get me a NaN
       wi=vi
       return
       end
++dk stringhandling
+      subroutine getfields_split( tmpline, getfields_fields,
+     &         getfields_lfields, getfields_nfields, getfields_lerr)
+!
+!-----------------------------------------------------------------------
+!     A.Mereghetti, for the FLUKA Team
+!     K.Sjobak and A.Santamaria, BE-ABP-HSS
+!     last modified: 24-02-2015
+!     parse a line and split it into its fields
+!       fields are returned as 0-terminated and padded string
+!     always in main code
+!-----------------------------------------------------------------------
+!
+      implicit none
++ca   comgetfields
++if cr
++ca crcoall
++ei
+      
+      character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
+
+      intent(in) tmpline
+      intent(out) getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr
+      
+*     runtime variables
+      integer ii, jj
+      logical lchar
+      integer lenstr, istart
+
+*     initialise output variables
+      getfields_lerr = .false.
+      getfields_nfields=0
+      do ii=1,getfields_n_max_fields
+         do jj=1,getfields_l_max_string
+            getfields_fields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
+         enddo
+         getfields_lfields(ii)=0
+      enddo
+
+*     parse the line
+      lchar = .false.
+      do ii=1, getfields_l_max_string-1 !For \0 termination
+         if ( tmpline(ii:ii) .eq. ' ' ) then
+*           blank char
+            if ( lchar ) then
+*              end of a string: record it
+               getfields_lfields(getfields_nfields)          = lenstr
+               getfields_fields (getfields_nfields)
+     &              (1:getfields_lfields(getfields_nfields)) =
+     &              tmpline(istart:
+     &               istart+getfields_lfields(getfields_nfields))
+               lchar = .false.
+            endif
+         else
+*           non-blank char
+            if ( .not. lchar ) then
+*              a new what starts
+               getfields_nfields = getfields_nfields +1
+               if ( getfields_nfields.gt.getfields_n_max_fields ) then
++if cr
+                  write (lout,*)'error! too many fields in line:'
+                  write (lout,*) tmpline
+                  write (lout,*)'please increase getfields_n_max_fields'
++ei
++if .not.cr
+                  write (*,*)   'error! too many fields in line:'
+                  write (*,*)   tmpline
+                  write (*,*)   'please increase getfields_n_max_fields'
++ei
+                  getfields_lerr = .true.
+                  exit !Break do
+               endif
+               istart = ii
+               lchar = .true.
+               lenstr = 0
+            endif
+            lenstr = lenstr+1
+         endif
+      enddo
+
+      end subroutine
+
+      function stringzerotrim(instring)
+!----------------------------------------------------------------------------
+!     K. Sjobak, BE-ABP/HSS
+!     last modified: 30-10-2014
+!     Replace "\0" with ' ' in strings.
+!     Usefull before output, else "write (*,*)" will actually write all the \0s
+!
+!     Warning: Do not add any write(*,*) inside this function:
+!     if this function is called by a write(*,*) and then does a write,
+!     the program may deadlock!
+!----------------------------------------------------------------------------
+      implicit none
++ca stringzerotrim
+      character(stringzerotrim_maxlen) instring
+      intent(in) instring
+      
+      integer ii
+      
+      do ii=1,stringzerotrim_maxlen
+         if ( instring(ii:ii) .ne. char(0) ) then
+            stringzerotrim(ii:ii) = instring(ii:ii)
+         else 
+            stringzerotrim(ii:ii) = ' '
+         end if
+      end do
+      stringzerotrim = trim(stringzerotrim)
+
+      end function
+
+
 +dk ranecu
       subroutine ranecu(rvec,len,mcut)
       implicit none
@@ -19924,7 +20130,7 @@ C Should get me a NaN
 +ca parnum
       dimension rvec(*),r(2)
       data iseed1,iseed2 / 12345, 67890 /
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi = four*atan_rn(one)
@@ -20004,7 +20210,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -20511,7 +20717,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -20889,7 +21095,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -21005,7 +21211,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
       dimension fake(2,20),dpdav2(6),jj(100)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -22208,11 +22414,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
+!     for FMA analysis
++ca comgetfields
++ca dbdump
++ca dbdumpcr
++ca fma
+!     for FMA analysis
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -22437,6 +22649,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('biu                                               ')
 !     endif
 +ei
+!     start loop over single elements
       do 430 i=1,iu
         if(iqmodc.eq.2.or.iqmodc.eq.4) then
           if(i.eq.niu(1)) then
@@ -23580,7 +23793,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -23752,7 +23965,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonxz
 +ca commonm1
 +ca commond1
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca daini
 *FOX  1 if(1.eq.1) then
@@ -23893,7 +24106,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 +ca dainicom
@@ -23953,7 +24166,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT XX NORD NVAR ; D V DA EXT YY NORD NVAR ;
@@ -24089,7 +24302,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ;
@@ -24171,7 +24384,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ; D V DA INT A NORD NVAR ;
@@ -24236,7 +24449,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ;
@@ -24385,7 +24598,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT TRACK NORD NVAR 6 ; D V DA INT A1 NORD NVAR ;
@@ -24459,7 +24672,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 *FOX  B D ;
 *FOX  D V DA EXT SEPX NORD NVAR ; D V DA EXT SEPY NORD NVAR ;
@@ -24646,7 +24859,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca dbdumpcr
 +ei
++ca stringzerotrim
 +ca comdynk
++ca fma
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -25014,9 +25229,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if debug
                    !call system('../crmain  >> crlog')
 +ei
-+if iibm
-      call xuflow(0)
-+ei
 !     A normal start, time0 is beginning
       pretime=0.0
       trtime=0.0
@@ -25336,7 +25548,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(iqmod.ne.0) call qmod0
         if(ichrom.eq.1.or.ichrom.eq.3) call chroma
         if(iskew.ne.0) call decoup
-        if(ilin.eq.1.or.ilin.eq.3) call linopt(dp1)
+        if(ilin.eq.1.or.ilin.eq.3) then
+          call linopt(dp1)
+        endif
 +if debug
 !     call dumpbin('bbb',96,996)
 !     call abend('bbb                                               ')
@@ -26334,15 +26548,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              else if ( dumpfmt(i).eq.2 ) then
                 if (i.eq.0) then
                    write(dumpunit(i),*)
-     &  '# DUMP format #2, ALL ELEMENTS, dump period=', ndumpt(i)
+     &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
+                   write(dumpunit(i),fmt=*)
+     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+     &  ', last turn=', dumplast(i)
                 else
                    write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i)
+     &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
+                   write(dumpunit(i),fmt=*)
+     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+     &  ', last turn=', dumplast(i)
                 endif
                 write(dumpunit(i),*)
-     &'#ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
+     &  'ktrack'
 +if cr
-                dumpfilepos(i) = dumpfilepos(i) + 2
+                dumpfilepos(i) = dumpfilepos(i) + 3
 +ei
              end if
           else
@@ -26729,6 +26950,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   510     if(ndafi.ge.1) call sumpos
         endif
   520 continue
+!     start fma
+      if(fma_flag) then
++if cr
+        write(lout,*)'Calling FMA_POSTPR'
++ei
++if .not.cr
+        write(*,*)   'Calling FMA_POSTPR'
++ei
+        call fma_postpr
+      endif
 !--HPLOTTING END
       if(ipos.eq.1.and.                                                 &
      &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
@@ -26978,9 +27209,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
++ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
         nlostp(i)=i
@@ -28779,9 +29011,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca dbdcum
-+ca save
+      save
 !-----------------------------------------------------------------------
       nthinerr=0
 +if bnlelens
@@ -29323,9 +29556,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca dbdcum
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
@@ -33421,9 +33655,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
 +ca dbdcum
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
@@ -33999,7 +34234,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       data ncalls /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       ncalls=ncalls+1 
@@ -34208,7 +34443,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       data ncalls /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       ncalls=ncalls+1 
@@ -34285,7 +34520,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1a
 +ca lost2
@@ -34324,7 +34559,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1a
 +ca lost2a
@@ -34364,7 +34599,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1b
 +ca lost2a
@@ -34404,7 +34639,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +ca lost1c
 +ca lost2a
@@ -34443,7 +34678,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 20 ia=1,napx,2
         if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
@@ -34514,7 +34749,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       id=0
       do 10 ia=1,napxo,2
@@ -34791,13 +35026,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commontr
 +ca beamdim
       dimension nbeaux(nbb)
++ca stringzerotrim
 +ca comdynk
       logical dynk_isused
 +if collimat
 +ca database
 +ei
 
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if collimat
       if (do_coll) then
@@ -35264,8 +35500,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
-+ca save
+      save
 !-----------------------------------------------------------------------
       nthinerr=0
       idz1=idz(1)
@@ -35810,8 +36047,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
-+ca save
+      save
 +if debug
 !-----------------------------------------------------------------------
 !===================================================================
@@ -36503,8 +36741,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca comgetfields
 +ca dbdump
++ca stringzerotrim
 +ca comdynk
-+ca save
+      save
 !-----------------------------------------------------------------------
       nthinerr=0
       idz1=idz(1)
@@ -37083,7 +37322,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 +if cr
 +if debug
@@ -37732,7 +37971,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca rhicelens
 +ei
 !-----------------------------------------------------------------------
-+ca save
+      save
 !-----------------------------------------------------------------------
       dimension ekv(npart,nele),fokqv(npart),dpsv(npart)
       dimension rvv(npart),oidpsv(npart)
@@ -38410,9 +38649,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       data lineno /0/
 +ei
 +ca version
-+if iibm
-      call xuflow(0)
-+ei
 +ca open
 +if cr
       write(lout,10000) version,moddate
@@ -38529,7 +38765,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--FOR THE MOMENTUM-SCAN THE MOMENTUM IS THE SAME FOR BOTH PARTICLES
       exz(1,6)=dp1
       exz(2,6)=dp1
-      if(ilin.eq.1.or.ilin.eq.3) call linopt(dp1)
+      if(ilin.eq.1.or.ilin.eq.3) then
+        call linopt(dp1)
+      endif
       if(isub.eq.1) call subre(dp1)
       if(ise.eq.1) call search(dp1)
       if(napx.eq.0) goto 160
@@ -39060,14 +39298,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdcum
 +ca comgetfields
 +ca dbdump
++ca fma
 +if cr
 +ca dbdumpcr
 +ei
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca comdynkcr
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 +if bnlelens
@@ -39584,6 +39824,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     always in main code
       ldumphighprec = .false.
       ldumpfront    = .false.
+      do i1=1,nblz
+        do i2=1,6
+          dump_clo(i1,i2)=0
+          do i3=1,6
+            dump_tas(i1,i2,i3)=0
+          enddo
+        enddo
+      enddo
       do i=0,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
@@ -39598,6 +39846,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         dumpfilepos(i) = -1
 +ei
       enddo
+      fma_flag = .false.
+      fma_numfiles = 0
+      do i=1,fma_max
+        fma_nturn(i) = 0
+        fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
+        do j=1,getfields_l_max_string
+          fma_fname(i)(j:j) = char(0)
+          fma_method(i)(j:j) = char(0)
+        enddo
+      enddo
+
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 03-09-2014
@@ -39678,7 +39937,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       character*18 a18
       character*58 a58
       dimension jj(100)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do i=1,100
         jj(i)=0
@@ -39766,7 +40025,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
       dimension rot(6),xy(6),df(6)
       dimension angle(3),rad(3)
-+ca save
+      save
 !-----------------------------------------------------------------------
       tlim=1e7
       call timest(tlim)
@@ -39972,7 +40231,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca parnum
 +ca commonds
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=four*atan_rn(one)
@@ -40051,7 +40310,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commons
 +ca commont1
       dimension tas(6,6),x1(6),x2(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10030)
@@ -40217,7 +40476,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ierro=0
       call matrix(dpp,am)
@@ -40465,7 +40724,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
         jm=mel(k)
@@ -40529,7 +40788,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 60 k=1,mblo
         jm=mel(k)
@@ -40603,7 +40862,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       cor=0d0
       coro=1d38
@@ -40771,7 +41030,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10000)
@@ -40968,7 +41227,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save ! Saving DPP?
+      save ! Saving DPP?
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -41071,7 +41330,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
 +if cr
@@ -41496,7 +41755,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonas
 +ca commonc
       dimension am(6,6),idummy(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(nndim.lt.2.or.nndim.gt.3) call prror(95)
 !--------------------
@@ -41584,7 +41843,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonas
 +ca commonc
       dimension am(6,6),idummy(6)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(nndim.lt.2.or.nndim.gt.3) call prror(95)
 !--------------------
@@ -41665,7 +41924,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ierro=0
       do 10 l=1,2
@@ -41731,7 +41990,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 20 j=1,icoe
         ico0=icomb0(j)
@@ -41782,7 +42041,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -42105,7 +42364,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       dpd=one+dpp
       dpsq=sqrt(dpd)
@@ -42424,7 +42683,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if cr
       write(lout,10000)
@@ -43372,7 +43631,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     
       implicit none
-+ca parpro      
++ca parpro
++ca stringzerotrim
 +ca comdynk
 +ca comgetfields
 +if cr
@@ -43394,7 +43654,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer dynk_findFUNindex
       
       logical lopen
-      
+
 +if crlibm
       integer nchars
       parameter (nchars=160) !Same as in daten
@@ -43859,7 +44119,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -44004,7 +44264,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             x = round_near(errno, filefields_lfields(1)+1,
      &           filefields_fields(1) )
             if (errno.ne.0)
-     &           call rounderr(errno,filefields_fields,2,x)
+     &           call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1,
      &           filefields_fields(2) )
             if (errno.ne.0)
@@ -44027,7 +44287,262 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          nfexpr_dynk = nfexpr_dynk + 2*t
          funcs_dynk(nfuncs_dynk,5) = t
          close(664)
+         
+      case ("PIPE")
+         ! PIPE: Use a pair of UNIX FIFOs.
+         ! Another program is expected to hook onto the other end of the pipe,
+         ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
+         ! That program should then send a value back (in ASCII), which will be the new setting.
+         
+         call dynk_checkargs(getfields_nfields,7,
+     &        "FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+         call dynk_checkspace(1,0,4)
+         
++if cr
+         write(lout,*) "DYNK FUN PIPE not supported in CR version"
+         write(lout,*) "Sorry :("
+         call prror(-1)
++ei
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         niexpr_dynk = niexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 3             !TYPE (PIPE)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk   !UnitNR (set below)
+         funcs_dynk(nfuncs_dynk,4) = -1            !Not used
+         funcs_dynk(nfuncs_dynk,5) = -1            !Not used
+         
+         !Sanity checks
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(5) .gt. maxstrlen_dynk-1 .or.
+     &       getfields_lfields(6) .gt. maxstrlen_dynk-1      ) then
++if cr
+            write (lout,*) "*************************************"
+            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+            write (lout,*) "FUN PIPE got one or more strings which "
+            write (lout,*) "was too long (>",maxstrlen_dynk-1,")"
+            write (lout,*) "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (lout,*) "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (lout,*) "*************************************"
++ei
++if .not.cr
+            write (*,*)    "*************************************"
+            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
+            write (*,*)    "FUN PIPE got one or more strings which "
+            write (*,*)    "was too long (>",maxstrlen_dynk-1,")"
+            write (*,*)    "Strings: '",
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
+            write (*,*)    "lengths =",
+     &           getfields_lfields(4),", ",
+     &           getfields_lfields(5)," and ",
+     &           getfields_lfields(6)
+            write (*,*)    "*************************************"
++ei
+            call prror(51)
+         endif
 
+         ! Store data
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !inPipe
+     &        getfields_fields(4)(1:getfields_lfields(4))
+         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = !outPipe
+     &        getfields_fields(5)(1:getfields_lfields(5))
+         cexpr_dynk(ncexpr_dynk+3)(1:getfields_lfields(6)) = !ID
+     &        getfields_fields(6)(1:getfields_lfields(6))
+         ncexpr_dynk = ncexpr_dynk+3
+         
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) !fileUnit
+     &        iexpr_dynk(niexpr_dynk)
+         
+         ! Look if the fileUnit or filenames are used in a different FUN PIPE
+         t=0 !Used to hold the index of the other pipe; t=0 if no older pipe -> open files.
+         do ii=1,nfuncs_dynk-1
+            if (funcs_dynk(ii,2) .eq. 3) then !It's a PIPE
+               !Does any of the settings match?
+               if ( iexpr_dynk(funcs_dynk(ii,3)).eq.      !Unit number
+     &              iexpr_dynk(niexpr_dynk)           .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+1).eq.    !InPipe filename
+     &              cexpr_dynk(ncexpr_dynk-2)         .or.
+     &              cexpr_dynk(funcs_dynk(ii,1)+2).eq.    !OutPipe filename
+     &              cexpr_dynk(ncexpr_dynk-1)         ) then
+                  !Does *all* of the settings match?
+                  if ( iexpr_dynk(funcs_dynk(ii,3)).eq.   !Unit number
+     &                 iexpr_dynk(niexpr_dynk)           .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+1).eq. !InPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-2)         .and.
+     &                 cexpr_dynk(funcs_dynk(ii,1)+2).eq. !OutPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-1)         ) then
+                     t=ii
++if cr
+                     write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                     write(*,*)    "DYNK> "//
++ei
+     & "PIPE FUN '"//cexpr_dynk(funcs_dynk(nfuncs_dynk,1))//
+     & "' using same settings as previously defined FUN '"   //
+     & cexpr_dynk(funcs_dynk(ii,1))//"' -> reusing files!"
+                     if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
+     &                   cexpr_dynk(ncexpr_dynk)           ) then
++if cr
+                        write(lout,*) "DYNK> "//
++ei
++if .not.cr
+                        write(*,*)    "DYNK> "//
++ei
+     &               "ERROR: IDs must be different when sharing PIPEs."
+                        call prror(-1)
+                     endif
+                     exit !break loop
+                  else !Partial match
++if cr !Nested too deep, sorry about crappy alignment...
+      write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(lout,*) "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
++if .not.cr
+      write(*,*)    "DYNK> *** Error in dynk_parseFUN():PIPE ***"
+      write(*,*)    "DYNK> Partial match of inPipe/outPipe/unit number"
+      write(*,*)    "DYNK> between PIPE FUN '"               //
+     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
+     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
++ei
+                     call prror(-1)
+                  endif
+               endif
+            endif
+         end do
+
+         if (t.eq.0) then !Must open a new set of files
+         ! Open the inPipe
+         inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk),
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
++if cr
+         write(lout,*) "DYNK> Opening input pipe '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening input pipe '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
+         open(unit=iexpr_dynk(niexpr_dynk),
+     &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
++ei
+            call prror(51)
+         endif
+
+         ! Open the outPipe
++if cr
+         write(lout,*) "DYNK> Opening output pipe '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
++if .not.cr
+         write(*,*)    "DYNK> Opening output pipe '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
+     &trim(stringzerotrim(
+     &cexpr_dynk(ncexpr_dynk)))//"'"
++ei
+         inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
+         if (lopen) then
++if cr
+            write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
++if .not.cr
+            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
+            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
+     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           //"' was already taken"
++ei
+            call prror(-1)
+         end if
+         
+         open(unit=iexpr_dynk(niexpr_dynk)+1,
+     &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
+     &        iostat=stat,status="OLD")
+         if (stat .ne. 0) then
++if cr
+            write(lout,*) "DYNK> dynk_parseFUN():PIPE"
+            write(lout,*) "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
++ei
++if .not.cr
+            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
+            write(*,*)    "DYNK> Error opening file '",
+     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
++ei
+            call prror(51)
+         endif
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)')
+     &        "DYNKPIPE !******************!" !Once per file
+         endif !End "if (t.eq.0)"/must open new files
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
+     &        "INIT ID="//
+     &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))
+     &        //" for FUN="//
+     &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
+         
+         
       case ("RANDG")
          ! RANDG: Gausian random number with mu, sigma, and optional cutoff
          
@@ -44096,7 +44611,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
-
+         
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
          ! y[n] = \sum_{i=0}^N b_i*x[n-i]
@@ -45169,6 +45684,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer iblocks,fblocks,cblocks
       intent(in) iblocks,fblocks,cblocks
 +ca parpro
++ca stringzerotrim
 +ca comdynk      
 
 +if cr
@@ -45206,6 +45722,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
 +ca comgetfields
 
@@ -45303,7 +45820,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write(lout,*) "The attribute name '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "is too long! Max length is",
-     &        maxstrlen_dynk
+     &        maxstrlen_dynk-1
 +ei
 +if .not.cr
          write(*,*)    "ERROR in DYNK block parsing (fort.3) (SET):"
@@ -45409,6 +45926,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -45487,6 +46005,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
       character(maxstrlen_dynk) element_name, att_name
       integer startfrom
@@ -45514,6 +46033,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -45662,12 +46182,12 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     Dump arrays with DYNK FUN and SET data to the std. output for debugging
 !----------------------------------------------------------------------------
       implicit none
-+ca parpro      
++ca parpro
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
 +ei
-      character(maxstrlen_dynk) dynk_stringzerotrim
 
       integer ii
 +if cr
@@ -45752,7 +46272,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if .not.cr
          write(*,*)
 +ei
-     &   ii, ":", "'"//trim(dynk_stringzerotrim(cexpr_dynk(ii)))//"'"
+     &   ii, ":", "'"//trim(stringzerotrim(cexpr_dynk(ii)))//"'"
       end do
 
 +if cr
@@ -45773,8 +46293,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          write (*,*) 
 +ei
      &        ii, ":", sets_dynk(ii,:),
-     &        "'"//trim(dynk_stringzerotrim(csets_dynk(ii,1)))//
-     &  "' ", "'"//trim(dynk_stringzerotrim(csets_dynk(ii,2)))//"'"
+     &        "'"//trim(stringzerotrim(csets_dynk(ii,1)))//
+     &  "' ", "'"//trim(stringzerotrim(csets_dynk(ii,2)))//"'"
       end do
       
 +if cr
@@ -45791,8 +46311,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          write (*,   '(1x,I8,1x,A,1x,E16.9)')
 +ei
      &       ii, ": '"//
-     &       trim(dynk_stringzerotrim(csets_unique_dynk(ii,1)))//"' '"//
-     &       trim(dynk_stringzerotrim(csets_unique_dynk(ii,2)))//"' = ",
+     &       trim(stringzerotrim(csets_unique_dynk(ii,1)))//"' '"//
+     &       trim(stringzerotrim(csets_unique_dynk(ii,2)))//"' = ",
      &        fsets_origvalue_dynk(ii)
       end do
 
@@ -45804,36 +46324,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
       
       end subroutine
-
-      function dynk_stringzerotrim(instring)
-!----------------------------------------------------------------------------
-!     K. Sjobak, BE-ABP/HSS
-!     last modified: 30-10-2014
-!     Replace "\0" with ' ' in strings.
-!     Usefull before output, else "write (*,*)" will actually write all the \0s
-!
-!     Warning: Do not add any write(*,*) inside this function:
-!     if this function is called by a write(*,*) and then does a write,
-!     the program may deadlock!
-!----------------------------------------------------------------------------
-      implicit none
-+ca parpro
-+ca comdynk
-      character(maxstrlen_dynk) dynk_stringzerotrim, instring
-      intent(in) instring
-
-      integer ii
-
-      do ii=1,maxstrlen_dynk
-         if ( instring(ii:ii) .ne. char(0) ) then
-            dynk_stringzerotrim(ii:ii) = instring(ii:ii)
-         else 
-            dynk_stringzerotrim(ii:ii) = ' '
-         end if
-      end do
-      dynk_stringzerotrim = trim(dynk_stringzerotrim)
-
-      end function
       
       subroutine dynk_pretrack
 !-----------------------------------------------------------------------
@@ -45846,6 +46336,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       implicit none
 +ca parpro
 +ca common
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -45855,7 +46346,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       !Functions
       double precision dynk_getvalue
       integer dynk_findSETindex
-      character(maxstrlen_dynk) dynk_stringzerotrim
 
       !Temp variables
       integer ii,jj
@@ -45885,10 +46375,10 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             
             ! Sanity check: Does the element actually exist?
             element_name_s =
-     &           trim(dynk_stringzerotrim(
+     &           trim(stringzerotrim(
      &           csets_unique_dynk(nsets_unique_dynk,1) ))
             att_name_s     =
-     &           trim(dynk_stringzerotrim(
+     &           trim(stringzerotrim(
      &           csets_unique_dynk(nsets_unique_dynk,2) ))
             found = .false.
 
@@ -46021,6 +46511,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca common
 +ca commonmn
 +ca commontr
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca comdynkcr
@@ -46040,7 +46531,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       logical lopen
 !     functions
       double precision dynk_computeFUN
-      character(maxstrlen_dynk) dynk_stringzerotrim
       integer dynk_findSETindex
       
       double precision dynk_getvalue, getvaldata, newValue
@@ -46085,7 +46575,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   write (*,*) 
 +ei
      &               "DYNKDEBUG> Resetting RNG for FUN named '",
-     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
                iexpr_dynk(funcs_dynk(ii,3)+3) =
@@ -46101,7 +46591,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   write (*,*)
 +ei
      &               "DYNKDEBUG> Resetting FIR named '",
-     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
                do jj=0, funcs_dynk(ii,4)
                   fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) =
@@ -46116,7 +46606,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   write (*,*)
 +ei
      &               "DYNKDEBUG> Resetting IIR named '",
-     & trim(dynk_stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
                do jj=0, funcs_dynk(ii,4)
                   fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) =
@@ -46187,8 +46677,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                newValue = fsets_origvalue_dynk(ii)
                if (ldynkdebug) then
                   write (*,*) "DYNKDEBUG> Resetting: '",
-     &         trim(dynk_stringzerotrim(csets_unique_dynk(ii,1))),
-     &         "':'",trim(dynk_stringzerotrim(csets_unique_dynk(ii,2))),
+     &         trim(stringzerotrim(csets_unique_dynk(ii,1))),
+     &         "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))),
      &         "', newValue=", newValue
                endif
 
@@ -46223,8 +46713,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                write     (*,'(1x,A,I5,A,I8,A,E16.9)')
 +ei
      &              "DYNKDEBUG> Applying set #", ii, " on '"//
-     &           trim(dynk_stringzerotrim(csets_dynk(ii,1)))//
-     &           "':'"// trim(dynk_stringzerotrim(csets_dynk(ii,2)))//
+     &           trim(stringzerotrim(csets_dynk(ii,1)))//
+     &           "':'"// trim(stringzerotrim(csets_dynk(ii,2)))//
      &           "', shiftedTurn=",shiftedTurn,", value=",newValue
             endif
             call dynk_setvalue(csets_dynk(ii,1),
@@ -46282,10 +46772,10 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             
             write(665,'(I12,1x,A,1x,A,1x,I4,1x,A,E16.9)')
      &           turn, 
-     &           dynk_stringzerotrim(csets_unique_dynk(jj,1)),
-     &           dynk_stringzerotrim(csets_unique_dynk(jj,2)),
+     &           stringzerotrim(csets_unique_dynk(jj,1)),
+     &           stringzerotrim(csets_unique_dynk(jj,2)),
      &           whichSET(jj),
-     &           dynk_stringzerotrim(whichFUN(jj)),
+     &           stringzerotrim(whichFUN(jj)),
      &           getvaldata
          enddo
          
@@ -46311,12 +46801,17 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca stringzerotrim
 +ca comdynk
       integer funNum, turn
       intent (in) funNum, turn
       
       !Functions to call
       double precision dynk_lininterp
++if crlibm
+      double precision round_near
++ei
+
 +if crlibm
 +ca crlibco
 +ei
@@ -46335,6 +46830,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       integer foff !base offset into fexpr array
       integer ii,jj!Loop variable
 
++if crlibm
+      !String handling tempraries for PIPE, preformatting for round_near
+      integer errno !for round_near
+      integer nchars
+      parameter (nchars=160)
+      character*(nchars) ch
++ca comgetfields
++ei
+
       ! Other stuff
 +ca parnum
       double precision pi
@@ -46342,7 +46846,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if crlibm
       pi = 4d0*atan_rn(1d0)
 +ei
-+if .not. crlibm
++if .not.crlibm
       pi = 4d0*atan(1d0)
 +ei
       
@@ -46405,9 +46909,51 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &       fexpr_dynk(filelin_start +  filelin_xypoints:
      &                  filelin_start +2*filelin_xypoints-1),
      &        filelin_xypoints )
+      case(3)                                                           ! PIPE
+         write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
+     &        "GET ID="//
+     &        trim(stringzerotrim(
+     &        cexpr_dynk(funcs_dynk(funNum,1)+3)
+     &        ))//" TURN=",turn
++if .not.crlibm
+         read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
++ei
++if crlibm
+         read(iexpr_dynk(funcs_dynk(funNum,3)),"(a)") ch
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &                             getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_lerr=", getfields_lerr
++ei
+            call prror(-1)
+         endif
+         if (getfields_nfields .ne. 1) then
++if cr
+            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(lout,*)"DYNK> getfields_nfields=", getfields_nfields
+            write(lout,*)"DYNK> Expected a single number."
++ei
++if .not.cr
+            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
+            write(*,*)   "DYNK> getfields_nfields=", getfields_nfields
+            write(*,*)   "DYNK> Expected a single number."
++ei
+            call prror(-1)
+         endif
+         retval = round_near(errno,
+     &        getfields_lfields(1)+1, getfields_fields(1) )
+         if (errno.ne.0)
+     &        call rounderr( errno,getfields_fields,1,retval )
++ei
          
       case (6)                                                          ! RANDG
-         ! Save old seeds and loud our current seeds
+         ! Save old seeds and load our current seeds
          call recuut(tmpseed1,tmpseed2)
          call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3),
      &               iexpr_dynk(funcs_dynk(funNum,3)+4) )
@@ -46637,8 +47183,8 @@ C+ei
 +ca common
 +ca commonmn
 +ca commontr
++ca stringzerotrim
 +ca comdynk
-
 +if cr
 +ca crcoall
 +ei
@@ -46647,7 +47193,6 @@ C+ei
       double precision newValue
       intent (in) element_name, att_name, newValue
       !Functions
-      character(maxstrlen_dynk) dynk_stringzerotrim
       ! temp variables
       integer el_type, ii
       character(maxstrlen_dynk) element_name_stripped
@@ -46656,8 +47201,8 @@ C+ei
       logical ldoubleElement
       ldoubleElement = .false.
       
-      element_name_stripped = trim(dynk_stringzerotrim(element_name))
-      att_name_stripped = trim(dynk_stringzerotrim(att_name))
+      element_name_stripped = trim(stringzerotrim(element_name))
+      att_name_stripped = trim(stringzerotrim(att_name))
 
       if ( ldynkdebug ) then
 +if cr
@@ -46846,6 +47391,7 @@ c$$$            endif
 +ca common
 +ca commonmn
 +ca commontr
++ca stringzerotrim
 +ca comdynk
 
 +if cr
@@ -46856,14 +47402,13 @@ c$$$            endif
       intent(in) element_name, att_name
       
       integer el_type, ii
-      character(maxstrlen_dynk) dynk_stringzerotrim
       character(maxstrlen_dynk) element_name_s, att_name_s
       
       logical ldoubleElement
       ldoubleElement = .false.  ! For sanity check
       
-      element_name_s = trim(dynk_stringzerotrim(element_name))
-      att_name_s = trim(dynk_stringzerotrim(att_name))
+      element_name_s = trim(stringzerotrim(element_name))
+      att_name_s = trim(stringzerotrim(att_name))
       
       if (ldynkdebug) then
 +if cr
@@ -47128,6 +47673,7 @@ c$$$               endif
 
 +ca parpro
 +ca common
++ca stringzerotrim
 +ca comdynk
 +if cr
 +ca crcoall
@@ -47136,8 +47682,6 @@ c$$$               endif
       integer, intent(in) :: i
       integer ix,k
       character(maxstrlen_dynk) element_name_stripped
-
-      character(maxstrlen_dynk) dynk_stringzerotrim
 
       !Sanity check
       if (i .gt. iu .or. i .le. 0) then
@@ -47164,7 +47708,7 @@ c$$$               endif
       
       do k=1,nsets_dynk
          element_name_stripped =
-     &        trim(dynk_stringzerotrim(csets_dynk(k,1)))
+     &        trim(stringzerotrim(csets_dynk(k,1)))
          if (bez(ix) .eq. element_name_stripped) then
             dynk_isused = .true.
             if (ldynkdebug)
@@ -47219,7 +47763,7 @@ c$$$               endif
 +if cr
 +ca crcoall
 +ei
-+ca save
+      save
 
 !     temporary variables
       double precision tmpdcum, ds
@@ -47357,7 +47901,7 @@ c$$$               endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       nhmoni=0
       nvmoni=0
@@ -48322,7 +48866,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       iwrite=0
       if(nlin.eq.0) then
@@ -48479,7 +49023,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       iwrite=0
       if(nlin.eq.0) then
@@ -48638,7 +49182,7 @@ c$$$            endif
 +ca parnum
       dimension rmat(dimtot,dimakt),vec(dimakt)
       data eps /1d-20/
-+ca save
+      save
 !-----------------------------------------------------------------------
       kod=1
       do 50 j=1,dimakt
@@ -48704,7 +49248,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=2,5
         do 10 l=1,2
@@ -48758,7 +49302,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rzero=0.0
       rzero1=0.0
@@ -49245,7 +49789,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       kcorru=0
       kcorr=0
@@ -49370,7 +49914,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       izu=0
       do 10 i=1,iu
@@ -49444,7 +49988,7 @@ c$$$            endif
       dimension a(nmon1,ncor1),b(nmon1),x(ncor1),ipiv(ncor1),r(nmon1)
       dimension rho(3*ncor1),xiter(ncor1),xrms(ncor1),xptp(ncor1)
       dimension rmss(ncor1),ptop(ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
 ! --- calcul du premier pivot
@@ -49643,7 +50187,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
       nc=n-k
@@ -49680,7 +50224,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
 !hr06 h=0.0d0
@@ -49715,7 +50259,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1),rho(3*ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 
       do 10 i= 1,k,1
@@ -49754,7 +50298,7 @@ c$$$            endif
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
-+ca save
+      save
 !-----------------------------------------------------------------------
 !hr06 sig=0.0d0
       sig=0.0                                                            !hr06
@@ -49791,7 +50335,7 @@ c$$$            endif
       integer i,imax,imin,m,maxmin
       real ave,ptp,r,rms,xave,xrms
       dimension r(m)
-+ca save
+      save
 !-----------------------------------------------------------------------
       xave = 0.0
       xrms = 0.0
@@ -49827,7 +50371,7 @@ c$$$            endif
       integer i,m,maxmin,n
       real a,curent
       dimension a(n)
-+ca save
+      save
 !-----------------------------------------------------------------------
       maxmin=1
       if (n.lt.1) return
@@ -49870,7 +50414,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,nblz
         ilf(i)=0
@@ -50148,7 +50692,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
 !GRD
@@ -50651,7 +51195,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,3
         bb(i)=zero
@@ -50992,7 +51536,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if debug
 !     call warr('qwc',qwc(1),1,0,0,0)
@@ -51417,7 +51961,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,mmul
         aa(i)=zero
@@ -51867,7 +52411,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       do 10 i=1,ium
@@ -52662,7 +53206,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ntao=nta
       nteo=nte
@@ -53073,7 +53617,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ntao=nta
       nteo=nte
@@ -53240,7 +53784,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       ipl=1
@@ -54376,7 +54920,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension dfac(10),dtu(2,5),ep(2),beta(2),dtup(2,5,0:4,0:4)
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(iv.lt.2) then
 +if cr
@@ -54535,7 +55079,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       ium=5
       do 10 i=1,ium
@@ -55292,7 +55836,7 @@ c$$$            endif
 +if bnlelens
 +ca rhicelens
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 10 i=1,6
         bb(i)=zero
@@ -55592,7 +56136,7 @@ c$$$            endif
       integer nnuml
 +ei
 +ca version
-+ca save
+      save
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=1d-8
@@ -56131,6 +56675,8 @@ c$$$            endif
       pixr=zero
       pizr=zero
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
+!     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
+!     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
       do 160 i=1,6
         do 160 j=1,6
   160 t(i,j)=ta(j,i)
@@ -56335,12 +56881,14 @@ c$$$            endif
       ia=ia-nstart
 !--LYAPUNOV
       if(ntwin.eq.2) then
+!     first particle
         x(1,1)=c
         x(1,2)=d
         x(1,3)=e
         x(1,4)=f
         x(1,5)=g
         x(1,6)=h
+!     twin particle
         x(2,1)=c1
         x(2,2)=d1
         x(2,3)=e1
@@ -56377,6 +56925,7 @@ c$$$            endif
         e1=e1-di0(2)*h
         f1=f1-dip0(2)*h
       endif
+!     calculation first particle
 !--EMITTANCES
       xp0=bet0(1)*d+alf0(1)*c
       zp0=bet0(2)*f+alf0(2)*e
@@ -56439,6 +56988,7 @@ c$$$            endif
       evx=txyz(1)**2+txyz(2)**2                                          !hr06
 !hr06 evz=txyz(3)*txyz(3)+txyz(4)*txyz(4)
       evz=txyz(3)**2+txyz(4)**2                                          !hr06
+!     calculation second particle
       xyzv2(1)=c1
       xyzv2(2)=d1
       xyzv2(3)=e1
@@ -57024,6 +57574,7 @@ c$$$            endif
 !hr06     xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
           xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                        !hr06
         endif
+! normalisation with t-matrix = inverse matrix of eigenvectors
         do 320 iq=1,6
           txyz(iq)=zero
           do 320 jq=1,6
@@ -58221,6 +58772,572 @@ c$$$            endif
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
       end
+
+      subroutine fma_error(ierro,str,subroutine_name)
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: error messages for fma analysis                             *
+!-----------------------------------------------------------------------*
+      implicit none
++if cr
++ca crcoall
++ei
+      integer,       intent(in)  :: ierro
+      character (*), intent (in) :: subroutine_name
+      character (*), intent (in) :: str             !error message
+      if(ierro.ne.0) then
++if .not.cr
+        write(*,*) 'ERROR in ',subroutine_name,': ',
+     & str,', iostat=',ierro
++ei
++if cr
+        write(lout,*) 'ERROR in ',subroutine_name,': ',
+     & str,', iostat=',ierro
++ei
+        call prror(-1)
+      endif
+      end subroutine
+      
+      subroutine fma_norm_phase_space_matrix(fma_tas_inv,fma_tas)
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: invert the matrix of eigenvecors tas                        *
+!           (code copied from postpr only that ta is here fma_tas)      *
+!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
+!           note: inversion method copied from subroutine postpr        *
+!-----------------------------------------------------------------------*
+      implicit none
++ca parnum   !numbers (zero,one,two etc.)
++ca commonta
+      integer :: i,j            !iterators
+      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
+      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
+      integer ierro                   !error messages
+!     dummy variables
+      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
+      integer, dimension(6) :: idummy !for matrix inversion
+!     units: [mm,mrad,mm,mrad,mm,1]
+!     invert matrix
+!     - set values close to 1 equal to 1
+      do 160 i=1,6
+        do 160 j=1,6
+  160 fma_tas_inv(i,j)=fma_tas(j,i)
+      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
+     &pieni) then
+        fma_tas_inv(1,1)=one
+        fma_tas_inv(2,2)=one
+      endif
+      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
+     &pieni) then
+        fma_tas_inv(3,3)=one
+        fma_tas_inv(4,4)=one
+      endif
+      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
+     &pieni) then
+        fma_tas_inv(5,5)=one
+        fma_tas_inv(6,6)=one
+      endif
+!     - invert: dinv returns the transposed matrix
+      call dinv(6,fma_tas_inv,6,idummy,ierro)
+      call fma_error(ierro,'matrix inversion failed!',                  &
+     &'fma_norm_phase_space_matrix')
+!     - transpose fma_tas_inv
+      tdummy=fma_tas_inv
+      do i=1,6
+        do j=1,6
+          fma_tas_inv(i,j)=tdummy(j,i)
+        enddo
+      enddo
+      end subroutine fma_norm_phase_space_matrix
+      
+      subroutine fma_postpr
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: return files used for fma analysis                          *
+!           -> calculate particle amplitudes and tunes using the        *
+!              normalized coordinates for input files                   *
+!              fma_fname(fma_numfiles)                                  *
+!  output format: q1,q2,q3,eps1_min,eps2_min,eps3_min,eps1_max,         *
+!                 eps2_max,eps3_max,eps1_avg, eps2_avg,eps3_avg,        *
+!                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
+!-----------------------------------------------------------------------*
+      implicit none
++ca stringzerotrim
++ca comgetfields
++ca parpro
++ca dbdump
++ca dbdumpcr
++ca fma
++ca commonta !normalisation matrix tasm -> remove later
++ca common   !napx = number of particles 
++ca parnum   !numbers (zero,one,two etc.)
++ca commonc
++if crlibm
++ca crlibco
++ei
++if cr
++ca crcoall
++ei
+      integer :: i,j,k,l,m,n !for do loops
+      integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
+      logical :: lopen              !flag to check if file is already open
+      logical :: lexist             !flag to check if file fma_fname exists
+      logical :: lread              !flag for file reading
+      character(len=getfields_l_max_string) :: ch,ch1
+      character filefields_fields
+     &     ( getfields_n_max_fields )*( getfields_l_max_string )
+      integer filefields_nfields
+      integer filefields_lfields( getfields_n_max_fields )
+      logical filefields_lerr
+      double precision round_near
+
+      integer, dimension(npart,fma_nturn_max) :: turn ! npart = max. number of particles
+      double precision, dimension(6,6) :: fma_tas ! dump_tas in units [mm,mrad,mm,mrad,mm,1]
+      double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of fma_tas (same units) -> x_normalized=fma_tas_inv*x
+      double precision, dimension(npart,fma_nturn_max,6) ::
+     &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
+      double precision, dimension(npart,fma_nturn_max,3) ::
+     &epsnxyzv ! normalized emittances
+      double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
+     &tunenewt,tuneabt2,tuneabt,tunenewt1
+!     dummy variables for readin + normalisation + loops
+      integer :: id,kt,counter
+      double precision :: pos
+      double precision, dimension(6) :: xyzvdummy,nxyzvdummy !phase space variables x,x',y,y',sig,delta
+      double precision, dimension(3) :: q123 !tune q1,q2,q3
+      double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
+     &eps123_avg !initial,minimum,maximum,average emittance
+      double precision, dimension(3) :: phi123_0  !initial phase
+
++if fio
+! Do not support FIO, it is not supported by any compilers.
++if cr
+      write (lout,*) "FIO not supported in FMA!"
++ei
++if .not.cr
+      write (*,*)    "FIO not supported in FMA!"
++ei
+      call prror(-1)
++ei
+
+!     initialize variables
+      do i=1,6
+        do j=1,6
+          fma_tas_inv(i,j) = 0
+        enddo
+      enddo
+      
+!     fma_six = data file for storing the results of the FMA analysis
+      inquire(unit=2001001,opened=lopen)
+      if(lopen) then
++if cr
+         write(lout,*) "ERROR in FMA: Tried to open unit 2001001",
++ei
++if .not.cr
+         write(*,*)    "ERROR in FMA: Tried to open unit 2001001",
++ei
+     &        "for file 'fma_sixtrack', but it was already taken?"
+         call prror(-1)
+      endif
+      open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,   &
+     &action='write',form='formatted')
+      call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
+     &'fma_postpr')
+      
+!     write the header
+      write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
+     &'phi* [rad]'
+      write(2001001,'(a)') '# inputfile method id q1 q2 q3 eps1_min '//
+     &'eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg'//
+     &' eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0'
+
+!      start FMA analysis: loop over all files, calculate tunes, write output file
+      do i=1,fma_numfiles
+        lexist=.false.
+        do j=1,nele !START: loop over dump files
+          if(trim(stringzerotrim(fma_fname(i))).eq.
+     &trim(stringzerotrim(dump_fname(j)))) then 
+            lexist=.true.     !set lexist = true if the file fma_fname(j) exists
++if .not.cr
+            write(*,*) 'start FMA analysis using file ',                &
+     &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
+     &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
++ei
++if cr
+            write(lout,*) 'start FMA analysis using file ',             &
+     &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
+     &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
++ei
+
+!    check the format, if dumpfmt != 2 abort
+            if(dumpfmt(j).ne.2) then
+              call fma_error(-1,'input file has wrong format! Choose for&
+     &mat=2 in DUMP block.','fma_postpr')
+            endif
+!    open dump file for reading, resume to original position before exiting the subroutine
+            inquire(unit=dumpunit(j),opened=lopen)
+            if(lopen) then
+              close(dumpunit(j))
+            else ! file has to be open if nothing went wrong
+              call fma_error(-1,'file '//trim(stringzero                &
+     &trim(dump_fname(j)))//' has to be open','fma_postpr')
+            endif
+            open(dumpunit(j),file=dump_fname(j),status='old',
+     &iostat=ierro,action='read')
+            call fma_error(ierro,'cannot open file '//trim(stringzero   &
+     &trim(dump_fname(j))),'fma_postpr')
+
+!    now we can start reading in the file
+!    - skip header
+            counter=1
+            do
+              read(dumpunit(j),'(A)',iostat=ierro) ch
+              call fma_error(ierro,'while reading file ' //             &
+     &dump_fname(j),'fma_postpr')
+              ch1=adjustl(trim(ch))
+              if(ch1(1:1).ne.'#')  exit
+              if(counter>500) then
+                call fma_error(ierro,'Something is wrong with your '//  &
+     &'inputfile '//trim(stringzerotrim(dump_fname(j)))//'! We found '//&
+     &'more than 500 header lines','fma_postpr')
+              endif
+              counter=counter+1
+            enddo
+            backspace(dumpunit(j),iostat=ierro)
+!   read in particle amplitudes
+            fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            if(fma_nturn(i).gt.fma_nturn_max) then
++if .not.cr
+              write(*,*) 'ERROR in fma_postpr: only ',                  &
+     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
+              write(*,*) '->reset fma_nturn_max > ', fma_nturn_max
+              call prror(-1)
++ei
++if cr
+              write(lout,*) 'ERROR in fma_postpr: only ',               &
+     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
+              write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
+              call prror(-1)
++ei
+            endif
+
+!    - now we have done all checks, we only need the normalisation matrix
+!         units: dump_tas [mm,mrad,mm,mrad,1.e-3]
+!                fma_tas  [mm,mrad,mm,mrad,1]
+!      note: closed orbit dump_clo already converted in linopt part
+            do m=1,6
+              do n=1,6
+                fma_tas(m,n)=dump_tas(j,m,n)
+              enddo
+            enddo
+            do m=1,5
+              fma_tas(m,6)=fma_tas(m,6)*1.e3
+              fma_tas(6,m)=fma_tas(6,m)*1.e-3
+            enddo
+            call fma_norm_phase_space_matrix(fma_tas_inv, 
+     &                                       fma_tas(1:6,1:6) )
+
+!     dump normalized particle amplitudes for debugging (200101+i*10)
+            inquire(unit=200101+i*10,opened=lopen)
+            if(lopen) then
++if cr
+               write(lout,*) "ERROR in FMA: Tried to open unit",
++ei
++if .not.cr
+               write(*,*)    "ERROR in FMA: Tried to open unit",
++ei
+     &            200101+i*10, "for file 'NORM_"//dump_fname(j)//
+     &            "', but it was already taken?!?"
+               call prror(-1)
+            endif
+           
+            open(200101+i*10,file='NORM_'//dump_fname(j),
+     &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
+!    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
+!      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
+            write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
+     &           dump_clo(j,1),dump_clo(j,2),dump_clo(j,3),
+     &           dump_clo(j,4),dump_clo(j,5),dump_clo(j,6)
+!    - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
+!      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
+            write(200101+i*10,'(a)') '# tamatrix'
+            do m=1,6
+              do n=1,6
+                write(200101+i*10,'(a,1x,1PE16.9)') '# ',
+     &                fma_tas(m,n)
+            enddo
+            enddo
+            write(200101+i*10,'(a)') '# inv(tamatrix)'
+            do m=1,6
+              do n=1,6
+                write(200101+i*10,'(a,1x,1PE16.9)') '# ',
+     &                fma_tas_inv(m,n)
+              enddo
+            enddo
+            write(200101+i*10,'(a)') '# id turn pos[m] nx[1.e-3'//
+     &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3'//
+     &' sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt'
+!    - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
+            do k=1,fma_nturn(i) !loop over turns
+              do l=1,napx !loop over particles
++if .not.crlibm
+                read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,      &
+     &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
+     &xyzvdummy(6),kt
+                if(ierro.gt.0) call fma_error(ierro,'while reading '    &
+     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
++ei
++if crlibm
+                read(dumpunit(j),'(a)', iostat=ierro) ch
+                if(ierro.gt.0) call fma_error(ierro,'while reading '    &
+     &//' particles from file' // dump_fname(j) // '. Check that tracked
+     & turns is larger than number of turns used for FFT!','fma_postpr')!read error
+                call getfields_split(ch,filefields_fields,
+     &filefields_lfields,filefields_nfields, filefields_lerr)
+                if( filefields_lerr ) call fma_error(-1,'while reading '&
+     &//' particles from file ' // dump_fname(j) // 'in function getfiel&
+     &ds_split','fma_postpr') !error in getfields_split while reading
+!    check if number of fields is correct
+                if( filefields_nfields  .ne. 10 ) then 
++if cr
+                  write(lout,*) 'ERROR in fma_postpr while reading parti&
+     &cles from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields &
+     &expected from getfields_split, got ',filefields_nfields, ' and ch &
+     &=',ch
++ei
++if .not.cr
+                  write(*,*) 'ERROR in fma_postpr while reading particle&
+     &s from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields exp&
+     &ected from getfields_split, got ',filefields_nfields, ' and ch =',&
+     &ch
++ei
+                  call prror(-1)
+                endif
+                read(filefields_fields(1)(1:filefields_lfields(1)),*) id
+                read(filefields_fields(2)(1:filefields_lfields(2)),*) 
+     &turn(l,k)
+                pos = round_near(ierro, filefields_lfields(3)+1,
+     &filefields_fields(3) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,3,pos)
+                xyzvdummy(1) = round_near(ierro, filefields_lfields(4)+1
+     &,filefields_fields(4) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,4,xyzvdummy(1))
+                xyzvdummy(2) = round_near(ierro, filefields_lfields(5)+1
+     &,filefields_fields(5) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,5,xyzvdummy(2))
+                xyzvdummy(3) = round_near(ierro, filefields_lfields(6)+1
+     &,filefields_fields(6) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,6,xyzvdummy(3))
+                xyzvdummy(4) = round_near(ierro, filefields_lfields(7)+1
+     &,filefields_fields(7) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,7,xyzvdummy(4))
+                xyzvdummy(5) = round_near(ierro, filefields_lfields(8)+1
+     &,filefields_fields(8) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,8,xyzvdummy(5))
+                xyzvdummy(6) = round_near(ierro, filefields_lfields(9)+1
+     &,filefields_fields(9) )
+                if (ierro.ne.0)
+     &            call rounderr(ierro,filefields_fields,9,xyzvdummy(6))
+                read(filefields_fields(10)(1:filefields_lfields(10)),*) 
+     &kt
++ei !end crlibm
+!    - remove closed orbit -> check units used in dump_clo (is x' or px used?)
+                do m=1,6
+                  xyzvdummy(m)=xyzvdummy(m)-dump_clo(j,m)
+                enddo
+!    - for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
+                do m=1,6
+                  if(m.eq.6) then
+                    xyzv(l,k,m)=xyzvdummy(m)*c1e3
+                  else 
+                    xyzv(l,k,m)=xyzvdummy(m)
+                  endif
+                enddo
+!    - convert to canonical variables
+                xyzvdummy(2)=xyzvdummy(2)*((one+xyzvdummy(6))+
+     &dump_clo(j,6)) 
+                xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
+     &dump_clo(j,6))
+!    - normalize nxyz=fma_tas_inv*xyz
+                do m=1,6
+                  nxyzvdummy(m)=zero
+                  do n=1,6
+                    nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*       &
+     &xyzvdummy(n)
+                  enddo
+!      a) convert nxyzv(6) to 1.e-3 sqrt(m)
+!         unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
+                  if(m.eq.6) then
+                    nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
+                  else 
+                    nxyzv(l,k,m)=nxyzvdummy(m)
+                  endif
+!      b) calculate emittance of mode 1,2,3
+                  if(mod(m,2).eq.0) then
+                    epsnxyzv(l,k,m/2)=nxyzvdummy((m-1))**2+             &
+     &nxyzvdummy(m)**2
+                  endif
+                enddo
+                write(200101+i*10,1986) id,turn(l,k),pos,               &
+     &nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),nxyzv(l,k,4),nxyzv(l,k,5), &
+     &nxyzv(l,k,6),kt! write normalized particle amplitudes
+              enddo
+            enddo
+!     calculate tunes of particles using the methods in plato_seq.f
+!     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
+!         fma_norm_flag > 0 use normalized coordinates
+            do l=1,napx ! loop over particles
+              do m=1,3 ! loop over modes (hor.,vert.,long.)
+                 select case( trim(stringzerotrim(fma_method(i))) )
+                 case('TUNELASK')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunelask(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), 
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEFFTI')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneffti(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEFFT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunefft(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEAPA')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneapa(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEFIT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunefit(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                  
+                 case('TUNENEWT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunenewt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEABT2')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneabt2(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNEABT')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tuneabt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case('TUNENEWT1')
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunenewt1(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 
+                 case default
+                    call fma_error(-1,'FMA method '//
+     &                   trim(stringzerotrim(fma_method(i)))//
+     &                   ' not known! Note method name must be in'//
+     &                   ' capital letters!','fma_postpr')
+                 end select
+                 
+                if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
+                eps123_0(m)=epsnxyzv(l,1,m)                          ! initial amplitude 
++if crlibm
+                phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
++ei
++if .not.crlibm
+                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
++ei
+                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m),      &
+     &fma_nturn(i))      ! minimum emittance
+                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m),      &
+     &fma_nturn(i))      ! maximum emittance
+                eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
+     &fma_nturn(i) ! average emittance
+              enddo
+              write(2001001,1988) trim(stringzerotrim(fma_fname(i))),   &
+     &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
+     &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
+     &eps123_max(2),eps123_max(3),eps123_avg(1),eps123_avg(2),          &
+     &eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3),                &
+     &phi123_0(1),phi123_0(2),phi123_0(3)
+            enddo
+            close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
+            close(dumpunit(j))
+!    resume initial position of dumpfile = end of file
+            open(dumpunit(j),file=dump_fname(j), status='old',          &
+     &form='formatted',action='readwrite',position='append',            &
+     &iostat=ierro)
+            call fma_error(ierro,'while resuming file '//dump_fname(j), &
+     &'fma_postpr')
+          endif !END: if fma_fname(i) matches dump_fname(j)
+!    if file has been already found, jump to next file fma_fname(i)
+          if( lexist ) then
+            exit
+          endif 
+        enddo !END: loop over dump files
+        if(.not. lexist) then !if no dumpfile has been found, raise error and abort
+          call fma_error(-1,'dump file '//trim(stringzero               &
+     &trim(fma_fname(i)))//' does not exist! Please check that filenames&
+     & in FMA block agree with the ones in the DUMP block!'             &
+     &,'fma_postpr')
+        endif
+      enddo !END: loop over fma files
+      close(2001001) !filename: fma_sixtrack
+
+ 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
+ 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
+      end subroutine fma_postpr
+      
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
 !      A(N) IS A COMPLEX ARRAY. THE INPUT IS A(N)=(X(N),0.0), WHERE
@@ -58244,7 +59361,7 @@ c$$$            endif
       double precision ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
 +ca parnum
       dimension ar(n),ai(n)
-+ca save
+      save
 !-----------------------------------------------------------------------
       n=2**m
       nv2=n/2
@@ -58323,7 +59440,7 @@ c$$$            endif
 +ei
 +ca parnum
       double precision a,b,c
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
 +if crlibm
@@ -58350,7 +59467,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
 +ca commphin
-+ca save
+      save
 !---------------------------------------------------------------------
 +if crlibm
 !hr06 tpi=8*atan_rn(one)
@@ -58390,7 +59507,7 @@ c$$$            endif
 +ca parnum
 +ca commphin
       dimension xinv(ninv),invx(ninv)
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(a).le.b) then
         do 10 i=1,ninv
@@ -58419,7 +59536,7 @@ c$$$            endif
 +ei
       double precision a,b,c,d,e
 +ca parnum
-+ca save
+      save
 !---------------------------------------------------------------------
       if(abs(a).gt.pieni) then
         if(c.gt.pieni.and.b.gt.pieni) then
@@ -58460,7 +59577,7 @@ c$$$            endif
       dimension qwc(3),clo(3),clop(3)
       dimension x(mpa,2),y(mpa,2),sigm(mpa),dps(mpa)
       dimension di0(2),dip0(2)
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=four*atan_rn(one)
@@ -58693,7 +59810,7 @@ c$$$            endif
       double precision fround
       data lineno /0/
 +ei
-+ca save
+      save
 !-----------------------------------------------------------------------
       rewind 10
       do 10 i=1,1000
@@ -58849,123 +59966,7 @@ c$$$            endif
 10030 format(3x,i2,13x,i2,19x,i2,13x,i8)
 10040 format(65('-')//131('-'))
       end
-+dk prolong
-      program prolong
-!-----------------------------------------------------------------------
-!  WRITES LAST COORDINATES ON 12 TO 13 FOR PROLONGATION
-!-----------------------------------------------------------------------
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      integer ia,ie,ierro,ifipa,ilapa,itopa
-      double precision dp0v,dpsv,e0,ejfv,ejv,ekkv,file13,sigmv,xv,yv
-      character*80 sixtit,commen
-      character*8  cdate,ctime,progrm
-+ca parpro
-      dimension xv(2,npart),yv(2,npart),ekkv(npart)
-      dimension sigmv(npart),dpsv(npart),dp0v(npart)
-      dimension ejv(npart),ejfv(npart)
-+ca save
-!-----------------------------------------------------------------------
-+if boinc
-      call boincrf('fort.12',filename)
-+if fio
-      open(12,err=50,file=filename,form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(12,err=50,file=filename,form='FORMATTED')
-+ei
-+ei
-+if .not.boinc
-+if fio
-      open(12,err=50,file='fort.12',form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(12,err=50,file='fort.12',form='FORMATTED')
-+ei
-+ei
-+if boinc
-      call boincrf('fort.13',filename)
-+if fio
-      open(13,err=50,file=filename,form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(13,err=50,file=filename,form='FORMATTED')
-+ei
-+ei
-+if .not.boinc
-+if fio
-      open(13,err=50,file='fort.13',form='FORMATTED',round='nearest')
-+ei
-+if .not.fio
-      open(13,err=50,file='fort.13',form='FORMATTED')
-+ei
-+ei
-!-----------------------------------------------------------------------
-      read(90,end=60,iostat=ierro) sixtit,commen,cdate,ctime, progrm,   &
-     &ifipa,ilapa,itopa
-      if(ierro.ne.0) then
-+if cr
-        write(lout,*) 'PROBLEMS READING FILE # 90'
-+ei
-+if .not.cr
-        write(*,*) 'PROBLEMS READING FILE # 90'
-+ei
-        goto 60
-      endif
-   10 continue
-      do 20 ia=1,itopa,2
-        ie+ia+1
-        read(12,10000,end=30,iostat=ierro)                              &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),           &
-     &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
-     &e0,ejv(ia),ejv(ie)
-+if cr
-       if(ierro.ne.0) write(lout,*) 'Warning: fort.12 has ',
-+ei
-+if .not.cr
-       if(ierro.ne.0) write(*,*) 'Warning: fort.12 has ',               &
-+ei
-     &'corrupted input probably due to lost particles'
-   20 continue
-      goto 10
-   30 do 40 ia=1,itopa,2
-        ie+ia+1
-        write(13,10000,iostat=ierro)                                    &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),           &
-     &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
-     &e0,ejv(ia),ejv(ie)
-+if cr
-       if(ierro.ne.0) write(lout,*) 'Warning: fort.13 has ',
-+ei
-+if .not.cr
-       if(ierro.ne.0) write(*,*) 'Warning: fort.13 has ',               &
-+ei
-     &'corrupted output probably due to lost particles'
-   40 continue
-      goto 60
-+if cr
-   50 write(lout,*) 'ERROR IN OPENING FILES'
-+ei
-+if .not.cr
-   50 write(*,*) 'ERROR IN OPENING FILES'
-+ei
-   60 continue
-      close 12
-      close 13
-!-----------------------------------------------------------------------
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
-10000 format(10x,f47.33)
-      end
+      
 +dk beam6d
       subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 !-----------------------------------------------------------------------
@@ -58991,7 +59992,7 @@ c$$$            endif
       !JBG increased the dimension of param to 5 to include xstr
       dimension param(nele,5),bcu(nbb,12)
       dimension star(3,mbea)
-+ca save
+      save
 !-----------------------------------------------------------------------
       phi=param(ne,1)
       nsli=param(ne,2)
@@ -59065,7 +60066,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
 !hr06   h=track(6,i)+one-sqrt((one+track(6,i))**2-                      &
@@ -59128,7 +60129,7 @@ c$$$            endif
 +ca parnum
       dimension track(6,npart),bcu(nbb,12)
       dimension star(3,mbea),dum(13)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 2000 jsli=1,nsli
         do 1000 i=1,np
@@ -59278,7 +60279,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-+ca save
+      save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
 !hr06   h1d=sqrt((one+track(6,i))**2-track(2,i)**2-track(4,i)**2)
@@ -59353,7 +60354,7 @@ c$$$            endif
 +ca parpro
 +ca parnum
       data sqrpi2/3.544907701811032d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(sigxx.eq.sigyy) then
         x=sepx**2+sepy**2
@@ -59461,7 +60462,7 @@ c$$$            endif
       dimension star(3,mbea)
 !-----------------------------------------------------------------------
       data border /8d0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 +if crlibm
       pi=4d0*atan_rn(1d0)
@@ -59545,7 +60546,7 @@ c$$$            endif
      &e4/ 3.9399134d+05/, e3/-4.6004775d+04/, e2/ 2.2566998d+03/,       &
      &e1/-6.8317697d+01/, e0/ 2.8224654d+00/
       data f0/-8.1807613d-02/, f1/-2.8358733d+00/, f2/ 1.4902469d+00/
-+ca save
+      save
 !-----------------------------------------------------------------------
       p=p0-0.5d0
       p1=abs(p)
@@ -59636,7 +60637,7 @@ c$$$            endif
       data      code(25),kntm(25),kntr(25) / 'F406.1', 255,   0 /
       data      code(26),kntm(26),kntr(26) / 'G100.1', 255, 255 /
       data      code(27),kntm(27),kntr(27) / 'G100.2', 255, 255 /
-+ca save
+      save
 !-----------------------------------------------------------------------
       logf  =  lgfile
          l  =  0
@@ -59727,7 +60728,7 @@ c$$$            endif
       character*6 name
       dimension ir(n),a(idim,n)
       data name/'RINV'/,kprnt/0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !  TEST FOR PARAMETER ERRORS.
@@ -59854,7 +60855,7 @@ c$$$            endif
       character*6 name
       dimension ir(n),a(idim,n)
       data name/'DINV'/,kprnt/0/
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !  TEST FOR PARAMETER ERRORS.
@@ -59979,7 +60980,7 @@ c$$$            endif
       integer idim,k,kprnt,lgfile,n
       character*6 name
       logical mflag,rflag
-+ca save
+      save
 !-----------------------------------------------------------------------
       call kermtr('F010.1',lgfile,mflag,rflag)
       if(mflag) then
@@ -60034,7 +61035,7 @@ c$$$            endif
       data      zero, one           /  0., 1.  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s11)  =  dble(x)*dble(y) + s11
       ipairf(j,k)  =  j*2**12 + k
@@ -60127,7 +61128,7 @@ c$$$            endif
       data      zero, one           /  0.d0, 1.d0  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       ipairf(j,k)  =  j*2**12 + k
 !hr07 pivotf(x)    =  abs(sngl(x))
@@ -60215,7 +61216,7 @@ c$$$            endif
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' RFEQN'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s21)  =  dble(x)*dble(y) + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
@@ -60277,7 +61278,7 @@ c$$$            endif
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' DFEQN'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s21)  =  x*y + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
@@ -60340,7 +61341,7 @@ c$$$            endif
       dimension ir(*),a(idim,*)
       data      zero      /  0.d0  /
       data      hname               /  ' RFINV'  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s31)  =  dble(x)*dble(y) + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
@@ -60421,7 +61422,7 @@ c$$$            endif
       dimension ir(*),a(idim,*)
       data      hname               /  ' DFINV'  /
       data      zero      /  0.d0  /
-+ca save
+      save
 !-----------------------------------------------------------------------
       dotf(x,y,s31)  =  x*y + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
@@ -60496,7 +61497,7 @@ c$$$            endif
       integer idim,k,lgfile,n
       character*6 name
       logical mflag,rflag
-+ca save
+      save
 !-----------------------------------------------------------------------
       if(name(2:2) .eq. 'S') then
          call kermtr('F012.1',lgfile,mflag,rflag)
@@ -60562,7 +61563,7 @@ c$$$            endif
       double precision sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
 !hr07 dimension x(*),y(*)
       dimension x(l),y(l)                                                !hr07
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !     CALCULATE SUMS
@@ -60633,7 +61634,7 @@ c$$$            endif
       double precision w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
 !hr07 dimension x(*),y(*),w(*)
       dimension x(l),y(l),w(l)                                           !hr07
-+ca save
+      save
 !-----------------------------------------------------------------------
 !
 !     CALCULATE SUMS
@@ -60754,7 +61755,7 @@ c$$$            endif
 !     j_slices = 1 for the a non sliced collimator!
       integer j_slices
 !
-+ca save
+      save
 !
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
@@ -61589,7 +62590,7 @@ c$$$            endif
 !DEBUG
       integer event
 !DEBUG
-+ca save
+      save
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
 !
@@ -62345,7 +63346,7 @@ c$$$            endif
 +ca dbmkdist
       double precision pi
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -62543,7 +63544,7 @@ c$$$            endif
 !
       double precision iix, iiy, phix, phiy
 !
-+ca save
+      save
 !
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -62886,7 +63887,7 @@ c$$$     &           myalphay * cos(phiy))
       double precision long_cut
       double precision a_st, b_st
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -63189,7 +64190,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca dbmkdist
       double precision pi
 !
-+ca save
+      save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
@@ -63413,7 +64414,7 @@ c$$$     &           myalphay * cos(phiy))
       double precision a_st, b_st
       integer startpar
 !
-+ca save
+      save
 
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -64735,7 +65736,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ei
       integer len, in
       real rndm4, a
-+ca save IN,a
+      save IN,a
       parameter ( len =  30000 )
       dimension a(len)
       data in/1/
@@ -65804,7 +66805,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if crlibm
 +ca crlibco
 +ei
-+ca save
+      save
 !
       integer    mclock
       integer    count_rate, count_max
@@ -65863,14 +66864,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       DATA flag/.TRUE./
       real rndm4
       double precision x, u1, u2, twopi, r,cut
-+ca save
-+if automatc
-      write(*,*) "ERROR in ran_gauss"
-      write(*,*) "Please review use of save block in this algorithm!"
-      write(*,*) "u1 and u2 should always be saved, and flag "//
-     &     "is automatically so due to DATA statement"
-      exit(1)
-+ei
+      save
       
 +if crlibm
             twopi=8d0*atan_rn(1d0) !Why not 2*pi, where pi is in block "common"?
@@ -65923,7 +66917,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 
       logical lopen
 
-+ca save
+      save
 !
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -66236,6 +67230,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca rhicelens
 +ei
 +ca crco
++ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
 +ca comgetfields
@@ -66248,7 +67243,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if boinc
       character*256 filename
 +ei
-+ca save
+      save
       restart=.false.
       read95=.false.
       read96=.false.
@@ -67060,6 +68055,7 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
++ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
       double precision dynk_getvalue
@@ -67081,7 +68077,7 @@ C            backspace (dumpunit(i),iostat=ierro)
       character*256 filename
 +ei
       data ncalls /0/
-+ca save
+      save
 !     call system('echo "CPSTART `date`" >> crtimes')
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
@@ -67587,13 +68583,14 @@ c$$$         backspace (93,iostat=ierro)
 +ca rhicelens
 +ei
 +ca crco
++ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
       double precision dynk_newValue
 
       integer j,l,k,m,i
       character*256 filename
-+ca save
+      save
       write(93,*)                                                       &
      &'SIXTRACR CRSTART called crnumlcr',crnumlcr
       endfile (93,iostat=ierro)
@@ -68038,7 +69035,7 @@ c$$$         backspace (93,iostat=ierro)
       character*10 time
       character*5 zone
       integer values(8),mm(3),nd,nt
-+ca save
+      save
       call date_and_time(date,time,zone,values)
       mm(3)=mod(values(1),100)
 !     mm(3) = mod (mm(3),100)
@@ -68063,7 +69060,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commtim
       logical start
       data start /.false./
-+ca save
+      save
       if (.not.start) then
         start=.true.
         call cpu_time(timestart)
@@ -68076,7 +69073,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca crcoall
 +ei
 +ca commtim
-+ca save
+      save
       call timest(0.0)
       call cpu_time(timenow)
       r1=timenow-timestart
@@ -68101,7 +69098,7 @@ c$$$         backspace (93,iostat=ierro)
       integer errno,l1,l2
       integer dtostr
       integer ich
-+ca save
+      save
         write(93,*)                                                     &
      &'SIXTRACR STOP/ABEND called and closing files'
         endfile (93,iostat=ierro)
@@ -68340,7 +69337,7 @@ c$$$         backspace (93,iostat=ierro)
       integer i1,i2,i3
       real r1,r2,r3,r4,r5
       character c1
-+ca save
+      save
       return
       end
       subroutine hdelet(i1)
@@ -68348,7 +69345,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hlimit(i1)
@@ -68356,7 +69353,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplax(c1,c2)
@@ -68364,7 +69361,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       character c1,c2
-+ca save
+      save
       return
       end
       subroutine hplcap(i1)
@@ -68372,14 +69369,14 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplend()
       implicit none
       integer lout
       common /crflags/lout
-+ca save
+      save
       return
       end
       subroutine hplint(i1)
@@ -68387,7 +69384,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine hplopt(c1,i1)
@@ -68396,7 +69393,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       character c1
-+ca save
+      save
       return
       end
       subroutine hplot(i1,c1,c2,i2)
@@ -68405,7 +69402,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1,i2
       character c1,c2
-+ca save
+      save
       return
       end
       subroutine hplset(c1,r1)
@@ -68414,7 +69411,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       real r1
       character c1
-+ca save
+      save
       return
       end
       subroutine hplsiz(r1,r2,c1)
@@ -68423,7 +69420,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       real r1,r2
       character c1
-+ca save
+      save
       return
       end
       subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
@@ -68433,7 +69430,7 @@ c$$$         backspace (93,iostat=ierro)
       integer i1
       real r1,r2,r3,r4,r5
       character c1
-+ca save
+      save
       return
       end
       subroutine htitle(c1)
@@ -68441,7 +69438,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       character c1
-+ca save
+      save
       return
       end
       subroutine ipl(i1,r1,r2)
@@ -68450,7 +69447,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       real r1(*),r2(*)
-+ca save
+      save
       return
       end
       subroutine ipm(i1,r1,r2)
@@ -68459,7 +69456,7 @@ c$$$         backspace (93,iostat=ierro)
       common /crflags/lout
       integer i1
       real r1,r2
-+ca save
+      save
       return
       end
       subroutine iselnt(i1)
@@ -68467,7 +69464,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1
-+ca save
+      save
       return
       end
       subroutine igmeta(i1,i2)
@@ -68475,7 +69472,7 @@ c$$$         backspace (93,iostat=ierro)
       integer lout
       common /crflags/lout
       integer i1,i2
-+ca save
+      save
       return
       end
 +dk nagdumy
@@ -68557,7 +69554,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,100) 'bl1 ',bl1
       write(99,100) 'bl2 ',bl2
@@ -68597,7 +69594,7 @@ c$$$         backspace (93,iostat=ierro)
       integer j
       character*(*) dumpname
       character*10 mydump,myzfz
-+ca save
+      save
       mydump=dumpname
       myzfz='zfz'
       write(101) mydump,n,i
@@ -68638,7 +69635,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j,k
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
      &(xv(1,j),j=1,k),                                                  &
@@ -68688,7 +69685,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
      &n_cut,                                                            &
@@ -68736,7 +69733,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i,j,l,m,k
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*) (aek(j),j=1,napxo)
       write(99,*) (afok(j),j=1,napxo)
@@ -68808,7 +69805,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,*) 'time0 ',time0
@@ -69310,7 +70307,7 @@ c$$$         backspace (93,iostat=ierro)
       integer n,i
       character*(*) dumpname
       character*10 mydump
-+ca save
+      save
       mydump=dumpname
       write(99) mydump
       write(99) n
@@ -69814,7 +70811,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       integer n,i
       character*(*) dumpname
-+ca save
+      save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
       write(99,100) 'time0 ',time0
@@ -71099,92 +72096,3 @@ c$$$         backspace (93,iostat=ierro)
 
 
 +ei
-+dk libX11dummy
-void XAllocColor(void) { }
-void XBell(void) { }
-void XChangeWindowAttributes(void) { }
-void XClearWindow(void) { }
-void XCloseDisplay(void) { }
-void XCopyArea(void) { }
-void XCopyGC(void) { }
-void XCreateBitmapFromData(void) { }
-void XCreateFontCursor(void) { }
-void XCreateGC(void) { }
-void XCreateImage(void) { }
-void XCreatePixmap(void) { }
-void XCreatePixmapCursor(void) { }
-void XCreateWindow(void) { }
-void XDefineCursor(void) { }
-void XDestroyWindow(void) { }
-void XDrawArc(void) { }
-void XDrawImageString(void) { }
-void XDrawLine(void) { }
-void XDrawLines(void) { }
-void XDrawPoint(void) { }
-void XDrawPoints(void) { }
-void XDrawRectangle(void) { }
-void XDrawSegments(void) { }
-void XDrawString(void) { }
-void XEventsQueued(void) { }
-void XFillArc(void) { }
-void XFillPolygon(void) { }
-void XFillRectangle(void) { }
-void XFlush(void) { }
-void XFree(void) { }
-void XFreeColors(void) { }
-void XFreeFont(void) { }
-void XFreeFontNames(void) { }
-void XFreeGC(void) { }
-void XFreePixmap(void) { }
-void XGetAtomName(void) { }
-void XGetFontProperty(void) { }
-void XGetGCValues(void) { }
-void XGetGeometry(void) { }
-void XGetImage(void) { }
-void XGetInputFocus(void) { }
-void XGetKeyboardControl(void) { }
-void XGetPixel(void) { }
-void XGetSubImage(void) { }
-void XInternAtom(void) { }
-void XListFonts(void) { }
-void XLoadQueryFont(void) { }
-void XLookupString(void) { }
-void XMapWindow(void) { }
-void XMoveWindow(void) { }
-void XNextEvent(void) { }
-void XOpenDisplay(void) { }
-void XPutImage(void) { }
-void XPutPixel(void) { }
-void XQueryColors(void) { }
-void XQueryPointer(void) { }
-void XRaiseWindow(void) { }
-void XResizeWindow(void) { }
-void XServerVendor(void) { }
-void XSetBackground(void) { }
-void XSetClassHint(void) { }
-void XSetClipMask(void) { }
-void XSetClipRectangles(void) { }
-void XSetDashes(void) { }
-void XSetFillStyle(void) { }
-void XSetFont(void) { }
-void XSetForeground(void) { }
-void XSetFunction(void) { }
-void XSetIconName(void) { }
-void XSetInputFocus(void) { }
-void XSetLineAttributes(void) { }
-void XSetNormalHints(void) { }
-void XSetStipple(void) { }
-void XSetTSOrigin(void) { }
-void XSetWindowBackground(void) { }
-void XSetWMHints(void) { }
-void XSetWMProtocols(void) { }
-void XStoreName(void) { }
-void XSync(void) { }
-void XSynchronize(void) { }
-void XTextExtents(void) { }
-void XTextWidth(void) { }
-void XTranslateCoordinates(void) { }
-void XUndefineCursor(void) { }
-void XWarpPointer(void) { }
-void XWindowEvent(void) { }
-void XWriteBitmapFile(void) { }
