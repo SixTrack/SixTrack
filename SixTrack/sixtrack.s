@@ -34147,10 +34147,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         do 10 ia=1,napx-1
 !GRD
+	write(*,*) 'sixy ',ia
           if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
      &(mod(nlostp(ia),2).ne.0)) then
             ia2=(nlostp(ia)+1)/2
             ie=ia+1
+	write(*,*) 'sixy1 ',ia2
             if(ntwin.ne.2) then
 +if .not.stf
               write(91-ia2,iostat=ierro)                                &
@@ -56251,13 +56253,18 @@ c$$$            endif
 +ei
         goto 550
       endif
-+ei
 !hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
  600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
++ei
++if stf
+!--PREVENT FAULTY POST-PROCESSING
+!--add code soon---
++ei
       rewind nfile
 +if stf
-      do i=1,itopa
+      do i=1,itopa,2
 +ei
+!-- Bypassing header to read tracking data later
       read(nfile)
 +if stf
       enddo
@@ -56390,7 +56397,7 @@ c$$$            endif
         bet0(2)=zero
       endif
       do 135 i=1,3
-        ii=2*i
+	ii=2*i
         rbeta(ii-1)=sqrt(bet0(i))
         rbeta(ii)=rbeta(ii-1)
         if(abs(rbeta(ii-1)).lt.pieni) rbeta(ii-1)=one
@@ -56643,10 +56650,20 @@ c$$$            endif
 !--FIND MINIMUM VALUE OF THE DISTANCE IN PHASESPACE
 !----------------------------------------------------------------------
   190 ifipa=0
-      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
+  195 if(ntwin.eq.1) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
      &f,g,h,p
-      if(ntwin.eq.2) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
++if stf
+      if(ifipa.ne.posi) then
+	goto 195
+      endif
++ei
+  196 if(ntwin.eq.2) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++if stf
+      if(ifipa.ne.posi) then
+	goto 196
+      endif
++ei
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
@@ -56699,7 +56716,13 @@ c$$$            endif
 !----------------------------------------------------------------------
 !--GET FIRST DATA POINT AS A REFERENCE
 !----------------------------------------------------------------------
++if stf
+      do i=1,itopa,2
++ei
       read(nfile,iostat=ierro)
++if stf
+      enddo
++ei
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
