@@ -2072,12 +2072,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickelens
-!            write(*,*) 'MF: parameters ',ix,ktrack(i),bez(ix),kz(ix)
-!            write(*,*) 'el(ix),ed(ix),ek(ix)',el(ix),ed(ix),ek(ix)
-!            write(*,*) 'elen',elens_theta_max(ix),elens_r2(ix),
-!     &elens_r2ovr1(ix),elens_offset_x(ix),elens_offset_y(ix),
-!     &elens_bend_entrance(ix),elens_bend_exit(ix),elens_type(ix)
-!            write(*,*) 'elens_length(ix)',elens_length(ix),el(ix)
             select case (elens_type(ix))
               case (1)
 ! ANNULAR: hollow elens with uniform annular profile for collimation
@@ -2107,18 +2101,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 ! 2) calculate radius
                 rrelens=sqrt((xelens)**2+(yelens**2)) ! radius p-beam
                 r1elens=elens_r2(ix)/elens_r2ovr1(ix) ! inner radius elens
-!                write(*,*) 'MF: xelens,yelens,rrelens,r1elens,'//
-!     &'elens_r2(ix)',xelens,yelens,rrelens,r1elens,elens_r2(ix)
 ! 3) calculate kick
                 if (rrelens.gt.r1elens) then ! rrelens <= r1 -> no kick from elens
-!                  write(*,*) 'MF: elens r1 < rr'
                   if (rrelens.lt.elens_r2(ix)) then ! r1 <= rrelens < r2
-!                    write(*,*) 'MF: elens r1 < rr < r2'
                     frrelens = (elens_r2(ix)/(rrelens**2))*
      &((((rrelens**2)/(r1elens**2))-1)/(elens_r2ovr1(ix)**2 - 1))
                   endif
                   if (rrelens.ge.elens_r2(ix)) then ! r1 < r2 <= rrelens
-!                    write(*,*) 'MF: elens r2 < rr'
                     frrelens = elens_r2(ix)/(rrelens**2)
                   endif
                   yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xv(1,j)
@@ -13703,7 +13692,6 @@ cc2008
 !     always in main code
       if(idat.eq.dynk) goto 2200
       if(idat.eq.fma) goto 2300
-!      write(*,*) 'MF: in fort.3',idat,elens
       if(idat.eq.elens) goto 2400
 
       if(idat.eq.next) goto 110
@@ -13916,8 +13904,6 @@ cc2008
 ! set element name
       bez(i)=idat
       bez0(i)=idat
-!      write(*,*) 'MF: single element parameters 1 - ',idat,bez(i),kz(i),
-!     &ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
       if(ncy2.eq.0) then
         !If no active RF cavities are seen so far in the single element list,
         ! add a CAV element to the end of the list.
@@ -13934,8 +13920,6 @@ cc2008
         il=i
         i=i+1
       endif
-!      write(*,*) 'MF: single element parameters 2 - ',idat,bez(i),kz(i),
-!     &ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
       goto 130
 !-----------------------------------------------------------------------
 !  DATENBLOCK DISPLACEMENT OF ELEMENTS
@@ -19840,7 +19824,6 @@ c$$$         endif
          el(ix)=0d0
 !--Hollow Electron Lense
       else if(abs(kz(ix)).eq.29) then
-!         write(*,*) 'MF: el,ed,ek',el(ix),ed(ix),ek(ix)
          elens_length(ix)=el(ix) ! set el(ix) = 0 in order to treat it as thin element, save length in elens_length
          el(ix) =0d0
       endif
