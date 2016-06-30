@@ -27,9 +27,7 @@ Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\Use
 OPTIONS := fast tilt tracking crlibm gfortran vvector cernlib O3
 #OPTIONS := crlibm bnlelens gfortran boinc api
 
-NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
-
-
+NOPT  := $(strip $(subst O,,$(lastword $(filter O4 O3 O2 O1 O0, $(OPTIONS)))))
 
 ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
 
@@ -75,7 +73,7 @@ PROVIDED   := $(sort $(patsubst +%,%,$(OPTIONS)))
 #EXPANDED   := $(strip $(call expand,$(PROVIDED)))
 EXPANDED   := $(PROVIDED)
 ENABLED    := $(sort $(filter-out -% !% ( ),$(EXPANDED)))
-ENABLED    := $(filter-out O0 O1 O2 O3,$(ENABLED))
+ENABLED    := $(filter-out O0 O1 O2 O3 O4,$(ENABLED))
 DISABLED   := $(sort $(patsubst -%,%,$(filter -%,$(EXPANDED))))
 EXCLUDED   := $(sort $(patsubst !%,%,$(filter !%,$(EXPANDED))))
 UNSELECTED := $(filter-out $(ENABLED),$(USER_OPTIONS))
@@ -96,7 +94,10 @@ space +=
 # Build version of SixTrack
 VERSION:= $(shell grep "data version" sixtrack.s | sed -e "s/.*'\([0-9]\).\([0-9]*\).\([0-9]*\).*/\1\2\3/")
 
-DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(ENABLED))_O$(NOPT)
+DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(ENABLED))
+ifneq ($(NOPT),)
+  DESTDIR := $(DESTDIR)_O$(NOPT)
+endif
 $(info Sixtrack build dir: $(DESTDIR))
 
 # options to enable from other combinations
