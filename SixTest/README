@@ -11,7 +11,7 @@ thousand turns along with  the fort.6 and fort.10 output.
 TESTS
 The following test cases may be used (amongst others):
 bnl exact crabamp javier thick4 lost tilt dipedge bb notilt lostnotilt
-lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma.
+lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensideal.
 To each directory there is a corresponding directory with suffix "in"
 e.g.crabampin for crabamp containing the input files fort.2, 3, 8, and 16,
 a fort.zip for BOINC, and fort.6.canonical and fort.10.canonical and 
