@@ -2072,6 +2072,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickelens
+!            write(*,*) 'MF: in kickelens'
             select case (elens_type(ix))
               case (1)
 ! ANNULAR: hollow elens with uniform annular profile for collimation
@@ -5413,6 +5414,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !Hollow electron lens (HEL)
         if(kzz.eq.29) then
           ktrack(i)=63
+!          write(*,*) 'MF: set ktrack(i)',i,ktrack(i)
           goto 290
         endif
 +cd crab1
@@ -18278,7 +18280,7 @@ cc2008
               write(*,
 +ei
      &fmt='((A,/),(A,A,/),(A,D9.3,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),'
-     &//'2(A,I4,/))'),
+     &//'2(A,I4,/))')
      &'ELENS found in list of single elements with: ',
      &'name     = ',bez(j),
      &'length   = ',elens_length(j),
@@ -18291,6 +18293,7 @@ cc2008
      &'enable bends at:',
      &'  entrance = ',elens_bend_entrance(j),
      &'  exit     = ',elens_bend_exit(j)
+
             case default
 +if cr
               write(lout,*)
@@ -29422,6 +29425,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
           ! as no dependency on ix in this case.
           ix=ic(i)-nblo ! ix = index of single element
+!          write(*,*)'MF: loop struc, i,ix,ktrack(i)=',bez(ix),i,ix
+!     &,ktrack(ix),ktrack(i)
 !Should this be inside "if ktrack .ne. 1"? (time/bpm)
 +if bpm
 +ca bpmdata
@@ -29439,7 +29444,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !30
      &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370, !40
      &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630, !50
-     &         745, 746, 751,  752, 753, 754, 761),ktrack(i) ! 630 = skip element
+     &         745, 746, 751,  752, 753, 754, 630, 630, 630, 630, !60
+     &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
    10     stracki=strack(i) 
           if(iexact.eq.0) then ! exact drift
@@ -30646,11 +30652,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
 ! JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
-          goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
-     &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
-     &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752,753,754,755,758,756,759,757,  &
-     &760,761),ktrack(i)
+          goto( 10, 30,740,650,650,650,650,650,650,650,!10
+     &          50, 70, 90,110,130,150,170,190,210,230,!20
+     &         440,460,480,500,520,540,560,580,600,620,!30
+     &         640,410,250,270,290,310,330,350,370,390,!40
+     &         680,700,720,730,748,650,650,650,650,650,!50
+     &         745,746,751,752,753,754,755,758,756,759,!60
+     &         757,760,761),ktrack(i)
 +ei
 +if collimat
 !          if (myktrack .eq. 1) then !BLOCK of linear elements
@@ -33119,7 +33127,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--elens
   761      continue
          do j=1,napx
-!         write(*,*) 'MF: thin6d i=',i
+         write(*,*) 'MF: thin6d i=',i
 +ca kickelens
          enddo
          goto 640
@@ -34097,10 +34105,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca timefct
 +ei
 !--------count44
-          goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
-     &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
-     &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752,753,754,761),ktrack(i)
+          goto(10 ,30 ,740,650,650,650,650,650,650,650,!0
+     &         50 ,70 ,90 ,110,130,150,170,190,210,230,!10
+     &         440,460,480,500,520,540,560,580,600,620,!20
+     &         640,410,250,270,290,310,330,350,370,390,!30
+     &         680,700,720,730,748,650,650,650,650,650,!40
+     &         745,746,751,752,753,754,630,630,630,630,!50
+     &         630,630,761),ktrack(i)
           goto 650
    10     stracki=strack(i)
           if(iexact.eq.0) then
@@ -34511,7 +34522,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--elens
   761      continue
          do j=1,napx
-!         write(*,*) 'MF: thin6dua i=',i
+         write(*,*) 'MF: thin6dua i=',i
 +ca kickelens
          enddo
          goto 640
@@ -35957,10 +35968,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
 
 !----------count=43
-            goto(20,480,740,480,480,480,480,480,480,480,40,60,80,100,   &
-     &120,140,160,180,200,220,270,290,310,330,350,370,390,410,          &
-     &430,450,470,240,500,520,540,560,580,600,620,640,680,700,720,      &
-     &480,748,480,480,480,480,480,745,746,751,752,753,754,761),ktrack(i)
+            goto( 20,480,740,480,480,480,480,480,480,480,!0
+     &            40, 60, 80,100,120,140,160,180,200,220,!10
+     &           270,290,310,330,350,370,390,410,430,450,!20
+     &           470,240,500,520,540,560,580,600,620,640,!30
+     &           680,700,720,480,748,480,480,480,480,480,!40
+     &           745,746,751,752,753,754,480,480,480,480,!50
+     &           480,480,761),ktrack(i)
             goto 480
    20       do 30 j=1,napx
               puxve=xv(1,j)
@@ -36539,11 +36553,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !----------count 44
 !----------count 54! Eric
-            goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
-     &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
-     &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753,754,761)         &
-     &,ktrack(i)
+            goto( 20, 40,740,500,500,500,500,500,500,500,!0
+     &            60, 80,100,120,140,160,180,200,220,240,!10
+     &           290,310,330,350,370,390,410,430,450,470,!20
+     &           490,260,520,540,560,580,600,620,640,660,!30
+     &           680,700,720,730,748,500,500,500,500,500,!40
+     &           745,746,751,752,753,754,500,500,500,500,!50
+     &           500,500,761),ktrack(i)
             goto 500
    20       jmel=mel(ix)
 +if bnlelens
@@ -37217,11 +37233,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
 
 !----------count 56
-            goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
-     &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
-     &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753,754,761),        &
-     &ktrack(i)
+            goto( 20, 40,740,500,500,500,500,500,500,500,!0
+     &            60, 80,100,120,140,160,180,200,220,240,!10
+     &           290,310,330,350,370,390,410,430,450,470,!20
+     &           490,260,520,540,560,580,600,620,640,660,!30
+     &           680,700,720,730,748,500,500,500,500,500,!40
+     &           745,746,751,752,753,754,500,500,500,500,!50
+     &           500,500,761),ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do 30 jb=1,jmel
