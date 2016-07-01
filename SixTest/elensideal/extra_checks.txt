@@ -1,2 +1,0 @@
-HEL1_DUMP_1         diff
-HEL1_DUMP_2         diff
