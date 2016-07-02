@@ -25250,13 +25250,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if stf
         do 70 i=1,ndafi
 +if .not.cr
-          call postpr(90,i)
+          call postpr(i)
 +ei
 +if cr
           write(93,*) 'Calling POSTPR nnuml=',nnuml
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-          call postpr(90,nnuml,i)
+          call postpr(i,nnuml)
 +ei
   70      continue
 +ei
@@ -26788,13 +26788,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             ia2=(ia+1)/2
             iposc=iposc+1
 +if .not.cr
-          call postpr(90,ia2)
+          call postpr(ia2)
 +ei
 +if cr
           write(93,*) 'Calling POSTPR nnuml=',nnuml
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-          call postpr(90,nnuml,ia2)
+          call postpr(ia2,nnuml)
 +ei
   480     continue
           if(iposc.ge.1) call sumpos
@@ -26805,13 +26805,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do 500 ia=1,ndafi2
             if(ia.gt.ndafi) goto 510
 +if .not.cr
-          call postpr(90,ia)
+          call postpr(ia)
 +ei
 +if cr
           write(93,*) 'Calling POSTPR nnuml=',nnuml
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-          call postpr(90,nnuml,ia)
+          call postpr(ia,nnuml)
 +ei
   500     continue
   510     if(ndafi.ge.1) call sumpos
@@ -34147,12 +34147,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         do 10 ia=1,napx-1
 !GRD
-	write(*,*) 'sixy ',ia
           if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
      &(mod(nlostp(ia),2).ne.0)) then
             ia2=(nlostp(ia)+1)/2
             ie=ia+1
-	write(*,*) 'sixy1 ',ia2
             if(ntwin.ne.2) then
 +if .not.stf
               write(91-ia2,iostat=ierro)                                &
@@ -55942,10 +55940,10 @@ c$$$            endif
 +ei
 +if stf
 +if .not.cr
-      subroutine postpr(nfile,posi)
+      subroutine postpr(posi)
 +ei
 +if cr
-      subroutine postpr(nfile,nnuml,posi)
+      subroutine postpr(posi,nnuml)
 +ei
 +ei
 +ei
@@ -56130,6 +56128,9 @@ c$$$            endif
         nfft=nfft*2
   120 continue
   130 continue
++if stf
+      nfile=90
++ei
 !----------------------------------------------------------------------
 !--READING HEADER
 !----------------------------------------------------------------------
@@ -56735,7 +56736,12 @@ c$$$            endif
       endif
 +if cr
 !--   Initiate count of binary records
++if .not.stf
       crbinrecs(91-nfile)=1
++ei
++if stf
+      crbinrecs(91-posi)=1
++ei
 +ei
   210 ifipa=0
       if(ntwin.eq.1) read(nfile,end=530,iostat=ierro) ia,ifipa,b,c,d,e, &
@@ -56743,6 +56749,11 @@ c$$$            endif
       if(ntwin.eq.2) read(nfile,end=530,iostat=ierro) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
       if(ierro.gt.0) then
++if stf
+      if(ifipa.ne.posi) then
+	goto 210
+      endif
++ei
 +if cr
         write(lout,10320) nfile
 +ei
@@ -56752,8 +56763,12 @@ c$$$            endif
         goto 550
       endif
 +if cr
++if .not.stf
 !     Count one more binary record
       crbinrecs(91-nfile)=crbinrecs(91-nfile)+1
++ei
++if stf
+      crbinrecs(91-posi)=crbinrecs(91-posi)+1
 +ei
       if(ifipa.lt.1) goto 210
       if((ia-nstart).lt.0) goto 210
@@ -57041,6 +57056,11 @@ c$$$            endif
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=270,iostat=ierro) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++if stf
+      if(ifipa.ne.posi) then
+	goto 240
+      endif
++ei
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
@@ -57051,8 +57071,13 @@ c$$$            endif
         goto 550
       endif
 +if cr
++if .not.stf
 !--Increment crbinrecs by 1
       crbinrecs(91-nfile)=crbinrecs(91-nfile)+1
++ei
++if stf
+      crbinrecs(91-posi)=crbinrecs(91-posi)+1
++ei
 +ei
       if(ifipa.lt.1) goto 240
       if(progrm.eq.'MAD') then
@@ -57329,6 +57354,7 @@ c$$$            endif
 !--Now check that we have correct number of binrecs
 !--We can do this only if we know binrecs (NOT post-processing only)
       if (binrec.ne.0) then
++if .not.stf
         if (binrecs(91-nfile).ne.crbinrecs(91-nfile)) then
           write(lout,*)                                                 &
      &'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
@@ -57340,6 +57366,20 @@ c$$$            endif
           write(93,*)                                                   &
      &'Unit No ',nfile,' binrec/binrecs/crbinrecs ',                    &
      &binrec,binrecs(91-nfile),crbinrecs(91-nfile)
++ei
++if stf
+        if (binrecs(91-posi).ne.crbinrecs(91-posi)) then
+          write(lout,*)                                                 &
+     &'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
+          write(lout,*)                                                 &
+     &'Unit No ',nfile,' binrec/binrecs/crbinrecs ',                    &
+     &binrec,binrecs(91-posi),crbinrecs(91-posi)
+          write(93,*)                                                   &
+     &'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
+          write(93,*)                                                   &
+     &'Unit No ',nfile,' binrec/binrecs/crbinrecs ',                    &
+     &binrec,binrecs(91-posi),crbinrecs(91-posi)
++ei
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
           goto 551
