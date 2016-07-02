@@ -55978,7 +55978,7 @@ c$$$            endif
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
-      integer posi
+      integer posi,ih
       real tim1,tim2,fxs,fzs
       double precision const,dle,slope,tle,varlea,wgh
       double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
@@ -56651,18 +56651,13 @@ c$$$            endif
 !--FIND MINIMUM VALUE OF THE DISTANCE IN PHASESPACE
 !----------------------------------------------------------------------
   190 ifipa=0
-  195 if(ntwin.eq.1) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
+      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
      &f,g,h,p
-+if stf
-      if(ifipa.ne.posi) then
-	goto 195
-      endif
-+ei
-  196 if(ntwin.eq.2) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
+       if(ntwin.eq.2) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
 +if stf
       if(ifipa.ne.posi) then
-	goto 196
+	goto 190
       endif
 +ei
       if(ierro.gt.0) then
@@ -56748,12 +56743,12 @@ c$$$            endif
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=530,iostat=ierro) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
-      if(ierro.gt.0) then
 +if stf
       if(ifipa.ne.posi) then
 	goto 210
       endif
 +ei
+      if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
 +ei
@@ -56769,6 +56764,7 @@ c$$$            endif
 +ei
 +if stf
       crbinrecs(91-posi)=crbinrecs(91-posi)+1
++ei
 +ei
       if(ifipa.lt.1) goto 210
       if((ia-nstart).lt.0) goto 210
@@ -57477,7 +57473,13 @@ c$$$            endif
       evtm=evt/di11
 !--SMEAR CALCULATION AND 4D-SMEAR
       rewind nfile
++if stf
+      do i=1,itopa,2
++ei
       read(nfile,iostat=ierro)
++if stf
+      enddo
++ei
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
@@ -57490,7 +57492,12 @@ c$$$            endif
       iskc=-1
       do 340 i=1,i11*iskip+nstart
         ifipa=0
-        read(nfile,end=350,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
+ 315    read(nfile,end=350,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
++if stf
+	if(ifipa.ne.posi) then
+	  goto 315
+	endif
++ei
         if(ierro.gt.0) then
 +if cr
           write(lout,10320) nfile
@@ -58175,7 +58182,14 @@ c$$$            endif
           call hplsof(4.,14.00,toptit(4),.15,0.,99.,-1)
           call iselnt(10)
           rewind nfile
++if stf
+!--i is used in outer loop, so ih in this loop
+          do ih=1,itopa,2
++ei
           read(nfile,iostat=ierro)
++if stf
+          enddo
++ei
           if(ierro.gt.0) then
 +if cr
             write(lout,10320) nfile
@@ -58188,11 +58202,16 @@ c$$$            endif
           endif
           iskc=-1
           do 460 j=1,i11*iskip+nstart
-            ifipa=0
+ 435        ifipa=0
             if(ntwin.eq.1) read(nfile,end=470,iostat=ierro) ia,ifipa,b, &
      &c,d,e,f,g,h,p
             if(ntwin.eq.2) read(nfile,end=470,iostat=ierro) ia,ifipa,b, &
      &c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++if stf
+	    if(ifipa.ne.posi) then
+	      goto 435
+	    endif
++ei
             if(ierro.gt.0) then
 +if cr
               write(lout,10320) nfile
