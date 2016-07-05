@@ -26785,16 +26785,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         iposc=0
         if(ipos.eq.1) then
           do 480 ia=1,napxo,2
-            ia2=(ia+1)/2
             iposc=iposc+1
 +if .not.cr
-          call postpr(ia2)
+          call postpr(ia)
 +ei
 +if cr
           write(93,*) 'Calling POSTPR nnuml=',nnuml
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-          call postpr(ia2,nnuml)
+          call postpr(ia,nnuml)
 +ei
   480     continue
           if(iposc.ge.1) call sumpos
@@ -55951,7 +55950,8 @@ c$$$            endif
 !  POST PROCESSING
 !
 !  NFILE   :  FILE UNIT
-!
+!  POSI    :  PARTICLE NUMBER ( first paricle iff pair)
+!	
 !-----------------------------------------------------------------------
       implicit none
 +if cr
@@ -56231,6 +56231,11 @@ c$$$            endif
 +if cr
       sumda(1)=nnuml
 +ei
+      idam=1
+      if(icode.eq.1.or.icode.eq.2.or.icode.eq.4) idam=1
+      if(icode.eq.3.or.icode.eq.5.or.icode.eq.6) idam=2
+      if(icode.eq.7) idam=3
+      if(ilapa.ne.ifipa) ntwin=2
 +ei
 +if .not.stf
 !--PREVENT FAULTY POST-PROCESSING
