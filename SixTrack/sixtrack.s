@@ -64709,8 +64709,9 @@ c$$$     &           myalphay * cos(phiy))
 +ei
 +ca interac
       integer i
-! The last materials are 'vacuum' and 'black', see in sub. SCATIN
-! Number of real materials defined in 'collMatNum' block inside 'interac'
+! Total number of materials are defined in nmat
+! Number of real materials are defined in nrmat
+! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
 !
 ! Reference data at pRef=450Gev
 !      data (mname(i),i=1,nrmat)/ 'Be' , 'Al' , 'Cu' , 'W'  , 'Pb' /
