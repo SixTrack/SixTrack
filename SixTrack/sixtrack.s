@@ -13594,6 +13594,9 @@ cc2008
       ise=0
       iskew=0
       preda=c1m38
+
+      elens_num=0
+      
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -13702,8 +13705,8 @@ cc2008
 !     last modified: 17-07-2013
 !     brand new input block for dynamic kicks
 !     always in main code
-      if(idat.eq.dynk) goto 2200
-      if(idat.eq.fma) goto 2300
+      if(idat.eq.dynk)  goto 2200
+      if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
 
       if(idat.eq.next) goto 110
@@ -18129,7 +18132,7 @@ cc2008
         call prror(-1) 
       endif
 
-      elens_num=elens_num+1 !Initially initialized to 0 in COMNUL
+      elens_num=elens_num+1 !Initially initialized to 0
 !     1) read in elens parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
