@@ -1162,15 +1162,6 @@
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
       double precision :: rrelens,frrelens,r1elens,xelens,yelens
-+cd elens_readtmp
-!     dummy variables for read in
-      integer        :: elens_num
-      character(100) :: elens_type_aux, ! Type given in fort.3 block as string,
-                                        ! then converted to integer elens_type(nele)
-     &                  elens_name_aux  ! name of elens, saved later in bez(i)
-      double precision :: elens_theta_max_aux,elens_r2_aux,
-     &elens_r2ovr1_aux,elens_offset_x_aux,elens_offset_y_aux
-      integer :: elens_bend_entrance_aux,elens_bend_exit_aux
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -13426,7 +13417,6 @@ cc2008
 +ca comdynk
 +ca fma
 +ca elensparam
-+ca elens_readtmp
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -13594,8 +13584,6 @@ cc2008
       ise=0
       iskew=0
       preda=c1m38
-
-      elens_num=0
       
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
@@ -18098,41 +18086,40 @@ cc2008
       if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
 
       if (ch(:4).eq.next) then
-!     4) loop over single elements to check that they have been defined in the fort.3 block
-!        r2ovr1 must be larger than 1, if elens defined, but is initialized as 0 
-!        -> if r2ovr1 =0 elens is not defined in ELEN block
+!       4) loop over single elements to check that they have been defined in the fort.3 block
         do j=1,nele
           if(kz(j).eq.29) then
-            if(elens_r2ovr1(j).le.1) then
+            if(elens_type(j).eq.0) then
 +if cr
-              write(lout,fmt='(3(A),3(I4,A),(D9.3,A))')
+              write(lout,*)
 +ei
 +if .not.cr
-              write(*,fmt='(3(A),3(I4,A),(D9.3,A))')
+              write(*,*)
 +ei
      &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
-     &'not defined (check elens_r2ovr1(',j,') = ',elens_r2ovr1(j),
-     &' > 1 failed!) You must define every elense in the ELEN block'//
-     &' in fort.3!'
-               call prror(-1) 
+     &'not defined in fort.3. You must define every elens in the '//
+     &'ELEN block in fort.3!'
+               call prror(-1)
             endif
           endif
         enddo
-        goto 110 ! go to next BLOCK in fort.3
+        goto 110 ! go to next BLOCK in fort.3 - we're done here!
       endif
 
-      if(elens_num.ge.nele) then
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
 +if cr
         write(lout,*)
 +ei
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR: you can only define ',nele,' number of ELENS!'
-        call prror(-1) 
-      endif
+     &       'ERROR in ELEN block: fortran IO format currently not ',
+     &       'supported!'
+        call prror(-1)
++ei
 
-      elens_num=elens_num+1 !Initially initialized to 0
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     1) read in elens parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
@@ -18143,9 +18130,12 @@ cc2008
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR in ELENS block: getfields_lerr=', getfields_lerr
+     &       'ERROR in ELEN block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
+
+!     Check number of arguments
+!     If a new type of elens is implemented, may need to modify this!
       if(getfields_nfields.ne.9) then
 +if cr
         write(lout,*)
@@ -18153,139 +18143,137 @@ cc2008
 +if .not.cr
         write(*,*)
 +ei
-     &       'ERROR in ELENS block: wrong number of input ',
+     &       'ERROR in ELEN block: wrong number of input ',
      &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
       endif
-+if fio
+
+!     Find the element, and check that we're not double-defining
+      if (getfields_lfields(1) .gt. 16) then
 +if cr
-        write(lout,*)
+         write(lout,*)
 +ei
 +if .not.cr
-        write(*,*)
+         write(*,*)
 +ei
-     &       'ERROR in ELENS block: fortran IO format currently not ',
-     &       'supported!'
-        call prror(-1)
-+ei
-+if .not.fio
-      elens_name_aux  =
-     &     getfields_fields(1)(1:getfields_lfields(1))
-      elens_type_aux  =
-     &     getfields_fields(2)(1:getfields_lfields(2))
-+if .not.crlibm
-      read (getfields_fields(3)(1:getfields_lfields(3)),*)
-     & elens_theta_max_aux
-      read (getfields_fields(4)(1:getfields_lfields(4)),*)
-     & elens_r2_aux
-      read (getfields_fields(5)(1:getfields_lfields(5)),*)
-     & elens_r2ovr1_aux
-      read (getfields_fields(6)(1:getfields_lfields(6)),*)
-     & elens_offset_x_aux
-      read (getfields_fields(7)(1:getfields_lfields(7)),*)
-     & elens_offset_y_aux
-+ei
-+if crlibm
-      elens_theta_max_aux=fround(errno,getfields_fields,3)
-      elens_r2_aux=fround(errno,getfields_fields,4)
-      elens_r2ovr1_aux=fround(errno,getfields_fields,5)
-      elens_offset_x_aux=fround(errno,getfields_fields,6)
-      elens_offset_y_aux=fround(errno,getfields_fields,7)
-+ei
-      read (getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
-     &elens_bend_entrance_aux
-      read (getfields_fields(9)(1:getfields_lfields(9)),'(I10)')
-     &elens_bend_exit_aux
-!    2) do some checks of the input parameters
-      if(elens_type_aux.ne.'ANNULAR') then
+     &        "ERROR in ELEN block: Element name max 16 characters;"//
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
+     &        //"' is too long."
+         call prror(-1)
+      endif
+      
+      do j=1,nele               !loop over single elements
+         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
+            ! check the element type (kz(j)_elens=29)
+            if(kz(j).ne.29) then
 +if cr
-        write(lout,*)
+               write(lout,*)
 +ei
 +if .not.cr
-        write(*,*)
+               write(*,*)
 +ei
-     &'ERROR: ELENS type ',elens_type_aux,'not recognized! Options for',
-     &' type are (upper case letters): ANNULAR.'
-        call prror(-1)
-      end if
-      if(elens_r2ovr1_aux.le.1) then
+     &              'ERROR: element type mismatch for ELEN!'//
+     &              'Element type is kz(',j,') = ',kz(j),'!= 29'
+               call prror(-1)
+            endif
+            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
 +if cr
-        write(lout,*)
+               write(lout,*)
 +ei
 +if .not.cr
-        write(*,*)
-+ei
-     &'ERROR: ELENS radius ratio r2/r1 must be larger than 1, but is ',
-     &elens_r2ovr1_aux,'<1'
-        call prror(-1)
-      end if
-      if(elens_bend_entrance_aux .ne. 1 .and. elens_bend_entrance_aux
-     &.ne. -1 .and. elens_bend_entrance_aux .ne. 0) then
-+if cr
-        write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-     &'ERROR: ELENS flag for taking bends at entrance into account must'
-     &//' be -1,0,1, but elens_bend_entrance =',
-     &elens_bend_entrance_aux
-        call prror(-1)
-      end if
-      if(elens_bend_exit_aux.ne.1 .and. elens_bend_exit_aux
-     &.ne.-1 .and. elens_bend_exit_aux.ne.0) then
-+if cr
-        write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-     &'ERROR: ELENS flag for taking bends at exit into account must'
-     &//' be -1,0,1, but elens_bend_exit =',
-     &elens_bend_exit_aux
-        call prror(-1)
-      end if
-!    3) check if elens occur in single element list -> if yes set parameters
-      do j=1,nele !loop over single elements
-        if(bez(j).eq.elens_name_aux) then
-          if(kz(j).ne.29) then ! check the element type (kz(j)_elens=29)
-+if cr
-            write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
-     &'ERROR: element type mismatch for ELENS! Element type is kz(',j,
-     &') = ',kz(j),'!= 29'
-            call prror(-1)
-          endif  
-          if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
-+if cr
-            write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
+               write(*,*)
 +ei
      &'ERROR: length el(j) (elens is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
      &')=',ek(j),'. Note that el(j) is set to 0 inside the code and '//
      &'then length is stored in elens_length(ix).'
-            call prror(-1)
-          endif  
-          select case (elens_type_aux)
-            case ('ANNULAR') ! uniform annular profile
-              elens_type(j) = 1
-! elens_length(i) is defined in fort.2 single element block: el(i) is saved in
-! elens_length(i) and then set to zero el(i)=0
-              elens_theta_max(j)=elens_theta_max_aux ! max kick [murad]
-              elens_r2(j)=elens_r2_aux          ! r2 [mm]
-              elens_r2ovr1(j)=elens_r2ovr1_aux  ! r2/r1 [1]
-              elens_offset_x(j)=elens_offset_x_aux    ! offset x [mm]
-              elens_offset_y(j)=elens_offset_y_aux    ! offset y [mm]
-              elens_bend_entrance(j)=elens_bend_entrance_aux! flag bends entrance/exit
-              elens_bend_exit(j)=elens_bend_exit_aux
-! print a summary of elens parameters
+               call prror(-1)
+            endif
+            if (elens_type(j).ne.0) then
++if cr
+               write(lout,*) "ERROR in ELEN block:"//
++ei
++if .not.cr
+               write(*,*)    "ERROR in ELEN block:"//
++ei
+     &              "The element '"//bez(j)//"' was defined twice!"
+            endif
+
+            ! Parse the element
+            select case ( getfields_fields(2)(1:getfields_lfields(2)) )
+            case ("ANNULAR")
+               ! Read in this case
+               elens_type(j) = 1
++if .not.crlibm
+               read (getfields_fields(3)(1:getfields_lfields(3)),*)
+     &              elens_theta_max(j)
+               read (getfields_fields(4)(1:getfields_lfields(4)),*)
+     &              elens_r2(j)
+               read (getfields_fields(5)(1:getfields_lfields(5)),*)
+     &              elens_r2ovr1(j)
+               read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     &              elens_offset_x(j)
+               read (getfields_fields(7)(1:getfields_lfields(7)),*)
+     &              elens_offset_y(j)
++ei
++if crlibm
+               ! TODO: Are we 100% sure that fround is safe here,
+               ! and that we should not use round_near instead (like dynk_parseFUN)?
+               ! Also, we should check the errno...
+               elens_theta_max(j)=fround(errno,getfields_fields,3)
+               elens_r2(j)       =fround(errno,getfields_fields,4)
+               elens_r2ovr1(j)   =fround(errno,getfields_fields,5)
+               elens_offset_x(j) =fround(errno,getfields_fields,6)
+               elens_offset_y(j) =fround(errno,getfields_fields,7)
++ei
+               read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
+     &              elens_bend_entrance(j)
+               read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')
+     &              elens_bend_exit(j)
+               
+               ! Make checks for this case
+               if(elens_r2ovr1(j).le.1) then
++if cr
+                  write(lout,*)
++ei
++if .not.cr
+                  write(*,*)
++ei
+     &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',
+     &elens_r2ovr1(j),'<1'
+                 call prror(-1)
+              end if
+              if(elens_bend_entrance(j).ne. 1 .and.
+     &           elens_bend_entrance(j).ne.-1 .and.
+     &           elens_bend_entrance(j).ne. 0      ) then
++if cr
+                 write(lout,*)
++ei
++if .not.cr
+                 write(*,*)
++ei
+     &'ERROR: ELEN flag for taking bends at entrance into account must'
+     &//' be -1,0,1, but elens_bend_entrance =',
+     &elens_bend_entrance(j)
+                 call prror(-1)
+              end if
+              if(elens_bend_exit(j).ne. 1 .and.
+     &           elens_bend_exit(j).ne.-1 .and.
+     &           elens_bend_exit(j).ne.0       ) then
++if cr
+                 write(lout,*)
++ei
++if .not.cr
+                 write(*,*)
++ei
+     &'ERROR: ELEN flag for taking bends at exit into account must'
+     &//' be -1,0,1, but elens_bend_exit =',
+     &elens_bend_exit(j)
+                 call prror(-1)
+              end if
+
+              ! print a summary of elens parameters
 +if cr
               write(lout,
 +ei
@@ -18297,7 +18285,8 @@ cc2008
      &'ELENS found in list of single elements with: ',
      &'name     = ',bez(j),
      &'length   = ',elens_length(j),
-     &'type     = ',elens_type_aux,' = ',elens_type(j),
+     &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),
+     &        ' = ',elens_type(j),
      &'thetamax = ',elens_theta_max(j),' mrad',
      &'r2       = ',elens_r2(j),' mm',
      &'r2/r1    = ',elens_r2ovr1(j),'',
@@ -18306,21 +18295,39 @@ cc2008
      &'enable bends at:',
      &'  entrance = ',elens_bend_entrance(j),
      &'  exit     = ',elens_bend_exit(j)
-
+      
             case default
 +if cr
-              write(lout,*)
+               write(lout,*) "ERROR in ELEN:"//
 +ei
 +if .not.cr
-              write(*,*)
+               write(*,*)    "ERROR in ELEN:"//
 +ei
-     &'ERROR: ELENS type ',elens_type_aux,'not recognized! Options for',
-     &' type are (upper case letters): ANNULAR.'
-              call prror(-1)
-          end select
-        endif
+     &              "Elens type '"//
+     &              getfields_fields(2)(1:getfields_lfields(2))//
+     &              "' not recognized. Remember to use all UPPER CASE!"
+               call prror(-1)
+            end select
+            
+            goto 2401           !Search success :)
+            
+         endif
       enddo
-+ei !endif of .not.fio
+
+!     Search for element failed!
++if cr
+      write(lout,*) "ERROR in ELEN: "//
++ei
++if .not.cr
+      write(*,*)    "ERROR in ELEN: "//
++ei
+     &     "Un-identified SINGLE ELEMENT '",
+     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
+      call prror(-1)
+      
+!     element search was a success :)
+ 2401 continue
+      
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
@@ -40285,18 +40292,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
-! elensparam - used for reading in from ELEN block in fort.3
-!      elens_num = 0
-!      elens_theta_max_aux = 0
-!      elens_r2_aux = 0
-!      elens_r2ovr1_aux = 0
-!      elens_offset_x_aux = 0
-!      elens_offset_y_aux = 0
-!      elens_bend_entrance_aux = 0
-!      elens_bend_exit_aux = 0
-!      do j=1,getfields_l_max_string
-!        elens_name_aux(j:j) = char(0)
-!      enddo
 !     elensparam - used for tracking (parameters of single element)
       do i=1,nele
         elens_type(i)          = 0
