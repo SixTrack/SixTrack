@@ -990,12 +990,16 @@
 !
 !hr09 data   dx,dxp/.5d-4,20.d-4/
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
-
+!
++cd collMatNum
+!     EQ 2016 added variables for collimator material numbers
+      integer nmat, nrmat
+      parameter(nmat=14,nrmat=12)
+!	
 +cd flukavars
 !     RB DM 2014 added variables for FLUKA output
       double precision xInt,xpInt,yInt,ypInt,sInt
       common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
-
 !
 !
 +cd info
@@ -1029,9 +1033,8 @@
       real tftot
       common/funint/tftot
 +cd interac
-      integer nrmat,nmat,mat,irmat,mcurr
-!     parameter(nmat=12,nrmat=5)
-      parameter(nmat=15,nrmat=12)
+      integer mat,mcurr
++ca collMatNum
       double precision xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
@@ -1040,7 +1043,7 @@
       parameter(fnavo=6.02214129d23)                                          
       real cgen
       character * 4 mname(nmat)
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
       common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
       common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
@@ -61739,6 +61742,7 @@ c$$$            endif
 +ca flukavars
 !
 +ca database
++ca collMatNum
 !
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
@@ -61787,11 +61791,11 @@ c$$$            endif
          mat = 11
       elseif (c_material.eq.'Iner') then
          mat = 12
-!02/2008 TW added vacuum and black absorber (was missing) 
+!02/2008 TW added vacuum and black absorber (was missing)
       elseif (c_material.eq.'VA') then
-         mat = 14
+         mat = nmat-1
       elseif (c_material.eq.'BL') then
-         mat = 15
+         mat = nmat
       else
 +if cr
          write(lout,*)
@@ -64706,13 +64710,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca interac
       integer i
 ! The last materials are 'vacuum' and 'black', see in sub. SCATIN
-! Number of real materials defined here:
-!
-!++ CHANGE THE NUMBER OF REAL MATERIALS FROM 5 to 7 (bug in JBJ'S ROUTINE?)
-!
-!      data irmat/5/
-!
-      data irmat/12/
+! Number of real materials defined in 'collMatNum' block inside 'interac'
 !
 ! Reference data at pRef=450Gev
 !      data (mname(i),i=1,nrmat)/ 'Be' , 'Al' , 'Cu' , 'W'  , 'Pb' /
@@ -64765,7 +64763,7 @@ c$$$     &           myalphay * cos(phiy))
       data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
       data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
 !October 2013
-!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementa
+!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
       data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
       data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
       data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
@@ -64884,7 +64882,7 @@ c$$$     &           myalphay * cos(phiy))
 !
 !hr09 tlow=tlcut
       tlow=real(tlcut)                                                   !hr09
-      do 100 ma=1,irmat
+      do 100 ma=1,nrmat
         mcurr=ma
 ! prepare for Rutherford differential distribution
 !hr09   thigh=hcut(ma)
@@ -65546,12 +65544,12 @@ c$$$     &           myalphay * cos(phiy))
 
       function get_dpodx(p,mat_i)          !Claudia
       implicit none
-      integer nrmat,nmat,mat,irmat
-      parameter(nmat=15,nrmat=12)
+      integer mat
++ca collMatNum
       common/materia/mat
       double precision anuc,zatom,rho,emr,exenergy
       double precision PE,me,mp,K,gamma_p
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/meanexen/exenergy(nmat)
       double precision beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,   &
      &I_s,delta
@@ -65600,8 +65598,8 @@ C.**************************************************************************
 ! EnLo energy loss in GeV/meter
 
       IMPLICIT none
-      integer IS,irmat,nmat
-      parameter(nmat=15)
+      integer IS
++ca collMatNum
       double precision PC,DZ,EnLo,exenergy,exEn
       double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
       double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
@@ -65614,7 +65612,7 @@ C.**************************************************************************
 
       common/meanexen/exenergy(nmat)
 
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 !      common/betheBl/enr,mom,gammar,betar,bgr,exEn,Tmax,plen
 
       data k/0.307075/      !constant in front bethe-bloch [MeV g^-1 cm^2]
