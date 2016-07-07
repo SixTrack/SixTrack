@@ -18086,8 +18086,8 @@ cc2008
 
       if (ch(:4).eq.next) then
 !     4) loop over single elements to check that they have been defined in the fort.3 block
-!        r2ovr1 must be larger than 1, if elens defined, but is initialized as 0 -> if r2ovr1 =0 elens
-!        is not defined in ELEN block
+!        r2ovr1 must be larger than 1, if elens defined, but is initialized as 0 
+!        -> if r2ovr1 =0 elens is not defined in ELEN block
         do j=1,nele
           if(kz(j).eq.29) then
             if(elens_r2ovr1(j).le.1) then
@@ -34110,8 +34110,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         440,460,480,500,520,540,560,580,600,620,!20
      &         640,410,250,270,290,310,330,350,370,390,!30
      &         680,700,720,730,748,650,650,650,650,650,!40
-     &         745,746,751,752,753,754,630,630,630,630,!50
-     &         630,630,761),ktrack(i)
+     &         745,746,751,752,753,754,650,650,650,650,!50
+     &         650,650,761),ktrack(i)
           goto 650
    10     stracki=strack(i)
           if(iexact.eq.0) then
@@ -35968,12 +35968,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
 
 !----------count=43
-            goto( 20,480,740,480,480,480,480,480,480,480,!0
-     &            40, 60, 80,100,120,140,160,180,200,220,!10
-     &           270,290,310,330,350,370,390,410,430,450,!20
-     &           470,240,500,520,540,560,580,600,620,640,!30
-     &           680,700,720,480,748,480,480,480,480,480,!40
-     &           745,746,751,752,753,754,480,480,480,480,!50
+            goto( 20,480,740,480,480,480,480,480,480,480,               &!0
+     &            40, 60, 80,100,120,140,160,180,200,220,               &!10
+     &           270,290,310,330,350,370,390,410,430,450,               &!20
+     &           470,240,500,520,540,560,580,600,620,640,               &!30
+     &           680,700,720,480,748,480,480,480,480,480,               &!40
+     &           745,746,751,752,753,754,480,480,480,480,               &!50
      &           480,480,761),ktrack(i)
             goto 480
    20       do 30 j=1,napx
