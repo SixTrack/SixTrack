@@ -1142,29 +1142,38 @@
 +cd elensparam
 !     M. Fitterer, FNAL
 !     Common block for hollow electron lens definition
-      integer :: elens_num
-      ! dummy variables for read in
-      character(100) :: elens_type_aux, ! type given in fort.3 block as string, then converted to integer elens_type(nele)
-     &elens_name_aux! name of elens, saved later in bez(i)
-      double precision :: elens_theta_max_aux,elens_r2_aux,
-     &elens_r2ovr1_aux,elens_offset_x_aux,elens_offset_y_aux
-      integer :: elens_bend_entrance_aux,elens_bend_exit_aux
-      ! dummy variables used in tracking block for calculation the kick for the ideal annualar e-lens
-      double precision :: rrelens,frrelens,r1elens,xelens,yelens
+      
       ! variables to save elens parameters for tracking etc.
-      ! type of elens: annular = hollow elens, uniform profile, elens_type=1
-      integer :: elens_type(nele) ! integer for elens type: 1 = ANNULAR
-      double precision :: elens_length(nele) ! length of elens
+      integer          :: elens_type(nele)      ! integer for elens type
+                                                ! 0 : Un-initialized.
+                                                ! 1 : Hollow annular elens, uniform profile
+      double precision :: elens_length(nele)    ! length of elens
       double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
       double precision :: elens_r2(nele)        ! outer radius R2 [mm]
       double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
       double precision :: elens_offset_x(nele),
-     &elens_offset_y(nele) ! hor./vert. offset of elens [mm]
-      integer :: elens_bend_entrance(nele),
-     &elens_bend_exit(nele) ! switch for elens bends
+     &                    elens_offset_y(nele)  ! hor./vert. offset of elens [mm]
+      integer          :: elens_bend_entrance(nele),
+     &                    elens_bend_exit(nele) ! switch for elens bends
       common /elensco/ elens_type,elens_theta_max,elens_r2,
      &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
-     &elens_bend_exit,elens_length
+     &     elens_bend_exit,elens_length
++cd elens_tracktmp
+!     Dummy variables used in tracking block for calculation
+!     of the kick for the ideal annualar e-lens
+      double precision :: rrelens,frrelens,r1elens,xelens,yelens
++cd elens_readtmp
+!     dummy variables for read in
+      integer        :: elens_num
+      character(100) :: elens_type_aux, ! Type given in fort.3 block as string,
+                                        ! then converted to integer elens_type(nele)
+     &                  elens_name_aux  ! name of elens, saved later in bez(i)
+      double precision :: elens_theta_max_aux,elens_r2_aux,
+     &elens_r2ovr1_aux,elens_offset_x_aux,elens_offset_y_aux
+      integer :: elens_bend_entrance_aux,elens_bend_exit_aux
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd fma
 !     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
 !     Common block for the FMA analysis postprocessing
@@ -13417,6 +13426,7 @@ cc2008
 +ca comdynk
 +ca fma
 +ca elensparam
++ca elens_readtmp
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -27553,7 +27563,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-+ca elensparam
+! +ca elensparam
       save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
@@ -29358,6 +29368,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca elens_tracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -29910,6 +29921,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca elens_tracktmp
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -34019,6 +34031,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca elens_tracktmp
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -35400,7 +35413,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-+ca elensparam
+!+ca elensparam
 +if collimat
 +ca database
 +ei
@@ -35876,6 +35889,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca elens_tracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -36433,6 +36447,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca elens_tracktmp
       save
 +if debug
 !-----------------------------------------------------------------------
@@ -37137,6 +37152,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca elens_tracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -40263,31 +40279,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           fma_method(i)(j:j) = char(0)
         enddo
       enddo
-!--ELEN - ELECTRON LENSE---------------------------------------------------------
+!--ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
 ! elensparam - used for reading in from ELEN block in fort.3
-      elens_num = 0
-      elens_theta_max_aux = 0
-      elens_r2_aux = 0
-      elens_r2ovr1_aux = 0
-      elens_offset_x_aux = 0
-      elens_offset_y_aux = 0
-      elens_bend_entrance_aux = 0
-      elens_bend_exit_aux = 0
-      do j=1,getfields_l_max_string
-        elens_name_aux(j:j) = char(0)
-      enddo
+!      elens_num = 0
+!      elens_theta_max_aux = 0
+!      elens_r2_aux = 0
+!      elens_r2ovr1_aux = 0
+!      elens_offset_x_aux = 0
+!      elens_offset_y_aux = 0
+!      elens_bend_entrance_aux = 0
+!      elens_bend_exit_aux = 0
+!      do j=1,getfields_l_max_string
+!        elens_name_aux(j:j) = char(0)
+!      enddo
+!     elensparam - used for tracking (parameters of single element)
       do i=1,nele
-! elensparam - used for tracking (parameters of single element)
-        elens_length(i) = 0
-        elens_theta_max(i) = 0
-        elens_r2(i) = 0
-        elens_r2ovr1(i) = 0
-        elens_offset_x(i) = 0
-        elens_offset_y(i) = 0
+        elens_type(i)          = 0
+        elens_length(i)        = 0
+        elens_theta_max(i)     = 0
+        elens_r2(i)            = 0
+        elens_r2ovr1(i)        = 0
+        elens_offset_x(i)      = 0
+        elens_offset_y(i)      = 0
         elens_bend_entrance(i) = 0
-        elens_bend_exit(i) = 0
+        elens_bend_exit(i)     = 0
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
