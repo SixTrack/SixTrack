@@ -1158,7 +1158,7 @@
       common /elensco/ elens_type,elens_theta_max,elens_r2,
      &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
      &     elens_bend_exit,elens_length
-+cd elens_tracktmp
++cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
       double precision :: rrelens,frrelens,r1elens,xelens,yelens
@@ -18119,7 +18119,6 @@ cc2008
         call prror(-1)
 +ei
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     1) read in elens parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
@@ -18162,7 +18161,7 @@ cc2008
          call prror(-1)
       endif
       
-      do j=1,nele               !loop over single elements
+      do j=1,nele               !loop over single elements and set parameters of elens
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_elens=29)
             if(kz(j).ne.29) then
@@ -29378,7 +29377,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
-+ca elens_tracktmp
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -29931,7 +29930,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
-+ca elens_tracktmp
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -34041,7 +34040,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
-+ca elens_tracktmp
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -35899,7 +35898,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-+ca elens_tracktmp
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -36457,7 +36456,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-+ca elens_tracktmp
++ca elenstracktmp
       save
 +if debug
 !-----------------------------------------------------------------------
@@ -37162,7 +37161,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-+ca elens_tracktmp
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
