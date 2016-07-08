@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fitterer CERN
+!!M. Fitterer, M. Fiascaris CERN
 !!G. Robert-Demolaize, BNL
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
@@ -571,8 +571,9 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
-      integer max_ncoll,maxn,numeff,outlun,nc
-      parameter (max_ncoll=100,nc=32,numeff=19,maxn=20000,outlun=54)
+      integer max_ncoll,maxn,numeff,numeffdpop,outlun,nc
+      parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
+     &numeffdpop=29,outlun=54)
 +cd database
 !GRD
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
@@ -839,15 +840,29 @@
 !
 ! THIS BLOCK IS COMMON TO BOTH THIN6D AND TRAUTHIN SUBROUTINES
 !
-      integer ieff
+      integer ieff,ieffdpop
 !
       double precision myemitx0,myemity0,myalphay,mybetay,myalphax,     &
      &mybetax,rselect
       common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
      &mybetay,rselect
 !
+! M. Fiascaris for the collimation team
+! variables for global inefficiencies studies
+! of normalized and off-momentum halo
+! Last modified: July 2016
+!
+      integer counted(npart,numeff)
       double precision neff(numeff),rsig(numeff)
-      common  /eff/ neff,rsig
+      common  /eff/ neff,rsig,counted
+! 
+      integer counteddpop(npart,numeffdpop)                            
+      integer counted2d(npart,numeff,numeffdpop)
+      double precision neffdpop(numeffdpop),dpopbins(numeffdpop)        &
+      integer npartdpop(numeffdpop)
+      common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
+      double precision dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
+      common /eff2d/ neff2d	
 !
       integer  nimpact(50)
       double precision sumimpact(50),sqsumimpact(50)
@@ -28536,13 +28551,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               dpsv1(i)=(dpsv(i)*c1e3)*oidpsv(i)                          !hr08
 !GRD
 !APRIL2005
+!
 !              dpsv(i)  = 0d0
               nlostp(i)=i
               do ieff =1, numeff
                  counted_r(i,ieff) = 0
                  counted_x(i,ieff) = 0
                  counted_y(i,ieff) = 0
+	         do ieffdpop =1, numeffdpop
+		    counted2d(i,ieff,ieffdpop) = 0
+	         end do	
               end do
+	      do ieffdpop =1, numeffdpop
+                 counteddpop(i,ieffdpop) = 0
+              end do
+
             end do
 !
 !++  Initialize random number generator
@@ -28767,6 +28790,54 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       endif
 !END OF UPGRADE
       close(99)
+!!------------------------------------------------------------------------
+!++  Write efficiency vs dp/p file
+!
+      open(unit=99, file='efficiency_dpop.dat')
+!UPGRADE 4/11/2014
+      if(n_tot_absorbed.ne.0d0) then
+      write(99,*)                                                       &
+     &'# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart' 
+      do k=1,numeffdpop
+        write(99,'(3(1x,e15.7),2(1x,I5))') dpopbins(k),                 &
+     &neffdpop(k)/dble(n_tot_absorbed),                                 &
+     &neffdpop(k), n_tot_absorbed, npartdpop(k)
+      end do
+      else
++if cr
+          write(lout,*) 'NO PARTICLE ABSORBED'
++ei
++if .not.cr
+          write(*,*) 'NO PARTICLE ABSORBED'
++ei
+      endif
+!END OF UPGRADE
+      close(99)
+!!------------------------------------------------------------------------
+!++  Write 2D efficiency file (eff vs. A_r and dp/p)
+!
+      open(unit=99, file='efficiency_2d.dat')
+      if(n_tot_absorbed.ne.0d0) then
+      write(99,*)                                                       &
+     &'# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs' 
+      do i=1,numeff
+	do k=1,numeffdpop
+        write(99,'(4(1x,e15.7),1(1x,I5))') rsig(i),  dpopbins(k),       &
+     &neff2d(i,k)/dble(n_tot_absorbed),                                 &
+     &neff2d(i,k), n_tot_absorbed
+	end do
+      end do
+      else
++if cr
+          write(lout,*) 'NO PARTICLE ABSORBED'
++ei
++if .not.cr
+          write(*,*) 'NO PARTICLE ABSORBED'
++ei
+      endif
+!END OF UPGRADE
+      close(99)
+!!------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !++  Write collimation summary file
 !
@@ -29578,7 +29649,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       do i = 1, numeff
 !hr08   rsig(i) = dble(i)/2d0 - 0.5d0 + 6d0
-        rsig(i) = (dble(i)/2d0 - 0.5d0) + 6d0                            !hr08
+        rsig(i) = (dble(i)/2d0 - 0.5d0) + 5d0                           !hr08
+      enddo
+      dpopbins(1)= 1d-4
+      do i = 2, numeffdpop
+	 dpopbins(i)= dble(i-1)*4d-4
       enddo
       n_gt72 = 0
       n_gt80 = 0
@@ -30054,10 +30129,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !DEC2008
           end do
 !GRD
+!
           do k = 1, numeff
             neff(k)  = 0d0
             neffx(k) = 0d0
             neffy(k) = 0d0
+	    do j = 1, numeffdpop
+		neff2d(k,j) = 0d0
+	    enddo
+          enddo
+          do k = 1, numeffdpop
+            neffdpop(k)  = 0d0
+	    npartdpop(k) = 0
           enddo
 !
 !Mars 2005
@@ -33161,30 +33244,44 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &)
 !
 !++  Populate the efficiency arrays at the end of each turn...
+! Modified by M.Fiascaris, July 2016
 !
               if (ie.eq.iu) then
                 do ieff = 1, numeff
                   if (counted_r(j,ieff).eq.0 .and.                      &
 !GRD     &SQRT(NSPX**2+NSPY**2).GE.RSIG(IEFF)) THEN
      &sqrt(                                                             &
-     &((xineff(j)*1d-3)**2                                              &
+     &((xineff(j)*1d-3)**2 +                                            &
+     & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetax(ie)*myemitx0))                                            &
+     &(tbetax(ie)*myemitx0)                                             &
      &+                                                                 &
-     &((yineff(j)*1d-3)**2                                              &
+     &((yineff(j)*1d-3)**2 +                                            &
+     & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0))                                            &
+     &(tbetay(ie)*myemity0)                                             &
      &).ge.rsig(ieff)) then
                     neff(ieff) = neff(ieff)+1d0
                     counted_r(j,ieff)=1
-                  endif
-!
+		endif
+
+!++ 2D eff
+		do ieffdpop =1, numeffdpop
+		  if (counted2d(j,ieff,ieffdpop).eq.0 .and.		
+     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then     
+		   neff2d(ieff,ieffdpop) = neff2d(ieff,ieffdpop)+1d0
+	           counted2d(j,ieff,ieffdpop)=1
+	           endif
+		end do
+
+
                   if (counted_x(j,ieff).eq.0 .and.                      &
 !GRD     &NSPX.GE.RSIG(IEFF)) THEN
      &sqrt(                                                             &
-     &((xineff(j)*1d-3)**2                                              &
+     &((xineff(j)*1d-3)**2 +                                            &
+     & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &	
      &/                                                                 &
-     &(tbetax(ie)*myemitx0))                                            &
+     &(tbetax(ie)*myemitx0)                                             &
      &).ge.rsig(ieff)) then
                     neffx(ieff) = neffx(ieff) + 1d0
                     counted_x(j,ieff)=1
@@ -33193,15 +33290,33 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   if (counted_y(j,ieff).eq.0 .and.
 !GRD     1                      NSPY.GE.RSIG(IEFF)) THEN                &
      &sqrt(                                                             &
-     &((yineff(j)*1d-3)**2                                              &
+     &((yineff(j)*1d-3)**2 +                                            &
+     & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0))                                            &
+     &(tbetay(ie)*myemity0)                                             &
      &).ge.rsig(ieff)) then
                     neffy(ieff) = neffy(ieff) + 1d0
                     counted_y(j,ieff)=1
                   endif
 !
                 end do
+	        do ieffdpop = 1, numeffdpop
+	          if (counteddpop(j,ieffdpop).eq.0) then
+	          dpopmin = 0d0
+	          mydpop = abs((ejv(j)-myenom)/myenom)
+	          if (ieffdpop.gt.1) dpopmin = dpopbins(ieffdpop-1)
+	          dpopmax = dpopbins(ieffdpop)
+	          if (mydpop.ge.dpopmin .and. mydpop.lt.mydpop) then
+	                npartdpop(ieffdpop)=npartdpop(ieffdpop)+1
+	                endif	          
+	          endif
+!
+		  if (counteddpop(j,ieffdpop).eq.0 .and.                
+     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then
+	          neffdpop(ieffdpop) = neffdpop(ieffdpop)+1d0
+	          counteddpop(j,ieffdpop)=1
+	          endif
+		end do
               endif
 !
 !++  Do an emittance drift
