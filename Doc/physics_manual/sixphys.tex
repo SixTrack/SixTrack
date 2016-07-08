@@ -948,6 +948,49 @@ The effect of the AC-dipole is split into four stages. The turn number is denote
         \end{align}
 \end{enumerate}
 
+\subsection{Electron lens}
+\label{elense}
+\subsection{Hollow electron lens - uniform annular profile}
+For a uniform distribution of the electron beam between $R_1$ and $R_2$, the radial kick can be described by a shape function $f(r)$ and a maximum kick strength $\theta_{\rm max}$:
+\begin{equation}
+\theta(r)=\frac{f(r)}{(r/R_2)}\cdot \theta_{\rm max}
+\end{equation}
+with $r=\sqrt{x^2+y^2}$ and $\theta_{\rm max}$ independent of $r$. The shape function $f(r)$ is defined as
+\begin{equation}
+f(r) = \frac{I(r)}{I_T}=\frac{2\pi}{I_T}\int_{0}^r r\rho(r) dr
+\end{equation}
+where $I_T$ is the total electron beam current, $I(r)$ is the current enclosed in a radius $r$ and $\rho(r)$ is the electron beam density distribution.
+
+For a uniform profile one then obtains:
+\begin{equation}
+\begin{cases} 0 &,\quad r< R_1\\
+\frac{r^2-R_1^2}{R_2^2-R_1^2} &,\quad R_1 \leq r < R_2\\
+1 &,\quad R_2 \leq r
+\end{cases}
+\end{equation}
+and
+\begin{equation}
+\theta_{\rm max} = \theta(R_2) = \frac{2LI_T(1\pm\beta_e\beta_p)}{4\pi\epsilon_0  \left(B\rho\right)_p\beta_e\beta_p c^2}\cdot\frac{1}{R_2}
+\end{equation}
+where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e/p}$ the relativistic $\beta$ of electron/proton beam, $B\rho$ the magnetic rigidity, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam traveling in the direction of the proton beam ($+$) or in the opposite direction ($-$). For hollow electron beam collimation, electron and proton beam travel in the same direction.
+
+The kick in $(x',y')$ can then be expressed as (note $\frac{x}{r}=\cos(\phi),\frac{y}{r}=\sin(\phi)$):
+\begin{align}
+x'&=x'-\theta_{\rm max}\cdot\frac{r_2}{r^2}\cdot f(r)\cdot x\\
+y'&=y'-\theta_{\rm max}\cdot\frac{r_2}{r^2}\cdot f(r)\cdot y
+\end{align}
+
+If the electron lens is offset by $(x_{\rm offset},y_{\rm offset})$, the coordinates $(x,y)$ are simply transfered to:
+\begin{align}
+\tilde x&=x+x_{\rm offset}\\
+\tilde y&=y+y_{\rm offset}\\
+\tilde r&=\sqrt{\tilde x^2+\tilde y^2}
+\end{align}
+and the kick is then given by:
+\begin{align}
+x'&=x'-\theta_{\rm max}\cdot\frac{r_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde x\\
+y'&=y'-\theta_{\rm max}\cdot\frac{r_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde y
+\end{align}
 
 \subsection{Misalignment}
 
