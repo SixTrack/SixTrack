@@ -1147,7 +1147,6 @@
       integer          :: elens_type(nele)      ! integer for elens type
                                                 ! 0 : Un-initialized.
                                                 ! 1 : Hollow annular elens, uniform profile
-      double precision :: elens_length(nele)    ! length of elens
       double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
       double precision :: elens_r2(nele)        ! outer radius R2 [mm]
       double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
@@ -1157,7 +1156,7 @@
      &                    elens_bend_exit(nele) ! switch for elens bends
       common /elensco/ elens_type,elens_theta_max,elens_r2,
      &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
-     &     elens_bend_exit,elens_length
+     &     elens_bend_exit
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
@@ -5414,7 +5413,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !Hollow electron lens (HEL)
         if(kzz.eq.29) then
           ktrack(i)=63
-!          write(*,*) 'MF: set ktrack(i)',i,ktrack(i)
           goto 290
         endif
 +cd crab1
@@ -18185,8 +18183,7 @@ cc2008
      &'ERROR: length el(j) (elens is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
-     &')=',ek(j),'. Note that el(j) is set to 0 inside the code and '//
-     &'then length is stored in elens_length(ix).'
+     &')=',ek(j),'.'
                call prror(-1)
             endif
             if (elens_type(j).ne.0) then
@@ -18279,11 +18276,10 @@ cc2008
 +if .not.cr
               write(*,
 +ei
-     &fmt='((A,/),(A,A,/),(A,D9.3,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),'
+     &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),'
      &//'2(A,I4,/))')
      &'ELENS found in list of single elements with: ',
      &'name     = ',bez(j),
-     &'length   = ',elens_length(j),
      &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),
      &        ' = ',elens_type(j),
      &'thetamax = ',elens_theta_max(j),' mrad',
@@ -19844,12 +19840,8 @@ c$$$         endif
          !Moved from daten()
          crabph4(ix)=el(ix)
          el(ix)=0d0
-!--Hollow Electron Lense
-      else if(abs(kz(ix)).eq.29) then
-         elens_length(ix)=el(ix) ! set el(ix) = 0 in order to treat it as thin element, save length in elens_length
-         el(ix) =0d0
       endif
-      
+
       return
 
       !Error handlers
@@ -40294,7 +40286,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     elensparam - used for tracking (parameters of single element)
       do i=1,nele
         elens_type(i)          = 0
-        elens_length(i)        = 0
         elens_theta_max(i)     = 0
         elens_r2(i)            = 0
         elens_r2ovr1(i)        = 0
