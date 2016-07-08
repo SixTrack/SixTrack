@@ -1513,6 +1513,93 @@ converter from MAD8 to SixTrack this is guaranteed to be the case. Note
 also that the crossterms between the transverse plains are not
 considered for the time being.
 
+\subsection{Electron lens} \label{elen}
+
+\paragraph{Description} The electron lens module serves for reading in the input parameters for different types of electron lenses. Each e-lens also needs to be added as single element in the list of single elements. Currently only the ideal hollow electron lens is implemented.
+\paragraph{Keyword} ELEN
+\paragraph{Number of data lines} variable
+\paragraph{Format} \emph{name type thetamax r2 r2ovr1 offset\_x offset\_y flag\_entrance flag\_exit}
+A description of the input parameters for the different e-lens types is given in Table~\ref{ELEN}. Currently only the ideal hollow electron lens is implemented in SixTrack (type ANNULAR). 
+\begin{center}
+	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{10.5cm}|}
+		%Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+		\caption{Input parameters for ELEN block.}
+		\label{tab:ELEN} \\*
+		\hline
+		\rowcolor{blue!30}
+		Type name & Arguments & unit & Description \\*
+		\hline
+		\endfirsthead
+		
+		\hline
+		\rowcolor{blue!30}
+		Type name & Arguments & unit & Description \\*
+		%\hline
+		\endhead
+		
+		\rowcolor{gray!15}
+		\multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+		\hline
+		\endfoot
+		
+		\hline
+		\endlastfoot
+
+		\hline
+		\rowcolor{blue!15}
+		\multicolumn{4}{|l}{valid for all types} \\*
+		
+		& \emph{name} & - &
+		Name of e-lens. Must be the same as in list of single elements.\\*
+		
+		& \emph{type} & - &
+		type of electron lens. Available types are ANNULAR. \\*
+		\hline
+
+		\hline
+		\rowcolor{blue!15}
+		\multicolumn{4}{|l}{type specific parameters} \\*
+		
+		ANNULAR & \emph{thetamax} & mrad &
+		Maximum kick. This equals the kick received at $r=r_2$ where $r_2$ is the outer radius of the electron lens.\\*
+		& \emph{r2} & mm &
+		Outer radius of e-lens.\\*
+		& \emph{r2ovr1} & - &
+		Outer radius/inner radius.\\*
+		& \emph{offset\_x} & mm &
+		horizontal offset of e-lens.\\*
+		& \emph{offset\_y} & mm &
+		vertical offset of e-lens.\\*
+		& \emph{flag\_entrance} & - &
+		enable bends at entrance of e-lens.\\*
+		& \emph{flag\_exit} & - &
+		enable bends at exit of e-lens.\\*
+	\end{longtable}
+\end{center}
+\paragraph{Remark} The user has to check that the e-lens defined in the ELEN block is also defined in the list of single elements and vice versa. All parameters except for the type (type 29) are ignored in the single element definition. 
+\paragraph{Example} In the following we give some examples for e-lens definitions.
+\subparagraph{ANNULAR} This example defines two electron lenses hel1 and hel2. The input block in \verb|fort.3| is then given by:
+\begin{verbatim}
+ELEN
+hel1 ANNULAR 4.920e-03 6.928 1.5 0 0 0 0
+hel2 ANNULAR 4.920e-03 6.928 1.5 1.1547 2.3093 0 0
+NEXT
+\end{verbatim}
+The single and structure element definition in \verb|fort.2| is given by:
+\begin{verbatim}
+SINGLE ELEMENTS---------------------------------------------------------
+...
+hel1            29   0.000000000e+00   0.000000000e+00 
+   0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+hel2            29   0.000000000e+00   0.000000000e+00   
+   0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+...
+STRUCTURE INPUT---------------------------------------------------------
+...
+BLOC56            hel1              hel2
+...
+\end{verbatim}
+Note that all parameters except for the type are set to 0 in the single element definition.
 \section{Organising Tasks}
 
 In this section the input data blocks are described, which are used to
