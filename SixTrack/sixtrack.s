@@ -18738,7 +18738,9 @@ cc2008
      &'ERROR: length el(j) (elens is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
-     &')=',ek(j),'.'
+     &')=',ek(j),'. Please check you input in the single element '//
+     &'definition of your HEL. All values except for the type need to'//
+     &'be zero.'
                call prror(-1)
             endif
             if (elens_type(j).ne.0) then
@@ -18749,6 +18751,7 @@ cc2008
                write(*,*)    "ERROR in ELEN block:"//
 +ei
      &              "The element '"//bez(j)//"' was defined twice!"
+               call prror(-1)
             endif
 
             ! Parse the element
