@@ -27199,6 +27199,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
 +ca parpro
 +ca parnum
 +ca common
@@ -28766,13 +28767,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !------------------------------------------------------------------------
 !++  Write efficiency file
 !
-      open(unit=99, file='efficiency.dat')
+      inquire( unit=1991, opened=lopen)
+      if (lopen) then
+	  write(*,*) "ERROR in efficiency.dat: FILE 1991 already taken"
+	  call prror(-1)
+      endif
+      open(unit=1991, file='efficiency.dat')
 !UPGRADE JANUARY 2005
       if(n_tot_absorbed.ne.0d0) then
-      write(99,*)                                                       &
+      write(1991,*)                                                       &
      &'# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r'
       do k=1,numeff
-        write(99,'(7(1x,e15.7),1x,I5)') rsig(k),                        &
+        write(1991,'(7(1x,e15.7),1x,I5)') rsig(k),                        &
      &neffx(k)/dble(n_tot_absorbed),                                    &
      &neffy(k)/dble(n_tot_absorbed),                                    &
      &neff(k)/dble(n_tot_absorbed),                                     &
@@ -28789,17 +28795,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       endif
 !END OF UPGRADE
-      close(99)
+      close(1991)
 !!------------------------------------------------------------------------
 !++  Write efficiency vs dp/p file
 !
-      open(unit=99, file='efficiency_dpop.dat')
+	inquire( unit=1992, opened=lopen )
+	if (lopen) then
+	  write(*,*)"ERROR in efficiency_dpop.dat:FILE 1992 already taken"
+	  call prror(-1)
+	endif
+      open(unit=1992, file='efficiency_dpop.dat')
 !UPGRADE 4/11/2014
       if(n_tot_absorbed.ne.0d0) then
-      write(99,*)                                                       &
+      write(1992,*)                                                       &
      &'# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart' 
       do k=1,numeffdpop
-        write(99,'(3(1x,e15.7),2(1x,I5))') dpopbins(k),                 &
+        write(1992,'(3(1x,e15.7),2(1x,I5))') dpopbins(k),                 &
      &neffdpop(k)/dble(n_tot_absorbed),                                 &
      &neffdpop(k), n_tot_absorbed, npartdpop(k)
       end do
@@ -28812,17 +28823,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       endif
 !END OF UPGRADE
-      close(99)
+      close(1992)
 !!------------------------------------------------------------------------
 !++  Write 2D efficiency file (eff vs. A_r and dp/p)
 !
-      open(unit=99, file='efficiency_2d.dat')
+      inquire( unit=1993, opened=lopen )
+      if (lopen) then
+	  write(*,*)"ERROR in efficiency_2d.dat:FILE 1993 already taken"
+	  call prror(-1)
+      endif
+      open(unit=1993, file='efficiency_2d.dat')
       if(n_tot_absorbed.ne.0d0) then
-      write(99,*)                                                       &
+      write(1993,*)                                                       &
      &'# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs' 
       do i=1,numeff
 	do k=1,numeffdpop
-        write(99,'(4(1x,e15.7),1(1x,I5))') rsig(i),  dpopbins(k),       &
+        write(1993,'(4(1x,e15.7),1(1x,I5))') rsig(i),  dpopbins(k),       &
      &neff2d(i,k)/dble(n_tot_absorbed),                                 &
      &neff2d(i,k), n_tot_absorbed
 	end do
@@ -28836,7 +28852,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       endif
 !END OF UPGRADE
-      close(99)
+      close(1993)
 !!------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !++  Write collimation summary file
