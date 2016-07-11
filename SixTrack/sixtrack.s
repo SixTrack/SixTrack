@@ -9383,6 +9383,7 @@ cc2008
       open(35,file='fort.35',form='formatted',status='unknown')
 +ei
 +ei
++if .not.stf
 +if .not.bnlelens
 +if boinc
       call boincrf('fort.59',filename)
@@ -9600,6 +9601,7 @@ cc2008
 +ei
 +if .not.boinc
       open(89,file='fort.89',form='unformatted',status='unknown')
++ei
 +ei
 +if boinc
       call boincrf('fort.90',filename)
