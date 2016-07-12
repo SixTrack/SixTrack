@@ -1519,9 +1519,9 @@ considered for the time being.
 \paragraph{Keyword} ELEN
 \paragraph{Number of data lines} variable
 \paragraph{Format} \emph{name type thetamax r2 r2ovr1 offset\_x offset\_y flag\_entrance flag\_exit}
-A description of the input parameters for the different e-lens types is given in Table~\ref{ELEN}. Currently only the ideal hollow electron lens is implemented in SixTrack (type ANNULAR). 
+A description of the input parameters for the different e-lens types is given in Table~\ref{elen}. Currently only the ideal hollow electron lens is implemented in SixTrack (type ANNULAR). 
 \begin{center}
-	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{10.5cm}|}
+	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{9.2cm}|}
 		%Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
 		\caption{Input parameters for ELEN block.}
 		\label{tab:ELEN} \\*
@@ -1538,7 +1538,7 @@ A description of the input parameters for the different e-lens types is given in
 		\endhead
 		
 		\rowcolor{gray!15}
-		\multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+		\multicolumn{4}{|c|}{(The table continues on the next page)}\\*
 		\hline
 		\endfoot
 		
@@ -1547,7 +1547,7 @@ A description of the input parameters for the different e-lens types is given in
 
 		\hline
 		\rowcolor{blue!15}
-		\multicolumn{4}{|l}{valid for all types} \\*
+		\multicolumn{4}{|l|}{valid for all types} \\*
 		
 		& \emph{name} & - &
 		Name of e-lens. Must be the same as in list of single elements.\\*
@@ -1558,7 +1558,7 @@ A description of the input parameters for the different e-lens types is given in
 
 		\hline
 		\rowcolor{blue!15}
-		\multicolumn{4}{|l}{type specific parameters} \\*
+		\multicolumn{4}{|l|}{type specific parameters} \\*
 		
 		ANNULAR & \emph{thetamax} & mrad &
 		Maximum kick. This equals the kick received at $r=r_2$ where $r_2$ is the outer radius of the electron lens.\\*
