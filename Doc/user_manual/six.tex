@@ -1513,18 +1513,18 @@ converter from MAD8 to SixTrack this is guaranteed to be the case. Note
 also that the crossterms between the transverse plains are not
 considered for the time being.
 
-\subsection{Electron lens} \label{elen}
+\subsection{Electron lens} \label{sec:elen}
 
 \paragraph{Description} The electron lens module serves for reading in the input parameters for different types of electron lenses. Each e-lens also needs to be added as single element in the list of single elements. Currently only the ideal hollow electron lens is implemented.
 \paragraph{Keyword} ELEN
 \paragraph{Number of data lines} variable
 \paragraph{Format} \emph{name type thetamax r2 r2ovr1 offset\_x offset\_y flag\_entrance flag\_exit}
-A description of the input parameters for the different e-lens types is given in Table~\ref{elen}. Currently only the ideal hollow electron lens is implemented in SixTrack (type ANNULAR). 
+A description of the input parameters for the different e-lens types is given in Table~\ref{tab:elen}. Currently only the ideal hollow electron lens is implemented in SixTrack (type ANNULAR). 
 \begin{center}
 	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{9.2cm}|}
 		%Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
 		\caption{Input parameters for ELEN block.}
-		\label{tab:ELEN} \\*
+		\label{tab:elen} \\*
 		\hline
 		\rowcolor{blue!30}
 		Type name & Arguments & unit & Description \\*
