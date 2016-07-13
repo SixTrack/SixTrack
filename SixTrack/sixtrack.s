@@ -13441,6 +13441,8 @@ cc2008
       character*16 elens
       data elens /'ELEN'/
 
+      double precision round_near
+      
       save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
@@ -18771,14 +18773,26 @@ cc2008
      &              elens_offset_y(j)
 +ei
 +if crlibm
-               ! TODO: Are we 100% sure that fround is safe here,
-               ! and that we should not use round_near instead (like dynk_parseFUN)?
-               ! Also, we should check the errno...
-               elens_theta_max(j)=fround(errno,getfields_fields,3)
-               elens_r2(j)       =fround(errno,getfields_fields,4)
-               elens_r2ovr1(j)   =fround(errno,getfields_fields,5)
-               elens_offset_x(j) =fround(errno,getfields_fields,6)
-               elens_offset_y(j) =fround(errno,getfields_fields,7)
+               elens_theta_max(j)= round_near (
+     &              errno,getfields_lfields(3)+1, getfields_fields(3) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,3,elens_theta_max(j) )
+               elens_r2(j)       = round_near (
+     &              errno,getfields_lfields(4)+1, getfields_fields(4) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,4,elens_r2(j) )
+               elens_r2ovr1(j)   = round_near (
+     &              errno,getfields_lfields(5)+1, getfields_fields(5) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,5,elens_r2ovr1(j) )
+               elens_offset_x(j) = round_near (
+     &              errno,getfields_lfields(6)+1, getfields_fields(6) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,6,elens_offset_x(j) )
+               elens_offset_y(j) = round_near (
+     &              errno,getfields_lfields(7)+1, getfields_fields(7) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,7,elens_offset_y(j) )
 +ei
                read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
      &              elens_bend_entrance(j)
