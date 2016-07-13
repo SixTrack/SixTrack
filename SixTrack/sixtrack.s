@@ -35319,70 +35319,70 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto(190,200,210,220,230,240,250,260,270,280),kzz
         ktrack(i)=31
         goto 290
-  190   if(abs(smiv(1,i)).le.pieni) then
+  190   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=21
 +ca stra01
         goto 290
-  200   if(abs(smiv(1,i)).le.pieni) then
+  200   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=22
 +ca stra02
         goto 290
-  210   if(abs(smiv(1,i)).le.pieni) then
+  210   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=23
 +ca stra03
         goto 290
-  220   if(abs(smiv(1,i)).le.pieni) then
+  220   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=24
 +ca stra04
         goto 290
-  230   if(abs(smiv(1,i)).le.pieni) then
+  230   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=25
 +ca stra05
         goto 290
-  240   if(abs(smiv(1,i)).le.pieni) then
+  240   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=26
 +ca stra06
         goto 290
-  250   if(abs(smiv(1,i)).le.pieni) then
+  250   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=27
 +ca stra07
         goto 290
-  260   if(abs(smiv(1,i)).le.pieni) then
+  260   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=28
 +ca stra08
         goto 290
-  270   if(abs(smiv(1,i)).le.pieni) then
+  270   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
         ktrack(i)=29
 +ca stra09
         goto 290
-  280   if(abs(smiv(1,i)).le.pieni) then
+  280   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
           ktrack(i)=31
           goto 290
         endif
