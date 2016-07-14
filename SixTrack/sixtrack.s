@@ -18754,8 +18754,8 @@ cc2008
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
      &')=',ek(j),'. Please check you input in the single element '//
-     &'definition of your HEL. All values except for the type need to'//
-     &' be zero.'
+     &'definition of your ELEN. All values except for the type need '//
+     &'to be zero.'
                call prror(-1)
             endif
             if (elens_type(j).ne.0) then

@@ -1,11 +1,24 @@
 from matplotlib.pyplot import *
+from numpy import * 
 
-r2hel1=6.928 #from fort.3 [mm]
+# calculation of initial tracking amplitudes
+betx1=19.818526 # from LINE in SixTrack
+betx2=0
+rat = 0.333332 # angle 15, note sqrt(eps2/eps1)=rat
+phi = arctan(sqrt(rat))
+eps0 = 1.5634291429807567 # [mum] 3.75 mum normalized emittance, 1.5 GeV 
+eps1=eps0*(cos(phi))**2
+eps2=rat**2*eps1
+sigx = sqrt(betx1*eps1)+sqrt(betx2*rat*eps2)
+print 'distribute particles from amp0=0 to amp1=10*sigx=%4.2f mm'%(10*sigx)
+
+r2hel1= 28.9239 # 6*sigx, hardcoded in fort.3 [mm]
 sig=r2hel1/6 # 1 sigma beam size, hel1 between 4-6 sigma
 offsetx=1.1547
 offsety=2.3093
-thetamax=4.920e-03 # max. kick [mrad] for rr=r2hel1 from fort.3 file
+thetamax=4.920e-06 # max. kick [mrad] for rr=r2hel1 from fort.3 file
 
+close('all')
 figure('elens kick',figsize=(10,10))
 for fnin,fnout,offx,offy in [(1,2,0,0),(2,3,offsetx,offsety),(3,4,offsetx,0),(4,5,0,offsety)]:
   subplot(2,2,fnin)
@@ -23,3 +36,5 @@ for fnin,fnout,offx,offy in [(1,2,0,0),(2,3,offsetx,offsety),(3,4,offsetx,0),(4,
   else:
     print 'x or y has been changed in %s - elens should only change xp,yp'%f
 
+draw()
+show()
