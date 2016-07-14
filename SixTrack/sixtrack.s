@@ -852,9 +852,8 @@
 ! of normalized and off-momentum halo
 ! Last modified: July 2016
 !
-      integer counted(npart,numeff)
       double precision neff(numeff),rsig(numeff)
-      common  /eff/ neff,rsig,counted
+      common  /eff/ neff,rsig
 ! 
       integer counteddpop(npart,numeffdpop)                            
       integer counted2d(npart,numeff,numeffdpop)
@@ -28774,7 +28773,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       endif
       open(unit=1991, file='efficiency.dat')
 !UPGRADE JANUARY 2005
-      if(n_tot_absorbed.ne.0d0) then
+      if(n_tot_absorbed.ne.0) then
       write(1991,*)                                                       &
      &'# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r'
       do k=1,numeff
@@ -28806,7 +28805,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 	endif
       open(unit=1992, file='efficiency_dpop.dat')
 !UPGRADE 4/11/2014
-      if(n_tot_absorbed.ne.0d0) then
+      if(n_tot_absorbed.ne.0) then
       write(1992,*)                                                       &
      &'# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart' 
       do k=1,numeffdpop
@@ -28833,7 +28832,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 	  call prror(-1)
       endif
       open(unit=1993, file='efficiency_2d.dat')
-      if(n_tot_absorbed.ne.0d0) then
+      if(n_tot_absorbed.ne.0) then
       write(1993,*)                                                       &
      &'# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs' 
       do i=1,numeff
