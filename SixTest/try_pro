@@ -62,6 +62,25 @@ do
     cp ../$i/beambeamdist.dat beambeamdist.dat
     cp beambeamdist.dat fort.54
   fi
+  if test -s ../$i/extra_inputs.txt; then
+      echo "Found extra input files, copying more files..."
+      set -f # Disable wildcard expansion
+      while read extrafile; do
+	  echo "Got file = " $extrafile
+	  if test ! "$extrafile"; then
+	      echo "      Invalid line! Skipping."
+	      continue
+	  fi
+	  if ! test -f ../$i/$extrafile; then
+	      echo "      File " $extrafile " not found, skipping!"
+	      continue
+	  fi
+
+	  cp ../$i/$extrafile .
+      done < ../$i/extra_inputs.txt
+      set +f # Reanable wildcards
+  fi
+  
   
   echo "First (only) time pro with no checkpoints"
   date
