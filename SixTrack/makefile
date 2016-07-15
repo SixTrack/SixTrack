@@ -5,7 +5,6 @@
 # |  TODO:
 # |  hdf5
 # |  g77, g95, lf95, nagfor
-# |  logic for 64bit
 # |
 # |
 # o---------------------------------------------------------------------o
@@ -19,43 +18,36 @@ SHELL:=/bin/bash
 #MAC_LIBS_PATH          := /opt/local/lib/gcc48/i386/libstdc++.a /opt/local/libexec/llvm-3.3/lib/clang/3.3/lib/darwin/libclang_rt.eprintf.a /opt/local/lib/gcc48/gcc/x86_64-apple-darwin12/4.8.3/i386/libgcc_eh.a
 
 #Windows
-Windows_BOINC_LIB_PATH := C:\andrei_6track\win32\libxp2\*.lib
-Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\User32.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\psapi.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\AdvAPI32.Lib"
+#Windows_BOINC_LIB_PATH := C:\andrei_6track\win32\libxp2\*.lib
+#Windows_MS_SDK_PATH    := "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\User32.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\psapi.lib" "C:\Program Files\Microsoft SDKs\Windows\v7.0A\Lib\AdvAPI32.Lib"
 
-# default options, can be overriden by the command line
-#OPTIONS := fast tilt tracking crlibm ifort
-OPTIONS := fast tilt tracking crlibm gfortran vvector cernlib O3
-#OPTIONS := crlibm bnlelens gfortran boinc api
+# user can run make as make add="p q" remove="x y" in order to add p,q and remove x,y where p q x y must belong to ALL_OPTIONS
+# new options are added for executable - m32 and m64 for 32 bit and 64 bit respectivley(m32 is default)
+# resolving of dependencies is done using option_resolver.sh script
 
-NOPT  := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
+#list of all options (need to be looked at for removing obsolete options)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz m32 m64 O3)
 
+DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
+DEFAULTS := $(filter-out $(remove),$(DEFAULTS))
+SORTED_OPTIONS:= $(shell ./option_resolver.sh "$(DEFAULTS)" "$(add)" "$(remove)" "$(ALL_OPTIONS)")
+temp=$(shell echo "$(SORTED_OPTIONS)" | grep -o "error" )
+ifeq ($(temp),error)
+  $(error $(SORTED_OPTIONS))
+else
+  OPTIONS := $(sort $(SORTED_OPTIONS))
+endif
 
+#sys_version stores the value of m32 or m64 flag
+#ENABLED variable (removing optimization flag from chosen options) and NOPT is remnant of older option resolving and is used in many places
+sys_version := $(filter m32 m64,$(OPTIONS))
+NOPT := $(strip $(subst O,,$(lastword $(filter O3 O2 O1 O0, $(OPTIONS)))))
+ENABLED := $(filter-out O$(NOPT),$(OPTIONS))
 
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 sse41 sse42 tilt tracking vvector windows O0 O1 O2 O3 O4)
-
-# list of valid user options
-USER_OPTIONS := $(sort api beamgas bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib sse2 sse3 sse41 sse42 tilt tracking vvector hugenblz windows O0 O1 O2 O3 O4)
-
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz)
-
-# list of valid compiler options
+#list of valid compiler options
 COMPILER_OPTIONS := g77 g95 gfortran ifort lf95 nagfor
 
-
-# options dependencies (+)enable, -disable, !exclude
-
-beamgas    := +collimat
-boinc      := +cpss
-bpm        := !da !collimat
-collimat   := -crlibm !da
-cpss       := +cr !da !collimat
-da         := -naglib !collimat
-hdf5       := +collimat
-windows    := +boinc +crlibm
-
-# dictionary between options and patterns
-
-# decks options to be checked in the .ast file
+#decks options to be checked in the .ast file
 DECKS_OPT := collimat cr  bnlelens debug
 # if disabled <lhs>  delete deck <rhs> 
 collimat := nwrtcoll
@@ -63,25 +55,10 @@ bnlelens := nwrtbnl
 cr       := checkpt
 debug    := dumps
 
-# if enabled <lhs>  delete deck <rhs> 
+#if enabled <lhs>  delete deck <rhs> 
 DECKS_OPT_INV := cernlib naglib
 cernlib  := plotdumy
 naglib   := nagdumy
-
-# clean-up, expand and classify OPTIONS
-
-expand      = $(foreach o,$1,$o $(if $($o),( $(call expand,$(patsubst +%,%,$($o))) ),))
-PROVIDED   := $(sort $(patsubst +%,%,$(OPTIONS)))
-#EXPANDED   := $(strip $(call expand,$(PROVIDED)))
-EXPANDED   := $(PROVIDED)
-ENABLED    := $(sort $(filter-out -% !% ( ),$(EXPANDED)))
-ENABLED    := $(filter-out O0 O1 O2 O3,$(ENABLED))
-DISABLED   := $(sort $(patsubst -%,%,$(filter -%,$(EXPANDED))))
-EXCLUDED   := $(sort $(patsubst !%,%,$(filter !%,$(EXPANDED))))
-UNSELECTED := $(filter-out $(ENABLED),$(USER_OPTIONS))
-CONFLICT_D := $(filter $(DISABLED),$(ENABLED))
-CONFLICT_E := $(filter $(EXCLUDED),$(ENABLED))
-
 
 # Macro of enabling more options
 is_equ = $(if $(patsubst $1,,$2),,t)
@@ -94,26 +71,25 @@ space  =
 space +=
 
 # Build version of SixTrack
-VERSION:= $(shell grep "data version" sixtrack.s | sed -e "s/.*'\([0-9]\).\([0-9]*\).\([0-9]*\).*/\1\2\3/")
-
+VERSION := $(shell grep "data version" sixtrack.s | sed -e "s/.*'\([0-9]\).\([0-9]*\).\([0-9]*\).*/\1\2\3/")
 DESTDIR := SixTrack_$(VERSION)_$(subst $(space),_,$(ENABLED))_O$(NOPT)
+$(info Final Options after resolving dependencies: $(OPTIONS))
 $(info Sixtrack build dir: $(DESTDIR))
 
-# options to enable from other combinations
-$(call enable,if_all,collimat da,,tracking)
-
-# diagnostics
-DEBUG:=yes
-ifneq ($(CONFLICT_D)$(CONFLICT_E)$(DEBUG),no)
-$(info Options provided: $(PROVIDED))
-$(info Options expanded: $(EXPANDED))
-$(info Options enabled:  $(ENABLED))
-$(info Options disabled: $(DISABLED))
-$(info Options excluded: $(EXCLUDED))
-$(info Conflict with disabled: $(CONFLICT_D))
-$(info Conflict with excluded: $(CONFLICT_E))
-$(if $(CONFLICT_D)$(CONFLICT_E),$(error ERROR: please select a consistent set of options),)
+#Source checks
+ifneq ($(shell gawk -f beauty/count.awk sixtrack.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/count.awk sixtrack.s' failed!")
 endif
+ifneq ($(shell gawk -f beauty/count.awk plato_seq.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/count.awk plato_seq.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/check_astuce_ifs.awk sixtrack.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/check_astuce_ifs.awk sixtrack.s' failed!")
+endif
+ifneq ($(shell gawk -f beauty/check_astuce_ifs.awk plato_seq.s 1>&2> /dev/null; echo $$?), 0)
+  $(error "ERROR in source check: 'gawk -f beauty/check_astuce_ifs.awk plato_seq.s' failed!")
+endif
+$(info Source code checks PASS!)
 
 # compilers configuration
 # currently supported ifort and gfortran
@@ -136,7 +112,12 @@ FCLD_ifort := -m32
 FCL_ifort  := -static -m32
 
 # gfortran configuration
+ifeq ($(sys_version),m64)
+FC_gfortran   := gfortran -m64
+endif
+ifeq ($(sys_version),m32)
 FC_gfortran   := gfortran -m32
+endif
 FCF_gfortran  := -frecord-marker=4 -g -fno-second-underscore -funroll-loops -mfpmath=sse -msse2
 ifneq ($(NOPT),)
   FCF_gfortran:=$(FCF_gfortran) -O$(NOPT)
@@ -214,27 +195,10 @@ ifeq ($(filter boinc,$(ENABLED)),boinc)
   BOINC_O_FILES  :=  boinc_api_fortran.o boinc_zipitall.o
 endif
 
-# prepare AST rule files for ASTUCE and DAFOR
-MASKS_DAFOR := sixvefox sixscfox sixda
-
 #different masks depending on DA
 MASKS_DA   := lielib dabnews sixscfox sixsc sixda
 MASKS_OT   := track sixve sixvefox dabnews lielib beamgas plato_seq
 MASKS      := $(call if_any,da,$(ENABLED),$(MASKS_DA),$(MASKS_OT))
-
-# preparing fortran files to be preprocessed with dafor. 
-# variable is empty if to be preprocessed by dafor, else contains a comment
-# added the d to the name to not conflict with options management
-sixvefox_dafor  := 
-sixscfox_dafor  := 
-sixda_dafor     := 
-lielib_dafor    := \#
-dabnews_dafor   := \#
-sixsc_dafor     := \#
-track_dafor     := \#
-sixve_dafor     := \#
-beamgas_dafor   := \#
-
 
 #detecting operating system
 OPSYS := $(shell uname -s)
@@ -276,44 +240,44 @@ endif
 # OPSYS variable not working on Windows. Running uname -s from cmd return Windows
 # running the same command from make returns a different value
 # better OS detection for Windows needed
-ifeq ($(OS),Windows_NT)
-  $(info Building on windows)
-  / := $(strip \ )
-  ; := &
-  c := /c
-  " := #"
-  p := 
-  SX_LINUX        := 
-  FCF             := 
-  BOINC_O_FILES   := 
-  output          := /exe:
-  objects         := .obj
-  obj_out         := /Fo
-  # SixTrack wiki shows compilation for ifort only
-  FC              := ifort
-  # path to BOINC Library
-  BOINC           := $(Windows_BOINC_LIB_PATH)
-  O_FILES         := $(patsubst %.o,%$(objects),$(O_FILES))
-  WIN_ARCH        := /arch:$(call if_any,sse2 sse3,$(ENABLED),$(filter sse2 sse3,$(ENABLED)),IA32)
-  WIN_IFORT       := /fp:source /fp:strict /fp:except-
-  WIN_OPTIONS     := /O2 /MT /names:lowercase /assume:underscore
-  ICL_WIN_OPTIONS := /I. /D_CRT_SECURE_NO_WARNINGS /Qstd=c99
-  WIN_CRLIBM      := addition_scs.c atan.c atan_fast.c cosine.c csh_fast.c disable_xp.c division_scs.c double2scs.c dtoaf.c dtoa_c.c enable_xp.c ericc.c exp.c exp_fast.c log10.c log.c log_fast.c multiplication_scs.c rem_pio2.c round_near.c scs2double.c sine.c tan.c trigo_fast.c zero_scs.c
-  # windows crlibm objects
-  WIN_CRLIBM_O    := $(patsubst %.c,%$(objects),$(WIN_CRLIBM))
-  # setting Linux crlibm objects to blank to remove any dependency in the rules
-  CRLIBM_O        :=
-  MS_SDK          := $(Windows_MS_SDK_PATH)
-  # Windows linking options
-  SX_WINDOWS      := /VERBOSE:LIB $(WIN_OPTIONS)  $(MS_SDK) /link
-  ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-     $(info AMD64 achitecture)
-  endif
+# ifeq ($(OS),Windows_NT)
+#   $(info Building on windows)
+#   / := $(strip \ )
+#   ; := &
+#   c := /c
+#   " := #"
+#   p := 
+#   SX_LINUX        := 
+#   FCF             := 
+#   BOINC_O_FILES   := 
+#   output          := /exe:
+#   objects         := .obj
+#   obj_out         := /Fo
+#   # SixTrack wiki shows compilation for ifort only
+#   FC              := ifort
+#   # path to BOINC Library
+#   BOINC           := $(Windows_BOINC_LIB_PATH)
+#   O_FILES         := $(patsubst %.o,%$(objects),$(O_FILES))
+#   WIN_ARCH        := /arch:$(call if_any,sse2 sse3,$(ENABLED),$(filter sse2 sse3,$(ENABLED)),IA32)
+#   WIN_IFORT       := /fp:source /fp:strict /fp:except-
+#   WIN_OPTIONS     := /O2 /MT /names:lowercase /assume:underscore
+#   ICL_WIN_OPTIONS := /I. /D_CRT_SECURE_NO_WARNINGS /Qstd=c99
+#   WIN_CRLIBM      := addition_scs.c atan.c atan_fast.c cosine.c csh_fast.c disable_xp.c division_scs.c double2scs.c dtoaf.c dtoa_c.c enable_xp.c ericc.c exp.c exp_fast.c log10.c log.c log_fast.c multiplication_scs.c rem_pio2.c round_near.c scs2double.c sine.c tan.c trigo_fast.c zero_scs.c
+#   # windows crlibm objects
+#   WIN_CRLIBM_O    := $(patsubst %.c,%$(objects),$(WIN_CRLIBM))
+#   # setting Linux crlibm objects to blank to remove any dependency in the rules
+#   CRLIBM_O        :=
+#   MS_SDK          := $(Windows_MS_SDK_PATH)
+#   # Windows linking options
+#   SX_WINDOWS      := /VERBOSE:LIB $(WIN_OPTIONS)  $(MS_SDK) /link
+#   ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+#      $(info AMD64 achitecture)
+#   endif
 
-  ifeq ($(PROCESSOR_ARCHITECTURE),x86)
-     $(info x86 Architecture)
-  endif
-endif
+#   ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+#      $(info x86 Architecture)
+#   endif
+# endif
 
 # preparing proper file names with extension
 MASKS:= $(addprefix $(DESTDIR)$/,$(MASKS))
@@ -355,12 +319,12 @@ CC = gcc
 OBJS := addition_scs.o multiplication_scs.o zero_scs.o \
      division_scs.o double2scs.o scs2double.o zero_scs.o \
      trigo_fast.o tan.o sine.o cosine.o \
-     exp.o logsix.o exp_fast.o log_fast.o \
+     exp.o log.o exp_fast.o log_fast.o \
      atan.o atan_fast.o division_scs.o \
      ericc.o csh_fast.o log10.o rem_pio2.o \
      dtoa_c.o dtoaf.o round_near.o disable_xp.o enable_xp.o
 
-OBJ1:= csh_fast.o trigo_fast.o tan.o sine.o cosine.o exp.o exp_fast.o logsix.o log_fast.o log10.o atan.o atan_fast.o
+OBJ1:= csh_fast.o trigo_fast.o tan.o sine.o cosine.o exp.o exp_fast.o log.o log_fast.o log10.o atan.o atan_fast.o
 OBJ2:= addition_scs.o double2scs.o multiplication_scs.o division_scs.o scs2double.o zero_scs.o
 OBJS := $(OBJ1) $(OBJ2) ericc.o disable_xp.o enable_xp.o round_near.o dtoaf.o dtoa_c.o rem_pio2.o
 
@@ -374,7 +338,12 @@ HEAD2:= $(addprefix $(CRLIBM_SRC)$/,scs.h scs_config.h scs_private.h)
 AM1_CFLAGS = -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing
 AM2_CFLAGS = -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline
 DEFS = -DLINUX_INLINE -DHAVE_CONFIG_H -I.
+ifeq ($(sys_version),m64)
+CFLAGS = -g -O2 -m64 -mfpmath=sse -msse2
+endif
+ifeq ($(sys_version),m32)
 CFLAGS = -g -O2 -m32 -mfpmath=sse -msse2
+endif
 
 COMPILE1 = $(CC) $(DEFS) $(AM1_CFLAGS) $(CFLAGS)
 COMPILE2 = $(CC) $(DEFS) $(AM2_CFLAGS) $(CFLAGS)
@@ -445,15 +414,15 @@ $(CRLIBM_DST)/enable_xp.o: $(CRLIBM_SRC)$/enable_xp.c
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/round_near.o: $(CRLIBM_SRC)$/round_near.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@$(CC) -$(sys_version) -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/dtoa_c.o: $(CRLIBM_SRC)$/dtoa_c.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@$(CC) -$(sys_version) -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 $(CRLIBM_DST)/dtoaf.o: $(CRLIBM_SRC)$/dtoaf.c
 	$(info Compiling $(@F))
-	@$(CC) -m32 -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
+	@$(CC) -$(sys_version) -std=c99 -W -Wall -pedantic -o $@ -c $< &>$@.log
 	@if [[ `wc -l <$@.log` -gt 0 ]] $; then wc -l  $@.log $; fi
 
 $(AST_FILES): $(DESTDIR)$/%.ast: $(SRC_AST)%.ast |$(DESTDIR)
