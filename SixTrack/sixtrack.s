@@ -26753,6 +26753,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             ia2=(ia+1)/2
             iposc=iposc+1
 +if .not.cr
+	  write(*,*) 'postr call',91-ia2
           call postpr(91-ia2)
 +ei
 +if cr
@@ -55980,7 +55981,7 @@ c$$$            endif
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
-      integer posi,ih
+      integer posi,ih,posi1
       real tim1,tim2,fxs,fzs
       double precision const,dle,slope,tle,varlea,wgh
       double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
@@ -56237,7 +56238,15 @@ c$$$            endif
       if(icode.eq.1.or.icode.eq.2.or.icode.eq.4) idam=1
       if(icode.eq.3.or.icode.eq.5.or.icode.eq.6) idam=2
       if(icode.eq.7) idam=3
-      if(ilapa.ne.ifipa) ntwin=2
+      if(ilapa.ne.ifipa) then
+	ntwin=2
+!--binrecs is indexed as 1,2,3 while posi values are
+!--called as 1,3,5 when pairwise written, so 
+!--using posi1 for crbinrecs index later
+	posi1=(posi+1)/2
+      else
+	 posi1=posi
+      endif
 +ei
 +if .not.stf
 !--PREVENT FAULTY POST-PROCESSING
@@ -56742,7 +56751,7 @@ c$$$            endif
       crbinrecs(91-nfile)=1
 +ei
 +if stf
-      crbinrecs(91-posi)=1
+      crbinrecs(posi1)=1
 +ei
 +ei
   210 ifipa=0
@@ -56770,7 +56779,7 @@ c$$$            endif
       crbinrecs(91-nfile)=crbinrecs(91-nfile)+1
 +ei
 +if stf
-      crbinrecs(91-posi)=crbinrecs(91-posi)+1
+      crbinrecs(posi1)=crbinrecs(posi1)+1
 +ei
 +ei
       if(ifipa.lt.1) goto 210
@@ -57079,7 +57088,7 @@ c$$$            endif
       crbinrecs(91-nfile)=crbinrecs(91-nfile)+1
 +ei
 +if stf
-      crbinrecs(91-posi)=crbinrecs(91-posi)+1
+      crbinrecs(posi1)=crbinrecs(posi1)+1
 +ei
 +ei
       if(ifipa.lt.1) goto 240
@@ -57371,17 +57380,17 @@ c$$$            endif
      &binrec,binrecs(91-nfile),crbinrecs(91-nfile)
 +ei
 +if stf
-        if (binrecs(91-posi).ne.crbinrecs(91-posi)) then
+        if (binrecs(posi1).ne.crbinrecs(posi1)) then
           write(lout,*)                                                 &
      &'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
           write(lout,*)                                                 &
-     &'Unit No ',nfile,' binrec/binrecs/crbinrecs ',                    &
-     &binrec,binrecs(91-posi),crbinrecs(91-posi)
+     &'Particle No ',posi1,' binrec/binrecs/crbinrecs ',                &
+     &binrec,binrecs(posi1),crbinrecs(posi1)
           write(93,*)                                                   &
      &'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
           write(93,*)                                                   &
-     &'Unit No ',nfile,' binrec/binrecs/crbinrecs ',                    &
-     &binrec,binrecs(91-posi),crbinrecs(91-posi)
+     &'Particle No ',posi,' binrec/binrecs/crbinrecs ',                 &
+     &binrec,binrecs(posi1),crbinrecs(posi1)
 +ei
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
