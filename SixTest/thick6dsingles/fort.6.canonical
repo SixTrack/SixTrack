@@ -1,0 +1,148 @@
+
+         SIXTRACK VECTOR VERSION 4.5.35   (with tilt)  --  (last change: 13.06.2016)
+
+
+SIXTRACK starts on: 13th of   July    2016, 58 minutes after 16.                
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+         OOOOOOOOOOOOOOOOOOOOOO
+         OO                  OO
+         OO  SIXTRACK-INPUT  OO
+         OO                  OO
+         OOOOOOOOOOOOOOOOOOOOOO
+
+          Long FODO-cell for SixTrack tests                          
+         PROGRAM MODE : FREE FORMAT INPUT --READ FROM EXTRA GEOMETRY STRENGTH FILE--
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+                                          *** RING PARAMETERS ***
+
+                             SINGLE ELEMENTS:
+  NO   NAME  TYP       1/RHO          STRENGTH          LENGTH           X-POS          X-RMS            Y-PO          Y-RMS     
+-----------------------------------------------------------------------------------------------------------------------------------
+   1 qf                 2 0.0000000000D+00 -.2000000000D+00 0.5000000000D+00 0.0000000D+00 0.000000D+00 0.0000000D+00 0.000000D+00
+   2 d_c6t_1            0 0.0000000000D+00 0.0000000000D+00 0.5000000000D+01 0.0000000D+00 0.000000D+00 0.0000000D+00 0.000000D+00
+   3 qd                 2 0.0000000000D+00 0.2000000000D+00 0.5000000000D+00 0.0000000D+00 0.000000D+00 0.0000000D+00 0.000000D+00
+   4 cav               12 0.3000000000D+00 0.1000000000D+01 0.1800000000D+03 0.0000000D+00 0.000000D+00 0.0000000D+00 0.000000D+00
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+                             RINGSTRUCTURE:
+
+
+         NO. OF SUPERPERIODS AND SYMMETRY          1      1
+         NUMBER OF DIFFERENT BLOCKS                1
+         BLOCKS PER PERIOD                          7
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+                             BLOCKSTRUCTURE:
+                             (BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)
+
+
+      1 DRIFT             1  d_c6t_1         
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+                             BLOCKSTRUCTURE OF SUPERPERIOD:
+
+
+       1 qf               DRIFT            qd               qd               DRIFT           
+       6 qf               cav                                                                
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+                             SYNCHROTRON OSCILLATIONS AND BEAM-BEAM
+
+         NUMBER OF CAVITIES                                                   1
+         MOMENTUM AMPLITUDE DP/P                                    0.010000000
+         OFFSET MOMENTUM AMPLITUDE DP/P                             0.000000000
+         MACHINE LENGTH IN (M)                                     68.000000000
+         PARTICLE MASS (MEV)                                      938.272013000
+         PARTICLE NUMBER                                          0.0000000E+00
+         BEAMS HAVE OPPOSITE CHARGE
+         BEAM-BEAM PARAMETER                                     -0.0000000E+00
+         CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) :           1
+         FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) :                            0
+         Hirata 6D (1 => on/0 => off)  :                                      0
+         BUNCH LENGTH                                               0.000000000
+         ENERGY SPREAD                                              0.000000000
+         NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)              *********
+Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
+         NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)                *********
+         ENERGY IN (MEV)                                               1500.000
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+                                          *** TRACKING PARAMETERS ***
+
+         NUMBER OF REVOLUTIONS                    10000
+         NUMBER OF REVERSE-REVOLUTIONS                0
+         TURNS PER COOR.-PRINTOUT                    20
+         FLAT BOTTOM UP TO TURN                       0
+         TURNS PER PRINT ON DATASET                   1
+         ACCELERATION UP TO TURN                      0
+         TURNS PER PRINT ON DATASET                   1
+         FLAT TOP NUMBER OF TURNS                 10000
+         TURNS PER PRINT ON DATASET                   1
+         TRACKING START AT ELEMENT NO.                1
+         INITIAL AMPLITUDE-H IN (MM)              0.000
+         COUPLING  EPS-Y/EPS-X                    0.000
+         NUMBER OF C.-O. ITERATIONS                 100
+         PRECISION OF C.-O. DEVIATION         0.100D-11
+         PRECISION OF C.-O. SLOPE             0.100D-14
+         NUMBER OF Q-ADJ. ITERATIONS                 10
+         CHANGE IN K-STRENGTH BY              0.100D-09
+         PRECISION OF Q-ADJUSTEMENT           0.100D-09
+         NUMBER OF CHROMAT.-ADJ. ITER.               10
+         CHANGE IN SEX.-STRENGTH BY           0.100D-08
+         PRECISION OF CHROMAT.-ADJ.           0.100D-09
+         DP-INTERVAL F. CROMAT.-ADJ.          0.100D-08
+         DP-INTERVAL FOR DISPERSION           0.100D-08
+         PRECISION FOR C.-O. RMS              0.100D-08
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+         OOOOOOOOOOOOOOOOOOOOO
+         OO                 OO
+         OO  PREPROCESSING  OO
+         OO                 OO
+         OOOOOOOOOOOOOOOOOOOOO
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+
+         STRUCTURE INPUT FILE HAS -THICK- LINEAR ELEMENTS
+
+
+    ---- ENTRY CLORB ----/DPP= 0.00000 /CLOX/       NaN       NaN /CLOY/       NaN       NaN /ITERAT.=  2/ ACCURACY= 0.000000D+00
+    ---- ENTRY CLORB ----/DPP= 0.00000 /CLOX/       NaN       NaN /CLOY/       NaN       NaN /ITERAT.=  2/ ACCURACY= 0.000000D+00
+    ---- ENTRY CLORB ----/DPP= 0.00000 /CLOX/       NaN       NaN /CLOY/       NaN       NaN /ITERAT.=  2/ ACCURACY= 0.000000D+00
+    ---- ENTRY CLORB ----/DPP= 0.00000 /CLOX/       NaN       NaN /CLOY/       NaN       NaN /ITERAT.=  2/ ACCURACY= 0.000000D+00
+------------------------------------------------------------------------------------------------------------------------------------
+    ---- ENTRY LINOPT ----
+
+
+
+         ++++++++++++++++++++++++
+         +++++ERROR DETECTED+++++
+         ++++++++++++++++++++++++
+         RUN TERMINATED ABNORMALLY !!!
+
+
+         AMPLITUDES EXCEED THE MAXIMUM VALUES IN UMLAUF

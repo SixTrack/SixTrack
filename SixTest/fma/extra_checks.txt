@@ -1,13 +1,13 @@
-IP2_DUMP_1         diff
-IP2_DUMP_2         diff
-IP2_DUMP_3         diff
-IP3_DUMP_1         diff
-IP3_DUMP_2         diff
-IP3_DUMP_3         diff
-NORM_IP2_DUMP_1    diff
-NORM_IP2_DUMP_2    diff
-NORM_IP2_DUMP_3    diff
-NORM_IP3_DUMP_1    diff
-NORM_IP3_DUMP_2    diff
-NORM_IP3_DUMP_3    diff
-fma_sixtrack       diff
+IP2_DUMP_1         diff -q --strip-trailing-cr
+IP2_DUMP_2         diff -q --strip-trailing-cr
+IP2_DUMP_3         diff -q --strip-trailing-cr
+IP3_DUMP_1         diff -q --strip-trailing-cr
+IP3_DUMP_2         diff -q --strip-trailing-cr
+IP3_DUMP_3         diff -q --strip-trailing-cr
+NORM_IP2_DUMP_1    diff -q --strip-trailing-cr
+NORM_IP2_DUMP_2    diff -q --strip-trailing-cr
+NORM_IP2_DUMP_3    diff -q --strip-trailing-cr
+NORM_IP3_DUMP_1    diff -q --strip-trailing-cr
+NORM_IP3_DUMP_2    diff -q --strip-trailing-cr
+NORM_IP3_DUMP_3    diff -q --strip-trailing-cr
+fma_sixtrack       diff -q --strip-trailing-cr
