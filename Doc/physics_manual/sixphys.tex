@@ -957,12 +957,13 @@ For a uniform distribution of the electron beam between $R_1$ and $R_2$, the rad
 \end{equation}
 with $r=\sqrt{x^2+y^2}$ and $\theta_{\rm max}$ independent of $r$. The shape function $f(r)$ is defined as
 \begin{equation}
-f(r) = \frac{I(r)}{I_T}=\frac{2\pi}{I_T}\int_{0}^r r\rho(r) dr
+f(r) = \frac{I(r)}{I_T}=\frac{2\pi}{I_T}\int_{0}^r r\rho(r) \mathrm{d}r
 \end{equation}
 where $I_T$ is the total electron beam current, $I(r)$ is the current enclosed in a radius $r$ and $\rho(r)$ is the electron beam density distribution.
 
 For a uniform profile one then obtains:
 \begin{equation}
+f(r) =
 \begin{cases} 0 &,\quad r< R_1\\
 \frac{r^2-R_1^2}{R_2^2-R_1^2} &,\quad R_1 \leq r < R_2\\
 1 &,\quad R_2 \leq r
@@ -972,7 +973,7 @@ and
 \begin{equation}
 \theta_{\rm max} = \theta(R_2) = \frac{2LI_T(1\pm\beta_e\beta_p)}{4\pi\epsilon_0  \left(B\rho\right)_p\beta_e\beta_p c^2}\cdot\frac{1}{R_2}
 \end{equation}
-where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e/p}$ the relativistic $\beta$ of electron/proton beam, $B\rho$ the magnetic rigidity, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam traveling in the direction of the proton beam ($+$) or in the opposite direction ($-$). For hollow electron beam collimation, electron and proton beam travel in the same direction.
+where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{p}$ the relativistic $\beta$ of electron and proton beam, $B\rho$ the magnetic rigidity, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam traveling in the direction of the proton beam ($+$) or in the opposite direction ($-$). For hollow electron beam collimation, electron and proton beam travel in the same direction.
 
 The kick in $(x',y')$ can then be expressed as (note $\frac{x}{r}=\cos(\phi),\frac{y}{r}=\sin(\phi)$):
 \begin{align}
