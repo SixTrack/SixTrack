@@ -1,7 +1,7 @@
 #!/bin/sh
 # A test variation with kill/restart after 1/2/4/8/ seconds etc
 
-set -x
+#set -x #Xtrace for debugging
 
 if test $# -ne 3
 then
@@ -74,6 +74,24 @@ do
       cp ../$i/beambeamdist.dat beambeamdist.dat
       cp beambeamdist.dat fort.54
     fi
+    if test -s ../$i/extra_inputs.txt; then
+      echo "Found extra input files, copying more files..."
+      set -f # Disable wildcard expansion
+      while read extrafile; do
+        echo "Got file = " $extrafile
+	if test ! "$extrafile"; then
+	  echo "      Invalid line! Skipping."
+	  continue
+	fi
+	if ! test -f ../$i/$extrafile; then
+	  echo "      File " $extrafile " not found, skipping!"
+	  continue
+	fi
+	
+	cp ../$i/$extrafile .
+      done < ../$i/extra_inputs.txt
+      set +f # Reanable wildcards
+    fi
   else
     cp ../$i/Sixin.zip .
   fi
@@ -126,7 +144,8 @@ do
     echo "Restart log"
     cat fort.93
   fi
-# and copy back .dat files for bnl
+  
+  # and copy back .dat files for bnl
   if test "$i" = "bnl"
   then
     if test "$CPSS" != "" -o "$CR" != ""
@@ -157,6 +176,30 @@ do
       cp checkdist.dat ../$i/checkdist.dat.${dir}
     fi
   fi
+
+  if test -s ../$i/extra_checks.txt; then
+    echo "Found extra_checks.txt, copying more files..."
+    set -f #Disable wildcard expansion
+    while read checkfile command; do
+      echo "   Got file :: command = " $checkfile :: $command
+      if test ! "$checkfile" -o ! "$command" ; then
+        echo "      Invalid line! Skipping."
+	continue
+      fi
+      
+      if ! test -f $checkfile ; then
+        echo "      File '$checkfile' not found, skipping!"
+      fi
+      
+      #echo "   Copying file '"$checkfile"':"
+      cp $checkfile ../$i/$checkfile.$dir
+      
+    done < ../$i/extra_checks.txt
+    set +f #Renable wildcards (glob)
+  else
+    echo "No extra_checks.txt was found."
+  fi
+  
   if test -s "Sixout.zip"
   then
     file Sixout.zip
@@ -169,6 +212,7 @@ do
     ls -l *.dat 
   fi
   ls -l fort.*
+  
   echo "Completely finished $i uninterrupted 1st time."
   echo "===================================="
   echo "Trying restarts now $i"
@@ -187,11 +231,29 @@ do
       cp ../$i/beambeamdist.dat beambeamdist.dat
       cp beambeamdist.dat fort.54
     fi
+    if test -s ../$i/extra_inputs.txt; then
+      echo "Found extra input files, copying more files..."
+      set -f # Disable wildcard expansion
+      while read extrafile; do
+        echo "Got file = " $extrafile
+	if test ! "$extrafile"; then
+	  echo "      Invalid line! Skipping."
+	  continue
+	fi
+	if ! test -f ../$i/$extrafile; then
+	  echo "      File " $extrafile " not found, skipping!"
+	  continue
+	fi
+	
+	cp ../$i/$extrafile .
+      done < ../$i/extra_inputs.txt
+      set +f # Reanable wildcards
+    fi
   else
     cp ../$i/Sixin.zip Sixin.zip
   fi
   myname="$sixdir/$sixv"
-# but get rid of .exe!
+  # but get rid of .exe!
   myname=`echo $myname | sed -e 's/\.exe//'`
   mysleep=1
   n=0
@@ -258,8 +320,8 @@ do
     else 
       echo "SixTrack finished!!!"
       date
-# Now handle Sixout.zip
-# but it may NOT exist for older versions!!
+      # Now handle Sixout.zip
+      # but it may NOT exist for older versions!!
       if test "$API" != ""
       then
         if test -s Sixout.zip
@@ -381,6 +443,30 @@ do
       cp checkdist.dat ../$i/checkdist.dat.${dir}.killed
     fi
   fi
+
+  if test -s ../$i/extra_checks.txt; then
+    echo "Found extra_checks.txt, copying more files..."
+    set -f #Disable wildcard expansion
+    while read checkfile command; do
+      echo "   Got file :: command = " $checkfile :: $command
+      if test ! "$checkfile" -o ! "$command" ; then
+        echo "      Invalid line! Skipping."
+	continue
+      fi
+      
+      if ! test -f $checkfile ; then
+        echo "      File '$checkfile' not found, skipping!"
+      fi
+      
+      #echo "   Copying file '"$checkfile"':"
+      cp $checkfile ../$i/$checkfile.$dir.killed
+      
+    done < ../$i/extra_checks.txt
+    set +f #Renable wildcards (glob)
+  else
+    echo "No extra_checks.txt was found."
+  fi
+  
   if test -s "Sixout.zip"
   then
     file Sixout.zip

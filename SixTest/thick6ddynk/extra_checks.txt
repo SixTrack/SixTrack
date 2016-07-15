@@ -1,0 +1,4 @@
+dump_21459.txt        diff -q --strip-trailing-cr
+dump_22172.txt        diff -q --strip-trailing-cr
+dump_rf.txt           diff -q --strip-trailing-cr
+dynksets.dat          diff -q --strip-trailing-cr

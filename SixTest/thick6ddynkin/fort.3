@@ -1,0 +1,51 @@
+GEOM
+PRINTOUT
+NEXT
+TRACKING
+50 0 32 0 17 0 1
+1 1 2 0 0
+0 0 1 1 1 20000 2
+NEXT
+INITIAL COORDINATES
+2 0 0 1
+0.0
+0.0
+0.0
+0.0
+0.0
+0.0
+0.0
+.000001
+0.0
+0.0
+0.0
+0.0
+26000.0
+26000.0
+26000.0
+NEXT
+ITERATION ACCURACY
+50 0.10E-13 0.10E-14
+10 0.10E-09 0.10E-09
+10 0.10E-04 0.10E-05
+ 0.10E-07 0.10E-11 0.10E-09
+NEXT
+SYNC
+4636 0.001854102422 2 0 6911.503800 938.2796 1
+ 1 1
+NEXT
+DUMP
+ip.acta.31637 1 649 2 dump_rf.txt
+ip.bpcr.21459 1 650 2 dump_21459.txt
+ip.bpcr.22172 1 651 2 dump_22172.txt
+NEXT
+DYNK
+FUN kick_h FILELIN input_h
+FUN kick_v FILELIN input_v
+SET ip.bdh.21437 average_ms kick_h 1 50 0
+SET ip.bdh.21451 average_ms kick_h 1 50 0
+SET ip.bdv.21455 average_ms kick_v 1 50 0
+SET ip.bdv.22176 average_ms kick_v 1 50 0
+NEXT
+ENDE
+
