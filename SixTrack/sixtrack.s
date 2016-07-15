@@ -1155,7 +1155,7 @@
 !
 +cd elensparam
 !     M. Fitterer, FNAL
-!     Common block for hollow electron lens definition
+!     Common block for electron lens definition
       
       ! variables to save elens parameters for tracking etc.
       integer          :: elens_type(nele)      ! integer for elens type
@@ -2112,7 +2112,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                 xelens=xv(1,j)+elens_offset_x(ix)
                 yelens=xv(2,j)+elens_offset_y(ix)
 ! 2) calculate radius
-                rrelens=sqrt((xelens)**2+(yelens**2)) ! radius p-beam
+                rrelens=sqrt((xelens)**2+(yelens**2)) ! radius of particle in p-beam relative to center of elens beam
                 r1elens=elens_r2(ix)/elens_r2ovr1(ix) ! inner radius elens
 ! 3) calculate kick
                 if (rrelens.gt.r1elens) then ! rrelens <= r1 -> no kick from elens
@@ -5423,7 +5423,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           goto 290
         endif
 +cd elens
-!Hollow electron lens (HEL)
+!electron lens (HEL)
         if(kzz.eq.29) then
           ktrack(i)=63
           goto 290
@@ -13889,7 +13889,7 @@ cc2008
 !-- MULTIPOLES (11)
 !-- CAVITY (+/- 12)
 !-- CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
-!-- HOLLOW ELECTRON LENSE (29)
+!-- ELECTRON LENSE (29)
       call initialize_element(i,.true.)
 
 !--ACDIPOLE
@@ -18643,7 +18643,7 @@ cc2008
       fma_flag = .true.
       goto 2300
 !-----------------------------------------------------------------------
-!  Hollow Electron Lense, kz=29,ktrack=63
+!  Electron Lense, kz=29,ktrack=63
 !  M. Fitterer,  FNAL
 !  last modified: 20-06-2016
 !-----------------------------------------------------------------------
@@ -19599,7 +19599,7 @@ cc2008
 +ei
 
       !Temp variables
-      integer i,j1
+      integer i
 
 !--Nonlinear Elements
 ! TODO: Merge these cases into 1 + subcases?
@@ -29541,7 +29541,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
 
 
-        do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements
+        do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements/blocks
 +if bnlelens
 +ca bnltwiss
 +ei
