@@ -2,8 +2,8 @@ SHELL = /bin/sh
 
 FC = gfortran
 #FC = g77
-FCF = -c -O -m32 -frecord-marker=4 
-FCL = -static -m32 
+FCF = -c -O -frecord-marker=4 
+FCL = -static
 #FCF = -c -O -m32
 #FCL = -static -m32 
 
