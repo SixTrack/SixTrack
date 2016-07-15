@@ -26753,7 +26753,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             ia2=(ia+1)/2
             iposc=iposc+1
 +if .not.cr
-	  write(*,*) 'postr call',91-ia2
           call postpr(91-ia2)
 +ei
 +if cr
