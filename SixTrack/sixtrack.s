@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.35'/
-      data moddate /'14.07.2016'/
+      data moddate /'18.07.2016'/
 +cd license
 !!SixTrack
 !!
@@ -12,7 +12,7 @@
 !!E. Mcintosh, H. Ranshall, H. Grote, F. James,
 !!K. Koelbig, K. Heinemann, M. Vaenttinen,
 !!R. Assman, C. Bracco, R. Bruce, D. Mirarchi, V. Previtali,
-!!S. Redaelli, G. Robert-Demolaize,
+!!S. Redaelli, G. Robert-Demolaize, E. Quaranta
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
@@ -827,7 +827,7 @@
      &     alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 !
-      character*2 c_material     !material
+      character*4 c_material     !material
 !
       common /cut/ cut_input
       common /mu/ mux, muy
@@ -907,7 +907,7 @@
 !      integer   mclock_liar
 !
       character*16 db_name1(max_ncoll),db_name2(max_ncoll)
-      character*2 db_material(max_ncoll)
+      character*4 db_material(max_ncoll)
 !APRIL2005
       double precision db_nsig(max_ncoll),db_length(max_ncoll),         &
      &db_offset(max_ncoll),db_rotation(max_ncoll),                      &
@@ -980,7 +980,7 @@
       double precision c_aperture  !aperture in m
       double precision c_offset    !offset in m
       double precision c_tilt(2)   !tilt in radian
-      character*2      c_material  !material
+      character*4      c_material  !material
 !
 !
 !
@@ -1004,12 +1004,16 @@
 !
 !hr09 data   dx,dxp/.5d-4,20.d-4/
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
-
+!
++cd collMatNum
+!     EQ 2016 added variables for collimator material numbers
+      integer nmat, nrmat
+      parameter(nmat=14,nrmat=12)
+!	
 +cd flukavars
 !     RB DM 2014 added variables for FLUKA output
       double precision xInt,xpInt,yInt,ypInt,sInt
       common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
-
 !
 !
 +cd info
@@ -1043,9 +1047,8 @@
       real tftot
       common/funint/tftot
 +cd interac
-      integer nrmat,nmat,mat,irmat,mcurr
-!     parameter(nmat=12,nrmat=5)
-      parameter(nmat=12,nrmat=7)
+      integer mat,mcurr
++ca collMatNum
       double precision xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
@@ -1054,7 +1057,7 @@
       parameter(fnavo=6.02214129d23)                                          
       real cgen
       character * 4 mname(nmat)
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
       common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
       common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
@@ -61869,6 +61872,7 @@ c$$$            endif
 +ca flukavars
 !
 +ca database
++ca collMatNum
 !
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
@@ -61907,11 +61911,21 @@ c$$$            endif
          mat = 6
       elseif (c_material.eq.'C2') then
          mat = 7
-!02/2008 TW added vacuum and black absorber (was missing) 
-      elseif (c_material.eq.'VA') then
+      elseif (c_material.eq.'MoGR') then
+         mat = 8
+      elseif (c_material.eq.'CuCD') then
+         mat = 9
+      elseif (c_material.eq.'Mo') then
+         mat = 10
+      elseif (c_material.eq.'Glid') then
          mat = 11
-      elseif (c_material.eq.'BL') then
+      elseif (c_material.eq.'Iner') then
          mat = 12
+!02/2008 TW added vacuum and black absorber (was missing)
+      elseif (c_material.eq.'VA') then
+         mat = nmat-1
+      elseif (c_material.eq.'BL') then
+         mat = nmat
       else
 +if cr
          write(lout,*)
@@ -62731,6 +62745,16 @@ c$$$            endif
          mat = 6
       elseif (c_material.eq.'C2') then
          mat = 7
+      elseif (c_material.eq.'MoGR') then
+         mat = 8
+      elseif (c_material.eq.'CuCD') then
+         mat = 9
+      elseif (c_material.eq.'Mo') then
+         mat = 10
+      elseif (c_material.eq.'Glid') then
+         mat = 11
+      elseif (c_material.eq.'Iner') then
+         mat = 12
       else
 +if cr
          write(lout,*) 'ERR>  Material not found. STOP', c_material
@@ -64815,18 +64839,14 @@ c$$$     &           myalphay * cos(phiy))
 +ei
 +ca interac
       integer i
-! The last materials are 'vacuum' and 'black', see in sub. SCATIN
-! Number of real materials defined here:
-!
-!++ CHANGE THE NUMBER OF REAL MATERIALS FROM 5 to 7 (bug in JBJ'S ROUTINE?)
-!
-!      data irmat/5/
-!
-      data irmat/7/
+! Total number of materials are defined in nmat
+! Number of real materials are defined in nrmat
+! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
 !
 ! Reference data at pRef=450Gev
 !      data (mname(i),i=1,nrmat)/ 'Be' , 'Al' , 'Cu' , 'W'  , 'Pb' /
-      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2' /
+      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2',      &
+     & 'MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
 !
       data mname(nmat-1), mname(nmat)/'vacu','blac'/
 !GRD
@@ -64834,37 +64854,52 @@ c$$$     &           myalphay * cos(phiy))
 !GRD
 !      data (Anuc(i),i=1,nrmat)/ 9.01, 26.98, 63.55, 183.85, 207.19/
       data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
-      data (anuc(i),i=6,nrmat)/12.01d0,12.01d0/
+      data (anuc(i),i=6,7)/12.01d0,12.01d0/
+      data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
 !
 !GRD      data (Z(i),i=1,nrmat)/       4,    13,    29,     74,     82/
       data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
-      data (zatom(i),i=6,nrmat)/   6d0,      6d0/
+      data (zatom(i),i=6,7)/ 6d0, 6d0/
+      data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
+!
 !GRD      data (Rho(i),i=1,nrmat)/ 1.848,  2.70,  8.96,   19.3,  11.35/
       data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-      data (rho(i),i=6,nrmat)/ 1.67d0, 4.52d0/
+      data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
+      data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
+!
 !GRD      data (RadL(i),i=1,nrmat)/ 0.353, 0.089, 0.0143, 0.0035, 0.0056/
       data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-      data (radl(i),i=6,nrmat)/ 0.2557d0, 0.094d0/
+      data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
+      data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, &
+     & 0.00385d0/
       data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
+!
 !GRD      data (EMR(i),i=1,nrmat)/  0.22, 0.302, 0.366,    0.0,  0.542/
 !MAY06-GRD value for Tungsten (W) not stated
 !      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.0d0, 0.542d0/
       data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
 !MAY06-GRD end of changes
-      data (emr(i),i=6,nrmat)/  0.25d0, 0.25d0/
+      data (emr(i),i=6,7)/  0.25d0, 0.25d0/
+      data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0,       &
+     & 0.578d0/
+!
 !GRD      data tLcut,(Hcut(i),i=1,nrmat)/0.9982e-3,0.02,0.02,3*0.01/
       data tlcut / 0.0009982d0/
       data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
-      data (hcut(i),i=6,nrmat)/0.02d0, 0.02d0/
+      data (hcut(i),i=6,7)/0.02d0, 0.02d0/
+      data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
+!
 !      data (dpodx(i),i=1,nrmat)/ nrmat*0.d0 /
 !GRD      data (dpodx(i),i=1,nrmat)/ .55, .81, 2.69, 5.79, 3.4 /
       data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
-      data (dpodx(i),i=6,nrmat)/ .75d0, 1.5d0 /
+      data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
 !October 2013
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
       data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-      data (exenergy(i),i=6,nrmat)/ 78e-9, 78.0e-9 /
-
+      data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
+      data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
+     & 682.2e-9/
+ 
 !
 ! All cross-sections are in barns,nuclear values from RPP at 20geV
 ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
@@ -64873,7 +64908,7 @@ c$$$     &           myalphay * cos(phiy))
 ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
 ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
 !
-
+ 
 ! Claudia 2013: updated cross section values. Unit: Barn. Old:
 !      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0, 0.0035d-2/
 !      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0, 0.034d-2/
@@ -64886,11 +64921,15 @@ c$$$     &           myalphay * cos(phiy))
       data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
       data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
       data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
-      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0 , 0.768d-2/
-      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0 , 0.907d-2/
+      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
+      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
       data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
       data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
-
+      data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
+      data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
+      data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
+      data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
+      data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
 !
 ! pp cross-sections and parameters for energy dependence
       data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
@@ -64901,7 +64940,9 @@ c$$$     &           myalphay * cos(phiy))
 !      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,0.0d0,455.3d0/
       data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
 !MAY06-GRD end of changes
-      data (bnref(i),i=6,nrmat)/70.d0, 70.d0/
+      data (bnref(i),i=6,7)/70.d0, 70.d0/
+      data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0,      &
+     & 392.1d0/
 !GRD LAST 2 ONES INTERPOLATED
 !
 ! Cprob to choose an interaction in iChoix
@@ -64972,7 +65013,7 @@ c$$$     &           myalphay * cos(phiy))
 !
 !hr09 tlow=tlcut
       tlow=real(tlcut)                                                   !hr09
-      do 100 ma=1,irmat
+      do 100 ma=1,nrmat
         mcurr=ma
 ! prepare for Rutherford differential distribution
 !hr09   thigh=hcut(ma)
@@ -65634,12 +65675,12 @@ c$$$     &           myalphay * cos(phiy))
 
       function get_dpodx(p,mat_i)          !Claudia
       implicit none
-      integer nrmat,nmat,mat,irmat
-      parameter(nmat=12,nrmat=7)
+      integer mat
++ca collMatNum
       common/materia/mat
       double precision anuc,zatom,rho,emr,exenergy
       double precision PE,me,mp,K,gamma_p
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/meanexen/exenergy(nmat)
       double precision beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,   &
      &I_s,delta
@@ -65688,8 +65729,8 @@ C.**************************************************************************
 ! EnLo energy loss in GeV/meter
 
       IMPLICIT none
-      integer IS,irmat,nmat
-      parameter(nmat=12)
+      integer IS
++ca collMatNum
       double precision PC,DZ,EnLo,exenergy,exEn
       double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
       double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
@@ -65702,7 +65743,7 @@ C.**************************************************************************
 
       common/meanexen/exenergy(nmat)
 
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 !      common/betheBl/enr,mom,gammar,betar,bgr,exEn,Tmax,plen
 
       data k/0.307075/      !constant in front bethe-bloch [MeV g^-1 cm^2]
