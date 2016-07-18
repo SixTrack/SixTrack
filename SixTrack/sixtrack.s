@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.35'/
-      data moddate /'14.07.2016'/
+      data moddate /'18.07.2016'/
 +cd license
 !!SixTrack
 !!
@@ -12,7 +12,7 @@
 !!E. Mcintosh, H. Ranshall, H. Grote, F. James,
 !!K. Koelbig, K. Heinemann, M. Vaenttinen,
 !!R. Assman, C. Bracco, R. Bruce, D. Mirarchi, V. Previtali,
-!!S. Redaelli, G. Robert-Demolaize,
+!!S. Redaelli, G. Robert-Demolaize, E. Quaranta
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
