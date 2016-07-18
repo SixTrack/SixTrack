@@ -977,8 +977,8 @@ where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\
 
 The kick in $(x',y')$ can then be expressed as (note $\frac{x}{r}=\cos(\phi),\frac{y}{r}=\sin(\phi)$):
 \begin{align}
-x'&=x'-\theta_{\rm max}\cdot\frac{r_2}{r^2}\cdot f(r)\cdot x\\
-y'&=y'-\theta_{\rm max}\cdot\frac{r_2}{r^2}\cdot f(r)\cdot y
+x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot x\\
+y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot y
 \end{align}
 
 If the electron lens is offset by $(x_{\rm offset},y_{\rm offset})$, the coordinates $(x,y)$ are simply transfered to:
@@ -992,6 +992,7 @@ and the kick is then given by:
 x'&=x'-\theta_{\rm max}\cdot\frac{r_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde x\\
 y'&=y'-\theta_{\rm max}\cdot\frac{r_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde y
 \end{align}
+This idealized implementation of the hollow e-lens has no explicit dependence on the particle energy. The particle energy is only taken into account in form of the input parameter $\theta_{\rm max}$ provided by the user. A change of the particle energy could occur if the particle enters with an initial $x'$ or $y'$ and thus sees an accelerating or respectively decelerating field.
 
 \subsection{Misalignment}
 
