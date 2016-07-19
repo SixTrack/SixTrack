@@ -156,7 +156,7 @@
      &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
+      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,        &
      &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
