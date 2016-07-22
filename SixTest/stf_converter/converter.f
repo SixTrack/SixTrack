@@ -43,7 +43,11 @@ C      open(90,form='unformatted',status='unknown')
      &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
-     &dnumlr,sigcor,dpscor
+     &dnumlr,sigcor,dpscor,zero,zero,zero,zero,                         &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
        else
          j=(i+1)/2
          open(91-j,form='unformatted',status='unknown')
@@ -55,7 +59,11 @@ C      open(90,form='unformatted',status='unknown')
      &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
-     &dnumlr,sigcor,dpscor
+     &dnumlr,sigcor,dpscor,zero,zero,zero,zero,                         &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
        endif
       rewind 1
       do k=1,imax,rph
