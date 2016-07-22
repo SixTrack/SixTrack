@@ -11,14 +11,13 @@ C      open(90,form='unformatted',status='unknown')
      &progrm,ifipa,ilapa,itopa,icode,numl
        imax=itopa
        turns=numl
-        write(*,*) 'imax ',imax
+        write(*,*) 'total particles and number of turns ',imax,' ',turns
        if(ifipa.eq.ilapa) then
-          rph=1              !--rph is record per header
-          write(*,*) 'rph ',rph
+          rph=1              !--rph is record per header 
        else 
           rph=2
-          write(*,*) 'rph ',rph
        endif
+       write(*,*) 'particle per record',rph
        rewind 1
        do 20 i=1,imax,rph
           rewind 1
@@ -62,17 +61,28 @@ C      open(90,form='unformatted',status='unknown')
       do k=1,imax,rph
          read(1)
       enddo 
-      do l=1,turns
-      write(*,*) 'turn number',l
- 30   if(rph.eq.1) read(1,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
-      if(rph.eq.2) read(1,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p,ilapa,b&
-     &,c1,d1,e1,f1,g1,h1,p1
-      if(ifipa.ne.i) then
-       goto 30
+
+      if(rph.eq.1) then
+        do l=1,turns
+        write(*,*) 'turn number',l
+ 30     read(1,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
+        if(ifipa.ne.i) then
+          goto 30
+        endif
+        write(91-i,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
+        enddo
       endif
-      if(rph.eq.1) write(91-i,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
-      if(rph.eq.2) write(91-j,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p,ila&
-     &pa,b,c1,d1,e1,f1,g1,h1,p1
-      enddo 
+ 
+      if(rph.eq.2) then
+        do l=1,turns
+ 40     read(1,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p,ilapa,b,           &
+     &c1,d1,e1,f1,g1,h1,p1
+        if(ifipa.ne.i) then
+          goto 40
+        endif
+        write(91-j,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p,ilapa,         &
+     &b,c1,d1,e1,f1,g1,h1,p1
+        enddo
+      endif 
  20   continue
       end program
