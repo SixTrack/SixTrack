@@ -25497,21 +25497,38 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    70   continue
 +ei
 +if stf
-        do 70 i=1,ndafi
+!--   In Postpr subroutine
+!--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
+!--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2,
+        if(ntwin.eq.2) then	  
+          do 70 i=1,(2*ndafi),2
 +if .not.cr
-          call postpr(i)
+            call postpr(i)
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(i,nnuml)
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(i,nnuml)
 +ei
-  70      continue
+  70      continue  	
+        else if(ntwin.eq.1) then
+	  do 71 i=1,ndafi	
++if .not.cr
+            call postpr(i)
 +ei
-        call sumpos
-        goto 520
-      endif
++if cr
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(i,nnuml)
++ei
+  71      continue
+	endif
++ei
+          call sumpos
+          goto 520
+        endif
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -27042,35 +27059,65 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if stf
         iposc=0
         if(ipos.eq.1) then
-          do 480 ia=1,napxo,2
-            iposc=iposc+1
+	  if(ntwin.eq.2) then
+            do 480 ia=1,napxo,2
+              iposc=iposc+1
 +if .not.cr
-          call postpr(ia)
+              call postpr(ia)
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(ia,nnuml)
+              write(93,*) 'Calling POSTPR nnuml=',nnuml
+              endfile (93,iostat=ierro)
+              backspace (93,iostat=ierro)
+              call postpr(ia,nnuml)
 +ei
-  480     continue
+  480       continue
+	  else if(ntwin.eq.1) then
+            do 481 ia=1,napxo
+              iposc=iposc+1
++if .not.cr
+              call postpr(ia)
++ei
++if cr
+              write(93,*) 'Calling POSTPR nnuml=',nnuml
+              endfile (93,iostat=ierro)
+              backspace (93,iostat=ierro)
+              call postpr(ia,nnuml)
++ei
+  481       continue
+	  endif
           if(iposc.ge.1) call sumpos
         endif
         goto 520
   490   if(ipos.eq.1) then
           ndafi2=ndafi
-          do 500 ia=1,ndafi2
+	  if(ntwin.eq.2) then
+          do 500 ia=1,(2*ndafi2),2
             if(ia.gt.ndafi) goto 510
 +if .not.cr
-          call postpr(ia)
+            call postpr(ia)
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(ia,nnuml)
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(ia,nnuml)
 +ei
   500     continue
+	else if(ntwin.eq.1) then
+	  do 501 ia=1,ndafi2
+            if(ia.gt.ndafi) goto 510
++if .not.cr
+            call postpr(ia)
++ei
++if cr
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(ia,nnuml)
++ei
+  501     continue
+	endif
   510     if(ndafi.ge.1) call sumpos
         endif
   520 continue
