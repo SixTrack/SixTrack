@@ -56753,13 +56753,20 @@ c$$$            endif
  600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
 +ei
       rewind nfile
-+if stf
-      do i=1,itopa,2
-+ei
 !-- Bypassing header to read tracking data later
++if .not.stf
       read(nfile)
++ei
 +if stf
-      enddo
+      if(ntwin.eq.2) then
+        do i=1,itopa,2
+          read(nfile)
+        enddo
+      else if(ntwin.eq.1) then
+	do i=1,itopa
+	  read(nfile)
+	enddo
+      endif
 +ei
 !hr06 sumda(5)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       sumda(5)=ta(1,1)**2+ta(1,2)**2                                     !hr06
@@ -57205,12 +57212,19 @@ c$$$            endif
 !----------------------------------------------------------------------
 !--GET FIRST DATA POINT AS A REFERENCE
 !----------------------------------------------------------------------
-+if stf
-      do i=1,itopa,2
-+ei
++if .not.stf
       read(nfile,iostat=ierro)
++ei
 +if stf
-      enddo
+      if(ntwin.eq.2) then
+        do i=1,itopa,2
+          read(nfile,iostat=ierro)
+        enddo
+      else if(ntwin.eq.1) then
+	do i=1,itopa
+	  read(nfile,iostat=ierro)
+	enddo
+      endif
 +ei
       if(ierro.gt.0) then
 +if cr
@@ -57970,12 +57984,19 @@ c$$$            endif
       evtm=evt/di11
 !--SMEAR CALCULATION AND 4D-SMEAR
       rewind nfile
-+if stf
-      do i=1,itopa,2
-+ei
++if .not.stf
       read(nfile,iostat=ierro)
++ei
 +if stf
-      enddo
+      if(ntwin.eq.2) then
+        do i=1,itopa,2
+          read(nfile,iostat=ierro)
+        enddo
+      else if(ntwin.eq.1) then
+	do i=1,itopa
+	  read(nfile,iostat=ierro)
+	enddo
+      endif
 +ei
       if(ierro.gt.0) then
 +if cr
