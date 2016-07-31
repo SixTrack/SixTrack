@@ -56705,7 +56705,52 @@ c$$$            endif
 +ei
 +if stf
 !--PREVENT FAULTY POST-PROCESSING
-!--add code soon---
+      rewind nfile
+      if(ntwin.eq.2) then
+        do i=1,itopa,2     !--bypass headers
+          read(nfile)
+        enddo
+	do i=1,posi,2
+	  read(nfile,end=530,iostat=ierro) iaa    !--read first track data for particle at posi
+	enddo
+      else if(ntwin.eq.1) then
+        do i=1,itopa
+          read(nfile)
+        enddo
+	do i=1,posi
+	  read(nfile,end=530,iostat=ierro) iaa
+	enddo
+      endif
+      if(ierro.gt.0) then
++if cr
+        write(lout,10320) nfile
++ei
++if .not.cr
+        write(*,10320) nfile
++ei
+        goto 550
+      endif
+      if(ntwin.eq.2) then
+        do i=2,itopa,2     !--bypass records till 2nd run of same particle is reached
+          read(nfile)
+        enddo
+      else if(ntwin.eq.1) then
+        do i=2,itopa
+          read(nfile)
+        enddo
+      endif
+      read(nfile,end=535,iostat=ierro) iab
+      if(ierro.gt.0) then
++if cr
+        write(lout,10320) nfile
++ei
++if .not.cr
+        write(*,10320) nfile
++ei
+        goto 550
+      endif
+!hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
+ 600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
 +ei
       rewind nfile
 +if stf
