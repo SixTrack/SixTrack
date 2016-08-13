@@ -1,7 +1,12 @@
       program old_converter
+!--   July 2016
+!--   Author: Vikas Gupta,email-id: vikasgupta.rmps@gmail.com
+!--   fortran program to convert  ouput data of non-stf version of sixtrack
+!--   from binary to ASCII format into one single older.dat file.
+!--   this requires all the fort.# files and not just fort.90
       character*8 cdate,ctime,progrm
       character*80 sixtit,commen
-      integer i,j,k,l,rph,ifipa,ilapa,itopa,imax,icode,numl,turns
+      integer i,ifipa,ilapa,itopa,imax,icode,numl,turns
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6)
       double precision dummy,dmmac,dnms,dizu0,dnumlr,sigcor,dpscor

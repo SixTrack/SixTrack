@@ -1,4 +1,9 @@
       program new_converter
+!--   July 2016
+!--   Author: Vikas Gupta, email-id:vikasgupta.rmps@gmail.com
+!--   fortran program to convert ouput data of stf version of sixtrack
+!--   from binary to ASCII format
+!--   input=fort.90 and output=output.dat 
       character*8 cdate,ctime,progrm
       character*80 sixtit,commen
       integer i,k,l,rph,ifipa,ilapa,itopa,imax,icode,numl,turns
