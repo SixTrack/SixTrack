@@ -15,7 +15,6 @@
       read(90,iostat=ierro) sixtit,commen,cdate,ctime,                  &
      &progrm,ifipa,ilapa,itopa,icode,numl
        imax=itopa
-       turns=numl+1
        if(ifipa.eq.ilapa) then
           rph=1              !--rph is record per header 
        else 
@@ -49,6 +48,16 @@
       do k=1,imax,rph
          read(90)
       enddo 
+      read(90) ia
+      do k=1,imax-1,rph
+         read(90)
+      enddo
+      read(90) ib
+      turns=numl/(ib-ia)+1   !counts how many records of tracking data per paricle(pair)
+      rewind 90
+      do k=1,imax,rph
+         read(90)
+      enddo
       if(rph.eq.1) then
         do l=1,turns
  30     read(90,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
@@ -60,7 +69,7 @@
       endif
  
       if(rph.eq.2) then
-        do l=1,turns,10
+        do l=1,turns
  40     read(90,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p,ilapa,b,          &
      &c1,d1,e1,f1,g1,h1,p1
         if(ifipa.ne.i) then
