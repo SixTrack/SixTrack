@@ -9685,7 +9685,7 @@ cc2008
       open(89,file='fort.89',form='unformatted',status='unknown')
 +ei
 +if boinc
-      call boincrf('fort,90',filename)
+      call boincrf('fort.90',filename)
       open(90,file=filename,form='unformatted',status='unknown')
 +ei
 +if .not.boinc
@@ -9694,11 +9694,12 @@ cc2008
 +ei
 +if stf
 +if boinc
-      call boincrf('fort_stf',filename)
+      call boincrf('singletrackfile.dat',filename)
       open(90,file=filename,form='unformatted',status='unknown')
 +ei
 +if .not.boinc
-      open(90,file='fort_stf',form='unformatted',status='unknown')
+      open(90,file='singletrackfile.dat',form='unformatted',                 &
+     &status='unknown')
 +ei
 +ei
 +ei
