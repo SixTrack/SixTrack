@@ -41,7 +41,6 @@ do
 done
 sort --unique etmp$$ > etmp2$$
 newvs=`cat etmp2$$ | sed -e's/singletrackfile.dat.//'`
-echo "here------$newvs"
 rm -rf etmp*
 for v in $newvs
 do
