@@ -13,7 +13,7 @@ cp -r $not_stf_path/fort.* .
 gfortran old_converter.f -o old_converter.out -Wall
 ./old_converter.out
 cd ../stf/
-cp $stf_path/fort_stf .
+cp $stf_path/singletrackfile.dat fort_stf
 gfortran new_converter.f -o new_converter.out -Wall
 ./new_converter.out
 cd ../
@@ -27,6 +27,6 @@ else
 echo "output is  DIFFERENT"
 echo " stf version seems to be giving different output "
 fi
-cd stf; rm -f output.dat new_converter.out fort_*
+cd stf; rm -f output.dat new_converter.out fort*
 cd ../not_stf/;rm -f older.dat old_converter.out fort.*
 cd ../

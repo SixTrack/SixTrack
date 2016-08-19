@@ -4,7 +4,7 @@
 # compare fort.90 from sixtrack stf version with 
 # fort.90.stf_canonical in test folders
 
-prov=stf_canonical
+prov=canonical
 echo "------------------------------------------------------------"
 echo "This is for comparing stf version of sixtrack with canonical"
 echo "If you haven't chosen single track file flag option then    "
@@ -35,12 +35,13 @@ do
     echo "      ===================================="
   else
     cd $e
-    ls fort.90.*${newv}* >> ../etmp$$ 2>/dev/null
+    ls singletrackfile.dat.*${newv}* >> ../etmp$$ 2>/dev/null
     cd ..
   fi
 done
 sort --unique etmp$$ > etmp2$$
-newvs=`cat etmp2$$ | sed -e's/fort.90.//'`
+newvs=`cat etmp2$$ | sed -e's/singletrackfile.dat.//'`
+echo "here------$newvs"
 rm -rf etmp*
 for v in $newvs
 do
@@ -60,38 +61,31 @@ do
       echo "      ===================================="
       echo "      CASE $i"
       echo "      ===================================="
-      n=90
-      if test -s $i/fort.${n}.$prov
+      if test -s $i/singletrackfile.dat.$prov
       then 
-          if test -s $i/fort.${n}.$v
+          if test -s $i/singletrackfile.dat.$v
           then
               mkdir -p tmp$$
               cd tmp$$
-              cp ../$i/fort.${n}.$prov fort.190
+              cp ../$i/singletrackfile.dat.$prov fort.190
               $BIN/read90 > fort.20 
-              cp ../$i/fort.${n}.$v fort.190
+              cp ../$i/singletrackfile.dat.$v fort.190
               $BIN/read90 > fort.21 
               diff fort.20 fort.21
               stat=$?
               if test $stat -eq 0
               then
-		  echo "fort.${n} SAME"
+		  echo "singletrackfile.dat SAME"
               else
-		  echo "fort.${n} DIFFERENT!!!"
+		  echo "singletrackfile.dat DIFFERENT!!!"
               fi
               cd   ..
               rm -rf tmp$$
           else
-              if test ${n} -eq 90
-              then
-		  echo "      Not yet available $v fort.${n}"
-              fi
+		  echo "      Not yet available $v singletrackfile.dat"
           fi
       else
-          if test ${n} -eq 90
-          then
-              echo "      Not yet available $prov fort.${n}"
-          fi
+              echo "      Not yet available $prov singletrackfile.dat"
       fi
     fi
   done
