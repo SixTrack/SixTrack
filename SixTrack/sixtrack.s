@@ -25875,6 +25875,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call hplset('DATE',1.)
         call hplset('CSIZ',.15)
       endif
+
+      !Postprocessing is on, but there are no particles
       if(ipos.eq.1.and.napx.eq.0) then
 ! and now we open fort.10 unless already opened for
 ! BOINC AND BNLELENS
@@ -25897,8 +25899,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
      &recl=8195)
 +ei
-+ei
-
++ei ! END +if nagfor
 
 +if .not.nagfor
 +if boinc
@@ -25911,8 +25912,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.fio
       open(10,file=filename,form='formatted',status='unknown')
 +ei
-+ei
-+ei
++ei ! END +if .not.bnlelens
++ei ! END +if boinc
 +if .not.boinc
 +if fio
       open(10,file='fort.10',form='formatted',status='unknown',         &
@@ -25921,27 +25922,28 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.fio
       open(10,file='fort.10',form='formatted',status='unknown')
 +ei
-+ei
-+ei
++ei ! END +if .not.boinc
++ei ! END +if .not.nagfor
+
 +if .not.stf
-        do 70 i=1,ndafi
+      do 70 i=1,ndafi
 +if .not.cr
-          call postpr(91-i)
+         call postpr(91-i)
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(91-i,nnuml)
+         write(93,*) 'Calling POSTPR nnuml=',nnuml
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
+         call postpr(91-i,nnuml)
 +ei
-   70   continue
-+ei
+ 70      continue
++ei ! END +if .not.stf
 +if stf
 !--   In Postpr subroutine
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
 !--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2,
-        if(ntwin.eq.2) then	  
-          do 70 i=1,(2*ndafi),2
+      if(ntwin.eq.2) then
+         do 70 i=1,(2*ndafi),2
 +if .not.cr
             call postpr(i)
 +ei
@@ -25951,9 +25953,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             backspace (93,iostat=ierro)
             call postpr(i,nnuml)
 +ei
-  70      continue  	
-        else if(ntwin.eq.1) then
-	  do 71 i=1,ndafi	
+ 70      continue
+      else if(ntwin.eq.1) then
+         do 71 i=1,ndafi
 +if .not.cr
             call postpr(i)
 +ei
@@ -25963,12 +25965,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             backspace (93,iostat=ierro)
             call postpr(i,nnuml)
 +ei
-  71      continue
-	endif
-+ei
-          call sumpos
-          goto 520
-        endif
+ 71      continue
+         endif
++ei ! END +if stf
+
+      call sumpos
+      goto 520 !Jump to after particle&optics initialization,
+               ! and also after tracking.
+      endif !if(ipos.eq.1.and.napx.eq.0)
+      
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
