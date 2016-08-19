@@ -8984,7 +8984,7 @@ cc2008
 +if .not.fio
       open(2,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(2,file='fort.2',form='formatted',status='unknown',
@@ -8993,7 +8993,8 @@ cc2008
 +if .not.fio
       open(2,file='fort.2',form='formatted',status='unknown')
 +ei
-+ei
+
++ei !END of +if .not.boinc
 +if boinc
       call boincrf('fort.3',filename)
 +if fio
@@ -9003,7 +9004,7 @@ cc2008
 +if .not.fio
       open(3,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(3,file='fort.3',form='formatted',status='unknown',
@@ -9012,14 +9013,17 @@ cc2008
 +if .not.fio
       open(3,file='fort.3',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
+! No non-boinc alternative fort fort.4?
 +if boinc
       call boincrf('fort.4',filename)
       open(4,file=filename,form='formatted',status='unknown')
 +ei
 +if .not.boinc
       open(4,file='fort.4',form='formatted',status='unknown')
-+ei
++ei !END of +if boinc
+
 +if nagfor
 +if boinc
       call boincrf('fort.7',filename)
@@ -9028,7 +9032,7 @@ cc2008
 +if .not.boinc
       open(7,file='fort.7',form='formatted',status='unknown',recl=303)
 +ei
-+ei
++ei !END of +if nagfor
 +if .not.nagfor
 +if boinc
       call boincrf('fort.7',filename)
@@ -9037,7 +9041,8 @@ cc2008
 +if .not.boinc
       open(7,file='fort.7',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.nagfor
+
 +if boinc
       call boincrf('fort.8',filename)
 +if fio
@@ -9047,7 +9052,7 @@ cc2008
 +if .not.fio
       open(8,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(8,file='fort.8',form='formatted',status='unknown',
@@ -9056,7 +9061,7 @@ cc2008
 +if .not.fio
       open(8,file='fort.8',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
 +if boinc
       call boincrf('fort.9',filename)
       open(9,file=filename,form='formatted',status='unknown')
@@ -9064,6 +9069,7 @@ cc2008
 +if .not.boinc
       open(9,file='fort.9',form='formatted',status='unknown')
 +ei
+
 ! We no longer open fort.10 except for BOINC AND BNLELENS
 ! When we are returning everything from BOINC we can
 ! use the proper files as normal
@@ -9076,8 +9082,8 @@ cc2008
      &round='nearest',                                                  &
 +ei
      &recl=8195)
-+ei
-+ei
++ei !END of +if boinc
++ei !END of +if nagfor
 +if .not.nagfor
 +if boinc
       call boincrf('fort.10',filename)
@@ -9088,9 +9094,10 @@ cc2008
 +if .not.fio
       open(10,file=filename,form='formatted',status='unknown')
 +ei
-+ei
-+ei
-+ei
++ei !END of +if boinc
++ei !END of +if .not.nagfor
++ei !END of +if bnlelens
+
 +if boinc
       call boincrf('fort.11',filename)
 +if fio
@@ -9100,7 +9107,7 @@ cc2008
 +if .not.fio
       open(11,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(11,file='fort.11',form='formatted',status='unknown',         &
@@ -9109,7 +9116,8 @@ cc2008
 +if .not.fio
       open(11,file='fort.11',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.12',filename)
 +if fio
@@ -9119,7 +9127,7 @@ cc2008
 +if .not.fio
       open(12,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(12,file='fort.12',form='formatted',status='unknown',         &
@@ -9128,7 +9136,8 @@ cc2008
 +if .not.fio
       open(12,file='fort.12',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.13',filename)
 +if fio
@@ -9138,7 +9147,7 @@ cc2008
 +if .not.fio
       open(13,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(13,file='fort.13',form='formatted',status='unknown',         &
@@ -9147,7 +9156,8 @@ cc2008
 +if .not.fio
       open(13,file='fort.13',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.14',filename)
 +if fio
@@ -9157,7 +9167,7 @@ cc2008
 +if .not.fio
       open(14,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(14,file='fort.14',form='formatted',status='unknown',         &
@@ -9166,7 +9176,8 @@ cc2008
 +if .not.fio
       open(14,file='fort.14',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.15',filename)
 +if fio
@@ -9176,7 +9187,7 @@ cc2008
 +if .not.fio
       open(15,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(15,file='fort.15',form='formatted',status='unknown',         &
@@ -9185,7 +9196,8 @@ cc2008
 +if .not.fio
       open(15,file='fort.15',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.16',filename)
 +if fio
@@ -9195,7 +9207,7 @@ cc2008
 +if .not.fio
       open(16,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(16,file='fort.16',form='formatted',status='unknown',
@@ -9204,7 +9216,8 @@ cc2008
 +if .not.fio
       open(16,file='fort.16',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.17',filename)
 +if fio
@@ -9214,7 +9227,7 @@ cc2008
 +if .not.fio
       open(17,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(17,file='fort.17',form='formatted',status='unknown',         &
@@ -9223,7 +9236,8 @@ cc2008
 +if .not.fio
       open(17,file='fort.17',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.18',filename)
 +if fio
@@ -9233,7 +9247,7 @@ cc2008
 +if .not.fio
       open(18,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(18,file='fort.18',form='formatted',status='unknown',         &
@@ -9242,7 +9256,8 @@ cc2008
 +if .not.fio
       open(18,file='fort.18',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.19',filename)
 +if fio
@@ -9252,7 +9267,7 @@ cc2008
 +if .not.fio
       open(19,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(19,file='fort.19',form='formatted',status='unknown',         &
@@ -9261,7 +9276,8 @@ cc2008
 +if .not.fio
       open(19,file='fort.19',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.20',filename)
 +if fio
@@ -9271,7 +9287,7 @@ cc2008
 +if .not.fio
       open(20,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(20,file='fort.20',form='formatted',status='unknown',         &
@@ -9280,7 +9296,8 @@ cc2008
 +if .not.fio
       open(20,file='fort.20',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+      
 +if boinc
       call boincrf('fort.21',filename)
 +if fio
@@ -9290,7 +9307,7 @@ cc2008
 +if .not.fio
       open(21,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(21,file='fort.21',form='formatted',status='unknown',         &
@@ -9299,7 +9316,8 @@ cc2008
 +if .not.fio
       open(21,file='fort.21',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.22',filename)
 +if fio
@@ -9309,7 +9327,7 @@ cc2008
 +if .not.fio
       open(22,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei!END of +if boinc
 +if .not.boinc
 +if fio
       open(22,file='fort.22',form='formatted',status='unknown',         &
@@ -9318,7 +9336,8 @@ cc2008
 +if .not.fio
       open(22,file='fort.22',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.23',filename)
 +if fio
@@ -9328,7 +9347,7 @@ cc2008
 +if .not.fio
       open(23,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(23,file='fort.23',form='formatted',status='unknown',         &
@@ -9338,6 +9357,7 @@ cc2008
       open(23,file='fort.23',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.24',filename)
 +if fio
@@ -9347,7 +9367,7 @@ cc2008
 +if .not.fio
       open(24,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(24,file='fort.24',form='formatted',status='unknown',         &
@@ -9356,7 +9376,8 @@ cc2008
 +if .not.fio
       open(24,file='fort.24',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.25',filename)
 +if fio
@@ -9366,7 +9387,7 @@ cc2008
 +if .not.fio
       open(25,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(25,file='fort.25',form='formatted',status='unknown',         &
@@ -9375,7 +9396,8 @@ cc2008
 +if .not.fio
       open(25,file='fort.25',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.26',filename)
 +if fio
@@ -9385,7 +9407,7 @@ cc2008
 +if .not.fio
       open(26,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(26,file='fort.26',form='formatted',status='unknown',         &
@@ -9394,7 +9416,8 @@ cc2008
 +if .not.fio
       open(26,file='fort.26',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.27',filename)
 +if fio
@@ -9404,7 +9427,7 @@ cc2008
 +if .not.fio
       open(27,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(27,file='fort.27',form='formatted',status='unknown',         &
@@ -9413,7 +9436,8 @@ cc2008
 +if .not.fio
       open(27,file='fort.27',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.28',filename)
 +if fio
@@ -9423,7 +9447,7 @@ cc2008
 +if .not.fio
       open(28,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(28,file='fort.28',form='formatted',status='unknown',         &
@@ -9432,7 +9456,8 @@ cc2008
 +if .not.fio
       open(28,file='fort.28',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.29',filename)
 +if fio
@@ -9452,6 +9477,7 @@ cc2008
       open(29,file='fort.29',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.30',filename)
 +if fio
@@ -9471,6 +9497,7 @@ cc2008
       open(30,file='fort.30',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.31',filename)
 +if fio
@@ -9490,6 +9517,8 @@ cc2008
       open(31,file='fort.31',form='formatted',status='unknown')
 +ei
 +ei
+
+! No non-BOINC version of fort.32?
 +if boinc
       call boincrf('fort.32',filename)
       open(32,file=filename,status='unknown',form='unformatted')
@@ -9497,6 +9526,7 @@ cc2008
 +if .not.boinc
       open(32,file='fort.32',form='unformatted',status='unknown')
 +ei
+
 +if boinc
       call boincrf('fort.33',filename)
 +if fio
@@ -9516,6 +9546,7 @@ cc2008
       open(33,file='fort.33',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.34',filename)
 +if fio
@@ -9535,6 +9566,7 @@ cc2008
       open(34,file='fort.34',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.35',filename)
 +if fio
@@ -9554,8 +9586,11 @@ cc2008
       open(35,file='fort.35',form='formatted',status='unknown')
 +ei
 +ei
+
+!     Tracking output files fort.91-i; i=1..32
+!     used for postprocessing
 +if .not.bnlelens
-+if .not.stf
++if .not.stf !Separate output files (no SingleTrackFile)
 +if boinc
       call boincrf('fort.59',filename)
       open(59,file=filename,form='unformatted',status='unknown')
@@ -9780,7 +9815,7 @@ cc2008
 +if .not.boinc
       open(90,file='fort.90',form='unformatted',status='unknown')
 +ei
-+ei
++ei !END +if .not.stf
 +if stf
 +if boinc
       call boincrf('singletrackfile.dat',filename)
@@ -9790,8 +9825,9 @@ cc2008
       open(90,file='singletrackfile.dat',form='unformatted',                 &
      &status='unknown')
 +ei
-+ei
-+ei
++ei ! END +if stf
++ei ! END +if .not.bnlelens
+      
 +if boinc
       call boincrf('fort.98',filename)
       open(98,file=filename,form='formatted',status='unknown')
@@ -9799,6 +9835,7 @@ cc2008
 +if .not.boinc
       open(98,file='fort.98',form='formatted',status='unknown')
 +ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -9812,7 +9849,7 @@ cc2008
       open(51,file='fort.51',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if .not.boinc
 +if fio
@@ -9822,7 +9859,8 @@ cc2008
       open(51,file='SixTwiss.dat',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if .not.cr
+
 +if cr
 +if .not.boinc
 +if fio
@@ -9832,7 +9870,7 @@ cc2008
       open(52,file='fort.52',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if fio
       open(52,file='beambeam-output.dat',form='formatted',              &
@@ -9841,7 +9879,8 @@ cc2008
 +if .not.fio
       open(52,file='beambeam-output.dat',form='formatted')
 +ei
-+ei
++ei ! END +if .not.cr
+
 +if cr
 +if .not.boinc
 +if fio
@@ -9851,7 +9890,7 @@ cc2008
       open(53,file='fort.53',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if fio
       open(53,file='beambeam-lostID.dat',form='formatted',              &
@@ -9860,7 +9899,8 @@ cc2008
 +if .not.fio
       open(53,file='beambeam-lostID.dat',form='formatted')
 +ei
-+ei
++ei ! END +if .not.cr
+
 +if cr
 +if boinc
       call boincrf('fort.54',filename)
@@ -9871,7 +9911,8 @@ cc2008
       open(54,file=filename,form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
+      
 +if .not.boinc
 +if fio
       open(54,file='fort.54',form='formatted',round='nearest')
@@ -9889,6 +9930,7 @@ cc2008
       open(54,file='beambeamdist.dat',form='formatted')
 +ei
 +ei
+
 +if cr
 +if .not.boinc
 +if fio
@@ -9898,7 +9940,7 @@ cc2008
       open(97,file='fort.97',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if fio
       open(97,file='checkdist.dat',form='formatted',round='nearest')
@@ -9906,14 +9948,16 @@ cc2008
 +if .not.fio
       open(97,file='checkdist.dat',form='formatted')
 +ei
-+ei
++ei ! END +if .not.cr
 !GRDRHIC
 !GRD-042008
-+ei
++ei ! END +if bnlelens
+      
 !Eric for the DA coefficients in BINARY
       open(111,file='fort.111',form='unformatted')
 ! Write a BINARY fort.10 of sumda for checking
       open(110,file='fort.110',form='unformatted')
+
 +if debug
 !DUMPS 99
 +if boinc
@@ -9926,8 +9970,10 @@ cc2008
       open(99,file='dump',form='unformatted')
       open(100,file='arrays',form='unformatted')
 +ei
-+ei
++ei ! END +if debug
 
+! END of +cd open
+      
 +cd rvet0
 !hr03 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr03
