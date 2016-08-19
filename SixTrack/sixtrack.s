@@ -10219,7 +10219,8 @@ cc2008
       close(34,err=34)
  34    continue
       close(35,err=35)
- 35    continue
+ 35   continue
++if .not.stf
       close(59,err=59)
  59    continue
       close(60,err=60)
@@ -10282,10 +10283,12 @@ cc2008
  88    continue
       close(89,err=89)
  89    continue
++ei !END +if .not.stf
       close(90,err=90)
  90    continue
       close(98,err=98)
  98    continue
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -10303,7 +10306,8 @@ cc2008
  54    continue
 !GRDRHIC
 !GRD-042008
-+ei
++ei ! END +if bnlelens
+
 +if hdf5
       call CLOSEHDF5()
 +ei
