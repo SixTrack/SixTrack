@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.35'/
-      data moddate /'14.07.2016'/
+      data version /'4.5.36'/
+      data moddate /'18.07.2016'/
 +cd license
 !!SixTrack
 !!
@@ -12,7 +12,7 @@
 !!E. Mcintosh, H. Ranshall, H. Grote, F. James,
 !!K. Koelbig, K. Heinemann, M. Vaenttinen,
 !!R. Assman, C. Bracco, R. Bruce, D. Mirarchi, V. Previtali,
-!!S. Redaelli, G. Robert-Demolaize,
+!!S. Redaelli, G. Robert-Demolaize, E. Quaranta
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
@@ -156,7 +156,7 @@
      &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=400000,        &
+      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,        &
      &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
@@ -827,7 +827,7 @@
      &     alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 !
-      character*2 c_material     !material
+      character*4 c_material     !material
 !
       common /cut/ cut_input
       common /mu/ mux, muy
@@ -907,7 +907,7 @@
 !      integer   mclock_liar
 !
       character*16 db_name1(max_ncoll),db_name2(max_ncoll)
-      character*2 db_material(max_ncoll)
+      character*4 db_material(max_ncoll)
 !APRIL2005
       double precision db_nsig(max_ncoll),db_length(max_ncoll),         &
      &db_offset(max_ncoll),db_rotation(max_ncoll),                      &
@@ -980,7 +980,7 @@
       double precision c_aperture  !aperture in m
       double precision c_offset    !offset in m
       double precision c_tilt(2)   !tilt in radian
-      character*2      c_material  !material
+      character*4      c_material  !material
 !
 !
 !
@@ -1004,12 +1004,16 @@
 !
 !hr09 data   dx,dxp/.5d-4,20.d-4/
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
-
+!
++cd collMatNum
+!     EQ 2016 added variables for collimator material numbers
+      integer nmat, nrmat
+      parameter(nmat=14,nrmat=12)
+!	
 +cd flukavars
 !     RB DM 2014 added variables for FLUKA output
       double precision xInt,xpInt,yInt,ypInt,sInt
       common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
-
 !
 !
 +cd info
@@ -1043,9 +1047,8 @@
       real tftot
       common/funint/tftot
 +cd interac
-      integer nrmat,nmat,mat,irmat,mcurr
-!     parameter(nmat=12,nrmat=5)
-      parameter(nmat=12,nrmat=7)
+      integer mat,mcurr
++ca collMatNum
       double precision xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
@@ -1054,7 +1057,7 @@
       parameter(fnavo=6.02214129d23)                                          
       real cgen
       character * 4 mname(nmat)
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
       common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
       common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
@@ -1150,6 +1153,31 @@
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
       common /dumpdbCR/ dumpfilepos(0:nele), dumpfilepos_cr(0:nele)
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd elensparam
+!     M. Fitterer, FNAL
+!     Common block for electron lens definition
+      
+      ! variables to save elens parameters for tracking etc.
+      integer          :: elens_type(nele)      ! integer for elens type
+                                                ! 0 : Un-initialized.
+                                                ! 1 : Hollow annular elens, uniform profile
+      double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
+      double precision :: elens_r2(nele)        ! outer radius R2 [mm]
+      double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
+      double precision :: elens_offset_x(nele),
+     &                    elens_offset_y(nele)  ! hor./vert. offset of elens [mm]
+      integer          :: elens_bend_entrance(nele),
+     &                    elens_bend_exit(nele) ! switch for elens bends
+      common /elensco/ elens_type,elens_theta_max,elens_r2,
+     &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
+     &     elens_bend_exit
++cd elenstracktmp
+!     Dummy variables used in tracking block for calculation
+!     of the kick for the ideal annualar e-lens
+      double precision :: rrelens,frrelens,r1elens,xelens,yelens
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -2059,6 +2087,60 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !hr02&rvv(j)*ejf0v(j)/ejfv(j)*ejf0v(j)/ejfv(j)
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
++cd kickelens
+            select case (elens_type(ix))
+              case (1)
+! ANNULAR: hollow elens with uniform annular profile for collimation
+! Space charge density is:
+! 0     if r < R1
+! Const if R1 < r < R2
+! 0     if r > R2
+! Parameters:
+!   elens_theta_max is the maximum kick in radians
+!   elens_r2 is R2 in mm
+!   elens_r2ovr1 = R2 / R1 (by default, 1.5)
+!   elens_offset_x - x offset
+!   elens_offset_y - y offset
+!   elens_bend_entrance - switch bends on at entrance
+!   elens_bend_exit - switch bends on at exit
+! internal parameters to calculate kick:
+!   xelens = x(proton) + elens_offset_x
+!   yelens = y(proton) + elens_offset_y
+!   rrelens = sqrt(xelens**2+yelens**2)
+!   r1elens = radius R1 [mm]
+!   frrelens = shape function [1/mm]
+
+! kick from ideal annular profile
+! 1) apply offset of e-lens
+                xelens=xv(1,j)+elens_offset_x(ix)
+                yelens=xv(2,j)+elens_offset_y(ix)
+! 2) calculate radius
+                rrelens=sqrt((xelens)**2+(yelens**2)) ! radius of particle in p-beam relative to center of elens beam
+                r1elens=elens_r2(ix)/elens_r2ovr1(ix) ! inner radius elens
+! 3) calculate kick
+                if (rrelens.gt.r1elens) then ! rrelens <= r1 -> no kick from elens
+                  if (rrelens.lt.elens_r2(ix)) then ! r1 <= rrelens < r2
+                    frrelens = (elens_r2(ix)/(rrelens**2))*
+     &((((rrelens**2)/(r1elens**2))-1)/(elens_r2ovr1(ix)**2 - 1))
+                  endif
+                  if (rrelens.ge.elens_r2(ix)) then ! r1 < r2 <= rrelens
+                    frrelens = elens_r2(ix)/(rrelens**2)
+                  endif
+                  yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xelens
+                  yv(2,j)=yv(2,j)-elens_theta_max(ix)*frrelens*yelens
+                endif
+! include bends at entrance and exit of elens
+              case default
++if cr
+               write(lout,*) 'ERROR in deck kickelens: elens_type='
++ei
++if .not.cr
+               write(*,*) 'ERROR in deck kickelens: elens_type='
++ei
+     &,elens_type(ix),' not recognized. Possible values for type are: ',
+     &'1.'
+                call prror(-1) 
+              end select
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -4323,7 +4405,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
         crabfreq=ek(ix)*c1e3
 
-        do j=1,napx
+        do j=1,napx ! loop over particles
 !hr03    crabamp=ed(ix)/(ejfv(j))*c1e3
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
 
@@ -5229,7 +5311,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +cd beams1
-!--beam-beam element
+!start: beam-beam element
       if(nbeam.ge.1) then
         do 15 i=1,nbb
           nbeaux(i)=0
@@ -5277,6 +5359,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           endif
         enddo
       endif
+!end: beam-beam element
 +cd beams21
 !--beam-beam element
 !hr08   if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.0) then
@@ -5340,6 +5423,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd wirektrack
         if(kzz.eq.15) then
           ktrack(i)=45
+          goto 290
+        endif
++cd elens
+!electron lens (HEL)
+        if(kzz.eq.29) then
+          ktrack(i)=63
           goto 290
         endif
 +cd crab1
@@ -13353,6 +13442,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca fma
++ca elensparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -13376,7 +13466,12 @@ cc2008
 !     - fma
       character*16 fma
       data fma /'FMA'/
+!     - elens
+      character*16 elens
+      data elens /'ELEN'/
 
+      double precision round_near
+      
       save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
@@ -13517,12 +13612,15 @@ cc2008
       ise=0
       iskew=0
       preda=c1m38
+      
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(idat(1:1).eq.'/') goto 90
       if(idat.ne.free.and.idat.ne.geom) call prror(1)
       imod=1
+! imod=1: free, definition of elements in fort.3
+! imod=2: geom, definition of elements in fort.2
       if(idat.eq.geom) imod=2
 +if cr
       write(lout,10130)
@@ -13567,6 +13665,7 @@ cc2008
         nunit=2
         lineno2=lineno2+1
         if(idat(1:1).eq.'/') goto 100
+! single elements
         if(idat.eq.sing) goto 120
 +if cr
           write(lout,*) "idat = '"//idat//"'"
@@ -13622,8 +13721,9 @@ cc2008
 !     last modified: 17-07-2013
 !     brand new input block for dynamic kicks
 !     always in main code
-      if(idat.eq.dynk) goto 2200
-      if(idat.eq.fma) goto 2300
+      if(idat.eq.dynk)  goto 2200
+      if(idat.eq.fma)   goto 2300
+      if(idat.eq.elens) goto 2400
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -13687,14 +13787,14 @@ cc2008
         endif
       enddo
  165  if(i1.gt.72) call prror(104)
-      call intepr(1,1,ch,ch1)
+      call intepr(1,1,ch,ch1) ! read in single element
 !     write (*,*) 'ch1:'//ch1//':'
 +if fio
 +if crlibm
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
-     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i) !read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
 +if crlibm
       call disable_xp()
 +ei
@@ -13702,15 +13802,15 @@ cc2008
 +if .not.fio
 +if .not.crlibm
 !     write (*,*) 'ERIC'
-      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)!read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
 !     write (*,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
       if (nunit.eq.2) then
-        call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields)
+        call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields) !fort.2 input
       elseif (nunit.eq.3) then
-        call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields)
+        call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields) !fort.3 input
       else
       call abend('ERIC!!! daten nunit NOT 2 nor 3!!!                ') 
       endif
@@ -13749,7 +13849,7 @@ cc2008
 +ei
 +ei
       !Check that the name is unique
-      do j=1,i-1
+      do j=1,i-1! i = index of current line
          if ( bez(j).eq.idat ) then
 +if cr
             write(lout,*) "ERROR in DATEN:"
@@ -13804,6 +13904,7 @@ cc2008
 !-- MULTIPOLES (11)
 !-- CAVITY (+/- 12)
 !-- CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
+!-- ELECTRON LENSE (29)
       call initialize_element(i,.true.)
 
 !--ACDIPOLE
@@ -13831,6 +13932,7 @@ cc2008
       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
       if(i.gt.nele-1) call prror(16)
       if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) )kp(i)=0
+! set element name
       bez(i)=idat
       bez0(i)=idat
       if(ncy2.eq.0) then
@@ -14105,7 +14207,7 @@ cc2008
   500 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
+      if(ch(1:1).ne.'/') then !iclr = line number in initial coordinate block
         iclr=iclr+1
       else
         goto 500
@@ -18442,6 +18544,7 @@ cc2008
 +ei
       call prror(51)
 !-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 !  FMA
 !  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
 !  last modified: 07-01-2016
@@ -18554,6 +18657,273 @@ cc2008
       
       fma_flag = .true.
       goto 2300
+!-----------------------------------------------------------------------
+!  Electron Lense, kz=29,ktrack=63
+!  M. Fitterer,  FNAL
+!  last modified: 20-06-2016
+!-----------------------------------------------------------------------
+ 2400 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+!       4) loop over single elements to check that they have been defined in the fort.3 block
+        do j=1,nele
+          if(kz(j).eq.29) then
+            if(elens_type(j).eq.0) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
+     &'not defined in fort.3. You must define every elens in the '//
+     &'ELEN block in fort.3!'
+               call prror(-1)
+            endif
+          endif
+        enddo
+        goto 110 ! go to next BLOCK in fort.3 - we're done here!
+      endif
+
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in ELEN block: fortran IO format currently not ',
+     &       'supported!'
+        call prror(-1)
++ei
+
+!     1) read in elens parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in ELEN block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+
+!     Check number of arguments
+!     If a new type of elens is implemented, may need to modify this!
+      if(getfields_nfields.ne.9) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in ELEN block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 9'
+        call prror(-1)
+      endif
+
+!     Find the element, and check that we're not double-defining
+      if (getfields_lfields(1) .gt. 16) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "ERROR in ELEN block: Element name max 16 characters;"//
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
+     &        //"' is too long."
+         call prror(-1)
+      endif
+      
+      do j=1,nele               !loop over single elements and set parameters of elens
+         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
+            ! check the element type (kz(j)_elens=29)
+            if(kz(j).ne.29) then
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &              'ERROR: element type mismatch for ELEN!'//
+     &              'Element type is kz(',j,') = ',kz(j),'!= 29'
+               call prror(-1)
+            endif
+            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &'ERROR: length el(j) (elens is treated as thin element), '//
+     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
+     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
+     &')=',ek(j),'. Please check you input in the single element '//
+     &'definition of your ELEN. All values except for the type need '//
+     &'to be zero.'
+               call prror(-1)
+            endif
+            if (elens_type(j).ne.0) then
++if cr
+               write(lout,*) "ERROR in ELEN block:"//
++ei
++if .not.cr
+               write(*,*)    "ERROR in ELEN block:"//
++ei
+     &              "The element '"//bez(j)//"' was defined twice!"
+               call prror(-1)
+            endif
+
+            ! Parse the element
+            select case ( getfields_fields(2)(1:getfields_lfields(2)) )
+            case ("ANNULAR")
+               ! Read in this case
+               elens_type(j) = 1
++if .not.crlibm
+               read (getfields_fields(3)(1:getfields_lfields(3)),*)
+     &              elens_theta_max(j)
+               read (getfields_fields(4)(1:getfields_lfields(4)),*)
+     &              elens_r2(j)
+               read (getfields_fields(5)(1:getfields_lfields(5)),*)
+     &              elens_r2ovr1(j)
+               read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     &              elens_offset_x(j)
+               read (getfields_fields(7)(1:getfields_lfields(7)),*)
+     &              elens_offset_y(j)
++ei
++if crlibm
+               elens_theta_max(j)= round_near (
+     &              errno,getfields_lfields(3)+1, getfields_fields(3) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,3,elens_theta_max(j) )
+               elens_r2(j)       = round_near (
+     &              errno,getfields_lfields(4)+1, getfields_fields(4) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,4,elens_r2(j) )
+               elens_r2ovr1(j)   = round_near (
+     &              errno,getfields_lfields(5)+1, getfields_fields(5) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,5,elens_r2ovr1(j) )
+               elens_offset_x(j) = round_near (
+     &              errno,getfields_lfields(6)+1, getfields_fields(6) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,6,elens_offset_x(j) )
+               elens_offset_y(j) = round_near (
+     &              errno,getfields_lfields(7)+1, getfields_fields(7) )
+               if (errno.ne.0) call rounderr (
+     &              errno,getfields_fields,7,elens_offset_y(j) )
++ei
+               read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
+     &              elens_bend_entrance(j)
+               read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')
+     &              elens_bend_exit(j)
+               
+               ! Make checks for this case
+               if(elens_r2ovr1(j).le.1) then
++if cr
+                  write(lout,*)
++ei
++if .not.cr
+                  write(*,*)
++ei
+     &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',
+     &elens_r2ovr1(j),'<1'
+                 call prror(-1)
+              end if
+              if(elens_bend_entrance(j).ne. 1 .and.
+     &           elens_bend_entrance(j).ne.-1 .and.
+     &           elens_bend_entrance(j).ne. 0      ) then
++if cr
+                 write(lout,*)
++ei
++if .not.cr
+                 write(*,*)
++ei
+     &'ERROR: ELEN flag for taking bends at entrance into account must'
+     &//' be -1,0,1, but elens_bend_entrance =',
+     &elens_bend_entrance(j)
+                 call prror(-1)
+              end if
+              if(elens_bend_exit(j).ne. 1 .and.
+     &           elens_bend_exit(j).ne.-1 .and.
+     &           elens_bend_exit(j).ne.0       ) then
++if cr
+                 write(lout,*)
++ei
++if .not.cr
+                 write(*,*)
++ei
+     &'ERROR: ELEN flag for taking bends at exit into account must'
+     &//' be -1,0,1, but elens_bend_exit =',
+     &elens_bend_exit(j)
+                 call prror(-1)
+              end if
+
+              ! print a summary of elens parameters
++if cr
+              write(lout,
++ei
++if .not.cr
+              write(*,
++ei
+     &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),'
+     &//'2(A,I4,/))')
+     &'ELENS found in list of single elements with: ',
+     &'name     = ',bez(j),
+     &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),
+     &        ' = ',elens_type(j),
+     &'thetamax = ',elens_theta_max(j),' mrad',
+     &'r2       = ',elens_r2(j),' mm',
+     &'r2/r1    = ',elens_r2ovr1(j),'',
+     &'offset_x = ',elens_offset_x(j),' mm',
+     &'offset_y = ',elens_offset_y(j),' mm',
+     &'enable bends at:',
+     &'  entrance = ',elens_bend_entrance(j),
+     &'  exit     = ',elens_bend_exit(j)
+      
+            case default
++if cr
+               write(lout,*) "ERROR in ELEN: "//
++ei
++if .not.cr
+               write(*,*)    "ERROR in ELEN: "//
++ei
+     &              "Elens type '"//
+     &              getfields_fields(2)(1:getfields_lfields(2))//
+     &              "' not recognized. Remember to use all UPPER CASE!"
+               call prror(-1)
+            end select
+            
+            goto 2401           !Search success :)
+            
+         endif
+      enddo
+
+!     Search for element failed!
++if cr
+      write(lout,*) "ERROR in ELEN: "//
++ei
++if .not.cr
+      write(*,*)    "ERROR in ELEN: "//
++ei
+     &     "Un-identified SINGLE ELEMENT '",
+     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
+      call prror(-1)
+      
+!     element search was a success :)
+ 2401 continue
+      
+      goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
@@ -19238,6 +19608,7 @@ cc2008
 +ca commonxz
 +ca stringzerotrim
 +ca comdynk
++ca elensparam
 +if cr
 +ca crcoall
 +ei
@@ -19379,7 +19750,7 @@ cc2008
 !--Multipoles
       elseif(kz(ix).eq.11) then
          
-         !MULT support removed untill we have a proper use case.
+         !MULT support removed until we have a proper use case.
 c$$$         if (lfirst) then
 c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
 c$$$            dynk_elemdata(ix,2) = ed(ix) !Bending strenght
@@ -19406,7 +19777,7 @@ c$$$         end if
          endif
          !Otherwise, i.e. when el=0, dki(:,1) = dki(:,2) = dki(:,3) = 0.0
 
-         !MULT support removed untill we have a proper use case.
+         !MULT support removed until we have a proper use case.
 c$$$         !All multipoles:
 c$$$         if(.not.lfirst) then
 c$$$            do i=1,iu
@@ -19515,7 +19886,7 @@ c$$$         endif
          crabph4(ix)=el(ix)
          el(ix)=0d0
       endif
-      
+
       return
 
       !Error handlers
@@ -20040,6 +20411,15 @@ C Should get me a NaN
 !     parse a line and split it into its fields
 !       fields are returned as 0-terminated and padded string
 !     always in main code
+! input:
+!  tmpline: usually line read in from fort.2 or fort.3. Values must be 
+!           separated by spaces
+! output:
+!  array of values with 
+!   getfields_fields(i):  (char) value of field
+!   getfields_lfields(i): (int) length of field
+!   getfields_nfields:    (int) number of fields
+!   getfields_lerr:       (logical)
 !-----------------------------------------------------------------------
 !
       implicit none
@@ -27395,6 +27775,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
+! +ca elensparam
       save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
@@ -27481,6 +27862,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca acdip1
 +ca crab1
 +ca crab_mult
++ca elens
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
@@ -29268,6 +29650,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca dbdcum
++ca elensparam
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -29299,7 +29683,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do 640, n=numlcr,nnuml
 +ei
 +if .not.cr
-      do 640 n=1,numl
+      do 640 n=1,numl !loop over turns
 +ei
 +if boinc
 !        call boinc_sixtrack_progress(n,numl)
@@ -29328,13 +29712,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
 
 
-        do 630 i=1,iu
+        do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements/blocks
 +if bnlelens
 +ca bnltwiss
 +ei
           ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
           ! as no dependency on ix in this case.
-          ix=ic(i)-nblo
+          ix=ic(i)-nblo ! ix = index of single element
 !Should this be inside "if ktrack .ne. 1"? (time/bpm)
 +if bpm
 +ca bpmdata
@@ -29347,15 +29731,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if time
 +ca timefct
 +ei
-          goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630, !10
-     &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210, !20
-     &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !30
-     &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370, !40
-     &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630, !50
-     &         745, 746, 751,  752, 753, 754),ktrack(i)
+          goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630, !1-10
+     &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210, !11-20
+     &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !21-30
+     &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370, !31-40
+     &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630, !41-50
+     &         745, 746, 751,  752, 753, 754, 630, 630, 630, 630, !51-60
+     &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
-   10     stracki=strack(i)
-          if(iexact.eq.0) then
+   10     stracki=strack(i) 
+          if(iexact.eq.0) then ! exact drift
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
               xv(2,j)=xv(2,j)+stracki*yv(2,j)
@@ -29366,7 +29751,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           goto 630
 !--HORIZONTAL DIPOLE
    30     do 40 j=1,napx
-+ca kickv01h
++ca kickv01h ! astuce block with kick for element
    40     continue
           goto 620
 !--NORMAL QUADRUPOLE
@@ -29697,11 +30082,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso1
          enddo
           goto 620
-
-
-!----------------------------
-
-! Wire.
+!--elens
+  761      continue
+         do j=1,napx
++ca kickelens
+         enddo
+          goto 620
+!--Wire
 
   748     continue
 +ca wire
@@ -29813,6 +30200,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca dbdcum
++ca elensparam
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -30567,11 +30956,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
 ! JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
-          goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
-     &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
-     &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752,753,754,755,758,756,759,757,  &
-     &760),ktrack(i)
+          goto( 10, 30,740,650,650,650,650,650,650,650,!1-10
+     &          50, 70, 90,110,130,150,170,190,210,230,!11-20
+     &         440,460,480,500,520,540,560,580,600,620,!21-30
+     &         640,410,250,270,290,310,330,350,370,390,!31-40
+     &         680,700,720,730,748,650,650,650,650,650,!41-50
+     &         745,746,751,752,753,754,755,758,756,759,!51-60
+     &         757,760,761),ktrack(i)
 +ei
 +if collimat
 !          if (myktrack .eq. 1) then !BLOCK of linear elements
@@ -30579,13 +30970,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !          else
 !             write(*,*) "Kick for element", i,ix,bez(ix),myktrack,kp(ix)
 !          endif
-          goto(10,  30, 740, 650, 650, 650, 650, 650, 650, 650, !10
-     &         50,  70,  90, 110, 130, 150, 170, 190, 210, 230, !20
-     &        440, 460, 480, 500, 520, 540, 560, 580, 600, 620, !30
-     &        640, 410, 250, 270, 290, 310, 330, 350, 370, 390, !40
-     &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !50
-     &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !60
-     &        757, 760 ),myktrack
+          goto(10,  30, 740, 650, 650, 650, 650, 650, 650, 650, !1-10
+     &         50,  70,  90, 110, 130, 150, 170, 190, 210, 230, !11-20
+     &        440, 460, 480, 500, 520, 540, 560, 580, 600, 620, !21-30
+     &        640, 410, 250, 270, 290, 310, 330, 350, 370, 390, !31-40
+     &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !41-50
+     &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !51-60
+     &        757, 760, 761 ),myktrack
           write (*,*) "WARNING: Non-handled element in thin6d()!",
      &                " i=", i, "ix=", ix, "myktrack=",  myktrack,
      &                " bez(ix)='", bez(ix),"' SKIPPED"
@@ -33037,6 +33428,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 640
+!--elens
+  761      continue
+         do j=1,napx
++ca kickelens
+         enddo
+         goto 640
 !----------------------------
 
 ! Wire.
@@ -33956,6 +34353,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca dbdcum
++ca elensparam
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -34042,10 +34441,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca timefct
 +ei
 !--------count44
-          goto(10,30,740,650,650,650,650,650,650,650,50,70,90,110,130,  &
-     &150,170,190,210,230,440,460,480,500,520,540,560,580,600,620,      &
-     &640,410,250,270,290,310,330,350,370,390,680,700,720,730,748,      &
-     &650,650,650,650,650,745,746,751,752,753,754),ktrack(i)
+          goto(10 ,30 ,740,650,650,650,650,650,650,650,!1-10
+     &         50 ,70 ,90 ,110,130,150,170,190,210,230,!11-20
+     &         440,460,480,500,520,540,560,580,600,620,!21-30
+     &         640,410,250,270,290,310,330,350,370,390,!31-40
+     &         680,700,720,730,748,650,650,650,650,650,!41-50
+     &         745,746,751,752,753,754,650,650,650,650,!51-60
+     &         650,650,761),ktrack(i)
           goto 650
    10     stracki=strack(i)
           if(iexact.eq.0) then
@@ -34453,6 +34855,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 640
+!--elens
+  761      continue
+         do j=1,napx
++ca kickelens
+         enddo
+         goto 640
 
 !----------------------------
 
@@ -35347,6 +35755,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
+!+ca elensparam
 +if collimat
 +ca database
 +ei
@@ -35448,6 +35857,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beama4o
 +ca beams24
 +ca wirektrack
++ca elens
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -35820,6 +36230,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
++ca elensparam
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -35912,10 +36324,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
 
 !----------count=43
-            goto(20,480,740,480,480,480,480,480,480,480,40,60,80,100,   &
-     &120,140,160,180,200,220,270,290,310,330,350,370,390,410,          &
-     &430,450,470,240,500,520,540,560,580,600,620,640,680,700,720,      &
-     &480,748,480,480,480,480,480,745,746,751,752,753,754),ktrack(i)
+            goto( 20,480,740,480,480,480,480,480,480,480,!1-10
+     &            40, 60, 80,100,120,140,160,180,200,220,!11-20
+     &           270,290,310,330,350,370,390,410,430,450,!21-30
+     &           470,240,500,520,540,560,580,600,620,640,!31-40
+     &           680,700,720,480,748,480,480,480,480,480,!41-50
+     &           745,746,751,752,753,754,480,480,480,480,!51-60
+     &           480,480,761),ktrack(i)
             goto 480
    20       do 30 j=1,napx
               puxve=xv(1,j)
@@ -36273,6 +36688,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso1
           enddo
           goto 470
+!--elens
+  761      continue
+         do j=1,napx
++ca kickelens
+         enddo
+         goto 470
 
 !----------------------------
 
@@ -36367,6 +36788,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
++ca elensparam
++ca elenstracktmp
       save
 +if debug
 !-----------------------------------------------------------------------
@@ -36487,10 +36910,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !----------count 44
 !----------count 54! Eric
-            goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
-     &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
-     &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753,754),ktrack(i)
+            goto( 20, 40,740,500,500,500,500,500,500,500,!1-10
+     &            60, 80,100,120,140,160,180,200,220,240,!11-20
+     &           290,310,330,350,370,390,410,430,450,470,!21-30
+     &           490,260,520,540,560,580,600,620,640,660,!31-40
+     &           680,700,720,730,748,500,500,500,500,500,!41-50
+     &           745,746,751,752,753,754,500,500,500,500,!51-60
+     &           500,500,761),ktrack(i)
             goto 500
    20       jmel=mel(ix)
 +if bnlelens
@@ -36942,6 +37368,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 490
+!--elens
+  761      continue
+         do j=1,napx
++ca kickelens
+         enddo
+         goto 490
 
 !----------------------------
 
@@ -37061,6 +37493,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
++ca elensparam
++ca elenstracktmp
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -37157,10 +37591,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
 
 !----------count 56
-            goto(20,40,740,500,500,500,500,500,500,500,60,80,100,120,   &
-     &140,160,180,200,220,240,290,310,330,350,370,390,410,430,          &
-     &450,470,490,260,520,540,560,580,600,620,640,660,680,700,720       &
-     &,730,748,500,500,500,500,500,745,746,751,752,753,754),ktrack(i)
+            goto( 20, 40,740,500,500,500,500,500,500,500,!1-10
+     &            60, 80,100,120,140,160,180,200,220,240,!11-20
+     &           290,310,330,350,370,390,410,430,450,470,!21-30
+     &           490,260,520,540,560,580,600,620,640,660,!31-40
+     &           680,700,720,730,748,500,500,500,500,500,!41-50
+     &           745,746,751,752,753,754,500,500,500,500,!51-60
+     &           500,500,761),ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do 30 jb=1,jmel
@@ -37570,6 +38007,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvso2
           enddo
           goto 490
+!--elens
+  761      continue
+         do j=1,napx
++ca kickelens
+         enddo
+         goto 490
 
 !----------------------------
 
@@ -39625,6 +40068,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
 +ca comdynkcr
 +ei
++ca elensparam
       save
 !-----------------------------------------------------------------------
 !
@@ -40164,6 +40608,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         dumpfilepos(i) = -1
 +ei
       enddo
+!--FMA ANALYSIS---------------------------------------------------------
+!     M. Fitterer, FNAL
+!     last modified: 2016
       fma_flag = .false.
       fma_numfiles = 0
       do i=1,fma_max
@@ -40174,7 +40621,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           fma_method(i)(j:j) = char(0)
         enddo
       enddo
-
+!--ELEN - ELECTRON LENS---------------------------------------------------------
+!     M. Fitterer, FNAL
+!     last modified: 2016
+!     elensparam - used for tracking (parameters of single element)
+      do i=1,nele
+        elens_type(i)          = 0
+        elens_theta_max(i)     = 0
+        elens_r2(i)            = 0
+        elens_r2ovr1(i)        = 0
+        elens_offset_x(i)      = 0
+        elens_offset_y(i)      = 0
+        elens_bend_entrance(i) = 0
+        elens_bend_exit(i)     = 0
+      enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 03-09-2014
@@ -43009,16 +43469,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       write(*,10000)
 +ei
-      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !10       &
-     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !20       &
-     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !30       &
-     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 , !40       &
-     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 , !50       &
-     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 , !60       &
-     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 , !70       &
-     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 , !80       &
-     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 , !90       &
-     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !100      &
+      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !1-10  
+     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !11-20 
+     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !21-30 
+     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 , !31-40 
+     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 , !41-50 
+     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 , !51-60 
+     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 , !61-70 
+     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 , !71-80 
+     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 , !81-90 
+     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !91-100
      &     1010,1020,1030,1040,1050),ier
       goto 1870
 +if cr
@@ -48765,9 +49225,9 @@ c$$$            endif
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
         if(kzz.lt.0) goto 370 !Skew
-        goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320, !10
-     &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500, !20
-     &       500, 500, 500, 325, 326, 500, 500, 500),kzz       !28
+        goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320, !1-10
+     &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500, !11-20
+     &       500, 500, 500, 325, 326, 500, 500, 500),kzz       !21-28
 
         ! Un-recognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
         nr=nr+1
@@ -62270,6 +62730,7 @@ c$$$            endif
 +ca flukavars
 !
 +ca database
++ca collMatNum
 !
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
@@ -62308,11 +62769,21 @@ c$$$            endif
          mat = 6
       elseif (c_material.eq.'C2') then
          mat = 7
-!02/2008 TW added vacuum and black absorber (was missing) 
-      elseif (c_material.eq.'VA') then
+      elseif (c_material.eq.'MoGR') then
+         mat = 8
+      elseif (c_material.eq.'CuCD') then
+         mat = 9
+      elseif (c_material.eq.'Mo') then
+         mat = 10
+      elseif (c_material.eq.'Glid') then
          mat = 11
-      elseif (c_material.eq.'BL') then
+      elseif (c_material.eq.'Iner') then
          mat = 12
+!02/2008 TW added vacuum and black absorber (was missing)
+      elseif (c_material.eq.'VA') then
+         mat = nmat-1
+      elseif (c_material.eq.'BL') then
+         mat = nmat
       else
 +if cr
          write(lout,*)
@@ -63132,6 +63603,16 @@ c$$$            endif
          mat = 6
       elseif (c_material.eq.'C2') then
          mat = 7
+      elseif (c_material.eq.'MoGR') then
+         mat = 8
+      elseif (c_material.eq.'CuCD') then
+         mat = 9
+      elseif (c_material.eq.'Mo') then
+         mat = 10
+      elseif (c_material.eq.'Glid') then
+         mat = 11
+      elseif (c_material.eq.'Iner') then
+         mat = 12
       else
 +if cr
          write(lout,*) 'ERR>  Material not found. STOP', c_material
@@ -65216,18 +65697,14 @@ c$$$     &           myalphay * cos(phiy))
 +ei
 +ca interac
       integer i
-! The last materials are 'vacuum' and 'black', see in sub. SCATIN
-! Number of real materials defined here:
-!
-!++ CHANGE THE NUMBER OF REAL MATERIALS FROM 5 to 7 (bug in JBJ'S ROUTINE?)
-!
-!      data irmat/5/
-!
-      data irmat/7/
+! Total number of materials are defined in nmat
+! Number of real materials are defined in nrmat
+! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
 !
 ! Reference data at pRef=450Gev
 !      data (mname(i),i=1,nrmat)/ 'Be' , 'Al' , 'Cu' , 'W'  , 'Pb' /
-      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2' /
+      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2',      &
+     & 'MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
 !
       data mname(nmat-1), mname(nmat)/'vacu','blac'/
 !GRD
@@ -65235,37 +65712,52 @@ c$$$     &           myalphay * cos(phiy))
 !GRD
 !      data (Anuc(i),i=1,nrmat)/ 9.01, 26.98, 63.55, 183.85, 207.19/
       data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
-      data (anuc(i),i=6,nrmat)/12.01d0,12.01d0/
+      data (anuc(i),i=6,7)/12.01d0,12.01d0/
+      data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
 !
 !GRD      data (Z(i),i=1,nrmat)/       4,    13,    29,     74,     82/
       data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
-      data (zatom(i),i=6,nrmat)/   6d0,      6d0/
+      data (zatom(i),i=6,7)/ 6d0, 6d0/
+      data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
+!
 !GRD      data (Rho(i),i=1,nrmat)/ 1.848,  2.70,  8.96,   19.3,  11.35/
       data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-      data (rho(i),i=6,nrmat)/ 1.67d0, 4.52d0/
+      data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
+      data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
+!
 !GRD      data (RadL(i),i=1,nrmat)/ 0.353, 0.089, 0.0143, 0.0035, 0.0056/
       data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-      data (radl(i),i=6,nrmat)/ 0.2557d0, 0.094d0/
+      data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
+      data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, &
+     & 0.00385d0/
       data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
+!
 !GRD      data (EMR(i),i=1,nrmat)/  0.22, 0.302, 0.366,    0.0,  0.542/
 !MAY06-GRD value for Tungsten (W) not stated
 !      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.0d0, 0.542d0/
       data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
 !MAY06-GRD end of changes
-      data (emr(i),i=6,nrmat)/  0.25d0, 0.25d0/
+      data (emr(i),i=6,7)/  0.25d0, 0.25d0/
+      data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0,       &
+     & 0.578d0/
+!
 !GRD      data tLcut,(Hcut(i),i=1,nrmat)/0.9982e-3,0.02,0.02,3*0.01/
       data tlcut / 0.0009982d0/
       data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
-      data (hcut(i),i=6,nrmat)/0.02d0, 0.02d0/
+      data (hcut(i),i=6,7)/0.02d0, 0.02d0/
+      data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
+!
 !      data (dpodx(i),i=1,nrmat)/ nrmat*0.d0 /
 !GRD      data (dpodx(i),i=1,nrmat)/ .55, .81, 2.69, 5.79, 3.4 /
       data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
-      data (dpodx(i),i=6,nrmat)/ .75d0, 1.5d0 /
+      data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
 !October 2013
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
       data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-      data (exenergy(i),i=6,nrmat)/ 78e-9, 78.0e-9 /
-
+      data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
+      data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
+     & 682.2e-9/
+ 
 !
 ! All cross-sections are in barns,nuclear values from RPP at 20geV
 ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
@@ -65274,7 +65766,7 @@ c$$$     &           myalphay * cos(phiy))
 ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
 ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
 !
-
+ 
 ! Claudia 2013: updated cross section values. Unit: Barn. Old:
 !      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0, 0.0035d-2/
 !      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0, 0.034d-2/
@@ -65287,11 +65779,15 @@ c$$$     &           myalphay * cos(phiy))
       data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
       data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
       data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
-      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0 , 0.768d-2/
-      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0 , 0.907d-2/
+      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
+      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
       data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
       data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
-
+      data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
+      data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
+      data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
+      data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
+      data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
 !
 ! pp cross-sections and parameters for energy dependence
       data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
@@ -65302,7 +65798,9 @@ c$$$     &           myalphay * cos(phiy))
 !      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,0.0d0,455.3d0/
       data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
 !MAY06-GRD end of changes
-      data (bnref(i),i=6,nrmat)/70.d0, 70.d0/
+      data (bnref(i),i=6,7)/70.d0, 70.d0/
+      data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0,      &
+     & 392.1d0/
 !GRD LAST 2 ONES INTERPOLATED
 !
 ! Cprob to choose an interaction in iChoix
@@ -65373,7 +65871,7 @@ c$$$     &           myalphay * cos(phiy))
 !
 !hr09 tlow=tlcut
       tlow=real(tlcut)                                                   !hr09
-      do 100 ma=1,irmat
+      do 100 ma=1,nrmat
         mcurr=ma
 ! prepare for Rutherford differential distribution
 !hr09   thigh=hcut(ma)
@@ -66035,12 +66533,12 @@ c$$$     &           myalphay * cos(phiy))
 
       function get_dpodx(p,mat_i)          !Claudia
       implicit none
-      integer nrmat,nmat,mat,irmat
-      parameter(nmat=12,nrmat=7)
+      integer mat
++ca collMatNum
       common/materia/mat
       double precision anuc,zatom,rho,emr,exenergy
       double precision PE,me,mp,K,gamma_p
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/meanexen/exenergy(nmat)
       double precision beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,   &
      &I_s,delta
@@ -66089,8 +66587,8 @@ C.**************************************************************************
 ! EnLo energy loss in GeV/meter
 
       IMPLICIT none
-      integer IS,irmat,nmat
-      parameter(nmat=12)
+      integer IS
++ca collMatNum
       double precision PC,DZ,EnLo,exenergy,exEn
       double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
       double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
@@ -66103,7 +66601,7 @@ C.**************************************************************************
 
       common/meanexen/exenergy(nmat)
 
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat),irmat
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 !      common/betheBl/enr,mom,gammar,betar,bgr,exEn,Tmax,plen
 
       data k/0.307075/      !constant in front bethe-bloch [MeV g^-1 cm^2]
