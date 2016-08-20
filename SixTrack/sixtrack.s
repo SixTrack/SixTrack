@@ -25928,7 +25928,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei ! END +if .not.nagfor
 
 +if .not.stf
-      do 70 i=1,ndafi
+      do 70 i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 +if .not.cr
          call postpr(91-i)
 +ei
@@ -25941,9 +25941,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
  70      continue
 +ei ! END +if .not.stf
 +if stf
-!--   In Postpr subroutine
+!--   ndafi normally set in fort.3 to be "number of files to postprocess"
+!--   In Postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
-!--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2,
+!--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
+!
+!     KNS 20/8/2016:
+!     I have some doubts about this code -- maybe for remove it for STF,
+!     i.e. comment out and stop with  error message if encountered.
+!     Same goes for the code in maincr at label 490;
+!     both dealing with postprocessing in case of no run.
       if(ntwin.eq.2) then
          do 70 i=1,(2*ndafi),2
 +if .not.cr
@@ -27418,6 +27425,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           id=ig
         endif
   470 continue
+
+! POSTPROCESSING (POSTPR)
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -27427,8 +27437,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 ! and we need to open fort.10 unless already opened
 ! for BOINC AND BNLELENS
-
-
 +if nagfor
 +if boinc
 +if .not.bnlelens
@@ -27473,26 +27481,28 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei
 +ei
+
 +if .not.stf
         iposc=0
-        if(ipos.eq.1) then
+        if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
           do 480 ia=1,napxo,2
             ia2=(ia+1)/2
             iposc=iposc+1
 +if .not.cr
-          call postpr(91-ia2)
+            call postpr(91-ia2) !Postprocess file "fort.(91-ia2)"
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(91-ia2,nnuml)
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(91-ia2,nnuml)
 +ei
   480     continue
           if(iposc.ge.1) call sumpos
-        endif
-        goto 520
-  490   if(ipos.eq.1) then
+        endif !END if(ipos.eq.1)
+        goto 520 !Done postprocessing
+        
+  490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
           ndafi2=ndafi
           do 500 ia=1,ndafi2
             if(ia.gt.ndafi) goto 510
@@ -27508,16 +27518,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   500     continue
   510     if(ndafi.ge.1) call sumpos
         endif
-  520 continue
-+ei
++ei !END +if .not.stf
 +if stf
         iposc=0
-        if(ipos.eq.1) then
+        if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
 	  if(ntwin.eq.2) then
             do 480 ia=1,napxo,2
               iposc=iposc+1
 +if .not.cr
-              call postpr(ia)
+              call postpr(ia) !Postprocess particle ia and ia+1
 +ei
 +if cr
               write(93,*) 'Calling POSTPR nnuml=',nnuml
@@ -27530,7 +27539,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             do 481 ia=1,napxo
               iposc=iposc+1
 +if .not.cr
-              call postpr(ia)
+              call postpr(ia) !Postprocess particle ia
 +ei
 +if cr
               write(93,*) 'Calling POSTPR nnuml=',nnuml
@@ -27539,11 +27548,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               call postpr(ia,nnuml)
 +ei
   481       continue
-	  endif
+          else
++if cr
+             write(lout,*) "ERROR with postprocessing (STF)"
+             write(lout,*) "expected ntwin=1 or 2, got", ntwin
+             call prror(-1)
++ei
++if .not.cr
+             write(*,*)    "ERROR with postprocessing (STF)"
+             write(*,*)    "expected ntwin=1 or 2, got", ntwin
+             call prror(-1)
++ei
+          endif
           if(iposc.ge.1) call sumpos
         endif
-        goto 520
-  490   if(ipos.eq.1) then
+        goto 520 !Done postprocessing
+        
+  490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
           ndafi2=ndafi
 	  if(ntwin.eq.2) then
           do 500 ia=1,(2*ndafi2),2
@@ -27574,8 +27595,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 	endif
   510     if(ndafi.ge.1) call sumpos
         endif
-  520 continue
-+ei
++ei !END +if stf
+
+ 520  continue !Finished postprocessing (POST in fort.3)
+      
 !     start fma
       if(fma_flag) then
 +if cr
@@ -56917,7 +56940,7 @@ c$$$            endif
 !  POST PROCESSING
 !
 !  NFILE   :  FILE UNIT
-!  POSI    :  PARTICLE NUMBER ( first paricle iff pair)
+!  POSI    :  PARTICLE NUMBER ( first particle iff pair)
 !	
 !-----------------------------------------------------------------------
       implicit none
