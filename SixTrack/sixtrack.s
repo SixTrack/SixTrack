@@ -9015,7 +9015,8 @@ cc2008
 +ei
 +ei !END of +if .not.boinc
 
-! No non-boinc alternative fort fort.4?
+! Why no non-boinc version of fort fort.4?
+! "Geometry and strength Parameters (format as file #2)"
 +if boinc
       call boincrf('fort.4',filename)
       open(4,file=filename,form='formatted',status='unknown')
@@ -9518,7 +9519,8 @@ cc2008
 +ei
 +ei
 
-! No non-BOINC version of fort.32?
+! Why no non-BOINC version of fort.32?
+! "Binary dump of full accelerator description"
 +if boinc
       call boincrf('fort.32',filename)
       open(32,file=filename,status='unknown',form='unformatted')
@@ -10219,7 +10221,7 @@ cc2008
       close(34,err=34)
  34    continue
       close(35,err=35)
- 35   continue
+ 35    continue
 +if .not.stf
       close(59,err=59)
  59    continue
@@ -26830,7 +26832,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !GRDRHIC
 !GRD-042008
-+ei
++ei !END +if bnlelens
+
+!     Write header of track output file(s) used by postprocessing
+!     for case ntwin.ne.2
 +if cr
           if (.not.restart) then
 +ei
@@ -26859,7 +26864,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
++ei ! END +if .not.stf
 +if stf
           write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
      &ia,ia,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),clo6v     &
@@ -26885,8 +26890,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
-        else
++ei ! END +if stf
+        else !ELSE for "if(ntwin.ne.2)"
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -26906,7 +26911,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !GRDRHIC
 !GRD-042008
-+ei
++ei !END +if bnlelens
+
+!     Write header of track output file(s) used by postprocessing
+!     for case ntwin.eq.2
+
 +if cr
           if (.not.restart) then
 +ei
@@ -26935,7 +26944,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
++ei ! END +if .not.stf
 +if stf
           write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
      &ia,ia+1,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),        &
@@ -26961,7 +26970,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
++ei ! END +if stf
         endif
         if(ierro.ne.0) then
 +if cr
