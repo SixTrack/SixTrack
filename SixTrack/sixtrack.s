@@ -35086,11 +35086,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         do 10 ia=1,napx-1
 !GRD
-          if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
-     &(mod(nlostp(ia),2).ne.0)) then
-            ia2=(nlostp(ia)+1)/2
-            ie=ia+1
-            if(ntwin.ne.2) then
+!     PSTOP=true -> particle lost,
+!     nlostp(ia)=particle ID that is not changing
+!     (the particle arrays are compressed to remove lost particles)
+!     In the case of no lost particles, all nlostp(i)=i for 1..npart
+           if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
+     &(mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
+            ia2=(nlostp(ia)+1)/2     !File ID for non-STF & binrecs
+            ie=ia+1                  !ia = Particle ID 1, ie = Particle ID 2
+            if(ntwin.ne.2) then !Write particle nlostp(ia) only
 +if .not.stf
               write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
@@ -35106,9 +35110,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1
+              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF
 +ei
-            else
+            else !Write particle nlostp(ia) and nlostp(ia)+1
 +if .not.stf
               write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
@@ -35128,7 +35132,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1
+              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF
 +ei
             endif
             if(ierro.ne.0) then
@@ -35173,7 +35177,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      endif
+      endif ! END "if (lhc.ne.9)"
 !GRDRHIC
 !GRD-042008
 +ei
