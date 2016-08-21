@@ -25966,40 +25966,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei ! END +if .not.stf
 +if stf
 !--   ndafi normally set in fort.3 to be "number of files to postprocess"
-!--   In Postpr subroutine ndafi is modified as:
+!--   Inside the postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
 !--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
-!
-!     KNS 20/8/2016:
-!     I have some doubts about this code -- maybe for remove it for STF,
-!     i.e. comment out and stop with  error message if encountered.
-!     Same goes for the code in maincr at label 490;
-!     both dealing with postprocessing in case of no run.
-      if(ntwin.eq.2) then
-         do 70 i=1,(2*ndafi),2
+      do 70 i=1,(2*ndafi),2
 +if .not.cr
-            call postpr(i)
+         call postpr(i)
 +ei
 +if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(i,nnuml)
+         write(93,*) 'Calling POSTPR nnuml=',nnuml
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
+         call postpr(i,nnuml)
 +ei
  70      continue
-      else if(ntwin.eq.1) then
-         do 71 i=1,ndafi
-+if .not.cr
-            call postpr(i)
-+ei
-+if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(i,nnuml)
-+ei
- 71      continue
-         endif
 +ei ! END +if stf
 
       call sumpos
@@ -27531,13 +27511,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do 500 ia=1,ndafi2
             if(ia.gt.ndafi) goto 510
 +if .not.cr
-          call postpr(91-ia)
+            call postpr(91-ia)
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(91-ia,nnuml)
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(91-ia,nnuml)
 +ei
   500     continue
   510     if(ndafi.ge.1) call sumpos
@@ -27546,11 +27526,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if stf
         iposc=0
         if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
-	  if(ntwin.eq.2) then
-            do 480 ia=1,napxo,2
+           do 480 ia=1,napxo,2
               iposc=iposc+1
 +if .not.cr
-              call postpr(ia) !Postprocess particle ia and ia+1
+              call postpr(ia) !Postprocess particle ia (and ia+1 if ntwin=2)
 +ei
 +if cr
               write(93,*) 'Calling POSTPR nnuml=',nnuml
@@ -27558,39 +27537,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (93,iostat=ierro)
               call postpr(ia,nnuml)
 +ei
-  480       continue
-	  else if(ntwin.eq.1) then
-            do 481 ia=1,napxo
-              iposc=iposc+1
-+if .not.cr
-              call postpr(ia) !Postprocess particle ia
-+ei
-+if cr
-              write(93,*) 'Calling POSTPR nnuml=',nnuml
-              endfile (93,iostat=ierro)
-              backspace (93,iostat=ierro)
-              call postpr(ia,nnuml)
-+ei
-  481       continue
-          else
-+if cr
-             write(lout,*) "ERROR with postprocessing (STF)"
-             write(lout,*) "expected ntwin=1 or 2, got", ntwin
-             call prror(-1)
-+ei
-+if .not.cr
-             write(*,*)    "ERROR with postprocessing (STF)"
-             write(*,*)    "expected ntwin=1 or 2, got", ntwin
-             call prror(-1)
-+ei
-          endif
+  480      continue
           if(iposc.ge.1) call sumpos
         endif
         goto 520 !Done postprocessing
         
   490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
           ndafi2=ndafi
-	  if(ntwin.eq.2) then
           do 500 ia=1,(2*ndafi2),2
             if(ia.gt.ndafi) goto 510
 +if .not.cr
@@ -27603,20 +27556,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call postpr(ia,nnuml)
 +ei
   500     continue
-	else if(ntwin.eq.1) then
-	  do 501 ia=1,ndafi2
-            if(ia.gt.ndafi) goto 510
-+if .not.cr
-            call postpr(ia)
-+ei
-+if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(ia,nnuml)
-+ei
-  501     continue
-	endif
   510     if(ndafi.ge.1) call sumpos
         endif
 +ei !END +if stf
@@ -35134,7 +35073,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF
+              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF?
 +ei
             else !Write particle nlostp(ia) and nlostp(ia)+1
                  ! Note that dam(ia) (distance in angular phase space)
@@ -35158,7 +35097,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF
+              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF?
 +ei
             endif
             if(ierro.ne.0) then
@@ -56969,8 +56908,9 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  POST PROCESSING
 !
-!  NFILE   :  FILE UNIT (non-STF) -- fixed to 90 for STF version.
-!  POSI    :  PARTICLE NUMBER (first particle if ntwin=2, i.e. it is a  pair).
+!  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
+!  POSI    :  PARTICLE NUMBER
+!             (the first particle in pair if ntwin=2, i.e. it is a  pair).
 !  NNUML   :  ??
 !-----------------------------------------------------------------------
       implicit none
@@ -56999,7 +56939,7 @@ c$$$            endif
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
 +if stf
-      integer posi,ih,posi1
+      integer posi,posi1
 +ei
       real tim1,tim2,fxs,fzs
       double precision const,dle,slope,tle,varlea,wgh
@@ -57262,14 +57202,11 @@ c$$$            endif
       if(icode.eq.7) idam=3
       if(ilapa.ne.ifipa) then !Is first particle != Last particle?
 	ntwin=2               !(ntwin=1 is the default in postpr)
-!--binrecs is indexed as 1,2,3 (91-nfile), while posi values are
-!--called as 1,3,5 when pairwise written, so 
-!--   using posi1 for crbinrecs index later
-! TODO: Evaluate the way binrecs is written
-	posi1=(posi+1)/2
-      else
-	 posi1=posi
+!--   binrecs is indexed as 1,2,3,... (=i.e.(91-nfile) in the non-STF version,
+!--   while posi values are called as 1,3,5, so using posi1 for crbinrecs index later
+! TODO: Evaluate the way binrecs is written?
       endif
+      posi1 = (posi+1)/2 !For both ntwin=1 and 2
 +ei ! END +if stf
 
 +if .not.stf
@@ -57280,7 +57217,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
@@ -57290,62 +57227,69 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
-!hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
- 600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
 +ei !END +if .not.stf
 +if stf
 !--PREVENT FAULTY POST-PROCESSING
+      !--bypass headers
       rewind nfile
-      if(ntwin.eq.2) then
-        do i=1,itopa,2     !--bypass headers
-          read(nfile)
-        enddo
-	do i=1,posi,2
-	  read(nfile,end=530,iostat=ierro) iaa    !--read first track data for particle at posi
-	enddo
-      else if(ntwin.eq.1) then
-        do i=1,itopa
-          read(nfile)
-        enddo
-	do i=1,posi
-	  read(nfile,end=530,iostat=ierro) iaa
-	enddo
-      endif
+      do i=1,itopa,2
+         read(nfile)
+      enddo
+       !--read first track data for particle at posi
+      do i=1,posi,2
+         read(nfile,end=530,iostat=ierro) iaa, j
+      enddo
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
-      if(ntwin.eq.2) then
-        do i=2,itopa,2     !--bypass records till 2nd run of same particle is reached
-          read(nfile)
-        enddo
-      else if(ntwin.eq.1) then
-        do i=2,itopa
-          read(nfile)
-        enddo
+      if (j.ne.posi) then
++if cr
+         write(lout,*) "ERROR in postprocessing:",
++ei
++if .not.cr
+         write(*,*)    "ERROR in postprocessing:",
++ei
+     &"First entry for particle",posi,"not found."
+         call prror(-1)
       endif
-      read(nfile,end=535,iostat=ierro) iab
+      !--bypass records till 2nd run of same particle is reached
+      do i=2,itopa,2
+         read(nfile)
+      enddo
+      read(nfile,end=535,iostat=ierro) iab, j
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
+      if (j.ne.posi) then
++if cr
+         write(lout,*) "ERROR in postprocessing:",
++ei
++if .not.cr
+         write(*,*)    "ERROR in postprocessing:",
++ei
+     &"Second entry for particle",posi,"not found."
+         call prror(-1)
+      endif
++ei !END +if stf
 !hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
  600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
-+ei !END +if stf
+
       rewind nfile
 
 !-- Bypassing header to read tracking data later
@@ -57353,18 +57297,9 @@ c$$$            endif
       read(nfile)
 +ei
 +if stf
-!     TODO: Check with writebin and fix:
-!     If ntwin=1, the particle records are half as long,
-!     but there should be the same ammount of them?
-      if(ntwin.eq.2) then
-        do i=1,itopa,2
-          read(nfile)
-        enddo
-      else if(ntwin.eq.1) then
-	do i=1,itopa
-	  read(nfile)
-	enddo
-      endif
+      do i=1,itopa,2
+         read(nfile) !One header per particle pair.
+      enddo
 +ei !END +if stf
 !hr06 sumda(5)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       sumda(5)=ta(1,1)**2+ta(1,2)**2                                     !hr06
@@ -57737,12 +57672,12 @@ c$$$            endif
       tasum=tasum-two
       if(abs(tasum).ge.pieni) its6d=1
       call dinv(6,t,6,idummy,nerror)
-      if(nerror.eq.-1) then  !TODO: Using the file number makes no sense in STF case
+      if(nerror.eq.-1) then  !TODO: Using the file number makes no sense in STF case (seen in multiple places)
 +if cr
         write(lout,10290) nfile
 +ei
 +if .not.cr
-        write(*,10290) nfile
+        write(*,10290)    nfile
 +ei
         goto 550
       endif
@@ -57766,7 +57701,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
@@ -57821,8 +57756,9 @@ c$$$            endif
       if(b.lt.b0.or.abs(b0).le.pieni) b0=b
       goto 190
   200 if(ia.le.0) goto 530
+      
       rewind nfile
-
+      
 !----------------------------------------------------------------------
 !--GET FIRST DATA POINT AS A REFERENCE
 !----------------------------------------------------------------------
@@ -57831,15 +57767,9 @@ c$$$            endif
       read(nfile,iostat=ierro)
 +ei
 +if stf
-      if(ntwin.eq.2) then
-        do i=1,itopa,2
-          read(nfile,iostat=ierro)
-        enddo
-      else if(ntwin.eq.1) then
-	do i=1,itopa
-	  read(nfile,iostat=ierro)
-	enddo
-      endif
+      do i=1,itopa,2
+         read(nfile,iostat=ierro)
+      enddo
 +ei
       if(ierro.gt.0) then
 +if cr
@@ -57847,7 +57777,7 @@ c$$$            endif
         goto 551
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
         goto 550
 +ei
       endif
@@ -57860,12 +57790,13 @@ c$$$            endif
 +if stf
       crbinrecs(posi1)=1
 +ei
-+ei
-  210 ifipa=0
-      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p
-      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei ! END +if cr
+
+ 210  ifipa=0
+      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
+     &     ia,ifipa,b,c,d,e,f,g,h,p
+      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
+     &     ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
 +if stf
       !Skip "wrong" particles
       if(ifipa.ne.posi) then
@@ -57877,7 +57808,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
@@ -58205,7 +58136,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
@@ -58456,7 +58387,7 @@ c$$$            endif
               write(lout,10310) nfile
 +ei
 +if .not.cr
-              write(*,10310) nfile
+              write(*,10310)    nfile
 +ei
               wgh(i2)=zero
             endif
@@ -58629,33 +58560,29 @@ c$$$            endif
 
 !--SMEAR CALCULATION AND 4D-SMEAR
       rewind nfile
+      !Skip headers
 +if .not.stf
       read(nfile,iostat=ierro)
 +ei
 +if stf
-      if(ntwin.eq.2) then
-        do i=1,itopa,2
-          read(nfile,iostat=ierro)
-        enddo
-      else if(ntwin.eq.1) then
-	do i=1,itopa
-	  read(nfile,iostat=ierro)
-	enddo
-      endif
+      do i=1,itopa,2
+         read(nfile,iostat=ierro)
+      enddo
 +ei
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
       iskc=-1
       do 340 i=1,i11*iskip+nstart
         ifipa=0
- 315    read(nfile,end=350,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p !Read 1st particle only
+        ! Read 1st particle only
+ 315    read(nfile,end=350,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
 +if stf
 	if(ifipa.ne.posi) then
 	  goto 315
@@ -58666,19 +58593,32 @@ c$$$            endif
           write(lout,10320) nfile
 +ei
 +if .not.cr
-          write(*,10320) nfile
+          write(*,10320)    nfile
 +ei
           goto 550
         endif
         if(ifipa.lt.1) goto 340
-        if(progrm.eq.'MAD') then !non-stf only
+        if(progrm.eq.'MAD') then
++if .not.stf
           c=c*c1e3
           d=d*c1e3
           e=e*c1e3
           f=f*c1e3
           g=g*c1e3
           p=p*c1e3
-        endif
++ei
++if stf
++if cr
+          write(lout,*)
++ei
++if .not.cr
+          write(*,*)
++ei
+     &         "ERROR in postpr: program=MAD not valid for STF."
+          call prror(-1)
++ei
+        endif !END if(program.eq.'MAD')
+
         iskc=iskc+1
         if(mod(iskc,iskip).ne.0) goto 340
         if((ia-nstart).lt.0) goto 340
@@ -59349,8 +59289,7 @@ c$$$            endif
           rewind nfile
           !Skip headers
 +if stf
-!--i is used in outer loop, so ih in this loop -- Why not j?
-          do ih=1,itopa,2 !TODO: ntwin.eq.1
+          do j=1,itopa,2 !TODO: ntwin.eq.1
 +ei
           read(nfile,iostat=ierro)
 +if stf
@@ -59385,7 +59324,7 @@ c$$$            endif
               write(lout,10320) nfile
 +ei
 +if .not.cr
-              write(*,10320) nfile
+              write(*,10320)    nfile
 +ei
               goto 550
             endif
@@ -59394,6 +59333,7 @@ c$$$            endif
             if(mod(iskc,iskip).ne.0) goto 460
             if((ia-nstart).lt.0) goto 460
             if(progrm.eq.'MAD') then !NON-STF only
++if .not.stf
               c=c*c1e3
               d=d*c1e3
               e=e*c1e3
@@ -59408,6 +59348,17 @@ c$$$            endif
                 g1=g1*c1e3
                 p1=p1*c1e3
               endif
++ei
++if stf
++if cr
+        write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
++ei
++if .not.cr
+        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
++ei
+        call prror(-1)
++ei
+
             endif
 !--LYAPUNOV
             if(ntwin.eq.2) then
