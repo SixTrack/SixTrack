@@ -57254,19 +57254,18 @@ c$$$            endif
       endif
       if (j.ne.posi) then
 +if cr
-         write(lout,*) "ERROR in postprocessing:",
+         write(lout,*) "ERROR in postprocessing: ",
 +ei
 +if .not.cr
-         write(*,*)    "ERROR in postprocessing:",
+         write(*,*)    "ERROR in postprocessing: ",
 +ei
-     &"First entry for particle",posi,"not found."
+     &"First entry for particle",posi,"not found. Got:",j
          call prror(-1)
       endif
       !--bypass records till 2nd run of same particle is reached
       do i=2,itopa,2
-         read(nfile)
+         read(nfile,end=535,iostat=ierro) iab, j
       enddo
-      read(nfile,end=535,iostat=ierro) iab, j
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
@@ -57278,12 +57277,12 @@ c$$$            endif
       endif
       if (j.ne.posi) then
 +if cr
-         write(lout,*) "ERROR in postprocessing:",
+         write(lout,*) "ERROR in postprocessing: ",
 +ei
 +if .not.cr
-         write(*,*)    "ERROR in postprocessing:",
+         write(*,*)    "ERROR in postprocessing: ",
 +ei
-     &"Second entry for particle",posi,"not found."
+     &"Second entry for particle",posi,"not found. Got:",j
          call prror(-1)
       endif
 +ei !END +if stf
