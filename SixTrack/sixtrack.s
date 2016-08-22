@@ -56939,7 +56939,9 @@ c$$$            endif
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
 +if stf
-      integer posi,posi1
+      integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
+      double precision b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
 +ei
       real tim1,tim2,fxs,fzs
       double precision const,dle,slope,tle,varlea,wgh
@@ -57684,15 +57686,43 @@ c$$$            endif
 !--FIND MINIMUM VALUE OF THE DISTANCE IN PHASESPACE
 !----------------------------------------------------------------------
   190 ifipa=0
++if .not.stf
       if(ntwin.eq.1) read(nfile,end=200,iostat=ierro)
      &     ia,ifipa,b,c,d,e,f,g,h,p
       if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
      &     ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei
 +if stf
 !STF case: read tracking data until one reaches right particle.
-! TODO: Protect against error case where this never happens.
-      if(ifipa.ne.posi) then
+      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+      if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+!TODO: Protect against error case where this never happens.
+      if(ifipa_stf.ne.posi) then
 	goto 190
+      endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
       endif
 +ei
       if(ierro.gt.0) then
@@ -57792,14 +57822,43 @@ c$$$            endif
 +ei ! END +if cr
 
  210  ifipa=0
++if .not.stf
       if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
      &     ia,ifipa,b,c,d,e,f,g,h,p
       if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
      &     ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei
 +if stf
-      !Skip "wrong" particles
-      if(ifipa.ne.posi) then
-	goto 210
+!     STF case: read tracking data until one reaches right particle.
+      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+!     TODO: Protect against error case where this never happens.
+      if(ifipa_stf.ne.posi) then
+         goto 210
+      endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
       endif
 +ei
       if(ierro.gt.0) then
@@ -58119,15 +58178,43 @@ c$$$            endif
 !----------------------------------------------------------------------
       iskc=0
   240 ifipa=0
++if .not.stf
       if(ntwin.eq.1) read(nfile,end=270,iostat=ierro)
      &ia,ifipa,b,c,d,e,f,g,h,p
       if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
      &ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei
 +if stf
 !     STF case: read tracking data until one reaches right particle.
+      if(ntwin.eq.1) read(nfile,end=270,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+      if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
 !     TODO: Protect against error case where this never happens.
-      if(ifipa.ne.posi) then
-	goto 240
+      if(ifipa_stf.ne.posi) then
+         goto 240
+      endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
       endif
 +ei
       if(ierro.gt.0) then
@@ -58430,6 +58517,7 @@ c$$$            endif
       h0=h
       goto 240
   270 if(i2.lt.1) i2=1
+
 +if cr
 !--Now check that we have correct number of binrecs
 !--We can do this only if we know binrecs (NOT post-processing only)
@@ -58581,11 +58669,27 @@ c$$$            endif
       do 340 i=1,i11*iskip+nstart
         ifipa=0
         ! Read 1st particle only
++if .not.stf
  315    read(nfile,end=350,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
++ei
 +if stf
-	if(ifipa.ne.posi) then
+!     STF case: read tracking data until one reaches right particle.
+ 315  read(nfile,end=350,iostat=ierro)
+     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+        if(ifipa_stf.ne.posi) then
 	  goto 315
 	endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+        ia=ia_stf
+        ifipa=ifipa_stf
+        b=b_stf
+        c=c_stf
+        d=d_stf
+        e=e_stf
+        f=f_stf
+        g=g_stf
+        h=h_stf
+        p=p_stf
 +ei
         if(ierro.gt.0) then
 +if cr
@@ -59288,7 +59392,7 @@ c$$$            endif
           rewind nfile
           !Skip headers
 +if stf
-          do j=1,itopa,2 !TODO: ntwin.eq.1
+          do j=1,itopa,2
 +ei
           read(nfile,iostat=ierro)
 +if stf
@@ -59307,16 +59411,44 @@ c$$$            endif
           iskc=-1
           do 460 j=1,i11*iskip+nstart
  435        ifipa=0
++if .not.stf
             if(ntwin.eq.1) read(nfile,end=470,iostat=ierro)
      &           ia,ifipa,b,c,d,e,f,g,h,p
             if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
      &           ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei
 +if stf
-!STF case: read tracking data until one reaches right particle.
-! TODO: Protect against error case where this never happens.
-	    if(ifipa.ne.posi) then
+!     STF case: read tracking data until one reaches right particle.
+            if(ntwin.eq.1) read(nfile,end=470,iostat=ierro)
+     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+            if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
+     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+!     TODO: Protect against error case where this never happens.
+	    if(ifipa_stf.ne.posi) then
 	      goto 435
 	    endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
+      endif
 +ei
             if(ierro.gt.0) then
 +if cr
