@@ -9328,7 +9328,7 @@ cc2008
 +if .not.fio
       open(22,file=filename,form='formatted',status='unknown')
 +ei
-+ei!END of +if boinc
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(22,file='fort.22',form='formatted',status='unknown',         &
@@ -25625,8 +25625,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   609 open(91,file='fort.91',form='formatted',status='unknown')
 +ei
 +ei
-! END of Main start for Checkpoint/Restart
-+ei
++ei ! END +if cr -- END of Main start for Checkpoint/Restart
+
 +if debug
                    !call system('../crmain  >> crlog')
 +ei
