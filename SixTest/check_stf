@@ -66,11 +66,12 @@ do
           then
               mkdir -p tmp$$
               cd tmp$$
+	      #echo `pwd`
               cp ../$i/singletrackfile.dat.$prov fort.190
-              $BIN/read90 > fort.20 
+              $BIN/read90 --STF > singletrackfile.dat.$prov.txt
               cp ../$i/singletrackfile.dat.$v fort.190
-              $BIN/read90 > fort.21 
-              diff fort.20 fort.21
+              $BIN/read90 --STF > singletrackfile.dat.$v.txt
+              diff singletrackfile.dat.$prov.txt singletrackfile.dat.$v.txt
               stat=$?
               if test $stat -eq 0
               then
