@@ -86,12 +86,37 @@
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
+
+      INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
+      CHARACTER(len=32) :: cmdarg_arg
+      logical STF
 !----------------------------------------------------------------------
+
+      !Use the new STF format?
+      STF = .false.
+      cmdarg_i = 0
+      do 
+         call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+         if (len_trim(cmdarg_arg)==0) EXIT
+
+         if (cmdarg_i.gt.0) then
+            if (cmdarg_arg .eq. "--STF") then
+               STF=.true.
+            else
+               write(*,*) "USAGE: read90 (--STF)"
+               stop 1
+            end if
+         end if
+         !write (*,*) cmdarg_i, cmdarg_arg
+         cmdarg_i = cmdarg_i+1
+      end do
+      
 !--open fort.190
       nfile=190
       n=0
       open(nfile,file='fort.190',form='UNFORMATTED',status='OLD')
-      read(nfile,end=511,err=520) sixtit,commen,cdate,ctime,       &
+      
+100   read(nfile,end=511,err=520) sixtit,commen,cdate,ctime,       &
      &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
      &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
      &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
@@ -100,12 +125,12 @@
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
      &dnumlr,sigcor,dpscor
-      write (*,*) 'Read header'
+      write (*,*) 'Read header, record=', n
       ntwin=1
       if(ilapa.ne.ifipa) ntwin=2
       write (*,*) 'Header ntwin ',ntwin,ifipa,ilapa
       ifipa=0
-      n=n+1
+      n=n+1 !Increase record number
       write(*,*) sixtit
       write(*,*) commen
       write (*,*) progrm,itopa,icode,numl
@@ -153,7 +178,13 @@
       write(*,*) ch1
       errno=dtostr(dpscor,ch1)
       write(*,*) ch1
-  210 if(ntwin.eq.1) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
+
+      if (STF) then
+         if (ilapa .lt. itopa) goto 100
+      endif
+
+      !Code for reading the first particle pair
+210   if(ntwin.eq.1) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
@@ -163,7 +194,7 @@
 !--KEEP THE FIRST TURN NUMBER : IA0
       ia0=ia
       goto 212
-  211 continue
+  211 continue !Code for reading further pairs/turns
       if(ntwin.eq.1) read(nfile,end=540,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=540,err=510) ia,ifipa,b,c,d,e, &
