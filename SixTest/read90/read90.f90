@@ -87,23 +87,76 @@
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
 
+      integer :: stat
+      
       INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
-      CHARACTER(len=32) :: cmdarg_arg
+      CHARACTER(len=100) :: cmdarg_arg
       logical STF
+      integer singleParticle
+
+      character(len=100) :: fname
 !----------------------------------------------------------------------
 
-      !Use the new STF format?
-      STF = .false.
+      fname = "fort.190"
+      
+      STF = .false. !Use the new STF format?
+      singleParticle = -1 !If so, only print records for particle i (and i+1)?
       cmdarg_i = 0
       do 
          call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
          if (len_trim(cmdarg_arg)==0) EXIT
 
-         if (cmdarg_i.gt.0) then
+         if (cmdarg_i.gt.0) then !Skip first argument (command name)
             if (cmdarg_arg .eq. "--STF") then
                STF=.true.
+            else if (cmdarg_arg .eq. "--SP") then
+               if(.not.STF) then
+                  write(*,*) "--SP flag only valid following a --STF flag."
+                  stop 2
+               endif
+               
+               !Read the number
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No number found following --SP flag?"
+                  stop 3
+               endif
+
+               read(cmdarg_arg,*,iostat=stat) singleParticle
+               if (singleParticle.lt.1) then
+                  write(*,*) "singleParticle=",singleParticle
+                  write(*,*) "Did you specify an integer>0?"
+                  stop 4
+               endif
+               if (mod(singleParticle,2).ne.1) then
+                  write(*,*) "singleParticle=",singleParticle, "; expected odd number."
+                  stop 5
+               endif
+            else if (cmdarg_arg .eq. "--fname") then
+               !Read the filename
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No filename found following --fname flag?"
+                  stop 6
+               endif
+
+               if(cmdarg_status.eq.-1) then
+                  write(*,*) "Filename was truncated to '"//cmdarg_arg//"'"
+                  stop 7
+               end if
+
+               fname=cmdarg_arg
+               
             else
-               write(*,*) "USAGE: read90 (--STF)"
+               write(*,*) "USAGE: read90 (--STF) (--SP <number>) (--fname <name>)"
+               write(*,*) "The --STF flag indicates that the file is in the new STF format"
+               write(*,*) "The --SP flag can be used together with the --STF flag,"
+               write(*,*) " in order to extract only single particle (pair) data in a way that emulates the old format."
+               write(*,*) " The number following should be a odd number, i.e. 1,3,5 etc. for particle pair 1+2/3+4/5+6 etc."
+               write(*,*) "The --fname flag can be used to specify the name of the file to read from (max 100 characters)."
+               write(*,*) " If nothing is specified, it defaults to 'fort.190'."
                stop 1
             end if
          end if
@@ -114,7 +167,7 @@
 !--open fort.190
       nfile=190
       n=0
-      open(nfile,file='fort.190',form='UNFORMATTED',status='OLD')
+      open(nfile,file=fname,form='UNFORMATTED',status='OLD')
       
 100   read(nfile,end=511,err=520) sixtit,commen,cdate,ctime,       &
      &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
@@ -125,6 +178,14 @@
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
      &dnumlr,sigcor,dpscor
+
+      if (STF .and. singleParticle.ne.-1) then
+         if (singleParticle.ne.ifipa) then
+            if (ifipa .eq. itopa-1) goto 210 !OK, we're done here.
+            goto 100
+         endif
+      endif
+      
       write (*,*) 'Read header, record=', n
       ntwin=1
       if(ilapa.ne.ifipa) ntwin=2
@@ -180,7 +241,7 @@
       write(*,*) ch1
 
       if (STF) then
-         if (ilapa .lt. itopa) goto 100
+         if (ifipa .lt. itopa-1) goto 100
       endif
 
       !Code for reading the first particle pair
@@ -191,15 +252,23 @@
       if(ifipa.lt.1) goto 210
 !     if(progrm.eq.'MAD') then
 !     endif
+      if (STF .and. singleParticle.ne.-1) then
+         if (singleParticle.ne.ifipa) goto 210
+      endif
 !--KEEP THE FIRST TURN NUMBER : IA0
       ia0=ia
       goto 212
+      
   211 continue !Code for reading further pairs/turns
       if(ntwin.eq.1) read(nfile,end=540,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=540,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
+      if (STF .and. singleParticle.ne.-1) then
+         if (singleParticle.ne.ifipa) goto 211
+      endif
       n=n+1
+      
   212 continue
 ! Do conversion and print, add text later?
       write (*,*) 'Read record ',n
