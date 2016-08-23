@@ -190,7 +190,7 @@
       ntwin=1
       if(ilapa.ne.ifipa) ntwin=2
       write (*,*) 'Header ntwin ',ntwin,ifipa,ilapa
-      ifipa=0
+      ! ifipa=0
       n=n+1 !Increase record number
       write(*,*) sixtit
       write(*,*) commen
@@ -241,7 +241,7 @@
       write(*,*) ch1
 
       if (STF) then
-         if (ifipa .lt. itopa-1) goto 100
+         if (ifipa .lt. itopa-1) goto 100 !Read more headers
       endif
 
       !Code for reading the first particle pair
