@@ -8984,7 +8984,7 @@ cc2008
 +if .not.fio
       open(2,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(2,file='fort.2',form='formatted',status='unknown',
@@ -8993,7 +8993,8 @@ cc2008
 +if .not.fio
       open(2,file='fort.2',form='formatted',status='unknown')
 +ei
-+ei
+
++ei !END of +if .not.boinc
 +if boinc
       call boincrf('fort.3',filename)
 +if fio
@@ -9003,7 +9004,7 @@ cc2008
 +if .not.fio
       open(3,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(3,file='fort.3',form='formatted',status='unknown',
@@ -9012,14 +9013,18 @@ cc2008
 +if .not.fio
       open(3,file='fort.3',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
+! Why no non-boinc version of fort fort.4?
+! "Geometry and strength Parameters (format as file #2)"
 +if boinc
       call boincrf('fort.4',filename)
       open(4,file=filename,form='formatted',status='unknown')
 +ei
 +if .not.boinc
       open(4,file='fort.4',form='formatted',status='unknown')
-+ei
++ei !END of +if boinc
+
 +if nagfor
 +if boinc
       call boincrf('fort.7',filename)
@@ -9028,7 +9033,7 @@ cc2008
 +if .not.boinc
       open(7,file='fort.7',form='formatted',status='unknown',recl=303)
 +ei
-+ei
++ei !END of +if nagfor
 +if .not.nagfor
 +if boinc
       call boincrf('fort.7',filename)
@@ -9037,7 +9042,8 @@ cc2008
 +if .not.boinc
       open(7,file='fort.7',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.nagfor
+
 +if boinc
       call boincrf('fort.8',filename)
 +if fio
@@ -9047,7 +9053,7 @@ cc2008
 +if .not.fio
       open(8,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(8,file='fort.8',form='formatted',status='unknown',
@@ -9056,7 +9062,7 @@ cc2008
 +if .not.fio
       open(8,file='fort.8',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
 +if boinc
       call boincrf('fort.9',filename)
       open(9,file=filename,form='formatted',status='unknown')
@@ -9064,6 +9070,7 @@ cc2008
 +if .not.boinc
       open(9,file='fort.9',form='formatted',status='unknown')
 +ei
+
 ! We no longer open fort.10 except for BOINC AND BNLELENS
 ! When we are returning everything from BOINC we can
 ! use the proper files as normal
@@ -9076,8 +9083,8 @@ cc2008
      &round='nearest',                                                  &
 +ei
      &recl=8195)
-+ei
-+ei
++ei !END of +if boinc
++ei !END of +if nagfor
 +if .not.nagfor
 +if boinc
       call boincrf('fort.10',filename)
@@ -9088,9 +9095,10 @@ cc2008
 +if .not.fio
       open(10,file=filename,form='formatted',status='unknown')
 +ei
-+ei
-+ei
-+ei
++ei !END of +if boinc
++ei !END of +if .not.nagfor
++ei !END of +if bnlelens
+
 +if boinc
       call boincrf('fort.11',filename)
 +if fio
@@ -9100,7 +9108,7 @@ cc2008
 +if .not.fio
       open(11,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(11,file='fort.11',form='formatted',status='unknown',         &
@@ -9109,7 +9117,8 @@ cc2008
 +if .not.fio
       open(11,file='fort.11',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.12',filename)
 +if fio
@@ -9119,7 +9128,7 @@ cc2008
 +if .not.fio
       open(12,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(12,file='fort.12',form='formatted',status='unknown',         &
@@ -9128,7 +9137,8 @@ cc2008
 +if .not.fio
       open(12,file='fort.12',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.13',filename)
 +if fio
@@ -9138,7 +9148,7 @@ cc2008
 +if .not.fio
       open(13,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(13,file='fort.13',form='formatted',status='unknown',         &
@@ -9147,7 +9157,8 @@ cc2008
 +if .not.fio
       open(13,file='fort.13',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.14',filename)
 +if fio
@@ -9157,7 +9168,7 @@ cc2008
 +if .not.fio
       open(14,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(14,file='fort.14',form='formatted',status='unknown',         &
@@ -9166,7 +9177,8 @@ cc2008
 +if .not.fio
       open(14,file='fort.14',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.15',filename)
 +if fio
@@ -9176,7 +9188,7 @@ cc2008
 +if .not.fio
       open(15,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(15,file='fort.15',form='formatted',status='unknown',         &
@@ -9185,7 +9197,8 @@ cc2008
 +if .not.fio
       open(15,file='fort.15',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.16',filename)
 +if fio
@@ -9195,7 +9208,7 @@ cc2008
 +if .not.fio
       open(16,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(16,file='fort.16',form='formatted',status='unknown',
@@ -9204,7 +9217,8 @@ cc2008
 +if .not.fio
       open(16,file='fort.16',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.17',filename)
 +if fio
@@ -9214,7 +9228,7 @@ cc2008
 +if .not.fio
       open(17,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(17,file='fort.17',form='formatted',status='unknown',         &
@@ -9223,7 +9237,8 @@ cc2008
 +if .not.fio
       open(17,file='fort.17',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.18',filename)
 +if fio
@@ -9233,7 +9248,7 @@ cc2008
 +if .not.fio
       open(18,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(18,file='fort.18',form='formatted',status='unknown',         &
@@ -9242,7 +9257,8 @@ cc2008
 +if .not.fio
       open(18,file='fort.18',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.19',filename)
 +if fio
@@ -9252,7 +9268,7 @@ cc2008
 +if .not.fio
       open(19,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(19,file='fort.19',form='formatted',status='unknown',         &
@@ -9261,7 +9277,8 @@ cc2008
 +if .not.fio
       open(19,file='fort.19',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.20',filename)
 +if fio
@@ -9271,7 +9288,7 @@ cc2008
 +if .not.fio
       open(20,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(20,file='fort.20',form='formatted',status='unknown',         &
@@ -9280,7 +9297,8 @@ cc2008
 +if .not.fio
       open(20,file='fort.20',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+      
 +if boinc
       call boincrf('fort.21',filename)
 +if fio
@@ -9290,7 +9308,7 @@ cc2008
 +if .not.fio
       open(21,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(21,file='fort.21',form='formatted',status='unknown',         &
@@ -9299,7 +9317,8 @@ cc2008
 +if .not.fio
       open(21,file='fort.21',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.22',filename)
 +if fio
@@ -9309,7 +9328,7 @@ cc2008
 +if .not.fio
       open(22,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(22,file='fort.22',form='formatted',status='unknown',         &
@@ -9318,7 +9337,8 @@ cc2008
 +if .not.fio
       open(22,file='fort.22',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.23',filename)
 +if fio
@@ -9328,7 +9348,7 @@ cc2008
 +if .not.fio
       open(23,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(23,file='fort.23',form='formatted',status='unknown',         &
@@ -9338,6 +9358,7 @@ cc2008
       open(23,file='fort.23',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.24',filename)
 +if fio
@@ -9347,7 +9368,7 @@ cc2008
 +if .not.fio
       open(24,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(24,file='fort.24',form='formatted',status='unknown',         &
@@ -9356,7 +9377,8 @@ cc2008
 +if .not.fio
       open(24,file='fort.24',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.25',filename)
 +if fio
@@ -9366,7 +9388,7 @@ cc2008
 +if .not.fio
       open(25,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(25,file='fort.25',form='formatted',status='unknown',         &
@@ -9375,7 +9397,8 @@ cc2008
 +if .not.fio
       open(25,file='fort.25',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.26',filename)
 +if fio
@@ -9385,7 +9408,7 @@ cc2008
 +if .not.fio
       open(26,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(26,file='fort.26',form='formatted',status='unknown',         &
@@ -9394,7 +9417,8 @@ cc2008
 +if .not.fio
       open(26,file='fort.26',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.27',filename)
 +if fio
@@ -9404,7 +9428,7 @@ cc2008
 +if .not.fio
       open(27,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(27,file='fort.27',form='formatted',status='unknown',         &
@@ -9413,7 +9437,8 @@ cc2008
 +if .not.fio
       open(27,file='fort.27',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.28',filename)
 +if fio
@@ -9423,7 +9448,7 @@ cc2008
 +if .not.fio
       open(28,file=filename,form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if boinc
 +if .not.boinc
 +if fio
       open(28,file='fort.28',form='formatted',status='unknown',         &
@@ -9432,7 +9457,8 @@ cc2008
 +if .not.fio
       open(28,file='fort.28',form='formatted',status='unknown')
 +ei
-+ei
++ei !END of +if .not.boinc
+
 +if boinc
       call boincrf('fort.29',filename)
 +if fio
@@ -9452,6 +9478,7 @@ cc2008
       open(29,file='fort.29',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.30',filename)
 +if fio
@@ -9471,6 +9498,7 @@ cc2008
       open(30,file='fort.30',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.31',filename)
 +if fio
@@ -9490,6 +9518,9 @@ cc2008
       open(31,file='fort.31',form='formatted',status='unknown')
 +ei
 +ei
+
+! Why no non-BOINC version of fort.32?
+! "Binary dump of full accelerator description"
 +if boinc
       call boincrf('fort.32',filename)
       open(32,file=filename,status='unknown',form='unformatted')
@@ -9497,6 +9528,7 @@ cc2008
 +if .not.boinc
       open(32,file='fort.32',form='unformatted',status='unknown')
 +ei
+
 +if boinc
       call boincrf('fort.33',filename)
 +if fio
@@ -9516,6 +9548,7 @@ cc2008
       open(33,file='fort.33',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.34',filename)
 +if fio
@@ -9535,6 +9568,7 @@ cc2008
       open(34,file='fort.34',form='formatted',status='unknown')
 +ei
 +ei
+
 +if boinc
       call boincrf('fort.35',filename)
 +if fio
@@ -9554,8 +9588,11 @@ cc2008
       open(35,file='fort.35',form='formatted',status='unknown')
 +ei
 +ei
+
+!     Tracking output files fort.91-i; i=1..32
+!     used for postprocessing
 +if .not.bnlelens
-+if .not.stf
++if .not.stf !Separate output files (no SingleTrackFile)
 +if boinc
       call boincrf('fort.59',filename)
       open(59,file=filename,form='unformatted',status='unknown')
@@ -9780,7 +9817,7 @@ cc2008
 +if .not.boinc
       open(90,file='fort.90',form='unformatted',status='unknown')
 +ei
-+ei
++ei !END +if .not.stf
 +if stf
 +if boinc
       call boincrf('singletrackfile.dat',filename)
@@ -9790,8 +9827,9 @@ cc2008
       open(90,file='singletrackfile.dat',form='unformatted',                 &
      &status='unknown')
 +ei
-+ei
-+ei
++ei ! END +if stf
++ei ! END +if .not.bnlelens
+      
 +if boinc
       call boincrf('fort.98',filename)
       open(98,file=filename,form='formatted',status='unknown')
@@ -9799,6 +9837,7 @@ cc2008
 +if .not.boinc
       open(98,file='fort.98',form='formatted',status='unknown')
 +ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -9812,7 +9851,7 @@ cc2008
       open(51,file='fort.51',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if .not.boinc
 +if fio
@@ -9822,7 +9861,8 @@ cc2008
       open(51,file='SixTwiss.dat',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if .not.cr
+
 +if cr
 +if .not.boinc
 +if fio
@@ -9832,7 +9872,7 @@ cc2008
       open(52,file='fort.52',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if fio
       open(52,file='beambeam-output.dat',form='formatted',              &
@@ -9841,7 +9881,8 @@ cc2008
 +if .not.fio
       open(52,file='beambeam-output.dat',form='formatted')
 +ei
-+ei
++ei ! END +if .not.cr
+
 +if cr
 +if .not.boinc
 +if fio
@@ -9851,7 +9892,7 @@ cc2008
       open(53,file='fort.53',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if fio
       open(53,file='beambeam-lostID.dat',form='formatted',              &
@@ -9860,7 +9901,8 @@ cc2008
 +if .not.fio
       open(53,file='beambeam-lostID.dat',form='formatted')
 +ei
-+ei
++ei ! END +if .not.cr
+
 +if cr
 +if boinc
       call boincrf('fort.54',filename)
@@ -9871,7 +9913,8 @@ cc2008
       open(54,file=filename,form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
+      
 +if .not.boinc
 +if fio
       open(54,file='fort.54',form='formatted',round='nearest')
@@ -9889,6 +9932,7 @@ cc2008
       open(54,file='beambeamdist.dat',form='formatted')
 +ei
 +ei
+
 +if cr
 +if .not.boinc
 +if fio
@@ -9898,7 +9942,7 @@ cc2008
       open(97,file='fort.97',form='formatted')
 +ei
 +ei
-+ei
++ei ! END +if cr
 +if .not.cr
 +if fio
       open(97,file='checkdist.dat',form='formatted',round='nearest')
@@ -9906,14 +9950,16 @@ cc2008
 +if .not.fio
       open(97,file='checkdist.dat',form='formatted')
 +ei
-+ei
++ei ! END +if .not.cr
 !GRDRHIC
 !GRD-042008
-+ei
++ei ! END +if bnlelens
+      
 !Eric for the DA coefficients in BINARY
       open(111,file='fort.111',form='unformatted')
 ! Write a BINARY fort.10 of sumda for checking
       open(110,file='fort.110',form='unformatted')
+
 +if debug
 !DUMPS 99
 +if boinc
@@ -9926,8 +9972,10 @@ cc2008
       open(99,file='dump',form='unformatted')
       open(100,file='arrays',form='unformatted')
 +ei
-+ei
++ei ! END +if debug
 
+! END of +cd open
+      
 +cd rvet0
 !hr03 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr03
@@ -10174,6 +10222,7 @@ cc2008
  34    continue
       close(35,err=35)
  35    continue
++if .not.stf
       close(59,err=59)
  59    continue
       close(60,err=60)
@@ -10236,10 +10285,12 @@ cc2008
  88    continue
       close(89,err=89)
  89    continue
++ei !END +if .not.stf
       close(90,err=90)
  90    continue
       close(98,err=98)
  98    continue
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -10257,7 +10308,8 @@ cc2008
  54    continue
 !GRDRHIC
 !GRD-042008
-+ei
++ei ! END +if bnlelens
+
 +if hdf5
       call CLOSEHDF5()
 +ei
@@ -17182,7 +17234,12 @@ cc2008
       goto 1280
       endif
       ch1(:83)=ch(:80)//' / '
+
+      !Line 1
       if(iclr.eq.1) toptit(1)=ch
+      
+      
+      !Line 2
 +if fio
 +if crlibm
       call enable_xp()
@@ -17193,7 +17250,7 @@ cc2008
 +if crlibm
       call disable_xp()
 +ei
-+ei
++ei ! END +if fio
 +if .not.fio
 +if .not.crlibm
       if(iclr.eq.2) read(ch1,*) iav,nstart,nstop,iwg,dphix,dphiz,       &
@@ -17247,7 +17304,9 @@ cc2008
         endif
       endif
 +ei
-+ei
++ei ! END +if .not.fio
+
+      !Line 3
 +if fio
 +if crlibm
       call enable_xp()
@@ -17257,7 +17316,7 @@ cc2008
 +if crlibm
       call disable_xp()
 +ei
-+ei
++ei ! END +if fio
 +if .not.fio
 +if .not.crlibm
       if(iclr.eq.3) read(ch1,*) qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
@@ -17299,7 +17358,9 @@ cc2008
         endif
       endif
 +ei
-+ei
++ei ! END +if .not.fio
+
+      !Line 4
 +if fio
 +if crlibm
       call enable_xp()
@@ -17310,11 +17371,26 @@ cc2008
 +if crlibm
       call disable_xp()
 +ei
-+ei
++ei !END +if fio
 +if .not.fio
       if(iclr.eq.4) read(ch1,*) kwtype,itf,icr,idis,icow,istw,iffw,     &
      &nprint,ndafi
++ei !END +if .not.fio
+
++if stf
+      if (imad.eq.1) then
++if cr
+         write(lout,*) "ERROR in daten::POST:"
+         write(lout,*) "imad not supported for STF version."
 +ei
++if .not.cr
+         write(*,*)    "ERROR in daten::POST:"
+         write(*,*)    "imad not supported for STF version."
++ei
+         call prror(-1)
+      endif
++ei !END +if stf
+      
       kwtype=0
       icr=0
       if(iskip.le.0) iskip=1
@@ -17324,8 +17400,8 @@ cc2008
       if(nstart.lt.0) nstart=0
       if(nstop.lt.0) nstop=0
       if(nstop.lt.nstart) then
-      nstart=0
-      nstop=0
+         nstart=0
+         nstop=0
       endif
       if(iconv.ne.1) iconv=0
       if(abs(cma1).le.pieni) cma1=one
@@ -25549,8 +25625,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   609 open(91,file='fort.91',form='formatted',status='unknown')
 +ei
 +ei
-! END of Main start for Checkpoint/Restart
-+ei
++ei ! END +if cr -- END of Main start for Checkpoint/Restart
+
 +if debug
                    !call system('../crmain  >> crlog')
 +ei
@@ -25825,6 +25901,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call hplset('DATE',1.)
         call hplset('CSIZ',.15)
       endif
+
+      !Postprocessing is on, but there are no particles
       if(ipos.eq.1.and.napx.eq.0) then
 ! and now we open fort.10 unless already opened for
 ! BOINC AND BNLELENS
@@ -25847,8 +25925,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
      &recl=8195)
 +ei
-+ei
-
++ei ! END +if nagfor
 
 +if .not.nagfor
 +if boinc
@@ -25861,8 +25938,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.fio
       open(10,file=filename,form='formatted',status='unknown')
 +ei
-+ei
-+ei
++ei ! END +if .not.bnlelens
++ei ! END +if boinc
 +if .not.boinc
 +if fio
       open(10,file='fort.10',form='formatted',status='unknown',         &
@@ -25871,54 +25948,45 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.fio
       open(10,file='fort.10',form='formatted',status='unknown')
 +ei
-+ei
-+ei
++ei ! END +if .not.boinc
++ei ! END +if .not.nagfor
+
 +if .not.stf
-        do 70 i=1,ndafi
+      do 70 i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 +if .not.cr
-          call postpr(91-i)
+         call postpr(91-i)
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(91-i,nnuml)
+         write(93,*) 'Calling POSTPR nnuml=',nnuml
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
+         call postpr(91-i,nnuml)
 +ei
-   70   continue
-+ei
+ 70      continue
++ei ! END +if .not.stf
 +if stf
-!--   In Postpr subroutine
+!--   ndafi normally set in fort.3 to be "number of files to postprocess"
+!--   Inside the postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
-!--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2,
-        if(ntwin.eq.2) then	  
-          do 70 i=1,(2*ndafi),2
+!--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
+      do 70 i=1,(2*ndafi),2
 +if .not.cr
-            call postpr(i)
+         call postpr(i)
 +ei
 +if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(i,nnuml)
+         write(93,*) 'Calling POSTPR nnuml=',nnuml
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
+         call postpr(i,nnuml)
 +ei
-  70      continue  	
-        else if(ntwin.eq.1) then
-	  do 71 i=1,ndafi	
-+if .not.cr
-            call postpr(i)
-+ei
-+if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(i,nnuml)
-+ei
-  71      continue
-	endif
-+ei
-          call sumpos
-          goto 520
-        endif
+ 70      continue
++ei ! END +if stf
+
+      call sumpos
+      goto 520 !Jump to after particle&optics initialization,
+               ! and also after tracking.
+      endif !if(ipos.eq.1.and.napx.eq.0)
+      
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -26775,7 +26843,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !GRDRHIC
 !GRD-042008
-+ei
++ei !END +if bnlelens
+
+!     Write header of track output file(s) used by postprocessing
+!     for case ntwin.ne.2
 +if cr
           if (.not.restart) then
 +ei
@@ -26804,7 +26875,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
++ei ! END +if .not.stf
 +if stf
           write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
      &ia,ia,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),clo6v     &
@@ -26830,8 +26901,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
-        else
++ei ! END +if stf
+        else !ELSE for "if(ntwin.ne.2)"
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -26851,7 +26922,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !GRDRHIC
 !GRD-042008
-+ei
++ei !END +if bnlelens
+
+!     Write header of track output file(s) used by postprocessing
+!     for case ntwin.eq.2
+
 +if cr
           if (.not.restart) then
 +ei
@@ -26880,7 +26955,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
++ei ! END +if .not.stf
 +if stf
           write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
      &ia,ia+1,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),        &
@@ -26906,7 +26981,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           binrecs(ia2)=1
           endif
 +ei
-+ei
++ei ! END +if stf
         endif
         if(ierro.ne.0) then
 +if cr
@@ -27354,6 +27429,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           id=ig
         endif
   470 continue
+
+! POSTPROCESSING (POSTPR)
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -27363,8 +27441,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 ! and we need to open fort.10 unless already opened
 ! for BOINC AND BNLELENS
-
-
 +if nagfor
 +if boinc
 +if .not.bnlelens
@@ -27409,51 +27485,51 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei
 +ei
+
 +if .not.stf
         iposc=0
-        if(ipos.eq.1) then
+        if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
           do 480 ia=1,napxo,2
             ia2=(ia+1)/2
             iposc=iposc+1
 +if .not.cr
-          call postpr(91-ia2)
+            call postpr(91-ia2) !Postprocess file "fort.(91-ia2)"
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(91-ia2,nnuml)
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(91-ia2,nnuml)
 +ei
   480     continue
           if(iposc.ge.1) call sumpos
-        endif
-        goto 520
-  490   if(ipos.eq.1) then
+        endif !END if(ipos.eq.1)
+        goto 520 !Done postprocessing
+        
+  490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
           ndafi2=ndafi
           do 500 ia=1,ndafi2
             if(ia.gt.ndafi) goto 510
 +if .not.cr
-          call postpr(91-ia)
+            call postpr(91-ia)
 +ei
 +if cr
-          write(93,*) 'Calling POSTPR nnuml=',nnuml
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call postpr(91-ia,nnuml)
+            write(93,*) 'Calling POSTPR nnuml=',nnuml
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
+            call postpr(91-ia,nnuml)
 +ei
   500     continue
   510     if(ndafi.ge.1) call sumpos
         endif
-  520 continue
-+ei
++ei !END +if .not.stf
 +if stf
         iposc=0
-        if(ipos.eq.1) then
-	  if(ntwin.eq.2) then
-            do 480 ia=1,napxo,2
+        if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
+           do 480 ia=1,napxo,2
               iposc=iposc+1
 +if .not.cr
-              call postpr(ia)
+              call postpr(ia) !Postprocess particle ia (and ia+1 if ntwin=2)
 +ei
 +if cr
               write(93,*) 'Calling POSTPR nnuml=',nnuml
@@ -27461,27 +27537,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (93,iostat=ierro)
               call postpr(ia,nnuml)
 +ei
-  480       continue
-	  else if(ntwin.eq.1) then
-            do 481 ia=1,napxo
-              iposc=iposc+1
-+if .not.cr
-              call postpr(ia)
-+ei
-+if cr
-              write(93,*) 'Calling POSTPR nnuml=',nnuml
-              endfile (93,iostat=ierro)
-              backspace (93,iostat=ierro)
-              call postpr(ia,nnuml)
-+ei
-  481       continue
-	  endif
+  480      continue
           if(iposc.ge.1) call sumpos
         endif
-        goto 520
-  490   if(ipos.eq.1) then
+        goto 520 !Done postprocessing
+        
+  490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
           ndafi2=ndafi
-	  if(ntwin.eq.2) then
           do 500 ia=1,(2*ndafi2),2
             if(ia.gt.ndafi) goto 510
 +if .not.cr
@@ -27494,24 +27556,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call postpr(ia,nnuml)
 +ei
   500     continue
-	else if(ntwin.eq.1) then
-	  do 501 ia=1,ndafi2
-            if(ia.gt.ndafi) goto 510
-+if .not.cr
-            call postpr(ia)
-+ei
-+if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(ia,nnuml)
-+ei
-  501     continue
-	endif
   510     if(ndafi.ge.1) call sumpos
         endif
-  520 continue
-+ei
++ei !END +if stf
+
+ 520  continue !Finished postprocessing (POST in fort.3)
+      
 !     start fma
       if(fma_flag) then
 +if cr
@@ -34999,11 +35049,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         do 10 ia=1,napx-1
 !GRD
-          if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
-     &(mod(nlostp(ia),2).ne.0)) then
-            ia2=(nlostp(ia)+1)/2
-            ie=ia+1
-            if(ntwin.ne.2) then
+!     PSTOP=true -> particle lost,
+!     nlostp(ia)=particle ID that is not changing
+!     (the particle arrays are compressed to remove lost particles)
+!     In the case of no lost particles, all nlostp(i)=i for 1..npart
+           if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
+     &(mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
+            ia2=(nlostp(ia)+1)/2     !File ID for non-STF & binrecs
+            ie=ia+1                  !ia = Particle ID 1, ie = Particle ID 2
+            if(ntwin.ne.2) then !Write particle nlostp(ia) only
 +if .not.stf
               write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
@@ -35019,9 +35073,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1
+              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF?
 +ei
-            else
+            else !Write particle nlostp(ia) and nlostp(ia)+1
+                 ! Note that dam(ia) (distance in angular phase space)
+                 ! is written twice.
 +if .not.stf
               write(91-ia2,iostat=ierro)                                &
      &numx,nlostp(ia),dam(ia),                                          &
@@ -35041,7 +35097,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1
+              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF?
 +ei
             endif
             if(ierro.ne.0) then
@@ -35086,7 +35142,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      endif
+      endif ! END "if (lhc.ne.9)"
 !GRDRHIC
 !GRD-042008
 +ei
@@ -56852,9 +56908,10 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  POST PROCESSING
 !
-!  NFILE   :  FILE UNIT
-!  POSI    :  PARTICLE NUMBER ( first paricle iff pair)
-!	
+!  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
+!  POSI    :  PARTICLE NUMBER
+!             (the first particle in pair if ntwin=2, i.e. it is a  pair).
+!  NNUML   :  ??
 !-----------------------------------------------------------------------
       implicit none
 +if cr
@@ -56881,7 +56938,11 @@ c$$$            endif
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
      &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
      &numl
-      integer posi,ih,posi1
++if stf
+      integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
+      double precision b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
++ei
       real tim1,tim2,fxs,fzs
       double precision const,dle,slope,tle,varlea,wgh
       double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
@@ -57104,8 +57165,9 @@ c$$$            endif
 +ei
         endif
       endif
-+ei
++ei ! END +if .not.stf
 +if stf
+      !Read header lines until a match is found
  555  read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
      &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
      &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
@@ -57115,9 +57177,11 @@ c$$$            endif
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
      &dnumlr,sigcor,dpscor
-      if(ifipa.ne.posi) then
-	goto 555
+      if(ifipa.ne.posi) then !IFIPA=first particle, POSI=requested particle
+	goto 555             !Get the next header...
       endif
+      ! TODO: Protect against no valid headers found,
+      ! i.e. posi > itopa.
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
@@ -57138,16 +57202,15 @@ c$$$            endif
       if(icode.eq.1.or.icode.eq.2.or.icode.eq.4) idam=1
       if(icode.eq.3.or.icode.eq.5.or.icode.eq.6) idam=2
       if(icode.eq.7) idam=3
-      if(ilapa.ne.ifipa) then
-	ntwin=2
-!--binrecs is indexed as 1,2,3 while posi values are
-!--called as 1,3,5 when pairwise written, so 
-!--using posi1 for crbinrecs index later
-	posi1=(posi+1)/2
-      else
-	 posi1=posi
+      if(ilapa.ne.ifipa) then !Is first particle != Last particle?
+	ntwin=2               !(ntwin=1 is the default in postpr)
+!--   binrecs is indexed as 1,2,3,... (=i.e.(91-nfile) in the non-STF version,
+!--   while posi values are called as 1,3,5, so using posi1 for crbinrecs index later
+! TODO: Evaluate the way binrecs is written?
       endif
-+ei
+      posi1 = (posi+1)/2 !For both ntwin=1 and 2
++ei ! END +if stf
+
 +if .not.stf
 !--PREVENT FAULTY POST-PROCESSING
       read(nfile,end=530,iostat=ierro) iaa
@@ -57156,7 +57219,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
@@ -57166,78 +57229,79 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
-!hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
- 600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
-+ei
++ei !END +if .not.stf
 +if stf
 !--PREVENT FAULTY POST-PROCESSING
+      !--bypass headers
       rewind nfile
-      if(ntwin.eq.2) then
-        do i=1,itopa,2     !--bypass headers
-          read(nfile)
-        enddo
-	do i=1,posi,2
-	  read(nfile,end=530,iostat=ierro) iaa    !--read first track data for particle at posi
-	enddo
-      else if(ntwin.eq.1) then
-        do i=1,itopa
-          read(nfile)
-        enddo
-	do i=1,posi
-	  read(nfile,end=530,iostat=ierro) iaa
-	enddo
-      endif
+      do i=1,itopa,2
+         read(nfile)
+      enddo
+       !--read first track data for particle at posi
+      do i=1,posi,2
+         read(nfile,end=530,iostat=ierro) iaa, j
+      enddo
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
-      if(ntwin.eq.2) then
-        do i=2,itopa,2     !--bypass records till 2nd run of same particle is reached
-          read(nfile)
-        enddo
-      else if(ntwin.eq.1) then
-        do i=2,itopa
-          read(nfile)
-        enddo
+      if (j.ne.posi) then
++if cr
+         write(lout,*) "ERROR in postprocessing: ",
++ei
++if .not.cr
+         write(*,*)    "ERROR in postprocessing: ",
++ei
+     &"First entry for particle",posi,"not found. Got:",j
+         call prror(-1)
       endif
-      read(nfile,end=535,iostat=ierro) iab
+      !--bypass records till 2nd run of same particle is reached
+      do i=2,itopa,2
+         read(nfile,end=535,iostat=ierro) iab, j
+      enddo
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
+      if (j.ne.posi) then
++if cr
+         write(lout,*) "ERROR in postprocessing: ",
++ei
++if .not.cr
+         write(*,*)    "ERROR in postprocessing: ",
++ei
+     &"Second entry for particle",posi,"not found. Got:",j
+         call prror(-1)
+      endif
++ei !END +if stf
 !hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
  600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
-+ei
+
       rewind nfile
+
 !-- Bypassing header to read tracking data later
 +if .not.stf
       read(nfile)
 +ei
 +if stf
-      if(ntwin.eq.2) then
-        do i=1,itopa,2
-          read(nfile)
-        enddo
-      else if(ntwin.eq.1) then
-	do i=1,itopa
-	  read(nfile)
-	enddo
-      endif
-+ei
+      do i=1,itopa,2
+         read(nfile) !One header per particle pair.
+      enddo
++ei !END +if stf
 !hr06 sumda(5)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       sumda(5)=ta(1,1)**2+ta(1,2)**2                                     !hr06
 !hr06 sumda(6)=ta(3,3)*ta(3,3)+ta(3,4)*ta(3,4)
@@ -57499,7 +57563,8 @@ c$$$            endif
 +if .not.cr
         write(*,10100) iskip,iconv,imad,cma1,cma2,nprint,ndafi
 +ei
-      endif
+      endif ! END if(nprint.eq.1)
+      
 !--INITIALISATION
 +if crlibm
 !hr06 tpi=8*atan_rn(one)
@@ -57608,12 +57673,12 @@ c$$$            endif
       tasum=tasum-two
       if(abs(tasum).ge.pieni) its6d=1
       call dinv(6,t,6,idummy,nerror)
-      if(nerror.eq.-1) then
+      if(nerror.eq.-1) then  !TODO: Using the file number makes no sense in STF case (seen in multiple places)
 +if cr
         write(lout,10290) nfile
 +ei
 +if .not.cr
-        write(*,10290) nfile
+        write(*,10290)    nfile
 +ei
         goto 550
       endif
@@ -57621,13 +57686,43 @@ c$$$            endif
 !--FIND MINIMUM VALUE OF THE DISTANCE IN PHASESPACE
 !----------------------------------------------------------------------
   190 ifipa=0
-      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p
-       if(ntwin.eq.2) read(nfile,end=200,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++if .not.stf
+      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro)
+     &     ia,ifipa,b,c,d,e,f,g,h,p
+      if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
+     &     ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei
 +if stf
-      if(ifipa.ne.posi) then
+!STF case: read tracking data until one reaches right particle.
+      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+      if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+!TODO: Protect against error case where this never happens.
+      if(ifipa_stf.ne.posi) then
 	goto 190
+      endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
       endif
 +ei
       if(ierro.gt.0) then
@@ -57635,7 +57730,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
@@ -57643,6 +57738,7 @@ c$$$            endif
 !hr06 if((ia-nstart).lt.zero) goto 190
       if((ia-nstart).lt.0) goto 190                                      !hr06
       if(progrm.eq.'MAD') then
++if .not.stf
         c=c*c1e3
         d=d*c1e3
         e=e*c1e3
@@ -57657,7 +57753,18 @@ c$$$            endif
           h1=h1*c1e3
           p1=p1*c1e3
         endif
-      endif
++ei
++if stf
++if cr
+        write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
++ei
++if .not.cr
+        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
++ei
+        call prror(-1)
++ei
+      endif ! END if(program.eq.'MAD')
+
       if(ntwin.eq.2) then
         x(1,1)=c
         x(1,2)=d
@@ -57678,23 +57785,20 @@ c$$$            endif
       if(b.lt.b0.or.abs(b0).le.pieni) b0=b
       goto 190
   200 if(ia.le.0) goto 530
+      
       rewind nfile
+      
 !----------------------------------------------------------------------
 !--GET FIRST DATA POINT AS A REFERENCE
 !----------------------------------------------------------------------
+! Skip the header(s)
 +if .not.stf
       read(nfile,iostat=ierro)
 +ei
 +if stf
-      if(ntwin.eq.2) then
-        do i=1,itopa,2
-          read(nfile,iostat=ierro)
-        enddo
-      else if(ntwin.eq.1) then
-	do i=1,itopa
-	  read(nfile,iostat=ierro)
-	enddo
-      endif
+      do i=1,itopa,2
+         read(nfile,iostat=ierro)
+      enddo
 +ei
       if(ierro.gt.0) then
 +if cr
@@ -57702,10 +57806,11 @@ c$$$            endif
         goto 551
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
         goto 550
 +ei
       endif
+
 +if cr
 !--   Initiate count of binary records
 +if .not.stf
@@ -57714,15 +57819,46 @@ c$$$            endif
 +if stf
       crbinrecs(posi1)=1
 +ei
++ei ! END +if cr
+
+ 210  ifipa=0
++if .not.stf
+      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
+     &     ia,ifipa,b,c,d,e,f,g,h,p
+      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
+     &     ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
 +ei
-  210 ifipa=0
-      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p
-      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
 +if stf
-      if(ifipa.ne.posi) then
-	goto 210
+!     STF case: read tracking data until one reaches right particle.
+      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+!     TODO: Protect against error case where this never happens.
+      if(ifipa_stf.ne.posi) then
+         goto 210
+      endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
       endif
 +ei
       if(ierro.gt.0) then
@@ -57730,13 +57866,13 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
 +if cr
-+if .not.stf
 !     Count one more binary record
++if .not.stf
       crbinrecs(91-nfile)=crbinrecs(91-nfile)+1
 +ei
 +if stf
@@ -57746,6 +57882,7 @@ c$$$            endif
       if(ifipa.lt.1) goto 210
       if((ia-nstart).lt.0) goto 210
       if(progrm.eq.'MAD') then
++if .not.stf
         c=c*c1e3
         d=d*c1e3
         e=e*c1e3
@@ -57760,7 +57897,18 @@ c$$$            endif
           g1=g1*c1e3
           p1=p1*c1e3
         endif
++ei
++if stf
++if cr
+        write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
++ei
++if .not.cr
+        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
++ei
+        call prror(-1)
++ei
       endif
+      
       dp1=h
       write(toptit(2)(51:60),10000) dp1-clop(3)
       if(nprint.eq.1.and.ia.eq.0) then
@@ -57768,51 +57916,52 @@ c$$$            endif
         write(lout,*) 'INITIAL COORDINATES'
 +ei
 +if .not.cr
-        write(*,*) 'INITIAL COORDINATES'
+        write(*,*)    'INITIAL COORDINATES'
 +ei
 +if cr
         write(lout,*) '       X = ',c
 +ei
 +if .not.cr
-        write(*,*) '       X = ',c
+        write(*,*)    '       X = ',c
 +ei
 +if cr
         write(lout,*) '      XP = ',d
 +ei
 +if .not.cr
-        write(*,*) '      XP = ',d
+        write(*,*)    '      XP = ',d
 +ei
 +if cr
         write(lout,*) '       Z = ',e
 +ei
 +if .not.cr
-        write(*,*) '       Z = ',e
+        write(*,*)    '       Z = ',e
 +ei
 +if cr
         write(lout,*) '      ZP = ',f
 +ei
 +if .not.cr
-        write(*,*) '      ZP = ',f
+        write(*,*)    '      ZP = ',f
 +ei
 +if cr
         write(lout,*) '   SIGMA = ',g
 +ei
 +if .not.cr
-        write(*,*) '   SIGMA = ',g
+        write(*,*)    '   SIGMA = ',g
 +ei
 +if cr
         write(lout,*) '    DP/P = ',h
 +ei
 +if .not.cr
-        write(*,*) '    DP/P = ',h
+        write(*,*)    '    DP/P = ',h
 +ei
 +if cr
         write(lout,*) '  ENERGY = ',p
 +ei
 +if .not.cr
-        write(*,*) '  ENERGY = ',p
+        write(*,*)    '  ENERGY = ',p
 +ei
       endif
+      
       if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 540
       ia=ia-nstart
 !--LYAPUNOV
@@ -57916,7 +58065,7 @@ c$$$            endif
         write(lout,*) 'DISTANCE = ',b
 +ei
 +if .not.cr
-        write(*,*) 'DISTANCE = ',b
+        write(*,*)    'DISTANCE = ',b
 +ei
       endif
 !--EMITTANCES WITH LINEAR COUPLING
@@ -58029,13 +58178,43 @@ c$$$            endif
 !----------------------------------------------------------------------
       iskc=0
   240 ifipa=0
-      if(ntwin.eq.1) read(nfile,end=270,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p
-      if(ntwin.eq.2) read(nfile,end=270,iostat=ierro) ia,ifipa,b,c,d,e, &
-     &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++if .not.stf
+      if(ntwin.eq.1) read(nfile,end=270,iostat=ierro)
+     &ia,ifipa,b,c,d,e,f,g,h,p
+      if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
+     &ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei
 +if stf
-      if(ifipa.ne.posi) then
-	goto 240
+!     STF case: read tracking data until one reaches right particle.
+      if(ntwin.eq.1) read(nfile,end=270,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+      if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
+     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+!     TODO: Protect against error case where this never happens.
+      if(ifipa_stf.ne.posi) then
+         goto 240
+      endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
       endif
 +ei
       if(ierro.gt.0) then
@@ -58043,7 +58222,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
@@ -58058,6 +58237,7 @@ c$$$            endif
 +ei
       if(ifipa.lt.1) goto 240
       if(progrm.eq.'MAD') then
++if .not.stf
         c=c*c1e3
         d=d*c1e3
         e=e*c1e3
@@ -58072,6 +58252,16 @@ c$$$            endif
           g1=g1*c1e3
           p1=p1*c1e3
         endif
++ei
++if stf
++if cr
+        write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
++ei
++if .not.cr
+        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
++ei
+        call prror(-1)
++ei
       endif
 !--LYAPUNOV
       if(ntwin.eq.2) then
@@ -58283,7 +58473,7 @@ c$$$            endif
               write(lout,10310) nfile
 +ei
 +if .not.cr
-              write(*,10310) nfile
+              write(*,10310)    nfile
 +ei
               wgh(i2)=zero
             endif
@@ -58327,6 +58517,7 @@ c$$$            endif
       h0=h
       goto 240
   270 if(i2.lt.1) i2=1
+
 +if cr
 !--Now check that we have correct number of binrecs
 !--We can do this only if we know binrecs (NOT post-processing only)
@@ -58362,7 +58553,8 @@ c$$$            endif
           goto 551
         endif
       endif
-+ei
++ei ! END +if cr
+
 !----------------------------------------------------------------------
 !--ANALYSING DATA
 !----------------------------------------------------------------------
@@ -58442,7 +58634,7 @@ c$$$            endif
         write(lout,*) '** ERROR ** - I11 IS ZERO'
 +ei
 +if .not.cr
-        write(*,*) '** ERROR ** - I11 IS ZERO'
+        write(*,*)    '** ERROR ** - I11 IS ZERO'
 +ei
         goto 550
       endif
@@ -58452,58 +58644,84 @@ c$$$            endif
       evxm=evx/di11
       evzm=evz/di11
       evtm=evt/di11
+
 !--SMEAR CALCULATION AND 4D-SMEAR
       rewind nfile
+      !Skip headers
 +if .not.stf
       read(nfile,iostat=ierro)
 +ei
 +if stf
-      if(ntwin.eq.2) then
-        do i=1,itopa,2
-          read(nfile,iostat=ierro)
-        enddo
-      else if(ntwin.eq.1) then
-	do i=1,itopa
-	  read(nfile,iostat=ierro)
-	enddo
-      endif
+      do i=1,itopa,2
+         read(nfile,iostat=ierro)
+      enddo
 +ei
       if(ierro.gt.0) then
 +if cr
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320) nfile
+        write(*,10320)    nfile
 +ei
         goto 550
       endif
       iskc=-1
       do 340 i=1,i11*iskip+nstart
         ifipa=0
+        ! Read 1st particle only
++if .not.stf
  315    read(nfile,end=350,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
++ei
 +if stf
-	if(ifipa.ne.posi) then
+!     STF case: read tracking data until one reaches right particle.
+ 315  read(nfile,end=350,iostat=ierro)
+     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+        if(ifipa_stf.ne.posi) then
 	  goto 315
 	endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+        ia=ia_stf
+        ifipa=ifipa_stf
+        b=b_stf
+        c=c_stf
+        d=d_stf
+        e=e_stf
+        f=f_stf
+        g=g_stf
+        h=h_stf
+        p=p_stf
 +ei
         if(ierro.gt.0) then
 +if cr
           write(lout,10320) nfile
 +ei
 +if .not.cr
-          write(*,10320) nfile
+          write(*,10320)    nfile
 +ei
           goto 550
         endif
         if(ifipa.lt.1) goto 340
         if(progrm.eq.'MAD') then
++if .not.stf
           c=c*c1e3
           d=d*c1e3
           e=e*c1e3
           f=f*c1e3
           g=g*c1e3
           p=p*c1e3
-        endif
++ei
++if stf
++if cr
+          write(lout,*)
++ei
++if .not.cr
+          write(*,*)
++ei
+     &         "ERROR in postpr: program=MAD not valid for STF."
+          call prror(-1)
++ei
+        endif !END if(program.eq.'MAD')
+
         iskc=iskc+1
         if(mod(iskc,iskip).ne.0) goto 340
         if((ia-nstart).lt.0) goto 340
@@ -59170,10 +59388,11 @@ c$$$            endif
           call hplsof(4.,14.25,toptit(3),.15,0.,99.,-1)
           call hplsof(4.,14.00,toptit(4),.15,0.,99.,-1)
           call iselnt(10)
+
           rewind nfile
+          !Skip headers
 +if stf
-!--i is used in outer loop, so ih in this loop
-          do ih=1,itopa,2
+          do j=1,itopa,2
 +ei
           read(nfile,iostat=ierro)
 +if stf
@@ -59192,21 +59411,51 @@ c$$$            endif
           iskc=-1
           do 460 j=1,i11*iskip+nstart
  435        ifipa=0
-            if(ntwin.eq.1) read(nfile,end=470,iostat=ierro) ia,ifipa,b, &
-     &c,d,e,f,g,h,p
-            if(ntwin.eq.2) read(nfile,end=470,iostat=ierro) ia,ifipa,b, &
-     &c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++if .not.stf
+            if(ntwin.eq.1) read(nfile,end=470,iostat=ierro)
+     &           ia,ifipa,b,c,d,e,f,g,h,p
+            if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
+     &           ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
++ei
 +if stf
-	    if(ifipa.ne.posi) then
+!     STF case: read tracking data until one reaches right particle.
+            if(ntwin.eq.1) read(nfile,end=470,iostat=ierro)
+     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+            if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
+     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+!     TODO: Protect against error case where this never happens.
+	    if(ifipa_stf.ne.posi) then
 	      goto 435
 	    endif
+!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      ia=ia_stf
+      ifipa=ifipa_stf
+      b=b_stf
+      c=c_stf
+      d=d_stf
+      e=e_stf
+      f=f_stf
+      g=g_stf
+      h=h_stf
+      p=p_stf
+      if(ntwin.eq.2) then
+         ilapa=ilapa_stf
+         c1=c1_stf
+         d1=d1_stf
+         e1=e1_stf
+         f1=f1_stf
+         g1=g1_stf
+         h1=h1_stf
+         p1=p1_stf
+      endif
 +ei
             if(ierro.gt.0) then
 +if cr
               write(lout,10320) nfile
 +ei
 +if .not.cr
-              write(*,10320) nfile
+              write(*,10320)    nfile
 +ei
               goto 550
             endif
@@ -59214,7 +59463,8 @@ c$$$            endif
             iskc=iskc+1
             if(mod(iskc,iskip).ne.0) goto 460
             if((ia-nstart).lt.0) goto 460
-            if(progrm.eq.'MAD') then
+            if(progrm.eq.'MAD') then !NON-STF only
++if .not.stf
               c=c*c1e3
               d=d*c1e3
               e=e*c1e3
@@ -59229,6 +59479,17 @@ c$$$            endif
                 g1=g1*c1e3
                 p1=p1*c1e3
               endif
++ei
++if stf
++if cr
+        write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
++ei
++if .not.cr
+        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
++ei
+        call prror(-1)
++ei
+
             endif
 !--LYAPUNOV
             if(ntwin.eq.2) then
@@ -59463,7 +59724,7 @@ c$$$            endif
       write(lout,10300) nfile,'HEADER CORRUPTED'
 +ei
 +if .not.cr
-      write(*,10300) nfile,'HEADER CORRUPTED'
+      write(*,10300)    nfile,'HEADER CORRUPTED'
 +ei
       goto 550
   520 continue
@@ -59471,7 +59732,7 @@ c$$$            endif
       write(lout,10300) nfile,'HEADER OF MADFILE CORRUPTED'
 +ei
 +if .not.cr
-      write(*,10300) nfile,'HEADER OF MADFILE CORRUPTED'
+      write(*,10300)    nfile,'HEADER OF MADFILE CORRUPTED'
 +ei
       goto 550
   530 continue
@@ -59479,7 +59740,7 @@ c$$$            endif
       write(lout,10300) nfile,'NO DATA'
 +ei
 +if .not.cr
-      write(*,10300) nfile,'NO DATA'
+      write(*,10300)    nfile,'NO DATA'
 +ei
       goto 550
   535 continue
@@ -59487,7 +59748,7 @@ c$$$            endif
       write(lout,10300) nfile,'ONLY START VALUES'
 +ei
 +if .not.cr
-      write(*,10300) nfile,'ONLY START VALUES'
+      write(*,10300)    nfile,'ONLY START VALUES'
 +ei
       goto 550
   540 continue
@@ -59495,7 +59756,7 @@ c$$$            endif
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
 +ei
 +if .not.cr
-      write(*,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
+      write(*,10300)    nfile,'WRONG RANGE OF DATA FOR PROCESSING'
 +ei
       goto 550
 +if cr
@@ -59510,7 +59771,8 @@ c$$$            endif
       close(10)
       call abend('SIXTRACR POSTPR  *** ERROR ***                    ')
 +ei
-  550 continue
+
+ 550  continue
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 !-- Will almost all be zeros but we now have napxto and ttime
 +if debug
@@ -59554,7 +59816,7 @@ c$$$            endif
         write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
 +ei
 +if .not.cr
-        write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
+        write(*,*)   '*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
 +ei
 +if cr
         write(lout,*) 'ERROR CODE : ',ierro
@@ -59580,10 +59842,11 @@ c$$$            endif
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 +ei
 +if .not.cr
-      if(nprint.eq.1) write(*,10280) tim2-tim1
+      if(nprint.eq.1) write(*,10280)    tim2-tim1
 +ei
 !----------------------------------------------------------------------
       return
+      
 10000 format(d10.4)
 10010 format(f10.6)
 10020 format(a80)

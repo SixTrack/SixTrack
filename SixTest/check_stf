@@ -5,10 +5,17 @@
 # fort.90.stf_canonical in test folders
 
 prov=canonical
+use90=false
 echo "------------------------------------------------------------"
+echo "Usage: ./chec_stf (prov=canonical) newv (90)"
+echo
 echo "This is for comparing stf version of sixtrack with canonical"
 echo "If you haven't chosen single track file flag option then    "
-echo "run check_90 instead                               "
+echo "run check_90 instead                                        "
+echo
+echo "You may give a third argument '90', in which case it will   "
+echo " compare the first pair in the new singletrackfile.dat with "
+echo " the old fort.90.                                           "
 echo "------------------------------------------------------------"
 # Now uses the variable TESTS
 export BIN=`pwd`/bin
@@ -22,6 +29,18 @@ if test $# -eq 2
 then
   prov=$1
   newv=$2
+fi
+if test $# -eq 3
+then
+  prov=$1
+  newv=$2
+  if test $3 -eq "90"
+  then
+    use90=true
+  else
+    echo "If 3 arguments, last argument must be '90'"
+    exit
+  fi
 fi
 # Now try and find EXECS to compare
 rm -rf etmp$$
@@ -66,12 +85,34 @@ do
           then
               mkdir -p tmp$$
               cd tmp$$
-              cp ../$i/singletrackfile.dat.$prov fort.190
-              $BIN/read90 > fort.20 
-              cp ../$i/singletrackfile.dat.$v fort.190
-              $BIN/read90 > fort.21 
-              diff fort.20 fort.21
-              stat=$?
+	      #echo `pwd`
+
+	      if [ $use90 = false ]; then
+		  cp ../$i/singletrackfile.dat.$prov .
+		  $BIN/read90 --STF --fname singletrackfile.dat.$prov > singletrackfile.dat.$prov.txt
+
+		  cp ../$i/singletrackfile.dat.$v .
+		  $BIN/read90 --STF --fname singletrackfile.dat.$v > singletrackfile.dat.$v.txt
+
+		  diff singletrackfile.dat.$prov.txt singletrackfile.dat.$v.txt
+		  stat=$?
+		  
+	      elif [ $use90 = true ]; then
+		  cp ../$i/fort.90.$prov .
+		  $BIN/read90 --fname fort.90.$prov > fort.90.$prov.txt
+
+		  cp ../$i/singletrackfile.dat.$v .
+		  $BIN/read90 --STF --SP 1 --fname singletrackfile.dat.$v > singletrackfile.dat.$v.txt
+
+		  
+		  diff fort.90.$prov.txt singletrackfile.dat.$v.txt
+		  stat=$?
+
+	      else
+		  echo "Error, expected $use90 to be either 'true' or 'false', got '"$use90"'"
+		  exit
+	      fi
+		  
               if test $stat -eq 0
               then
 		  echo "singletrackfile.dat SAME"
