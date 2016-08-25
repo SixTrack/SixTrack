@@ -57208,7 +57208,6 @@ c$$$            endif
 	ntwin=2               !(ntwin=1 is the default in postpr)
 !--   binrecs is indexed as 1,2,3,... (=i.e.(91-nfile) in the non-STF version,
 !--   while posi values are called as 1,3,5, so using posi1 for crbinrecs index later
-! TODO: Evaluate the way binrecs is written?
       endif
       posi1 = (posi+1)/2 !For both ntwin=1 and 2
 +ei ! END +if stf
@@ -57244,8 +57243,9 @@ c$$$            endif
          read(nfile)
       enddo
        !--read first track data for particle at posi
-      do i=1,posi,2
+      do !Loop safe, will anyway end EOF is reached.
          read(nfile,end=530,iostat=ierro) iaa, j
+         if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
 +if cr
@@ -57255,20 +57255,11 @@ c$$$            endif
         write(*,10320)    nfile
 +ei
         goto 550
-      endif
-      if (j.ne.posi) then
-+if cr
-         write(lout,*) "ERROR in postprocessing: ",
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in postprocessing: ",
-+ei
-     &"First entry for particle",posi,"not found. Got:",j
-         call prror(-1)
       endif
       !--bypass records till 2nd run of same particle is reached
-      do i=2,itopa,2
+      do
          read(nfile,end=535,iostat=ierro) iab, j
+         if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
 +if cr
@@ -57278,16 +57269,6 @@ c$$$            endif
         write(*,10320)    nfile
 +ei
         goto 550
-      endif
-      if (j.ne.posi) then
-+if cr
-         write(lout,*) "ERROR in postprocessing: ",
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in postprocessing: ",
-+ei
-     &"Second entry for particle",posi,"not found. Got:",j
-         call prror(-1)
       endif
 +ei !END +if stf
 !hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
@@ -57701,7 +57682,6 @@ c$$$            endif
       if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
      & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!TODO: Protect against error case where this never happens.
       if(ifipa_stf.ne.posi) then
 	goto 190
       endif
@@ -57837,7 +57817,6 @@ c$$$            endif
       if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
      & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!     TODO: Protect against error case where this never happens.
       if(ifipa_stf.ne.posi) then
          goto 210
       endif
@@ -58193,7 +58172,6 @@ c$$$            endif
       if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
      & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!     TODO: Protect against error case where this never happens.
       if(ifipa_stf.ne.posi) then
          goto 240
       endif
@@ -59426,7 +59404,6 @@ c$$$            endif
             if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
      &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!     TODO: Protect against error case where this never happens.
 	    if(ifipa_stf.ne.posi) then
 	      goto 435
 	    endif
