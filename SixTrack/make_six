@@ -540,13 +540,13 @@ then
     exit 1
 fi
 
-if test "$stf" = "" -a "$cr" = ""
-then
-    show_options
-    echo "     INVALID options selected:"
-    echo "     stf and cr are not compatible, please use only one of them!"
-    exit 1
-fi
+# if test "$stf" = "" -a "$cr" = ""
+# then
+#     show_options
+#     echo "     INVALID options selected:"
+#     echo "     stf and cr are not compatible, please use only one of them!"
+#     exit 1
+# fi
 if test "$stf" = "" -a "$bnlelens" = ""
 then
     show_options
