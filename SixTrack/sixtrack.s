@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.36'/
-      data moddate /'18.07.2016'/
+      data version /'4.5.37'/
+      data moddate /'25.08.2016'/
 +cd license
 !!SixTrack
 !!
@@ -18,6 +18,7 @@
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
 !!M. Fitterer, M. Fiascaris CERN
 !!G. Robert-Demolaize, BNL
+!!V. Gupta, Google Summer of Code (GSoC)
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
 !!Lesser General Public License version 2.1, copied verbatim in the file
