@@ -69066,7 +69066,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
 +ei
-        else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml
+        else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
 !--  Now with the new array crbinrecs we can ignore files which are
 !--  basically finished because a particle has been lost.......
 !--  Just check crbinrecs against crbinrec
@@ -69107,32 +69107,21 @@ c$$$         backspace (93,iostat=ierro)
 +if stf
       mybinrecs=0
       ! Reposition headers
-      !write(lout,*) "DBGDBG: - repositioning headers (nnuml==crnuml)"
-      !write(lout,*) "DBGDBG:  crnapxo=",crnapxo
       do ia=1,crnapxo/2,1
          read(90,err=102,end=102,iostat=ierro) hbuff
          mybinrecs=mybinrecs+1
       end do
-      !write(lout,*) "DBGDBG: reposition tracking, mybinrecs=",mybinrecs
       !Reposition track records
       do ia=1,crnapxo/2,1
-         !write(lout,*)"ia,crbinrec,crbinrecs=",ia,crbinrec,crbinrecs(ia)
-         if (crbinrecs(ia).ge.crbinrec) then
-            !write(lout,*)
-            do j=2,crbinrecs(ia)
-               if(ntwin.ne.2) then !ntwin=1
-                  read(90,err=102,end=102,iostat=ierro)
-     &                 (tbuff(k),k=1,17)
-               else                !ntwin=2
-                  read(90,err=102,end=102,iostat=ierro) tbuff
-               endif
-               mybinrecs=mybinrecs+1
-            end do
-         else
-            write(93,*)                                                 &
-     &           'SIXTRACR CRCHECK ignoring IA ',ia,
-     &           "CRBINREC=",CRBINREC,"CRBINRECS(IA)=",CRBINRECS(IA)
-         endif
+         do j=2,crbinrecs(ia)
+            if(ntwin.ne.2) then !ntwin=1
+               read(90,err=102,end=102,iostat=ierro)
+     &              (tbuff(k),k=1,17)
+            else                !ntwin=2
+               read(90,err=102,end=102,iostat=ierro) tbuff
+            endif
+            mybinrecs=mybinrecs+1
+         end do
       enddo
 +ei ! END +if stf
       endif ! END "if (numl.ne.crnuml) then" and END else
