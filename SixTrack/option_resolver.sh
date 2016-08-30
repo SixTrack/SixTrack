@@ -135,7 +135,7 @@ else
   put "m64" "" "ifort nagfor pgf90 g95 lf95 cernlib bonic m32 naglib"
   put "beamgas" "collimat" ""
   put "stf" "" "bnlelens"
-  put "bignpart" "stf" "collimat"
+  put "bignpart" "stf" "collimat bnlelens"
   
   # Add below the case which are to be followed in absence of certain options
   # as put_ifnot "option" "needed dependencies" "exclusions"

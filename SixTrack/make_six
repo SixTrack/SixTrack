@@ -553,6 +553,11 @@ then
 	echo "Options collimat and bignpart are incompatible - please use only one."
 	exit 1
     fi
+    if test "$bnlelens" = ""
+    then
+	echo "Options bnlelens and bignpart are incompatible - please use only one."
+	exit 1
+    fi
     if test "$stf" != ""
     then
 	echo "Option bignpart requires option stf."
