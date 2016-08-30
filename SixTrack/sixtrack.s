@@ -13850,9 +13850,9 @@ cc2008
 !     always in main code
       if(idat.eq.dynk) goto 2200
 !     Beam distribution Exchange
-      if(idat.eq.bdex) goto 2300
+      if(idat.eq.bdex) goto 2250
 !     Frequency map analysis
-      if(idat.eq.fma) goto 2400
+      if(idat.eq.fma) goto 2300
 !     Electron lens
       if(idat.eq.elens) goto 2400
 
@@ -18705,11 +18705,11 @@ cc2008
 !  Based on FLUKA coupling version by
 !  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
 !-----------------------------------------------------------------------
- 2300 read(3,10020,end=1530,iostat=ierro) ch
+ 2250 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(51)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
-      if(ch(1:1).eq.'/') goto 2300 ! skip comment line
+      if(ch(1:1).eq.'/') goto 2250 ! skip comment line
 
 +if cr
       write(lout,*) "BDEX not supported in CR version."
@@ -19065,7 +19065,7 @@ cc2008
             call prror(-1)
 
          end select
-         goto 2300 !Loop BDEX
+         goto 2250 !Loop BDEX
          
       else if (ch(:4).eq.next) then
          if (bdex_debug) then
@@ -19175,11 +19175,11 @@ cc2008
 !  last modified: 07-01-2016
 !  always in main code
 !-----------------------------------------------------------------------
- 2400 read(3,10020,end=1530,iostat=ierro) ch
+ 2300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
-      if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
+      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
 
       if (ch(:4).eq.next) then
          goto 110 ! loop to next BLOCK in fort.3
@@ -19281,7 +19281,7 @@ cc2008
       end if
       
       fma_flag = .true.
-      goto 2400
+      goto 2300
 !-----------------------------------------------------------------------
 !  Electron Lense, kz=29,ktrack=63
 !  M. Fitterer,  FNAL
