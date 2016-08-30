@@ -146,7 +146,12 @@
       integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
      &nrco,ntr,nzfz
++if .not.bignpart
       parameter(npart = 64,nmac = 1)
++ei
++if bignpart
+      parameter(npart = 128,nmac = 1)
++ei
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
 ! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
