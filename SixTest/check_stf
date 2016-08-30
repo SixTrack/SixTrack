@@ -7,7 +7,7 @@
 prov=canonical
 use90=false
 echo "------------------------------------------------------------"
-echo "Usage: ./chec_stf (prov=canonical) newv (90)"
+echo "Usage: ./check_stf (prov=canonical) newv (90)               "
 echo
 echo "This is for comparing stf version of sixtrack with canonical"
 echo "If you haven't chosen single track file flag option then    "
@@ -15,7 +15,8 @@ echo "run check_90 instead                                        "
 echo
 echo "You may give a third argument '90', in which case it will   "
 echo " compare the first pair in the new singletrackfile.dat with "
-echo " the old fort.90.                                           "
+echo " the old fort.90. Example:                                  "
+echo " ./check_stf canonical 4242 90                              "
 echo "------------------------------------------------------------"
 # Now uses the variable TESTS
 export BIN=`pwd`/bin
@@ -79,7 +80,7 @@ do
       echo "      ===================================="
       echo "      CASE $i"
       echo "      ===================================="
-      if test -s $i/singletrackfile.dat.$prov
+      if [[ (( $use90 = false && -s $i/singletrackfile.dat.$prov )) || (( $use90 = true && -s $i/fort.90.$prov )) ]]
       then 
           if test -s $i/singletrackfile.dat.$v
           then

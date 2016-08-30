@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.36'/
-      data moddate /'18.07.2016'/
+      data version /'4.5.37'/
+      data moddate /'25.08.2016'/
 +cd license
 !!SixTrack
 !!
@@ -18,6 +18,7 @@
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
 !!M. Fitterer, M. Fiascaris CERN
 !!G. Robert-Demolaize, BNL
+!!V. Gupta, Google Summer of Code (GSoC)
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
 !!Lesser General Public License version 2.1, copied verbatim in the file
@@ -27013,7 +27014,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
   340 continue
 +if cr
-      if (lhc.ne.9) binrec=1
+      if (lhc.ne.9) binrec=1    ! binrec:
+                                ! The maximum number of reccords writen for all tracking data files
+                                ! Thus crbinrecs(:) .le. binrec
 +ei
       if(e0.gt.pieni) then
         do 350 j=1,napx
@@ -35073,7 +35076,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF?
+              binrecs(ia2)=binrecs(ia2)+1
 +ei
             else !Write particle nlostp(ia) and nlostp(ia)+1
                  ! Note that dam(ia) (distance in angular phase space)
@@ -35097,7 +35100,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               backspace (90,iostat=ierro)
 +ei
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1 !TODO: Update binrecs for STF?
+              binrecs(ia2)=binrecs(ia2)+1
 +ei
             endif
             if(ierro.ne.0) then
@@ -35138,7 +35141,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               return
             endif
           endif
-   10 continue
+   10 continue !END "do 10 ia=1,napx-1"
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -57206,7 +57209,6 @@ c$$$            endif
 	ntwin=2               !(ntwin=1 is the default in postpr)
 !--   binrecs is indexed as 1,2,3,... (=i.e.(91-nfile) in the non-STF version,
 !--   while posi values are called as 1,3,5, so using posi1 for crbinrecs index later
-! TODO: Evaluate the way binrecs is written?
       endif
       posi1 = (posi+1)/2 !For both ntwin=1 and 2
 +ei ! END +if stf
@@ -57242,8 +57244,9 @@ c$$$            endif
          read(nfile)
       enddo
        !--read first track data for particle at posi
-      do i=1,posi,2
+      do !Loop safe, will anyway end EOF is reached.
          read(nfile,end=530,iostat=ierro) iaa, j
+         if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
 +if cr
@@ -57253,20 +57256,11 @@ c$$$            endif
         write(*,10320)    nfile
 +ei
         goto 550
-      endif
-      if (j.ne.posi) then
-+if cr
-         write(lout,*) "ERROR in postprocessing: ",
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in postprocessing: ",
-+ei
-     &"First entry for particle",posi,"not found. Got:",j
-         call prror(-1)
       endif
       !--bypass records till 2nd run of same particle is reached
-      do i=2,itopa,2
+      do
          read(nfile,end=535,iostat=ierro) iab, j
+         if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
 +if cr
@@ -57276,16 +57270,6 @@ c$$$            endif
         write(*,10320)    nfile
 +ei
         goto 550
-      endif
-      if (j.ne.posi) then
-+if cr
-         write(lout,*) "ERROR in postprocessing: ",
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in postprocessing: ",
-+ei
-     &"Second entry for particle",posi,"not found. Got:",j
-         call prror(-1)
       endif
 +ei !END +if stf
 !hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
@@ -57699,7 +57683,6 @@ c$$$            endif
       if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
      & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!TODO: Protect against error case where this never happens.
       if(ifipa_stf.ne.posi) then
 	goto 190
       endif
@@ -57835,7 +57818,6 @@ c$$$            endif
       if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
      & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!     TODO: Protect against error case where this never happens.
       if(ifipa_stf.ne.posi) then
          goto 210
       endif
@@ -58191,7 +58173,6 @@ c$$$            endif
       if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
      & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!     TODO: Protect against error case where this never happens.
       if(ifipa_stf.ne.posi) then
          goto 240
       endif
@@ -59424,7 +59405,6 @@ c$$$            endif
             if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
      &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-!     TODO: Protect against error case where this never happens.
 	    if(ifipa_stf.ne.posi) then
 	      goto 435
 	    endif
@@ -68961,6 +68941,8 @@ c$$$         backspace (93,iostat=ierro)
      &crnuml,' to ',numl
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
+
+!--   Reposition binary files fort.90 etc. / singletrackfile.dat
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -68968,6 +68950,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
 +ei
+          ! fort.94 = temp file where the data from fort.90 etc. is copied to and then back
 +if boinc
           call boincrf('fort.94',filename)
           open(94,file=filename,form='unformatted',status='unknown')
@@ -68975,15 +68958,18 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.boinc
           open(94,file='fort.94',form='unformatted',status='unknown')
 +ei
++if .not.stf
           do 13 ia=1,crnapxo/2,1
+            ! First, copy crbinrecs(ia) records of data from fort.91-ia to fort.94
             mybinrecs=0
             binrecs94=0
             myia=91-ia
+            !Copy header
             read(91-ia,err=105,end=105,iostat=ierro) hbuff
             mybinrecs=mybinrecs+1
-!--   Reset the number of turns (not very elegant)
-            hbuff(51)=numl
+            hbuff(51)=numl ! Reset the number of turns (not very elegant)
             write(94,err=105,iostat=ierro) hbuff
+            ! Copy particle tracking data
             do 14 j=2,crbinrecs(ia)
               if(ntwin.ne.2) then
                 read(91-ia,err=105,end=105,iostat=ierro)                &
@@ -68994,12 +68980,16 @@ c$$$         backspace (93,iostat=ierro)
                 write(94,err=105,iostat=ierro) tbuff
               endif
               mybinrecs=mybinrecs+1
-   14       continue
+ 14         continue
+            
+            ! Second, copy crbinrecs(ia) records of data from fort.94 to fort.91-ia
             rewind 94
             rewind 91-ia
+            !Copy header
             read(94,err=105,end=105,iostat=ierro) hbuff
             binrecs94=binrecs94+1
             write(91-ia,err=105,iostat=ierro) hbuff
+            ! Copy particle tracking data
             do 15 j=2,crbinrecs(ia)
               if(ntwin.ne.2) then
                 read(94,err=105,end=105,iostat=ierro)                   &
@@ -69014,16 +69004,69 @@ c$$$         backspace (93,iostat=ierro)
    17       endfile (91-ia,iostat=ierro)
             backspace (91-ia,iostat=ierro)
             rewind 94
-   13     continue
+   13     continue ! END "do 13 ia=1,crnapxo/2,1"
++ei ! END +if .not.stf
++if stf
+          ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to fort.94
+          mybinrecs=0
+          !Copy headers
+          do ia=1,crnapxo/2,1
+             read(90,err=105,end=105,iostat=ierro) hbuff
+             mybinrecs=mybinrecs+1
+             hbuff(51)=numl ! Reset the number of turns (not very elegant)
+             write(94,err=105,iostat=ierro) hbuff
+          end do
+          ! Copy particle tracking data
+          do ia=1,crnapxo/2,1
+             do j=2,crbinrecs(ia)
+                if(ntwin.ne.2) then
+                   read(90,err=105,end=105,iostat=ierro)
+     &                  (tbuff(k),k=1,17)
+                   write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
+                else
+                   read(90,err=105,end=105,iostat=ierro) tbuff
+                   write(94,err=105,iostat=ierro) tbuff
+                endif
+                mybinrecs=mybinrecs+1
+             end do
+          end do
+          
+          ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from fort.94 to singletrackfile.dat
+          rewind 94
+          rewind 90
+          binrecs94=0
+          ! Copy header
+          do ia=1,crnapxo/2,1
+             read(94,err=105,end=105,iostat=ierro) hbuff
+             binrecs94=binrecs94+1
+             write(90,err=105,iostat=ierro) hbuff
+          end do
+          ! Copy particle tracking data
+          do ia=1,crnapxo/2,1
+             do j=2,crbinrecs(ia)
+                if(ntwin.ne.2) then
+                   read(94,err=105,end=105,iostat=ierro)
+     &                  (tbuff(k),k=1,17)
+                   write(90,err=105,iostat=ierro) (tbuff(k),k=1,17)
+                else
+                   read(94,err=105,end=105,iostat=ierro) tbuff
+                   write(90,err=105,iostat=ierro) tbuff
+                endif
+                binrecs94=binrecs94+1
+             enddo
+          end do
+          endfile   (90,iostat=ierro)
+          backspace (90,iostat=ierro)
++ei ! END +if stf
           close(94)
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-          endif
+          endif ! END "if (lhc.ne.9) then"
 !GRDRHIC
 !GRD-042008
 +ei
-        else
+        else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
 !--  Now with the new array crbinrecs we can ignore files which are
 !--  basically finished because a particle has been lost.......
 !--  Just check crbinrecs against crbinrec
@@ -69034,6 +69077,8 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
 +ei
++if .not.stf
+          ! Binary files have been rewritten; now re-position
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK re-positioning binary files'
           do 10 ia=1,crnapxo/2,1
@@ -69052,12 +69097,34 @@ c$$$         backspace (93,iostat=ierro)
    11         continue
               endfile (91-ia,iostat=ierro)
               backspace (91-ia,iostat=ierro)
-            else
+             else ! Number of ecords written to this file < general number of records written
+                  ! => Particle has been lost before last CP, no need to reposition.
               write(93,*)                                               &
      &'SIXTRACR CRCHECK ignoring IA ',ia,' Unit ',myia
             endif
    10     continue
-          endif
++ei ! END +if .not.stf
++if stf
+      mybinrecs=0
+      ! Reposition headers
+      do ia=1,crnapxo/2,1
+         read(90,err=102,end=102,iostat=ierro) hbuff
+         mybinrecs=mybinrecs+1
+      end do
+      !Reposition track records
+      do ia=1,crnapxo/2,1
+         do j=2,crbinrecs(ia)
+            if(ntwin.ne.2) then !ntwin=1
+               read(90,err=102,end=102,iostat=ierro)
+     &              (tbuff(k),k=1,17)
+            else                !ntwin=2
+               read(90,err=102,end=102,iostat=ierro) tbuff
+            endif
+            mybinrecs=mybinrecs+1
+         end do
+      enddo
++ei ! END +if stf
+      endif ! END "if (numl.ne.crnuml) then" and END else
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -69171,6 +69238,7 @@ C            backspace (dumpunit(i),iostat=ierro)
       endif
       goto 605
 !--   Just abort if we cannot re-position/copy the binary files,
++if .not.stf
   102 write(lout,*)
       write(lout,*)                                                     &
      &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS RE-READING fort.',      &
@@ -69178,6 +69246,17 @@ C            backspace (dumpunit(i),iostat=ierro)
       write(lout,*)'Unit',myia,                                         &
      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia)
       call abend('SIXTRACR CRCHECK failure positioning binary files ')
++ei
++if stf
+  102 write(lout,*)
+      write(lout,*)
+     &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS RE-READING ',
+     &'singletrackfile.dat for ia=',ia,' IOSTAT=',ierro
+      write(lout,*)
+     &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia)
+      call abend('SIXTRACR CRCHECK failure positioning binary files ')
++ei
++if .not.stf
   105 write(lout,*)
       write(lout,*)                                                     &
      &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS COPYING fort.',         &
@@ -69187,6 +69266,18 @@ C            backspace (dumpunit(i),iostat=ierro)
      &' binrecs94=',binrecs94
       write(lout,*)
       call abend('SIXTRACR CRCHECK failure copying binary files     ')
++ei ! END +if .not.stf
++if stf
+  105 write(lout,*)
+      write(lout,*)                                                     &
+     &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS COPYING particle pair', &
+     &ia,' IOSTAT=',ierro, ' from/to singletrackfile.dat'
+      write(lout,*)                                                     &
+     &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia),      &
+     &' binrecs94=',binrecs94
+      write(lout,*)
+      call abend('SIXTRACR CRCHECK failure copying binary files     ')
++ei ! END +if stf
 !--  We are not checkpointing or we have no checkpoints
 !--  or we have no readable checkpoint
 !--  If not checkpointing we can just give up on lout and use
