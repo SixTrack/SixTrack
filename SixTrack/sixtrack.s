@@ -150,7 +150,9 @@
       parameter(npart = 64,nmac = 1)
 +ei
 +if bignpart
-      parameter(npart = 128,nmac = 1)
+!See also:
+! - subroutine wzsubv
+      parameter(npart = 2048,nmac = 1)
 +ei
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
@@ -13026,7 +13028,13 @@ cc2008
      &vvsum,vvsum3,vw1i,vw1r,vw2i,vw2r,vw3i,vw3r,vw4i,vw4r,vx,          &
      &vxh,vxhrel,vy,vyh,vyhrel
       integer npart
++if .not.bignpart
       parameter(npart = 64)
++ei
++if bignpart
+      ! See also +cd parpro
+      parameter(npart = 2048)
++ei
       integer idim,kstep,nx,ny
       double precision h,half,hrecip,one,wtimag,wtreal,xcut,ycut
       parameter ( xcut = 7.77d0, ycut = 7.46d0 )
@@ -19322,7 +19330,7 @@ cc2008
  1530 call prror(42)
  1540 continue
 +if vvector
-!hr05 if(2*mmac*imc*napx.gt.npart) call prror(54)
+      !Check that the number of particles is OK
       if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
 +ei
 
