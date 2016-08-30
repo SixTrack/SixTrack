@@ -1,6 +1,6 @@
 sixtrack.s
 sixven.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf
 e maincr,envarsv
 e ADIA,ADIB,DATEN,ENVARS,ERRF
 e COMNUL,RANECU

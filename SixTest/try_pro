@@ -103,7 +103,10 @@ do
   then
     cp fort.210 ../$i/fort.210.$dir
   fi
-  
+  if test -s singletrackfile.dat
+  then
+    cp singletrackfile.dat ../$i/singletrackfile.dat.$dir
+  fi
   if test "$i" = "bnl"
   then
     if test "$CPSS" != "" -o "$CR" != ""

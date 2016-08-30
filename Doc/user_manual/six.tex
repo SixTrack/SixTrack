@@ -46,11 +46,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update June 2016
+  Update August 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.35 \\
+  Version 4.5.37 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -3538,15 +3538,23 @@ The program uses a couple of files for its input and output procedures.
   34 & & X & Ascii & Multipole strength and linear lattice
     parameters~\cite{SODD} \\ 
   \hline \rule[-1.25mm]{0mm}{7.5mm}
-  90 -- k & & X & Binary & Tracking Data \\*
+  90 -- k & & X & Binary & Tracking Data (not singletrackfile)\\*
   \rule[-3.7mm]{0mm}{7.5mm}
-  & & & & $ 0 <= k <= 31 $ \\
+  & & & & $ 0 <= k <= 31 $\\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  90 & & X & Binary & Tracking Data (singletrackfile)\\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & \texttt{singletrackfile.dat}\\
   \hline \rule[-3.75mm]{0mm}{10mm}
   92 & & X & Ascii & Checkpoint/Restart only: \\*
   \rule[-3.7mm]{0mm}{7.5mm}
   & & & & Program ``standard output'' (lout) \\
   \hline \rule[-3.75mm]{0mm}{10mm}
   93 & & X & Ascii & Checkpoint/Restart only: Log file \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  94 & & X & Ascii & Checkpoint/Restart only: Temp file for \\* 
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & &resetting binary tracking data file(s) \\
   \hline \rule[-3.75mm]{0mm}{10mm}
   95 & X & X & Ascii & Checkpoint/Restart only: Data file 1 \\
   \hline \rule[-3.75mm]{0mm}{10mm}
@@ -3689,6 +3697,11 @@ of SixTrack\@.
   \hline
 \end{tabular}
 \end{table}
+
+Note that in case the ``Single Track File'' option is enabled at compile time, multiple of these files (normally one per particle pair) are interleaved in a single file.
+This is done by writing first all headers in order (i.e. first the header for initial particle/final particle 1/2, then 3/4, 5/6 etc.) and then the same for the tracking data.
+The ``total number of particles'' field can always be read from the first header record, which gives the number of header records present in the file.
+The two file formats are equivalent, i.e. they contain exactly the same data, and it is thus possible to convert losslessly between them.
 
 Some of the post--processing data are written in Ascii--format on file
 \# 10. This can be used for instance for plotting purposes. Each time

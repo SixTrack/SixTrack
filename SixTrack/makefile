@@ -24,9 +24,10 @@ SHELL:=/bin/bash
 # user can run make as make add="p q" remove="x y" in order to add p,q and remove x,y where p q x y must belong to ALL_OPTIONS
 # new options are added for executable - m32 and m64 for 32 bit and 64 bit respectivley(m32 is default)
 # resolving of dependencies is done using option_resolver.sh script
-
+#new ast flag is defined for single tracking file 
 #list of all options (need to be looked at for removing obsolete options)
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz m32 m64 O3)
+
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz stf m32 m64 O3)
 
 DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
 DEFAULTS := $(filter-out $(remove),$(DEFAULTS))
@@ -286,6 +287,7 @@ AST_FILES := $(MASKS:=.ast)
 FN_FILES   := $(MASKS:=n.f)
 F_FILES   := $(MASKS:=.f)
 # .s files to be copied
+
 S_FILES := dabnew.s lielib.s sixtrack.s plato_seq.s
 
 # separate variable for source required on Windows
