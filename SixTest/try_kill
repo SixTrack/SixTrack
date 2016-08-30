@@ -74,6 +74,24 @@ do
       cp ../$i/beambeamdist.dat beambeamdist.dat
       cp beambeamdist.dat fort.54
     fi
+    if test -s ../$i/extra_inputs.txt; then
+      echo "Found extra input files, copying more files..."
+      set -f # Disable wildcard expansion
+      while read extrafile; do
+        echo "Got file = " $extrafile
+	if test ! "$extrafile"; then
+	  echo "      Invalid line! Skipping."
+	  continue
+	fi
+	if ! test -f ../$i/$extrafile; then
+	  echo "      File " $extrafile " not found, skipping!"
+	  continue
+	fi
+	
+	cp ../$i/$extrafile .
+      done < ../$i/extra_inputs.txt
+      set +f # Reanable wildcards
+    fi
   else
     cp ../$i/Sixin.zip .
   fi
@@ -118,6 +136,10 @@ do
   if test -s fort.210
   then
     cp fort.210 ../$i/fort.210.$dir
+  fi
+  if test -s singletrackfile.dat
+  then
+    cp singletrackfile.dat ../$i/singletrackfile.dat.$dir
   fi
   if test -s fort.91
   then
@@ -212,6 +234,24 @@ do
     then
       cp ../$i/beambeamdist.dat beambeamdist.dat
       cp beambeamdist.dat fort.54
+    fi
+    if test -s ../$i/extra_inputs.txt; then
+      echo "Found extra input files, copying more files..."
+      set -f # Disable wildcard expansion
+      while read extrafile; do
+        echo "Got file = " $extrafile
+	if test ! "$extrafile"; then
+	  echo "      Invalid line! Skipping."
+	  continue
+	fi
+	if ! test -f ../$i/$extrafile; then
+	  echo "      File " $extrafile " not found, skipping!"
+	  continue
+	fi
+	
+	cp ../$i/$extrafile .
+      done < ../$i/extra_inputs.txt
+      set +f # Reanable wildcards
     fi
   else
     cp ../$i/Sixin.zip Sixin.zip
@@ -341,6 +381,10 @@ do
   if test -s fort.210
   then
     cp fort.210 ../$i/fort.210.${dir}.killed
+  fi
+  if test -s singletrackfile.dat
+  then
+    cp singletrackfile.dat ../$i/singletrackfile.dat.$dir
   fi
   if test "$i" = "bnl"
   then

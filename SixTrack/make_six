@@ -62,7 +62,7 @@ show_options()
 {
     ons="The following selections are ON  :"
     offs="The following selections are OFF :"
-    for i in $( seq 1 26 )
+    for i in $( seq 1 27 )
     do
         if test ${values[$i]} = "true"
         then
@@ -127,9 +127,9 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz)
-values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false)
-#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26
+options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf)
+values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false)
+#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27
 
 # Overide for Darwin
 OSTYPE=`uname -s`
@@ -177,6 +177,7 @@ beamgas="beamgas"
 bnlelens="bnlelens"
 bignblz="bignblz"
 hugenblz="hugenblz"
+stf="stf"
 debug="debug"
 hdf5="hdf5"
 ifort="ifort"
@@ -271,6 +272,9 @@ do
         -hugenblz) hugenblz="hugenblz"
             values[26]=false
             ;;
+	-stf) stf="stf"
+	    values[27]=false
+	    ;;
 	
 	#Options to switch things ON
         tilt) tilt=""
@@ -349,6 +353,9 @@ do
 	hugenblz) hugenblz=""
             values[26]=true
             ;;
+	stf) stf=""
+	    values[27]=true
+	    ;;
 	
 	#Compiler flags are special
 	sse2) SSE=sse2
@@ -530,6 +537,21 @@ fi
 if test "$collimat" = "" -a "$cr" = ""
 then
     echo "Options collimat and cr are incompatible - please use only one."
+    exit 1
+fi
+
+# if test "$stf" = "" -a "$cr" = ""
+# then
+#     show_options
+#     echo "     INVALID options selected:"
+#     echo "     stf and cr are not compatible, please use only one of them!"
+#     exit 1
+# fi
+if test "$stf" = "" -a "$bnlelens" = ""
+then
+    show_options
+    echo "     INVALID options selected:"
+    echo "     stf and bnlelens are not compatible, please use only one of them!"
     exit 1
 fi
 
@@ -795,6 +817,10 @@ if test "$hugenblz" = ""
 then
     ename=$ename"_hugenblz"
 fi
+if test "$stf" = ""
+then
+    ename=$ename"_stf"
+fi
 
 if test "$debug" = ""
 then
@@ -826,6 +852,15 @@ if ! gawk -f beauty/count.awk sixtrack.s; then
 else
     echo "--> count.awk completed without errors."
 fi
+echo "Running 'gawk -f beauty/check_astuce_ifs.awk sixtrack.s' to check sanity of astuce directives in sixtrack.s:"
+if ! gawk -f beauty/check_astuce_ifs.awk sixtrack.s; then
+    echo -e "\e[5m\e[41m WARNING: ASTUCE if has too many arguments in sixtrack.s \e[49m\e[0m"
+    echo "This most likely means that you have an extra space in an astuce +if statement"
+    echo "You may also just be missing the command 'gawk' (GNU AWK),"
+    echo " needed to run this script."
+else
+    echo "--> check_astuce_ifs.awk completed without errors."
+fi
 echo "Running 'gawk -f beauty/count.awk plato_seq.s' to check sanity of astuce directives in plato_seq.s:"
 if ! gawk -f beauty/count.awk plato_seq.s; then
     echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in plato_seq.s \e[49m\e[0m"
@@ -835,6 +870,15 @@ if ! gawk -f beauty/count.awk plato_seq.s; then
     echo " needed to run this script."
 else
     echo "--> count.awk completed without errors."
+fi
+echo "Running 'gawk -f beauty/check_astuce_ifs.awk plato_seq.s' to check sanity of astuce directives in sixtrack.s:"
+if ! gawk -f beauty/check_astuce_ifs.awk plato_seq.s; then
+    echo -e "\e[5m\e[41m WARNING: ASTUCE if has too many arguments in plato_seq.s \e[49m\e[0m"
+    echo "This most likely means that you have an extra space in an astuce +if statement"
+    echo "You may also just be missing the command 'gawk' (GNU AWK),"
+    echo " needed to run this script."
+else
+    echo "--> check_astuce_ifs.awk completed without errors."
 fi
 
 
@@ -884,7 +928,7 @@ do
 done
 # Update the .ast flags based on options
 echo "Deleting un-used flags and decks from .ast files..."
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz" "$stf"
 do
     #echo "opt=" $opt
     if test "$opt" != ""
