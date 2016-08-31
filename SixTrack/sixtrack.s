@@ -2127,8 +2127,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                   if (rrelens.ge.elens_r2(ix)) then ! r1 < r2 <= rrelens
                     frrelens = elens_r2(ix)/(rrelens**2)
                   endif
-                  yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xelens*oidpsv(j)
-                  yv(2,j)=yv(2,j)-elens_theta_max(ix)*frrelens*yelens*oidpsv(j)
+                  yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xelens
+     &                 * oidpsv(j)
+                  yv(2,j)=yv(2,j)-elens_theta_max(ix)*frrelens*yelens
+     &                 * oidpsv(j)
                 endif
 ! include bends at entrance and exit of elens
               case default
