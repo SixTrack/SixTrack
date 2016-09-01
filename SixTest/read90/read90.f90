@@ -92,7 +92,7 @@
       INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
       CHARACTER(len=100) :: cmdarg_arg
       logical STF
-      integer singleParticle
+      integer singleParticle, firstParticle, lastParticle
 
       character(len=100) :: fname
 !----------------------------------------------------------------------
@@ -100,7 +100,9 @@
       fname = "fort.190"
       
       STF = .false. !Use the new STF format?
-      singleParticle = -1 !If so, only print records for particle i (and i+1)?
+      singleParticle = -1 !If set, only print records for particle i (and i+1)
+      firstParticle = -1
+      lastParticle  = -1
       cmdarg_i = 0
       do 
          call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
@@ -113,6 +115,10 @@
                if(.not.STF) then
                   write(*,*) "--SP flag only valid following a --STF flag."
                   stop 2
+               endif
+               if(firstParticle.ne.-1 .or. lastParticle.ne.-1) then
+                  write(*,*) "--SP and --PR flags are incompatible."
+                  stop 8
                endif
                
                !Read the number
@@ -133,6 +139,59 @@
                   write(*,*) "singleParticle=",singleParticle, "; expected odd number."
                   stop 5
                endif
+            else if (cmdarg_arg .eq. "--PR") then
+               if(.not.STF) then
+                  write(*,*) "--PR flag only valid following a --STF flag."
+                  stop 9
+               endif
+               if(singleParticle.ne.-1) then
+                  write(*,*) "--SP and --PR flags are incompatible."
+                  stop 10
+               endif
+
+               !Read the first number
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No number found following --PR flag?"
+                  stop 11
+               endif
+
+               read(cmdarg_arg,*,iostat=stat) firstParticle
+               if (firstParticle.lt.1) then
+                  write(*,*) "firstParticle=",firstParticle
+                  write(*,*) "Did you specify an integer>0?"
+                  stop 12
+               endif
+               if (mod(firstParticle,2).ne.1) then
+                  write(*,*) "firstParticle=",firstParticle, "; expected odd number."
+                  stop 13
+               endif
+
+               !Read the second number
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No second number found following --PR flag?"
+                  stop 14
+               endif
+
+               read(cmdarg_arg,*,iostat=stat) lastParticle
+               if (lastParticle.lt.1) then
+                  write(*,*) "lastParticle=",lastParticle
+                  write(*,*) "Did you specify an integer>0?"
+                  stop 15
+               endif
+               if (mod(lastParticle,2).ne.1) then
+                  write(*,*) "lastParticle=",lastParticle, "; expected odd number."
+                  stop 16
+               endif
+               if (.not. lastParticle .gt. firstParticle) then
+                  write(*,*) "Expected lastParticle > firstParticle, got:"
+                  write(*,*) "firstParticle=",firstParticle,"lastParticle=",lastParticle
+                  stop 17
+               endif
+               
             else if (cmdarg_arg .eq. "--fname") then
                !Read the filename
                cmdarg_i = cmdarg_i+1
@@ -150,11 +209,13 @@
                fname=cmdarg_arg
                
             else
-               write(*,*) "USAGE: read90 (--STF) (--SP <number>) (--fname <name>)"
+               write(*,*) "USAGE: read90 (--STF) (--SP <number> | --PR <number> <number>) (--fname <name>)"
                write(*,*) "The --STF flag indicates that the file is in the new STF format"
-               write(*,*) "The --SP flag can be used together with the --STF flag,"
+               write(*,*) "The --SP and --PR flag can only be used together with the --STF flag,"
                write(*,*) " in order to extract only single particle (pair) data in a way that emulates the old format."
                write(*,*) " The number following should be a odd number, i.e. 1,3,5 etc. for particle pair 1+2/3+4/5+6 etc."
+               write(*,*) " The --PR flag differs from the --SP flag in that it can be used to extract a range of particle pairs,"
+               write(*,*) " first and last pair inclusive. Expects first number < last number"
                write(*,*) "The --fname flag can be used to specify the name of the file to read from (max 100 characters)."
                write(*,*) " If nothing is specified, it defaults to 'fort.190'."
                stop 1
@@ -181,7 +242,14 @@
 
       if (STF .and. singleParticle.ne.-1) then
          if (singleParticle.ne.ifipa) then
-            if (ifipa .eq. itopa-1) goto 210 !OK, we're done here.
+            if (ifipa .eq. itopa-1) goto 210 !OK, we're done reading headers.
+            goto 100
+         endif
+      endif
+      if (STF .and. firstParticle.ne.-1) then
+         if (.not. (ifipa.ge.firstParticle .and. ifipa.le.lastParticle)) then
+            !We are outside of the interval of interest.
+            if (ifipa .eq. itopa-1) goto 210 !OK, we're done  reading headers.
             goto 100
          endif
       endif
@@ -244,7 +312,7 @@
          if (ifipa .lt. itopa-1) goto 100 !Read more headers
       endif
 
-      !Code for reading the first particle pair
+      !Code for reading the first particle pair (turn)
 210   if(ntwin.eq.1) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
@@ -255,6 +323,11 @@
       if (STF .and. singleParticle.ne.-1) then
          if (singleParticle.ne.ifipa) goto 210
       endif
+      if (STF .and. firstParticle.ne.-1) then
+         !Are we are outside of the interval of interest?
+         if (.not. (ifipa.ge.firstParticle .and. ifipa.le.lastParticle)) goto 210
+      endif
+
 !--KEEP THE FIRST TURN NUMBER : IA0
       ia0=ia
       goto 212
@@ -266,6 +339,10 @@
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
       if (STF .and. singleParticle.ne.-1) then
          if (singleParticle.ne.ifipa) goto 211
+      endif
+      if (STF .and. firstParticle.ne.-1) then
+         !Are we are outside of the interval of interest?
+         if (.not. (ifipa.ge.firstParticle .and. ifipa.le.lastParticle)) goto 211
       endif
       n=n+1
       

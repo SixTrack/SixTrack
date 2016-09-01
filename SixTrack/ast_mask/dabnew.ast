@@ -1,6 +1,6 @@
 dabnew.s
 dabnewn.f
-df big,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
+df big,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95,bignpart
 e daini
 e daexter
 e dallsta
