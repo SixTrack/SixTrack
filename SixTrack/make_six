@@ -62,7 +62,7 @@ show_options()
 {
     ons="The following selections are ON  :"
     offs="The following selections are OFF :"
-    for i in $( seq 1 27 )
+    for i in $( seq 1 28 )
     do
         if test ${values[$i]} = "true"
         then
@@ -127,9 +127,9 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf)
-values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false)
-#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27
+options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf   bignpart)
+values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false false)
+#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27    28
 
 # Overide for Darwin
 OSTYPE=`uname -s`
@@ -178,6 +178,7 @@ bnlelens="bnlelens"
 bignblz="bignblz"
 hugenblz="hugenblz"
 stf="stf"
+bignpart="bignpart"
 debug="debug"
 hdf5="hdf5"
 ifort="ifort"
@@ -275,6 +276,9 @@ do
 	-stf) stf="stf"
 	    values[27]=false
 	    ;;
+        -bignpart) bignpart="bignpart"
+            values[28]=false
+            ;;
 	
 	#Options to switch things ON
         tilt) tilt=""
@@ -356,6 +360,9 @@ do
 	stf) stf=""
 	    values[27]=true
 	    ;;
+        bignpart) bignpart=""
+            values[28]=true
+            ;;
 	
 	#Compiler flags are special
 	sse2) SSE=sse2
@@ -538,6 +545,24 @@ if test "$collimat" = "" -a "$cr" = ""
 then
     echo "Options collimat and cr are incompatible - please use only one."
     exit 1
+fi
+if test "$bignpart" == ""
+then
+    if test "$collimat" = ""
+    then
+	echo "Options collimat and bignpart are incompatible - please use only one."
+	exit 1
+    fi
+    if test "$bnlelens" = ""
+    then
+	echo "Options bnlelens and bignpart are incompatible - please use only one."
+	exit 1
+    fi
+    if test "$stf" != ""
+    then
+	echo "Option bignpart requires option stf."
+	exit 1
+    fi
 fi
 
 # if test "$stf" = "" -a "$cr" = ""
@@ -821,6 +846,10 @@ if test "$stf" = ""
 then
     ename=$ename"_stf"
 fi
+if test "$bignpart" = ""
+then
+    ename=$ename"_bignpart"
+fi
 
 if test "$debug" = ""
 then
@@ -928,7 +957,7 @@ do
 done
 # Update the .ast flags based on options
 echo "Deleting un-used flags and decks from .ast files..."
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz" "$stf"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz" "$stf" "$bignpart"
 do
     #echo "opt=" $opt
     if test "$opt" != ""
