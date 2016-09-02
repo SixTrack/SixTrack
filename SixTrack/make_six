@@ -62,7 +62,7 @@ show_options()
 {
     ons="The following selections are ON  :"
     offs="The following selections are OFF :"
-    for i in $( seq 1 28 )
+    for i in $( seq 1 29 )
     do
         if test ${values[$i]} = "true"
         then
@@ -127,9 +127,9 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf   bignpart)
-values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false false)
-#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27    28
+options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf   bignpart datamods)
+values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false false    false)
+#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27    28       29
 
 # Overide for Darwin
 OSTYPE=`uname -s`
@@ -179,6 +179,7 @@ bignblz="bignblz"
 hugenblz="hugenblz"
 stf="stf"
 bignpart="bignpart"
+datamods="datamods"
 debug="debug"
 hdf5="hdf5"
 ifort="ifort"
@@ -279,6 +280,10 @@ do
         -bignpart) bignpart="bignpart"
             values[28]=false
             ;;
+	-datamods) datamods="datamods"
+            values[29]=false
+            ;;
+
 	
 	#Options to switch things ON
         tilt) tilt=""
@@ -362,6 +367,9 @@ do
 	    ;;
         bignpart) bignpart=""
             values[28]=true
+            ;;
+	datamods) datamods=""
+            values[29]=true
             ;;
 	
 	#Compiler flags are special
@@ -948,7 +956,7 @@ if test "$da" = ""
 then
     export FORS='sixda sixsc sixscfox dabnew lielib beamgas'
 else
-    export FORS='track sixve sixvefox dabnews lielib beamgas plato_seq'
+    export FORS='track sixve sixvefox dabnews lielib beamgas plato_seq datamods'
 fi
 rm -f *.ast
 for i in $FORS
@@ -957,7 +965,7 @@ do
 done
 # Update the .ast flags based on options
 echo "Deleting un-used flags and decks from .ast files..."
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz" "$stf" "$bignpart"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz" "$stf" "$bignpart" "$datamods"
 do
     #echo "opt=" $opt
     if test "$opt" != ""
@@ -984,7 +992,7 @@ do
     fi
 done
 # Delete unneeded decks from the .ast based on options
-for opt in "$collimat" "$cr" "$cernlib" "$naglib" "$bnlelens" "$debug"
+for opt in "$collimat" "$cr" "$cernlib" "$naglib" "$bnlelens" "$debug" "$datamods"
 do
     if test "$opt" != ""
     then
@@ -1001,6 +1009,8 @@ do
                 ;;
             debug)   pattern="dumps"
                 ;;
+	    datamods) pattern="datamods"
+		;;
         esac
         for i in `ls *.ast`
         do

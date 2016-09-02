@@ -143,16 +143,18 @@
 +ei
 
 +cd parpro
+!     ! NOTE: variables "npart", "nele", "nblo" are also defined in module datamods / deck datamods!
+      ! Please keep them in sync!!!!
       integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
      &nrco,ntr,nzfz
 +if .not.bignpart
-      parameter(npart = 64,nmac = 1)
+      parameter(npart = 64,nmac = 1) !npart also in module bigmats
 +ei
 +if bignpart
 !See also:
 ! - subroutine wzsubv
-      parameter(npart = 2048,nmac = 1)
+      parameter(npart = 2048,nmac = 1) !npart also in module bigmats
 +ei
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
@@ -160,11 +162,11 @@
 ! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000, ! nele, nblo also in module bigmats
      &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,        &
+      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000, ! nele, nblo also in module bigmats
      &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
@@ -342,9 +344,15 @@
 +cd commons
       integer idz,itra
 +if vvector
++if .not.datamods
       double precision al,as,chi0,chid,dp1,dps,exz,sigm
       common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),      &
      &dps(mpa),idz(2)
++ei
++if datamods
+      double precision chi0,chid,dp1,dps,exz,sigm
+      common/syos/sigm(mpa),dps(mpa),idz(2)
++ei
       common/anf/chi0,chid,exz(2,6),dp1,itra
 +ei
 +if .not.vvector
@@ -447,11 +455,20 @@
       common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
 +ei
       integer iv,ixv,nlostp,nms,numxv
++if .not.datamods
       double precision aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
      &bet0v,bl1v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam, &
      &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
      &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,ekv,eps,epsa,fake,fi,fok,fok1,fokqv, &
      &g,gl,hc,hi,hi1,hm,hp,hs,hv,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,  &
++ei
++if datamods
+      double precision aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
+     &bet0v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam,      &
+     &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
+     &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,eps,epsa,fake,fi,fok,fok1,fokqv,     &
+     &g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,     &
++ei
 +if rvet
      &rvet,                                                             &
 +ei
@@ -460,7 +477,12 @@
      &zsiv,zsv
       logical pstop
       common/main1/                                                     &
++if .not.datamods
      &ekv(npart,nele),fokqv(npart),aaiv(mmul,nmac,nblz),                &
++ei
++if datamods
+     &fokqv(npart),aaiv(mmul,nmac,nblz),                                &
++ei
      &bbiv(mmul,nmac,nblz),smiv(nmac,nblz),zsiv(nmac,nblz),             &
      &xsiv(nmac,nblz),xsv(npart),zsv(npart),qw(2),qwc(3),clo0(2),       &
      &clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
@@ -480,8 +502,14 @@
      &xvl(2,npart),yvl(2,npart),ejvl(npart),dpsvl(npart),oidpsv(npart), &
      &sigmvl(npart),iv(npart),aperv(npart,2),ixv(npart),clov(2,npart),  &
      &clopv(2,npart),alf0v(npart,2),bet0v(npart,2),ampv(npart)
++if .not.datamods
       common/main3/ clo6v(3,npart),clop6v(3,npart),hv(6,2,npart,nblo),  &
      &bl1v(6,2,npart,nblo),tas(npart,6,6),qwcs(npart,3),di0xs(npart),   &
++ei
++if datamods
+      common/main3/ clo6v(3,npart),clop6v(3,npart),                     &
+     &tas(npart,6,6),qwcs(npart,3),di0xs(npart),                        &
++ei
      &di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
      &di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
 +cd commonm1
@@ -10155,6 +10183,54 @@ cc2008
    50         continue
             endif
    60     continue
+
++dk datamods
+      module bigmats
+!     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
+!     Also in block "parpro": please keep them synchronized!!!
+      integer nele, nblo
++if .not.bignpart
+      integer, parameter :: npart=64
++ei
++if bignpart
+      integer, parameter :: npart=2048
++ei
++if .not.collimat
++if bignblz
+      parameter(nele=1200,nblo=600)
++ei
++if hugenblz
+      parameter(nele=1200,nblo=600)
++ei
++if .not.bignblz.and..not.hugenblz
+      parameter(nele=1200,nblo=600)
++ei
++ei ! / not collimat
++if collimat
++if beamgas
+      parameter(nele=50000,nblo=10000)
++ei ! / beamgas
++if .not.beamgas
++if bignblz
+      parameter(nele=5000,nblo=400)
++ei ! / bignblz
++if hugenblz
+      parameter(nele=5000,nblo=400)
++ei ! / hugenblz
++if .not.bignblz.and..not.hugenblz
+      parameter(nele=5000,nblo=400)
++ei ! / not bignblz
++ei ! / not beamgas
++ei ! / collimat
+
+      private :: npart,nele,nblo
+
+      double precision :: al(6,2,npart,nele), as(6,2,npart,nele)
+      double precision :: ekv(npart,nele)
+      double precision :: hv(6,2,npart,nblo), bl1v(6,2,npart,nblo)
+      
+      save
+      end module
 +dk close
       subroutine closeUnits
       implicit none
@@ -20685,6 +20761,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats, only : as, al !Only take the variables from common, not from commonmn
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -25272,6 +25351,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       end
 +dk maincr
       program maincr
++if datamods
+      use bigmats
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -29670,6 +29752,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
       implicit none
 +ca exactvars
 +ca commonex
@@ -30198,6 +30283,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
@@ -34373,6 +34461,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
       implicit none
 +ca exactvars
 +ca commonex
@@ -36259,6 +36350,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -36813,6 +36907,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -37522,6 +37619,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -38134,6 +38234,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -38784,6 +38887,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CAUTION:
 !          A SPECIAL VERSION FOR VECTORIZATION - AUGUST   1994
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats, only : as, al !Only take the variables from common, not from commonmn
++ei
+
       implicit none
 +if cr
 +ca crcoall
@@ -40108,6 +40215,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
++if datamods
+      use bigmats
++ei
       implicit none
 +if cr
 +ca crcoall
@@ -68448,6 +68558,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !GRDRHIC
 +dk checkpt
       subroutine crcheck
++if datamods
+      use bigmats
++ei
       implicit none
 +ca crcoall
 +ca parpro
@@ -69912,6 +70025,9 @@ c$$$         backspace (93,iostat=ierro)
       call abend('SIXTRACR CHECKPOINT I/O Error                     ')
       end
       subroutine crstart
++if datamods
+      use bigmats
++ei
       implicit none
 +ca crcoall
 +ca parpro
