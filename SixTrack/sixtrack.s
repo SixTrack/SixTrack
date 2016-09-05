@@ -60256,12 +60256,12 @@ c$$$            endif
       logical filefields_lerr
       double precision round_near
 
-      integer, dimension(npart,fma_nturn_max) :: turn ! npart = max. number of particles
+      integer, dimension(:,:),allocatable :: turn ! npart = max. number of particles
       double precision, dimension(6,6) :: fma_tas ! dump_tas in units [mm,mrad,mm,mrad,mm,1]
       double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of fma_tas (same units) -> x_normalized=fma_tas_inv*x
-      double precision, dimension(npart,fma_nturn_max,6) ::
+      double precision, dimension(:,:,:),allocatable ::
      &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
-      double precision, dimension(npart,fma_nturn_max,3) ::
+      double precision, dimension(:,:,:),allocatable ::
      &epsnxyzv ! normalized emittances
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
      &tunenewt,tuneabt2,tuneabt,tunenewt1
@@ -60291,6 +60291,23 @@ c$$$            endif
           fma_tas_inv(i,j) = 0
         enddo
       enddo
+
+      allocate(turn(napx,fma_nturn_max),
+     &         xyzv(napx,fma_nturn_max,6),
+     &        nxyzv(napx,fma_nturn_max,6),
+     &     epsnxyzv(napx,fma_nturn_max,3),
+     &     STAT=i)
+      if (i.ne.0) then
++if cr
+         write(lout,*) "Error in fma_postpr: Cannon ALLOCATE"//
++ei
++if .not.cr
+         write(*,*)    "Error in fma_postpr: Cannon ALLOCATE"//
++ei
+     &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
+     &        " proportional to napx*fma_nturn_max."
+         call prror(-1)
+      endif
       
 !     fma_six = data file for storing the results of the FMA analysis
       inquire(unit=2001001,opened=lopen)
@@ -60693,6 +60710,8 @@ c$$$            endif
       enddo !END: loop over fma files
       close(2001001) !filename: fma_sixtrack
 
+      deallocate(turn, xyzv, nxyzv, epsnxyzv)
+      
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
  1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
       end subroutine fma_postpr
