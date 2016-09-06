@@ -10225,11 +10225,23 @@ cc2008
 
       private :: npart,nele,nblo
 
+      !Big arrays used for thick tracking
       double precision :: al(6,2,npart,nele), as(6,2,npart,nele)
       double precision :: ekv(npart,nele)
       double precision :: hv(6,2,npart,nblo), bl1v(6,2,npart,nblo)
       
       save
+
+      contains
+
+      subroutine allocate_thickarrays
+      
+      end subroutine
+      
+      subroutine deallocate_thickarrays
+      
+      end subroutine
+      
       end module
 +dk close
       subroutine closeUnits
@@ -25949,6 +25961,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !hr05 rad=pi/180
       rad=pi/180d0                                                       !hr05
       call daten
+      if (ithick.eq.1) call allocate_thickarrays
 +if debug
 !     call dumpbin('adaten',999,9999)
 !     call abend('after  daten                                      ')
