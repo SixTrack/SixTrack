@@ -1,5 +1,6 @@
 sixtrack.s
 datamodsn.f
-df bignpart,collimat,hugenblz,bignblz,beamgas
+df vvector,cr
 e datamods
+e nocode
 ex

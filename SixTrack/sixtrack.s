@@ -143,18 +143,16 @@
 +ei
 
 +cd parpro
-!     ! NOTE: variables "npart", "nele", "nblo" are also defined in module datamods / deck datamods!
-      ! Please keep them in sync!!!!
       integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
      &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
      &nrco,ntr,nzfz
 +if .not.bignpart
-      parameter(npart = 64,nmac = 1) !npart also in module bigmats
+      parameter(npart = 64,nmac = 1)
 +ei
 +if bignpart
 !See also:
 ! - subroutine wzsubv
-      parameter(npart = 2048,nmac = 1) !npart also in module bigmats
+      parameter(npart = 2048,nmac = 1)
 +ei
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
@@ -162,11 +160,11 @@
 ! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000, ! nele, nblo also in module bigmats
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,
      &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000, ! nele, nblo also in module bigmats
+      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,
      &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
@@ -10184,58 +10182,82 @@ cc2008
             endif
    60     continue
 
++dk nocode
+      !Dummy deck to satisfy astuce in case of no decks in the fortran file...
 +dk datamods
       module bigmats
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
-!     Also in block "parpro": please keep them synchronized!!!
-      integer nele, nblo
-+if .not.bignpart
-      integer, parameter :: npart=64
-+ei
-+if bignpart
-      integer, parameter :: npart=2048
-+ei
-+if .not.collimat
-+if bignblz
-      parameter(nele=1200,nblo=600)
-+ei
-+if hugenblz
-      parameter(nele=1200,nblo=600)
-+ei
-+if .not.bignblz.and..not.hugenblz
-      parameter(nele=1200,nblo=600)
-+ei
-+ei ! / not collimat
-+if collimat
-+if beamgas
-      parameter(nele=50000,nblo=10000)
-+ei ! / beamgas
-+if .not.beamgas
-+if bignblz
-      parameter(nele=5000,nblo=400)
-+ei ! / bignblz
-+if hugenblz
-      parameter(nele=5000,nblo=400)
-+ei ! / hugenblz
-+if .not.bignblz.and..not.hugenblz
-      parameter(nele=5000,nblo=400)
-+ei ! / not bignblz
-+ei ! / not beamgas
-+ei ! / collimat
-
-      private :: npart,nele,nblo
-
+      
       !Big arrays used for thick tracking
-      double precision :: al(6,2,npart,nele), as(6,2,npart,nele)
-      double precision :: ekv(npart,nele)
-      double precision :: hv(6,2,npart,nblo), bl1v(6,2,npart,nblo)
+      double precision, allocatable :: al(:,:,:,:), as(:,:,:,:)
+      double precision, allocatable :: ekv(:,:)
+      double precision, allocatable :: hv(:,:,:,:), bl1v(:,:,:,:)
       
       save
 
-      contains
+      contains !Here comes the subroutines!
 
-      subroutine allocate_thickarrays
+      subroutine allocate_thickarrays(npart,nele,nblo)
+      implicit none
+      integer, intent(in) :: npart,nele,nblo
+      integer stat
+      integer i1,i2,i3,i4,i
++if cr
++ca crcoall
++ei
++ca parnum
+
++if .not.vvector
++if cr
+      write(lout,*) "ERROR: DATAMODS requires VVECTOR!"
++ei
++if .not.cr
+      write(*,*)    "ERROR: DATAMODS requires VVECTOR!"
++ei
+      call prror(-1)
++ei      
       
+      write(*,*) "ALLOCATE_THICKARRAYS: npart/nele/nblo=",
+     &npart,nele,nblo
+      
+      allocate(al(6,2,npart,nele), as(6,2,npart,nele),
+     &     ekv(npart,nele),
+     &     hv(6,2,npart,nblo), bl1v(6,2,npart,nblo), STAT = stat)
+      if (stat.ne.0) then
++if cr
+         write(lout,*) "ERROR in allocate_thickarrays(); stat=",stat
++ei
++if .not.cr
+         write(*,*)    "ERROR in allocate_thickarrays(): stat=",stat
++ei
+         call prror(-1)
+      endif
+
+      !ZERO the newly allocated arrays
+
+      !Code from MAINCR
+      do i=1,npart
+         do i1=1,nblo
+            do i2=1,2
+               do i3=1,6
+                  hv(i3,i2,i,i1)=zero
+                  bl1v(i3,i2,i,i1)=zero
+               end do
+            end do
+         end do
+      end do
+
+      !Code from COMNUL
+      do i=1,nele
+         do i3=1,2
+            do i4=1,6
+               do i1=1,npart
+                  al(i4,i3,i1,i)=zero
+                  as(i4,i3,i1,i)=zero
+               end do
+            end do
+         end do
+      end do
       end subroutine
       
       subroutine deallocate_thickarrays
@@ -25928,12 +25950,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         bet0v(i,1)=zero
         bet0v(i,2)=zero
         ampv(i)=zero
++if .not.datamods !This code moved to bigmats.allocate_thickarrays
         do 40 i1=1,nblo
           do 40 i2=1,2
             do 40 i3=1,6
               hv(i3,i2,i,i1)=zero
               bl1v(i3,i2,i,i1)=zero
    40   continue
++ei
         do 50 i1=1,6
           do 50 i2=1,6
             tas(i,i1,i2)=zero
@@ -25961,7 +25985,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !hr05 rad=pi/180
       rad=pi/180d0                                                       !hr05
       call daten
-      if (ithick.eq.1) call allocate_thickarrays
++if datamods
+      if (ithick.eq.1) call allocate_thickarrays(npart,nele,nblo)
++ei
 +if debug
 !     call dumpbin('adaten',999,9999)
 !     call abend('after  daten                                      ')
@@ -26674,9 +26700,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             dpsv(ib2)=dp10
             oidpsv(ib2)=one/(one+dp1)
             nms(ib2)=m
-            do 230 i=1,nele
-              ekv(ib2,i)=ek(i)
-  230       continue
+            if (ithick.eq.1) then
+               do 230 i=1,nele
+                  ekv(ib2,i)=ek(i)
+ 230           continue
+            endif
   240     continue
           ib0=ib0+napx
   250   continue
@@ -27140,6 +27168,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !!! Really only neccessary for thick 4d tracking !!!
 !!! In FLUKA version, this is moved to new subroutine "blocksv" (in a new deck)
 !-------------------------------------  START OF 'BLOCK'
+      if (ithick.eq.1) then
+
       do 440 k=1,mblo
         jm=mel(k)
         ikk=mtyp(k,1)
@@ -27184,7 +27214,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   420       bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
   430   continue
   440 continue
-!---------------------------------------  END OF 'BLOCK'
+
+      end if
+!---------------------------------------END OF 'BLOCK'
 
 !     A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 01-07-2014
@@ -40621,8 +40653,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if vvector
               do 120 i1=1,npart
 +ei
++if .not.datamods
                 al(i4,i3,i1,i)=zero
                 as(i4,i3,i1,i)=zero
++ei
 +if .not.vvector
                 at(i4,i3,i1,i)=zero
                 a2(i4,i3,i1,i)=zero
