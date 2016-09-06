@@ -13,7 +13,7 @@ NAGLIBC = %%NAGLIBC%%
 BEAMGAS = %%BEAMGAS%%
 SIXTRACK = %%SIXTRACK%%
 
-%.o: %.f bigmats.mod
+%.o: %.f
 	$(FC) -c $(FCF) $<
 
 %.o: %.f90
@@ -36,8 +36,9 @@ plato_seq.o: plato_seq.f
 bigmats.mod: datamods.f
 	$(FC) -c $(FCF) datamods.f
 
-
-%%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o datamods.o $(BEAMGAS) $(BOINC) $(CRLIBM)
+#Build order = order of dependencies.
+# This may break at any time, especially if the user uses the -j option of make...
+%%SIXTRACK%%:  datamods.o $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) $(BOINC) $(CRLIBM)
 	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o datamods.o $(BEAMGAS) \
 	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib) > sixtrack.map 2>&1
 
