@@ -30,15 +30,13 @@ astuce: astuce.o
 myboinc.o: myboinc.f
 	$(FC) -c $(FCF) myboinc.f
 
-plato_seq.o: plato_seq.f
-	$(FC) -c $(FCF) plato_seq.f -o plato_seq.o
-
-bigmats.mod: datamods.f
+#Build modules
+bigmats.mod datamods.o: datamods.f
 	$(FC) -c $(FCF) datamods.f
 
-#Build order = order of dependencies.
-# This may break at any time, especially if the user uses the -j option of make...
-%%SIXTRACK%%:  datamods.o $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) $(BOINC) $(CRLIBM)
+track.o sixve.o sixvefox.o sixsc.o sixda.o dabnew.o : bigmats.mod
+
+%%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) $(BOINC) $(CRLIBM) datamods.o
 	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o datamods.o $(BEAMGAS) \
 	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib) > sixtrack.map 2>&1
 
@@ -47,4 +45,4 @@ bigmats.mod: datamods.f
 	$(NAGLIB) $(NAGLIBC) $(CRLIBM) $(gfortran_lib) > sixtrack_da.map 2>&1
 
 clean: 
-	rm -f *.ast *.s *.c *.o %%SIXTRACK%% %%SIXTRACK_DA%%
+	rm -f *.ast *.s *.c *.o *.mod %%SIXTRACK%% %%SIXTRACK_DA%%
