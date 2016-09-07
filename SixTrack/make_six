@@ -62,7 +62,7 @@ show_options()
 {
     ons="The following selections are ON  :"
     offs="The following selections are OFF :"
-    for i in $( seq 1 29 )
+    for i in $( seq 1 30 )
     do
         if test ${values[$i]} = "true"
         then
@@ -127,9 +127,9 @@ generate_makefile()
 # The 0th option is not used
 declare -a options
 declare -a values
-options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf   bignpart datamods)
-values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false false    false)
-#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27    28       29
+options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf   bignpart datamods hugenpart)
+values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false false    false    false)
+#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27    28       29       30
 
 # Overide for Darwin
 OSTYPE=`uname -s`
@@ -180,6 +180,7 @@ hugenblz="hugenblz"
 stf="stf"
 bignpart="bignpart"
 datamods="datamods"
+hugenpart="hugenpart"
 debug="debug"
 hdf5="hdf5"
 ifort="ifort"
@@ -283,7 +284,9 @@ do
 	-datamods) datamods="datamods"
             values[29]=false
             ;;
-
+	-hugenpart) hugenpart="hugenpart"
+            values[30]=false
+            ;;
 	
 	#Options to switch things ON
         tilt) tilt=""
@@ -370,6 +373,9 @@ do
             ;;
 	datamods) datamods=""
             values[29]=true
+            ;;
+	hugenpart) hugenpart=""
+	    values[30]=true
             ;;
 	
 	#Compiler flags are special
@@ -569,6 +575,24 @@ then
     if test "$stf" != ""
     then
 	echo "Option bignpart requires option stf."
+	exit 1
+    fi
+fi
+if test "$hugenpart" == ""
+then
+    if test "$bignpart" == ""
+    then
+	echo "Options bignpart and hugenpart are incompatible - please use only one."
+	exit 1
+    fi
+    if test "$stf" != ""
+    then
+	echo "Option hugenpart requires option stf."
+	exit 1
+    fi
+    if test "$datamods" != ""
+    then
+	echo "Option hugenpart requires option datamods."
 	exit 1
     fi
 fi
@@ -858,6 +882,11 @@ if test "$bignpart" = ""
 then
     ename=$ename"_bignpart"
 fi
+if test "$hugenpart" = ""
+then
+    ename=$ename"_hugenpart"
+fi
+
 
 if test "$debug" = ""
 then
@@ -965,7 +994,7 @@ do
 done
 # Update the .ast flags based on options
 echo "Deleting un-used flags and decks from .ast files..."
-for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz" "$stf" "$bignpart" "$datamods"
+for opt in "$crlibm" "$tilt" "$fast" "$bpm" "$beamgas" "$collimat" "$bnlelens" "$cr" "$boinc" "$nagfor" "$bignblz" "$debug" "$hdf5" "$fio" "$lf95" "$hugenblz" "$stf" "$bignpart" "$datamods" "$hugenpart"
 do
     #echo "opt=" $opt
     if test "$opt" != ""
