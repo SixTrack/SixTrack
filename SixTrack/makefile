@@ -198,7 +198,7 @@ endif
 
 #different masks depending on DA
 MASKS_DA   := lielib dabnews sixscfox sixsc sixda
-MASKS_OT   := track sixve sixvefox dabnews lielib beamgas plato_seq datamods
+MASKS_OT   := datamods track sixve sixvefox dabnews lielib beamgas plato_seq
 MASKS      := $(call if_any,da,$(ENABLED),$(MASKS_DA),$(MASKS_OT))
 
 #detecting operating system
