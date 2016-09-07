@@ -27,7 +27,7 @@ SHELL:=/bin/bash
 #new ast flag is defined for single tracking file 
 #list of all options (need to be looked at for removing obsolete options)
 
-ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz stf bignpart m32 m64 O3 datamods)
+ALL_OPTIONS := $(sort api beamgas big bignblz bnlelens boinc bpm cernlib collimat cpss cr crlibm da debug fast fio g77 g95 gfortran hdf5 ifort lf95 nagfor naglib small sse2 sse3 tilt tracking vvector windows hugenblz stf bignpart m32 m64 O3 datamods hugenpart)
 
 DEFAULTS := fast tilt crlibm cernlib gfortran vvector m32 O3
 DEFAULTS := $(filter-out $(remove),$(DEFAULTS))

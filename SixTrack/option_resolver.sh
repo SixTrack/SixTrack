@@ -137,6 +137,7 @@ else
   put "stf" "" "bnlelens"
   put "bignpart" "stf vvector" "collimat bnlelens"
   put "datamods" "vvector" ""
+  put "hugenpart" "stf vvector datamods" "collimat bnlelens"
   
   # Add below the case which are to be followed in absence of certain options
   # as put_ifnot "option" "needed dependencies" "exclusions"
