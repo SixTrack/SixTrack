@@ -30,13 +30,14 @@ astuce: astuce.o
 myboinc.o: myboinc.f
 	$(FC) -c $(FCF) myboinc.f
 
-plato_seq.o: plato_seq.f
-	$(FC) -c $(FCF) plato_seq.f -o plato_seq.o
+#Build modules
+bigmats.mod datamods.o: datamods.f
+	$(FC) -c $(FCF) datamods.f
 
+track.o sixve.o sixvefox.o sixsc.o sixda.o dabnew.o : bigmats.mod
 
-
-%%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) $(BOINC) $(CRLIBM)
-	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) \
+%%SIXTRACK%%: $(MYHDF5LIB) track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o $(BEAMGAS) $(BOINC) $(CRLIBM) datamods.o
+	$(FC) $(FCLMAP) -o %%SIXTRACK%% track.o sixve.o sixvefox.o dabnews.o lielib.o plato_seq.o datamods.o $(BEAMGAS) \
 	$(BOINC) $(CERNLIB) $(CRLIBM) $(gfortran_lib) > sixtrack.map 2>&1
 
 %%SIXTRACK_DA%%: sixda.o sixsc.o sixscfox.o dabnew.o lielib.o $(CRLIBM)
@@ -44,4 +45,4 @@ plato_seq.o: plato_seq.f
 	$(NAGLIB) $(NAGLIBC) $(CRLIBM) $(gfortran_lib) > sixtrack_da.map 2>&1
 
 clean: 
-	rm -f *.ast *.s *.c *.o %%SIXTRACK%% %%SIXTRACK_DA%%
+	rm -f *.ast *.s *.c *.o *.mod %%SIXTRACK%% %%SIXTRACK_DA%%
