@@ -18867,7 +18867,7 @@ cc2008
          write (*,*)
 +ei
      &        "BDEX> BDEX block debugging is ON"
-         goto 2300 !loop BDEX
+         goto 2250 !loop BDEX
 
       else if (ch(:4).eq."ELEM") then
          call getfields_split( ch, getfields_fields, getfields_lfields,
@@ -18972,7 +18972,7 @@ cc2008
             call prror(-1)
          endif
 
-         goto 2300 !loop BDEX
+         goto 2250 !loop BDEX
          
       else if (ch(:4).eq."CHAN") then
          call getfields_split( ch, getfields_fields, getfields_lfields,
