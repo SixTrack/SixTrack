@@ -48412,6 +48412,7 @@ c$$$            endif
 +ca commontr
 +ca stringzerotrim
 +ca comdynk
++ca elensparam
 
 +if cr
 +ca crcoall
@@ -48544,6 +48545,12 @@ c$$$               endif
                   elseif (abs(el_type).eq.28) then
                      dynk_getvalue = crabph4(ii)
                   endif
+               else
+                  goto 100 !ERROR
+               endif
+            elseif (el_type.eq.29) then
+               if(att_name_s.eq."thetamax") then ! [mrad]
+                  dynk_getvalue = elens_theta_max(ii)
                else
                   goto 100 !ERROR
                endif
