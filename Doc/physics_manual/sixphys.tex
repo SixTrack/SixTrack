@@ -5,6 +5,7 @@
 \usepackage{amsmath, amsfonts}
 \usepackage{babel}
 \usepackage{lscape}
+\usepackage{hyperref}
 \makeatletter
 \@ifpackageloaded{tex4ht}{%
   \def\pgfsysdriver{pgfsys-tex4ht.def}%
@@ -977,8 +978,8 @@ where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\
 
 The kick in $(x',y')$ can then be expressed as (note $\frac{x}{r}=\cos(\phi),\frac{y}{r}=\sin(\phi)$):
 \begin{align}
-x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot x\\
-y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot y
+x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot x \cdot \frac{1}{1+\delta}\\
+y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot y \cdot \frac{1}{1+\delta}
 \end{align}
 
 If the electron lens is offset by $(x_{\rm offset},y_{\rm offset})$, the coordinates $(x,y)$ are simply transfered to:
