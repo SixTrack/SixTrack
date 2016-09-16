@@ -612,8 +612,18 @@
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
       integer max_ncoll,maxn,numeff,numeffdpop,outlun,nc
++if .not.bignpart.and..not.hugenpart
       parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
      &numeffdpop=29,outlun=54)
++ei
++if bignpart
+      parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
+     &numeffdpop=29,outlun=54)
++ei
++if hugenpart
+      parameter (max_ncoll=100,nc=32,numeff=32,maxn=npart,              &
+     &numeffdpop=29,outlun=54)
++ei
 +cd database
 !GRD
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
@@ -65550,6 +65560,7 @@ c$$$            endif
 +ca crlibco
 +ei
 !
++ca parpro
 +ca collpara
 +ca dbmkdist
       double precision pi
@@ -65746,6 +65757,7 @@ c$$$            endif
 +ca crlibco
 +ei
 !
++ca parpro
 +ca collpara
 +ca dbmkdist
       double precision pi
@@ -65953,7 +65965,7 @@ c$$$            endif
      &     myx, myxp, myy, myyp, myp, mys)
  
       implicit none
-
++ca parpro
 +ca collpara
 
       ! Don't load the common blocks for these variables
@@ -66083,6 +66095,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca crlibco
 +ei
 !
++ca parpro
 +ca collpara
 +ca dbmkdist
       double precision pi
@@ -66334,6 +66347,7 @@ c$$$     &           myalphay * cos(phiy))
 +if crlibm
 +ca crlibco
 +ei
++ca parpro
 +ca collpara
 +ca dbmkdist
 
@@ -66394,6 +66408,7 @@ c$$$     &           myalphay * cos(phiy))
 +ca crlibco
 +ei
 !
++ca parpro
 +ca collpara
 +ca dbmkdist
       double precision pi
@@ -66602,12 +66617,9 @@ c$$$     &           myalphay * cos(phiy))
 +ca crlibco
 +ei
 !
++ca parpro
 +ca collpara
 +ca dbmkdist
-
-! !YIL debug july 2010
-+ca parpro
-+ca commont1
 
       double precision pi
 !YIL march2010 edit: was missing enerror, bunchlength etc... 
