@@ -66284,6 +66284,7 @@ c$$$     &           myalphay * cos(phiy))
 !      ppel = pperef *(plab / pref)** ppeco
 !      bpp = 8.5d0 + 1.086d0 * log(sqrt(ecmsq))
 
++if .not.merlinscatter
 +if crlibm
       pptot=0.041084d0-0.0023302d0*log_rn(ecmsq)+0.00031514d0*
      &  log_rn(ecmsq)**2          !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002" 
@@ -66301,7 +66302,13 @@ c$$$     &           myalphay * cos(phiy))
       bpp=7.156d0+1.439d0*log(sqrt(ecmsq))      !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
 
 +ei
-
++ei
++if merlinscatter !No crlibm...
+      call merlinscatter_setup(plab)
+      call merlinscatter_setdata(pptot,ppel,ppsd)
+      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))
++ei
+      
 ! unmeasured tungsten data,computed with lead data and power laws
       bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(2d0/3d0)
       emr(4) = emr(5) * (anuc(4)/anuc(5))**(1d0/3d0)
