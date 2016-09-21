@@ -82,6 +82,7 @@ FCF=""
 FCLD=""
 FCLMAP=""
 CRLIBM=""
+MERLINSCATTER=""
 CERNLIB=""
 gfortran_lib=""
 BOINC=""
@@ -111,6 +112,7 @@ generate_makefile()
         sed  "s#%%FCLD%%#${FCLD}#g" | \
         sed  "s#%%FCLMAP%%#${FCLMAP}#g" | \
         sed  "s#%%CRLIBM%%#$CRLIBM#g" | \
+	sed  "s#%%MERLINSCATTER%%#$MERLINSCATTER#g" | \
         sed  "s#%%CERNLIB%%#${CERNLIB}#g" | \
         sed  "s#%%gfortran_lib%%#$gfortran_lib#g" | \
         sed  "s#%%BOINC%%#$BOINC#g" | \
@@ -1181,6 +1183,24 @@ then
   then
     echo "Failed to make crlibm!!! Please inform McIntosh."
     exit 4
+  fi
+  cd ..
+fi
+# and merlinscatter
+if test "$merlinscatter" = ""
+then
+    MERLINSCATTER="merlinscatter/merlinscatter_interface.o -lstdc++"
+    mkdir -p merlinscatter
+    cp -r ../merlinscatter/* merlinscatter
+    cd merlinscatter
+    #TODO: Propagate flags to the merlinscatter makefile
+    echo "Making merlinscatter"
+    make clean
+    make merlinscatter_interface.o
+  if test $? -ne 0
+  then
+    echo "Failed to make merlinscatter."
+    exit 1
   fi
   cd ..
 fi

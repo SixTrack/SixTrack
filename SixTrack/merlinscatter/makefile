@@ -7,4 +7,4 @@ merlinscatter_interface.o: #testclass.o
 	$(CXX) $(CXXFLAGS) -c merlinscatter_interface.cpp
 
 clean:
-	@rm *.o *~
+	@rm -f *.o *~
