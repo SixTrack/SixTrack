@@ -1402,7 +1402,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                                         ! This points in the bdex_channel arrays.
       
       integer bdex_maxchannels, bdex_nchannels
-      parameter (bdex_maxchannels=10)
+      parameter (bdex_maxchannels=16)
       
       integer bdex_channels(bdex_maxchannels,4) ! Basic data for the bdex_channels, one row/channel
                                                 ! Column 1: Type of channel. Values:
@@ -1425,8 +1425,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       
       common /bdexdb/
      &     bdex_elementAction, bdex_elementChannel,
-     &     bdex_channels, bdex_stringStorage,
-     &     bdex_nchannels, bdex_nstringStorage,
+     &     bdex_channels, bdex_channelNames, bdex_nchannels,
+     &     bdex_stringStorage,bdex_nstringStorage,
      &     bdex_enable, bdex_debug
       
 !
@@ -18861,11 +18861,11 @@ cc2008
       write(lout,*) "Sorry :("
       call prror(-1)
 +ei
-+if collimat
-      write(*,*) "BDEX not supported in COLLIMAT version."
-      write(*,*) "Sorry :("
-      call prror(-1)
-+ei
+!+if collimat
+!      write(*,*) "BDEX not supported in COLLIMAT version."
+!      write(*,*) "Sorry :("
+!      call prror(-1)
+!+ei
 
       ! Which type of block? Look at start of string (no leading blanks allowed)
       if (ch(:4).eq."DEBU") then
@@ -19020,178 +19020,14 @@ cc2008
          endif
          
          !Parse CHAN
-         select case( trim(stringzerotrim( getfields_fields(3) )) ) !Could I rather just use the length of the field?
-         
+         select case( trim(stringzerotrim( getfields_fields(3) )) )
          case ("PIPE")
-            !PIPE: Use a pair of pipes to communicate the particle distributions
-            !Arguments: InFileName OutFileName format fileUnit
-            if ( getfields_nfields .ne. 7 ) then
-+if cr
-               write(lout,*)"CHAN PIPE expects the following arguments:"
-               write(lout,*)
-     &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
-+ei
-+if .not.cr
-               write(*,*)   "CHAN PIPE expects the following arguments:"
-               write(*,*)
-     &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
-+ei
-               call prror(-1)
-            endif
-            
-            bdex_nchannels = bdex_nchannels+1
-            if (bdex_nchannels.gt.bdex_maxchannels) then
-+if cr
-               write(lout,*) "BDEX: max channels exceeded!"
-+ei
-+if .not.cr
-               write(*,*)    "BDEX: max channels exceeded!"
-+ei
-               call prror(-1)
-            endif
-            
-            if (bdex_nStringStorage+2.gt.bdex_maxStore) then
-+if cr
-               write(lout,*) "BDEX: maxStore exceeded for strings!"
-+ei
-+if .not.cr
-               write(*,*)    "BDEX: maxStore exceeded for strings!"
-+ei
-               call prror(-1)
-            endif
-            
-            !Store config data
-            bdex_channelNames(bdex_nchannels)(1:getfields_lfields(2)) = ! channelName
-     &           getfields_fields(2)(1:getfields_lfields(2))
-            
-            bdex_channels(bdex_nchannels,1) = 1                         ! TYPE is PIPE
-            
-            bdex_nstringStorage = bdex_nstringStorage+1
-            bdex_channels(bdex_nchannels,3) = bdex_nstringStorage
-            bdex_stringStorage(bdex_nstringStorage)                     ! inPipe
-     &           (1:getfields_lfields(4)) =
-     &        getfields_fields(4)(1:getfields_lfields(4))
-            bdex_nstringStorage = bdex_nstringStorage+1
-            bdex_stringStorage(bdex_nstringStorage)                     ! outPipe
-     &           (1:getfields_lfields(5)) =
-     &        getfields_fields(5)(1:getfields_lfields(5))
-
-            read(getfields_fields(6)(1:getfields_lfields(6)),*)          ! Output Format
-     &           bdex_channels(bdex_nchannels,2)
-
-            read(getfields_fields(7)(1:getfields_lfields(7)),*)          ! fileUnit
-     &           bdex_channels(bdex_nchannels,4)
-            
-            ! Open the inPipe
-            inquire( unit=bdex_channels(bdex_nchannels,4),opened=lopen )
-            if (lopen) then
-+if cr
-               write(lout,*)"BDEX> ERROR in daten():BDEX:CHAN:PIPE"
-               write(lout,*)"BDEX> unit=",
-     &              bdex_channels(bdex_nchannels,4),
-     &              "for file '"//bdex_stringStorage(
-     &              bdex_channels(bdex_nchannels,3) )
-     &              //"' was already taken"
-+ei
-+if .not.cr
-               write(*,*)   "BDEX> ERROR in daten():BDEX:CHAN:PIPE"
-               write(*,*)   "BDEX> unit =",
-     &              bdex_channels(bdex_nchannels,4),
-     &              "for file '"//bdex_stringStorage(
-     &              bdex_channels(bdex_nchannels,3) )
-     &              //"' was already taken"
-+ei
-               call prror(-1)
-            end if
-            
-+if cr
-            write(lout,*) "BDEX> Opening input pipe '"//
-     &trim(stringzerotrim(
-     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)) ))//"'"
-+ei
-+if .not.cr
-            write(*,*)    "BDEX> Opening input pipe '"//
-     &trim(stringzerotrim(
-     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)) ))//"'"
-+ei
-            open(unit=bdex_channels(bdex_nchannels,4),
-     &file=bdex_stringStorage( bdex_channels(bdex_nchannels,3) ),
-     &action='read',iostat=stat,status="OLD")
-         if (stat .ne. 0) then
-+if cr
-            write(lout,*) "BDEX> Error opening file '",
-     &bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), "', stat=",
-     &stat
-+ei
-+if .not.cr
-            write(*,*)    "BDEX> Error opening file '",
-     &bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), "', stat=",
-     &stat
-+ei
-            call prror(-1)
-         endif
-
-            ! Open the outPipe
-            inquire(unit=bdex_channels(bdex_nchannels,4)+1,opened=lopen)
-            if (lopen) then
-+if cr
-               write(lout,*)"BDEX> ERROR in daten():PIPE "
-               write(lout,*)"BDEX> unit=",
-     &              bdex_channels(bdex_nchannels,4)+1,
-     &              "for file '"//bdex_stringStorage(
-     &              bdex_channels(bdex_nchannels,3)+1 )
-     &              //"' was already taken"
-+ei
-+if .not.cr
-               write(*,*)   "BDEX> ERROR in daten():PIPE "
-               write(*,*)   "BDEX> unit =",
-     &              bdex_channels(bdex_nchannels,4)+1,
-     &              "for file '"//bdex_stringStorage(
-     &              bdex_channels(bdex_nchannels,3)+1 )
-     &              //"' was already taken"
-+ei
-               call prror(-1)
-            end if
-            
-+if cr
-            write(lout,*) "BDEX> Opening output pipe '"//
-     &trim(stringzerotrim(
-     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1) ))//"'"
-+ei
-+if .not.cr
-            write(*,*)    "BDEX> Opening output pipe '"//
-     &trim(stringzerotrim(
-     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1) ))//"'"
-+ei
-            open(unit=bdex_channels(bdex_nchannels,4)+1,
-     &file=bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),
-     &action='write',iostat=stat,status="OLD")
-         if (stat .ne. 0) then
-+if cr
-            write(lout,*) "BDEX> Error opening file '",
-     &bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",
-     &stat
-+ei
-+if .not.cr
-            write(*,*)    "BDEX> Error opening file '",
-     &bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",
-     &stat
-+ei
-            call prror(-1)
-         endif
-         write(bdex_channels(bdex_nchannels,4)+1,'(a)')
-     &        "BDEX-PIPE !******************!"
-         
+            call bdex_initializePipe
+     &           (getfields_fields,getfields_lfields,getfields_nfields)
          case ("TCPIP")
-            !TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
-            ! Currently not implemented.
-+if cr
-            write(lout,*) "CHAN TCPIP currently not supported in BDEX."
-+ei
-+if .not.cr
-            write(*,*)    "CHAN TCPIP currently not supported in BDEX."
-+ei
-            call prror(-1)
+            call bdex_initializeTCPIP
+     &           (getfields_fields,getfields_lfields,getfields_nfields)
+            
          case default
             !Unknown
 +if cr
@@ -30984,11 +30820,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdcum
 
 +ca combdex
-+if crlibm
-!Needed for string conversions for BDEX
-      character*8192 ch
-      integer dtostr
-+ei
 
 +ca elensparam
 +ca elenstracktmp
@@ -31748,127 +31579,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
           if ( bdex_enable .and. kz(ix).eq.0 .and.
      &         bdex_elementAction(ix).ne.0 ) then
-
-             if (bdex_elementAction(ix).eq.1) then !Particle exchange
-                if (bdex_debug) then
-+if cr
-                   write(lout,*) "BDEXDEBUG> "//
-+ei
-+if .not.cr
-                   write(*,*)    "BDEXDEBUG> "//
-+ei
-     &"Doing particle exchange in bez=",bez(ix)
-                endif
-                
-                if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
-                   write(bdex_channels(bdex_elementChannel(ix),4)+1,
-     &                  '(a,i10,1x,a,a,1x,a,i10,1x,a,i5)')
-     &                 "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx !TODO: Fix the format!
-                   
-                   !Write out particles
-+if crlibm
-                   do j=1,napx
-                     do k=1,8192
-                        ch(k:k)=' '
-                     enddo
-                     ii=1
-                     ii=dtostr(xv(1,j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(yv(1,j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(xv(2,j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(yv(2,j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(sigmv(j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(ejv(j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(ejfv(j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(rvv(j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(dpsv(j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(oidpsv(j),ch(ii:ii+24))+1+ii
-                     ii=dtostr(dpsv1(j),ch(ii:ii+24))+1+ii
-                     
-                     if (ii .ne. 1+(24+1)*11) then !Also check if too big?
-+if cr
-                        write(lout,*) "BDEX> ERROR, ii=",ii
-                        write(lout,*) "ch=",ch
-+ei
-+if .not.cr
-                        write(*,*)    "BDEX> ERROR, ii=",ii
-                        write(*,*)    "ch=",ch
-+ei
-                        call prror(-1)
-                     endif
-                     
-                     write(ch(ii:ii+24),'(i24)') nlostp(j)
-                     
-                     write(
-     &     bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') ch(1:ii+24)
-
-                   enddo
-+ei
-+if .not.crlibm
-                   do j=1,napx
-                     write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
-     &                     xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),
-     &                     ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
-     &                     dpsv1(j),nlostp(j)
-                   enddo
-+ei
-                   write(bdex_channels(bdex_elementChannel(ix),4)+1,
-     &                   '(a)') "BDEX WAITING..."
-                   
-                   !Read back particles
-                   read(bdex_channels(bdex_elementChannel(ix),4),*) j
-                   if ( j .eq. -1 ) then !Don't change the distribution at all
-                     if (bdex_debug) then
-+if cr
-                       write(lout,*)
-+ei
-+if .not.cr
-                       write(*,*)
-+ei
-     &                  "BDEXDEBUG> No change in distribution."
-                     endif
-                   else
-                     if (j.gt.npart) then
-+if cr
-                       write(lout,*) "BDEX> ERROR: j=",j,">",npart
-+ei
-+if .not.cr
-                       write(*,*)    "BDEX> ERROR: j=",j,">",npart
-+ei
-                       call prror(-1)
-                     endif
-                     napx=j
-                     if (bdex_debug) then
-+if cr
-                       write(lout,*)
-+ei
-+if .not.cr
-                       write(*,*)
-+ei
-     &                   "BDEXDEBUG> Reading",napx, "particles back..."
-                     endif
-                     do j=1,napx
-                       read(bdex_channels(bdex_elementChannel(ix),4),*)
-     &                       xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),
-     &                       ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
-     &                       dpsv1(j),nlostp(j)
-                     enddo
-                   endif
-                   
-                   write(bdex_channels(bdex_elementChannel(ix),4)+1,
-     &                  '(a)') "BDEX TRACKING..."
-                endif
-                
-             else
-+if cr
-                write(lout,*) "BDEX> elementAction=",
-     &bdex_elementAction(i), "not understood."
-+ei
-+if .not.cr
-                write(*,*)    "BDEX> elementAction=",
-     &bdex_elementAction(i), "not understood."
-+ei
-                call prror(-1)
-             endif
+             call bdex_track(i,ix,n)
           endif
 
 ! JBG RF CC Multipoles
@@ -41707,6 +41418,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          bdex_channels(i,2) = 0
          bdex_channels(i,3) = 0
          bdex_channels(i,4) = 0
+         do j=1,getfields_l_max_string
+            bdex_channelNames(i)(j:j)=char(0)
+         end do
       enddo
       bdex_nstringStorage = 0
       do i=1,bdex_maxStore
@@ -49540,6 +49254,361 @@ c$$$               endif
       
       end function
 
++dk bdexancil
+      ! Deck with the initialization etc. routines for BDEX
+      
+      subroutine bdex_initializePipe( getfields_fields,
+     &              getfields_lfields,getfields_nfields )
+      implicit none
++ca parpro
+
++ca comgetfields
+      intent(in) getfields_fields, getfields_lfields, getfields_nfields
++ca stringzerotrim
++ca combdex
+
++if cr
++ca crcoall
++ei
+      !Temp variables
+      ! For checking files before opening:
+      logical lopen
+      integer stat
+      
+      !PIPE: Use a pair of pipes to communicate the particle distributions
+      !Arguments: InFileName OutFileName format fileUnit
+      if ( getfields_nfields .ne. 7 ) then
++if cr
+         write(lout,*)"CHAN PIPE expects the following arguments:"
+         write(lout,*)
+     &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
++ei
++if .not.cr
+         write(*,*)   "CHAN PIPE expects the following arguments:"
+         write(*,*)
+     &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
++ei
+         call prror(-1)
+      endif
+      
+      bdex_nchannels = bdex_nchannels+1
+      if (bdex_nchannels.gt.bdex_maxchannels) then
++if cr
+         write(lout,*) "BDEX: max channels exceeded!"
++ei
++if .not.cr
+         write(*,*)    "BDEX: max channels exceeded!"
++ei
+         call prror(-1)
+      endif
+      
+      if (bdex_nStringStorage+2.gt.bdex_maxStore) then
++if cr
+         write(lout,*) "BDEX: maxStore exceeded for strings!"
++ei
++if .not.cr
+         write(*,*)    "BDEX: maxStore exceeded for strings!"
++ei
+         call prror(-1)
+      endif
+      
+      !Store config data
+      bdex_channelNames(bdex_nchannels)(1:getfields_lfields(2)) =       ! channelName
+     &     getfields_fields(2)(1:getfields_lfields(2))
+      
+      bdex_channels(bdex_nchannels,1) = 1 ! TYPE is PIPE
+      
+      bdex_nstringStorage = bdex_nstringStorage+1
+      bdex_channels(bdex_nchannels,3) = bdex_nstringStorage
+      bdex_stringStorage(bdex_nstringStorage)(1:getfields_lfields(4)) = ! inPipe
+     &     getfields_fields(4)(1:getfields_lfields(4))
+      bdex_nstringStorage = bdex_nstringStorage+1
+      bdex_stringStorage(bdex_nstringStorage)(1:getfields_lfields(5)) = ! outPipe
+     &     getfields_fields(5)(1:getfields_lfields(5))
+      
+      read(getfields_fields(6)(1:getfields_lfields(6)),*)               ! Output Format
+     &     bdex_channels(bdex_nchannels,2)
+      
+      read(getfields_fields(7)(1:getfields_lfields(7)),*)               ! fileUnit
+     &     bdex_channels(bdex_nchannels,4)
+      
+      ! Open the inPipe
+      inquire( unit=bdex_channels(bdex_nchannels,4),opened=lopen )
+      if (lopen) then
++if cr
+         write(lout,*)"BDEX> ERROR in daten():BDEX:CHAN:PIPE"
+         write(lout,*)"BDEX> unit=",
+     &        bdex_channels(bdex_nchannels,4),
+     &        "for file '"//bdex_stringStorage(
+     &        bdex_channels(bdex_nchannels,3) )
+     &        //"' was already taken"
++ei
++if .not.cr
+         write(*,*)   "BDEX> ERROR in daten():BDEX:CHAN:PIPE"
+         write(*,*)   "BDEX> unit =",
+     &        bdex_channels(bdex_nchannels,4),
+     &        "for file '"//bdex_stringStorage(
+     &        bdex_channels(bdex_nchannels,3) )
+     &        //"' was already taken"
++ei
+         call prror(-1)
+      end if
+            
++if cr
+      write(lout,*) "BDEX> Opening input pipe '"//
+     &trim(stringzerotrim(
+     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)) ))//"'"
++ei
++if .not.cr
+      write(*,*)    "BDEX> Opening input pipe '"//
+     &trim(stringzerotrim(
+     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)) ))//"'"
++ei
+      open(unit=bdex_channels(bdex_nchannels,4),
+     &file=bdex_stringStorage( bdex_channels(bdex_nchannels,3) ),
+     &action='read',iostat=stat,status="OLD")
+      if (stat .ne. 0) then
++if cr
+         write(lout,*) "BDEX> Error opening file '",
+     &bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), "', stat=",
+     &stat
++ei
++if .not.cr
+         write(*,*)    "BDEX> Error opening file '",
+     &bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), "', stat=",
+     &stat
++ei
+         call prror(-1)
+      endif
+
+      ! Open the outPipe
+      inquire(unit=bdex_channels(bdex_nchannels,4)+1,opened=lopen)
+      if (lopen) then
++if cr
+         write(lout,*)"BDEX> ERROR in daten():PIPE "
+         write(lout,*)"BDEX> unit=",
+     &              bdex_channels(bdex_nchannels,4)+1,
+     &              "for file '"//bdex_stringStorage(
+     &              bdex_channels(bdex_nchannels,3)+1 )
+     &              //"' was already taken"
++ei
++if .not.cr
+         write(*,*)   "BDEX> ERROR in daten():PIPE "
+         write(*,*)   "BDEX> unit =",
+     &              bdex_channels(bdex_nchannels,4)+1,
+     &              "for file '"//bdex_stringStorage(
+     &              bdex_channels(bdex_nchannels,3)+1 )
+     &              //"' was already taken"
++ei
+         call prror(-1)
+      end if
+            
++if cr
+      write(lout,*) "BDEX> Opening output pipe '"//
+     &trim(stringzerotrim(
+     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1) ))//"'"
++ei
++if .not.cr
+      write(*,*)    "BDEX> Opening output pipe '"//
+     &trim(stringzerotrim(
+     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1) ))//"'"
++ei
+      open(unit=bdex_channels(bdex_nchannels,4)+1,
+     &file=bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),
+     &action='write',iostat=stat,status="OLD")
+      if (stat .ne. 0) then
++if cr
+         write(lout,*) "BDEX> Error opening file '",
+     &bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",
+     &stat
++ei
++if .not.cr
+         write(*,*)    "BDEX> Error opening file '",
+     &bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",
+     &stat
++ei
+         call prror(-1)
+      endif
+      write(bdex_channels(bdex_nchannels,4)+1,'(a)')
+     &        "BDEX-PIPE !******************!"
+      
+      end subroutine
+
+      subroutine bdex_initializeTCPIP( getfields_fields,
+     &              getfields_lfields,getfields_nfields )
+      implicit none
++ca parpro
+
++ca comgetfields
+      intent(in) getfields_fields, getfields_lfields, getfields_nfields      
+
++ca combdex
++if cr
++ca crcoall
++ei
+
+      !TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
+      ! Currently not implemented.
++if cr
+      write(lout,*) "CHAN TCPIP currently not supported in BDEX."
++ei
++if .not.cr
+      write(*,*)    "CHAN TCPIP currently not supported in BDEX."
++ei
+      call prror(-1)
+
+      end subroutine
+      
++dk bdextrack
+      !Deck with the routines used by BDEX during tracking
+
+      subroutine bdex_track(i,ix,n)
+      implicit none
+      ! i  : current structure element
+      ! ix : current single element
+      ! n  : turn number
+      
+      integer i, ix,n
+      intent(in) i, ix, n
+
++ca parpro
++ca common
++ca commonmn
++ca commontr
+
++ca comgetfields
++ca combdex
++if crlibm
+!Needed for string conversions for BDEX
+      character*8192 ch
+      integer dtostr
++ei
+      !Temp variables
+      integer j, k, ii
+      
+      if (bdex_elementAction(ix).eq.1) then !Particle exchange
+         if (bdex_debug) then
++if cr
+            write(lout,*) "BDEXDEBUG> "//
++ei
++if .not.cr
+            write(*,*)    "BDEXDEBUG> "//
++ei
+     &           "Doing particle exchange in bez=",bez(ix)
+         endif
+         
+         if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
+            write(bdex_channels(bdex_elementChannel(ix),4)+1,
+     &           '(a,i10,1x,a,a,1x,a,i10,1x,a,i5)')
+     &           "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx !TODO: Fix the format!
+            
+            !Write out particles
++if crlibm
+            do j=1,napx
+               do k=1,8192
+                  ch(k:k)=' '
+               enddo
+               ii=1
+               ii=dtostr(xv(1,j),ch(ii:ii+24))+1+ii
+               ii=dtostr(yv(1,j),ch(ii:ii+24))+1+ii
+               ii=dtostr(xv(2,j),ch(ii:ii+24))+1+ii
+               ii=dtostr(yv(2,j),ch(ii:ii+24))+1+ii
+               ii=dtostr(sigmv(j),ch(ii:ii+24))+1+ii
+               ii=dtostr(ejv(j),ch(ii:ii+24))+1+ii
+               ii=dtostr(ejfv(j),ch(ii:ii+24))+1+ii
+               ii=dtostr(rvv(j),ch(ii:ii+24))+1+ii
+               ii=dtostr(dpsv(j),ch(ii:ii+24))+1+ii
+               ii=dtostr(oidpsv(j),ch(ii:ii+24))+1+ii
+               ii=dtostr(dpsv1(j),ch(ii:ii+24))+1+ii
+               
+               if (ii .ne. 1+(24+1)*11) then !Also check if too big?
++if cr
+                  write(lout,*) "BDEX> ERROR, ii=",ii
+                  write(lout,*) "ch=",ch
++ei
++if .not.cr
+                  write(*,*)    "BDEX> ERROR, ii=",ii
+                  write(*,*)    "ch=",ch
++ei
+                  call prror(-1)
+               endif
+               
+               write(ch(ii:ii+24),'(i24)') nlostp(j)
+               
+               write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)')
+     &              ch(1:ii+24)
+
+            enddo
++ei
++if .not.crlibm
+            do j=1,napx
+               write(bdex_channels(bdex_elementChannel(ix),4)+1,*)
+     &              xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),
+     &              ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
+     &              dpsv1(j),nlostp(j)
+            enddo
++ei
+            write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)')
+     & "BDEX WAITING..."
+                   
+            !Read back particles
+            read(bdex_channels(bdex_elementChannel(ix),4),*) j
+            if ( j .eq. -1 ) then !Don't change the distribution at all
+               if (bdex_debug) then
++if cr
+                  write(lout,*)
++ei
++if .not.cr
+                  write(*,*)
++ei
+     &                 "BDEXDEBUG> No change in distribution."
+               endif
+            else
+               if (j.gt.npart) then
++if cr
+                  write(lout,*) "BDEX> ERROR: j=",j,">",npart
++ei
++if .not.cr
+                  write(*,*)    "BDEX> ERROR: j=",j,">",npart
++ei
+                  call prror(-1)
+               endif
+               napx=j
+               if (bdex_debug) then
++if cr
+                  write(lout,*)
++ei
++if .not.cr
+                  write(*,*)
++ei
+     &                 "BDEXDEBUG> Reading",napx, "particles back..."
+               endif
+               do j=1,napx
+                  read(bdex_channels(bdex_elementChannel(ix),4),*)
+     &                 xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),
+     &                 ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j),
+     &                 dpsv1(j),nlostp(j)
+               enddo
+            endif
+            
+            write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)')
+     &           "BDEX TRACKING..."
+         endif
+         
+      else
++if cr
+         write(lout,*) "BDEX> elementAction=",
+     &bdex_elementAction(i), "not understood."
++ei
++if .not.cr
+         write(*,*)    "BDEX> elementAction=",
+     &bdex_elementAction(i), "not understood."
++ei
+         call prror(-1)
+      endif
+      
+      end subroutine
+      
 +dk cadcum
       subroutine cadcum
 !
