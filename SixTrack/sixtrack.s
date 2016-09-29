@@ -66016,6 +66016,7 @@ c$$$     &           myalphay * cos(phiy))
 !
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractif, 5:Coulomb
 !
++if .not.merlinscatter
       if        ( inter.eq.2 ) then
 +if crlibm
 !hr09      gettran = -log_rn(dble(rndm4()))/bn(xmat)
@@ -66070,6 +66071,31 @@ c$$$     &           myalphay * cos(phiy))
            t=dble(truth)                                                 !hr09
            gettran = t
       endif
++ei
++if merlinscatter
+
+      if ( inter.eq.2 ) then
+           gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
+
+         elseif ( inter .eq. 3 ) then
+           call merlinscatter_get_elastic_t(gettran)
+
+         elseif ( inter .eq. 4 ) then
+           !This does not get set to xm2, but xi, aka (xm2 / s)
+           !We must then change the momentum differently to the sixtrack scattering
+           call merlinscatter_get_sd_t(xm2)
+           call merlinscatter_get_sd_t(gettran)
+           p = p  * (1.d0 - xm2)
+
+         elseif ( inter.eq.5 ) then
+           length=1
+           call funlux( cgen(1,mat) , xran, length)
+           truth=xran(1)
+           t=dble(truth)                                                 !hr09
+           gettran = t
+      endif
+
++ei
       return
       end
 !---------------------------------------------------------------
@@ -66493,7 +66519,12 @@ c$$$     &           myalphay * cos(phiy))
 !hr09  s=zlm-rlen+s
        s=(zlm-rlen)+s                                                    !hr09
 !       m_dpodx=get_dpodx(p,mat) ! Claudia 2013
++if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
++ei
++if merlinscatter
+       call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
++ei
        p=p-m_dpodx*s
 
 !       dpop=1.d0-p0/p
@@ -66520,7 +66551,12 @@ c$$$     &           myalphay * cos(phiy))
 !hr09  s=zlm-rlen+s
        s=(zlm-rlen)+s                                                    !hr09
 !       m_dpodx=get_dpodx(p,mat)
++if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)
++ei
++if merlinscatter
+       call calc_ion_loss(mat,p,rlen,m_dpodx)
++ei
        p=p-m_dpodx*s
        dpop=(p-p0)/p0
        if(dowrite_impact) then
@@ -66552,7 +66588,12 @@ c$$$     &           myalphay * cos(phiy))
        s=(zlm-rlen)+zlm1                                                 !hr09
 !       p=p-dpodx(mat)*s  ! Why calculate ionization energy loss if particle is absorbed? This is used nowhere....?
 !       m_dpodx=get_dpodx(p,mat)
++if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)
++ei
++if merlinscatter
+       call calc_ion_loss(mat,p,rlen,m_dpodx)
++ei
        p=p-m_dpodx*s
        dpop=(p-p0)/p0
 ! write Coll_Scatter.dat for complete scattering histories
