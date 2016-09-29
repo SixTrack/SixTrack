@@ -277,8 +277,8 @@ void ppElasticScatter::IntegrateDsigDt()
 	std::cout << "Elastic Cross section (without peak): " << SigElasticN * 1000 << " mb" << std::endl;
 	std::cout << "Sixtrack Elastic Cross section: " << 7 * pow((7000 / 450),0.04792) << " mb" << std::endl;
 
-	std::ofstream* ofile;
-	std::ofstream* SigmaDistributionFile;
+	std::ofstream* ofile = nullptr;
+	std::ofstream* SigmaDistributionFile = nullptr;
 	itr = IntSig.begin()+1;
 	if(Debug)
 	{
