@@ -16,14 +16,14 @@ ppElasticScatter* ppElasticScatter_ptr = nullptr;
 * This will configure all the sub classes required.
 * @param[in] Plab The reference momentum of the proton beam.
 */
-extern "C" void merlinscatter_setup_(double* Plab)
+extern "C" void merlinscatter_setup_(double* Plab, int* seed)
 {
 	//std::cout << "merlinscatter_setup(), plab = "<< *Plab << std::endl;
 
 	//Initialise Random number generator
 	if(!MScatterConfigured)
 	{
-		RandomNG::init(0);
+		RandomNG::init(*seed);
 
 		//Store the beam momentum so we have access to it later.
 		p_store = *Plab;

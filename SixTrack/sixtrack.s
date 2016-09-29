@@ -66283,6 +66283,9 @@ c$$$     &           myalphay * cos(phiy))
 !
       subroutine scatin(plab)
       implicit none
++if merlinscatter
++ca database
++ei
 +if cr
 +ca crcoall
 +ei
@@ -66330,7 +66333,7 @@ c$$$     &           myalphay * cos(phiy))
 +ei
 +ei
 +if merlinscatter !No crlibm...
-      call merlinscatter_setup(plab)
+      call merlinscatter_setup(plab,rnd_seed)
       call merlinscatter_setdata(pptot,ppel,ppsd)
       bpp=7.156d0+1.439d0*log(sqrt(ecmsq))
 +ei
