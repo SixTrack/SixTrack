@@ -1,8 +1,8 @@
 CXX=g++
 CXXFLAGS=-O3 -Wall -g -mfpmath=sse -m32 -msse2 -std=c++11
 
-merlinscatter_interface.a: ElasticScatter.o DiffractiveScatter.o HelperFunctions.o merlinscatter_interface.o RandomNG.o RNG.o ACG.o Landau.o MLCG.o Normal.o Uniform.o
-		ar rcs merlinscatter_interface.a RandomNG.o ElasticScatter.o DiffractiveScatter.o HelperFunctions.o merlinscatter_interface.o RNG.o ACG.o Landau.o MLCG.o Normal.o Uniform.o
+merlinscatter.a: ElasticScatter.o DiffractiveScatter.o HelperFunctions.o merlinscatter_interface.o RandomNG.o RNG.o ACG.o Landau.o MLCG.o Normal.o Uniform.o
+		ar rcs merlinscatter.a RandomNG.o ElasticScatter.o DiffractiveScatter.o HelperFunctions.o merlinscatter_interface.o RNG.o ACG.o Landau.o MLCG.o Normal.o Uniform.o
 
 merlinscatter_interface.o:
 	$(CXX) $(CXXFLAGS) -c merlinscatter_interface.cpp

@@ -1189,14 +1189,14 @@ fi
 # and merlinscatter
 if test "$merlinscatter" = ""
 then
-    MERLINSCATTER="merlinscatter/merlinscatter_interface.a -lstdc++"
+    MERLINSCATTER="merlinscatter/merlinscatter.a -lstdc++"
     mkdir -p merlinscatter
     cp -r ../merlinscatter/* merlinscatter
     cd merlinscatter
     #TODO: Propagate flags to the merlinscatter makefile
     echo "Making merlinscatter"
     make clean
-    make -j8 merlinscatter_interface.a
+    make -j8 merlinscatter.a
   if test $? -ne 0
   then
     echo "Failed to make merlinscatter."
