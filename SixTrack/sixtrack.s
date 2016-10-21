@@ -1093,6 +1093,8 @@
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
      &pptco,ppeco,sdcoe,freeco,fnavo,zatom,exenergy
+!electron density and plasma energy
+      double precision edens, pleng
 !hr08 parameter(fnavo=6.02e23)
       parameter(fnavo=6.02214129d23)                                          
       real cgen
@@ -1112,6 +1114,7 @@
       common/materia/mat
       common/sindif/xpsd,zpsd,psd
       common/cdpodx/dpodx
+      common/cions/edens(nmat),pleng(nmat)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -25984,6 +25987,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call comnul
       commen=' '
       progrm='SIXTRACK'
++if collimat
+      !do some collimation variable set up
+      call collimat_init
++ei
 +if crlibm
       pi=four*atan_rn(one)
 +ei
@@ -63115,6 +63122,20 @@ c$$$            endif
     4 return
       end
 +dk nwrtcoll
+      !This routine pre-calcuates some varibles for
+      !the nuclear properties
+      subroutine collimat_init()
+      implicit none
+      integer i
+      double precision CalcElectronDensity,CalcPlasmaEnergy
++ca interac
+      ! compute the electron densnity and plasma energy for each material
+      do i=1, nmat
+         edens(i) = CalcElectronDensity(zatom(i),rho(i),anuc(i))
+         pleng(i) = CalcPlasmaEnergy(edens(i))
+      end do
+      end
+
       subroutine collimate2(c_material, c_length, c_rotation,           &
      &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
 !MAY2005
@@ -66300,6 +66321,7 @@ c$$$     &           myalphay * cos(phiy))
 !
 !hr09 ecmsq = 2 * 0.93828d0 * plab
       ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
++if .not.merlinscatter
 +if crlibm
 !hr09 xln15s=log_rn(0.15*ecmsq)
       xln15s=log_rn(0.15d0*ecmsq)                                        !hr09
@@ -66313,7 +66335,6 @@ c$$$     &           myalphay * cos(phiy))
 !      ppel = pperef *(plab / pref)** ppeco
 !      bpp = 8.5d0 + 1.086d0 * log(sqrt(ecmsq))
 
-+if .not.merlinscatter
 +if crlibm
       pptot=0.041084d0-0.0023302d0*log_rn(ecmsq)+0.00031514d0*
      &  log_rn(ecmsq)**2          !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002" 
@@ -66328,15 +66349,13 @@ c$$$     &           myalphay * cos(phiy))
       ppel=(11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000 !Claudia used the fit from TOTEM for ppel (in barn)
 !      ppsd = sdcoe * log(0.15d0 * ecmsq)
       ppsd=(4.3d0+0.3d0*log(ecmsq))/1000 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))      !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-
 +ei
 +ei
 +if merlinscatter !No crlibm...
       call merlinscatter_setup(plab,rnd_seed)
       call merlinscatter_setdata(pptot,ppel,ppsd)
-      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))
 +ei
+      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))      !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
       
 ! unmeasured tungsten data,computed with lead data and power laws
       bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(2d0/3d0)
@@ -66524,11 +66543,14 @@ c$$$     &           myalphay * cos(phiy))
 !       m_dpodx=get_dpodx(p,mat) ! Claudia 2013
 +if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
+       p=p-m_dpodx*s
 +ei
 +if merlinscatter
-       call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
+!void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
+      call merlinscatter_calc_ion_loss(p,edens(mat),                     &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
 +ei
-       p=p-m_dpodx*s
 
 !       dpop=1.d0-p0/p
        dpop=(p-p0)/p0
@@ -67068,6 +67090,51 @@ c$$$     &           myalphay * cos(phiy))
       end
 !
 !cccccccccccccccccccccccccccccccccc
+
+! Function to calculate the electron density in a material
+! Should give the number per cubic meter
+      function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+      implicit none
+      double precision AtomicNumber, Density, AtomicMass
+      double precision Avogadro
+      double precision CalcElectronDensity
+      double precision PartA, PartB
+      Avogadro = 6.022140857e23
+      PartA = AtomicNumber * Avogadro * Density
+      !1e-6 factor converts to n/m^-3
+      PartB = AtomicMass * 1e-6
+      CalcElectronDensity = PartA/PartB
+      return
+      end
+
+! Function to calculate the plasma energy in a material
+! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
+      function CalcPlasmaEnergy(ElectronDensity)
+      implicit none
+      double precision ElectronDensity
+      double precision CalcPlasmaEnergy
+      double precision sqrtAB,PartA,PartB
+
+      !Values from the 2016 PDG
+      double precision PlanckConstantBar,ElectronCharge,ElectronMass
+      double precision FreeSpacePermittivity,FreeSpacePermeability
+      double precision SpeedOfLight,SpeedOfLight2
+
+      PlanckConstantBar = 1.054571800e-34
+      ElectronCharge = 1.6021766208e-19
+      ElectronMass = 9.10938356e-31
+      SpeedOfLight = 299792458
+      SpeedOfLight2 = SpeedOfLight*SpeedOfLight
+
+      FreeSpacePermeability = 16.0e-7*atan(1.0) ! Henry per meter
+      FreeSpacePermittivity = 1.0/FreeSpacePermeability/SpeedOfLight2
+
+      PartA = ElectronDensity * ElectronCharge**2
+      PartB = ElectronMass * FreeSpacePermittivity
+      sqrtAB = sqrt(PartA/PartB)
+      CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*1e-9
+      return
+      end
 
 C.**************************************************************************
 C     subroutine for the calculazion of the energy loss by ionization

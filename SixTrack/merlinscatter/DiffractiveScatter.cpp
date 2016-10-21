@@ -371,7 +371,7 @@ retry:
 /**
 * This is the high mass regge diffraction
 */
-
+/*
 double ppDiffractiveScatter::PomeronScatter2(double tt, double x, double s)
 {
 	//double sigma_xi = 0.1;
@@ -383,6 +383,7 @@ double ppDiffractiveScatter::PomeronScatter2(double tt, double x, double s)
 	return pow(x,2);
 
 }
+*/
 //
 inline double  __attribute__((optimize("O3,unsafe-math-optimizations"))) __attribute__ ((hot)) ppDiffractiveScatter::PomeronScatter(const double tt, const double x, const double s)   const
 {

@@ -149,7 +149,7 @@ private:
 	* The energy is the sqrt(s) of the interaction
 	*/
 	inline double PomeronScatter(const double t_input,const double xi_input,const double energy) const;
-	double PomeronScatter2(double t_input,double xi_input,double energy);
+	//double PomeronScatter2(double t_input,double xi_input,double energy);
 
 	/**
 	* Interpolation classes for the cross section data
