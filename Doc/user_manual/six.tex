@@ -46,7 +46,7 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update September 2016
+  Update October 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
@@ -55,7 +55,7 @@
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, and K.~Sjobak
+  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, R. De Maria, and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -1458,7 +1458,7 @@ space~\cite{ripbeam}.
 \begin{itemize}
 \item first data line: {\em partnum emitnx emitny sigz sige ibeco
     ibtyp lhc ibbc} 
-\item other data lines: {\em name ibsix xang xplane}
+\item other data lines: {\em name ibsix xang xplane xstr}
 \end{itemize}
 
 \begin{description}
@@ -1484,8 +1484,9 @@ space~\cite{ripbeam}.
   do not appear will be treated as 4D kicks.
 \item [ibsix] (integer) Number of slices of the 6D beam--beam kick.
   If {\it ibsix} is set to 0 this element is treated as a 4D element.
-\item [xang] (float) Half crossing angle at this particular element [rad].
+\item [xang] (float) Half crossing angle (angle the between the trajectories of the two beams) at this particular element [rad].
 \item [xplane] (float) Crossing plane angle [rad].
+\item [xstr] (float) Angle of the position of the slices in the boosted frame [rad] (i.e. $X=Z \sin({\rm xstr}) \cos({\rm xplane})$, $Y= \sin({\rm xstr}) \cos({\rm xplane})$ ). In absence of crabbing user should make sure xstr=xang.
 \end{description}
 
 \subparagraph{Remark} These beam--beam elements have beam--beam have
