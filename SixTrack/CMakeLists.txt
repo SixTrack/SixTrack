@@ -245,6 +245,18 @@ endif()
 
 #Ugly, but does the job...
 SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}_${SIXTRACK_FEATURES}" )
+if(DA)
+    SET(FORS sixda sixsc sixscfox dabnew lielib beamgas)
+else()
+    SET(FORS track sixve sixvefox dabnews lielib beamgas plato_seq datamods)
+endif()
+
+foreach(loop IN ITEMS ${FORS})
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
+endforeach()
+
+#add the source files that will be used to build sixtrack
+add_executable(${SIXTRACK_BINARY_NAME} ${SIXTRACK_SOURCES})
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -257,11 +269,11 @@ endif(OPENMP)
 
 #If we have OpenMP enabled, set the compiler flags needed
 if(OPENMP_FOUND)
-	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
-	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
+	SET_TARGET_PROPERTIES(${SIXTRACK_BINARY_NAME} PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
+	SET_TARGET_PROPERTIES(${SIXTRACK_BINARY_NAME} PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
 endif()
-#Possible future  MPI test
 
+#Possible future  MPI test
 if(CMAKE_BUILD_TYPE STREQUAL MPI OR CMAKE_BUILD_TYPE STREQUAL MPIDEBUG)
 	FIND_PACKAGE(MPI REQUIRED)
 	if(NOT MPI_CXX_FOUND)
@@ -554,19 +566,6 @@ if(32BIT)
 	SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-m32")
 endif()
 
-if(DA)
-    SET(FORS sixda sixsc sixscfox dabnew lielib beamgas)
-else()
-    SET(FORS track sixve sixvefox dabnews lielib beamgas plato_seq datamods)
-endif()
-
-foreach(loop IN ITEMS ${FORS})
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
-endforeach()
-
-#add the source files that will be used to build sixtrack
-add_executable(${SIXTRACK_BINARY_NAME} ${SIXTRACK_SOURCES})
-
 if(32BIT)
 	SET_TARGET_PROPERTIES(${SIXTRACK_BINARY_NAME} PROPERTIES LINK_FLAGS "-m32")
 endif()
@@ -634,15 +633,12 @@ foreach(loop IN ITEMS ${FORS})
 	endif()
 	if(NOT COLLIMAT)
 		ast_masks(collimat ${loop})
-		ast_masks2(nwrtcoll)
 	endif()
 	if(NOT BNLELENS)
 		ast_masks(bnlelens ${loop})
-		ast_masks2(nwrtbnl)
 	endif()
 	if(NOT CR)
 		ast_masks(cr ${loop})
-		ast_masks2(checkpt)
 	endif()
 	if(NOT BOINC)
 		ast_masks(boinc ${loop})
@@ -655,7 +651,6 @@ foreach(loop IN ITEMS ${FORS})
 	endif()
 	if(NOT DEBUG)
 		ast_masks(debug ${loop})
-		ast_masks2(dumps)
 	endif()
 	if(NOT HDF5)
 		ast_masks(hdf5 ${loop})
@@ -677,15 +672,35 @@ foreach(loop IN ITEMS ${FORS})
 	endif()
 	if(NOT DATAMODS)
 		ast_masks(datamods ${loop})
-		ast_masks2(datamods)
 	endif()
 	if(NOT HUGENPART)
 		ast_masks(hugenpart ${loop})
 	endif()
-	if(NOT CERNLIB)
+
+	if(NOT COLLIMAT)
+		ast_masks2(nwrtcoll)
+	endif()
+	if(NOT DATAMODS)
+		ast_masks2(datamods)
+	endif()
+	if(NOT DEBUG)
+		ast_masks2(dumps)
+	endif()
+	if(NOT CR)
+		ast_masks2(checkpt)
+	endif()
+	if(NOT BNLELENS)
+		ast_masks2(nwrtbnl)
+	endif()
+
+	#From make_six:
+	#NOTA BENE! Definitions of cernlib and naglib are reversed
+	# in the sense that while a "" null value implies option is ON
+	# the reverse is true for cernlib and naglib
+	if(CERNLIB)
 		ast_masks2(plotdumy)
 	endif()
-	if(NOT NAGLIB)
+	if(NAGLIB)
 		ast_masks2(nagdumy)
 	endif()
 endforeach(loop)
