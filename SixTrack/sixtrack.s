@@ -731,8 +731,8 @@
 !
       character*80 dummy
 !
-      double precision remitxn,remityn,remitx,remity
-      common  /remit/ remitxn, remityn, remitx, remity
+      double precision remitx,remity
+      common  /remit/ remitx, remity
 !
       double precision mux(nblz),muy(nblz)
       common /mu/ mux,muy
@@ -767,8 +767,8 @@
       logical cut_input
       common /cut/ cut_input
 !
-      double precision rselect,remitxn,remityn,remitx,remity
-      common  /remit/ remitxn,remityn,remitx,remity
+      double precision rselect,remitx,remity
+      common  /remit/ remitx,remity
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -19148,10 +19148,8 @@ cc2008
         emitx=emitnx*gammar
         emity=emitny*gammar
 +if collimat
-        remitxn=emitnx
-        remityn=emitny
-        remitx=emitx
-        remity=emity
+        remitx=emitx0*gammar
+        remity=emity0*gammar
 +ei
       endif
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
