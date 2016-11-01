@@ -149,6 +149,7 @@ OPTION(MPI "Enable MPI support" OFF)
 OPTION(CUDA "Enable CUDA support" OFF)
 OPTION(32BIT "Create a 32bit binary" ON)
 OPTION(64BIT "Create a 64bit binary" OFF)
+OPTION(STATIC "Create a statically linked binary" ON)
 
 OPTION(ROOT "Link to the root libraries" OFF)
 
@@ -244,6 +245,9 @@ if(MPI)
 endif()
 if(CUDA)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_cuda")
+endif()
+if(STATIC)
+	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_static")
 endif()
 if(32BIT)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_32")
@@ -483,6 +487,10 @@ endif()
 ###################################################################################################
 #Additional Compiler flags (for all options)
 #ADD_DEFINITIONS("-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -pedantic -march=native")
+
+if(STATIC)
+	SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif()
 
 if(32BIT)
 	ADD_DEFINITIONS("-m32")
