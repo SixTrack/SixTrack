@@ -258,6 +258,7 @@ endif()
 
 #Ugly, but does the job...
 SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}_${SIXTRACK_FEATURES}" )
+
 if(DA)
     SET(FORS sixda sixsc sixscfox dabnew lielib beamgas)
 else()
@@ -269,7 +270,8 @@ foreach(loop IN ITEMS ${FORS})
 endforeach()
 
 #add the source files that will be used to build sixtrack
-add_executable(${SIXTRACK_BINARY_NAME} ${SIXTRACK_SOURCES})
+add_executable(SixTrack ${SIXTRACK_SOURCES})
+SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}")
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -282,8 +284,8 @@ endif(OPENMP)
 
 #If we have OpenMP enabled, set the compiler flags needed
 if(OPENMP_FOUND)
-	SET_TARGET_PROPERTIES(${SIXTRACK_BINARY_NAME} PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
-	SET_TARGET_PROPERTIES(${SIXTRACK_BINARY_NAME} PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
+	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
+	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
 endif()
 
 #Possible future  MPI test
@@ -490,10 +492,13 @@ endif()
 
 if(STATIC)
 	SET(CMAKE_EXE_LINKER_FLAGS "-static")
+	SET(BUILD_SHARED_LIBS OFF)
 endif()
 
 if(32BIT)
 	ADD_DEFINITIONS("-m32")
+#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "-m32")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
 endif()
 
 if(64BIT)
@@ -505,7 +510,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	set (CMAKE_Fortran_FLAGS_RELEASE "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -O3")
+#	set (CMAKE_Fortran_FLAGS_RELEASE "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -O3")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -g")
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort (untested)
@@ -588,10 +593,6 @@ if(32BIT)
 	SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-m32")
 endif()
 
-if(32BIT)
-	SET_TARGET_PROPERTIES(${SIXTRACK_BINARY_NAME} PROPERTIES LINK_FLAGS "-m32")
-endif()
-
 if(MERLINSCATTER)
 	file(GLOB MERLINSCATTER_SOURCES merlinscatter/*.cpp merlinscatter/RandomNG/*.cpp)
 	add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
@@ -626,7 +627,7 @@ foreach(loop IN ITEMS ${ASTUCE_MASKS})
 endforeach()
 
 #We need to build asatuce and dafor before we build SixTrack, but crlibm and so on can be built at the same time.
-add_dependencies(${SIXTRACK_BINARY_NAME} copy_input_files generate_input)
+add_dependencies(SixTrack copy_input_files generate_input)
 
 ###################################################################################################
 #running astuce and dafor
@@ -802,18 +803,51 @@ endforeach()
 #linking
 ###################################################################################################
 
+if(CERNLIB)
+#	if(EXISTS "/cern/pro/bin/cernlib")
+		#running on lxplus and friends
+#		SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "`cernlib -u graflib packlib_noshift kernlib_noshift` -lg2c -lpthread")
+#	else()
+		add_library(g2c STATIC IMPORTED)
+		add_library(graflib STATIC IMPORTED)
+		add_library(grafX11 STATIC IMPORTED)
+		add_library(kernlib_noshift STATIC IMPORTED)
+		add_library(packlib_noshift STATIC IMPORTED)
+		add_library(X11 STATIC IMPORTED)
+		add_library(Xau STATIC IMPORTED)
+		add_library(xcb STATIC IMPORTED)
+		add_library(Xdmcp STATIC IMPORTED)
+
+		set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libg2c.a)
+		set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libgraflib.a)
+		set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libgrafX11.a)
+		set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libkernlib_noshift.a)
+		set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libpacklib_noshift.a)
+		set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libX11.a)
+		set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libXau.a)
+		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libxcb.a)
+		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libXdmcp.a)
+
+		find_library(pthread STATIC pthread)
+		find_library(dl STATIC dl)
+		find_library(gcc_eh STATIC gcc_eh)
+
+		target_link_libraries(SixTrack graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl pthread gcc_eh)
+#	endif()
+endif(CERNLIB)
+
 #if we are using crlibm, link to the crlibm library
 if(CRLIBM)
-	target_link_libraries(${SIXTRACK_BINARY_NAME} crlibm)
+	target_link_libraries(SixTrack crlibm)
 endif(CRLIBM)
 
 #if we are using merlinscatter, link to the crlibm library
 if(MERLINSCATTER)
-	target_link_libraries(${SIXTRACK_BINARY_NAME} merlinscatter)
+	target_link_libraries(SixTrack merlinscatter)
 endif(MERLINSCATTER)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
-	target_link_libraries(${SIXTRACK_BINARY_NAME} ${ROOT_LIBRARIES})
+	target_link_libraries(SixTrack ${ROOT_LIBRARIES})
 endif(ROOT)
 
