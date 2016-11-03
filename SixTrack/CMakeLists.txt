@@ -645,8 +645,8 @@ macro(ast_masks OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_a POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks.cmake) 
 endmacro()
 
-macro(ast_masks2 OPT)
-	add_custom_command(TARGET astuce_clean_b POST_BUILD COMMAND sed -i -e '/^e  *'${OPT}'/d' ${CMAKE_BINARY_DIR}/ast_mask/${loop}.ast)
+macro(ast_masks2 OPT FILE_NAME)
+	add_custom_command(TARGET astuce_clean_b POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks2.cmake) 
 endmacro()
 
 #First clean up the astuce decks for only what is enabled
@@ -717,19 +717,19 @@ foreach(loop IN ITEMS ${FORS})
 	endif()
 
 	if(NOT COLLIMAT)
-		ast_masks2(nwrtcoll)
+		ast_masks2(nwrtcoll ${loop})
 	endif()
 	if(NOT DATAMODS)
-		ast_masks2(datamods)
+		ast_masks2(datamods ${loop})
 	endif()
 	if(NOT DEBUG)
-		ast_masks2(dumps)
+		ast_masks2(dumps ${loop})
 	endif()
 	if(NOT CR)
-		ast_masks2(checkpt)
+		ast_masks2(checkpt ${loop})
 	endif()
 	if(NOT BNLELENS)
-		ast_masks2(nwrtbnl)
+		ast_masks2(nwrtbnl ${loop})
 	endif()
 
 	#From make_six:
@@ -737,10 +737,10 @@ foreach(loop IN ITEMS ${FORS})
 	# in the sense that while a "" null value implies option is ON
 	# the reverse is true for cernlib and naglib
 	if(CERNLIB)
-		ast_masks2(plotdumy)
+		ast_masks2(plotdumy ${loop})
 	endif()
 	if(NAGLIB)
-		ast_masks2(nagdumy)
+		ast_masks2(nagdumy ${loop})
 	endif()
 endforeach(loop)
 
