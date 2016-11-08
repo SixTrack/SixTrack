@@ -48222,6 +48222,7 @@ C+ei
 +ca parnum
 +ca common
 +ca commonmn
++ca commonm1
 +ca commontr
 +ca stringzerotrim
 +ca comdynk
@@ -48235,7 +48236,7 @@ C+ei
       intent (in) element_name, att_name, newValue
       !Functions
       ! temp variables
-      integer el_type, ii
+      integer el_type, ii, j
       character(maxstrlen_dynk) element_name_stripped
       character(maxstrlen_dynk) att_name_stripped
       ! For sanity check
@@ -48262,8 +48263,19 @@ C     Here comes the logic for setting the value of the attribute for all instan
       ! Special non-physical elements
       if (element_name_stripped .eq. "GLOBAL-VARS") then
          if (att_name_stripped .eq. "E0" ) then
+            ! Modify the reference particle
+            e0 = newValue
+            e0f = sqrt(e0**2 - pma**2)
+            gammar = pma/e0
             ! Modify the Energy
-            ! Update particles (see thin6dua)
+            do j = 1, npart
+              dpsv(j) = (ejfv(j) - e0f)/e0f
+              dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
+              dpd(j) = one + dpsv(j)
+              dpsq(j) = sqrt(dpd(j))
+              oidpsv(j) = one/(one + dpsv(j))
+              rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
+            enddo
          endif
          ldoubleElement = .true.
       endif
