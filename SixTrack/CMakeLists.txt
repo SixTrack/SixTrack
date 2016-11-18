@@ -159,7 +159,13 @@ OPTION(ROOT "Link to the root libraries" OFF)
 ###################################################################################################
 # Sixtrack binary name construction
 ###################################################################################################
+
+# FFLAGS depend on the compiler
+get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
+
 SET(SIXTRACK_FEATURES "cmake")
+SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${Fortran_COMPILER_NAME}")
+
 if(TILT)
 	SET(SIXTRACK_FEATURES "tilt_${SIXTRACK_FEATURES}")
 endif()
@@ -560,8 +566,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -g -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort (untested)
-	set (CMAKE_Fortran_FLAGS_RELEASE "-mia32 -fp-model source -fp-model strict -fp-model no-except -O3")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-mia32 -fp-model source -fp-model strict -fp-model no-except -O0 -g")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g")
 elseif (Fortran_COMPILER_NAME MATCHES "g77")
 	# g77
 	set (CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3 -m32")
