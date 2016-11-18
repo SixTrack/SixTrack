@@ -96,8 +96,8 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 # Update the documentation string of CMAKE_BUILD_TYPE for GUIs to include the MPI options
-#SET(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
 SET(CMAKE_BUILD_TYPE Release CACHE STRING
+#SET(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
 	"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel MPI MPIDEBUG."
 	FORCE)
 
@@ -110,15 +110,15 @@ SET(CMAKE_BUILD_TYPE Release CACHE STRING
 OPTION(TILT "Allow elements to be tilted (by error)" ON)
 OPTION(FAST "Which implementation of drifts to use in thin6d" ON)
 OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
-OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" ON)
-OPTION(NAGLIB "Link to external NAGLIB library, used in subroutine coruglo and coruord for DA version" ON)
+OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
+OPTION(NAGLIB "Link to external NAGLIB library, used in subroutine coruglo and coruord for DA version" OFF)
 # used for ifort only SSE
 #SSE="NULL"
 # and we have OFF
 OPTION(API "Link to external BOINC API" OFF)
 OPTION(DA "Build differential algebra version (NOT dynamic aperture!)" OFF)
 OPTION(COLLIMAT "Collimation code" OFF)
-OPTION(CPSS "???" OFF)
+OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
 OPTION(BPM "Activates the collection of tracking data for sussix (deprecated)" OFF)
@@ -147,9 +147,12 @@ OPTION(NAGFOR "Use NAGFOR compiler" OFF)
 OPTION(OPENMP "Enable OpenMP support" OFF)
 OPTION(MPI "Enable MPI support" OFF)
 OPTION(CUDA "Enable CUDA support" OFF)
-OPTION(32BIT "Create a 32bit binary" ON)
-OPTION(64BIT "Create a 64bit binary" OFF)
+OPTION(32BIT "Create a 32bit binary" OFF)
+OPTION(64BIT "Create a 64bit binary" ON)
 OPTION(STATIC "Create a statically linked binary" ON)
+OPTION(NATIVE "Enable optimizations for the current machine" OFF)
+
+OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
 OPTION(ROOT "Link to the root libraries" OFF)
 
@@ -249,6 +252,9 @@ endif()
 if(STATIC)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_static")
 endif()
+if(NATIVE)
+	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_native")
+endif()
 if(32BIT)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_32")
 endif()
@@ -260,14 +266,19 @@ endif()
 SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}_${SIXTRACK_FEATURES}" )
 
 if(DA)
-    SET(FORS sixda sixsc sixscfox dabnew lielib beamgas)
+    SET(FORS sixda sixsc sixscfox dabnew lielib)
 else()
-    SET(FORS track sixve sixvefox dabnews lielib beamgas plato_seq datamods)
+    SET(FORS track sixve sixvefox dabnews lielib plato_seq datamods)
 endif()
 
 foreach(loop IN ITEMS ${FORS})
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
+
+#add back in beamgas, which is in free format
+SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90)
+SET(FORS ${FORS} beamgas)
+
 
 #add the source files that will be used to build sixtrack
 add_executable(SixTrack ${SIXTRACK_SOURCES})
@@ -276,6 +287,34 @@ SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}")
 ###################################################################################################
 # Checking if some requested packages exist
 ###################################################################################################
+#Check for HDF5
+if(HDF5)
+	if(STATIC)
+		SET(HDF5_USE_STATIC_LIBRARIES "True")
+	endif(STATIC)
+
+	find_package(HDF5 COMPONENTS Fortran REQUIRED)
+endif(HDF5)
+
+if(HDF5_FOUND)
+	#uncomment if you want more information
+	message(STATUS "HDF5_INCLUDE_DIRS: ${HDF5_INCLUDE_DIRS}")
+	##message(STATUS "HDF5_INCLUDE_DIR: ${HDF5_INCLUDE_DIR}")
+	message(STATUS "HDF5_DEFINITIONS: ${HDF5_DEFINITIONS}")
+	message(STATUS "HDF5_Fortran_LIBRARIES: ${HDF5_Fortran_LIBRARIES}")
+	##message(STATUS "HDF5_Fortran_HL_LIBRARIES: ${HDF5_Fortran_HL_LIBRARIES}")
+	##message(STATUS "HDF5_HL_LIBRARIES: ${HDF5_HL_LIBRARIES}")
+	##message(STATUS "HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
+	##message(STATUS "HDF5_CXX_LIBRARIES: ${HDF5_CXX_LIBRARIES}")
+	message(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
+	##message(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
+	##message(STATUS "HDF5_VERSION: ${HDF5_VERSION}")
+	message(STATUS "HDF5_LIBRARY_DIRS: ${HDF5_LIBRARY_DIRS}")
+	##message(STATUS "HDF5_IS_PARALLEL: ${HDF5_IS_PARALLEL}")
+	##message(STATUS "HDF5_Fortran_COMPILER_EXECUTABLE: ${HDF5_Fortran_COMPILER_EXECUTABLE}")
+
+	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+endif(HDF5_FOUND)
 
 #Check for OpenMP
 if(OPENMP)
@@ -359,7 +398,7 @@ if(CRLIBM)
 	endif()
 endif()
 if(HDF5)
-	if(NOT COLLIMATE)
+	if(NOT COLLIMAT)
 		message(FATAL_ERROR "Building with HDF5 requires COLLIMAT enabled")
 	endif()
 endif()
@@ -418,6 +457,9 @@ if(DA)
 	endif()
 	if(BPM)
 		message(FATAL_ERROR "Cannot build DA with BPM enabled.")
+	endif()
+	if(NOT NAGLIB)
+		message(FATAL_ERROR "Building with DA requires NAGLIB enabled.")
 	endif()
 endif()
 if(COLLIMAT)
@@ -490,6 +532,10 @@ endif()
 #Additional Compiler flags (for all options)
 #ADD_DEFINITIONS("-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -pedantic -march=native")
 
+if(NATIVE)
+	ADD_DEFINITIONS("-march=native")
+endif()
+
 if(STATIC)
 	SET(CMAKE_EXE_LINKER_FLAGS "-static")
 	SET(BUILD_SHARED_LIBS OFF)
@@ -511,7 +557,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
 	set (CMAKE_Fortran_FLAGS_RELEASE "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -O3")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -g")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -g -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort (untested)
 	set (CMAKE_Fortran_FLAGS_RELEASE "-mia32 -fp-model source -fp-model strict -fp-model no-except -O3")
@@ -564,7 +610,7 @@ MARK_AS_ADVANCED(
 	CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
 	CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG )
 
-###################################################################################################
+######################################if(32BIT)#############################################################
 # Settings for what exactly to build
 ###################################################################################################
 if(CRLIBM)
@@ -635,18 +681,20 @@ add_dependencies(SixTrack copy_input_files generate_input)
 add_custom_target(run_astuce)
 
 #make running astuce depend on astuce being built
-add_dependencies(run_astuce astuce astuce_clean_a astuce_clean_b)
-add_custom_target(astuce_clean_a)
-add_custom_target(astuce_clean_b)
-add_dependencies(astuce_clean_a copy_input_files)
-add_dependencies(astuce_clean_b astuce_clean_a)
+add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
+
+add_custom_target(astuce_clean_define_flags)
+add_dependencies(astuce_clean_define_flags copy_input_files)
+
+add_custom_target(astuce_clean_decks)
+add_dependencies(astuce_clean_decks astuce_clean_define_flags)
 
 macro(ast_masks OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_a POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks.cmake) 
+	add_custom_command(TARGET astuce_clean_define_flags POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks.cmake)
 endmacro()
 
 macro(ast_masks2 OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_b POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks2.cmake) 
+	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks2.cmake)
 endmacro()
 
 #First clean up the astuce decks for only what is enabled
@@ -745,10 +793,15 @@ foreach(loop IN ITEMS ${FORS})
 endforeach(loop)
 
 add_custom_target(generate_input)
-add_dependencies(generate_input run_astuce dafor)
+add_dependencies(generate_input run_astuce dafor rename_beamgas)
+
+add_custom_target(rename_beamgas)
+add_dependencies(rename_beamgas run_astuce)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E rename beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
+
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND astuce < ${CMAKE_BINARY_DIR}/ast_mask/${loop}.ast )
+	add_custom_command(TARGET run_astuce POST_BUILD COMMAND astuce < ${CMAKE_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
 
 	#We make custom targets/commands and deps for each dafor step
 	#make a subdir so we can build in parallel
@@ -790,7 +843,7 @@ foreach(loop IN ITEMS ${FORS})
 		add_custom_command(TARGET dafor_copy_binary_${loop} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy dafor ${loop}/dafor)
 
 		#run dafor
-		add_custom_command(TARGET dafor_run_${loop} COMMAND ${CMAKE_COMMAND} -E chdir ${loop} ./dafor)
+		add_custom_command(TARGET dafor_run_${loop} COMMAND ${CMAKE_COMMAND} -E chdir ${loop} ./dafor > ${loop}_dafor.log)
 
 		#copy the output we need
 		add_custom_command(TARGET dafor_move_${loop} COMMAND ${CMAKE_COMMAND} -E copy ${loop}/fort.2 ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f)
@@ -854,3 +907,27 @@ if(ROOT)
 	target_link_libraries(SixTrack ${ROOT_LIBRARIES})
 endif(ROOT)
 
+if(HDF5)
+	target_link_libraries(SixTrack ${HDF5_LIBRARIES})
+endif(HDF5)
+
+#For testing
+IF(BUILD_TESTING)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/../SixTest ${CMAKE_BINARY_DIR}/SixTest)
+    SET(SIXTRACK_TESTS bnl exact crabamp javier thick4 lost tilt dipedge bb bb_ntwin1 notilt lostnotilt lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d)
+	foreach(TST IN ITEMS ${SIXTRACK_TESTS})
+		add_custom_target(test_copy_${TST})
+		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/SixTest/${TST}/)
+
+		file(GLOB TEST_INPUTS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/../SixTest/${TST}/*)
+		#message(STATUS "${CMAKE_SOURCE_DIR}/../SixTest/${TST}/")
+
+		foreach(TSFILE IN ITEMS ${TEST_INPUTS})
+			get_filename_component(TFILE ${TSFILE} NAME)
+			#message(STATUS "ITEM: ${TFILE}")
+			#create_symlink old new
+			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${TFILE})
+		endforeach()
+		add_dependencies( SixTrack test_copy_${TST})
+	endforeach()
+ENDIF()
