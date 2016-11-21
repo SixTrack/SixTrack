@@ -138,25 +138,16 @@
       do i=0,20
       xintex(i)=0.d0
       enddo
-!hr11 xintex(          0)=       1.000000000000000
       xintex(          0)=       1.000000000000000d0                     !hr11
-!hr11 xintex(          1)=  5.000000000000000e-001
       xintex(          1)=  5.000000000000000d-001                       !hr11
-!hr11 xintex(          2)=  8.333333333333334e-002
       xintex(          2)=  8.333333333333334d-002                       !hr11
-!hr11 xintex(          3)=  0.000000000000000e+000
       xintex(          3)=  0.000000000000000d+000                       !hr11
-!hr11 xintex(          4)= -1.388888888888898e-003
       xintex(          4)= -1.388888888888898d-003                       !hr11
-!hr11 xintex(          5)=  0.000000000000000e+000
       xintex(          5)=  0.000000000000000d+000                       !hr11
-!hr11 xintex(          6)=  3.306878306878064e-005
       xintex(          6)=  3.306878306878064d-005                       !hr11
       xintex(          7)= 0.d0
-!hr11 xintex(          8)= -8.267195767165669e-007
       xintex(          8)= -8.267195767165669d-007                       !hr11
       xintex(          9)=  0.d0
-!hr11 xintex(         10)=  4.592886537931051e-008
       xintex(         10)=  4.592886537931051d-008                       !hr11
       return
       end
@@ -325,10 +316,8 @@
 ! allocates vector of n polynomials and give it the name NOM=A10
       integer x(*),i1(4),i2(4)
       character*10 nom
-!hr11 do 1 i=1,iabs(n)
       do 1 i=1,abs(n)                                                    !hr11
  1    x(i)=0
-!hr11 call daallno(x,iabs(n),nom)
       call daallno(x,abs(n),nom)                                         !hr11
          if(n.lt.0) then
           call liepeek(i1,i2)
@@ -2035,11 +2024,9 @@
       enddo
       jtune=isi
 +if crlibm
-!hr11 x2pii=1.d0/atan_rn(1.d0)/8.d0
       x2pii=(1.d0/atan_rn(1.d0))/8.d0                                    !hr11
 +ei
 +if .not.crlibm
-!hr11 x2pii=1.d0/atan(1.d0)/8.d0
       x2pii=(1.d0/atan(1.d0))/8.d0                                       !hr11
 +ei
 +if crlibm
@@ -2183,7 +2170,6 @@
           call dacmu(w(2*i-1),-1.d0,v(2*i) )
         enddo
 
-!hr11   xic=(-1)**(ndt)
         xic=dble((-1)**(ndt))                                            !hr11
 
         do i=1,nd2-ndc2
@@ -2415,14 +2401,11 @@
           jj(i)=jj(i)+(-1)**iflow
           jp(i)=jp(i)-1
         endif
-!hr11   ic=ic+iabs(jj(i))
         ic=ic+abs(jj(i))                                                 !hr11
       enddo
 
       do i=1,nd-ndc
-!hr11   ad=dsta(i)*dble(jj(i))*angle(i)-dble(jp(i))*rad(i)+ad
         ad=((dsta(i)*dble(jj(i)))*angle(i)-dble(jp(i))*rad(i))+ad        !hr11
-!hr11   as=sta(i)*dble(jj(i))*angle(i)+as
         as=(sta(i)*dble(jj(i)))*angle(i)+as                              !hr11
       enddo
 
@@ -2434,19 +2417,15 @@
 +ei
       ex=exh**2
 +if crlibm
-!hr11 ans=4.d0*ex*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)             !hr11
 +ei
 +if .not.crlibm
-!hr11 ans=4.d0*ex*(dsinh(ad/2.d0)**2+sin(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh(ad/2.d0)**2+sin(as/2.d0)**2)                   !hr11
 +ei
 +if crlibm
-!hr11 xgam=2.d0*(-exh*sinh_rn(ad/2.d0)+ex*sin_rn(as/2.d0)**2)/ans
       xgam=(2.d0*(ex*sin_rn(as/2.d0)**2-exh*sinh_rn(ad/2.d0)))/ans       !hr11
 +ei
 +if .not.crlibm
-!hr11 xgam=2.d0*(-exh*dsinh(ad/2.d0)+ex*sin(as/2.d0)**2)/ans
       xgam=(2.d0*(ex*sin(as/2.d0)**2-exh*sinh(ad/2.d0)))/ans            !hr11
 +ei
 
@@ -2490,9 +2469,7 @@
       enddo
 
       do i=1,nd-ndc
-!hr11   ad=dsta(i)*dble(jj(i))*angle(i)-dble(jp(i))*rad(i)+ad
         ad=((dsta(i)*dble(jj(i)))*angle(i)-dble(jp(i))*rad(i))+ad        !hr11
-!hr11   as=sta(i)*dble(jj(i))*angle(i)+as
         as=(sta(i)*dble(jj(i)))*angle(i)+as                              !hr11
       enddo
 
@@ -2504,19 +2481,15 @@
 +ei
       ex=exh**2
 +if crlibm
-!hr11 ans=4.d0*ex*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)             !hr11
 +ei
 +if .not.crlibm
-!hr11 ans=4.d0*ex*(dsinh(ad/2.d0)**2+sin(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh(ad/2.d0)**2+sin(as/2.d0)**2)                  !hr11
 +ei
 +if crlibm
-!hr11 xgbm=sin_rn(as)*ex/ans
       xgbm=(sin_rn(as)*ex)/ans                                           !hr11
 +ei
 +if .not.crlibm
-!hr11 xgbm=sin(as)*ex/ans
       xgbm=(sin(as)*ex)/ans                                              !hr11
 +ei
 
@@ -2755,7 +2728,6 @@
 
       do i=1,nd-ndc
         j(2*i-1)=1
-!hr11   r1=-ang(i)
         r1=-1d0*ang(i)                                                   !hr11
 !-----
         call dapok(h(2*i),j,r1)
@@ -2777,7 +2749,6 @@
         call dapok(h(ndt),j,ang(nd))
       elseif(ndpt.eq.nd2) then
         j(ndpt)=1
-!hr11   call dapok(h(ndt),j,-ang(nd))
         call dapok(h(ndt),j,-1d0*ang(nd))                                !hr11
       endif
       return
@@ -2816,7 +2787,6 @@
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-!hr11     si(i)=-sh*xx
           si(i)=(-1d0*sh)*xx                                             !hr11
         else
 +if crlibm
@@ -2837,7 +2807,6 @@
         if(ista(i).eq.0)then
           sim=si(i)
         else
-!hr11     sim=-si(i)
           sim=-1d0*si(i)                                                 !hr11
         endif
         j(2*i-1)=1
@@ -2892,17 +2861,14 @@
       call daclrd(roi)
       do i=1,nd-ndc
 +if crlibm
-!hr11   xx=exp_rn(-ra(i))
         xx=exp_rn(-1d0*ra(i))                                            !hr11
 +ei
 +if .not.crlibm
-!hr11   xx=exp(-ra(i))
         xx=exp(-1d0*ra(i))                                               !hr11
 +ei
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-!hr11     si(i)=-sh*xx
           si(i)=(-1d0*sh)*xx
         else
 +if crlibm
@@ -2923,17 +2889,14 @@
         if(ista(i).eq.0)then
           sim=si(i)
         else
-!hr11     sim=-si(i)
           sim=-1d0*si(i)                                                 !hr11
         endif
         j(2*i-1)=1
         call dapok(roi(2*i-1),j,co(i))
-!hr11   simv=-sim
         simv=-1d0*sim                                                    !hr11
         call dapok(roi(2*i),j,simv)
         j(2*i-1)=0
         j(2*i)=1
-!hr11   simv=-si(i)
         simv=-1d0*si(i)                                                  !hr11
         call dapok(roi(2*i),j,co(i))
         call dapok(roi(2*i-1),j,simv)
@@ -3316,9 +3279,7 @@
 
       call mapflol(sa,sai,cr,cm,st)
       do i=1,nd-ndc
-!hr11   if(st(i)+0.001.gt.1.d0) then
         if(st(i)+0.001d0.gt.1.d0) then                                   !hr11
-!hr11     a(i)=dsqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)
           a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
 +if crlibm
           q(i)=acos_rn(cr(2*i-1,2*i-1)/a(i))
@@ -3334,18 +3295,15 @@
 +ei
           if(cr(2*i-1,2*i).lt.0.d0) q(i)=x2pi-q(i)
         else
-!hr11     a(i)=dsqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)
           a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)                 !hr11
           ch=cr(2*i-1,2*i-1)/a(i)
           shm=cr(2*i-1,2*i)/a(i)
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
 +if crlibm
-!hr11     q(i)=-log_rn(ch+shm)
           q(i)=-1d0*log_rn(ch+shm)                                       !hr11
 +ei
 +if .not.crlibm
-!hr11     q(i)=-log(ch+shm)
           q(i)=-1d0*log(ch+shm)                                          !hr11
 +ei
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
@@ -3359,7 +3317,6 @@
       enddo
 
       if(ndc.eq.0) then
-!hr11   if(st(3)+0.001.gt.1.d0.and.nd.eq.3.and.q(nd).gt.0.5d0)          &
         if(st(3)+0.001d0.gt.1.d0.and.nd.eq.3.and.q(nd).gt.0.5d0)        &!hr11
      &q(3)=q(3)-x2pi
       else
