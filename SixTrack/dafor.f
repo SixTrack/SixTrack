@@ -34,7 +34,7 @@ C ANFANG - HAUPTPROGRAMM -
       CHARACTER(len=100) :: fname_in
       CHARACTER(len=100) :: fname_out
 *
-      IARI = 0
+!      IARI = 0
 *
       WRITE(6,*)' '
       WRITE(6,*)' '
@@ -163,7 +163,7 @@ C ANFANG UNTERPROGRAMM
 *----------------------------------------------------------------------------! 5
       integer i,j
       character blanks*80
-      character blank6*6
+!      character blank6*6
       character blank8*8
 *
 *     OPER     : CONTAINS LOPER NAMES OF SUPPORTED BINARY OPERTORS
@@ -205,7 +205,7 @@ C ANFANG UNTERPROGRAMM
       do i=1,80
         blanks(i:i)=' '     
       enddo
-      blank6='      '
+!      blank6='      '
       blank8='        '
 *
       do i=1,lnam
@@ -959,14 +959,14 @@ cfrs      PARAMETER(LANA=100,LA=10000,LCHECK=0,LDEC=37)
 *
       INTEGER NANA(LANA,5)
       CHARACTER B*(*),A*10000
-      CHARACTER OPS*6,CANA*10,CTYP*7!,CCNA*1
+      CHARACTER OPS*6,CANA*10!,CTYP*7!,CCNA*1
       CHARACTER BLANK*8,NUM*10,LET*26,SEARCH*8,AER*50
       DOUBLE PRECISION CDEC(0:LDEC)
       SAVE IFI, CDEC
 *
       DATA OPS  / '+-*/^#' /
       DATA CANA / '=OFAVSC#,;' /
-      DATA CTYP / 'RICDGPB' /
+!      DATA CTYP / 'RICDGPB' /
 *
       DATA NUM  / '1234567890' /
       DATA LET  / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' /
@@ -1023,7 +1023,7 @@ cfrs
       DO 5 I=1,LVAR
   5   BLANK(I:I) = ' '
 *
-      IARIA = IARI+1
+!      IARIA = IARI+1
       ILEFT = IX
       ISCR  = 0
       LERR  = 0
@@ -1741,7 +1741,7 @@ C ANFANG UNTERPROGRAMM
 *----------------------------------------------------------------------------! 5
 *
       PARAMETER (LSCR=99)
-      CHARACTER A*800,AL*808,AR*800,AS*800,AC*800,BLANK*800,ABC*26
+      CHARACTER A*800,AL*808,AR*800,AS*800,AC*800,BLANK*800!,ABC*26
       INTEGER ISCRTY(LSCR),INDEX(7)
 *
       INTEGER ITS
@@ -1750,7 +1750,7 @@ C ANFANG UNTERPROGRAMM
       SAVE BLANK
 *
       DATA ICALL / 0 /
-      DATA ABC / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' /
+!      DATA ABC / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' /
       IF(ICALL.EQ.0) THEN
          ICALL = 1
          DO 1 I=1,800
