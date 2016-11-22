@@ -118,6 +118,9 @@ C ANFANG - HAUPTPROGRAMM -
 *
       CALL PRECOM
 *
+      close(1)
+      close(2)
+      
       STOP
       END
 *
