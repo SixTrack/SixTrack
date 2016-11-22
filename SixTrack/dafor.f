@@ -20,13 +20,13 @@ C ANFANG - HAUPTPROGRAMM -
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
       PARAMETER(ISZ=200)
-      CHARACTER A*160
-      INTEGER NA(50)
+!      CHARACTER A*160
+!      INTEGER NA(50)
 *
       !For command line argument parsing
       INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
@@ -63,7 +63,7 @@ C ANFANG - HAUPTPROGRAMM -
       WRITE(6,*)' '
       WRITE(6,*)' '
 *
- 5    CONTINUE
+! 5    CONTINUE
       
       ! Read command line arguments -- inspired by read90
       cmdarg_i = 0
@@ -127,14 +127,14 @@ C ANFANG UNTERPROGRAMM
 *
 * Eric: use local LL DATA and copy it to the COMMON blocks
       PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-*-----MEMORY MANAGEMENT ----------------------------------------------------- 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            3
-      INTEGER NPAR(LNAM,17)                                                 4
-      DOUBLE PRECISION CC(LCC)                                              5
-      COMMON / CMEM / CNAM,CTEX,CBLA                                          6
-      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               7
-*---------------------------------------------------------------------------- 8
+*-----MEMORY MANAGEMENT ----------------------------------------------------- ! 1
+      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                ! 2
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            ! 3
+      INTEGER NPAR(LNAM,17)                                                   ! 4
+      DOUBLE PRECISION CC(LCC)                                                ! 5
+      COMMON / CMEM / CNAM,CTEX,CBLA                                          ! 6
+      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               ! 7
+*---------------------------------------------------------------------------- ! 8
 *
 *     CNAM: CONTAINS INAM NAMES OF VARIABLES, FUNCTIONS, SUBROUTINES
 *     NPAR: PARAMETERS DESCRIBING THE VARIABLES
@@ -144,20 +144,20 @@ C ANFANG UNTERPROGRAMM
 *           4: INDICES (FOR ARRAY), NUMBER OF ARGUMENTS (FOR FUN,SUB)
 *           11-17: BOUNDS (FOR ARRAYS)
 *
-*-----CODE ------------------------------------------------------------------ 1
-      PARAMETER (LARI=10000)                                                  2
-      INTEGER NARI(LARI,11), IARI                                         3
-      COMMON / CODE / NARI, IARI                                              4
-*---------------------------------------------------------------------------- 5
-*-----SYMBOL----------------------------------------------------------------  1
-      PARAMETER (LFUNC=100,LOPER=16)                                          2
+*-----CODE ------------------------------------------------------------------! 1
+      PARAMETER (LARI=10000)                                                 ! 2
+      INTEGER NARI(LARI,11), IARI                                            ! 3
+      COMMON / CODE / NARI, IARI                                             ! 4
+*----------------------------------------------------------------------------! 5
+*-----SYMBOL---------------------------------------------------------------- ! 1
+      PARAMETER (LFUNC=100,LOPER=16)                                         ! 2
       INTEGER KFUN(LFUNC)
       INTEGER llKFUN(LFUNC)
-      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                              3
-      CHARACTER llOPER(LOPER)*6, llFUNC(LFUNC)*6                              3
+      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                                 ! 3
+      CHARACTER llOPER(LOPER)*6, llFUNC(LFUNC)*6                             ! 3
       COMMON / SYMBOL1 / KFUN
-      COMMON / SYMBOL / OPER, FUNC                                            4
-*---------------------------------------------------------------------------- 5
+      COMMON / SYMBOL / OPER, FUNC                                           ! 4
+*----------------------------------------------------------------------------! 5
       integer i,j
       character blanks*80
       character blank6*6
@@ -265,22 +265,22 @@ C ANFANG UNTERPROGRAMM
 *     THIS IS THE FOX EXTENDED FORTRAN PRECOMILER.
 *     IT READS A FILE AND TRANSFORMS IT TO REGULAR FORTRAN.
 *
-*-----MEMORY MANAGEMENT ----------------------------------------------------- 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            3
-      INTEGER NPAR(LNAM,17)                                                   4
-      DOUBLE PRECISION CC(LCC)                                                5
-      COMMON / CMEM / CNAM,CTEX,CBLA                                          6
-      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               7
-*---------------------------------------------------------------------------- 8
-*-----CODE ------------------------------------------------------------------ 1
-      PARAMETER (LARI=10000)                                                   2
-      INTEGER NARI(LARI,11), IARI                                             3
-      COMMON / CODE / NARI, IARI                                              4
+*-----MEMORY MANAGEMENT -----------------------------------------------------! 1
+      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      INTEGER NPAR(LNAM,17)                                                  ! 4
+      DOUBLE PRECISION CC(LCC)                                               ! 5
+      COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
+      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                              ! 7
+*----------------------------------------------------------------------------! 8
+*-----CODE ------------------------------------------------------------------! 1
+      PARAMETER (LARI=10000)                                                 ! 2
+      INTEGER NARI(LARI,11), IARI                                            ! 3
+      COMMON / CODE / NARI, IARI                                             ! 4
       CHARACTER NAMEDAL*480
       PARAMETER(MNAME=1000)
       COMMON / DADAL / NAMEDAL(MNAME),icount
-*---------------------------------------------------------------------------- 5
+*----------------------------------------------------------------------------! 5
 *
       CHARACTER A*10000,CID*2,BLANK*8,DNAM*8
       CHARACTER PREC*6,IDAT*64
@@ -541,7 +541,7 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -553,17 +553,17 @@ C ANFANG UNTERPROGRAMM
 *
       INTEGER MA(50)
 *
-*-----MEMORY MANAGEMENT ----------------------------------------------------- 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            3
-      INTEGER NPAR(LNAM,17)                                                   4
-      DOUBLE PRECISION CC(LCC)                                                5
-      COMMON / CMEM / CNAM,CTEX,CBLA                                          6
-      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               7
+*-----MEMORY MANAGEMENT -----------------------------------------------------! 1
+      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      INTEGER NPAR(LNAM,17)                                                  ! 4
+      DOUBLE PRECISION CC(LCC)                                               ! 5
+      COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
+      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                              ! 7
       CHARACTER NAMEDAL*480
       PARAMETER(MNAME=1000)
       COMMON / DADAL / NAMEDAL(MNAME),icount
-*---------------------------------------------------------------------------- 8
+*----------------------------------------------------------------------------! 8
 *
       CHARACTER CMOD*6,PREC*6,REST*8,A*(*),ALIN*10000
 *
@@ -711,7 +711,7 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -761,7 +761,7 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -800,7 +800,7 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -846,7 +846,7 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -895,7 +895,8 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!     PARAMETER(NINE=9.0D0,TEN=10.0D0)
+      PARAMETER(TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -928,26 +929,26 @@ C ANFANG UNTERPROGRAMM
 *                LNAM < IA:          IA - LNAM ADDRESS OF CONSTANT
 *
 *
-*-----MEMORY MANAGEMENT ----------------------------------------------------- 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            3
-      INTEGER NPAR(LNAM,17)                                                   4
-      DOUBLE PRECISION CC(LCC)                                                5
-      COMMON / CMEM / CNAM,CTEX,CBLA                                          6
-      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               7
-*---------------------------------------------------------------------------- 8
-*-----CODE ------------------------------------------------------------------ 1
-      PARAMETER (LARI=10000)                                                   2
-      INTEGER NARI(LARI,11), IARI                                             3
-      COMMON / CODE / NARI, IARI                                              4
-*---------------------------------------------------------------------------- 5
-*-----SYMBOL---------------------------------------------------------------- 1
-      PARAMETER (LFUNC=100,LOPER=16)                                           2
+*-----MEMORY MANAGEMENT -----------------------------------------------------! 1
+      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      INTEGER NPAR(LNAM,17)                                                  ! 4
+      DOUBLE PRECISION CC(LCC)                                               ! 5
+      COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
+      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                              ! 7
+*----------------------------------------------------------------------------! 8
+*-----CODE ------------------------------------------------------------------! 1
+      PARAMETER (LARI=10000)                                                 ! 2
+      INTEGER NARI(LARI,11), IARI                                            ! 3
+      COMMON / CODE / NARI, IARI                                             ! 4
+*----------------------------------------------------------------------------! 5
+*-----SYMBOL-----------------------------------------------------------------! 1
+      PARAMETER (LFUNC=100,LOPER=16)                                         ! 2
       INTEGER KFUN(LFUNC)
-      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                                  3
+      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                                 ! 3
       COMMON / SYMBOL1 / KFUN
-      COMMON / SYMBOL / OPER, FUNC                                           4
-*---------------------------------------------------------------------------- 5
+      COMMON / SYMBOL / OPER, FUNC                                           ! 4
+*----------------------------------------------------------------------------! 5
 *
 cfrs      PARAMETER(LANA=100,LA=10000,LCHECK=0,LDEC=37)
       PARAMETER(LANA=100,LA=10000,LDEC=37)
@@ -955,7 +956,7 @@ cfrs      PARAMETER(LANA=100,LA=10000,LCHECK=0,LDEC=37)
 *
       INTEGER NANA(LANA,5)
       CHARACTER B*(*),A*10000
-      CHARACTER OPS*6,CANA*10,CTYP*7,CCNA*1
+      CHARACTER OPS*6,CANA*10,CTYP*7!,CCNA*1
       CHARACTER BLANK*8,NUM*10,LET*26,SEARCH*8,AER*50
       DOUBLE PRECISION CDEC(0:LDEC)
       SAVE IFI, CDEC
@@ -1627,7 +1628,7 @@ cfrs
 *     ALL OPERATIONS EXTRACTED
 *     ************************
 *
- 400  CONTINUE
+! 400  CONTINUE
 *
       IF(NANA(1,5).NE.NANA(IANA,4)) THEN
          WRITE(6,'(1X,2A)') '### ERROR, CODE NOT FULLY PROCESSED ',
@@ -1697,7 +1698,7 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -1707,26 +1708,26 @@ C ANFANG UNTERPROGRAMM
 *     THIS SUBROUTINE OUTPUTS THE ARITMETIC INSTRUCTIONS CODED IN
 *     THE ARRAY CODE BY THE SUBROUTINE SYNTAX AS REGULAR FORTRAN
 *
-*-----MEMORY MANAGEMENT ----------------------------------------------------- 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            3
-      INTEGER NPAR(LNAM,17)                                                   4
-      DOUBLE PRECISION CC(LCC)                                                5
-      COMMON / CMEM / CNAM,CTEX,CBLA                                          6
-      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               7
-*---------------------------------------------------------------------------- 8
-*-----CODE ------------------------------------------------------------------ 1
-      PARAMETER (LARI=10000)                                                   2
-      INTEGER NARI(LARI,11), IARI                                             3
-      COMMON / CODE / NARI, IARI                                              4
-*---------------------------------------------------------------------------- 5
-*-----SYMBOL---------------------------------------------------------------- 1
-      PARAMETER (LFUNC=100,LOPER=16)                                           2
+*-----MEMORY MANAGEMENT -----------------------------------------------------! 1
+      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      INTEGER NPAR(LNAM,17)                                                  ! 4
+      DOUBLE PRECISION CC(LCC)                                               ! 5
+      COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
+      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                              ! 7
+*----------------------------------------------------------------------------! 8
+*-----CODE ------------------------------------------------------------------! 1
+      PARAMETER (LARI=10000)                                                 ! 2
+      INTEGER NARI(LARI,11), IARI                                            ! 3
+      COMMON / CODE / NARI, IARI                                             ! 4
+*----------------------------------------------------------------------------! 5
+*-----SYMBOL---------------------------------------------------------------- ! 1
+      PARAMETER (LFUNC=100,LOPER=16)                                         ! 2
       INTEGER KFUN(LFUNC)
-      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                                  3
+      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                                 ! 3
       COMMON / SYMBOL1 / KFUN
-      COMMON / SYMBOL / OPER, FUNC                                           4
-*---------------------------------------------------------------------------- 5
+      COMMON / SYMBOL / OPER, FUNC                                           ! 4
+*----------------------------------------------------------------------------! 5
 *
       PARAMETER (LSCR=99)
       CHARACTER A*800,AL*808,AR*800,AS*800,AC*800,BLANK*800,ABC*26
@@ -2131,7 +2132,7 @@ C ANFANG UNTERPROGRAMM
       PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
       PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
       PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-      PARAMETER(NINE=9.0D0,TEN=10.0D0)
+!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
       PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
       PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
       PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
@@ -2144,19 +2145,19 @@ C ANFANG UNTERPROGRAMM
 *     OF THE SCRATCH VARIABLES.
 *     THE SUBROUTINE IS CALLED FROM ARIFOR.
 *
-*-----MEMORY MANAGEMENT ----------------------------------------------------- 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            3
-      INTEGER NPAR(LNAM,17)                                                   4
-      DOUBLE PRECISION CC(LCC)                                                5
-      COMMON / CMEM / CNAM,CTEX,CBLA                                          6
-      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                               7
-*---------------------------------------------------------------------------- 8
-*-----CODE ------------------------------------------------------------------ 1
-      PARAMETER (LARI=10000)                                                   2
-      INTEGER NARI(LARI,11), IARI                                             3
-      COMMON / CODE / NARI, IARI                                              4
-*---------------------------------------------------------------------------- 5
+*-----MEMORY MANAGEMENT -----------------------------------------------------! 1
+      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      INTEGER NPAR(LNAM,17)                                                  ! 4
+      DOUBLE PRECISION CC(LCC)                                               ! 5
+      COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
+      COMMON /  MEM / NPAR, CC, INAM, ITEX, ICC                              ! 7
+*----------------------------------------------------------------------------! 8
+*-----CODE ------------------------------------------------------------------! 1
+      PARAMETER (LARI=10000)                                                 ! 2
+      INTEGER NARI(LARI,11), IARI                                            ! 3
+      COMMON / CODE / NARI, IARI                                             ! 4
+*----------------------------------------------------------------------------! 5
 *
       PARAMETER (LSCR=99)
       CHARACTER A*(*),CNUM(99)*2
