@@ -1863,14 +1863,14 @@ C ANFANG UNTERPROGRAMM
                ICON = 1
                AC = BLANK
                AC = 'CALL DACON('//AS(1:LS)//','//'RSCRRI(100))'
-               LC = ILAST(AC,1,800)
+!               LC = ILAST(AC,1,800)
                AS(1:11) = 'RSCRRI(100)'
                LS = 11
             ELSEIF((ITS.EQ.2).AND.(NPAR(IS,2).EQ.4)) THEN
                ICON = 1
                AC = BLANK
                AC = 'CALL DACON('//AS(1:LS)//',ONE*'//'ISCRRI(100))'
-               LC = ILAST(AC,1,800)
+!               LC = ILAST(AC,1,800)
                AS(1:11) = 'ISCRRI(100)'
                LS = 11
             ELSE
