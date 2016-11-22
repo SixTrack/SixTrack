@@ -3498,6 +3498,8 @@
 +if .not.crlibm
          xf(0) = asin(a0)
 +ei
+!hr10 This code is not tested so leave **(-0.5d0) as it is.
+!hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
 !        xf(1) = (1.d0-a0**2)**(-0.5d0)                                  !hr10
          xf(1) = sqrt(1.d0-a0*a0)                                        !eric
 !        xf(2) = (a0*xf(1)**3.d0)/2.d0                                   !hr10
@@ -3543,6 +3545,8 @@
 +if .not.crlibm
          xf(0) =  acos(a0)
 +ei
+!hr10 This code is not tested so leave **(-0.5d0) as it is.
+!hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
          scr =  (1.d0-a0**2)**(-0.5d0)                                   !hr10
          xf(1) =  -1d0*scr
          xf(2) = ((-1d0*a0)*scr**3.d0)/2.d0                              !hr10
