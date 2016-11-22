@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.38'/
-      data moddate /'07.09.2016'/
+      data moddate /'22.11.2016'/
 +cd license
 !!SixTrack
 !!
@@ -16,9 +16,10 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fitterer, M. Fiascaris CERN
+!!M. Fitterer, M. Fiascaris, J.F.Wagner CERN
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
+!!J. Molson (LAL)
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
 !!Lesser General Public License version 2.1, copied verbatim in the file
@@ -45826,6 +45827,7 @@ C+ei
 +ca commontr
 +ca stringzerotrim
 +ca comdynk
++ca elensparam
 +if cr
 +ca crcoall
 +ei
@@ -45962,6 +45964,14 @@ c$$$            endif
                else
                   goto 100 !ERROR
                endif
+               
+            elseif (el_type.eq.29) then          ! Electron lens
+               if (att_name_stripped.eq."thetamax") then ![mrad]
+                  elens_theta_max(ii) = newValue
+               else
+                  goto 100 !ERROR
+               endif
+               
             else
 +if cr
                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
@@ -46034,6 +46044,7 @@ c$$$            endif
 +ca commontr
 +ca stringzerotrim
 +ca comdynk
++ca elensparam
 
 +if cr
 +ca crcoall
@@ -46169,6 +46180,14 @@ c$$$               endif
                else
                   goto 100 !ERROR
                endif
+               
+            elseif (el_type.eq.29) then     ! Electron lens
+               if(att_name_s.eq."thetamax") then ! [mrad]
+                  dynk_getvalue = elens_theta_max(ii)
+               else
+                  goto 100 !ERROR
+               endif
+               
             endif !el_type
          endif !bez
       enddo
