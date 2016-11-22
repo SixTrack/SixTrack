@@ -28,7 +28,12 @@ C ANFANG - HAUPTPROGRAMM -
       CHARACTER A*160
       INTEGER NA(50)
 *
-
+      !For command line argument parsing
+      INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
+      CHARACTER(len=100) :: cmdarg_arg
+      CHARACTER(len=100) :: fname_in
+      CHARACTER(len=100) :: fname_out
+*
       IARI = 0
 *
       WRITE(6,*)' '
@@ -58,10 +63,56 @@ C ANFANG - HAUPTPROGRAMM -
       WRITE(6,*)' '
       WRITE(6,*)' '
 *
-   5  CONTINUE
-      open(1,file='fort.1',form='formatted',status='unknown')
-      open(2,file='fort.2',form='formatted',status='unknown')
-      open(3,file='fort.3',form='formatted',status='unknown')
+ 5    CONTINUE
+      
+      ! Read command line arguments -- inspired by read90
+      cmdarg_i = 0
+      do 
+         call get_command_argument
+     &        (cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+         ! write (6,*) cmdarg_i, cmdarg_arg
+         if (len_trim(cmdarg_arg)==0) EXIT !Finished
+
+         if (cmdarg_i.eq.0) then
+            ! Skip first argument (command name)
+            continue
+         else if (cmdarg_i.eq.1) then
+            if (cmdarg_status.ne.0) then
+               write(6,*) "Error: Input file name too long."
+               stop 1
+            end if
+            fname_in = trim(cmdarg_arg)
+         else if (cmdarg_i.eq.2) then
+            if (cmdarg_status.ne.0) then
+               write(6,*) "Error: Output file name too long."
+               stop 1
+            end if
+            fname_out = trim(cmdarg_arg)
+         else
+            write(6,*) "Error: Expected either no arguments OR "
+            write(6,*) "two arguements (input and output file name)"
+            stop 1
+         end if
+
+         cmdarg_i = cmdarg_i+1
+      end do
+      
+      if (cmdarg_i.eq.1) then
+         fname_in = "fort.1"
+         fname_out = "fort.2"
+      else if(cmdarg_i.ne.3) then
+         write(6,*) "Error: Expected either no arguments OR "
+         write(6,*) "two arguements (input and output file name)"
+         stop 2
+      end if
+      if (fname_in.eq.fname_out) then
+         write(6,*)
+     &        "Error: input and output filename should not be the same!"
+         stop 3
+      end if
+      
+      open(1,file=fname_in,form='formatted',status='old')
+      open(2,file=fname_out,form='formatted',status='unknown') !status unknown -> allow overwrites
 *
       CALL predata
 *
