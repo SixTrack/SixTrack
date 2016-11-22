@@ -696,11 +696,11 @@ add_custom_target(astuce_clean_decks)
 add_dependencies(astuce_clean_decks astuce_clean_define_flags)
 
 macro(ast_masks OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_define_flags POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks.cmake)
+	add_custom_command(TARGET astuce_clean_define_flags POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks_define_flags.cmake)
 endmacro()
 
 macro(ast_masks2 OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks2.cmake)
+	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks_decks.cmake)
 endmacro()
 
 #First clean up the astuce decks for only what is enabled
