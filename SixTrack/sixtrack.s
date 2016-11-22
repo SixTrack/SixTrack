@@ -32639,9 +32639,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                    hdfdee,hdftyp)
 +ei
 +if .not.hdf5
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
-!         write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-         write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
      &rcxp0(j)*1d3+torbxp(ie),                                          &
@@ -32728,8 +32726,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           xpj    = (yv(1,j)-torbxp(ie))/1d3
           yj     = (xv(2,j)-torby(ie))/1d3
           ypj    = (yv(2,j)-torbyp(ie))/1d3
-!APRIL2005
-!          write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')                 &
+
 +if hdf5
 !       INTEGER hdfturn,hdfpid,hdftyp
 !       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
@@ -32759,16 +32756,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      
 +ei
 +if .not.hdf5
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
      &rcxp0(j)*1d3+torbxp(ie),                                          &
      &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
      &rcyp0(j)*1d3+torbyp(ie),                                          &
      &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
+       
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie)+0.5*c_length,           &
      &xv(1,j)+0.5*c_length*yv(1,j),yv(1,j),                             &
 !     &xv(2,j),yv(2,j)
@@ -33811,14 +33807,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                    hdfdee,hdftyp)
 +ei
 +if .not.hdf5
-!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &     
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
      &xv(1,j),yv(1,j),                                                  &
      &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
      &secondary(j)+tertiary(j)+other(j)
-!     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
 +ei
               endif
 !GRD
@@ -34440,16 +34433,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
        call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
      &                    hdfdee,hdftyp)
 +ei
-+if .not.hdf5  
-!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
++if .not.hdf5
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
      &xv(1,j),yv(1,j),                                                  &
 !     &xv(2,j),yv(2,j)
      &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
      &secondary(j)+tertiary(j)+other(j)
-!     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
 +ei
               endif
 !GRD
