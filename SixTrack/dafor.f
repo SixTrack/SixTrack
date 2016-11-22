@@ -346,7 +346,7 @@ cfrs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
      *     'Please insert a line: *FOX 0 or ',
      *     'e.g.: *FOX 1 if(ierr.eq.0.or.ierr.eq.2) then '//
      *     'This is very handy when variables have to be reinitialise'
-           STOP
+           STOP 4
          endif
          icount=0
          if(INITIAL.eq.0) then
@@ -387,7 +387,7 @@ cfrs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
              write(6,*) 'C   deallocated is larger than the parameter ',
      *       'MNAME: ',MNAME
              write(6,*) 'C   Change in program dafor.f'  
-             stop
+             stop 5
            endif
                write(NAMEDAL(icount),'(A,38A1,5(/''     *   '',60A1))')
      *         '        CALL DADAL('//CNAM(I)//',1',
@@ -473,7 +473,7 @@ cfrs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
          IF(ITEX+IA-5.GT.LTEX) THEN
             WRITE(6,'(1X,A)') '!!! ERROR IN PRECOM, CTEX EXHAUSTED'
             WRITE(2,'(1X,A)') '!!! ERROR IN PRECOM, CTEX EXHAUSTED'
-            STOP
+            STOP 6
          ENDIF
          NPAR(INAM,5)  = ITEX + 1
          DO 80 I=6,IA - 1
@@ -584,7 +584,7 @@ C ANFANG UNTERPROGRAMM
       IF(IAMAX+80.GT.10000) THEN
          WRITE(6,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          WRITE(2,'(1X,A)') '### ERROR, COMMAND TOO LONG'
-         STOP
+         STOP 7
       ELSEIF(CMOD.EQ.'PRECOM') THEN
          ALIN(IAMAX+1:IAMAX+1) = ' '
          READ(1,'(A6,A66,A8)',END=60) PREC,ALIN(IAMAX+2:IAMAX+67),REST
@@ -661,7 +661,7 @@ C ANFANG UNTERPROGRAMM
       IF(IA.GT.NA) THEN
          WRITE(6,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          WRITE(2,'(1X,A)') '### ERROR, COMMAND TOO LONG'
-         STOP
+         STOP 8
       ELSEIF(IA.EQ.0) THEN
          GOTO 20
       ENDIF
@@ -738,7 +738,7 @@ C ANFANG UNTERPROGRAMM
          IF(IA.GT.LA) THEN
             WRITE(6,'(1X,A)') '!!! ERROR, TOO MANY FRAGS IN POSFRA'
             WRITE(2,'(1X,A)') '!!! ERROR, TOO MANY FRAGS IN POSFRA'
-            STOP
+            STOP 9
          ENDIF
          NA(IA) = I
       ENDIF
@@ -985,7 +985,7 @@ cfrs      PARAMETER(LANA=100,LA=10000,LCHECK=0,LDEC=37)
       IF(IB2.GE.LA) THEN
          WRITE(6,'(1X,A)') '!!! ERROR IN SYNTAX, CHARACTER B TOO LARGE'
          WRITE(2,'(1X,A)') '!!! ERROR IN SYNTAX, CHARACTER B TOO LARGE'
-         STOP
+         STOP 10
       ENDIF
 *
 cfrs
@@ -2180,7 +2180,7 @@ C ANFANG UNTERPROGRAMM
          IF(IA.LT.1.OR.IA.GT.100.OR.IA.GT.LSCR) THEN
             WRITE(6,'(1X,A,I4)') '!!! ERROR IN VNAM, IA = ',IA
             WRITE(2,'(1X,A,I4)') '!!! ERROR IN VNAM, IA = ',IA
-            STOP
+            STOP 11
          ENDIF
          IF(ITA.EQ.1) THEN
             LA = 16
@@ -2248,7 +2248,7 @@ C ANFANG UNTERPROGRAMM
          IF(II.LT.1.OR.II.GT.40.OR.II.GT.LSCR) THEN
             WRITE(6,'(1X,A,I4)') '!!! ERROR IN VNAM, II = ',II
             WRITE(2,'(1X,A,I4)') '!!! ERROR IN VNAM, II = ',II
-            STOP
+            STOP 12
          ENDIF
          IF(ITI.EQ.1) THEN
             A(LA+1:LA+16) = 'RSCRRI( '//CNUM(II)//'+IDAA)'
@@ -2279,7 +2279,7 @@ C ANFANG UNTERPROGRAMM
       ELSE
          WRITE(6,'(1X,A)') '!!! ERROR IN VNAM, II = 0'
          WRITE(2,'(1X,A)') '!!! ERROR IN VNAM, II = 0'
-         STOP
+         STOP 13
       ENDIF
       IF((NPAR(IA,1).EQ.1).AND.(ITI.NE.1).AND.(ITI.NE.2)) THEN
          WRITE(6,'(1X,A)') '### ERROR, ARRAY INDEX NOT INTEGER OR REAL'
@@ -2307,7 +2307,7 @@ C ANFANG UNTERPROGRAMM
       IF(LA.GT.NA) THEN
          WRITE(6,'(1X,A)') '!!! ERROR IN ROUTINE VNAM, IA > NA'
          WRITE(2,'(1X,A)') '!!! ERROR IN ROUTINE VNAM, IA > NA'
-         STOP
+         STOP 14
       ENDIF
 *
       RETURN
