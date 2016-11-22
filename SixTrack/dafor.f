@@ -970,9 +970,12 @@ cfrs      PARAMETER(LANA=100,LA=10000,LCHECK=0,LDEC=37)
       DATA AER  / '                                                  ' /
       DATA IFI  / 0 /
 *
+      INTEGER IPRIO
 * Eric
       IB = 0
-* Eric
+*
+      IPRIO = -4242
+*
       IFUVA = 0
       IF(IFI.EQ.0) THEN
          IFI = 1
@@ -1425,6 +1428,11 @@ cfrs
  213  CONTINUE
       GOTO 219
  214  CONTINUE
+      if (IPRIO.eq.-4242) then
+         write (6,*) "ERROR in routine SYNTAX"
+         write (6,*) "IPRIO not set."
+         stop 17
+      endif
       IANA = IANA + 1
       NANA(IANA,1) = INDEX(CANA,'O')
       NANA(IANA,2) = II
@@ -1733,6 +1741,8 @@ C ANFANG UNTERPROGRAMM
       CHARACTER A*800,AL*808,AR*800,AS*800,AC*800,BLANK*800,ABC*26
       INTEGER ISCRTY(LSCR),INDEX(7)
 *
+      INTEGER ITS
+*
       SAVE ICALL
       SAVE BLANK
 *
@@ -1743,6 +1753,8 @@ C ANFANG UNTERPROGRAMM
          DO 1 I=1,800
   1      BLANK(I:I) = ' '
       ENDIF
+*
+      ITS = -4242
 *
       ISOFF = 0
       ISOUT = 1
@@ -2075,6 +2087,11 @@ C ANFANG UNTERPROGRAMM
 *     ARRAYS
 *     ******
 *
+      if (ITS.eq.-4242) then
+         write(6,*) "ERROR in ARIFOR - ITS not set"
+         stop 16
+      endif
+      
       ELSEIF(ITY.EQ.4) THEN
          IF((ITS.EQ.1).OR.(ITS.EQ.2)) THEN
             A = AS(1:LS)//' = '//AR(1:LR)
@@ -2163,6 +2180,8 @@ C ANFANG UNTERPROGRAMM
       CHARACTER A*(*),CNUM(99)*2
       INTEGER ISCRTY(*),IN(*)
 *
+      INTEGER ND
+*
       DATA CNUM / ' 1',' 2',' 3',' 4',' 5',' 6',' 7',' 8',' 9','10',
      *            '11','12','13','14','15','16','17','18','19','20',
      *            '21','22','23','24','25','26','27','28','29','30',
@@ -2174,6 +2193,8 @@ C ANFANG UNTERPROGRAMM
      *            '81','82','83','84','85','86','87','88','89','90',
      *            '91','92','93','94','95','96','97','98','99'/
 *
+      ND = -4242
+      
       IF(IA.LT.0) THEN
          IA = -IA
          ITA = ISCRTY(IA)
@@ -2214,6 +2235,12 @@ C ANFANG UNTERPROGRAMM
          WRITE(6,'(1X,A)') '!!! ERROR, IA = 0 IN VNAM'
          WRITE(2,'(1X,A)') '!!! ERROR, IA = 0 IN VNAM'
       ENDIF
+
+      if (ND .eq. -4242) then
+         write(6,*) "!!! ERROR, ND was not initialized in VNAM"
+         stop 15
+      end if
+      
 *
 *     CASE OF ARRAYS OR FUNCTIONS
 *     ***************************
