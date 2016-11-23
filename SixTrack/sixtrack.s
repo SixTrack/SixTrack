@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.38'/
-      data moddate /'26.09.2016'/
+      data version /'4.5.40'/
+      data moddate /'22.11.2016'/
 +cd license
 !!SixTrack
 !!
@@ -19,6 +19,7 @@
 !!M. Fitterer, M. Fiascaris, J.F.Wagner CERN
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
+!!J. Molson (LAL)
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
 !!Lesser General Public License version 2.1, copied verbatim in the file
@@ -1052,7 +1053,6 @@
       common /other/mybetax,mybetaz,mymux,mymuz,atdi
       common /icoll/  icoll
 !
-!hr09 data   dx,dxp/.5d-4,20.d-4/
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
 +cd collMatNum
@@ -1103,7 +1103,6 @@
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
      &pptco,ppeco,sdcoe,freeco,fnavo,zatom,exenergy
-!hr08 parameter(fnavo=6.02e23)
       parameter(fnavo=6.02214129d23)                                          
       real cgen
       character * 4 mname(nmat)
@@ -1685,18 +1684,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       r0a=one
       do k=1,nmz
          izu=izu+1
-!     hr05         aaiv(k,m,i)=ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k))/r0a
          aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
 +if time
-!     hr05         aaiv35(k,m,i)=ed(ix)*(ak0(im,k)+zfz35(izu)*aka(im,k))/r0a
          aaiv35(k,m,i)=(ed(ix)*(ak0(im,k)+zfz35(izu)*aka(im,k)))/r0a !hr05
 +ei
          aai(i,k)=aaiv(k,m,i)
          izu=izu+1
-!     hr05         bbiv(k,m,i)=ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k))/r0a
          bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
 +if time
-!     hr05         bbiv35(k,m,i)=ed(ix)*(bk0(im,k)+zfz35(izu)*bka(im,k))/r0a
          bbiv35(k,m,i)=(ed(ix)*(bk0(im,k)+zfz35(izu)*bka(im,k)))/r0a !hr05
 +ei
          bbi(i,k)=bbiv(k,m,i)
@@ -1729,7 +1724,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
         xl=(x(1,1)-xs)*tiltc(k)+(x(1,2)-zs)*tilts(k)
-!hr02   zl=-(x(1,1)-xs)*tilts(k)+(x(1,2)-zs)*tiltc(k)
         zl=(x(1,2)-zs)*tiltc(k)-(x(1,1)-xs)*tilts(k)                     !hr02
         crkve=xl
         cikve=zl
@@ -1743,7 +1737,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
                         xl=(x(j,1)-xs)*tiltc(i)+(x(j,2)-zs)*tilts(i)
-!hr08                   zl=-(x(j,1)-xs)*tilts(i)+(x(j,2)-zs)*tiltc(i)
                         zl=(x(j,2)-zs)*tiltc(i)-(x(j,1)-xs)*tilts(i)     !hr08
                         crkve=xl
                         cikve=zl
@@ -1755,7 +1748,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
                       xl=(x(j,1)-xs)*tiltc(i)+(x(j,2)-zs)*tilts(i)
-!hr08                 zl=-(x(j,1)-xs)*tilts(i)+(x(j,2)-zs)*tiltc(i)
                       zl=(x(j,2)-zs)*tiltc(i)-(x(j,1)-xs)*tilts(i)       !hr08
 +ei
 +cd alignl
@@ -1767,7 +1759,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
         xl=(t(1,1)-xs)*tiltc(k)+(t(1,3)-zs)*tilts(k)
-!hr02   zl=-(t(1,1)-xs)*tilts(k)+(t(1,3)-zs)*tiltc(k)
         zl=(t(1,3)-zs)*tiltc(k)-(t(1,1)-xs)*tilts(k)                    !hr02
         crkve=xl
         cikve=zl
@@ -1782,8 +1773,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if tilt
             xlv(j)=(xv(1,j)-xsiv(1,i))*tiltc(i)+                        &
      &(xv(2,j)-zsiv(1,i))*tilts(i)
-!hr02       zlv(j)=-(xv(1,j)-xsiv(1,i))*tilts(i)+                       &
-!hr02&(xv(2,j)-zsiv(1,i))*tiltc(i)
             zlv(j)=(xv(2,j)-zsiv(1,i))*tiltc(i)-                        &!hr02
      &(xv(1,j)-xsiv(1,i))*tilts(i)                                       !hr02
             crkve=xlv(j)
@@ -1797,8 +1786,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if tilt
             xlvj=(xv(1,j)-xsiv(1,i))*tiltc(i)+                          &
      &(xv(2,j)-zsiv(1,i))*tilts(i)
-!hr02       zlvj=-(xv(1,j)-xsiv(1,i))*tilts(i)+                         &
-!hr02&(xv(2,j)-zsiv(1,i))*tiltc(i)
             zlvj=(xv(2,j)-zsiv(1,i))*tiltc(i)-                          &!hr02
      &(xv(1,j)-xsiv(1,i))*tilts(i)                                       !hr02
 +ei
@@ -2027,8 +2014,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if tilt
                         y(j,1)=y(j,1)+ekk(j)*(tiltc(i)*crkve+           &
      &tilts(i)*cikve)
-!hr02                   y(j,2)=y(j,2)+ekk(j)*(-tiltc(i)*cikve+          &
-!hr02&tilts(i)*crkve)
                         y(j,2)=y(j,2)+ekk(j)*(tilts(i)*crkve-           &!hr02
      &tiltc(i)*cikve)                                                    !hr02
 +ei
@@ -2067,8 +2052,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if tilt
                         y(j,1)=y(j,1)-ekk(j)*(tiltc(i)*crkve+           &
      &tilts(i)*cikve)
-!hr02                   y(j,2)=y(j,2)-ekk(j)*(-tiltc(i)*cikve+          &
-!hr02&tilts(i)*crkve)
                         y(j,2)=y(j,2)-ekk(j)*(tilts(i)*crkve-           &!hr02
      &tiltc(i)*cikve)                                                    !hr02
 +ei
@@ -2105,24 +2088,18 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd kickvxxh
 +if .not.tilt
-!hr02       yv(1,j)=yv(1,j)+strack(i)*oidpsv(j)*crkve
             yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
-!hr02       yv(2,j)=yv(2,j)-strack(i)*oidpsv(j)*cikve
             yv(2,j)=yv(2,j)-(strack(i)*oidpsv(j))*cikve                  !hr02
 +ei
 +if tilt
             yv(1,j)=yv(1,j)+oidpsv(j)*(strackc(i)*crkve+                &
      &stracks(i)*cikve)
-!hr02       yv(2,j)=yv(2,j)+oidpsv(j)*(-strackc(i)*cikve+               &
-!hr02&stracks(i)*crkve)
             yv(2,j)=yv(2,j)+oidpsv(j)*(stracks(i)*crkve-                &!hr02
      &strackc(i)*cikve)                                                  !hr02
 +ei
 +cd kickvdpe
 +if .not.tilt
-!hr02       yv(1,j)=yv(1,j)+strackx(i)*oidpsv(j)*crkve
             yv(1,j)=yv(1,j)+(strackx(i)*oidpsv(j))*crkve                 !hr02
-!hr02       yv(2,j)=yv(2,j)-strackz(i)*oidpsv(j)*cikve
             yv(2,j)=yv(2,j)-(strackz(i)*oidpsv(j))*cikve                 !hr02
 +ei
 +if tilt
@@ -2137,18 +2114,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 ! TODO: Check if ejf0v should be e0f?? or oidpsv=ejf0v(j)/ejfv(j)=1/(1+delta)
 !
-!hr02       crkve=yv(1,j)-xv(1,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
       crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-!hr02       cikve=yv(2,j)-xv(2,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
       cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-!hr02       yv(1,j)=crkve*cos(strackz(i)*ejf0v(j)/ejfv(j))+             &
-!hr02&cikve*sin(strackz(i)*ejf0v(j)/ejfv(j))
-!hr02       yv(2,j)=-crkve*sin(strackz(i)*ejf0v(j)/ejfv(j))+            &
-!hr02&cikve*cos(strackz(i)*ejf0v(j)/ejfv(j))                             
-!hr02       crkve=xv(1,j)*cos(strackz(i)*ejf0v(j)/ejfv(j))+             &
-!hr02&xv(2,j)*sin(strackz(i)*ejf0v(j)/ejfv(j))
-!hr02       cikve=-xv(1,j)*sin(strackz(i)*ejf0v(j)/ejfv(j))+            &
-!hr02&xv(2,j)*cos(strackz(i)*ejf0v(j)/ejfv(j))
 +if crlibm
             yv(1,j)=crkve*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
      &cikve*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
@@ -2174,17 +2141,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             yv(1,j)=yv(1,j)+xv(2,j)*strackx(i)
             yv(2,j)=yv(2,j)-xv(1,j)*strackx(i)
 +cd kickvso2
-!hr02       crkve=sigmv(j)-0.5*(xv(1,j)*xv(1,j)+xv(2,j)*xv(2,j))*       &
-!hr02&strackx(i)*strackz(i)*rvv(j)*ejf0v(j)/ejfv(j)*ejf0v(j)/ejfv(j)
         crkve=sigmv(j)-0.5d0*(((((((xv(1,j)**2+xv(2,j)**2)*strackx(i))* &!hr02
      &strackz(i))*rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)           !hr02
             sigmv(j)=crkve
-!hr02       crkve=yv(1,j)-xv(1,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
       crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-!hr02       cikve=yv(2,j)-xv(2,j)*strackx(i)*strackz(i)*ejf0v(j)/ejfv(j)
       cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-!hr02       sigmv(j)=sigmv(j)+(xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i)* &
-!hr02&rvv(j)*ejf0v(j)/ejfv(j)*ejf0v(j)/ejfv(j)
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickelens
@@ -2253,9 +2214,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd kickvxxv
 +if .not.tilt
-!hr02       yv(1,j)=yv(1,j)+strack(i)*oidpsv(j)*cikve
             yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*cikve                  !hr02
-!hr02       yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)*crkve
             yv(2,j)=yv(2,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
 +ei
 +if tilt
@@ -2280,7 +2239,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
         dyy1=ekk*(tiltc(k)*crkve+tilts(k)*cikve)
-!hr02   dyy2=ekk*(-tiltc(k)*cikve+tilts(k)*crkve)
         dyy2=ekk*(tilts(k)*crkve-tiltc(k)*cikve)                         !hr02
 +ei
 +cd cclxxh
@@ -2290,31 +2248,20 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
         dyy1=ekk*(tiltc(k)*crkve+tilts(k)*cikve)
-!hr02   dyy2=ekk*(-tiltc(k)*cikve+tilts(k)*crkve)
         dyy2=ekk*(tilts(k)*crkve-tiltc(k)*cikve)                         !hr02
 +ei
 +cd kickldpe
 +if .not.tilt
-!hr02   dyy1=ed(IX)*crkve/(one+dpp)
         dyy1=(ed(IX)*crkve)/(one+dpp)                                    !hr02
-!hr02   dyy2=ek(IX)*cikve/(one+dpp)
         dyy2=(ek(IX)*cikve)/(one+dpp)                                    !hr02
 +ei
 +if tilt
-!hr02   dyy1=(ed(IX)*tiltc(k)*crkve-ek(IX)*tilts(k)*cikve)/(one+dpp)
         dyy1=((ed(IX)*tiltc(k))*crkve-(ek(IX)*tilts(k))*cikve)/(one+dpp) !hr02
-!hr02   dyy2=(ek(IX)*tiltc(k)*cikve+ed(IX)*tilts(k)*crkve)/(one+dpp)
         dyy2=((ek(IX)*tiltc(k))*cikve+(ed(IX)*tilts(k))*crkve)/(one+dpp) !hr02
 +ei
 +cd kicklso1
-!hr02       crkve=y(1,1)-x(1,1)*ed(IX)*ek(IX)/(one+dpp)
             crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-!hr02       cikve=y(1,2)-x(1,2)*ed(IX)*ek(IX)/(one+dpp)
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-!hr02       dyy1=crkve*cos(ek(IX)/(one+dpp))+                           &
-!hr02&cikve*sin(ek(IX)/(one+dpp))-y(1,1)
-!hr02       dyy2=-crkve*sin(ek(IX)/(one+dpp))+                          &
-!hr02&cikve*cos(ek(IX)/(one+dpp))-y(1,2)
 +if crlibm
             dyy1=(crkve*cos_rn(ek(IX)/(one+dpp))+                       &!hr02
      &cikve*sin_rn(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
@@ -2333,7 +2280,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         dyy2=ekk
 +ei
 +if tilt
-!hr08   dyy1=-ekk*tilts(k)
         dyy1=(-1d0*ekk)*tilts(k)                                         !hr08
         dyy2=ekk*tiltc(k)
 +ei
@@ -2357,18 +2303,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd kickuxxh                                                            
 +if .not.tilt
         dyy1=ekk*crkve
-!hr08   dyy2=-ekk*cikve
         dyy2=(-1d0*ekk)*cikve                                            !hr08
         y(1,1)=y(1,1)+dyy1
         y(1,2)=y(1,2)+dyy2
 +ei
 +if tilt
         dyy1=ekk*crkve
-!hr08   dyy2=-ekk*cikve
         dyy2=(-1d0*ekk)*cikve                                            !hr08
-!hr02   y(1,1)=y(1,1)+tiltc(k)*dyy1-tilts(k)*dyy2
         y(1,1)=(y(1,1)+tiltc(k)*dyy1)-tilts(k)*dyy2                      !hr02
-!hr02   y(1,2)=y(1,2)+tiltc(k)*dyy2+tilts(k)*dyy1
         y(1,2)=(y(1,2)+tiltc(k)*dyy2)+tilts(k)*dyy1                      !hr02
 +ei
 +cd kickudpe
@@ -2379,24 +2321,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         y(1,2)=y(1,2)+dyy2/(one+dpp)
 +ei
 +if tilt
-!hr02   dyy1=ed(IX)*crkve/(one+dpp)
         dyy1=(ed(IX)*crkve)/(one+dpp)                                    !hr02
-!hr02   dyy2=ek(IX)*cikve/(one+dpp)
         dyy2=(ek(IX)*cikve)/(one+dpp)                                    !hr02
-!hr02   y(1,1)=y(1,1)+tiltc(k)*dyy1-tilts(k)*dyy2
         y(1,1)=(y(1,1)+tiltc(k)*dyy1)-tilts(k)*dyy2                      !hr02
-!hr02   y(1,2)=y(1,2)+tiltc(k)*dyy2+tilts(k)*dyy1
         y(1,2)=(y(1,2)+tiltc(k)*dyy2)+tilts(k)*dyy1                      !hr02
 +ei
 +cd kickuso1
-!hr02       crkve=y(1,1)-x(1,1)*ed(IX)*ek(IX)/(one+dpp)
             crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-!hr02       cikve=y(1,2)-x(1,2)*ed(IX)*ek(IX)/(one+dpp)
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-!hr02       dyy1=crkve*cos(ek(IX)/(one+dpp))+                           &
-!hr02&cikve*sin(ek(IX)/(one+dpp))-y(1,1)
-!hr02       dyy2=-crkve*sin(ek(IX)/(one+dpp))+                          &
-!hr02&cikve*cos(ek(IX)/(one+dpp))-y(1,2)
 +if crlibm
             dyy1=(crkve*cos_rn(ek(IX)/(one+dpp))+                       &!hr02
      &cikve*sin_rn(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
@@ -2429,9 +2361,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if tilt
         dyy1=ekk*cikve
         dyy2=ekk*crkve
-!hr02   y(1,1)=y(1,1)+tiltc(k)*dyy1-tilts(k)*dyy2
         y(1,1)=(y(1,1)+tiltc(k)*dyy1)-tilts(k)*dyy2                      !hr02
-!hr02   y(1,2)=y(1,2)+tiltc(k)*dyy2+tilts(k)*dyy1
         y(1,2)=(y(1,2)+tiltc(k)*dyy2)+tilts(k)*dyy1                      !hr02
 +ei
 +cd kickq01h
@@ -2443,12 +2373,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         qv=zero
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         qu=ekk*tiltck
-!hr08   qv=-ekk*tiltsk
         qv=(-1d0*ekk)*tiltsk                                             !hr08
 +ei
 +cd kickqdpe
@@ -2459,17 +2386,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         qvz=zero
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=ed(IX)*tiltck/(one+dpp)
         qu=(ed(IX)*tiltck)/(one+dpp)                                     !hr02
-!hr02   qv=-ed(IX)*tiltsk/(one+dpp)
         qv=((-1d0*ed(IX))*tiltsk)/(one+dpp)                              !hr02
-!hr02   quz=-ek(IX)*tiltck/(one+dpp)
         quz=((-1d0*ek(IX))*tiltck)/(one+dpp)                             !hr02
-!hr02   qvz=ek(IX)*tiltsk/(one+dpp)
         qvz=(ek(IX)*tiltsk)/(one+dpp)                                    !hr02
 +ei
 +cd kickqso1
@@ -2477,138 +2398,90 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         qv=ek(IX)
 +cd kickq03h
 +if .not.tilt
-!hr02   qu=ekk*two*crkve
         qu=(ekk*two)*crkve                                               !hr02
-!hr02   qv=ekk*two*cikve
         qv=(ekk*two)*cikve                                               !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=ekk*two*(tiltck*crkve+tiltsk*cikve)
         qu=(ekk*two)*(tiltck*crkve+tiltsk*cikve)                         !hr02
-!hr02   qv=ekk*two*(tiltck*cikve-tiltsk*crkve)
         qv=(ekk*two)*(tiltck*cikve-tiltsk*crkve)                         !hr02
 +ei
 +cd kickq04h
 +if .not.tilt
-!hr02   qu=three*ekk*crkve
         qu=(three*ekk)*crkve                                             !hr02
-!hr02   qv=three*ekk*cikve
         qv=(three*ekk)*cikve                                             !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=three*ekk*(tiltck*crkve+tiltsk*cikve)
         qu=(three*ekk)*(tiltck*crkve+tiltsk*cikve)                       !hr02
-!hr02   qv=three*ekk*(tiltck*cikve-tiltsk*crkve)
         qv=(three*ekk)*(tiltck*cikve-tiltsk*crkve)                       !hr02
 +ei
 +cd kickq05h
 +if .not.tilt
-!hr02   qu=four*ekk*crkve
         qu=(four*ekk)*crkve                                              !hr02
-!hr02   qv=four*ekk*cikve
         qv=(four*ekk)*cikve                                              !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=four*ekk*(tiltck*crkve+tiltsk*cikve)
         qu=(four*ekk)*(tiltck*crkve+tiltsk*cikve)                        !hr02
-!hr02   qv=four*ekk*(tiltck*cikve-tiltsk*crkve)
         qv=(four*ekk)*(tiltck*cikve-tiltsk*crkve)                        !hr02
 +ei
 +cd kickq06h
 +if .not.tilt
-!hr02   qu=5*ekk*crkve
         qu=(5d0*ekk)*crkve                                               !hr02
-!hr02   qv=5*ekk*cikve
         qv=(5d0*ekk)*cikve                                               !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=5*ekk*(tiltck*crkve+tiltsk*cikve)
         qu=(5d0*ekk)*(tiltck*crkve+tiltsk*cikve)                         !hr02
-!hr02   qv=5*ekk*(tiltck*cikve-tiltsk*crkve)
         qv=(5d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
 +ei
 +cd kickq07h
 +if .not.tilt
-!hr02   qu=6*ekk*crkve
         qu=(6d0*ekk)*crkve                                               !hr02
-!hr02   qv=6*ekk*cikve
         qv=(6d0*ekk)*cikve                                               !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)                                     
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=6*ekk*(tiltck*crkve+tiltsk*cikve)
         qu=(6d0*ekk)*(tiltck*crkve+tiltsk*cikve)                         !hr02
-!hr02   qv=6*ekk*(tiltck*cikve-tiltsk*crkve)
         qv=(6d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
 +ei
 +cd kickq08h
 +if .not.tilt
-!hr02   qu=7*ekk*crkve
         qu=(7d0*ekk)*crkve                                               !hr02
-!hr02   qv=7*ekk*cikve
         qv=(7d0*ekk)*cikve                                               !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=7*ekk*(tiltck*crkve+tiltsk*cikve)
         qu=(7d0*ekk)*(tiltck*crkve+tiltsk*cikve)                         !hr02
-!hr02   qv=7*ekk*(tiltck*cikve-tiltsk*crkve)
         qv=(7d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
 +ei
 +cd kickq09h
 +if .not.tilt
-!hr02   qu=8*ekk*crkve
         qu=(8d0*ekk)*crkve                                               !hr02
-!hr02   qv=8*ekk*cikve
         qv=(8d0*ekk)*cikve                                               !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=8*ekk*(tiltck*crkve+tiltsk*cikve)
         qu=(8d0*ekk)*(tiltck*crkve+tiltsk*cikve)                         !hr02
-!hr02   qv=8*ekk*(tiltck*cikve-tiltsk*crkve)
         qv=(8d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
 +ei
 +cd kickq10h
 +if .not.tilt
-!hr02   qu=9*ekk*crkve
         qu=(9d0*ekk)*crkve                                               !hr02
-!hr02   qv=9*ekk*cikve
         qv=(9d0*ekk)*cikve                                               !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=9*ekk*(tiltck*crkve+tiltsk*cikve)
         qu=(9d0*ekk)*(tiltck*crkve+tiltsk*cikve)                         !hr02
-!hr02   qv=9*ekk*(tiltck*cikve-tiltsk*crkve)
         qv=(9d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
 +ei
 +cd kickq01v
@@ -2617,153 +2490,100 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd kickq02v
 +if .not.tilt
         qu=zero
-!hr02   qv=-ekk
         qv=-1d0*ekk                                                      !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=-ekk*tiltsk
         qu=(-1d0*ekk)*tiltsk                                             !hr02
-!hr02   qv=-ekk*tiltck
         qv=(-1d0*ekk)*tiltck                                             !hr02
 +ei
 +cd kickq03v
 +if .not.tilt
-!hr02   qu=ekk*two*cikve
         qu=(ekk*two)*cikve                                               !hr02
-!hr02   qv=-ekk*two*crkve
         qv=((-1d0*ekk)*two)*crkve                                        !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=ekk*two*(tiltck*cikve-tiltsk*crkve)
         qu=(ekk*two)*(tiltck*cikve-tiltsk*crkve)                         !hr02
-!hr02   qv=-ekk*two*(tiltck*crkve+tiltsk*cikve)
         qv=((-1d0*ekk)*two)*(tiltck*crkve+tiltsk*cikve)                  !hr02
 +ei
 +cd kickq04v
 +if .not.tilt
-!hr02   qu=three*ekk*cikve
         qu=(three*ekk)*cikve                                             !hr02
-!hr02   qv=-three*ekk*crkve
         qv=((-1d0*three)*ekk)*crkve                                      !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=three*ekk*(tiltck*cikve-tiltsk*crkve)
         qu=(three*ekk)*(tiltck*cikve-tiltsk*crkve)                       !hr02
-!hr02   qv=-three*ekk*(tiltck*crkve+tiltsk*cikve)
         qv=((-1d0*three)*ekk)*(tiltck*crkve+tiltsk*cikve)                !hr02
 +ei
 +cd kickq05v
 +if .not.tilt
-!hr02   qu=four*ekk*cikve
         qu=(four*ekk)*cikve                                              !hr02
-!hr02   qv=-four*ekk*crkve
         qv=((-1d0*four)*ekk)*crkve                                       !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)                                    
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=four*ekk*(tiltck*cikve-tiltsk*crkve)
         qu=(four*ekk)*(tiltck*cikve-tiltsk*crkve)                        !hr02
-!hr02   qv=-four*ekk*(tiltck*crkve+tiltsk*cikve)
         qv=((-1d0*four)*ekk)*(tiltck*crkve+tiltsk*cikve)                 !hr02
 +ei
 +cd kickq06v
 +if .not.tilt
-!hr02   qu=5*ekk*cikve
         qu=(5d0*ekk)*cikve                                               !hr02
-!hr02   qv=-5*ekk*crkve
         qv=(-5d0*ekk)*crkve                                              !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=5*ekk*(tiltck*cikve-tiltsk*crkve)
         qu=(5d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
-!hr02   qv=-5*ekk*(tiltck*crkve+tiltsk*cikve)
         qv=(-5d0*ekk)*(tiltck*crkve+tiltsk*cikve)                        !hr02
 +ei
 +cd kickq07v
 +if .not.tilt
-!hr02   qu=6*ekk*cikve
         qu=(6d0*ekk)*cikve                                               !hr02
-!hr02   qv=-6*ekk*crkve
         qv=(-6d0*ekk)*crkve                                              !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=6*ekk*(tiltck*cikve-tiltsk*crkve)
         qu=(6d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
-!hr02   qv=-6*ekk*(tiltck*crkve+tiltsk*cikve)
         qv=(-6d0*ekk)*(tiltck*crkve+tiltsk*cikve)                        !hr02
 +ei
 +cd kickq08v
 +if .not.tilt
-!hr02   qu=7d0*ekk*cikve
         qu=(7d0*ekk)*cikve                                               !hr02
-!hr02   qv=-7d0*ekk*crkve
         qv=(-7d0*ekk)*crkve                                              !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=7d0*ekk*(tiltck*cikve-tiltsk*crkve)
         qu=(7d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
-!hr02   qv=-7d0*ekk*(tiltck*crkve+tiltsk*cikve)
         qv=(-7d0*ekk)*(tiltck*crkve+tiltsk*cikve)                        !hr02
 +ei
 +cd kickq09v
 +if .not.tilt
-!hr02   qu=8d0*ekk*cikve
         qu=(8d0*ekk)*cikve                                               !hr02
-!hr02   qv=-8d0*ekk*crkve
         qv=(-8d0*ekk)*crkve                                              !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=8d0*ekk*(tiltck*cikve-tiltsk*crkve)
         qu=(8d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
-!hr02   qv=-8d0*ekk*(tiltck*crkve+tiltsk*cikve)
         qv=(-8d0*ekk)*(tiltck*crkve+tiltsk*cikve)                        !hr02
 +ei
 +cd kickq10v
 +if .not.tilt
-!hr02   qu=9d0*ekk*cikve
         qu=(9d0*ekk)*cikve                                               !hr02
-!hr02   qv=-9d0*ekk*crkve
         qv=(-9d0*ekk)*crkve                                              !hr02
 +ei
 +if tilt
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=9d0*ekk*(tiltck*cikve-tiltsk*crkve)
         qu=(9d0*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
-!hr02   qv=-9d0*ekk*(tiltck*crkve+tiltsk*cikve)
         qv=(-9d0*ekk)*(tiltck*crkve+tiltsk*cikve)                        !hr02
 +ei
 +cd kicka01h
@@ -2784,7 +2604,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd kicka02h
 +if .not.tilt
         dyy1=ekk*xl
-!hr02   dyy2=-ekk*zl
         dyy2=(-1d0*ekk)*zl                                                     !hr02
         mpe=20
         qu=ekk
@@ -2792,25 +2611,18 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
         dyy1=ekk*(tiltc(k)*xl+tilts(k)*zl)
-!hr08   dyy2=ekk*(-tiltc(k)*zl+tilts(k)*xl)
         dyy2=ekk*(tilts(k)*xl-tiltc(k)*zl)                               !hr08
         mpe=20
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         qu=ekk*tiltck
-!hr02   qv=-ekk*tiltsk
         qv=(-1d0*ekk)*tiltsk                                             !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
 +ei
 +cd kickadpe
 +if .not.tilt
-!hr02   dyy1=ed(IX)*xl/(one+dpp)
         dyy1=(ed(IX)*xl)/(one+dpp)                                       !hr02
-!hr02   dyy2=ek(IX)*zl/(one+dpp)
         dyy2=(ek(IX)*zl)/(one+dpp)                                       !hr02
         mpe=20
         qu=ed(IX)/(one+dpp)
@@ -2819,33 +2631,19 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         qvz=zero
 +ei
 +if tilt
-!hr02   dyy1=(ed(IX)*tiltc(k)*xl-ek(IX)*tilts(k)*zl)/(one+dpp)
         dyy1=((ed(IX)*tiltc(k))*xl-(ek(IX)*tilts(k))*zl)/(one+dpp)       !hr02
-!hr02   dyy2=(ek(IX)*tiltc(k)*zl+ed(IX)*tilts(k)*xl)/(one+dpp)
         dyy2=((ek(IX)*tiltc(k))*zl+(ed(IX)*tilts(k))*xl)/(one+dpp)       !hr02
         mpe=20
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=ed(IX)*tiltck/(one+dpp)
         qu=(ed(IX)*tiltck)/(one+dpp)                                     !hr02
-!hr02   qv=-ed(IX)*tiltsk/(one+dpp)
         qv=((-1d0*ed(IX))*tiltsk)/(one+dpp)                              !hr02
-!hr02   quz=-ek(IX)*tiltck/(one+dpp)
         quz=((-1d0*ek(IX))*tiltck)/(one+dpp)                             !hr02
-!hr02   qvz=ek(IX)*tiltsk/(one+dpp)
         qvz=(ek(IX)*tiltsk)/(one+dpp)                                    !hr02
 +ei
 +cd kickaso1
-!hr02       crkve=y(1,1)-x(1,1)*ed(IX)*ek(IX)/(one+dpp)
             crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-!hr02       cikve=y(1,2)-x(1,2)*ed(IX)*ek(IX)/(one+dpp)
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-!hr02       dyy1=crkve*cos(ek(IX)/(one+dpp))+                           &
-!hr02&cikve*sin(ek(IX)/(one+dpp))-y(1,1)
-!hr02       dyy2=-crkve*sin(ek(IX)/(one+dpp))+                          &
-!hr02&cikve*cos(ek(IX)/(one+dpp))-y(1,2)
 +if crlibm
             dyy1=(crkve*cos_rn(ek(IX))/(one+dpp))+                      &!hr02
      &(cikve*sin_rn(ek(IX))/(one+dpp))-y(1,1)                            !hr02
@@ -2878,14 +2676,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               endif
             enddo
 +cd phas2so1
-!hr02       crkve=t(i,2)-t(i,1)*qu*qv
             crkve=t(i,2)-(t(i,1)*qu)*qv                                  !hr02
-!hr02       cikve=t(i,4)-t(i,3)*qu*qv
             cikve=t(i,4)-(t(i,3)*qu)*qv                                  !hr02
-!hr02       t(i,2)=crkve*cos(qv)+cikve*sin(qv)
-!hr02       t(i,4)=-crkve*sin(qv)+cikve*cos(qv)
-!hr02       crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv)
-!hr02       cikve=-t(i,1)*sin(qv)+t(i,3)*cos(qv)
 +if crlibm
             t(i,2)=crkve*cos_rn(qv)+cikve*sin_rn(qv)                     !hr02
             t(i,4)=cikve*cos_rn(qv)-crkve*sin_rn(qv)                     !hr02
@@ -2921,17 +2713,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=1
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         dyy1=ekk*cxzyr
-!hr02   dyy2=-ekk*cxzyi
         dyy2=(-1d0*ekk)*cxzyi                                            !hr02
-!hr02   qu=ekk*two*xl
         qu=(ekk*two)*xl                                                  !hr02
-!hr02   qv=ekk*two*zl
         qv=(ekk*two)*zl                                                  !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         ab1(3)=ekk
 +ei
@@ -2940,21 +2727,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=1
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
         tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=ekk*two*(tiltck*xl+tiltsk*zl)
         qu=(ekk*two)*(tiltck*xl+tiltsk*zl)                               !hr02
-!hr02   qv=ekk*two*(tiltck*zl-tiltsk*xl)
         qv=(ekk*two)*(tiltck*zl-tiltsk*xl)                               !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -2968,24 +2749,17 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=2
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   qu=three*ekk*cxzyr
         qu=(three*ekk)*cxzyr                                             !hr02
-!hr02   qv=three*ekk*cxzyi
         qv=(three*ekk)*cxzyi                                             !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyr
-!hr02   dyy2=-ekk*cxzyi
         dyy2=(-1d0*ekk)*cxzyi                                            !hr02
-!hr02   ab1(3)=three*ekk*xl
         ab1(3)=(three*ekk)*xl                                            !hr02
-!hr02   ab2(3)=-three*ekk*zl
         ab2(3)=((-1d0*three)*ekk)*zl                                     !hr02
         ab1(4)=ekk
 +ei
@@ -2994,32 +2768,23 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=2
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=three*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qu=(three*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                       !hr02
-!hr02   qv=three*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qv=(three*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                       !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(3)=three*ekk*(tiltck*xl+tiltsk*zl)
         ab1(3)=(three*ekk)*(tiltck*xl+tiltsk*zl)                         !hr02
-!hr02   ab2(3)=three*ekk*(-tiltck*zl+tiltsk*xl)
         ab2(3)=(three*ekk)*(tiltsk*xl-tiltck*zl)                         !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3033,31 +2798,22 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=3
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(3)=6*ekk*cxzyr
         ab1(3)=(6d0*ekk)*cxzyr                                           !hr02
-!hr02   ab2(3)=-6*ekk*cxzyi
         ab2(3)=(-6d0*ekk)*cxzyi                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=four*ekk*cxzyr
         qu=(four*ekk)*cxzyr                                              !hr02
-!hr02   qv=four*ekk*cxzyi
         qv=(four*ekk)*cxzyi                                              !hr02
-!hr08   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr08
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyr
-!hr02   dyy2=-ekk*cxzyi
         dyy2=(-1d0*ekk)*cxzyi                                            !hr02
-!hr02   ab1(4)=four*ekk*xl
         ab1(4)=(four*ekk)*xl                                             !hr02
-!hr02   ab2(4)=-four*ekk*zl
         ab2(4)=((-1d0*four)*ekk)*zl                                      !hr02
         ab1(5)=ekk
 +ei
@@ -3066,42 +2822,31 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=3
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
         tiltck1=tiltckuk
-!hr02   ab1(3)=6*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab1(3)=(6d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                   !hr02
-!hr02   ab2(3)=6*ekk*(-tiltck1*cxzyi+tiltsk1*cxzyr)
         ab2(3)=(6d0*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=four*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qu=(four*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
-!hr02   qv=four*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qv=(four*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                        !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
         tiltckuk=tiltck1*tiltc(k)-tiltsk1*tilts(k)
         tiltsk=tiltck1*tilts(k)+tiltsk1*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(4)=four*ekk*(tiltck*xl+tiltsk*zl)
         ab1(4)=(four*ekk)*(tiltck*xl+tiltsk*zl)                          !hr02
-!hr02   ab2(4)=four*ekk*(-tiltck*zl+tiltsk*xl)
         ab2(4)=(four*ekk)*(tiltsk*xl-tiltck*zl)                          !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3115,38 +2860,27 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=4
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(4)=10*ekk*cxzyr
         ab1(4)=(10d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(4)=-10*ekk*cxzyi
         ab2(4)=(-10d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=10*ekk*cxzyr
         ab1(3)=(10d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(3)=-10*ekk*cxzyi
         ab2(3)=(-10d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=5*ekk*cxzyr
         qu=(5d0*ekk)*cxzyr                                               !hr02
-!hr02   qv=5*ekk*cxzyi
         qv=(5d0*ekk)*cxzyi                                               !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyr
-!hr02   dyy2=-ekk*cxzyi
         dyy2=(-1d0*ekk)*cxzyi                                            !hr02
-!hr02   ab1(5)=5*ekk*xl
         ab1(5)=(5d0*ekk)*xl                                              !hr02
-!hr02   ab2(5)=-5*ekk*zl
         ab2(5)=(-5d0*ekk)*zl                                             !hr02
         ab1(6)=ekk
 +ei
@@ -3155,12 +2889,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=4
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3168,39 +2899,29 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck1*tiltc(k)-tiltsk1*tilts(k)
         tiltsk2=tiltck1*tilts(k)+tiltsk1*tiltc(k)
         tiltck2=tiltckuk
-!hr02   ab1(4)=10*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)
         ab1(4)=(10d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
-!hr02   ab2(4)=10*ekk*(-tiltck2*cxzyi+tiltsk2*cxzyr)
         ab2(4)=(10d0*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=10*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab1(3)=(10d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
-!hr02   ab2(3)=10*ekk*(-tiltck1*cxzyi+tiltsk1*cxzyr)
         ab2(3)=(10d0*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=5*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qu=(5d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                         !hr02
-!hr02   qv=5*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qv=(5d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
         tiltckuk=tiltck2*tiltc(k)-tiltsk2*tilts(k)
         tiltsk=tiltck2*tilts(k)+tiltsk2*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(5)=5*ekk*(tiltck*xl+tiltsk*zl)
         ab1(5)=(5d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
-!hr02   ab2(5)=5*ekk*(-tiltck*zl+tiltsk*xl)
         ab2(5)=(5d0*ekk)*(tiltsk*xl-tiltck*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3214,45 +2935,32 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=5
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(5)=15*ekk*cxzyr
         ab1(5)=(15d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(5)=-15*ekk*cxzyi
         ab2(5)=(-15d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=20*ekk*cxzyr
         ab1(4)=(20d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(4)=-20*ekk*cxzyi
         ab2(4)=(-20d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=15*ekk*cxzyr
         ab1(5)=(15d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(5)=-15*ekk*cxzyi
         ab2(5)=(-15d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=6*ekk*cxzyr
         qu=(6d0*ekk)*cxzyr                                               !hr02
-!hr02   qv=6*ekk*cxzyi
         qv=(6d0*ekk)*cxzyi                                               !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyr
-!hr02   dyy2=-ekk*cxzyi
         dyy2=(-1d0*ekk)*cxzyi                                            !hr02
-!hr02   ab1(6)=6*ekk*xl
         ab1(6)=(6d0*ekk)*xl                                              !hr02
-!hr02   ab2(6)=-6*ekk*zl
         ab2(6)=(-6d0*ekk)*zl                                             !hr02
         ab1(7)=ekk
 +ei
@@ -3261,12 +2969,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=5
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3277,46 +2982,34 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck2*tiltc(k)-tiltsk2*tilts(k)
         tiltsk3=tiltck2*tilts(k)+tiltsk2*tiltc(k)
         tiltck3=tiltckuk
-!hr02   ab1(5)=15*ekk*(tiltck3*cxzyr+tiltsk3*cxzyi)
         ab1(5)=(15d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
-!hr02   ab2(5)=15*ekk*(-tiltck3*cxzyi+tiltsk3*cxzyr)
         ab2(5)=(15d0*ekk)*(tiltsk3*cxzyr-tiltck3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=20*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)
         ab1(4)=(20d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
-!hr02   ab2(4)=20*ekk*(-tiltck2*cxzyi+tiltsk2*cxzyr)
         ab2(4)=(20d0*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=15*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab1(5)=(15d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
-!hr02   ab2(5)=15*ekk*(-tiltck1*cxzyi+tiltsk1*cxzyr)
         ab2(5)=(15d0*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=6*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qu=(6d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                         !hr02
-!hr02   qv=6*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qv=(6d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
         tiltckuk=tiltck3*tiltc(k)-tiltsk3*tilts(k)
         tiltsk=tiltck3*tilts(k)+tiltsk3*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(6)=6*ekk*(tiltck*xl+tiltsk*zl)
         ab1(6)=(6d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
-!hr02   ab2(6)=6*ekk*(-tiltck*zl+tiltsk*xl)
         ab2(6)=(6d0*ekk)*(tiltsk*xl-tiltck*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3330,52 +3023,37 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=6
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(6)=21*ekk*cxzyr
         ab1(6)=(21d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(6)=-21*ekk*cxzyi
         ab2(6)=(-21d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=35*ekk*cxzyr
         ab1(5)=(35d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(5)=-35*ekk*cxzyi
         ab2(5)=(-35d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=35*ekk*cxzyr
         ab1(4)=(35d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(4)=-35*ekk*cxzyi
         ab2(4)=(-35d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=21*ekk*cxzyr
         ab1(3)=(21d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(3)=-21*ekk*cxzyi
         ab2(3)=(-21d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=7*ekk*cxzyr
         qu=(7d0*ekk)*cxzyr                                               !hr02
-!hr02   qv=7*ekk*cxzyi
         qv=(7d0*ekk)*cxzyi                                               !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyr
-!hr02   dyy2=-ekk*cxzyi
         dyy2=(-1d0*ekk)*cxzyi                                            !hr02
-!hr02   ab1(7)=7*ekk*xl
         ab1(7)=(7d0*ekk)*xl                                              !hr02
-!hr02   ab2(7)=-7*ekk*zl
         ab2(7)=(-7d0*ekk)*zl                                             !hr02
         ab1(8)=ekk
 +ei
@@ -3384,12 +3062,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=6
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3403,53 +3078,39 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck3*tiltc(k)-tiltsk3*tilts(k)
         tiltsk4=tiltck3*tilts(k)+tiltsk3*tiltc(k)
         tiltck4=tiltckuk
-!hr02   ab1(6)=21*ekk*(tiltck4*cxzyr+tiltsk4*cxzyi)
         ab1(6)=(21d0*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
-!hr02   ab2(6)=21*ekk*(-tiltck4*cxzyi+tiltsk4*cxzyr)
         ab2(6)=(21d0*ekk)*(tiltsk4*cxzyr-tiltck4*cxzyi)
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=35*ekk*(tiltck3*cxzyr+tiltsk3*cxzyi)
         ab1(5)=(35d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
-!hr02   ab2(5)=35*ekk*(-tiltck3*cxzyi+tiltsk3*cxzyr)
         ab2(5)=(35d0*ekk)*(tiltsk3*cxzyr-tiltck3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=35*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)               
         ab1(4)=(35d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
-!hr02   ab2(4)=35*ekk*(-tiltck2*cxzyi+tiltsk2*cxzyr)
         ab2(4)=(35d0*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=21*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab1(3)=(21d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
-!hr02   ab2(3)=21*ekk*(-tiltck1*cxzyi+tiltsk1*cxzyr)
         ab2(3)=(21d0*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=7*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qu=(7d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                         !hr02
-!hr02   qv=7*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qv=(7d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
         tiltckuk=tiltck4*tiltc(k)-tiltsk4*tilts(k)
         tiltsk=tiltck4*tilts(k)+tiltsk4*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(7)=7*ekk*(tiltck*xl+tiltsk*zl)
         ab1(7)=(7d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
-!hr02   ab2(7)=7*ekk*(-tiltck*zl+tiltsk*xl)
         ab2(7)=(7d0*ekk)*(tiltsk*xl-tiltck*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3463,59 +3124,42 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=7
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(7)=28*ekk*cxzyr
         ab1(7)=(28d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(7)=-28*ekk*cxzyi
         ab2(7)=(-28d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(6)=56*ekk*cxzyr
         ab1(6)=(56d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(6)=-56*ekk*cxzyi
         ab2(6)=(-56d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=70*ekk*cxzyr
         ab1(5)=(70d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(5)=-70*ekk*cxzyi
         ab2(5)=(-70d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=56*ekk*cxzyr
         ab1(4)=(56d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(4)=-56*ekk*cxzyi
         ab2(4)=(-56d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=28*ekk*cxzyr                                       
         ab1(3)=(28d0*ekk)*cxzyr                                          !hr02
-!hr02   ab2(3)=-28*ekk*cxzyi
         ab2(3)=(-28d0*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=8*ekk*cxzyr
         qu=(8d0*ekk)*cxzyr                                               !hr02
-!hr02   qv=8*ekk*cxzyi
         qv=(8d0*ekk)*cxzyi                                               !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyr
-!hr02   dyy2=-ekk*cxzyi
         dyy2=(-1d0*ekk)*cxzyi                                            !hr02
-!hr02   ab1(8)=8*ekk*xl
         ab1(8)=(8d0*ekk)*xl                                              !hr02
-!hr02   ab2(8)=-8*ekk*zl
         ab2(8)=(-8d0*ekk)*zl                                             !hr02
         ab1(9)=ekk
 +ei
@@ -3524,12 +3168,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=7
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3546,60 +3187,44 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck4*tiltc(k)-tiltsk4*tilts(k)
         tiltsk5=tiltck4*tilts(k)+tiltsk4*tiltc(k)
         tiltck5=tiltckuk
-!hr02   ab1(7)=28*ekk*(tiltck5*cxzyr+tiltsk5*cxzyi)
         ab1(7)=(28d0*ekk)*(tiltck5*cxzyr+tiltsk5*cxzyi)                  !hr02
-!hr02   ab2(7)=28*ekk*(-tiltck5*cxzyi+tiltsk5*cxzyr)
         ab2(7)=(28d0*ekk)*(tiltsk5*cxzyr-tiltck5*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(6)=56*ekk*(tiltck4*cxzyr+tiltsk4*cxzyi)
         ab1(6)=(56d0*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
-!hr02   ab2(6)=56*ekk*(-tiltck4*cxzyi+tiltsk4*cxzyr)
         ab2(6)=(56d0*ekk)*(tiltsk4*cxzyr-tiltck4*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=70*ekk*(tiltck3*cxzyr+tiltsk3*cxzyi)
         ab1(5)=(70d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
-!hr02   ab2(5)=70*ekk*(-tiltck3*cxzyi+tiltsk3*cxzyr)
         ab2(5)=(70d0*ekk)*(tiltsk3*cxzyr-tiltck3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=56*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)
         ab1(4)=(56d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
-!hr02   ab2(4)=56*ekk*(-tiltck2*cxzyi+tiltsk2*cxzyr)
         ab2(4)=(56d0*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=28*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab1(3)=(28d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
-!hr02   ab2(3)=28*ekk*(-tiltck1*cxzyi+tiltsk1*cxzyr)
         ab2(3)=(28d0*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=8*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qu=(8d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                         !hr02
-!hr02   qv=8*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qv=(8d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
         tiltckuk=tiltck5*tiltc(k)-tiltsk5*tilts(k)
         tiltsk=tiltck5*tilts(k)+tiltsk5*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(8)=8*ekk*(tiltck*xl+tiltsk*zl)
         ab1(8)=(8d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
-!hr02   ab2(8)=8*ekk*(-tiltck*zl+tiltsk*xl)
         ab2(8)=(8d0*ekk)*(tiltsk*xl-tiltck*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3612,7 +3237,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mpe=20
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -3633,9 +3257,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=9*ekk*cxzyr
         qu=(9d0*ekk)*cxzyr                                               !hr02
-!hr02   qv=9*ekk*cxzyi
         qv=(9d0*ekk)*cxzyi                                               !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -3647,7 +3269,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mpe=20
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -3668,19 +3289,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=9*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qu=(9d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                         !hr02
-!hr02   qv=9*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qv=(9d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr02   dyy2=ekk*(-tiltc(k)*cxzyi+tilts(k)*cxzyr)
         dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
 +ei
 +cd kicka01v
@@ -3693,7 +3309,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
         mpe=20
-!hr02   dyy1=-ekk*tilts(k)
         dyy1=(-1d0*ekk)*tilts(k)                                         !hr02
         dyy2=ekk*tiltc(k)
         qu=zero
@@ -3706,7 +3321,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mpe=2
         mx=-1
         qu=zero
-!hr02   qv=-ekk
         qv=-1d0*ekk                                                      !hr02
         ab2(2)=ekk
 +ei
@@ -3715,16 +3329,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         dyy2=ekk*(tiltc(k)*xl+tilts(k)*zl)
         mpe=2
         mx=-1
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=-ekk*tiltsk
         qu=(-1d0*ekk)*tiltsk                                             !hr02
-!hr02   qv=-ekk*tiltck
         qv=(-1d0*ekk)*tiltck                                             !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
 +ei
 +cd kicka03v
@@ -3733,16 +3342,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=1
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         dyy1=ekk*cxzyi
         dyy2=ekk*cxzyr
-!hr02   qu=ekk*two*zl
         qu=(ekk*two)*zl                                                  !hr02
-!hr02   qv=-ekk*two*xl
         qv=((-1d0*ekk)*two)*xl                                           !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv
         ab2(3)=ekk
 +ei
@@ -3751,21 +3356,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=1
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         dyy1=ekk*(tiltc(k)*cxzyi-tilts(k)*cxzyr)
         dyy2=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=ekk*two*(tiltck*zl-tiltsk*xl)
         qu=(ekk*two)*(tiltck*zl-tiltsk*xl)                               !hr02
-!hr02   qv=-ekk*two*(tiltck*xl+tiltsk*zl)
         qv=((-1d0*ekk)*two)*(tiltck*xl+tiltsk*zl)                        !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3779,23 +3378,17 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=2
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   qu=three*ekk*cxzyi
         qu=(three*ekk)*cxzyi                                             !hr02
-!hr02   qv=-three*ekk*cxzyr
         qv=((-1d0*three)*ekk)*cxzyr                                      !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyi
         dyy2=ekk*cxzyr
-!hr02   ab1(3)=three*ekk*zl
         ab1(3)=(three*ekk)*zl                                            !hr02
-!hr02   ab2(3)=three*ekk*xl
         ab2(3)=(three*ekk)*xl                                            !hr02
         ab2(4)=ekk
 +ei
@@ -3804,19 +3397,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=2
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=three*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qu=(three*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                       !hr02
-!hr02   qv=-three*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qv=((-1d0*three)*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -3826,9 +3413,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(3)=three*ekk*(tiltck*zl-tiltsk*xl)
         ab1(3)=(three*ekk)*(tiltck*zl-tiltsk*xl)                         !hr02
-!hr02   ab2(3)=three*ekk*(tiltck*xl+tiltsk*zl)
         ab2(3)=(three*ekk)*(tiltck*xl+tiltsk*zl)                         !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3842,30 +3427,22 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=3
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(3)=6*ekk*cxzyi
         ab1(3)=(6d0*ekk)*cxzyi                                           !hr02
-!hr02   ab2(3)=6*ekk*cxzyr
         ab2(3)=(6d0*ekk)*cxzyr                                           !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=four*ekk*cxzyi
         qu=(four*ekk)*cxzyi                                              !hr02
-!hr02   qv=-four*ekk*cxzyr
         qv=((-1d0*four)*ekk)*cxzyr                                       !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyi
         dyy2=ekk*cxzyr
-!hr08   ab1(4)=four*ekk*zl
         ab1(4)=(four*ekk)*zl                                             !hr08
-!hr08   ab2(4)=four*ekk*xl
         ab2(4)=(four*ekk)*xl                                             !hr08
         ab2(5)=ekk
 +ei
@@ -3874,29 +3451,21 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=3
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
         tiltck1=tiltckuk
-!hr02   ab1(3)=6*ekk*(tiltck1*cxzyi-tiltsk1*cxzyr)
         ab1(3)=(6d0*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                   !hr02
-!hr02   ab2(3)=6*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab2(3)=(6d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=four*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qu=(four*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)
-!hr02   qv=-four*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qv=((-1d0*four)*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -3906,9 +3475,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck1*tiltc(k)-tiltsk1*tilts(k)
         tiltsk=tiltck1*tilts(k)+tiltsk1*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(4)=four*ekk*(tiltck*zl-tiltsk*xl)
         ab1(4)=(four*ekk)*(tiltck*zl-tiltsk*xl)                          !hr02
-!hr02   ab2(4)=four*ekk*(tiltck*xl+tiltsk*zl)
         ab2(4)=(four*ekk)*(tiltck*xl+tiltsk*zl)                          !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3922,37 +3489,27 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=4
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(4)=10*ekk*cxzyi
         ab1(4)=(10d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(4)=10*ekk*cxzyr
         ab2(4)=(10d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=10*ekk*cxzyi
         ab1(3)=(10d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(3)=10*ekk*cxzyr
         ab2(3)=(10d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=5*ekk*cxzyi
         qu=(5d0*ekk)*cxzyi                                               !hr02
-!hr02   qv=-5*ekk*cxzyr
         qv=(-5d0*ekk)*cxzyr                                              !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyi
         dyy2=ekk*cxzyr
-!hr02   ab1(5)=5*ekk*zl
         ab1(5)=(5d0*ekk)*zl                                              !hr02
-!hr02   ab2(5)=5*ekk*xl
         ab2(5)=(5d0*ekk)*xl                                              !hr02
         ab2(6)=ekk
 +ei
@@ -3961,12 +3518,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=4
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -3974,26 +3528,19 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck1*tiltc(k)-tiltsk1*tilts(k)
         tiltsk2=tiltck1*tilts(k)+tiltsk1*tiltc(k)
         tiltck2=tiltckuk
-!hr02   ab1(4)=10*ekk*(tiltck2*cxzyi-tiltsk2*cxzyr)
         ab1(4)=(10d0*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
-!hr02   ab2(4)=10*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)
         ab2(4)=(10d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=10*ekk*(tiltck1*cxzyi-tiltsk1*cxzyr)
         ab1(3)=(10d0*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
-!hr02   ab2(3)=10*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab2(3)=(10d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=5*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qu=(5d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
-!hr02   qv=-5*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qv=(-5d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4003,9 +3550,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck2*tiltc(k)-tiltsk2*tilts(k)
         tiltsk=tiltck2*tilts(k)+tiltsk2*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(5)=5*ekk*(tiltck*zl-tiltsk*xl)
         ab1(5)=(5d0*ekk)*(tiltck*zl-tiltsk*xl)                           !hr02
-!hr02   ab2(5)=5*ekk*(tiltck*xl+tiltsk*zl)
         ab2(5)=(5d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -4019,44 +3564,32 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=5
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(5)=15*ekk*cxzyi
         ab1(5)=(15d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(5)=15*ekk*cxzyr
         ab2(5)=(15d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=20*ekk*cxzyi
         ab1(4)=(20d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(4)=20*ekk*cxzyr
         ab2(4)=(20d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=15*ekk*cxzyi
         ab1(3)=(15d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(3)=15*ekk*cxzyr
         ab2(3)=(15d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=6*ekk*cxzyi
         qu=(6d0*ekk)*cxzyi                                               !hr02
-!hr02   qv=-6*ekk*cxzyr
         qv=(-6d0*ekk)*cxzyr                                              !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyi
         dyy2=ekk*cxzyr
-!hr02   ab1(6)=6*ekk*zl
         ab1(6)=(6d0*ekk)*zl                                              !hr02
-!hr02   ab2(6)=6*ekk*xl
         ab2(6)=(6d0*ekk)*xl                                              !hr02
         ab2(7)=ekk
 +ei
@@ -4065,12 +3598,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=5
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -4081,33 +3611,24 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck2*tiltc(k)-tiltsk2*tilts(k)
         tiltsk3=tiltck2*tilts(k)+tiltsk2*tiltc(k)
         tiltck3=tiltckuk
-!hr02   ab1(5)=15*ekk*(tiltck3*cxzyi-tiltsk3*cxzyr)
         ab1(5)=(15d0*ekk)*(tiltck3*cxzyi-tiltsk3*cxzyr)                  !hr02
-!hr02   ab2(5)=15*ekk*(tiltck3*cxzyr+tiltsk3*cxzyi)
         ab2(5)=(15d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=20*ekk*(tiltck2*cxzyi-tiltsk2*cxzyr)
         ab1(4)=(20d0*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
-!hr02   ab2(4)=20*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)
         ab2(4)=(20d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=15*ekk*(tiltck1*cxzyi-tiltsk1*cxzyr)
         ab1(3)=(15d0*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
-!hr02   ab2(3)=15*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab2(3)=(15d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=6*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qu=(6d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)
-!hr02   qv=-6*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qv=(-6d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4117,9 +3638,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck3*tiltc(k)-tiltsk3*tilts(k)
         tiltsk=tiltck3*tilts(k)+tiltsk3*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(6)=6*ekk*(tiltck*zl-tiltsk*xl)
         ab1(6)=(6d0*ekk)*(tiltck*zl-tiltsk*xl)                           !hr02
-!hr02   ab2(6)=6*ekk*(tiltck*xl+tiltsk*zl)
         ab2(6)=(6d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -4133,51 +3652,37 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=6
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(6)=21*ekk*cxzyi
         ab1(6)=(21d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(6)=21*ekk*cxzyr
         ab2(6)=(21d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=35*ekk*cxzyi
         ab1(5)=(35d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(5)=35*ekk*cxzyr
         ab2(5)=(35d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=35*ekk*cxzyi
         ab1(4)=(35d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(4)=35*ekk*cxzyr
         ab2(4)=(35d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=21*ekk*cxzyi
         ab1(3)=(21d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(3)=21*ekk*cxzyr
         ab2(3)=(21d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=7*ekk*cxzyi
         qu=(7d0*ekk)*cxzyi                                               !hr02
-!hr02   qv=-7*ekk*cxzyr
         qv=(-7d0*ekk)*cxzyr                                              !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyi
         dyy2=ekk*cxzyr
-!hr02   ab1(7)=7*ekk*zl
         ab1(7)=(7d0*ekk)*zl                                              !hr02
-!hr02   ab2(7)=7*ekk*xl
         ab2(7)=(7d0*ekk)*xl                                              !hr02
         ab2(8)=ekk
 +ei
@@ -4186,12 +3691,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=6
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -4205,40 +3707,29 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck3*tiltc(k)-tiltsk3*tilts(k)
         tiltsk4=tiltck3*tilts(k)+tiltsk3*tiltc(k)
         tiltck4=tiltckuk
-!hr02   ab1(6)=21*ekk*(tiltck4*cxzyi-tiltsk4*cxzyr)
         ab1(6)=(21d0*ekk)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr02
-!hr02   ab2(6)=21*ekk*(tiltck4*cxzyr+tiltsk4*cxzyi)
         ab2(6)=(21d0*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=35*ekk*(tiltck3*cxzyi-tiltsk3*cxzyr)
         ab1(5)=(35d0*ekk)*(tiltck3*cxzyi-tiltsk3*cxzyr)                  !hr02
-!hr02   ab2(5)=35*ekk*(tiltck3*cxzyr+tiltsk3*cxzyi)
         ab2(5)=(35d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=35*ekk*(tiltck2*cxzyi-tiltsk2*cxzyr)
         ab1(4)=(35d0*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
-!hr02   ab2(4)=35*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)
         ab2(4)=(35d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=21*ekk*(tiltck1*cxzyi-tiltsk1*cxzyr)
         ab1(3)=(21d0*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
-!hr02   ab2(3)=21*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab2(3)=(21d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=7*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qu=(7d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
-!hr02   qv=-7*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qv=(-7d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4248,9 +3739,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck4*tiltc(k)-tiltsk4*tilts(k)
         tiltsk=tiltck4*tilts(k)+tiltsk4*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(7)=7*ekk*(tiltck*zl-tiltsk*xl)
         ab1(7)=(7d0*ekk)*(tiltck*zl-tiltsk*xl)                           !hr02
-!hr02   ab2(7)=7*ekk*(tiltck*xl+tiltsk*zl)
         ab2(7)=(7d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -4264,58 +3753,42 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=7
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr02   ab1(7)=28*ekk*cxzyi
         ab1(7)=(28d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(7)=28*ekk*cxzyr
         ab2(7)=(28d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(6)=56*ekk*cxzyi
         ab1(6)=(56d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(6)=56*ekk*cxzyr
         ab2(6)=(56d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=70*ekk*cxzyi
         ab1(5)=(70d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(5)=70*ekk*cxzyr
         ab2(5)=(70d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=56*ekk*cxzyi
         ab1(4)=(56d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(4)=56*ekk*cxzyr
         ab2(4)=(56d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=28*ekk*cxzyi
         ab1(3)=(28d0*ekk)*cxzyi                                          !hr02
-!hr02   ab2(3)=28*ekk*cxzyr
         ab2(3)=(28d0*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=8*ekk*cxzyi
         qu=(8d0*ekk)*cxzyi                                               !hr02
-!hr02   qv=-8*ekk*cxzyr
         qv=(-8d0*ekk)*cxzyr                                              !hr02
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
         dyy1=ekk*cxzyi
         dyy2=ekk*cxzyr
-!hr02   ab1(8)=8*ekk*zl
         ab1(8)=(8d0*ekk)*zl                                              !hr02
-!hr02   ab2(8)=8*ekk*xl
         ab2(8)=(8d0*ekk)*xl                                              !hr02
         ab2(9)=ekk
 +ei
@@ -4324,12 +3797,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mx=7
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk1=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -4346,47 +3816,34 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck4*tiltc(k)-tiltsk4*tilts(k)
         tiltsk5=tiltck4*tilts(k)+tiltsk4*tiltc(k)
         tiltck5=tiltckuk
-!hr02   ab1(7)=28*ekk*(tiltck5*cxzyi-tiltsk5*cxzyr)
         ab1(7)=(28d0*ekk)*(tiltck5*cxzyi-tiltsk5*cxzyr)                  !hr02
-!hr02   ab2(7)=28*ekk*(tiltck5*cxzyr+tiltsk5*cxzyi)
         ab2(7)=(28d0*ekk)*(tiltck5*cxzyr+tiltsk5*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(6)=56*ekk*(tiltck4*cxzyi-tiltsk4*cxzyr)
         ab1(6)=(56d0*ekk)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr02
-!hr02   ab2(6)=56*ekk*(tiltck4*cxzyr+tiltsk4*cxzyi)
         ab2(6)=(56d0*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(5)=70*ekk*(tiltck3*cxzyi-tiltsk3*cxzyr)
         ab1(5)=(70d0*ekk)*(tiltck3*cxzyi-tiltsk3*cxzyr)                  !hr02
-!hr02   ab2(5)=70*ekk*(tiltck3*cxzyr+tiltsk3*cxzyi)
         ab2(5)=(70d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(4)=56*ekk*(tiltck2*cxzyi-tiltsk2*cxzyr)
         ab1(4)=(56d0*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
-!hr02   ab2(4)=56*ekk*(tiltck2*cxzyr+tiltsk2*cxzyi)
         ab2(4)=(56d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   ab1(3)=28*ekk*(tiltck1*cxzyi-tiltsk1*cxzyr)
         ab1(3)=(28d0*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
-!hr02   ab2(3)=28*ekk*(tiltck1*cxzyr+tiltsk1*cxzyi)
         ab2(3)=(28d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=8*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qu=(8d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
-!hr02   qv=-8*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qv=(-8d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
         ab1(2)=qu
-!hr02   ab2(2)=-qv
         ab2(2)=-1d0*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4396,9 +3853,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         tiltckuk=tiltck5*tiltc(k)-tiltsk5*tilts(k)
         tiltsk=tiltck5*tilts(k)+tiltsk5*tiltc(k)
         tiltck=tiltckuk
-!hr02   ab1(8)=8*ekk*(tiltck*zl-tiltsk*xl)
         ab1(8)=(8d0*ekk)*(tiltck*zl-tiltsk*xl)                           !hr02
-!hr02   ab2(8)=8*ekk*(tiltck*xl+tiltsk*zl)
         ab2(8)=(8d0*ekk)*(tiltck*xl+tiltsk*zl)                           !hr02
         tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
         tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -4411,7 +3866,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mpe=20
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -4432,9 +3886,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr02   qu=9*ekk*cxzyi
         qu=(9d0*ekk)*cxzyi                                               !hr02
-!hr02   qv=-9*ekk*cxzyr
         qv=(-9d0*ekk)*cxzyr                                              !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4446,7 +3898,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         mpe=20
         cxzr=xl
         cxzi=zl
-!hr08   cxzyr=cxzr*cxzr-cxzi*cxzi
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -4467,13 +3918,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-!hr08   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-!hr02   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-!hr02   qu=9*ekk*(tiltck*cxzyi-tiltsk*cxzyr)
         qu=(9d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
-!hr02   qv=-9*ekk*(tiltck*cxzyr+tiltsk*cxzyi)
         qv=(-9d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4508,28 +3955,19 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         crabfreq=ek(ix)*c1e3
 
         do j=1,napx ! loop over particles
-!hr03    crabamp=ed(ix)/(ejfv(j))*c1e3
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
 
 +if .not.tilt
 +if crlibm
-!hr03   yv(xory,j)=yv(xory,j) - crabamp*                                &
-!hr03&sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))         !hr03
-!hr03 dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
-!hr03&cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3   !hr03
 +ei
 +if .not.crlibm
-!hr03   yv(xory,j)=yv(xory,j) - crabamp*                                &
-!hr03&sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))            !hr03
-!hr03 dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
-!hr03&cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3      !hr03
@@ -4537,23 +3975,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
 +if crlibm
-!hr03   yv(xory,j)=yv(xory,j) - crabamp*                                &
-!hr03&sin_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))         !hr03
-!hr03 dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
-!hr03&cos_rn(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3   !hr03
 +ei
 +if .not.crlibm
-!hr03   yv(xory,j)=yv(xory,j) - crabamp*                                &
-!hr03&sin(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))            !hr03
-!hr03 dpsv(j)=dpsv(j) - crabamp*crabfreq*2d0*pi/clight*xv(xory,j)*      &
-!hr03&cos(sigmv(j)/clight*crabfreq*2d0*pi + crabph(ix))*c1m3
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3      !hr03
@@ -4561,7 +3991,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
-!hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
       oidpsv(j)=one/(one+dpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -4590,27 +4019,19 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ca alignva
 +if .not.tilt
 +if crlibm
-!hr13   yv(1,j)=yv(1,j) + (crabamp2*crkve*oidpsv(j))*                   &
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))       
-!hr13   yv(2,j)=yv(2,j) - (crabamp2*cikve*oidpsv(j))*                   &
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-!hr13 dpsv(j)=dpsv(j) - (1/2.)*(crabamp2*oidpsv(j))*(crkve*crkve-       &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m3*                   & 
       dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))      
 +ei
 +if .not.crlibm
-!hr13   yv(1,j)=yv(1,j) + (crabamp2*crkve*oidpsv(j))*                   &
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-!hr13   yv(2,j)=yv(2,j) - (crabamp2*cikve*oidpsv(j))*                   &
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-!hr13 dpsv(j)=dpsv(j) - (1/2.)*(crabamp2*oidpsv(j))*(crkve*crkve-       &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m3*                   & 
       dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))        
@@ -4618,27 +4039,19 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
 +if crlibm
-!hr13   yv(1,j)=yv(1,j) + (crabamp2*crkve*oidpsv(j))*                   &
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-!hr13   yv(2,j)=yv(2,j) - (crabamp2*cikve*oidpsv(j))*                   &
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-!hr13 dpsv(j)=dpsv(j) - (1/2.)*(crabamp2*oidpsv(j))*(crkve*crkve-       &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m3*                   & 
       dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
-!hr13   yv(1,j)=yv(1,j) + (crabamp2*crkve*oidpsv(j))*                   &
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-!hr13   yv(2,j)=yv(2,j) - (crabamp2*cikve*oidpsv(j))*                   &
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-!hr13 dpsv(j)=dpsv(j) - (1/2.)*(crabamp2*oidpsv(j))*(crkve*crkve-       &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m3*                   & 
       dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))           
@@ -4646,7 +4059,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
-!hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
       oidpsv(j)=one/(one+dpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -4709,7 +4121,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
-!hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
       oidpsv(j)=one/(one+dpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -4738,31 +4149,21 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ca alignva
 +if .not.tilt
 +if crlibm
-!hr13   yv(1,j)=yv(1,j)+2*(1/2.)*(crabamp3*oidpsv(j))*c1m3*             &
-!hr13&(crkve*crkve-cikve*cikve)*                                        & 
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13   yv(2,j)=yv(2,j)-2*(crabamp3*crkve*cikve*oidpsv(j))*c1m3*        &
       yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13 dpsv(j)=dpsv(j)-2*(1/6.)*(crabamp3*oidpsv(j))*(crkve*crkve*crkve- &
-!hr13&(3*cikve*cikve)*crkve)*(((crabfreq*2d0)*pi)/clight)*c1m6*         & 
       dpsv(j)=dpsv(j)-(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(crkve**3-    &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
 +ei
 +if .not.crlibm
-!hr13   yv(1,j)=yv(1,j)+2*(1/2.)*(crabamp3*oidpsv(j))*c1m3*             &
-!hr13&(crkve*crkve-cikve*cikve)*                                        & 
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13   yv(2,j)=yv(2,j)-2*(crabamp3*crkve*cikve*oidpsv(j))*c1m3*        &
       yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13 dpsv(j)=dpsv(j)-2*(1/6.)*(crabamp3*oidpsv(j))*(crkve*crkve*crkve- &
-!hr13&(3*cikve*cikve)*crkve)*(((crabfreq*2d0)*pi)/clight)*c1m6*         & 
       dpsv(j)=dpsv(j)-(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(crkve**3-    &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
@@ -4770,31 +4171,21 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
 +if crlibm
-!hr13   yv(1,j)=yv(1,j)+2*(1/2.)*(crabamp3*oidpsv(j))*c1m3*             &
-!hr13&(crkve*crkve-cikve*cikve)*                                        & 
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13   yv(2,j)=yv(2,j)-2*(crabamp3*crkve*cikve*oidpsv(j))*c1m3*        &
       yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13 dpsv(j)=dpsv(j)-2*(1/6.)*(crabamp3*oidpsv(j))*(crkve*crkve*crkve- &
-!hr13&(3*cikve*cikve)*crkve)*(((crabfreq*2d0)*pi)/clight)*c1m6*         & 
       dpsv(j)=dpsv(j)-(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(crkve**3-    &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
 +ei
 +if .not.crlibm
-!hr13   yv(1,j)=yv(1,j)+2*(1/2.)*(crabamp3*oidpsv(j))*c1m3*             &
-!hr13&(crkve*crkve-cikve*cikve)*                                        & 
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13   yv(2,j)=yv(2,j)-2*(crabamp3*crkve*cikve*oidpsv(j))*c1m3*        &
       yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-!hr13 dpsv(j)=dpsv(j)-2*(1/6.)*(crabamp3*oidpsv(j))*(crkve*crkve*crkve- &
-!hr13&(3*cikve*cikve)*crkve)*(((crabfreq*2d0)*pi)/clight)*c1m6*         & 
       dpsv(j)=dpsv(j)-(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(crkve**3-    &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
      &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
@@ -4802,7 +4193,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
        ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
-!hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
       oidpsv(j)=one/(one+dpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -4870,7 +4260,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
-!hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
       oidpsv(j)=one/(one+dpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -4900,38 +4289,24 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ca alignva
 +if .not.tilt
 +if crlibm
-!hr13   yv(1,j)=yv(1,j) + 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(crkve*crkve*crkve-3*crkve*cikve*cikve)*c1m6*                     &
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
      &(crkve**3-(3d0*crkve)*cikve**2))*c1m6)*                           &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13   yv(2,j)=yv(2,j) - 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(3*cikve*crkve*crkve-cikve*cikve*cikve)*c1m6*                     &
         yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
      &((3d0*cikve)*crkve**2-cikve**3))*c1m6)*                           &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13 dpsv(j)=dpsv(j) - 6*(1/24.)*(crabamp4*oidpsv(j))*(crkve*crkve*    &
-!hr13&crkve*crkve-6*crkve*crkve*cikve*cikve+cikve*cikve*                &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m9*                   &
       dpsv(j)=dpsv(j) - ((((.25d0*(crabamp4*oidpsv(j)))*(crkve**4-      &!hr13
      &(6d0*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &!hr13
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
 +ei
 +if .not.crlibm
-!hr13   yv(1,j)=yv(1,j) + 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(crkve*crkve*crkve-3*crkve*cikve*cikve)*c1m6*                     &
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
      &(crkve**3-(3d0*crkve)*cikve**2))*c1m6)*                           &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13   yv(2,j)=yv(2,j) - 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(3*cikve*crkve*crkve-cikve*cikve*cikve)*c1m6*                     &
         yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
      &((3d0*cikve)*crkve**2-cikve**3))*c1m6)*                           &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13 dpsv(j)=dpsv(j) - 6*(1/24.)*(crabamp4*oidpsv(j))*(crkve*crkve*    &
-!hr13&crkve*crkve-6*crkve*crkve*cikve*cikve+cikve*cikve*                &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m9*                   &
       dpsv(j)=dpsv(j) - ((((.25d0*(crabamp4*oidpsv(j)))*(crkve**4-      &!hr13
      &(6d0*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &!hr13
@@ -4940,38 +4315,24 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
 +if crlibm
-!hr13   yv(1,j)=yv(1,j) + 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(crkve*crkve*crkve-3*crkve*cikve*cikve)*c1m6*                     &
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
      &(crkve**3-(3d0*crkve)*cikve**2))*c1m6)*                           &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13   yv(2,j)=yv(2,j) - 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(3*cikve*crkve*crkve-cikve*cikve*cikve)*c1m6*                     &
         yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
      &((3d0*cikve)*crkve**2-cikve**3))*c1m6)*                           &!hr13
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13 dpsv(j)=dpsv(j) - 6*(1/24.)*(crabamp4*oidpsv(j))*(crkve*crkve*    &
-!hr13&crkve*crkve-6*crkve*crkve*cikve*cikve+cikve*cikve*                &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m9*                   &
       dpsv(j)=dpsv(j) - ((((0.25d0*(crabamp4*oidpsv(j)))*(crkve**4-     &!hr13
      &(6d0*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &!hr13
      &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
 +ei
 +if .not.crlibm
-!hr13   yv(1,j)=yv(1,j) + 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(crkve*crkve*crkve-3*crkve*cikve*cikve)*c1m6*                     &
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
      &(crkve**3-(3d0*crkve)*cikve**2))*c1m6)*                           &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13   yv(2,j)=yv(2,j) - 6*(1/6.)*(crabamp4*oidpsv(j))*                &
-!hr13&(3*cikve*crkve*crkve-cikve*cikve*cikve)*c1m6*                     &
         yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
      &((3d0*cikve)*crkve**2-cikve**3))*c1m6)*                           &!hr13
      &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-!hr13 dpsv(j)=dpsv(j) - 6*(1/24.)*(crabamp4*oidpsv(j))*(crkve*crkve*    &
-!hr13&crkve*crkve-6*crkve*crkve*cikve*cikve+cikve*cikve*                &
-!hr13&cikve*cikve)*(((crabfreq*2d0)*pi)/clight)*c1m9*                   &
       dpsv(j)=dpsv(j) - ((((0.25d0*(crabamp4*oidpsv(j)))*(crkve**4-     &!hr13
      &(6d0*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &!hr13
@@ -4980,7 +4341,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
-!hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
       oidpsv(j)=one/(one+dpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -5056,7 +4416,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
-!hr03 ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
       ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
       oidpsv(j)=one/(one+dpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -5077,7 +4436,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 !---------ACdipAmp input in Tesla*meter converted to KeV/c
 !---------ejfv(j) should be in MeV/c --> ACdipAmp/ejfv(j) is in mrad
-!hr03     acdipamp=ed(ix)*clight*1.0d-3
           acdipamp=(ed(ix)*clight)*1.0d-3                                !hr03
 !---------Qd input in tune units
           qd=ek(ix)
@@ -5089,33 +4447,23 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           do j=1,napx
 +if .not.tilt
               if(nramp1.gt.nac) then
-!hr03           yv(xory,j)=yv(xory,j)+acdipamp*                         &
 +if crlibm
-!hr03           yv(xory,j)=yv(xory,j)+acdipamp*                         &
-!hr03&sin_rn(2d0*pi*qd*nac+acphase)*nac/dble(nramp1)/ejfv(j)
                 yv(xory,j)=yv(xory,j)+(((acdipamp*                      &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))*                         &!hr03
      &dble(nac))/dble(nramp1))/ejfv(j)                                   !hr03
 +ei
 +if .not.crlibm
-!hr03           yv(xory,j)=yv(xory,j)+acdipamp*                         &
-!hr03&sin(2d0*pi*qd*nac+acphase)*nac/dble(nramp1)/ejfv(j)
                 yv(xory,j)=yv(xory,j)+(((acdipamp*                      &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))*                            &!hr03
      &dble(nac))/dble(nramp1))/ejfv(j)                                   !hr03
 +ei
               endif
               if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
-!hr03           yv(xory,j)=yv(xory,j)+acdipamp*                         &
 +if crlibm
-!hr03           yv(xory,j)=yv(xory,j)+acdipamp*                         &
-!hr03&sin_rn(2d0*pi*qd*nac+acphase)/ejfv(j)
                 yv(xory,j)=yv(xory,j)+(acdipamp*                        &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))/ejfv(j)                   !hr03
 +ei
 +if .not.crlibm
-!hr03           yv(xory,j)=yv(xory,j)+acdipamp*                         &
-!hr03&sin(2d0*pi*qd*nac+acphase)/ejfv(j)
                 yv(xory,j)=yv(xory,j)+(acdipamp*                        &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))/ejfv(j)                      !hr03
 +ei
@@ -5123,21 +4471,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               if(nac.ge.(nramp1+nplato).and.(nramp2+nramp1+nplato).gt.  &
      &nac)then
 +if crlibm
-!hr03         yv(xory,j)=yv(xory,j)+acdipamp*                           &
-!hr03&sin_rn(2d0*pi*qd*nac+acphase)*                                    &
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               yv(xory,j)=yv(xory,j)+((acdipamp*                         &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))*                         &!hr03
      &((-1d0*dble(nac-nramp1-nramp2-nplato))/dble(nramp2)))/ejfv(j)      !hr03
 +ei
 +if .not.crlibm
-!hr03         yv(xory,j)=yv(xory,j)+acdipamp*sin(2d0*pi*qd*nac+acphase)*&
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               yv(xory,j)=yv(xory,j)+((acdipamp*                         &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))*                            &!hr03
      &((-1d0*dble(nac-nramp1-nramp2-nplato))/dble(nramp2)))/ejfv(j)      !hr03
 +ei
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               endif
 +ei
 +if tilt
@@ -5149,61 +4491,41 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         acdipamp1=-acdipamp*tilts(i)
       endif
               if(nramp1.gt.nac) then
-!hr03           yv(1,j)=yv(1,j)+acdipamp1*                              &
 +if crlibm
-!hr03           yv(1,j)=yv(1,j)+acdipamp1*                              &
-!hr03&sin_rn(2d0*pi*qd*nac+acphase)*nac/dble(nramp1)/ejfv(j)
                 yv(1,j)=yv(1,j)+(((acdipamp1*                           &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))*                         &!hr03
      &dble(nac))/dble(nramp1))/ejfv(j)                                   !hr03
 +ei
 +if .not.crlibm
-!hr03           yv(1,j)=yv(1,j)+acdipamp1*                              &
-!hr03&sin(2d0*pi*qd*nac+acphase)*nac/dble(nramp1)/ejfv(j)
                 yv(1,j)=yv(1,j)+(((acdipamp1*                           &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))*                            &!hr03
      &dble(nac))/dble(nramp1))/ejfv(j)                                   !hr03
 +ei
-!hr03           yv(2,j)=yv(2,j)+acdipamp2*                              &
 +if crlibm
-!hr03           yv(2,j)=yv(2,j)+acdipamp2*                              &
-!hr03&sin_rn(2d0*pi*qd*nac+acphase)*nac/dble(nramp1)/ejfv(j)
                 yv(2,j)=yv(2,j)+(((acdipamp2*                           &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))*                         &!hr03
      &dble(nac))/dble(nramp1))/ejfv(j)                                   !hr03
 +ei
 +if .not.crlibm
-!hr03           yv(2,j)=yv(2,j)+acdipamp2*                              &
-!hr03&sin(2d0*pi*qd*nac+acphase)*nac/dble(nramp1)/ejfv(j)
                 yv(2,j)=yv(2,j)+(((acdipamp2*                           &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))*                            &!hr03
      &dble(nac))/dble(nramp1))/ejfv(j)                                   !hr03
 +ei
               endif
               if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
-!hr03           yv(1,j)=yv(1,j)+acdipamp1*                              &
 +if crlibm
-!hr03           yv(1,j)=yv(1,j)+acdipamp1*                              &
-!hr03&sin_rn(2d0*pi*qd*nac+acphase)/ejfv(j)
                 yv(1,j)=yv(1,j)+(acdipamp1*                             &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))/ejfv(j)                   !hr03
 +ei
 +if .not.crlibm
-!hr03           yv(1,j)=yv(1,j)+acdipamp1*                              &
-!hr03&sin(2d0*pi*qd*nac+acphase)/ejfv(j)
                 yv(1,j)=yv(1,j)+(acdipamp1*                             &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))/ejfv(j)                      !hr03
 +ei
-!hr03           yv(2,j)=yv(2,j)+acdipamp2*                              &
 +if crlibm
-!hr03           yv(2,j)=yv(2,j)+acdipamp2*                              &
-!hr03&sin_rn(2d0*pi*qd*nac+acphase)/ejfv(j)
                 yv(2,j)=yv(2,j)+(acdipamp2*                             &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))/ejfv(j)                   !hr03
 +ei
 +if .not.crlibm
-!hr03           yv(2,j)=yv(2,j)+acdipamp2*                              &
-!hr03&sin(2d0*pi*qd*nac+acphase)/ejfv(j)
                 yv(2,j)=yv(2,j)+(acdipamp2*                             &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))/ejfv(j)                      !hr03
 +ei
@@ -5211,35 +4533,25 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               if(nac.ge.(nramp1+nplato).and.(nramp2+nramp1+nplato).gt.  &
      &nac)then
 +if crlibm
-!hr03         yv(1,j)=yv(1,j)+acdipamp1*sin_rn(2d0*pi*qd*nac+acphase)*  &
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               yv(1,j)=yv(1,j)+((acdipamp1*                              &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))*                         &!hr03
      &((-1d0*dble(nac-nramp1-nramp2-nplato))/dble(nramp2)))/ejfv(j)      !hr03
 +ei
 +if .not.crlibm
-!hr03         yv(1,j)=yv(1,j)+acdipamp1*sin(2d0*pi*qd*nac+acphase)*     &
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               yv(1,j)=yv(1,j)+((acdipamp1*                              &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))*                            &!hr03
      &((-1d0*dble(nac-nramp1-nramp2-nplato))/dble(nramp2)))/ejfv(j)      !hr03
 +ei
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
 +if crlibm
-!hr03         yv(2,j)=yv(2,j)+acdipamp2*sin_rn(2d0*pi*qd*nac+acphase)*  &
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               yv(2,j)=yv(2,j)+((acdipamp2*                              &!hr03
      &sin_rn(((2d0*pi)*qd)*dble(nac)+acphase))*                         &!hr03
      &((-1d0*dble(nac-nramp1-nramp2-nplato))/dble(nramp2)))/ejfv(j)      !hr03
 +ei
 +if .not.crlibm
-!hr03         yv(2,j)=yv(2,j)+acdipamp2*sin(2d0*pi*qd*nac+acphase)*     &
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               yv(2,j)=yv(2,j)+((acdipamp2*                              &!hr03
      &sin(((2d0*pi)*qd)*dble(nac)+acphase))*                            &!hr03
      &((-1d0*dble(nac-nramp1-nramp2-nplato))/dble(nramp2)))/ejfv(j)      !hr03
 +ei
-!hr03&(-(nac-nramp1-nramp2-nplato)*1d0/dble(nramp2))/ejfv(j)
               endif
 +ei
       enddo
@@ -5248,10 +4560,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if .not.tilt
           call detune(5,ekk,ep,beta,dtu,dtup,dfac)
           ekko=ekk
-!hr08     cxzyr=cxzr*cxzr-cxzi*cxzi
           cxzyr=cxzr**2-cxzi**2                                          !hr08
           cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr03     ekk=36*ekko*cxzyr
           ekk=(36d0*ekko)*cxzyr                                          !hr03
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5260,7 +4570,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=126*ekko*cxzyr
           ekk=(126d0*ekko)*cxzyr                                         !hr03
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5269,12 +4578,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=84*ekko*cxzyr
           ekk=(84d0*ekko)*cxzyr                                          !hr03
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +if tilt
-!hr08     tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
           tiltck=tiltc(k)**2-tilts(k)**2                                 !hr08
           tiltsk=two*tiltc(k)*tilts(k)
           tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
@@ -5306,7 +4613,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           call detune(5,ekk,ep,beta,dtu,dtup,dfac)
           cxzyr=cxzr*cxzr-cxzi*cxzi
           cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr03     ekk=36*ekko*(tiltck8*cxzyr+tiltsk8*cxzyi)
           ekk=(36d0*ekko)*(tiltck8*cxzyr+tiltsk8*cxzyi)                  !hr03
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5315,7 +4621,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=126*ekko*(tiltck6*cxzyr+tiltsk6*cxzyi)
           ekk=(126d0*ekko)*(tiltck6*cxzyr+tiltsk6*cxzyi)                 !hr03
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5324,17 +4629,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=84*ekko*(tiltck4*cxzyr+tiltsk4*cxzyi)
           ekk=(84d0*ekko)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr03
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +cd kispa10v
 +if .not.tilt
           ekko=ekk
-!hr08     cxzyr=cxzr*cxzr-cxzi*cxzi
           cxzyr=cxzr**2-cxzi**2                                          !hr08
           cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr03     ekk=36*ekko*cxzyi
           ekk=(36d0*ekko)*cxzyi                                          !hr03
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5343,7 +4645,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=126*ekko*cxzyi
           ekk=(126d0*ekko)*cxzyi                                         !hr03
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5352,12 +4653,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=84*ekko*cxzyi
           ekk=(84d0*ekko)*cxzyi                                          !hr03
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +if tilt
-!hr08     tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
           tiltck=tiltc(k)**2-tilts(k)**2                                 !hr08
           tiltsk=two*tiltc(k)*tilts(k)
           tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
@@ -5385,12 +4684,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           tiltsk10=tiltck*tilts(k)+tiltsk*tiltc(k)
           tiltck10=tiltckuk
           ekko=ekk
-!hr03     ekk=-ekko*tiltsk10
           ekk=(-1d0*ekko)*tiltsk10                                       !hr03
           call detune(5,ekk,ep,beta,dtu,dtup,dfac)
           cxzyr=cxzr*cxzr-cxzi*cxzi
           cxzyi=cxzr*cxzi+cxzi*cxzr
-!hr03     ekk=36*ekko*(tiltck8*cxzyi-tiltsk8*cxzyr)
           ekk=(36d0*ekko)*(tiltck8*cxzyi-tiltsk8*cxzyr)                  !hr03
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5399,7 +4696,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=126*ekko*(tiltck6*cxzyi-tiltsk6*cxzyr)
           ekk=(126d0*ekko)*(tiltck6*cxzyi-tiltsk6*cxzyr)                 !hr03
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -5408,7 +4704,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-!hr03     ekk=84*ekko*(tiltck4*cxzyi-tiltsk4*cxzyr)
           ekk=(84d0*ekko)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr03
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
@@ -5422,7 +4717,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           ix=ic(i)
           if(ix.gt.nblo) then
             ix=ix-nblo
-!hr03       if(kz(ix).eq.20.and.parbe(ix,2).eq.0) then
             if(kz(ix).eq.20.and.parbe(ix,2).eq.0d0) then                 !hr03
 !--round beam
               if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
@@ -5464,7 +4758,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !end: beam-beam element
 +cd beams21
 !--beam-beam element
-!hr08   if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.0) then
         if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.0d0) then         !hr08
           strack(i)=crad*ptnfac(ix)
           if(abs(strack(i)).le.pieni) then
@@ -5497,10 +4790,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           endif
           goto 290
 !--Hirata's 6D beam-beam kick
-!hr03   else if(kzz.eq.20.and.parbe(ix,2).gt.0) then
         else if(kzz.eq.20.and.parbe(ix,2).gt.0d0) then                   !hr03
           ktrack(i)=44
-!hr03     parbe(ix,4)=-crad*ptnfac(ix)*half*c1m6
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr03
           if(ibeco.eq.1) then
             track6d(1,1)=ed(ix)*c1m3
@@ -5575,7 +4866,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beamcof
 *FOX  CRKVEBF=X(1) ;
 *FOX  CIKVEBF=X(2) ;
-!hr03       startco=dare(x(1))-clobeam(1,imbb(i))+ed(ix)
             startco=(dare(x(1))-clobeam(1,imbb(i)))+ed(ix)               !hr03
 +if debug
 !     if (umcalls.eq.8) then
@@ -5583,7 +4873,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     endif
 +ei
             call dapok(crkvebf,jj,startco)
-!hr03       startco=dare(x(2))-clobeam(2,imbb(i))+ek(ix)
             startco=(dare(x(2))-clobeam(2,imbb(i)))+ek(ix)
 +if debug
 !     if (umcalls.eq.8) then
@@ -5604,10 +4893,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               cik=ek(ix)
             else
               crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-!hr03         cik=-ed(ix)*bbcu(imbb(i),12)+ek(ix)*bbcu(imbb(i),11)
               cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
             endif
-!hr03       rho2b=crk*crk+cik*cik
             rho2b=crk**2+cik**2                                          !hr03
             if(rho2b.gt.pieni)
 +cd beamr2f
@@ -5615,11 +4902,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  TKBF=RHO2BF/(TWO*SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I))) ;
 +cd beamr2s
             if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
-!hr03       tkbf=rho2bf/(two*sigman(1,imbb(i))*sigman(1,imbb(i)))
             tkbf=rho2bf/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))      !hr03
 +cd beamr2of
             if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
-!hr03       tkb=rho2b/(two*sigman(1,imbb(i))*sigman(1,imbb(i)))
             tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))        !hr03
 +cd beamr3f
       if(ibbc.eq.0) then
@@ -5640,70 +4925,45 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX   Y(2)=Y(2)+CCCC/(ONE+DPDA) ;
       endif
 +cd beamr3s1
-!hr03         qu1=(crad*ptnfac(ix)*crkvebf/                             &
 +if crlibm
-!hr03         qu1=(crad*ptnfac(ix)*crkvebf/                             &
-!hr03&rho2bf*(one-exp_rn(-tkbf)))/(one+dpp)
               qu1=((((crad*ptnfac(ix))*crkvebf)/                        &!hr03
      &rho2bf)*(one-exp_rn(-1d0*tkbf)))/(one+dpp)                         !hr03
 +ei
 +if .not.crlibm
-!hr03         qu1=(crad*ptnfac(ix)*crkvebf/                             &
-!hr03&rho2bf*(one-exp(-tkbf)))/(one+dpp)
               qu1=((((crad*ptnfac(ix))*crkvebf)/                        &!hr03
      &rho2bf)*(one-exp(-1d0*tkbf)))/(one+dpp)                            !hr03
 +ei
-!hr03         qv1=(crad*ptnfac(ix)*cikvebf/                             &
 +if crlibm
-!hr03         qv1=(crad*ptnfac(ix)*cikvebf/                             &
-!hr03&rho2bf*(one-exp_rn(-tkbf)))/(one+dpp)
               qv1=((((crad*ptnfac(ix))*cikvebf)/                        &!hr03
      &rho2bf)*(one-exp_rn(-1d0*tkbf)))/(one+dpp)                         !hr03
 +ei
 +if .not.crlibm
-!hr03         qv1=(crad*ptnfac(ix)*cikvebf/                             &
-!hr03&rho2bf*(one-exp(-tkbf)))/(one+dpp)
               qv1=((((crad*ptnfac(ix))*cikvebf)/                        &!hr03
      &rho2bf)*(one-exp(-1d0*tkbf)))/(one+dpp)                            !hr03
 +ei
 +cd beamr3s2
-!hr03         qu=(qu1-(crad*ptnfac(ix)*crkvebf/                         &
 +if crlibm
-!hr03         qu=(qu1-(crad*ptnfac(ix)*crkvebf/                         &
-!hr03&rho2bf*(one-exp_rn(-tkbf)))/(one+dpp))/crkve*half
               qu=((qu1-((((crad*ptnfac(ix))*crkvebf)/                   &!hr03
      &rho2bf)*(one-exp_rn(-1d0*tkbf)))/(one+dpp))/crkve)*half            !hr03
 +ei
 +if .not.crlibm
-!hr03         qu=(qu1-(crad*ptnfac(ix)*crkvebf/                         &
-!hr03&rho2bf*(one-exp(-tkbf)))/(one+dpp))/crkve*half
               qu=((qu1-((((crad*ptnfac(ix))*crkvebf)/                   &!hr03
      &rho2bf)*(one-exp(-1d0*tkbf)))/(one+dpp))/crkve)*half               !hr03
 +ei
-!hr03         qv=(qv1-(crad*ptnfac(ix)*cikvebf/                         &
 +if crlibm
-!hr03         qv=(qv1-(crad*ptnfac(ix)*cikvebf/                         &
-!hr03&rho2bf*(one-exp_rn(-tkbf)))/(one+dpp))/cikve*half
               qv=((qv1-((((crad*ptnfac(ix))*cikvebf)/                   &!hr03
      &rho2bf)*(one-exp_rn(-1d0*tkbf)))/(one+dpp))/cikve)*half            !hr03
 +ei
 +if .not.crlibm
-!hr03         qv=(qv1-(crad*ptnfac(ix)*cikvebf/                         &
-!hr03&rho2bf*(one-exp(-tkbf)))/(one+dpp))/cikve*half
               qv=((qv1-((((crad*ptnfac(ix))*cikvebf)/                   &!hr03
      &rho2bf)*(one-exp(-1d0*tkbf)))/(one+dpp))/cikve)*half               !hr03
 +ei
 +cd beamr3of
-!hr03       beamoff4=crad*ptnfac(ix)*crk/                               &
 +if crlibm
-!hr03       beamoff4=crad*ptnfac(ix)*crk/                               &
-!hr03&rho2b*(one-exp_rn(-tkb))
             beamoff4=(((crad*ptnfac(ix))*crk)/                          &!hr03
      &rho2b)*(one-exp_rn(-1d0*tkb))                                      !hr03
 +ei
 +if .not.crlibm
-!hr03       beamoff4=crad*ptnfac(ix)*crk/                               &
-!hr03&rho2b*(one-exp(-tkb))
             beamoff4=(((crad*ptnfac(ix))*crk)/                          &!hr03
      &rho2b)*(one-exp(-1d0*tkb))                                         !hr03
 +ei
@@ -5714,31 +4974,22 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !       call wda('beamoff4',beamoff4,1,0,0,0)
 !     endif
 +ei
-!hr03       beamoff5=crad*ptnfac(ix)*cik/                               &
 +if crlibm
-!hr03       beamoff5=crad*ptnfac(ix)*cik/                               &
-!hr03&rho2b*(one-exp_rn(-tkb))
             beamoff5=(((crad*ptnfac(ix))*cik)/                          &!hr03
      &rho2b)*(one-exp_rn(-1d0*tkb))                                      !hr03
 +ei
 +if .not.crlibm
-!hr03       beamoff5=crad*ptnfac(ix)*cik/                               &
-!hr03&rho2b*(one-exp(-tkb))
             beamoff5=(((crad*ptnfac(ix))*cik)/                          &!hr03
      &rho2b)*(one-exp(-1d0*tkb))                                         !hr03
 +ei
 +cd beam11s
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
-!hr08       r2bf=two*(sigman(1,imbb(i))*sigman(1,imbb(i))-              &
-!hr08&sigman(2,imbb(i))*sigman(2,imbb(i)))
             r2bf=two*(sigman(1,imbb(i))**2-                             &!hr08
      &sigman(2,imbb(i))**2)                                              !hr08
 +cd beam21s
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
-!hr08       r2bf=two*(sigman(2,imbb(i))*sigman(2,imbb(i))-              &
-!hr08&sigman(1,imbb(i))*sigman(1,imbb(i)))
             r2bf=two*(sigman(2,imbb(i))**2-                             &!hr08
      &sigman(1,imbb(i))**2)                                              !hr08
 +if debug
@@ -5749,20 +5000,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beam11of
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
-!hr08       r2b=two*(sigman(1,imbb(i))*sigman(1,imbb(i))-               &
-!hr08&sigman(2,imbb(i))*sigman(2,imbb(i)))
             r2b=two*(sigman(1,imbb(i))**2-                              &!hr08
      &sigman(2,imbb(i))**2)                                              !hr08
 +cd beam21of
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
-!hr08       r2b=two*(sigman(2,imbb(i))*sigman(2,imbb(i))-               &
-!hr08&sigman(1,imbb(i))*sigman(1,imbb(i)))
             r2b=two*(sigman(2,imbb(i))**2-                              &!hr08
      &sigman(1,imbb(i))**2)                                              !hr08
 +cd beama1s
             rbf=sqrt(r2bf)
-!hr03       rkbf=crad*ptnfac(ix)*pisqrt/rbf
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
 +if debug
 !     if (umcalls.eq.8) then
@@ -5771,7 +5017,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd beama1of
             rb=sqrt(r2b)
-!hr03       rkb=crad*ptnfac(ix)*pisqrt/rb
             rkb=((crad*ptnfac(ix))*pisqrt)/rb                            !hr03
 +cd beama2f
 *FOX  XRBF=CRKVEBF/RBF ;
@@ -5791,7 +5036,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               cik=ek(ix)
             else
               crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-!hr03         cik=-ed(ix)*bbcu(imbb(i),12)+ek(ix)*bbcu(imbb(i),11)
               cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
             endif
             xrb=abs(crk)/rb
@@ -5852,24 +5096,16 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beama3s
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
-!hr03       tkbf=(crkvebf*crkvebf/(sigman(1,imbb(i))*sigman(1,imbb(i)))+&
-!hr03&cikvebf*cikvebf/(sigman(2,imbb(i))*sigman(2,imbb(i))))*half
             tkbf=(crkvebf**2/sigman(1,imbb(i))**2+                      &!hr03
      &cikvebf**2/sigman(2,imbb(i))**2)*half                              !hr03
-!hr03       xbbf=sigman(2,imbb(i))/sigman(1,imbb(i))*xrbf
             xbbf=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrbf              !hr03
-!hr03       zbbf=sigman(1,imbb(i))/sigman(2,imbb(i))*zrbf
             zbbf=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrbf              !hr03
 +cd beama3of
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
-!hr03       tkb=(crk*crk/(sigman(1,imbb(i))*sigman(1,imbb(i)))+         &
-!hr03&cik*cik/(sigman(2,imbb(i))*sigman(2,imbb(i))))*half
             tkb=(crk**2/sigman(1,imbb(i))**2+                           &!hr03
      &cik**2/sigman(2,imbb(i))**2)*half                                  !hr03
-!hr03       xbb=sigman(2,imbb(i))/sigman(1,imbb(i))*xrb
             xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb                !hr03
-!hr03       zbb=sigman(1,imbb(i))/sigman(2,imbb(i))*zrb
             zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb                !hr03
 +cd beam13f
             call errff(xbbf,zbbf,cbxbf,cbzbf)
@@ -5935,58 +5171,38 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       endif
 +cd beama4s1
 +if crlibm
-!hr03         qu1=(rkbf*(crzbf-exp_rn(-tkbf)*cbzbf)*
-!hr03&sign(one,crkvebf))/(one+dpp)
               qu1=((rkbf*(crzbf-exp_rn(-1d0*tkbf)*cbzbf))*               !hr03
      &sign(one,crkvebf))/(one+dpp)                                       !hr03
 +ei
 +if .not.crlibm
-!hr03         qu1=(rkbf*(crzbf-exp(-tkbf)*cbzbf)*                       &
-!hr03&sign(one,crkvebf))/(one+dpp)
               qu1=((rkbf*(crzbf-exp(-1d0*tkbf)*cbzbf))*                 &!hr03
      &sign(one,crkvebf))/(one+dpp)                                       !hr03
 +ei
-!hr03&sign(one,crkvebf))/(one+dpp)
 +if crlibm
-!hr03         qv1=(rkbf*(crxbf-exp_rn(-tkbf)*cbxbf)*
-!hr03&sign(one,cikvebf))/(one+dpp)
               qv1=((rkbf*(crxbf-exp_rn(-1d0*tkbf)*cbxbf))*               !hr03
      &sign(one,cikvebf))/(one+dpp)                                       !hr03
 +ei
 +if .not.crlibm
-!hr03         qv1=(rkbf*(crxbf-exp(-tkbf)*cbxbf)*                       &
-!hr03&sign(one,cikvebf))/(one+dpp)
               qv1=((rkbf*(crxbf-exp(-1d0*tkbf)*cbxbf))*                 &!hr03
      &sign(one,cikvebf))/(one+dpp)                                       !hr03
 +ei
-!hr03&sign(one,cikvebf))/(one+dpp)
 +cd beama4s2
 +if crlibm
-!hr03         qu=(qu1-(rkbf*(crzbf-exp_rn(-tkbf)*cbzbf)*
-!hr03&sign(one,crkvebf))/(one+dpp))/crkve*half
               qu=((qu1-((rkbf*(crzbf-exp_rn(-1d0*tkbf)*cbzbf))*         &!hr03
      &sign(one,crkvebf))/(one+dpp))/crkve)*half                          !hr03
 +ei
 +if .not.crlibm
-!hr03         qu=(qu1-(rkbf*(crzbf-exp(-tkbf)*cbzbf)*                   &
-!hr03&sign(one,crkvebf))/(one+dpp))/crkve*half
               qu=((qu1-((rkbf*(crzbf-exp(-1d0*tkbf)*cbzbf))*            &!hr03
      &sign(one,crkvebf))/(one+dpp))/crkve)*half                          !hr03
 +ei
-!hr03&sign(one,crkvebf))/(one+dpp))/crkve*half
 +if crlibm
-!hr03         qv=(qv1-(rkbf*(crxbf-exp_rn(-tkbf)*cbxbf)*
-!hr03&sign(one,cikvebf))/(one+dpp))/cikve*half
               qv=((qv1-((rkbf*(crxbf-exp_rn(-1d0*tkbf)*cbxbf))*          !hr03
      &sign(one,cikvebf))/(one+dpp))/cikve)*half                          !hr03
 +ei
 +if .not.crlibm
-!hr03         qv=(qv1-(rkbf*(crxbf-exp(-tkbf)*cbxbf)*                   &
-!hr03&sign(one,cikvebf))/(one+dpp))/cikve*half
               qv=((qv1-((rkbf*(crxbf-exp(-1d0*tkbf)*cbxbf))*             !hr03 &
      &sign(one,cikvebf))/(one+dpp))/cikve)*half                          !hr03
 +ei
-!hr03&sign(one,cikvebf))/(one+dpp))/cikve*half
 +cd beama4of
 +if debug
 !     call wda('4ofrkb',rkb,0,0,0,0)
@@ -6004,14 +5220,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     write(*,*) '4ofexp',-exp_rn(-1d0*tkb)
 +ei
 +if crlibm
-!hr03         beamoff4=rkb*(crzb-exp_rn(-tkb)*cbzb)*
-!hr03&sign(one,crk)
               beamoff4=(rkb*(crzb-exp_rn(-1d0*tkb)*cbzb))*              &!hr03
      &sign(one,crk)                                                      !hr03
 +ei
 +if .not.crlibm
-!hr03         beamoff4=rkb*(crzb-exp(-tkb)*cbzb)*                       &
-!hr03&sign(one,crk)
               beamoff4=(rkb*(crzb-exp(-1d0*tkb)*cbzb))*                 &!hr03
      &sign(one,crk)                                                      !hr03
 +ei
@@ -6025,36 +5237,22 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !       read(222)
 !     endif
 +ei
-!hr03&sign(one,crk)
 +if crlibm
-!hr03         beamoff5=rkb*(crxb-exp_rn(-tkb)*cbxb)*
-!hr03&sign(one,cik)
               beamoff5=(rkb*(crxb-exp_rn(-1d0*tkb)*cbxb))*              &!hr03
      &sign(one,cik)                                                      !hr03
 +ei
 +if .not.crlibm
-!hr03         beamoff5=rkb*(crxb-exp(-tkb)*cbxb)*                       &
-!hr03&sign(one,cik)
               beamoff5=(rkb*(crxb-exp(-1d0*tkb)*cbxb))*                 &!hr03
      &sign(one,cik)                                                      !hr03
 +ei
-!hr03&sign(one,cik)
 +cd beamco
               if(ibbc.eq.0) then
-!hr03           crkveb(j)=xv(1,j)-clobeam(1,imbb(i))+ed(ix)
                 crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+ed(ix)            !hr03
-!hr03           cikveb(j)=xv(2,j)-clobeam(2,imbb(i))+ek(ix)
                 cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+ek(ix)            !hr03
               else
-!hr03           crkveb(j)=                                              &
-!hr03&(xv(1,j)-clobeam(1,imbb(i))+ed(ix))*bbcu(imbb(i),11)+             &
-!hr03&(xv(2,j)-clobeam(2,imbb(i))+ek(ix))*bbcu(imbb(i),12)
                 crkveb(j)=                                              &!hr03
      &((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),11)+           &!hr03
      &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),12)             !hr03
-!hr03           cikveb(j)=                                              &
-!hr03&-(xv(1,j)-clobeam(1,imbb(i))+ed(ix))*bbcu(imbb(i),12)+            &
-!hr03&(xv(2,j)-clobeam(2,imbb(i))+ek(ix))*bbcu(imbb(i),11)
                 cikveb(j)=                                              &!hr03
      &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),11)            &!hr03
      &-((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),12)            !hr03
@@ -6066,129 +5264,82 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               else
                 crkveb(j)=ed(ix)*bbcu(imbb(i),11)+                      &
      &ek(ix)*bbcu(imbb(i),12)
-!hr03           cikveb(j)=-ed(ix)*bbcu(imbb(i),12)+                     &
-!hr03&ek(ix)*bbcu(imbb(i),11)
                 cikveb(j)=ek(ix)*bbcu(imbb(i),11)-                      &!hr03
      &ed(ix)*bbcu(imbb(i),12)                                            !hr03
               endif
 +cd beamr1
-!hr08       rho2b(j)=crkveb(j)*crkveb(j)+cikveb(j)*cikveb(j)
             rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
             if(rho2b(j).le.pieni)                                       &
 +cd beamr2
             tkb(j)=rho2b(j)/(two*sigman2(1,imbb(i)))
 +cd beamr3
             if(ibbc.eq.0) then
-!hr03         yv(1,j)=yv(1,j)+oidpsv(j)*(strack(i)*crkveb(j)/rho2b(j)*  &
 +if crlibm
-!hr03         yv(1,j)=yv(1,j)+oidpsv(j)*(strack(i)*crkveb(j)/rho2b(j)*  &
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(4,imbb(i)))
           yv(1,j)=yv(1,j)+oidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
      &(one-exp_rn(-1d0*tkb(j)))-beamoff(4,imbb(i)))                      !hr03
 +ei
 +if .not.crlibm
-!hr03         yv(1,j)=yv(1,j)+oidpsv(j)*(strack(i)*crkveb(j)/rho2b(j)*  &
-!hr03&(one-exp(-tkb(j)))-beamoff(4,imbb(i)))
           yv(1,j)=yv(1,j)+oidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
      &(one-exp(-1d0*tkb(j)))-beamoff(4,imbb(i)))                         !hr03
 +ei
-!hr03         yv(2,j)=yv(2,j)+oidpsv(j)*(strack(i)*cikveb(j)/rho2b(j)*  &
 +if crlibm
-!hr03         yv(2,j)=yv(2,j)+oidpsv(j)*(strack(i)*cikveb(j)/rho2b(j)*  &
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(5,imbb(i)))
           yv(2,j)=yv(2,j)+oidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
      &(one-exp_rn(-1d0*tkb(j)))-beamoff(5,imbb(i)))                      !hr03
 +ei
 +if .not.crlibm
-!hr03         yv(2,j)=yv(2,j)+oidpsv(j)*(strack(i)*cikveb(j)/rho2b(j)*  &
-!hr03&(one-exp(-tkb(j)))-beamoff(5,imbb(i)))
           yv(2,j)=yv(2,j)+oidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
      &(one-exp(-1d0*tkb(j)))-beamoff(5,imbb(i)))                         !hr03
 +ei
             else
-!hr03         cccc=(strack(i)*crkveb(j)/rho2b(j)*                       &
 +if crlibm
-!hr03         cccc=(strack(i)*crkveb(j)/rho2b(j)*                       &
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-       &
-!hr03&(strack(i)*cikveb(j)/rho2b(j)*                                    &
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_rn(-1d0*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_rn(-1d0*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)     !hr03
 +ei
 +if .not.crlibm
-!hr03         cccc=(strack(i)*crkveb(j)/rho2b(j)*                       &
-!hr03&(one-exp(-tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-          &
-!hr03&(strack(i)*cikveb(j)/rho2b(j)*                                    &
-!hr03&(one-exp(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp(-1d0*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-      &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp(-1d0*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)        !hr03
 +ei
-!hr03&(strack(i)*cikveb(j)/rho2b(j)*                                    &
 !+if crlibm
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)
 !+ei
 !+if .not.crlibm
-!hr03&(one-exp(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)
 !+ei
               yv(1,j)=yv(1,j)+oidpsv(j)*cccc
-!hr03         cccc=(strack(i)*crkveb(j)/rho2b(j)*                       &
 +if crlibm
-!hr03         cccc=(strack(i)*crkveb(j)/rho2b(j)*                       &
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+       &
-!hr03&(strack(i)*cikveb(j)/rho2b(j)*                                    &
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_rn(-1d0*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_rn(-1d0*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)     !hr03
 +ei
 +if .not.crlibm
-!hr03         cccc=(strack(i)*crkveb(j)/rho2b(j)*                       &!hr03
-!hr03&(one-exp(-tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+          &!hr03
-!hr03&(strack(i)*cikveb(j)/rho2b(j)*                                    &!hr03
-!hr03&(one-exp(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)            !hr03
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp(-1d0*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+      &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp(-1d0*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)        !hr03
 +ei
-!hr03&(strack(i)*cikveb(j)/rho2b(j)*                                    &
 !+if crlibm
-!hr03&(one-exp_rn(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)
 !+ei
 !+if .not.crlibm
-!hr03&(one-exp(-tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)
 !+ei
               yv(2,j)=yv(2,j)+oidpsv(j)*cccc
             endif
 +cd beamr3o
-!hr03           beamoff(4,imbb(i))=strack(i)*crkveb(j)/rho2b(j)*        &
 +if crlibm
-!hr03           beamoff(4,imbb(i))=strack(i)*crkveb(j)/rho2b(j)*        &
-!hr03&(one-exp_rn(-tkb(j)))
                 beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*    &!hr03
      &(one-exp_rn(-1d0*tkb(j)))                                          !hr03
 +ei
 +if .not.crlibm
-!hr03           beamoff(4,imbb(i))=strack(i)*crkveb(j)/rho2b(j)*        &
-!hr03&(one-exp(-tkb(j)))
                 beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*    &!hr03
      &(one-exp(-1d0*tkb(j)))                                             !hr03
 +ei
-!hr03           beamoff(5,imbb(i))=strack(i)*cikveb(j)/rho2b(j)*        &
 +if crlibm
-!hr03           beamoff(5,imbb(i))=strack(i)*cikveb(j)/rho2b(j)*        &
-!hr03&(one-exp_rn(-tkb(j)))
                 beamoff(5,imbb(i))=((strack(i)*cikveb(j))/rho2b(j))*    &!hr03
      &(one-exp_rn(-1d0*tkb(j)))                                          !hr03
 +ei
 +if .not.crlibm
-!hr03           beamoff(5,imbb(i))=strack(i)*cikveb(j)/rho2b(j)*        &
-!hr03&(one-exp(-tkb(j)))
                 beamoff(5,imbb(i))=((strack(i)*cikveb(j))/rho2b(j))*    &!hr03
      &(one-exp(-1d0*tkb(j)))                                             !hr03
 +ei
@@ -6200,7 +5351,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               r2b(j)=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
 +cd beama1
               rb(j)=sqrt(r2b(j))
-!hr03         rkb(j)=strack(i)*pisqrt/rb(j)
               rkb(j)=(strack(i)*pisqrt)/rb(j)                            !hr03
 +cd beama2
               xrb(j)=abs(crkveb(j))/rb(j)
@@ -6210,8 +5360,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beam22
               call errf(zrb(j),xrb(j),crzb(j),crxb(j))
 +cd beama3
-!hr03         tkb(j)=(crkveb(j)*crkveb(j)/sigman2(1,imbb(i))+           &
-!hr03&cikveb(j)*cikveb(j)/sigman2(2,imbb(i)))*half
               tkb(j)=(crkveb(j)**2/sigman2(1,imbb(i))+                  &!hr03
      &cikveb(j)**2/sigman2(2,imbb(i)))*half                              !hr03
               xbb(j)=sigmanq(2,imbb(i))*xrb(j)
@@ -6223,9 +5371,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beama4
               if(ibbc.eq.0) then
 +if crlibm
-!hr03           yv(1,j)=yv(1,j)+oidpsv(j)*(rkb(j)*(crzb(j)-             &
-!hr03&exp_rn(-1tkb(j))*                                                 &
-!hr03&cbzb(j))*sign(one,crkveb(j))-beamoff(4,imbb(i)))
                 yv(1,j)=yv(1,j)+oidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
      &exp_rn(-1d0*tkb(j))*                                              &!hr03
      &cbzb(j)))*sign(one,crkveb(j))-beamoff(4,imbb(i)))                  !hr03
@@ -6235,11 +5380,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &exp(-1d0*tkb(j))*                                                 &!hr03
      &cbzb(j)))*sign(one,crkveb(j))-beamoff(4,imbb(i)))                  !hr03
 +ei
-!hr03&cbzb(j))*sign(one,crkveb(j))-beamoff(4,imbb(i)))
 +if crlibm
-!hr03           yv(2,j)=yv(2,j)+oidpsv(j)*(rkb(j)*(crxb(j)-             &
-!hr03&exp_rn(-tkb(j))*
-!hr03&cbxb(j))*sign(one,cikveb(j))-beamoff(5,imbb(i)))
                 yv(2,j)=yv(2,j)+oidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
      &exp_rn(-1d0*tkb(j))*                                              &!hr03
      &cbxb(j)))*sign(one,cikveb(j))-beamoff(5,imbb(i)))                  !hr03
@@ -6249,101 +5390,64 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &exp(-1d0*tkb(j))*                                                 &!hr03
      &cbxb(j)))*sign(one,cikveb(j))-beamoff(5,imbb(i)))                  !hr03
 +ei
-!hr03     &cbxb(j))*sign(one,cikveb(j))-beamoff(5,imbb(i)))
               else
 +if crlibm
-!hr03           cccc=(rkb(j)*(crzb(j)-exp_rn(-tkb(j))*cbzb(j))*         &
-!hr03&sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
-!hr03&bbcu(imbb(i),11)-(rkb(j)*(crxb(j)-exp_rn(-*tkb(j))*cbxb(j))*      &
-!hr03&sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)
                 cccc=((rkb(j)*(crzb(j)-exp_rn(-1d0*tkb(j))*cbzb(j)))*   &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),11)-((rkb(j)*(crxb(j)-exp_rn(-1d0*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)           !hr03
 +ei
 +if .not.crlibm
-!hr03           cccc=(rkb(j)*(crzb(j)-exp(-tkb(j))*cbzb(j))*            &
-!hr03&sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
-!hr03&bbcu(imbb(i),11)-(rkb(j)*(crxb(j)-exp(-*tkb(j))*cbxb(j))*         &
-!hr03&sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)
                 cccc=((rkb(j)*(crzb(j)-exp(-1d0*tkb(j))*cbzb(j)))*      &
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
      &bbcu(imbb(i),11)-((rkb(j)*(crxb(j)-exp(-1d0*tkb(j))*cbxb(j)))*    &
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)           
 +ei
-!hr03&sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
 +if crlibm
-!hr03&bbcu(imbb(i),11)-(rkb(j)*(crxb(j)-exp_rn(-tkb(j))*cbxb(j))*       &
 +ei
 +if .not.crlibm
-!hr03&bbcu(imbb(i),11)-(rkb(j)*(crxb(j)-exp(-tkb(j))*cbxb(j))*          &
 +ei
-!hr03&sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)
                 yv(1,j)=yv(1,j)+oidpsv(j)*cccc
 +if crlibm
-!hr03           cccc=(rkb(j)*(crzb(j)-exp_rn(-tkb(j))*cbzb(j))*         &
-!hr03&sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
-!hr03&bbcu(imbb(i),12)+(rkb(j)*(crxb(j)-exp_rn(-tkb(j))*cbxb(j))*       &
-!hr03&sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)
                 cccc=((rkb(j)*(crzb(j)-exp_rn(-1d0*tkb(j))*cbzb(j)))*   &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),12)+((rkb(j)*(crxb(j)-exp_rn(-1d0*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)           !hr03
 +ei
 +if .not.crlibm
-!hr03           cccc=(rkb(j)*(crzb(j)-exp(-tkb(j))*cbzb(j))*            &
-!hr03&sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
-!hr03&bbcu(imbb(i),12)+(rkb(j)*(crxb(j)-exp(-tkb(j))*cbxb(j))*          &
-!hr03&sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)
                 cccc=((rkb(j)*(crzb(j)-exp(-1d0*tkb(j))*cbzb(j)))*      &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),12)+((rkb(j)*(crxb(j)-exp(-1d0*tkb(j))*cbxb(j)))*    &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)           !hr03
 +ei
-!hr03&sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
 !+if crlibm
-!hr03&bbcu(imbb(i),12)+(rkb(j)*(crxb(j)-exp_rn(-tkb(j))*cbxb(j))*       &
 !+ei
 !+if .not.crlibm
-!hr03&bbcu(imbb(i),12)+(rkb(j)*(crxb(j)-exp(-tkb(j))*cbxb(j))*          &
 !+ei
-!hr03&sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)
                 yv(2,j)=yv(2,j)+oidpsv(j)*cccc
               endif
             enddo
 +cd beama4o
 +if crlibm
-!hr03         beamoff(4,imbb(i))=rkb(j)*(crzb(j)-exp_rn(-tkb(j))*       &
-!hr03&cbzb(j))*
-!hr03&sign(one,crkveb(j))                                                
               beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_rn(-1d0*tkb(j))*  &!hr03
      &cbzb(j)))*                                                        &!hr03
      &sign(one,crkveb(j))                                                !hr03
 +ei
 +if .not.crlibm
-!hr03         beamoff(4,imbb(i))=rkb(j)*(crzb(j)-exp(-tkb(j))*cbzb(j))* &
-!hr03&sign(one,crkveb(j))
               beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp(-1d0*tkb(j))*     &!hr03
      &cbzb(j)))*                                                        &!hr03
      &sign(one,crkveb(j))                                                !hr03
 +ei
-!hr03&sign(one,crkveb(j))
 +if crlibm
-!hr03         beamoff(5,imbb(i))=rkb(j)*(crxb(j)-exp_rn(-tkb(j))*       &
-!hr03&cbxb(j))*
-!hr03&sign(one,cikveb(j))
               beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_rn(-1d0*tkb(j))*  &!hr03
      &cbxb(j)))*                                                        &!hr03
      &sign(one,cikveb(j))                                                !hr03
 +ei
 +if .not.crlibm
-!hr03         beamoff(5,imbb(i))=rkb(j)*(crxb(j)-exp(-tkb(j))*cbxb(j))* &
-!hr03&sign(one,cikveb(j))
               beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp(-1d0*tkb(j))*     &!hr03
      &cbxb(j)))*                                                        &!hr03
      &sign(one,cikveb(j))                                                !hr03
 +ei
-!hr03&sign(one,cikveb(j))
             enddo
 +cd beamwzf1
             enddo
@@ -6358,10 +5462,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-!hr03         track6d(1,j)=(xv(1,j)+ed(ix)-clobeam(1,imbb(i)))*c1m3
               track6d(1,j)=((xv(1,j)+ed(ix))-clobeam(1,imbb(i)))*c1m3    !hr03
               track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-!hr03         track6d(3,j)=(xv(2,j)+ek(ix)-clobeam(2,imbb(i)))*c1m3
               track6d(3,j)=((xv(2,j)+ek(ix))-clobeam(2,imbb(i)))*c1m3    !hr03
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
@@ -6370,30 +5472,23 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp, &
      &ibbc)
             do j=1,napx
-!hr03         xv(1,j)=track6d(1,j)*c1e3+clobeam(1,imbb(i))-             &
               xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-           &!hr03
      &beamoff(1,imbb(i))
-!hr03         xv(2,j)=track6d(3,j)*c1e3+clobeam(2,imbb(i))-             &
               xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-           &!hr03
      &beamoff(2,imbb(i))
-!hr03         dpsv(j)=track6d(6,j)+clobeam(6,imbb(i))-beamoff(6,imbb(i))
               dpsv(j)=(track6d(6,j)+clobeam(6,imbb(i)))-                &!hr03
      &beamoff(6,imbb(i))                                                 !hr03
               oidpsv(j)=one/(one+dpsv(j))
-!hr03         yv(1,j)=(track6d(2,j)*c1e3+clobeam(4,imbb(i))-            &
               yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-          &!hr03
      &beamoff(4,imbb(i)))*oidpsv(j)
-!hr03         yv(2,j)=(track6d(4,j)*c1e3+clobeam(5,imbb(i))-            &
               yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-          &!hr03
      &beamoff(5,imbb(i)))*oidpsv(j)
               ejfv(j)=dpsv(j)*e0f+e0f
-!hr03         ejv(j)=sqrt(ejfv(j)*ejfv(j)+pma*pma)
               ejv(j)=sqrt(ejfv(j)**2+pma**2)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
               if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
             enddo
 +cd beam6dfi
-!hr08     parbe(ix,4)=-crad*ptnfac(ix)*half*c1m6
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr08
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
@@ -6544,26 +5639,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd mults01
 +if .not.tilt
-!hr03                       y(j,1)=y(j,1)-(dki(ix,1)/dki(ix,3)          &
-!hr03&*xl+dps(j)*c1e3)* dki(ix,1)/(one                                  &
-!hr03&+dps(j))
                             y(j,1)=y(j,1)-(((dki(ix,1)/dki(ix,3))       &!hr03
      &*xl+dps(j)*c1e3)* dki(ix,1))/(one                                 &!hr03
      &+dps(j))                                                           !hr03
 +ei
 +if tilt
-!hr03                       y(j,1)=y(j,1)-(dki(ix,1)/dki(ix,3)          &
-!hr03&*xl+dps(j)*c1e3)* dki(ix,1)*tiltc(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&+c1e3*dki(ix,1)/(one+dps(j))*(one-tiltc(i))
                             y(j,1)=(y(j,1)-((((dki(ix,1)/dki(ix,3))     &!hr03
      &*xl+dps(j)*c1e3)* dki(ix,1))*tiltc(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
      &+((c1e3*dki(ix,1))/(one+dps(j)))*(one-tiltc(i))                    !hr03
-!hr03                       y(j,2)=y(j,2)-(dki(ix,1)/dki(ix,3)          &
-!hr03&*xl+dps(j)*c1e3)* dki(ix,1)*tilts(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&+c1e3*dki(ix,1)/(one+dps(j))*tilts(i)
                             y(j,2)=(y(j,2)-((((dki(ix,1)/dki(ix,3))     &!hr03
      &*xl+dps(j)*c1e3)* dki(ix,1))*tilts(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
@@ -6571,49 +5655,30 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd mults02
 +if .not.tilt
-!hr03                       y(j,1)=y(j,1)-dki(ix,1)*dps(j)*c1e3/(one+dps&
                         y(j,1)=y(j,1)-((dki(ix,1)*dps(j))*c1e3)/(one+dps&!hr03
      &(j))
 +ei
 +if tilt
-!hr03                       y(j,1)=y(j,1)-dki(ix,1)*dps(j)*c1e3*        &
-!hr03&tiltc(i)/(one+dps(j))                                             &
-!hr03&+c1e3*dki(ix,1)/(one+dps(j))*(one-tiltc(i))
                             y(j,1)=(y(j,1)-(((dki(ix,1)*dps(j))*c1e3)*  &!hr03
      &tiltc(i))/(one+dps(j)))                                           &!hr03
      &+((c1e3*dki(ix,1))/(one+dps(j)))*(one-tiltc(i))                    !hr03
-!hr03                       y(j,2)=y(j,2)-dki(ix,1)*dps(j)*c1e3*        &
-!hr03&tilts(i)/(one+dps(j))                                             &
-!hr03&+c1e3*dki(ix,1)/(one+dps(j))*tilts(i)
                             y(j,2)=(y(j,2)-(((dki(ix,1)*dps(j))*c1e3)*  &!hr03
      &tilts(i))/(one+dps(j)))                                           &!hr03
      &+((c1e3*dki(ix,1))/(one+dps(j)))*tilts(i)                          !hr03
 +ei
 +cd mults03
-!hr03                       sigm(j)=sigm(j)+rvf(j)*dki(ix,1)*xl
                             sigm(j)=sigm(j)+(rvf(j)*dki(ix,1))*xl        !hr03
 +cd mults04
 +if .not.tilt
-!hr03                       y(j,2)=y(j,2)-(dki(ix,2)/dki(ix,3)          &
-!hr03&*zl-dps(j)*c1e3)* dki(ix,2)/(one                                  &
-!hr03&+dps(j))
                             y(j,2)=y(j,2)-(((dki(ix,2)/dki(ix,3))       &!hr03
      &*zl-dps(j)*c1e3)* dki(ix,2))/(one                                 &!hr03
      &+dps(j))                                                           !hr03
 +ei
 +if tilt
-!hr03                       y(j,1)=y(j,1)+(dki(ix,2)/dki(ix,3)          &
-!hr03&*zl-dps(j)*c1e3)* dki(ix,2)*tilts(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&+c1e3*dki(ix,2)/(one+dps(j))*tilts(i)
                             y(j,1)=(y(j,1)+((((dki(ix,2)/dki(ix,3))     &!hr03
      &*zl-dps(j)*c1e3)* dki(ix,2))*tilts(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
      &+((c1e3*dki(ix,2))/(one+dps(j)))*tilts(i)                          !hr03
-!hr03                       y(j,2)=y(j,2)-(dki(ix,2)/dki(ix,3)          &
-!hr03&*zl-dps(j)*c1e3)* dki(ix,2)*tiltc(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&-c1e3*dki(ix,2)/(one+dps(j))*(one-tiltc(i))
                             y(j,2)=(y(j,2)-((((dki(ix,2)/dki(ix,3))     &!hr03
      &*zl-dps(j)*c1e3)* dki(ix,2))*tiltc(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
@@ -6621,33 +5686,22 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd mults05
 +if .not.tilt
-!hr08                       y(j,2)=y(j,2)+dki(ix,2)*dps(j)*c1e3/(one+dps&
-!hr08&(j))
                         y(j,2)=y(j,2)+((dki(ix,2)*dps(j))*c1e3)/(one+dps&!hr08
      &(j))                                                               !hr08
 +ei
 +if tilt
-!hr08                       y(j,1)=y(j,1)-dki(ix,2)*dps(j)*c1e3*        &
-!hr08&tilts(i)/(one+dps(j))                                             &
-!hr08&+c1e3*dki(ix,2)/(one+dps(j))*tilts(i)
                             y(j,1)=(y(j,1)-(((dki(ix,2)*dps(j))*c1e3)*  &!hr08
      &tilts(i))/(one+dps(j)))                                           &!hr08
      &+((c1e3*dki(ix,2))/(one+dps(j)))*tilts(i)                          !hr08
-!hr08                       y(j,2)=y(j,2)+dki(ix,2)*dps(j)*c1e3*        &
-!hr08&tiltc(i)/(one+dps(j))                                             &
-!hr08&-c1e3*dki(ix,2)/(one+dps(j))*(one-tiltc(i))
                             y(j,2)=(y(j,2)+(((dki(ix,2)*dps(j))*c1e3)*  &!hr08
      &tiltc(i))/(one+dps(j)))                                           &!hr08
      &-((c1e3*dki(ix,2))/(one+dps(j)))*(one-tiltc(i))                    !hr08
 +ei
 +cd mults06
-!hr03                       sigm(j)=sigm(j)-rvf(j)*dki(ix,2)*zl
                             sigm(j)=sigm(j)-(rvf(j)*dki(ix,2))*zl        !hr03
 +cd mults07
                           odps1=one/(one+dps(j))
-!hr03                     yv1j=bbi(i,1)+bbi(i,2)*xl+aai(i,2)*zl
                           yv1j=(bbi(i,1)+bbi(i,2)*xl)+aai(i,2)*zl        !hr03
-!hr03                     yv2j=aai(i,1)-bbi(i,2)*zl+aai(i,2)*xl
                           yv2j=(aai(i,1)-bbi(i,2)*zl)+aai(i,2)*xl        !hr03
                           crkve=xl
                           cikve=zl
@@ -6655,9 +5709,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                             crkveuk=crkve*xl-cikve*zl
                             cikve=crkve*zl+cikve*xl
                             crkve=crkveuk
-!hr03                       yv1j=yv1j+bbi(i,k)*crkve+aai(i,k)*cikve
                             yv1j=(yv1j+bbi(i,k)*crkve)+aai(i,k)*cikve    !hr03
-!hr03                       yv2j=yv2j-bbi(i,k)*cikve+aai(i,k)*crkve
                             yv2j=(yv2j-bbi(i,k)*cikve)+aai(i,k)*crkve    !hr03
 +cd mults09
 +if .not.tilt
@@ -6683,26 +5735,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd multb01
 +if .not.tilt
-!hr03                       y(j,1)=y(j,1)+(dki(ix,1)/dki(ix,3)          &
-!hr03&*xl+dps(j)*c1e3)* dki(ix,1)/(one                                  &
-!hr03&+dps(j))
                             y(j,1)=y(j,1)+(((dki(ix,1)/dki(ix,3))       &!hr03
      &*xl+dps(j)*c1e3)* dki(ix,1))/(one                                 &!hr03
      &+dps(j))                                                           !hr03
 +ei
 +if tilt
-!hr03                       y(j,1)=y(j,1)+(dki(ix,1)/dki(ix,3)          &
-!hr03&*xl+dps(j)*c1e3)* dki(ix,1)*tiltc(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&-c1e3*dki(ix,1)/(one+dps(j))*(one-tiltc(i))
                             y(j,1)=(y(j,1)+(((dki(ix,1)/dki(ix,3))      &!hr03
      &*xl+dps(j)*c1e3)* dki(ix,1))*tiltc(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
      &-((c1e3*dki(ix,1))/(one+dps(j)))*(one-tiltc(i))                    !hr03
-!hr03                       y(j,2)=y(j,2)+(dki(ix,1)/dki(ix,3)          &
-!hr03&*xl+dps(j)*c1e3)* dki(ix,1)*tilts(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&-c1e3*dki(ix,1)/(one+dps(j))*tilts(i)
                             y(j,2)=(y(j,2)+(((dki(ix,1)/dki(ix,3))      &!hr03
      &*xl+dps(j)*c1e3)* dki(ix,1))*tilts(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
@@ -6710,48 +5751,30 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd multb02
 +if .not.tilt
-!hr03                       y(j,1)=y(j,1)+dki(ix,1)*dps(j)*c1e3/(one+dps&
                         y(j,1)=y(j,1)+((dki(ix,1)*dps(j))*c1e3)/(one+dps&!hr03
      &(j))
 +ei
 +if tilt
-!hr03                       y(j,1)=y(j,1)+dki(ix,1)*dps(j)*c1e3*        &
-!hr03&tiltc(i)/(one+dps(j))                                             &
-!hr03&-c1e3*dki(ix,1)/(one+dps(j))*(one-tiltc(i))
                             y(j,1)=(y(j,1)+(((dki(ix,1)*dps(j))*c1e3)*  &!hr03
      &tiltc(i))/(one+dps(j)))                                           &!hr03
      &-((c1e3*dki(ix,1))/(one+dps(j)))*(one-tiltc(i))                    !hr03
-!hr03                       y(j,2)=y(j,2)+dki(ix,1)*dps(j)*c1e3*        &
-!hr03&tilts(i)/(one+dps(j))                                             &
-!hr03&-c1e3*dki(ix,1)/(one+dps(j))*tilts(i)
                             y(j,2)=(y(j,2)+(((dki(ix,1)*dps(j))*c1e3)*  &!hr03
      &tilts(i))/(one+dps(j)))                                           &!hr03
      &-((c1e3*dki(ix,1))/(one+dps(j)))*tilts(i)                          !hr03
 +ei
 +cd multb03
-!hr03                       sigm(j)=sigm(j)-rvf(j)*dki(ix,1)*xl
                             sigm(j)=sigm(j)-(rvf(j)*dki(ix,1))*xl        !hr03
 +cd multb04
 +if .not.tilt
-!hr03                       y(j,2)=y(j,2)+(dki(ix,2)/dki(ix,3)          &
-!hr03&*zl-dps(j)*c1e3)* dki(ix,2)/(one                                  &
                             y(j,2)=y(j,2)+(((dki(ix,2)/dki(ix,3))       &!hr03
      &*zl-dps(j)*c1e3)* dki(ix,2))/(one                                 &!hr03
      &+dps(j))
 +ei
 +if tilt
-!hr03                       y(j,1)=y(j,1)-(dki(ix,2)/dki(ix,3)          &
-!hr03&*zl-dps(j)*c1e3)* dki(ix,2)*tilts(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&-c1e3*dki(ix,2)/(one+dps(j))*tilts(i)
                             y(j,1)=(y(j,1)-((((dki(ix,2)/dki(ix,3))     &!hr03
      &*zl-dps(j)*c1e3)* dki(ix,2))*tilts(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
      &-((c1e3*dki(ix,2))/(one+dps(j)))*tilts(i)                          !hr03
-!hr03                       y(j,2)=y(j,2)+(dki(ix,2)/dki(ix,3)          &
-!hr03&*zl-dps(j)*c1e3)* dki(ix,2)*tiltc(i)/(one                         &
-!hr03&+dps(j))                                                          &
-!hr03&+c1e3*dki(ix,2)/(one+dps(j))*(one-tiltc(i))
                             y(j,2)=(y(j,2)+((((dki(ix,2)/dki(ix,3))     &!hr03
      &*zl-dps(j)*c1e3)* dki(ix,2))*tiltc(i))/(one                       &!hr03
      &+dps(j)))                                                         &!hr03
@@ -6759,26 +5782,18 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd multb05
 +if .not.tilt
-!hr03                       y(j,2)=y(j,2)-dki(ix,2)*dps(j)*c1e3/(one+dps&
                         y(j,2)=y(j,2)-((dki(ix,2)*dps(j))*c1e3)/(one+dps&!hr03
      &(j))
 +ei
 +if tilt
-!hr03                       y(j,1)=y(j,1)+dki(ix,2)*dps(j)*c1e3*        &
-!hr03&tilts(i)/(one+dps(j))                                             &
-!hr03&-c1e3*dki(ix,2)/(one+dps(j))*tilts(i)
                             y(j,1)=(y(j,1)+(((dki(ix,2)*dps(j))*c1e3)*  &!hr03
      &tilts(i))/(one+dps(j)))                                           &!hr03
      &-((c1e3*dki(ix,2))/(one+dps(j)))*tilts(i)                          !hr03
-!hr03                       y(j,2)=y(j,2)-dki(ix,2)*dps(j)*c1e3*        &
-!hr03&tiltc(i)/(one+dps(j))                                             &
-!hr03&+c1e3*dki(ix,2)/(one+dps(j))*(one-tiltc(i))
                             y(j,2)=(y(j,2)-(((dki(ix,2)*dps(j))*c1e3)*  &!hr03
      &tiltc(i))/(one+dps(j)))                                           &!hr03
      &+((c1e3*dki(ix,2))/(one+dps(j)))*(one-tiltc(i))                    !hr03
 +ei                                    
 +cd multb06
-!hr03                       sigm(j)=sigm(j)+rvf(j)*dki(ix,2)*zl
                             sigm(j)=sigm(j)+(rvf(j)*dki(ix,2))*zl        !hr03
 +cd multb09
 +if .not.tilt
@@ -6804,20 +5819,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd mul4v01
 +if .not.tilt
-!hr03       yv(1,j)=yv(1,j)-(strack(i)*xlvj*oidpsv(j)                   &
             yv(1,j)=yv(1,j)-((strack(i)*xlvj)*oidpsv(j)                 &!hr03
      &+dpsv1(j))*dki(ix,1)
 +ei
 +if tilt
-!hr03       yv(1,j)=yv(1,j)-(strack(i)*xlvj*oidpsv(j)                   &
-!hr03&+dpsv1(j))*dki(ix,1)*tiltc(i)                                     &
-!hr03&+c1e3*dki(ix,1)*oidpsv(j)*(one-tiltc(i))
             yv(1,j)=(yv(1,j)-(((strack(i)*xlvj)*oidpsv(j)               &!hr03
      &+dpsv1(j))*dki(ix,1))*tiltc(i))                                   &!hr03
      &+((c1e3*dki(ix,1))*oidpsv(j))*(one-tiltc(i))                       !hr03
-!hr03       yv(2,j)=yv(2,j)-(strack(i)*xlvj*oidpsv(j)                   &
-!hr03&+dpsv1(j))*dki(ix,1)*tilts(i)                                     &
-!hr03&+c1e3*dki(ix,1)*oidpsv(j)*tilts(i)
             yv(2,j)=(yv(2,j)-(((strack(i)*xlvj)*oidpsv(j)               &!hr03
      &+dpsv1(j))*dki(ix,1))*tilts(i))                                   &!hr03
      &+((c1e3*dki(ix,1))*oidpsv(j))*tilts(i)                             !hr03
@@ -6827,31 +5835,20 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             yv(1,j)=yv(1,j)-strack(i)*dpsv1(j)
 +ei
 +if tilt
-!hr03       yv(1,j)=yv(1,j)-strackc(i)*dpsv1(j)                         &
-!hr03&+c1e3*dki(ix,1)*oidpsv(j)*(one-tiltc(i))
             yv(1,j)=(yv(1,j)-strackc(i)*dpsv1(j))                       &!hr03
      &+((c1e3*dki(ix,1))*oidpsv(j))*(one-tiltc(i))                       !hr03
-!hr03       yv(2,j)=yv(2,j)-stracks(i)*dpsv1(j)                         &
-!hr03&+c1e3*dki(ix,1)*oidpsv(j)*tilts(i)
             yv(2,j)=(yv(2,j)-stracks(i)*dpsv1(j))                       &!hr03
      &+((c1e3*dki(ix,1))*oidpsv(j))*tilts(i)                             !hr03
 +ei
 +cd mul4v03
 +if .not.tilt
-!hr03       yv(2,j)=yv(2,j)-(strack(i)*zlvj* oidpsv(j)                  &
             yv(2,j)=yv(2,j)-((strack(i)*zlvj)* oidpsv(j)                &!hr03
      &-dpsv1(j))*dki(ix,2)
 +ei
 +if tilt
-!hr03       yv(1,j)=yv(1,j)+(strack(i)*zlvj*oidpsv(j)                   &
-!hr03&-dpsv1(j))*dki(ix,2)*tilts(i)                                     &
-!hr03&+c1e3*dki(ix,2)*oidpsv(j)*tilts(i)
             yv(1,j)=(yv(1,j)+(((strack(i)*zlvj)*oidpsv(j)               &!hr03
      &-dpsv1(j))*dki(ix,2))*tilts(i))                                   &!hr03
      &+((c1e3*dki(ix,2))*oidpsv(j))*tilts(i)                             !hr03
-!hr03       yv(2,j)=yv(2,j)-(strack(i)*zlvj*oidpsv(j)                   &
-!hr03&-dpsv1(j))*dki(ix,2)*tiltc(i)                                     &
-!hr03&-c1e3*dki(ix,2)*oidpsv(j)*(one-tiltc(i))
             yv(2,j)=(yv(2,j)-(((strack(i)*zlvj)*oidpsv(j)               &!hr03
      &-dpsv1(j))*dki(ix,2))*tiltc(i))                                   &!hr03
      &-((c1e3*dki(ix,2))*oidpsv(j))*(one-tiltc(i))                       !hr03
@@ -6861,26 +5858,16 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             yv(2,j)=yv(2,j)+strack(i)*dpsv1(j)
 +ei
 +if tilt
-!hr03       yv(1,j)=yv(1,j)-stracks(i)*dpsv1(j)                         &
-!hr03&+c1e3*dki(ix,2)*oidpsv(j)*tilts(i)
             yv(1,j)=(yv(1,j)-stracks(i)*dpsv1(j))                       &!hr03
      &+((c1e3*dki(ix,2))*oidpsv(j))*tilts(i)                             !hr03
-!hr03       yv(2,j)=yv(2,j)+strackc(i)*dpsv1(j)                         &
-!hr03&-c1e3*dki(ix,2)*oidpsv(j)*(one-tiltc(i))
             yv(2,j)=(yv(2,j)+strackc(i)*dpsv1(j))                       &!hr03
      &-((c1e3*dki(ix,2))*oidpsv(j))*(one-tiltc(i))                       !hr03
 +ei
 +cd mul4v05
 +if time
-!hr03         yv1j=(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(1-expt))            &
-!hr03&+(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(1-expt))*xlvj                   &
-!hr03&+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(1-expt))*zlvj
               yv1j=(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(1d0-expt))          &!hr03
      &+(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(1d0-expt))*xlvj                 &!hr03
      &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(1d0-expt))*zlvj                  !hr03
-!hr03         yv2j=(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(1-expt))            &
-!hr03&-(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(1-expt))*zlvj                   &
-!hr03&+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(1-expt))*xlvj
               yv2j=(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(1d0-expt))          &!hr03
      &-(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(1d0-expt))*zlvj                 &!hr03
      &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(1d0-expt))*xlvj                  !hr03
@@ -6888,9 +5875,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               cikve=zlvj
 +ei
 +if .not.time
-!hr03         yv1j=bbiv(1,1,i)+bbiv(2,1,i)*xlvj+aaiv(2,1,i)*zlvj
               yv1j=(bbiv(1,1,i)+bbiv(2,1,i)*xlvj)+aaiv(2,1,i)*zlvj       !hr03
-!hr03         yv2j=aaiv(1,1,i)-bbiv(2,1,i)*zlvj+aaiv(2,1,i)*xlvj
               yv2j=(aaiv(1,1,i)-bbiv(2,1,i)*zlvj)+aaiv(2,1,i)*xlvj       !hr03
               crkve=xlvj
               cikve=zlvj
@@ -6900,18 +5885,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                   crkveuk=crkve*xlvj-cikve*zlvj
                   cikve=crkve*zlvj+cikve*xlvj
                   crkve=crkveuk
-!hr03             yv1j=yv1j+(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(1-expt))   &
-!hr03&*crkve                                                            &
-!hr03&+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(1-expt))                        &
-!hr03&*cikve
                   yv1j=(yv1j+(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(1d0-expt))&!hr03
      &*crkve)                                                           &!hr03
      &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(1d0-expt))                      &!hr03
      &*cikve                                                             !hr03
-!hr03             yv2j=yv2j-(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(1-expt))   &
-!hr03&*cikve                                                            &
-!hr03&+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(1-expt))                        &
-!hr03&*crkve
                   yv2j=(yv2j-(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(1d0-expt))&!hr03
      &*cikve)                                                           &!hr03
      &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(1d0-expt))                      &!hr03
@@ -6921,9 +5898,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                   crkveuk=crkve*xlvj-cikve*zlvj
                   cikve=crkve*zlvj+cikve*xlvj
                   crkve=crkveuk
-!hr03             yv1j=yv1j+bbiv(k,1,i)*crkve+aaiv(k,1,i)*cikve
                   yv1j=(yv1j+bbiv(k,1,i)*crkve)+aaiv(k,1,i)*cikve        !hr03
-!hr03             yv2j=yv2j-bbiv(k,1,i)*cikve+aaiv(k,1,i)*crkve
                   yv2j=(yv2j-bbiv(k,1,i)*cikve)+aaiv(k,1,i)*crkve        !hr03
 +ei
 +cd mul4v07
@@ -6940,10 +5915,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if time
               yv(1,j)=yv(1,j)+(bbiv(1,1,i)*expt                         &
      &+bbiv35(1,1,i)*(1d0-expt))*oidpsv(j)                               !hr03
-!hr03&+bbiv35(1,1,i)*(1-expt))*oidpsv(j)
               yv(2,j)=yv(2,j)+(aaiv(1,1,i)                              &
      &+aaiv35(1,1,i)*(1d0-expt))*oidpsv(j)                               !hr03
-!hr03&+aaiv35(1,1,i)*(1-expt))*oidpsv(j)
 +ei
 +if .not.time
               yv(1,j)=yv(1,j)+bbiv(1,1,i)*oidpsv(j)
@@ -6952,14 +5925,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +if tilt
 +if time
-!hr03&+bbiv35(1,1,i)*(1-expt))-                                         &
-!hr03&tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(1-expt)))               &
               yv(1,j)=yv(1,j)+(tiltc(i)*(bbiv(1,1,i)*expt               &
      &+bbiv35(1,1,i)*(1d0-expt))-                                       &!hr03
      &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(1d0-expt)))             &!hr03
      &*oidpsv(j)
-!hr03&+aaiv35(1,1,i)*(1-expt))+                                         &
-!hr03&tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(1-expt)))               &
               yv(2,j)=yv(2,j)+(tiltc(i)*(aaiv(1,1,i)*expt               &
      &+aaiv35(1,1,i)*(1d0-expt))+                                       &!hr03
      &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(1d0-expt)))             &!hr03
@@ -6973,28 +5942,20 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +ei
 +cd mul6v01
-!hr03       sigmv(j)=sigmv(j)+rvv(j)*dki(ix,1)*xlvj
             sigmv(j)=sigmv(j)+(rvv(j)*dki(ix,1))*xlvj                    !hr03
 +cd mul6v02
-!hr03       sigmv(j)=sigmv(j)-rvv(j)*dki(ix,2)*zlvj
             sigmv(j)=sigmv(j)-(rvv(j)*dki(ix,2))*zlvj                    !hr03
 +cd multl01
 +if .not.tilt
-!hr03       qu=-dki(ix,1)/dki(ix,3)*dki(ix,1)/(one+dpp)
             qu=(((-1d0*dki(ix,1))/dki(ix,3))*dki(ix,1))/(one+dpp)        !hr03
-!hr03       dppi=c1e3*dki(ix,1)/(one+dpp)                              
             dppi=(c1e3*dki(ix,1))/(one+dpp)                              !hr03
-!hr03       t(1,2)=t(1,2)+qu*xl-dppi*dpp
             t(1,2)=(t(1,2)+qu*xl)-dppi*dpp                               !hr03
 +ei
 +if tilt
-!hr03       qu=-dki(ix,1)/dki(ix,3)*dki(ix,1)/(one+dpp)
             qu=(((-1d0*dki(ix,1))/dki(ix,3))*dki(ix,1))/(one+dpp)        !hr03
-!hr03       dppi=c1e3*dki(ix,1)/(one+dpp)
             dppi=(c1e3*dki(ix,1))/(one+dpp)                              !hr03
             t(1,2)=t(1,2)+(qu*xl-dppi*dpp)*tiltc(k)                     &
      &+dppi*(one-tiltc(k))
-!hr03       t(1,4)=t(1,4)+(qu*xl-dppi*dpp)*tilts(k)                     &
             t(1,4)=(t(1,4)+(qu*xl-dppi*dpp)*tilts(k))                   &!hr03
      &+dppi*tilts(k)
 +ei
@@ -7003,45 +5964,32 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               t(i,2)=t(i,2)+qu*t(i,1)
 +ei
 +if tilt
-!hr08         t(i,2)=t(i,2)+qu*t(i,1)*tiltc(k)
               t(i,2)=t(i,2)+(qu*t(i,1))*tiltc(k)                         !hr08
-!hr08         t(i,4)=t(i,4)+qu*t(i,3)*tilts(k)
               t(i,4)=t(i,4)+(qu*t(i,3))*tilts(k)                         !hr08
 +ei
 +cd multl03
 +if .not.tilt
-!hr03       dppi=c1e3*dki(ix,1)/(one+dpp)
             dppi=(c1e3*dki(ix,1))/(one+dpp)                              !hr03
             t(1,2)=t(1,2)-dppi*dpp
 +ei
 +if tilt
-!hr03       dppi=c1e3*dki(ix,1)/(one+dpp)
             dppi=(c1e3*dki(ix,1))/(one+dpp)                              !hr03
-!hr03       t(1,2)=t(1,2)-dppi*dpp*tiltc(k)                             &
-!hr03&+dppi*(one-tiltc(k))
             t(1,2)=(t(1,2)-(dppi*dpp)*tiltc(k))                         &!hr03
      &+dppi*(one-tiltc(k))
-!hr03       t(1,4)=t(1,4)-dppi*dpp*tilts(k)                             &
             t(1,4)=(t(1,4)-(dppi*dpp)*tilts(k))                         &!hr03
      &+dppi*tilts(k)
 +ei
 +cd multl04
 +if .not.tilt
-!hr03       qu=dki(ix,2)/dki(ix,3)*dki(ix,2)/(one+dpp)
             qu=((dki(ix,2)/dki(ix,3))*dki(ix,2))/(one+dpp)               !hr03
-!hr03       dppi=c1e3*dki(ix,2)/(one+dpp)
             dppi=(c1e3*dki(ix,2))/(one+dpp)                              !hr03
             t(1,4)=t(1,4)-qu*zl+dppi*dpp
 +ei
 +if tilt
-!hr03       qu=dki(ix,2)/dki(ix,3)*dki(ix,2)/(one+dpp)
             qu=((dki(ix,2)/dki(ix,3))*dki(ix,2))/(one+dpp)               !hr03
-!hr03       dppi=c1e3*dki(ix,2)/(one+dpp)
             dppi=(c1e3*dki(ix,2))/(one+dpp)                              !hr03
-!hr03       t(1,2)=t(1,2)+(qu*zl-dppi*dpp)*tilts(k)                     &
             t(1,2)=(t(1,2)+(qu*zl-dppi*dpp)*tilts(k))                   &!hr03
      &+dppi*tilts(k)
-!hr03       t(1,4)=t(1,4)+(-qu*zl+dppi*dpp)*tiltc(k)                    &
             t(1,4)=(t(1,4)+(dppi*dpp-qu*zl)*tiltc(k))                   &!hr03
      &-dppi*(one-tiltc(k))
 +ei
@@ -7050,55 +5998,42 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               t(i,4)=t(i,4)-qu*t(i,3)
 +ei
 +if tilt
-!hr03         t(i,2)=t(i,2)+qu*t(i,1)*tilts(k)
               t(i,2)=t(i,2)+(qu*t(i,1))*tilts(k)                         !hr03
-!hr03         t(i,4)=t(i,4)-qu*t(i,3)*tiltc(k)
               t(i,4)=t(i,4)-(qu*t(i,3))*tiltc(k)                         !hr03
 +ei
 +cd multl06
 +if .not.tilt
-!hr03       dppi=c1e3*dki(ix,2)/(one+dpp)
             dppi=(c1e3*dki(ix,2))/(one+dpp)                              !hr03
             t(1,4)=t(1,4)+dppi*dpp
 +ei
 +if tilt
-!hr03       dppi=c1e3*dki(ix,2)/(one+dpp)
             dppi=(c1e3*dki(ix,2))/(one+dpp)                              !hr03
-!hr03       t(1,2)=t(1,2)-dppi*dpp*tilts(k)                             &
             t(1,2)=(t(1,2)-(dppi*dpp)*tilts(k))                         &!hr03
      &+dppi*tilts(k)
-!hr03       t(1,4)=t(1,4)+dppi*dpp*tiltc(k)                             &
             t(1,4)=(t(1,4)+(dppi*dpp)*tiltc(k))                         &!hr03
      &-dppi*(one-tiltc(k))
 +ei
 +cd multl07a
           izu=izu+1
           aa(l)=ak0(im,l)+zfz(izu)*aka(im,l)
-!hr03     aa(l)=benkr*aa(l)/r0a
           aa(l)=(benkr*aa(l))/r0a                                        !hr03
           izu=izu+1
           bb(l)=bk0(im,l)+zfz(izu)*bka(im,l)
-!hr03     bb(l)=benkr*bb(l)/r0a
           bb(l)=(benkr*bb(l))/r0a                                        !hr03
           r0a=r0a*r0
 +cd multl07b
           qu=bb(2)
-!hr03     qv=-aa(2)
           qv=-1d0*aa(2)
           dyy1=bb(1)+bb(2)*crkve+aa(2)*cikve
           dyy2=aa(1)-bb(2)*cikve+aa(2)*crkve
 +cd multl07c
             l1=l-1
-!hr03       qu=qu+l1*(bb(l)*crkve+aa(l)*cikve)
             qu=qu+dble(l1)*(bb(l)*crkve+aa(l)*cikve)                     !hr03
-!hr03       qv=qv+l1*(bb(l)*cikve-aa(l)*crkve)
             qv=qv+dble(l1)*(bb(l)*cikve-aa(l)*crkve)                     !hr03
             crkveuk=crkve*xl-cikve*zl
             cikve=crkve*zl+cikve*xl
             crkve=crkveuk
-!hr03       dyy1=dyy1+bb(l)*crkve+aa(l)*cikve
             dyy1=(dyy1+bb(l)*crkve)+aa(l)*cikve                          !hr03
-!hr03       dyy2=dyy2-bb(l)*cikve+aa(l)*crkve
             dyy2=(dyy2-bb(l)*cikve)+aa(l)*crkve                          !hr03
 +cd multl07d
           qu=zero
@@ -7106,9 +6041,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           dyy1=bb(1)
           dyy2=aa(1)
 +cd multl07e
-!hr03   tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
         tiltck=tiltc(k)**2-tilts(k)**2                                   !hr03
-!hr03   tiltsk=two*tiltc(k)*tilts(k)
         tiltsk=(two*tiltc(k))*tilts(k)                                   !hr03
         qu1=tiltck*qu-tiltsk*qv
         qv=tiltck*qv+tiltsk*qu
@@ -7121,12 +6054,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             t(6,2)=t(6,2)-(qu*xl+dppi)/(one+dpp)
 +ei
 +if tilt
-!hr03       t(6,2)=t(6,2)-(qu*xl+dppi)/(one+dpp)*tiltc(k)               &
-!hr03&-dppi/(one+dpp)*(one-tiltc(k))
             t(6,2)=(t(6,2)-((qu*xl+dppi)/(one+dpp))*tiltc(k))           &!hr03
      &-(dppi/(one+dpp))*(one-tiltc(k))                                   !hr03
-!hr03       t(6,4)=t(6,4)-(qu*xl+dppi)/(one+dpp)*tilts(k)               &
-!hr03&-dppi/(one+dpp)*tilts(k)
             t(6,4)=(t(6,4)-((qu*xl+dppi)/(one+dpp))*tilts(k))           &!hr03
      &-(dppi/(one+dpp))*tilts(k)                                         !hr03
 +ei
@@ -7135,12 +6064,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             t(6,2)=t(6,2)-dppi/(one+dpp)
 +ei
 +if tilt
-!hr03       t(6,2)=t(6,2)-dppi/(one+dpp)*tiltc(k)                       &
-!hr03&-dppi/(one+dpp)*(one-tiltc(k))
             t(6,2)=(t(6,2)-(dppi/(one+dpp))*tiltc(k))                   &!hr03
      &-(dppi/(one+dpp))*(one-tiltc(k))                                   !hr03
-!hr03       t(6,4)=t(6,4)-dppi/(one+dpp)*tilts(k)                       &
-!hr03&-dppi/(one+dpp)*tilts(k)
             t(6,4)=(t(6,4)-(dppi/(one+dpp))*tilts(k))                   &!hr03
      &-(dppi/(one+dpp))*tilts(k)
 +ei
@@ -7149,12 +6074,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             t(6,4)=t(6,4)+(qu*zl+dppi)/(one+dpp)
 +ei
 +if tilt
-!hr03       t(6,2)=t(6,2)+(-qu*zl-dppi)/(one+dpp)*tilts(k)              &
-!hr03&-dppi/(one+dpp)*tilts(k)
             t(6,2)=(t(6,2)-((qu*zl+dppi)/(one+dpp))*tilts(k))           &!hr03
      &-(dppi/(one+dpp))*tilts(k)                                         !hr03
-!hr03       t(6,4)=t(6,4)+(qu*zl+dppi)/(one+dpp)*tiltc(k)               &
-!hr03&+dppi/(one+dpp)*(one-tiltc(k))
             t(6,4)=(t(6,4)+((qu*zl+dppi)/(one+dpp))*tiltc(k))           &!hr03
      &+(dppi/(one+dpp))*(one-tiltc(k))                                   !hr03
 +ei
@@ -7163,42 +6084,28 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             t(6,4)=t(6,4)+dppi/(one+dpp)
 +ei
 +if tilt
-!hr03       t(6,2)=t(6,2)-dppi/(one+dpp)*tilts(k)                       &
-!hr03&-dppi/(one+dpp)*tilts(k)
             t(6,2)=(t(6,2)-(dppi/(one+dpp))*tilts(k))                   &!hr03
      &-(dppi/(one+dpp))*tilts(k)                                         !hr03
-!hr03       t(6,4)=t(6,4)+dppi/(one+dpp)*tiltc(k)                       &
-!hr03&+dppi/(one+dpp)*(one-tiltc(k))
             t(6,4)=(t(6,4)+(dppi/(one+dpp))*tiltc(k))                   &!hr03
      &+(dppi/(one+dpp))*(one-tiltc(k))                                   !hr03
 +ei
 +cd multl12
 +if .not.tilt
-!hr03       if(iv.eq.2) ekk=bb(4)+4*(bb(5)*cr(2)+aa(5)*ci(2))+10*       &
-!hr03&(bb(6)*cr(3)+aa(6)*ci(3))+20*(bb(7)*cr(4)+aa(7)*ci(4))+35*        &
-!hr03&(bb(8)*cr(5)+aa(8)*ci(5))+56*(bb(9)*cr(6)+aa(9)*ci(6))+84*        &
-!hr03&(bb(10)*cr(7)+aa(10)*ci(7))
             if(iv.eq.2) ekk=(((((bb(4)+                                 &!hr03
      &4d0*(bb(5)*cr(2)+aa(5)*ci(2)))+10d0*                              &!hr03
      &(bb(6)*cr(3)+aa(6)*ci(3)))+20d0*(bb(7)*cr(4)+aa(7)*ci(4)))+35d0*  &!hr03
      &(bb(8)*cr(5)+aa(8)*ci(5)))+56d0*(bb(9)*cr(6)+aa(9)*ci(6)))+84d0*  &!hr03
      &(bb(10)*cr(7)+aa(10)*ci(7))                                        !hr03
-!hr03       if(iv.eq.3) ekk=bb(6)+6*(bb(7)*cr(2)+aa(7)*ci(2))+21*       &
-!hr03&(bb(8)*cr(3)+aa(8)*ci(3))+56*(bb(9)*cr(4)+aa(9)*ci(4))+126*       &
-!hr03&(bb(10)*cr(5)+aa(10)*ci(5))
            if(iv.eq.3) ekk=(((bb(6)+6d0*(bb(7)*cr(2)+aa(7)*ci(2)))+21d0*&!hr03
      &(bb(8)*cr(3)+aa(8)*ci(3)))+56d0*(bb(9)*cr(4)+aa(9)*ci(4)))+126d0* &!hr03
      &(bb(10)*cr(5)+aa(10)*ci(5))                                        !hr03
-!hr03       if(iv.eq.4) ekk=bb(8)+8*(bb(9)*cr(2)+aa(9)*ci(2))+36*       &
             if(iv.eq.4) ekk=(bb(8)+8d0*(bb(9)*cr(2)+aa(9)*ci(2)))+36d0* &!hr03
      &(bb(10)*cr(3)+aa(10)*ci(3))
             if(iv.eq.5) ekk=bb(10)
             call detune(iv,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +if tilt
-!hr03       tiltck=tiltc(k)*tiltc(k)-tilts(k)*tilts(k)
             tiltck=tiltc(k)**2-tilts(k)**2                               !hr03
-!hr03       tiltsk=two*tiltc(k)*tilts(k)
             tiltsk=(two*tiltc(k))*tilts(k)                               !hr03
             tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
             tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -7225,20 +6132,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             tiltsk10=tiltck*tilts(k)+tiltsk*tiltc(k)
             tiltck10=tiltckuk
             if(iv.eq.2) then
-!hr03         ekk= tiltck4* bb(4)                     +                 &
-!hr03&tiltsk4*(             -aa(4)       )+                             &
-!hr03&4  *tiltck4*(bb(5) *cr(2)+aa(5) *ci(2))+                          &
-!hr03&4  *tiltsk4*(bb(5) *ci(2)-aa(5) *cr(2))+                          &
-!hr03&10 *tiltck4*(bb(6) *cr(3)+aa(6) *ci(3))+                          &
-!hr03&10 *tiltsk4*(bb(6) *ci(3)-aa(6) *cr(3))+                          &
-!hr03&20 *tiltck4*(bb(7) *cr(4)+aa(7) *ci(4))+                          &
-!hr03&20 *tiltsk4*(bb(7) *ci(4)-aa(7) *cr(4))+                          &
-!hr03&35 *tiltck4*(bb(8) *cr(5)+aa(8) *ci(5))+                          &
-!hr03&35 *tiltsk4*(bb(8) *ci(5)-aa(8) *cr(5))+                          &
-!hr03&56 *tiltck4*(bb(9) *cr(6)+aa(9) *ci(6))+                          &
-!hr03&56 *tiltsk4*(bb(9) *ci(6)-aa(9) *cr(6))+                          &
-!hr03&84 *tiltck4*(bb(10)*cr(7)+aa(10)*ci(7))+                          &
-!hr03&84 *tiltsk4*(bb(10)*ci(7)-aa(10)*cr(7))
               ekk= ((((((((((((tiltck4* bb(4)                     -     &!hr03
      &tiltsk4*(             aa(4)       ))+                             &!hr03
      &4d0  *tiltck4*(bb(5) *cr(2)+aa(5) *ci(2)))+                       &!hr03
@@ -7250,22 +6143,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &35d0 *tiltck4*(bb(8) *cr(5)+aa(8) *ci(5)))+                       &!hr03
      &35d0 *tiltsk4*(bb(8) *ci(5)-aa(8) *cr(5)))+                       &!hr03
      &56d0 *tiltck4*(bb(9) *cr(6)+aa(9) *ci(6)))+                       &!hr03
-!hr03&56d0 *tiltsk4*(bb(9) *ci(6)-aa(9) *cr(6)))+                       &!hr03
      &84d0 *tiltck4*(bb(10)*cr(7)+aa(10)*ci(7)))+                       &!hr03
      &84d0 *tiltck4*(bb(10)*cr(7)+aa(10)*ci(7)))+                       &!hr03
      &84d0 *tiltsk4*(bb(10)*ci(7)-aa(10)*cr(7))
             endif
             if(iv.eq.3) then
-!hr03         ekk= tiltck6* bb(6)                     +                 &
-!hr03&tiltsk6*(            -aa(6)       )+                              &
-!hr03&6  *tiltck6*(bb(7) *cr(2)+aa(7) *ci(2))+                          &
-!hr03&6  *tiltsk6*(bb(7) *ci(2)-aa(7) *cr(2))+                          &
-!hr03&21 *tiltck6*(bb(8) *cr(3)+aa(8) *ci(3))+                          &
-!hr03&21 *tiltsk6*(bb(8) *ci(3)-aa(8) *cr(3))+                          &
-!hr03&56 *tiltck6*(bb(9) *cr(4)+aa(9) *ci(4))+                          &
-!hr03&56 *tiltsk6*(bb(9) *ci(4)-aa(9) *cr(4))+                          &
-!hr03&126*tiltck6*(bb(10)*cr(5)+aa(10)*ci(5))+                          &
-!hr03&126*tiltsk6*(bb(10)*ci(5)-aa(10)*cr(5))
               ekk= ((((((((tiltck6* bb(6)                     -         &!hr03
      &tiltsk6*(             aa(6)       ))+                             &!hr03
      &6d0  *tiltck6*(bb(7) *cr(2)+aa(7) *ci(2)))+                       &!hr03
@@ -7278,12 +6160,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &126d0*tiltsk6*(bb(10)*ci(5)-aa(10)*cr(5))
             endif
             if(iv.eq.4) then
-!hr03         ekk= tiltck8* bb(8)                     +                 &
-!hr03&tiltsk8*(            -aa(8)       )+                              &
-!hr03&8  *tiltck8*(bb(9) *cr(2)+aa(9) *ci(2))+                          &
-!hr03&8  *tiltsk8*(bb(9) *ci(2)-aa(9) *cr(2))+                          &
-!hr03&36 *tiltck8*(bb(10)*cr(3)+aa(10)*ci(3))+                          &
-!hr03&36 *tiltsk8*(bb(10)*ci(3)-aa(10)*cr(3))
               ekk= ((((tiltck8* bb(8)                     -             &!hr03
      &tiltsk8*(             aa(8)       ))+                             &!hr03
      &8d0  *tiltck8*(bb(9) *cr(2)+aa(9) *ci(2)))+                       &!hr03
@@ -7300,11 +6176,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           l1=l-1
           izu=izu+1
           aa(l)=ak0(im,l)+zfz(izu)*aka(im,l)
-!hr03     aa(l)=benkr*aa(l)/r0a
           aa(l)=(benkr*aa(l))/r0a                                        !hr03
           izu=izu+1
           bb(l)=bk0(im,l)+zfz(izu)*bka(im,l)
-!hr03     bb(l)=benkr*bb(l)/r0a
           bb(l)=(benkr*bb(l))/r0a                                        !hr03
           r0a=r0a*r0
           if(l.gt.2) then
@@ -7314,35 +6188,22 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             cr(l)=cxzyr
             ci(l)=cxzyi
           endif
-!hr03     dyy1=dyy1+bb(l)*cr(l)+aa(l)*ci(l)
           dyy1=(dyy1+bb(l)*cr(l))+aa(l)*ci(l)                            !hr03
-!hr03     dyy2=dyy2-bb(l)*ci(l)+aa(l)*cr(l)
           dyy2=(dyy2-bb(l)*ci(l))+aa(l)*cr(l)                            !hr03
           if(l.gt.1.and.ium.ne.1) then
-!hr03       qu=qu+l1*(bb(l)*cr(l1)+aa(l)*ci(l1))
             qu=qu+dble(l1)*(bb(l)*cr(l1)+aa(l)*ci(l1))                   !hr03
-!hr03       qv=qv+l1*(bb(l)*ci(l1)-aa(l)*cr(l1))
             qv=qv+dble(l1)*(bb(l)*ci(l1)-aa(l)*cr(l1))                   !hr03
           endif
 +cd multu01
 +if .not.tilt
-!hr03       qu=-dki(ix,1)/dki(ix,3)*dki(ix,1)/(one+dpp)
             qu=(((-1d0*dki(ix,1))/dki(ix,3))*dki(ix,1))/(one+dpp)        !hr03
-!hr03       y(1,1)=y(1,1)+qu*xl-dpp*c1e3*dki(ix,1)/(one+dpp)
             y(1,1)=(y(1,1)+qu*xl)-((dpp*c1e3)*dki(ix,1))/(one+dpp)       !hr03
 +ei
 +if tilt
-!hr03       qu=-dki(ix,1)/dki(ix,3)*dki(ix,1)/(one+dpp)
             qu=(((-1d0*dki(ix,1))/dki(ix,3))*dki(ix,1))/(one+dpp)        !hr03
-!hr03       y(1,1)=y(1,1)+(qu*xl-dpp*c1e3*dki(ix,1)                     &
-!hr03&/(one+dpp))*tiltc(k)                                              &
-!hr03&+c1e3*dki(ix,1)/(one+dpp)*(one-tiltc(k))
             y(1,1)=(y(1,1)+(qu*xl-((dpp*c1e3)*dki(ix,1))                &!hr03
      &/(one+dpp))*tiltc(k))                                             &!hr03
      &+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))                       !hr03
-!hr03       y(1,2)=y(1,2)+(qu*xl-dpp*c1e3*dki(ix,1)                     &
-!hr03&/(one+dpp))*tilts(k)                                              &
-!hr03&+c1e3*dki(ix,1)/(one+dpp)*tilts(k)
             y(1,2)=(y(1,2)+(qu*xl-((dpp*c1e3)*dki(ix,1))                &!hr03
      &/(one+dpp))*tilts(k))                                             &!hr03
      &+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)                             !hr03
@@ -7352,45 +6213,29 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               y(j,1)=y(j,1)+qu*x(j,1)
 +ei
 +if tilt
-!hr03         y(j,1)=y(j,1)+qu*x(j,1)*tiltc(k)
               y(j,1)=y(j,1)+(qu*x(j,1))*tiltc(k)                         !hr03
-!hr03         y(j,2)=y(j,2)+qu*x(j,2)*tilts(k)
               y(j,2)=y(j,2)+(qu*x(j,2))*tilts(k)                         !hr03
 +ei
 +cd multu03
 +if .not.tilt
-!hr03       y(1,1)=y(1,1)-dki(ix,1)*dpp/(one+dpp)*c1e3
             y(1,1)=y(1,1)-((dki(ix,1)*dpp)/(one+dpp))*c1e3               !hr03
 +ei
 +if tilt
-!hr03       y(1,1)=y(1,1)-dki(ix,1)*dpp/(one+dpp)*c1e3*tiltc(k)         &
-!hr03&+c1e3*dki(ix,1)/(one+dpp)*(one-tiltc(k))
             y(1,1)=(y(1,1)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tiltc(k)) &!hr03
      &+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))                       !hr03
-!hr03       y(1,2)=y(1,2)-dki(ix,1)*dpp/(one+dpp)*c1e3*tilts(k)         &
-!hr03&+c1e3*dki(ix,1)/(one+dpp)*tilts(k)
             y(1,2)=(y(1,2)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tilts(k)) &!hr03
      &+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)                             !hr03
 +ei
 +cd multu04
 +if .not.tilt
-!hr03       qu=dki(ix,2)/dki(ix,3)*dki(ix,2)/(one+dpp)
             qu=((dki(ix,2)/dki(ix,3))*dki(ix,2))/(one+dpp)               !hr03
-!hr03       y(1,2)=y(1,2)-qu*zl+dpp*c1e3*dki(ix,2)/(one+dpp)
             y(1,2)=(y(1,2)-qu*zl)+((dpp*c1e3)*dki(ix,2))/(one+dpp)       !hr03
 +ei
 +if tilt
-!hr03       qu=dki(ix,2)/dki(ix,3)*dki(ix,2)/(one+dpp)
             qu=((dki(ix,2)/dki(ix,3))*dki(ix,2))/(one+dpp)               !hr03
-!hr03       y(1,1)=y(1,1)+(qu*zl-dpp*c1e3*dki(ix,2)                     &
-!hr03&/(one+dpp))*tilts(k)                                              &
-!hr03&+c1e3*dki(ix,2)/(one+dpp)*tilts(k)
             y(1,1)=(y(1,1)+(qu*zl-((dpp*c1e3)*dki(ix,2))                &!hr03
      &/(one+dpp))*tilts(k))                                             &!hr03
      &+((c1e3*dki(ix,2))/(one+dpp))*tilts(k)                             !hr03
-!hr03       y(1,2)=y(1,2)+(-qu*zl+dpp*c1e3*dki(ix,2)                    &
-!hr03&/(one+dpp))*tiltc(k)                                              &
-!hr03&-c1e3*dki(ix,2)/(one+dpp)*(one-tiltc(k))
             y(1,2)=(y(1,2)+(((dpp*c1e3)*dki(ix,2))                      &!hr03
      &/(one+dpp)-qu*zl)*tiltc(k))                                       &!hr03
      &-((c1e3*dki(ix,2))/(one+dpp))*(one-tiltc(k))                       !hr03
@@ -7400,23 +6245,16 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
               y(j,2)=y(j,2)-qu*x(j,2)
 +ei
 +if tilt
-!hr03         y(j,1)=y(j,1)+qu*x(j,1)*tilts(k)
               y(j,1)=y(j,1)+(qu*x(j,1))*tilts(k)                         !hr03
-!hr03         y(j,2)=y(j,2)-qu*x(j,2)*tiltc(k)
               y(j,2)=y(j,2)-(qu*x(j,2))*tiltc(k)                         !hr03
 +ei
 +cd multu06
 +if .not.tilt
-!hr03       y(1,2)=y(1,2)+dki(ix,2)*dpp/(one+dpp)*c1e3
             y(1,2)=y(1,2)+((dki(ix,2)*dpp)/(one+dpp))*c1e3               !hr03
 +ei
 +if tilt
-!hr03       y(1,1)=y(1,1)-dki(ix,2)*dpp/(one+dpp)*c1e3*tilts(k)         &
-!hr03&+dki(ix,2)/(one+dpp)*c1e3*tilts(k)
             y(1,1)=(y(1,1)-(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tilts(k)) &!hr03
      &+((dki(ix,2)/(one+dpp))*c1e3)*tilts(k)                             !hr03
-!hr03       y(1,2)=y(1,2)+dki(ix,2)*dpp/(one+dpp)*c1e3*tiltc(k)         &
-!hr03&-dki(ix,2)/(one+dpp)*c1e3*(one-tiltc(k))
             y(1,2)=(y(1,2)+(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tiltc(k)) &!hr03
      &-((dki(ix,2)/(one+dpp))*c1e3)*(one-tiltc(k))                       !hr03
 +ei
@@ -7461,12 +6299,10 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                   yv(2,j)  = 1e3*myyp(j)+torbyp(1)
                   sigmv(j) = mys(j)
                   ejv(j)   = myp(j)
-!hr03             ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
                   ejfv(j)=sqrt(ejv(j)**2-pma**2)                         !hr03
                   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
                   dpsv(j)=(ejfv(j)-e0f)/e0f
                   oidpsv(j)=one/(one+dpsv(j))
-!hr03             dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
                   dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                      !hr03
 cc2008
                   namepart(j) = samplenumber*100 + j
@@ -7492,23 +6328,13 @@ cc2008
 !             backspace (99,iostat=ierro)
 !           endif
 +ei
-!hr03       x_temp=(xv(1,j)-torbx(i-1))*1e-3
             x_temp=(xv(1,j)-torbx(i-1))*1d-3                             !hr03
-!hr03       y_temp=(xv(2,j)-torby(i-1))*1e-3
             y_temp=(xv(2,j)-torby(i-1))*1d-3                             !hr03
-!hr03       xp_temp=(yv(1,j)-torbxp(i-1))*1e-3
             xp_temp=(yv(1,j)-torbxp(i-1))*1d-3                           !hr03
-!hr03       yp_temp=(yv(2,j)-torbyp(i-1))*1e-3
             yp_temp=(yv(2,j)-torbyp(i-1))*1d-3                           !hr03
-!hr03       twojx = tbetax(i-1)*(xp_temp**2)+                           &
-!hr03&               2d0*talphax(i-1)*x_temp*xp_temp+                   &
-!hr03&               ((1+talphax(i-1)**2)/tbetax(i-1))*(x_temp**2)
             twojx = (tbetax(i-1)*(xp_temp**2)+                          &!hr03
      &               ((2d0*talphax(i-1))*x_temp)*xp_temp)+              &!hr03
      &               ((1d0+talphax(i-1)**2)/tbetax(i-1))*(x_temp**2)     !hr03
-!hr03       twojy = tbetay(i-1)*(yp_temp**2)+                           &
-!hr03&               2d0*talphay(i-1)*y_temp*yp_temp+                   &
-!hr03&               ((1+talphay(i-1)**2)/tbetay(i-1))*(y_temp**2)
             twojy = (tbetay(i-1)*(yp_temp**2)+                          &!hr03
      &               ((2d0*talphay(i-1))*y_temp)*yp_temp)+              &!hr03
      &               ((1d0+talphay(i-1)**2)/tbetay(i-1))*(y_temp**2)     !hr03
@@ -7518,11 +6344,8 @@ cc2008
 +if debug
 !                 write(*,*) 'coucou'
 +ei
-!hr03             limit_twojx = 25d0*(2.5e-6/(e0/pma))
                   limit_twojx = 25d0*(2.5d-6/(e0/pma))                   !hr03
-!hr03             limit_twojy = 25d0*(2.5e-6/(e0/pma))
                   limit_twojy = 25d0*(2.5d-6/(e0/pma))                   !hr03
-!hr03             limit_twojr = 25d0*(2.5e-6/(e0/pma))
                   limit_twojr = 25d0*(2.5d-6/(e0/pma))                   !hr03
                endif
             endif
@@ -7748,32 +6571,18 @@ cc2008
                 puzve1=yv(1,j)
                 puxve2=xv(2,j)
                 puzve2=yv(2,j)
-!hr03           sigmv(j)=sigmv(j)+as(1,1,j,jx)+puxve1*(as(2,1,j,jx)+ as &
-!hr03&(4,1,j,jx)*puzve1+as(5,1,j,jx)*puxve1)+ puzve1*(as                &
-!hr03&(3,1,j,jx)+as(6,1,j,jx)*puzve1)                                   &
-!hr03&+as(1,2,j,jx)+puxve2*(as(2,2,j,jx)+ as                            &
-!hr03&(4,2,j,jx)*puzve2+as(5,2,j,jx)*puxve2)+ puzve2*(as                &
-!hr03&(3,2,j,jx)+as(6,2,j,jx)*puzve2)
          sigmv(j)=(((((sigmv(j)+as(1,1,j,jx))+puxve1*((as(2,1,j,jx)+ as &!hr03
      &(4,1,j,jx)*puzve1)+as(5,1,j,jx)*puxve1))+ puzve1*(as              &!hr03
      &(3,1,j,jx)+as(6,1,j,jx)*puzve1))                                  &!hr03
      &+as(1,2,j,jx))+puxve2*(as(2,2,j,jx)+ as                           &!hr03
      &(4,2,j,jx)*puzve2+as(5,2,j,jx)*puxve2))+ puzve2*(as               &!hr03
      &(3,2,j,jx)+as(6,2,j,jx)*puzve2)                                    !hr03
-!hr03           xv(1,j)=al(1,1,j,jx)*puxve1+ al(2,1,j,jx)*puzve1+idz1*al&
-!hr03&(5,1,j,jx)
         xv(1,j)=(al(1,1,j,jx)*puxve1+ al(2,1,j,jx)*puzve1)+dble(idz1)*al&!hr03
      &(5,1,j,jx)                                                         !hr03
-!hr03           xv(2,j)=al(1,2,j,jx)*puxve2+ al(2,2,j,jx)*puzve2+idz2*al&
-!hr03&(5,2,j,jx)
         xv(2,j)=(al(1,2,j,jx)*puxve2+ al(2,2,j,jx)*puzve2)+dble(idz2)*al&!hr03
      &(5,2,j,jx)                                                         !hr03
-!hr03           yv(1,j)=al(3,1,j,jx)*puxve1+ al(4,1,j,jx)*puzve1+idz1*al&
-!hr03&(6,1,j,jx)
         yv(1,j)=(al(3,1,j,jx)*puxve1+ al(4,1,j,jx)*puzve1)+dble(idz1)*al&!hr03
      &(6,1,j,jx)                                                         !hr03
-!hr03           yv(2,j)=al(3,2,j,jx)*puxve2+ al(4,2,j,jx)*puzve2+idz2*al&
-!hr03&(6,2,j,jx)
         yv(2,j)=(al(3,2,j,jx)*puxve2+ al(4,2,j,jx)*puzve2)+dble(idz2)*al&!hr03
      &(6,2,j,jx)                                                         !hr03
 +if debug
@@ -7803,39 +6612,26 @@ cc2008
 +ei
 +cd sqrts
 +if .not.fast
-!hr03&sqrt(c1e6+y(j,1)*y(j,1)+                                          &
-!hr03&y(j,2)*y(j,2)))
      &sqrt((c1e6+y(j,1)**2)+                                            &!hr03
      &y(j,2)**2))                                                        !hr03
 +ei
 +if fast
-!hr03&(c1e3+(y(j,1)*y(j,1)+                                             &
-!hr03&y(j,2)*y(j,2))*c5m4))
      &(c1e3+(y(j,1)**2+                                                 &!hr03
      &y(j,2)**2)*c5m4))                                                  !hr03
 +ei
 +cd sqrtv
 +if rvet
-!hr03       rvet(j)=c1e3*pma*pma*(two+dpsv(j))*dpsv(j)/e0/(one+dpsv(j))
       rvet(j)=((((c1e3*pma**2)*(two+dpsv(j)))*dpsv(j))/e0)/(one+dpsv(j))
-!hr03       rvet(j)=rvet(j)/(e0*(one+dpsv(j))+                          &
-!hr03&sqrt(e0*e0+e0f*e0f*(two*dpsv(j)+dpsv(j)*dpsv(j))))
             rvet(j)=rvet(j)/(e0*(one+dpsv(j))+                          &!hr03
      &sqrt(e0**2+e0f**2*(two*dpsv(j)+dpsv(j)**2)))                       !hr03
-!hr03       sigmv(j)=sigmv(j)+stracki*(rvet(j)-c5m4*rvv(j)*(yv(1,j)     &
-!hr03&*yv(1,j)+yv(2,j)*yv(2,j)))
             sigmv(j)=sigmv(j)+stracki*(rvet(j)-(c5m4*rvv(j))*(yv(1,j)   &!hr03
      &**2+yv(2,j)**2))                                                   !hr03
 +ei
 +if fast
-!hr03       sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)       &
-!hr03&*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
             sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)       &!hr03
      &**2+yv(2,j)**2)*c5m4))                                             !hr03
 +ei
 +if .not.fast.and..not.rvet
-!hr03       sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)    &
-!hr03&*yv(1,j)+yv(2,j)*yv(2,j)))
             sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)   &!hr03
      &**2)+yv(2,j)**2))                                                  !hr03
 +ei
@@ -7921,7 +6717,6 @@ cc2008
 +cd lost1c
       ilostch=0
       do 10 j=1,napx
-!hr03   if(xv(1,j)*xv(1,j)*ape(1,ix)+xv(2,j)*xv(2,j)*ape(2,ix).gt.      &
         if(xv(1,j)**2*ape(1,ix)+xv(2,j)**2*ape(2,ix).gt.                &!hr03
      &ape(3,ix).or.                                                     &
 !     &isnan(xv(1,j),xv(1,j)).or.isnan(xv(2,j),xv(2,j))) then
@@ -8183,12 +6978,8 @@ cc2008
             jj(5)=0
             do j1=1,2
               ii=2*j1
-!hr03         d(j1)=rdd(ii-1,1)*dicu(1)+rdd(ii-1,2)*dicu(2)+            &
-!hr03&rdd(ii-1,3)*dicu(3)+rdd(ii-1,4)*dicu(4)+rdd(ii-1,5)
               d(j1)=(((rdd(ii-1,1)*dicu(1)+rdd(ii-1,2)*dicu(2))+        &!hr03
      &rdd(ii-1,3)*dicu(3))+rdd(ii-1,4)*dicu(4))+rdd(ii-1,5)              !hr03
-!hr03         dp(j1)=rdd(ii,1)*dicu(1)+rdd(ii,2)*dicu(2)+               &
-!hr03&rdd(ii,3)*dicu(3)+rdd(ii,4)*dicu(4)+rdd(ii,5)
               dp(j1)=(((rdd(ii,1)*dicu(1)+rdd(ii,2)*dicu(2))+           &!hr03
      &rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)                    !hr03
             enddo
@@ -8261,21 +7052,12 @@ cc2008
                 endif
               endif
             endif
-!hr08       b1(j)=angp(1,ii-1)*angp(1,ii-1)+angp(1,ii)*angp(1,ii)
             b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
-!hr08       b2(j)=au(i2-1,i2-1)*au(i2-1,i2-1)+au(i2-1,i2)*au(i2-1,i2)
             b2(j)=au(i2-1,i2-1)**2+au(i2-1,i2)**2                        !hr08
-!hr08       b3(j)=au(i3-1,i3-1)*au(i3-1,i3-1)+au(i3-1,i3)*au(i3-1,i3)
             b3(j)=au(i3-1,i3-1)**2+au(i3-1,i3)**2                        !hr08
-!hr03       al1(j)=-(angp(1,ii-1)*au(ii,ii-1)+angp(1,ii)*au(ii,ii))
             al1(j)=-1d0*(angp(1,ii-1)*au(ii,ii-1)+angp(1,ii)*au(ii,ii))  !hr03
-!hr03       al2(j)=-(au(i2-1,i2-1)*au(i2,i2-1)+au(i2-1,i2)*au(i2,i2))
            al2(j)=-1d0*(au(i2-1,i2-1)*au(i2,i2-1)+au(i2-1,i2)*au(i2,i2)) !hr03
-!hr03       al3(j)=-(au(i3-1,i3-1)*au(i3,i3-1)+au(i3-1,i3)*au(i3,i3))
            al3(j)=-1d0*(au(i3-1,i3-1)*au(i3,i3-1)+au(i3-1,i3)*au(i3,i3)) !hr03
-!hr04       g1(j)=au(ii,ii-1)*au(ii,ii-1)+au(ii,ii)*au(ii,ii)
-!hr04       g2(j)=au(i2,i2-1)*au(i2,i2-1)+au(i2,i2)*au(i2,i2)
-!hr04       g3(j)=au(i3,i3-1)*au(i3,i3-1)+au(i3,i3)*au(i3,i3)
             g1(j)=au(ii,ii-1)**2+au(ii,ii)**2                            !hr04
             g2(j)=au(i2,i2-1)**2+au(i2,i2)**2                            !hr04
             g3(j)=au(i3,i3-1)**2+au(i3,i3)**2                            !hr04
@@ -8457,7 +7239,6 @@ cc2008
                 jj(j1)=0
               enddo
               if(ndimf.eq.3) then
-!hr03           bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2)+      &
                 bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
      &emitz*angnoe(3))
 +if debug
@@ -8470,7 +7251,6 @@ cc2008
 +ei
               endif
             enddo
-!hr12       if(parbe(ix,2).gt.0) then
             if(parbe(ix,2).gt.0d0) then                                  !hr12
               do ii=4,10
                 call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
@@ -8484,7 +7264,6 @@ cc2008
                   jj(j1)=0
                 enddo
                 if(ndimf.eq.3) then
-!hr03           bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2)+      &
                 bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
      &emitz*angnoe(3))
                 else
@@ -8518,34 +7297,23 @@ cc2008
             sfac1=bbcu(ibb,1)+bbcu(ibb,2)
             sfac2=bbcu(ibb,1)-bbcu(ibb,2)
             sfac2s=one
-!hr08       if(sfac2.lt.zero) sfac2s=-one
             if(sfac2.lt.zero) sfac2s=-1d0*one                            !hr08
-!hr03       sfac3=sqrt(sfac2*sfac2+four*bbcu(ibb,3)*bbcu(ibb,3))
             sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
             if(sfac3.gt.sfac1) call prror(103)
-!hr03       sfac4=sfac2s*sfac2/sfac3
             sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
-!hr03       sfac5=-sfac2s*two*bbcu(ibb,3)/sfac3
             sfac5=(((-1d0*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
-!hr03       sigman(1,ibb)=sqrt((sfac1+sfac2*sfac4+                      &
-!hr03&two*bbcu(ibb,3)*sfac5)*half)
             sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+                    &!hr03
      &(two*bbcu(ibb,3))*sfac5)*half)                                     !hr03
-!hr03       sigman(2,ibb)=sqrt((sfac1-sfac2*sfac4-                      &
-!hr03&two*bbcu(ibb,3)*sfac5)*half)
             sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-                    &!hr03
      &(two*bbcu(ibb,3))*sfac5)*half)                                     !hr03
             bbcu(ibb,11)=sqrt(half*(one+sfac4))
-!hr03       bbcu(ibb,12)=-sfac2s*sqrt(half*(one-sfac4))
             bbcu(ibb,12)=(-1d0*sfac2s)*sqrt(half*(one-sfac4))            !hr03
-!hr03       if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-bbcu(ibb,12)
             if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-1d0*bbcu(ibb,12)       !hr03
           else
             bbcu(ibb,11)=one
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
-!hr08     if(parbe(ix,2).gt.0) then
           if(parbe(ix,2).gt.0d0) then                                    !hr08
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
@@ -8567,15 +7335,9 @@ cc2008
             endif
             do i=1,ium
               puf=t(i,ll-1)
-!hr03         t(i,ll-1)=puf*rrtr(imtr(ix),ll-1,ll-1)+                   &
-!hr03&t(i,ll)*rrtr(imtr(ix),ll-1,ll)+                                   &
-!hr03&dpr(i)*rrtr(imtr(ix),ll-1,6)
               t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+                  &!hr03
      &t(i,ll)*rrtr(imtr(ix),ll-1,ll))+                                  &!hr03
      &dpr(i)*rrtr(imtr(ix),ll-1,6)                                       !hr03
-!hr03         t(i,ll)=puf*rrtr(imtr(ix),ll,ll-1)+                       &
-!hr03&t(i,ll)*rrtr(imtr(ix),ll,ll)+                                     &
-!hr03&dpr(i)*rrtr(imtr(ix),ll,6)
               t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+                       &
      &t(i,ll)*rrtr(imtr(ix),ll,ll))+                                     &
      &dpr(i)*rrtr(imtr(ix),ll,6)
@@ -8583,9 +7345,7 @@ cc2008
             t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
             t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
 +cd trom02
-!hr03       beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr03
-!hr03       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr03
 +cd trom03
             if(abs(t(ll,ll-1)).gt.pieni) then
@@ -8596,10 +7356,8 @@ cc2008
               dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
 +ei
             else
-!hr08         dphi=-phibf(l)
               dphi=-1d0*phibf(l)                                         !hr08
             endif
-!hr03       if(-dphi.gt.pieni) dphi=dphi+pi
             if(-1d0*dphi.gt.pieni) dphi=dphi+pi                          !hr03
 +cd trom04
             phi(l)=phi(l)+dphi/pie
@@ -8631,15 +7389,9 @@ cc2008
             do kx=1,2
               ll=kx*2
               puf=x(j,kx)
-!hr03         x(j,kx)=cotr(imtr(ix),ll-1)+rrtr(imtr(ix),ll-1,ll-1)*puf+ &
-!hr03&rrtr(imtr(ix),ll-1,ll)*y(j,kx)+dpr(j)*                            &
-!hr03&rrtr(imtr(ix),ll-1,6)
            x(j,kx)=((cotr(imtr(ix),ll-1)+rrtr(imtr(ix),ll-1,ll-1)*puf)+ &!hr03
      &rrtr(imtr(ix),ll-1,ll)*y(j,kx))+dpr(j)*                           &!hr03
      &rrtr(imtr(ix),ll-1,6)                                              !hr03
-!hr03         y(j,kx)=cotr(imtr(ix),ll)+rrtr(imtr(ix),ll,ll-1)*puf+     &
-!hr03&rrtr(imtr(ix),ll,ll)*y(j,kx)+dpr(j)*                              &
-!hr03&rrtr(imtr(ix),ll,6)
            y(j,kx)=((cotr(imtr(ix),ll)+rrtr(imtr(ix),ll,ll-1)*puf)+     &!hr03
      &rrtr(imtr(ix),ll,ll)*y(j,kx))+dpr(j)*                             &!hr03
      &rrtr(imtr(ix),ll,6)                                                !hr03
@@ -8673,9 +7425,6 @@ cc2008
           irrtr=imtr(ix)
           do j=1,napx
 +cd trom41
-!hr03       sigmv(j)=sigmv(j)+cotr(irrtr,5)+rrtr(irrtr,5,1)*xv(1,j)+    &
-!hr03&rrtr(irrtr,5,2)*yv(1,j)+rrtr(irrtr,5,3)*xv(2,j)+                  &
-!hr03&rrtr(irrtr,5,4)*yv(2,j)+rrtr(irrtr,5,6)*dpsv(j)*c1e3
       sigmv(j)=(((((sigmv(j)+cotr(irrtr,5))+rrtr(irrtr,5,1)*xv(1,j))+   &!hr03
      &rrtr(irrtr,5,2)*yv(1,j))+rrtr(irrtr,5,3)*xv(2,j))+                &!hr03
 !BNL-NOV08
@@ -8685,21 +7434,13 @@ cc2008
 +cd trom42
             pux=xv(1,j)
             dpsv3(j)=dpsv(j)*c1e3
-!hr03       xv(1,j)=cotr(irrtr,1)+rrtr(irrtr,1,1)*pux+                  &
-!hr03&rrtr(irrtr,1,2)*yv(1,j)+idz(1)*dpsv3(j)*rrtr(irrtr,1,6)
             xv(1,j)=((cotr(irrtr,1)+rrtr(irrtr,1,1)*pux)+               &!hr03
      &rrtr(irrtr,1,2)*yv(1,j))+(dble(idz(1))*dpsv3(j))*rrtr(irrtr,1,6)   !hr03
-!hr03       yv(1,j)=cotr(irrtr,2)+rrtr(irrtr,2,1)*pux+                  &
-!hr03&rrtr(irrtr,2,2)*yv(1,j)+idz(1)*dpsv3(j)*rrtr(irrtr,2,6)
             yv(1,j)=((cotr(irrtr,2)+rrtr(irrtr,2,1)*pux)+               &!hr03
      &rrtr(irrtr,2,2)*yv(1,j))+(dble(idz(1))*dpsv3(j))*rrtr(irrtr,2,6)   !hr03
             pux=xv(2,j)
-!hr03       xv(2,j)=cotr(irrtr,3)+rrtr(irrtr,3,3)*pux+                  &
-!hr03&rrtr(irrtr,3,4)*yv(2,j)+idz(2)*dpsv3(j)*rrtr(irrtr,3,6)
             xv(2,j)=((cotr(irrtr,3)+rrtr(irrtr,3,3)*pux)+               &!hr03
      &rrtr(irrtr,3,4)*yv(2,j))+(dble(idz(2))*dpsv3(j))*rrtr(irrtr,3,6)   !hr03
-!hr03       yv(2,j)=cotr(irrtr,4)+rrtr(irrtr,4,3)*pux+                  &
-!hr03&rrtr(irrtr,4,4)*yv(2,j)+idz(2)*dpsv3(j)*rrtr(irrtr,4,6)
             yv(2,j)=((cotr(irrtr,4)+rrtr(irrtr,4,3)*pux)+               &!hr03
      &rrtr(irrtr,4,4)*yv(2,j))+(dble(idz(2))*dpsv3(j))*rrtr(irrtr,4,6)   !hr03
           enddo
@@ -8710,7 +7451,6 @@ cc2008
 
 +cd wire
 !     magnetic rigidity
-!hr03 chi = sqrt(e0*e0-pmap*pmap)*c1e6/clight
       chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            !hr03
 
       ix = ixcav
@@ -8723,27 +7463,21 @@ cc2008
       cur = ed(ix)
 
 +if crlibm
-!hr03 leff = embl/cos_rn(tx)/cos_rn(ty)
       leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr03
 +ei
 +if .not.crlibm
-!hr03 leff = embl/cos(tx)/cos(ty)
       leff = (embl/cos(tx))/cos(ty)                                      !hr03
 +ei
 +if crlibm
-!hr03 rx = dx *cos_rn(tx)-embl*sin_rn(tx)/2
       rx = dx *cos_rn(tx)-(embl*sin_rn(tx))*0.5d0                        !hr03
 +ei
 +if .not.crlibm
-!hr03 rx = dx *cos(tx)-embl*sin(tx)/2
       rx = dx *cos(tx)-(embl*sin(tx))*0.5d0                              !hr03
 +ei
 +if crlibm
-!hr03 lin= dx *sin_rn(tx)+embl*cos_rn(tx)/2
       lin= dx *sin_rn(tx)+(embl*cos_rn(tx))*0.5d0                        !hr03
 +ei
 +if .not.crlibm
-!hr03 lin= dx *sin(tx)+embl*cos(tx)/2
       lin= dx *sin(tx)+(embl*cos(tx))*0.5d0                              !hr03
 +ei
 +if crlibm
@@ -8771,13 +7505,9 @@ cc2008
 
 !     call drift(-embl/2)
 
-!hr03 xv(1,j) = xv(1,j) - embl/2*yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2)
       xv(1,j) = xv(1,j) -                                               &!hr03
      &((embl*0.5d0)*yv(1,j))/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
      &yv(2,j)**2)                                                        !hr03
-!hr03 xv(2,j) = xv(2,j) - embl/2*yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2)
       xv(2,j) = xv(2,j) -                                               &!hr03
      &((embl*0.5d0)*yv(2,j))/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
      &yv(2,j)**2)                                                        !hr03
@@ -8785,118 +7515,76 @@ cc2008
 !     call tilt(tx,ty)
 
 +if crlibm
-!hr03 xv(2,j) = xv(2,j)-xv(1,j)*sin_rn(tx)*yv(2,j)/sqrt((1+dpsv(j))**2- &
-!hr03&yv(2,j)**2)/cos_rn(atan_rn(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2))-tx)
       xv(2,j) = xv(2,j)-(((xv(1,j)*sin_rn(tx))*yv(2,j))/                &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &!hr03
      &cos_rn(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
      &yv(2,j)**2))-tx)                                                   !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(2,j) = xv(2,j)-xv(1,j)*sin(tx)*yv(2,j)/sqrt((1+dpsv(j))**2-    &
-!hr03&yv(2,j)**2)/cos(atan(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
-!hr03&yv(2,j)**2))-tx)
       xv(2,j) = xv(2,j)-(((xv(1,j)*sin(tx))*yv(2,j))/                   &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &!hr03
      &cos(atan(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
      &yv(2,j)**2))-tx)                                                   !hr03
 +ei
 !+if crlibm
-!hhr03&yv(2,j)**2)/cos_rn(atan_rn(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
 !+ei
 !+if .not.crlibm
-!hr03&yv(2,j)**2)/cos(atan(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
 !+ei
-!hr03&yv(2,j)**2))-tx)
 +if crlibm
-!hr03 xv(1,j) = xv(1,j)*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/  &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-tx))
       xv(1,j) = xv(1,j)*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/  &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(1,j) = xv(1,j)*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/              &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-tx))
       xv(1,j) = xv(1,j)*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/              &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-tx))
 +if crlibm
-!hr03 yv(1,j) = sqrt((1+dpsv(j))**2-yv(2,j)**2)*sin_rn(atan_rn(yv(1,j)/ &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-tx)
       yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &!hr03
      &sin_rn(atan_rn(yv(1,j)/                                           &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)                !hr03
 +ei
 +if .not.crlibm
-!hr03 yv(1,j) = sqrt((1+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/       &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-tx)
       yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/     &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)                !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-tx)
 +if crlibm
-!hr03 xv(1,j) = xv(1,j)-xv(2,j)*sin_rn(ty)*yv(1,j)/sqrt((1+dpsv(j))**2- &
-!hr03&yv(1,j)**2)/cos_rn(atan_rn(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2))-ty)
       xv(1,j) = xv(1,j)-(((xv(2,j)*sin_rn(ty))*yv(1,j))/                &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
      &cos_rn(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
      &yv(2,j)**2))-ty)                                                   !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(1,j) = xv(1,j)-xv(2,j)*sin(ty)*yv(1,j)/sqrt((1+dpsv(j))**2-    &
-!hr03&yv(1,j)**2)/cos(atan(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
-!hr03&yv(2,j)**2))-ty)
       xv(1,j) = xv(1,j)-(((xv(2,j)*sin(ty))*yv(1,j))/                   &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
      &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
      &yv(2,j)**2))-ty)                                                   !hr03
 +ei
 !+if crlibm
-!hr03&yv(1,j)**2)/cos_rn(atan_rn(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
 !+ei
 !+if .not.crlibm
-!hr03&yv(1,j)**2)/cos(atan(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
 !+ei
-!hr03&yv(2,j)**2))-ty)
 +if crlibm
-!hr03 xv(2,j) = xv(2,j)*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/  &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-ty))
       xv(2,j) = xv(2,j)*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/  &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(2,j) = xv(2,j)*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/              &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-ty))
       xv(2,j) = xv(2,j)*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/              &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-ty))
 +if crlibm
-!hr03 yv(2,j) = sqrt((1+dpsv(j))**2-yv(1,j)**2)*sin_rn(atan_rn(yv(2,j)/ &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-ty)
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &!hr03
      &sin_rn(atan_rn(yv(2,j)/                                           &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)                !hr03
 +ei
 +if .not.crlibm
-!hr03 yv(2,j) = sqrt((1+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/       &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-ty)
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/     &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)                !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))-ty)
 
 !     call drift(lin)
 
-!hr03 xv(1,j) = xv(1,j) + lin*yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-   &
-!hr03&yv(2,j)**2)
       xv(1,j) = xv(1,j) + (lin*yv(1,j))/                                &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-!hr03 xv(2,j) = xv(2,j) + lin*yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-   &
-!hr03&yv(2,j)**2)
       xv(2,j) = xv(2,j) + (lin*yv(2,j))/                                &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
 
@@ -8904,138 +7592,90 @@ cc2008
 
       xi = xv(1,j)-rx
       yi = xv(2,j)-ry
-!hr03 yv(1,j) = yv(1,j)-c1m7*cur/chi*xi/(xi**2+yi**2)*                  &
-!hr03&(sqrt((lin+l)**2+xi**2+yi**2)-sqrt((lin-l)**2+                    &
-!hr03&xi**2+yi**2))
       yv(1,j) = yv(1,j)-((((c1m7*cur)/chi)*xi)/(xi**2+yi**2))*          &!hr03
      &(sqrt(((lin+l)**2+xi**2)+yi**2)-sqrt(((lin-l)**2+                 &!hr03
      &xi**2)+yi**2))                                                     !hr03
 !GRD FOR CONSISTENSY
-!hr03 yv(2,j) = yv(2,j)-c1m7*cur/chi*yi/(xi**2+yi**2)*                  &
-!hr03&(sqrt((lin+l)**2+xi**2+yi**2)-sqrt((lin-l)**2+                    &
-!hr03&xi**2+yi**2))
       yv(2,j) = yv(2,j)-((((c1m7*cur)/chi)*yi)/(xi**2+yi**2))*          &!hr03
      &(sqrt(((lin+l)**2+xi**2)+yi**2)-sqrt(((lin-l)**2+                 &!hr03
      &xi**2)+yi**2))                                                     !hr03
 
 !     call drift(leff-lin)
 
-!hr03 xv(1,j) = xv(1,j) + (leff-lin)*yv(1,j)/sqrt((1+dpsv(j))**2-       &
-!hr03&yv(1,j)**2-yv(2,j)**2)
       xv(1,j) = xv(1,j) + ((leff-lin)*yv(1,j))/sqrt(((1d0+dpsv(j))**2-  &!hr03
      &yv(1,j)**2)-yv(2,j)**2)                                            !hr03
-!hr03 xv(2,j) = xv(2,j) + (leff-lin)*yv(2,j)/sqrt((1+dpsv(j))**2-       &
-!hr03&yv(1,j)**2-yv(2,j)**2)
       xv(2,j) = xv(2,j) + ((leff-lin)*yv(2,j))/sqrt(((1d0+dpsv(j))**2-  &!hr03
      &yv(1,j)**2)-yv(2,j)**2)                                            !hr03
 
 !     call invtilt(tx,ty)
 
 +if crlibm
-!hr03 xv(1,j) = xv(1,j)-xv(2,j)*sin_rn(-ty)*yv(1,j)/sqrt((1+dpsv(j))**2-&
-!hr03&yv(1,j)**2)/cos_rn(atan_rn(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2))+ty)
       xv(1,j) = xv(1,j)-(((xv(2,j)*sin_rn(-ty))*yv(1,j))/               &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
      &cos_rn(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
      &yv(2,j)**2))+ty)                                                   !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(1,j) = xv(1,j)-xv(2,j)*sin(-ty)*yv(1,j)/sqrt((1+dpsv(j))**2-   &
-!hr03&yv(1,j)**2)/cos(atan(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
-!hr03&yv(2,j)**2))+ty)
       xv(1,j) = xv(1,j)-(((xv(2,j)*sin(-ty))*yv(1,j))/                  &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
      &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
      &yv(2,j)**2))+ty)                                                   !hr03
 +ei
 !+if crlibm
-!hr03&yv(1,j)**2)/cos_rn(atan_rn(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
 !+ei
 !+if .not.crlibm
-!hr03&yv(1,j)**2)/cos(atan(yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
 !+ei
-!hr03&yv(2,j)**2))+ty)
 +if crlibm
-!hr03 xv(2,j) = xv(2,j)*(cos_rn(-ty)-sin_rn(-ty)*tan_rn(atan_rn(yv(2,j)/&
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+ty))
       xv(2,j) = xv(2,j)*                                                &!hr03
      &(cos_rn(-1d0*ty)-sin_rn(-1d0*ty)*tan_rn(atan_rn(yv(2,j)/          &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty))               !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(2,j) = xv(2,j)*(cos(-ty)-sin(-ty)*tan(atan(yv(2,j)/            &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+ty))
       xv(2,j) = xv(2,j)*(cos(-1d0*ty)-sin(-1d0*ty)*tan(atan(yv(2,j)/    &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty))               !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+ty))
 +if crlibm
-!hr03 yv(2,j) = sqrt((1+dpsv(j))**2-yv(1,j)**2)*sin_rn(atan_rn(yv(2,j)/ &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+ty)
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &!hr03
      &sin_rn(atan_rn(yv(2,j)/                                           &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)                !hr03
 +ei
 +if .not.crlibm
-!hr03 yv(2,j) = sqrt((1+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/       &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+ty)
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/     &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)                !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+ty)
 
 +if crlibm
-!hr03 xv(2,j) = xv(2,j)-xv(1,j)*sin_rn(-tx)*yv(2,j)/sqrt((1+dpsv(j))**2-&
-!hr03&yv(2,j)**2)/cos_rn(atan_rn(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2))+tx)
       xv(2,j) = xv(2,j)-(((xv(1,j)*sin_rn(-1d0*tx))*yv(2,j))/           &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/cos_rn(atan_rn(yv(1,j)/        &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(2,j) = xv(2,j)-xv(1,j)*sin(-tx)*yv(2,j)/sqrt((1+dpsv(j))**2-   &
-!hr03&yv(2,j)**2)/cos(atan(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
-!hr03&yv(2,j)**2))+tx)
       xv(2,j) = xv(2,j)-(((xv(1,j)*sin(-1d0*tx))*yv(2,j))/              &!hr03
      &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/cos(atan(yv(1,j)/              &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
 +ei
 !+if crlibm
-!hr03&yv(2,j)**2)/cos_rn(atan_rn(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
 !+ei
 !+if .not.crlibm
-!hr03&yv(2,j)**2)/cos(atan(yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-      &
 !+ei
-!hr03&yv(2,j)**2))+tx)
 +if crlibm
-!hr03 xv(1,j) = xv(1,j)*(cos_rn(-tx)-sin_rn(-tx)*tan_rn(atan_rn(yv(1,j)/
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+tx))
       xv(1,j) = xv(1,j)*                                                &!hr03
      &(cos_rn(-1d0*tx)-sin_rn(-1d0*tx)*tan_rn(atan_rn(yv(1,j)/          &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx))               !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(1,j) = xv(1,j)*(cos(-tx)-sin(-tx)*tan(atan(yv(1,j)/            &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+tx))
       xv(1,j) = xv(1,j)*(cos(-1d0*tx)-sin(-1d0*tx)*tan(atan(yv(1,j)/    &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx))               !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+tx))
 +if crlibm
-!hr03 yv(1,j) = sqrt((1+dpsv(j))**2-yv(2,j)**2)*sin_rn(atan_rn(yv(1,j)/
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+tx)
       yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                       !hr03
      &sin_rn(atan_rn(yv(1,j)/                                            !hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
 +ei
 +if .not.crlibm
-!hr03 yv(1,j) = sqrt((1+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/       &
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+tx)
       yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/     &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
 +ei
-!hr03&sqrt((1+dpsv(j))**2-yv(1,j)**2-yv(2,j)**2))+tx)
 
 !     call shift(-embl*tan(tx),-embl*tan(ty)/cos(tx))
 
@@ -9046,22 +7686,16 @@ cc2008
       xv(1,j) = xv(1,j) + embl*tan(tx)
 +ei
 +if crlibm
-!hr03 xv(2,j) = xv(2,j) + embl*tan_rn(ty)/cos_rn(tx)
       xv(2,j) = xv(2,j) + (embl*tan_rn(ty))/cos_rn(tx)                   !hr03
 +ei
 +if .not.crlibm
-!hr03 xv(2,j) = xv(2,j) + embl*tan(ty)/cos(tx)
       xv(2,j) = xv(2,j) + (embl*tan(ty))/cos(tx)                         !hr03
 +ei
 
 !     call drift(-embl/2)
 
-!hr03 xv(1,j) = xv(1,j) - embl/2*yv(1,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2)
       xv(1,j) = xv(1,j) - ((embl*0.5d0)*yv(1,j))/                       &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-!hr03 xv(2,j) = xv(2,j) - embl/2*yv(2,j)/sqrt((1+dpsv(j))**2-yv(1,j)**2-&
-!hr03&yv(2,j)**2)
       xv(2,j) = xv(2,j) - ((embl*0.5d0)*yv(2,j))/                       &!hr03
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
 
@@ -10079,7 +8713,6 @@ cc2008
 ! END of +cd open
       
 +cd rvet0
-!hr03 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr03
 +if rvet
 *FOX  RVET=C1E3*PMA*PMA*(TWO+DPDA)*DPDA/E0/DPD ;
@@ -10087,10 +8720,7 @@ cc2008
 +ei
 +cd rvet1
 +if rvet
-!hr03   rvet(j)=c1e3*pma*pma*(two+dpsv(j))*dpsv(j)/e0/dpd(j)
         rvet(j)=((((c1e3*pma**2)*(two+dpsv(j)))*dpsv(j))/e0)/dpd(j)      !hr03
-!hr03   rvet(j)=rvet(j)/(e0*dpd(j)+                                     &
-!hr03&sqrt(e0*e0+e0f*e0f*(two*dpsv(j)+dpsv(j)*dpsv(j))))
         rvet(j)=rvet(j)/(e0*dpd(j)+                                     &!hr03
      &sqrt(e0**2+e0f**2*(two*dpsv(j)+dpsv(j)**2)))                       !hr03
 +ei
@@ -10103,10 +8733,7 @@ cc2008
 +ei
 +if rvet
         rv=(ej(1)*e0f)/(e0*ejf(1))
-!hr03   rvet=c1e3*pma*pma*(two+dps(1))*dps(1)/e0/(one+dps(1))
         rvet=((((c1e3*pma**2)*(two+dps(1)))*dps(1))/e0)/(one+dps(1))
-!hr03   rvet=rvet/(e0*(one+dps(1))+sqrt(e0*e0+e0f*e0f*(two*dps(1)+      &
-!hr03&dps(1)*dps(1))))
         rvet=rvet/(e0*(one+dps(1))+sqrt(e0**2+e0f**2*(two*dps(1)+       &!hr03
      &dps(1)*dps(1))))                                                   !hr03
 +ei
@@ -10642,11 +9269,9 @@ cc2008
           a(jrow,jcol)=hda(jrow-1,1,1,3**(jcol-1))
    60   continue
         do 70 jcol=1,jeltot-2
-!hr04     bmat(jrow,jcol)=-a(jrow,jcol+2)
           bmat(jrow,jcol)=-1d0*a(jrow,jcol+2)                            !hr04
    70   continue
 !-----------------------------------------------------------------------
-!hr04   cvec(jrow)=-hda(jrow-1,1,1,0)
         cvec(jrow)=-1d0*hda(jrow-1,1,1,0)                                !hr04
    80 continue
 !-----------------------------------------------------------------------
@@ -10656,9 +9281,7 @@ cc2008
       det=(a(1,1)*a(2,2)-a(2,1)*a(1,2))
       detinv=1d0/det
       ainv(1,1)=detinv*a(2,2)
-!hr04 ainv(1,2)=-detinv*a(1,2)
       ainv(1,2)=-1d0*detinv*a(1,2)                                       !hr04
-!hr04 ainv(2,1)=-detinv*a(2,1)
       ainv(2,1)=-1d0*detinv*a(2,1)                                       !hr04
       ainv(2,2)=detinv*a(1,1)
 !-----------------------------------------------------------------------
@@ -10745,7 +9368,6 @@ cc2008
 !-----------------------------------------------------------------------
           do 180 jvar=1,2
             do 170 jcol=1,n-2
-!hr04         x(jvar)=x(jvar)+cmat(jvar,jcol)*sgn(jcol,jconf) +dvec     &
               x(jvar)=(x(jvar)+cmat(jvar,jcol)*sgn(jcol,jconf)) +dvec   &!hr04
      &(jvar)
               x(jcol+2)=sgn(jcol,jconf)
@@ -10856,33 +9478,19 @@ cc2008
 !-----------------------------------------------------------------------
           if(jord.eq.2) then
 !-----------------------------------------------------------------------
-!hr04       chib=pi2in/sqrt(3.d0)*sqrt(2.d0*hda(0,2,0,0)**2 +hda        &
-!hr04&(1,2,0,0)**2+2.d0*hda(2,2,0,0)**2+hda(0,2,0,0) *hda(1,2,0,0)      &
-!hr04&+hda(1,2,0,0)*hda(2,2,0,0))
             chib=(pi2in/sqrt(3.d0))*sqrt((((2.d0*hda(0,2,0,0)**2 +hda   &!hr04
      &(1,2,0,0)**2)+2.d0*hda(2,2,0,0)**2)+hda(0,2,0,0) *hda(1,2,0,0)    &!hr04
      &)+hda(1,2,0,0)*hda(2,2,0,0))                                       !hr04
-!hr04       chia=pi2in/sqrt(3.d0)*sqrt(2.d0*ham(0)**2+ham(1)**2 +2.d0   &
-!hr04&*ham(2)**2+ham(0)*ham(1)+ham(1)*ham(2))
           chia=(pi2in/sqrt(3.d0))*sqrt((((2.d0*ham(0)**2+ham(1)**2)+2.d0&!hr04
      &*ham(2)**2)+ham(0)*ham(1))+ham(1)*ham(2))                          !hr04
 !-----------------------------------------------------------------------
           else if(jord.eq.3) then
 !-----------------------------------------------------------------------
-!hr04       chib=pi2in/sqrt(30.d0)*sqrt(27.d0*hda(3,3,0,0)**2 +5.d0     &
-!hr04&*hda(2,3,0,0)**2+5.d0*hda(1,3,0,0)**2 +27.d0*hda(0,3,0,0)**2      &
-!hr04&+9.d0*hda(3,3,0,0)*hda(2,3,0,0) +9.d0*hda(1,3,0,0)*hda            &
-!hr04&(0,3,0,0)+6.d0*hda(2,3,0,0) *hda(1,3,0,0)+3.d0*hda(3,3,0,0)       &
-!hr04&*hda(1,3,0,0) +3.d0*hda(2,3,0,0)*hda(0,3,0,0))
       chib=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*hda(3,3,0,0)**2 +5.d0  &!hr04
      &*hda(2,3,0,0)**2)+5.d0*hda(1,3,0,0)**2)+27.d0*hda(0,3,0,0)**2)    &!hr04
      &+(9.d0*hda(3,3,0,0))*hda(2,3,0,0))+(9.d0*hda(1,3,0,0))*hda        &!hr04
      &(0,3,0,0))+(6.d0*hda(2,3,0,0))*hda(1,3,0,0))+(3.d0*hda(3,3,0,0)   &!hr04
      &)*hda(1,3,0,0)) +(3.d0*hda(2,3,0,0))*hda(0,3,0,0))                 !hr04
-!hr04       chia=pi2in/sqrt(30.d0)*sqrt(27.d0*ham(3)**2 +5.d0*ham(2)    &
-!hr04&**2+5.d0*ham(1)**2+27.d0*ham(0)**2 +9.d0*ham(3)*ham(2)+9.d0       &
-!hr04&*ham(1)*ham(0) +6.d0*ham(2)*ham(1)+3.d0*ham(3)*ham(1) +3.d0       &
-!hr04&*ham(2)*ham(0))
       chia=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*ham(3)**2 +5.d0*ham(2) &!hr04
      &**2)+5.d0*ham(1)**2)+27.d0*ham(0)**2)+(9.d0*ham(3))*ham(2))+(9.d0 &!hr04
      &*ham(1))*ham(0))+(6.d0*ham(2))*ham(1))+(3.d0*ham(3))*ham(1))+(3.d0&!hr04
@@ -11139,7 +9747,6 @@ cc2008
                 j3=jord-j1-j2
 !-----------------------------------------------------------------------
                 icont=icont+1
-!hr04           kointer=j1+j2*3+j3*3*3
                 kointer=(j1+j2*3)+j3*3**2                                !hr04
 !-----------------------------------------------------------------------
                 user(jcomp*nmax+icont)=hda(jcomp,jaord+1,jpord, kointer)
@@ -11159,7 +9766,6 @@ cc2008
                   j4=jord-j1-j2-j3
 !-----------------------------------------------------------------------
                   icont=icont+1
-!hr04             kointer=j1+j2*3+j3*3*3+j4*3*3*3
                   kointer=((j1+j2*3)+j3*3**2)+j4*3**3                    !hr04
 !-----------------------------------------------------------------------
                   user(jcomp*nmax+icont)=hda(jcomp,jaord+1,jpord,       &
@@ -11182,7 +9788,6 @@ cc2008
                     j5=jord-j1-j2-j3-j4
 !-----------------------------------------------------------------------
                     icont=icont+1
-!hr04               kointer=j1+j2*3+j3*3*3+j4*3*3*3+j5*3**4
                     kointer=(((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4        !hr04
 !-----------------------------------------------------------------------
                     user(jcomp*nmax+icont)=hda(jcomp,jaord+1, jpord,    &
@@ -11207,7 +9812,6 @@ cc2008
                       j6=jord-j1-j2-j3-j4-j5
 !-----------------------------------------------------------------------
                       icont=icont+1
-!hr04                 kointer=j1+j2*3+j3*3*3+j4*3*3*3+j5*3**4 +j6*3**5
                  kointer=((((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4)+j6*3**5 !hr04
 !-----------------------------------------------------------------------
                       user(jcomp*nmax+icont)=hda(jcomp,jaord+1, jpord,  &
@@ -11276,7 +9880,6 @@ cc2008
           kointer=j1+j2*3
 !-----------------------------------------------------------------------
           do 60 l=0,ncoef
-!hr04       tham(l)=tham(l)+hda(l,ja,jp,kointer)*(x(1)**j1) *(x(2)**j2)
             tham(l)=tham(l)+(hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2) !hr04
    60     continue
    70   continue
@@ -11289,12 +9892,9 @@ cc2008
           do 110 j2=0,jord-j1
             j3=jord-j1-j2
 !-----------------------------------------------------------------------
-!hr04       kointer=j1+j2*3+j3*3**2
             kointer=(j1+j2*3)+j3*3**2                                    !hr04
 !-----------------------------------------------------------------------
             do 100 l=0,ncoef
-!hr04         tham(l)=tham(l)+hda(l,ja,jp,kointer)*(x(1)**j1)           &
-!hr04&*(x(2)**j2)*(x(3)**j3)
               tham(l)=tham(l)+((hda(l,ja,jp,kointer)*(x(1)**j1))        &!hr04
      &*(x(2)**j2))*(x(3)**j3)                                            !hr04
   100       continue
@@ -11310,12 +9910,9 @@ cc2008
             do 160 j3=0,jord-j1-j2
               j4=jord-j1-j2-j3
 !-----------------------------------------------------------------------
-!hr04         kointer=j1+j2*3+j3*3**2+j4*3**3
               kointer=((j1+j2*3)+j3*3**2)+j4*3**3                        !hr04
 !-----------------------------------------------------------------------
               do 150 l=0,ncoef
-!hr04           tham(l)=tham(l)+hda(l,ja,jp,kointer)*(x(1)**j1)         &
-!hr04&*(x(2)**j2)*(x(3)**j3)*(x(4)**j4)
                 tham(l)=tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))     &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
   150         continue
@@ -11333,12 +9930,9 @@ cc2008
               do 220 j4=0,jord-j1-j2-j3
                 j5=jord-j1-j2-j3-j4
 !-----------------------------------------------------------------------
-!hr04           kointer=j1+j2*3+j3*3**2+j4*3**3+j5*3**4
                 kointer=(((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4            !hr04
 !-----------------------------------------------------------------------
                 do 210 l=0,ncoef
-!hr04             tham(l)=tham(l)+hda(l,ja,jp,kointer)*(x(1)**j1)       &
-!hr04&*(x(2)**j2)*(x(3)**j3)*(x(4)**j4) *(x(5)**j5)
                   tham(l)=tham(l)+((((hda(l,ja,jp,kointer)*(x(1)**j1))  &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)                    !hr04
   210           continue
@@ -11358,13 +9952,9 @@ cc2008
                 do 290 j5=0,jord-j1-j2-j3-j4
                   j6=jord-j1-j2-j3-j4-j5
 !-----------------------------------------------------------------------
-!hr04             kointer=j1+j2*3+j3*3**2+j4*3**3+j5*3**4 +j6*3**5
                  kointer=((((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4)+j6*3**5 !hr04
 !-----------------------------------------------------------------------
                   do 280 l=0,ncoef
-!hr04               tham(l)=tham(l)+hda(l,ja,jp,kointer) *(x(1)**j1)    &
-!hr04&*(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x(5)**j5)                     &
-!hr04&*(x(6)**j6)
                  tham(l)=tham(l)+(((((hda(l,ja,jp,kointer) *(x(1)**j1)) &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &!hr04
      &*(x(6)**j6)                                                        !hr04
@@ -11422,8 +10012,6 @@ cc2008
             icont=icont+1
 !-----------------------------------------------------------------------
             fun(l)=fun(l)+user(l*nmax+icont)*(x(1)**j1)
-!hr04       fder(l,1)=fder(l,1)+user(l*nmax+icont)*dble(j1) *(x(1)      &
-!hr04&**(j1-1))
             fder(l,1)=fder(l,1)+(user(l*nmax+icont)*dble(j1))*(x(1)     &!hr04
      &**(j1-1))                                                          !hr04
    30     continue
@@ -11440,14 +10028,9 @@ cc2008
               kointer=j1+j2*3
               icont=icont+1
 !-----------------------------------------------------------------------
-!hr04         fun(l)=fun(l)+user(l*nmax+icont)*(x(1)**j1) *(x(2)**j2)
               fun(l)=fun(l)+(user(l*nmax+icont)*(x(1)**j1))*(x(2)**j2)
-!hr04         fder(l,1)=fder(l,1)+user(l*nmax+icont)*dble(j1) *(x(1)    &
-!hr04&**(j1-1))*(x(2)**j2)
               fder(l,1)=fder(l,1)+((user(l*nmax+icont)*dble(j1))*(x(1)  &!hr04
      &**(j1-1)))*(x(2)**j2)                                              !hr04
-!hr04         fder(l,2)=fder(l,2)+user(l*nmax+icont)*dble(j2)           &
-!hr04&*(x(1)**j1)*(x(2)**(j2-1))
               fder(l,2)=fder(l,2)+((user(l*nmax+icont)*dble(j2))        &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1))                                        !hr04
    50       continue
@@ -11463,24 +10046,15 @@ cc2008
               do 80 j2=0,jord-j1
                 j3=jord-j1-j2
 !-----------------------------------------------------------------------
-!hr04           kointer=j1+j2*3+j3*3**2
                 kointer=(j1+j2*3)+j3*3**2                                !hr04
                 icont=icont+1
 !-----------------------------------------------------------------------
-!hr04           fun(l)=fun(l)+user(l*nmax+icont)*(x(1)**j1) *(x(2)**j2) &
-!hr04&*(x(3)**j3)
               fun(l)=fun(l)+((user(l*nmax+icont)*(x(1)**j1))*(x(2)**j2))&!hr04
      &*(x(3)**j3)                                                        !hr04
-!hr04           fder(l,1)=fder(l,1)+user(l*nmax+icont)*dble(j1) *(x(1)  &
-!hr04&**(j1-1))*(x(2)**j2)*(x(3)**j3)
               fder(l,1)=fder(l,1)+(((user(l*nmax+icont)*dble(j1))*(x(1) &!hr04
      &**(j1-1)))*(x(2)**j2))*(x(3)**j3)                                  !hr04
-!hr04           fder(l,2)=fder(l,2)+user(l*nmax+icont)*dble(j2)         &
-!hr04&*(x(1)**j1)*(x(2)**(j2-1))*(x(3)**j3)
                 fder(l,2)=fder(l,2)+(((user(l*nmax+icont)*dble(j2))     &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3)                            !hr04
-!hr04           fder(l,3)=fder(l,3)+user(l*nmax+icont)*dble(j3)         &
-!hr04&*(x(1)**j1)*(x(2)**j2)*(x(3)**(j3-1))
                 fder(l,3)=fder(l,3)+(((user(l*nmax+icont)*dble(j3))     &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1))                            !hr04
    80         continue
@@ -11501,24 +10075,14 @@ cc2008
                   kointer=j1+j2*3+j3*3**2+j4*3**3
                   icont=icont+1
 !-----------------------------------------------------------------------
-!hr04             fun(l)=fun(l)+user(l*nmax+icont)*(x(1)**j1)           &
-!hr04&*(x(2)**j2)*(x(3)**j3)*(x(4)**j4)
                   fun(l)=fun(l)+(((user(l*nmax+icont)*(x(1)**j1))       &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
-!hr04             fder(l,1)=fder(l,1)+user(l*nmax+icont)*dble(j1)*(x    &
-!hr04&(1)**(j1-1))*(x(2)**j2)*(x(3 )**j3)*(x(4)**j4)
                 fder(l,1)=fder(l,1)+((((user(l*nmax+icont)*dble(j1))*(x &!hr04
      &(1)**(j1-1)))*(x(2)**j2))*(x(3 )**j3))*(x(4)**j4)                  !hr04
-!hr04             fder(l,2)=fder(l,2)+user(l*nmax+icont)*dble(j2)       &
-!hr04&*(x(1)**j1)*(x(2)**(j2-1))*(x(3 )**j3)*(x(4)**j4)
                   fder(l,2)=fder(l,2)+((((user(l*nmax+icont)*dble(j2))  &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3 )**j3))*(x(4)**j4)               !hr04
-!hr04             fder(l,3)=fder(l,3)+user(l*nmax+icont)*dble(j3)       &
-!hr04&*(x(1)**j1)*(x(2)**j2)*(x(3 )**(j3-1))*(x(4)**j4)
                   fder(l,3)=fder(l,3)+((((user(l*nmax+icont)*dble(j3))  &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3 )**(j3-1)))*(x(4)**j4)               !hr04
-!hr04             fder(l,4)=fder(l,4)+user(l*nmax+icont)*dble(j4)       &
-!hr04&*(x(1)**j1)*(x(2)**j2)*(x(3 )**j3)*(x(4)**(j4-1))
                   fder(l,4)=fder(l,4)+((((user(l*nmax+icont)*dble(j4))  &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3 )**j3))*(x(4)**(j4-1))               !hr04
   120           continue
@@ -11538,41 +10102,23 @@ cc2008
                   do 170 j4=0,jord-j1-j2-j3
                     j5=jord-j1-j2-j3-j4
 !-----------------------------------------------------------------------
-!hr04               kointer=j1+j2*3+j3*3**2+j4*3**3+j5*3**4
                     kointer=(((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4        !hr04
                     icont=icont+1
 !-----------------------------------------------------------------------
-!hr04               fun(l)=fun(l)+user(l*nmax+icont)*(x(1)**j1)         &
-!hr04&*(x(2)**j2)*(x(3)**j3)*(x(4)**j4) *(x(5)**j5)
                     fun(l)=fun(l)+((((user(l*nmax+icont)*(x(1)**j1))    &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)                    !hr04
-!hr04               fder(l,1)=fder(l,1)+user(l*nmax+icont) *dble(j1)    &
-!hr04&*(x(1)**(j1-1)) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)                &
-!hr04&*(x(5)**j5)
                  fder(l,1)=fder(l,1)+(((((user(l*nmax+icont) *dble(j1)) &!hr04
      &*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-!hr04               fder(l,2)=fder(l,2)+user(l*nmax+icont) *dble(j2)    &
-!hr04&*(x(1)**j1) *(x(2)**(j2-1))*(x(3)**j3) *(x(4)**j4)                &
-!hr04&*(x(5)**j5)
                  fder(l,2)=fder(l,2)+(((((user(l*nmax+icont) *dble(j2)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-!hr04               fder(l,3)=fder(l,3)+user(l*nmax+icont) *dble(j3)    &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**(j3-1)) *(x(4)**j4)                &
-!hr04&*(x(5)**j5)
                  fder(l,3)=fder(l,3)+(((((user(l*nmax+icont) *dble(j3)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-!hr04               fder(l,4)=fder(l,4)+user(l*nmax+icont) *dble(j4)    &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**(j4-1))                &
-!hr04&*(x(5)**j5)
                  fder(l,4)=fder(l,4)+(((((user(l*nmax+icont) *dble(j4)) &
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1)))              &
      &*(x(5)**j5)
-!hr04               fder(l,5)=fder(l,5)+user(l*nmax+icont) *dble(j5)    &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x(5)              &
-!hr04&**(j5-1))
                  fder(l,5)=fder(l,5)+(((((user(l*nmax+icont) *dble(j5)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)            &!hr04
      &**(j5-1))                                                          !hr04
@@ -11598,45 +10144,24 @@ cc2008
                  kointer=((((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4)+j6*3**5
                       icont=icont+1
 !-----------------------------------------------------------------------
-!hr04                 fun(l)=fun(l)+user(l*nmax+icont) *(x(1)**j1)      &
-!hr04&*(x(2)**j2) *(x(3)**j3)*(x(4)**j4) *(x(5)**j5)                    &
-!hr04&*(x(6)**j6)
                      fun(l)=fun(l)+(((((user(l*nmax+icont) *(x(1)**j1)) &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &!hr04
      &*(x(6)**j6)                                                        !hr04
-!hr04                 fder(l,1)=fder(l,1)+user(l*nmax+icont) *dble(j1)  &
-!hr04&*(x(1)**(j1-1)) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)                &
-!hr04&*(x(5)**j5) *(x(6)**j6)
                 fder(l,1)=fder(l,1)+((((((user(l*nmax+icont) *dble(j1)) &!hr04
      &*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-!hr04                 fder(l,2)=fder(l,2)+user(l*nmax+icont) *dble(j2)  &
-!hr04&*(x(1)**j1) *(x(2)**(j2-1))*(x(3)**j3) *(x(4)**j4)                &
-!hr04&*(x(5)**j5) *(x(6)**j6)
                 fder(l,2)=fder(l,2)+((((((user(l*nmax+icont) *dble(j2)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-!hr04                 fder(l,3)=fder(l,3)+user(l*nmax+icont) *dble(j3)  &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**(j3-1)) *(x(4)**j4)                &
-!hr04&*(x(5)**j5) *(x(6)**j6)
                 fder(l,3)=fder(l,3)+((((((user(l*nmax+icont) *dble(j3)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-!hr04                 fder(l,4)=fder(l,4)+user(l*nmax+icont) *dble(j4)  &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**(j4-1))                &
-!hr04&*(x(5)**j5) *(x(6)**j6)
                 fder(l,4)=fder(l,4)+((((((user(l*nmax+icont) *dble(j4)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1)))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-!hr04                 fder(l,5)=fder(l,5)+user(l*nmax+icont) *dble(j5)  &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x                 &
-!hr04&(5)**(j5-1)) *(x(6)**j6)
                 fder(l,5)=fder(l,5)+((((((user(l*nmax+icont) *dble(j5)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x               &!hr04
      &(5)**(j5-1)))*(x(6)**j6)                                           !hr04
-!hr04                 fder(l,6)=fder(l,6)+user(l*nmax+icont) *dble(j6)  &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)                    &
-!hr04&*(x(5)**j5) *(x(6)**(j6-1))
                 fder(l,6)=fder(l,6)+((((((user(l*nmax+icont) *dble(j6)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))                  &!hr04
      &*(x(5)**j5))*(x(6)**(j6-1))                                        !hr04
@@ -11654,15 +10179,10 @@ cc2008
 !-----------------------------------------------------------------------
         if(iuser(1).eq.1) then
 !-----------------------------------------------------------------------
-!hr04     objf=2.d0*fun(0)*fun(0)+fun(1)*fun(1)+2.d0*fun(2)*fun(2) +fun &
-!hr04&(0)*fun(1)+fun(2)*fun(1)
           objf=(((2.d0*fun(0)**2+fun(1)**2)+2.d0*fun(2)**2)+fun         &
      &(0)*fun(1))+fun(2)*fun(1)
 !-----------------------------------------------------------------------
           do 300 jvar=1,n
-!hr04     objgrd(jvar)=(4.d0*fun(0)+fun(1))*fder(0,jvar)+ (2.d0*fun(1)&
-!hr04&+fun(0)+fun(2))*fder(1,jvar)+ (4.d0*fun(2)+fun(1))*fder         &
-!hr04&(2,jvar)
           objgrd(jvar)=((4.d0*fun(0)+fun(1))*fder(0,jvar)+ ((2.d0*fun(1)&!hr04
      &+fun(0))+fun(2))*fder(1,jvar))+ (4.d0*fun(2)+fun(1))*fder         &!hr04
      &(2,jvar)                                                           !hr04
@@ -11670,20 +10190,12 @@ cc2008
 !-----------------------------------------------------------------------
         else
 !-----------------------------------------------------------------------
-!hr04     objf=27.d0*fun(3)**2+5.d0*fun(2)**2+5.d0*fun(1)**2 +27.d0*fun &
-!hr04&(0)**2+9.d0*fun(3)*fun(2) +9.d0*fun(1)*fun(0)+6.d0*fun(2)*fun     &
-!hr04&(1) +3.d0*fun(3)*fun(1)+3.d0*fun(2)*fun(0)
           objf=(((((((27.d0*fun(3)**2+5.d0*fun(2)**2)+5.d0*fun(1)**2)+  &!hr04
      &27.d0*fun(0)**2)+                                                 &!hr04
      &9.d0*fun(3)*fun(2))+9.d0*fun(1)*fun(0))+6.d0*fun(2)*fun           &!hr04
      &(1))+3.d0*fun(3)*fun(1))+3.d0*fun(2)*fun(0)                        !hr04
 !-----------------------------------------------------------------------
           do 310 jvar=1,n
-!hr04       objgrd(jvar)=(54.d0*fun(3)+9.d0*fun(2)+3.d0*fun(1)) *fder   &
-!hr04&(3,jvar) +(10.d0*fun(2)+9.d0*fun(3)+6.d0*fun(1)+3.d0* fun(0)      &
-!hr04&)*fder(2,jvar) +(10.d0*fun(1)+9.d0*fun(0)+6.d0*fun(2)+3.d0*       &
-!hr04&fun(3))*fder(1,jvar) +(54.d0*fun(0)+9.d0*fun(1)+3.d0*fun(2))      &
-!hr04&*fder(0,jvar)
         objgrd(jvar)=((((54.d0*fun(3)+9.d0*fun(2))+3.d0*fun(1)) *fder   &!hr04
      &(3,jvar) +(((10.d0*fun(2)+9.d0*fun(3))+6.d0*fun(1))+3.d0* fun(0)  &!hr04
      &)*fder(2,jvar))+(((10.d0*fun(1)+9.d0*fun(0))+6.d0*fun(2))+3.d0*   &!hr04
@@ -11695,11 +10207,8 @@ cc2008
 !-----------------------------------------------------------------------
       else
 !-----------------------------------------------------------------------
-!hr04   objf=fun(0)*fun(0)+fun(1)*fun(1)
         objf=fun(0)**2+fun(1)**2                                         !hr04
         do 320 jvar=1,n
-!hr04     objgrd(jvar)=2.d0*fun(0)*fder(0,jvar) +2.d0*fun(1)*fder       &
-!hr04&(1,jvar)
           objgrd(jvar)=(2.d0*fun(0))*fder(0,jvar) +(2.d0*fun(1))*fder   &!hr04
      &(1,jvar)                                                           !hr04
   320   continue
@@ -11788,11 +10297,9 @@ cc2008
           a(jrow,jcol)=hdp(jrow-1,1,(nordp+1)**(jcol-1))
    50   continue
         do 60 jcol=1,jeltot-2
-!hr04     bmat(jrow,jcol)=-a(jrow,jcol+2)
           bmat(jrow,jcol)=-1d0*a(jrow,jcol+2)                            !hr04
    60   continue
 !-----------------------------------------------------------------------
-!hr04   cvec(jrow)=-hdp(jrow-1,1,0)
         cvec(jrow)=-1d0*hdp(jrow-1,1,0)                                  !hr04
    70 continue
 !-----------------------------------------------------------------------
@@ -11801,9 +10308,7 @@ cc2008
 !-----------------------------------------------------------------------
       detinv=1.d0/(a(1,1)*a(2,2)-a(2,1)*a(1,2))
       ainv(1,1)=detinv*a(2,2)
-!hr04 ainv(1,2)=-detinv*a(1,2)
       ainv(1,2)=(-1d0*detinv)*a(1,2)                                     !hr04
-!hr04 ainv(2,1)=-detinv*a(2,1)
       ainv(2,1)=(-1d0*detinv)*a(2,1)                                     !hr04
       ainv(2,2)=detinv*a(1,1)
 !-----------------------------------------------------------------------
@@ -11878,9 +10383,7 @@ cc2008
   120   continue
 !-----------------------------------------------------------------------
         do 130 jbound=1,nclin
-!hr04     bu(n+jbound)=-hdp(jbound-1,1,0)
           bu(n+jbound)=-1d0*hdp(jbound-1,1,0)                            !hr04
-!hr04     bl(n+jbound)=-hdp(jbound-1,1,0)
           bl(n+jbound)=-1d0*hdp(jbound-1,1,0)                            !hr04
   130   continue
 !-----------------------------------------------------------------------
@@ -11893,7 +10396,6 @@ cc2008
 !-----------------------------------------------------------------------
         do 160 jvar=1,2
           do 150 jcol=1,n-2
-!hr04       x(jvar)=x(jvar)+cmat(jvar,jcol)*sgn(jcol,jconf) +dvec(jvar)
             x(jvar)=(x(jvar)+cmat(jvar,jcol)*sgn(jcol,jconf))+dvec(jvar) !hr04
             x(jcol+2)=sgn(jcol,jconf)
   150     continue
@@ -11995,34 +10497,20 @@ cc2008
 !-----------------------------------------------------------------------
           if(jord.eq.2) then
 !-----------------------------------------------------------------------
-!hr04       chib=pi2in/sqrt(3.d0)*sqrt(2.d0*hda(0,2,0)**2 +hda(1,2,0)   &
-!hr04&**2+2.d0*hda(2,2,0)**2+hda(0,2,0) *hda(1,2,0)+hda(1,2,0)*hda      &
-!hr04&(2,2,0))
          chib=(pi2in/sqrt(3.d0))*sqrt((((2.d0*hda(0,2,0)**2 +hda(1,2,0) &!hr04
      &**2)+2.d0*hda(2,2,0)**2)+hda(0,2,0) *hda(1,2,0))+hda(1,2,0)*hda   &!hr04
      &(2,2,0))                                                           !hr04
-!hr04       chia=pi2in/sqrt(3.d0)*sqrt(2.d0*hama(0)**2+hama(1)**2       &
-!hr04&+2.d0*hama(2)**2+hama(0)*hama(1)+hama(1)*hama(2))
             chia=(pi2in/sqrt(3.d0))*sqrt((((2.d0*hama(0)**2+hama(1)**2) &
      &+2.d0*hama(2)**2)+hama(0)*hama(1))+hama(1)*hama(2))
 !-----------------------------------------------------------------------
           else if(jord.eq.3) then
 !-----------------------------------------------------------------------
-!hr04       chib=pi2in/sqrt(30.d0)*sqrt(27.d0*hda(3,3,0)**2 +5.d0*hda   &
-!hr04&(2,3,0)**2+5.d0*hda(1,3,0)**2 +27.d0*hda(0,3,0)**2+9.d0*hda       &
-!hr04&(3,3,0)*hda(2,3,0) +9.d0*hda(1,3,0)*hda(0,3,0)+6.d0*hda           &
-!hr04&(2,3,0)* hda(1,3,0)+3.d0*hda(3,3,0)*hda(1,3,0) +3.d0*hda          &
-!hr04&(2,3,0)*hda(0,3,0))
             chib=(pi2in/sqrt(30.d0))*                                   &!hr04
      &sqrt((((((((27.d0*hda(3,3,0)**2 +5.d0*hda                         &!hr04
      &(2,3,0)**2)+5.d0*hda(1,3,0)**2)+27.d0*hda(0,3,0)**2)+9.d0*hda     &!hr04
      &(3,3,0)*hda(2,3,0))+9.d0*hda(1,3,0)*hda(0,3,0))+6.d0*hda          &!hr04
      &(2,3,0)* hda(1,3,0))+3.d0*hda(3,3,0)*hda(1,3,0))+3.d0*hda         &!hr04
      &(2,3,0)*hda(0,3,0))                                                !hr04
-!hr04       chia=pi2in/sqrt(30.d0)*sqrt(27.d0*hama(3)**2 +5.d0*hama(2)  &
-!hr04&**2+5.d0*hama(1)**2+27.d0*hama(0)**2 +9.d0*hama(3)*hama(2)        &
-!hr04&+9.d0*hama(1)*hama(0) +6.d0*hama(2)*hama(1)+3.d0*hama(3)          &
-!hr04&*hama(1) +3.d0*hama(2)*hama(0))
             chia=(pi2in/sqrt(30.d0))*                                   &!hr04
      &sqrt((((((((27.d0*hama(3)**2 +5.d0*hama(2)                        &!hr04
      &**2)+5.d0*hama(1)**2)+27.d0*hama(0)**2)+9.d0*hama(3)*hama(2))     &!hr04
@@ -12302,7 +10790,6 @@ cc2008
                   j3=jord-j1-j2
 !-----------------------------------------------------------------------
                   icont=icont+1
-!hr04             kointer=j1+j2*(nordp+1)+j3*(nordp+1)*(nordp+1)
                   kointer=(j1+j2*(nordp+1))+j3*(nordp+1)**2              !hr04
 !-----------------------------------------------------------------------
                   user(icont)=hdp(jcomp,jp,kointer)
@@ -12323,8 +10810,6 @@ cc2008
                     j4=jord-j1-j2-j3
 !-----------------------------------------------------------------------
                     icont=icont+1
-!hr04               kointer=j1+j2*(nordp+1)+j3*(nordp+1)*(nordp+1 )+j4  &
-!hr04&*(nordp+1)*(nordp+1)*(nordp+1)
                     kointer=((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4      &!hr04
      &*(nordp+1)**3                                                      !hr04
 !-----------------------------------------------------------------------
@@ -12348,9 +10833,6 @@ cc2008
                       j5=jord-j1-j2-j3-j4
 !-----------------------------------------------------------------------
                       icont=icont+1
-!hr04                 kointer=j1+j2*(nordp+1)+j3*(nordp+1)*( nordp+1)+j4&
-!hr04&*(nordp+1)*(nordp+1 )*(nordp+1)+j5*(nordp+1)                      &
-!hr04&*(nordp +1)*(nordp+1)*(nordp+1)
                       kointer=(((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4   &!hr04
      &*(nordp+1)**3)+j5*(nordp+1)**4                                     !hr04
 !-----------------------------------------------------------------------
@@ -12376,10 +10858,6 @@ cc2008
                         j6=jord-j1-j2-j3-j4-j6
 !-----------------------------------------------------------------------
                         icont=icont+1
-!hr04                   kointer=j1+j2*(nordp+1)+j3*(nordp+1)*( nordp+1) &
-!hr04&+j4*(nordp+1)*(nordp+1 )*(nordp+1)+j5*(nordp+1)                   &
-!hr04&*(nordp +1)*(nordp+1)*(nordp+1)+j6* (nordp+1)                     &
-!hr04&*(nordp+1)*(nordp+1)* (nordp+1)*(nordp+1)
                         kointer=((((j1+j2*(nordp+1))+j3*(nordp+1)**2)   &!hr04
      &+j4*(nordp+1)**3)+j5*(nordp+1)**4)+j6*(nordp+1)**5                 !hr04
 !-----------------------------------------------------------------------
@@ -12456,12 +10934,9 @@ cc2008
               do 70 j2=0,jord-j1
                 j3=jord-j1-j2
 !-----------------------------------------------------------------------
-!hr04           kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2
                 kointer=(j1+j2*(nordp+1))+j3*(nordp+1)**2                !hr04
 !-----------------------------------------------------------------------
                 do 60 l=0,1
-!hr04             thamp(l)=thamp(l)+hdp(l,jp,kointer)*(x(1)**j1)        &
-!hr04&*(x(2)**j2)*(x(3)**j3)
                   thamp(l)=thamp(l)+((hdp(l,jp,kointer)*(x(1)**j1))     &!hr04
      &*(x(2)**j2))*(x(3)**j3)                                            !hr04
    60           continue
@@ -12477,14 +10952,10 @@ cc2008
                 do 110 j3=0,jord-j1-j2
                   j4=jord-j1-j2-j3
 !-----------------------------------------------------------------------
-!hr04             kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2 +j4*(nordp+1) &
-!hr04&**3
                kointer=((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4*(nordp+1) &!hr04
      &**3                                                                !hr04
 !-----------------------------------------------------------------------
                   do 100 l=0,1
-!hr04               thamp(l)=thamp(l)+hdp(l,jp,kointer)*(x(1)**j1)      &
-!hr04&*(x(2)**j2)*(x(3)**j3)*(x(4)**j4)
                     thamp(l)=thamp(l)+(((hdp(l,jp,kointer)*(x(1)**j1))  &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
   100             continue
@@ -12502,14 +10973,10 @@ cc2008
                   do 160 j4=0,jord-j1-j2-j3
                     j5=jord-j1-j2-j3-j4
 !-----------------------------------------------------------------------
-!hr04               kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2 +j4         &
-!hr04&*(nordp+1)**3+j5*(nordp+1)**4
                     kointer=(((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4     &!hr04
      &*(nordp+1)**3)+j5*(nordp+1)**4                                     !hr04
 !-----------------------------------------------------------------------
                     do 150 l=0,1
-!hr04                 thamp(l)=thamp(l)+hdp(l,jp,kointer) *(x(1)**j1)   &
-!hr04&*(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x(5)**j5)
                     thamp(l)=thamp(l)+((((hdp(l,jp,kointer)*(x(1)**j1)) &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)                    !hr04
   150               continue
@@ -12529,15 +10996,10 @@ cc2008
                     do 220 j5=0,jord-j1-j2-j3-j4
                       j6=jord-j1-j2-j3-j4-j5
 !-----------------------------------------------------------------------
-!hr04                 kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2 +j4       &
-!hr04&*(nordp+1)**3+j5*(nordp+1)**4 +j6*(nordp+1)**5
                       kointer=((((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4  &!hr04
      &*(nordp+1)**3)+j5*(nordp+1)**4)+j6*(nordp+1)**5                    !hr04
 !-----------------------------------------------------------------------
                       do 210 l=0,1
-!hr04                   thamp(l)=thamp(l)+hdp(l,jp,kointer) *(x(1)**j1) &
-!hr04&*(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x(5)**j5)                     &
-!hr04&*(x(6)**j6)
                    thamp(l)=thamp(l)+(((((hdp(l,jp,kointer)*(x(1)**j1)) &
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &
      &*(x(6)**j6)
@@ -12595,12 +11057,9 @@ cc2008
               do 360 j2=0,jord-j1
                 j3=jord-j1-j2
 !-----------------------------------------------------------------------
-!hr04           kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2
                 kointer=(j1+j2*(nordp+1))+j3*(nordp+1)**2                !hr04
 !-----------------------------------------------------------------------
                 do 350 l=0,jp
-!hr04             thama(l)=thama(l)+hda(l,jp,kointer)*(x(1)**j1)        &
-!hr04&*(x(2)**j2)*(x(3)**j3)
                   thama(l)=thama(l)+((hda(l,jp,kointer)*(x(1)**j1))     &!hr04
      &*(x(2)**j2))*(x(3)**j3)                                            !hr04
   350           continue
@@ -12616,14 +11075,10 @@ cc2008
                 do 400 j3=0,jord-j1-j2
                   j4=jord-j1-j2-j3
 !-----------------------------------------------------------------------
-!hr04             kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2 +j4*(nordp+1) &
-!hr04&**3
                kointer=((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4*(nordp+1) &!hr04
      &**3                                                                !hr04
 !-----------------------------------------------------------------------
                   do 390 l=0,jp
-!hr04               thama(l)=thama(l)+hda(l,jp,kointer)*(x(1)**j1)      &
-!hr04&*(x(2)**j2)*(x(3)**j3)*(x(4)**j4)
                     thama(l)=thama(l)+(((hda(l,jp,kointer)*(x(1)**j1))  &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
   390             continue
@@ -12641,14 +11096,10 @@ cc2008
                   do 450 j4=0,jord-j1-j2-j3
                     j5=jord-j1-j2-j3-j4
 !-----------------------------------------------------------------------
-!hr04               kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2 +j4         &
-!hr04&*(nordp+1)**3+j5*(nordp+1)**4
                     kointer=(((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4     &!hr04
      &*(nordp+1)**3)+j5*(nordp+1)**4                                     !hr04
 !-----------------------------------------------------------------------
                     do 440 l=0,jp
-!hr04                 thama(l)=thama(l)+hda(l,jp,kointer) *(x(1)**j1)   &
-!hr04&*(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x(5)**j5)
                     thama(l)=thama(l)+((((hda(l,jp,kointer)*(x(1)**j1)) &
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)
   440               continue
@@ -12668,15 +11119,10 @@ cc2008
                     do 510 j5=0,jord-j1-j2-j3-j4
                       j6=jord-j1-j2-j3-j4-j5
 !-----------------------------------------------------------------------
-!hr04                 kointer=j1+j2*(nordp+1)+j3*(nordp+1)**2 +j4       &
-!hr04&*(nordp+1)**3+j5*(nordp+1)**4 +j6*(nordp+1)**5
                       kointer=((((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4  &!hr04
      &*(nordp+1)**3)+j5*(nordp+1)**4)+j6*(nordp+1)**5                    !hr04
 !-----------------------------------------------------------------------
                       do 500 l=0,jp
-!hr04                   thama(l)=thama(l)+hda(l,jp,kointer) *(x(1)**j1) &
-!hr04&*(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x(5)**j5)                     &
-!hr04&*(x(6)**j6)
                    thama(l)=thama(l)+(((((hda(l,jp,kointer)*(x(1)**j1)) &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &!hr04
      &*(x(6)**j6)                                                        !hr04
@@ -12742,8 +11188,6 @@ cc2008
               icont=icont+1
 !-----------------------------------------------------------------------
               fun(l,jp)=fun(l,jp)+user(icont)*(x(1)**j1)
-!hr04         fder(l,jp,1)=fder(l,jp,1)+user(icont) *dble(j1)*(x(1)     &
-!hr04&**(j1-1))
               fder(l,jp,1)=fder(l,jp,1)+(user(icont)*dble(j1))*(x(1)    &!hr04
      &**(j1-1))                                                          !hr04
    40       continue
@@ -12761,14 +11205,9 @@ cc2008
                 kointer=j1+j2*(iuser(1)+1)
                 icont=icont+1
 !-----------------------------------------------------------------------
-!hr04           fun(l,jp)=fun(l,jp)+user(icont) *(x(1)**j1)*(x(2)**j2)
                 fun(l,jp)=fun(l,jp)+(user(icont)*(x(1)**j1))*(x(2)**j2)  !hr04
-!hr04           fder(l,jp,1)=fder(l,jp,1)+user(icont) *dble(j1)*(x(1)   &
-!hr04&**(j1-1)) *(x(2)**j2)
                 fder(l,jp,1)=fder(l,jp,1)+((user(icont)*dble(j1))*(x(1) &!hr04
      &**(j1-1)))*(x(2)**j2)                                              !hr04
-!hr04           fder(l,jp,2)=fder(l,jp,2)+user(icont) *dble(j2)         &
-!hr04&*(x(1)**j1)* (x(2)**(j2-1))
                 fder(l,jp,2)=fder(l,jp,2)+((user(icont)*dble(j2))       &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1))                                        !hr04
    70         continue
@@ -12785,24 +11224,15 @@ cc2008
                 do 110 j2=0,jord-j1
                   j3=jord-j1-j2
 !-----------------------------------------------------------------------
-!hr04             kointer=j1+j2*(iuser(1)+1)+j3*(iuser(1)+1)**2
                   kointer=(j1+j2*(iuser(1)+1))+j3*(iuser(1)+1)**2        !hr04
                   icont=icont+1
 !-----------------------------------------------------------------------
-!hr04             fun(l,jp)=fun(l,jp)+user(icont) *(x(1)**j1)*(x(2)**j2)&
-!hr04&*(x(3)**j3)
                fun(l,jp)=fun(l,jp)+((user(icont)*(x(1)**j1))*(x(2)**j2))&!hr04
      &*(x(3)**j3)                                                        !hr04
-!hr04             fder(l,jp,1)=fder(l,jp,1)+user(icont) *dble(j1)*(x    &
-!hr04&(1)**(j1-1)) *(x(2)**j2)*(x(3)**j3)
                   fder(l,jp,1)=fder(l,jp,1)+(((user(icont)*dble(j1))*(x &!hr04
      &(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3)                               !hr04
-!hr04             fder(l,jp,2)=fder(l,jp,2)+user(icont) *dble(j2)       &
-!hr04&*(x(1)**j1)* (x(2)**(j2-1))*(x(3)**j3)
                   fder(l,jp,2)=fder(l,jp,2)+(((user(icont)*dble(j2))    &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3)                            !hr04
-!hr04             fder(l,jp,3)=fder(l,jp,3)+user(icont) *dble(j3)       &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**(j3-1))
                   fder(l,jp,3)=fder(l,jp,3)+(((user(icont)*dble(j3))    &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1))                            !hr04
   110           continue
@@ -12821,30 +11251,18 @@ cc2008
                   do 160 j3=0,jord-j1-j2
                     j4=jord-j1-j2-j3
 !-----------------------------------------------------------------------
-!hr04               kointer=j1+j2*(iuser(1)+1) +j3*(iuser(1)+1)**2 +j4  &
-!hr04&*(iuser(1)+1)**3
                     kointer=((j1+j2*(iuser(1)+1))+j3*(iuser(1)+1)**2)+j4&!hr04
      &*(iuser(1)+1)**3                                                   !hr04
                     icont=icont+1
 !-----------------------------------------------------------------------
-!hr04               fun(l,jp)=fun(l,jp)+user(icont) *(x(1)**j1)         &
-!hr04&*(x(2)**j2)*(x(3)**j3) *(x(4)**j4)
                     fun(l,jp)=fun(l,jp)+(((user(icont)*(x(1)**j1))      &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
-!hr04               fder(l,jp,1)=fder(l,jp,1)+user(icont) *dble(j1)*(x  &
-!hr04&(1)**(j1-1)) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)
                  fder(l,jp,1)=fder(l,jp,1)+((((user(icont)*dble(j1))*(x &!hr04
      &(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                   !hr04
-!hr04               fder(l,jp,2)=fder(l,jp,2)+user(icont) *dble(j2)     &
-!hr04&*(x(1)**j1) *(x(2)**(j2-1))*(x(3)**j3) *(x(4)**j4)
                     fder(l,jp,2)=fder(l,jp,2)+((((user(icont)*dble(j2)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4)                !hr04
-!hr04               fder(l,jp,3)=fder(l,jp,3)+user(icont) *dble(j3)     &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**(j3-1)) *(x(4)**j4)
                     fder(l,jp,3)=fder(l,jp,3)+((((user(icont)*dble(j3)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4)                !hr04
-!hr04               fder(l,jp,4)=fder(l,jp,4)+user(icont) *dble(j4)     &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**(j4-1))
                     fder(l,jp,4)=fder(l,jp,4)+((((user(icont)*dble(j4)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1))                !hr04
   160             continue
@@ -12865,43 +11283,24 @@ cc2008
                     do 220 j4=0,jord-j1-j2-j3
                       j5=jord-j1-j2-j3-j4
 !-----------------------------------------------------------------------
-!hr04                 kointer=j1+j2*(iuser(1)+1) +j3*(iuser(1)+1)**2 +j4&
-!hr04&*(iuser(1)+1)**3 +j5*(iuser(1)+1)**4
                    kointer=(((j1+j2*(iuser(1)+1))+j3*(iuser(1)+1)**2)+j4&!hr04
      &*(iuser(1)+1)**3)+j5*(iuser(1)+1)**4                               !hr04
                       icont=icont+1
 !-----------------------------------------------------------------------
-!hr04                 fun(l,jp)=fun(l,jp)+user(icont) *(x(1)**j1)       &
-!hr04&*(x(2)**j2) *(x(3)**j3)*(x(4)**j4) *(x(5)**j5)
                       fun(l,jp)=fun(l,jp)+((((user(icont)*(x(1)**j1))   &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)                    !hr04
-!hr04                 fder(l,jp,1)=fder(l,jp,1)+user(icont) *dble(j1)   &
-!hr04&*(x(1)**(j1-1)) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)                &
-!hr04&*(x(5)**j5)
                    fder(l,jp,1)=fder(l,jp,1)+(((((user(icont)*dble(j1)) &!hr04
      &*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-!hr04                 fder(l,jp,2)=fder(l,jp,2)+user(icont) *dble(j2)   &
-!hr04&*(x(1)**j1) *(x(2)**(j2-1))*(x(3)**j3) *(x(4)**j4)                &
-!hr04&*(x(5)**j5)
                    fder(l,jp,2)=fder(l,jp,2)+(((((user(icont)*dble(j2)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-!hr04                 fder(l,jp,3)=fder(l,jp,3)+user(icont) *dble(j3)   &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**(j3-1)) *(x(4)**j4)                &
-!hr04&*(x(5)**j5)
                    fder(l,jp,3)=fder(l,jp,3)+(((((user(icont)*dble(j3)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-!hr04                 fder(l,jp,4)=fder(l,jp,4)+user(icont) *dble(j4)   &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**(j4-1))                &
-!hr04&*(x(5)**j5)
                    fder(l,jp,4)=fder(l,jp,4)+(((((user(icont)*dble(j4)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1)))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-!hr04                 fder(l,jp,5)=fder(l,jp,5)+user(icont) *dble(j5)   &
-!hr04&*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)**j4)*(x                 &
-!hr04&(5)**(j5-1))
                    fder(l,jp,5)=fder(l,jp,5)+(((((user(icont)*dble(j5)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x               &!hr04
      &(5)**(j5-1))                                                       !hr04
@@ -12925,53 +11324,29 @@ cc2008
                       do 290 j5=0,jord-j1-j2-j3-j4
                         j6=jord-j1-j2-j3-j4-j5
 !-----------------------------------------------------------------------
-!hr04                   kointer=j1+j2*(iuser(1)+1) +j3*(iuser(1)+1)**2  &
-!hr04&+j4*(iuser(1)+1)**3 +j5*(iuser(1)+1)**4 +j6                       &
-!hr04&*(iuser(1)+1)**4
                     kointer=((((j1+j2*(iuser(1)+1))+j3*(iuser(1)+1)**2) &!hr04
      &+j4*(iuser(1)+1)**3) +j5*(iuser(1)+1)**4)+j6                      &!hr04
      &*(iuser(1)+1)**4                                                   !hr04
                         icont=icont+1
 !-----------------------------------------------------------------------
-!hr04                   fun(l,jp)=fun(l,jp)+user(icont) *(x(1)**j1)     &
-!hr04&*(x(2)**j2) *(x(3)**j3)*(x(4)**j4) *(x(5)**j5)                    &
-!hr04&*(x(6)**j6)
                        fun(l,jp)=fun(l,jp)+(((((user(icont)*(x(1)**j1)) &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &!hr04
      &*(x(6)**j6)                                                        !hr04
-!hr04                   fder(l,jp,1)=fder(l,jp,1)+user(icont) *dble     &
-!hr04&(j1)*(x(1)**(j1-1)) *(x(2)**j2)*(x(3)**j3)                        &
-!hr04&*(x(4)**j4)*(x(5)**j5) *(x(6)**j6)
                        fder(l,jp,1)=fder(l,jp,1)+((((((user(icont)*dble &!hr04
      &(j1))*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))                     &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)
-!hr04                   fder(l,jp,2)=fder(l,jp,2)+user(icont) *dble     &
-!hr04&(j2)*(x(1)**j1) *(x(2)**(j2-1))*(x(3)**j3)                        &
-!hr04&*(x(4)**j4)*(x(5)**j5) *(x(6)**j6)
                        fder(l,jp,2)=fder(l,jp,2)+((((((user(icont)*dble &!hr04
      &(j2))*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))                     &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)                                !hr04
-!hr04                   fder(l,jp,3)=fder(l,jp,3)+user(icont) *dble     &
-!hr04&(j3)*(x(1)**j1) *(x(2)**j2)*(x(3)**(j3-1))                        &
-!hr04&*(x(4)**j4)*(x(5)**j5) *(x(6)**j6)
                        fder(l,jp,3)=fder(l,jp,3)+((((((user(icont)*dble &!hr04
      &(j3))*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))                     &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)                                !hr04
-!hr04                   fder(l,jp,4)=fder(l,jp,4)+user(icont) *dble     &
-!hr04&(j4)*(x(1)**j1) *(x(2)**j2)*(x(3)**j3) *(x(4)                     &
-!hr04&**(j4-1))*(x(5)**j5) *(x(6)**j6)
                        fder(l,jp,4)=fder(l,jp,4)+((((((user(icont)*dble &!hr04
      &(j4))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)                   &!hr04
      &**(j4-1)))*(x(5)**j5))*(x(6)**j6)                                  !hr04
-!hr04                   fder(l,jp,5)=fder(l,jp,5)+user(icont) *dble     &
-!hr04&(j5)*(x(1)**j1) *(x(2)**j2)*(x(3)**j3)                            &
-!hr04&*(x(4)**j4)*(x(5)**(j5-1)) *(x(6)**j6)
                        fder(l,jp,5)=fder(l,jp,5)+((((((user(icont)*dble &!hr04
      &(j5))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))                         &!hr04
      &*(x(4)**j4))*(x(5)**(j5-1)))*(x(6)**j6)                            !hr04
-!hr04                   fder(l,jp,6)=fder(l,jp,6)+user(icont) *dble     &
-!hr04&(j6)*(x(1)**j1) *(x(2)**j2)*(x(3)**j3)                            &
-!hr04&*(x(4)**j4)*(x(5)**j5) *(x(6)**(j6-1))
                        fder(l,jp,6)=fder(l,jp,6)+((((((user(icont)*dble &!hr04
      &(j6))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))                         &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**(j6-1))                            !hr04
@@ -12998,37 +11373,24 @@ cc2008
         do 390 kord=iuser(2),iuser(1)
           sgn=1.d0
           if(((jord+kord)/2)*2.ne.(jord+kord)) sgn=-1.d0
-!hr04     add1=1.d0/dble(jord+kord+1)
           add1=1.d0/dble((jord+kord)+1)                                  !hr04
-!hr04     add2=user(3)/dble(jord+kord+3)
           add2=user(3)/dble((jord+kord)+3)                               !hr04
-!hr04     weight=(user(4)**(jord+kord+1))*(1.d0+sgn)*(add1+add2) *user  &
-!hr04&(5)
           weight=((user(4)**((jord+kord)+1))*(1.d0+sgn))*(add1+add2)*   &!hr04
      &user(5)                                                            !hr04
-!hr04     tunex=tunex+fun(0,jord)*fun(0,kord)*weight
           tunex=tunex+(fun(0,jord)*fun(0,kord))*weight                   !hr04
-!hr04     tuney=tuney+fun(1,jord)*fun(1,kord)*weight
           tuney=tuney+(fun(1,jord)*fun(1,kord))*weight                   !hr04
           do 380 jvar=1,n
-!hr04       tunedx(jvar)=tunedx(jvar)+fun(0,jord)*fder(0,kord, jvar)    &
-!hr04&*weight
             tunedx(jvar)=tunedx(jvar)+(fun(0,jord)*fder(0,kord, jvar))  &!hr04
      &*weight                                                            !hr04
-!hr04       tunedy(jvar)=tunedy(jvar)+fun(1,jord)*fder(1,kord, jvar)    &
-!hr04&*weight
             tunedy(jvar)=tunedy(jvar)+(fun(1,jord)*fder(1,kord, jvar))  &!hr04
      &*weight                                                            !hr04
   380     continue
   390   continue
   400 continue
 !-----------------------------------------------------------------------
-!hr04 objf=user(1)*user(1)*tunex+user(2)*user(2)*tuney
       objf=user(1)**2*tunex+user(2)**2*tuney                             !hr04
 !-----------------------------------------------------------------------
       do 410 jvar=1,n
-!hr04   objgrd(jvar)=2.d0*user(1)*user(1)*tunedx(jvar)+ 2.d0*user(2)    &
-!hr04&*user(2)*tunedy(jvar)
         objgrd(jvar)=(2.d0*user(1)**2)*tunedx(jvar)+ (2.d0*user(2)**2)  &
      &*tunedy(jvar)
   410 continue
@@ -13071,7 +11433,6 @@ cc2008
       if(y.lt.ylim.and.x.lt.xlim) then
         q=(one-y/ylim)*sqrt(one-(x/xlim)**2)
         h=one/(3.2d0*q)
-!hr05   nc=7+int(23.0*q)
         nc=7+int(23.0d0*q)                                               !hr05
 !       xl=h**(1-nc)
 +if crlibm
@@ -13098,15 +11459,10 @@ cc2008
         rx(nu+1)=0d0
         ry(nu+1)=0d0
         do 10 n=nu,1,-1
-!hr05     tx=xh+n*rx(n+1)
           tx=xh+dble(n)*rx(n+1)                                          !hr05
-!hr05     ty=yh-n*ry(n+1)
           ty=yh-dble(n)*ry(n+1)                                          !hr05
-!hr05     tn=tx*tx+ty*ty
           tn=tx**2+ty**2                                                 !hr05
-!hr05     rx(n)=0.5d0*tx/tn
           rx(n)=(0.5d0*tx)/tn                                            !hr05
-!hr05     ry(n)=0.5d0*ty/tn
           ry(n)=(0.5d0*ty)/tn                                            !hr05
    10   continue
         sx=0d0
@@ -13125,15 +11481,10 @@ cc2008
         rx(1)=0d0
         ry(1)=0d0
         do 30 n=9,1,-1
-!hr05     tx=xh+n*rx(1)
           tx=xh+dble(n)*rx(1)                                            !hr05
-!hr05     ty=yh-n*ry(1)
           ty=yh-dble(n)*ry(1)                                            !hr05
-!hr05     tn=tx*tx+ty*ty
           tn=tx**2+ty**2                                                 !hr05
-!hr05     rx(1)=0.5d0*tx/tn
           rx(1)=(0.5d0*tx)/tn                                            !hr05
-!hr05     ry(1)=0.5d0*ty/tn
           ry(1)=(0.5d0*ty)/tn                                            !hr05
    30   continue
         wx=cc*rx(1)
@@ -13142,25 +11493,19 @@ cc2008
 !      if(y.eq.0.) wx=exp(-x**2)
       if(yy.lt.0.d0) then
 +if crlibm
-!hr05   wx=two*exp_rn(y*y-x*x)*cos_rn(two*x*y)-wx
         wx=(two*exp_rn(y**2-x**2))*cos_rn((two*x)*y)-wx                  !hr05
 +ei
 +if .not.crlibm
-!hr05   wx=two*exp(y*y-x*x)*cos(two*x*y)-wx
         wx=(two*exp(y**2-x**2))*cos((two*x)*y)-wx                        !hr05
 +ei
 +if crlibm
-!hr05   wy=-two*exp_rn(y*y-x*x)*sin_rn(two*x*y)-wy
         wy=((-1d0*two)*exp_rn(y**2-x**2))*sin_rn((two*x)*y)-wy           !hr05
 +ei
 +if .not.crlibm
-!hr05   wy=-two*exp(y*y-x*x)*sin(two*x*y)-wy
         wy=((-1d0*two)*exp(y**2-x**2))*sin((two*x)*y)-wy                 !hr05
 +ei
-!hr05   if(xx.gt.0.) wy=-wy
         if(xx.gt.0.d0) wy=-1d0*wy                                        !hr05
       else
-!hr05   if(xx.lt.0.) wy=-wy
         if(xx.lt.0.d0) wy=-1d0*wy
       endif
       end
@@ -13308,7 +11653,6 @@ cc2008
               vtr = vd23r - vd34r
               vti = vd23i - vd34i
               vtdd24r = vti - vtr
-!hr05 vtdd24i(j) = - ( vtr(j) + vti(j) )
               vtdd24i = -1d0* ( vtr + vti )                             !hr05
               k = k + 1
               vw1r = wtreal(k)
@@ -13388,7 +11732,6 @@ cc2008
         vtr = vd23r - vd34r
         vti = vd23i - vd34i
         vtdd24r = vti - vtr
-!hr05 vtdd24i(j) = - ( vtr(j) + vti(j) )
         vtdd24i = -1d0* ( vtr + vti )                             !hr05
         k = k + 1
         vw1r = wtreal(k)
@@ -13488,7 +11831,6 @@ cc2008
       tr = d23r - d34r
       ti = d23i - d34i
       tdd24r = ti - tr
-!hr05 tdd24i = - ( tr + ti )
       tdd24i = -1d0* ( tr + ti )                                         !hr05
       k = k + 1
       w1r = wtreal(k)
@@ -13525,14 +11867,12 @@ cc2008
 !        <1.E-8  for  x>=7.8  or  y>=7.5
 !
  1000 p=x**2-y**2
-!hr05 q=2.d0*x*y
       q=(2.d0*x)*y                                                       !hr05
       qsq=q**2
 !  First term.
       t=p-b1
       r=a1/(t**2+qsq)
       sreal=r*t
-!hr05 simag=-r*q
       simag=(-1d0*r)*q                                                   !hr05
 !  Second term
       t=p-b2
@@ -13540,7 +11880,6 @@ cc2008
       sreal=sreal+r*t
       simag=simag-r*q
 !  Multiply by i*z.
-!hr05 u=-(y*sreal+x*simag)
       u=-1d0*(y*sreal+x*simag)                                           !hr05
       v=x*sreal-y*simag
       return
@@ -13583,7 +11922,6 @@ cc2008
 +if .not.crlibm
       e0=e0+hsy(1)*sin(phas)
 +ei
-!hr05 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
       end
@@ -13618,7 +11956,6 @@ cc2008
 +if .not.crlibm
       e0=e0+hsy(1)*sin(phas)
 +ei
-!hr05 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
       end
@@ -14146,7 +12483,6 @@ cc2008
 !--CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
       if((kz(i).eq.4.or.kz(i).eq.5).and.abs(el(i)).gt.pieni)            &
      &ed(i)=-1d0*ed(i)                                                   !hr05
-!hr05&ed(i)=-ed(i)
 !--CAVITIES
       if(abs(kz(i)).eq.12) then
         if(abs(ed(i)).gt.pieni.and.abs(ek(i)).gt.pieni) then
@@ -14160,15 +12496,11 @@ cc2008
         if(abs(ed(i)*el(i)).le.pieni.or.el(i).le.pieni                  &
      &.or.ek(i).le.pieni) then
            kz(i)=0
-!hr05      ed(i)=0
            ed(i)=0d0                                                     !hr05
-!hr05      ek(i)=0
            ek(i)=0d0                                                     !hr05
-!hr05      el(i)=0
            el(i)=0d0                                                     !hr05
         else
            wirel(i)=el(i)
-!hr05      el(i)=0
            el(i)=0d0                                                     !hr05
         endif
       endif
@@ -14187,15 +12519,11 @@ cc2008
       if(abs(kz(i)).eq.16) then
         if(abs(ed(i)).le.pieni) then
            kz(i)=0
-!hr05      ed(i)=0
            ed(i)=0d0                                                     !hr05
-!hr05      ek(i)=0
            ek(i)=0d0                                                     !hr05
-!hr05      el(i)=0
            el(i)=0d0                                                     !hr05
         else
            acdipph(i)=el(i)
-!hr05      el(i)=0
            el(i)=0d0                                                     !hr05
         endif
       endif
@@ -14295,7 +12623,6 @@ cc2008
           xrms(j)=0d0
           zpl(j)=0d0
           zrms(j)=0d0
-!hr05     if(xrms0.eq.0.and.zpl0.eq.0.and.zrms0.eq.0) then
           if(xrms0.eq.0d0.and.zpl0.eq.0d0.and.zrms0.eq.0d0) then         !hr05
 +if cr
             write(lout,*) "ac dipole disregarded (0 length)"
@@ -14304,9 +12631,7 @@ cc2008
             write(*,*) "ac dipole disregarded (0 length)"
 +ei
             kz(j)=0
-!hr05       ed(j)=0
             ed(j)=0d0                                                    !hr05
-!hr05       ek(j)=0
             ek(j)=0d0                                                    !hr05
           endif
         endif
@@ -15577,7 +13902,6 @@ cc2008
 +ei
       endif
       if(pma.lt.pieni) call prror(27)
-!hr05 crad=crade*pmae/pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
       if(ncy2.eq.0) then
@@ -15610,7 +13934,6 @@ cc2008
         endif
         halc=harm*alc
         halc2=harm/tlen
-!hr05   hsy(3)=two*pi*halc2
         hsy(3)=(two*pi)*halc2                                            !hr05
 +if crlibm
         cosy=cos_rn(phas)
@@ -15618,10 +13941,8 @@ cc2008
 +if .not.crlibm
         cosy=cos(phas)
 +ei
-!hr05   qigam=pma*pma/e0/e0
         qigam=(pma**2/e0)/e0                                             !hr05
         qbet=one-qigam
-!hr05   halc3=-(qigam-alc)*ition*harm*u0/e0*cosy/(two*pi*qbet)
         halc3=((((((-1d0*(qigam-alc))*dble(ition))*harm)*u0)/e0)*cosy)/ &!hr05
      &((two*pi)*qbet)                                                    !hr05
         if(halc3.lt.zero) call prror(28)
@@ -15638,7 +13959,6 @@ cc2008
   725   continue
         do 730 j=1,il
           if(abs(kz(j)).eq.12) then
-!hr05       hsyc(j)=two*pi*ek(j)/tlen
             hsyc(j)=((two*pi)*ek(j))/tlen                                !hr05
             if(nvar.eq.5) then
               ition=1
@@ -15768,13 +14088,9 @@ cc2008
 +if .not.cr
       write(*,10220) i,bk0d,bkad,ak0d,akad
 +ei
-!hr05 bk0(im,i)=benki*bk0d/r0a
       bk0(im,i)=(benki*bk0d)/r0a                                         !hr05
-!hr05 ak0(im,i)=benki*ak0d/r0a
       ak0(im,i)=(benki*ak0d)/r0a                                         !hr05
-!hr05 bka(im,i)=benki*bkad/r0a
       bka(im,i)=(benki*bkad)/r0a                                         !hr05
-!hr05 aka(im,i)=benki*akad/r0a
       aka(im,i)=(benki*akad)/r0a                                         !hr05
       i=i+1
       r0a=r0a*r0
@@ -15820,13 +14136,10 @@ cc2008
       rsum=zero
       do 800 i=1,nzfz
   800 rsum=rsum+zfz(i)
-!hr05 rmean=rsum/nzfz
       rmean=rsum/dble(nzfz)                                              !hr05
       rsqsum=zero
       do 810 i=1,nzfz
   810 rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
-!hr05  810 rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
-!hr05 rdev=sqrt(rsqsum/nzfz)
       rdev=sqrt(rsqsum/dble(nzfz))                                       !hr05
 +if cr
       write(lout,10410) izu0,nzfz,rmean,rdev
@@ -16621,7 +14934,6 @@ cc2008
 +if .not.fio
               read(ch1,*) ilm0(1),dummy,alignx,alignz,tilt
 +ei
-!hr05         if((abs(alignx)+abs(alignz)+abs(tilt)).le.pieni)          &
               if(((abs(alignx)+abs(alignz))+abs(tilt)).le.pieni)        &!hr05
      &goto 1595
               iexnum=iexnum+1
@@ -16938,11 +15250,8 @@ cc2008
       apz(j)=apzz
       if(irel.eq.rect) then
         kp(j)=3
-!hr05   ape(1,j)=apzz*apzz
         ape(1,j)=apzz**2                                                 !hr05
-!hr05   ape(2,j)=apxx*apxx
         ape(2,j)=apxx**2                                                 !hr05
-!hr05   ape(3,j)=apxx*apxx*apzz*apzz
         ape(3,j)=apxx**2*apzz**2                                         !hr05
       endif
 +if cr
@@ -18267,7 +16576,6 @@ cc2008
       do 1620 j=1,il
       if(idat.eq.bez(j).and.kz(j).eq.20) then
         ibb6d=1
-!hr12   parbe(j,2)=i
         parbe(j,2)=dble(i)                                               !hr12
         parbe(j,1)=xang
         parbe(j,3)=xplane
@@ -19533,11 +17841,9 @@ cc2008
 !-----------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
-!hr05   if(nbeam.ge.1) parbe14=-crad*partnum/four/pi/emitnx*c1e6
         if(nbeam.ge.1) parbe14=                                         &!hr05
      &(((((-1d0*crad)*partnum)/four)/pi)/emitnx)*c1e6                    !hr05
         gammar=pma/e0
-!hr05   crad=two*crad*partnum*gammar*c1e6
         crad=(((two*crad)*partnum)*gammar)*c1e6                          !hr05
         emitx=emitnx*gammar
         emity=emitny*gammar
@@ -19550,25 +17856,19 @@ cc2008
       endif
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il
-!hr05     parbe(j,2)=0
           parbe(j,2)=0d0                                                 !hr05
         enddo
       else
         do j=1,il
-!hr05     if(parbe(j,2).gt.mbea) then
           if(parbe(j,2).gt.dble(mbea)) then                              !hr05
 +if cr
-!hr12       write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of ',   &
             write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of '//  &!hr12
 +ei
 +if .not.cr
-!hr12       write(*,'(a48,i4,a29,i4)') '     WARNING: Number of ',      &
             write(*,'(a48,i4,a29,i4)') '     WARNING: Number of '//     &!hr12
 +ei
-!hr12&'slices set to maximum : ',mbea,' for 6D beam-beam element',      &
      &'slices set to maximum : ',mbea,' for 6D beam-beam element'//     &!hr12
      &' #: ',j
-!hr05       parbe(j,2)=mbea
             parbe(j,2)=dble(mbea)                                        !hr05
           endif
         enddo
@@ -19577,11 +17877,8 @@ cc2008
          if(kz(j).eq.15) then
             if(abs(xpl(j)).lt.pieni.and.abs(zpl(j)).lt.pieni) then
                kz(j)=0
-!hr05          ed(j)=0
                ed(j)=0d0                                                 !hr05
-!hr05          ek(j)=0
                ek(j)=0d0                                                 !hr05
-!hr05          el(j)=0
                el(j)=0d0                                                 !hr05
             endif
          endif
@@ -19779,11 +18076,9 @@ cc2008
 +ei
           do j=1,il
 +if cr
-!hr12       if(parbe(j,2).gt.0) write(lout,10145) bez(j),               &
             if(parbe(j,2).gt.0d0) write(lout,10145) bez(j),             &!hr12
 +ei
 +if .not.cr
-!hr12       if(parbe(j,2).gt.0) write(*,10145) bez(j),                  &
             if(parbe(j,2).gt.0d0) write(*,10145) bez(j),                &!hr12
 +ei
      &int(parbe(j,2)),parbe(j,1),parbe(j,3)
@@ -20156,7 +18451,6 @@ cc2008
           if(i.eq.2.or.i.eq.3.or.i.eq.4.or. (i.eq.5.and.iev.eq.1.).or.  &
      &(i.eq.6.and.i4.ge.2).or. (i.eq.7.and.(i4.eq.2.or.i4.eq.3)).or.    &
      &(i.eq.8.and.i4.lt.3)) then
-!hr05       i3=i2+ii-i1+2
             i3=((i2+ii)-i1)+2                                            !hr05
             ch1(i2:i3)=''''//ch(i1:ii-1)//''' '
             if(i.eq.4.and.i4.eq.2) goto 30
@@ -20164,7 +18458,6 @@ cc2008
           endif
           if((i.eq.5.and.iev.eq.0).or. (i4.eq.1.and.(i.eq.6.or.i.eq.7)))&
      &then
-!hr05       i3=i2+ii-i1
             i3=(i2+ii)-i1                                                !hr05
             ch1(i2:i3)=ch(i1:ii)
             i2=i3+1
@@ -20886,9 +19179,7 @@ C Should get me a NaN
       do 2 j=0,ny+1
          do 1 i=0,nx+1
             k = k+1
-!hr05       x=i*h
             x=dble(i)*h                                                  !hr05
-!hr05       y=j*h
             y=dble(j)*h                                                  !hr05
             call mywwerf(x,y,wr,wi)
             wtreal(k)=wr
@@ -20924,14 +19215,10 @@ C Should get me a NaN
         ri(37)=0d0
         do n=36,1,-1
 !          t=zh+n*dconjg(r(n+1))
-!hr05     tr=zhr+n*rr(n+1)
           tr=zhr+dble(n)*rr(n+1)                                         !hr05
-!hr05     ti=zhi-n*ri(n+1)
           ti=zhi-dble(n)*ri(n+1)                                         !hr05
 !          r(n)=hf*t/(dreal(t)**2+dimag(t)**2)
-!hr05     rr(n)=hf*tr/(tr**2+ti**2)
           rr(n)=(hf*tr)/(tr**2+ti**2)                                    !hr05
-!hr05     ri(n)=hf*ti/(tr**2+ti**2)
           ri(n)=(hf*ti)/(tr**2+ti**2)                                    !hr05
         enddo
         xl=p
@@ -20954,40 +19241,31 @@ C Should get me a NaN
         ri(1)=0d0
         do n=9,1,-1
 !          t=zh+n*dconjg(r(1))
-!hr05     tr=zhr+n*rr(1)
           tr=zhr+dble(n)*rr(1)                                           !hr05
-!hr05     ti=zhi-n*ri(1)
           ti=zhi-dble(n)*ri(1)                                           !hr05
 !          r(1)=hf*t/(dreal(t)**2+dimag(t)**2)
-!hr05     rr(1)=hf*tr/(tr**2+ti**2)
           rr(1)=(hf*tr)/(tr**2+ti**2)                                    !hr05
-!hr05     ri(1)=hf*ti/(tr**2+ti**2)
           ri(1)=(hf*ti)/(tr**2+ti**2)                                    !hr05
         enddo
 !        v=c*r(1)
         vr=c*rr(1)
         vi=c*ri(1)
       endif
-!hr05 if(ya.eq.0) then
       if(ya.eq.0d0) then                                                 !hr05
 !        v=dcmplx(exp(-xa**2),dimag(v))
 +if crlibm
-!hr05   vr=exp_rn(-xa**2)
         vr=exp_rn(-1d0*xa**2)                                            !hr05
 +ei
 +if .not.crlibm
-!hr05   vr=exp(-xa**2)
         vr=exp(-1d0*xa**2)                                               !hr05
 +ei
       endif
       if(y.lt.0d0) then
 !        v=2*exp(-dcmplx(xa,ya)**2)-v
 +if crlibm
-!hr05   vr=2d0*exp_rn(ya**2-xa**2)*cos_rn(2d0*xa*ya)-vr
         vr=(2d0*exp_rn(ya**2-xa**2))*cos_rn((2d0*xa)*ya)-vr              !hr05
 +ei
 +if .not.crlibm
-!hr05   vr=2d0*exp(ya**2-xa**2)*cos(2d0*xa*ya)-vr
         vr=(2d0*exp(ya**2-xa**2))*cos((2d0*xa)*ya)-vr                    !hr05
 +ei
 +if crlibm
@@ -20996,10 +19274,8 @@ C Should get me a NaN
 +if .not.crlibm
         vi=(-2d0*exp(ya**2-xa**2))*sin((2d0*xa)*ya)-vi                   !hr05
 +ei
-!hr05   if(x.gt.0) vi=-vi
         if(x.gt.0d0) vi=-1d0*vi                                          !hr05
       else
-!hr05   if(x.lt.0) vi=-vi
         if(x.lt.0d0) vi=-1d0*vi                                          !hr05
       endif
       wr=vr
@@ -21161,21 +19437,17 @@ C Should get me a NaN
         if (iseed2.lt.0) iseed2 = iseed2+2147483399
         iz = iseed1-iseed2
         if (iz.lt.1) iz = iz+2147483562
-!hr05   r(j) = real(iz)*4.656613e-10
         r(j) = dble(iz)*4.656613d-10                                     !hr05
    20 continue
 
 C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
 +if crlibm
-!hr05 rvec0 = ((-two*log_rn(r(1)))**half)*cos_rn(two*pi*r(2))
 !     rvec0 = (((-1d0*two)*log_rn(r(1)))**half)*cos_rn((two*pi)*r(2))    !hr05
       rvec0 = sqrt(((-1d0*two)*log_rn(r(1))))*cos_rn((two*pi)*r(2))      !hr05
 +ei
 +if .not.crlibm
-!hr05 rvec0 = ((-two*log(r(1)))**half)*cos(two*pi*r(2))
       rvec0 = (sqrt((-1d0*two)*log(r(1))))*cos((two*pi)*r(2))            !hr05
 +ei
-!hr05 if(abs(rvec0).le.mcut.or.mcut.eq.0) then
       if(abs(rvec0).le.dble(mcut).or.mcut.eq.0) then
         rvec(i) = rvec0
         i=i+1
@@ -21252,9 +19524,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           al(2,l,j,i)=el(i)
           al(3,l,j,i)=zero
           al(4,l,j,i)=one
-!hr05   20   as(6,l,j,i)=-rv*al(2,l,j,i)/c2e3
    20   as(6,l,j,i)=((-1d0*rv)*al(2,l,j,i))/c2e3                         !hr05
-!hr05   as(1,1,j,i)=el(i)*(one-rv)*c1e3
         as(1,1,j,i)=(el(i)*(one-rv))*c1e3                                !hr05
         goto 190
 !-----------------------------------------------------------------------
@@ -21262,7 +19532,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  HORIZONTAL
 !-----------------------------------------------------------------------
    30   ih=1
-!hr05   40   fok=el(i)*ed(i)/dpsq
    40   fok=(el(i)*ed(i))/dpsq                                           !hr05
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
@@ -21288,14 +19557,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         al(2,ih,j,i)=rho*si
         al(3,ih,j,i)=zero
         al(4,ih,j,i)=one
-!hr05   al(5,ih,j,i)=-dpp*(rho*(one-co)/dpsq)*c1e3
         al(5,ih,j,i)=((-1d0*dpp)*((rho*(one-co))/dpsq))*c1e3             !hr05
 +if crlibm
-!hr05   al(6,ih,j,i)=-dpp*(two*tan_rn(fok*half)/dpsq)*c1e3
         al(6,ih,j,i)=((-1d0*dpp)*((two*tan_rn(fok*half))/dpsq))*c1e3     !hr05
 +ei
 +if .not.crlibm
-!hr05   al(6,ih,j,i)=-dpp*(two*tan(fok*half)/dpsq)*c1e3
         al(6,ih,j,i)=((-1d0*dpp)*((two*tan(fok*half))/dpsq))*c1e3        !hr05
 +ei
 +if crlibm
@@ -21311,35 +19577,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         sm2=sin(fok)*rho
 +ei
 +if crlibm
-!hr05   sm3=-sin_rn(fok)/rho
         sm3=(-1d0*sin_rn(fok))/rho                                       !hr05
 +ei
 +if .not.crlibm
-!hr05   sm3=-sin(fok)/rho
         sm3=(-1d0*sin(fok))/rho                                          !hr05
 +ei
-!hr05   sm5=-rho*dpsq*(one-sm1)
         sm5=((-1d0*rho)*dpsq)*(one-sm1)                                  !hr05
-!hr05   sm6=-sm2*dpsq/rho
         sm6=((-1d0*sm2)*dpsq)/rho                                        !hr05
         sm12=el(i)-sm1*sm2
         sm23=sm2*sm3
-!hr05   as3=-rv*(dpp*rho/(two*dpsq)*sm23+sm5)                
         as3=(-1d0*rv)*(((dpp*rho)/(two*dpsq))*sm23+sm5)                  !hr05
-!hr05   as4=-rv*sm23/c2e3
         as4=((-1d0*rv)*sm23)/c2e3                                        !hr05
-!hr05   as6=-rv*(el(i)+sm1*sm2)/c4e3
         as6=((-1d0*rv)*(el(i)+sm1*sm2))/c4e3                             !hr05
-!hr05   as(1,ih,j,i)=(-rv*(dpp*dpp/(four*dpd)*sm12+dpp*(el(i)-sm2))+    &
-!hr05&el(i)*(one-rv))*c1e3
         as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+      &!hr05
      &dpp*(el(i)-sm2)))*c1e3                                             !hr05
-!hr05   as(2,ih,j,i)=-rv*(dpp/(two*rho*dpsq)*sm12+sm6)+fok1*as3
         as(2,ih,j,i)=fok1*as3-rv*((dpp/((two*rho)*dpsq))*sm12+sm6)       !hr05
         as(3,ih,j,i)=as3
-!hr05   as(4,ih,j,i)=as4+two*as6*fok1
         as(4,ih,j,i)=as4+(two*as6)*fok1                                  !hr05
-!hr05   as(5,ih,j,i)=-rv*sm12/(c4e3*rho*rho)+as6*fok1*fok1+fok1*as4
         as(5,ih,j,i)=(as6*fok1*2+fok1*as4)-(rv*sm12)/(c4e3*rho**2)       !hr05
         as(6,ih,j,i)=as6
 !--VERTIKAL
@@ -21354,14 +19608,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         gl=el(i)*g
         al(1,ih,j,i)=one-gl
         al(2,ih,j,i)=el(i)
-!hr05   al(3,ih,j,i)=-g*(two-gl)
         al(3,ih,j,i)=(-1d0*g)*(two-gl)                                   !hr05
         al(4,ih,j,i)=al(1,ih,j,i)
-!hr05   as6=-rv*al(2,ih,j,i)/c2e3
         as6=((-1d0*rv)*al(2,ih,j,i))/c2e3                                !hr05
-!hr05   as(4,ih,j,i)=-two*as6*fok1                             
         as(4,ih,j,i)=((-1d0*two)*as6)*fok1                               !hr05
-!hr05   as(5,ih,j,i)=as6*fok1*fok1
         as(5,ih,j,i)=as6*fok1**2                                         !hr05
         as(6,ih,j,i)=as6
         goto 190
@@ -21370,7 +19620,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  HORIZONTAL
 !-----------------------------------------------------------------------
    50   ih=1
-!hr05   60   fok=el(i)*ed(i)/dpsq
    60   fok=(el(i)*ed(i))/dpsq                                           !hr05
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
@@ -21386,33 +19635,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
         co=cos(fok)
 +ei
-!hr05   rhoc=rho*(one-co)/dpsq
         rhoc=(rho*(one-co))/dpsq                                         !hr05
         siq=si/dpsq
         al(1,ih,j,i)=co
         al(2,ih,j,i)=rho*si
-!hr05   al(3,ih,j,i)=-si/rho
         al(3,ih,j,i)=(-1d0*si)/rho                                       !hr05
         al(4,ih,j,i)=co
-!hr05   al(5,ih,j,i)=-dpp*rhoc*c1e3
         al(5,ih,j,i)=((-1d0*dpp)*rhoc)*c1e3                              !hr05
-!hr05   al(6,ih,j,i)=-dpp*siq*c1e3
         al(6,ih,j,i)=((-1d0*dpp)*siq)*c1e3                               !hr05
         sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
         sm23=al(2,ih,j,i)*al(3,ih,j,i)
-!hr05   as(1,ih,j,i)=(-rv*(dpp*dpp/(four*dpd)*sm12 +dpp*(el(i)-         &
-!hr05&al(2,ih,j,i)))+el(i)*(one-rv))*c1e3
         as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12 +     &!hr05
      &dpp*(el(i)-al(2,ih,j,i))))*c1e3                                    !hr05
-!hr05   as(2,ih,j,i)=-rv*(dpp/(two*rho*dpsq)*sm12-dpd*siq)
         as(2,ih,j,i)=(-1d0*rv)*((dpp/((two*rho)*dpsq))*sm12-dpd*siq)     !hr05
-!hr05   as(3,ih,j,i)=-rv*(dpp*rho/(two*dpsq)*sm23-dpd*rhoc)
         as(3,ih,j,i)=(-1d0*rv)*(((dpp*rho)/(two*dpsq))*sm23-dpd*rhoc)    !hr05
-!hr05   as(4,ih,j,i)=-rv*sm23/c2e3                     
         as(4,ih,j,i)=((-1d0*rv)*sm23)/c2e3                               !hr05
-!hr05   as(5,ih,j,i)=-rv*sm12/(c4e3*rho*rho)
         as(5,ih,j,i)=((-1d0*rv)*sm12)/(c4e3*rho**2)                      !hr05
-!hr05   as(6,ih,j,i)=-rv*(el(i)+al(1,ih,j,i)*al(2,ih,j,i))/c4e3
         as(6,ih,j,i)=((-1d0*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
 !--VERTIKAL
         ih=ih+1
@@ -21421,7 +19659,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         al(2,ih,j,i)=el(i)
         al(3,ih,j,i)=zero
         al(4,ih,j,i)=one
-!hr05   as(6,ih,j,i)=-rv*al(2,ih,j,i)/c2e3
         as(6,ih,j,i)=((-1d0*rv)*al(2,ih,j,i))/c2e3                       !hr05
         goto 190
 !-----------------------------------------------------------------------
@@ -21459,17 +19696,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hi1=sin(fi)
 +ei
         al(2,ih,j,i)=hi1/hi
-!hr05   al(3,ih,j,i)=-hi1*hi
         al(3,ih,j,i)=(-1d0*hi1)*hi                                       !hr05
         al(4,ih,j,i)=al(1,ih,j,i)
-!hr05   as(1,ih,j,i)=el(i)*(one-rv)*c1e3
         as(1,ih,j,i)=(el(i)*(one-rv))*c1e3                               !hr05
-!hr05   as(4,ih,j,i)=-rv*al(2,ih,j,i)*al(3,ih,j,i)/c2e3
         as(4,ih,j,i)=(((-1d0*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-!hr05   as(5,ih,j,i)=-rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i))*aek/c4e3     
       as(5,ih,j,i)=(((-1d0*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/ &!hr05
      &c4e3                                                               !hr05
-!hr05   as(6,ih,j,i)=-rv*(el(i)+al(1,ih,j,i)*al(2,ih,j,i))/c4e3
         as(6,ih,j,i)=((-1d0*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
         if(ih.eq.2) goto 190
 !--DEFOCUSSING
@@ -21487,11 +19719,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         al(2,ih,j,i)=hs/hi
         al(3,ih,j,i)=hs*hi
         al(4,ih,j,i)=hc
-!hr05   as(4,ih,j,i)=-rv*al(2,ih,j,i)*al(3,ih,j,i)/c2e3
         as(4,ih,j,i)=(((-1d0*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-!hr05   as(5,ih,j,i)=+rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i))*aek/c4e3
         as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
-!hr05   as(6,ih,j,i)=-rv*(el(i)+al(1,ih,j,i)*al(2,ih,j,i))/c4e3
         as(6,ih,j,i)=((-1d0*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
         if(ih.eq.1) goto 100
         goto 190
@@ -21502,7 +19731,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   120   ih=0
         fokq=ek(i)
   130   wf=ed(i)/dpsq
-!hr05   fok=fokq/(dpd)-wf*wf
         fok=fokq/(dpd)-wf**2                                             !hr05
         if(abs(fok).le.pieni) goto 10
         afok=abs(fok)
@@ -21522,35 +19750,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
         co=cos(fi)
 +ei
-!hr05   wfa=wf/afok*(one-co)/dpsq
         wfa=((wf/afok)*(one-co))/dpsq                                    !hr05
-!hr05   wfhi=wf/hi*si/dpsq
         wfhi=((wf/hi)*si)/dpsq                                           !hr05
         al(1,ih,j,i)=co
         al(2,ih,j,i)=si/hi
-!hr05   al(3,ih,j,i)=-si*hi
         al(3,ih,j,i)=(-1d0*si)*hi                                        !hr05
         al(4,ih,j,i)=co
-!hr05   al(5,ih,j,i)=-wfa*dpp*c1e3
         al(5,ih,j,i)=((-1d0*wfa)*dpp)*c1e3                               !hr05
-!hr05   al(6,ih,j,i)=-wfhi*dpp*c1e3
         al(6,ih,j,i)=((-1d0*wfhi)*dpp)*c1e3                              !hr05
         sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
         sm23=al(2,ih,j,i)*al(3,ih,j,i)
-!hr05   as(1,ih,j,i)=(-rv*(dpp*dpp/(four*dpd)*sm12+dpp*(el(i)-          &
-!hr05&al(2,ih,j,i)))/afok*wf*wf+el(i)*(one-rv))*c1e3
         as(1,ih,j,i)=(el(i)*(one-rv)-((rv*((dpp**2/(four*dpd))*sm12+    &!hr05
      &dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2)*c1e3                       !hr05
-!hr05   as(2,ih,j,i)=-rv*(dpp*wf/(two*dpsq)*sm12-dpd*wfhi)
         as(2,ih,j,i)=(-1d0*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
-!hr05   as(3,ih,j,i)=-rv*(dpp*half/afok/dpd*ed(i)*sm23-dpd*wfa)
         as(3,ih,j,i)=(-1d0*rv)*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-   &!hr05
      &dpd*wfa)                                                           !hr05
-!hr05   as(4,ih,j,i)=-rv*sm23/c2e3
         as(4,ih,j,i)=((-1d0*rv)*sm23)/c2e3                               !hr05
-!hr05   as(5,ih,j,i)=-rv*sm12*afok/c4e3
         as(5,ih,j,i)=(((-1d0*rv)*sm12)*afok)/c4e3                        !hr05
-!hr05   as(6,ih,j,i)=-rv*(el(i)+al(1,ih,j,i)*al(2,ih,j,i))/c4e3
         as(6,ih,j,i)=((-1d0*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
         ih=ih+1
         if(ih.gt.2) ih=1
@@ -21572,11 +19788,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         al(2,ih,j,i)=hs/hi
   150   al(3,ih,j,i)=hs*hi
         al(4,ih,j,i)=hc
-!hr05   as(4,ih,j,i)=-rv*al(2,ih,j,i)*al(3,ih,j,i)/c2e3
         as(4,ih,j,i)=(((-1d0*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-!hr05   as(5,ih,j,i)=+rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i))*aek/c4e3
         as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
-!hr05   as(6,ih,j,i)=-rv*(el(i)+al(1,ih,j,i)*al(2,ih,j,i))/c4e3
         as(6,ih,j,i)=((-1d0*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
         goto 190
 !--DEFOCUSSING
@@ -21594,29 +19807,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         al(2,ih,j,i)=hs/hi
         al(3,ih,j,i)=hs*hi
         al(4,ih,j,i)=hc
-!hr05   wfa=wf/afok*(one-hc)/dpsq
         wfa=((wf/afok)*(one-hc))/dpsq                                    !hr05
-!hr05   wfhi=wf/hi*hs/dpsq
         wfhi=((wf/hi)*hs)/dpsq                                           !hr05
-!hr05   al(5,ih,j,i)= wfa*dpp*c1e3
         al(5,ih,j,i)= (wfa*dpp)*c1e3                                     !hr05
-!hr05   al(6,ih,j,i)=-wfhi*dpp*c1e3
         al(6,ih,j,i)=((-1d0*wfhi)*dpp)*c1e3                              !hr05
         sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
         sm23=al(2,ih,j,i)*al(3,ih,j,i)
-!hr05   as(1,ih,j,i)=(rv*(dpp*dpp/(four*dpd)*sm12+dpp*(el(i)-           &
-!hr05&al(2,ih,j,i)))/afok*wf*wf+el(i)*(one-rv))*c1e3
         as(1,ih,j,i)=(((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-        &!hr05
      &al(2,ih,j,i))))/afok)*wf**2+el(i)*(one-rv))*c1e3                   !hr05
-!hr05   as(2,ih,j,i)=-rv*(dpp*wf/(two*dpsq)*sm12-dpd*wfhi)
         as(2,ih,j,i)=(-1d0*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
-!hr05   as(3,ih,j,i)=rv*(dpp*half/afok/dpd*ed(i)*sm23-dpd*wfa)
         as(3,ih,j,i)=rv*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa)   !hr05
-!hr05   as(4,ih,j,i)=-rv*sm23/c2e3
         as(4,ih,j,i)=((-1d0*rv)*sm23)/c2e3                               !hr05
-!hr05   as(5,ih,j,i)=+rv*sm12*afok/c4e3
         as(5,ih,j,i)=((rv*sm12)*afok)/c4e3                               !hr05
-!hr05   as(6,ih,j,i)=-rv*(el(i)+al(1,ih,j,i)*al(2,ih,j,i))/c4e3
         as(6,ih,j,i)=((-1d0*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
         ih=ih+1
         if(ih.gt.2) ih=1
@@ -21637,21 +19839,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         al(1,ih,j,i)=co
         al(2,ih,j,i)=si/hi
-!hr05   al(3,ih,j,i)=-si*hi
         al(3,ih,j,i)=(-1d0*si)*hi                                        !hr05
         al(4,ih,j,i)=co
         as(4,ih,j,i)=(((-1d0*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-!hr05   as(5,ih,j,i)=-rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i))*aek/c4e3
       as(5,ih,j,i)=(((-1d0*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/ &!hr05
      &c4e3                                                               !hr05
-!hr05   as(6,ih,j,i)=-rv*(el(i)+al(1,ih,j,i)*al(2,ih,j,i))/c4e3
         as(6,ih,j,i)=((-1d0*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
         goto 190
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET VERTICAL
 !-----------------------------------------------------------------------
   170   ih=1
-!hr05   fokq=-ek(i)
         fokq=-1d0*ek(i)                                                  !hr05
         goto 130
 !-----------------------------------------------------------------------
@@ -21659,11 +19857,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
   180   rhoi=ed(i)/dpsq
 +if crlibm
-!hr05   fok=rhoi*tan_rn(el(i)*rhoi*half)
         fok=rhoi*tan_rn((el(i)*rhoi)*half)                               !hr05
 +ei
 +if .not.crlibm
-!hr05   fok=rhoi*tan(el(i)*rhoi*half)
         fok=rhoi*tan((el(i)*rhoi)*half)                                  !hr05
 +ei
         al(1,1,j,i)=one
@@ -21672,7 +19868,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         al(4,1,j,i)=one
         al(1,2,j,i)=one
         al(2,2,j,i)=zero
-!hr05   al(3,2,j,i)=-fok
         al(3,2,j,i)=-1d0*fok                                             !hr05
         al(4,2,j,i)=one
         goto 190
@@ -21944,7 +20139,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   140   continue
         if(abs(ek(i)).le.pieni) goto 60
         if(abs(ed(i)).le.pieni) goto 100
-!hr08   if(abs(ek(i)-ed(i)*ed(i)).le.pieni) goto 20
         if(abs(ek(i)-ed(i)**2).le.pieni) goto 20                         !hr08
 *FOX  WF=ED(I)/DPSQ ;
 *FOX  FOK=FOKQ/DPD-WF*WF ;
@@ -22258,7 +20452,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         jj(i)=0
       enddo
       if(mout2.eq.1) write(7,*) e0,pma
-!hr08 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       betr0=sqrt(one-(pma/e0)**2)
       do 10 i=1,mcor
@@ -22703,7 +20896,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              goto 480
           endif
 
-!hr08     if(kzz.eq.20.and.parbe(ix,2).eq.0) then
           if(kzz.eq.20.and.parbe(ix,2).eq.0d0) then                      !hr08
             if(nbeam.ge.1) then
               if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
@@ -22761,7 +20953,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
             goto 480
           endif
-!hr08     if(kzz.eq.20.and.parbe(ix,2).gt.0) then
           if(kzz.eq.20.and.parbe(ix,2).gt.0d0) then                      !hr08
 +ca beam6dfi
             goto 480
@@ -23114,9 +21305,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             r0a=one
             r000=r0*r00(irm(ix))
             do 243 j=1,mmul
-!hr08         fake(1,j)=bbi(i,j)*r0a/benkcc
               fake(1,j)=(bbi(i,j)*r0a)/benkcc                            !hr08
-!hr08         fake(2,j)=aai(i,j)*r0a/benkcc
               fake(2,j)=(aai(i,j)*r0a)/benkcc                            !hr08
               r0a=r0a*r000
   243       continue
@@ -23510,7 +21699,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       i4(9,2)=4
       i4(10,1)=4
       i4(10,2)=4
-!hr05 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       betr0=sqrt(one-(pma/e0)**2)
       ox=xxtr(1,1)
@@ -23612,7 +21800,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if(abs(emitz).le.pieni) then
             emitz=zero
           else
-!hr05       emitz=sigz*sigz/emitz*half*c1e6
             emitz=((sigz**2/emitz)*half)*c1e6                            !hr05
           endif
         endif
@@ -23973,7 +22160,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           goto 440
         endif
         if(kzz.eq.20.and.iqmodc.eq.4) goto 440
-!hr12   if(kzz.eq.20.and.parbe(ix,2).eq.0) then
         if(kzz.eq.20.and.parbe(ix,2).eq.0d0) then                        !hr12
           if(nbeam.ge.1) then
             if(ilinc.eq.0) then
@@ -24041,7 +22227,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           endif
           goto 440
         endif
-!hr12   if(kzz.eq.20.and.parbe(ix,2).gt.0) then
         if(kzz.eq.20.and.parbe(ix,2).gt.0d0) then                        !hr12
           if(ilinc.eq.0)then
             clobeam(1,imbb(i))=dare(x(1))
@@ -24673,9 +22858,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         det1=coefh1*coefv2-coefv1*coefh2
         if(abs(det1).le.pieni) call prror(90)
         corr(2,1)=coefv2/det1
-!hr05   corr(2,2)=-coefh2/det1
         corr(2,2)=(-1d0*coefh2)/det1                                     !hr05
-!hr05   corr(3,1)=-coefv1/det1
         corr(3,1)=(-1d0*coefv1)/det1                                     !hr05
         corr(3,2)=coefh1/det1
       endif
@@ -24696,9 +22879,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         det1=coefh1*coefv2-coefv1*coefh2
         if(abs(det1).le.pieni) call prror(96)
         corr(2,1)=coefv2/det1
-!hr05   corr(2,2)=-coefh2/det1
         corr(2,2)=(-1d0*coefh2)/det1                                     !hr05
-!hr05   corr(3,1)=-coefv1/det1
         corr(3,1)=(-1d0*coefv1)/det1                                     !hr05
         corr(3,2)=coefh1/det1
       endif
@@ -24825,7 +23006,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 
 !     magnetic rigidity
-!hr05 chi = sqrt(e0*e0-pmap*pmap)*c1e6/clight
       chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            !hr05
 
 !     The wire map consists of the following sequence of elements:
@@ -24842,27 +23022,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       cur = ed(ix)
 
 +if crlibm
-!hr05 leff = embl/cos_rn(tx)/cos_rn(ty)
       leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr05
 +ei
 +if .not.crlibm
-!hr05 leff = embl/cos(tx)/cos(ty)
       leff = (embl/cos(tx))/cos(ty)                                      !hr05
 +ei
 +if crlibm
-!hr05 rx = dx *cos_rn(tx)-embl*sin_rn(tx)/two
       rx = dx *cos_rn(tx)-(embl*sin_rn(tx))/two                          !hr05
 +ei
 +if .not.crlibm
-!hr05 rx = dx *cos(tx)-embl*sin(tx)/two
       rx = dx *cos(tx)-(embl*sin(tx))/two                                !hr05
 +ei
 +if crlibm
-!hr05 lin= dx *sin_rn(tx)+embl*cos_rn(tx)/two
       lin= dx *sin_rn(tx)+(embl*cos_rn(tx))/two                          !hr05
 +ei
 +if .not.crlibm
-!hr05 lin= dx *sin(tx)+embl*cos(tx)/two
       lin= dx *sin(tx)+(embl*cos(tx))/two                                !hr05
 +ei
 +if crlibm
@@ -25008,7 +23182,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !Eric
         rewind 111
       if(ition.ne.0) then
-!hr08 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr08
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  EJF1=E0F*(ONE+DPDA) ;
@@ -25273,16 +23446,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      if(dare(y).eq.0.) then
 !*FOX    WX=EXP(-X*X) ;
 !      endif
-!hr05 if(dare(yy).lt.0.) then
       if(dare(yy).lt.0.d0) then                                          !hr05
 *FOX    WX=TWO*EXP(Y*Y-X*X)*COS(TWO*X*Y)-WX ;
 *FOX    WY=-TWO*EXP(Y*Y-X*X)*SIN(TWO*X*Y)-WY ;
-!hr05   if(dare(xx).gt.0.) then
         if(dare(xx).gt.0.d0) then                                        !hr05
 *FOX      WY=-WY ;
         endif
       else
-!hr05   if(dare(xx).lt.0.) then
         if(dare(xx).lt.0.d0) then                                        !hr05
 *FOX      WY=-WY ;
         endif
@@ -25328,7 +23498,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       nsli=param(ne,2)
       alpha=param(ne,3)
       phi2=param(ne,5)
-!hr05 f=param(ne,4)/nsli
       f=param(ne,4)/dble(nsli)                                           !hr05
 +if crlibm
       sphi=sin_rn(phi)
@@ -25509,7 +23678,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX    SEPY0=TRACK(3)+TRACK(4)*S-STAR(2,JSLI) ;
         if(ibbc1.eq.1) then
           sfac=one
-!hr05     if(dare(dum(4)).lt.zero) sfac=-one
           if(dare(dum(4)).lt.zero) sfac=(-1d0*one)                       !hr05
 *FOX    DUM(6)=SFAC*DUM(4)/DUM(5) ;
 *FOX    DUM(7)=DUM(1)+DUM(2) ;
@@ -26386,7 +24554,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       pi2=pi*half
       pisqrt=sqrt(pi)
-!hr05 rad=pi/180
       rad=pi/180d0                                                       !hr05
       call daten
 +if datamods
@@ -26533,7 +24700,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    90 fake(2,i)=zero
       itra=2
       amp00=amp(1)
-!hr05 if(napx.ne.1) damp=(amp00-amp0)/(napx-1)/2
       if(napx.ne.1) damp=((amp00-amp0)/dble(napx-1))/2d0                 !hr05
       napx=2*napx
       iation=abs(ition)
@@ -26552,12 +24718,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           rsum=zero
           do 100 i=1,nzfz
   100     rsum=rsum+zfz(i)
-!hr05     rmean=rsum/nzfz
           rmean=rsum/dble(nzfz)                                          !hr05
           rsqsum=zero
           do 110 i=1,nzfz
   110     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
-!hr05     rdev=sqrt(rsqsum/nzfz)
           rdev=sqrt(rsqsum/dble(nzfz))                                   !hr05
 +if cr
           write(lout,10320) m*izu0,nzfz,rmean,rdev
@@ -26688,12 +24852,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         dp1=dp00
         dp0=dp00
         if(imc.gt.1) then
-!hr05     ddp1=two*dp0/(imc-one)
           ddp1=(two*dp0)/(dble(imc)-one)                                 !hr05
         endif
         do 250 ib=1,imc
           if(imc.gt.1) then
-!hr05       dp1=dp0-(ib-1)*ddp1
             dp1=dp0-(dble(ib)-1d0)*ddp1                                  !hr05
           endif
           dp10=dp1
@@ -26768,7 +24930,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('before mydaini                                    ')
 +ei
               do i=1,2
-!hr05           qwc(i)=int(qwc(i))+wxys(i)
                 qwc(i)=dble(int(qwc(i)))+wxys(i)
               enddo
               if(ilin.ge.2) then
@@ -26865,59 +25026,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           tasiar63=tas(iar,6,3)*c1e3
           tasiar64=tas(iar,6,4)*c1e3
           tasiar65=tas(iar,6,5)*c1e3
-!hr05     bet0(1)=tas(iar,1,1)*tas(iar,1,1)+tas(iar,1,2)*tas(iar,1,2)
           bet0(1)=tas(iar,1,1)**2+tas(iar,1,2)**2                        !hr05
-!hr05     bet0x2 =tas(iar,1,3)*tas(iar,1,3)+tas(iar,1,4)*tas(iar,1,4)
           bet0x2 =tas(iar,1,3)**2+tas(iar,1,4)**2                        !hr05
-!hr05     bet0x3 =tas(iar,1,5)*tas(iar,1,5)+tasiar16*tasiar16
           bet0x3 =tas(iar,1,5)**2+tasiar16**2                            !hr05
-!hr05     gam0x1 =tas(iar,2,1)*tas(iar,2,1)+tas(iar,2,2)*tas(iar,2,2)
           gam0x1 =tas(iar,2,1)**2+tas(iar,2,2)**2                        !hr05
-!hr05     gam0x2 =tas(iar,2,3)*tas(iar,2,3)+tas(iar,2,4)*tas(iar,2,4)
           gam0x2 =tas(iar,2,3)**2+tas(iar,2,4)**2                        !hr05
-!hr05     gam0x3 =tas(iar,2,5)*tas(iar,2,5)+tasiar26*tasiar26
           gam0x3 =tas(iar,2,5)**2+tasiar26**2                            !hr05
-!hr05     alf0(1)=-(tas(iar,1,1)*tas(iar,2,1)+tas(iar,1,2)*tas(iar,2,2))
       alf0(1)=-1d0*(tas(iar,1,1)*tas(iar,2,1)+tas(iar,1,2)*tas(iar,2,2)) !hr05
-!hr05     alf0x2 =-(tas(iar,1,3)*tas(iar,2,3)+tas(iar,1,4)*tas(iar,2,4))
       alf0x2 =-1d0*(tas(iar,1,3)*tas(iar,2,3)+tas(iar,1,4)*tas(iar,2,4)) !hr05
-!hr05     alf0x3 =-(tas(iar,1,5)*tas(iar,2,5)+tasiar16*tasiar26)
       alf0x3 =-1d0*(tas(iar,1,5)*tas(iar,2,5)+tasiar16*tasiar26)         !hr05
-!hr05     bet0(2)=tas(iar,3,3)*tas(iar,3,3)+tas(iar,3,4)*tas(iar,3,4)
           bet0(2)=tas(iar,3,3)**2+tas(iar,3,4)**2                        !hr05
-!hr05     bet0z2 =tas(iar,3,1)*tas(iar,3,1)+tas(iar,3,2)*tas(iar,3,2)
           bet0z2 =tas(iar,3,1)**2+tas(iar,3,2)**2                        !hr05
-!hr05     bet0z3 =tas(iar,3,5)*tas(iar,3,5)+tasiar36*tasiar36
           bet0z3 =tas(iar,3,5)**2+tasiar36**2                            !hr05
-!hr05     gam0z1 =tas(iar,4,3)*tas(iar,4,3)+tas(iar,4,4)*tas(iar,4,4)
           gam0z1 =tas(iar,4,3)**2+tas(iar,4,4)**2                        !hr05
-!hr05     gam0z2 =tas(iar,4,1)*tas(iar,4,1)+tas(iar,4,2)*tas(iar,4,2)
           gam0z2 =tas(iar,4,1)**2+tas(iar,4,2)**2                        !hr05
-!hr05     gam0z3 =tas(iar,4,5)*tas(iar,4,5)+tasiar46*tasiar46
           gam0z3 =tas(iar,4,5)**2+tasiar46**2                            !hr05
-!hr05     alf0(2)=-(tas(iar,3,3)*tas(iar,4,3)+tas(iar,3,4)*tas(iar,4,4))
       alf0(2)=-1d0*(tas(iar,3,3)*tas(iar,4,3)+tas(iar,3,4)*tas(iar,4,4)) !hr05
-!hr05     alf0z2 =-(tas(iar,3,1)*tas(iar,4,1)+tas(iar,3,2)*tas(iar,4,2))
       alf0z2 =-1d0*(tas(iar,3,1)*tas(iar,4,1)+tas(iar,3,2)*tas(iar,4,2)) !hr05
-!hr05     alf0z3 =-(tas(iar,3,5)*tas(iar,4,5)+tasiar36*tasiar46)
       alf0z3 =-1d0*(tas(iar,3,5)*tas(iar,4,5)+tasiar36*tasiar46)         !hr05
-!hr05     bet0s1 =tas(iar,5,5)*tas(iar,5,5)+tasiar56*tasiar56
           bet0s1 =tas(iar,5,5)**2+tasiar56**2                            !hr05
-!hr05     bet0s2 =tas(iar,5,1)*tas(iar,5,1)+tas(iar,5,2)*tas(iar,5,2)
           bet0s2 =tas(iar,5,1)**2+tas(iar,5,2)**2                        !hr05
-!hr05     bet0s3 =tas(iar,5,3)*tas(iar,5,3)+tas(iar,5,4)*tas(iar,5,4)
           bet0s3 =tas(iar,5,3)**2+tas(iar,5,4)**2                        !hr05
-!hr05     gam0s1 =tasiar65*tasiar65+tas(iar,6,6)*tas(iar,6,6)
           gam0s1 =tasiar65**2+tas(iar,6,6)**2                            !hr05
-!hr05     gam0s2 =tasiar61*tasiar61+tasiar62*tasiar62
           gam0s2 =tasiar61**2+tasiar62**2                                !hr05
-!hr05     gam0s3 =tasiar63*tasiar63+tasiar64*tasiar64
           gam0s3 =tasiar63**2+tasiar64**2                                !hr05
-!hr05     alf0s1 =-(tas(iar,5,5)*tasiar65+tasiar56*tas(iar,6,6))
           alf0s1 =-1d0*(tas(iar,5,5)*tasiar65+tasiar56*tas(iar,6,6))     !hr05
-!hr05     alf0s2 =-(tas(iar,5,1)*tasiar61+tas(iar,5,2)*tasiar62)
           alf0s2 =-1d0*(tas(iar,5,1)*tasiar61+tas(iar,5,2)*tasiar62)     !hr05
-!hr05     alf0s3 =-(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)
           alf0s3 =-1d0*(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)     !hr05
 +if debug
 !     call dumpbin('abib1',1,1)
@@ -26942,12 +25076,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               call dinv(6,tau,6,idummy,nerror)
               its6d=0
               if(ntwin.ne.2) then
-!hr05           taus=abs(tau(5,1))+abs(tau(5,2))+abs(tau(5,3))+abs      &
-!hr05&(tau(5,4)) +abs(tau(5,5))+abs(tau(5,6))+abs(tau(6,1))             &
-!hr05&+abs(tau(6,2)) +abs(tau(6,3))+abs(tau(6,4))+abs                   &
-!hr05&(tau(6,5))+abs(tau(6,6)) +abs(tau(1,5))+abs(tau(2,5))             &
-!hr05&+abs(tau(3,5))+abs(tau(4,5)) +abs(tau(1,6))+abs                   &
-!hr05&(tau(2,6))+abs(tau(3,6))+abs(tau(4,6))-two
                 taus=(((((((((((((((((((                                &!hr05
      &abs(tau(5,1))+abs(tau(5,2)))+abs(tau(5,3)))+abs                   &!hr05
      &(tau(5,4)))+abs(tau(5,5)))+abs(tau(5,6)))+abs(tau(6,1)))          &!hr05
@@ -26978,7 +25106,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
           write(*,10070)
 +ei
-!hr05     phag=phas*180/pi
           phag=(phas*180d0)/pi                                           !hr05
           if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))         &
 +if cr
@@ -27068,7 +25195,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
           write(*,10080) dp1
 +ei
-!hr05     e0f=sqrt(e0*e0-pma*pma)
           e0f=sqrt(e0**2-pma**2)                                         !hr05
           if(iclo6.eq.0) then
 +if cr
@@ -27098,7 +25224,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             bet0v(ib2,2)=bet0(2)
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
-!hr05       ampv(ib2)=amp(1)-damp*(ib1-1)
             ampv(ib2)=amp(1)-damp*dble(ib1-1)                            !hr05
             dp0v(ib2)=dp10
             dpsv(ib2)=dp10
@@ -27118,7 +25243,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call abend('ado 260                                           ')
 +ei
 
-!hr05 napx=napx*imc*mmac
       napx=(napx*imc)*mmac                                               !hr05
 +if cr
       write(93,*) 'MAINCR setting napxo=',napx
@@ -27134,7 +25258,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(ibidu.eq.2) then
 +ca dump2
 +ca dump3
-!hr05   damp=(amp(1)-amp0)/(napx/2-1)/2
         damp=((amp(1)-amp0)/dble(napx/2-1))/2d0                          !hr05
       endif
       do 80 i=1,npart
@@ -27152,23 +25275,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           write(*,10050)
 +ei
           tasia56=tas(ia,5,6)*c1m3
-!hr05     bet0x2=tas(ia,1,3)*tas(ia,1,3)+tas(ia,1,4)*tas(ia,1,4)
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
-!hr05     bet0z2=tas(ia,3,1)*tas(ia,3,1)+tas(ia,3,2)*tas(ia,3,2)
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
-!hr05     bet0s1=tas(ia,5,5)*tas(ia,5,5)+tasia56*tasia56
           bet0s1=tas(ia,5,5)**2+tasia56**2                               !hr05
           dsign=one
           rat=rat0
-!hr05     if(tas(ia,3,3).lt.-pieni) rat=-rat
           if(tas(ia,3,3).lt.(-1d0*pieni)) rat=-1d0*rat                   !hr05
-!hr05     if(rat.lt.-pieni) dsign=-one
           if(rat.lt.(-1d0*pieni)) dsign=-1d0*one                         !hr05
           x11=ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
-!hr05     x13=x11*dsign*sqrt(abs(rat))
           x13=(x11*dsign)*sqrt(abs(rat))                                 !hr05
-!hr05     amp(2)=dsign*(1-iver)* (abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt   &
-!hr05&(bet0v(ia,2)))
           amp(2)=(dsign*dble(1-iver))*(abs(x11)*sqrt(bet0z2)+abs(x13)*  &!hr05
      &sqrt(bet0v(ia,2)))                                                 !hr05
           x1(5)=zero
@@ -27200,9 +25315,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   290         continue
   300       continue
             if(iclo6.eq.1.or.iclo6.eq.2) then
-!hr05         x2(2)=x2(2)/(one+x2(6)+clop6v(3,ia))
               x2(2)=x2(2)/((one+x2(6))+clop6v(3,ia))                     !hr05
-!hr05         x2(4)=x2(4)/(one+x2(6)+clop6v(3,ia))
               x2(4)=x2(4)/((one+x2(6))+clop6v(3,ia))                     !hr05
             endif
             if(abs(bet0s1).le.pieni) x2(6)=dpsv(ia)
@@ -27260,32 +25373,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             oidpsv(ia+1)=one/(one+dpsv(ia+1))
           endif
           if(iclo6.ne.2) then
-!hr05       xv(1,ia)=xv(1,ia)+clov(1,ia)*idz(1)*(1-idfor)
             xv(1,ia)=xv(1,ia)+(clov(1,ia)*dble(idz(1)))*dble(1-idfor)    !hr05
-!hr05       yv(1,ia)=yv(1,ia)+clopv(1,ia)*idz(1)*(1-idfor)
             yv(1,ia)=yv(1,ia)+(clopv(1,ia)*dble(idz(1)))*dble(1-idfor)   !hr05
-!hr05       xv(2,ia)=xv(2,ia)+clov(2,ia)*idz(2)*(1-idfor)
             xv(2,ia)=xv(2,ia)+(clov(2,ia)*dble(idz(2)))*dble(1-idfor)    !hr05
-!hr05       yv(2,ia)=yv(2,ia)+clopv(2,ia)*idz(2)*(1-idfor)
             yv(2,ia)=yv(2,ia)+(clopv(2,ia)*dble(idz(2)))*dble(1-idfor)   !hr05
-!hr05       xv(1,ia+1)=xv(1,ia+1)+clov(1,ia)*idz(1)*(1-idfor)
           xv(1,ia+1)=xv(1,ia+1)+(clov(1,ia)*dble(idz(1)))*dble(1-idfor)  !hr05
-!hr05       yv(1,ia+1)=yv(1,ia+1)+clopv(1,ia)*idz(1)*(1-idfor)
           yv(1,ia+1)=yv(1,ia+1)+(clopv(1,ia)*dble(idz(1)))*dble(1-idfor) !hr05
-!hr05       xv(2,ia+1)=xv(2,ia+1)+clov(2,ia)*idz(2)*(1-idfor)
           xv(2,ia+1)=xv(2,ia+1)+(clov(2,ia)*dble(idz(2)))*dble(1-idfor)  !hr05
-!hr05       yv(2,ia+1)=yv(2,ia+1)+clopv(2,ia)*idz(2)*(1-idfor)
           yv(2,ia+1)=yv(2,ia+1)+(clopv(2,ia)*dble(idz(2)))*dble(1-idfor) !hr05
           endif
           ejfv(ia)=e0f*(one+dpsv(ia))
           ejfv(ia+1)=e0f*(one+dpsv(ia+1))
-!hr05     ejv(ia)=sqrt(ejfv(ia)*ejfv(ia)+pma*pma)
           ejv(ia)=sqrt(ejfv(ia)**2+pma**2)                               !hr05
-!hr05     ejv(ia+1)=sqrt(ejfv(ia+1)*ejfv(ia+1)+pma*pma)
           ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
-!hr05     epsa(1)=(ampv(ia)*ampv(ia)/bet0v(ia,1))
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
-!hr05     epsa(2)=(amp(2)*amp(2)/bet0v(ia,2))
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
 +if cr
           write(lout,10020) ampv(ia),amp(2),epsa
@@ -27298,11 +25399,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
      &(2,ia+1), sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
           if(ierro.ne.0) call prror(56)
-!hr05     e0f=sqrt(e0*e0-pma*pma)
           e0f=sqrt(e0**2-pma**2)                                         !hr05
-!hr05     ejfv(ia)=sqrt(ejv(ia)*ejv(ia)-pma*pma)
           ejfv(ia)=sqrt(ejv(ia)**2-pma**2)                               !hr05
-!hr05     ejfv(ia+1)=sqrt(ejv(ia+1)*ejv(ia+1)-pma*pma)
           ejfv(ia+1)=sqrt(ejv(ia+1)**2-pma**2)                           !hr05
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
@@ -27601,12 +25699,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &lkk,ia,j-1)*al(4,lkk,ia,ikk)
               hv(4,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(4,   &
      &lkk,ia,j-1)*al(4,lkk,ia,ikk)
-!hr05         hv(5,lkk,ia,j)=hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,   &
-!hr05&lkk,ia,j-1)*al(2,lkk,ia,ikk)+al(5,lkk,ia,ikk)/dpoff
               hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(2,lkk,ia,ikk))+al(5,lkk,ia,ikk)/dpoff               !hr05
-!hr05         hv(6,lkk,ia,j)=hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,   &
-!hr05&lkk,ia,j-1)*al(4,lkk,ia,ikk)+al(6,lkk,ia,ikk)/dpoff
               hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
   380       continue
@@ -27851,7 +25945,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do 470 ia=1,napxo,2
         ie=ia+1
         ia2=(ie)/2
-!hr05   napxto=napxto+numxv(ia)+numxv(ie)
         napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
         if(pstop(ia).and.pstop(ie)) then
 !-- BOTH PARTICLES LOST
@@ -28617,9 +26710,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           r0a=one
           r000=r0*r00(irm(ix))
           do 160 j=1,mmul
-!hr01       fake(1,j)=bbiv(j,1,i)*r0a/benkcc
             fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
-!hr01       fake(2,j)=aaiv(j,1,i)*r0a/benkcc
             fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
   160     r0a=r0a*r000
           write(9,'(a16)') bez(ix)
@@ -28719,11 +26810,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stra10
   290 continue
       do 300 j=1,napx
-!hr01   dpsv1(j)=dpsv(j)*c1e3/(one+dpsv(j))
         dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
   300 continue
       nwri=nwr(3)
-!hr01 if(nwri.eq.0) nwri=numl+numlr+1
       if(nwri.eq.0) nwri=(numl+numlr)+1                                  !hr01
 
 !     A.Mereghetti, for the FLUKA Team
@@ -28770,10 +26859,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
 +ei
 
-!hr01   hsy(3)=c1m3*hsy(3)*ition
         hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
         do 310 jj=1,nele
-!hr01     if(kz(jj).eq.12) hsyc(jj)=c1m3*hsyc(jj)*itionc(jj)
           if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
   310   continue
         if(abs(phas).ge.pieni) then
@@ -28941,7 +27028,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !07-2006      myenom   = e0
 !      MYENOM   = 1.001*E0
 !
-!hr01 if (myemitx0.le.0. .or. myemity0.le.0.) then
       if (myemitx0.le.0.d0 .or. myemity0.le.0.d0) then                   !hr01
 +if cr
         write(lout,*)
@@ -29669,10 +27755,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  start of ring!
 !
             do i = 1, napx00
-!hr08         xv(1,i)  = 1e3*myx(i+(j-1)*napx00)  +torbx(1)
-!hr08         yv(1,i)  = 1e3*myxp(i+(j-1)*napx00) +torbxp(1)
-!hr08         xv(2,i)  = 1e3*myy(i+(j-1)*napx00)  +torby(1)
-!hr08         yv(2,i)  = 1e3*myyp(i+(j-1)*napx00) +torbyp(1)
               xv(1,i)  = 1d3*myx(i+(j-1)*napx00)  +torbx(1)              !hr08
               yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
               xv(2,i)  = 1d3*myy(i+(j-1)*napx00)  +torby(1)              !hr08
@@ -29691,12 +27773,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               ejv(i)   = myp(i+(j-1)*napx00)
 !
 !GRD FOR NOT FAST TRACKING ONLY
-!hr08         ejfv(i)=sqrt(ejv(i)*ejv(i)-pma*pma)
               ejfv(i)=sqrt(ejv(i)**2-pma**2)                             !hr08
               rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
               dpsv(i)=(ejfv(i)-e0f)/e0f
               oidpsv(i)=one/(one+dpsv(i))
-!hr08         dpsv1(i)=dpsv(i)*c1e3*oidpsv(i)
               dpsv1(i)=(dpsv(i)*c1e3)*oidpsv(i)                          !hr08
 !GRD
 !APRIL2005
@@ -29790,15 +27870,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       write(outlun,*)
 !GRD UPGRADE JANUARY 2005
-!hr08 if(n_tot_absorbed.ne.0d0) then
       if(n_tot_absorbed.ne.0) then                                       !hr08
 !
-!hr08 write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',           &
-!hr08&neff(5)/dble(n_tot_absorbed)/1d-4
-!hr08 write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',           &
-!hr08&neff(9)/dble(n_tot_absorbed)/1d-4
-!hr08 write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',           &
-!hr08&(neff(9)-neff(19))/(dble(n_tot_absorbed))/1d-4
       write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',           &
      &(neff(5)/dble(n_tot_absorbed))/1d-4                                !hr08
       write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',           &
@@ -29866,7 +27939,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,*)
 +ei
 !GRD UPGRADE JANUARY 2005
-!hr08 if(n_tot_absorbed.ne.0d0) then
       if(n_tot_absorbed.ne.0) then                                       !hr08
 !     if(n_tot_absorbed.ne.0) then
 !
@@ -29876,7 +27948,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       write(*,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',                &
 +ei
-!hr08&neff(5)/dble(n_tot_absorbed)/1d-4
      &(neff(5)/dble(n_tot_absorbed))/1d-4                               !hr08
 +if cr
       write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',
@@ -29884,7 +27955,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       write(*,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',                &
 +ei
-!hr08&neff(9)/dble(n_tot_absorbed)/1d-4
      &(neff(9)/dble(n_tot_absorbed))/1d-4                                !hr08
 +if cr
       write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',
@@ -29892,7 +27962,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       write(*,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',                &
 +ei
-!hr08&(neff(9)-neff(19))/(dble(n_tot_absorbed))/1d-4
      &((neff(9)-neff(19))/dble(n_tot_absorbed))/1d-4                     !hr08
 !
 +if cr
@@ -30076,18 +28145,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &'13=orbity 14=tdispx 15=tdispy',                                  &
      &'16=xbob 17=ybob 18=xpbob 19=ypbob'
       do i=1,iu
-!hr08   write(56,'(i4, (1x,a16), 17(1x,e20.13))')                       &
-!hr08&i, ename(i), sampl(i),                                            &
-!hr08&sum_ax(i)/max(nampl(i),1),                                        &
-!hr08&sqrt(abs((sqsum_ax(i)/max(nampl(i),1))-                           &
-!hr08&(sum_ax(i)/max(nampl(i),1))**2)),                                 &
-!hr08&sum_ay(i)/max(nampl(i),1),                                        &
-!hr08&sqrt(abs((sqsum_ay(i)/max(nampl(i),1))-                           &
-!hr08&(sum_ay(i)/max(nampl(i),1))**2)),                                 &
-!hr08&talphax(i), talphay(i),                                           &
-!hr08&tbetax(i), tbetay(i), torbx(i), torby(i),                         &
-!hr08&tdispx(i), tdispy(i),                                             &
-!hr08&xbob(i),ybob(i),xpbob(i),ypbob(i)
         write(56,'(i4, (1x,a16), 17(1x,e20.13))')                       &!hr08
      &i, ename(i), sampl(i),                                            &!hr08
      &sum_ax(i)/dble(max(nampl(i),1)),                                  &!hr08
@@ -30843,7 +28900,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  Some initialization
 !
       do i = 1, numeff
-!hr08   rsig(i) = dble(i)/2d0 - 0.5d0 + 6d0
         rsig(i) = (dble(i)/2d0 - 0.5d0) + 5d0                           !hr08
       enddo
       dpopbins(1)= 1d-4
@@ -30953,8 +29009,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  block) in order to re-use exactly the same information for every
 !++  sample.
 !
-!hr08    if (c_rmstilt_prim.gt.0. .or. c_rmstilt_sec.gt.0. .or.         &
-!hr08&        c_systilt_prim.ne.0. .or. c_systilt_sec.ne.0.) then
          if (c_rmstilt_prim.gt.0.d0 .or. c_rmstilt_sec.gt.0.d0 .or.     &!hr08
      &        c_systilt_prim.ne.0.d0 .or. c_systilt_sec.ne.0.d0) then    !hr08
             do icoll = 1, db_ncoll
@@ -30985,8 +29039,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  Keep all collimator database info and errors in memeory (COMMON
 !++  block) in order to re-use exactly the same information for every
 !++  sample and throughout a all run.
-!hr08    if (c_sysoffset_prim.ne.0. .or. c_sysoffset_sec.ne.0. .or.     &
-!hr08&        c_rmsoffset_prim.gt.0. .or. c_rmsoffset_sec.gt.0.) then
          if (c_sysoffset_prim.ne.0.d0 .or. c_sysoffset_sec.ne.0.d0 .or. &!hr08
      &        c_rmsoffset_prim.gt.0.d0.or.c_rmsoffset_sec.gt.0.d0) then  !hr08
             do icoll = 1, db_ncoll 
@@ -33056,9 +31108,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                    hdfdee,hdftyp)
 +ei
 +if .not.hdf5
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
-!         write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-         write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
      &rcxp0(j)*1d3+torbxp(ie),                                          &
@@ -33145,8 +31195,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           xpj    = (yv(1,j)-torbxp(ie))/1d3
           yj     = (xv(2,j)-torby(ie))/1d3
           ypj    = (yv(2,j)-torbyp(ie))/1d3
-!APRIL2005
-!          write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')                 &
+
 +if hdf5
 !       INTEGER hdfturn,hdfpid,hdftyp
 !       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
@@ -33176,16 +31225,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      
 +ei
 +if .not.hdf5
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
      &rcxp0(j)*1d3+torbxp(ie),                                          &
      &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
      &rcyp0(j)*1d3+torbyp(ie),                                          &
      &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
+       
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie)+0.5*c_length,           &
      &xv(1,j)+0.5*c_length*yv(1,j),yv(1,j),                             &
 !     &xv(2,j),yv(2,j)
@@ -33662,16 +31710,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j))
 +ei
             endif
-!hr01       ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
             ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
             dpsv(j)=(ejfv(j)-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
-!hr01       dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
             dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
-!hr01       yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j)
             yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
-!hr01       yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j)
             yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
  40       continue
           if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                      &
@@ -34228,14 +32272,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                    hdfdee,hdftyp)
 +ei
 +if .not.hdf5
-!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &     
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
      &xv(1,j),yv(1,j),                                                  &
      &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
      &secondary(j)+tertiary(j)+other(j)
-!     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
 +ei
               endif
 !GRD
@@ -34857,16 +32898,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
        call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
      &                    hdfdee,hdftyp)
 +ei
-+if .not.hdf5  
-!                write(38,'(1x,i8,1x,i4,1x,f7.1,4(1x,e11.3))')           &
-          write(38,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.5),1x,e11.3,1x,i4)')   &
-!          write(38,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')           &
++if .not.hdf5
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
      &xv(1,j),yv(1,j),                                                  &
 !     &xv(2,j),yv(2,j)
      &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
      &secondary(j)+tertiary(j)+other(j)
-!     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
 +ei
               endif
 !GRD
@@ -35112,18 +33150,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do 40 j=1,napx
             ejf0v(j)=ejfv(j)
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
-!hr01       if(sigmv(j).lt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr
             if(kz(ix).eq.12) then
 +if crlibm
-!hr01         ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+phas+
-!hr01&phasc(ix))
               ejv(j)=ejv(j)+ed(ix)*sin_rn((hsyc(ix)*sigmv(j)+phas)+     &!hr01
      &phasc(ix))                                                         !hr01
 +ei
 +if .not.crlibm
-!hr01         ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phas+
-!hr01&phasc(ix))
               ejv(j)=ejv(j)+ed(ix)*sin((hsyc(ix)*sigmv(j)+phas)+        &
      &phasc(ix))                                                         !hr01
 +ei
@@ -35135,18 +33168,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j)+phas)
 +ei
             endif
-!hr01       ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
 !           ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
             ejfv(j)=sqrt((ejv(j)-pma)*(ejv(j)+pma))
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
             dpsv(j)=(ejfv(j)-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
-!hr01       dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
             dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
             if(sigmv(j).gt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
-!hr01       yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j)
             yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
-!hr01 40     yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j)
    40     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                             !hr01
           if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                      &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),j=1,napx)
@@ -36668,9 +34697,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           r0a=one
           r000=r0*r00(irm(ix))
           do 160 j=1,mmul
-!hr01       fake(1,j)=bbiv(j,1,i)*r0a/benkcc
             fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
-!hr01       fake(2,j)=aaiv(j,1,i)*r0a/benkcc
             fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
   160     r0a=r0a*r000
           write(9,'(a16)') bez(ix)
@@ -36770,7 +34797,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stra10
   290 continue
       do 300 j=1,napx
-!hr01   dpsv1(j)=dpsv(j)*c1e3/(one+dpsv(j))
         dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
   300 continue
       nwri=nwr(3)
@@ -36795,10 +34821,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         call thck4d(nthinerr)
       else
-!hr01   hsy(3)=c1m3*hsy(3)*ition
         hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
         do 310 jj=1,nele
-!hr01     if(kz(jj).eq.12) hsyc(jj)=c1m3*hsyc(jj)*itionc(jj)
           if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
   310   continue
         if(abs(phas).ge.pieni) then
@@ -37003,22 +35027,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    20       do 30 j=1,napx
               puxve=xv(1,j)
               puzve=yv(1,j)
-!hr01         xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+ idz1   &
-!hr01&*bl1v(5,1,j,ix)*dpsv(j)*c1e3
               xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+        &!hr01
      &((dble(idz1)*bl1v(5,1,j,ix))*dpsv(j))*c1e3                         !hr01
-!hr01         yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+ idz1   &
-!hr01&*bl1v(6,1,j,ix)*dpsv(j)*c1e3
               yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+        &!hr01
      &((dble(idz1)*bl1v(6,1,j,ix))*dpsv(j))*c1e3                         !hr01
               puxve=xv(2,j)
               puzve=yv(2,j)
-!hr01         xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+ idz2   &
-!hr01&*bl1v(5,2,j,ix)*dpsv(j)*c1e3
               xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+        &!hr01
      &((dble(idz2)*bl1v(5,2,j,ix))*dpsv(j))*c1e3                         !hr01
-!hr01         yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+ idz2   &
-!hr01&*bl1v(6,2,j,ix)*dpsv(j)*c1e3
               yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+        &!hr01
      &((dble(idz2)*bl1v(6,2,j,ix))*dpsv(j))*c1e3                         !hr01
    30       continue
@@ -37640,16 +35656,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j))
 +ei
               endif
-!hr01         ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
               ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
               dpsv(j)=(ejfv(j)-e0f)/e0f
               oidpsv(j)=one/(one+dpsv(j))
-!hr01         dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
-!hr01         yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j)
               yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
-!hr01   50       yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j)
    50       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
             if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                    &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),                &
@@ -38311,15 +36323,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             do 50 j=1,napx
               ejf0v(j)=ejfv(j)
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
-!hr01         if(sigmv(j).lt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
               if(kz(ix).eq.12) then
 +if crlibm
-!hr01           ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+phas+
                 ejv(j)=ejv(j)+ed(ix)*sin_rn((hsyc(ix)*sigmv(j)+phas)+   &!hr01
 +ei
 +if .not.crlibm
-!hr01           ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phas+        &
                 ejv(j)=ejv(j)+ed(ix)*sin((hsyc(ix)*sigmv(j)+phas)+      &!hr01
 +ei
      &phasc(ix))
@@ -38331,18 +36340,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j)+phas)
 +ei
               endif
-!hr01         ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
               ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
               dpsv(j)=(ejfv(j)-e0f)/e0f
               oidpsv(j)=one/(one+dpsv(j))
-!hr01         dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
-!hr01         if(sigmv(j).gt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             if(sigmv(j).gt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
-!hr01         yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j)
               yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
-!hr01   50       yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j)
    50       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
             if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                    &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),                &
@@ -38849,16 +36853,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             co(j)=cos(fok(j))
 +ei
             al(2,ih1,j,l)=rho(j)*si(j)
-!hr01       al(5,ih1,j,l)=-dpsv(j)*(rho(j)*(one-co(j))/dpsq(j))*c1e3
       al(5,ih1,j,l)=((-1d0*dpsv(j))*((rho(j)*(one-co(j)))/dpsq(j)))*c1e3 !hr01
 +if crlibm
-!hr01       al(6,ih1,j,l)=-dpsv(j)*(two*tan_rn(fok(j)*half)/dpsq(j))*   &
-!hr01&c1e3
       al(6,ih1,j,l)=((-1d0*dpsv(j))*((two*tan_rn(fok(j)*half))/dpsq(j)))&!hr01
      &*c1e3                                                              !hr01
 +ei
 +if .not.crlibm
-!hr01       al(6,ih1,j,l)=-dpsv(j)*(two*tan(fok(j)*half)/dpsq(j))*c1e3
       al(6,ih1,j,l)=((-1d0*dpsv(j))*((two*tan(fok(j)*half))/dpsq(j)))   &!hr01
      &*c1e3                                                              !hr01
 +ei
@@ -38882,35 +36882,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             sm12(j)=el(l)-sm1(j)*sm2(j)
             sm23(j)=sm2(j)*sm3(j)
-!hr01       as3(j)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)- rho(j)&
-!hr01&*dpsq(j)*(one-sm1(j)))
       as3(j)=(-1d0*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-   &!hr01
      &(rho(j)*dpsq(j))*(one-sm1(j)))                                    &!hr01
-!hr01       as4(j)=-rvv(j)*sm23(j)/c2e3
             as4(j)=((-1d0*rvv(j))*sm23(j))/c2e3                          !hr01
-!hr01       as6(j)=-rvv(j)*(el(l)+sm1(j)*sm2(j))/c4e3
             as6(j)=((-1d0*rvv(j))*(el(l)+sm1(j)*sm2(j)))/c4e3            !hr01
 +if rvet
-!hr01       as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/   &
-!hr01&(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-sm2(j)))
             as(1,ih1,j,l)=el(l)*rvet(j)-(c1e3*rvv(j))*((dpsv(j)**2/     &!hr01
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j)))                     !hr01
 +ei
 +if .not.rvet
-!hr01       as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*
-!hr01&sm12(j)+dpsv(j)*(el(l)-sm2(j)))+el(l)*(one-rvv(j)))*c1e3
             as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/      &!hr06
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j))))*c1e3               !hr06
 +ei
-!hr01       as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-&
-!hr01&sm2(j)*dpsq(j)/rho(j))+fok1(j)*as3(j)
          as(2,ih1,j,l)=(-1d0*rvv(j))*((dpsv(j)/((two*rho(j))*dpsq(j)))* &!hr01
      &sm12(j)-(sm2(j)*dpsq(j))/rho(j))+fok1(j)*as3(j)                    !hr01
             as(3,ih1,j,l)=as3(j)
-!hr01       as(4,ih1,j,l)=as4(j)+two*as6(j)*fok1(j)
             as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1(j)                    !hr01
-!hr01       as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))+ as6(j)  &
-!hr01&*fok1(j)*fok1(j)+fok1(j)*as4(j)
             as(5,ih1,j,l)=((-1d0*rvv(j))*sm12(j))/(c4e3*rho(j)**2)+     &!hr01
      &as6(j)*fok1(j)**2+fok1(j)*as4(j)                                   !hr01
             as(6,ih1,j,l)=as6(j)
@@ -38923,14 +36910,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             gl(j)=el(l)*g(j)
             al(1,ih2,j,l)=one-gl(j)
-!hr01       al(3,ih2,j,l)=-g(j)*(two-gl(j))
             al(3,ih2,j,l)=(-1d0*g(j))*(two-gl(j))                        !hr01
             al(4,ih2,j,l)=al(1,ih2,j,l)
-!hrr01      as6(j)=-rvv(j)*al(2,ih2,j,l)/c2e3                            
             as6(j)=((-1d0*rvv(j))*al(2,ih2,j,l))/c2e3                    !hr01
-!hr01       as(4,ih2,j,l)=-two*as6(j)*fok1(j)
             as(4,ih2,j,l)=((-1d0*two)*as6(j))*fok1(j)                    !hr01
-!hr01       as(5,ih2,j,l)=as6(j)*fok1(j)*fok1(j)
             as(5,ih2,j,l)=(as6(j)*fok1(j))*fok1(j)                       !hr01
             as(6,ih2,j,l)=as6(j)
    50     continue
@@ -38965,49 +36948,33 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
             co(j)=cos(fok(j))
 +ei
-!hr01       rhoc(j)=rho(j)*(one-co(j))/dpsq(j)
             rhoc(j)=(rho(j)*(one-co(j)))/dpsq(j)                         !hr01
             siq(j)=si(j)/dpsq(j)
             al(1,ih1,j,l)=co(j)
             al(2,ih1,j,l)=rho(j)*si(j)
-!hr01       al(3,ih1,j,l)=-si(j)/rho(j)
             al(3,ih1,j,l)=(-1d0*si(j))/rho(j)                            !hr01
             al(4,ih1,j,l)=co(j)
-!hr01       al(5,ih1,j,l)=-dpsv(j))*rhoc(j)*c1e3
             al(5,ih1,j,l)=((-1d0*dpsv(j))*rhoc(j))*c1e3                  !hr01
-!hr01       al(6,ih1,j,l)=-dpsv(j)*siq(j)*c1e3
             al(6,ih1,j,l)=((-1d0*dpsv(j))*siq(j))*c1e3                   !hr01
             sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
             sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
 +if rvet
-!hr01       as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/   &
-!hr01&(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))
             as(1,ih1,j,l)=el(l)*rvet(j)-(c1e3*rvv(j))*((dpsv(j)**2/     &!hr01
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))              !hr01
 +ei
 +if .not.rvet
-!hr01       as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*      &
-!hr01&sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))+el(l)*(one-rvv(j)))*c1e3
             as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/      &!hr06
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3        !hr06
 +ei
-!hr01       as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-&
-!hr01&dpd(j)*siq(j))
       as(2,ih1,j,l)=(-1d0*rvv(j))*((dpsv(j)/(two*rho(j)*dpsq(j)))*      &!hr01
      &sm12(j)-dpd(j)*siq(j))                                             !hr01
-!hr01       as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)-&
-!hr01&dpd(j)*rhoc(j))
       as(3,ih1,j,l)=(-1d0*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*    &!hr01
      &sm23(j)-dpd(j)*rhoc(j))                                            !hr01
-!hr01       as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
             as(4,ih1,j,l)=((-1d0*rvv(j))*sm23(j))/c2e3                   !hr01
-!hr01       as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))
             as(5,ih1,j,l)=((-1d0*rvv(j))*sm12(j))/((c4e3*rho(j))*rho(j)) !hr01
-!hr01       as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))/  &
       as(6,ih1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/&!hr01
      &c4e3
 !--VERTIKAL
-!hr01       as(6,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)/c2e3
             as(6,ih2,j,l)=((-1d0*rvv(j))*al(2,ih2,j,l))/c2e3             !hr01
    70     continue
           goto 160
@@ -39047,13 +37014,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.rvet
               as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
 +ei
-!hr01         as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
               as(4,1,j,l)=(((-1d0*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3 !hr01
-!hr01         as(5,1,j,l)=-rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))*      &
-!hr01&aek(j)/c4e3
            as(5,1,j,l)=(((-1d0*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*&!hr01
      &aek(j))/c4e3                                                       !hr01
-!hr01         as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
        as(6,1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3  !hr01
 !--DEFOCUSSING
 +if crlibm
@@ -39073,13 +37036,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               endif
               al(3,2,j,l)=hs(j)*hi(j)
               al(4,2,j,l)=hc(j)
-!hr01         as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
               as(4,2,j,l)=(((-1d0*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3 !hr01
-!hr01         as(5,2,j,l)=+rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))*      &
-!hr01&aek(j)/c4e3
               as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*    &!hr01
      &aek(j))/c4e3                                                       !hr01
-!hr01         as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
       as(6,2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr01
             else
 +if crlibm
@@ -39099,23 +37058,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               else
                 al(2,2,j,l)=hi1(j)/hi(j)
               endif
-!hr01         al(3,2,j,l)=-hi1(j)*hi(j)
               al(3,2,j,l)=(-1d0*hi1(j))*hi(j)                            !hr01
               al(4,2,j,l)=al(1,2,j,l)
 +if rvet
               as(1,2,j,l)=el(l)*rvet(j)
 +ei
 +if .not.rvet
-!hr01         as(1,2,j,l)=el(l)*(one-rvv(j))*c1e3
               as(1,2,j,l)=(el(l)*(one-rvv(j)))*c1e3                      !hr01
 +ei
-!hr01         as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
               as(4,2,j,l)=(((-1d0*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3 !hr01
-!hr01         as(5,2,j,l)=-rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))*      &
-!hr01&aek(j)/c4e3
            as(5,2,j,l)=(((-1d0*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*&!hr01
      &aek(j))/c4e3                                                       !hr01
-!hr01         as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
         as(6,2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3 !hr01
 !--DEFOCUSSING
 +if crlibm
@@ -39135,13 +37088,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               endif
               al(3,1,j,l)=hs(j)*hi(j)
               al(4,1,j,l)=hc(j)
-!hr01         as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
               as(4,1,j,l)=(((-1d0*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3 !hr01
-!hr01         as(5,1,j,l)=+rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))*      &
-!hr01&aek(j)/c4e3
               as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*    &!hr01
      &aek(j))/c4e3                                                       !hr01
-!hr01         as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
         as(6,1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3 !hr01
             endif
    90     continue
@@ -39167,24 +37116,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           endif
           do 130 j=1,napx
             wf(j)=ed(l)/dpsq(j)
-!hr01       fok(j)=fokqv(j)/dpd(j)-wf(j)*wf(j)
             fok(j)=fokqv(j)/dpd(j)-wf(j)**2                              !hr01
             afok(j)=abs(fok(j))
             hi(j)=sqrt(afok(j))
             fi(j)=hi(j)*el(l)
             if(afok(j).le.pieni) then
-!hr01         as(6,1,j,l)=-rvv(j)*el(l)/c2e3
               as(6,1,j,l)=((-1d0*rvv(j))*el(l))/c2e3                     !hr01
               as(6,2,j,l)=as(6,1,j,l)
 +if rvet
               as(1,1,j,l)=el(l)*rvet(j)
 +ei
 +if .not.rvet
-!hr01         as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
               as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                      !hr01
 +ei
             endif
-!hr06       if(fok(j).lt.-pieni) then
             if(fok(j).lt.(-1d0*pieni)) then                              !hr06
 +if crlibm
               si(j)=sin_rn(fi(j))
@@ -39198,51 +37143,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
               co(j)=cos(fi(j))
 +ei
-!hr01         wfa(j)=wf(j)/afok(j)*(one-co(j))/dpsq(j)
               wfa(j)=((wf(j)/afok(j))*(one-co(j)))/dpsq(j)               !hr01
-!hr01         wfhi(j)=wf(j)/hi(j)*si(j)/dpsq(j)
               wfhi(j)=((wf(j)/hi(j))*si(j))/dpsq(j)                      !hr01
               al(1,ih1,j,l)=co(j)
               al(2,ih1,j,l)=si(j)/hi(j)
-!hr01         al(3,ih1,j,l)=-si(j)*hi(j)
               al(3,ih1,j,l)=(-1d0*si(j))*hi(j)                           !hr01
               al(4,ih1,j,l)=co(j)
-!hr01         al(5,ih1,j,l)=-wfa(j)*dpsv(j)*c1e3
               al(5,ih1,j,l)=((-1d0*wfa(j))*dpsv(j))*c1e3                 !hr01
-!hr01         al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
               al(6,ih1,j,l)=((-1d0*wfhi(j))*dpsv(j))*c1e3                !hr01
               sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
               sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
 +if rvet
-!hr01         as(1,ih1,j,l)=el(l)*rvet(j)-c1e3*rvv(j)*(dpsv(j)*dpsv(j)/ &
-!hr01&(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/             &
-!hr01&afok(j)*wf(j)*wf(j)
               as(1,ih1,j,l)=el(l)*rvet(j)-(((c1e3*rvv(j))*((dpsv(j)**2/ &!hr01
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))/           &!hr01
      &afok(j))*wf(j)**2                                                  !hr01
 +ei
 +if .not.rvet
-!hr01         as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12&
-!hr01&(j)+ dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el        &
-!hr01&(l)* (one-rvv(j)))*c1e3
       as(1,ih1,j,l)=(el(l)*(one-rvv(j))-                                &!hr06
      &((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*                             &!hr06
      &sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2)*c1e3    !hr06
 +ei
-!hr01         as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*       &
-!hr01&sm12(j)-dpd(j)*wfhi(j))
            as(2,ih1,j,l)=(-1d0*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*&!hr01
      &sm12(j)-dpd(j)*wfhi(j))                                            !hr01
-!hr01         as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l) &
-!hr01&*sm23(j)-dpd(j)*wfa(j))
       as(3,ih1,j,l)=(-1d0*rvv(j))*(((((dpsv(j)*half)/afok(j))/dpd(j))*  &!hr01
      &ed(l))*sm23(j)-dpd(j)*wfa(j))                                      !hr01
-!hr01       as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
             as(4,ih1,j,l)=((-1d0*rvv(j))*sm23(j))/c2e3                   !hr01
-!hr01         as(5,ih1,j,l)=-rvv(j)*sm12(j)*afok(j)/c4e3
               as(5,ih1,j,l)=(((-1d0*rvv(j))*sm12(j))*afok(j))/c4e3       !hr01
-!hr01         as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)) &
-!hr01&/c4e3
       as(6,ih1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr01
      &/c4e3                                                              !hr01
               aek(j)=abs(ekv(j,l)/dpd(j))
@@ -39261,14 +37187,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               if(abs(hi(j)).gt.pieni) al(2,ih2,j,l)=hs(j)/hi(j)
               al(3,ih2,j,l)=hs(j)*hi(j)
               al(4,ih2,j,l)=hc(j)
-!hr01         as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
       as(4,ih2,j,l)=(((-1d0*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3   !hr01
-!hr01         as(5,ih2,j,l)=+rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*&
-!hr01&aek(j)/c4e3
             as(5,ih2,j,l)=((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*&!hr01
      &aek(j))/c4e3                                                       !hr01
-!hr01         as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)) &
-!hr01&/c4e3
       as(6,ih2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))) &!hr01
      &/c4e3                                                              !hr01
             endif
@@ -39287,46 +37208,28 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               al(2,ih1,j,l)=hs(j)/hi(j)
               al(3,ih1,j,l)=hs(j)*hi(j)
               al(4,ih1,j,l)=hc(j)
-!hr01         wfa(j)=wf(j)/afok(j)*(one-hc(j))/dpsq(j)
               wfa(j)=((wf(j)/afok(j))*(one-hc(j)))/dpsq(j)               !hr01
-!hr01         wfhi(j)=wf(j)/hi(j)*hs(j)/dpsq(j)
               wfhi(j)=((wf(j)/hi(j))*hs(j))/dpsq(j)                      !hr01
-!hr01         al(5,ih1,j,l)= wfa(j)*dpsv(j)*c1e3
               al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                       !hr01
-!hr01         al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
               al(6,ih1,j,l)=((-1d0*wfhi(j))*dpsv(j))*c1e3                !hr01
               sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
               sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
 +if rvet
-!hr06         as(1,ih1,j,l)=el(l)*rvet(j)+c1e3*rvv(j)*(dpsv(j)*dpsv(j)/ &
-!hr06&(four*dpd(j))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/             &
-!hr06&afok(j)*wf(j)*wf(j)
               as(1,ih1,j,l)=el(l)*rvet(j)+(((c1e3*rvv(j))*((dpsv(j)**2/ &!hr06
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))/           &!hr06
      &afok(j))*wf(j)**2                                                  !hr06
 +ei
 +if .not.rvet
-!hr06         as(1,ih1,j,l)=(rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*
-!hr06&sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el(l)* &
-!hr06&(one-rvv(j)))*c1e3
               as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*      &!hr06
      &sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2+el(l)*  &!hr06
      &(one-rvv(j)))*c1e3                                                 !hr06
 +ei
-!hr01         as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*       &
-!hr01&sm12(j)-dpd(j)*wfhi(j))
            as(2,ih1,j,l)=(-1d0*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*&!hr01
      &sm12(j)-dpd(j)*wfhi(j))                                            !hr01
-!hr01         as(3,ih1,j,l)=rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l)  &
-!hr01&*sm23(j)-dpd(j)*wfa(j))
       as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok(j))/dpd(j))* ed(l))  &!hr01
      &*sm23(j)-dpd(j)*wfa(j))                                            !hr01
-!hr01         as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
               as(4,ih1,j,l)=((-1d0*rvv(j))*sm23(j))/c2e3                 !hr01
-!hr01         as(5,ih1,j,l)=+rvv(j)*sm12(j)*afok(j)/c4e3
               as(5,ih1,j,l)=((rvv(j)*sm12(j))*afok(j))/c4e3              !hr01
-!hr01         as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)) &
-!hr01&/c4e3
       as(6,ih1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr01
      &/c4e3                                                              !hr01
               aek(j)=abs(ekv(j,l)/dpd(j))
@@ -39346,17 +37249,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
               al(1,ih2,j,l)=co(j)
               al(2,ih2,j,l)=si(j)/hi(j)
-!hr01         al(3,ih2,j,l)=-si(j)*hi(j)
               al(3,ih2,j,l)=(-1d0*si(j))*hi(j)                           !hr01
               al(4,ih2,j,l)=co(j)
-!hr01         as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
         as(4,ih2,j,l)=(((-1d0*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3 !hr01
-!hr01         as(5,ih2,j,l)=-rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*&
-!hr01&aek(j)/c4e3
       as(5,ih2,j,l)=(((-1d0*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))&!hr01
      &*aek(j))/c4e3                                                      !hr01
-!hr01         as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)) &
-!hr01&/c4e3
       as(6,ih2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))) &!hr01
      &/c4e3                                                              !hr01
             endif
@@ -39369,11 +37266,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   140     do 150 j=1,napx
             rhoi(j)=ed(l)/dpsq(j)
 +if crlibm
-!hr01       fok(j)=rhoi(j)*tan_rn(el(l)*rhoi(j)*half)
             fok(j)=rhoi(j)*tan_rn((el(l)*rhoi(j))*half)                  !hr01
 +ei
 +if .not.crlibm
-!hr01       fok(j)=rhoi(j)*tan(el(l)*rhoi(j)*half)
             fok(j)=rhoi(j)*tan((el(l)*rhoi(j))*half)                     !hr01
 +ei
             al(3,1,j,l)=fok(j)
@@ -39389,14 +37284,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
    20   do 30 j=1,napx
-!hr01     as(6,1,j,l)=-rvv(j)*el(l)/c2e3
           as(6,1,j,l)=((-1d0*rvv(j))*el(l))/c2e3                         !hr01
           as(6,2,j,l)=as(6,1,j,l)
 +if rvet
           as(1,1,j,l)=el(l)*rvet(j)
 +ei
 +if .not.rvet
-!hr01     as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
           as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                          !hr01
 +ei
    30   continue
@@ -39488,10 +37381,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           al(3,2,j,l)=zero
           al(4,1,j,l)=one
           al(4,2,j,l)=one
-!hr06     as(6,1,j,l)=-rvv(j)*el(l)/c2e3
           as(6,1,j,l)=((-1d0*rvv(j))*el(l))/c2e3                         !hr06
           as(6,2,j,l)=as(6,1,j,l)
-!hr06     as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
           as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                          !hr06
    30   continue
         goto 160
@@ -39534,15 +37425,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           al(2,ih1,j,l)=rho(j)*si(j)
           al(3,ih1,j,l)=zero
           al(4,ih1,j,l)=one
-!hr06     al(5,ih1,j,l)=-dpsv(j)*(rho(j)*(one-co(j))/dpsq(j))*c1e3
       al(5,ih1,j,l)=((-1d0*dpsv(j))*((rho(j)*(one-co(j)))/dpsq(j)))*c1e3 !hr06
 +if crlibm
-!hr06     al(6,ih1,j,l)=-dpsv(j)*(two*tan_rn(fok(j)*half)/dpsq(j))*c1e3
       al(6,ih1,j,l)=((-1d0*dpsv(j))*((two*tan_rn(fok(j)*half))/dpsq(j)))&!hr06
      &*c1e3                                                              !hr06
 +ei
 +if .not.crlibm
-!hr06     al(6,ih1,j,l)=-dpsv(j)*(two*tan(fok(j)*half)/dpsq(j))*c1e3
       al(6,ih1,j,l)=((-1d0*dpsv(j))*((two*tan(fok(j)*half))/dpsq(j)))   &!hr06
      &*c1e3                                                              !hr06
 +ei
@@ -39559,36 +37447,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           sm2(j)=sin(fok(j))*rho(j)
 +ei
 +if crlibm
-!hr06     sm3(j)=-sin_rn(fok(j))/rho(j)
           sm3(j)=(-1d0*sin_rn(fok(j)))/rho(j)                            !hr06
 +ei
 +if .not.crlibm
-!hr06     sm3(j)=-sin(fok(j))/rho(j)
           sm3(j)=(-1d0*sin(fok(j)))/rho(j)                               !hr06
 +ei
           sm12(j)=el(l)-sm1(j)*sm2(j)
           sm23(j)=sm2(j)*sm3(j)
-!hr06     as3(j)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)- rho(j)  &
-!hr06&*dpsq(j)*(one-sm1(j)))
          as3(j)=(-1d0*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-&!hr06
      &(rho(j)*dpsq(j))*(one-sm1(j)))                                     !hr06
-!hr06     as4(j)=-rvv(j)*sm23(j)/c2e3
           as4(j)=((-1d0*rvv(j))*sm23(j))/c2e3                            !hr06
-!hr06     as6(j)=-rvv(j)*(el(l)+sm1(j)*sm2(j))/c4e3
           as6(j)=((-1d0*rvv(j))*(el(l)+sm1(j)*sm2(j)))/c4e3              !hr06
-!hr06     as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12(j)+&
-!hr06&dpsv(j)*(el(l)-sm2(j)))+el(l)*(one-rvv(j)))*c1e3
       as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/            &!hr06
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j))))*c1e3               !hr06
-!hr06     as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-  &
-!hr06&sm2(j)*dpsq(j)/rho(j))+fok1(j)*as3(j)
       as(2,ih1,j,l)=(-1d0*rvv(j))*((dpsv(j)/((two*rho(j))*dpsq(j)))*    &!hr06
      &sm12(j)-(sm2(j)*dpsq(j))/rho(j))+fok1(j)*as3(j)                    !hr06
           as(3,ih1,j,l)=as3(j)
-!hr06     as(4,ih1,j,l)=as4(j)+two*as6(j)*fok1(j)
           as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1(j)                      !hr06
-!hr06     as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))+ as6(j)    &
-!hr06&*fok1(j)*fok1(j)+fok1(j)*as4(j)
           as(5,ih1,j,l)=(as6(j)*fok1(j)**2                              &!hr06
      &-(rvv(j)*sm12(j))/(c4e3*rho(j)**2))+fok1(j)*as4(j)                 !hr06
           as(6,ih1,j,l)=as6(j)
@@ -39602,14 +37477,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           gl(j)=el(l)*g(j)
           al(1,ih2,j,l)=one-gl(j)
           al(2,ih2,j,l)=el(l)
-!hr06     al(3,ih2,j,l)=-g(j)*(two-gl(j))
           al(3,ih2,j,l)=(-1d0*g(j))*(two-gl(j))                          !hr06
           al(4,ih2,j,l)=al(1,ih2,j,l)
-!hr06     as6(j)=-rvv(j)*al(2,ih2,j,l)/c2e3
           as6(j)=((-1d0*rvv(j))*al(2,ih2,j,l))/c2e3                      !hr06
-!hr06     as(4,ih2,j,l)=-two*as6(j)*fok1(j)
           as(4,ih2,j,l)=((-1d0*two)*as6(j))*fok1(j)                      !hr06
-!hr06     as(5,ih2,j,l)=as6(j)*fok1(j)*fok1(j)
           as(5,ih2,j,l)=as6(j)*fok1(j)**2                                !hr06
           as(6,ih2,j,l)=as6(j)
    50   continue
@@ -39643,37 +37514,24 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
           co(j)=cos(fok(j))
 +ei
-!hr06     rhoc(j)=rho(j)*(one-co(j))/dpsq(j)
           rhoc(j)=(rho(j)*(one-co(j)))/dpsq(j)                           !hr06
           siq(j)=si(j)/dpsq(j)
           al(1,ih1,j,l)=co(j)
           al(2,ih1,j,l)=rho(j)*si(j)
-!hr06     al(3,ih1,j,l)=-si(j)/rho(j)
           al(3,ih1,j,l)=(-1d0*si(j))/rho(j)                              !hr06
           al(4,ih1,j,l)=co(j)
-!hr06     al(5,ih1,j,l)=-dpsv(j)*rhoc(j)*c1e3                  
           al(5,ih1,j,l)=((-1d0*dpsv(j))*rhoc(j))*c1e3                    !hr06
-!hr06     al(6,ih1,j,l)=-dpsv(j)*siq(j)*c1e3
           al(6,ih1,j,l)=((-1d0*dpsv(j))*siq(j))*c1e3                     !hr06
           sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
           sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-!hr06     as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12(j) &
-!hr06&+dpsv(j)*(el(l)-al(2,ih1,j,l)))+el(l)*(one-rvv(j)))*c1e3
        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/           &!hr06
      &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3        !hr06
-!hr06     as(2,ih1,j,l)=-rvv(j)*(dpsv(j)/(two*rho(j)*dpsq(j))*sm12(j)-  &
-!hr06&dpd(j)*siq(j))
        as(2,ih1,j,l)=(-1d0*rvv(j))*((dpsv(j)/((two*rho(j))*dpsq(j)))*   &!hr06
      &sm12(j)-dpd(j)*siq(j))                                             !hr06
-!hr06     as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*rho(j)/(two*dpsq(j))*sm23(j)-  &
-!hr06&dpd(j)*rhoc(j))
          as(3,ih1,j,l)=(-1d0*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))* &!hr06
      &sm23(j)-dpd(j)*rhoc(j))                                            !hr06
-!hr06     as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
           as(4,ih1,j,l)=((-1d0*rvv(j))*sm23(j))/c2e3                     !hr06
-!hr06     as(5,ih1,j,l)=-rvv(j)*sm12(j)/(c4e3*rho(j)*rho(j))
           as(5,ih1,j,l)=((-1d0*rvv(j))*sm12(j))/(c4e3*rho(j)**2)         !hr06
-!hr06     as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))/c4e3
       as(6,ih1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/&!hr06
      &c4e3                                                               !hr06
 !--VERTIKAL
@@ -39681,7 +37539,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           al(2,ih2,j,l)=el(l)
           al(3,ih2,j,l)=zero
           al(4,ih2,j,l)=one
-!hr06     as(6,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)/c2e3
           as(6,ih2,j,l)=((-1d0*rvv(j))*al(2,ih2,j,l))/c2e3               !hr06
    70   continue
         goto 160
@@ -39712,18 +37569,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             else
               al(2,1,j,l)=hi1(j)/hi(j)
             endif
-!hr06       al(3,1,j,l)=-hi1(j)*hi(j)
             al(3,1,j,l)=(-1d0*hi1(j))*hi(j)                              !hr06
             al(4,1,j,l)=al(1,1,j,l)
-!hr06       as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
             as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                        !hr06
-!hr06       as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
             as(4,1,j,l)=(((-1d0*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3   !hr06
-!hr06       as(5,1,j,l)=-rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))* aek(j) &
-!hr06&/c4e3
           as(5,1,j,l)=(((-1d0*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))* &!hr06
      &aek(j))/c4e3                                                       !hr06
-!hr06       as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
       as(6,1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
 +if crlibm
@@ -39743,13 +37594,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
             al(3,2,j,l)=hs(j)*hi(j)
             al(4,2,j,l)=hc(j)
-!hr06       as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
             as(4,2,j,l)=((-1d0*rvv(j))*al(2,2,j,l)*al(3,2,j,l))/c2e3     !hr06
-!hr06       as(5,2,j,l)=+rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))* aek(j) &
-!hr06&/c4e3
           as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek(j)) &!hr06
      &/c4e3                                                              !hr06
-!hr06       as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
       as(6,2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr06
           else
 +if crlibm
@@ -39769,18 +37616,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             else
               al(2,2,j,l)=hi1(j)/hi(j)
             endif
-!hr06       al(3,2,j,l)=-hi1(j)*hi(j)
             al(3,2,j,l)=(-1d0*hi1(j))*hi(j)                              !hr06
             al(4,2,j,l)=al(1,2,j,l)
-!hr06       as(1,2,j,l)=el(l)*(one-rvv(j))*c1e3
             as(1,2,j,l)=(el(l)*(one-rvv(j)))*c1e3                        !hr06
-!hr06       as(4,2,j,l)=-rvv(j)*al(2,2,j,l)*al(3,2,j,l)/c2e3
             as(4,2,j,l)=(((-1d0*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3   !hr06
-!hr06       as(5,2,j,l)=-rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l))* aek(j) &
-!hr06&/c4e3
           as(5,2,j,l)=(((-1d0*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))* &!hr06
      &aek(j))/c4e3                                                       !hr06
-!hr06       as(6,2,j,l)=-rvv(j)*(el(l)+al(1,2,j,l)*al(2,2,j,l))/c4e3
       as(6,2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
 +if crlibm
@@ -39800,13 +37641,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
             al(3,1,j,l)=hs(j)*hi(j)
             al(4,1,j,l)=hc(j)
-!hr06       as(4,1,j,l)=-rvv(j)*al(2,1,j,l)*al(3,1,j,l)/c2e3
             as(4,1,j,l)=(((-1d0*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3   !hr06
-!hr06       as(5,1,j,l)=+rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l))* aek(j) &
-!hr06&/c4e3
           as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek(j)) &!hr06
      &/c4e3                                                              !hr06
-!hr06       as(6,1,j,l)=-rvv(j)*(el(l)+al(1,1,j,l)*al(2,1,j,l))/c4e3
       as(6,1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3   !hr06
           endif
    90   continue
@@ -39824,7 +37661,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         else
 !  COMBINED FUNCTION MAGNET VERTICAL
           do 120 j=1,napx
-!hr06       fokqv(j)=-ekv(j,l)
             fokqv(j)=-1d0*ekv(j,l)                                       !hr06
   120     continue
           ih1=2
@@ -39832,7 +37668,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
         do 130 j=1,napx
           wf(j)=ed(l)/dpsq(j)
-!hr06     fok(j)=fokqv(j)/dpd(j)-wf(j)*wf(j)
           fok(j)=fokqv(j)/dpd(j)-wf(j)**2                                !hr06
           afok(j)=abs(fok(j))
           hi(j)=sqrt(afok(j))
@@ -39846,13 +37681,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             al(3,2,j,l)=zero
             al(4,1,j,l)=one
             al(4,2,j,l)=one
-!hr06       as(6,1,j,l)=-rvv(j)*el(l)/c2e3
             as(6,1,j,l)=((-1d0*rvv(j))*el(l))/c2e3                       !hr06
             as(6,2,j,l)=as(6,1,j,l)
-!hr06       as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
             as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                        !hr06
           endif
-!hr06     if(fok(j).lt.-pieni) then
           if(fok(j).lt.(-1d0*pieni)) then                                !hr06
 +if crlibm
             si(j)=sin_rn(fi(j))
@@ -39866,40 +37698,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
             co(j)=cos(fi(j))
 +ei
-!hr06       wfa(j)=wf(j)/afok(j)*(one-co(j))/dpsq(j)
             wfa(j)=((wf(j)/afok(j))*(one-co(j)))/dpsq(j)                 !hr06
-!hr06       wfhi(j)=wf(j)/hi(j)*si(j)/dpsq(j)
             wfhi(j)=((wf(j)/hi(j))*si(j))/dpsq(j)                        !hr06
             al(1,ih1,j,l)=co(j)
             al(2,ih1,j,l)=si(j)/hi(j)
-!hr06       al(3,ih1,j,l)=-si(j)*hi(j)
             al(3,ih1,j,l)=(-1d0*si(j))*hi(j)                             !hr06
             al(4,ih1,j,l)=co(j)
-!hr06       al(5,ih1,j,l)=-wfa(j)*dpsv(j)*c1e3
             al(5,ih1,j,l)=((-1d0*wfa(j))*dpsv(j))*c1e3                   !hr06
-!hr06       al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
             al(6,ih1,j,l)=((-1d0*wfhi(j))*dpsv(j))*c1e3                  !hr06
             sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
             sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-!hr06       as(1,ih1,j,l)=(-rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*      &
-!hr06&sm12(j)+ dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+      &
-!hr06&el(l)* (one-rvv(j)))*c1e3
             as(1,ih1,j,l)=(el(l)*(one-rvv(j))-                          &!hr06
      &((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*                             &!hr06
      &sm12(j)+ dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2)*c1e3   !hr06
-!hr06       as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*sm12(j)- &
-!hr06&dpd(j)*wfhi(j))
       as(2,ih1,j,l)=(-1d0*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*     &!hr06
      &sm12(j)-dpd(j)*wfhi(j))                                            !hr06
-!hr06       as(3,ih1,j,l)=-rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)*ed(l)*   &
-!hr06&sm23(j)-dpd(j)*wfa(j))
       as(3,ih1,j,l)=(-1d0*rvv(j))*(((((dpsv(j)*half)/afok(j))/dpd(j))*  &!hr06
      &ed(l))*sm23(j)-dpd(j)*wfa(j))                                      !hr06
-!hr06       as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
             as(4,ih1,j,l)=((-1d0*rvv(j))*sm23(j))/c2e3                   !hr06
-!hr06       as(5,ih1,j,l)=-rvv(j)*sm12(j)*afok(j)/c4e3
             as(5,ih1,j,l)=(((-1d0*rvv(j))*sm12(j))*afok(j))/c4e3         !hr06
-!hr06       as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))   &
       as(6,ih1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr06
      &/c4e3                                                              !hr06
             aek(j)=abs(ekv(j,l)/dpd(j))
@@ -39919,14 +37736,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if(abs(hi(j)).gt.pieni) al(2,ih2,j,l)=hs(j)/hi(j)
             al(3,ih2,j,l)=hs(j)*hi(j)
             al(4,ih2,j,l)=hc(j)
-!hr06       as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
       as(4,ih2,j,l)=(((-1d0*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3   !hr06
-!hr06       as(5,ih2,j,l)=+rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*  &
-!hr06&aek(j)/c4e3
           as(5,ih2,j,l)=((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*  &!hr06
      &aek(j))/c4e3                                                       !hr06
-!hr06       as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))   &
-!hr06&/c4e3
       as(6,ih2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))) &!hr06
      &/c4e3                                                              !hr06
           endif
@@ -39945,36 +37757,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             al(2,ih1,j,l)=hs(j)/hi(j)
             al(3,ih1,j,l)=hs(j)*hi(j)
             al(4,ih1,j,l)=hc(j)
-!hr06       wfa(j)=wf(j)/afok(j)*(one-hc(j))/dpsq(j)
             wfa(j)=((wf(j)/afok(j))*(one-hc(j)))/dpsq(j)                 !hr06
-!hr06       wfhi(j)=wf(j)/hi(j)*hs(j)/dpsq(j)
             wfhi(j)=((wf(j)/hi(j))*hs(j))/dpsq(j)                        !hr06
-!hr06       al(5,ih1,j,l)= wfa(j)*dpsv(j)*c1e3
             al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                         !hr06
-!hr06       al(6,ih1,j,l)=-wfhi(j)*dpsv(j)*c1e3
             al(6,ih1,j,l)=((-1d0*wfhi(j))*dpsv(j))*c1e3                  !hr06
             sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
             sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-!hr06       as(1,ih1,j,l)=(rvv(j)*(dpsv(j)*dpsv(j)/(four*dpd(j))*sm12(j)&
-!hr06&+dpsv(j)*(el(l)-al(2,ih1,j,l)))/afok(j)*wf(j)*wf(j)+el(l)*        &
-!hr06&(one-rvv(j)))*c1e3
             as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j) &
      &+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2+el(l)*         &
      &(one-rvv(j)))*c1e3
-!hr06       as(2,ih1,j,l)=-rvv(j)*(dpsv(j)*wf(j)/(two*dpsq(j))*sm12(j)- &
-!hr06&dpd(j)*wfhi(j))
           as(2,ih1,j,l)=(-1d0*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))* &!hr06
      &sm12(j)-dpd(j)*wfhi(j))                                            !hr06
-!hr06       as(3,ih1,j,l)=rvv(j)*(dpsv(j)*half/afok(j)/dpd(j)* ed(l)    &
-!hr06&*sm23(j)-dpd(j)*wfa(j))
         as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok(j))/dpd(j))*ed(l)) &!hr06
      &*sm23(j)-dpd(j)*wfa(j))                                            !hr06
-!hr06       as(4,ih1,j,l)=-rvv(j)*sm23(j)/c2e3
             as(4,ih1,j,l)=((-1d0*rvv(j))*sm23(j))/c2e3                   !hr06
-!hr06       as(5,ih1,j,l)=+rvv(j)*sm12(j)*afok(j)/c4e3
             as(5,ih1,j,l)=((rvv(j)*sm12(j))*afok(j))/c4e3                !hr06
-!hr06       as(6,ih1,j,l)=-rvv(j)*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))   &
-!hr06&/c4e3
       as(6,ih1,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr06
      &/c4e3                                                              !hr06
             aek(j)=abs(ekv(j,l)/dpd(j))
@@ -39994,17 +37791,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             al(1,ih2,j,l)=co(j)
             al(2,ih2,j,l)=si(j)/hi(j)
-!hr06       al(3,ih2,j,l)=-si(j)*hi(j)
             al(3,ih2,j,l)=(-1d0*si(j))*hi(j)                             !hr06
             al(4,ih2,j,l)=co(j)
-!hr06       as(4,ih2,j,l)=-rvv(j)*al(2,ih2,j,l)*al(3,ih2,j,l)/c2e3
       as(4,ih2,j,l)=(((-1d0*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3   !hr06
-!hr06       as(5,ih2,j,l)=-rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l))*  &
-!hr06&aek(j)/c4e3
       as(5,ih2,j,l)=(((-1d0*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))&!hr06
      &*aek(j))/c4e3                                                      !hr06
-!hr06       as(6,ih2,j,l)=-rvv(j)*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))   &
-!hr06&/c4e3
       as(6,ih2,j,l)=((-1d0*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))) &!hr06
      &/c4e3                                                              !hr06
           endif
@@ -40016,11 +37807,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   140   do 150 j=1,napx
           rhoi(j)=ed(l)/dpsq(j)
 +if crlibm
-!hr06     fok(j)=rhoi(j)*tan_rn(el(l)*rhoi(j)*half)
           fok(j)=rhoi(j)*tan_rn((el(l)*rhoi(j))*half)                    !hr06
 +ei
 +if .not.crlibm
-!hr06     fok(j)=rhoi(j)*tan(el(l)*rhoi(j)*half)
           fok(j)=rhoi(j)*tan((el(l)*rhoi(j))*half)                       !hr06
 +ei
           al(1,1,j,l)=one
@@ -40186,7 +37975,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       pi2=pi*half
       pisqrt=sqrt(pi)
-!hr08 rad=pi/180
       rad=pi/180d0                                                       !hr08
       call daten
       if(nord.le.0.or.nvar.le.0) call prror(91)
@@ -40289,10 +38077,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           r0a=one
           do 50 k=1,nmz
             izu=izu+1
-!hr08       aai(i,k)=ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k))/r0a
             aai(i,k)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
             izu=izu+1
-!hr08       bbi(i,k)=ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k))/r0a
             bbi(i,k)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
    50     r0a=r0a*r0
           izu=izu+2*mmul-2*nmz
@@ -40363,59 +38149,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       tas63=tas(6,3)*c1e3
       tas64=tas(6,4)*c1e3
       tas65=tas(6,5)*c1e3
-!hr08 bet0(1)=tas(1,1)*tas(1,1)+tas(1,2)*tas(1,2)
       bet0(1)=tas(1,1)**2+tas(1,2)**2                                    !hr08
-!hr08 bet0x2 =tas(1,3)*tas(1,3)+tas(1,4)*tas(1,4)
       bet0x2 =tas(1,3)**2+tas(1,4)**2                                    !hr08
-!hr08 bet0x3 =tas(1,5)*tas(1,5)+tas16*tas16
       bet0x3 =tas(1,5)**2+tas16**2                                       !hr08
-!hr08 gam0x1 =tas(2,1)*tas(2,1)+tas(2,2)*tas(2,2)
       gam0x1 =tas(2,1)**2+tas(2,2)**2                                    !hr08
-!hr08 gam0x2 =tas(2,3)*tas(2,3)+tas(2,4)*tas(2,4)
       gam0x2 =tas(2,3)**2+tas(2,4)**2                                    !hr08
-!hr08 gam0x3 =tas(2,5)*tas(2,5)+tas26*tas26
       gam0x3 =tas(2,5)**2+tas26**2                                       !hr08
-!hr08 alf0(1)=-(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2))
       alf0(1)=-1d0*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2))                 !hr08
-!hr08 alf0x2 =-(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4))
       alf0x2 =-1d0*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4))                 !hr08
-!hr08 alf0x3 =-(tas(1,5)*tas(2,5)+tas16*tas26)
       alf0x3 =-1d0*(tas(1,5)*tas(2,5)+tas16*tas26)                       !hr08
-!hr08 bet0(2)=tas(3,3)*tas(3,3)+tas(3,4)*tas(3,4)
       bet0(2)=tas(3,3)**2+tas(3,4)**2                                    !hr08
-!hr08 bet0z2 =tas(3,1)*tas(3,1)+tas(3,2)*tas(3,2)
       bet0z2 =tas(3,1)**2+tas(3,2)**2                                    !hr08
-!hr08 bet0z3 =tas(3,5)*tas(3,5)+tas36*tas36
       bet0z3 =tas(3,5)**2+tas36**2                                       !hr08
-!hr08 gam0z1 =tas(4,3)*tas(4,3)+tas(4,4)*tas(4,4)
       gam0z1 =tas(4,3)**2+tas(4,4)**2                                    !hr08
-!hr08 gam0z2 =tas(4,1)*tas(4,1)+tas(4,2)*tas(4,2)
       gam0z2 =tas(4,1)**2+tas(4,2)**2                                    !hr08
-!hr08 gam0z3 =tas(4,5)*tas(4,5)+tas46*tas46
       gam0z3 =tas(4,5)**2+tas46**2                                       !hr08
-!hr08 alf0(2)=-(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4))
       alf0(2)=-1d0*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4))                 !hr08
-!hr08 alf0z2 =-(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2))
       alf0z2 =-1d0*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2))                 !hr08
-!hr08 alf0z3 =-(tas(3,5)*tas(4,5)+tas36*tas46)
       alf0z3 =-1d0*(tas(3,5)*tas(4,5)+tas36*tas46)                       !hr08
-!hr08 bet0s1 =tas(5,5)*tas(5,5)+tas56*tas56
       bet0s1 =tas(5,5)**2+tas56**2                                       !hr08
-!hr08 bet0s2 =tas(5,1)*tas(5,1)+tas(5,2)*tas(5,2)
       bet0s2 =tas(5,1)**2+tas(5,2)**2                                    !hr08
-!hr08 bet0s3 =tas(5,3)*tas(5,3)+tas(5,4)*tas(5,4)
       bet0s3 =tas(5,3)**2+tas(5,4)**2                                    !hr08
-!hr08 gam0s1 =tas65*tas65+tas(6,6)*tas(6,6)
       gam0s1 =tas65**2+tas(6,6)**2                                       !hr08
-!hr08 gam0s2 =tas61*tas61+tas62*tas62
       gam0s2 =tas61**2+tas62**2                                          !hr08
-!hr08 gam0s3 =tas63*tas63+tas64*tas64
       gam0s3 =tas63**2+tas64**2                                          !hr08
-!hr08 alf0s1 =-(tas(5,5)*tas65+tas56*tas(6,6))
       alf0s1 =-1d0*(tas(5,5)*tas65+tas56*tas(6,6))                       !hr08
-!hr08 alf0s2 =-(tas(5,1)*tas61+tas(5,2)*tas62)
       alf0s2 =-1d0*(tas(5,1)*tas61+tas(5,2)*tas62)                       !hr08
-!hr08 alf0s3 =-(tas(5,3)*tas63+tas(5,4)*tas64)
       alf0s3 =-1d0*(tas(5,3)*tas63+tas(5,4)*tas64)                       !hr08
       if(ierro.eq.0) goto 90
 +if cr
@@ -40431,7 +38190,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
    90 write(*,10040)
 +ei
-!hr08 phag=phas*180/pi
       phag=(phas*180d0)/pi                                               !hr08
       if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))             &
 +if cr
@@ -40537,16 +38295,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         dps(2) = dps(2) + clop6(3)
       endif
       do 100 l=1,2
-!hr08   epsa(l)=(amp(l)*amp(l)/bet0(l))
         epsa(l)=amp(l)**2/bet0(l)                                        !hr08
-!hr08   eps(l)=epsa(l)*1e6
         eps(l)=epsa(l)*1d6
-!hr08   x(1,l)=x(1,l)+clo(l)*idz(l)*(1-idfor)
         x(1,l)=x(1,l)+(clo(l)*dble(idz(l)))*dble(1-idfor)                !hr08
-!hr08   y(1,l)=y(1,l)+clop(l)*idz(l)*(1-idfor)
         y(1,l)=y(1,l)+(clop(l)*dble(idz(l)))*dble(1-idfor)               !hr08
   100 continue
-!hr08 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       if(iclo6.eq.0) then
 +if cr
@@ -40568,14 +38321,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(idfor.eq.1.and.iclo6.ne.2) goto 110
       ejf(1)=e0f*(one+dps(1))
       ejf(2)=e0f*(one+dps(2))
-!hr08 ej(1)=sqrt(ejf(1)*ejf(1)+pma*pma)
       ej(1)=sqrt(ejf(1)**2+pma**2)                                       !hr08
-!hr08 ej(2)=sqrt(ejf(2)*ejf(2)+pma*pma)
       ej(2)=sqrt(ejf(2)**2+pma**2)                                       !hr08
       goto 120
-!hr08  110 ejf(1)=sqrt(ej(1)*ej(1)-pma*pma)
   110 ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
-!hr08 ejf(2)=sqrt(ej(2)*ej(2)-pma*pma)
       ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
 +if cr
   120 write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x
@@ -41553,7 +39302,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
       x2pi=atan(one)*8d0
 +ei
-!hr08 coe=-two/x2pi
       coe=(-1d0*two)/x2pi                                                !hr08
       no=nordf
       if(nord1.gt.no) nord1=no
@@ -41765,9 +39513,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           x(i,j)=x(i,j)-clo(j)
    20   continue
         if(its6d.eq.1) then
-!hr06     x(i,2)=x(i,2)/(one+x(i,6)+clo(6))
           x(i,2)=x(i,2)/((one+x(i,6))+clo(6))                            !hr06
-!hr06     x(i,4)=x(i,4)/(one+x(i,6)+clo(6))
           x(i,4)=x(i,4)/((one+x(i,6))+clo(6))                            !hr06
         endif
         do 40 iq=1,6
@@ -41799,7 +39545,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           phi(i)=zero
         endif
    80 continue
-!hr06 dam=sqrt((phi(1)*phi(1)+phi(2)*phi(2)+phi(3)*phi(3))/idam)/pi
       dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/dble(idam))/pi            !hr06
 !-----------------------------------------------------------------------
       return
@@ -41835,22 +39580,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       if(itra.eq.0) goto 60
       tas56=tas(5,6)*c1m3
-!hr08 bet0x2=tas(1,3)*tas(1,3)+tas(1,4)*tas(1,4)
-!hr08 bet0z2=tas(3,1)*tas(3,1)+tas(3,2)*tas(3,2)
-!hr08 bet0s1=tas(5,5)*tas(5,5)+tas56*tas56
       bet0x2=tas(1,3)**2+tas(1,4)**2                                     !hr08
       bet0z2=tas(3,1)**2+tas(3,2)**2                                     !hr08
       bet0s1=tas(5,5)**2+tas56**2                                        !hr08
       dsign=one
-!hr08 if(tas(3,3).lt.-pieni) rat=-rat
       if(tas(3,3).lt.-1d0*pieni) rat=-1d0*rat                            !hr08
-!hr08 if(rat.lt.-pieni) dsign=-one
       if(rat.lt.-1d0*pieni) dsign=-1d0*one
       x11=amp(1)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
-!hr08 x13=x11*dsign*sqrt(abs(rat))
       x13=(x11*dsign)*sqrt(abs(rat))                                     !hr08
-!hr08 amp(2)=dsign*(1-iver)*                                            &
-!hr08&(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))
       amp(2)=(dsign*dble(1-iver))*                                      &!hr08
      &(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))                     !hr08
       x1(5)=zero
@@ -41885,9 +39622,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    10     continue
    20   continue
         if(iclo6.eq.1.or.iclo6.eq.2) then
-!hr08     x2(2)=x2(2)/(one+x2(6)+clop6(3))
           x2(2)=x2(2)/((one+x2(6))+clop6(3))                             !hr08
-!hr08     x2(4)=x2(4)/(one+x2(6)+clop6(3))
           x2(4)=x2(4)/((one+x2(6))+clop6(3))                             !hr08
         endif
         if(abs(bet0s1).le.pieni) x2(6)=dp1
@@ -42002,13 +39737,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &-(am(1,4)-am(3,2))*(am(2,3)-am(4,1))
       f0=spa-spd
       f1=spa+spd
-!hr06 f2=f0*f0+four*det
       f2=f0**2+four*det                                                  !hr06
       if(f2 .lt. zero) goto 160
       f2=sqrt(f2)
-!hr06 if(f0.lt.0) goto 30
       if(f0.lt.0d0) goto 30                                              !hr06
-!hr06 if(f0.ge.0) goto 20
       if(f0.ge.0d0) goto 20                                              !hr06
    20 egwg1=(f1+f2)*half
       egwg2=(f1-f2)*half
@@ -42016,9 +39748,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    30 egwg1=(f1-f2)*half
       egwg2=(f1+f2)*half
    40 continue
-!hr06 f1=egwg1*egwg1-four
       f1=egwg1**2-four                                                   !hr06
-!hr06 f2=egwg2*egwg2-four
       f2=egwg2**2-four                                                   !hr06
       rca1=f1
       yca1=zero
@@ -42027,14 +39757,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if (rca1.ge.0) then
         rca1=sqrt(rca1)
       else
-!hr06   yca1=sqrt(-rca1)
         yca1=sqrt(-1d0*rca1)                                             !hr06
         rca1=zero
       endif
       if (rca2.ge.0) then
         rca2=sqrt(rca2)
       else
-!hr06   yca2=sqrt(-rca2)
         yca2=sqrt(-1d0*rca2)                                             !hr06
         rca2=zero
       endif
@@ -42042,43 +39770,29 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       yclam1=yca1*half
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
-!hr06 if(egwg1*egwg1 .ge. four) goto 160
       if(egwg1**2 .ge. four) goto 160                                    !hr06
-!hr06 if(egwg2*egwg2 .ge. four) goto 160
       if(egwg2**2 .ge. four) goto 160                                    !hr06
    50 continue
       detb=am(1,3)*am(2,4)-am(1,4)*am(2,3)
       detc=am(3,1)*am(4,2)-am(3,2)*am(4,1)
       fak1=spd-egwg1
       if(abs(fak1).gt.pieni) then
-!hr06   rcw1(1)=-(am(1,3)*am(3,2)+am(1,4)*am(4,2))/fak1+am(1,2)
         rcw1(1)=am(1,2)-(am(1,3)*am(3,2)+am(1,4)*am(4,2))/fak1           !hr06
         ycw1(1)=zero
-!hr06   rcw1(2)=(am(1,3)*am(3,1)+am(1,4)*am(4,1)+detb)/fak1-(am(1,1)    &
-!hr06&-rclam1)
         rcw1(2)=((am(1,3)*am(3,1)+am(1,4)*am(4,1))+detb)/fak1-(am(1,1)  &!hr06
      &-rclam1)                                                           !hr06
         ycw1(2)=yclam1
-!hr06   rcw1(3)=-((am(3,1)+am(2,4))*rcw1(1)+(am(3,2)-am(1,4))*rcw1(2))  &
-!hr06&/fak1
       rcw1(3)=-1d0*((am(3,1)+am(2,4))*rcw1(1)+(am(3,2)-am(1,4))*rcw1(2))&!hr06
      &/fak1                                                              !hr06
-!hr06   ycw1(3)=-((am(3,1)+am(2,4))*ycw1(1)+(am(3,2)-am(1,4))*ycw1(2))  &
-!hr06&/fak1
       ycw1(3)=-1d0*((am(3,1)+am(2,4))*ycw1(1)+(am(3,2)-am(1,4))*ycw1(2))&!hr06
      &/fak1                                                              !hr06
-!hr06   rcw1(4)=-((am(4,1)-am(2,3))*rcw1(1)+(am(4,2)+am(1,3))*rcw1(2))  &
-!hr06&/fak1
       rcw1(4)=-1d0*((am(4,1)-am(2,3))*rcw1(1)+(am(4,2)+am(1,3))*rcw1(2))&!hr06
      &/fak1                                                              !hr06
-!hr06   ycw1(4)=-((am(4,1)-am(2,3))*ycw1(1)+(am(4,2)+am(1,3))*ycw1(2))  &
-!hr06&/fak1
       ycw1(4)=-1d0*((am(4,1)-am(2,3))*ycw1(1)+(am(4,2)+am(1,3))*ycw1(2))&!hr06
      &/fak1                                                              !hr06
       else
         rcw1(1)=am(1,2)
         ycw1(1)=zero
-!hr06   rcw1(2)=-am(1,1)+rclam1
         rcw1(2)=rclam1-am(1,1)                                           !hr06
         ycw1(2)=yclam1
         rcw1(3)=zero
@@ -42088,34 +39802,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       endif
       fak2=spa-egwg2
       if(abs(fak2).gt.pieni) then
-!hr06   rcw2(3)=-(am(3,1)*am(1,4)+am(3,2)*am(2,4))/fak2+am(3,4)
         rcw2(3)=am(3,4)-(am(3,1)*am(1,4)+am(3,2)*am(2,4))/fak2           !hr06
         ycw2(3)=zero
-!hr06   rcw2(4)=(am(3,1)*am(1,3)+am(3,2)*am(2,3)+detc)/fak2-(am(3,3)    &
-!hr06&-rclam2)
         rcw2(4)=((am(3,1)*am(1,3)+am(3,2)*am(2,3))+detc)/fak2-(am(3,3)  &!hr06
      &-rclam2)                                                           !hr06
         ycw2(4)=yclam2
-!hr06 rcw2(1)=-((am(1,3)+am(4,2))*rcw2(3)+(am(1,4)-am(3,2))*rcw2(4))&
-!hr06&/fak2
       rcw2(1)=-1d0*((am(1,3)+am(4,2))*rcw2(3)+(am(1,4)-am(3,2))*rcw2(4))&!hr06
      &/fak2                                                              !hr06
-!hr06   ycw2(1)=-((am(1,3)+am(4,2))*ycw2(3)+(am(1,4)-am(3,2))*ycw2(4))  &
-!hr06&/fak2
       ycw2(1)=-1d0*((am(1,3)+am(4,2))*ycw2(3)+(am(1,4)-am(3,2))*ycw2(4))&!hr06
      &/fak2                                                              !hr06
-!hr06   rcw2(2)=-((am(2,3)-am(4,1))*rcw2(3)+(am(2,4)+am(3,1))*rcw2(4))  &
-!hr06&/fak2
       rcw2(2)=-1d0*((am(2,3)-am(4,1))*rcw2(3)+(am(2,4)+am(3,1))*rcw2(4))&!hr06
      &/fak2                                                              !hr06
-!hr06   ycw2(2)=-((am(2,3)-am(4,1))*ycw2(3)+(am(2,4)+am(3,1))*ycw2(4))  &
-!hr06&/fak2
       ycw2(2)=-1d0*((am(2,3)-am(4,1))*ycw2(3)+(am(2,4)+am(3,1))*ycw2(4))&!hr06
      &/fak2                                                              !hr06
       else
         rcw2(3)=am(3,4)
         ycw2(3)=zero
-!hr06   rcw2(4)=-am(3,3)+rclam2
         rcw2(4)=rclam2-am(3,3)                                           !hr06
         ycw2(4)=yclam2
         rcw2(1)=zero
@@ -42131,39 +39833,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         ta(i,4)=ycw2(i)
    60 continue
 !--NORMALISATION OF EIGENVALUES
-!hr06 rn1=ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2)                               &
-!hr06&+ta(3,1)*ta(4,2)-ta(4,1)*ta(3,2)
       rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &!hr06
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
-!hr06 if(rn1.lt.0) goto 70
       if(rn1.lt.0d0) goto 70                                             !hr06
-!hr06 if(rn1.eq.0) goto 160
       if(rn1.eq.0d0) goto 160                                            !hr06
-!hr06 if(rn1.gt.0) goto 90
       if(rn1.gt.0d0) goto 90                                             !hr06
-!hr06   70 yclam1=-yclam1
    70 yclam1=-1d0*yclam1                                                 !hr06
       do 80 i=1,4
-!hr06   80 ta(i,2)=-ta(i,2)
    80 ta(i,2)=-1d0*ta(i,2)                                               !hr06
    90 sqrn=sqrt(abs(rn1))
       do 100 i=1,4
         ta(i,1)=ta(i,1)/sqrn
   100 ta(i,2)=ta(i,2)/sqrn
-!hr06 rn2=ta(1,3)*ta(2,4)-ta(2,3)*ta(1,4)                               &
-!hr06&+ta(3,3)*ta(4,4)-ta(4,3)*ta(3,4)
       rn2=((ta(1,3)*ta(2,4)-ta(2,3)*ta(1,4))                            &!hr06
      &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)                                  !hr06
-!hr06 if(rn2.lt.0) goto 110
       if(rn2.lt.0d0) goto 110                                            !hr06
-!hr06 if(rn2.eq.0) goto 160
       if(rn2.eq.0d0) goto 160                                            !hr06
-!hr06 if(rn2.gt.0) goto 130
       if(rn2.gt.0d0) goto 130                                            !hr06
-!hr06  110 yclam2=-yclam2
   110 yclam2=-1d0*yclam2                                                 !hr06
       do 120 i=1,4
-!hr06  120 ta(i,4)=-ta(i,4)
   120 ta(i,4)=-1d0*ta(i,4)                                               !hr06
   130 sqrn=sqrt(abs(rn2))
       do 140 i=1,4
@@ -42184,21 +39872,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !  OPTICAL PARAMETERS AT THE STARTING POINT
 !-----------------------------------------------------------------------
-!hr06 betx(1)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       betx(1)=ta(1,1)**2+ta(1,2)**2                                      !hr06
-!hr06 alfx(1)=-(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))
       alfx(1)=-1d0*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))                     !hr06
-!hr06 betx(2)=ta(1,3)*ta(1,3)+ta(1,4)*ta(1,4)
       betx(2)=ta(1,3)**2+ta(1,4)**2                                      !hr06
-!hr06 alfx(2)=-(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))
       alfx(2)=-1d0*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))                     !hr06
-!hr06 betz(1)=ta(3,1)*ta(3,1)+ta(3,2)*ta(3,2)
       betz(1)=ta(3,1)**2+ta(3,2)**2                                      !hr06
-!hr06 alfz(1)=-(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))
       alfz(1)=-1d0*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))                     !hr06
-!hr06 betz(2)=ta(3,3)*ta(3,3)+ta(3,4)*ta(3,4)
       betz(2)=ta(3,3)**2+ta(3,4)**2                                      !hr06
-!hr06 alfz(2)=-(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))
       alfz(2)=-1d0*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))                     !hr06
       bet0(1)=betx(1)
       alf0(1)=alfx(1)
@@ -42207,7 +39887,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(ta(1,1).lt.-pieni) then
         do 150 i=1,4
           do 150 j=1,4
-!hr06       ta(i,j)=-ta(i,j)
             ta(i,j)=-1d0*ta(i,j)
   150   continue
       endif
@@ -42262,13 +39941,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             g(j,l,2)=g(j-1,l,2)*a(n,l,1)+g(j-1,l,4)*a(n,l,2)
             g(j,l,3)=g(j-1,l,1)*a(n,l,3)+g(j-1,l,3)*a(n,l,4)
             g(j,l,4)=g(j-1,l,2)*a(n,l,3)+g(j-1,l,4)*a(n,l,4)
-!hr06       h(j,l,5)=h(j-1,l,5)*a(i,l,1)+h(j-1,l,6)*a(i,l,2)+a(i,l,5)
             h(j,l,5)=(h(j-1,l,5)*a(i,l,1)+h(j-1,l,6)*a(i,l,2))+a(i,l,5)  !hr06
-!hr06       h(j,l,6)=h(j-1,l,5)*a(i,l,3)+h(j-1,l,6)*a(i,l,4)+a(i,l,6)
             h(j,l,6)=(h(j-1,l,5)*a(i,l,3)+h(j-1,l,6)*a(i,l,4))+a(i,l,6)  !hr06
-!hr06       g(j,l,5)=g(j-1,l,5)*a(n,l,1)+g(j-1,l,6)*a(n,l,2)+a(n,l,5)
             g(j,l,5)=(g(j-1,l,5)*a(n,l,1)+g(j-1,l,6)*a(n,l,2))+a(n,l,5)  !hr06
-!hr06       g(j,l,6)=g(j-1,l,5)*a(n,l,3)+g(j-1,l,6)*a(n,l,4)+a(n,l,6)
             g(j,l,6)=(g(j-1,l,5)*a(n,l,3)+g(j-1,l,6)*a(n,l,4))+a(n,l,6)  !hr06
    20     continue
    30   continue
@@ -42326,20 +40001,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             g(j,l,2)=g(j-1,l,2)*aeg(n,l,1)+g(j-1,l,4)*aeg(n,l,2)
             g(j,l,3)=g(j-1,l,1)*aeg(n,l,3)+g(j-1,l,3)*aeg(n,l,4)
             g(j,l,4)=g(j-1,l,2)*aeg(n,l,3)+g(j-1,l,4)*aeg(n,l,4)
-!hr06       h(j,l,5)=h(j-1,l,5)*aeg(i,l,1)+h(j-1,l,6)*aeg(i,l,2)+aeg    &
-!hr06&(i,l,5)
             h(j,l,5)=(h(j-1,l,5)*aeg(i,l,1)+h(j-1,l,6)*aeg(i,l,2))+aeg  &!hr06
      &(i,l,5)                                                            !hr06
-!hr06       h(j,l,6)=h(j-1,l,5)*aeg(i,l,3)+h(j-1,l,6)*aeg(i,l,4)+aeg    &
-!hr06&(i,l,6)
             h(j,l,6)=(h(j-1,l,5)*aeg(i,l,3)+h(j-1,l,6)*aeg(i,l,4))+aeg  &!hr06
      &(i,l,6)                                                            !hr06
-!hr06       g(j,l,5)=g(j-1,l,5)*aeg(n,l,1)+g(j-1,l,6)*aeg(n,l,2)+aeg    &
-!hr06&(n,l,5)
             g(j,l,5)=(g(j-1,l,5)*aeg(n,l,1)+g(j-1,l,6)*aeg(n,l,2))+aeg  &!hr06
      &(n,l,5)                                                            !hr06
-!hr06       g(j,l,6)=g(j-1,l,5)*aeg(n,l,3)+g(j-1,l,6)*aeg(n,l,4)+aeg    &
-!hr06&(n,l,6)
             g(j,l,6)=(g(j-1,l,5)*aeg(n,l,3)+g(j-1,l,6)*aeg(n,l,4))+aeg  &!hr06
      &(n,l,6)                                                            !hr06
    20     continue
@@ -42416,7 +40083,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if(kp(isl).eq.5) call combel(isl)
    30     continue
           do 40 n=1,5
-!hr06       dpp=de2*(3-n)
             dpp=de2*dble(3-n)                                            !hr06
             call clorb(dpp)
             if(ierro.gt.0) call prror(12)
@@ -42424,7 +40090,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if(ierro.gt.0) call prror(13)
             ox=qwc(1)
             oz=qwc(2)
-!hr06       su2=su2+dpp*dpp
             su2=su2+dpp**2                                               !hr06
             suxy=suxy+ox*dpp
             suzy=suzy+oz*dpp
@@ -42442,14 +40107,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             cro0(l)=sens(l,1)-cro(l)
             xi(l)=(sens(1,l+1)-sens(1,1))/dsm0
    60     zi(l)=(sens(2,l+1)-sens(2,1))/dsm0
-!hr06     cor=sqrt(cro0(1)*cro0(1)+cro0(2)*cro0(2))
           cor=sqrt(cro0(1)**2+cro0(2)**2)                                !hr06
           if(jj.eq.1.or.cor.lt.coro) then
             coro=cor
             det=xi(1)*zi(2)-zi(1)*xi(2)
-!hr06       dm(1)=(-cro0(1)*zi(2)+cro0(2)*xi(2))/det
             dm(1)=(cro0(2)*xi(2)-cro0(1)*zi(2))/det                      !hr06
-!hr06       dm(2)=(-cro0(2)*xi(1)+cro0(1)*zi(1))/det
             dm(2)=(cro0(1)*zi(1)-cro0(2)*xi(1))/det                      !hr06
             do 70 l=1,2
               sm0(l)=ed(is(l))
@@ -42585,16 +40247,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call mydaini(2,4,7,2,5,1)
         dq1=corr(1,1)-cro(1)*c1m3
         dq2=corr(1,2)-cro(2)*c1m3
-!hr06   if(ncorr.eq.1) cor=c1e3*sqrt(dq1*dq1+dq2*dq2)
         if(ncorr.eq.1) cor=c1e3*sqrt(dq1**2+dq2**2)                      !hr06
         if(cor.gt.dech) then
-!hr06     cor=c1e3*sqrt(dq1*dq1+dq2*dq2)
           cor=c1e3*sqrt(dq1**2+dq2**2)                                   !hr06
           if(ncorr.eq.1.or.cor.lt.coro) then
             coro=cor
-!hr06       ed(iq1)=ed(iq1)-corr(2,1)*dq1-corr(2,2)*dq2
             ed(iq1)=(ed(iq1)-corr(2,1)*dq1)-corr(2,2)*dq2                !hr06
-!hr06       ed(iq2)=ed(iq2)-corr(3,1)*dq1-corr(3,2)*dq2
             ed(iq2)=(ed(iq2)-corr(3,1)*dq1)-corr(3,2)*dq2                !hr06
             do icht=1,iu
               ix=ic(icht)
@@ -42773,7 +40431,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           ll=2*l
           x1(l)=x(1,l)
           y1(l)=y(1,l)
-!hr06     det=two-am(ll-1,ll-1)-am(ll,ll)
           det=(two-am(ll-1,ll-1))-am(ll,ll)                              !hr06
           dx(l)=x0(l)-x1(l)
           dy(l)=y0(l)-y1(l)
@@ -42789,7 +40446,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       if(ncorru.ne.1) write(*,10000) itco
 +ei
-!hr06   50 cor=c1e3*sqrt(dcx*dcx+dcz*dcz)
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
       if(iout.eq.1.and.ncorru.ne.1) then
 +if cr
@@ -42989,7 +40645,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
           write(*,10060) chp(l),cloc(ll-1),cloc(ll)
 +ei
-!hr06     cor=cor+dc(ll-1)*dc(ll-1)
 +if debug
 !     call warr('corl ll',cor,l,ll,1,0)
 !     call warr('dcll*2',dc(ll-1)**2,l,ll,1,0)
@@ -43078,7 +40733,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
           write(*,10060) chp(l),cloc(ll-1),cloc(ll)
 +ei
-!hr06     cor=cor+dc(ll-1)*dc(ll-1)
 +if debug
 !     call warr('corl ll',cor,l,ll,2,0)
 !     call warr('dcll*2',dc(ll-1)**2,l,ll,2,0)
@@ -43189,7 +40843,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         write(*,10070) chp(l),cloc(ll-1),cloc(ll),                      &
 +ei
      &chd(l),dc(ll-1),dc(ll)
-!hr06   cor=cor+dc(ll-1)*dc(ll-1)
         cor=cor+dc(ll-1)**2                                              !hr06
       enddo
       cor=sqrt(cor)
@@ -43445,9 +41098,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do 10 l=1,2
         clo(l)=dpp*di0(l)
         clop(l)=dpp*dip0(l)
-!hr06   dx(l)=1e6
         dx(l)=1d6                                                        !hr06
-!hr06   dy(l)=1e6
         dy(l)=1d6                                                        !hr06
    10 continue
       call envar(dpp)
@@ -43603,14 +41254,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         a(i,ih,2)=rho*si
         a(i,ih,3)=zero
         a(i,ih,4)=one
-!hr06   a(i,ih,5)=-rho*(one-co)/dpsq
         a(i,ih,5)=((-1d0*rho)*(one-co))/dpsq                             !hr06
 +if crlibm
-!hr06   a(i,ih,6)=-two*tan_rn(fok*half)/dpsq
         a(i,ih,6)=((-1d0*two)*tan_rn(fok*half))/dpsq                     !hr06
 +ei
 +if .not.crlibm
-!hr06   a(i,ih,6)=-two*tan(fok*half)/dpsq
         a(i,ih,6)=((-1d0*two)*tan(fok*half))/dpsq                        !hr06
 +ei
 !--VERTIKAL
@@ -43625,7 +41273,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         gl=el(i)*g
         a(i,ih,1)=one-gl
         a(i,ih,2)=el(i)
-!hr06   a(i,ih,3)=-g*(two-gl)
         a(i,ih,3)=(-1d0*g)*(two-gl)                                      !hr06
         a(i,ih,4)=a(i,ih,1)
         goto 200
@@ -43651,12 +41298,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         a(i,ih,1)=co
         a(i,ih,2)=rho*si
-!hr06   a(i,ih,3)=-si/rho
         a(i,ih,3)=(-1d0*si)/rho                                          !hr06
         a(i,ih,4)=co
-!hr06   a(i,ih,5)=-rho*(one-co)/dpsq
         a(i,ih,5)=((-1d0*rho)*(one-co))/dpsq                             !hr06
-!hr06   a(i,ih,6)=-si/dpsq
         a(i,ih,6)=(-1d0*si)/dpsq                                         !hr06
 !--VERTIKAL
         ih=ih+1
@@ -43700,7 +41344,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hi1=sin(fi)
 +ei
         a(i,ih,2)=hi1/hi
-!hr06   a(i,ih,3)=-hi1*hi
         a(i,ih,3)=(-1d0*hi1)*hi                                          !hr06
         a(i,ih,4)=a(i,ih,1)
         if(ih.eq.2) goto 200
@@ -43728,7 +41371,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   120   ih=0
         fokq=ek(i)
   130   wf=ed(i)/dpsq
-!hr06   fok=fokq/dpd-wf*wf
         fok=fokq/dpd-wf**2                                               !hr06
         if(abs(fok).le.pieni) goto 10
         afok=abs(fok)
@@ -43750,12 +41392,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         a(i,ih,1)=co
         a(i,ih,2)=si/hi
-!hr06   a(i,ih,3)=-si*hi
         a(i,ih,3)=(-1d0*si)*hi                                           !hr06
         a(i,ih,4)=co
-!hr06   a(i,ih,5)=-wf/afok*(one-co)/dpsq
         a(i,ih,5)=(((-1d0*wf)/afok)*(one-co))/dpsq                       !hr06
-!hr06   a(i,ih,6)=-wf/hi*si/dpsq
         a(i,ih,6)=(((-1d0*wf)/hi)*si)/dpsq                               !hr06
         ih=ih+1
         if(ih.gt.2) ih=1
@@ -43792,9 +41431,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         a(i,ih,2)=hs/hi
         a(i,ih,3)=hs*hi
         a(i,ih,4)=hc
-!hr06   a(i,ih,5)= wf/afok*(one-hc)/dpsq
         a(i,ih,5)= ((wf/afok)*(one-hc))/dpsq                             !hr06
-!hr06   a(i,ih,6)=-wf/hi*hs/dpsq
         a(i,ih,6)=(((-1d0*wf)/hi)*hs)/dpsq                               !hr06
         ih=ih+1
         if(ih.gt.2) ih=1
@@ -43814,7 +41451,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         a(i,ih,1)=co
         a(i,ih,2)=si/hi
-!hr06   a(i,ih,3)=-si*hi
         a(i,ih,3)=(-1d0*si)*hi                                           !hr06
         a(i,ih,4)=co
         goto 200
@@ -43822,7 +41458,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  COMBINED FUNCTION MAGNET VERTICAL
 !-----------------------------------------------------------------------
   170   ih=1
-!hr06   fokq=-ek(i)
         fokq=-1d0*ek(i)                                                  !hr06
         goto 130
 !-----------------------------------------------------------------------
@@ -43830,11 +41465,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
   180   rhoi=ed(i)/dpsq
 +if crlibm
-!hr06   fok=rhoi*tan_rn(el(i)*rhoi*half)
         fok=rhoi*tan_rn((el(i)*rhoi)*half)                               !hr06
 +ei
 +if .not.crlibm
-!hr06   fok=rhoi*tan(el(i)*rhoi*half)
         fok=rhoi*tan((el(i)*rhoi)*half)                                  !hr06
 +ei
         a(i,1,1)=one
@@ -43843,7 +41476,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         a(i,1,4)=one
         a(i,2,1)=one
         a(i,2,2)=zero
-!hr06   a(i,2,3)=-fok
         a(i,2,3)=-1d0*fok                                                !hr06
         a(i,2,4)=one
         goto 200
@@ -43926,14 +41558,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         aeg(i,ih,2)=rho*si
         aeg(i,ih,3)=zero
         aeg(i,ih,4)=one
-!hr06   aeg(i,ih,5)=-rho*(one-co)/dpsq
         aeg(i,ih,5)=((-1d0*rho)*(one-co))/dpsq                           !hr06
 +if crlibm
-!hr06   aeg(i,ih,6)=-two*tan_rn(fok*half)/dpsq
         aeg(i,ih,6)=((-1d0*two)*tan_rn(fok*half))/dpsq                   !hr06
 +ei
 +if .not.crlibm
-!hr06   aeg(i,ih,6)=-two*tan(fok*half)/dpsq
         aeg(i,ih,6)=((-1d0*two)*tan(fok*half))/dpsq                      !hr06
 +ei
 !--VERTIKAL
@@ -43948,7 +41577,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         gl=el(i)*g
         aeg(i,ih,1)=one-gl
         aeg(i,ih,2)=el(i)
-!hr06   aeg(i,ih,3)=-g*(two-gl)
         aeg(i,ih,3)=(-1d0*g)*(two-gl)                                    !hr06
         aeg(i,ih,4)=aeg(i,ih,1)
         goto 190
@@ -43974,12 +41602,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         aeg(i,ih,1)=co
         aeg(i,ih,2)=rho*si
-!hr06   aeg(i,ih,3)=-si/rho
         aeg(i,ih,3)=(-1d0*si)/rho                                        !hr06
         aeg(i,ih,4)=co
-!hr06   aeg(i,ih,5)=-rho*(one-co)/dpsq
         aeg(i,ih,5)=((-1d0*rho)*(one-co))/dpsq                           !hr06
-!hr06   aeg(i,ih,6)=-si/dpsq
         aeg(i,ih,6)=(-1d0*si)/dpsq                                       !hr06
 !--VERTIKAL
         ih=ih+1
@@ -44023,7 +41648,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hi1=sin(fi)
 +ei
         aeg(i,ih,2)=hi1/hi
-!hr06   aeg(i,ih,3)=-hi1*hi
         aeg(i,ih,3)=(-1d0*hi1)*hi                                        !hr06
         aeg(i,ih,4)=aeg(i,ih,1)
         if(ih.eq.2) goto 190
@@ -44051,7 +41675,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   120   ih=0
         fokq=ek(i)
   130   wf=ed(i)/dpsq
-!hr06   fok=fokq/dpd-wf*wf
         fok=fokq/dpd-wf**2                                               !hr06
         if(abs(fok).le.pieni) goto 10
         afok=abs(fok)
@@ -44073,12 +41696,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         aeg(i,ih,1)=co
         aeg(i,ih,2)=si/hi
-!hr06   aeg(i,ih,3)=-si*hi
         aeg(i,ih,3)=(-1d0*si)*hi                                         !hr06
         aeg(i,ih,4)=co
-!hr06   aeg(i,ih,5)=-wf/afok*(one-co)/dpsq
         aeg(i,ih,5)=(((-1d0*wf)/afok)*(one-co))/dpsq                     !hr06
-!hr06   aeg(i,ih,6)=-wf/hi*si/dpsq
         aeg(i,ih,6)=(((-1d0*wf)/hi)*si)/dpsq                             !hr06
         ih=ih+1
         if(ih.gt.2) ih=1
@@ -44115,9 +41735,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         aeg(i,ih,2)=hs/hi
         aeg(i,ih,3)=hs*hi
         aeg(i,ih,4)=hc
-!hr06   aeg(i,ih,5)= wf/afok*(one-hc)/dpsq
         aeg(i,ih,5)= ((wf/afok)*(one-hc))/dpsq                           !hr06
-!hr06   aeg(i,ih,6)=-wf/hi*hs/dpsq
         aeg(i,ih,6)=(((-1d0*wf)/hi)*hs)/dpsq                             !hr06
         ih=ih+1
         if(ih.gt.2) ih=1
@@ -44137,7 +41755,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         aeg(i,ih,1)=co
         aeg(i,ih,2)=si/hi
-!hr06   aeg(i,ih,3)=-si*hi
         aeg(i,ih,3)=(-1d0*si)*hi                                         !hr06
         aeg(i,ih,4)=co
         goto 190
@@ -44145,7 +41762,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  COMBINED FUNCTION MAGNET VERTICAL
 !-----------------------------------------------------------------------
   170   ih=1
-!hr06   fokq=-ek(i)
         fokq=-1d0*ek(i)                                                  !hr06
         goto 130
 !-----------------------------------------------------------------------
@@ -44153,11 +41769,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
   180   rhoi=ed(i)/dpsq
 +if crlibm
-!hr06   fok=rhoi*tan_rn(el(i)*rhoi*half)
         fok=rhoi*tan_rn((el(i)*rhoi)*half)                               !hr06
 +ei
 +if .not.crlibm
-!hr06   fok=rhoi*tan(el(i)*rhoi*half)
         fok=rhoi*tan((el(i)*rhoi)*half)                                  !hr06
 +ei
         aeg(i,1,1)=one
@@ -44166,7 +41780,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         aeg(i,1,4)=one
         aeg(i,2,1)=one
         aeg(i,2,2)=zero
-!hr06   aeg(i,2,3)=-fok
         aeg(i,2,3)=-1d0*fok
         aeg(i,2,4)=one
         goto 190
@@ -50018,7 +47631,6 @@ c$$$            endif
             else
               dphi=pi2-phibf(l)
             endif
-!hr06       if(-dphi.gt.pieni) dphi=dphi+pi
             if((-1d0*dphi).gt.pieni) dphi=dphi+pi                        !hr06
   110     phi(l)=phi(l)+dphi/pie
 
@@ -50051,23 +47663,15 @@ c$$$            endif
               phibf(l)=zero
             endif
             puf=t(6,ll-1)
-!hr06       t(6,ll-1)=(aeg(jk,l,1)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,2)*(t  &
-!hr06&(1,ll)+t(6,ll)*ded)+aeg(jk,l,5)*dpp1*c1e3- a(jk,l,1)*t            &
-!hr06&(1,ll-1)-a(jk,l,2)*t(1,ll)- a(jk,l,5)*dpr(1))/ded
          t(6,ll-1)=(((((aeg(jk,l,1)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,2)*(t &!hr06
      &(1,ll)+t(6,ll)*ded))+aeg(jk,l,5)*dpp1*c1e3)- a(jk,l,1)*t          &!hr06
      &(1,ll-1))-a(jk,l,2)*t(1,ll))- a(jk,l,5)*dpr(1))/ded                !hr06
-!hr06       t(6,ll)=(aeg(jk,l,3)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,4)*(t    &
-!hr06&(1,ll)+t(6,ll)*ded)+aeg(jk,l,6)*dpp1*c1e3- a(jk,l,3)*t            &
-!hr06&(1,ll-1)-a(jk,l,4)*t(1,ll)- a(jk,l,6)*dpr(1))/ded
            t(6,ll)=(((((aeg(jk,l,3)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,4)*(t &!hr06
      &(1,ll)+t(6,ll)*ded))+aeg(jk,l,6)*dpp1*c1e3)- a(jk,l,3)*t          &!hr06
      &(1,ll-1))-a(jk,l,4)*t(1,ll))- a(jk,l,6)*dpr(1))/ded                !hr06
             do i=1,ium-1
               puf=t(i,ll-1)
-!hr06         t(i,ll-1)=puf*a(jk,l,1)+t(i,ll)*a(jk,l,2)+dpr(i)*a(jk,l,5)
             t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-!hr06         t(i,ll)=puf*a(jk,l,3)+t(i,ll)*a(jk,l,4)+dpr(i)*a(jk,l,6)
             t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
             enddo
           enddo
@@ -50081,10 +47685,8 @@ c$$$            endif
               dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
 +ei
             else
-!hr06         dphi=-phibf(l)
               dphi=-1d0*phibf(l)                                         !hr06
             endif
-!hr06       if(kz(jk).ne.8.and.-dphi.gt.pieni) dphi=dphi+pi
             if(kz(jk).ne.8.and.-1d0*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi/pie
           enddo
@@ -50133,25 +47735,16 @@ c$$$            endif
             phibf(l)=zero
           endif
           puf=t(6,ll-1)
-!hr06     t(6,ll-1)=(bl1eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,2)*(t&
-!hr06&(1,ll)+t(6,ll)*ded)+ bl1eg(ix,l,5)*dpp1*c1e3- bl1(ix,l,1)*t       &
-!hr06&(1,ll-1)-bl1(ix,l,2)*t(1,ll)- bl1(ix,l,5)*dpr(1))/ded
       t(6,ll-1)=(((((bl1eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,2)*(t&!hr06
      &(1,ll)+t(6,ll)*ded))+ bl1eg(ix,l,5)*dpp1*c1e3)- bl1(ix,l,1)*t     &!hr06
      &(1,ll-1))-bl1(ix,l,2)*t(1,ll))- bl1(ix,l,5)*dpr(1))/ded            !hr06
-!hr06     t(6,ll)=(bl1eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,4)*(t  &
-!hr06&(1,ll)+t(6,ll)*ded)+ bl1eg(ix,l,6)*dpp1*c1e3- bl1(ix,l,3)*t       &
-!hr06&(1,ll-1)-bl1(ix,l,4)*t(1,ll)- bl1(ix,l,6)*dpr(1))/ded
       t(6,ll)=(((((bl1eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,4)*(t  &!hr06
      &(1,ll)+t(6,ll)*ded))+ bl1eg(ix,l,6)*dpp1*c1e3)- bl1(ix,l,3)*t     &!hr06
      &(1,ll-1))-bl1(ix,l,4)*t(1,ll))- bl1(ix,l,6)*dpr(1))/ded            !hr06
           do 170 i=1,ium-1
             puf=t(i,ll-1)
-!hr06       t(i,ll-1)=bl1(ix,l,1)*puf+bl1(ix,l,2)*t(i,ll)+dpr(i)*bl1    &
-!hr06&(ix,l,5)
             t(i,ll-1)=(bl1(ix,l,1)*puf+bl1(ix,l,2)*t(i,ll))+dpr(i)*bl1  &!hr06
      &(ix,l,5)                                                           !hr06
-!hr06  170   t(i,ll)=bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll)+dpr(i)*bl1(ix,l,6)
   170   t(i,ll)=(bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll))+dpr(i)*bl1(ix,l,6) !hr06
 
         do 180 l=1,2
@@ -50164,10 +47757,8 @@ c$$$            endif
             dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
 +ei
           else
-!hr06       dphi=-phibf(l)
             dphi=-1d0*phibf(l)                                           !hr06
           endif
-!hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   180   phi(l)=phi(l)+dphi/pie
 
@@ -50200,25 +47791,16 @@ c$$$            endif
             phibf(l)=zero
           endif
           puf=t(6,ll-1)
-!hr06     t(6,ll-1)=(bl2eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,2)*(t&
-!hr06&(1,ll)+t(6,ll)*ded)+ bl2eg(ix,l,5)*dpp1*c1e3- bl2(ix,l,1)*t       &
-!hr06&(1,ll-1)-bl2(ix,l,2)*t(1,ll)- bl2(ix,l,5)*dpr(1))/ded
       t(6,ll-1)=(((((bl2eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,2)*(t&!hr06
      &(1,ll)+t(6,ll)*ded))+ bl2eg(ix,l,5)*dpp1*c1e3)- bl2(ix,l,1)*t     &!hr06
      &(1,ll-1))-bl2(ix,l,2)*t(1,ll))- bl2(ix,l,5)*dpr(1))/ded            !hr06
-!hr06     t(6,ll)=(bl2eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,4)*(t  &
-!hr06&(1,ll)+t(6,ll)*ded)+ bl2eg(ix,l,6)*dpp1*c1e3- bl2(ix,l,3)*t       &
-!hr06&(1,ll-1)-bl2(ix,l,4)*t(1,ll)- bl2(ix,l,6)*dpr(1))/ded
       t(6,ll)=(((((bl2eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,4)*(t  &!hr06
      &(1,ll)+t(6,ll)*ded))+ bl2eg(ix,l,6)*dpp1*c1e3)- bl2(ix,l,3)*t     &!hr06
      &(1,ll-1))-bl2(ix,l,4)*t(1,ll))- bl2(ix,l,6)*dpr(1))/ded            !hr06
           do 200 i=1,ium-1
             puf=t(i,ll-1)
-!hr06       t(i,ll-1)=bl2(ix,l,1)*puf+bl2(ix,l,2)*t(i,ll)+dpr(i)*bl2    &
-!hr06&(ix,l,5)
             t(i,ll-1)=(bl2(ix,l,1)*puf+bl2(ix,l,2)*t(i,ll))+dpr(i)*bl2  &!hr06
      &(ix,l,5)                                                           !hr06
-!hr06  200   t(i,ll)=bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll)+dpr(i)*bl2(ix,l,6)
   200   t(i,ll)=(bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll))+dpr(i)*bl2(ix,l,6) !hr06
 
         do 210 l=1,2
@@ -50233,7 +47815,6 @@ c$$$            endif
           else
             dphi=-phibf(l)
           endif
-!hr06     if(-dphi.gt.pieni) dphi=dphi+pi
           if(-1d0*dphi.gt.pieni) dphi=dphi+pi                            !hr06
   210   phi(l)=phi(l)+dphi/pie
 
@@ -50624,23 +48205,17 @@ c$$$            endif
         t(1,4)=t(1,4)+dyy2
         do 490 i=2,ium
           if(kzz.eq.24) then
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
           else
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   490   continue
-!hr06   bexi=t(2,1)*t(2,1)+t(3,1)*t(3,1)
         bexi=t(2,1)**2+t(3,1)**2                                         !hr06
-!hr06   bezii=t(4,3)*t(4,3)+t(5,3)*t(5,3)
         bezii=t(4,3)**2+t(5,3)**2                                        !hr06
         if(ncorru.eq.0) then
           if(kz(ix).eq.11) then
@@ -50685,9 +48260,7 @@ c$$$            endif
   520 continue
       iiii=100
       idum='END'
-!hr06 bexi=t(2,1)*t(2,1)+t(3,1)*t(3,1)
       bexi=t(2,1)**2+t(3,1)**2                                           !hr06
-!hr06 bezii=t(4,3)*t(4,3)+t(5,3)*t(5,3)
       bezii=t(4,3)**2+t(5,3)**2                                          !hr06
       if(ncorru.eq.0) write(34,10070) etl,idum,iiii,zero,bexi,bezii,phi
       if(ncorru.eq.0)                                                   &
@@ -50767,17 +48340,11 @@ c$$$            endif
       if(iwrite.eq.1) then
         do 20 l=1,2
           ll=2*l
-!hr06     b1(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
           b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
-!hr06     b2(l)=t(6-ll,ll-1)*t(6-ll,ll-1)+t(7-ll,ll-1)*t(7-ll,ll-1)
           b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
-!hr06     al1(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
           al1(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))      !hr06
-!hr06     al2(l)=-(t(6-ll,ll-1)*t(6-ll,ll)+t(7-ll,ll-1)*t(7-ll,ll))
           al2(l)=-1d0*(t(6-ll,ll-1)*t(6-ll,ll)+t(7-ll,ll-1)*t(7-ll,ll))  !hr06
-!hr06     g1(l)=t(ll,ll)*t(ll,ll)+t(ll+1,ll)*t(ll+1,ll)
           g1(l)=t(ll,ll)**2+t(ll+1,ll)**2                                !hr06
-!hr06     g2(l)=t(6-ll,ll)*t(6-ll,ll)+t(7-ll,ll)*t(7-ll,ll)
           g2(l)=t(6-ll,ll)**2+t(7-ll,ll)**2                              !hr06
           d(l)=t(6,ll-1)*c1m3
           dp(l)=t(6,ll)*c1m3
@@ -50922,29 +48489,17 @@ c$$$            endif
    10   continue
       endif
       if(iwrite.eq.1) then
-!hr06   bexi=t(2,1)*t(2,1)+t(3,1)*t(3,1)
         bexi=t(2,1)**2+t(3,1)**2                                         !hr06
-!hr06   bexii=t(4,1)*t(4,1)+t(5,1)*t(5,1)
         bexii=t(4,1)**2+t(5,1)**2                                        !hr06
-!hr06   bezi=t(2,3)*t(2,3)+t(3,3)*t(3,3)
         bezi=t(2,3)**2+t(3,3)**2                                         !hr06
-!hr06   bezii=t(4,3)*t(4,3)+t(5,3)*t(5,3)
         bezii=t(4,3)**2+t(5,3)**2                                        !hr06
-!hr06   alxi=-(t(2,1)*t(2,2)+t(3,1)*t(3,2))
         alxi=-1d0*(t(2,1)*t(2,2)+t(3,1)*t(3,2))                          !hr06
-!hr06   alxii=-(t(4,1)*t(4,2)+t(5,1)*t(5,2))
         alxii=-1d0*(t(4,1)*t(4,2)+t(5,1)*t(5,2))                         !hr06
-!hr06   alzi=-(t(2,3)*t(2,4)+t(3,3)*t(3,4))
         alzi=-1d0*(t(2,3)*t(2,4)+t(3,3)*t(3,4))                          !hr06
-!hr06   alzii=-(t(4,3)*t(4,4)+t(5,3)*t(5,4))
         alzii=-1d0*(t(4,3)*t(4,4)+t(5,3)*t(5,4))                         !hr06
-!hr06   gaxi=t(2,2)*t(2,2)+t(3,2)*t(3,2)
         gaxi=t(2,2)**2+t(3,2)**2                                         !hr06
-!hr06   gaxii=t(4,2)*t(4,2)+t(5,2)*t(5,2)
         gaxii=t(4,2)**2+t(5,2)**2                                        !hr06
-!hr06   gazi=t(2,4)*t(2,4)+t(3,4)*t(3,4)
         gazi=t(2,4)**2+t(3,4)**2                                         !hr06
-!hr06   gazii=t(4,4)*t(4,4)+t(5,4)*t(5,4)
         gazii=t(4,4)**2+t(5,4)**2                                        !hr06
 +if crlibm
         if(abs(t(2,1)).gt.pieni) phxi=atan2_rn(t(3,1),t(2,1))
@@ -51016,30 +48571,20 @@ c$$$            endif
         if(abs(t(4,4)).le.pieni) phzpii=pi*half
         if(abs(eui*(bexi-bezi)+euii*(bexii-bezii)).gt.pieni) then
 +if crlibm
-!hr06     couuang=half*atan_rn(two*(eui*sqrt(bexi*bezi)*                &
-!hr06&cos_rn(phxi-phzi)+                                                &
-!hr06&euii*sqrt(bexii*bezii)*cos_rn(phxii-phzii))/ (eui*(bexi-bezi)     &
-!hr06&+euii*(bexii-bezii)))
           couuang=half*atan_rn((two*((eui*sqrt(bexi*bezi))*             &!hr06
      &cos_rn(phxi-phzi)+                                                &!hr06
      &(euii*sqrt(bexii*bezii))*cos_rn(phxii-phzii)))/ (eui*(bexi-bezi)  &!hr06
      &+euii*(bexii-bezii)))                                              !hr06
 +ei
 +if .not.crlibm
-!hr06     couuang=half*atan(two*(eui*sqrt(bexi*bezi)*cos(phxi-phzi)+    &
-!hr06&euii*sqrt(bexii*bezii)*cos(phxii-phzii))/ (eui*(bexi-bezi)        &
-!hr06&+euii*(bexii-bezii)))
           couuang=half*atan((two*((eui*sqrt(bexi*bezi))*cos(phxi-phzi)+ &!hr06
      &(euii*sqrt(bexii*bezii))*cos(phxii-phzii)))/ (eui*(bexi-bezi)     &!hr06
      &+euii*(bexii-bezii)))                                              !hr06
 +ei
 !if crlibm
-!hr06&euii*sqrt(bexii*bezii)*cos_rn(phxii-phzii))/ (eui*(bexi-bezi)     &
 !ei
 !if .not.crlibm
-!hr06&euii*sqrt(bexii*bezii)*cos(phxii-phzii))/ (eui*(bexi-bezi)        &
 !ei
-!hr06&+euii*(bexii-bezii)))
         else
           couuang=zero
         endif
@@ -51342,27 +48887,16 @@ c$$$            endif
       do 110 ii=1,ncorrep
 !-- HORIZONTAL PLANE FIRST
         do 70 i=1,nhmoni
-!hr06     b(i)=bclorb(i,1)
           b(i)=real(bclorb(i,1))
           do 70 j=1,nhcorr
 +if crlibm
-!hr06       ar(i,j)=sqrt(betam(i,1)*betac(j,1))*cos_rn(abs(pam(i,1)- pac
-!hr06&(j,1))-qwc1(1)*pi)*c1e3/(2*sin_rn(qwc1(1)*pi))
       ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos_rn(abs(pam(i,1)-pac&!hr06
      &(j,1))-qwc1(1)*pi))*c1e3)/(2d0*sin_rn(qwc1(1)*pi)))                !hr06
 +ei
 +if .not.crlibm
-!hr06       ar(i,j)=sqrt(betam(i,1)*betac(j,1))*cos(abs(pam(i,1)- pac
-!hr06&(j,1))-qwc1(1)*pi)*c1e3/(2*sin(qwc1(1)*pi))
       ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos(abs(pam(i,1)- pac  &!hr06
      &(j,1))-qwc1(1)*pi))*c1e3)/(2d0*sin(qwc1(1)*pi)))                   !hr06
 +ei
-!hr06+if crlibm
-!hr06&(j,1))-qwc1(1)*pi)*c1e3/(2*sin_rn(qwc1(1)*pi))
-!hr06+ei
-!hr06+if .not.crlibm
-!hr06&(j,1))-qwc1(1)*pi)*c1e3/(2*sin(qwc1(1)*pi))
-!hr06+ei
    70   continue
         call calrms(b,nhmoni,rmsx,ptpx)
 !-- MICADO WITH HOUSEHOLDER TRANSFORMATION
@@ -51370,27 +48904,16 @@ c$$$            endif
 
 !-- VERTICAL PLANE HERE
         do 80 i=1,nvmoni
-!hr06     b(i)=bclorb(i,2)
           b(i)=real(bclorb(i,2))                                         !hr06
           do 80 j=1,nvcorr
 +if crlibm
-!hr06       ar(i,j)=sqrt(betam(i,2)*betac(j,2))*cos_rn(abs(pam(i,2)- pac
-!hr06&(j,2))-qwc1(2)*pi)*c1e3/(2*sin_rn(qwc1(2)*pi))
       ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos_rn(abs(pam(i,2)-pac&!hr06
      &(j,2))-qwc1(2)*pi))*c1e3)/(2d0*sin_rn(qwc1(2)*pi)))                !hr06
 +ei
 +if .not.crlibm
-!hr06       ar(i,j)=sqrt(betam(i,2)*betac(j,2))*cos(abs(pam(i,2)- pac
-!hr06&(j,2))-qwc1(2)*pi)*c1e3/(2*sin(qwc1(2)*pi))
       ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos(abs(pam(i,2)-pac   &!hr06
      &(j,2))-qwc1(2)*pi))*c1e3)/(2*sin(qwc1(2)*pi)))                     !hr06
 +ei
-!hr06+if crlibm
-!hr06&(j,2))-qwc1(2)*pi)*c1e3/(2*sin_rn(qwc1(2)*pi))
-!hr06+ei
-!hr06+if .not.crlibm
-!hr06&(j,2))-qwc1(2)*pi)*c1e3/(2*sin(qwc1(2)*pi))
-!hr06+ei
    80   continue
         call calrms(b,nvmoni,rmsz,ptpz)
 +if cr
@@ -51485,12 +49008,10 @@ c$$$            endif
 
 !-- GET LAST VALUES AFTER CORRECTION
       do 120 i=1,nhmoni
-!hr06   b(i)=bclorb(i,1)
         b(i)=real(bclorb(i,1))                                           !hr06
   120 continue
       call calrms(b,nhmoni,rmsx,ptpx)
       do 130 i=1,nvmoni
-!hr06   b(i)=bclorb(i,2)
         b(i)=real(bclorb(i,2))                                           !hr06
   130 continue
       call calrms(b,nvmoni,rmsz,ptpz)
@@ -51530,9 +49051,7 @@ c$$$            endif
 +if .not.cr
           write(*,10140)
 +ei
-!hr06     hfac=sigma0(1)/rmsx
           hfac=sigma0(1)/dble(rmsx)                                      !hr06
-!hr06     vfac=sigma0(2)/rmsz
           vfac=sigma0(2)/dble(rmsz)                                      !hr06
           do 150 i=1,il
             kzz=kz(i)
@@ -51555,12 +49074,10 @@ c$$$            endif
   150     continue
           call linopt(zero)
           do 160 i=1,nhmoni
-!hr06       b(i)=bclorb(i,1)
             b(i)=real(bclorb(i,1))                                       !hr06
   160     continue
           call calrms(b,nhmoni,rmsx,ptpx)
           do 170 i=1,nvmoni
-!hr06       b(i)=bclorb(i,2)
             b(i)=real(bclorb(i,2))                                       !hr06
   170     continue
           call calrms(b,nvmoni,rmsz,ptpz)
@@ -51582,7 +49099,6 @@ c$$$            endif
 +if .not.cr
           write(*,*)
 +ei
-!hr06     if(abs(rmsx-sigma0(1)).lt.dsi.and. abs(rmsz-sigma0(2)).lt.dsi)&
           if(abs(dble(rmsx)-sigma0(1)).lt.dsi.and.                      &!hr06
      &       abs(dble(rmsz)-sigma0(2)).lt.dsi)                          &!hr06
      &goto 190                                                         
@@ -51699,7 +49215,6 @@ c$$$            endif
             if(nx(j).eq.kcorr) then
               kcorru=kcorru+1
               ckickold=sm(ix)+zfz(izu)*ek(ix)
-!hr06         zfz(izu)=zfz(izu)+xinc(j)/ek(ix)
               zfz(izu)=zfz(izu)+dble(xinc(j))/ek(ix)                     !hr06
               ckicknew=sm(ix)+zfz(izu)*ek(ix)
 +if cr
@@ -51732,11 +49247,8 @@ c$$$            endif
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
                   ckickold=ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k))/r0a
-!hr06             zfz(izu)=zfz(izu)+c1e3* (xinc(j)/(r0a*ed(ix))-ak0     &
-!hr06&(im,k))/aka(im,k)
            zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-ak0     &!hr06
      &(im,k)))/aka(im,k)                                                 !hr06
-!hr06             ckicknew=ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k))/r0a
                   ckicknew=(ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k)))/r0a  !hr06
 +if cr
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
@@ -51754,13 +49266,9 @@ c$$$            endif
               do 40, j=1,ncorru
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
-!hr06             ckickold=ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k))/r0a
                   ckickold=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
-!hr06             zfz(izu)=zfz(izu)+c1e3* (xinc(j)/(r0a*ed(ix))-bk0     &
-!hr06&(im,k))/bka(im,k)
            zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-bk0     &!hr06
      &(im,k)))/bka(im,k)                                                 !hr06
-!hr06             ckicknew=ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k))/r0a
                   ckicknew=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
 +if cr
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
@@ -51892,9 +49400,7 @@ c$$$            endif
 
       do 40 k=1,n
         ipiv(k)=k
-!hr06   h=0.0d0
         h=0.0                                                            !hr06
-!hr06   g=0.0d0
         g=0.0                                                            !hr06
         do 20 i=1,m
           h=h+a(i,k)*a(i,k)
@@ -51902,7 +49408,6 @@ c$$$            endif
    20   continue
         rho(k)=h
         rho(k2) = g
-!hr06   pivt = g*g/h
         pivt = g**2/h                                                    !hr06
         if(pivt-piv.le.0) goto 40
         if(pivt-piv.gt.0) goto 30
@@ -51936,7 +49441,6 @@ c$$$            endif
 
 ! --- on garde SIGMA dans RHO(N+K)
         j=n+k
-!hr06   rho(j)=-sig
         rho(j)=-1.0*sig                                                  !hr06
         ip=ipiv(kpiv)
         ipiv(kpiv)=ipiv(k)
@@ -51955,7 +49459,6 @@ c$$$            endif
 
         rho(k)=sqrt(piv)
         if(k.eq.n) goto 90
-!hr06   piv=0.0d0
         piv=0.0                                                          !hr06
         kpiv = k + 1
         j1 = kpiv
@@ -52006,7 +49509,6 @@ c$$$            endif
           rho(j)=h
           g=rho(k2)-(a(k,j))*(b(k))
           rho(k2) = g
-!hr06     pivt = g*g/h
           pivt = g**2/h                                                  !hr06
           if(pivt.lt.piv)goto 80
           kpiv=j
@@ -52030,7 +49532,6 @@ c$$$            endif
         do 130 iii= 1,m
   130   r(iii) = b(iii)
         do 140 iii= 1,k
-!hr06  140   x(iii) =-x(iii)
   140   x(iii) =-1.0*x(iii)                                              !hr06
 
 ! --- calcul du vecteur residuel dans HTRL
@@ -52081,7 +49582,6 @@ c$$$            endif
       nc=n-k
 
       do 20 j=1,nc
-!hr06   h=0.0d0
         h=0.0                                                            !hr06
 
         do 10 k1=k,m
@@ -52115,7 +49615,6 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
 
-!hr06 h=0.0d0
       h=0.0                                                              !hr06
 
       do 10 k1=k,m
@@ -52151,7 +49650,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
 
       do 10 i= 1,k,1
-!hr06   b(i)= 0.0d0
         b(i)= 0.0                                                        !hr06
    10 continue
 
@@ -52160,7 +49658,6 @@ c$$$            endif
         kn=n+k-kk+1
         kl=k-kk+1
 
-!hr06   beta=-1d0/(rho(kn)*a(kl,kl))
         beta=-1.0/(rho(kn)*a(kl,kl))                                     !hr06
         call htbl(a,b,m,n,kl,beta)
    20 continue
@@ -52188,7 +49685,6 @@ c$$$            endif
       dimension a(nmon1,ncor1)
       save
 !-----------------------------------------------------------------------
-!hr06 sig=0.0d0
       sig=0.0                                                            !hr06
 
       do 10 i=k,m
@@ -52198,11 +49694,9 @@ c$$$            endif
       sig=sqrt(sig)
 !     on choisit le signe correct pour SIG:
       h=a(k,k)
-!hr06 if(h.lt.0.0d0)sig=-sig
       if(h.lt.0.0)sig=-1.0*sig                                           !hr06
       beta=h + sig
       a(k,k)=beta
-!hr06 beta=1d0/(sig*beta)
       beta=1.0/(sig*beta)                                                !hr06
       end
       subroutine calrms(r,m,rms,ptp)
@@ -52230,7 +49724,6 @@ c$$$            endif
 
       do 10 i=1,m
         xave = xave + r(i)
-!hr06   xrms = xrms + (r(i)*r(i))
         xrms = xrms + r(i)**2                                            !hr06
    10 continue
 
@@ -52671,9 +50164,7 @@ c$$$            endif
    80     t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
           do 90 l=1,2
             ll=2*l
-!hr06       beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-!hr06       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
 +if crlibm
@@ -52685,7 +50176,6 @@ c$$$            endif
             else
               dphi=pi2-phibf(l)
             endif
-!hr06       if(-dphi.gt.pieni) dphi=dphi+pi
             if(-1d0*dphi.gt.pieni) dphi=dphi+pi                          !hr06
    90     phi(l)=phi(l)+dphi/pie
           goto 130
@@ -52705,17 +50195,13 @@ c$$$            endif
             endif
             do i=1,ium
               puf=t(i,ll-1)
-!hr06         t(i,ll-1)=puf*a(jk,l,1)+t(i,ll)*a(jk,l,2)+dpr(i)*a(jk,l,5)
             t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-!hr06         t(i,ll)=puf*a(jk,l,3)+t(i,ll)*a(jk,l,4)+dpr(i)*a(jk,l,6)
             t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
             enddo
           enddo
           do l=1,2
             ll=2*l
-!hr06       beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-!hr06       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
 +if crlibm
@@ -52725,10 +50211,8 @@ c$$$            endif
               dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
 +ei
             else
-!hr06         dphi=-phibf(l)
               dphi=-1d0*phibf(l)                                         !hr06
             endif
-!hr06       if(kz(jk).ne.8.and.-dphi.gt.pieni) dphi=dphi+pi
             if(kz(jk).ne.8.and.-1d0*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi/pie
           enddo
@@ -53018,23 +50502,18 @@ c$$$            endif
         t(1,4)=t(1,4)+dyy2
         do 430 i=2,ium
           if(kzz.eq.24) then
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
           else
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   430   continue
         do 440 l=1,2
           ll=2*l
-!hr06  440   alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
   440   alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))       !hr06
   450 continue
       qwc(1)=phi(1)
@@ -53042,7 +50521,6 @@ c$$$            endif
       if(qxse.ge.qxsa) then
         qwc(3)=qxse-qxsa
       else
-!hr06   qwc(3)=phi(1)+qxse-qxsa
         qwc(3)=(phi(1)+qxse)-qxsa                                        !hr06
       endif
 +if debug
@@ -53580,30 +51058,23 @@ c$$$            endif
 !     call abend('after  daini                                      ')
 +ei
           do i=1,mm
-!hr06       qwc(i)=intwq(i)+corr(1,i)
             qwc(i)=dble(intwq(i))+corr(1,i)                              !hr06
           enddo
           dq1=qwc(1)-qw0(1)
           dq2=qwc(2)-qw0(2)
-!hr06     if(ncorr.eq.1) cor=sqrt(dq1*dq1+dq2*dq2)
           if(ncorr.eq.1) cor=sqrt(dq1**2+dq2**2)                         !hr06
           if(abs(dq1).gt.dqq.or.abs(dq2).gt.dqq) then
-!hr06       cor=sqrt(dq1*dq1+dq2*dq2)
             cor=sqrt(dq1**2+dq2**2)                                      !hr06
             if(ncorr.eq.1.or.cor.lt.coro) then
               coro=cor
               if(el(iq(1)).le.pieni) then
-!hr06           ed(iq(1))=ed(iq(1))-corr(2,1)*dq1-corr(2,2)*dq2
                 ed(iq(1))=(ed(iq(1))-corr(2,1)*dq1)-corr(2,2)*dq2        !hr06
               else
-!hr06           ek(iq(1))=ek(iq(1))-corr(2,1)*dq1-corr(2,2)*dq2
                 ek(iq(1))=(ek(iq(1))-corr(2,1)*dq1)-corr(2,2)*dq2        !hr06
               endif
               if(el(iq(2)).le.pieni) then
-!hr06           ed(iq(2))=ed(iq(2))-corr(3,1)*dq1-corr(3,2)*dq2
                 ed(iq(2))=(ed(iq(2))-corr(3,1)*dq1)-corr(3,2)*dq2        !hr06
               else
-!hr06           ek(iq(2))=ek(iq(2))-corr(3,1)*dq1-corr(3,2)*dq2
                 ek(iq(2))=(ek(iq(2))-corr(3,1)*dq1)-corr(3,2)*dq2        !hr06
               endif
               do ncrr=1,iu
@@ -53701,7 +51172,6 @@ c$$$            endif
           iqmodc=3
           call mydaini(2,2,nd2,mm,nd2,1)
           do i=1,mm
-!hr06       qwc(i)=intwq(i)+wxys(i)
             qwc(i)=dble(intwq(i))+wxys(i)                                !hr06
           enddo
 +if debug 
@@ -53729,7 +51199,6 @@ c$$$            endif
         iqmodc=3
         call mydaini(2,2,nd2,mm,nd2,1)
         do i=1,mm
-!hr06     qwc(i)=intwq(i)+wxys(i)
           qwc(i)=dble(intwq(i))+wxys(i)                                  !hr06
         enddo
 +if cr
@@ -53871,13 +51340,8 @@ c$$$            endif
           do 30 kx=1,2
             if(ithick.eq.1) then
               puf=x(j,kx)
-!hr06         x(j,kx)=bl1(ix,kx,1)*puf+bl1(ix,kx,2)*y(j,kx)+dpr(j)*bl1  &
-!hr06&(ix,kx,5)
              x(j,kx)=(bl1(ix,kx,1)*puf+bl1(ix,kx,2)*y(j,kx))+dpr(j)*bl1 &!hr06
      &(ix,kx,5)                                                          !hr06
-!hr06         y(j,kx)=bl1(ix,kx,3)*puf+bl1(ix,kx,4)*y(j,kx)+dpr(j)*bl1  &
-!hr06         y(j,kx)=bl1(ix,kx,3)*puf+bl1(ix,kx,4)*y(j,kx)+dpr(j)*bl1  &
-!hr06&(ix,kx,6)
              y(j,kx)=(bl1(ix,kx,3)*puf+bl1(ix,kx,4)*y(j,kx))+dpr(j)*bl1 &!hr06
      &(ix,kx,6)                                                          !hr06
             else
@@ -53890,12 +51354,8 @@ c$$$            endif
           do 50 kx=1,2
             if(ithick.eq.1) then
               puf=x(j,kx)
-!hr06         x(j,kx)=bl2(ix,kx,1)*puf+bl2(ix,kx,2)*y(j,kx)+dpr(j)*bl2  &
-!hr06&(ix,kx,5)
              x(j,kx)=(bl2(ix,kx,1)*puf+bl2(ix,kx,2)*y(j,kx))+dpr(j)*bl2 &!hr06
      &(ix,kx,5)                                                          !hr06
-!hr06         y(j,kx)=bl2(ix,kx,3)*puf+bl2(ix,kx,4)*y(j,kx)+dpr(j)*bl2  &
-!hr06&(ix,kx,6)
              y(j,kx)=(bl2(ix,kx,3)*puf+bl2(ix,kx,4)*y(j,kx))+dpr(j)*bl2 &!hr06
      &(ix,kx,6)                                                          !hr06
             else
@@ -54221,14 +51681,10 @@ c$$$            endif
   330   continue
         do 340 j=2,ium
           if(kzz.eq.24) then
-!hr06       y(j,1)=y(j,1)+x(j,1)*qu-qv*x(j,2)
             y(j,1)=(y(j,1)+x(j,1)*qu)-qv*x(j,2)                          !hr06
-!hr06       y(j,2)=y(j,2)-x(j,2)*quz-qvz*x(j,1)
             y(j,2)=(y(j,2)-x(j,2)*quz)-qvz*x(j,1)                        !hr06
           elseif(kzz.eq.25) then
-!hr06       crkve=y(j,1)-x(j,1)*qu*qv 
             crkve=y(j,1)-(x(j,1)*qu)*qv                                  !hr06
-!hr06       cikve=y(j,2)-x(j,2)*qu*qv 
             cikve=y(j,2)-(x(j,2)*qu)*qv                                  !hr06
 +if crlibm
             y(j,1)=crkve*cos_rn(qv)+cikve*sin_rn(qv)                     !hr09
@@ -54238,18 +51694,14 @@ c$$$            endif
 +ei
 +if .not.crlibm
             y(j,1)=crkve*cos(qv)+cikve*sin(qv) 
-!hr06       y(j,2)=-crkve*sin(qv)+cikve*cos(qv) 
             y(j,2)=cikve*cos(qv)-crkve*sin(qv)                           !hr06
             crkve=x(j,1)*cos(qv)+x(j,2)*sin(qv) 
-!hr06       cikve=-x(j,1)*sin(qv)+x(j,2)*cos(qv) 
             cikve=x(j,2)*cos(qv)-x(j,1)*sin(qv)                          !hr06
 +ei
             x(j,1)=crkve 
             x(j,2)=cikve 
           else
-!hr06       y(j,1)=y(j,1)+x(j,1)*qu-qv*x(j,2)
             y(j,1)=(y(j,1)+x(j,1)*qu)-qv*x(j,2)                          !hr06
-!hr06       y(j,2)=y(j,2)-x(j,2)*qu-qv*x(j,1)
             y(j,2)=(y(j,2)-x(j,2)*qu)-qv*x(j,1)                          !hr06
           endif
   340   continue
@@ -54374,9 +51826,7 @@ c$$$            endif
           t(i+1,j)=ta(j,i)
   120 t(i+1,j)=ta(j,i)
 !--EP=EMITTANCE IN PI*MM*MRAD
-!hr06 ep(1)=tam1*tam1/beta(1)
       ep(1)=tam1**2/beta(1)                                              !hr06
-!hr06 ep(2)=tam2*tam2/beta(2)
       ep(2)=tam2**2/beta(2)                                              !hr06
 !--SINGLE TURN BLOCKLOOP
       izu=0
@@ -54417,9 +51867,7 @@ c$$$            endif
   150     t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
           do 160 l=1,2
             ll=2*l
-!hr06       beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-!hr06       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
 +if crlibm
@@ -54431,7 +51879,6 @@ c$$$            endif
             else
               dphi=pi2-phibf(l)
             endif
-!hr06       if(-dphi.gt.pieni) dphi=dphi+pi
             if(-1d0*dphi.gt.pieni) dphi=dphi+pi
   160     phi(l)=phi(l)+dphi
           goto 200
@@ -54452,17 +51899,13 @@ c$$$            endif
             endif
             do i=1,ium
               puf=t(i,ll-1)
-!hr06         t(i,ll-1)=puf*a(jk,l,1)+t(i,ll)*a(jk,l,2)+dpr(i)*a(jk,l,5)
             t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-!hr06         t(i,ll)=puf*a(jk,l,3)+t(i,ll)*a(jk,l,4)+dpr(i)*a(jk,l,6)
             t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
             enddo
           enddo
           do l=1,2
             ll=2*l
-!hr06       beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-!hr06       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
 +if crlibm
@@ -54472,7 +51915,6 @@ c$$$            endif
               dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
 +ei
             else
-!hr06         dphi=-phibf(l)
               dphi=-1d0*phibf(l)
             endif
             if(kz(jk).ne.8.and.-dphi.gt.pieni) dphi=dphi+pi
@@ -54661,23 +52103,18 @@ c$$$            endif
         t(1,4)=t(1,4)+dyy2
         do 490 i=2,ium
           if(kzz.eq.24) then
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
           else
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   490   continue
         do 500 l=1,2
           ll=2*l
-!hr06     alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
           alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))     !hr06
   500   continue
         if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 770
@@ -54691,7 +52128,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
         do 510 l=2,nmz
           l1=l-1
-!hr06  510   ab2(2)=ab2(2)+l1*(aa(l)*cr(l1)-bb(l)*ci(l1))
   510   ab2(2)=ab2(2)+dble(l1)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
   520   b1=beta(1)
         b2=beta(2)
@@ -54710,9 +52146,7 @@ c$$$            endif
         l2=1
         do 530 l=3,nmz
           l1=l-2
-!hr06     ab1(3)=ab1(3)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(3)=ab1(3)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(3)=ab2(3)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(3)=ab2(3)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   530   l2=l2*l/l1
   540   b(4,1)=b1*sb1
@@ -54729,14 +52163,10 @@ c$$$            endif
         l2=1
         do 550 l=4,nmz
           l1=l-3
-!hr06     ab1(4)=ab1(4)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(4)=ab1(4)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(4)=ab2(4)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(4)=ab2(4)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   550   l2=l2*l/l1
-!hr06  560   b(5,1)=b1*b1
   560   b(5,1)=b1**2                                                     !hr06
-!hr06   b(1,5)=b2*b2
         b(1,5)=b2**2                                                     !hr06
         b(4,2)=b(3,2)*sb1
         b(2,4)=b(2,3)*sb2
@@ -54751,9 +52181,7 @@ c$$$            endif
         l2=1
         do 570 l=5,nmz
           l1=l-4
-!hr06     ab1(5)=ab1(5)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(5)=ab1(5)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(5)=ab2(5)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(5)=ab2(5)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   570   l2=l2*l/l1
   580   b(6,1)=b(5,1)*sb1
@@ -54771,9 +52199,7 @@ c$$$            endif
         l2=1
         do 590 l=6,nmz
           l1=l-5
-!hr06     ab1(6)=ab1(6)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(6)=ab1(6)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(6)=ab2(6)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(6)=ab2(6)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   590   l2=l2*l/l1
   600   b(7,1)=b(6,1)*sb1
@@ -54792,9 +52218,7 @@ c$$$            endif
         l2=1
         do 610 l=7,nmz
           l1=l-6
-!hr06     ab1(7)=ab1(7)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(7)=ab1(7)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(7)=ab2(7)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(7)=ab2(7)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   610   l2=l2*l/l1
   620   b(8,1)=b(7,1)*sb1
@@ -54814,9 +52238,7 @@ c$$$            endif
         l2=1
         do 630 l=8,nmz
           l1=l-7
-!hr06     ab1(8)=ab1(8)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(8)=ab1(8)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(8)=ab2(8)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(8)=ab2(8)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   630   l2=l2*l/l1
   640   b(9,1)=b(8,1)*sb1
@@ -54836,9 +52258,7 @@ c$$$            endif
         l2=1
         do 650 l=9,nmz
           l1=l-8
-!hr06     ab1(9)=ab1(9)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(9)=ab1(9)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(9)=ab2(9)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(9)=ab2(9)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   650   l2=l2*l/l1
   660   b(10,1)=b(9,1)*sb1
@@ -54858,32 +52278,25 @@ c$$$            endif
             n2=nv-np
             nn2=abs(n2)
             nn1=np-nn2
-!hr06       re1=nn1*qxt+n2*qzt
             re1=dble(nn1)*qxt+dble(n2)*qzt                               !hr06
             ipt=0
             do 680 ii=1,nre
   680       if(n2.eq.nrr(ii)) ipt=ipr(ii)
             ip(np,nv)=int(re1+half)+ipt
-!hr06       if(-re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt
             if(-1d0*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt
 !--RE=DISTANCE FROM THE RESONANCE
-!hr06       re(np,nv)=re1-ip(np,nv)
             re(np,nv)=re1-dble(ip(np,nv))                                !hr06
             res=re(np,nv)/radi
 +if crlibm
-!hr06       chy(np,nv)=cos_rn(nn1*phi(1)+n2*phi(2)-res*etl)
            chy(np,nv)=cos_rn((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
 +ei
 +if .not.crlibm
-!hr06       chy(np,nv)=cos(nn1*phi(1)+n2*phi(2)-res*etl)
            chy(np,nv)=cos((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
 +ei
 +if crlibm
-!hr06       shy(np,nv)=sin_rn(nn1*phi(1)+n2*phi(2)-res*etl)
            shy(np,nv)=sin_rn((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
 +ei
 +if .not.crlibm
-!hr06       shy(np,nv)=sin(nn1*phi(1)+n2*phi(2)-res*etl)
             shy(np,nv)=sin((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)   !hr06
 +ei
   690     continue
@@ -54898,7 +52311,6 @@ c$$$            endif
               nn2=abs(nv-np2)
               nv1=np2-nn2+(i-1)*2+1
               nv2=np-nv1+2
-!hr06         rn2=nn2*half
               rn2=dble(nn2)*half                                         !hr06
 !--EVENESS OF N2
               mm=0
@@ -54906,14 +52318,10 @@ c$$$            endif
               if(abs(gerad).le.pieni) mm=1
 !--MM=0 =>N2 UNEVEN, MM=1 => N2 EVEN
               if (mm.eq.0) goto 720
-!hr06         btc=ab1(np)*b(nv1,nv2)*chy(np2,nv)
               btc=(ab1(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-!hr06         bts=ab1(np)*b(nv1,nv2)*shy(np2,nv)
               bts=(ab1(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
               goto 730
-!hr06  720         btc=ab2(np)*b(nv1,nv2)*chy(np2,nv)
   720         btc=(ab2(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-!hr06         bts=ab2(np)*b(nv1,nv2)*shy(np2,nv)
               bts=(ab2(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
   730         rtc(np2,nv,np,i)=rtc(np2,nv,np,i)+btc
               rts(np2,nv,np,i)=rts(np2,nv,np,i)+bts
@@ -54933,7 +52341,6 @@ c$$$            endif
       eb=ep(2)
       e(3,1)=one/eb
       e(1,3)=one/ea
-!hr06 e(2,2)=one/seb/sea
       e(2,2)=(one/seb)/sea                                               !hr06
       nnf(4)=6
       nz2(3)=4
@@ -54981,9 +52388,7 @@ c$$$            endif
       e(1,9)=e(1,8)*seb
       e(8,2)=e(7,2)*sea
       e(2,8)=e(2,7)*seb
-!hr06 e(7,3)=ea*ea
       e(7,3)=ea**2                                                       !hr06
-!hr06 e(3,7)=eb*eb
       e(3,7)=eb**2                                                       !hr06
       e(6,4)=e(5,4)*sea
       e(4,6)=e(4,5)*seb
@@ -55001,7 +52406,6 @@ c$$$            endif
       e(6,5)=e(5,5)*sea
       e(5,6)=e(5,5)*seb
       do 810 np=nta,nte
-!hr06   vdt1=nnf(np)/(nz2(np)*pi)
         vdt1=dble(nnf(np))/(dble(nz2(np))*pi)                            !hr06
         np2=np
         nkk=0
@@ -55019,13 +52423,8 @@ c$$$            endif
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-!hr06       vdt2=vdt1*e(nv1,nv2)/(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4))
-!hr06       vdt2=(vdt1*e(nv1,nv2))/
-!hr06&(((dble(nnf(nf1))*dble(nnf(i)))*dble(nnf(nf3)))*dble(nnf(nf4)))
       vdt2=(vdt1*e(nv1,nv2))/dble(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4)) !hr06
-!hr06       vdt3=nn2*ea+nn1*eb
             vdt3=dble(nn2)*ea+dble(nn1)*eb                               !hr06
-!hr06       if(n2.ge.0) vdt3=n2*nv21*ea+nn1*nv11*eb
             if(n2.ge.0) vdt3=dble(n2*nv21)*ea+dble(nn1*nv11)*eb          !hr06
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
             rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
@@ -55049,18 +52448,10 @@ c$$$            endif
         i2=2*i
         i1=i2-1
         n=nrr(i)+npp
-!hr06   dtr(i1)=rtc(npp,n,npp,1)+min(1)*(-rtc(npp,n,m2,1)+rtc           &
-!hr06&(npp,n,m2,2))+min(2)*(rtc(npp,n,m4,1)-rtc(npp,n,m4,2)+rtc         &
-!hr06&(npp,n,m4,3))+ min(3)*(-rtc(npp,n,m6,1)+rtc(npp,n,m6,2)-rtc       &
-!hr06&(npp,n,m6,3)+ rtc(npp,n,m6,4))
         dtr(i1)=rtc(npp,n,npp,1)+(min(1)*(rtc(npp,n,m2,2)-              &!hr06
      &rtc(npp,n,m2,1))+min(2)*((rtc(npp,n,m4,1)-rtc(npp,n,m4,2))+rtc    &!hr06
      &(npp,n,m4,3)))+min(3)*(((rtc(npp,n,m6,2)-rtc(npp,n,m6,1))-rtc     &!hr06
      &(npp,n,m6,3))+ rtc(npp,n,m6,4))                                    !hr06
-!hr06   dtr(i2)=rts(npp,n,npp,1)+min(1)*(-rts(npp,n,m2,1)+rts           &
-!hr06&(npp,n,m2,2))+min(2)*(rts(npp,n,m4,1)-rts(npp,n,m4,2)+rts         &
-!hr06&(npp,n,m4,3))+ min(3)*(-rts(npp,n,m6,1)+rts(npp,n,m6,2)-rts       &
-!hr06&(npp,n,m6,3)+ rts(npp,n,m6,4))
         dtr(i2)=rts(npp,n,npp,1)+(min(1)*(rts(npp,n,m2,2)-              &!hr06
      &rts(npp,n,m2,1))+min(2)*((rts(npp,n,m4,1)-rts(npp,n,m4,2))+rts    &!hr06
      &(npp,n,m4,3)))+min(3)*(((rts(npp,n,m6,2)-rts(npp,n,m6,1))-rts     &!hr06
@@ -55193,7 +52584,6 @@ c$$$            endif
       se11=zero
       se12=zero
       do 80 n=1,5
-!hr06   dpp=de2*(3-n)
         dpp=de2*dble(3-n)                                                !hr06
         call clorb2(dpp)
         call phasad(dpp,qwc)
@@ -55263,7 +52653,6 @@ c$$$            endif
           se11=zero
           se12=zero
           do 130 n=1,5
-!hr06       dpp=de2*(3-n)
             dpp=de2*dble(3-n)                                            !hr06
             call clorb2(dpp)
             call phasad(dpp,qwc)
@@ -55319,7 +52708,6 @@ c$$$            endif
         se11=zero
         se12=zero
         do 200 n=1,5
-!hr06     dpp=de2*(3-n)
           dpp=de2*dble(3-n)                                              !hr06
           call clorb2(dpp)
           call phasad(dpp,qwc)
@@ -55681,19 +53069,12 @@ c$$$            endif
       dfac(1)=one
       dfac(2)=one
       dfac(3)=two
-!hr13 dfac(4)=6
       dfac(4)=6d0                                                        !hr13
-!hr13 dfac(5)=24
       dfac(5)=24d0                                                       !hr13
-!hr13 dfac(6)=120
       dfac(6)=120d0                                                      !hr13
-!hr13 dfac(7)=720
       dfac(7)=720d0                                                      !hr13
-!hr13 dfac(8)=5040
       dfac(8)=5040d0                                                     !hr13
-!hr13 dfac(9)=40320
       dfac(9)=40320d0                                                    !hr13
-!hr13 dfac(10)=362880
       dfac(10)=362880d0                                                  !hr13
       if(ipt.eq.1) ipl=3
       do 940 ipcc=1,ipl
@@ -55853,9 +53234,7 @@ c$$$            endif
 +ei
      &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
 !--EP=EMITTANCE IN PI*MM*MRAD
-!hr06   ep(1)=tam1*tam1/beta(1)
         ep(1)=tam1**2/beta(1)                                            !hr06
-!hr06   ep(2)=tam2*tam2/beta(2)
         ep(2)=tam2**2/beta(2)                                            !hr06
 +if cr
         write(lout,10050) tam1,ep(1),tam2,ep(2)
@@ -55880,7 +53259,6 @@ c$$$            endif
           jj=0
           dj=1
           if(ix.gt.0) goto 180
-!hr13     ix=-ix
           ix=-1*ix
           jj=mel(ix)+1
           dj=-1
@@ -55909,9 +53287,7 @@ c$$$            endif
   190       t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
             do 200 l=1,2
               ll=2*l
-!hr06         beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
               beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                      !hr06
-!hr06         alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
               alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll)) !hr06
               clo0(l)=t(1,ll-1)
               clop0(l)=t(1,ll)
@@ -55925,7 +53301,6 @@ c$$$            endif
               else
                 dphi=pi2-phibf(l)
               endif
-!hr06         if(-dphi.gt.pieni) dphi=dphi+pi
               if(-1d0*dphi.gt.pieni) dphi=dphi+pi                        !hr06
   200       phi(l)=phi(l)+dphi/pie
             nr=nr+1
@@ -55947,18 +53322,14 @@ c$$$            endif
               endif
               do i=1,ium
                 puf=t(i,ll-1)
-!hr06           t(i,ll-1)=puf*a(jk,l,1)+t(i,ll)*a(jk,l,2)+dpr(i)*a      &
                 t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a    &!hr06
      &(jk,l,5)
-!hr06           t(i,ll)=puf*a(jk,l,3)+t(i,ll)*a(jk,l,4)+dpr(i)*a(jk,l,6)
               t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6) !hr06
               enddo
             enddo
             do l=1,2
               ll=2*l
-!hr06         beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
               beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                      !hr06
-!hr06         alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
               alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll)) !hr06
               clo0(l)=t(1,ll-1)
               clop0(l)=t(1,ll)
@@ -56191,23 +53562,18 @@ c$$$            endif
           t(1,4)=t(1,4)+dyy2
           do 520 i=2,ium
           if(kzz.eq.24) then
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
           else
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   520     continue
           do 530 l=1,2
             ll=2*l
-!hr06       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
   530     clop0(l)=t(1,ll)
           if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 790
@@ -56221,7 +53587,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
           do 540 l=2,nmz
             l1=l-1
-!hr06  540     ab2(2)=ab2(2)+l1*(aa(l)*cr(l1)-bb(l)*ci(l1))
   540     ab2(2)=ab2(2)+dble(l1)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   550     b1=beta(1)
           b2=beta(2)
@@ -56240,9 +53605,7 @@ c$$$            endif
           l2=1
           do 560 l=3,nmz
             l1=l-2
-!hr06       ab1(3)=ab1(3)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
             ab1(3)=ab1(3)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-!hr06       ab2(3)=ab2(3)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
             ab2(3)=ab2(3)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
   560     l2=l2*l/l1
   570     b(4,1)=b1*sb1
@@ -56259,14 +53622,10 @@ c$$$            endif
           l2=1
           do 580 l=4,nmz
             l1=l-3
-!hr06       ab1(4)=ab1(4)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
             ab1(4)=ab1(4)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-!hr06       ab2(4)=ab2(4)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
             ab2(4)=ab2(4)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
   580     l2=l2*l/l1
-!hr06  590     b(5,1)=b1*b1
   590     b(5,1)=b1**2                                                   !hr06
-!hr06     b(1,5)=b2*b2
           b(1,5)=b2**2                                                   !hr06
           b(4,2)=b(3,2)*sb1
           b(2,4)=b(2,3)*sb2
@@ -56281,9 +53640,7 @@ c$$$            endif
           l2=1
           do 600 l=5,nmz
             l1=l-4
-!hr06       ab1(5)=ab1(5)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
             ab1(5)=ab1(5)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-!hr06       ab2(5)=ab2(5)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
             ab2(5)=ab2(5)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
   600     l2=l2*l/l1
   610     b(6,1)=b(5,1)*sb1
@@ -56301,9 +53658,7 @@ c$$$            endif
           l2=1
           do 620 l=6,nmz
             l1=l-5
-!hr06       ab1(6)=ab1(6)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
             ab1(6)=ab1(6)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-!hr06       ab2(6)=ab2(6)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
             ab2(6)=ab2(6)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
   620     l2=l2*l/l1
   630     b(7,1)=b(6,1)*sb1
@@ -56322,9 +53677,7 @@ c$$$            endif
           l2=1
           do 640 l=7,nmz
             l1=l-6
-!hr06       ab1(7)=ab1(7)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
             ab1(7)=ab1(7)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-!hr06       ab2(7)=ab2(7)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
             ab2(7)=ab2(7)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
   640     l2=l2*l/l1
   650     b(8,1)=b(7,1)*sb1
@@ -56344,9 +53697,7 @@ c$$$            endif
           l2=1
           do 660 l=8,nmz
             l1=l-7
-!hr06       ab1(8)=ab1(8)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
             ab1(8)=ab1(8)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-!hr06       ab2(8)=ab2(8)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
             ab2(8)=ab2(8)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
   660     l2=l2*l/l1
   670     b(9,1)=b(8,1)*sb1
@@ -56366,9 +53717,7 @@ c$$$            endif
           l2=1
           do 680 l=9,nmz
             l1=l-8
-!hr06       ab1(9)=ab1(9)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
             ab1(9)=ab1(9)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-!hr06       ab2(9)=ab2(9)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
             ab2(9)=ab2(9)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
   680     l2=l2*l/l1
   690     b(10,1)=b(9,1)*sb1
@@ -56388,31 +53737,25 @@ c$$$            endif
               n2=nv-np
               nn2=abs(n2)
               nn1=np-nn2
-!hr06         re1=nn1*qxt+n2*qzt
               re1=dble(nn1)*qxt+dble(n2)*qzt                             !hr06
               ip(np,nv)=int(re1+half)+ipc
-!hr06         if(-re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipc
               if(-1d0*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipc
 !--RE=DISTANCE FROM THE RESONANCE
               re(np,nv)=re1-dble(ip(np,nv))
               res=re(np,nv)/radi
 +if crlibm
-!hr06         chy(np,nv)=cos_rn(nn1*pie*phi(1)+n2*pie*phi(2)-res*etl)
           chy(np,nv)=cos_rn((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
      &res*etl)                                                           !hr06
 +ei
 +if .not.crlibm
-!hr06         chy(np,nv)=cos(nn1*pie*phi(1)+n2*pie*phi(2)-res*etl)
           chy(np,nv)=cos((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))-    &!hr06
      &res*etl)                                                           !hr06
 +ei
 +if crlibm
-!hr06         shy(np,nv)=sin_rn(nn1*pie*phi(1)+n2*pie*phi(2)-res*etl)
           shy(np,nv)=sin_rn((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
      &res*etl)                                                           !hr06
 +ei
 +if .not.crlibm
-!hr06         shy(np,nv)=sin(nn1*pie*phi(1)+n2*pie*phi(2)-res*etl)
           shy(np,nv)=sin((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))-    &!hr06
      &res*etl)                                                           !hr06
 +ei
@@ -56428,7 +53771,6 @@ c$$$            endif
                 nn2=abs(nv-np2)
                 nv1=np2-nn2+(i-1)*2+1
                 nv2=np-nv1+2
-!hr06           rn2=nn2*half
                 rn2=dble(nn2)*half                                       !hr06
 !--EVENESS OF N2
                 mm=0
@@ -56460,7 +53802,6 @@ c$$$            endif
         eb=ep(2)
         e(3,1)=one/eb
         e(1,3)=one/ea
-!hr06   e(2,2)=one/seb/sea
         e(2,2)=(one/seb)/sea                                             !hr06
         nnf(4)=6
         nz2(3)=4
@@ -56508,9 +53849,7 @@ c$$$            endif
         e(1,9)=e(1,8)*seb
         e(8,2)=e(7,2)*sea
         e(2,8)=e(2,7)*seb
-!hr06   e(7,3)=ea*ea
         e(7,3)=ea**2                                                     !hr06
-!hr06   e(3,7)=eb*eb
         e(3,7)=eb**2                                                     !hr06
         e(6,4)=e(5,4)*sea
         e(4,6)=e(4,5)*seb
@@ -56617,7 +53956,6 @@ c$$$            endif
 +if .not.cr
           write(*,10030)
 +ei
-!hr06     vdt1=nnf(np)/(nz2(np)*pi)
           vdt1=dble(nnf(np))/(dble(nz2(np))*pi)                          !hr06
           np2=np
           nkk=0
@@ -56641,21 +53979,16 @@ c$$$            endif
               n2=nv-np2
               nn2=abs(n2)
               nn1=np2-nn2
-!hr06         nv1=nn1+(i-1)*2+1
               nv1=(nn1+(i-1)*2)+1                                        !hr06
-!hr06         nv2=np-nv1+2
               nv2=(np-nv1)+2                                             !hr06
               nv11=nv1-1
               nv21=nv2-1
               nf1=nn1+i
               nf3=nkk-i+1
               nf4=nf3+nn2
-!hr06         vdt2=vdt1*e(nv1,nv2)/(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4))
           vdt2=vdt1*e(nv1,nv2)/dble(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4))   !hr06
-!hr06         vdt3=nn2*ea+nn1*eb
               vdt3=dble(nn2)*ea+dble(nn1)*eb                             !hr06
               vdt4=vdt3
-!hr06         if(n2.ge.0) vdt3=n2*nv21*ea+nn1*nv11*eb
               if(n2.ge.0) vdt3=dble(n2*nv21)*ea+dble(nn1*nv11)*eb        !hr06
               rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
               rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
@@ -56666,13 +53999,10 @@ c$$$            endif
             rc=zero
             rs=zero
             do 860 i=1,nkk
-!hr06         rc=rc+mis*rtc(np2,nv,np,i)
               rc=rc+dble(mis)*rtc(np2,nv,np,i)                           !hr06
-!hr06         rs=rs+mis*rts(np2,nv,np,i)
               rs=rs+dble(mis)*rts(np2,nv,np,i)                           !hr06
               mis=-mis
   860       continue
-!hr06       sdel2=sqrt(rc*rc+rs*rs)
             sdel2=sqrt(rc**2+rs**2)                                      !hr06
             n22=nv-np2
 +if cr
@@ -56707,9 +54037,7 @@ c$$$            endif
             min1=-1
   890       min2=min1
             do 900 i=1,nkk
-!hr06         rtc(np,nv,np,1)=rtc(np,nv,np,1)+min2*rtc(np,nv,nph,i)
              rtc(np,nv,np,1)=rtc(np,nv,np,1)+dble(min2)*rtc(np,nv,nph,i) !hr06
-!hr06         rts(np,nv,np,1)=rts(np,nv,np,1)+min2*rts(np,nv,nph,i)
              rts(np,nv,np,1)=rts(np,nv,np,1)+dble(min2)*rts(np,nv,nph,i) !hr06
               min2=-min2
   900       continue
@@ -56720,7 +54048,6 @@ c$$$            endif
             goto 890
   910       cc=rtc(np,nv,np,1)
             ss=rts(np,nv,np,1)
-!hr06       sdel=sqrt(cc*cc+ss*ss)
             sdel=sqrt(cc**2+ss**2)                                       !hr06
 +if cr
             write(lout,10140) n2,ip(np,nv),ipc,cc,ss,re(np,nv),sdel
@@ -56851,14 +54178,11 @@ c$$$            endif
 +ei
       iv2=2*iv
       iv3=iv+1
-!hr06 vtu1=-ekk*(half**iv2)*dfac(iv2)/pi
 !      vtu1=(((-1d0*ekk)*(half**iv2))*dfac(iv2))/pi                       !hr06
 +if crlibm
-!hr13 vtu1=(((-1d0*ekk)*exp_rn(iv2*log_rn(half)))*dfac(iv2))/pi           !yil11
       vtu1=(((-1d0*ekk)*exp_rn(dble(iv2)*log_rn(half)))*dfac(iv2))/pi    !hr13 
 +ei
 +if .not.crlibm
-!hr13 vtu1=(((-1d0*ekk)*exp(iv2*log(half)))*dfac(iv2))/pi                 !yil11
       vtu1=(((-1d0*ekk)*exp(dble(iv2)*log(half)))*dfac(iv2))/pi          !hr13
 +ei
       dtu1=zero
@@ -56867,57 +54191,40 @@ c$$$            endif
         iv5=iv4-1
         iv6=iv-iv5
         vor=one
-!hr06   if(mod(iv6,2).ne.0) vor=-one
         if(mod(iv6,2).ne.0) vor=-1d0*one                                 !hr06
 !        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*(beta(1)**iv5)* (beta&
 !     &(2)**iv6)
 +if crlibm
-!hr13   vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*                     & !yil11
-!hr13&exp_rn(iv5*log_rn(beta(1)))*exp_rn(iv6*log_rn(beta(2)))
         vtu2=(((vor/(dfac(iv5+1)**2))/(dfac(iv6+1)**2))*                &!hr13
      &exp_rn(dble(iv5)*log_rn(beta(1))))*                               &!hr13
      &exp_rn(dble(iv6)*log_rn(beta(2)))                                  !hr13
 +ei
 +if .not.crlibm
-!hr13   vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*                     & !yil11
-!hr13&exp(iv5*log(beta(1)))*exp(iv6*log(beta(2)))
         vtu2=(((vor/(dfac(iv5+1)**2))/(dfac(iv6+1)**2))*                &!hr13
      &exp(dble(iv5)*log(beta(1))))*exp(dble(iv6)*log(beta(2)))           !hr13
 +ei
         if(iv5.ne.0) then
-!hr06     dtu1=dtu1+vtu2*iv5*(ep(1)**(iv5-1))*(ep(2)**iv6)
 !          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)     !hr06
 +if crlibm
-!hr13     dtu1=dtu1+((vtu2*dble(iv5))*exp_rn((iv5-1)*log_rn(ep(1))))*   & !yil11
-!hr13&         exp_rn(iv6*log_rn(ep(2)))
          dtu1=dtu1+((vtu2*dble(iv5))*exp_rn(dble(iv5-1)*log_rn(ep(1))))*&!hr13
      &         exp_rn(dble(iv6)*log_rn(ep(2)))                           !hr13
 +ei
 +if .not.crlibm
-!hr13     dtu1=dtu1+((vtu2*dble(iv5))*exp((iv5-1)*log(ep(1))))*         & !yil11
-!hr13&         exp(iv6*log(ep(2)))
           dtu1=dtu1+((vtu2*dble(iv5))*exp(dble(iv5-1)*log(ep(1))))*     &!hr13
      &         exp(dble(iv6)*log(ep(2)))                                 !hr13
 +ei
-!hr06     dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+vtu2*iv5*vtu1
          dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+(vtu2*dble(iv5))*vtu1 !hr06
         endif
         if(iv6.ne.0) then
-!hr06     dtu2=dtu2+vtu2*iv6*(ep(1)**iv5)*(ep(2)**(iv6-1))
 !          dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))     !hr06
 +if crlibm
-!hr13     dtu2=dtu2+((vtu2*dble(iv6))*exp_rn(iv5*log_rn(ep(1))))*       & !yil11
-!hr13&                exp_rn((iv6-1)*log_rn(ep(2)))
           dtu2=dtu2+((vtu2*dble(iv6))*exp_rn(dble(iv5)*log_rn(ep(1))))* &!hr13
      &                exp_rn(dble(iv6-1)*log_rn(ep(2)))                  !hr13
 +ei
 +if .not.crlibm
-!hr13     dtu2=dtu2+((vtu2*dble(iv6))*exp(iv5*log(ep(1))))*             & !yil11
-!hr13&                exp((iv6-1)*log(ep(2)))
           dtu2=dtu2+((vtu2*dble(iv6))*exp(dble(iv5)*log(ep(1))))*       &!hr13
      &                exp(dble(iv6-1)*log(ep(2)))                        !hr13
 +ei
-!hr06     dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+vtu2*iv6*vtu1
          dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+(vtu2*dble(iv6))*vtu1 !hr06
         endif
    10 continue
@@ -57041,9 +54348,7 @@ c$$$            endif
           t(i+1,j)=ta(j,i)
   120 t(i+1,j)=ta(j,i)
 !--EP=EMITTANCE IN PI*MM*MRAD
-!hr06 ep(1)=tam1*tam1/beta(1)
       ep(1)=tam1**2/beta(1)                                              !hr06
-!hr06 ep(2)=tam2*tam2/beta(2)
       ep(2)=tam2**2/beta(2)                                              !hr06
 !--SINGLE TURN BLOCKLOOP
       izu=0
@@ -57084,9 +54389,7 @@ c$$$            endif
   150     t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
           do 160 l=1,2
             ll=2*l
-!hr06       beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-!hr06       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
 +if crlibm
@@ -57098,7 +54401,6 @@ c$$$            endif
             else
               dphi=pi2-phibf(l)
             endif
-!hr06       if(-dphi.gt.pieni) dphi=dphi+pi
             if(-1d0*dphi.gt.pieni) dphi=dphi+pi                          !hr06
   160     phi(l)=phi(l)+dphi
           goto 200
@@ -57119,17 +54421,13 @@ c$$$            endif
             endif
             do i=1,ium
               puf=t(i,ll-1)
-!hr06         t(i,ll-1)=puf*a(jk,l,1)+t(i,ll)*a(jk,l,2)+dpr(i)*a(jk,l,5)
             t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-!hr06         t(i,ll)=puf*a(jk,l,3)+t(i,ll)*a(jk,l,4)+dpr(i)*a(jk,l,6)
             t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
             enddo
           enddo
           do l=1,2
             ll=2*l
-!hr06       beta(l)=t(ll,ll-1)*t(ll,ll-1)+t(ll+1,ll-1)*t(ll+1,ll-1)
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-!hr06       alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
 +if crlibm
@@ -57141,7 +54439,6 @@ c$$$            endif
             else
               dphi=-phibf(l)
             endif
-!hr06       if(kz(jk).ne.8.and.-dphi.gt.pieni) dphi=dphi+pi
             if(kz(jk).ne.8.and.-1d0*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi
           enddo
@@ -57278,7 +54575,6 @@ c$$$            endif
 +if tilt
 +ca multl07e
 +ei
-!hr06   izu=izu+2*mmul-2*nmz
         izu=(izu+2*mmul)-2*nmz                                           !hr06
         goto 460
 !--SKEW ELEMENTS
@@ -57329,23 +54625,18 @@ c$$$            endif
         t(1,4)=t(1,4)+dyy2
         do 470 i=2,ium
           if(kzz.eq.24) then
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*quz-qvz*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
           else
-!hr06       t(i,2)=t(i,2)+t(i,1)*qu-qv*t(i,3)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-!hr06       t(i,4)=t(i,4)-t(i,3)*qu-qv*t(i,1)
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   470   continue
         do 480 l=1,2
           ll=2*l
-!hr06     alfa(l)=-(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
           alfa(l)=-1d0*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))     !hr06
   480   continue
         if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 740
@@ -57359,7 +54650,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
         do 490 l=2,nmz
           l1=l-1
-!hr06  490   ab2(2)=ab2(2)+l1*(aa(l)*cr(l1)-bb(l)*ci(l1))
   490   ab2(2)=ab2(2)+dble(l1)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
   500   b1=beta(1)
         b2=beta(2)
@@ -57378,9 +54668,7 @@ c$$$            endif
         l2=1
         do 510 l=3,nmz
           l1=l-2
-!hr06     ab1(3)=ab1(3)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(3)=ab1(3)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(3)=ab2(3)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(3)=ab2(3)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   510   l2=l2*l/l1
   520   b(4,1)=b1*sb1
@@ -57397,14 +54685,10 @@ c$$$            endif
         l2=1
         do 530 l=4,nmz
           l1=l-3
-!hr06     ab1(4)=ab1(4)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(4)=ab1(4)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(4)=ab2(4)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(4)=ab2(4)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   530   l2=l2*l/l1
-!hr06  540   b(5,1)=b1*b1
   540   b(5,1)=b1**2                                                     !hr06
-!hr06   b(1,5)=b2*b2                                                    
         b(1,5)=b2**2                                                     !hr06
         b(4,2)=b(3,2)*sb1
         b(2,4)=b(2,3)*sb2
@@ -57419,9 +54703,7 @@ c$$$            endif
         l2=1
         do 550 l=5,nmz
           l1=l-4
-!hr06     ab1(5)=ab1(5)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(5)=ab1(5)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(5)=ab2(5)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(5)=ab2(5)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   550   l2=l2*l/l1
   560   b(6,1)=b(5,1)*sb1
@@ -57439,9 +54721,7 @@ c$$$            endif
         l2=1
         do 570 l=6,nmz
           l1=l-5
-!hr06     ab1(6)=ab1(6)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(6)=ab1(6)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(6)=ab2(6)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(6)=ab2(6)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   570   l2=l2*l/l1
   580   b(7,1)=b(6,1)*sb1
@@ -57460,9 +54740,7 @@ c$$$            endif
         l2=1
         do 590 l=7,nmz
           l1=l-6
-!hr06     ab1(7)=ab1(7)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(7)=ab1(7)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(7)=ab2(7)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(7)=ab2(7)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   590   l2=l2*l/l1
   600   b(8,1)=b(7,1)*sb1
@@ -57482,9 +54760,7 @@ c$$$            endif
         l2=1
         do 610 l=8,nmz
           l1=l-7
-!hr06     ab1(8)=ab1(8)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(8)=ab1(8)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(8)=ab2(8)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(8)=ab2(8)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   610   l2=l2*l/l1
   620   b(9,1)=b(8,1)*sb1
@@ -57504,9 +54780,7 @@ c$$$            endif
         l2=1
         do 630 l=9,nmz
           l1=l-8
-!hr06     ab1(9)=ab1(9)+l2*(aa(l)*ci(l1)+bb(l)*cr(l1))
           ab1(9)=ab1(9)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-!hr06     ab2(9)=ab2(9)+l2*(aa(l)*cr(l1)-bb(l)*ci(l1))
           ab2(9)=ab2(9)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   630   l2=l2*l/l1
   640   b(10,1)=b(9,1)*sb1
@@ -57526,29 +54800,22 @@ c$$$            endif
             n2=nv-np
             nn2=abs(n2)
             nn1=np-nn2
-!hr06       re1=nn1*qxt+n2*qzt
             re1=dble(nn1)*qxt+dble(n2)*qzt                               !hr06
             ip(np,nv)=int(re1+half)+ipt
-!hr06       if(-re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt
             if(-1d0*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt      !hr06
 !--RE=DISTANCE FROM THE RESONANCE
-!hr06       re(np,nv)=re1-ip(np,nv)
             re(np,nv)=re1-dble(ip(np,nv))                                !hr06
             res=re(np,nv)/radi
 +if crlibm
-!hr06       chy(np,nv)=cos_rn(nn1*phi(1)+n2*phi(2)-res*etl)
            chy(np,nv)=cos_rn((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
 +ei
 +if .not.crlibm
-!hr06       chy(np,nv)=cos(nn1*phi(1)+n2*phi(2)-res*etl)
            chy(np,nv)=cos((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
 +ei
 +if crlibm
-!hr06       shy(np,nv)=sin_rn(nn1*phi(1)+n2*phi(2)-res*etl)
            shy(np,nv)=sin_rn((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
 +ei
 +if .not.crlibm
-!hr06       shy(np,nv)=sin(nn1*phi(1)+n2*phi(2)-res*etl)
            shy(np,nv)=sin((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
 +ei
   660     continue
@@ -57563,7 +54830,6 @@ c$$$            endif
               nn2=abs(nv-np2)
               nv1=np2-nn2+(i-1)*2+1
               nv2=np-nv1+2
-!hr06         rn2=nn2*half
               rn2=dble(nn2)*half                                         !hr06
 !--EVENESS OF N2
               mm=0
@@ -57571,14 +54837,10 @@ c$$$            endif
               if(abs(gerad).le.pieni) mm=1
 !--MM=0 =>N2 UNEVEN, MM=1 => N2 EVEN
               if (mm.eq.0) goto 690
-!hr06         btc=ab1(np)*b(nv1,nv2)*chy(np2,nv)
               btc=(ab1(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-!hr06         bts=ab1(np)*b(nv1,nv2)*shy(np2,nv)
               bts=(ab1(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
               goto 700
-!hr06  690         btc=ab2(np)*b(nv1,nv2)*chy(np2,nv)
   690         btc=(ab2(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-!hr06         bts=ab2(np)*b(nv1,nv2)*shy(np2,nv)
               bts=(ab2(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
   700         rtc(np2,nv,np,i)=rtc(np2,nv,np,i)+btc
               rts(np2,nv,np,i)=rts(np2,nv,np,i)+bts
@@ -57598,7 +54860,6 @@ c$$$            endif
       eb=ep(2)
       e(3,1)=one/eb
       e(1,3)=one/ea
-!hr06 e(2,2)=one/seb/sea
       e(2,2)=(one/seb)/sea                                               !hr06
       nnf(4)=6
       nz2(3)=4
@@ -57646,9 +54907,7 @@ c$$$            endif
       e(1,9)=e(1,8)*seb
       e(8,2)=e(7,2)*sea
       e(2,8)=e(2,7)*seb
-!hr06 e(7,3)=ea*ea
       e(7,3)=ea**2                                                       !hr06
-!hr06 e(3,7)=eb*eb
       e(3,7)=eb**2                                                       !hr06
       e(6,4)=e(5,4)*sea
       e(4,6)=e(4,5)*seb
@@ -57666,7 +54925,6 @@ c$$$            endif
       e(6,5)=e(5,5)*sea
       e(5,6)=e(5,5)*seb
       do 780 np=nta,nte
-!hr06   vdt1=nnf(np)/(nz2(np)*pi)
         vdt1=dble(nnf(np))/(dble(nz2(np))*pi)                            !hr06
         np2=np
         nkk=0
@@ -57684,11 +54942,8 @@ c$$$            endif
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-!hr06       vdt2=vdt1*e(nv1,nv2)/(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4))
             vdt2=vdt1*e(nv1,nv2)/dble(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4)) !hr06
-!hr06       vdt3=nn2*ea+nn1*eb
             vdt3=dble(nn2)*ea+dble(nn1)*eb                               !hr06
-!hr06       if(n2.ge.0) vdt3=n2*nv21*ea+nn1*nv11*eb
             if(n2.ge.0) vdt3=dble(n2*nv21)*ea+dble(nn1*nv11)*eb          !hr06
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
             rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
@@ -58132,7 +55387,6 @@ c$$$            endif
         endif
       enddo
       ttot=ttot*10**2+itot
-!hr06 sumda(52)=float(ttot)
       sumda(52)=dble(ttot)                                               !hr06
 ! and put CPU time for Massimo
 ! so even if we go to 550 we now get the stats
@@ -58323,7 +55577,6 @@ c$$$            endif
         goto 550
       endif
 +ei !END +if stf
-!hr06 600  if((numl+1)/iskip/(iab-iaa)/iav.gt.nlya) nstop=iav*nlya
  600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
 
       rewind nfile
@@ -58337,9 +55590,7 @@ c$$$            endif
          read(nfile) !One header per particle pair.
       enddo
 +ei !END +if stf
-!hr06 sumda(5)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       sumda(5)=ta(1,1)**2+ta(1,2)**2                                     !hr06
-!hr06 sumda(6)=ta(3,3)*ta(3,3)+ta(3,4)*ta(3,4)
       sumda(6)=ta(3,3)**2+ta(3,4)**2                                     !hr06
       if(iconv.eq.1) then
         cma1=one
@@ -58396,59 +55647,32 @@ c$$$            endif
       ta63=ta(6,3)*c1e3
       ta64=ta(6,4)*c1e3
       ta65=ta(6,5)*c1e3
-!hr06 bet0(1)=ta(1,1)*ta(1,1)+ta(1,2)*ta(1,2)
       bet0(1)=ta(1,1)**2+ta(1,2)**2                                      !hr06
-!hr06 bet0x2 =ta(1,3)*ta(1,3)+ta(1,4)*ta(1,4)
       bet0x2 =ta(1,3)**2+ta(1,4)**2                                      !hr06
-!hr06 bet0x3 =ta(1,5)*ta(1,5)+ta16*ta16
       bet0x3 =ta(1,5)**2+ta16**2                                         !hr06
-!hr06 gam0x1 =ta(2,1)*ta(2,1)+ta(2,2)*ta(2,2)
       gam0x1 =ta(2,1)**2+ta(2,2)**2                                      !hr06
-!hr06 gam0x2 =ta(2,3)*ta(2,3)+ta(2,4)*ta(2,4)
       gam0x2 =ta(2,3)**2+ta(2,4)**2                                      !hr06
-!hr06 gam0x3 =ta(2,5)*ta(2,5)+ta26*ta26
       gam0x3 =ta(2,5)**2+ta26**2                                         !hr06
-!hr06 alf0(1)=-(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))
       alf0(1)=-1d0*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))                     !hr06
-!hr06 alf0x2 =-(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))
       alf0x2 =-1d0*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))                     !hr06
-!hr06 alf0x3 =-(ta(1,5)*ta(2,5)+ta16*ta26)
       alf0x3 =-1d0*(ta(1,5)*ta(2,5)+ta16*ta26)                           !hr06
-!hr06 bet0(2)=ta(3,3)*ta(3,3)+ta(3,4)*ta(3,4)
       bet0(2)=ta(3,3)**2+ta(3,4)**2                                      !hr06
-!hr06 bet0z2 =ta(3,1)*ta(3,1)+ta(3,2)*ta(3,2)
       bet0z2 =ta(3,1)**2+ta(3,2)**2                                      !hr06
-!hr06 bet0z3 =ta(3,5)*ta(3,5)+ta36*ta36
       bet0z3 =ta(3,5)**2+ta36**2                                         !hr06
-!hr06 gam0z1 =ta(4,3)*ta(4,3)+ta(4,4)*ta(4,4)
       gam0z1 =ta(4,3)**2+ta(4,4)**2                                      !hr06
-!hr06 gam0z2 =ta(4,1)*ta(4,1)+ta(4,2)*ta(4,2)
       gam0z2 =ta(4,1)**2+ta(4,2)**2                                      !hr06
-!hr06 gam0z3 =ta(4,5)*ta(4,5)+ta46*ta46
       gam0z3 =ta(4,5)**2+ta46**2                                         !hr06
-!hr06 alf0(2)=-(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))
       alf0(2)=-1d0*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))                     !hr06
-!hr06 alf0z2 =-(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))
       alf0z2 =-1d0*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))                     !hr06
-!hr06 alf0z3 =-(ta(3,5)*ta(4,5)+ta36*ta46)
       alf0z3 =-1d0*(ta(3,5)*ta(4,5)+ta36*ta46)                           !hr06
-!hr06 bet0(3)=ta(5,5)*ta(5,5)+ta56*ta56
       bet0(3)=ta(5,5)**2+ta56**2                                         !hr06
-!hr06 bet0s2 =ta(5,1)*ta(5,1)+ta(5,2)*ta(5,2)
       bet0s2 =ta(5,1)**2+ta(5,2)**2                                      !hr06
-!hr06 bet0s3 =ta(5,3)*ta(5,3)+ta(5,4)*ta(5,4)
       bet0s3 =ta(5,3)**2+ta(5,4)**2                                      !hr06
-!hr06 gam0s1 =ta65*ta65+ta(6,6)*ta(6,6)
       gam0s1 =ta65**2+ta(6,6)**2                                         !hr06
-!hr06 gam0s2 =ta61*ta61+ta62*ta62
       gam0s2 =ta61**2+ta62**2                                            !hr06
-!hr06 gam0s3 =ta63*ta63+ta64*ta64
       gam0s3 =ta63**2+ta64**2                                            !hr06
-!hr06 alf0(3)=-(ta(5,5)*ta65+ta56*ta(6,6))
       alf0(3)=-1d0*(ta(5,5)*ta65+ta56*ta(6,6))                           !hr06
-!hr06 alf0s2 =-(ta(5,1)*ta61+ta(5,2)*ta62)
       alf0s2 =-1d0*(ta(5,1)*ta61+ta(5,2)*ta62)                           !hr06
-!hr06 alf0s3 =-(ta(5,3)*ta63+ta(5,4)*ta64)
       alf0s3 =-1d0*(ta(5,3)*ta63+ta(5,4)*ta64)                           !hr06
       bet04(1)=bet0(1)
       bet04(2)=bet0(2)
@@ -58602,11 +55826,9 @@ c$$$            endif
       
 !--INITIALISATION
 +if crlibm
-!hr06 tpi=8*atan_rn(one)
       tpi=8d0*atan_rn(one)                                               !hr06
 +ei
 +if .not.crlibm
-!hr06 tpi=8*atan(one)
       tpi=8d0*atan(one)                                                  !hr06
 +ei
       prec=c1m1
@@ -58623,16 +55845,13 @@ c$$$            endif
       iap6=0
       ivo6=1
       qs0=zero
-!hr06 armin0=1e9
       armin0=1d9                                                         !hr06
       armin=armin0
       nivh=ninv/2
-!hr06 finv=tpi/ninv
       finv=tpi/dble(ninv)                                                !hr06
       dani(1)=zero
       dani(ninv+1)=tpi
       do 150 i=1,ninv-1
-!hr06  150 dani(i+1)=i*finv
   150 dani(i+1)=dble(i)*finv                                             !hr06
       dle1=zero
       bold=zero
@@ -58698,11 +55917,9 @@ c$$$            endif
       tasum=zero
       its6d=0
       do 170 i=1,6
-!hr06   tasum=tasum+abs(t(i,5))+abs(t(i,6))
         tasum=(tasum+abs(t(i,5)))+abs(t(i,6))                            !hr06
   170 continue
       do 180 i=1,4
-!hr06   tasum=tasum+abs(t(5,i))+abs(t(6,i))
         tasum=(tasum+abs(t(5,i)))+abs(t(6,i))                            !hr06
   180 continue
       tasum=tasum-two
@@ -58769,7 +55986,6 @@ c$$$            endif
         goto 550
       endif
       if(ifipa.lt.1) goto 190
-!hr06 if((ia-nstart).lt.zero) goto 190
       if((ia-nstart).lt.0) goto 190                                      !hr06
       if(progrm.eq.'MAD') then
 +if .not.stf
@@ -58814,7 +56030,6 @@ c$$$            endif
         x(2,6)=h1
         call distance(x,cloau,di0au,t,b)
       endif
-!hr06 if(nstop.gt.nstart.and.(ia-nstop).gt.zero) goto 200
       if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 200                   !hr06
       if(b.lt.b0.or.abs(b0).le.pieni) b0=b
       goto 190
@@ -59047,9 +56262,7 @@ c$$$            endif
 !--EMITTANCES
       xp0=bet0(1)*d+alf0(1)*c
       zp0=bet0(2)*f+alf0(2)*e
-!hr06 emx=(c*c+xp0*xp0)/bet0(1)
       emx=(c**2+xp0**2)/bet0(1)                                          !hr06
-!hr06 emz=(e*e+zp0*zp0)/bet0(2)
       emz=(e**2+zp0**2)/bet0(2)                                          !hr06
       if(icode.ge.4.and.its6d.ne.0) then
         c=c+di0(1)*h
@@ -59082,9 +56295,7 @@ c$$$            endif
       xyzv(6)=h
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-!hr06   xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
         xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-!hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
         xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
       endif
       do 220 iq=1,6
@@ -59102,9 +56313,7 @@ c$$$            endif
 +ei
       endif
 !--EMITTANCES WITH LINEAR COUPLING
-!hr06 evx=txyz(1)*txyz(1)+txyz(2)*txyz(2)
       evx=txyz(1)**2+txyz(2)**2                                          !hr06
-!hr06 evz=txyz(3)*txyz(3)+txyz(4)*txyz(4)
       evz=txyz(3)**2+txyz(4)**2                                          !hr06
 !     calculation second particle
       xyzv2(1)=c1
@@ -59115,9 +56324,7 @@ c$$$            endif
       xyzv2(6)=h1
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-!hr06   xyzv2(2)=xyzv2(2)*(one+xyzv2(6)+clop(3))
         xyzv2(2)=xyzv2(2)*((one+xyzv2(6))+clop(3))                       !hr06
-!hr06   xyzv2(4)=xyzv2(4)*(one+xyzv2(6)+clop(3))
         xyzv2(4)=xyzv2(4)*((one+xyzv2(6))+clop(3))                       !hr06
       endif
       do 225 iq=1,6
@@ -59125,14 +56332,11 @@ c$$$            endif
         do 225 jq=1,6
           txyz2(iq)=txyz2(iq)+t(jq,iq)*xyzv2(jq)
   225 continue
-!hr06 evx2=txyz2(1)*txyz2(1)+txyz2(2)*txyz2(2)
       evx2=txyz2(1)**2+txyz2(2)**2                                       !hr06
-!hr06 evz2=txyz2(3)*txyz2(3)+txyz2(4)*txyz2(4)
       evz2=txyz2(3)**2+txyz2(4)**2                                       !hr06
       write(toptit(3)(6:15),10010) sqrt(evx*bet0(1))+sqrt(evz*bet0x2)
       write(toptit(3)(23:32),10010) sqrt(evz*bet0(2))+sqrt(evx*bet0z2)
       if(its6d.eq.1) then
-!hr06   emiii=txyz(5)*txyz(5)*cma2*cma2+txyz(6)*txyz(6)*cma1*cma1
         emiii=txyz(5)**2*cma2**2+txyz(6)**2*cma1**2
       else
         emiii=zero
@@ -59341,9 +56545,7 @@ c$$$            endif
 !--EMITTANCES
       xp=bet0(1)*d+alf0(1)*c
       zp=bet0(2)*f+alf0(2)*e
-!hr06 emx=(c*c+xp*xp)/bet0(1)
       emx=(c**2+xp**2)/bet0(1)                                           !hr06
-!hr06 emz=(e*e+zp*zp)/bet0(2)
       emz=(e**2+zp**2)/bet0(2)                                           !hr06
       if(icode.ge.4.and.its6d.ne.0) then
         c=c+di0(1)*h
@@ -59370,9 +56572,7 @@ c$$$            endif
       xyzv(6)=h
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-!hr06   xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
         xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-!hr06   xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
         xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
       endif
       do 250 iq=1,6
@@ -59381,9 +56581,7 @@ c$$$            endif
           txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
   250 continue
 !--EMITTANCES WITH LINEAR COUPLING
-!hr06 evx1=txyz(1)*txyz(1)+txyz(2)*txyz(2)
       evx1=txyz(1)**2+txyz(2)**2                                         !hr06
-!hr06 evz1=txyz(3)*txyz(3)+txyz(4)*txyz(4)
       evz1=txyz(3)**2+txyz(4)**2                                         !hr06
 !--COURANT SYNDER CONT.
       do 260 iq=1,6
@@ -59426,11 +56624,9 @@ c$$$            endif
       if(b.gt.zero) dle1c=log(b)
 +ei
 +if crlibm
-!hr06 if(b.lt.zero) dle1c=-log_rn(-b)
       if(b.lt.zero) dle1c=-1d0*log_rn(-1d0*b)                            !hr06
 +ei
 +if .not.crlibm
-!hr06 if(b.lt.zero) dle1c=-log(-b)
       if(b.lt.zero) dle1c=-1d0*log(-1d0*b)                               !hr06
 +ei
       dle1=dle1+dle1c
@@ -59462,24 +56658,20 @@ c$$$            endif
       if(mod(i1,iav).eq.0) then
         if(i2.ge.nlya) goto 240
         i2=i2+1
-!hr06   dle(i2)=dle1/iav
         dle(i2)=dle1/dble(iav)                                           !hr06
         if(ia.gt.0) then
 +if crlibm
 !ERIC bug fixed...........
-!hr06     tle1=real(log_rn(dble(ia)))
 !eric     tle1=real(log_rn(dble(ia)))
 !bugfix   tle1=log_rn(dble(ia))                                          !hr06
           tle1=log_rn(dble(ia))                                          !hr06
 +ei
 +if .not.crlibm
-!hr06     tle1=log(real(ia))
 !eric     tle1=log(real(ia))
 !bugfix   tle1=log(dble(ia))                                             !hr06
           tle1=log(dble(ia))                                             !hr06
 +ei
           if(i2.gt.1) then
-!hr06       biav(i2-1)=bold/iav
             biav(i2-1)=bold/dble(iav)                                    !hr06
 +if debug
 !           call warr('biav',biav(i2-1),i2,0,0,0)
@@ -59637,27 +56829,18 @@ c$$$            endif
 +ei
         iapz=1
       endif
-!hr06 tphx=dphx/iapx
       tphx=dphx/dble(iapx)                                               !hr06
-!hr06 tphz=dphz/iapz
       tphz=dphz/dble(iapz)                                               !hr06
-!hr06 if(iap6.gt.0) tph6=dph6/iap6
       if(iap6.gt.0) tph6=dph6/dble(iap6)                                 !hr06
 !--STANDARD DEVIATION OF PHASEADVANCES
       do 290 i=1,iapx
-!hr06  290 sdpx=sdpx+(phase(1,i)-tphx)*(phase(1,i)-tphx)
   290 sdpx=sdpx+(phase(1,i)-tphx)**2                                     !hr06
       do 300 i=1,iapz
-!hr06  300 sdpz=sdpz+(phase(2,i)-tphz)*(phase(2,i)-tphz)
   300 sdpz=sdpz+(phase(2,i)-tphz)**2                                     !hr06
       do 310 i=1,iap6
-!hr06  310 sdp6=sdp6+(phase(3,i)-tph6)*(phase(3,i)-tph6)
   310 sdp6=sdp6+(phase(3,i)-tph6)**2                                     !hr06
-!hr06 sdpx=sqrt(sdpx)/iapx
       sdpx=sqrt(sdpx)/dble(iapx)                                         !hr06
-!hr06 sdpz=sqrt(sdpz)/iapz
       sdpz=sqrt(sdpz)/dble(iapz)                                         !hr06
-!hr06 if(iap6.gt.0) sdp6=sqrt(sdp6)/iap6
       if(iap6.gt.0) sdp6=sqrt(sdp6)/dble(iap6)                           !hr06
 !--AVERAGED EMITTANCES
       di11=i11
@@ -59772,9 +56955,7 @@ c$$$            endif
 !--MEAN EMITTANCES
         xp=bet0(1)*d+alf0(1)*c
         zp=bet0(2)*f+alf0(2)*e
-!hr06   emx=(c*c+xp*xp)/bet0(1)
         emx=(c**2+xp**2)/bet0(1)                                         !hr06
-!hr06   emz=(e*e+zp*zp)/bet0(2)
         emz=(e**2+zp**2)/bet0(2)                                         !hr06
         if(icode.ge.4.and.its6d.ne.0) then
           c=c+di0(1)*h
@@ -59783,11 +56964,8 @@ c$$$            endif
           f=f+dip0(2)*h
         endif
         emt=emx+emz
-!hr06   emxs=emxs+(emx-emxa)*(emx-emxa)
         emxs=emxs+(emx-emxa)**2                                          !hr06
-!hr06   emzs=emzs+(emz-emza)*(emz-emza)
         emzs=emzs+(emz-emza)**2                                          !hr06
-!hr06   emts=emts+(emt-emta)*(emt-emta)
         emts=emts+(emt-emta)**2                                          !hr06
 !--COURANT SYNDER
         xyzv(1)=c
@@ -59798,9 +56976,7 @@ c$$$            endif
         xyzv(6)=h
 !--CONVERT TO CANONICAL VARIABLES
         if(its6d.eq.1) then
-!hr06     xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
           xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                        !hr06
-!hr06     xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
           xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                        !hr06
         endif
 ! normalisation with t-matrix = inverse matrix of eigenvectors
@@ -59810,9 +56986,7 @@ c$$$            endif
             txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
   320   continue
 !--MEAN EMITTANCES WITH LINEAR COUPLING
-!hr06   evx=txyz(1)*txyz(1)+txyz(2)*txyz(2)
         evx=txyz(1)**2+txyz(2)**2                                        !hr06
-!hr06   evz=txyz(3)*txyz(3)+txyz(4)*txyz(4)
         evz=txyz(3)**2+txyz(4)**2                                        !hr06
 !--COURANT SYNDER CONT.
         do 330 iq=1,6
@@ -59826,11 +57000,8 @@ c$$$            endif
         h=txyz(6)
 !--MEAN EMITTANCES WITH LINEAR COUPLING CONT.
         evt=evx+evz
-!hr06   sevx=sevx+(evx-evxm)*(evx-evxm)
         sevx=sevx+(evx-evxm)**2                                          !hr06
-!hr06   sevz=sevz+(evz-evzm)*(evz-evzm)
         sevz=sevz+(evz-evzm)**2                                          !hr06
-!hr06   sevt=sevt+(evt-evtm)*(evt-evtm)
         sevt=sevt+(evt-evtm)**2                                          !hr06
   340 continue
   350 continue
@@ -59847,21 +57018,15 @@ c$$$            endif
       if(nstop.lt.ia.and.(ia.lt.numl.or.ia.lt.nint(dnumlr))) nlost=1
 +if vvector
       if(nnumxv(ifipa).eq.0.and.nnumxv(ilapa).eq.0) then
-!hr06   sumda(22)=ia
         sumda(22)=dble(ia)                                               !hr06
-!hr06   sumda(23)=ia
         sumda(23)=dble(ia)                                               !hr06
       else
-!hr06   sumda(22)=nnumxv(ifipa)
         sumda(22)=dble(nnumxv(ifipa))                                    !hr06
-!hr06   sumda(23)=nnumxv(ilapa)
         sumda(23)=dble(nnumxv(ilapa))                                    !hr06
       endif
 +ei
 +if .not.vvector
-!hr06 sumda(22)=ia
       sumda(22)=dble(ia)                                                 !hr06
-!hr06 sumda(23)=ia
       sumda(23)=dble(ia)                                                 !hr06
 +ei
 +if cr
@@ -59872,12 +57037,10 @@ c$$$            endif
 !       if (nint(sumda(23)).eq.numl) sumda(23)=dble(nnuml)
 !     endif
 +ei
-!hr06 sumda(2)=nlost
       sumda(2)=dble(nlost)
       sumda(9)=dp1-clop(3)
 !--GET DIFFERENCE IN THE NUMBER OF TURNS PER DATA ENTRY : TIDNT
 !--NOW CONSIDERING ONLY TURNS LARGER THAN NSTART
-!hr06 tidnt=(ia-nstart+idnt)/i11
       tidnt=dble(((ia-nstart)+idnt)/i11)                                 !hr06
       if(i2.ge.2) then
 +if cr
@@ -59889,7 +57052,6 @@ c$$$            endif
         ilyap=0
         slopem=zero
         do 360 i=1,i2-1
-!hr06     iturn=nint((i+1)*iav*tidnt)
           iturn=nint(dble((i+1)*iav)*tidnt)                              !hr06
 +if cr
           if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),     &
@@ -59909,7 +57071,6 @@ c$$$            endif
 +ei
         sumda(10)=biav(i2-1)
         if(ilyap.eq.0) then
-!hr06    sumda(11)=slope(i2-1)
          sumda(11)=slope(i2-1)                                           !hr06
         else
          sumda(11)=slopem
@@ -59946,7 +57107,6 @@ c$$$            endif
           jm1=j-1
           if(im1.eq.0.and.jm1.eq.0) goto 370
           if(im1+jm1.gt.ires) goto 370
-!hr06     ares=im1*tphx+jm1*tphz
           ares=dble(im1)*tphx+dble(jm1)*tphz                             !hr06
           dares=anint(ares)
           ares=ares-dares
@@ -59955,7 +57115,6 @@ c$$$            endif
             im1s=im1
             jm1s=jm1
           endif
-!hr06     ared=im1*tphx-jm1*tphz
           ared=dble(im1)*tphx-dble(jm1)*tphz                             !hr06
           dared=anint(ared)
           ared=ared-dared
@@ -59981,9 +57140,7 @@ c$$$            endif
 +ei
   370 continue
       if(armin.lt.armin0) then
-!hr06   sumda(16)=im1s
         sumda(16)=dble(im1s)                                             !hr06
-!hr06   sumda(17)=jm1s
         sumda(17)=dble(jm1s)                                             !hr06
         sumda(18)=sumda(16)+abs(sumda(17))
       endif
@@ -60085,34 +57242,26 @@ c$$$            endif
         do 400 i=if1,if2
           xxaux=sqrt(xxr(i)**2+xxi(i)**2)
           zzaux=sqrt(zzr(i)**2+zzi(i)**2)
-!hr06     if(abs(xxaux-xxmax).le.pieni) ffx=(i-1)/dife+qx0
           if(abs(xxaux-xxmax).le.pieni) ffx=(dble(i-1)/dife)+qx0         !hr06
-!hr06     if(abs(zzaux-zzmax).le.pieni) ffz=(i-1)/dife+qz0
           if(abs(zzaux-zzmax).le.pieni) ffz=(dble(i-1)/dife)+qz0         !hr06
           xxaux=xxaux/xxmax
           zzaux=zzaux/zzmax
 +if cr
-!hr06     if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190) (i-1)/dife
           if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190)           &!hr06
      &dble(i-1)/dife+qx0,xxaux*100d0                                     !hr06
 +ei
 +if .not.cr
-!hr06     if(xxaux.gt.dfft.and.nprint.eq.1) write(*,10190) (i-1)/dife
           if(xxaux.gt.dfft.and.nprint.eq.1) write(*,10190)              &!hr06
      &dble(i-1)/dife+qx0,xxaux*100d0                                     !hr06
 +ei
-!hr06&+qx0,xxaux*100
 +if cr
-!hr06     if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) (i-1)/dife
       if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) dble(i-1)/dife&!hr06
      &+qz0,zzaux*100d0                                                   !hr06
 +ei
 +if .not.cr
-!hr06     if(zzaux.gt.dfft.and.nprint.eq.1) write(*,10200) (i-1)/dife   &
       if(zzaux.gt.dfft.and.nprint.eq.1) write(*,10200) dble(i-1)/dife   &!hr06
      &+qz0,zzaux*100d0                                                   !hr06
 +ei
-!hr06&+qz0,zzaux*100
   400   continue
 +if cr
         if(nprint.eq.1) write(lout,10210) ffx,ffz,qwc(1),ffx-qwc(1),    &
@@ -60129,11 +57278,9 @@ c$$$            endif
             jm1=j-1
             if(im1.eq.0.and.jm1.eq.0) goto 410
             if(im1+jm1.gt.ires) goto 410
-!hr06       ares=im1*ffx+jm1*ffz
             ares=dble(im1)*ffx+dble(jm1)*ffz                             !hr06
             dares=anint(ares)
             ares=ares-dares
-!hr06       ared=im1*ffx-jm1*ffz
             ared=dble(im1)*ffx-dble(jm1)*ffz                             !hr06
             dared=anint(ared)
             ared=ared-dared
@@ -60189,13 +57336,9 @@ c$$$            endif
 ! This place 60 now used for CPU time seconds
 ! But it is set earlier in case particles are lost very early
       sumda(24)=dizu0
-!hr06 emax=emax/100*emxa+emxa
       emax=(emax/100d0)*emxa+emxa                                        !hr06
-!hr06 emix=emix/100*emxa+emxa
       emix=(emix/100d0)*emxa+emxa                                        !hr06
-!hr06 emaz=emaz/100*emza+emza
       emaz=(emaz/100d0)*emza+emza                                        !hr06
-!hr06 emiz=emiz/100*emza+emza
       emiz=(emiz/100d0)*emza+emza                                        !hr06
       sumda(28)=sqrt(bet0(1)*abs(emix))
       sumda(29)=sqrt(bet0(1)*emxa)
@@ -60203,13 +57346,9 @@ c$$$            endif
       sumda(31)=sqrt(bet0(2)*abs(emiz))
       sumda(32)=sqrt(bet0(2)*emza)
       sumda(33)=sqrt(bet0(2)*emaz)
-!hr06 evxma=evxma/100*evxm+evxm
       evxma=(evxma/100d0)*evxm+evxm                                      !hr06
-!hr06 evxmi=evxmi/100*evxm+evxm
       evxmi=(evxmi/100d0)*evxm+evxm                                      !hr06
-!hr06 evzma=evzma/100*evzm+evzm
       evzma=(evzma/100d0)*evzm+evzm                                      !hr06
-!hr06 evzmi=evzmi/100*evzm+evzm
       evzmi=(evzmi/100d0)*evzm+evzm                                      !hr06
       sumda(34)=sqrt(bet0(1)*abs(evxmi))
       sumda(35)=sqrt(bet0(1)*evxm)
@@ -60217,9 +57356,7 @@ c$$$            endif
       sumda(37)=sqrt(bet0(2)*abs(evzmi))
       sumda(38)=sqrt(bet0(2)*evzm)
       sumda(39)=sqrt(bet0(2)*evzma)
-!hr06 evtma=evtma/100*evtm+evtm
       evtma=(evtma/100d0)*evtm+evtm                                      !hr06
-!hr06 evtmi=evtmi/100*evtm+evtm
       evtmi=(evtmi/100d0)*evtm+evtm                                      !hr06
       if(abs(evxm+evzm).gt.pieni) then
         ratemx=evxm/(evxm+evzm)
@@ -60228,17 +57365,11 @@ c$$$            endif
         ratemx=zero
         ratemz=zero
       endif
-!hr06 sumda(40)=sqrt(bet0(1)*abs(evtmi)*ratemx)
       sumda(40)=sqrt((bet0(1)*abs(evtmi))*ratemx)                        !hr06
-!hr06 sumda(41)=sqrt(bet0(1)*evtm*ratemx)
       sumda(41)=sqrt((bet0(1)*evtm)*ratemx)                              !hr06
-!hr06 sumda(42)=sqrt(bet0(1)*evtma*ratemx)
       sumda(42)=sqrt((bet0(1)*evtma)*ratemx)                             !hr06
-!hr06 sumda(43)=sqrt(bet0(2)*abs(evtmi)*ratemz)
       sumda(43)=sqrt((bet0(2)*abs(evtmi))*ratemz)                        !hr06
-!hr06 sumda(44)=sqrt(bet0(2)*evtm*ratemz)
       sumda(44)=sqrt((bet0(2)*evtm)*ratemz)                              !hr06
-!hr06 sumda(45)=sqrt(bet0(2)*evtma*ratemz)
       sumda(45)=sqrt((bet0(2)*evtma)*ratemz)                             !hr06
 !--PUT IN THE CHROMATICITY
       sumda(50)=chromc(1)*c1e3
@@ -60304,32 +57435,24 @@ c$$$            endif
       do 420 i=1,ninv
         if(invx(i).gt.0) then
           nuix=nuix+1
-!hr06     xing=xing+xinv(i)/invx(i)
           xing=xing+xinv(i)/dble(invx(i))                                !hr06
         endif
         if(invz(i).gt.0) then
           nuiz=nuiz+1
-!hr06     zing=zing+zinv(i)/invz(i)
           zing=zing+zinv(i)/dble(invz(i))                                !hr06
         endif
   420 continue
-!hr06 pinx=nuix
       pinx=dble(nuix)                                                    !hr06
-!hr06 pinz=nuiz
       pinz=dble(nuiz)                                                    !hr06
       if(nuix.ne.0) then
         pixr=dble(nuez)/dble(nuix)
-!hr06   xing=xing/nuix
         xing=xing/dble(nuix)                                             !hr06
       endif
       if(nuiz.ne.0) then
         pizr=dble(nuex)/dble(nuiz)
-!hr06   zing=zing/nuiz
         zing=zing/dble(nuiz)                                             !hr06
       endif
-!hr06 pinx=pinx/ninv*100
       pinx=(pinx/dble(ninv))*100d0                                       !hr06
-!hr06 pinz=pinz/ninv*100
       pinz=(pinz/dble(ninv))*100d0                                       !hr06
 +if cr
       if(nprint.eq.1) write(lout,10230)
@@ -60360,7 +57483,6 @@ c$$$            endif
 !--PLOTTING
 !----------------------------------------------------------------------
       pmin(1)=zero
-!hr06 pmax(1)=ia
       pmax(1)=dble(ia)                                                   !hr06
       pmin(7)=pmin(3)
       pmax(7)=pmax(3)
@@ -60374,7 +57496,6 @@ c$$$            endif
       pmax(13)=pmax(5)
       pmin(14)=pmin(10)
       pmax(14)=pmax(10)
-!hr06 pmax(15)=ia
       pmax(15)=dble(ia)                                                  !hr06
       pmin(17)=pmin(3)
       pmax(17)=pmax(3)
@@ -60558,9 +57679,7 @@ c$$$            endif
             xyzv(6)=h
 !--CONVERT TO CANONICAL VARIABLES
             if(its6d.eq.1) then
-!hr06         xyzv(2)=xyzv(2)*(one+xyzv(6)+clop(3))
               xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                    !hr06
-!hr06         xyzv(4)=xyzv(4)*(one+xyzv(6)+clop(3))
               xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                    !hr06
             endif
             do 440 iq=1,6
@@ -60617,7 +57736,6 @@ c$$$            endif
               k1=k-if1+1
               xxaux=sqrt(xxr(k)**2+xxi(k)**2)
               xxaux=xxaux/xxmax
-!hr06         fxs(k1)=real((k-1)/dife+qx0)
               fxs(k1)=real(dble(k-1)/dife+qx0)                           !hr06
               if(iffw.eq.2) then
                 if(abs(xxaux).lt.pieni) then
@@ -60682,7 +57800,6 @@ c$$$            endif
               k1=k-if1+1
               zzaux=sqrt(zzr(k)**2+zzi(k)**2)
               zzaux=zzaux/zzmax
-!hr06         fxs(k1)=real((k-1)/dife+qz0)
               fxs(k1)=real(dble(k-1)/dife+qz0)                           !hr06
               if(iffw.eq.2) then
                 if(abs(zzaux).lt.pieni) then
@@ -60705,7 +57822,6 @@ c$$$            endif
                 fzs(k1)=real(log10_rn(zzaux))
 +ei
 +if .not.crlibm
-!hr06           fzs(k1)=log10(real(zzaux))
                 fzs(k1)=real(log10(zzaux))                               !hr06
 +ei
               else
@@ -61697,19 +58813,15 @@ c$$$            endif
         ur=one
         ui=zero
 +if crlibm
-!hr06   wr=cos_rn(pi/le1)
         wr=cos_rn(pi/dble(le1))                                          !hr06
 +ei
 +if .not.crlibm
-!hr06   wr=cos(pi/le1)
         wr=cos(pi/dble(le1))                                             !hr06
 +ei
 +if crlibm
-!hr06   wi=-sin_rn(pi/le1)
         wi=-1d0*sin_rn(pi/dble(le1))                                     !hr06
 +ei
 +if .not.crlibm
-!hr06   wi=-sin(pi/le1)
         wi=-1d0*sin(pi/dble(le1))                                        !hr06
 +ei
         do 50 j=1,le1
@@ -61727,9 +58839,7 @@ c$$$            endif
         ur=uur
    50 continue
       do 60 i=1,n
-!hr06   ar(i)=ar(i)/n*2
         ar(i)=(ar(i)/dble(n))*2                                          !hr06
-!hr06   ai(i)=ai(i)/n*2
         ai(i)=(ai(i)/dble(n))*2                                          !hr06
    60 continue
       return
@@ -61774,11 +58884,9 @@ c$$$            endif
       save
 !---------------------------------------------------------------------
 +if crlibm
-!hr06 tpi=8*atan_rn(one)
       tpi=8d0*atan_rn(one)                                               !hr06
 +ei
 +if .not.crlibm
-!hr06 tpi=8*atan(one)
       tpi=8d0*atan(one)                                                  !hr06
 +ei
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
@@ -61844,14 +58952,11 @@ c$$$            endif
 !---------------------------------------------------------------------
       if(abs(a).gt.pieni) then
         if(c.gt.pieni.and.b.gt.pieni) then
-!hr06     c=sqrt(c/b)/a*100
           c=(sqrt(c/b)/a)*100d0                                          !hr06
         else
           c=zero
         endif
-!hr06   d=(d-a)/a*100
         d=((d-a)/a)*100d0                                                !hr06
-!hr06   e=(e-a)/a*100
         e=((e-a)/a)*100d0                                                !hr06
       else
         c=zero
@@ -62302,7 +59407,6 @@ c$$$            endif
       nsli=param(ne,2)
       alpha=param(ne,3)
       phi2=param(ne,5)
-!hr06 f=param(ne,4)/nsli
       f=param(ne,4)/dble(nsli)                                           !hr06
 +if crlibm
       sphi=sin_rn(phi)
@@ -62373,33 +59477,20 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
-!hr06   h=track(6,i)+one-sqrt((one+track(6,i))**2-                      &
-!hr06&track(2,i)**2-track(4,i)**2)
         h=(track(6,i)+one)-sqrt(((one+track(6,i))**2-                   &!hr06
      &track(2,i)**2)-track(4,i)**2)                                      !hr06
-!hr06   track(6,i)=track(6,i)-calpha*tphi*track(2,i)                    &
-!hr06&-track(4,i)*salpha*tphi+h*tphi*tphi
         track(6,i)=((track(6,i)-(calpha*tphi)*track(2,i))               &!hr06
      &-(track(4,i)*salpha)*tphi)+h*tphi**2                               !hr06
-!hr06   track(2,i)=(track(2,i)-tphi*h*calpha)/cphi
         track(2,i)=(track(2,i)-(tphi*h)*calpha)/cphi                     !hr06
-!hr06   track(4,i)=(track(4,i)-tphi*h*salpha)/cphi
         track(4,i)=(track(4,i)-(tphi*h)*salpha)/cphi                     !hr06
-!hr06   hd1=sqrt((one+track(6,i))**2-track(2,i)**2-track(4,i)**2)
         hd1=sqrt(((one+track(6,i))**2-track(2,i)**2)-track(4,i)**2)      !hr06
         h1x=track(2,i)/hd1
         h1y=track(4,i)/hd1
         h1z=one-(one+track(6,i))/hd1
-!hr06   x1=calpha*tphi*track(5,i)+(one+calpha*sphi*h1x)*track(1,i)      &
-!hr06&+track(3,i)*salpha*sphi*h1x
         x1=((calpha*tphi)*track(5,i)+(one+(calpha*sphi)*h1x)*track(1,i))&!hr06
      &+((track(3,i)*salpha)*sphi)*h1x                                    !hr06
-!hr06   y1=salpha*tphi*track(5,i)+(one+salpha*sphi*h1y)*track(3,i)      &
-!hr06&+track(1,i)*calpha*sphi*h1y
         y1=((salpha*tphi)*track(5,i)+(one+(salpha*sphi)*h1y)*track(3,i))&!hr06
      &+((track(1,i)*calpha)*sphi)*h1y                                    !hr06
-!hr06   track(5,i)=track(5,i)/cphi+h1z*(sphi*calpha*track(1,i)          &
-!hr06&+sphi*salpha*track(3,i))
         track(5,i)=track(5,i)/cphi+h1z*((sphi*calpha)*track(1,i)        &!hr06
      &+(sphi*salpha)*track(3,i))                                         !hr06
         track(1,i)=x1
@@ -62440,16 +59531,11 @@ c$$$            endif
           s=(track(5,i)-star(3,jsli))*half
           !write(*,*)'JBG - cphi2',cphi2
           sp=s/cphi2 
-!hr06     dum(1)=bcu(ibb,1)+two*bcu(ibb,4)*sp+bcu(ibb,6)*sp*sp
           dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2       !hr06
-!hr06     dum(2)=bcu(ibb,2)+two*bcu(ibb,9)*sp+bcu(ibb,10)*sp*sp
           dum(2)=(bcu(ibb,2)+(two*bcu(ibb,9))*sp)+bcu(ibb,10)*sp**2      !hr06
-!hr06     dum(3)=bcu(ibb,3)+(bcu(ibb,5)+bcu(ibb,7))*sp+                 &
-!hr06&bcu(ibb,8)*sp*sp
           dum(3)=(bcu(ibb,3)+(bcu(ibb,5)+bcu(ibb,7))*sp)+               &!hr06
      &bcu(ibb,8)*sp**2                                                   !hr06
           dum(4)=dum(1)-dum(2)
-!hr06     dum(5)=dum(4)*dum(4)+four*dum(3)*dum(3)
           dum(5)=dum(4)**2+four*dum(3)**2                                !hr06
           if(ibbc.eq.1.and.(abs(dum(4)).gt.pieni.and.                   &
      &abs(dum(5)).gt.pieni)) then
@@ -62459,15 +59545,11 @@ c$$$            endif
             ibbc1=0
           endif
         !JBG New set of canonical set of variables at the Col point (CP)
-!hr06     sepx0=track(1,i)+track(2,i)*s-star(1,jsli)
           sepx0=(track(1,i)+track(2,i)*s)-star(1,jsli)                   !hr06
-!hr06     sepy0=track(3,i)+track(4,i)*s-star(2,jsli)
           sepy0=(track(3,i)+track(4,i)*s)-star(2,jsli)                   !hr06
           if(ibbc1.eq.1) then
             sfac=one
-!hr06       if(dum(4).lt.zero) sfac=-one
             if(dum(4).lt.zero) sfac=-1d0*one                             !hr06
-!hr06       dum(6)=sfac*dum(4)/dum(5)
             dum(6)=(sfac*dum(4))/dum(5)                                  !hr06
             dum(7)=dum(1)+dum(2)
             costh=half*(one+dum(6))
@@ -62478,18 +59560,15 @@ c$$$            endif
             endif
             sinth=half*(one-dum(6))
             if(abs(sinth).gt.pieni) then
-!hr06         sinth=-sfac*sqrt(sinth)
               sinth=(-1d0*sfac)*sqrt(sinth)                              !hr06
             else
               sinth=zero
             endif
-!hr06       if(dum(3).lt.zero) sinth=-sinth
             if(dum(3).lt.zero) sinth=-1d0*sinth                          !hr06
             sy=sfac*dum(5)
             sx=(dum(7)+sy)*half
             sy=(dum(7)-sy)*half
             sepx=sepx0*costh+sepy0*sinth
-!hr06       sepy=-sepx0*sinth+sepy0*costh
             sepy=sepy0*costh-sepx0*sinth                                 !hr06
           else
             sx=dum(1)
@@ -62507,23 +59586,15 @@ c$$$            endif
           bbgx=f*bbgx
           bbgy=f*bbgy
           if(ibbc1.eq.1) then
-!hr06       dum(8)=two*(bcu(ibb,4)-bcu(ibb,9)+                          &
-!hr06&(bcu(ibb,6)-bcu(ibb,10))*sp)
             dum(8)=two*((bcu(ibb,4)-bcu(ibb,9))+                        &!hr06
      &(bcu(ibb,6)-bcu(ibb,10))*sp)                                       !hr06
-!hr06       dum(9)=bcu(ibb,5)+bcu(ibb,7)+two*bcu(ibb,8)*sp
             dum(9)=(bcu(ibb,5)+bcu(ibb,7))+(two*bcu(ibb,8))*sp           !hr06
-!hr06       dum(10)=(dum(4)*dum(8)+four*dum(3)*dum(9))/                 &
-!hr06&dum(5)/dum(5)/dum(5)
             dum(10)=(((dum(4)*dum(8)+(four*dum(3))*dum(9))/             &!hr06
      &dum(5))/dum(5))/dum(5)                                             !hr06
             dum(11)=sfac*(dum(8)/dum(5)-dum(4)*dum(10))
-!hr06       dum(12)=bcu(ibb,4)+bcu(ibb,9)+(bcu(ibb,6)+bcu(ibb,10))*sp
             dum(12)=(bcu(ibb,4)+bcu(ibb,9))+(bcu(ibb,6)+bcu(ibb,10))*sp  !hr06
-!hr06       dum(13)=sfac*(dum(4)*dum(8)*half+two*dum(3)*dum(9))/dum(5)
       dum(13)=(sfac*((dum(4)*dum(8))*half+(two*dum(3))*dum(9)))/dum(5)   !hr06
             if(abs(costh).gt.pieni) then
-!hr06         costhp=dum(11)/four/costh
               costhp=(dum(11)/four)/costh                                !hr06
             else
               costhp=zero
@@ -62533,11 +59604,6 @@ c$$$            endif
             else
               sinthp=zero
             endif
-!hr06       track(6,i)=track(6,i)-                                      &
-!hr06&(bbfx*(costhp*sepx0+sinthp*sepy0)+                                &
-!hr06&bbfy*(-sinthp*sepx0+costhp*sepy0)+                                &
-!hr06&bbgx*(dum(12)+dum(13))+bbgy*(dum(12)-dum(13)))/                   &
-!hr06&cphi*half
             track(6,i)=track(6,i)-                                      &!hr06
      &((((bbfx*(costhp*sepx0+sinthp*sepy0)+                             &!hr06
      &bbfy*(costhp*sepy0-sinthp*sepx0))+                                &!hr06
@@ -62586,47 +59652,29 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
       do 1000 i=1,np
-!hr06   h1d=sqrt((one+track(6,i))**2-track(2,i)**2-track(4,i)**2)
         h1d=sqrt(((one+track(6,i))**2-track(2,i)**2)-track(4,i)**2)      !hr06
         h1x=track(2,i)/h1d
         h1y=track(4,i)/h1d
         h1z=one-(one+track(6,i))/h1d
-!hr06   h1=(track(6,i)+one-sqrt((one+track(6,i))**2-                    &
-!hr06&track(2,i)**2-track(4,i)**2))*cphi*cphi
         h1=((track(6,i)+one)-sqrt(((one+track(6,i))**2-                 &!hr06
      &track(2,i)**2)-track(4,i)**2))*cphi**2                             !hr06
-!hr06   det=one/cphi+tphi*(h1x*calpha+h1y*salpha-h1z*sphi)
         det=one/cphi+tphi*((h1x*calpha+h1y*salpha)-h1z*sphi)             !hr06
-!hr06   x1= track(1,i)*(one/cphi+salpha*(h1y-h1z*salpha*sphi)*tphi)     &
-!hr06&+track(3,i)*salpha*tphi*(-h1x+h1z*calpha*sphi)                    &
-!hr06&-track(5,i)*(calpha+h1y*calpha*salpha*sphi                        &
-!hr06&-h1x*salpha*salpha*sphi)*tphi
         x1= (track(1,i)*(one/cphi+(salpha*(h1y-(h1z*salpha)*sphi))*tphi)&!hr06
      &+((track(3,i)*salpha)*tphi)*((h1z*calpha)*sphi-h1x))              &!hr06
      &-(track(5,i)*((calpha+((h1y*calpha)*salpha)*sphi)                 &!hr06
      &-(h1x*salpha**2)*sphi))*tphi                                       !hr06
-!hr06   y1= track(1,i)*calpha*tphi*(-h1y+h1z*salpha*sphi)               &
-!hr06&+track(3,i)*(one/cphi+calpha*(h1x-h1z*calpha*sphi)*tphi)          &
-!hr06&-track(5,i)*(salpha-h1y*calpha*calpha*sphi                        &
-!hr06&+h1x*calpha*salpha*sphi)*tphi
         y1= (((track(1,i)*calpha)*tphi)*((h1z*salpha)*sphi-h1y)         &!hr06
      &+track(3,i)*(one/cphi+(calpha*(h1x-(h1z*calpha)*sphi))*tphi))     &!hr06
      &-(track(5,i)*(salpha-(h1y*calpha**2)*sphi                         &!hr06
      &+((h1x*calpha)*salpha)*sphi))*tphi                                 !hr06
-!hr06   z1=-track(1,i)*h1z*calpha*sphi-track(3,i)*h1z*salpha*sphi       &
-!hr06&+track(5,i)*(one+h1x*calpha*sphi+h1y*salpha*sphi)
         z1= (track(5,i)*((one+(h1x*calpha)*sphi)+(h1y*salpha)*sphi)     &!hr06
      &-((track(1,i)*h1z)*calpha)*sphi)-((track(3,i)*h1z)*salpha)*sphi    !hr06
         track(1,i)=x1/det
         track(3,i)=y1/det
         track(5,i)=z1/det
-!hr06   track(6,i)=track(6,i)+calpha*sphi*track(2,i)                    &
-!hr06&+salpha*sphi*track(4,i)
         track(6,i)=(track(6,i)+(calpha*sphi)*track(2,i))                &!hr06
      &+(salpha*sphi)*track(4,i)                                          !hr06
-!hr06   track(2,i)=(track(2,i)+calpha*sphi*h1)*cphi
         track(2,i)=(track(2,i)+(calpha*sphi)*h1)*cphi                    !hr06
-!hr06   track(4,i)=(track(4,i)+salpha*sphi*h1)*cphi
         track(4,i)=(track(4,i)+(salpha*sphi)*h1)*cphi                    !hr06
  1000 continue
       return
@@ -62666,11 +59714,9 @@ c$$$            endif
         const=0.0d0
         if(abs(xxyy).gt.pieni) const=x/xxyy
 +if crlibm
-!hr06   expfac=exp_rn(-const)
         expfac=exp_rn(-1d0*const)                                        !hr06
 +ei
 +if .not.crlibm
-!hr06   expfac=exp(-const)
         expfac=exp(-1d0*const)                                           !hr06
 +ei
         bbfx=0.0d0
@@ -62678,16 +59724,11 @@ c$$$            endif
         bbgx=0.0d0
         bbgy=0.0d0
         if(abs(x).gt.pieni) then
-!hr06     bbfx=2.0d0*sepx*(1d0-expfac)/x
           bbfx=((2.0d0*sepx)*(1d0-expfac))/x                             !hr06
-!hr06     bbfy=2.0d0*sepy*(1d0-expfac)/x
           bbfy=((2.0d0*sepy)*(1d0-expfac))/x                             !hr06
-!hr06     comfac=-sepx*bbfx+sepy*bbfy
           comfac=sepy*bbfy-sepx*bbfx                                     !hr06
           comfac2=(abs(sigxx)+abs(sigyy))**2
-!hr06     bbgx=(comfac+4d0*sepx**2*const/x*expfac)/(2d0*x)
           bbgx=(comfac+(((4d0*sepx**2)*const)/x)*expfac)/(2d0*x)         !hr06
-!hr06     bbgy=(-comfac+4d0*sepy**2*const/x*expfac)/(2d0*x)
           bbgy=((((4d0*sepy**2)*const)/x)*expfac-comfac)/(2d0*x)         !hr06
         endif
       else
@@ -62702,11 +59743,9 @@ c$$$            endif
         if(ibtyp.eq.1) call wzsub(arg1x,arg1y,wy1,wx1)
         if(x.lt.100.d0) then
 +if crlibm
-!hr06     expfac=exp_rn(-x*0.5d0)
           expfac=exp_rn(-0.5d0*x)                                        !hr06
 +ei
 +if .not.crlibm
-!hr06     expfac=exp(-x*0.5d0)
           expfac=exp(-0.5d0*x)                                           !hr06
 +ei
           arg2x=arg1x/sigxy
@@ -62715,26 +59754,18 @@ c$$$            endif
           if(ibtyp.eq.1) call wzsub(arg2x,arg2y,wy2,wx2)
           bbfx=const*(wx1-expfac*wx2)
           bbfy=const*(wy1-expfac*wy2)
-!hr06     if(sepx.lt.0) bbfx=-bbfx
           if(sepx.lt.0) bbfx=-1d0*bbfx                                   !hr06
-!hr06     if(sepy.lt.0) bbfy=-bbfy
           if(sepy.lt.0) bbfy=-1d0*bbfy                                   !hr06
           comfac=sepx*bbfx+sepy*bbfy
-!hr06     bbgx=-(comfac+2d0*(expfac/sigxy -1))/fac2
           bbgx=(-1d0*(comfac+2d0*(expfac/sigxy -1d0)))/fac2              !hr06
-!hr06     bbgy= (comfac+2d0*(expfac*sigxy -1))/fac2
           bbgy= (comfac+2d0*(expfac*sigxy -1d0))/fac2                    !hr06
         else
           bbfx=const*wx1
           bbfy=const*wy1
-!hr06     if(sepx.lt.0) bbfx=-bbfx
           if(sepx.lt.0) bbfx=-1d0*bbfx                                   !hr06
-!hr06     if(sepy.lt.0) bbfy=-bbfy
           if(sepy.lt.0) bbfy=-1d0*bbfy                                   !hr06
           comfac=sepx*bbfx+sepy*bbfy
-!hr06     bbgx=-(comfac-2d0)/fac2
           bbgx=(-1d0*(comfac-2d0))/fac2                                  !hr06
-!hr06     bbgy= -bbgx
           bbgy= -1d0*bbgx                                                !hr06
         endif
       endif
@@ -62780,25 +59811,17 @@ c$$$            endif
 !  divided two borders.
       bord=+border
       do 101 i=nsli,1,-1
-!hr06   yy=1d0/dble(nsli)*(i-1)
         yy=(1d0/dble(nsli))*dble(i-1)                                    !hr06
-!hr06   if(i.ne.1) bord1=dble(gauinv(yy))
         if(i.ne.1) bord1=gauinv(yy)                                      !hr06
-!hr06   if(i.eq.1) bord1=-border
         if(i.eq.1) bord1=-1d0*border                                     !hr06
 +if crlibm
-!hr06   star(3,i)=(exp_rn(-bord**2*half)-exp_rn(-bord1**2*half))/
-!hr06&sqrt(2d0*pi)*dble(nsli)*sigz
         star(3,i)=(((exp_rn((-1d0*bord**2)*half)-                       &!hr06
      &exp_rn((-1d0*bord1**2)*half))/sqrt(2d0*pi))*dble(nsli))*sigz       !hr06
 +ei
 +if .not.crlibm
-!hr06   star(3,i)=(exp(-bord**2*half)-exp(-bord1**2*half))/             &
-!hr06&sqrt(2d0*pi)*dble(nsli)*sigz
        star(3,i)=(((exp((-1d0*bord**2)*half)-exp((-1d0*bord1**2)*half))/&!hr06
      &sqrt(2d0*pi))*dble(nsli))*sigz                                     !hr06
 +ei
-!hr06&sqrt(2d0*pi)*dble(nsli)*sigz
         bord=bord1
         !JBG When doing slicing phi=0 for crab crossing
         ! star(1,i)=0.
@@ -62806,9 +59829,7 @@ c$$$            endif
         !JBG When doing slicing phi2 different tiltings of the strong beam
         star(1,i)=(star(3,i)*sphi2)*calpha
         star(2,i)=(star(3,i)*sphi2)*salpha  
-!hr06   star(1,i)=star(3,i)*sphi*calpha
         !star(1,i)=(star(3,i)*sphi)*calpha                                !hr06
-!hr06   star(2,i)=star(3,i)*sphi*salpha
         !star(2,i)=(star(3,i)*sphi)*salpha                                !hr06
  101  continue
       return
@@ -62878,9 +59899,7 @@ c$$$            endif
 +if .not.crlibm
       t=sqrt(-2d0*log(q))
 +ei
-!hr06 gauinv=t+f0+f1/(f2+t)
       gauinv=(t+f0)+f1/(f2+t)                                            !hr06
-!hr06 200  if(p.lt.0d0) gauinv=-gauinv
  200  if(p.lt.0d0) gauinv=-1d0*gauinv                                    !hr06
       return
 +if cr
@@ -63097,12 +60116,9 @@ c$$$            endif
 !
       det=a(1,1)*a(2,2)-a(1,2)*a(2,1)
       if(det.eq.0.) goto 8
-!hr07 s=1d0/det
       s=1e0/det                                                          !hr07
       c11   =s*a(2,2)
-!hr07 a(1,2)=-s*a(1,2)
       a(1,2)=(-1e0*s)*a(1,2)                                             !hr07
-!hr07 a(2,1)=-s*a(2,1)
       a(2,1)=(-1e0*s)*a(2,1)                                             !hr07
       a(2,2)=s*a(1,1)
       a(1,1)=c11
@@ -63111,7 +60127,6 @@ c$$$            endif
 !  N=1 CASE.
 !
     5 if(a(1,1).eq.0.) goto 8
-!hr07 a(1,1)=1d0/a(1,1)
       a(1,1)=1e0/a(1,1)                                                  !hr07
       return
 !
@@ -63184,11 +60199,8 @@ c$$$            endif
       c31=a(1,2)*a(2,3)-a(1,3)*a(2,2)
       c32=a(1,3)*a(2,1)-a(1,1)*a(2,3)
       c33=a(1,1)*a(2,2)-a(1,2)*a(2,1)
-!hr07 t1=abs(sngl(a(1,1)))
       t1=abs(real(a(1,1)))                                               !hr07
-!hr07 t2=abs(sngl(a(2,1)))
       t2=abs(real(a(2,1)))                                               !hr07
-!hr07 t3=abs(sngl(a(3,1)))
       t3=abs(real(a(3,1)))                                               !hr07
 !
 !     (SET TEMP=PIVOT AND DET=PIVOT*DET.)
@@ -63229,9 +60241,7 @@ c$$$            endif
       if(det.eq.0d0) goto 8
       s=1d0/det
       c11   =s*a(2,2)
-!hr07 a(1,2)=-s*a(1,2)
       a(1,2)=(-1d0*s)*a(1,2)                                             !hr07
-!hr07 a(2,1)=-s*a(2,1)
       a(2,1)=(-1d0*s)*a(2,1)                                             !hr07
       a(2,2)=s*a(1,1)
       a(1,1)=c11
@@ -63333,7 +60343,6 @@ c$$$            endif
       character*6 hname
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
-!hr07 data      g1, g2              /  1.0d-37,  1.0d37  /
       data      g1, g2              /  1.0e-37,  1.0e37  /               !hr07
       data      hname               /  ' RFACT'  /
       data      zero, one           /  0., 1.  /
@@ -63390,22 +60399,17 @@ c$$$            endif
          jm1  =  j-1
          jp1  =  j+1
          do 143   k  =  jp1, n
-!hr07       s11  =  -a(j,k)
             s11  =  -1d0*dble(a(j,k))                                    !hr07
-!hr07       s12  =  -a(k,j+1)
             s12  =  -1d0*dble(a(k,j+1))                                  !hr07
             if(j .eq. 1)  goto 142
             do 141  i  =  1, jm1
                s11  =  dotf(a(i,k),a(j,i),s11)
                s12  =  dotf(a(i,j+1),a(k,i),s12)
  141           continue
-!hr07 142        a(j,k)    =  -s11 * a(j,j)
  142        a(j,k)    =  real((-1d0*s11) * dble(a(j,j)))                 !hr07
-!hr07       a(k,j+1)  =  -dotf(a(j,j+1),a(k,j),s12)
             a(k,j+1)  =  real(-1d0*dotf(a(j,j+1),a(k,j),s12))            !hr07
  143        continue
  144     continue
-!hr07 if(mod(nxch,2) .ne. 0)  det  =  -det
  150  if(mod(nxch,2) .ne. 0)  det  =  -1e0*det
       if(jfail .ne. jrange)   det  =  zero
       ir(n)  =  nxch
@@ -63426,7 +60430,6 @@ c$$$            endif
       character*6         hname
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
-!hr07 data      g1, g2              /  1.0d-37,  1.0d37  /
       data      g1, g2              /  1.0e-37,  1.0e37  /               !hr07
       data      hname               /  ' DFACT'  /
       data      zero, one           /  0.d0, 1.d0  /
@@ -63435,9 +60438,7 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
       ipairf(j,k)  =  j*2**12 + k
-!hr07 pivotf(x)    =  abs(sngl(x))
       pivotf(x)    =  abs(real(x))                                       !hr07
-!hr07 sizef(x)     =  abs(sngl(x))
       sizef(x)     =  abs(real(x))                                       !hr07
       dotf(x,y,s11)  =  x * y + s11
       if(idim .ge. n  .and.  n .gt. 0)  goto 110
@@ -63485,22 +60486,17 @@ c$$$            endif
          jm1  =  j-1
          jp1  =  j+1
          do 143   k  =  jp1, n
-!hr07       s11  =  -a(j,k)
             s11  =  -1d0*a(j,k)                                          !hr07
-!hr07       s12  =  -a(k,j+1)
             s12  =  -1d0*a(k,j+1)                                        !hr07
             if(j .eq. 1)  goto 142
             do 141  i  =  1, jm1
                s11  =  dotf(a(i,k),a(j,i),s11)
                s12  =  dotf(a(i,j+1),a(k,i),s12)
  141           continue
-!hr07 142        a(j,k)    =  -s11 * a(j,j)
  142        a(j,k)    =  (-1d0*s11) * a(j,j)                             !hr07
-!hr07       a(k,j+1)  =  -dotf(a(j,j+1),a(k,j),s12)
             a(k,j+1)  =  -1d0*dotf(a(j,j+1),a(k,j),s12)                  !hr07
  143        continue
  144     continue
-!hr07 150 if(mod(nxch,2) .ne. 0)  det  =  -det
  150  if(mod(nxch,2) .ne. 0)  det  =  -1d0*det                           !hr07
       if(jfail .ne. jrange)   det  =  zero
       ir(n)  =  nxch
@@ -63545,18 +60541,15 @@ c$$$            endif
       do 243    l  =  1, k
          do 232   i  =  2, n
             im1  =  i-1
-!hr07       s21  =  - b(i,l)
             s21  =  -1d0* dble(b(i,l))                                   !hr07
             do 231   j  =  1, im1
                s21  =  dotf(a(i,j),b(j,l),s21)
  231           continue
-!hr07       b(i,l)  =  - a(i,i)*s21
             b(i,l)  =  real((-1d0*dble(a(i,i)))*s21)                     !hr07
  232        continue
          nm1  =  n-1
          do 242   i  =  1, nm1
             nmi  =  n-i
-!hr07       s22  =  - b(nmi,l)
             s22  =  -1d0*dble(b(nmi,l))                                  !hr07
             do 241   j  =  1, i
                nmjp1  =  n - j+1
@@ -63611,19 +60604,16 @@ c$$$            endif
             do 231   j  =  1, im1
                s21  =  dotf(a(i,j),b(j,l),s21)
  231           continue
-!hr07       b(i,l)  =  - a(i,i)*s21
             b(i,l)  =  (-1d0*a(i,i))*s21                                 !hr07
  232        continue
          nm1  =  n-1
          do 242   i  =  1, nm1
             nmi  =  n-i
-!hr07       s22  =  - b(nmi,l)
             s22  =  -1d0*b(nmi,l)                                        !hr07
             do 241   j  =  1, i
                nmjp1  =  n - j+1
                s22    =  dotf(a(nmi,nmjp1),b(nmjp1,l),s22)
  241           continue
-!hr07       b(nmi,l)  =  - s22
             b(nmi,l)  =  -1d0*s22                                        !hr07
  242        continue
  243     continue
@@ -63652,36 +60642,28 @@ c$$$            endif
          call tmprnt(hname,n,idim,0)
          return
  310  if(n .eq. 1)  return
-!hr07 a(2,1)  =  -a(2,2) * dotf(a(1,1),a(2,1),zero)
       a(2,1)  =  real((-1d0*dble(a(2,2))) * dotf(a(1,1),a(2,1),zero))     !hr07
-!hr07 a(1,2)  =  -a(1,2)
       a(1,2)  =  -1e0*a(1,2)                                             !hr07
       if(n .eq. 2)  goto 330
       do 314    i  =  3, n
          im2  =  i-2
          do 312 j  =  1, im2
             s31  =  zero
-!hr07       s32  =  a(j,i)
             s32  =  dble(a(j,i))                                         !hr07
             do 311  k  =  j, im2
                s31  =  dotf(a(k,j),a(i,k),s31)
                s32  =  dotf(a(j,k+1),a(k+1,i),s32)
  311           continue
-!hr07       a(i,j)  =  -a(i,i) * dotf(a(i-1,j),a(i,i-1),s31)
       a(i,j)  =  real((-1d0*dble(a(i,i))) * dotf(a(i-1,j),a(i,i-1),s31)) !hr07
-!hr07       a(j,i)  =  -s32
             a(j,i)  =  real(-1d0*s32)                                    !hr07
  312        continue
-!hr07    a(i,i-1)  =  -a(i,i) * dotf(a(i-1,i-1),a(i,i-1),zero)
       a(i,i-1)=real((-1d0*dble(a(i,i)))*dotf(a(i-1,i-1),a(i,i-1),zero))  !hr07
-!hr07    a(i-1,i)  =  -a(i-1,i)
          a(i-1,i)  =  -1e0*a(i-1,i)                                      !hr07
  314     continue
  330  nm1  =  n-1
       do 335   i  =  1, nm1
          nmi  =  n-i
          do 332   j  =  1, i
-!hr07       s33  =  a(i,j)
             s33  =  dble(a(i,j))                                         !hr07
             do 331   k  =  1, nmi
                s33  =  dotf(a(i+k,j),a(i,i+k),s33)
@@ -63693,7 +60675,6 @@ c$$$            endif
             do 333   k  =  j, nmi
                s34  =  dotf(a(i+k,i+j),a(i,i+k),s34)
  333           continue
-!hr07       a(i,i+j)  =  s34
             a(i,i+j)  =  real(s34)                                       !hr07
  334        continue
  335     continue
@@ -63733,9 +60714,7 @@ c$$$            endif
          call tmprnt(hname,n,idim,0)
          return
  310  if(n .eq. 1)  return
-!hr07 a(2,1)  =  -a(2,2) * dotf(a(1,1),a(2,1),zero)
       a(2,1)  =  (-1d0*a(2,2)) * dotf(a(1,1),a(2,1),zero)                !hr07
-!hr07 a(1,2)  =  -a(1,2)
       a(1,2)  =  -1d0*a(1,2)
       if(n .eq. 2)  goto 330
       do 314    i  =  3, n
@@ -63747,14 +60726,10 @@ c$$$            endif
                s31  =  dotf(a(k,j),a(i,k),s31)
                s32  =  dotf(a(j,k+1),a(k+1,i),s32)
  311           continue
-!hr07       a(i,j)  =  -a(i,i) * dotf(a(i-1,j),a(i,i-1),s31)
             a(i,j)  =  (-1d0*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)       !hr07
-!hr07       a(j,i)  =  -s32
             a(j,i)  =  -1d0*s32                                          !hr07
  312        continue
-!hr07    a(i,i-1)  =  -a(i,i) * dotf(a(i-1,i-1),a(i,i-1),zero)
          a(i,i-1)  =  (-1d0*a(i,i)) * dotf(a(i-1,i-1),a(i,i-1),zero)     !hr07
-!hr07    a(i-1,i)  =  -a(i-1,i)
          a(i-1,i)  =  -1d0*a(i-1,i)                                      !hr07
  314     continue
  330  nm1  =  n-1
@@ -63836,7 +60811,6 @@ c$$$            endif
       if(.not. rflag)                                                   &
      &call abend('KERNLIB TMPRNT: '//name//                             &
      &'                            ')
-!hr09 return
       return
 1001  format(7x,' parameter error in subroutine ', a6,                  &
      &' ... (n.lt.1 or idim.lt.n).',                                    &
@@ -63865,7 +60839,6 @@ c$$$            endif
       integer j,key,l
       double precision a,b,count,e,scartx,scarty
       double precision sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
-!hr07 dimension x(*),y(*)
       dimension x(l),y(l)                                                !hr07
       save
 !-----------------------------------------------------------------------
@@ -63936,7 +60909,6 @@ c$$$            endif
       integer icnt,j,key,l
       double precision a,b,e,x,y,w
       double precision w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
-!hr07 dimension x(*),y(*),w(*)
       dimension x(l),y(l),w(l)                                           !hr07
       save
 !-----------------------------------------------------------------------
@@ -63954,7 +60926,6 @@ c$$$            endif
       icnt=0
       do 2 j=1,l
       if(y(j).eq.0..and.key.eq.0) goto 2
-!hr07 ww=w(j)*w(j)
       ww=w(j)**2                                                         !hr07
       w2=ww+w2
       wwf=ww*x(j)
@@ -63968,7 +60939,6 @@ c$$$            endif
     2 continue
 !
 !     FIT PARAMETERS
-!hr07 a=(w2xy-w2x*w2y/w2)/(w2x2-w2x**2/w2)
       a=(w2xy-(w2x*w2y)/w2)/(w2x2-w2x**2/w2)
       b=(w2y-a*w2x)/w2
       if(icnt.le.2) goto 3
@@ -64194,18 +61164,15 @@ c$$$            endif
 !++  For one-sided collimators consider only positive X. For negative
 !++  X jump to the next particle
 !
-!hr09     if (onesided .and. x.lt.0) goto 777
           if ((onesided .and. x.lt.0d0).and.
      &         ((icoll.ne.ipencil) .or. (iturn.ne.1))) goto 777 ! RB: adding exception from goto if it's 
 !
 !++  Now mirror at the horizontal axis for negative X offset
 !
-!hr09     if (x.lt.0) then
           if (x.lt.0d0) then                                             !hr09
             mirror = -1d0
             tiltangle = -1d0*c_tilt(2)
           endif
-!hr09     if (x.ge.0) then
           if (x.ge.0d0) then                                             !hr09
             mirror = 1d0
             tiltangle = c_tilt(1)
@@ -64221,12 +61188,10 @@ c$$$            endif
 !
 !++  Shift with opening and offset
 !
-!hr09     x  = x - c_aperture/2 - mirror*c_offset
           x  = (x - c_aperture/2d0) - mirror*c_offset                    !hr09
 !
 !++  Include collimator tilt
 !
-!hr09     if (tiltangle.gt.0.) then
           if (tiltangle.gt.0.d0) then                                    !hr09
             xp = xp - tiltangle
           endif
@@ -64262,7 +61227,6 @@ c$$$            endif
 !
 !AUGUST2006: Standard pencil beam as implemented by GRD ------- TW
 !
-!hr09        if (pencil_rmsx.eq.0. .and. pencil_rmsy.eq.0.) then
              if (pencil_rmsx.eq.0.d0 .and. pencil_rmsy.eq.0.d0) then     !hr09
                 x    = pencil_dx(icoll)
                 xp   = 0.
@@ -64279,12 +61243,9 @@ c$$$            endif
             if (pencil_distr.eq.0 .and.(pencil_rmsx.ne.0.               &
      &.or.pencil_rmsy.ne.0.)) then
 ! how to assure that all generated particles are on the jaw ?!
-!hr09           x    = pencil_dx(icoll)                                 &
-!hr09&                 + pencil_rmsx*(rndm4()-0.5)
                 x    = pencil_dx(icoll)                                 &
      &                 + pencil_rmsx*(dble(rndm4())-0.5d0)               !hr09
                 xp   = 0.
-!hr09           z    = pencil_rmsy*(rndm4()-0.5)
                 z    = pencil_rmsy*(dble(rndm4())-0.5d0)                 !hr09
                 zp   = 0.
 !                dpop = 0.
@@ -64295,8 +61256,6 @@ c$$$            endif
 !            pencil_rmsx defines spread of impact parameter
 !            pencil_rmsy defines spread parallel to jaw surface
 ! 
-!hr09       if (pencil_distr.eq.1 .and.(pencil_rmsx.ne.0.               &
-!hr09&.or.pencil_rmsy.ne.0. )) then
             if (pencil_distr.eq.1 .and.(pencil_rmsx.ne.0.d0             &!hr09
      &.or.pencil_rmsy.ne.0.d0 )) then                                    !hr09
                 x    = pencil_dx(icoll) + pencil_rmsx*ran_gauss(2d0)
@@ -64314,12 +61273,8 @@ c$$$            endif
 !                        here pencil_rmsx is not gaussian!!!
 !            pencil_rmsy defines spread parallel to jaw surface
 ! 
-!hr09       if (pencil_distr.eq.2 .and.(pencil_rmsx.ne.0.               &
-!hr09&.or.pencil_rmsy.ne.0. )) then
             if (pencil_distr.eq.2 .and.(pencil_rmsx.ne.0.d0             &!hr09
      &.or.pencil_rmsy.ne.0.d0 )) then                                    !hr09
-!hr09           x    = pencil_dx(icoll)                                 &
-!hr09&              + pencil_rmsx*(rndm4()-0.5)
                 x    = pencil_dx(icoll)                                 &!hr09
      &              + pencil_rmsx*(dble(rndm4())-0.5d0)                  !hr09
 ! all generated particles are on the jaw now
@@ -64349,7 +61304,6 @@ c$$$            endif
 ! -- TW SEP07 if c_tilt is set to zero before entering pencil beam 
 !             section the assigning of the tilt will result in 
 !             assigning zeros 
-!hr09        if (mirror.lt.0) then
              if (mirror.lt.0d0) then                                     !hr09
 !!     tiltangle = -1d0*c_tilt(2)
                 tiltangle = c_tilt(2)
@@ -64406,13 +61360,10 @@ c$$$            endif
 !++  1) Check whether particle hits the collimator
 !
           hit     =  .false.
-!hr09     s       =  0.
           s       =  0.d0                                                !hr09
-!hr09     keeps   =  0.
           keeps   =  0.d0                                                !hr09
           zlm     =  -1d0 * length
 !
-!hr09     if (x.ge.0.) then
           if (x.ge.0.d0) then                                            !hr09
 !
 !++  Particle hits collimator and we assume interaction length ZLM equal
@@ -64422,7 +61373,6 @@ c$$$            endif
             zlm = length
             impact(j) = x
             indiv(j) = xp
-!hr09     else if (xp.le.0.) then
           else if (xp.le.0.d0) then                                      !hr09
 !
 !++  Particle does not hit collimator. Interaction length ZLM is zero.
@@ -64456,7 +61406,6 @@ c$$$            endif
 !++  First do the drift part
 ! DRIFT PART
           drift_length = length - zlm
-!hr09     if (drift_length.gt.0.) then
           if (drift_length.gt.0.d0) then                                 !hr09
             if(iexact.eq.0) then
               x  = x + xp* drift_length
@@ -64492,8 +61441,6 @@ c$$$            endif
               if(flagsec(j).eq.0) then
                write(39,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')&
      &               name(j),iturn,icoll,nabs,                          &
-!hr09&               s_impact + (dble(j_slices)-1) * c_length,          &
-!hr09&               s+sp + (dble(j_slices)-1) * c_length,              &
      &               s_impact + (dble(j_slices)-1d0) * c_length,        &!hr09
      &               s+sp + (dble(j_slices)-1d0) * c_length,            &!hr09
      &               xinn,xpinn,yinn,ypinn,                             &
@@ -64630,7 +61577,6 @@ c$$$            endif
               if(dowrite_impact) then
       write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))')     &
      &icoll,c_rotation,                                                 &
-!hr09&s + sp + (dble(j_slices)-1) * c_length,                           &
      &sInt + sp + (dble(j_slices)-1d0) * c_length,                         &!hr09
      &x_flk*1d3, xp_flk*1d3, y_flk*1d3, yp_flk*1d3,                     &
      &nabs,name(j),iturn
@@ -64674,11 +61620,9 @@ c$$$            endif
 !
 !++  Include collimator tilt
 !
-!hr09        if (tiltangle.gt.0.) then
              if (tiltangle.gt.0.d0) then                                 !hr09
                 x  = x  + tiltangle*c_length
                 xp = xp + tiltangle
-!hr09        elseif (tiltangle.lt.0.) then
              elseif (tiltangle.lt.0.d0) then                             !hr09
                 x  = x + tiltangle*c_length
                 xp = xp + tiltangle
@@ -64695,7 +61639,6 @@ c$$$            endif
 !
             z00 = z
             x00 = x + mirror*c_offset
-!hr09       x = x + c_aperture/2d0 + mirror*c_offset
             x = (x + c_aperture/2d0) + mirror*c_offset                   !hr09
 !
 !++  Now mirror at the horizontal axis for negative X offset
@@ -64796,7 +61739,6 @@ c$$$            endif
 !
             p_in(j) = (1d0 + dpop) * p0
 !     SR, 30-08-2005: add the initial position of the slice
-!hr09       s_in(j) = sp + (dble(j_slices)-1) * c_length
             s_in(j) = sp + (dble(j_slices)-1d0) * c_length               !hr09
 !            s_in(j) = s_in(j) + sp
 !
@@ -64811,7 +61753,6 @@ c$$$            endif
              write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
      &            name(j),iturn,icoll,nabs,                             &
      &            s_in(j),                                              &
-!hr09&            s+sp + (dble(j_slices)-1) * c_length,                 &
      &            s+sp + (dble(j_slices)-1d0) * c_length,               &!hr09
      &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
      &            x,xp,z,zp
@@ -64948,18 +61889,13 @@ c$$$            endif
 ! xmin=x-, xmax=x+, etc. from the input file
 !
       nhit    = 0
-!hr09 fracab  = 0.
       fracab  = 0.d0                                                     !hr09
-!hr09 mirror  = 1.
       mirror  = 1.d0                                                     !hr09
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       do j = 1, nev
 !
-!hr09   impact(j) = -1.
         impact(j) = -1.d0                                                !hr09
-!hr09   lint(j)   = -1.
         lint(j)   = -1.d0                                                !hr09
-!hr09   indiv(j)  = -1.
         indiv(j)  = -1.d0                                                !hr09
 !
         x   = x_in(j)
@@ -65040,7 +61976,6 @@ c$$$            endif
 !
 !++  Shift with opening and offset
 !
-!hr09     x  = x - c_aperture/2 - mirror*c_offset
           x  = (x - c_aperture/2d0) - mirror*c_offset                    !hr09
 !GRD
 !GRD SPECIAL FEATURE TO TAKE INTO ACCOUNT THE PARTICULAR SHAPE OF RHIC PRIMARY COLLIMATORS
@@ -65049,7 +61984,6 @@ c$$$            endif
 !JUNE2005  OF THE PRIMARY COLLIMATOR OF RHIC
 !JUNE2005
 !          z  = z + c_aperture/2 + mirror*c_offset
-!hr09     z  = z + n_aperture/2 + mirror*c_offset
           z  = (z + n_aperture/2d0) + mirror*c_offset                    !hr09
 !JUNE2005
 !          if(iturn.eq.1)                                                &
@@ -65082,15 +62016,10 @@ c$$$            endif
      &(j.le.(icoll)*nev/nprim)                                          &
      &)  ) then
               x    = pencil_dx(icoll)
-!hr09         xp   = 0.
               xp   = 0.d0                                                !hr09
-!hr09         z    = 0.
               z    = 0.d0                                                !hr09
-!hr09         zp   = 0.
               zp   = 0.d0                                                !hr09
-!hr09         dpop = 0.
               dpop = 0.d0                                                !hr09
-!hr09         if(rndm4().lt.0.5) mirror = -abs(mirror)
               if(rndm4().lt.0.5) mirror = -1d0*abs(mirror)               !hr09
               if(rndm4().ge.0.5) mirror = abs(mirror)
             endif
@@ -65104,9 +62033,7 @@ c$$$            endif
 !++  1) Check whether particle hits the collimator
 !
           hit     =  .false.
-!hr09     s       =  0.
           s       =  0.d0                                                !hr09
-!hr09     keeps   =  0.
           keeps   =  0.d0                                                !hr09
           zlm     =  -1.0d0 * length
 !
@@ -65178,7 +62105,6 @@ c$$$            endif
 !GRD
  20         continue
             event = 20
-!hr09       zlm = 0.
             zlm = 0.d0                                                   !hr09
             goto 999
 !GRD
@@ -65219,11 +62145,9 @@ c$$$            endif
 !
             if (s .lt. length) then
               zlm = length - s
-!hr09         impact(j) = 0.
               impact(j) = 0.d0                                           !hr09
               indiv(j) = xp
             else
-!hr09         zlm = 0.
               zlm = 0.d0                                                 !hr09
             endif
             goto 999
@@ -65247,11 +62171,9 @@ c$$$            endif
 !
             if (s .lt. length) then
               zlm = length - s
-!hr09         impact(j) = 0.
               impact(j) = 0.d0                                           !hr09
               indiv(j) = zp
             else
-!hr09         zlm = 0.
               zlm = 0.d0                                                 !hr09
             endif
 !JUNE2005          endif
@@ -65283,7 +62205,6 @@ c$$$            endif
 !
             if (s .lt. length) then
               zlm = length - s
-!hr09         impact(j) = 0.
               impact(j) = 0.d0                                           !hr09
               if(s.eq.sx) then
                 indiv(j) = xp
@@ -65291,7 +62212,6 @@ c$$$            endif
                 indiv(j) = zp
               endif
             else
-!hr09         zlm = 0.
               zlm = 0.d0                                                 !hr09
             endif
 !
@@ -65313,7 +62233,6 @@ c$$$            endif
 !++  First do the drift part
 !
           drift_length = length - zlm
-!hr09     if (drift_length.gt.0.) then
           if (drift_length.gt.0.d0) then                                 !hr09
             x  = x + xp* drift_length
             z  = z + zp * drift_length
@@ -65322,7 +62241,6 @@ c$$$            endif
 !
 !++  Now do the scattering part
 !
-!hr09     if (zlm.gt.0.) then
           if (zlm.gt.0.d0) then                                          !hr09
             nhit = nhit + 1
 !            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
@@ -65335,9 +62253,7 @@ c$$$            endif
 !JUNE2005
             if(event.eq.100.or.event.eq.400) then
 !GRD first go back into normal frame...
-!hr09          x = x + c_aperture/2 + mirror*c_offset
                x = (x + c_aperture/2d0) + mirror*c_offset                !hr09
-!hr09          z = z - n_aperture/2 - mirror*c_offset
                z = (z - n_aperture/2d0) - mirror*c_offset                !hr09
                x = -1d0*x
                xp = -1d0*xp
@@ -65348,9 +62264,7 @@ c$$$            endif
                xp = zp
                z = -1d0*x
                zp = -1d0*x
-!hr09          x  = x - n_aperture/2 - mirror*c_offset
                x  = (x - n_aperture/2d0) - mirror*c_offset               !hr09
-!hr09          z  = z + c_aperture/2 + mirror*c_offset
                z  = (z + c_aperture/2d0) + mirror*c_offset               !hr09
             endif
 !JUNE2005
@@ -65365,9 +62279,7 @@ c$$$            endif
 !JUNE2005 ROUTINES, SO AS TO AVOID RIDICULOUS VALUES FOR KICKS IN EITHER PLANE
             if(event.eq.100.or.event.eq.400) then
 !GRD first go back into normal frame...
-!hr09          x = x + n_aperture/2 + mirror*c_offset
                x = (x + n_aperture/2d0) + mirror*c_offset                !hr09
-!hr09          z = z - c_aperture/2 - mirror*c_offset
                z = (z - c_aperture/2d0) - mirror*c_offset                !hr09
                x = -1d0*z
                xp = -1d0*zp
@@ -65378,9 +62290,7 @@ c$$$            endif
                xp = -1d0*xp
                z = -1d0*z
                zp = -1d0*zp
-!hr09          x  = x - c_aperture/2 - mirror*c_offset
                x  = (x - c_aperture/2d0) - mirror*c_offset               !hr09
-!hr09          z  = z + n_aperture/2 + mirror*c_offset
                z  = (z + n_aperture/2d0) + mirror*c_offset               !hr09
             endif
 !JUNE2005
@@ -65391,11 +62301,9 @@ c$$$            endif
             if (nabs.eq.1) then
 !APRIL2005
 !TO WRITE FLUKA INPUT CORRECTLY, WE HAVE TO GO BACK IN THE MACHINE FRAME
-!hr09       if (tiltangle.gt.0.) then
             if (tiltangle.gt.0.d0) then                                  !hr09
               x  = x  + tiltangle*c_length
               xp = xp + tiltangle
-!hr09       elseif (tiltangle.lt.0.) then
             elseif (tiltangle.lt.0.d0) then                              !hr09
               x  = x + tiltangle*c_length
               xp = xp + tiltangle
@@ -65405,13 +62313,11 @@ c$$$            endif
 !
 !++  Transform back to particle coordinates with opening and offset
 !
-!hr09       x = x + c_aperture/2 + mirror*c_offset
             x = (x + c_aperture/2d0) + mirror*c_offset                   !hr09
 !GRD
 !JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK
 !JUNE2005  TO  THE ACCELERATOR FRAME...
 !            z = z - c_aperture/2 - mirror*c_offset
-!hr09       z = z - n_aperture/2 - mirror*c_offset
             z = (z - n_aperture/2d0) - mirror*c_offset                   !hr09
 !JUNE2005
 !
@@ -65441,7 +62347,6 @@ c$$$            endif
 !
 !++  Do the rest drift, if particle left collimator early
 !
-!hr09     if (nabs.ne.1 .and. zlm.gt.0.) then
           if (nabs.ne.1 .and. zlm.gt.0.d0) then                          !hr09
             drift_length = (length-(s+sp))
 !            if (drift_length.gt.1.e-15) then
@@ -65461,11 +62366,9 @@ c$$$            endif
 !
 !++  Include collimator tilt
 !
-!hr09       if (tiltangle.gt.0.) then
             if (tiltangle.gt.0.d0) then                                  !hr09
               x  = x  + tiltangle*c_length
               xp = xp + tiltangle
-!hr09       elseif (tiltangle.lt.0.) then
             elseif (tiltangle.lt.0.d0) then                              !hr09
               x  = x + tiltangle*c_length
               xp = xp + tiltangle
@@ -65482,13 +62385,11 @@ c$$$            endif
 !
             z00 = z
             x00 = x + mirror*c_offset
-!hr09       x = x + c_aperture/2 + mirror*c_offset
             x = (x + c_aperture/2d0) + mirror*c_offset                   !hr09
 !GRD
 !JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK
 !JUNE2005  TO  THE ACCELERATOR FRAME...
 !            z = z - c_aperture/2 - mirror*c_offset
-!hr09       z = z - n_aperture/2 - mirror*c_offset
             z = (z - n_aperture/2d0) - mirror*c_offset                   !hr09
 !JUNE2005
 !
@@ -65564,35 +62465,27 @@ c$$$            endif
 !
                x00  = mirror * x00
 +if crlibm
-!hr09          x_in(j)  = x00  *cos_rn(-1.*c_rotation) +                &
                x_in(j)  = x00  *cos_rn(-1.d0*c_rotation) +              &!hr09
 +ei
 +if .not.crlibm
-!hr09          x_in(j)  = x00  *cos(-1.*c_rotation) +                   &
                x_in(j)  = x00  *cos(-1.d0*c_rotation) +                 &!hr09
 +ei
 +if crlibm
-!hr09&z00  *sin_rn(-1.*c_rotation)
      &z00  *sin_rn(-1.d0*c_rotation)                                     !hr09
 +ei
 +if .not.crlibm
-!hr09&z00  *sin(-1.*c_rotation)
      &z00  *sin(-1.d0*c_rotation)                                        !hr09
 +ei
 +if crlibm
-!hr09          y_in(j)  = z00  *cos_rn(-1.*c_rotation) -                &
                y_in(j)  = z00  *cos_rn(-1.d0*c_rotation) -              &!hr09
 +ei
 +if .not.crlibm
-!hr09          y_in(j)  = z00  *cos(-1.*c_rotation) -                   &
                y_in(j)  = z00  *cos(-1.d0*c_rotation) -                 &!hr09
 +ei
 +if crlibm
-!hr09&x00  *sin_rn(-1.*c_rotation)
      &x00  *sin_rn(-1.d0*c_rotation)                                     !hr09
 +ei
 +if .not.crlibm
-!hr09&x00  *sin(-1.*c_rotation)
      &x00  *sin(-1.d0*c_rotation)                                        !hr09
 +ei
 !
@@ -65602,7 +62495,6 @@ c$$$            endif
                y_in(j) = y_in(j) + mirror*y_pencil(icoll)
             endif
 !
-!hr09       p_in(j) = (1 + dpop) * p0
             p_in(j) = (1d0 + dpop) * p0                                  !hr09
             s_in(j) = s_in(j) + sp
 !
@@ -65752,46 +62644,34 @@ c$$$            endif
       do while (j.lt.mynp)
 !
         j = j + 1
-!hr09   myemitx = myemitx0*(mynex + (2d0*dble(rndm4()-0.5)*mdex) )**2
         myemitx = myemitx0*(mynex + ((2d0*dble(rndm4()-0.5))*mdex) )**2  !hr09
         xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-!hr09   myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
         myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
-!hr09   myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))
         myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))                 !hr09
 +ei
         if (rndm4().gt.0.5) then
           myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
      &(myalphax*myx(j))/mybetax                                          !hr09
-!hr09&myalphax*myx(j)/mybetax
         else
-!hr09     myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
-!hr09&myalphax*myx(j)/mybetax
           myxp(j)  = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-   &!hr09
      &(myalphax*myx(j))/mybetax                                          !hr09
         endif
 !
-!hr09   myemity = myemity0*(myney + (2d0*dble(rndm4()-0.5)*mdey) )**2
         myemity = myemity0*(myney + ((2d0*dble(rndm4()-0.5))*mdey) )**2  !hr09
         ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-!hr09   myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
         myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
-!hr09   myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
         myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))                 !hr09
 +ei
         if (rndm4().gt.0.5) then
           myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-        &
      &(myalphay*myy(j))/mybetay                                          !hr09
-!hr09&myalphay*myy(j)/mybetay
         else
-!hr09     myyp(j)  = -1*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &
-!hr09&myalphay*myy(j)/mybetay
           myyp(j)  = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-   &
      &(myalphay*myy(j))/mybetay                                          !hr09
         endif
@@ -65877,149 +62757,97 @@ c$$$            endif
 !
       do j=1, mynp
          if ((mynex.gt.0d0).and.(myney.eq.0d0)) then
-!hr09       myemitx = myemitx0*(mynex+(2d0*dble(rndm4()-0.5)*mdex))**2
             myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
             xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-!hr09       myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
             myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
-!hr09       myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))     
             myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))             !hr09
 +ei
             if (rndm4().gt.0.5) then
-!hr09         myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
-!hr09&              myalphax*myx(j)/mybetax
               myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
      &              (myalphax*myx(j))/mybetax                            !hr09
             else
-!hr09         myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-&
-!hr09&              myalphax*myx(j)/mybetax
               myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-&
      &              (myalphax*myx(j))/mybetax                            !hr09
             endif
 !
-!hr09       phiy = 2*pi*dble(rndm4())
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 !
 +if crlibm
-!hr09       iiy = -1d0*myemity0 * log_rn( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
 !
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
-!hr09&           myalphay * cos_rn(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
      &           myalphay * cos_rn(phiy))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iiy = -1d0*myemity0 * log( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
 !
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos(phiy)                 !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
-!hr09&           myalphay * cos(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin(phiy) +     &!hr09
      &           myalphay * cos(phiy))                                   !hr09
 +ei
-!hr09    elseif ( mynex.eq.0.and.myney.gt.0 ) then
          elseif ( mynex.eq.0d0.and.myney.gt.0d0 ) then                   !hr09
-!hr09       myemity = myemity0*(myney+(2d0*dble(rndm4()-0.5)*mdey))**2
             myemity = myemity0*(myney+((2d0*dble(rndm4()-0.5))*mdey))**2 !hr09
             ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-!hr09       myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
             myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
-!hr09       myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
             myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))             !hr09
 +ei
             if (rndm4().gt.0.5) then
-!hr09         myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &
-!hr09&              myalphay*myy(j)/mybetay
               myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &!hr09
      &              (myalphay*myy(j))/mybetay                            !hr09
             else
-!hr09         myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-&
-!hr09&              myalphay*myy(j)/mybetay
               myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-&!hr09
      &              (myalphay*myy(j))/mybetay                            !hr09
             endif
 !
-!hr09       phix = 2*pi*dble(rndm4())
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-!hr09       iix = - myemitx0 * log_rn( dble(rndm4()) )
             iix = (-1d0* myemitx0) * log_rn( dble(rndm4()) )             !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
-!hr09&           myalphax * cos_rn(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
      &           myalphax * cos_rn(phix))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iix = - myemitx0 * log( dble(rndm4()) )
             iix = (-1d0* myemitx0) * log( dble(rndm4()) )                !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                 !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
-!hr09&           myalphax * cos(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin(phix) +     &!hr09
      &           myalphax * cos(phix))                                   !hr09
 +ei
-!hr09    elseif ( mynex.eq.0.and.myney.eq.0 ) then
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then                   !hr09
-!hr09       phix = 2*pi*dble(rndm4())
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-!hr09       iix = - myemitx0 * log_rn( dble(rndm4()) )
             iix = (-1d0* myemitx0) * log_rn( dble(rndm4()) )             !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
-!hr09&           myalphax * cos_rn(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
      &           myalphax * cos_rn(phix))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iix = - myemitx0 * log( dble(rndm4()) )
             iix = (-1d0*myemitx0) * log( dble(rndm4()) )                 !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                 !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
-!hr09&           myalphax * cos(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin(phix) +     &!hr09
      &           myalphax * cos(phix))                                   !hr09
 +ei
-!hr09       phiy = 2*pi*dble(rndm4())
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-!hr09       iiy = - myemity0 * log_rn( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
-!hr09&           myalphay * cos_rn(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
      &           myalphay * cos_rn(phiy))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iiy = - myemity0 * log( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
 !
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos(phiy)                 !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
-!hr09&           myalphay * cos(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin(phiy) +     &!hr09
      &           myalphay * cos(phiy))                                   !hr09
 +ei
@@ -66239,149 +63067,97 @@ c$$$     &           myalphay * cos(phiy))
 +ei
       do j=1, mynp
          if ((mynex.gt.0d0).and.(myney.eq.0d0)) then
-!hr09       myemitx = myemitx0*(mynex+(2d0*dble(rndm4()-0.5)*mdex))**2
             myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
             xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-!hr09       myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
             myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
-!hr09       myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))
             myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))             !hr09
 +ei
             if (rndm4().gt.0.5) then
-!hr09         myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
-!hr09&              myalphax*myx(j)/mybetax
               myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &!hr09
      &              (myalphax*myx(j))/mybetax                            !hr09
             else
-!hr09         myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-&
-!hr09&              myalphax*myx(j)/mybetax
               myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-&!hr09
      &              (myalphax*myx(j))/mybetax                            !hr09
             endif
 !
-!hr09       phiy = 2*pi*dble(rndm4())
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 !
 +if crlibm
-!hr09       iiy = -1d0*myemity0 * log_rn( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
 !
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
-!hr09&           myalphay * cos_rn(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
      &           myalphay * cos_rn(phiy))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iiy = -1d0*myemity0 * log( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
 !
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos(phiy)                 !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
-!hr09&           myalphay * cos(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin(phiy) +     &!hr09
      &           myalphay * cos(phiy))                                   !hr09
 +ei
-!hr09    elseif ( mynex.eq.0.and.myney.gt.0 ) then
          elseif ( mynex.eq.0d0.and.myney.gt.0d0 ) then
-!hr09       myemity = myemity0*(myney+(2d0*dble(rndm4()-0.5)*mdey))**2
             myemity = myemity0*(myney+((2d0*dble(rndm4()-0.5))*mdey))**2 !hr09
             ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-!hr09       myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
             myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
-!hr09       myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
             myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))             !hr09
 +ei
             if (rndm4().gt.0.5) then
-!hr09         myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &
-!hr09&              myalphay*myy(j)/mybetay
               myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &!hr09
      &              (myalphay*myy(j))/mybetay                            !hr09
             else
-!hr09         myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-&
-!hr09&              myalphay*myy(j)/mybetay
               myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-&!hr09
      &              (myalphay*myy(j))/mybetay                            !hr09
             endif
 !
-!hr09       phix = 2*pi*dble(rndm4())
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-!hr09       iix = - myemitx0 * log_rn( dble(rndm4()) )
             iix = (-1d0*myemitx0) * log_rn( dble(rndm4()) )              !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
-!hr09&           myalphax * cos_rn(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
      &           myalphax * cos_rn(phix))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iix = - myemitx0 * log( dble(rndm4()) )
             iix = (-1d0*myemitx0) * log( dble(rndm4()) )                 !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                 !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
-!hr09&           myalphax * cos(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin(phix) +     &!hr09
      &           myalphax * cos(phix))                                   !hr09
 +ei
-!hr09    elseif ( mynex.eq.0.and.myney.eq.0 ) then
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then                   !hr09
-!hr09       phix = 2*pi*dble(rndm4())
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-!hr09       iix = - myemitx0 * log_rn( dble(rndm4()) )
             iix = (-1d0*myemitx0) * log_rn( dble(rndm4()) )              !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos_rn(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin_rn(phix) +        &
-!hr09&           myalphax * cos_rn(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
      &           myalphax * cos_rn(phix))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iix = - myemitx0 * log( dble(rndm4()) )
             iix = (-1d0*myemitx0) * log( dble(rndm4()) )                 !hr09
 !
-!hr09       myx(j) = sqrt(2*iix*mybetax) * cos(phix)
             myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                 !hr09
-!hr09       myxp(j) = -1d0*sqrt(2*iix/mybetax) * (sin(phix) +           &
-!hr09&           myalphax * cos(phix))
             myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin(phix) +     &!hr09
      &           myalphax * cos(phix))                                   !hr09
 +ei
-!hr09       phiy = 2*pi*dble(rndm4())
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-!hr09       iiy = - myemity0 * log_rn( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos_rn(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin_rn(phiy) +        &
-!hr09&           myalphay * cos_rn(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
      &           myalphay * cos_rn(phiy))                                !hr09
 +ei
 +if .not.crlibm
-!hr09       iiy = - myemity0 * log( dble(rndm4()) )
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
 !
-!hr09       myy(j) = sqrt(2*iiy*mybetay) * cos(phiy)
             myy(j) = sqrt((2d0*iiy)*mybetay) * cos(phiy)                 !hr09
-!hr09       myyp(j) = -1d0*sqrt(2*iiy/mybetay) * (sin(phiy) +           &
-!hr09&           myalphay * cos(phiy))
             myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin(phiy) +     &!hr09
      &           myalphay * cos(phiy))                                   !hr09
 +ei
@@ -66397,7 +63173,6 @@ c$$$     &           myalphay * cos(phiy))
       do while (j.le.mynp)
          a_st = ran_gauss(5d0)
          b_st = ran_gauss(5d0)
-!hr09    do while ((a_st*a_st+b_st*b_st).gt.long_cut*long_cut)
          do while ((a_st**2+b_st**2).gt.long_cut**2)
             a_st = ran_gauss(5d0)
             b_st = ran_gauss(5d0)
@@ -66583,48 +63358,34 @@ c$$$     &           myalphay * cos(phiy))
       do while (j.lt.mynp)
 !
         j = j + 1
-!hr09   myemitx = myemitx0*(mynex + (2d0*dble(rndm4()-0.5)*mdex) )**2
         myemitx = myemitx0*(mynex + ((2d0*dble(rndm4()-0.5))*mdex) )**2  !hr09
         xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-!hr09   myx(j)   = xsigmax * sin_rn(2d0*pi*dble(rndm4()))
         myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
-!hr09   myx(j)   = xsigmax * sin(2d0*pi*dble(rndm4()))
         myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))                 !hr09
 +ei
         if (rndm4().gt.0.5) then
-!hr09     myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
-!hr09&myalphax*myx(j)/mybetax
           myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &!hr09
      &(myalphax*myx(j))/mybetax                                          !hr09
         else
-!hr09     myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
-!hr09&myalphax*myx(j)/mybetax
           myxp(j)  = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-   &!hr09
      &(myalphax*myx(j))/mybetax                                          !hr09
         endif
 !
-!hr09   myemity = myemity0*(myney + (2d0*dble(rndm4()-0.5)*mdey) )**2
         myemity = myemity0*(myney + ((2d0*dble(rndm4()-0.5))*mdey) )**2  !hr09
         ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-!hr09   myy(j)   = ysigmay * sin_rn(2d0*pi*dble(rndm4()))
         myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
-!hr09   myy(j)   = ysigmay * sin(2d0*pi*dble(rndm4()))
         myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))                 !hr09
 +ei
         if (rndm4().gt.0.5) then
-!hr09     myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-        &
-!hr09&myalphay*myy(j)/mybetay
           myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-        &!hr09
      &(myalphay*myy(j))/mybetay                                          !hr09
         else
-!hr09     myyp(j)  = -1*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-     &
-!hr09&myalphay*myy(j)/mybetay
           myyp(j)  = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-   &!hr09
      &(myalphay*myy(j))/mybetay                                          !hr09
         endif
@@ -66760,13 +63521,9 @@ c$$$     &           myalphay * cos(phiy))
       !  yet applied at this point...
       !  so we can set all to 0.
       startpar=2
-!hr13 myx(1)=0.0
       myx(1)=0.0d0                                                       !hr13
-!hr13 myy(1)=0.0
       myy(1)=0.0d0                                                       !hr13
-!hr13 myxp(1)=0.0
       myxp(1)=0.0d0                                                      !hr13
-!hr13 myyp(1)=0.0
       myyp(1)=0.0d0                                                      !hr13
       myp(1) = myenom
       mys(1) = 0d0
@@ -66779,8 +63536,6 @@ c$$$     &           myalphay * cos(phiy))
             myemitx=myemitx0
             xsigmax = sqrt(mybetax*myemitx)
             myx(j)  = xsigmax * ran_gauss(mynex)
-!hr13       myxp(j) = ran_gauss(mynex)*sqrt(myemitx/mybetax)-(myalphax* &
-!hr13&myx(j)/mybetax)    
             myxp(j) = ran_gauss(mynex)*sqrt(myemitx/mybetax)-((myalphax*&!hr13
      &myx(j))/mybetax)                                                   !hr13
 !    
@@ -66798,8 +63553,6 @@ c$$$     &           myalphay * cos(phiy))
            ysigmay = sqrt(mybetay*myemity)
 !        write(*,*)'Sigma Y: ',ysigmay
             myy(j)   = ysigmay * ran_gauss(myney)
-!hr13 myyp(j) = ran_gauss(myney)*sqrt(myemity/mybetay)-(myalphay*myy(j)/&
-!hr13& mybetay)
       myyp(j) = ran_gauss(myney)*sqrt(myemity/mybetay)-                 &!hr13
      &((myalphay*myy(j))/mybetay)                                        !hr13
     
@@ -66889,21 +63642,17 @@ c$$$     &           myalphay * cos(phiy))
 !
       if        ( inter.eq.2 ) then
 +if crlibm
-!hr09      gettran = -log_rn(dble(rndm4()))/bn(xmat)
            gettran = (-1d0*log_rn(dble(rndm4())))/bn(xmat)               !hr09
 +ei
 +if .not.crlibm
-!hr09      gettran = -log(dble(rndm4()))/bn(xmat)
            gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
 +ei
 !
          elseif ( inter .eq. 3 ) then
 +if crlibm
-!hr09      gettran = -log_rn(dble(rndm4()))/bpp
            gettran = (-1d0*log_rn(dble(rndm4())))/bpp                    !hr09
 +ei
 +if .not.crlibm
-!hr09      gettran = -log(dble(rndm4()))/bpp
            gettran = (-1d0*log(dble(rndm4())))/bpp                       !hr09
 +ei
 !
@@ -66918,18 +63667,14 @@ c$$$     &           myalphay * cos(phiy))
            if ( xm2 .lt. 2.d0 ) then
                 bsd = 2.d0 * bpp
               elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
-!hr09           bsd = (106.d0-17.d0*xm2) *  bpp / 26.d0
                 bsd = ((106.d0-17.d0*xm2) *  bpp )/ 36.d0                !hr09
               elseif ( xm2 .gt. 5.d0 ) then
-!hr09           bsd = 7.d0 * bpp / 12.d0
                 bsd = (7.d0 * bpp) / 12.d0                               !hr09
            endif
 +if crlibm
-!hr09      gettran = -log_rn(dble(rndm4()))/bsd
            gettran = (-1d0*log_rn(dble(rndm4())))/bsd                    !hr09
 +ei
 +if .not.crlibm
-!hr09      gettran = -log(dble(rndm4()))/bsd
            gettran = (-1d0*log(dble(rndm4())))/bsd                       !hr09
 +ei
 !
@@ -66937,7 +63682,6 @@ c$$$     &           myalphay * cos(phiy))
            length=1
            call funlux( cgen(1,mat) , xran, length)
            truth=xran(1)
-!hr09      t=truth
            t=dble(truth)                                                 !hr09
            gettran = t
       endif
@@ -66957,16 +63701,12 @@ c$$$     &           myalphay * cos(phiy))
       real rndm4
       teta = sqrt(t)/p
 ! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-!hr09   10 va  =2d0*dble(rndm4())-1d0
    10 va  =(2d0*dble(rndm4()))-1d0                                       !hr09
       vb = dble(rndm4())
-!hr09 va2 = va*va
       va2 = va**2
-!hr09 vb2 = vb*vb
       vb2 = vb**2
       r2 = va2 + vb2
       if ( r2.gt.1.d0) go to 10
-!hr09 tx = teta * (2.d0*va*vb) / r2
       tx = teta * ((2.d0*va)*vb) / r2                                    !hr09
       tz = teta * (va2 - vb2) / r2
       return
@@ -66987,12 +63727,10 @@ c$$$     &           myalphay * cos(phiy))
       parameter(cnorm=2.607d-5,cnform=0.8561d3) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
 !c      write(6,'('' t,exp'',2e15.8)')t,t*cnform*EMr(mcurr)**2
 +if crlibm
-!hr09 ruth=cnorm*exp_rn(-t*cnform*emr(mcurr)**2)*(zatom(mcurr)/t)**2
       ruth=real((cnorm*exp_rn(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*  &!hr09
      &(zatom(mcurr)/dble(t))**2)
 +ei
 +if .not.crlibm
-!hr09 ruth=cnorm*exp(-t*cnform*emr(mcurr)**2)*(zatom(mcurr)/t)**2
       ruth=((cnorm*exp(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*         &!hr09
      &(zatom(mcurr)/dble(t))**2)                                         !hr09
 +ei
@@ -67140,14 +63878,11 @@ c$$$     &           myalphay * cos(phiy))
       real ruth,tlow,thigh
       external ruth
 !
-!hr09 ecmsq = 2 * 0.93828d0 * plab
       ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
 +if crlibm
-!hr09 xln15s=log_rn(0.15*ecmsq)
       xln15s=log_rn(0.15d0*ecmsq)                                        !hr09
 +ei
 +if .not.crlibm
-!hr09 xln15s=log(0.15*ecmsq)
       xln15s=log(0.15d0*ecmsq)                                           !hr09
 +ei
 ! pp(pn) data
@@ -67184,12 +63919,10 @@ c$$$     &           myalphay * cos(phiy))
 ! Compute cross-sections (CS) and probabilities + Interaction length
 ! Last two material treated below statement number 100
 !
-!hr09 tlow=tlcut
       tlow=real(tlcut)                                                   !hr09
       do 100 ma=1,nrmat
         mcurr=ma
 ! prepare for Rutherford differential distribution
-!hr09   thigh=hcut(ma)
         thigh=real(hcut(ma))                                             !hr09
         call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
 !
@@ -67203,20 +63936,16 @@ c$$$     &           myalphay * cos(phiy))
 ! correct TOT-CSec for energy dependence of qel
 ! TOT CS is here without a Coulomb contribution
         cs(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
-!hr09   bn(ma) = bnref(ma) * cs(0,ma) / csref(0,ma)
         bn(ma) = (bnref(ma) * cs(0,ma)) / csref(0,ma)                    !hr09
 ! also correct inel-CS
-!hr09   cs(1,ma) = csref(1,ma) * cs(0,ma) / csref(0,ma)
         cs(1,ma) = (csref(1,ma) * cs(0,ma)) / csref(0,ma)                !hr09
 !
 ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-!hr09   cs(2,ma) = cs(0,ma) - cs(1,ma) - cs(3,ma) - cs(4,ma)
         cs(2,ma) = ((cs(0,ma) - cs(1,ma)) - cs(3,ma)) - cs(4,ma)         !hr09
         cs(5,ma) = csref(5,ma)
 ! Now add Coulomb
         cs(0,ma) = cs(0,ma) + cs(5,ma)
 ! Interaction length in meter
-!hr09   xintl(ma) = 0.01d0*anuc(ma)/(fnavo * rho(ma)*cs(0,ma)*1d-24)
       xintl(ma) = (0.01d0*anuc(ma))/(((fnavo * rho(ma))*cs(0,ma))*1d-24) !hr09
 !
    20   format(/1x,a4,' Int.Len. ',f10.6,' CsTot',2f12.4/)
@@ -67331,11 +64060,9 @@ c$$$     &           myalphay * cos(phiy))
 !++  Get monte-carlo interaction length.
 !
 +if crlibm
-!hr09 10    zlm1=-xintl(mat)*log_rn(dble(rndm4()))
 10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
 +ei
 +if .not.crlibm
-!hr09 10    zlm1=-xintl(mat)*log(dble(rndm4()))
 10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))                          !hr09
 +ei
       nabs_tmp=0 !! type of interaction reset before following scattering process 
@@ -67354,7 +64081,6 @@ c$$$     &           myalphay * cos(phiy))
 
        zlm1=rlen
        call mcs(s)
-!hr09  s=zlm-rlen+s
        s=(zlm-rlen)+s                                                    !hr09
 !       m_dpodx=get_dpodx(p,mat) ! Claudia 2013
        call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
@@ -67381,7 +64107,6 @@ c$$$     &           myalphay * cos(phiy))
 !++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
 !
       if(x.le.0d0) then
-!hr09  s=zlm-rlen+s
        s=(zlm-rlen)+s                                                    !hr09
 !       m_dpodx=get_dpodx(p,mat)
        call calc_ion_loss(mat,p,rlen,m_dpodx)
@@ -67412,7 +64137,6 @@ c$$$     &           myalphay * cos(phiy))
       sInt=(zlm-rlen)+zlm1                                                 !hr09
 
       if(inter.eq.1) then
-!hr09  s=zlm-rlen+zlm1
        s=(zlm-rlen)+zlm1                                                 !hr09
 !       p=p-dpodx(mat)*s  ! Why calculate ionization energy loss if particle is absorbed? This is used nowhere....?
 !       m_dpodx=get_dpodx(p,mat)
@@ -67459,7 +64183,6 @@ c$$$     &           myalphay * cos(phiy))
 !
 !++ added update for s
 !
-!hr09   s=zlm-rlen+zlm1
         s=(zlm-rlen)+zlm1                                                !hr09
         xpsd=dxp
         zpsd=dzp
@@ -67548,11 +64271,9 @@ c$$$     &           myalphay * cos(phiy))
 !++  Get monte-carlo interaction length.
 !
 +if crlibm
-!hr09 10    zlm1=-xintl(mat)*log_rn(dble(rndm4()))
 10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
 +ei
 +if .not.crlibm
-!hr09 10    zlm1=-xintl(mat)*log(dble(rndm4()))
 10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))
 +ei
 !
@@ -67565,7 +64286,6 @@ c$$$     &           myalphay * cos(phiy))
 !
        zlm1=rlen
        call mcs(s)
-!hr09  s=zlm-rlen+s
        s=(zlm-rlen)+s                                                    !hr09
        p=p-dpodx(mat)*s
        dpop=1.d0-p0/p
@@ -67583,7 +64303,6 @@ c$$$     &           myalphay * cos(phiy))
 !++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
 !
       if(x.le.0.d0) then
-!hr09  s=zlm-rlen+s
        s=(zlm-rlen)+s                                                    !hr09
        p=p-dpodx(mat)*s
        dpop=1.d0-p0/p
@@ -67598,7 +64317,6 @@ c$$$     &           myalphay * cos(phiy))
       inter=ichoix(mat)
       if(inter.eq.1) then
        nabs=1
-!hr09  s=zlm-rlen+zlm1
        s=(zlm-rlen)+zlm1                                                 !hr09
        p=p-dpodx(mat)*s
        dpop=1.d0-p0/p
@@ -67689,7 +64407,6 @@ c$$$     &           myalphay * cos(phiy))
 !
       x=(x/theta)/radl(mat)                                              !hr09
       xp=xp/theta
-!hr09 z=z/theta/radl(mat)
       z=(z/theta)/radl(mat)                                              !hr09
       zp=zp/theta
       rlen0=zlm1/radl(mat)
@@ -67700,7 +64417,6 @@ c$$$     &           myalphay * cos(phiy))
       if(s.lt.h) s=h
       call scamcs(x,xp,s,radl_mat)
       if(x.le.0.d0) then
-!hr09  s=rlen0-rlen+s
        s=(rlen0-rlen)+s                                                  !hr09
        goto 20
       end if
@@ -67712,10 +64428,8 @@ c$$$     &           myalphay * cos(phiy))
       goto 10
 20    call scamcs(z,zp,s,radl_mat)
       s=s*radl(mat)
-!hr09 x=x*theta*radl(mat)
       x=(x*theta)*radl(mat)                                              !hr09
       xp=xp*theta
-!hr09 z=z*theta*radl(mat)
       z=(z*theta)*radl(mat)                                              !hr09
       zp=zp*theta
       end
@@ -67735,20 +64449,16 @@ c$$$     &           myalphay * cos(phiy))
       xp0=xxp
 5     v1=2d0*dble(rndm4())-1d0
       v2=2d0*dble(rndm4())-1d0
-!hr09 r2=v1*v1+v2*v2
       r2=v1**2+v2**2                                                     !hr09
       if(r2.ge.1.d0) goto 5
 +if crlibm
-!hr09 a=dsqrt(-2.d0*log_rn(r2)/r2)
       a=sqrt((-2.d0*log_rn(r2))/r2)                                      !hr09
 +ei
 +if .not.crlibm
-!hr09 a=dsqrt(-2.d0*log(r2)/r2)
       a=sqrt((-2.d0*log(r2))/r2)                                         !hr09
 +ei
       z1=v1*a
       z2=v2*a
-!hr09 ss=dsqrt(s)
       ss=sqrt(s)    
 +if crlibm
       xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log_rn(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
@@ -67798,7 +64508,6 @@ c$$$     &           myalphay * cos(phiy))
         call iterat(a,b,dh,s)
        end if
       else
-!hr09  c=-a/b
        c=(-1d0*a)/b
        if(smax.lt.c) then
         if(smax**3.le.(a+b*smax)**2) then
@@ -68117,7 +64826,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
                     !See ran_gauss(cut)
 
 +if crlibm
-!hr09 twopi=8d0*atan(1d0)
       twopi=8d0*atan_rn(1d0)                                             !hr09
 +ei
 +if .not.crlibm
@@ -68128,7 +64836,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          r = max(r, 0.5d0**32)
          r = min(r, 1d0-0.5d0**32)
 +if crlibm
-!hr09    u1 = sqrt(-2d0*log( r ))
          u1 = sqrt(-2d0*log_rn( r ))
 +ei
 +if .not.crlibm
@@ -68634,9 +65341,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !
       ierr = 0
       if (tftot .le. 0.) go to 900
-!hr09 tpctil = tftot/nbins
       tpctil = tftot/real(nbins)                                         !hr09
-!hr09 tz = tpctil/nz
       tz = tpctil/real(nz)
       tzmax = tz * 2.
       xfcum(nlo) = xlow
@@ -68658,7 +65363,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
   350 x = x1 + xincr
       f = func(x)
       if (f .lt. 0.) go to 900
-!hr09 tincr = (x-x1) * 0.5 * (f+f1)
       tincr = ((x-x1) * 0.5) * (f+f1)                                    !hr09
       if (tincr .lt. tzmax) go to 370
       xincr = xincr * 0.5
@@ -68666,7 +65370,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
   370 continue
       tcum = tcum + tincr
       if (tcum .ge. tpctil*0.99) go to 520
-!hr09 fminz = tz*f/ (tpctil-tcum)
       fminz = (tz*f)/ (tpctil-tcum)                                      !hr09
       f1 = f
       x1 = x
@@ -68731,7 +65434,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       if(f .lt. 0.) goto 900
   600 continue
 !         END OF LOOP OVER BINS
-!hr09 x1 = xfcum(nlo+nbins-1)
       x1 = xfcum((nlo+nbins)-1)                                          !hr09
       x2 = xhigh
       call radapt(func,x1,x2,1,rteps,0.,tpart ,uncert)
@@ -68803,31 +65505,25 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
              j = j1 + 101
              j = max(j,102)
              j = min(j,148)
-!hr09    p = (   x -gaps*(j1-1)) * gapins
          p = (   x -gaps*real(j1-1)) * gapins                            !hr09
          a = (p+1.0) * array(j+2) - (p-2.0)*array(j-1)
          b = (p-1.0) * array(j) - p * array(j+1)
-!hr09    xran(ibuf) = a*p*(p-1.0)*0.16666667 + b*(p+1.)*(p-2.)*0.5
       xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5  !hr09
       else if (j .gt. 97)  then
          j1 = int((x-bright)*gapins)
              j = j1 + 151
              j = max(j,152)
              j = min(j,198)
-!hr09    p = (x -bright -gaps*(j1-1)) * gapins
          p = ((x -bright) -gaps*(j1-1)) * gapins                         !hr09
          a = (p+1.0) * array(j+2) - (p-2.0)*array(j-1)
          b = (p-1.0) * array(j) - p * array(j+1)
-!hr09    xran(ibuf) = a*p*(p-1.0)*0.16666667 + b*(p+1.)*(p-2.)*0.5
       xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5  !hr09
       else
 !      J = MAX(J,2)
 !      J = MIN(J,98)
-!hr09    p = (   x -gap*(j-1)) * gapinv
          p = (   x -gap*real(j-1)) * gapinv                              !hr09
          a = (p+1.) * array(j+2) - (p-2.)*array(j-1)
          b = (p-1.) * array(j) - p * array(j+1)
-!hr09    xran(ibuf) = a*p*(p-1.)*0.16666667 + b*(p+1.)*(p-2.)*0.5
       xran(ibuf) = ((a*p)*(p-1.))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5   !hr09
       endif
   500 continue
@@ -68867,7 +65563,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       do 30 logn= 1, 7
       nslice = 2**logn
       do 20 i= 1, nslice, 2
-!hr09 xmid = xlow + i * (xhigh-xlow) / nslice
       xmid = xlow + (real(i) * (xhigh-xlow)) / real(nslice)              !hr09
       if (func(xmid) .gt. 0.)  go to 50
    20 continue
@@ -68978,18 +65673,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
        do 1 i = 1,nter
        call rgs56p(f,xlo(i),xhi(i),tval(i),te)
        ters(i)=te**2
-!hr09  tvals=tvals+tval(i)
        tvals=tvals+dble(tval(i))                                         !hr09
-!hr09  terss=terss+ters(i)
        terss=terss+dble(ters(i))
     1  continue
-!hr09  root= sqrt(2.*terss)
        root= real(sqrt(2.d0*terss))                                      !hr09
        go to 9
       endif
       nsegd=min(nseg,ndim)
     2 xhib=a
-!hr09 bin=(b-a)/nsegd
       bin=(b-a)/real(nsegd)                                              !hr09
       do 3 i = 1,nsegd
       xlo(i)=xhib
@@ -69002,19 +65693,13 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
     3 continue
       nter=nsegd
       do 4 iter = 1,ndim
-!hr09 tvals=tval(1)
       tvals=dble(tval(1))                                                !hr09
-!hr09 terss=ters(1)
       terss=dble(ters(1))                                                !hr09
       do 5 i = 2,nter
-!hr09 tvals=tvals+tval(i)
       tvals=tvals+dble(tval(i))                                          !hr09
-!hr09 terss=terss+ters(i)
       terss=terss+dble(ters(i))                                          !hr09
     5 continue
-!hr09 root= sqrt(2.*terss)
       root= real(sqrt(2.d0*terss))                                       !hr09
-!hr09 if(root .le. abstol .or. root .le. reltol*abs(tvals)) go to 9
       if(root .le. abstol .or. root .le. real(dble(reltol)*abs(tvals))) &!hr09
      &go to 9                                                            !hr09
       if(nter .eq. ndim) go to 9
@@ -69036,7 +65721,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       call rgs56p(f,xlo(nter),xhi(nter),tval(nter),te)
       ters(nter)=te**2
     4 continue
-!hr09    9 res=tvals
     9 res=real(tvals)                                                    !hr09
       err=root
       return
@@ -69077,16 +65761,11 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       e5=0d0
       e6=0d0
       do 1 i = 1,5
-!hr09 e5=e5+w5(i)*f(a+rang*x5(i))
       e5=e5+dble(w5(i)*f(a+rang*x5(i)))                                  !hr09
-!hr09 e6=e6+w6(i)*f(a+rang*x6(i))
       e6=e6+dble(w6(i)*f(a+rang*x6(i)))                                  !hr09
     1 continue
-!hr09 e6=e6+w6(6)*f(a+rang*x6(6))
       e6=e6+dble(w6(6)*f(a+rang*x6(6)))
-!hr09 res=hf*(e6+e5)*rang
       res=real((dble(hf)*(e6+e5))*dble(rang))                            !hr09
-!hr09 err=abs((e6-e5)*rang)
       err=real(abs((e6-e5)*dble(rang)))                                  !hr09
       return
       end
@@ -71026,7 +67705,6 @@ c$$$         backspace (93,iostat=ierro)
       napxo=crnapxo
       napx=crnapx
       e0=cre0
-!hr08 e0f=sqrt(e0*e0-pma*pma)
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       write(93,*) 'CRSTART doing binrecs'
       endfile (93,iostat=ierro)
