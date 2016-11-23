@@ -47475,6 +47475,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         badelem = .true.
                      endif
                   endif
+
+                  ! TODO: Sanity check - check that there are no actual element (BEZ name)
+                  ! called "GLOBAL-VARS".
                   
                   if (badelem) then
 +if cr
