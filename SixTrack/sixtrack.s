@@ -47401,15 +47401,26 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &           csets_unique_dynk(nsets_unique_dynk,2) ))
             found = .false.
 
+            ! Special case: the element name GLOBAL-VARS (not a real element)
+            ! can be used to redefine a global variable by some function.
             if (element_name_s .eq. "GLOBAL-VARS") then
                found=.true.
                
-               if (.not. (att_name_s .eq. "E0") ) then
+               if (att_name_s .eq. "E0") then
+                  if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
++if cr
+                    write(lout,*) "DYNK> Insane - attribute '",
++ei
++if .not.cr
+                    write(*,*)    "DYNK> Insane - attribute '",
++ei
+     &                att_name_s, "' is not valid for 'GLOBAL-VARS' ",
+     &                "when doing 4d tracking"
+                  endif
+                else
                   badelem=.true.
                endif
 
-               !TODO: Small sanity check - We should only modify energy if in 6d tracking...
-               
                if (badelem) then
 +if cr
                   write(lout,*) "DYNK> Insane - attribute '",
@@ -47417,9 +47428,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if .not.cr
                   write(*,*)    "DYNK> Insane - attribute '",
 +ei
-     &                 att_name_s, "' is not valid for GLOBAL-VARS"
-                     call prror(-1)
-                  endif
+     &                 att_name_s, "' is not valid for 'GLOBAL-VARS'"
+                  call prror(-1)
+               endif
             endif
             
             do jj=1,il
@@ -47476,8 +47487,19 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                      endif
                   endif
 
-                  ! TODO: Sanity check - check that there are no actual element (BEZ name)
-                  ! called "GLOBAL-VARS".
+                  ! Special case:
+                  ! Should the error only occur if we actually have a GLOBAL-VARS element?
+                  if (bez(jj) .eq. "GLOBAL-VARS") then
++if cr
+                     write(lout,*) "DYNK> Insane - element found '",
++ei
++if .not.cr
+                     write(*,*)    "DYNK> Insane - element found '",
++ei
+     &                    "GLOBAL-VARS' is not a valid element name, ",
+     &                    "it is reserved"
+                     call prror(-1) 
+                  endif
                   
                   if (badelem) then
 +if cr
