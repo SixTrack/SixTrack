@@ -77,6 +77,7 @@ file(READ ${CMAKE_SOURCE_DIR}/sixtrack.s IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]([0-9]+)'/" VERSION_STRING ${IFILE} )
 set(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}")
 MESSAGE(STATUS "Sixtrack version: ${VERSION_STRING}")
+MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} and generating for ${CMAKE_GENERATOR}")
 
 #Set Sixtrack version info
 set(${PROJECT_NAME}_VERSION "${VERSION_STRING}")
@@ -284,11 +285,6 @@ endforeach()
 #add back in beamgas, which is in free format
 SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90)
 SET(FORS ${FORS} beamgas)
-
-
-#add the source files that will be used to build sixtrack
-add_executable(SixTrack ${SIXTRACK_SOURCES})
-SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}")
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -535,43 +531,63 @@ endif()
 ###################################################################################################
 # Settings for compiler build flags
 ###################################################################################################
-#Additional Compiler flags (for all options)
-#ADD_DEFINITIONS("-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -pedantic -march=native")
-
-if(NATIVE)
-	ADD_DEFINITIONS("-march=native")
-endif()
 
 if(STATIC)
-	SET(CMAKE_EXE_LINKER_FLAGS "-static")
+	#This just sets the default build setting for shared libraries.
 	SET(BUILD_SHARED_LIBS OFF)
 endif()
 
-if(32BIT)
-	ADD_DEFINITIONS("-m32")
-#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "-m32")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
-endif()
-
-if(64BIT)
-	ADD_DEFINITIONS("-m64")
-endif()
-
-# FFLAGS depend on the compiler
+#FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
+#lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	set (CMAKE_Fortran_FLAGS_RELEASE "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -O3")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -g -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+	SET(CMAKE_Fortran_FLAGS_RELEASE "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -O3")
+	SET(CMAKE_Fortran_FLAGS_DEBUG   "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -g -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+
+	if(32BIT)
+		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
+		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
+		SET(CMAKE_EXE_LINKER_FLAGS "-m32")
+	endif(32BIT)
+
+	if(64BIT)
+		set(CMAKE_Fortran_FLAGS_RELEASE "-m64 ${CMAKE_Fortran_FLAGS_RELEASE}")
+		set(CMAKE_Fortran_FLAGS_DEBUG "-m64 ${CMAKE_Fortran_FLAGS_DEBUG}")
+		SET(CMAKE_EXE_LINKER_FLAGS "-m64")
+	endif(64BIT)
+
+	if(NATIVE)
+		SET(CMAKE_Fortran_FLAGS_RELEASE "-march=native ${CMAKE_Fortran_FLAGS_RELEASE}")
+	endif(NATIVE)
+
+	if(STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-static")
+	endif(STATIC)
+
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
-	# ifort (untested)
+	# ifort
 	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g")
+	if(NATIVE)
+		SET(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
+	endif(NATIVE)
+
+	if(STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-Bstatic")
+	endif(STATIC)
+
+	if(NOT STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-Bdynamic")
+	endif(NOT STATIC)
+
 elseif (Fortran_COMPILER_NAME MATCHES "g77")
 	# g77
 	set (CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3 -m32")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-fno-f2c -O0 -g -m32")
+
+#generic catch option
 else (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	message ("CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
 	message ("Fortran compiler: " ${Fortran_COMPILER_NAME})
@@ -579,6 +595,119 @@ else (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O2")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g")
 endif (Fortran_COMPILER_NAME MATCHES "gfortran.*")
+
+#Now for C flags (crlibm for now)
+#${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
+if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
+
+	if(32BIT)
+		set(CMAKE_C_FLAGS "-m32")
+	endif(32BIT)
+
+	if(64BIT)
+		set(CMAKE_C_FLAGS "-m64")
+	endif(64BIT)
+
+	if(NATIVE)
+		set(CMAKE_C_FLAGS "-march=native")
+	endif(NATIVE)
+
+	set (CMAKE_C_FLAGS_RELEASE "-O3 ${CMAKE_C_FLAGS}")
+	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g ${CMAKE_C_FLAGS}")
+
+	if(STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-static")
+	endif(STATIC)
+
+endif()
+
+if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
+
+	if(32BIT)
+		set(CMAKE_C_FLAGS "-m32")
+	endif(32BIT)
+
+	if(64BIT)
+		set(CMAKE_C_FLAGS "-m64")
+	endif(64BIT)
+
+	if(NATIVE)
+		set(CMAKE_C_FLAGS "-xHost")
+	endif(NATIVE)
+
+	set (CMAKE_C_FLAGS_RELEASE "-O3 ${CMAKE_C_FLAGS}")
+	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g ${CMAKE_C_FLAGS}")
+
+	if(STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-Bstatic")
+		SET(CMAKE_SHARED_LINKER_FLAGS "-Bstatic")
+		SET(CMAKE_MODULE_LINKER_FLAGS "-Bstatic")
+	endif(STATIC)
+
+	if(NOT STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-Bdynamic")
+		SET(CMAKE_SHARED_LINKER_FLAGS "-Bdynamic")
+		SET(CMAKE_MODULE_LINKER_FLAGS "-Bdynamic")
+	endif(NOT STATIC)
+
+endif()
+
+#Now for CXX flags (merlinScatter for now)
+#${CMAKE_CXX_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+
+	if(32BIT)
+		set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+	endif(32BIT)
+
+	if(64BIT)
+		set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
+	endif(64BIT)
+
+	if(NATIVE)
+		set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
+	endif(NATIVE)
+
+	set (CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS}")
+	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g ${CMAKE_CXX_FLAGS}")
+
+	if(STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-static")
+		SET(CMAKE_SHARED_LINKER_FLAGS "-static")
+		SET(CMAKE_MODULE_LINKER_FLAGS "-static")
+	endif(STATIC)
+
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
+
+	if(32BIT)
+		set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+	endif(32BIT)
+
+	if(64BIT)
+		set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
+	endif(64BIT)
+
+	if(NATIVE)
+		set(CMAKE_CXX_FLAGS "-march=xHost ${CMAKE_CXX_FLAGS}")
+	endif(NATIVE)
+
+	set (CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS}")
+	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g ${CMAKE_CXX_FLAGS}")
+
+	if(STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-Bstatic")
+		SET(CMAKE_SHARED_LINKER_FLAGS "-Bstatic")
+		SET(CMAKE_MODULE_LINKER_FLAGS "-Bstatic")
+	endif(STATIC)
+
+	if(NOT STATIC)
+		SET(CMAKE_EXE_LINKER_FLAGS "-Bdynamic")
+		SET(CMAKE_SHARED_LINKER_FLAGS "-Bdynamic")
+		SET(CMAKE_MODULE_LINKER_FLAGS "-Bdynamic")
+	endif(NOT STATIC)
+endif()
 
 #MPI default build options
 SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
@@ -619,18 +748,9 @@ MARK_AS_ADVANCED(
 ######################################if(32BIT)#############################################################
 # Settings for what exactly to build
 ###################################################################################################
-if(CRLIBM)
-	file(GLOB CRLIBM_SOURCES crlibm/*.c)
-	add_library(crlibm STATIC ${CRLIBM_SOURCES})
-	if(32BIT)
-		SET_TARGET_PROPERTIES(crlibm PROPERTIES COMPILE_FLAGS "-DLINUX_INLINE -DHAVE_CONFIG_H -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing -m32")
-		SET_TARGET_PROPERTIES(crlibm PROPERTIES LINK_FLAGS "-DLINUX_INLINE -DHAVE_CONFIG_H -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing -m32")
-	endif()
-	if(64BIT)
-		SET_TARGET_PROPERTIES(crlibm PROPERTIES COMPILE_FLAGS "-DLINUX_INLINE -DHAVE_CONFIG_H -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing -m64")
-		SET_TARGET_PROPERTIES(crlibm PROPERTIES LINK_FLAGS "-DLINUX_INLINE -DHAVE_CONFIG_H -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith  -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing -m64")
-	endif()
-endif()
+#add the source files that will be used to build sixtrack
+add_executable(SixTrack ${SIXTRACK_SOURCES})
+SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}")
 
 #build astuce
 add_executable(astuce astuce.f)
@@ -638,24 +758,41 @@ add_executable(astuce astuce.f)
 #build dafor
 add_executable(dafor dafor.f)
 
-if(32BIT)
-	SET_TARGET_PROPERTIES(astuce PROPERTIES COMPILE_FLAGS "-m32")
-	SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-m32")
-	SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "-m32")
-	SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-m32")
+if(CRLIBM)
+	file(GLOB CRLIBM_SOURCES ${CMAKE_SOURCE_DIR}/crlibm/*.c)
+	add_library(crlibm STATIC ${CRLIBM_SOURCES})
+
+	target_compile_definitions(crlibm PRIVATE -DLINUX_INLINE -DHAVE_CONFIG_H)
+
+	if(32BIT)
+		target_compile_options(crlibm PRIVATE -m32)
+	endif(32BIT)
+	if(64BIT)
+		target_compile_options(crlibm PRIVATE -m64)
+	endif(64BIT)
+
+	if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
+		target_compile_options(crlibm PRIVATE -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
+	elseif(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
+		target_compile_options(crlibm PRIVATE -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wconversion -Wstrict-prototypes -Winline -pedantic -fno-strict-aliasing)
+	else()
+		target_compile_options(crlibm PRIVATE -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
+	endif()
 endif()
 
 if(MERLINSCATTER)
-	file(GLOB MERLINSCATTER_SOURCES merlinscatter/*.cpp merlinscatter/RandomNG/*.cpp)
+	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/merlinscatter/RandomNG/*.cpp)
 	add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
+
+	#Enable c++11
+	set_property(TARGET merlinscatter PROPERTY CXX_STANDARD 11)
+
 	if(32BIT)
-		SET_TARGET_PROPERTIES(merlinscatter PROPERTIES COMPILE_FLAGS "-std=c11++ -Wall -pedantic -m32 -O3")
-		SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-std=c++11 -Wall -pedantic -m32 -O3")
-	endif()
+		SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-m32")
+	endif(32BIT)
 	if(64BIT)
-		SET_TARGET_PROPERTIES(merlinscatter PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -pedantic -m64 -O3")
-		SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-std=c++11 -Wall -pedantic -m64 -O3")
-	endif()
+		SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-m64")
+	endif(64BIT)
 endif()
 
 #if we have a boinc build, add myboinc.f
@@ -920,6 +1057,9 @@ endif(HDF5)
 #For testing
 IF(BUILD_TESTING)
 	add_subdirectory(${CMAKE_SOURCE_DIR}/../SixTest ${CMAKE_BINARY_DIR}/SixTest)
+	SET(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
+	MARK_AS_ADVANCED(BUILDNAME)
+
     SET(SIXTRACK_TESTS bnl exact crabamp javier thick4 lost tilt dipedge bb bb_ntwin1 notilt lostnotilt lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d)
 	foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 		add_custom_target(test_copy_${TST})
