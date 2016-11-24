@@ -67,7 +67,7 @@ C ANFANG - HAUPTPROGRAMM -
       
       ! Read command line arguments -- inspired by read90
       cmdarg_i = 0
-      do 
+      do
          call get_command_argument
      &        (cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
          ! write (6,*) cmdarg_i, cmdarg_arg
