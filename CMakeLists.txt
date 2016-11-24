@@ -965,7 +965,15 @@ MARK_AS_ADVANCED(BUILDNAME)
 
 #For testing
 IF(BUILD_TESTING)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
+#	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
+
+	ENABLE_TESTING()
+	INCLUDE(CTest)
+
+	SET(SIXTRACK_TESTS bnl exact crabamp javier thick4 lost tilt dipedge bb bb_ntwin1 notilt lostnotilt lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d)
+	foreach(TEST IN ITEMS ${SIXTRACK_TESTS})
+		ADD_TEST(NAME ${TEST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TEST} COMMAND SixTrack)
+	endforeach()
 
     SET(SIXTRACK_TESTS bnl exact crabamp javier thick4 lost tilt dipedge bb bb_ntwin1 notilt lostnotilt lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d)
 	foreach(TST IN ITEMS ${SIXTRACK_TESTS})
