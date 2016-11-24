@@ -314,7 +314,6 @@
 !
       ibase = no+1
       js    = nv/2
-!hr10 if(float(ibase)**((nv+1)/2).gt.float(lia)) then
       if(real(ibase)**((nv+1)/2).gt.real(lia)) then                      !hr10
 +if cr
          write(lout,*)'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',
@@ -1044,7 +1043,6 @@
 !
       if(i.gt.(nvmax+1)/2) then
         ic1 = 0
-!hr10   ic2 = ibase**(i-(nvmax+1)/2-1)
         ic2 = ibase**((i-(nvmax+1)/2)-1)                                 !hr10
       else
         ic1 = ibase**(i-1)
@@ -1246,7 +1244,6 @@
 +ei
 !
       if(illa.eq.0) then   ! etienne shit
-!hr10   cjj = 0
         cjj = 0d0                                                        !hr10
        return
       endif
@@ -1328,7 +1325,6 @@
       icz = ia1(i1(iz))+ia2(i2(iz))
 !
       if(illa.eq.0) then
-!hr10    cjj = 0
          cjj = 0d0                                                       !hr10
          return
       elseif(ic.eq.icu) then
@@ -1354,7 +1350,6 @@
 +ei
          return
       elseif(ic.lt.icu.or.ic.gt.icz) then
-!hr10    cjj = 0
          cjj = 0d0                                                       !hr10
          return
       endif
@@ -1370,7 +1365,6 @@
       i = (iu+iz)/2
 !
 !     if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
-!hr10 mchk=ia1(i1(i))+ia2(i2(i)) - ic
       mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
       if(mchk.lt.0) goto 20
       if(mchk.eq.0) goto 30
@@ -1537,7 +1531,6 @@
       i = (iu+iz)/2
 !
 !      if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
-!hr10 mchk=ia1(i1(i))+ia2(i2(i)) - ic
       mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
       if(mchk.lt.0) goto 20
       if(mchk.eq.0) goto 30
@@ -1702,7 +1695,6 @@
 !
  100  continue
 !
-!hr10 idall(inb) = ib - ipob + 1
       idall(inb) = (ib - ipob) + 1                                       !hr10
       if(idall(inb).gt.idalm(inb)) then
 +if cr
@@ -2097,7 +2089,6 @@
         call dacmu(inb,ckon,idaexc(1))
         call dafun('EXP   ',idaexc(1),inb)
       else
-!hr10   xic=abs(ckon-dble(idint(ckon)))
         xic=abs(ckon-dble(int(ckon)))                                    !hr10
         if(xic.gt.eps) then
           call dafun('LOG   ',ina,inb)
@@ -2339,7 +2330,6 @@
 !
       if(inva+invc.eq.0) then
          do 5 i=0,illa-1
-!hr10  5      cc(ipoc+i) = cc(ipoa+i) * cc(ipoa+i)
   5      cc(ipoc+i) = cc(ipoa+i)**2                                      !hr10
          idall(inc) = idall(ina)
          if(idall(inc).gt.idalm(inc)) then
@@ -2360,7 +2350,6 @@
       if(nomax.eq.1) then
          minv = min(inva,invc)
          ccipoa = cc(ipoa)
-!hr10    cc(ipoc) = ccipoa*ccipoa
          cc(ipoc) = ccipoa**2                                            !hr10
          do 20 i=1,minv
   20     cc(ipoc+i) = 2d0*ccipoa*cc(ipoa+i)
@@ -2413,7 +2402,6 @@
       ccia = cc(ia)
 !
       ic = ia2(i2ia+i2ia) + ia1(i1ia+i1ia)
-!hr10 cc(ic) = cc(ic) + ccia*ccia
       cc(ic) = cc(ic) + ccia**2                                          !hr10
       ccia = ccia + ccia
 !
@@ -2742,7 +2730,6 @@
 !     endif
 +ei
 !
-!hr10 idall(inb) = ib-ipob+1
       idall(inb) = (ib-ipob)+1                                           !hr10
       if(idall(inb).gt.idalm(inb)) then
 +if cr
@@ -2949,11 +2936,8 @@
       ia = ipoa
       ib = ipob
       ic = ipoc - 1
-!hr10 iamax = ipoa+illa-1
       iamax = (ipoa+illa)-1                                              !hr10
-!hr10 ibmax = ipob+illb-1
       ibmax = (ipob+illb)-1                                              !hr10
-!hr10 icmax = ipoc+ilmc-1
       icmax = (ipoc+ilmc)-1                                              !hr10
       ja = ia1(i1(ia)) + ia2(i2(ia))
       jb = ia1(i1(ib)) + ia2(i2(ib))
@@ -3069,7 +3053,6 @@
       i2(ic) = i2(is)
   60  continue
 !
-!hr10 idall(inc) = ic - ipoc + 1
       idall(inc) = (ic - ipoc) + 1                                       !hr10
 !
       if(idall(inc).gt.idalm(inc)) then
@@ -3218,7 +3201,6 @@
 !
       if(cf.eq.'INV ') then
 !        1/(A0+P) = 1/A0*(1-(P/A0)+(P/A0)**2-...)
-!hr10    if(a0.eq.0) then
          if(a0.eq.0d0) then                                              !hr10
 +if cr
             write(lout,1000) cf,ina,a0
@@ -3232,12 +3214,10 @@
          endif
          xf(0) = 1.d0/a0
          do 601 i=1,no
-!hr10  601    xf(i) = -xf(i-1)/a0
   601    xf(i) = (-1d0*xf(i-1))/a0
 !
       elseif(cf.eq.'SQRT') then
 !        SQRT(A0+P) = SQRT(A0)*(1+1/2(P/A0)-1/8*(P/A0)**2+...)
-!hr10    if(a0.le.0) then
          if(a0.le.0d0) then                                              !hr10
 +if cr
             write(lout,1000) cf,ina,a0
@@ -3249,16 +3229,13 @@
             lfun = 0
             return
          endif
-!hr10    ra = dsqrt(a0)
          ra = sqrt(a0)                                                   !hr10
          xf(0) = ra
          do 602 i=1,no
-!hr10  602    xf(i) = -xf(i-1)/a0/dble(2*i)*dble(2*i-3)
   602    xf(i) = (((-1d0*xf(i-1))/a0)/dble(2*i))*dble(2*i-3)             !hr10
 !
       elseif(cf.eq.'ISRT') then
 !        1/SQRT(A0+P) = 1/SQRT(A0)*(1-1/2(P/A0)+3/8*(P/A0)**2-...)
-!hr10    if(a0.le.0) then
          if(a0.le.0d0) then                                              !hr10
 +if cr
             write(lout,1000) cf,ina,a0
@@ -3270,11 +3247,9 @@
             lfun = 0
             return
          endif
-!hr10    era = 1.d0/dsqrt(a0)
          era = 1.d0/sqrt(a0)                                             !hr10
          xf(0) = era
          do 603 i=1,no
-!hr10  603    xf(i) = -xf(i-1)/a0/dble(2*i)*dble(2*i-1)
   603    xf(i) = (((-1d0*xf(i-1))/a0)/dble(2*i))*dble(2*i-1)             !hr10
 !
       elseif(cf.eq.'EXP ') then
@@ -3291,7 +3266,6 @@
 !
       elseif(cf.eq.'LOG ') then
 !        LOG(A0+P) = LOG(A0) + (P/A0) - 1/2*(P/A0)**2 + 1/3*(P/A0)**3 - ...)
-!hr10    if(a0.le.0) then
          if(a0.le.0d0) then                                              !hr10
 +if cr
             write(lout,1000) cf,ina,a0
@@ -3312,7 +3286,6 @@
          xf(0) = ea
          xf(1) = 1.d0/a0
          do 605 i=2,no
-!hr10  605    xf(i) = -xf(i-1)/a0/dble(i)*dble(i-1)
   605    xf(i) = (((-1d0*xf(i-1))/a0)/dble(i))*dble(i-1)                 !hr10
 !
       elseif(cf.eq.'SIN ') then
@@ -3332,7 +3305,6 @@
          xf(0) = sa
          xf(1) = ca
          do 606 i=2,no
-!hr10  606    xf(i) = -xf(i-2)/dble(i*(i-1))
   606    xf(i) = (-1d0*xf(i-2))/dble(i*(i-1))                            !hr10
 !
       elseif(cf.eq.'COS ') then
@@ -3350,15 +3322,12 @@
          ca  = cos(a0)
 +ei
          xf(0) = ca
-!hr10    xf(1) = -sa
          xf(1) = -1d0*sa                                                 !hr10
          do 607 i=2,no
-!hr10  607    xf(i) = -xf(i-2)/dble(i*(i-1))
   607    xf(i) = (-1d0*xf(i-2))/dble(i*(i-1))                            !hr10
 !
       elseif(cf.eq.'SIRX') then
 !        SIN(SQRT(P))/SQRT(P) = 1 - P/3! + P**2/5! - P**3/7! + ...
-!hr10    if(a0.ne.0) then
          if(a0.ne.0d0) then                                              !hr10
 +if cr
             write(lout,1000) cf,ina,a0
@@ -3372,12 +3341,10 @@
          endif
          xf(0)=1.d0
          do 608 i=1,no
-!hr10  608    xf(i) = -xf(i-1)/dble(2*i*(2*i+1))
   608    xf(i) = (-1d0*xf(i-1))/dble((2*i)*(2*i+1))                      !hr10
 !
       elseif(cf.eq.'CORX') then
 !        COS(SQRT(P)) = 1 - P/2! + P**2/4! - P**3/6! + ...
-!hr10    if(a0.ne.0) then
          if(a0.ne.0d0) then                                              !hr10
 +if cr
             write(lout,1000) cf,ina,a0
@@ -3391,12 +3358,10 @@
          endif
          xf(0)=1.d0
          do 609 i=1,no
-!hr10  609    xf(i) = -xf(i-1)/dble(2*i*(2*i-1))
   609    xf(i) = (-1d0*xf(i-1))/dble((2*i)*(2*i-1))                      !hr10
 !
       elseif(cf.eq.'SIDX') then
 !        SIN(P)/P = 1 - P**2/3! + P**4/5! - P**6/7! + ...
-!hr10    if(a0.ne.0) then
          if(a0.ne.0d0) then                                              !hr10
 +if cr
             write(lout,1000) cf,ina,a0
@@ -3411,7 +3376,6 @@
          xf(0)=1.d0
          xf(1)=0.d0
          do 610 i=2,no
-!hr10  610    xf(i) = -xf(i-2)/dble(i*(i+1))
   610    xf(i) = (-1d0*xf(i-2))/dble(i*(i+1))                            !hr10
 !
       elseif(cf.eq.'TAN ') then
@@ -3444,16 +3408,10 @@
          ca  = cos(a0)
 +ei
          xf(0) = sa/ca
-!hr10    xf(1) = 1.d0/ca/ca
          xf(1) = (1.d0/ca)/ca                                            !hr10
-!hr10    xf(2) = 2.d0*sa/ca/ca/ca/2.d0
          xf(2) = ((((2.d0*sa)/ca)/ca)/ca)/2.d0
-!hr10    xf(3) = (2.d0*ca*ca+6.d0*sa*sa)/ca/ca/ca/ca/6.d0
          xf(3) = (((((2.d0*ca**2+6.d0*sa**2)/ca)/ca)/ca)/ca)/6.d0        !hr10
-!hr10    xf(4) = (16*sa+8.d0*sa*sa*sa)/ca/ca/ca/ca/ca/24.d0
          xf(4) = ((((((16.d0*sa+8.d0*sa**3)/ca)/ca)/ca)/ca)/ca)/24.d0    !hr10
-!hr10    xf(5) = (16.d0*ca*ca+24.d0*ca*ca*sa*sa+80.d0*sa*sa+            &
-!hr10&40.d0*sa*sa*sa*sa)/ca/ca/ca/ca/ca/ca/120.d0
          xf(5) = (((((((((16.d0*ca**2+(24.d0*ca**2)*sa**2)+80.d0*sa**2)+&!hr10
      &40.d0*sa**4)/ca)/ca)/ca)/ca)/ca)/ca)/120.d0                        !hr10
          if(no.gt.5) then
@@ -3501,16 +3459,10 @@
          ca  = cos(a0)
 +ei
          xf(0) = ca/sa
-!hr10    xf(1) = -1.d0/sa/sa
          xf(1) = (-1.d0/sa)/sa
-!hr10    xf(2) = 2.d0*ca/sa/sa/sa/2.d0
          xf(2) = ((((2.d0*ca)/sa)/sa)/sa)/2.d0                           !hr10
-!hr10    xf(3) = -(2.d0*sa*sa+6.d0*ca*ca)/sa/sa/sa/sa/6.d0
          xf(3) = (((((-1d0*(2.d0*sa**2+6.d0*ca**2))/sa)/sa)/sa)/sa)/6.d0 !hr10
-!hr10    xf(4) = (16*ca+8.d0*ca*ca*ca)/sa/sa/sa/sa/sa/24.d0
          xf(4) = ((((((16d0*ca+8.d0*ca**3)/sa)/sa)/sa)/sa)/sa)/24.d0     !hr10
-!hr10    xf(5) = -(16.d0*sa*sa+24.d0*sa*sa*ca*ca+80.d0*ca*ca+           &
-!hr10&40.d0*ca*ca*ca*ca)/sa/sa/sa/sa/sa/sa/120.d0
          xf(5) = (((((((-1d0*(((16.d0*sa**2+(24.d0*sa**2)*ca**2)+       &!hr10
      &80.d0*ca**2)+ 40.d0*ca**4))/sa)/sa)/sa)/sa)/sa)/sa)/120.d0         !hr10
          if(no.gt.5) then
@@ -3548,21 +3500,16 @@
 +ei
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
-!hr10    xf(1) = (1.d0-a0*a0)**(-0.5d0)
 !        xf(1) = (1.d0-a0**2)**(-0.5d0)                                  !hr10
          xf(1) = sqrt(1.d0-a0*a0)                                        !eric
-!hr10    xf(2) = a0*xf(1)**3.d0/2.d0
 !        xf(2) = (a0*xf(1)**3.d0)/2.d0                                   !hr10
          xf(2) = (a0*(xf(1)*xf(1)*xf(1)))/2.d0                            !eric
-!hr10    xf(3) = (1+2.d0*a0*a0)*xf(1)**5.d0/6.d0
 !        xf(3) = ((1.d0+2.d0*a0**2)*xf(1)**5.d0)/6.d0                    !hr10
          xf(3) = ((1.d0+2.d0*(a0*a0))*                                  &
      &           (xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/6.d0                   !eric
-!hr10    xf(4) = (9.d0*a0+6.d0*a0*a0*a0)*xf(1)**7.d0/24.d0
 !        xf(4) = ((9.d0*a0+6.d0*a0**3)*xf(1)**7.d0)/24.d0                !hr10
          xf(4) = ((9.d0*a0+6.d0*(a0*a0*a0))*                            &
      &           (xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/24.d0      !eric
-!hr10    xf(5) = (9.d0+72.d0*a0*a0+24.d0*a0*a0*a0*a0)*xf(1)**9.d0/120.d0
 !        xf(5) = ((9.d0+72.d0*a0**2+24.d0*a0**4)*xf(1)**9.d0)/120.d0     !hr10
          xf(5) = ((9.d0+72.d0*(a0*a0)+24.d0*(a0*a0*a0*a0))*             &
      &   (xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/120.d0 !eric
@@ -3600,16 +3547,11 @@
 +ei
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
-!hr10    scr =  (1.d0-a0*a0)**(-0.5d0)
          scr =  (1.d0-a0**2)**(-0.5d0)                                   !hr10
          xf(1) =  -1d0*scr
-!hr10    xf(2) = -a0*scr**3.d0/2.d0
          xf(2) = ((-1d0*a0)*scr**3.d0)/2.d0                              !hr10
-!hr10    xf(3) = -(1+2.d0*a0*a0)*scr**5.d0/6.d0
          xf(3) = ((-1d0*(1.d0+2.d0*a0**2))*scr**5.d0)/6.d0               !hr10
-!hr10    xf(4) = -(9.d0*a0+6.d0*a0*a0*a0)*scr**7.d0/24.d0
          xf(4) = ((-1d0*(9.d0*a0+6.d0*a0**3))*scr**7.d0)/24.d0           !hr10
-!hr10    xf(5) = -(9.d0+72.d0*a0*a0+24.d0*a0*a0*a0*a0)*scr**9.d0/120.d0
          xf(5) =((-1d0*(9.d0+72.d0*a0**2+24.d0*a0**4))*scr**9.d0)/120.d0 !hr10
          if(no.gt.5) then
 +if cr
