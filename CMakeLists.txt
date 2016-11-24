@@ -2,66 +2,6 @@
 #Making use of https://cmake.org/Wiki/CMakeForFortranExample
 #and the file created for building Merlin.
 
-#!/bin/bash
-#
-# Version 1.2 29/08/2005
-# CERNLIB/GRAFLIB re-defined
-# Forces lf95 for crlibm
-# Adds g95 option
-# Version 1.3 05/09/2005
-# CERNLIB only for SixTrack (not SixTrack_da); CERNGRAF dropped.
-# The -naglib option now works for SixTrack_da
-# Version 1.4 1/8/2008
-# Gets the version and modification date from sixtrack.s
-# Corrects the BOINC variable in the Makefile
-# make_six clean now exits after the clean just like a make clean
-# Version 1.5 11/07/2008
-# Adds the deck nwrtbnl and the flags bpm and bnlelens
-# Version 2.0 Major change in philosophy; to clarify and document
-# all types of make.
-# Version 2.1 Adds bignblz option for Frank.
-#
-# July, 2009. Updated all libraries etc to use Frank's cernlib and X11 libraries
-# if they are not present (SLC5!). Also verified correct linking on 32/64 bit
-# systems, SLC4 and SLC5.    A NIGHTMARE!!!
-# Default: tilt tracking fast crlibm cernlib naglib -bpm -api -da -collimat -bnlelens -cpss -boinc -cr
-# and uses the Lahey-Fujitsu lf95 compiler 
-# 12th August, 2009. Just changed print_map to print-map. Eric.
-# Options:
-# da => -tracking -cpss -boinc -collimat -cr +naglib
-# collimat => -da -cr -boinc -cpss
-# cpss => +cr -collimat -da -cernlib -naglib -boinc
-# boinc => +cr +crlibm -collimat -da -cernlib -naglib -cpss
-# bpm activates the collection of tracking data for sussix => basic SixTrack
-# bnlelens activates the bnl electron lens options possibly => boinc, cr, crlibm
-# nag => use f95 instead of LAHEY
-# pgf90 => use pgf90
-# g95 => use g95
-# gfortran => use gfortran
-# Version 2.2 August 2010
-# Changed to nagfor, changed NAGLIBC for SLC4/5 compatibility
-# Version 2.3 27th June, 2011 (including ylevinse collimation mods
-# creating a stand alone Makefile and with an hdf5 flag).
-# Replaced windows flag by api flag for BOINC
-# Added Intel ifort, fio (rounded formatted I/O) flags,
-# and an optional optimisation parameter [O|o][0-4].
-# A new deck dump for debug. Changed nag to nagfor everywhere.
-# Allowed crlibm for NAG nagfor and Intel ifort.
-# Version 2.4 January, 2012. merged latest SixTrack production Rev 119
-# with all my changes for ifort and FIO.
-# Version 2.5 June, 2012.
-# Added option SSE2 to try and fix HORRIBLE Intel/AMD performance issues.
-# and many other changes for Windows and BOINC including templates.
-# Version 2.6. 4th July
-# uname -s for Darwin SSE as sse2 or sse3
-# and added SSE4.1 and SSE4.2 (just in case)
-# Note that SSE$.1 and SSE4.2 are specified as sse41 sse42 (aesthetics)
-
-#Possible debug options, uncomment to use
-#set -e #Stop on error - This is sometimes problematic due to the use of $? in the script.
-#set -v #Verbose: Print input lines as they are read from the shell script file
-#set -x #XTrace:  Print command traces before executing
-
 ###################################################################################################
 # General configuration
 ###################################################################################################
@@ -73,7 +13,7 @@ cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
 PROJECT(SixTrack)
 ENABLE_LANGUAGE(Fortran)
 
-file(READ ${CMAKE_SOURCE_DIR}/sixtrack.s IFILE)
+file(READ ${CMAKE_SOURCE_DIR}/SixTrack/sixtrack.s IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]([0-9]+)'/" VERSION_STRING ${IFILE} )
 set(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}")
 MESSAGE(STATUS "Sixtrack version: ${VERSION_STRING}")
@@ -753,13 +693,13 @@ add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}")
 
 #build astuce
-add_executable(astuce astuce.f)
+add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/astuce.f)
 
 #build dafor
-add_executable(dafor dafor.f)
+add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
 
 if(CRLIBM)
-	file(GLOB CRLIBM_SOURCES ${CMAKE_SOURCE_DIR}/crlibm/*.c)
+	file(GLOB CRLIBM_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/*.c)
 	add_library(crlibm STATIC ${CRLIBM_SOURCES})
 
 	target_compile_definitions(crlibm PRIVATE -DLINUX_INLINE -DHAVE_CONFIG_H)
@@ -781,7 +721,7 @@ if(CRLIBM)
 endif()
 
 if(MERLINSCATTER)
-	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/merlinscatter/RandomNG/*.cpp)
+	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/RandomNG/*.cpp)
 	add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
 
 	#Enable c++11
@@ -795,21 +735,24 @@ if(MERLINSCATTER)
 	endif(64BIT)
 endif()
 
-#if we have a boinc build, add myboinc.f
-if(BOINC)
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/myboinc.f ${CMAKE_BINARY_DIR})
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
-endif()
-
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/*.s)
+file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s)
+
+#copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
 endforeach()
 
+#if we have a boinc build, add myboinc.f
+if(BOINC)
+	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR})
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
+endif()
+
+#make a folder for the astuce masks and copy the input files to this folder
 add_custom_target(ast_mkdir)
-file(GLOB ASTUCE_MASKS ${CMAKE_SOURCE_DIR}/ast_mask/*.ast)
+file(GLOB ASTUCE_MASKS ${CMAKE_SOURCE_DIR}/SixTrack/ast_mask/*.ast)
 add_custom_command(TARGET ast_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ast_mask/)
 foreach(loop IN ITEMS ${ASTUCE_MASKS})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/ast_mask/ DEPENDS ast_mkdir)
@@ -823,21 +766,27 @@ add_dependencies(SixTrack copy_input_files generate_input)
 ###################################################################################################
 add_custom_target(run_astuce)
 
-#make running astuce depend on astuce being built
+#make running astuce depend on astuce being built and the input files being in place
 add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
 
+#This target cleans the define flags
 add_custom_target(astuce_clean_define_flags)
+#this requires the input files to be in place
 add_dependencies(astuce_clean_define_flags copy_input_files)
 
+#this target cleans the decks
 add_custom_target(astuce_clean_decks)
+#and requires the define flags to already be cleaned (this is just to stop parallel writes on the same file)
 add_dependencies(astuce_clean_decks astuce_clean_define_flags)
 
+#This macro calls the regex in masks_define_flags.cmake to remove the requested flags
 macro(ast_masks OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_define_flags POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks_define_flags.cmake)
+	add_custom_command(TARGET astuce_clean_define_flags POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_define_flags.cmake)
 endmacro()
 
+#This macro calls the regex in masks_decks.cmake to remove the requested decks
 macro(ast_masks2 OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/masks_decks.cmake)
+	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
 #First clean up the astuce decks for only what is enabled
@@ -938,61 +887,18 @@ endforeach(loop)
 add_custom_target(generate_input)
 add_dependencies(generate_input run_astuce dafor rename_beamgas)
 
+#we rename beamgas.f to beamgas.f90 since it should be in free format fortran
 add_custom_target(rename_beamgas)
 add_dependencies(rename_beamgas run_astuce)
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E rename beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND astuce < ${CMAKE_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
-
-	#We make custom targets/commands and deps for each dafor step
-	#make a subdir so we can build in parallel
-	add_custom_target(dafor_mkdir_${loop})
-
-	#do the symlink/copy
-	add_custom_target(dafor_copy_${loop})
-
-	#do the symlink/copy
-	add_custom_target(dafor_copy_binary_${loop})
-
-	#run dafor
-	add_custom_target(dafor_run_${loop})
-
-	#remove the link and other files
-	add_custom_target(dafor_remove_${loop})
-
-	#copy the output we need
-	add_custom_target(dafor_move_${loop})
-
-	#chain together the dependencies, each with a custom command
-	add_dependencies(dafor_remove_${loop} dafor_move_${loop})
-	add_dependencies(dafor_move_${loop} dafor_run_${loop})
-	add_dependencies(dafor_run_${loop} dafor_copy_${loop} dafor_copy_binary_${loop})
-	add_dependencies(dafor_copy_${loop} dafor_mkdir_${loop} run_astuce)
-	add_dependencies(dafor_copy_binary_${loop} dafor_mkdir_${loop} dafor)
+	add_custom_command(TARGET run_astuce POST_BUILD COMMAND astuce < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
 
 	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
 		message(STATUS "Will run dafor on ${loop}.f")
-		add_dependencies(generate_input dafor_move_${loop})
-
-		#make a subdir so we can build in parallel
-		add_custom_command(TARGET dafor_mkdir_${loop} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${loop})
-
-		#do the copy (not symlink so it will work on windows too)
-		add_custom_command(TARGET dafor_copy_${loop} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}/fort.1)
-
-		#do the copy of dafor (not symlink so it will work on windows too)
-		add_custom_command(TARGET dafor_copy_binary_${loop} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy dafor ${loop}/dafor)
-
-		#run dafor
-		add_custom_command(TARGET dafor_run_${loop} COMMAND ${CMAKE_COMMAND} -E chdir ${loop} ./dafor > ${loop}_dafor.log)
-
-		#copy the output we need
-		add_custom_command(TARGET dafor_move_${loop} COMMAND ${CMAKE_COMMAND} -E copy ${loop}/fort.2 ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f)
-
-		#remove the link and other files
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/${loop} DEPENDS dafor_remove_${loop})
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/dafor ${loop}n.f ${loop}.f > ${loop}_dafor.log DEPENDS run_astuce)
 	else()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f DEPENDS run_astuce)
 	endif()
@@ -1017,15 +923,15 @@ if(CERNLIB)
 		add_library(xcb STATIC IMPORTED)
 		add_library(Xdmcp STATIC IMPORTED)
 
-		set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libg2c.a)
-		set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libgraflib.a)
-		set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libgrafX11.a)
-		set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libkernlib_noshift.a)
-		set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libpacklib_noshift.a)
-		set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libX11.a)
-		set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libXau.a)
-		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libxcb.a)
-		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib32/libXdmcp.a)
+		set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libg2c.a)
+		set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libgraflib.a)
+		set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libgrafX11.a)
+		set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libkernlib_noshift.a)
+		set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libpacklib_noshift.a)
+		set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libX11.a)
+		set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libXau.a)
+		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libxcb.a)
+		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libXdmcp.a)
 
 		find_library(pthread STATIC pthread)
 		find_library(dl STATIC dl)
@@ -1054,18 +960,19 @@ if(HDF5)
 	target_link_libraries(SixTrack ${HDF5_LIBRARIES})
 endif(HDF5)
 
+SET(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
+MARK_AS_ADVANCED(BUILDNAME)
+
 #For testing
 IF(BUILD_TESTING)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/../SixTest ${CMAKE_BINARY_DIR}/SixTest)
-	SET(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
-	MARK_AS_ADVANCED(BUILDNAME)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
 
     SET(SIXTRACK_TESTS bnl exact crabamp javier thick4 lost tilt dipedge bb bb_ntwin1 notilt lostnotilt lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d)
 	foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 		add_custom_target(test_copy_${TST})
 		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/SixTest/${TST}/)
 
-		file(GLOB TEST_INPUTS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/../SixTest/${TST}/*)
+		file(GLOB TEST_INPUTS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/SixTest/${TST}/*)
 		#message(STATUS "${CMAKE_SOURCE_DIR}/../SixTest/${TST}/")
 
 		foreach(TSFILE IN ITEMS ${TEST_INPUTS})
