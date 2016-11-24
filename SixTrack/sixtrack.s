@@ -45908,7 +45908,7 @@ C     Here comes the logic for setting the value of the attribute for all instan
             e0f = sqrt(e0**2 - pma**2)
             gammar = pma/e0
             ! Modify the Energy
-            do j = 1, npart
+            do j = 1, napx
               dpsv(j) = (ejfv(j) - e0f)/e0f
               dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
               dpd(j) = one + dpsv(j)
