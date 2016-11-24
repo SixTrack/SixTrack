@@ -47409,15 +47409,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                if (att_name_s .eq. "E0") then
                   if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
 +if cr
-                    write(lout,*) "DYNK> Insane - attribute '",
+                     write(lout,*) "DYNK> Insane - attribute '",
 +ei
 +if .not.cr
-                    write(*,*)    "DYNK> Insane - attribute '",
+                     write(*,*)    "DYNK> Insane - attribute '",
 +ei
-     &                att_name_s, "' is not valid for 'GLOBAL-VARS' ",
-     &                "when doing 4d tracking"
+     &                  att_name_s, "' is not valid for 'GLOBAL-VARS' ",
+     &                  "when doing 4d tracking"
                   endif
-                else
+               else
                   badelem=.true.
                endif
 
@@ -47428,7 +47428,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if .not.cr
                   write(*,*)    "DYNK> Insane - attribute '",
 +ei
-     &                 att_name_s, "' is not valid for 'GLOBAL-VARS'"
+     &                att_name_s, "' is not valid for 'GLOBAL-VARS'"
                   call prror(-1)
                endif
             endif
