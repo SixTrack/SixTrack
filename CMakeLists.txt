@@ -991,4 +991,6 @@ IF(BUILD_TESTING)
 		endforeach()
 		add_dependencies( SixTrack test_copy_${TST})
 	endforeach()
+
+	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 ENDIF()
