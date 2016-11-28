@@ -1233,7 +1233,13 @@
       integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
       common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
      &fma_norm_flag,fma_nturn
-!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+! PDH
++cd dist
+      character*16 dist_fname
+      logical dist_load, dist_phys ! load distribution/ distr. is physical
+      common /dist_var/ dist_fname, dist_phys, dist_load
+!     
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd   comgetfields
@@ -11967,6 +11973,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca fma
++ca dist      
 +ca elensparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
@@ -11994,6 +12001,9 @@ cc2008
 !     - elens
       character*16 elens
       data elens /'ELEN'/
+!     - elens
+      character*16 dist
+      data dist /'DIST'/      
 
       double precision round_near
       
@@ -12249,6 +12259,7 @@ cc2008
       if(idat.eq.dynk)  goto 2200
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
+      if(idat.eq.dist)  goto 2500
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -17063,6 +17074,95 @@ cc2008
       write (lout,*) "*****************************"
 +ei
       call prror(51)
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!  FMA
+!  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
+!  last modified: 07-01-2016
+!  always in main code
+!-----------------------------------------------------------------------
+ 2500 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+         goto 110 ! loop to next BLOCK in fort.3
+      endif
+
+      write(*,*), '--> DIST BLOCK CALLED'
+
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in DIST block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+      
+      if(getfields_fields(1)(1:getfields_lfields(1)).eq.'READ') then
+         if (getfields_nfields.ne.3) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       '--> ERROR in DIST block: wrong number of input ',
+     &       '--> parameters: test'
+        call prror(-1)
+        else
+      WRITE(*,*) '--> FOUND READ COMMAND IN DIST BLOCK'
+
+      dist_fname=getfields_fields(2)(1:getfields_lfields(2))
+      
+      if(getfields_fields(3)(1:getfields_lfields(3)).eq.'PHYSICAL') then           
+         dist_phys=.true.
+         WRITE(*,*) '--> LOADING PHYCICAL DISTRIBUTION'           
+      
+
+!    &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
+      
+      
+      else if(getfields_fields(3)(1:getfields_lfields(3)).eq.'NORMED'   &
+     &) then           
+         dist_phys=.false.
+         WRITE(*,*) '--> LOADING NORMALIZED DISTRIBUTION'           
+      endif      
+
+      WRITE(*,*) '--> LOADING INITIAL DISTRIBUTION FILE'
+      WRITE(*,*) dist_fname
+      
+      
+
+      
+          
+        endif
+      endif
+
+
+
+!      fma_fname(fma_numfiles)  =
+!     &     getfields_fields(1)(1:getfields_lfields(1))
+!      fma_method(fma_numfiles) =
+!     &     getfields_fields(2)(1:getfields_lfields(2))
+!      if(getfields_nfields.eq.2) then
+!        fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
+!      endif
+!      if(getfields_nfields.eq.3) then
+!         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
+!     &        fma_norm_flag(fma_numfiles)
+!      endif      
+      
+      
+      goto 2500
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !  FMA
