@@ -1234,11 +1234,16 @@
       common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
      &fma_norm_flag,fma_nturn
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-! PDH
-+cd dist
+! PDH commons for initial distribution
++cd inidist
+      ! string: file to be loaded
       character*16 dist_fname
-      logical dist_load, dist_phys ! load distribution/ distr. is physical
-      common /dist_var/ dist_fname, dist_phys, dist_load
+      ! logical switches: load dist. from file; loaded distribution is physical
+      logical dist_load, dist_phys
+      ! logical switch: distribution block is given -> discard all other dist load functions
+      logical dist_block
+      ! commons for initial distribution
+      common /dist_var/ dist_fname, dist_phys, dist_load, dist_block
 !     
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -11973,7 +11978,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca fma
-+ca dist      
++ca inidist      
 +ca elensparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
@@ -12001,9 +12006,12 @@ cc2008
 !     - elens
       character*16 elens
       data elens /'ELEN'/
-!     - elens
+!     - distribution 
       character*16 dist
-      data dist /'DIST'/      
+      data dist /'DIST'/
+!     - heavy ions
+      character*16 hion
+      data hion /'HION'/            
 
       double precision round_near
       
@@ -17120,7 +17128,7 @@ cc2008
         call prror(-1)
         else
       WRITE(*,*) '--> FOUND READ COMMAND IN DIST BLOCK'
-
+      dist_block = .true.
       dist_fname=getfields_fields(2)(1:getfields_lfields(2))
       
       if(getfields_fields(3)(1:getfields_lfields(3)).eq.'PHYSICAL') then           
@@ -17137,17 +17145,12 @@ cc2008
          WRITE(*,*) '--> LOADING NORMALIZED DISTRIBUTION'           
       endif      
 
-      WRITE(*,*) '--> LOADING INITIAL DISTRIBUTION FILE'
-      WRITE(*,*) dist_fname
-      
-      
-
-      
+      WRITE(*,*) '--> LOADING INITIAL DISTRIBUTION FILE:', dist_fname      
           
         endif
       endif
 
-
+      WRITE(*,*) '--> DIST BLOCK', dist_block
 
 !      fma_fname(fma_numfiles)  =
 !     &     getfields_fields(1)(1:getfields_lfields(1))
@@ -23741,6 +23744,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbmaincr
 +ca dblinopt
 +ca dbpencil
++ca inidist      
 +ca database
 +ei
 +if cr
@@ -24971,6 +24975,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         nnumxv(i)=numl
    80 numxv(i)=numl
       rat0=rat
+      
+!     P. HERMES initial distribution 
+!
+      WRITE(*,*) '--> DIST idfor', idfor
+      WRITE(*,*) '--> DIST_READDIS, dist_block', dist_block
+
+
+      ! assign reference momentum
+      !e0f = sqrt(e0**2-pma**2)    
+
+      
+      if (dist_block) then
+         call dist_read(dist_fname)
+      endif
+!
+!      
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
@@ -25405,7 +25425,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &lkk,ia,j-1)*al(4,lkk,ia,ikk)
               hv(4,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(4,   &
      &lkk,ia,j-1)*al(4,lkk,ia,ikk)
-              hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,  &!hr05
+              hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,i kk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(2,lkk,ia,ikk))+al(5,lkk,ia,ikk)/dpoff               !hr05
               hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
@@ -26166,6 +26186,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dblinopt
 +ca dbpencil
 +ca info
++ca inidist            
 +ei
 +if bnlelens
 +ca rhicelens
@@ -27080,9 +27101,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      ENDIF
 !GRD-SR, 09-02-2006
 !Call distribution routines only if collimation block is in fort.3, otherwise
-!the standard sixtrack would be prevented by the 'stop' command
+!     the standard sixtrack would be prevented by the 'stop' command
+      
+!     PDH skip collimation distribution block if DIST block in fort.3
+      WRITE(*,*) '--> DIST_BLOCK', dist_block
+      if (.not.dist_block) then
+            
       if(do_coll) then
-!GRD-SR
+!     GRD-SR
       if (radial) then
          call   makedis_radial(mynp, myalphax, myalphay, mybetax,       &
      &        mybetay, myemitx0, myemity0, myenom, nr, ndr,             &
@@ -27101,8 +27127,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
      &           myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
          elseif(do_thisdis.eq.4) then
-            call  readdis(filename_dis,                                 &
-     &           mynp, myx, myxp, myy, myyp, myp, mys)
+               call  readdis(filename_dis,                                 &
+     &              mynp, myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.5) then
             call  makedis_ga(mynp, myalphax, myalphay, mybetax,         &
      & mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,   &
@@ -27142,7 +27168,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             myy(j)  = 0d0
             myyp(j) = 0d0
          end do
-       endif
+      endif
 !
 !++  Optionally write the generated particle distribution
 !
@@ -27155,7 +27181,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         end do
        endif
       close(52)
-!
+
+!     PHD SKIP COLLIMATION DIST WHEN DIST BLOCK IS GIVEN
+      
+      else
+          write(*,*) '--> DISTBLOCK GIVEN'               
+          write(*,*) '--> SKIPPING COLLIMATION DIST'
+      endif      
+!     
 !++  Initialize efficiency array
 !
       do i = 1, mynp
@@ -32705,6 +32738,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca dbdcum
++ca inidist
 +ca elensparam
 +ca elenstracktmp
       save
@@ -62840,6 +62874,95 @@ c$$$     &           myalphay * cos(phiy))
       end subroutine
 ! end of subroutine makedis_ga
 
+!
+!========================================================================
+!     P. HERMES
+!     read distribution from external file
+!     part of the extensions discussed in      
+!     https://github.com/SixTrack/SixTrack/issues/111
+!
+!     required input format      
+!     ID   PARID    WEIGH   X   Y   Z   XP   YP   ZP   A   Z   m   P   dt
+!     with      
+!     ID     - Particle ID
+!     PARID  - Parent ID
+!     WEIGH  - Statistical Weight
+!     X      - Horizontal coordinate [m]
+!     Y      - Vertical coordinate [m]
+!     Z      - Longitudinal coordinate [m]
+!     XP     - dX/ds
+!     YP     - dY/ds
+!     ZP     - dZ/ds
+!     A      - Nuclear mass number
+!     Z      - Nuclear charge number
+!     m      - Particle mass [GeV/c^2]
+!     P      - Particle momentum [GeV/c^2]      
+!
+      subroutine dist_read(filename)
+!
+!
+      implicit none
+
++if cr
++ca crcoall
++ei
++if crlibm
++ca crlibco
++ei
++ca inidist     
+
+      character*80   filename
+      
+      logical lopen
+      integer stat
+
+      integer napx, npart
+      
+      save
+
+
+      WRITE(*,*) '--> DIST_READ SUBROUTINE CALLED'
+      WRITE(*,*) '--> DIST_SR filename ', filename
+
+      
+      
+      
+!      write(*,*) "Reading input bunch from file ", filename_dis
+
+!      inquire( unit=53, opened=lopen )
+!      if (lopen) then
+!         write(*,*) "ERROR in subroutine readdis: "//
+!     &        "FORTRAN Unit 53 was already open!"
+!         goto 20
+!      endif
+!      open(unit=53, file=filename_dis, iostat=stat,
+!     &     status="OLD",action="read")
+!      if (stat.ne.0)then
+!         write(*,*) "Error in subroutine readdis: "//
+!     &        "Could not open the file."
+!         write(*,*) "Got iostat=",stat
+!         goto 20
+!      endif
+
+!      do j=1,mynp
+!         read(53,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j),     &
+!     &        mys(j), myp(j)
+!      enddo
+!      
+! 10   mynp = j - 1
+!      write(*,*) "Number of particles read from the file = ",mynp
+!
+!      close(53)
+
+      return
+      
+! 20   continue
+!      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
+!      write(*,*) "I/O Error on Unit 53 in subroutine readdis"
+!      call prror(-1)
+      
+      end subroutine
+!        
 !
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !
