@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.40'/
-      data moddate /'22.11.2016'/
+      data moddate /'29.11.2016'/
 +cd license
 !!SixTrack
 !!
@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fitterer, M. Fiascaris, J.F.Wagner CERN
+!!M. Fitterer, M. Fiascaris, J.F.Wagner, J. Wretborn CERN
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
 !!J. Molson (LAL)
