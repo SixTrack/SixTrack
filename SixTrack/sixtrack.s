@@ -67839,6 +67839,7 @@ c$$$         backspace (93,iostat=ierro)
       character*(*) vname
       double precision value
       integer i,j,k,l
+      integer ierro
       character*(16) myname
       myname=vname
       write(100) myname,value,i,j,k,l
@@ -67848,32 +67849,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbl1(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -67886,32 +67863,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpzfz(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       integer j
       character*(*) dumpname
@@ -67929,34 +67882,12 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpxy(dumpname,n,i,k)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
-+ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,k
       character*(*) dumpname
+      integer ierro
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
