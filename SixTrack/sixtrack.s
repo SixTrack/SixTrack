@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.40'/
-      data moddate /'22.11.2016'/
+      data moddate /'29.11.2016'/
 +cd license
 !!SixTrack
 !!
@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fitterer, M. Fiascaris, J.F.Wagner CERN
+!!M. Fitterer, M. Fiascaris, J.F.Wagner, J. Wretborn CERN
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
 !!J. Molson (LAL)
@@ -45021,6 +45021,40 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &           csets_unique_dynk(nsets_unique_dynk,2) ))
             found = .false.
 
+            ! Special case: the element name GLOBAL-VARS (not a real element)
+            ! can be used to redefine a global variable by some function.
+            if (element_name_s .eq. "GLOBAL-VARS") then
+               found=.true.
+               badelem = .false.
+               
+               if (att_name_s .eq. "E0") then
+                  if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
++if cr
+                     write(lout,*) "DYNK> Insane - attribute '",
++ei
++if .not.cr
+                     write(*,*)    "DYNK> Insane - attribute '",
++ei
+     &                  att_name_s, "' is not valid for 'GLOBAL-VARS' ",
+     &                  "when doing 4d tracking"
+                     call prror(-1)
+                  endif
+               else
+                  badelem=.true.
+               endif
+
+               if (badelem) then
++if cr
+                  write(lout,*) "DYNK> Insane - attribute '",
++ei
++if .not.cr
+                  write(*,*)    "DYNK> Insane - attribute '",
++ei
+     &                att_name_s, "' is not valid for 'GLOBAL-VARS'"
+                  call prror(-1)
+               endif
+            endif
+            
             do jj=1,il
                if ( bez(jj).eq. element_name_s) then
                   
@@ -45074,6 +45108,20 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         badelem = .true.
                      endif
                   endif
+
+                  ! Special case:
+                  ! Should the error only occur if we actually have a GLOBAL-VARS element?
+                  if (bez(jj) .eq. "GLOBAL-VARS") then
++if cr
+                     write(lout,*) "DYNK> Insane - element found '",
++ei
++if .not.cr
+                     write(*,*)    "DYNK> Insane - element found '",
++ei
+     &                    "GLOBAL-VARS' is not a valid element name, ",
+     &                    "it is reserved"
+                     call prror(-1) 
+                  endif
                   
                   if (badelem) then
 +if cr
@@ -45102,7 +45150,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             endif
 
             ! Store original value of data point
-            fsets_origvalue_dynk(nsets_unique_dynk) =  
+            fsets_origvalue_dynk(nsets_unique_dynk) =
      &           dynk_getvalue(csets_dynk(ii,1),csets_dynk(ii,2))
          endif
       enddo
@@ -45821,6 +45869,7 @@ C+ei
 +ca parnum
 +ca common
 +ca commonmn
++ca commonm1
 +ca commontr
 +ca stringzerotrim
 +ca comdynk
@@ -45834,7 +45883,7 @@ C+ei
       intent (in) element_name, att_name, newValue
       !Functions
       ! temp variables
-      integer el_type, ii
+      integer el_type, ii, j
       character(maxstrlen_dynk) element_name_stripped
       character(maxstrlen_dynk) att_name_stripped
       ! For sanity check
@@ -45857,7 +45906,28 @@ C+ei
       endif
       
 C     Here comes the logic for setting the value of the attribute for all instances of the element...
-      ! Get type
+
+      ! Special non-physical elements
+      if (element_name_stripped .eq. "GLOBAL-VARS") then
+         if (att_name_stripped .eq. "E0" ) then
+            ! Modify the reference particle
+            e0 = newValue
+            e0f = sqrt(e0**2 - pma**2)
+            gammar = pma/e0
+            ! Modify the Energy
+            do j = 1, napx
+              dpsv(j) = (ejfv(j) - e0f)/e0f
+              dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
+              dpd(j) = one + dpsv(j)
+              dpsq(j) = sqrt(dpd(j))
+              oidpsv(j) = one/(one + dpsv(j))
+              rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
+            enddo
+         endif
+         ldoubleElement = .true.
+      endif
+      
+      ! Normal SINGLE ELEMENTs
       do ii=1,il
          ! TODO: Here one could find the right ii in dynk_pretrack,
          ! and then avoid this loop / string-comparison
@@ -46070,6 +46140,16 @@ c$$$            endif
      &    trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
       end if
 
+      ! Special non-physical elements
+      if (element_name_s .eq. "GLOBAL-VARS") then
+         if (att_name_s .eq. "E0" ) then
+            ! Return the energy
+            dynk_getvalue = e0
+         endif
+         ldoubleElement = .true.
+      endif
+      
+      ! Normal SINGLE ELEMENTs
       do ii=1,il
          ! TODO: Here one could find the right ii in dynk_pretrack,
          ! and then avoid this loop / string-comparison
