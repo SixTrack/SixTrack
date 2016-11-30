@@ -46,16 +46,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update September 2016
+  Update November 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.38 \\
+  Version 4.5.40 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, and K.~Sjobak
+  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -599,7 +599,7 @@ this block is used in two different ways.
 \item [cref] The length [m] of the dipole that is approximated by a
   kick.  Internally this value is set to one to allow the processing
   of a multipole block (~\ref{MulCoe}).
-\item {\em length} \hspace{-2mm}
+\item [length] \hspace{-2mm}
 
   \begin{itemize}
   \item {\em length = -1} \/: horizontal dipole
@@ -793,10 +793,10 @@ $\vert$ GO \}
   and observation elements in the single element list or in the list
   of blocks of the {\em Block Definition} \/input block
   (~\ref{BloDef}).
-\item {\em CAV} \/A cavity can be introduced by a keyword ``CAV''.
+\item [CAV] A cavity can be introduced by a keyword ``CAV''.
   This element does not appear in the single element list
   (~\ref{SinEle}).
-\item {\em GO} \/Starting point: the keyword ``GO'' denotes where the
+\item [GO] Starting point: the keyword ``GO'' denotes where the
   tracking is started and where the tracked coordinates are recorded
   at each turn.
 \end{description}
@@ -936,8 +936,8 @@ variable
   \frac{x_{i}^{2}}{\mathrm{xaper}^{2}} + \frac{y_{i}^{2}}
   {\mathrm{yaper}^{2}} < 1
   $$
-\item {\em xaper} \/Aperture in the horizontal plane in mm
-\item {\em yaper} \/Aperture in the vertical plane in mm
+\item [xaper] Aperture in the horizontal plane in mm
+\item [yaper] Aperture in the vertical plane in mm
 \end{description}
 
 \subsection{Power Supply Ripple} \label{PowRip}
@@ -1205,6 +1205,11 @@ The argument \emph{turn-shift} is an integer (positive, negative, or zero) numbe
 Thus, in order to (as an example) apply an exponential decay from the value $v_0$ starting in turn $t_0$ using the function defined as $f(t) = V_0 \exp(-t/\tau)$,
 a \emph{turn-shift} $-t_0$ should be applied.
 
+In addition to changing single element attributes, it is also possible to use DYNK to change certain global attributes such as the reference energy.
+This is done through the ``element'' \texttt{GLOBAL VARS}; for example one may want to simulate an energy ramp following the function \texttt{eramp} throughout the whole simulation.
+For this, one would use the \emph{SET} command ``\texttt{SET GLOBAL-VARS E0 eramp 1 -1 0}''.
+Because of this, SixTrack does not accept a real single element in \texttt{fort.2} named \texttt{GLOBAL-VARS} if \texttt{DYNK} is active.
+
 \begin{table}[h]
 \begin{center}
 %\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
@@ -1252,6 +1257,11 @@ a \emph{turn-shift} $-t_0$ should be applied.
     & \texttt{thetamax}     & mrad      & Maximum angular kick \\
     &      &       &  \\
     &      &       &  \\
+  \hline
+    \multirow{3}{*}{\parbox{4cm}{\texttt{GLOBAL-VARS} \\ Not a real element,\\ changes global variable}}
+    & \texttt{E0}     & MeV      & Reference energy of synchronous particle \\
+    &      &       &  \\
+    % &      &       &  \\
   \hline
 
 %\end{longtable}
@@ -1458,7 +1468,7 @@ space~\cite{ripbeam}.
 \begin{itemize}
 \item first data line: {\em partnum emitnx emitny sigz sige ibeco
     ibtyp lhc ibbc} 
-\item other data lines: {\em name ibsix xang xplane}
+\item other data lines: {\em name ibsix xang xplane xstr}
 \end{itemize}
 
 \begin{description}
@@ -1484,8 +1494,9 @@ space~\cite{ripbeam}.
   do not appear will be treated as 4D kicks.
 \item [ibsix] (integer) Number of slices of the 6D beam--beam kick.
   If {\it ibsix} is set to 0 this element is treated as a 4D element.
-\item [xang] (float) Half crossing angle at this particular element [rad].
+\item [xang] (float) Half crossing angle (angle the between the trajectories of the two beams) at this particular element [rad].
 \item [xplane] (float) Crossing plane angle [rad].
+\item [xstr] (float) Angle of the position of the slices in the boosted frame [rad] (i.e. $X=Z \sin({\rm xstr}) \cos({\rm xplane})$, $Y= \sin({\rm xstr}) \cos({\rm xplane})$ ). In absence of crabbing user should make sure xstr=xang.
 \end{description}
 
 \subparagraph{Remark} These beam--beam elements have beam--beam have
