@@ -254,8 +254,6 @@ if(HDF5_FOUND)
 	message(STATUS "HDF5_LIBRARY_DIRS: ${HDF5_LIBRARY_DIRS}")
 	##message(STATUS "HDF5_IS_PARALLEL: ${HDF5_IS_PARALLEL}")
 	##message(STATUS "HDF5_Fortran_COMPILER_EXECUTABLE: ${HDF5_Fortran_COMPILER_EXECUTABLE}")
-
-	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
 endif(HDF5_FOUND)
 
 #Check for OpenMP
@@ -685,7 +683,7 @@ MARK_AS_ADVANCED(
 	CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
 	CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG )
 
-######################################if(32BIT)#############################################################
+###################################################################################################
 # Settings for what exactly to build
 ###################################################################################################
 #add the source files that will be used to build sixtrack
@@ -719,6 +717,10 @@ if(CRLIBM)
 		target_compile_options(crlibm PRIVATE -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
 	endif()
 endif()
+
+if(HDF5_FOUND)
+	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+endif(HDF5_FOUND)
 
 if(MERLINSCATTER)
 	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/RandomNG/*.cpp)
@@ -965,32 +967,19 @@ MARK_AS_ADVANCED(BUILDNAME)
 
 #For testing
 IF(BUILD_TESTING)
-#	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
 
 	ENABLE_TESTING()
 	INCLUDE(CTest)
 
-	SET(SIXTRACK_TESTS bnl exact crabamp javier thick4 lost tilt dipedge bb bb_ntwin1 notilt lostnotilt lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d)
-	foreach(TEST IN ITEMS ${SIXTRACK_TESTS})
-		ADD_TEST(NAME ${TEST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TEST} COMMAND SixTrack)
-	endforeach()
-
-    SET(SIXTRACK_TESTS bnl exact crabamp javier thick4 lost tilt dipedge bb bb_ntwin1 notilt lostnotilt lostevery s316 eric frs frs60 bbe51 bbe52 bbe571ib0 distance prob3 prob1 fma elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d)
-	foreach(TST IN ITEMS ${SIXTRACK_TESTS})
-		add_custom_target(test_copy_${TST})
-		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/SixTest/${TST}/)
-
-		file(GLOB TEST_INPUTS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/SixTest/${TST}/*)
-		#message(STATUS "${CMAKE_SOURCE_DIR}/../SixTest/${TST}/")
-
-		foreach(TSFILE IN ITEMS ${TEST_INPUTS})
-			get_filename_component(TFILE ${TSFILE} NAME)
-			#message(STATUS "ITEM: ${TFILE}")
-			#create_symlink old new
-			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${TFILE})
-		endforeach()
-		add_dependencies( SixTrack test_copy_${TST})
-	endforeach()
+	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
+
+	#need to build the testing tools
+	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f)
+	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf10.f)
+	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f)
+	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
+	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
+	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90 ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoa_c.c ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoaf.c)
 ENDIF()
