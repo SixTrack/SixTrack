@@ -95,8 +95,12 @@
       integer singleParticle, firstParticle, lastParticle
 
       character(len=100) :: fname
+      character(len=100) :: ofname
+      logical ofoutput
+      integer ounit
 !----------------------------------------------------------------------
-
+      ofoutput = .FALSE.
+      ounit = 6
       fname = "fort.190"
       
       STF = .false. !Use the new STF format?
@@ -208,8 +212,25 @@
 
                fname=cmdarg_arg
                
+            else if (cmdarg_arg .eq. "--ofname") then
+               !Read the filename
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No filename found following --ofname flag?"
+                  stop 6
+               endif
+
+               if(cmdarg_status.eq.-1) then
+                  write(*,*) "Filename was truncated to '"//cmdarg_arg//"'"
+                  stop 7
+               end if
+
+               ofname=cmdarg_arg
+               ofoutput = .TRUE.
+
             else
-               write(*,*) "USAGE: read90 (--STF) (--SP <number> | --PR <number> <number>) (--fname <name>)"
+               write(*,*) "USAGE: read90 (--STF) (--SP <number> | --PR <number> <number>) (--fname <name>) (--ofname <name>)"
                write(*,*) "The --STF flag indicates that the file is in the new STF format"
                write(*,*) "The --SP and --PR flag can only be used together with the --STF flag,"
                write(*,*) " in order to extract only single particle (pair) data in a way that emulates the old format."
@@ -218,6 +239,8 @@
                write(*,*) " first and last pair inclusive. Expects first number < last number"
                write(*,*) "The --fname flag can be used to specify the name of the file to read from (max 100 characters)."
                write(*,*) " If nothing is specified, it defaults to 'fort.190'."
+               write(*,*) "The --ofname flag can be used to specify the name of the file to write to (max 100 characters)."
+               write(*,*) " If nothing is specified, it defaults to stdout."
                stop 1
             end if
          end if
@@ -229,7 +252,12 @@
       nfile=190
       n=0
       open(nfile,file=fname,form='UNFORMATTED',status='OLD')
-      
+
+      if (ofoutput .eqv. .TRUE.) then
+         open(191,file=ofname,action='WRITE',status='REPLACE')
+         ounit = 191
+      end if
+
 100   read(nfile,end=511,err=520) sixtit,commen,cdate,ctime,       &
      &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
      &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
@@ -254,59 +282,59 @@
          endif
       endif
       
-      write (*,*) 'Read header, record=', n
+      write (ounit,*) 'Read header, record=', n
       ntwin=1
       if(ilapa.ne.ifipa) ntwin=2
-      write (*,*) 'Header ntwin ',ntwin,ifipa,ilapa
+      write (ounit,*) 'Header ntwin ',ntwin,ifipa,ilapa
       ! ifipa=0
       n=n+1 !Increase record number
-      write(*,*) sixtit
-      write(*,*) commen
-      write (*,*) progrm,itopa,icode,numl
+      write(ounit,*) sixtit
+      write(ounit,*) commen
+      write (ounit,*) progrm,itopa,icode,numl
       errno=dtostr(qwc(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(qwc(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(qwc(3),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clo(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clop(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clo(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clop(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clo(3),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clop(3),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(di0(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dip0(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(di0(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dip0(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       do i=1,6
         do j=1,6
           errno=dtostr(ta(i,j),ch1)
-          write (*,*) ch1
+          write (ounit,*) ch1
         enddo
       enddo
       errno=dtostr(dmmac,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dnms,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dizu0,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dnumlr,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(sigcor,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dpscor,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
 
       if (STF) then
          if (ifipa .lt. itopa-1) goto 100 !Read more headers
@@ -348,55 +376,55 @@
       
   212 continue
 ! Do conversion and print, add text later?
-      write (*,*) 'Read record ',n
-      write (*,*) 'Turn ',ia,'   Particle ',ifipa
+      write (ounit,*) 'Read record ',n
+      write (ounit,*) 'Turn ',ia,'   Particle ',ifipa
       errno=dtostr(b,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(c,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(d,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(e,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(f,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(g,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(h,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(p,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       if(ntwin.eq.2) then
-        write (*,*) 'Turn ',ia,'   Particle ',ilapa
+        write (ounit,*) 'Turn ',ia,'   Particle ',ilapa
         errno=dtostr(b,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(c1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(d1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(e1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(f1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(g1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(h1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(p1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
       endif
       goto 211
   510 continue
-      write(*,*) nfile,'FILE CORRUPTED record',n
+      write(ounit,*) nfile,'FILE CORRUPTED record',n
       goto 550
   511 continue
-      write(*,*) nfile,'NO HEADER, EMPTY FILE!!!'
+      write(ounit,*) nfile,'NO HEADER, EMPTY FILE!!!'
       goto 550
   520 continue
-      write(*,*) nfile,'HEADER CORRUPTED'
+      write(ounit,*) nfile,'HEADER CORRUPTED'
       goto 550
   530 continue
-      write(*,*) nfile,'NO DATA'
+      write(ounit,*) nfile,'NO DATA'
       goto 550
   540 continue
   550 continue
