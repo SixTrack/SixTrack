@@ -1,4 +1,5 @@
       program read90
+      use, intrinsic :: iso_fortran_env, only : stdout=>output_unit
 !-----------------------------------------------------------------------
 !  Read a fort.90 and print with correct binary/decimal conversion
 !-----------------------------------------------------------------------
@@ -100,7 +101,7 @@
       integer ounit
 !----------------------------------------------------------------------
       ofoutput = .FALSE.
-      ounit = 6
+      ounit = stdout
       fname = "fort.190"
       
       STF = .false. !Use the new STF format?
@@ -428,6 +429,9 @@
       goto 550
   540 continue
   550 continue
+      if(ofoutput .eqv. .TRUE.) then
+         close(ounit)
+      endif
 !----------------------------------------------------------------------
       end
       integer function dtostr(x,results)
