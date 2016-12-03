@@ -795,18 +795,6 @@
       integer coll_mingap_id
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbmaincr
-      double precision myemitx0,myemity0,myalphax,myalphay,mybetax,     &
-     &mybetay,rselect
-      common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
-     &mybetay,rselect
-!
-      logical cut_input
-      common /cut/ cut_input
-!
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dbthin6d
 !
 !
@@ -23634,13 +23622,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca rhicelens
 +ei
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if cr
 +ca crco
 +ei
@@ -65428,13 +65409,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -66380,13 +66354,6 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ca comdynkcr
       double precision dynk_getvalue
 +ca dbdumpcr
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -66895,13 +66862,6 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
