@@ -67883,11 +67883,11 @@ c$$$         backspace (93,iostat=ierro)
       subroutine dumpxy(dumpname,n,i,k)
       implicit none
 +ca parpro
++ca common
 +ca commonmn
 +ca commontr
       integer n,i,j,k
       character*(*) dumpname
-      integer ierro
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
@@ -67910,29 +67910,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRD-042008
       subroutine dumpbnl(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
-+ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
 +if bnlelens
 +ca rhicelens
 +ei
@@ -67958,32 +67936,10 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       subroutine dumpsynu(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
 +ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,l,m,k
       character*(*) dumpname
       save
@@ -68030,9 +67986,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dump(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -68040,22 +67994,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -68509,6 +68451,7 @@ c$$$         backspace (93,iostat=ierro)
       write(99,*) 'x1 ',x1
       write(99,*) 'x2 ',x2
       write(99,*) 'fake ',fake
+      
       write(99,*) 'e0f ',e0f
       write(99,*) 'numx ',numx
       write(99,*) 'cotr ',cotr
@@ -68531,9 +68474,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbin(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -68541,22 +68482,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       character*10 mydump
@@ -69036,9 +68965,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumphex(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -69046,22 +68973,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
