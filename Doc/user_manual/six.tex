@@ -46,16 +46,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update October 2016
+  Update November 2016
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.38 \\
+  Version 4.5.40 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, R. De Maria, and K.~Sjobak
+  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -1205,6 +1205,11 @@ The argument \emph{turn-shift} is an integer (positive, negative, or zero) numbe
 Thus, in order to (as an example) apply an exponential decay from the value $v_0$ starting in turn $t_0$ using the function defined as $f(t) = V_0 \exp(-t/\tau)$,
 a \emph{turn-shift} $-t_0$ should be applied.
 
+In addition to changing single element attributes, it is also possible to use DYNK to change certain global attributes such as the reference energy.
+This is done through the ``element'' \texttt{GLOBAL VARS}; for example one may want to simulate an energy ramp following the function \texttt{eramp} throughout the whole simulation.
+For this, one would use the \emph{SET} command ``\texttt{SET GLOBAL-VARS E0 eramp 1 -1 0}''.
+Because of this, SixTrack does not accept a real single element in \texttt{fort.2} named \texttt{GLOBAL-VARS} if \texttt{DYNK} is active.
+
 \begin{table}[h]
 \begin{center}
 %\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
@@ -1252,6 +1257,11 @@ a \emph{turn-shift} $-t_0$ should be applied.
     & \texttt{thetamax}     & mrad      & Maximum angular kick \\
     &      &       &  \\
     &      &       &  \\
+  \hline
+    \multirow{3}{*}{\parbox{4cm}{\texttt{GLOBAL-VARS} \\ Not a real element,\\ changes global variable}}
+    & \texttt{E0}     & MeV      & Reference energy of synchronous particle \\
+    &      &       &  \\
+    % &      &       &  \\
   \hline
 
 %\end{longtable}

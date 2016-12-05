@@ -983,7 +983,7 @@ done
 # Use only necessary .ast (and .f later)
 if test "$da" = ""
 then
-    export FORS='sixda sixsc sixscfox dabnew lielib beamgas'
+    export FORS='sixda sixsc sixscfox dabnew lielib beamgas datamods'
 else
     export FORS='track sixve sixvefox dabnews lielib beamgas plato_seq datamods'
 fi
