@@ -497,7 +497,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(64BIT)
 
 	if(NATIVE)
-		SET(CMAKE_Fortran_FLAGS_RELEASE "-march=native ${CMAKE_Fortran_FLAGS_RELEASE}")
+		SET(CMAKE_Fortran_FLAGS_RELEASE "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS_RELEASE}")
 	endif(NATIVE)
 
 	if(STATIC)
@@ -982,4 +982,9 @@ IF(BUILD_TESTING)
 	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
 	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
 	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90 ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoa_c.c ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoaf.c)
+
+	#The testing wrapper
+#	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+#	set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
+
 ENDIF()
