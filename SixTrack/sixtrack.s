@@ -726,7 +726,7 @@
 !
 !++ Vectors of coordinates
 !
-      double precision myemitx,mygammax,myemity,mygammay,xsigmax,ysigmay
+      double precision mygammax,mygammay
 !
       real rndm4
 !
@@ -62088,19 +62088,10 @@ c$$$            endif
       implicit none
 
 +ca collpara
++ca dbmkdist
 
-      ! Don't load the common blocks for these variables
-      logical cut_input
-      integer i,j,mynp,nloop
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-     &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-     &xsigmax,ysigmay,myenom,nr,ndr,pi, iix, iiy, phix,phiy,cutoff
-!
-      real      rndm4
-      character*80   dummy
-      common /cut/ cut_input
-
+      double precision pi, iix, iiy, phix,phiy,cutoff
+      
       save
 !
 !-----------------------------------------------------------------------
