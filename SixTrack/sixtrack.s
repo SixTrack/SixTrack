@@ -26651,6 +26651,40 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         write(*,*)                                                      &
 +ei
      &       'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
++if cr
+        write(lout,*)"ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
++ei
++if .not.cr
+        write(*,*)   "ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
++ei
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     & "emitnx0_dist, emitny0_dist, emitnx0_collgap, emitny0_collgap"
+
++if cr
+        write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
++ei
++if .not.cr
+        write(*,*)    "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
++ei
+     & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, ",
+     & "THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
++if cr
+        write(lout,*) "ERR> EXAMPLE:"
++ei
++if .not.cr
+        write(*,*)    "ERR> EXAMPLE:"
++ei
++if cr
+        write(lout,*) "2.5 2.5 3.5 3.5"
++ei
++if .not.cr
+        write(*,*)    "2.5 2.5 3.5 3.5"
++ei
         call prror(-1)
       endif
 !
@@ -38062,22 +38096,36 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonc
 +ca commonxz
 +ca commonmn
+
 +if bnlelens
 +ca rhicelens
 +ei
+
 +ca dbdcum
-+ca comgetfields
-+ca dbdump
+
++ca comgetfields !Contains parameters used in comdump and fma
+
 +ca fma
+
++ca dbdump
 +if cr
 +ca dbdumpcr
 +ei
+
 +ca stringzerotrim
 +ca comdynk
+
 +if cr
 +ca comdynkcr
 +ei
+
 +ca elensparam
+
++if collimat
++ca collpara
++ca database
++ca dbcommon
++ei
       save
 !-----------------------------------------------------------------------
 !
@@ -38702,6 +38750,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       end do
 +if cr
       dynkfilepos = -1
++ei
+
+!--COLLIMATION----------------------------------------------------------
++if collimat
+      ! From common /grd/
+      emitnx0_dist = 0.0
+      emitny0_dist = 0.0
+      emitnx0_collgap = 0.0
+      emitny0_collgap = 0.0
+      ! From common /ralph/
+      myemitx0_dist = 0.0
+      myemity0_dist = 0.0
+      myemitx0_collgap = 0.0
+      myemity0_collgap = 0.0
 +ei
 !
 !-----------------------------------------------------------------------
