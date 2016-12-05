@@ -26663,7 +26663,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
         write(*,*)
 +ei
-     & "emitnx0_dist, emitny0_dist, emitnx0_collgap, emitny0_collgap"
+     & "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
 
 +if cr
         write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
