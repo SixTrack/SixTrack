@@ -215,7 +215,11 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 if(DA)
     SET(FORS sixda sixsc sixscfox dabnew lielib)
 else()
-    SET(FORS track sixve sixvefox dabnews lielib plato_seq datamods)
+    SET(FORS track sixve sixvefox dabnews lielib plato_seq)
+endif()
+
+if(NOT DA AND DATAMODS)
+	SET(FORS datamods ${fors})
 endif()
 
 foreach(loop IN ITEMS ${FORS})
@@ -487,13 +491,13 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
-		SET(CMAKE_EXE_LINKER_FLAGS "-m32")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-m32")
 	endif(32BIT)
 
 	if(64BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m64 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m64 ${CMAKE_Fortran_FLAGS_DEBUG}")
-		SET(CMAKE_EXE_LINKER_FLAGS "-m64")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-m64")
 	endif(64BIT)
 
 	if(NATIVE)
@@ -501,7 +505,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(NATIVE)
 
 	if(STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-static")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-static")
 	endif(STATIC)
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
@@ -514,11 +518,43 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	endif(NATIVE)
 
 	if(STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-Bstatic")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic")
 	endif(STATIC)
 
 	if(NOT STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-Bdynamic")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic")
+	endif(NOT STATIC)
+
+elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
+	# nagfor
+	#Here I am going to assume that since we are using nagfor we are on lxplus for now
+	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns")
+
+	if(32BIT)
+		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
+		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=32 ${CMAKE_Fortran_FLAGS_DEBUG}")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-abi=32 ${CMAKE_Fortran_LINKER_FLAGS}")
+		find_library(g2cLink NAMES g2c PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 )
+	endif(32BIT)
+
+	if(64BIT)
+		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=64t ${CMAKE_Fortran_FLAGS_RELEASE}")
+		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=64t ${CMAKE_Fortran_FLAGS_DEBUG}")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-abi=64t ${CMAKE_Fortran_LINKER_FLAGS}")
+		find_library(g2cLink NAMES g2c PATHS /usr/lib64 /usr/lib/gcc/x86_64-redhat-linux/3.4.6 )
+	endif(64BIT)
+
+	if(NATIVE)
+		SET(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}")
+	endif(NATIVE)
+
+	if(STATIC)
+		SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic ${CMAKE_Fortran_LINKER_FLAGS}")
+	endif(STATIC)
+
+	if(NOT STATIC)
+		SET(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic ${CMAKE_Fortran_LINKER_FLAGS}")
 	endif(NOT STATIC)
 
 elseif (Fortran_COMPILER_NAME MATCHES "g77")
@@ -555,7 +591,7 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g ${CMAKE_C_FLAGS}")
 
 	if(STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-static")
+		SET(CMAKE_C_LINKER_FLAGS "-static")
 	endif(STATIC)
 
 endif()
@@ -578,15 +614,11 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
 	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g ${CMAKE_C_FLAGS}")
 
 	if(STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-Bstatic")
-		SET(CMAKE_SHARED_LINKER_FLAGS "-Bstatic")
-		SET(CMAKE_MODULE_LINKER_FLAGS "-Bstatic")
+		SET(CMAKE_C_LINKER_FLAGS "-Bstatic")
 	endif(STATIC)
 
 	if(NOT STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-Bdynamic")
-		SET(CMAKE_SHARED_LINKER_FLAGS "-Bdynamic")
-		SET(CMAKE_MODULE_LINKER_FLAGS "-Bdynamic")
+		SET(CMAKE_C_LINKER_FLAGS "-Bdynamic")
 	endif(NOT STATIC)
 
 endif()
@@ -611,9 +643,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g ${CMAKE_CXX_FLAGS}")
 
 	if(STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-static")
-		SET(CMAKE_SHARED_LINKER_FLAGS "-static")
-		SET(CMAKE_MODULE_LINKER_FLAGS "-static")
+		SET(CMAKE_CXX_LINKER_FLAGS "-static")
 	endif(STATIC)
 
 endif()
@@ -636,15 +666,11 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g ${CMAKE_CXX_FLAGS}")
 
 	if(STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-Bstatic")
-		SET(CMAKE_SHARED_LINKER_FLAGS "-Bstatic")
-		SET(CMAKE_MODULE_LINKER_FLAGS "-Bstatic")
+		SET(CMAKE_CXX_LINKER_FLAGS "-Bstatic")
 	endif(STATIC)
 
 	if(NOT STATIC)
-		SET(CMAKE_EXE_LINKER_FLAGS "-Bdynamic")
-		SET(CMAKE_SHARED_LINKER_FLAGS "-Bdynamic")
-		SET(CMAKE_MODULE_LINKER_FLAGS "-Bdynamic")
+		SET(CMAKE_CXX_LINKER_FLAGS "-Bdynamic")
 	endif(NOT STATIC)
 endif()
 
@@ -693,6 +719,9 @@ SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}")
 
 #build astuce
 add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/astuce.f)
+if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
+	target_link_libraries(astuce ${g2cLink})
+endif()
 
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
@@ -984,8 +1013,14 @@ IF(BUILD_TESTING)
 	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
 	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90 ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoa_c.c ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoaf.c)
 
+	if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
+		target_link_libraries(verify10 ${g2cLink})
+		target_link_libraries(checkf10 ${g2cLink})
+		target_link_libraries(compf10 ${g2cLink})
+	endif()
+
 	#The testing wrapper
-#	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
-#	set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
+	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+	set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
 
 ENDIF()
