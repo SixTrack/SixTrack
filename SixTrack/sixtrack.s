@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.40'/
-      data moddate /'29.11.2016'/
+      data moddate /'06.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -8820,6 +8820,18 @@ cc2008
 
 +dk nocode
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
++if .not.datamods
+      subroutine nodatamods
++if cr
+      write(lout,*)
++ei
++if .not.cr
+      write(*,*)
++ei
+     &     "Dummy routine in bigmats.f if beamgas module is off."
+      end subroutine
++ei
+
 +dk datamods
       module bigmats
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
@@ -28012,7 +28024,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
    10     stracki=strack(i) 
-          if(iexact.eq.0) then ! exact drift
+          if(iexact.eq.0) then ! exact drift?
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
               xv(2,j)=xv(2,j)+stracki*yv(2,j)
