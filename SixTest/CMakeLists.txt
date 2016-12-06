@@ -24,6 +24,7 @@ SET(SIXTRACK_TESTS ${SIXTRACK_TESTS})
 ## Needs checking: lostnumxv thick6dsingles (missing files)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk empty fort.10
 ## FIX: javier_bignpart (and STF)
+## Disabled: elensidealthin6d_DYNK
 ##
 
 SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
@@ -34,7 +35,7 @@ if(BNLELENS)
 endif(BNLELENS)
 
 if(NOT COLLIMAT)
-	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d eric exact frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk elensidealthin6d_DYNK ${SIXTRACK_TESTS})
+	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d eric exact frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk ${SIXTRACK_TESTS})
 endif(NOT COLLIMAT)
 
 #For CR builds, test the CR functions, so kill/resume the test
