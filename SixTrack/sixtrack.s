@@ -15987,6 +15987,9 @@ cc2008
       write(*,*)    "     please use proper version"
       write(*,*)
 +ei
+      
+      call prror(-1)
+      
  1287 continue
       if(ch(:4).eq.next) goto 110
       read(3,10020,end=1530,iostat=ierro) ch
