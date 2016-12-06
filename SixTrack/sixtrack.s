@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.40'/
-      data moddate /'29.11.2016'/
+      data moddate /'06.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -8817,6 +8817,18 @@ cc2008
 
 +dk nocode
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
++if .not.datamods
+      subroutine nodatamods
++if cr
+      write(lout,*)
++ei
++if .not.cr
+      write(*,*)
++ei
+     &     "Dummy routine in bigmats.f if beamgas module is off."
+      end subroutine
++ei
+
 +dk datamods
       module bigmats
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
