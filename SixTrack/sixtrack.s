@@ -11977,6 +11977,9 @@ cc2008
 +ca dbpencil
 +ca database
 +ei
++if .not.collimat
+      logical do_coll
++ei
 !
 +if bnlelens
 +ca rhicelens
@@ -12156,7 +12159,9 @@ cc2008
       ise=0
       iskew=0
       preda=c1m38
-      
++if .not.collimat
+      do_coll = .false.
++ei
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -15981,39 +15986,42 @@ cc2008
  1285 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-+if .not.collimat
-+if cr
-      write(lout,*)
-      write(lout,*) "     collimation not forseen in this version"
-      write(lout,*) "     please use proper version"
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*)    "     collimation not forseen in this version"
-      write(*,*)    "     please use proper version"
-      write(*,*)
-+ei
-      
-      call prror(-1)
-      
- 1287 continue
-      if(ch(:4).eq.next) goto 110
-      read(3,10020,end=1530,iostat=ierro) ch
-      lineno3=lineno3+1
-      goto 1287
-+ei
-+if collimat
+
       if(ch(1:1).ne.'/') then
          iclr=iclr+1
       else
          goto 1285
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
+      
++if .not.collimat
+      if (iclr.eq.1) then
+         read(ch1,*) do_coll
+         if (do_coll) then
++if cr
+           write(lout,*)
+           write(lout,*) "ERR> Collimation not forseen in this version;"
+           write(lout,*) "ERR> Please use proper version"
+           write(lout,*) "ERR> or set do_coll to .FALSE."
+           write(lout,*)
++ei
++if .not.cr
+           write(*,*)
+           write(*,*)    "ERR> Collimation not forseen in this version;"
+           write(*,*)    "ERR> Please use proper version"
+           write(*,*)    "ERR> or set do_coll to .FALSE."
+           write(*,*)
++ei
+           call prror(-1)
+         endif
+      endif
++ei ! END +if .not.collimat
+
++if collimat
 !APRIL2005
 +if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & do_coll
+     & do_coll !Does not make sense with round=nearest: do_coll is a logical...
 +ei
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
@@ -16200,11 +16208,13 @@ cc2008
 +ei
      &jobnumber, sigsecut2, sigsecut3
 !
++ei ! END +if collimat
+
+!     Use this code for both collimat and non-collimat
       if(iclr.ne.17) goto 1285
  1287 continue
       iclr=0
       goto 110
-+ei
 !-----------------------------------------------------------------------
 !  COMMENT LINE
 !-----------------------------------------------------------------------
@@ -38769,6 +38779,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !--COLLIMATION----------------------------------------------------------
 +if collimat
+      do_coll = .false.
+      
       ! From common /grd/
       emitnx0_dist = 0.0
       emitny0_dist = 0.0
