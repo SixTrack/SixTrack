@@ -144,7 +144,7 @@ C.............................REJECTS FREQUENCIES NEAR 0 OR 1
           NFTMAX=NFT
         END IF
       ENDDO
-      TUNEFOU=DFLOAT(NFTMAX-1)/DFLOAT(NPOINT)
+      TUNEFOU=DBLE(NFTMAX-1)/DBLE(NPOINT)
       DELTAT=1D0/NPOINT
       TUNE1=TUNEFOU-DELTAT
       CALL ZFUN(TUNE,Z,MAXN,TUNE1,DELTAT)
@@ -195,7 +195,7 @@ C............................................................
       DUEPI=8*DATAN(1D0)
 +ei
 C.............................................................
-      C=DFLOAT(MAX)/2D0-DFLOAT(INT(MAX/2D0))
+      C=DBLE(MAX)/2D0-DBLE(INT(MAX/2D0))
       MAX1=MAX
       IF(C.GT.1D-1) MAX1=MAX-1
       MAX2=MAX1/2
@@ -227,7 +227,7 @@ C.............................................................
         TUNEAPA=PA/DUEPI
         SUMAPM=SUMAPM+TUNEAPA
         IF (N.GE.MAX2) THEN
-          TUNE(N-MAX2+1)=((SUMAPM/DFLOAT(N))/DFLOAT(N+1))*2.D0
+          TUNE(N-MAX2+1)=((SUMAPM/DBLE(N))/DBLE(N+1))*2.D0
           U(N-MAX2+1)=1.D0/N
         ENDIF
 C.............................................................
@@ -357,23 +357,23 @@ C................................................INTERPOLATION
       CF3=ABS(ZSING(NFTMAX+1))
 +if crlibm
       IF (CF3.GT.CF1) THEN      
-        ASSK=DFLOAT(NFTMAX)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX)+(NPOINT/PI)*
      .       ATAN2_RN(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
-        ASSK=DFLOAT(NFTMAX-1)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX-1)+(NPOINT/PI)*
      .       ATAN2_RN(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
       ENDIF
 +ei
 +if .not.crlibm
       IF (CF3.GT.CF1) THEN      
-        ASSK=DFLOAT(NFTMAX)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX)+(NPOINT/PI)*
      .       ATAN2(CF3*SIN(PI/NPOINT),CF2+CF3*COS(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
-        ASSK=DFLOAT(NFTMAX-1)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX-1)+(NPOINT/PI)*
      .       ATAN2(CF2*SIN(PI/NPOINT),CF1+CF2*COS(PI/NPOINT))
       ENDIF
 +ei
-      TUNEABT=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT) !1D+0 = 1D0, i.e. double precision 1.0?
+      TUNEABT=1D+0-(ASSK-1D+0)/DBLE(NPOINT) !1D+0 = 1D0, i.e. double precision 1.0?
 C............................................................  
       RETURN 
 C............................................................  
@@ -457,24 +457,24 @@ C.............................................................
       ENDIF
 C..........................................INTERPOLATION
 +if crlibm
-      CO=COS_RN((2*PI)/DFLOAT(NPOINT))
-      SI=SIN_RN((2*PI)/DFLOAT(NPOINT))
+      CO=COS_RN((2*PI)/DBLE(NPOINT))
+      SI=SIN_RN((2*PI)/DBLE(NPOINT))
 +ei
 +if .not.crlibm
-      CO=COS((2*PI)/DFLOAT(NPOINT))
-      SI=SIN((2*PI)/DFLOAT(NPOINT))
+      CO=COS((2*PI)/DBLE(NPOINT))
+      SI=SIN((2*PI)/DBLE(NPOINT))
 +ei
       SCRA1=CO**2*(P1+P2)**2-((2*P1)*P2)*((2*CO**2-CO)-1)
       SCRA2=(P1+P2*CO)*(P1-P2)
       SCRA3=(P1**2+P2**2)+((2*P1)*P2)*CO
       SCRA4=(-SCRA2+P2*SQRT(SCRA1))/SCRA3
 +if crlibm
-      ASSK=DFLOAT(NN)+((NPOINT/2)/PI)*ASIN_RN(SI*SCRA4)
+      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN_RN(SI*SCRA4)
 +ei
 +if .not.crlibm
-      ASSK=DFLOAT(NN)+((NPOINT/2)/PI)*ASIN(SI*SCRA4)
+      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN(SI*SCRA4)
 +ei
-      TUNEABT2=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT)
+      TUNEABT2=1D+0-(ASSK-1D+0)/DBLE(NPOINT)
 C............................................................  
       RETURN 
 C............................................................  
@@ -724,7 +724,7 @@ C.............................REJECTS FREQUENCIES NEAR 0 OR 1
           NFTMAX=NFT
         END IF
       ENDDO
-      TUNEFOU=DFLOAT(NFTMAX-1)/DFLOAT(NPOINT)
+      TUNEFOU=DBLE(NFTMAX-1)/DBLE(NPOINT)
       DELTAT=1D0/NPOINT
       TUNE1=TUNEFOU-DELTAT
       CALL ZFUN(TUNE,Z,MAXN,TUNE1,DELTAT)
@@ -1273,7 +1273,7 @@ C..COMPUTATION OF SCALAR PRODUCT WITH ITERATED BODE ALGORITHM
             FOME=FOME+((7D0*(Z(1+K)+Z(5+K))+32D0*(Z(2+K)+Z(4+K)))
      .               +12D0*Z(3+K))
           ENDDO
-          FOME=((.5D0*FOME)/45D0)/DFLOAT(MBODE+1)
+          FOME=((.5D0*FOME)/45D0)/DBLE(MBODE+1)
 C..........SEARCH FOR MAXIMUM OF SCALAR PRODUCT AND DEFINITION
 C..........OF THE NEW INTERVAL (OMEMIN,OMEMAX) WHERE TO
 C........................................RESTART THE PROCEDURE
