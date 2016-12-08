@@ -6852,14 +6852,14 @@ cc2008
       napx=lnapx
       return
 +cd lost5a
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/)
       end
 +cd lost5b
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
@@ -6867,7 +6867,7 @@ cc2008
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd lost5c
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
@@ -17803,7 +17803,7 @@ cc2008
      &'   ')
 10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
      &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-10110 format(t10,i3,' ---',i3,' --- ',30i3)
+!10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
 10140 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
@@ -17908,8 +17908,8 @@ cc2008
      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
      &'  -   DEVIATION=',f15.7)
-10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
+!10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
+!     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10430 format(/5x,'No cut on random distribution'//)
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
@@ -17923,7 +17923,7 @@ cc2008
      &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
      &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
      &'       MEAN            RMS-VALUE'/)
-10240 format(t10,a16,3(2x,d16.10),2x,i10)
+!10240 format(t10,a16,3(2x,d16.10),2x,i10)
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
@@ -21196,7 +21196,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -22571,12 +22571,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',f12.6,'|', f13.&
      &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10110 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10120 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
@@ -22897,7 +22897,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -25915,7 +25915,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       stop
 +ei
-10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,      &
+10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
@@ -26028,13 +26028,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
-10240 format(1x/5x,'PARTICLE ',i3,' STABLE - RANDOM SEED ', i8,         &
+10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10250 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
-     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10260 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
+!     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5/)
-10270 format(1x/5x,'PARTICLE ',i3,' AND ',i3,' STABLE - RANDOM SEED ',  &
+10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',  &
      &i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10280 format(10x,f47.33)
 10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
@@ -33879,7 +33879,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       backspace (lout,iostat=ierro)
 +ei
       return
-10000 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
       end
@@ -42282,7 +42282,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT',      &
      &' IN THE ALLOWED RANGE [2 <= NV <= 5]')
 10540 format(t10,'MAXIMUM NUMBER OF PARTICLES FOR VECTORIZATION', ' IS '&
-     &,i4)
+     &,i7)
 10550 format(t10,'MAXIMUM NUMBER OF DIFFERENT SEEDS FOR VECTORIZATION', &
      &' IS ',i4)
 10560 format(t10,'PROBLEMS WITH FILE 13 WITH INITIAL COORDINATES ',     &
@@ -55046,7 +55046,7 @@ c$$$            endif
       if(icode.eq.6) hvs(1:11)='    Ver Syn'
       if(icode.eq.7) hvs(1:11)='Hor Ver Syn'
       toptit(2)(1:13)='Particle no. '
-      write(toptit(2)(14:16),'(I3)') ifipa
+      write(toptit(2)(14:16),'(I3)') ifipa !WARNING: Does not work for > 999 particles
       toptit(2)(17:30)=', Phase Space '
       write(toptit(2)(31:41),'(A11)') hvs
       toptit(2)(42:50)=', Dp/p = '
@@ -57343,8 +57343,8 @@ c$$$            endif
      &'TITLE AND COMMENT :'//a80//a80// )
 10050 format(10x,'THE FOLLOWING PARAMETERS ARE USED:'//                 &
      &10x,'PROGRAM NAME',t102,a8/                                       &
-     &10x,'PARTICLE NUMBER',t102,i3/                                    &
-     &10x,'TOTAL NUMBER OF PARTICLES',t102,i3/                          &
+     &10x,'PARTICLE NUMBER',t102,i7/                                    &
+     &10x,'TOTAL NUMBER OF PARTICLES',t102,i7/                          &
      &10x,'PHASE SPACE',t102,a11/                                       &
      &10x,'MAXIMUM NUMBER OF TURNS',t102,i8/                            &
      &10x,'HORIZONTAL BETA',t102,f16.10/                                &
