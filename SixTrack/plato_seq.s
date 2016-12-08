@@ -959,7 +959,7 @@ C............................................................
       INTEGER N,M,NPOINT,I,NPMIN,NPMAX
       DOUBLE PRECISION SUM,AMAX
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX  Z(MAXITER)
+      COMPLEX*16  Z(MAXITER)
 +if cr
 +ca crcoall
 +ei
@@ -1047,7 +1047,7 @@ C............................................................
       REAL*4 SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
      &X213,A,B
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX Z(MAXITER)
+      COMPLEX*16 Z(MAXITER)
 
 +ca crlibco
 +if cr
