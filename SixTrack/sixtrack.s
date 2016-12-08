@@ -57680,10 +57680,10 @@ c$$$            endif
      &     STAT=i)
       if (i.ne.0) then
 +if cr
-         write(lout,*) "Error in fma_postpr: Cannon ALLOCATE"//
+         write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
 +if .not.cr
-         write(*,*)    "Error in fma_postpr: Cannon ALLOCATE"//
+         write(*,*)    "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
      &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
      &        " proportional to napx*fma_nturn_max."
@@ -58054,10 +58054,8 @@ c$$$            endif
 +if .not.crlibm
                 phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
-                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! minimum emittance
-                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! maximum emittance
+                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
+                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
      &fma_nturn(i) ! average emittance
               enddo
