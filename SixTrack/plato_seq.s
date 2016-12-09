@@ -15,7 +15,7 @@
 *
       SUBROUTINE CFFT(A,MSIGN)
       IMPLICIT NONE
-      COMPLEX*8 A(1),U,W,T !Single precission complex, COMPLEX*8 is the same as COMPLEX(4)
+      COMPLEX*8 A(*),U,W,T !Single precission complex, COMPLEX*8 is the same as COMPLEX(4)
       INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
       REAL*4 C,S ! Single precission real, REAL*4 is the same as REAL(4).
       IF(MSIGN.EQ.0) RETURN
