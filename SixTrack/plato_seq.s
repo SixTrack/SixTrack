@@ -771,7 +771,7 @@ C............................................................
       ENDDO
 C............................................................  
 +if crlibm
-      ZTUNE1=EXP_RN((-ZU*DUEPI)*TUNEA1)
+      ZTUNE1=EXP_RN((-ZU*DUEPI)*TUNEA1) !!! EXP_RN expects a DOUBLE PRECISION, not COMPLEX !!!
 +ei
 +if .not.crlibm
       ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
@@ -959,7 +959,7 @@ C............................................................
       INTEGER N,M,NPOINT,I,NPMIN,NPMAX
       DOUBLE PRECISION SUM,AMAX
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX*16  Z(MAXITER)
+      COMPLEX*8  Z(MAXITER) !SINGLE PRECISSION, TO MATCH CFFT
 +if cr
 +ca crcoall
 +ei
@@ -1047,7 +1047,7 @@ C............................................................
       REAL*4 SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
      &X213,A,B
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX*16 Z(MAXITER)
+      COMPLEX*8 Z(MAXITER) !SINGLE PRECISSION, TO MATCH CFFT
 
 +ca crlibco
 +if cr
