@@ -771,7 +771,8 @@ C............................................................
       ENDDO
 C............................................................  
 +if crlibm
-      ZTUNE1=EXP_RN((-ZU*DUEPI)*TUNEA1) !!! EXP_RN expects a DOUBLE PRECISION, not COMPLEX !!!
+      ! EXP_RN expects a DOUBLE PRECISION, not COMPLEX -> rewrite expression for crlibm.
+      ZTUNE1=cos_rn(DUEPI*TUNEA1) + ZU*sin_rn(DUEPI*TUNEA1)
 +ei
 +if .not.crlibm
       ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
