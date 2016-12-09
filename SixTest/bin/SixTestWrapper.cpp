@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include <thread>
-
 //waitpid()
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -24,7 +22,6 @@
 void KillSixTrack(size_t KillTime, pid_t sixpid);
 
 bool CopyFile(std::string InputFileName, std::string OutputFileName);
-//bool BinaryDiff(std::string InputFileName, std::string OutputFileName);
 bool FileComparison(std::string f1, std::string f2);
 
 bool CheckFort10();
@@ -120,7 +117,7 @@ int main(int argc, char* argv[])
 		if(SixTrackpid == 0)
 		{
 			//child, run sixtrack
-			int execStatus = execl(argv[1],nullptr);
+			int execStatus = execl(argv[1],(char*) 0);
 			if(execStatus == -1)
 			{
 				perror("ERROR - could not execute checkf10");
@@ -145,7 +142,7 @@ int main(int argc, char* argv[])
 	if(SixTrackpid == 0)
 	{
 		//child, run sixtrack
-		int execStatus = execl(argv[1],nullptr);
+		int execStatus = execl(argv[1],(char*) 0);
 		if(execStatus == -1)
 		{
 			perror("ERROR - could not execute checkf10");
@@ -262,7 +259,7 @@ int main(int argc, char* argv[])
 //Run the actual sixtrack binary
 void RunSixTrack(char* argv[], int* Status)
 {
-	*Status = execl(argv[1],nullptr);
+	*Status = execl(argv[1],(char*) 0);
 }
 
 /**
@@ -272,7 +269,8 @@ void RunSixTrack(char* argv[], int* Status)
 */
 void KillSixTrack(size_t KillTime, pid_t sixpid)
 {
-	std::this_thread::sleep_for(std::chrono::seconds(KillTime));
+	//std::this_thread::sleep_for(std::chrono::seconds(KillTime));
+	sleep(KillTime);
 	std::cout << "KillSixTrack() - killing pid: " << sixpid << std::endl;
 	int res = kill(sixpid, SIGKILL);
 	std::cout << "KillSixTrack() kill result: " << res << std::endl;
@@ -286,8 +284,8 @@ void KillSixTrack(size_t KillTime, pid_t sixpid)
 */
 bool CopyFile(std::string InputFileName, std::string OutputFileName)
 {
-	std::ifstream Input(InputFileName, std::ios::binary);
-	std::ofstream Output(OutputFileName, std::ios::binary);
+	std::ifstream Input(InputFileName.c_str(), std::ios::binary);
+	std::ofstream Output(OutputFileName.c_str(), std::ios::binary);
 
 	if(!Input.good())
 	{
@@ -335,7 +333,7 @@ bool CheckFort10()
 	if(CheckFort10pid == 0)
 	{
 		//child, run checkf10
-		int status = execl("./checkf10",nullptr);
+		int status = execl("./checkf10",(char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute checkf10");
@@ -375,7 +373,7 @@ bool CheckFort90()
 	if(CheckFort90pid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--fname", "fort.90", "--ofname", "fort.90.out", nullptr);
+		int status = execl("./read90", "read90", "--fname", "fort.90", "--ofname", "fort.90.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -407,7 +405,7 @@ bool CheckFort90()
 	if(CheckFort90pid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", nullptr);
+		int status = execl("./read90", "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -454,7 +452,7 @@ bool CheckSTF()
 	if(CheckSTFpid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--STF", "--fname", "singletrackfile.dat", "--ofname", "singletrackfile.dat.out", nullptr);
+		int status = execl("./read90", "read90", "--STF", "--fname", "singletrackfile.dat", "--ofname", "singletrackfile.dat.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -486,7 +484,7 @@ bool CheckSTF()
 	if(CheckSTFpid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--STF", "--fname", "singletrackfile.dat.canonical", "--ofname", "singletrackfile.dat.canonical.out", nullptr);
+		int status = execl("./read90", "read90", "--STF", "--fname", "singletrackfile.dat.canonical", "--ofname", "singletrackfile.dat.canonical.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -514,8 +512,8 @@ bool CheckSTF()
 */
 bool FileComparison(std::string FileName1, std::string FileName2)
 {
-	std::ifstream f1(FileName1, std::ios::binary);
-	std::ifstream f2(FileName2, std::ios::binary);
+	std::ifstream f1(FileName1.c_str(), std::ios::binary);
+	std::ifstream f2(FileName2.c_str(), std::ios::binary);
 
 	size_t length1 = 0;
 	size_t length2 = 0;

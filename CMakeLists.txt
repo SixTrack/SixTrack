@@ -1021,6 +1021,6 @@ IF(BUILD_TESTING)
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
-	set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
+	#set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
 
 ENDIF()
