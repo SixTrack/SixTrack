@@ -25391,19 +25391,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
              else if ( dumpfmt(i).eq.2 ) then
                 if (i.eq.0) then
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,i12)')
      &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                   write(dumpunit(i),fmt=*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
                 else
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,a16,a,i12)')
      &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                   write(dumpunit(i),fmt=*)
+                endif
+                write(dumpunit(i),
+     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
      &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
-                endif
-                write(dumpunit(i),*)
+                write(dumpunit(i),'(1x,a,a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
      &  'ktrack'
 +if cr
