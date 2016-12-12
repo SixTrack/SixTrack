@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.41'/
-      data moddate /'08.12.2016'/
+      data version /'4.5.42'/
+      data moddate /'12.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -25391,19 +25391,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
              else if ( dumpfmt(i).eq.2 ) then
                 if (i.eq.0) then
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,i12)')
      &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                   write(dumpunit(i),fmt=*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
                 else
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,a16,a,i12)')
      &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                   write(dumpunit(i),fmt=*)
+                endif
+                write(dumpunit(i),
+     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
      &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
-                endif
-                write(dumpunit(i),*)
+                write(dumpunit(i),'(1x,a,a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
      &  'ktrack'
 +if cr
@@ -57680,10 +57680,10 @@ c$$$            endif
      &     STAT=i)
       if (i.ne.0) then
 +if cr
-         write(lout,*) "Error in fma_postpr: Cannon ALLOCATE"//
+         write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
 +if .not.cr
-         write(*,*)    "Error in fma_postpr: Cannon ALLOCATE"//
+         write(*,*)    "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
      &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
      &        " proportional to napx*fma_nturn_max."
@@ -58054,10 +58054,8 @@ c$$$            endif
 +if .not.crlibm
                 phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
-                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! minimum emittance
-                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! maximum emittance
+                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
+                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
      &fma_nturn(i) ! average emittance
               enddo
