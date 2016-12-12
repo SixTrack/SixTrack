@@ -646,7 +646,7 @@ then
   ####export FCF="-$myopt -float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
 # export FCF="-$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
 # export FCF="-float-store -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-  export FCF="-$myopt -abi=32 -dusty -dcfuns -ieee=full -g90"
+  export FCF="-$myopt -abi=32 -dusty -dcfuns -ieee=full -g90 -w=ulv -w=uparam"
 #  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -ieee=full -g90" ## Former default, could not build plato
 # The ieee=nonstd is INCOMPATIBLE with abi=32!!!
 # export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=nonstd -g90"
