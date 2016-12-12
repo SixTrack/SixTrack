@@ -11945,6 +11945,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      logical beam_xstr
 +if crlibm
       integer maxf,nofields
       parameter (maxf=30)
@@ -16395,6 +16396,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  Beam-Beam Element
 !-----------------------------------------------------------------------
+      ! ! ! Read 1st line of BEAM block ! ! !
  1600 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -16473,11 +16475,36 @@ cc2008
       if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
       nbeam=1
       if(ibtyp.eq.1) call wzset
+
+      ! ! ! Read other lines of BEAM block ! ! !
  1610 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1610
       if(ch(:4).eq.next) goto 110
+
+      !Check number of arguments gotten
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) call prror(-1)
+      beam_xstr = .false.
+      if (getfields_nfields .eq. 5) then
+         beam_xstr=.true.
+      elseif (getfields_nfields .eq. 4) then
+         beam_xstr=.false.
+      else
++if cr
+         write(lout,*) "ERROR in parsing BEAM block"
+         write(lout,*) "Number of arguments in data line 2,..."
+         write(lout,*) " is expected to be 4 or 5"
++ei
++if .not.cr
+         write(*,*)    "ERROR in parsing BEAM block"
+         write(*,*)    "Number of arguments in data line 2,..."
+         write(*,*)    " is expected to be 4 or 5"
++ei
+         call prror(-1)
+      end if
       call intepr(1,1,ch,ch1)
 +if fio
 +if crlibm
@@ -16517,6 +16544,18 @@ cc2008
       endif
 +ei
 +ei
+      if ( .not. beam_xstr ) then
++if cr
+         write(lout,*) "WARNING in parsing BEAM block"
+         write(lout,*) "No xstr present, assuming xstr=xang"
++ei
++if .not.cr
+         write(*,*)    "WARNING in parsing BEAM block"
+         write(*,*)    "No xstr present, assuming xstr=xang"
++ei
+         xstr = xang
+      endif
+      
       if(i.lt.0) i=0
       do 1620 j=1,il
       if(idat.eq.bez(j).and.kz(j).eq.20) then
