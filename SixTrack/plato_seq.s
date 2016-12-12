@@ -12,12 +12,13 @@
 * $Log: cfft.F,v $
 * Revision 1.1.1.1  1996/02/15 17:48:48  mclareni
 * Kernlib
+* Conversion single->double precission by K.Sjobak, Dec. 2016
 *
       SUBROUTINE CFFT(A,MSIGN)
       IMPLICIT NONE
-      COMPLEX*8 A(*),U,W,T !Single precission complex, COMPLEX*8 is the same as COMPLEX(4)
+      COMPLEX*16 A(*),U,W,T
       INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
-      REAL*4 C,S ! Single precission real, REAL*4 is the same as REAL(4).
+      double precision C,S
       IF(MSIGN.EQ.0) RETURN
       M=IABS(MSIGN)
       N=2**M
@@ -47,7 +48,7 @@
       W=CMPLX(C,S,kind(1.d0))
       U=W
       C=SQRT(C*.5+.5)
-      S=AIMAG(W)/(C+C)
+      S=DIMAG(W)/(C+C)
       LE1=LE
       LE=LE1+LE1
       DO 9 I=1,N,LE
@@ -86,7 +87,7 @@ C
      &     TUNE1, TUNE
       INTEGER MAXN, MFT, NPOINT, MAXN2, MF, NPMIN, NPMAX, NFTMAX, NFT
       COMPLEX*16 Z
-      COMPLEX*8  ZSING(MAXITER)  !Single precision, to match CFFT
+      COMPLEX*16 ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
@@ -507,8 +508,8 @@ C
       N=2*NN
 C create real array DATA out of complex array CDATA
       DO I=1,N,2
-        DATA(I)=REAL(CDATA(I/2+1))
-        DATA(I+1)=AIMAG(CDATA(I/2+1))
+        DATA(I)=DREAL(CDATA(I/2+1))
+        DATA(I+1)=DIMAG(CDATA(I/2+1))
       ENDDO
       J=1
       DO 11 I=1,N,2
@@ -662,7 +663,7 @@ C
       DOUBLE PRECISION X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,
      &TUNE
       COMPLEX*16 Z
-      COMPLEX*8 ZSING(MAXITER)
+      COMPLEX*16 ZSING(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
@@ -960,7 +961,7 @@ C............................................................
       INTEGER N,M,NPOINT,I,NPMIN,NPMAX
       DOUBLE PRECISION SUM,AMAX
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX*8  Z(MAXITER) !SINGLE PRECISSION, TO MATCH CFFT
+      COMPLEX*16  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
 +if cr
 +ca crcoall
 +ei
@@ -1045,10 +1046,10 @@ C............................................................
       INTEGER*4 MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER*4 N,M,NPOINT,NPMAX,NPMIN,ITUNE,I
-      REAL*4 SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
+      DOUBLE PRECISION SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
      &X213,A,B
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX*8 Z(MAXITER) !SINGLE PRECISSION, TO MATCH CFFT
+      COMPLEX*16 Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
 +ca crlibco
 +if cr
@@ -1166,7 +1167,7 @@ C............................................................
       DOUBLE PRECISION DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,
      &OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
       DOUBLE PRECISION X(*),PX(*)
-      COMPLEX*8 ZSING(MAXITER)
+      COMPLEX*16 ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
 
 +ca crlibco
@@ -1256,8 +1257,8 @@ C.........................................BISECTION PROCEDURE
 +if crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
      .        *(1D0+COS_RN(STEP*(2*N-MAX1)))
-            TMPR=REAL((-(0D+0,1D+0)*OME)*N)
-            TMPI=AIMAG((-(0D+0,1D+0)*OME)*N)
+            TMPR=DREAL((-(0D+0,1D+0)*OME)*N)
+            TMPI=DIMAG((-(0D+0,1D+0)*OME)*N)
             Z(N)=ZC*(EXP_RN(TMPR)*DCMPLX(COS_RN(TMPI),SIN_RN(TMPI))) !exp_rn is only defined for real numbers -> decompose in real and imaginary part
 +ei
 +if .not.crlibm
