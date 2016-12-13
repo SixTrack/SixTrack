@@ -33968,9 +33968,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 
 !     temporary variables
-      integer j
+      integer j,k,l
       character*16 localBez
-
+      
+      double precision xyz(6)
+      double precision xyz2(6,6)
+      
 +if cr      
       !For accessing dumpfilepos
       integer dumpIdx
@@ -34014,7 +34017,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Format for aperture check
       else if (fmt .eq. 1) then
-        if ( lhighprec ) then
+         if ( lhighprec ) then
             do j=1,napx
                write(unit,1983) nlostp(j)+(samplenumber-1)*npart,
      &              nturn, dcum(i), xv(1,j),
@@ -34061,7 +34064,72 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
       else if (fmt .eq. 3) then
-         ! NEW FORMAT !!!
+         do l=1,6
+            xyz(l) = 0.0
+            do k=1,6
+               xyz2(l,k) = 0.0
+            end do
+         end do
+         
+         do j=1,napx
+            xyz(1) = xyz(1) + xv(1,j)
+            xyz(2) = xyz(2) + xv(2,j)
+            xyz(3) = xyz(3) + yv(1,j)
+            xyz(4) = xyz(4) + yv(2,j)
+            xyz(5) = xyz(5) + sigmv(j)
+            xyz(6) = xyz(6) + (ejv(j)-e0)/e0
+            
+            xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
+            xyz2(1,2) = xyz2(1,2) + xv(1,j)*xv(2,j)
+            xyz2(1,3) = xyz2(1,3) + xv(1,j)*yv(1,j)
+            xyz2(1,4) = xyz2(1,4) + xv(1,j)*yv(2,j)
+            xyz2(1,5) = xyz2(1,5) + xv(1,j)*sigmv(j)
+            xyz2(1,6) = xyz2(1,6) + xv(1,j)*((ejv(j)-e0)/e0)
+            
+            xyz2(2,1) = xyz2(2,1) + xv(2,j)*xv(1,j)
+            xyz2(2,2) = xyz2(2,2) + xv(2,j)*xv(2,j)
+            xyz2(2,3) = xyz2(2,3) + xv(2,j)*yv(1,j)
+            xyz2(2,4) = xyz2(2,4) + xv(2,j)*yv(2,j)
+            xyz2(2,5) = xyz2(2,5) + xv(2,j)*sigmv(j)
+            xyz2(2,6) = xyz2(2,6) + xv(2,j)*((ejv(j)-e0)/e0)
+            
+            xyz2(3,1) = xyz2(3,1) + yv(1,j)*xv(1,j)
+            xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
+            xyz2(3,3) = xyz2(3,3) + yv(1,j)*yv(1,j)
+            xyz2(3,4) = xyz2(3,4) + yv(1,j)*yv(2,j)
+            xyz2(3,5) = xyz2(3,5) + yv(1,j)*sigmv(j)
+            xyz2(3,6) = xyz2(3,6) + yv(1,j)*((ejv(j)-e0)/e0)
+            
+            xyz2(4,1) = xyz2(4,1) + yv(2,j)*xv(1,j)
+            xyz2(4,2) = xyz2(4,2) + yv(2,j)*xv(2,j)
+            xyz2(4,3) = xyz2(4,3) + yv(2,j)*yv(1,j)
+            xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
+            xyz2(4,5) = xyz2(4,5) + yv(2,j)*sigmv(j)
+            xyz2(4,6) = xyz2(4,6) + yv(2,j)*((ejv(j)-e0)/e0)
+            
+            xyz2(4,1) = xyz2(4,1) + ((ejv(j)-e0)/e0)*xv(1,j)
+            xyz2(4,2) = xyz2(4,2) + ((ejv(j)-e0)/e0)*xv(2,j)
+            xyz2(4,3) = xyz2(4,3) + ((ejv(j)-e0)/e0)*yv(1,j)
+            xyz2(4,4) = xyz2(4,4) + ((ejv(j)-e0)/e0)*yv(2,j)
+            xyz2(4,5) = xyz2(4,5) + ((ejv(j)-e0)/e0)*sigmv(j)
+            xyz2(4,6) = xyz2(4,6) + ((ejv(j)-e0)/e0)*((ejv(j)-e0)/e0)
+            
+         enddo
+         if ( lhighprec ) then
+            do j=1,napx
+               write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
+     &              nturn, dcum(i), xv(1,j),
+     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+     &              (ejv(j)-e0)/e0, ktrack(i)
+            enddo
+         else
+            do j=1,napx
+               write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
+     &              nturn, dcum(i), xv(1,j),
+     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+     &              (ejv(j)-e0)/e0, ktrack(i)
+            enddo
+         endif
       
       !Unrecognized format fmt
       else
