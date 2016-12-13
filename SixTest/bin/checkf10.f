@@ -1,10 +1,14 @@
       program checkf10
       implicit none
       double precision prob(60),prob1(60)
-      integer line,word
+      integer line,word,i
       logical diff,diffs
 ! Now compare the closed orbit in 53-58 as well
-! and NMAC in 59 (60 is used for CPU for Massimo) 
+! and NMAC in 59 (60 is used for CPU for Massimo)
+      do i=1,60
+        prob(i) = 0
+        prob1(i) = 0
+      enddo
       line=0
       diff=.false.
     1 read (20,*,end=100,err=98) prob
