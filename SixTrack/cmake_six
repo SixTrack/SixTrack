@@ -206,18 +206,19 @@ do
 done
 NAME+=_$options_COMPILER
 
-echo $NAME
+echo "NAME= '"$NAME"'"
 
+echo "CMAKE options = '"$CMAKE_OPTIONS_LIST"'"
+echo ""
+
+
+#Run cmake
 if [ -d $NAME ]; then
     echo "Folder '"$NAME"' already exists, deleting!"
     rm -rf $NAME
 fi
 mkdir $NAME
-
-#Run cmake
 cd $NAME
-echo $(pwd)
-echo $CMAKE_OPTIONS_LIST
 
 set +e #From here on we catch errors manually...
 
