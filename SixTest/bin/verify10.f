@@ -4,6 +4,8 @@
       integer line,word,i
       logical diff,diffs
 ! Now checks the closed orbit as well as Total Turns
+      probv = 0
+      probv1 = 0
       do i=1,60
         prob(i) = 0
         prob1(i) = 0
