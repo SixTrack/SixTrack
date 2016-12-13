@@ -1,9 +1,15 @@
       program verify10
       implicit none
       double precision prob(60),prob1(60),probv,probv1
-      integer line,word
+      integer line,word,i
       logical diff,diffs
 ! Now checks the closed orbit as well as Total Turns
+      probv = 0
+      probv1 = 0
+      do i=1,60
+        prob(i) = 0
+        prob1(i) = 0
+      enddo
       line=0
       diff=.false.
     1 read (20,*,end=100,err=99) prob
