@@ -63048,7 +63048,7 @@ c$$$     &           myalphay * cos(phiy))
          elseif ( inter .eq. 4 ) then
            !This does not get set to xm2, but xi, aka (xm2 / s)
            !We must then change the momentum differently to the sixtrack scattering
-           call merlinscatter_get_sd_t(xm2)
+           call merlinscatter_get_sd_xi(xm2)
            call merlinscatter_get_sd_t(gettran)
            p = p  * (1.d0 - xm2)
 
