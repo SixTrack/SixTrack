@@ -11,6 +11,8 @@ set -e #Stop on error
 #set -x
 
 echo "Welcome to cmake_six, camouflaging cmake and make inside the same interface as make_six !"
+echo "For help, run 'cmake_six help'"
+echo ""
 
 #Run the Beauty "linters"
 if [ -x "$(command -v gawk)" ]; then
@@ -57,14 +59,59 @@ else
     echo
     echo "WARNING: You have not installed gawk (GNU AWK)."
     echo "This is needed to check the correctness of the ASTUCE +if /+ei"
-    echo "If you are modifying the .s files, it is STRONGLY RECCOMENDED to install gawk"
+    echo "If you are modifying the .s files, it is EXTREMELY STRONGLY RECCOMENDED to install gawk!"
 fi
 echo ""
 
 #Get options
-compilers=(default gfortran ifort ifort-icc nagfor) # Valid compilers. default = system default
+compilers=(defaultcompiler gfortran ifort ifort-icc nagfor) # Valid compilers. defaultcompiler = system default compilers
 compilers_CMAKE=('' '-DCMAKE_Fortran_COMPILER=gfortran' '-DCMAKE_Fortran_COMPILER=ifort' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc' '-DCMAKE_Fortran_COMPILER=nagfor')
-options_COMPILER=default #which compilers to use
+options_COMPILER=defaultcompiler #which compilers to use
+
+## Look for special options
+for var in "$@" #Loop over command line arguments
+do
+    if [[ $var == clean ]]; then
+	echo "Cleaning cmake_six builds!"
+	set +e
+	ls SixTrack_cmakesix*
+	rm -rf SixTrack_cmakesix*
+	exit
+    elif [[ $var == help ]]; then
+	echo "VALID OPTIONS FOR cmake_six:"
+	echo
+	echo "Compilers:"
+	for c in ${compilers[@]}
+	do
+	    echo $c
+	done
+
+	echo ""
+	echo "Flags and default options:"
+	mkdir cmake_tmp
+	cd cmake_tmp
+	#Skip "-A" flag
+	cmake -LH ../../.
+	cd ..
+	rm -rf cmake_tmp
+
+	echo ""
+	echo "Call cmake_six with FLAG as an argument to turn ON, and -FLAG to turn off."
+
+	echo ""
+	echo "Special options to cmake_six:"
+	echo "clean : Remove all build directories"
+	echo "help  : Display this message"
+
+	echo ""
+	echo "Examples:"
+	echo "cmake_six gfortran COLLIMAT -CRLIBM"
+	echo "cmake_six clean"
+	echo "cmake_six ifort-icc"
+	echo "cmake_six BIGNPART STF"
+	exit
+    fi
+done
 
 options_ALL=() # All set options
 options_ON=()  # All options switched ON
@@ -108,7 +155,7 @@ do
 	for v in ${compilers[@]}
 	do
 	    if [[ $v == $varOn ]]; then
-		if [[ $options_COMPILER != "default" ]]; then
+		if [[ $options_COMPILER != "defaultcompiler" ]]; then
 		    echo "ERROR: can't set multiple compilers"
 		    exit 1
 		fi
@@ -159,18 +206,19 @@ do
 done
 NAME+=_$options_COMPILER
 
-echo $NAME
+echo "NAME= '"$NAME"'"
 
+echo "CMAKE options = '"$CMAKE_OPTIONS_LIST"'"
+echo ""
+
+
+#Run cmake
 if [ -d $NAME ]; then
     echo "Folder '"$NAME"' already exists, deleting!"
     rm -rf $NAME
 fi
 mkdir $NAME
-
-#Run cmake
 cd $NAME
-echo $(pwd)
-echo $CMAKE_OPTIONS_LIST
 
 set +e #From here on we catch errors manually...
 
@@ -183,16 +231,25 @@ if [ $? != 0 ]; then
     echo "ERROR in CMAKE"
     echo "Most likely you specified a bad argument!"
     echo ""
-    echo "cleaning up..."
-
-    cd ..
-    rm -rf $NAME
+#    echo "cleaning up..."
+#
+#    cd ..
+#    rm -rf $NAME
     exit
 fi
 echo ""
 
 #Run make
 make -j
-echo ""
 
+if [ $? != 0 ]; then
+    echo ""
+    echo "ERROR in MAKE"
+    echo "Could be a bug..."
+    echo "Maybe you need to install some libraries?"
+    echo ""
+
+    exit
+fi
+echo ""
 echo "Done! If everything went well, you'll find the executable in" $NAME
