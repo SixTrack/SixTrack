@@ -628,8 +628,8 @@ then
   ####export FCF="-$myopt -float-store -$myopt -C=undefined -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
 # export FCF="-$myopt -C=all -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
 # export FCF="-float-store -$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=full -g90"
-  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -ieee=full -g90"
+  export FCF="-$myopt -abi=32 -dusty -dcfuns -ieee=full -g90 -w=ulv -w=uparam"
+#  export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -ieee=full -g90" ## Former default, could not build plato
 # The ieee=nonstd is INCOMPATIBLE with abi=32!!!
 # export FCF="-$myopt -abi=32 -dusty -maxcontin=60 -dcfuns -ieee=nonstd -g90"
   export FCL="-Bstatic -abi=32"
@@ -800,7 +800,11 @@ if test "$MACHTYPE" = "i586"
 then
     export FCLMAP="$FCL"
 else
-    export FCLMAP="-Wl,--print-map $FCL"
+    if "$nagfor" != ""; then
+	export FCLMAP="-Wl,--print-map $FCL"
+    else
+	export FCLMAP="$FCL"
+    fi
 fi
 
 if test "$OSTYPE" = "Darwin"

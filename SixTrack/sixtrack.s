@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.40'/
-      data moddate /'29.11.2016'/
+      data version /'4.5.43'/
+      data moddate /'12.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -662,7 +662,8 @@
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !SEPT2005,OCT2006 added offset
-     &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
+     &xbeat,xbeatphase,ybeat,ybeatphase,
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
@@ -706,7 +707,8 @@
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !
-     &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
+     &xbeat,xbeatphase,ybeat,ybeatphase,
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,                                &
@@ -731,19 +733,23 @@
       integer   mynp
       common /mynp/ mynp
 !
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
       logical cut_input
       common /cut/ cut_input
 !
 !++ Vectors of coordinates
 !
-      double precision myemitx,mygammax,myemity,mygammay,xsigmax,ysigmay
+      double precision mygammax,mygammay
 !
       real rndm4
 !
       character*80 dummy
 !
-      double precision remitxn,remityn,remitx,remity
-      common  /remit/ remitxn, remityn, remitx, remity
+      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+      double precision remitx_dist,remity_dist,
+     &     remitx_collgap,remity_collgap
+      common  /remit/ remitx_dist, remity_dist,
+     &     remitx_collgap,remity_collgap
 !
       double precision mux(nblz),muy(nblz)
       common /mu/ mux,muy
@@ -775,11 +781,16 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbdaten
+
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
       logical cut_input
       common /cut/ cut_input
 !
-      double precision rselect,remitxn,remityn,remitx,remity
-      common  /remit/ remitxn,remityn,remitx,remity
+      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+      double precision remitx_dist,remity_dist,
+     &     remitx_collgap,remity_collgap
+      common  /remit/ remitx_dist, remity_dist,
+     &     remitx_collgap,remity_collgap
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -805,22 +816,10 @@
       integer coll_mingap_id
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbmaincr
-      double precision myemitx0,myemity0,myalphax,myalphay,mybetax,     &
-     &mybetay,rselect
-      common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
-     &mybetay,rselect
-!
-      logical cut_input
-      common /cut/ cut_input
-!
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dbthin6d
 !
 !
-      logical cut_input,firstcoll,found,onesided
+      logical firstcoll,found,onesided
 !
       integer myktrack,n_gt72,n_gt80,n_gt90,nx_gt72,nx_gt80,            &
      &ny_gt72,ny_gt80,rnd_lux,rnd_k1,rnd_k2,ios,num_surhit,numbin,ibin, &
@@ -880,7 +879,10 @@
 !
       character*4 c_material     !material
 !
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+      logical cut_input
       common /cut/ cut_input
+      
       common /mu/ mux, muy
       common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
      &ypineff
@@ -893,10 +895,15 @@
 !
       integer ieff,ieffdpop
 !
-      double precision myemitx0,myemity0,myalphay,mybetay,myalphax,     &
-     &mybetax,rselect
-      common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
-     &mybetay,rselect
+      double precision myemitx0_dist,myemity0_dist,
+     &     myemitx0_collgap,myemity0_collgap,
+     &     myemitx,myalphay,mybetay,myalphax,
+     &     mybetax,rselect
+      common /ralph/ myemitx0_dist,myemity0_dist,
+     &     myemitx0_collgap,myemity0_collgap,
+     &     myalphax,myalphay,mybetax,
+     &     mybetay,rselect
+
 !
 ! M. Fiascaris for the collimation team
 ! variables for global inefficiencies studies
@@ -1075,7 +1082,6 @@
 !
 !++ Vectors of coordinates
 !
-      logical cut_input
       integer i,j,mynp,nloop
       double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
      &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
@@ -1088,7 +1094,8 @@
 !
       character*80   dummy
 !
-!
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
+      logical cut_input
       common /cut/ cut_input
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -6905,14 +6912,14 @@ cc2008
       napx=lnapx
       return
 +cd lost5a
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/)
       end
 +cd lost5b
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
@@ -6920,7 +6927,7 @@ cc2008
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd lost5c
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
@@ -8877,6 +8884,18 @@ cc2008
 
 +dk nocode
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
++if .not.datamods
+      subroutine nodatamods
++if cr
+      write(lout,*)
++ei
++if .not.cr
+      write(*,*)
++ei
+     &     "Dummy routine in bigmats.f if beamgas module is off."
+      end subroutine
++ei
+
 +dk datamods
       module bigmats
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
@@ -12029,6 +12048,9 @@ cc2008
 +ca dbpencil
 +ca database
 +ei
++if .not.collimat
+      logical do_coll
++ei
 !
 +if bnlelens
 +ca rhicelens
@@ -12221,7 +12243,9 @@ cc2008
       ise=0
       iskew=0
       preda=c1m38
-      
++if .not.collimat
+      do_coll = .false.
++ei
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -16050,36 +16074,42 @@ cc2008
  1285 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-+if .not.collimat
-+if cr
-      write(lout,*)
-      write(lout,*) "     collimation not forseen in this version"
-      write(lout,*) "     please use proper version"
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*)    "     collimation not forseen in this version"
-      write(*,*)    "     please use proper version"
-      write(*,*)
-+ei
- 1287 continue
-      if(ch(:4).eq.next) goto 110
-      read(3,10020,end=1530,iostat=ierro) ch
-      lineno3=lineno3+1
-      goto 1287
-+ei
-+if collimat
+
       if(ch(1:1).ne.'/') then
          iclr=iclr+1
       else
          goto 1285
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
+      
++if .not.collimat
+      if (iclr.eq.1) then
+         read(ch1,*) do_coll
+         if (do_coll) then
++if cr
+           write(lout,*)
+           write(lout,*) "ERR> Collimation not forseen in this version;"
+           write(lout,*) "ERR> Please use proper version"
+           write(lout,*) "ERR> or set do_coll to .FALSE."
+           write(lout,*)
++ei
++if .not.cr
+           write(*,*)
+           write(*,*)    "ERR> Collimation not forseen in this version;"
+           write(*,*)    "ERR> Please use proper version"
+           write(*,*)    "ERR> or set do_coll to .FALSE."
+           write(*,*)
++ei
+           call prror(-1)
+         endif
+      endif
++ei ! END +if .not.collimat
+
++if collimat
 !APRIL2005
 +if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & do_coll
+     & do_coll !Does not make sense with round=nearest: do_coll is a logical...
 +ei
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
@@ -16189,10 +16219,11 @@ cc2008
 !
 +if fio
       if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-     & emitx0,emity0
+     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if .not.fio
-      if(iclr.eq.9) read(ch1,*) emitx0,emity0
+      if(iclr.eq.9) read(ch1,*)
+     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if fio
       if(iclr.eq.10) read(ch1,*,round='nearest')                        &
@@ -16265,11 +16296,13 @@ cc2008
 +ei
      &jobnumber, sigsecut2, sigsecut3
 !
++ei ! END +if collimat
+
+!     Use this code for both collimat and non-collimat
       if(iclr.ne.17) goto 1285
  1287 continue
       iclr=0
       goto 110
-+ei
 !-----------------------------------------------------------------------
 !  COMMENT LINE
 !-----------------------------------------------------------------------
@@ -17848,10 +17881,10 @@ cc2008
         emitx=emitnx*gammar
         emity=emitny*gammar
 +if collimat
-        remitxn=emitnx
-        remityn=emitny
-        remitx=emitx
-        remity=emity
+        remitx_dist=emitnx0_dist*gammar
+        remity_dist=emitny0_dist*gammar
+        remitx_collgap=emitnx0_collgap*gammar
+        remity_collgap=emitny0_collgap*gammar
 +ei
       endif
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
@@ -18164,7 +18197,7 @@ cc2008
      &'   ')
 10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
      &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-10110 format(t10,i3,' ---',i3,' --- ',30i3)
+!10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
 10140 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
@@ -18269,8 +18302,8 @@ cc2008
      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
      &'  -   DEVIATION=',f15.7)
-10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
+!10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
+!     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10430 format(/5x,'No cut on random distribution'//)
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
@@ -18284,7 +18317,7 @@ cc2008
      &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
      &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
      &'       MEAN            RMS-VALUE'/)
-10240 format(t10,a16,3(2x,d16.10),2x,i10)
+!10240 format(t10,a16,3(2x,d16.10),2x,i10)
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
@@ -21557,7 +21590,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -22932,12 +22965,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',f12.6,'|', f13.&
      &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10110 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10120 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
@@ -23258,7 +23291,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -24030,13 +24063,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca rhicelens
 +ei
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if cr
 +ca crco
 +ei
@@ -25759,19 +25785,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
              else if ( dumpfmt(i).eq.2 ) then
                 if (i.eq.0) then
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,i12)')
      &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                   write(dumpunit(i),fmt=*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
                 else
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,a16,a,i12)')
      &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                   write(dumpunit(i),fmt=*)
+                endif
+                write(dumpunit(i),
+     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
      &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
-                endif
-                write(dumpunit(i),*)
+                write(dumpunit(i),'(1x,a,a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
      &  'ktrack'
 +if cr
@@ -26283,7 +26309,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
       stop
 +ei
-10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,      &
+10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
@@ -26396,13 +26422,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
-10240 format(1x/5x,'PARTICLE ',i3,' STABLE - RANDOM SEED ', i8,         &
+10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10250 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
-     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10260 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
+!     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5/)
-10270 format(1x/5x,'PARTICLE ',i3,' AND ',i3,' STABLE - RANDOM SEED ',  &
+10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',  &
      &i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10280 format(10x,f47.33)
 10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
@@ -26997,8 +27023,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
       write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
       write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(lout,*) 'Info: Emitx0   [um]   ', remitx
-      write(lout,*) 'Info: Emity0   [um]   ', remity
+      write(lout,*) 'Info: Emitx0_dist [um]', remitx_dist
+      write(lout,*) 'Info: Emity0_dist [um]', remity_dist
+      write(lout,*) 'Info: Emitx0_collgap [um]', remitx_collgap
+      write(lout,*) 'Info: Emity0_collgap [um]', remity_collgap
       write(lout,*) 'Info: E0       [MeV]  ', e0
       write(lout,*)
       write(lout,*)
@@ -27012,15 +27040,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(*,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
       write(*,*) 'Info: Orbity0  [mm]   ', torby(1)
       write(*,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(*,*) 'Info: Emitx0   [um]   ', remitx
-      write(*,*) 'Info: Emity0   [um]   ', remity
+      write(*,*) 'Info: Emitx0_dist [um]', remitx_dist
+      write(*,*) 'Info: Emity0_dist [um]', remity_dist
+      write(*,*) 'Info: Emitx0_collgap [um]', remitx_collgap
+      write(*,*) 'Info: Emity0_collgap [um]', remity_collgap
       write(*,*) 'Info: E0       [MeV]  ', e0
       write(*,*)
       write(*,*)
 +ei
 !
-      myemitx0 = remitx*1d-6
-      myemity0 = remity*1d-6
+      myemitx0_dist = remitx_dist*1d-6
+      myemity0_dist = remity_dist*1d-6
+      myemitx0_collgap = remitx_collgap*1d-6
+      myemity0_collgap = remity_collgap*1d-6
+
       myalphax = talphax(1)
       myalphay = talphay(1)
       mybetax  = tbetax(1)
@@ -27028,20 +27061,50 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !07-2006      myenom   = e0
 !      MYENOM   = 1.001*E0
 !
-      if (myemitx0.le.0.d0 .or. myemity0.le.0.d0) then                   !hr01
+      if (myemitx0_dist.le.0.d0 .or. myemity0_dist.le.0.d0
+     &.or. myemitx0_collgap.le.0.d0 .or. myemity0_collgap.le.0.d0) then
 +if cr
         write(lout,*)
 +ei
 +if .not.cr
         write(*,*)                                                      &
 +ei
-     &'ERR> Please use BEAM command to define emittances!'
+     &       'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
 +if cr
-        call abend('                                                  ')
+        write(lout,*)"ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
 +ei
 +if .not.cr
-        stop
+        write(*,*)   "ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
 +ei
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     & "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
+
++if cr
+        write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
++ei
++if .not.cr
+        write(*,*)    "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
++ei
+     & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, ",
+     & "THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
++if cr
+        write(lout,*) "ERR> EXAMPLE:"
++ei
++if .not.cr
+        write(*,*)    "ERR> EXAMPLE:"
++ei
++if cr
+        write(lout,*) "2.5 2.5 3.5 3.5"
++ei
++if .not.cr
+        write(*,*)    "2.5 2.5 3.5 3.5"
++ei
+        call prror(-1)
       endif
 !
 !++  Calculate the gammas
@@ -27223,8 +27286,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
 !
 +if cr
-      write(lout,*) 'INFO>  EMITX0            = ', emitx0
-      write(lout,*) 'INFO>  EMITY0            = ', emity0
+      write(lout,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
+      write(lout,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
+      write(lout,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
+      write(lout,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
+
       write(lout,*)
       write(lout,*) 'INFO>  DO_SELECT         = ', do_select
       write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
@@ -27273,8 +27339,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*)
 +ei
 +if .not.cr
-      write(*,*) 'INFO>  EMITX0            = ', emitx0
-      write(*,*) 'INFO>  EMITY0            = ', emity0
+      write(*,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
+      write(*,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
+      write(*,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
+      write(*,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
       write(*,*)
       write(*,*) 'INFO>  DO_SELECT         = ', do_select
       write(*,*) 'INFO>  DO_NOMINAL        = ', do_nominal
@@ -27339,13 +27407,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 +if cr
       write(lout,*) 'INFO>  NAPX     = ', napx, mynp
-      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
+      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
+      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
 +ei
 +if .not.cr
       write(*,*) 'INFO>  NAPX     = ', napx, mynp
-      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-      write(*,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
+      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
+      write(*,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
 +ei
 !
 ! HERE WE SET THE MARKER FOR INITIALIZATION:
@@ -27378,30 +27446,34 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(do_coll) then
 !GRD-SR
       if (radial) then
-         call   makedis_radial(mynp, myalphax, myalphay, mybetax,       &
-     &        mybetay, myemitx0, myemity0, myenom, nr, ndr,             &
+         call    makedis_radial(mynp, myalphax, myalphay, mybetax,
+     &        mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr,
      &        myx, myxp, myy, myyp, myp, mys)
       else
          if (do_thisdis.eq.1) then
-            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.2) then
-            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.3) then
-            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
          elseif(do_thisdis.eq.4) then
-            call  readdis(filename_dis,                                 &
+            call readdis(filename_dis,
      &           mynp, myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.5) then
-            call  makedis_ga(mynp, myalphax, myalphay, mybetax,         &
-     & mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,   &
-     &     myx, myxp, myy, myyp, myp, mys,                              &
-     &     enerror, bunchlength )
+            call makedis_ga(mynp, myalphax, myalphay, mybetax,
+     &           mybetay, myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
+     &           myx, myxp, myy, myyp, myp, mys,
+     &           enerror, bunchlength )
          else
 +if cr
       write(lout,*) 'INFO> review your distribution parameters !!'
@@ -28412,7 +28484,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
    10     stracki=strack(i) 
-          if(iexact.eq.0) then ! exact drift
+          if(iexact.eq.0) then ! exact drift?
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
               xv(2,j)=xv(2,j)+stracki*yv(2,j)
@@ -29875,12 +29947,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -30060,17 +30132,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !FEBRUAR2007 added gap error to nsig      --------------- TW
           nsig = nsig + gap_rms_error(icoll)
 !FEBRUAR2007                              --------------- TW
-          xmax = nsig*sqrt(bx_dist*myemitx0)
-          ymax = nsig*sqrt(by_dist*myemity0)
+          xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
+          ymax = nsig*sqrt(by_dist*myemity0_collgap)
           xmax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(bx_dist*myemitx0)
+     &sqrt(bx_dist*myemitx0_collgap)
           ymax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(by_dist*myemity0)
+     &sqrt(by_dist*myemity0_collgap)
 !APRIL2005
 !          xmax_nom = nsig*sqrt(db_bx(icoll)*myemitx0)
 !          ymax_nom = nsig*sqrt(db_by(icoll)*myemity0)
-          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0)
-          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0)
+          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0_collgap)
+          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0_collgap)
 !APRIL2005
 !
           c_rotation = db_rotation(icoll)
@@ -30138,12 +30210,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     &                   * y_pencil(icoll) / sqrt(myemity0*tbetay(ie))
 !
           xp_pencil(icoll) =                                            &
-     &                   -1d0 * sqrt(myemitx0/tbetax(ie))*talphax(ie)   &
-     &                   * xmax / sqrt(myemitx0*tbetax(ie))
+     &              -1d0 * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)
+     &                   * xmax / sqrt(myemitx0_collgap*tbetax(ie))
 !     
           yp_pencil(icoll) =                                            &
-     &                    -1d0 * sqrt(myemity0/tbetay(ie))*talphay(ie)  &
-     &                   * ymax / sqrt(myemity0*tbetay(ie))
+     &              -1d0 * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)
+     &                   * ymax / sqrt(myemity0_collgap*tbetay(ie))
 !
 ! that the way xp is calculated for makedis subroutines !!!!
 !        if (rndm4().gt.0.5) then
@@ -30246,8 +30318,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !JUNE2005
          elseif(db_name1(icoll)(1:4).eq.'COLM') then
 !
-            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0)
-            ymax = nsig_tcth2*sqrt(by_dist*myemity0)
+            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0_collgap)
+            ymax = nsig_tcth2*sqrt(by_dist*myemity0_collgap)
 !
             c_rotation = db_rotation(icoll)
             c_length   = db_length(icoll)
@@ -30288,9 +30360,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write(outlun,'(a,i4)') 'Collimator number:   '              &
      &,icoll
             write(outlun,*) 'Beam size x [m]:     '                     &
-     &,sqrt(tbetax(ie)*myemitx0)
+     &,sqrt(tbetax(ie)*myemitx0_collgap), "(from collgap emittance)"
             write(outlun,*) 'Beam size y [m]:     '                     &
-     &,sqrt(tbetay(ie)*myemity0)
+     &,sqrt(tbetay(ie)*myemity0_collgap), "(from collgap emittance)"
             write(outlun,*) 'Divergence x [urad]:     '                 &
      &,1d6*xp_pencil(icoll)
             write(outlun,*) 'Divergence y [urad]:     '                 &
@@ -30305,14 +30377,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &,gap_rms_error(icoll)
             write(outlun,*) ' '
 !
-            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')         &
+            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')
      &icoll,db_name1(icoll)(1:12),                                      &
      &db_rotation(icoll),                                               &
      &tbetax(ie), tbetay(ie), calc_aperture,                            &
      &db_material(icoll),                                               &
      &db_length(icoll),                                                 &
-     &sqrt(tbetax(ie)*myemitx0),                                        &
-     &sqrt(tbetay(ie)*myemity0),                                        &
+     &sqrt(tbetax(ie)*myemitx0_collgap),                                &
+     &sqrt(tbetay(ie)*myemity0_collgap),                                &
 !JUNE2005
      &db_tilt(icoll,1),                                                 &
      &db_tilt(icoll,2),                                                 &
@@ -30401,11 +30473,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !     calculate beam size at start and end of collimator. account for collimation plane
              if((mynex.gt.0).and.(myney.eq.0.0)) then  ! horizontal halo 
-                beamsize1 = sqrt(betax1 * myemitx0)
-                beamsize2 = sqrt(betax2 * myemitx0)
+                beamsize1 = sqrt(betax1 * myemitx0_collgap)
+                beamsize2 = sqrt(betax2 * myemitx0_collgap)
              elseif((mynex.eq.0).and.(myney.gt.0.0)) then   ! vertical halo
-                beamsize1 = sqrt(betay1 * myemity0)
-                beamsize2 = sqrt(betay2 * myemity0)
+                beamsize1 = sqrt(betay1 * myemity0_collgap)
+                beamsize2 = sqrt(betay2 * myemity0_collgap)
              else
                 write(*,*) "attempting to use a halo not purely in the 
      &horizontal or vertical plane with pencil_dist=3 - abort."
@@ -30472,15 +30544,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              endif
 
              write(7878,*) napx,myalphax,myalphay, mybetax, mybetay,
-     &            myemitx0, myemity0, myenom, mynex2, mdex, myney2,mdey
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey
 
 !     create new pencil beam distribution with spread at start or end of collimator at the minAmpl
 !     note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
 !     but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
 !     the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
 !     This could possibly be improved in the future.
-             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay, &
-     &            myemitx0, myemity0, myenom, mynex2, mdex, myney2,mdey,  &
+             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay,
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey,
      &            myx, myxp, myy, myyp, myp, mys)
              
              do j = 1, napx
@@ -31178,17 +31252,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((                                                                &
      &(xv(1,j)*1d-3)**2                                                 &
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.                                         &
      &((                                                                &
      &(xv(2,j)*1d-3)**2                                                 &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
      &.ge.sigsecut3)                                                    &
      &) ) then
           xj     = (xv(1,j)-torbx(ie))/1d3
@@ -31613,12 +31687,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -32155,23 +32229,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 nspx    = sqrt(                                         &
      &               abs( gammax*(xj)**2 +                              &
      &               2d0*talphax(ie)*xj*xpj +                           &
-     &               tbetax(ie)*xpj**2 )/myemitx0                       &
+     &               tbetax(ie)*xpj**2 )/myemitx0_collgap
      &               )
                 nspy    = sqrt(                                         &
      &               abs( gammay*(yj)**2 +                              &
      &               2d0*talphay(ie)*yj*ypj +                           &
-     &               tbetay(ie)*ypj**2 )/myemity0                       &
+     &               tbetay(ie)*ypj**2 )/myemity0_collgap
      &               )
               else
                 nspx    = sqrt(                                         &
      &               abs( gammax*(xj)**2 +                              &
      &               2d0*talphax(ie-1)*xj*xpj +                         &
-     &               tbetax(ie-1)*xpj**2 )/myemitx0                     &
+     &               tbetax(ie-1)*xpj**2 )/myemitx0_collgap
      &               )
                 nspy    = sqrt(                                         &
      &               abs( gammay*(yj)**2 +                              &
      &               2d0*talphay(ie-1)*yj*ypj +                         &
-     &               tbetay(ie-1)*ypj**2 )/myemity0                     &
+     &               tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &               )
               endif
 !
@@ -32214,15 +32288,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 xndisp = xj
                 nspxd   = sqrt(                                         &
      &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0                                     &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
      &)
                 nspx    = sqrt(                                         &
      &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !
 !
@@ -32230,27 +32304,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !MAY2005
          if(part_abs(j).eq.0) then
 !MAY2005
-         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)   &
-     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
+         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
 !GRD                                                                    &
-     &(                                                                 &
-     &((                                                                &
-     &(xv(1,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &((                                                                &
-     &(xv(2,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
-     &.ge.sigsecut3)                                                    &
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
      &) ) then
                 xj     = (xv(1,j)-torbx(ie))/1d3
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
@@ -32485,12 +32559,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               nspx    = sqrt(                                           &
      &abs(gammax*xdisp**2 +                                             &
      &2d0*talphax(ie)*xdisp*(xpgrd(j)*1d-3)+                            &
-     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0                          &
+     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0_collgap
      &)
               nspy    = sqrt(                                           &
      &abs( gammay*(ygrd(j)*1d-3)**2 +                                   &
      &2d0*talphay(ie)*(ygrd(j)*1d-3*ypgrd(j)*1d-3)                      &
-     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0                        &
+     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0_collgap
      &)
 !
 !++  Populate the efficiency arrays at the end of each turn...
@@ -32504,12 +32578,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
      &+                                                                 &
      &((yineff(j)*1d-3)**2 +                                            &
      & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neff(ieff) = neff(ieff)+1d0
                     counted_r(j,ieff)=1
@@ -32531,7 +32605,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &	
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neffx(ieff) = neffx(ieff) + 1d0
                     counted_x(j,ieff)=1
@@ -32543,7 +32617,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((yineff(j)*1d-3)**2 +                                            &
      & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neffy(ieff) = neffy(ieff) + 1d0
                     counted_y(j,ieff)=1
@@ -32571,17 +32645,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !++  Do an emittance drift
 !
-              driftx = driftsx*sqrt(tbetax(ie)*myemitx0)
-              drifty = driftsy*sqrt(tbetay(ie)*myemity0)
+              driftx = driftsx*sqrt(tbetax(ie)*myemitx0_collgap)
+              drifty = driftsy*sqrt(tbetay(ie)*myemity0_collgap)
 !              DRIFTX = 0e-6
 !              DRIFTY = 1e-6
               if (ie.eq.iu) then
-                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0)
-                dnormy  = drifty / sqrt(tbetay(ie)*myemity0)
-                xnorm  = (xgrd(j)*1d-3) / sqrt(tbetax(ie)*myemitx0)
+                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0_collgap)
+                dnormy  = drifty / sqrt(tbetay(ie)*myemity0_collgap)
+                xnorm  = (xgrd(j)*1d-3) /
+     &                   sqrt(tbetax(ie)*myemitx0_collgap)
                 xpnorm = (talphax(ie)*(xgrd(j)*1d-3)+                   &
      &tbetax(ie)*(xpgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetax(ie)*myemitx0)
+     &sqrt(tbetax(ie)*myemitx0_collgap)
 +if crlibm
                 xangle = atan2_rn(xnorm,xpnorm)
 +ei
@@ -32600,16 +32675,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
                 xpnorm = xpnorm + dnormx*cos(xangle)
 +ei
-                xgrd(j)   = 1000d0*(xnorm * sqrt(tbetax(ie)*myemitx0))
-                xpgrd(j)  = 1000d0*((xpnorm*sqrt(tbetax(ie)*myemitx0)   &
-!    &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
+                xgrd(j)   = 1000d0 *
+     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
+                xpgrd(j)  = 1000d0 *
+     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
+!     &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
 !
 
-                ynorm  = (ygrd(j)*1d-3)  / sqrt(tbetay(ie)*myemity0)
+                ynorm  = (ygrd(j)*1d-3)
+     &               / sqrt(tbetay(ie)*myemity0_collgap)
                 ypnorm = (talphay(ie)*(ygrd(j)*1d-3)+                   &
      &tbetay(ie)*(ypgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetay(ie)*myemity0)
+     &sqrt(tbetay(ie)*myemity0_collgap)
 +if crlibm
                 yangle = atan2_rn(ynorm,ypnorm)
 +ei
@@ -32628,9 +32706,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
                 ypnorm = ypnorm + dnormy*cos(yangle)
 +ei
-                ygrd(j)   = 1000d0*(ynorm * sqrt(tbetay(ie)*myemity0))
-                ypgrd(j)  = 1000d0*((ypnorm*sqrt(tbetay(ie)*myemity0)   &
-!    &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
+                ygrd(j)   = 1000d0 *
+     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
+                ypgrd(j)  = 1000d0 * 
+     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
+!     &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
      &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
 !
                 endif
@@ -32782,12 +32862,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -32795,12 +32875,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie-1)*xj*xpj +                                        &
-     &tbetax(ie-1)*xpj**2 )/myemitx0                                    &
+     &tbetax(ie-1)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie-1)*yj*ypj +                                        &
-     &tbetay(ie-1)*ypj**2 )/myemity0                                    &
+     &tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &)
                 endif
 !
@@ -32841,15 +32921,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 xndisp = xj
                 nspxd   = sqrt(                                         &
      &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0                                     &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
      &)
                 nspx    = sqrt(                                         &
      &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !
 !
@@ -32857,27 +32937,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !MAY2005
          if(part_abs(j).eq.0) then
 !MAY2005
-        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)    &
-     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.                &
+        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
 !GRD                                                                    &
-     &(                                                                 &
-     &((                                                                &
-     &(xv(1,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &((                                                                &
-     &(xv(2,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
-     &.ge.sigsecut3)                                                    &
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
      &) ) then
                 xj     = (xv(1,j)-torbx(ie))/1d3
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
@@ -34231,7 +34311,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       backspace (lout,iostat=ierro)
 +ei
       return
-10000 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
       end
@@ -38511,23 +38591,38 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonc
 +ca commonxz
 +ca commonmn
+
 +if bnlelens
 +ca rhicelens
 +ei
+
 +ca dbdcum
-+ca comgetfields
-+ca dbdump
+
++ca comgetfields !Contains parameters used in comdump and fma
+
 +ca fma
+
++ca dbdump
 +if cr
 +ca dbdumpcr
 +ei
+
 +ca stringzerotrim
 +ca comdynk
+
 +if cr
 +ca comdynkcr
 +ei
+
 +ca combdex
+
 +ca elensparam
+
++if collimat
++ca collpara
++ca database
++ca dbcommon
++ei
       save
 
 !-----------------------------------------------------------------------
@@ -39154,6 +39249,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       dynkfilepos = -1
 +ei
+
 !--BDEX-----------------------------------------------------------------
       bdex_enable=.false.
       bdex_debug =.false.
@@ -39177,6 +39273,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             bdex_stringStorage(i)(j:j)=char(0)
          end do
       end do
+
++if collimat
+!--COLLIMATION----------------------------------------------------------
+      do_coll = .false.
+      
+      ! From common /grd/
+      emitnx0_dist = 0.0
+      emitny0_dist = 0.0
+      emitnx0_collgap = 0.0
+      emitny0_collgap = 0.0
+      ! From common /ralph/
+      myemitx0_dist = 0.0
+      myemity0_dist = 0.0
+      myemitx0_collgap = 0.0
+      myemity0_collgap = 0.0
++ei
 
 !
 !-----------------------------------------------------------------------
@@ -42668,7 +42780,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT',      &
      &' IN THE ALLOWED RANGE [2 <= NV <= 5]')
 10540 format(t10,'MAXIMUM NUMBER OF PARTICLES FOR VECTORIZATION', ' IS '&
-     &,i4)
+     &,i7)
 10550 format(t10,'MAXIMUM NUMBER OF DIFFERENT SEEDS FOR VECTORIZATION', &
      &' IS ',i4)
 10560 format(t10,'PROBLEMS WITH FILE 13 WITH INITIAL COORDINATES ',     &
@@ -55787,7 +55899,7 @@ c$$$            endif
       if(icode.eq.6) hvs(1:11)='    Ver Syn'
       if(icode.eq.7) hvs(1:11)='Hor Ver Syn'
       toptit(2)(1:13)='Particle no. '
-      write(toptit(2)(14:16),'(I3)') ifipa
+      write(toptit(2)(14:16),'(I3)') ifipa !WARNING: Does not work for > 999 particles
       toptit(2)(17:30)=', Phase Space '
       write(toptit(2)(31:41),'(A11)') hvs
       toptit(2)(42:50)=', Dp/p = '
@@ -58084,8 +58196,8 @@ c$$$            endif
      &'TITLE AND COMMENT :'//a80//a80// )
 10050 format(10x,'THE FOLLOWING PARAMETERS ARE USED:'//                 &
      &10x,'PROGRAM NAME',t102,a8/                                       &
-     &10x,'PARTICLE NUMBER',t102,i3/                                    &
-     &10x,'TOTAL NUMBER OF PARTICLES',t102,i3/                          &
+     &10x,'PARTICLE NUMBER',t102,i7/                                    &
+     &10x,'TOTAL NUMBER OF PARTICLES',t102,i7/                          &
      &10x,'PHASE SPACE',t102,a11/                                       &
      &10x,'MAXIMUM NUMBER OF TURNS',t102,i8/                            &
      &10x,'HORIZONTAL BETA',t102,f16.10/                                &
@@ -58421,10 +58533,10 @@ c$$$            endif
      &     STAT=i)
       if (i.ne.0) then
 +if cr
-         write(lout,*) "Error in fma_postpr: Cannon ALLOCATE"//
+         write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
 +if .not.cr
-         write(*,*)    "Error in fma_postpr: Cannon ALLOCATE"//
+         write(*,*)    "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
      &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
      &        " proportional to napx*fma_nturn_max."
@@ -58795,10 +58907,8 @@ c$$$            endif
 +if .not.crlibm
                 phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
-                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! minimum emittance
-                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! maximum emittance
+                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
+                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
      &fma_nturn(i) ! average emittance
               enddo
@@ -62962,19 +63072,10 @@ c$$$            endif
       implicit none
 +ca parpro
 +ca collpara
++ca dbmkdist
 
-      ! Don't load the common blocks for these variables
-      logical cut_input
-      integer i,j,mynp,nloop
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-     &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-     &xsigmax,ysigmay,myenom,nr,ndr,pi, iix, iiy, phix,phiy,cutoff
-!
-      real      rndm4
-      character*80   dummy
-      common /cut/ cut_input
-
+      double precision pi, iix, iiy, phix,phiy,cutoff
+      
       save
 !
 !-----------------------------------------------------------------------
@@ -66283,13 +66384,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -67235,13 +67329,6 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ca comdynkcr
       double precision dynk_getvalue
 +ca dbdumpcr
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -67750,13 +67837,6 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -68694,6 +68774,7 @@ c$$$         backspace (93,iostat=ierro)
       character*(*) vname
       double precision value
       integer i,j,k,l
+      integer ierro
       character*(16) myname
       myname=vname
       write(100) myname,value,i,j,k,l
@@ -68703,32 +68784,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbl1(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -68741,32 +68798,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpzfz(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       integer j
       character*(*) dumpname
@@ -68784,32 +68817,10 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpxy(dumpname,n,i,k)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,k
       character*(*) dumpname
       save
@@ -68834,29 +68845,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRD-042008
       subroutine dumpbnl(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
-+ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
 +if bnlelens
 +ca rhicelens
 +ei
@@ -68882,32 +68871,10 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       subroutine dumpsynu(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
 +ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,l,m,k
       character*(*) dumpname
       save
@@ -68954,9 +68921,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dump(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -68964,22 +68929,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -69433,6 +69386,7 @@ c$$$         backspace (93,iostat=ierro)
       write(99,*) 'x1 ',x1
       write(99,*) 'x2 ',x2
       write(99,*) 'fake ',fake
+      
       write(99,*) 'e0f ',e0f
       write(99,*) 'numx ',numx
       write(99,*) 'cotr ',cotr
@@ -69455,9 +69409,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbin(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -69465,22 +69417,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       character*10 mydump
@@ -69960,9 +69900,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumphex(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -69970,22 +69908,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
