@@ -1,18 +1,18 @@
 #Test that the testing tools run!
 ADD_TEST(NAME SelfTest_verify10 COMMAND verify10)
-set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000       to    0.0000000000000000.*\n.*verify10_DIFF I\\/O error, wrong no of lines\\!\\!\\?\\? line no            0")
+set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*verify10_DIFF I\\/O error, wrong no of lines\\!\\!\\?\\? line no *0")
 
 ADD_TEST(NAME SelfTest_checkf10 COMMAND checkf10)
-set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000       to    0.0000000000000000.*\n.*checkf10_DIFF I\\/O error, wrong no of lines\\!\\! line no            0")
+set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*checkf10_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
 
 ADD_TEST(NAME SelfTest_compf10 COMMAND compf10)
-set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000       to    0.0000000000000000.*\n.*compf10_DIFF I\\/O error, wrong no of lines\\!\\! line no            0")
+set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*compf10_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
 
 ADD_TEST(NAME SelfTest_checkf110 COMMAND checkf110)
-set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000       to    0.0000000000000000.*\n.*DIFF I\\/O error, wrong no of lines\\!\\! line no            0")
+set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
 
 ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
-set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000       to    0.0000000000000000.*\n.*checkf1014_DIFF I\\/O error, wrong no of lines\\!\\! line no            0")
+set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*checkf1014_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
 
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
 set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "At line .* of file .*read90.f90 \\(unit = 190\\)\nFortran runtime error: Cannot open file 'fort.190': No such file or directory")
