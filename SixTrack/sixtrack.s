@@ -25386,6 +25386,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              if ( dumpfmt(i).eq.1 ) then
                 write(dumpunit(i),*)
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
+                
+                !Flush file
+                endfile   (dumpunit(i))
+                backspace (dumpunit(i))
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -25406,6 +25410,36 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 write(dumpunit(i),'(1x,a,a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
      &  'ktrack'
+                
+                !Flush file
+                endfile   (dumpunit(i))
+                backspace (dumpunit(i))
++if cr
+                dumpfilepos(i) = dumpfilepos(i) + 3
++ei
+             else if ( dumpfmt(i).eq.3 ) then
+                if (i.eq.0) then
+                   write(dumpunit(i),
+     &                  '(1x,a,i12)')
+     &  '# DUMP format #3, ALL ELEMENTS, number of particles=', napx
+                else
+                   write(dumpunit(i),
+     &                  '(1x,a,a16,a,i12)')
+     &  '# DUMP format #3, bez=', bez(i), ', number of particles=', napx
+                endif
+                write(dumpunit(i),
+     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
+     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
+     &  ', last turn=', dumplast(i)
+                write(dumpunit(i),'(1x,a)')
+     &               '# ID napx turn s[m] ' //
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
+     &   '<x^2>[mm^2] <xp^2>[mrad^2] <y^2>[mm^2] <yp^2>[mrad^2] '//
+     &   '<z^2>[mm^2] <(dE/E)^2>[1]'
+                
+                !Flush file
+                endfile   (dumpunit(i))
+                backspace (dumpunit(i))
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 3
 +ei
@@ -34025,6 +34059,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
+
+      else if (fmt .eq. 3) then
+         ! NEW FORMAT !!!
       
       !Unrecognized format fmt
       else
