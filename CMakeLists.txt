@@ -219,7 +219,7 @@ else()
 endif()
 
 if(NOT DA AND DATAMODS)
-	SET(FORS datamods ${fors})
+	SET(FORS datamods ${FORS})
 endif()
 
 foreach(loop IN ITEMS ${FORS})
