@@ -61,10 +61,23 @@ else
 fi
 echo ""
 
+## Look for special options
+for var in "$@" #Loop over command line arguments
+do
+    if [[ $var == clean ]]; then
+	echo "Cleaning cmake_six builds!"
+	set +e
+	ls SixTrack_cmakesix*
+	rm -rf SixTrack_cmakesix*
+	exit
+    fi
+done
+
+
 #Get options
-compilers=(default gfortran ifort ifort-icc nagfor) # Valid compilers. default = system default
+compilers=(defaultcompiler gfortran ifort ifort-icc nagfor) # Valid compilers. defaultcompiler = system default compilers
 compilers_CMAKE=('' '-DCMAKE_Fortran_COMPILER=gfortran' '-DCMAKE_Fortran_COMPILER=ifort' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc' '-DCMAKE_Fortran_COMPILER=nagfor')
-options_COMPILER=default #which compilers to use
+options_COMPILER=defaultcompiler #which compilers to use
 
 options_ALL=() # All set options
 options_ON=()  # All options switched ON
@@ -108,7 +121,7 @@ do
 	for v in ${compilers[@]}
 	do
 	    if [[ $v == $varOn ]]; then
-		if [[ $options_COMPILER != "default" ]]; then
+		if [[ $options_COMPILER != "defaultcompiler" ]]; then
 		    echo "ERROR: can't set multiple compilers"
 		    exit 1
 		fi
@@ -183,16 +196,25 @@ if [ $? != 0 ]; then
     echo "ERROR in CMAKE"
     echo "Most likely you specified a bad argument!"
     echo ""
-    echo "cleaning up..."
-
-    cd ..
-    rm -rf $NAME
+#    echo "cleaning up..."
+#
+#    cd ..
+#    rm -rf $NAME
     exit
 fi
 echo ""
 
 #Run make
 make -j
-echo ""
 
+if [ $? != 0 ]; then
+    echo ""
+    echo "ERROR in MAKE"
+    echo "Could be a bug..."
+    echo "Maybe you need to install some libraries?"
+    echo ""
+
+    exit
+fi
+echo ""
 echo "Done! If everything went well, you'll find the executable in" $NAME
