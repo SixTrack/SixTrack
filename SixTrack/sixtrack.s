@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.43'/
-      data moddate /'12.12.2016'/
+      data moddate /'13.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -42598,13 +42598,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (lopen) then
 +if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+            write(lout,*)"DYNK> unit 664 for file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
 +if .not.cr
             write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+            write(*,*)   "DYNK> unit 664 for file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
             call prror(-1)
          end if
@@ -42614,13 +42616,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():FILE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
             call prror(51)
          endif
@@ -42640,14 +42642,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if ( filefields_lerr ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Error in getfields_split"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> Error in getfields_split"
 +ei
                call prror(-1)
@@ -42656,15 +42658,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if ( filefields_nfields  .ne. 2 ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
@@ -42688,15 +42690,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (t .ne. ii) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Missing turn number", ii,
      &              ", got turn", t
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> Missing turn number", ii,
      &              ", got turn", t
 +ei
@@ -42705,16 +42707,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (nfexpr_dynk+1 .gt. maxdata_dynk) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Ran out of memory in fexpr_dynk ",
      &              "in turn", t
                write(lout,*) "DYNK> Please increase maxdata_dynk."
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> Ran out of memory in fexpr_dynk ",
      &              "in turn", t
                write(*,*)    "DYNK> Please increase maxdata_dynk."
@@ -42786,13 +42788,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write(lout,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
             write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
 +if .not.cr
             write(*,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
             write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
             call prror(-1)
          end if
@@ -42801,13 +42805,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //  "'"
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
             call prror(51)
          endif
@@ -42827,14 +42831,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if ( filefields_lerr ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //"'"
                write(lout,*) "DYNK> Error in getfields_split"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //"'"
                write(*,*)    "DYNK> Error in getfields_split"
 +ei
                call prror(-1)
@@ -42843,15 +42847,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if ( filefields_nfields  .ne. 2 ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
@@ -42878,15 +42882,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (ii.gt.0 .and. x.le. x2) then !Insane: Decreasing x
 +if cr
                write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write (lout,*) "DYNK> Error while reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write (lout,*) "DYNK> Error while reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write (lout,*) "DYNK> x values must "//
      &              "be in increasing order"
 +ei
 +if .not.cr
                write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
                write (*,*)    "DYNK> Error while reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write (*,*)    "DYNK> x values must "//
      &              "be in increasing order"
 +ei
@@ -42902,16 +42906,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (nfexpr_dynk+2*t .gt. maxdata_dynk) then
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write (lout,*) "DYNK> Error reading file '",
-     &           cexpr_dynk(ncexpr_dynk),"'"
+            write (lout,*) "DYNK> Error reading file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             write (lout,*) "DYNK> Not enough space in fexpr_dynk,"//
      &           " need", 2*t
             write (lout,*) "DYNK> Please increase maxdata_dynk"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-            write (*,*)    "DYNK> Error reading file '",
-     &           cexpr_dynk(ncexpr_dynk),"'"
+            write (*,*)    "DYNK> Error reading file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             write (*,*)    "DYNK> Not enough space in fexpr_dynk,"//
      &           " need", 2*t
             write (*,*)    "DYNK> Please increase maxdata_dynk"
@@ -42927,17 +42931,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
 +if cr
-                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*) "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (lout,*) "DYNK> ii=",ii,"t=",t
+                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*)"DYNK> Unexpected when reading file '"//
+     &                 trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)//"'"
+                  write (lout,*)"DYNK> ii=",ii,"t=",t
 
 +ei
 +if .not.cr
-                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-                  write (*,*)    "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (*,*)    "DYNK> ii=",ii,"t=",t
+                  write (*,*)   "DYNK> dynk_parseFUN():FILELIN"
+                  write (*,*)   "DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                  write (*,*)   "DYNK> ii=",ii,"t=",t
 +ei
                   call prror(51)
                endif
@@ -42949,17 +42953,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
 +if cr
-                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*) "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
+                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*)"DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                   write (lout,*) "DYNK> ii=",ii,"t=",t
 
 +ei
 +if .not.cr
-                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-                  write (*,*)    "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (*,*)    "DYNK> ii=",ii,"t=",t
+                  write (*,*)   "DYNK> dynk_parseFUN():FILELIN"
+                  write (*,*)   "DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                  write (*,*)   "DYNK> ii=",ii,"t=",t
 +ei
                   call prror(51)
                endif
@@ -42972,14 +42976,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if ( filefields_lerr ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> Error in getfields_split"
 +ei
                call prror(-1)
@@ -42988,15 +42992,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if ( filefields_nfields  .ne. 2 ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
@@ -43133,9 +43137,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
                      write(*,*)    "DYNK> "//
 +ei
-     & "PIPE FUN '"//cexpr_dynk(funcs_dynk(nfuncs_dynk,1))//
+     &                    "PIPE FUN '" //
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1)))) //
      & "' using same settings as previously defined FUN '"   //
-     & cexpr_dynk(funcs_dynk(ii,1))//"' -> reusing files!"
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) //
+     & "' -> reusing files !"
                      if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
      &                   cexpr_dynk(ncexpr_dynk)           ) then
 +if cr
@@ -43153,16 +43159,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
       write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
       write(lout,*) "DYNK> between PIPE FUN '"               //
-     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
-     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
 +ei
 +if .not.cr
       write(*,*)    "DYNK> *** Error in dynk_parseFUN():PIPE ***"
       write(*,*)    "DYNK> Partial match of inPipe/outPipe/unit number"
       write(*,*)    "DYNK> between PIPE FUN '"               //
-     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
-     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
 +ei
+     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1))))//
+     &     "' and '" //
+     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) // "'"
                      call prror(-1)
                   endif
                endif
@@ -43176,49 +43181,46 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
-     &           //"' was already taken"
 +ei
 +if .not.cr
             write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk),
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
-     &           //"' was already taken"
 +ei
+     &           "for file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2)))
+     &           //"' was already taken"
+
             call prror(-1)
          end if
          
 +if cr
          write(lout,*) "DYNK> Opening input pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening input pipe '"//
++ei
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
+
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
      &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) //
+     &           "' stat=",stat
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():PIPE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) //
+     &           "' stat=",stat
 +ei
             call prror(51)
          endif
@@ -43226,36 +43228,31 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Open the outPipe
 +if cr
          write(lout,*) "DYNK> Opening output pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening output pipe '"//
++ei
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
+
          inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
          if (lopen) then
 +if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
-     &           //"' was already taken"
 +ei
 +if .not.cr
             write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
-     &           //"' was already taken"
 +ei
+     &           "for file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1)))
+     &           //"' was already taken"
+
             call prror(-1)
          end if
          
@@ -43265,13 +43262,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) //
+     &           "' stat=",stat
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():PIPE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) //
+     &           "' stat=",stat
 +ei
             call prror(51)
          endif
@@ -43526,13 +43525,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write(lout,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
             write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
 +if .not.cr
             write(*,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
             write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
             call prror(-1)
          end if
@@ -43541,13 +43542,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
             call prror(51)
          endif
@@ -43563,14 +43564,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (stat.ne.0) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
 +ei
                call prror(-1)
@@ -43583,14 +43584,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (stat.ne.0) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
 +ei
                call prror(-1)
@@ -43605,13 +43606,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split()"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> Error in getfields_split()"
 +ei
                call prror(-1)
@@ -43620,16 +43621,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &              "', line =", ii
                write(lout,*) "DYNK> Expected 3[5] fields ",
      &              "(idx, fac, init, selfFac, selfInit), ",
      &              "got ",filefields_nfields
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//
+     &              "', line =", ii
                write(*,*)    "DYNK> Expected 3[5] fields ",
      &              "(idx, fac, init, selfFac, selfInit), ",
      &              "got ",filefields_nfields
@@ -43668,14 +43671,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (t .ne. ii) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> Got line t =",t, ", expected ", ii
 +ei
                call prror(-1)
