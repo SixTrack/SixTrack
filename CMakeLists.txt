@@ -87,7 +87,7 @@ OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 #Build options - some are commented out for future support
 #OPTION(OPENMP "Enable OpenMP support" OFF)
 #OPTION(MPI "Enable MPI support" OFF)
-OPTION(CUDA "Enable CUDA support" OFF)
+#OPTION(CUDA "Enable CUDA support" OFF)
 OPTION(32BIT "Create a 32bit binary" OFF)
 OPTION(64BIT "Create a 64bit binary" ON)
 OPTION(STATIC "Create a statically linked binary" ON)
