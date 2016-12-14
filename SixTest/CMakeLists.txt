@@ -27,6 +27,7 @@ SET(SIXTRACK_TESTS ${SIXTRACK_TESTS})
 ## "Totally untested": bnl
 ##
 
+#List of tests which are STF compatible
 SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
 
 #only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test

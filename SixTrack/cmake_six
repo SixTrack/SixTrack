@@ -230,6 +230,7 @@ if [ $? != 0 ]; then
     echo ""
     echo "ERROR in CMAKE"
     echo "Most likely you specified a bad argument!"
+    echo "Please run cmake_six help"
     echo ""
 #    echo "cleaning up..."
 #

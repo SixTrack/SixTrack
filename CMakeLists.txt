@@ -76,17 +76,17 @@ OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postproc
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 
-#Compiler stuff
-OPTION(IFORT "Use the intel fortran compiler" OFF)
-OPTION(LF95 "Use the Lahey-Fujitsu lf95 fortran compiler" OFF)
-OPTION(PGF90 "Use the pgf90 fortran compiler" OFF)
-OPTION(F95 "Use the g95 fortran compiler" OFF)
-OPTION(GFORTRAN "Use the gfortran fortran compiler" OFF)
-OPTION(NAGFOR "Use NAGFOR compiler" OFF)
+#Compiler stuff - not needed any more with cmake
+#OPTION(IFORT "Use the intel fortran compiler" OFF)
+#OPTION(LF95 "Use the Lahey-Fujitsu lf95 fortran compiler" OFF)
+#OPTION(PGF90 "Use the pgf90 fortran compiler" OFF)
+#OPTION(F95 "Use the g95 fortran compiler" OFF)
+#OPTION(GFORTRAN "Use the gfortran fortran compiler" OFF)
+#OPTION(NAGFOR "Use NAGFOR compiler" OFF)
 
-#Build options
-OPTION(OPENMP "Enable OpenMP support" OFF)
-OPTION(MPI "Enable MPI support" OFF)
+#Build options - some are commented out for future support
+#OPTION(OPENMP "Enable OpenMP support" OFF)
+#OPTION(MPI "Enable MPI support" OFF)
 OPTION(CUDA "Enable CUDA support" OFF)
 OPTION(32BIT "Create a 32bit binary" OFF)
 OPTION(64BIT "Create a 64bit binary" ON)
@@ -95,7 +95,7 @@ OPTION(NATIVE "Enable optimizations for the current machine" OFF)
 
 OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
-OPTION(ROOT "Link to the root libraries" OFF)
+#OPTION(ROOT "Link to the root libraries" OFF)
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -209,13 +209,13 @@ if(64BIT)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_64")
 endif()
 
-#Ugly, but does the job...
+#Create the sixtrack binary name string
 SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}_${SIXTRACK_FEATURES}" )
 
 if(DA)
-    SET(FORS sixda sixsc sixscfox dabnew lielib)
+	SET(FORS sixda sixsc sixscfox dabnew lielib)
 else()
-    SET(FORS track sixve sixvefox dabnews lielib plato_seq)
+	SET(FORS track sixve sixvefox dabnews lielib plato_seq)
 endif()
 
 if(NOT DA AND DATAMODS)
@@ -235,11 +235,10 @@ SET(FORS ${FORS} beamgas)
 ###################################################################################################
 #Check for HDF5
 if(HDF5)
+	find_package(HDF5 COMPONENTS Fortran REQUIRED)
 	if(STATIC)
 		SET(HDF5_USE_STATIC_LIBRARIES "True")
 	endif(STATIC)
-
-	find_package(HDF5 COMPONENTS Fortran REQUIRED)
 endif(HDF5)
 
 if(HDF5_FOUND)
@@ -538,8 +537,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	# nagfor
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -573,11 +572,6 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	if(NOT STATIC)
 		SET(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic ${CMAKE_Fortran_LINKER_FLAGS}")
 	endif(NOT STATIC)
-
-elseif (Fortran_COMPILER_NAME MATCHES "g77")
-	# g77
-	set (CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3 -m32")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fno-f2c -O0 -g -m32")
 
 #generic catch option
 else (Fortran_COMPILER_NAME MATCHES "gfortran.*")
@@ -751,17 +745,20 @@ if(CRLIBM)
 	endif(64BIT)
 
 	if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
-		target_compile_options(crlibm PRIVATE -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
+		target_compile_options(crlibm PRIVATE -mfpmath=sse -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
 	elseif(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
-		target_compile_options(crlibm PRIVATE -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wconversion -Wstrict-prototypes -Winline -pedantic -fno-strict-aliasing)
+		target_compile_options(crlibm PRIVATE -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wconversion -Wstrict-prototypes -Winline -pedantic -fno-strict-aliasing)
 	else()
-		target_compile_options(crlibm PRIVATE -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
+		target_compile_options(crlibm PRIVATE -mfpmath=sse -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
 	endif()
 endif()
-
-if(HDF5_FOUND)
-	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
-endif(HDF5_FOUND)
+if(HDF5)
+	if(HDF5_FOUND)
+		SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+	else()
+		MESSAGE(FATAL_ERROR "HDF5 build requested, but could not find the HDF5 package.")
+	endif(HDF5_FOUND)
+endif(HDF5)
 
 if(MERLINSCATTER)
 	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/RandomNG/*.cpp)
