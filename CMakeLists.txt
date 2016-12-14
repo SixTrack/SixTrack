@@ -140,9 +140,6 @@ endif()
 if(CR)
 	SET(SIXTRACK_FEATURES "cr_${SIXTRACK_FEATURES}")
 endif()
-if(NAGFOR)
-	SET(SIXTRACK_FEATURES "nagfor_${SIXTRACK_FEATURES}")
-endif()
 if(BPM)
 	SET(SIXTRACK_FEATURES "bpm_${SIXTRACK_FEATURES}")
 endif()
@@ -183,19 +180,19 @@ if(MERLINSCATTER)
 	SET(SIXTRACK_FEATURES "merlinscatter_${SIXTRACK_FEATURES}")
 endif()
 
-if(ROOT)
-	SET(SIXTRACK_FEATURES "root_${SIXTRACK_FEATURES}")
-endif()
-
-if(OPENMP)
-	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_openmp")
-endif()
-if(MPI)
-	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_mpi")
-endif()
-if(CUDA)
-	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_cuda")
-endif()
+#if(ROOT)
+#	SET(SIXTRACK_FEATURES "root_${SIXTRACK_FEATURES}")
+#endif()
+#
+#if(OPENMP)
+#	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_openmp")
+#endif()
+#if(MPI)
+#	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_mpi")
+#endif()
+#if(CUDA)
+#	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_cuda")
+#endif()
 if(STATIC)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_static")
 endif()
@@ -260,62 +257,62 @@ if(HDF5_FOUND)
 endif(HDF5_FOUND)
 
 #Check for OpenMP
-if(OPENMP)
-	find_package(OpenMP REQUIRED)
-endif(OPENMP)
-
-#If we have OpenMP enabled, set the compiler flags needed
-if(OPENMP_FOUND)
-	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
-	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
-endif()
-
-#Possible future  MPI test
-if(CMAKE_BUILD_TYPE STREQUAL MPI OR CMAKE_BUILD_TYPE STREQUAL MPIDEBUG)
-	FIND_PACKAGE(MPI REQUIRED)
-	if(NOT MPI_CXX_FOUND)
-		MESSAGE(FATAL_ERROR "MPI build requested but no MPI libraries found!")
-	endif()
-	if(MPI_CXX_FOUND)
-		message(STATUS "Using MPI C++ compiler: ${MPI_CXX_COMPILER}")
-		message(STATUS "Using MPI runtime: ${MPIEXEC}")
-		message(STATUS "Using MPI process number switch: ${MPIEXEC_NUMPROC_FLAG}")
-		message(STATUS "Using MPI pre-flags: ${MPIEXEC_PREFLAGS}")
-		message(STATUS "Using MPI post-flags: ${MPIEXEC_POSTFLAGS}")
-		message(STATUS "Using MPI includes: ${MPI_CXX_INCLUDE_PATH}")
-		message(STATUS "Using MPI libraries: ${MPI_CXX_LIBRARIES}")
-		message(STATUS "Using MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
-		message(STATUS "Using MPI link flags: ${MPI_CXX_LINK_FLAGS}")
-
-		#We need the MPI headers to be included!
-		include_directories(${MPI_CXX_INCLUDE_PATH})
-	endif()
-endif()
-
-#possible future CUDA test.
-if(CUDA)
-	find_package(CUDA REQUIRED)
-	if(NOT CUDA_FOUND)
-		MESSAGE(FATAL_ERROR "CUDA enabled build requested but CUDA was not found!")
-	endif()
-	if(CUDA_FOUND)
-		message(STATUS "Found CUDA version ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
-		message(STATUS "Includes at ${CUDA_INCLUDE_DIRS}")
-		ADD_DEFINITIONS("-I${CUDA_INCLUDE_DIRS}")
-	endif()
-endif(CUDA)
-
-#Possible check for Root
-if(ROOT)
-	#/usr/share/root/cmake/FindROOT.cmake
-	SET(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
-	find_package(ROOT REQUIRED)
-	include_directories(${ROOT_INCLUDE_DIR})
-
-	if(NOT ROOT_FOUND)
-		MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
-	endif()
-endif(ROOT)
+#if(OPENMP)
+#	find_package(OpenMP REQUIRED)
+#endif(OPENMP)
+#
+##If we have OpenMP enabled, set the compiler flags needed
+#if(OPENMP_FOUND)
+#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
+#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
+#endif()
+#
+##Possible future  MPI test
+#if(CMAKE_BUILD_TYPE STREQUAL MPI OR CMAKE_BUILD_TYPE STREQUAL MPIDEBUG)
+#	FIND_PACKAGE(MPI REQUIRED)
+#	if(NOT MPI_CXX_FOUND)
+#		MESSAGE(FATAL_ERROR "MPI build requested but no MPI libraries found!")
+#	endif()
+#	if(MPI_CXX_FOUND)
+#		message(STATUS "Using MPI C++ compiler: ${MPI_CXX_COMPILER}")
+#		message(STATUS "Using MPI runtime: ${MPIEXEC}")
+#		message(STATUS "Using MPI process number switch: ${MPIEXEC_NUMPROC_FLAG}")
+#		message(STATUS "Using MPI pre-flags: ${MPIEXEC_PREFLAGS}")
+#		message(STATUS "Using MPI post-flags: ${MPIEXEC_POSTFLAGS}")
+#		message(STATUS "Using MPI includes: ${MPI_CXX_INCLUDE_PATH}")
+#		message(STATUS "Using MPI libraries: ${MPI_CXX_LIBRARIES}")
+#		message(STATUS "Using MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
+#		message(STATUS "Using MPI link flags: ${MPI_CXX_LINK_FLAGS}")
+#
+#		#We need the MPI headers to be included!
+#		include_directories(${MPI_CXX_INCLUDE_PATH})
+#	endif()
+#endif()
+#
+##possible future CUDA test.
+#if(CUDA)
+#	find_package(CUDA REQUIRED)
+#	if(NOT CUDA_FOUND)
+#		MESSAGE(FATAL_ERROR "CUDA enabled build requested but CUDA was not found!")
+#	endif()
+#	if(CUDA_FOUND)
+#		message(STATUS "Found CUDA version ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
+#		message(STATUS "Includes at ${CUDA_INCLUDE_DIRS}")
+#		ADD_DEFINITIONS("-I${CUDA_INCLUDE_DIRS}")
+#	endif()
+#endif(CUDA)
+#
+##Possible check for Root
+#if(ROOT)
+#	#/usr/share/root/cmake/FindROOT.cmake
+#	SET(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
+#	find_package(ROOT REQUIRED)
+#	include_directories(${ROOT_INCLUDE_DIR})
+#
+#	if(NOT ROOT_FOUND)
+#		MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
+#	endif()
+#endif(ROOT)
 
 ###################################################################################################
 # Checking if requested options are compatible
