@@ -1,0 +1,2 @@
+fort.12         diff -q --strip-trailing-cr
+fort.18         diff -q --strip-trailing-cr
