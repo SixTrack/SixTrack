@@ -461,9 +461,6 @@ if(64BIT)
 	if(CERNLIB)
 		message(FATAL_ERROR "Cannot build CERNLIB with 64BIT enabled.")
 	endif()
-	if(NAGFOR)
-		message(FATAL_ERROR "Cannot build NAGFOR with 64BIT enabled.")
-	endif()
 	if(BONIC)
 		message(FATAL_ERROR "Cannot build BONIC with 64BIT enabled.")
 	endif()
@@ -536,6 +533,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 
 elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	# nagfor
+	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
@@ -574,7 +572,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	endif(NOT STATIC)
 
 #generic catch option
-else (Fortran_COMPILER_NAME MATCHES "gfortran.*")
+else()
 	message ("CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
 	message ("Fortran compiler: " ${Fortran_COMPILER_NAME})
 	message ("No optimized Fortran compiler flags are known, we just try -O2...")
