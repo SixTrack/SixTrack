@@ -84,10 +84,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
 	ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> ${FORT10} ${FORT90} ${STF_ENABLE} ${CR_ENABLE} ${CR_KILL_TIME})
 
-	#some tests take a very long time
-	if(TST MATCHES prob1 OR TST MATCHES prob3)
-		set_tests_properties(${TST} PROPERTIES TIMEOUT "1000000")
-	endif()
+	#some tests take a very long time (set a 2 day timeout)
+	set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
 
 endforeach()
 
