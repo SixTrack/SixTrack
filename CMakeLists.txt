@@ -748,26 +748,9 @@ add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
-	file(GLOB CRLIBM_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/*.c)
-	add_library(crlibm STATIC ${CRLIBM_SOURCES})
-
-	target_compile_definitions(crlibm PRIVATE -DLINUX_INLINE -DHAVE_CONFIG_H)
-
-	if(32BIT)
-		target_compile_options(crlibm PRIVATE -m32)
-	endif(32BIT)
-	if(64BIT)
-		target_compile_options(crlibm PRIVATE -m64)
-	endif(64BIT)
-
-	if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
-		target_compile_options(crlibm PRIVATE -mfpmath=sse -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
-	elseif(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
-		target_compile_options(crlibm PRIVATE -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wconversion -Wstrict-prototypes -Winline -pedantic -fno-strict-aliasing)
-	else()
-		target_compile_options(crlibm PRIVATE -mfpmath=sse -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
-	endif()
+	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
 endif()
+
 if(HDF5)
 	if(HDF5_FOUND)
 		SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
@@ -1002,7 +985,7 @@ if(CRLIBM)
 	target_link_libraries(SixTrack crlibm)
 endif(CRLIBM)
 
-#if we are using merlinscatter, link to the crlibm library
+#if we are using merlinscatter, link to the merlinscatter library
 if(MERLINSCATTER)
 	target_link_libraries(SixTrack merlinscatter)
 endif(MERLINSCATTER)
