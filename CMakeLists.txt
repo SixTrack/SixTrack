@@ -687,8 +687,12 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 	set (CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS}")
 	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g ${CMAKE_CXX_FLAGS}")
 
+	#When using icc remember to link to libstdc++
 	if(STATIC)
+		find_library(stdc++ STATIC stdc++)
 		SET(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
+	else()
+		find_library(stdc++ stdc++)
 	endif(STATIC)
 
 endif()
@@ -1065,6 +1069,9 @@ IF(BUILD_TESTING)
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
+	if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
+		target_link_libraries(SixTestWrapper stdc++)
+	endif()
 	#set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
 
 ENDIF()
