@@ -32074,7 +32074,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               nsurvive = nsurvive + 1
             endif
           end do
-          write(44,'(2i4)') iturn, nsurvive
+          write(44,'(2i7)') iturn, nsurvive
 !GRD
           if (iturn.eq.numl) then
             nsurvive_end = nsurvive_end + nsurvive
