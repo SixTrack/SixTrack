@@ -8485,33 +8485,39 @@ cc2008
 !      write(*,*) 'AAAAAAAAAAA WT', CUR, ix, DX, DY, TX, TY
 !      write(*,*) 'AAAAAAAAAAA WT', ibeco
 
-      IF (windex1(ix).eq.0) THEN
-         dxi = dx*c1m3
-         dyi = dy*c1m3 
-      ELSE IF (windex1(ix).eq.1) THEN
-         dxi = (dx+clowbeam(1,imww(i)) )*c1m3
-         dyi = (dy+clowbeam(2,imww(i)) )*c1m3
-      END IF 
-
+!      IF (windex1(ix).eq.0) THEN
+!         dxi = dx*c1m3
+!         dyi = dy*c1m3 
+!      ELSE IF (windex1(ix).eq.1) THEN
+!         dxi = (dx-clowbeam(1,imww(i)) )*c1m3
+!         dyi = (dy-clowbeam(2,imww(i)) )*c1m3
+!      END IF 
+      
+      dxi = dx*c1m3
+      dyi = dy*c1m3
+      
       do j=1, napx
 
-      yv(1,j) = yv(1,j) * c1m3
-      yv(2,j) = yv(2,j) * c1m3
-      
-      
+      yv(1,j) = yv(1,j) * c1m3 !SI
+      yv(2,j) = yv(2,j) * c1m3 !SI
+    
 ! 1 SHIFT
       IF (windex1(ix).eq.0) THEN
-         xi = (xv(1,j)-dx)*c1m3
-         yi = (xv(2,j)-dy)*c1m3 
+         xi = (xv(1,j)+dx)*c1m3 !SI
+         yi = (xv(2,j)+dy)*c1m3 !SI
       ELSE IF (windex1(ix).eq.1) THEN
-         xi = (xv(1,j)-(dx+clowbeam(1,imww(i))))*c1m3
-         yi = (xv(2,j)-(dy+clowbeam(2,imww(i))))*c1m3
+         xi = (xv(1,j)+( dx-clowbeam(1,imww(i)) ))*c1m3 !SI
+         yi = (xv(2,j)+( dy-clowbeam(2,imww(i)) ))*c1m3 !SI
       END IF 
 
-!      write(*,*)'AAAAAAAAAAA X',dxi*c1e3,dx+clowbeam(1,imww(i)), 
-!     &windex1(ix)
-!      write(*,*)'AAAAAAAAAAA Y',dyi*c1e3,dy+clowbeam(2,imww(i)),  
-!     &windex1(ix)
+!      write(*,*)'XY_____, INITIAL:x, dxi, dx, clox'
+!      write(*,*)'XY_____, X, mm',xi*c1e3, dxi*c1e3, dx, 
+!     &clowbeam(1,imww(i)), windex1(ix), ibeco
+!      write(*,*)'XY_____, Y, mm',yi*c1e3, dyi*c1e3, dy,
+!     &clowbeam(2,imww(i)), windex1(ix), ibeco
+      
+!      write(*,*)'PXPY_____, INITIAL: PX, PY'
+!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
 
 +if .not.crlibm
 ! x'-> px; y'->py
@@ -8519,6 +8525,7 @@ cc2008
       yv(2,j) = yv(2,j)*(1d0 + dpsv(j))
 
 ! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (tx, ty)
+     if(ibeco.eq.0) then
       yi = yi-(((xi*sin(tx))*yv(2,j))/                                  &
      &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
      &cos(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
@@ -8538,9 +8545,16 @@ cc2008
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin(atan_rn(yv(2,j)/                                              &
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty) 
+      endif
 
 ! ibeco option:
       if(ibeco.eq.1) then
+      yi = yi-(((xi*sin(tx))*yv(2,j))/                                  &
+     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-tx)                                                   
+      xi = xi*(cos(tx)-sin(tx)*tan_rn(atan_rn(yv(1,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
 
       dyi = dyi-(((dxi*sin(tx))*yv(2,j))/                               &
      &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
@@ -8548,31 +8562,49 @@ cc2008
      &yv(2,j)**2))-tx)                                                   
       dxi = dxi*(cos(tx)-sin(tx)*tan_rn(atan_rn(yv(1,j)/                &
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               
+  
       yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &
      &sin(atan_rn(yv(1,j)/                                              &
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)  
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+
+      xi = xi-(((yi*sin(ty))*yv(1,j))/                                  &
+     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-ty)                                                   
+      yi = yi*(cos(ty)-sin(ty)*tan_rn(atan_rn(yv(2,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)) 
       
       dxi = dxi-(((dyi*sin(ty))*yv(1,j))/                               &
      &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
      &yv(2,j)**2))-ty)                                                   
       dyi = dyi*(cos(ty)-sin(ty)*tan_rn(atan_rn(yv(2,j)/                &
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))  
+     
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin(atan_rn(yv(2,j)/                                              &
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
-
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)             
+!
+!      write(*,*)'XY_____, AFTER ROTATION: x, dxi, dx, clox'
+!      write(*,*)'XY_____ X, mm',xi*c1e3, dxi*c1e3, dx, 
+!     &clowbeam(1,imww(i)), windex1(ix), ibeco
+!      write(*,*)'XY_____ Y, mm',yi*c1e3, dyi*c1e3, dy,
+!     &clowbeam(2,imww(i)), windex1(ix), ibeco
+            
+!      write(*,*)'PXPY_____, BEFORE THE KICK: PX, PY'
+!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
+!
 ! 3 //WIRE KICK
       RTWO = xi**2+yi**2
       yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
       yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
-
+!' + '
       RTWO = dxi**2+dyi**2
-      yv(1,j) = yv(1,j)-(((CUR*NNORM)*dxi)*(sqrt((embl+L)**2+4d0*RTWO)- &
+      yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*(sqrt((embl+L)**2+4d0*RTWO)- &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
-      yv(2,j) = yv(2,j)-(((CUR*NNORM)*dyi)*(sqrt((embl+L)**2+4d0*RTWO)- &
+      yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*(sqrt((embl+L)**2+4d0*RTWO)- &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO      
 
       elseif(ibeco.eq.0) then 
@@ -8586,6 +8618,10 @@ cc2008
 
       endif
 
+!      
+!      write(*,*)'PXPY_____, AFTER THE KICK: PX, PY'
+!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
+!
 ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin(atan_rn(yv(2,j)/                                              &
@@ -8593,6 +8629,9 @@ cc2008
       yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &                       
      &sin(atan_rn(yv(1,j)/                                              &
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
+!
+!      write(*,*)'PXPY_____, AFTER ROTATION PX, PY:'
+!      write(*,*)'PXPY_____',yv(1,j), yv(2,j)
 
 ! px -> x'; py -> y'
       yv(1,j) = yv(1,j)/(1d0 + dpsv(j))
@@ -8605,6 +8644,7 @@ cc2008
       yv(2,j) = yv(2,j)*(one + dpsv(j))
 
 ! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (tx, ty)
+      if(ibeco.eq.0) then
       yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                               &
      &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
      &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
@@ -8624,6 +8664,7 @@ cc2008
       yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin_rn(atan_rn(yv(2,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)  
+      endif
 
 ! ibeco option:
 
@@ -8634,32 +8675,58 @@ cc2008
      &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-tx)                                                   
       dxi = dxi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/          &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)) 
+ 
+      yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                               &
+     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-tx)                                                   
+      xi = xi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/            &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+
       yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
      &sin_rn(atan_rn(yv(1,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx) 
-      
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+              
+!         
       dxi = dxi-(((dyi*sin_rn(ty))*yv(1,j))/                            &
      &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)                                                   
       dyi = dyi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/          &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)) 
+      
+      xi = xi-(((yi*sin_rn(ty))*yv(1,j))/                               &
+     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-ty)                                                   
+      yi = yi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/            &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))  
+
       yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin_rn(atan_rn(yv(2,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
-
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)              
+!
+!      write(*,*)'XY_____, AFTER ROTATION: x, dxi, dx, clox'
+!      write(*,*)'XY_____ X, mm',xi*c1e3, dxi*c1e3, dx, 
+!     &clowbeam(1,imww(i)), windex1(ix), ibeco
+!      write(*,*)'XY_____ Y, mm',yi*c1e3, dyi*c1e3, dy,
+!     &clowbeam(2,imww(i)), windex1(ix), ibeco
+!
+!      write(*,*)'PXPY_____, BEFORE THE KICK: PX, PY'
+!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
+!
 ! 3 //WIRE KICK
       RTWO = xi**2+yi**2
       yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
       yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
-      
+! ' + '      
       RTWO = dxi**2+dyi**2
-      yv(1,j) = yv(1,j)-(((CUR*NNORM)*dxi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+      yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
-      yv(2,j) = yv(2,j)-(((CUR*NNORM)*dyi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+      yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
      & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
       
       elseif(ibeco.eq.0) then
@@ -8673,6 +8740,11 @@ cc2008
 
       endif
 
+!      
+!      write(*,*)'PXPY_____, AFTER THE KICK: PX, PY'
+!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
+!
+
 ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
       yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin_rn(atan_rn(yv(2,j)/                                           &
@@ -8680,6 +8752,10 @@ cc2008
       yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &                       
      &sin_rn(atan_rn(yv(1,j)/                                           & 
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
+
+!
+!      write(*,*)'PXPY_____, AFTER ROTATION PX, PY:'
+!      write(*,*)'PXPY_____',yv(1,j), yv(2,j)
 
 ! px -> x'; py -> y'
       yv(1,j) = yv(1,j)/(one + dpsv(j))
@@ -15919,6 +15995,7 @@ cc2008
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 1590
+            if(abs(kzz).eq.15) goto 1590
             izu=izu+3
             read(30,10020,end=1591,iostat=ierro) ch
             if(ierro.gt.0) call prror(87)
@@ -21433,7 +21510,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             goto 480
           endif
 +ca trom20
-          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
+          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.abs(kzz).eq.15) then
             if(bez(ix).eq.'DAMAP') then
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
@@ -22684,7 +22761,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      write(*,*) 'AAAAAAAAAAA DA 1 clobeam Y',windex1(ix),
 !     &clowbeam(2,imww(i)),zpl(ix)
 !      write(*,*) 'AAAAAAAAAAA DA 1 indexes: ',ix,i,windex1(ix)
-        call wireda(ix,i)
+! we are in umlauda subroutine
+! try to skip the wire DA
+!        call wireda(ix,i)
+!
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
           goto 440
@@ -22993,6 +23073,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           endif
 +ca trom20
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
+        if(abs(kzz).eq.15) goto 440
         ipch=0
         if(iqmodc.eq.1) then
           if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
@@ -23129,7 +23210,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 440
 !--SKEW ELEMENTS
   320   kzz=-kzz
-        goto(330,340,350,360,370,380,390,400,410,420),kzz
+        goto(330,340,350,360,370,380,390,400,410,420,                   &
+     &       440,440,440,440,440),kzz
         goto 440
 !---VERTICAL DIPOLE
   330   continue
@@ -23595,13 +23677,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 *FOX  YY(1)=YY(1)*C1M3;
 *FOX  YY(2)=YY(2)*C1M3;
-      IF (windex1(ix).eq.0) THEN
+
 *FOX  DXI=DX*C1M3;
 *FOX  DYI=DY*C1M3;
-      ELSE IF (windex1(ix).eq.1) THEN
-*FOX  DXI=(DX+XCLO)*C1M3;
-*FOX  DYI=(DY+YCLO)*C1M3;
-      END IF
+
+
 
 !-----------------------------------------------------------------------
 ! X' -> PX'; Y' -> PY
@@ -23612,7 +23692,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  XI=(XX(1))*C1M3;
 *FOX  YI=(XX(2))*C1M3;
 
+      IF (windex1(ix).eq.0) THEN
+*FOX  XI=(XX(1)+DX)*C1M3;
+*FOX  YI=(XX(2)+DY)*C1M3;
+      ELSE IF (windex1(ix).eq.1) THEN
+*FOX  XI=(XX(1)+(DX-XCLO))*C1M3;
+*FOX  YI=(XX(2)+(DY-YCLO))*C1M3;
+      END IF
+
 ! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (TX, TY)
+      if(ibeco.eq.0) then
 *FOX  YI=YI-XI*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
@@ -23628,6 +23717,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
 *FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+      endif
 
       if(ibeco.eq.1) then
 
@@ -23635,6 +23725,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
 *FOX  DXI=DXI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
+*FOX  YI=YI-XI*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
+*FOX  XI=XI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
 *FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
 *FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
@@ -23644,8 +23739,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
 *FOX  DYI=DYI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
 *FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
+*FOX  XI=XI-YI*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+*FOX  YI=YI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
 *FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+
 ! 3 //WIRE KICK
 *FOX  RTWO_=XI*XI+YI*YI;
 *FOX  YY(1)=YY(1)-(((CUR*NNORM_)*XI)
@@ -23656,10 +23757,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
 
 *FOX  RTWO_=DXI*DXI+DYI*DYI;
-*FOX  YY(1)=YY(1)-(((CUR*NNORM_)*DXI)
+*FOX  YY(1)=YY(1)+(((CUR*NNORM_)*DXI)
 *FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
 *FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
-*FOX  YY(2)=YY(2)-(((CUR*NNORM_)*DYI)
+*FOX  YY(2)=YY(2)+(((CUR*NNORM_)*DYI)
 *FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
 *FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
 
@@ -25336,6 +25437,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 150
+          if(abs(kzz).eq.15) goto 150
           if(iorg.lt.0) mzu(i)=izu
           izu=mzu(i)+1
           smizf(i)=zfz(izu)*ek(ix)
@@ -38366,7 +38468,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       nlin=0
       if(nbeam.ge.1) then
         do 135 i=1,nele
-          if(kz(i).eq.20) then
+          if(kz(i).eq.20.or.abs(kz(i)).eq.15) then
             nlin=nlin+1
             if(nlin.gt.nele) call prror(81)
             bezl(nlin)=bez(i)
@@ -38382,6 +38484,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
+        if(abs(kzz).eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         smizf(i)=zfz(izu)*ek(ix)
@@ -47575,15 +47678,16 @@ c$$$               endif
 +ca trom06
 +if collimat.or.bnlelens
 !GRDRHIC
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.abs(kzz).eq.15) then
           call writelin(nr,bez(ix),etl,phi,t,ix,k)
           goto 500
         endif
 ! JBG RF CC Multipoles to 500
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 500
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 500
+        
 ! Wire
-        if(kzz.eq.-15.or.kzz.eq.15) goto 500
+        if(abs(kzz).eq.15) goto 500
 +ei
 +if .not.collimat.and..not.bnlelens
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
@@ -48975,6 +49079,7 @@ c$$$               endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
+        if(abs(kzz).eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.                    &
@@ -49097,6 +49202,7 @@ c$$$               endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 10
+        if(abs(kzz).eq.15) goto 10
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if((kpz.eq.4.and.kzz.eq.1).or.(kpz.eq.-4.and.kzz.eq.-1)) then
@@ -49627,6 +49733,7 @@ c$$$               endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 50
+            if(abs(kzz).eq.15) goto 50
             mzu(i)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
@@ -49666,6 +49773,7 @@ c$$$               endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 110
+            if(abs(kzz).eq.15) goto 110
             do 80 j=1,iorg
               if(bez(ix).eq.bezr(1,j)) goto 90
    80       continue
@@ -49698,6 +49806,7 @@ c$$$               endif
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 115
+          if(abs(kzz).eq.15) goto 115
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
@@ -49769,6 +49878,7 @@ c$$$               endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 190
+        if(abs(kzz).eq.15) goto 190
         if(icextal(i).ne.0) then
           izu=izu+2
           xrms(ix)=one
@@ -50019,6 +50129,7 @@ c$$$               endif
 +ca trom03
 +ca trom04
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
+        if(abs(kzz).eq.15) goto 450
 ! JBG RF CC Multipoles to 450
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
@@ -51183,6 +51294,7 @@ c$$$               endif
 !
 +ca trom10
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
+        if(abs(kzz).eq.15) goto 350
 !
 ! JBG RF CC Multipoles to 350
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
@@ -51764,6 +51876,7 @@ c$$$               endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 770
+        if(abs(kzz).eq.15) goto 770
 ! JBG RF CC Multipoles to 770
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 770
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 770
@@ -53266,6 +53379,7 @@ c$$$               endif
           clo0(2)=t(2,3)
           clop0(2)=t(2,4)
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 790
+          if(abs(kzz).eq.15) goto 790
 ! JBG RF CC Multipoles to 790
           if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 790
           if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 790
@@ -54431,6 +54545,7 @@ c$$$               endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 740
+        if(abs(kzz).eq.15) goto 740
 ! JBG RF CC Multipoles to 740
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 740
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 740 
