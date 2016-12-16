@@ -1,0 +1,24 @@
+#General
+*.o
+*~
+
+# SixTest
+SixTest/*/fort.*.run_pro*
+SixTest/run_pro_*
+#SixTest/read90/dtoa_c.o
+#SixTest/read90/dtoaf.o
+
+#Builds
+SixTrack/Makefile
+SixTrack/Makefile_makesix
+SixTrack/SixTrack_*
+SixTrack/SixTrack
+SixTrack/astuce
+SixTrack/dafor
+
+#LaTeX temps
+Doc/*/*.aux
+Doc/*/*.log
+Doc/*/*.lot
+Doc/*/*.out
+Doc/*/*.toc
