@@ -1,9 +1,14 @@
       program compf10
       implicit none
       double precision prob(60),prob1(60),eps(60)
-      integer line,word
+      integer line,word,i
       logical diff,diffs
 ! Now compare the closed orbit in 53-58 as well
+      do i=1,60
+        prob(i) = 0
+        prob1(i) = 0
+        eps(i) = 0
+      enddo
       line=0
       diff=.false.
       diffs=.false.
