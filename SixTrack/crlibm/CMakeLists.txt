@@ -25,8 +25,11 @@ if(64BIT)
 endif(64BIT)
 
 if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
-	target_compile_options(crlibm1 PRIVATE -mfpmath=sse -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing)
-	target_compile_options(crlibm2 PRIVATE -mfpmath=sse -msse2 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline)
+  # In old crlibm, suppress some warnings. It's too many of them to be usefull...
+  set(lessWarnings  -Wno-sign-conversion -Wno-conversion -Wno-long-long)
+  
+	target_compile_options(crlibm1 PRIVATE -mfpmath=sse -msse2 -fPIC -std=c99 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline -pedantic -fno-strict-aliasing ${lessWarnings})
+	target_compile_options(crlibm2 PRIVATE -mfpmath=sse -msse2 -Wall -Wshadow -Wpointer-arith -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wnested-externs -Wlong-long -Winline ${lessWarnings})
 	target_compile_options(crlibm3 PRIVATE -mfpmath=sse -msse2 -std=c99 -W -Wall -pedantic)
 
 	if(COVERAGE)
