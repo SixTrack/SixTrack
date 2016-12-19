@@ -5,6 +5,12 @@
       logical diff,diffs
       character*80 buffer
 ! Now compare the closed orbit in 53-60 as well
+      do i=1,60
+        prob(i) = 0
+        prob1(i) = 0
+        lprob(i) = 0
+        lprob1(i) = 0
+      enddo
       line=0
       diff=.false.
       diffs=.false.
