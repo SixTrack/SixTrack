@@ -224,11 +224,13 @@ set +e #From here on we catch errors manually...
 
 #Use EVAL to split the options from $CMAKE_OPTIONS_LIST
 # http://stackoverflow.com/questions/6087494/bash-inserting-quotes-into-string-before-execution
-eval cmake  $CMAKE_OPTIONS_LIST ../../.
+#Ue TEE
+# http://stackoverflow.com/questions/692000/how-do-i-write-stderr-to-a-file-while-using-tee-with-a-pipe
+eval cmake  $CMAKE_OPTIONS_LIST ../../. > >(tee cmake_stdout_log.txt) 2> >(tee cmake_stderr_log.txt)
 
 if [ $? != 0 ]; then
     echo ""
-    echo "ERROR in CMAKE"
+    echo "ERROR in CMAKE;"
     echo "Most likely you specified a bad argument!"
     echo "Please run cmake_six help"
     echo ""
@@ -240,14 +242,24 @@ if [ $? != 0 ]; then
 fi
 echo ""
 
+if [ -s cmake_stderr_log.txt ]; then
+    echo ""
+    echo "Warning in CMAKE;"
+    echo "Did you misspell an argument?"
+    echo "Run './cmake_six help' to see possible arguments, remember UPPER/lower-cAsE"
+    echo ""
+    exit
+fi
+
 #Run make
+#make -j  | tee make_log.txt # No pretty colors...
 make -j
 
 if [ $? != 0 ]; then
     echo ""
-    echo "ERROR in MAKE"
+    echo "ERROR in MAKE;"
     echo "Could be a bug..."
-    echo "Maybe you need to install some libraries?"
+    echo ".. or maybe you need to install some libraries?"
     echo ""
 
     exit

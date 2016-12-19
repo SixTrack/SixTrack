@@ -1,0 +1,84 @@
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{textcomp}
+\usepackage{amsmath, amsfonts}
+\usepackage{babel}
+\usepackage{lscape}
+\usepackage{hyperref}
+
+\makeatletter
+\@ifpackageloaded{tex4ht}{%
+  \def\pgfsysdriver{pgfsys-tex4ht.def}%
+}{%
+  % only needed inside a class
+  \begingroup\expandafter\expandafter\expandafter\endgroup
+  \expandafter\ifx\csname HCode\endcsname\relax
+  \else
+    \def\pgfsysdriver{pgfsys-tex4ht.def}%
+  \fi
+}
+\makeatother
+
+\usepackage{tikz}
+
+\usepackage{cite}
+\usepackage{url}
+
+
+\begin{document}
+
+\author{K. Sjobak, J. Molson}
+\title{Compiling, building, and testing SixTrack}
+\date{Dec. 2016}
+
+\maketitle
+
+\begin{abstract}
+  The SixTrack code supports a wide variety of compile time options,
+  compilers, and build environments.
+  This document intends to present what is supported, and how to build the most common versions.
+  Furthermore, an important sub-task of building SixTrack is to test that the built binary is correct; this is also covered.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Downloading SixTrack}
+The last stable release of SixTrack should be found on GitHub, in the SixTrack repository under the SixTrack organization:\\
+\url{https://github.com/SixTrack/SixTrack}
+In order to download a release
+
+\subsection{Contributing}
+forks and stuff.
+
+\section{Building SixTrack}
+cmake
+\subsection{Supported compilers}
+Fortran 2003: gfortran, ifort, nagfor.
+
+In the future, maybe a new-ish Lahey.
+
+\subsection{Build options}
+
+
+\subsection{Libraries}
+
+\subsection{Astuce}
+
+\subsection{DAFOR}
+
+\subsection{Legacy build environments}
+make\_six and the makefile
+
+\section{Testing SixTrack}
+
+\subsection{Running CTEST}
+
+\subsection{Submitting to CDASH}
+
+\subsection{Adding new tests}
+
+\subsection{Legacy test environment}
+
+\end{document}
