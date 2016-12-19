@@ -1496,7 +1496,8 @@ space~\cite{ripbeam}.
   If {\it ibsix} is set to 0 this element is treated as a 4D element.
 \item [xang] (float) Half crossing angle (angle the between the trajectories of the two beams) at this particular element [rad].
 \item [xplane] (float) Crossing plane angle [rad].
-\item [xstr] (float) Angle of the position of the slices in the boosted frame [rad] (i.e. $X=Z \sin({\rm xstr}) \cos({\rm xplane})$, $Y= \sin({\rm xstr}) \cos({\rm xplane})$ ). In absence of crabbing user should make sure xstr=xang.
+\item [xstr] (float) Angle of the position of the slices in the boosted frame [rad] (i.e. $X = Z \sin(\mathit{xstr}) \cos(\mathit{xplane})$, $Y = \sin(\mathit{xstr}) \cos(\mathit{xplane})$ ).
+  In absence of crabbing user should make sure \textit{xstr=xang}; in case the \textit{xstr} flag is not set then \textit{xstr=xang} is assumed and a warning is printed (since version 4.5.45).
 \end{description}
 
 \subparagraph{Remark} These beam--beam elements have beam--beam have
