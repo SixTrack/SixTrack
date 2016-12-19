@@ -19079,15 +19079,19 @@ C Should get me a NaN
         r(j) = dble(iz)*4.656613d-10                                     !hr05
    20 continue
 
-C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
+      if (mcut.ge.0) then !mcut = -1 => Generate uniform numbers!
+!     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
 +if crlibm
-!     rvec0 = (((-1d0*two)*log_rn(r(1)))**half)*cos_rn((two*pi)*r(2))    !hr05
-      rvec0 = sqrt(((-1d0*two)*log_rn(r(1))))*cos_rn((two*pi)*r(2))      !hr05
+         rvec0 = sqrt(((-1d0*two)*log_rn(r(1))))*cos_rn((two*pi)*r(2))      !hr05
 +ei
 +if .not.crlibm
-      rvec0 = (sqrt((-1d0*two)*log(r(1))))*cos((two*pi)*r(2))            !hr05
+         rvec0 = (sqrt((-1d0*two)*log(r(1))))*cos((two*pi)*r(2))            !hr05
 +ei
-      if(abs(rvec0).le.dble(mcut).or.mcut.eq.0) then
+      else if (mcut.eq.-1) then
+         rvec0 = r(1)
+      end if
+      
+      if(abs(rvec0).le.dble(mcut) .or. mcut.eq.0 .or. mcut.eq.-1) then
         rvec(i) = rvec0
         i=i+1
       endif
@@ -43299,7 +43303,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Store pointers
          funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
          funcs_dynk(nfuncs_dynk,2) = 6           !TYPE (RANDG)
-         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1, seed2, mcut (in iexpr_dynk)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), mcut, seed1(current), seed2(current) (in iexpr_dynk)
          funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !mu, sigma (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
@@ -43338,7 +43342,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          niexpr_dynk = niexpr_dynk+4
          nfexpr_dynk = nfexpr_dynk+1
 
-         if (iexpr_dynk(niexpr_dynk) .lt. 0) then
+         if (iexpr_dynk(funcs_dynk(nfuncs_dynk,3)+2) .lt. 0) then
             !mcut < 0
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN():RANDG"
@@ -43352,6 +43356,37 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
+         
+      case ("RANDU")
+         ! RANDU: Uniform random number
+         
+         call dynk_checkargs(getfields_nfields,5,
+     &        "FUN funname RANDU seed1 seed2" )
+         call dynk_checkspace(4,0,1)
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         niexpr_dynk = niexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 7           !TYPE (RANDU)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), seed1(current), seed2(current)
+         funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
+         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
+         ! Store data
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        iexpr_dynk(niexpr_dynk) ! seed1 (initial)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+     &        iexpr_dynk(niexpr_dynk+1) ! seed2 (initial)
+
+         iexpr_dynk(niexpr_dynk+2) = 0 ! seed1 (current)
+         iexpr_dynk(niexpr_dynk+3) = 0 ! seed2 (current)
+
+         niexpr_dynk = niexpr_dynk+3
          
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
@@ -45367,14 +45402,32 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if .not.cr
                   write (*,*) 
 +ei
-     &               "DYNKDEBUG> Resetting RNG for FUN named '",
+     &               "DYNKDEBUG> Resetting RANDG for FUN named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
                iexpr_dynk(funcs_dynk(ii,3)+3) =
-     &         iexpr_dynk(funcs_dynk(ii,3) )
+     &              iexpr_dynk(funcs_dynk(ii,3) )
                iexpr_dynk(funcs_dynk(ii,3)+4) =
-     &         iexpr_dynk(funcs_dynk(ii,3)+1)
+     &              iexpr_dynk(funcs_dynk(ii,3)+1)
+               
+            else if (funcs_dynk(ii,2) .eq. 7) then !RANDU
+               if (ldynkdebug) then
++if cr
+                  write (lout,*) 
++ei
++if .not.cr
+                  write (*,*) 
++ei
+     &               "DYNKDEBUG> Resetting RANDU for FUN named '",
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+
+               iexpr_dynk(funcs_dynk(ii,3)+2) =
+     &              iexpr_dynk(funcs_dynk(ii,3) )
+               iexpr_dynk(funcs_dynk(ii,3)+3) =
+     &              iexpr_dynk(funcs_dynk(ii,3)+1)
+
             else if (funcs_dynk(ii,2) .eq. 10) then !FIR
                if (ldynkdebug) then
 +if cr
@@ -45760,6 +45813,19 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! Change to mu, sigma
          retval = fexpr_dynk(funcs_dynk(funNum,4))
      &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
+
+      case (7)                                                          ! RANDU
+         ! Save old seeds and load our current seeds
+         call recuut(tmpseed1,tmpseed2)
+         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2),
+     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
+         ! Run generator for 1 value with mcut=-1
+         call ranecu( ranecu_rvec, 1, -1 )
+         ! Save our current seeds and load old seeds
+         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),
+     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
+         call recuin(tmpseed1,tmpseed2)
+         retval = ranecu_rvec(1)
          
       case(10)                                                          ! FIR
          foff = funcs_dynk(funNum,3)
