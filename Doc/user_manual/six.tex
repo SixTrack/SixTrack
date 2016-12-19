@@ -1056,16 +1056,14 @@ The functions are always evaluated as a function of the current turn number $t$,
   
   RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
   Returns a pseudorandom number generated from a Gaussian distribution.
-  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
-  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
+  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
   Note that every RANDG function defined in DYNK uses its own separate random number stream.\\
 
-%   RANDU      & \emph{seed1[int] seed2[int] rangemin[real] rangemax[real] } &
-%   Returns a pseudorandom number generated from a uniform distribution.
-%   The values \emph{rangemin} and \emph{rangemax} define the interval of the uniform distribution.
-%   The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
-%   Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
-
+  RANDU      & \emph{seed1[int] seed2[int]} &
+  Returns a pseudorandom number generated from a uniform distribution.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
+  Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
   
   \hline
   \rowcolor{blue!15}
