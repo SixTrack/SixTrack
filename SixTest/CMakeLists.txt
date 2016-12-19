@@ -17,7 +17,6 @@ set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Com
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
 set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "At line .* of file .*read90.f90 \\(unit = 190\\)\nFortran runtime error: Cannot open file 'fort.190': No such file or directory")
 
-SET(SIXTRACK_TESTS ${SIXTRACK_TESTS})
 #SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
 
 ##

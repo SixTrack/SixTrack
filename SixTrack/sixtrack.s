@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.43'/
-      data moddate /'13.12.2016'/
+      data version /'4.5.44'/
+      data moddate /'16.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -32074,7 +32074,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               nsurvive = nsurvive + 1
             endif
           end do
-          write(44,'(2i4)') iturn, nsurvive
+          write(44,'(2i7)') iturn, nsurvive
 !GRD
           if (iturn.eq.numl) then
             nsurvive_end = nsurvive_end + nsurvive
