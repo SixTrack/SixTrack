@@ -36,10 +36,8 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "in-source build detected")
 endif()
 
-# Update the documentation string of CMAKE_BUILD_TYPE for GUIs to include the MPI options
 SET(CMAKE_BUILD_TYPE Release CACHE STRING
-#SET(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
-	"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel MPI MPIDEBUG."
+	"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"# MPI MPIDEBUG."
 	FORCE)
 
 ###################################################################################################
@@ -214,6 +212,7 @@ endif()
 #Create the sixtrack binary name string
 SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}_${SIXTRACK_FEATURES}" )
 
+# Select which fortran files to generate and compile
 if(DA)
 	SET(FORS sixda sixsc sixscfox dabnew lielib)
 else()
@@ -603,7 +602,7 @@ else()
 	message ("No optimized Fortran compiler flags are known, we just try -O2...")
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
-endif (Fortran_COMPILER_NAME MATCHES "gfortran.*")
+endif ()
 
 #Now for C flags (crlibm for now)
 #${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
@@ -709,40 +708,40 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 endif()
 
 #MPI default build options
-SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
-	"Flags used by the C++ compiler during MPI builds."
-	FORCE )
-SET( CMAKE_EXE_LINKER_FLAGS_MPI
-	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
-	"Flags used for linking binaries during MPI builds."
-	FORCE )
-SET( CMAKE_SHARED_LINKER_FLAGS_MPI
-	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC -flto" CACHE STRING
-	"Flags used by the shared libraries linker during MPI builds."
-	FORCE )
-MARK_AS_ADVANCED(
-	CMAKE_CXX_FLAGS_MPI
-	#CMAKE_C_FLAGS_MPI
-	CMAKE_EXE_LINKER_FLAGS_MPI
-	CMAKE_SHARED_LINKER_FLAGS_MPI)
+#SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
+#	"Flags used by the C++ compiler during MPI builds."
+#	FORCE )
+#SET( CMAKE_EXE_LINKER_FLAGS_MPI
+#	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
+#	"Flags used for linking binaries during MPI builds."
+#	FORCE )
+#SET( CMAKE_SHARED_LINKER_FLAGS_MPI
+#	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC -flto" CACHE STRING
+#	"Flags used by the shared libraries linker during MPI builds."
+#	FORCE )
+#MARK_AS_ADVANCED(
+#	CMAKE_CXX_FLAGS_MPI
+#	#CMAKE_C_FLAGS_MPI
+#	CMAKE_EXE_LINKER_FLAGS_MPI
+#	CMAKE_SHARED_LINKER_FLAGS_MPI)
 
 #MPI debug default build options
-SET( CMAKE_CXX_FLAGS_MPIDEBUG "-Wall -g3 -ggdb -pedantic -DENABLE_MPI -march=native" CACHE STRING
-	"Flags used by the C++ compiler during MPI Debug builds."
-	FORCE )
-SET( CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
-	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
-	"Flags used for linking binaries during MPI Debug builds."
-	FORCE )
-SET( CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG
-	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC" CACHE STRING
-	"Flags used by the shared libraries linker during MPI Debug builds."
-	FORCE )
-MARK_AS_ADVANCED(
-	CMAKE_CXX_FLAGS_MPIDEBUG
-	#CMAKE_C_FLAGS_MPIDEBUG
-	CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
-	CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG )
+#SET( CMAKE_CXX_FLAGS_MPIDEBUG "-Wall -g3 -ggdb -pedantic -DENABLE_MPI -march=native" CACHE STRING
+#	"Flags used by the C++ compiler during MPI Debug builds."
+#	FORCE )
+#SET( CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
+#	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
+#	"Flags used for linking binaries during MPI Debug builds."
+#	FORCE )
+#SET( CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG
+#	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC" CACHE STRING
+#	"Flags used by the shared libraries linker during MPI Debug builds."
+#	FORCE )
+#MARK_AS_ADVANCED(
+#	CMAKE_CXX_FLAGS_MPIDEBUG
+#	#CMAKE_C_FLAGS_MPIDEBUG
+#	CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
+#	CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG )
 
 ###################################################################################################
 # Settings for what exactly to build
@@ -834,12 +833,12 @@ add_custom_target(astuce_clean_decks)
 add_dependencies(astuce_clean_decks astuce_clean_define_flags)
 
 #This macro calls the regex in masks_define_flags.cmake to remove the requested flags
-macro(ast_masks OPT FILE_NAME)
+macro(ast_masks_flag OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_define_flags POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_define_flags.cmake)
 endmacro()
 
 #This macro calls the regex in masks_decks.cmake to remove the requested decks
-macro(ast_masks2 OPT FILE_NAME)
+macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
@@ -847,83 +846,83 @@ endmacro()
 #set(OPT crlibm tilt fast bpm beamgas collimat bnlelens cr boinc nagfor bignblz debug hdf5 fio lf95 hugenblz stf bignpart datamods hugenpart)
 foreach(loop IN ITEMS ${FORS})
 	if(NOT CRLIBM)
-		ast_masks(crlibm ${loop})
+		ast_masks_flag(crlibm ${loop})
 	endif()
 	if(NOT TILT)
-		ast_masks(tilt ${loop})
+		ast_masks_flag(tilt ${loop})
 	endif()
 	if(NOT FAST)
-		ast_masks(fast ${loop})
+		ast_masks_flag(fast ${loop})
 	endif()
 	if(NOT BPM)
-		ast_masks(bpm ${loop})
+		ast_masks_flag(bpm ${loop})
 	endif()
 	if(NOT BEAMGAS)
-		ast_masks(beamgas ${loop})
+		ast_masks_flag(beamgas ${loop})
 	endif()
 	if(NOT COLLIMAT)
-		ast_masks(collimat ${loop})
+		ast_masks_flag(collimat ${loop})
 	endif()
 	if(NOT BNLELENS)
-		ast_masks(bnlelens ${loop})
+		ast_masks_flag(bnlelens ${loop})
 	endif()
 	if(NOT CR)
-		ast_masks(cr ${loop})
+		ast_masks_flag(cr ${loop})
 	endif()
 	if(NOT BOINC)
-		ast_masks(boinc ${loop})
+		ast_masks_flag(boinc ${loop})
 	endif()
 	if(NOT NAGFOR)
-		ast_masks(nagfor ${loop})
+		ast_masks_flag(nagfor ${loop})
 	endif()
 	if(NOT BIGNBLZ)
-		ast_masks(bignblz ${loop})
+		ast_masks_flag(bignblz ${loop})
 	endif()
 	if(NOT DEBUG)
-		ast_masks(debug ${loop})
+		ast_masks_flag(debug ${loop})
 	endif()
 	if(NOT HDF5)
-		ast_masks(hdf5 ${loop})
+		ast_masks_flag(hdf5 ${loop})
 	endif()
 	if(NOT FIO)
-		ast_masks(fio ${loop})
+		ast_masks_flag(fio ${loop})
 	endif()
 	if(NOT LF95)
-		ast_masks(lf95 ${loop})
+		ast_masks_flag(lf95 ${loop})
 	endif()
 	if(NOT HUGENBLZ)
-		ast_masks(hugenblz ${loop})
+		ast_masks_flag(hugenblz ${loop})
 	endif()
 	if(NOT STF)
-		ast_masks(stf ${loop})
+		ast_masks_flag(stf ${loop})
 	endif()
 	if(NOT BIGNPART)
-		ast_masks(bignpart ${loop})
+		ast_masks_flag(bignpart ${loop})
 	endif()
 	if(NOT DATAMODS)
-		ast_masks(datamods ${loop})
+		ast_masks_flag(datamods ${loop})
 	endif()
 	if(NOT HUGENPART)
-		ast_masks(hugenpart ${loop})
+		ast_masks_flag(hugenpart ${loop})
 	endif()
 	if(NOT MERLINSCATTER)
-		ast_masks(merlinscatter ${loop})
+		ast_masks_flag(merlinscatter ${loop})
 	endif()
 
 	if(NOT COLLIMAT)
-		ast_masks2(nwrtcoll ${loop})
+		ast_masks_deck(nwrtcoll ${loop})
 	endif()
 	if(NOT DATAMODS)
-		ast_masks2(datamods ${loop})
+		ast_masks_deck(datamods ${loop})
 	endif()
 	if(NOT DEBUG)
-		ast_masks2(dumps ${loop})
+		ast_masks_deck(dumps ${loop})
 	endif()
 	if(NOT CR)
-		ast_masks2(checkpt ${loop})
+		ast_masks_deck(checkpt ${loop})
 	endif()
 	if(NOT BNLELENS)
-		ast_masks2(nwrtbnl ${loop})
+		ast_masks_deck(nwrtbnl ${loop})
 	endif()
 
 	#From make_six:
@@ -931,10 +930,10 @@ foreach(loop IN ITEMS ${FORS})
 	# in the sense that while a "" null value implies option is ON
 	# the reverse is true for cernlib and naglib
 	if(CERNLIB)
-		ast_masks2(plotdumy ${loop})
+		ast_masks_deck(plotdumy ${loop})
 	endif()
 	if(NAGLIB)
-		ast_masks2(nagdumy ${loop})
+		ast_masks_deck(nagdumy ${loop})
 	endif()
 endforeach(loop)
 
@@ -967,6 +966,7 @@ if(CERNLIB)
 		#running on lxplus and friends
 #		SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "`cernlib -u graflib packlib_noshift kernlib_noshift` -lg2c -lpthread")
 #	else()
+                #Use precompiled CERNLIB from lib32 folder
 		add_library(g2c STATIC IMPORTED)
 		add_library(graflib STATIC IMPORTED)
 		add_library(grafX11 STATIC IMPORTED)
@@ -1057,7 +1057,7 @@ IF(BUILD_TESTING)
 		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest_da)
 	else()
 		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
-	endif(DA)
+	endif()
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
@@ -1097,9 +1097,13 @@ IF(BUILD_TESTING)
 
 ENDIF()
 
-SET(CPACK_GENERATOR RPM DEB STGZ TGZ TBZ2 TXZ ZIP 7Z)
-SET(CPACK_PACKAGE_CONTACT "sixtrack.support@cern.ch")
+#To make packages, run "make package" in the build directory
+#SET(CPACK_GENERATOR RPM DEB STGZ TGZ TBZ2 TXZ ZIP 7Z)
+SET(CPACK_GENERATOR RPM DEB TGZ ZIP) #Take only the most common targets
+#SET(CPACK_PACKAGE_CONTACT "sixtrack.support@cern.ch") # non-existent email address
 SET(CPACK_PACKAGE_VERSION ${SixTrack_VERSION})
+SET(CPACK_PACKAGE_VENDOR "CERN")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SixTrack symplectic particle tracking code for particle accelerators.")
 SET(CPACK_PACKAGE_VERSION_MAJOR ${SixTrack_VERSION_MAJOR})
 SET(CPACK_PACKAGE_VERSION_MINOR ${SixTrack_VERSION_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${SixTrack_VERSION_PATCH})

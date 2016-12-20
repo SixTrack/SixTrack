@@ -74,7 +74,7 @@ do
     if [[ $var == clean ]]; then
 	echo "Cleaning cmake_six builds!"
 	set +e
-	ls SixTrack_cmakesix*
+	#ls SixTrack_cmakesix*
 	rm -rf SixTrack_cmakesix*
 	exit
     elif [[ $var == help ]]; then
@@ -266,3 +266,4 @@ if [ $? != 0 ]; then
 fi
 echo ""
 echo "Done! If everything went well, you'll find the executable in" $NAME
+#echo "If you want to package the results to a tarball / .deb / .rpm etc., run 'make package' in this folder."
