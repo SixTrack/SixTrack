@@ -57810,7 +57810,11 @@ c$$$            endif
             enddo
             backspace(dumpunit(j),iostat=ierro)
 !   read in particle amplitudes
-            fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            if (dumplast(j) .eq. -1) then
+               fma_nturn(i) = numl-dumpfirst(j)+1        !Tricky if the particle is lost...
+            else
+               fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            endif
             if(fma_nturn(i).gt.fma_nturn_max) then
 +if .not.cr
               write(*,*) 'ERROR in fma_postpr: only ',                  &
