@@ -57666,11 +57666,12 @@ c$$$            endif
 +if cr
 +ca crcoall
 +ei
-      integer :: i,j,k,l,m,n !for do loops
-      integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
-      logical :: lopen              !flag to check if file is already open
-      logical :: lexist             !flag to check if file fma_fname exists
-      logical :: lread              !flag for file reading
+      integer :: i,j,k,l,m,n                    ! for do loops
+      integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
+      integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
+      logical :: lopen                          ! flag to check if file is already open
+      logical :: lexist                         ! flag to check if file fma_fname exists
+      logical :: lread                          ! flag for file reading
       character(len=getfields_l_max_string) :: ch,ch1
       character filefields_fields
      &     ( getfields_n_max_fields )*( getfields_l_max_string )
@@ -57748,6 +57749,12 @@ c$$$            endif
      &action='write',form='formatted')
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
+
+      if (idp.eq.0 .or. ition.eq.0) then
+         num_modes = 2          !4D tracking
+      else
+         num_modes = 3          !6D tracking
+      endif
       
 !     write the header
       write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
@@ -58002,7 +58009,7 @@ c$$$            endif
 !     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
 !         fma_norm_flag > 0 use normalized coordinates
             do l=1,napx ! loop over particles
-              do m=1,3 ! loop over modes (hor.,vert.,long.)
+              do m=1,num_modes ! loop over modes (hor.,vert.,long.)
                  select case( trim(stringzerotrim(fma_method(i))) )
                  case('TUNELASK')
                  if(fma_norm_flag(i) .eq. 0) then
@@ -58092,19 +58099,26 @@ c$$$            endif
      &                   ' capital letters!','fma_postpr')
                  end select
                  
-                if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
-                eps123_0(m)=epsnxyzv(l,1,m)                          ! initial amplitude 
+                if(m.eq.3) q123(m)=one-q123(m)                          ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
+                eps123_0(m)=epsnxyzv(l,1,m)                             ! initial amplitude 
 +if crlibm
                 phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
 +if .not.crlibm
-                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
+                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))   ! inital phase
 +ei
                 eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
                 eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
      &fma_nturn(i) ! average emittance
               enddo
+              if ( num_modes .eq. 2 ) then
+                 q123(3)=0.0
+                 phi123_0(3)=0.0
+                 eps123_min(3)=0.0
+                 eps123_max(3)=0.0
+                 eps123_avg(3)=0.0
+              endif
               write(2001001,1988) trim(stringzerotrim(fma_fname(i))),   &
      &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
      &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
