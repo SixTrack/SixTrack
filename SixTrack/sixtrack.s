@@ -57752,6 +57752,19 @@ c$$$            endif
 
       if (idp.eq.0 .or. ition.eq.0) then
          num_modes = 2          !4D tracking
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "'ERROR: FMA analysis currently only implemented "//
+     &        "for thin 6D tracking and 6D optics!'"
+         call prror(-1)
+         ! Note: It is possible that it works for 4D and thick tracking also,
+         ! as long as you have calculated 6D optics; however it has not been checked.
+         ! If you want to try, comment out the "call prror",
+         ! and if you were not eaten by a grue then please let us know...
       else
          num_modes = 3          !6D tracking
       endif
