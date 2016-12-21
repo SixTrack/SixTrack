@@ -36,6 +36,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "in-source build detected")
 endif()
 
+# BUG: This overrides any setting the user tries to set for CMAKE_BUILD_TYPE!!
 SET(CMAKE_BUILD_TYPE Release CACHE STRING
 	"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"# MPI MPIDEBUG."
 	FORCE)
@@ -499,24 +500,20 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS_RELEASE "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -O3")
-	SET(CMAKE_Fortran_FLAGS_DEBUG   "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2 -g -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2")
+	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 
 	if(32BIT)
-		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
-		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
-		SET(CMAKE_Fortran_LINKER_FLAGS "-m32 ${CMAKE_Fortran_LINKER_FLAGS}")
+		set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
 	endif(32BIT)
 
 	if(64BIT)
-		set(CMAKE_Fortran_FLAGS_RELEASE "-m64 ${CMAKE_Fortran_FLAGS_RELEASE}")
-		set(CMAKE_Fortran_FLAGS_DEBUG "-m64 ${CMAKE_Fortran_FLAGS_DEBUG}")
-		SET(CMAKE_Fortran_LINKER_FLAGS "-m64 ${CMAKE_Fortran_LINKER_FLAGS}")
+		set(CMAKE_Fortran_FLAGS "-m64 ${CMAKE_Fortran_FLAGS}")
 	endif(64BIT)
 
 	if(NATIVE)
-		SET(CMAKE_Fortran_FLAGS_RELEASE "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS_RELEASE}")
-		#Nothing to do for DEBUG
+	  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
 	endif(NATIVE)
 
 	if(STATIC)
@@ -524,8 +521,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(STATIC)
 
 	if(COVERAGE)
-		set(CMAKE_Fortran_FLAGS_RELEASE "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS_RELEASE}")
-		set(CMAKE_Fortran_FLAGS_DEBUG "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS_DEBUG}")
+		set(CMAKE_Fortran_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS}")
 		SET(CMAKE_Fortran_LINKER_FLAGS "-fprofile-arcs ${CMAKE_Fortran_LINKER_FLAGS}")
 	endif(COVERAGE)
 
@@ -599,7 +595,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 else()
 	message ("CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
 	message ("Fortran compiler: " ${Fortran_COMPILER_NAME})
-	message ("No optimized Fortran compiler flags are known, we just try -O2...")
+
+	message ("No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
 endif ()
