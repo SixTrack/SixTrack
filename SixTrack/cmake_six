@@ -68,7 +68,11 @@ compilers=(defaultcompiler gfortran ifort ifort-icc nagfor) # Valid compilers. d
 compilers_CMAKE=('' '-DCMAKE_Fortran_COMPILER=gfortran' '-DCMAKE_Fortran_COMPILER=ifort' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc' '-DCMAKE_Fortran_COMPILER=nagfor')
 options_COMPILER=defaultcompiler #which compilers to use
 
-## Look for special options
+buildtypes=(defaultbuildtype release debug)
+buildtypes_CMAKE=('' '-DCMAKE_BUILD_TYPE=Release' '-DCMAKE_BUILD_TYPE=Debug')
+options_BUILDTYPE=defaultbuildtype #Which build type to make (should be in 'buildtypes')
+
+## Look for special options 'clean' and 'help'
 for var in "$@" #Loop over command line arguments
 do
     if [[ $var == clean ]]; then
@@ -85,7 +89,12 @@ do
 	do
 	    echo $c
 	done
-
+	echo
+	echo "Build types:"
+	for c in ${buildtypes[@]}
+	do
+	    echo $c
+	done
 	echo ""
 	echo "Flags and default options:"
 	mkdir cmake_tmp
@@ -105,6 +114,9 @@ do
 
 	echo ""
 	echo "Examples:"
+	echo "cmake_six gfortran"
+	echo "cmake_six gfortran release"
+	echo "cmake_six gfortran debug"
 	echo "cmake_six gfortran COLLIMAT -CRLIBM"
 	echo "cmake_six clean"
 	echo "cmake_six ifort-icc"
@@ -119,7 +131,8 @@ options_OFF=() # All options switched OFF
 
 for var in "$@" #Loop over command line arguments
 do
-    if [[ $var == -* ]]; then ## Negative options
+    ## Negative options
+    if [[ $var == -* ]]; then
 	#echo "OFF" $var
 	varOn=${var:1} # Without the "-"
 	for v in ${options_ALL[@]}
@@ -137,10 +150,20 @@ do
 		exit 1
 	    fi
 	done
+
+	for v in ${buildtypes[@]}
+	do
+	    if [[ $v == $varOn ]]; then
+		echo "ERROR: can't switch a build type off"
+		exit 1
+	    fi
+	done
 	
 	options_ALL+=(${var:1})
 	options_OFF+=(${var:1})
-    else                      ## Positive options
+	
+    ## Positive options
+    else
 	#echo "ON" $var
 	varOn=$var
 	for v in ${options_ALL[@]}
@@ -151,7 +174,7 @@ do
 	    fi
 	done
 
-	thisWasCompiler="NO"
+	thisWasSpecial="NO"
 	for v in ${compilers[@]}
 	do
 	    if [[ $v == $varOn ]]; then
@@ -160,15 +183,27 @@ do
 		    exit 1
 		fi
 		options_COMPILER=$varOn
-		thisWasCompiler="YES"				    
+		thisWasSpecial="YES"
 	    fi
 	done
 
-	if [[ $thisWasCompiler == "NO" ]]; then
+	for v in ${buildtypes[@]}
+	do
+	    if [[ $v == $varOn ]]; then
+		if [[ $options_BUILDTYPE != "defaultbuildtype" ]]; then
+		    echo "ERROR: can't set multiple build types"
+		    exit 1
+		fi
+		options_BUILDTYPE=$varOn
+		thisWasSpecial="YES"
+	    fi
+	done
+	
+	if [[ $thisWasSpecial == "NO" ]]; then
 	    options_ALL+=($var)
 	    options_ON+=($var)	
 	fi
-	thisWasCompiler="NO"
+	thisWasSpecial="NO"
     fi
 done
 #Sort the options
@@ -188,6 +223,16 @@ do
     if [ $options_COMPILER == ${compilers[$i]} ]; then
 	#echo "FOUND!"
 	CMAKE_OPTIONS_LIST+=${compilers_CMAKE[$i]}
+	CMAKE_OPTIONS_LIST+=" "
+    fi
+done
+
+#Add build type option
+for i in $(seq 0 $(expr ${#buildtypes[@]} - 1 ) )
+do
+    if [ $options_BUILDTYPE == ${buildtypes[$i]} ]; then
+	#echo "FOUND!"
+	CMAKE_OPTIONS_LIST+=${buildtypes_CMAKE[$i]}
     fi
 done
 
@@ -205,6 +250,7 @@ do
     CMAKE_OPTIONS_LIST+=" -D$opt=OFF"
 done
 NAME+=_$options_COMPILER
+NAME+=_$options_BUILDTYPE
 
 echo "NAME= '"$NAME"'"
 
@@ -253,7 +299,7 @@ fi
 
 #Run make
 #make -j  | tee make_log.txt # No pretty colors...
-make -j
+make -j # VERBOSE=1
 
 if [ $? != 0 ]; then
     echo ""
