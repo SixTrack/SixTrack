@@ -9,9 +9,15 @@ add_library(crlibm2 OBJECT ${CRLIBM2_SOURCES})
 add_library(crlibm3 OBJECT ${CRLIBM3_SOURCES})
 
 SET(CRLIBM_DEFS "-DLINUX_INLINE -DHAVE_CONFIG_H -I.")
+SET(CRLIBM_DEFS_DEBUG "-DHAVE_CONFIG_H -I.")
 
-target_compile_definitions(crlibm1 PRIVATE ${CRLIBM_DEFS})
-target_compile_definitions(crlibm2 PRIVATE ${CRLIBM_DEFS})
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  target_compile_definitions(crlibm1 PRIVATE ${CRLIBM_DEFS_DEBUG})
+  target_compile_definitions(crlibm2 PRIVATE ${CRLIBM_DEFS_DEBUG})
+else()
+  target_compile_definitions(crlibm1 PRIVATE ${CRLIBM_DEFS})
+  target_compile_definitions(crlibm2 PRIVATE ${CRLIBM_DEFS})
+endif()
 
 if(32BIT)
   target_compile_options(crlibm1 PRIVATE -m32)
