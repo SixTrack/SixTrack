@@ -36,10 +36,11 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "in-source build detected")
 endif()
 
-# BUG: This overrides any setting the user tries to set for CMAKE_BUILD_TYPE!!
-SET(CMAKE_BUILD_TYPE Release CACHE STRING
-	"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"# MPI MPIDEBUG."
-	FORCE)
+if(NOT CMAKE_BUILD_TYPE)
+	SET(CMAKE_BUILD_TYPE Release CACHE STRING
+		"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"# MPI MPIDEBUG."
+		FORCE)
+endif()
 
 ###################################################################################################
 # Sixtrack configuration options
