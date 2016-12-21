@@ -503,7 +503,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2")
 	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
@@ -619,7 +619,7 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 	endif(NATIVE)
 
 	set (CMAKE_C_FLAGS_RELEASE "-O2")
-	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g")
+	set (CMAKE_C_FLAGS_DEBUG   "-O1 -g3")
 
 	if(STATIC)
 		SET(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
