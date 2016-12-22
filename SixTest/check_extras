@@ -78,7 +78,7 @@ do
 	 fi
 
 	 if ! test -f $i/$checkfile.$prov ; then
-	     echo -e "\e[91mCanonical $i/$checkfile.$v not found, skipping \e[39m"
+	     echo -e "\e[91mCanonical $i/$checkfile.$prov not found, skipping \e[39m"
 	     FAIL=Y
 	     continue
 	 fi
