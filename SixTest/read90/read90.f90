@@ -1,4 +1,5 @@
       program read90
+      use, intrinsic :: iso_fortran_env, only : stdout=>output_unit
 !-----------------------------------------------------------------------
 !  Read a fort.90 and print with correct binary/decimal conversion
 !-----------------------------------------------------------------------
@@ -86,12 +87,179 @@
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
+
+      integer :: stat
+      
+      INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
+      CHARACTER(len=100) :: cmdarg_arg
+      logical STF
+      integer singleParticle, firstParticle, lastParticle
+
+      character(len=100) :: fname
+      character(len=100) :: ofname
+      logical ofoutput
+      integer ounit
 !----------------------------------------------------------------------
+      ofoutput = .FALSE.
+      ounit = stdout
+      fname = "fort.190"
+      
+      STF = .false. !Use the new STF format?
+      singleParticle = -1 !If set, only print records for particle i (and i+1)
+      firstParticle = -1
+      lastParticle  = -1
+      cmdarg_i = 0
+      do 
+         call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+         if (len_trim(cmdarg_arg)==0) EXIT
+
+         if (cmdarg_i.gt.0) then !Skip first argument (command name)
+            if (cmdarg_arg .eq. "--STF") then
+               STF=.true.
+            else if (cmdarg_arg .eq. "--SP") then
+               if(.not.STF) then
+                  write(*,*) "--SP flag only valid following a --STF flag."
+                  stop 2
+               endif
+               if(firstParticle.ne.-1 .or. lastParticle.ne.-1) then
+                  write(*,*) "--SP and --PR flags are incompatible."
+                  stop 8
+               endif
+               
+               !Read the number
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No number found following --SP flag?"
+                  stop 3
+               endif
+
+               read(cmdarg_arg,*,iostat=stat) singleParticle
+               if (singleParticle.lt.1) then
+                  write(*,*) "singleParticle=",singleParticle
+                  write(*,*) "Did you specify an integer>0?"
+                  stop 4
+               endif
+               if (mod(singleParticle,2).ne.1) then
+                  write(*,*) "singleParticle=",singleParticle, "; expected odd number."
+                  stop 5
+               endif
+            else if (cmdarg_arg .eq. "--PR") then
+               if(.not.STF) then
+                  write(*,*) "--PR flag only valid following a --STF flag."
+                  stop 9
+               endif
+               if(singleParticle.ne.-1) then
+                  write(*,*) "--SP and --PR flags are incompatible."
+                  stop 10
+               endif
+
+               !Read the first number
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No number found following --PR flag?"
+                  stop 11
+               endif
+
+               read(cmdarg_arg,*,iostat=stat) firstParticle
+               if (firstParticle.lt.1) then
+                  write(*,*) "firstParticle=",firstParticle
+                  write(*,*) "Did you specify an integer>0?"
+                  stop 12
+               endif
+               if (mod(firstParticle,2).ne.1) then
+                  write(*,*) "firstParticle=",firstParticle, "; expected odd number."
+                  stop 13
+               endif
+
+               !Read the second number
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No second number found following --PR flag?"
+                  stop 14
+               endif
+
+               read(cmdarg_arg,*,iostat=stat) lastParticle
+               if (lastParticle.lt.1) then
+                  write(*,*) "lastParticle=",lastParticle
+                  write(*,*) "Did you specify an integer>0?"
+                  stop 15
+               endif
+               if (mod(lastParticle,2).ne.1) then
+                  write(*,*) "lastParticle=",lastParticle, "; expected odd number."
+                  stop 16
+               endif
+               if (.not. lastParticle .gt. firstParticle) then
+                  write(*,*) "Expected lastParticle > firstParticle, got:"
+                  write(*,*) "firstParticle=",firstParticle,"lastParticle=",lastParticle
+                  stop 17
+               endif
+               
+            else if (cmdarg_arg .eq. "--fname") then
+               !Read the filename
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No filename found following --fname flag?"
+                  stop 6
+               endif
+
+               if(cmdarg_status.eq.-1) then
+                  write(*,*) "Filename was truncated to '"//cmdarg_arg//"'"
+                  stop 7
+               end if
+
+               fname=cmdarg_arg
+               
+            else if (cmdarg_arg .eq. "--ofname") then
+               !Read the filename
+               cmdarg_i = cmdarg_i+1
+               call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
+               if (len_trim(cmdarg_arg)==0) then
+                  write(*,*) "No filename found following --ofname flag?"
+                  stop 6
+               endif
+
+               if(cmdarg_status.eq.-1) then
+                  write(*,*) "Filename was truncated to '"//cmdarg_arg//"'"
+                  stop 7
+               end if
+
+               ofname=cmdarg_arg
+               ofoutput = .TRUE.
+
+            else
+               write(*,*) "USAGE: read90 (--STF) (--SP <number> | --PR <number> <number>) (--fname <name>) (--ofname <name>)"
+               write(*,*) "The --STF flag indicates that the file is in the new STF format"
+               write(*,*) "The --SP and --PR flag can only be used together with the --STF flag,"
+               write(*,*) " in order to extract only single particle (pair) data in a way that emulates the old format."
+               write(*,*) " The number following should be a odd number, i.e. 1,3,5 etc. for particle pair 1+2/3+4/5+6 etc."
+               write(*,*) " The --PR flag differs from the --SP flag in that it can be used to extract a range of particle pairs,"
+               write(*,*) " first and last pair inclusive. Expects first number < last number"
+               write(*,*) "The --fname flag can be used to specify the name of the file to read from (max 100 characters)."
+               write(*,*) " If nothing is specified, it defaults to 'fort.190'."
+               write(*,*) "The --ofname flag can be used to specify the name of the file to write to (max 100 characters)."
+               write(*,*) " If nothing is specified, it defaults to stdout."
+               stop 1
+            end if
+         end if
+         !write (*,*) cmdarg_i, cmdarg_arg
+         cmdarg_i = cmdarg_i+1
+      end do
+      
 !--open fort.190
       nfile=190
       n=0
-      open(nfile,file='fort.190',form='UNFORMATTED',status='OLD')
-      read(nfile,end=511,err=520) sixtit,commen,cdate,ctime,       &
+      open(nfile,file=fname,form='UNFORMATTED',status='OLD')
+
+      if (ofoutput .eqv. .TRUE.) then
+         open(191,file=ofname,action='WRITE',status='REPLACE')
+         ounit = 191
+      end if
+
+100   read(nfile,end=511,err=520) sixtit,commen,cdate,ctime,       &
      &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
      &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
      &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
@@ -100,129 +268,170 @@
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
      &dnumlr,sigcor,dpscor
-      write (*,*) 'Read header'
+
+      if (STF .and. singleParticle.ne.-1) then
+         if (singleParticle.ne.ifipa) then
+            if (ifipa .eq. itopa-1) goto 210 !OK, we're done reading headers.
+            goto 100
+         endif
+      endif
+      if (STF .and. firstParticle.ne.-1) then
+         if (.not. (ifipa.ge.firstParticle .and. ifipa.le.lastParticle)) then
+            !We are outside of the interval of interest.
+            if (ifipa .eq. itopa-1) goto 210 !OK, we're done  reading headers.
+            goto 100
+         endif
+      endif
+      
+      write (ounit,*) 'Read header, record=', n
       ntwin=1
       if(ilapa.ne.ifipa) ntwin=2
-      write (*,*) 'Header ntwin ',ntwin,ifipa,ilapa
-      ifipa=0
-      n=n+1
-      write(*,*) sixtit
-      write(*,*) commen
-      write (*,*) progrm,itopa,icode,numl
+      write (ounit,*) 'Header ntwin ',ntwin,ifipa,ilapa
+      ! ifipa=0
+      n=n+1 !Increase record number
+      write(ounit,*) sixtit
+      write(ounit,*) commen
+      write (ounit,*) progrm,itopa,icode,numl
       errno=dtostr(qwc(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(qwc(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(qwc(3),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clo(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clop(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clo(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clop(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clo(3),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(clop(3),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(di0(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dip0(1),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(di0(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dip0(2),ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       do i=1,6
         do j=1,6
           errno=dtostr(ta(i,j),ch1)
-          write (*,*) ch1
+          write (ounit,*) ch1
         enddo
       enddo
       errno=dtostr(dmmac,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dnms,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dizu0,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dnumlr,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(sigcor,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(dpscor,ch1)
-      write(*,*) ch1
-  210 if(ntwin.eq.1) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
+      write(ounit,*) ch1
+
+      if (STF) then
+         if (ifipa .lt. itopa-1) goto 100 !Read more headers
+      endif
+
+      !Code for reading the first particle pair (turn)
+210   if(ntwin.eq.1) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=530,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
       if(ifipa.lt.1) goto 210
 !     if(progrm.eq.'MAD') then
 !     endif
+      if (STF .and. singleParticle.ne.-1) then
+         if (singleParticle.ne.ifipa) goto 210
+      endif
+      if (STF .and. firstParticle.ne.-1) then
+         !Are we are outside of the interval of interest?
+         if (.not. (ifipa.ge.firstParticle .and. ifipa.le.lastParticle)) goto 210
+      endif
+
 !--KEEP THE FIRST TURN NUMBER : IA0
       ia0=ia
       goto 212
-  211 continue
+      
+  211 continue !Code for reading further pairs/turns
       if(ntwin.eq.1) read(nfile,end=540,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p
       if(ntwin.eq.2) read(nfile,end=540,err=510) ia,ifipa,b,c,d,e, &
      &f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
+      if (STF .and. singleParticle.ne.-1) then
+         if (singleParticle.ne.ifipa) goto 211
+      endif
+      if (STF .and. firstParticle.ne.-1) then
+         !Are we are outside of the interval of interest?
+         if (.not. (ifipa.ge.firstParticle .and. ifipa.le.lastParticle)) goto 211
+      endif
       n=n+1
+      
   212 continue
 ! Do conversion and print, add text later?
-      write (*,*) 'Read record ',n
-      write (*,*) 'Turn ',ia,'   Particle ',ifipa
+      write (ounit,*) 'Read record ',n
+      write (ounit,*) 'Turn ',ia,'   Particle ',ifipa
       errno=dtostr(b,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(c,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(d,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(e,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(f,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(g,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(h,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       errno=dtostr(p,ch1)
-      write(*,*) ch1
+      write(ounit,*) ch1
       if(ntwin.eq.2) then
-        write (*,*) 'Turn ',ia,'   Particle ',ilapa
+        write (ounit,*) 'Turn ',ia,'   Particle ',ilapa
         errno=dtostr(b,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(c1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(d1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(e1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(f1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(g1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(h1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
         errno=dtostr(p1,ch1)
-        write(*,*) ch1
+        write(ounit,*) ch1
       endif
       goto 211
   510 continue
-      write(*,*) nfile,'FILE CORRUPTED record',n
+      write(ounit,*) nfile,'FILE CORRUPTED record',n
       goto 550
   511 continue
-      write(*,*) nfile,'NO HEADER, EMPTY FILE!!!'
+      write(ounit,*) nfile,'NO HEADER, EMPTY FILE!!!'
       goto 550
   520 continue
-      write(*,*) nfile,'HEADER CORRUPTED'
+      write(ounit,*) nfile,'HEADER CORRUPTED'
       goto 550
   530 continue
-      write(*,*) nfile,'NO DATA'
+      write(ounit,*) nfile,'NO DATA'
       goto 550
   540 continue
   550 continue
+      if(ofoutput .eqv. .TRUE.) then
+         close(ounit)
+      endif
 !----------------------------------------------------------------------
       end
       integer function dtostr(x,results)

@@ -1,6 +1,6 @@
 dabnew.s
 dabnewsn.f
-df small,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,ifort,lf95
+df small,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
 e daini
 e daexter
 e dallsta

@@ -2,7 +2,7 @@
 #
 if test $# -ne 3
 then
-  echo "try_kill called without 3 parameters!!!"
+  echo "try_pro called without 3 parameters!!!"
   exit 1
 fi
 sixdir=$1
@@ -62,12 +62,33 @@ do
     cp ../$i/beambeamdist.dat beambeamdist.dat
     cp beambeamdist.dat fort.54
   fi
+  if test -s ../$i/extra_inputs.txt; then
+      echo "Found extra input files, copying more files..."
+      set -f # Disable wildcard expansion
+      while read extrafile; do
+	  echo "Got file = " $extrafile
+	  if test ! "$extrafile"; then
+	      echo "      Invalid line! Skipping."
+	      continue
+	  fi
+	  if ! test -f ../$i/$extrafile; then
+	      echo "      File " $extrafile " not found, skipping!"
+	      continue
+	  fi
+
+	  cp ../$i/$extrafile .
+      done < ../$i/extra_inputs.txt
+      set +f # Reanable wildcards
+  fi
+  
+  
   echo "First (only) time pro with no checkpoints"
   date
   time $sixdir/$sixv > fort.6 2>&1 
   date
   egrep 'Computing Time|Total Time' fort.6
   ls -l
+  
   cp fort.6 ../$i/fort.6.$dir
   cp fort.10 ../$i/fort.10.$dir
   if test -s fort.110
@@ -81,6 +102,10 @@ do
   if test -s fort.210
   then
     cp fort.210 ../$i/fort.210.$dir
+  fi
+  if test -s singletrackfile.dat
+  then
+    cp singletrackfile.dat ../$i/singletrackfile.dat.$dir
   fi
   if test "$i" = "bnl"
   then
@@ -111,5 +136,28 @@ do
       cp SixTwiss.dat ../$i/SixTwiss.dat.$dir
       cp checkdist.dat ../$i/checkdist.dat.$dir
     fi
+  fi
+  
+  if test -s ../$i/extra_checks.txt; then
+      echo "Found extra_checks.txt, copying more files..."
+      set -f #Disable wildcard expansion
+      while read checkfile command; do
+	  echo "   Got file :: command = " $checkfile :: $command
+	  if test ! "$checkfile" -o ! "$command" ; then
+	      echo "      Invalid line! Skipping."
+	      continue
+	  fi
+
+	  if ! test -f $checkfile ; then
+	      echo "      File '$checkfile' not found, skipping!"
+	  fi
+	  
+	  #echo "   Copying file '"$checkfile"':"
+	  cp $checkfile ../$i/$checkfile.$dir
+	  
+      done < ../$i/extra_checks.txt
+      set +f #Renable wildcards (glob)
+  else
+      echo "No extra_checks.txt was found."
   fi
 done

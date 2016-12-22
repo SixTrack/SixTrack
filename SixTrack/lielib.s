@@ -138,25 +138,16 @@
       do i=0,20
       xintex(i)=0.d0
       enddo
-!hr11 xintex(          0)=       1.000000000000000
       xintex(          0)=       1.000000000000000d0                     !hr11
-!hr11 xintex(          1)=  5.000000000000000e-001
       xintex(          1)=  5.000000000000000d-001                       !hr11
-!hr11 xintex(          2)=  8.333333333333334e-002
       xintex(          2)=  8.333333333333334d-002                       !hr11
-!hr11 xintex(          3)=  0.000000000000000e+000
       xintex(          3)=  0.000000000000000d+000                       !hr11
-!hr11 xintex(          4)= -1.388888888888898e-003
       xintex(          4)= -1.388888888888898d-003                       !hr11
-!hr11 xintex(          5)=  0.000000000000000e+000
       xintex(          5)=  0.000000000000000d+000                       !hr11
-!hr11 xintex(          6)=  3.306878306878064e-005
       xintex(          6)=  3.306878306878064d-005                       !hr11
       xintex(          7)= 0.d0
-!hr11 xintex(          8)= -8.267195767165669e-007
       xintex(          8)= -8.267195767165669d-007                       !hr11
       xintex(          9)=  0.d0
-!hr11 xintex(         10)=  4.592886537931051e-008
       xintex(         10)=  4.592886537931051d-008                       !hr11
       return
       end
@@ -325,10 +316,8 @@
 ! allocates vector of n polynomials and give it the name NOM=A10
       integer x(*),i1(4),i2(4)
       character*10 nom
-!hr11 do 1 i=1,iabs(n)
       do 1 i=1,abs(n)                                                    !hr11
  1    x(i)=0
-!hr11 call daallno(x,iabs(n),nom)
       call daallno(x,abs(n),nom)                                         !hr11
          if(n.lt.0) then
           call liepeek(i1,i2)
@@ -634,13 +623,13 @@
       parameter (ntt=40)
 +ca ii
       integer h(*),rh(*),y(*)
-      integer yi(ndim2),ht(ndim2),b1,b2
+      integer yi(ndim2),ht(ndim2),b1(1),b2(1)
 !
 !
       call etallnom(yi,nd2  ,'YI        ')
       call etallnom(ht,nd2  ,'HT        ')
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
 
       call etinv(y,yi)
 !----- HT= H o Y
@@ -649,16 +638,16 @@
       call daclrd(rh)
       do 1 j=1,nd2
       do 2 k=1,nd2
-      call dader(k,yi(j),b1)
-      call trx(b1,b2,y)
-        call damul(b2,ht(k),b1)
-        call daadd(b1,rh(j),b2)
-        call dacop(b2,rh(j))
+      call dader(k,yi(j),b1(1))
+      call trx(b1(1),b2(1),y)
+        call damul(b2,ht(k),b1(1))
+        call daadd(b1(1),rh(j),b2(1))
+        call dacop(b2(1),rh(j))
  2    continue
  1    continue
 
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       call dadal(ht,nd2)
       call dadal(yi,nd2)
       return
@@ -927,12 +916,12 @@
 +ca ii
       integer h,ht,j(ntt)
 
-      integer b1,b2,b3
+      integer b1(1),b2(1),b3(1)
 !
 !
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
-      call etallnom(b3,1,'B3        ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
+      call etallnom(b3(1),1,'B3        ')
 
       if(no.ge.2) then
        if(m.eq.0) then
@@ -943,12 +932,12 @@
         call dacon(ht,r)
        else
       call danot(m)
-      call dacop(h,b1)
+      call dacop(h,b1(1))
       call danot(m-1)
-      call dacop(b1,b2)
+      call dacop(b1(1),b2(1))
       call danot(no)
-      call dasub(b1,b2,b3)
-      call dacop(b3,ht)
+      call dasub(b1(1),b2(1),b3(1))
+      call dacop(b3(1),ht)
        endif
       else
        do i=1,ntt
@@ -961,18 +950,18 @@
        do i=1,nv
        j(i)=1
         call dapek(h,j,r)
-        call dapok(b3,j,r)
+        call dapok(b3(1),j,r)
        j(i)=0
        enddo
-       call dacop(b3,ht)
+       call dacop(b3(1),ht)
        else
        call daclr(ht)
        endif
       endif
 
-      call dadal(b3,1)
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dadal(b3(1),1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk taked
@@ -991,10 +980,10 @@
 +ca ii
       integer h(*),ht(*),j(ntt)
 
-      integer b1,b2,x(ndim2)
+      integer b1(1),b2(1),x(ndim2)
 !
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
       call etallnom(x,nd2  ,'X         ')
 
 
@@ -1006,8 +995,8 @@
       call take(h(i),m,ht(i))
       enddo
       call dadal(x,nd2)
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk daclrd
@@ -1219,24 +1208,24 @@
       parameter (ntt=40)
 +ca ii
       integer  h(*),x,y
-      integer b1,b2,b3
+      integer b1(1),b2(1),b3(1)
 !
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
-      call etallnom(b3,1,'B3        ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
+      call etallnom(b3(1),1,'B3        ')
 
-      call daclr(b1)
-      call daclr(b2)
+      call daclr(b1(1))
+      call daclr(b2(1))
       do 1 i=1,nd2
-      call dader(i,x,b2)
-      call damul(b2,h(i),b3)
-      call daadd(b3,b1,b2)
-      call dacop(b2,b1)
+      call dader(i,x,b2(1))
+      call damul(b2(1),h(i),b3(1))
+      call daadd(b3(1),b1(1),b2(1))
+      call dacop(b2(1),b1(1))
  1    continue
-      call dacop(b1,y)
-      call dadal(b3,1)
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dacop(b1(1),y)
+      call dadal(b3(1),1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk daflod
@@ -1293,33 +1282,33 @@
       external dlie
       integer v(*),h
 
-      integer b1,b2,b3,b4,x(ndim2)
+      integer b1(1),b2(1),b3(1),b4(1),x(ndim2)
 !
 !
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
-      call etallnom(b3,1,'B3        ')
-      call etallnom(b4,1,'B4        ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
+      call etallnom(b3(1),1,'B3        ')
+      call etallnom(b4(1),1,'B4        ')
       call etallnom(x,nd2  ,'X         ')
 
-      call daclr(b4)
+      call daclr(b4(1))
       call daclr(h)
       call etini(x)
       do 1 i=1,nd
-      call dacfu(v(2*i-1),dlie,b3)
-      call dacfu(v(2*i),dlie,b1)
-      call damul(b1,x(2*i-1),b2)
-      call damul(b3,x(2*i),b1)
-      call dalin(b2,1.d0,b1,sca,b3)
-      call daadd(b3,b4,b2)
-      call dacop(b2,b4)
+      call dacfu(v(2*i-1),dlie,b3(1))
+      call dacfu(v(2*i),dlie,b1(1))
+      call damul(b1(1),x(2*i-1),b2(1))
+      call damul(b3(1),x(2*i),b1(1))
+      call dalin(b2(1),1.d0,b1(1),sca,b3(1))
+      call daadd(b3(1),b4(1),b2(1))
+      call dacop(b2(1),b4(1))
  1    continue
-      call dacop(b4,h)
+      call dacop(b4(1),h)
       call dadal(x,nd2)
-      call dadal(b4,1)
-      call dadal(b3,1)
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dadal(b4(1),1)
+      call dadal(b3(1),1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk difd
@@ -1339,17 +1328,17 @@
       parameter (ntt=40)
 +ca ii
       integer  v(*),h1
-      integer b1,h
-      call etall(b1,1)
-      call etall(h,1)
-      call dacop(h1,h)
+      integer b1(1),h(1)
+      call etall(b1(1),1)
+      call etall(h(1),1)
+      call dacop(h1,h(1))
       do 1 i=1,nd
-      call dader(2*i-1,h,v(2*i))
-      call dader(2*i,h,b1)
-      call   dacmu(b1,sca,v(2*i-1))
+      call dader(2*i-1,h(1),v(2*i))
+      call dader(2*i,h(1),b1(1))
+      call   dacmu(b1(1),sca,v(2*i-1))
  1    continue
-      call dadal(h,1)
-      call dadal(b1,1)
+      call dadal(h(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk expflo
@@ -1369,25 +1358,25 @@
       parameter (ntt=40)
 +ca printing
       integer h(*),x,y
-      integer b1,b2,b3,b4
+      integer b1(1),b2(1),b3(1),b4(1)
       logical more
 !
 !
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
-      call etallnom(b3,1,'B3        ')
-      call etallnom(b4,1,'B4        ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
+      call etallnom(b3(1),1,'B3        ')
+      call etallnom(b4(1),1,'B4        ')
 
-      call dacop(x,b4)
-      call dacop(x,b1)
+      call dacop(x,b4(1))
+      call dacop(x,b1(1))
       more=.true.
       rbefore=1.d30
       do 1 i=1,nrmax
       coe=1.d0/dble(i)
-      call dacmu(b1,coe,b2)
-      call daflo(h,b2,b1)
-      call daadd(b4,b1,b3)
-      call daabs(b1,r)
+      call dacmu(b1(1),coe,b2(1))
+      call daflo(h,b2(1),b1(1))
+      call daadd(b4(1),b1(1),b3(1))
+      call daabs(b1(1),r)
          if(more) then
           if(r.gt.eps) then
        rbefore=r
@@ -1398,17 +1387,17 @@
           endif
          else
         if(r.ge.rbefore) then
-        call dacop(b3,y)
-        call dadal(b4,1)
-        call dadal(b3,1)
-        call dadal(b2,1)
-        call dadal(b1,1)
+        call dacop(b3(1),y)
+        call dadal(b4(1),1)
+        call dadal(b3(1),1)
+        call dadal(b2(1),1)
+        call dadal(b1(1),1)
         return
         endif
        rbefore=r
        endif
 100   continue
-      call dacop(b3,b4)
+      call dacop(b3(1),b4(1))
  1    continue
       if(idpr.ge.0) then
 +if cr
@@ -1425,11 +1414,11 @@
 +ei
       read(5,*) idpr
       endif
-      call dacop(b3,y)
-      call dadal(b4,1)
-      call dadal(b3,1)
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dacop(b3(1),y)
+      call dadal(b4(1),1)
+      call dadal(b3(1),1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk expflod
@@ -1449,19 +1438,19 @@
       parameter (ntt=40)
 +ca ii
       integer x(*),w(*),h(*)
-      integer b0,v(ndim2)
+      integer b0(1),v(ndim2)
 !
 !
-      call etallnom(b0,1,'B0        ')
+      call etallnom(b0(1),1,'B0        ')
       call etallnom(v,nd2  ,'V         ')
 
       call dacopd(x,v)
       do 333 j=1,nd2
-      call expflo(h,v(j),b0,eps,nrmax)
- 333  call dacop(b0,v(j))
+      call expflo(h,v(j),b0(1),eps,nrmax)
+ 333  call dacop(b0(1),v(j))
       call dacopd(v,w)
       call dadal(v,nd2)
-      call dadal(b0,1)
+      call dadal(b0(1),1)
       return
       end
 +dk facflo
@@ -1484,13 +1473,13 @@
       parameter (ntt=40)
 +ca ii
       integer x,w,h(*)
-      integer bm(ndim2),b0(ndim2),v
+      integer bm(ndim2),b0(ndim2),v(1)
 !
       call etallnom(bm,nd2  ,'BM        ')
       call etallnom(b0,nd2  ,'B0        ')
-      call etallnom(v,1  ,'V         ')
+      call etallnom(v(1),1  ,'V         ')
 
-      call dacop(x,v)
+      call dacop(x,v(1))
 
       eps=-1.d0
       call daeps(eps)
@@ -1502,8 +1491,8 @@
          call taked(h,i,b0)
          call dacmud(b0,sca,bm)
 
-         call expflo(bm,v,b0(1),eps,nmax)
-         call dacop(b0(1),v)
+         call expflo(bm,v(1),b0(1),eps,nmax)
+         call dacop(b0(1),v(1))
  1       continue
       else
 ! IFAC =-1 ---> V = EXP(:SCA*H(NRMIN):)...EXP(:SCA*H(NRMAX):)X
@@ -1511,12 +1500,12 @@
       call taked(h,i,b0)
       call dacmud(b0,sca,bm)
 
-         call expflo(bm,v,b0(1),eps,nmax)
-         call dacop(b0(1),v)
+         call expflo(bm,v(1),b0(1),eps,nmax)
+         call dacop(b0(1),v(1))
  11   continue
       endif
-      call dacop(v,w)
-      call dadal(v,1)
+      call dacop(v(1),w)
+      call dadal(v(1),1)
       call dadal(b0,nd2)
       call dadal(bm,nd2)
       return
@@ -1594,29 +1583,29 @@
       parameter (ndim=3)
       parameter (ntt=40)
 +ca ii
-      integer h(*),x(*),y(*),t1,t2,t3(ndim2)
+      integer h(*),x(*),y(*),t1(1),t2(1),t3(ndim2)
 
-      call etall(t1,1)
-      call etall(t2,1)
+      call etall(t1(1),1)
+      call etall(t2(1),1)
       call etall(t3,nd2)
 
       do 2 j=1,nd2
       do 1 i=1,nd2
 
-      call dader(i,x(j),t1)
-      call dader(i,y(j),t2)
-      call damul(x(i),t2,t2)
-      call damul(y(i),t1,t1)
-      call dalin(t2,1.d0,t1,-1.d0,t1)
-      call daadd(t1,t3(j),t3(j))
+      call dader(i,x(j),t1(1))
+      call dader(i,y(j),t2(1))
+      call damul(x(i),t2(1),t2(1))
+      call damul(y(i),t1(1),t1(1))
+      call dalin(t2(1),1.d0,t1(1),-1.d0,t1(1))
+      call daadd(t1(1),t3(j),t3(j))
 
  1    continue
  2    continue
 
       call dacopd(t3,h)
 
-      call dadal(t1,1)
-      call dadal(t2,1)
+      call dadal(t1(1),1)
+      call dadal(t2(1),1)
       call dadal(t3,nd2)
       return
       end
@@ -1635,32 +1624,32 @@
       parameter (ndim=3)
       parameter (ntt=40)
 +ca ii
-      integer h,x,y,t1,t2,t3
+      integer h,x,y,t1(1),t2(1),t3(1)
 
-      call etall(t1,1)
-      call etall(t2,1)
-      call etall(t3,1)
+      call etall(t1(1),1)
+      call etall(t2(1),1)
+      call etall(t3(1),1)
 
       do 1 i=1,nd
 
-      call dader(2*i-1,x,t1)
-      call dader(2*i,y,t2)
-      call damul(t1,t2,t1)
+      call dader(2*i-1,x,t1(1))
+      call dader(2*i,y,t2(1))
+      call damul(t1(1),t2(1),t1(1))
 
-      call dalin(t1,1.d0,t3,1.d0,t3)
-      call dader(2*i-1,y,t1)
-      call dader(2*i,x,t2)
-      call damul(t1,t2,t1)
+      call dalin(t1(1),1.d0,t3(1),1.d0,t3(1))
+      call dader(2*i-1,y,t1(1))
+      call dader(2*i,x,t2(1))
+      call damul(t1(1),t2(1),t1(1))
 
-      call dalin(t1,-1.d0,t3,1.d0,t3)
+      call dalin(t1(1),-1.d0,t3(1),1.d0,t3(1))
 
  1    continue
 
-      call dacop(t3,h)
+      call dacop(t3(1),h)
 
-      call dadal(t1,1)
-      call dadal(t2,1)
-      call dadal(t3,1)
+      call dadal(t1(1),1)
+      call dadal(t2(1),1)
+      call dadal(t3(1),1)
       return
       end
 +dk exp1d
@@ -1710,19 +1699,19 @@
 +ca ii
       integer x(*),w(*),h
 
-      integer b0,v(ndim2)
+      integer b0(1),v(ndim2)
 !
 !
-      call etallnom(b0,1,'B0        ')
+      call etallnom(b0(1),1,'B0        ')
       call etallnom(v,nd2  ,'V         ')
 
         call dacopd(x,v)
       do 333 j=1,nd2
-      call exp1d(h,v(j),b0,eps,nrmax)
- 333  call dacop(b0,v(j))
+      call exp1d(h,v(j),b0(1),eps,nrmax)
+ 333  call dacop(b0(1),v(j))
       call dacopd(v,w)
       call dadal(v,nd2)
-      call dadal(b0,1)
+      call dadal(b0(1),1)
       return
       end
 +dk flofacg
@@ -2035,11 +2024,9 @@
       enddo
       jtune=isi
 +if crlibm
-!hr11 x2pii=1.d0/atan_rn(1.d0)/8.d0
       x2pii=(1.d0/atan_rn(1.d0))/8.d0                                    !hr11
 +ei
 +if .not.crlibm
-!hr11 x2pii=1.d0/atan(1.d0)/8.d0
       x2pii=(1.d0/atan(1.d0))/8.d0                                       !hr11
 +ei
 +if crlibm
@@ -2183,7 +2170,6 @@
           call dacmu(w(2*i-1),-1.d0,v(2*i) )
         enddo
 
-!hr11   xic=(-1)**(ndt)
         xic=dble((-1)**(ndt))                                            !hr11
 
         do i=1,nd2-ndc2
@@ -2415,14 +2401,11 @@
           jj(i)=jj(i)+(-1)**iflow
           jp(i)=jp(i)-1
         endif
-!hr11   ic=ic+iabs(jj(i))
         ic=ic+abs(jj(i))                                                 !hr11
       enddo
 
       do i=1,nd-ndc
-!hr11   ad=dsta(i)*dble(jj(i))*angle(i)-dble(jp(i))*rad(i)+ad
         ad=((dsta(i)*dble(jj(i)))*angle(i)-dble(jp(i))*rad(i))+ad        !hr11
-!hr11   as=sta(i)*dble(jj(i))*angle(i)+as
         as=(sta(i)*dble(jj(i)))*angle(i)+as                              !hr11
       enddo
 
@@ -2434,19 +2417,15 @@
 +ei
       ex=exh**2
 +if crlibm
-!hr11 ans=4.d0*ex*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)             !hr11
 +ei
 +if .not.crlibm
-!hr11 ans=4.d0*ex*(dsinh(ad/2.d0)**2+sin(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh(ad/2.d0)**2+sin(as/2.d0)**2)                   !hr11
 +ei
 +if crlibm
-!hr11 xgam=2.d0*(-exh*sinh_rn(ad/2.d0)+ex*sin_rn(as/2.d0)**2)/ans
       xgam=(2.d0*(ex*sin_rn(as/2.d0)**2-exh*sinh_rn(ad/2.d0)))/ans       !hr11
 +ei
 +if .not.crlibm
-!hr11 xgam=2.d0*(-exh*dsinh(ad/2.d0)+ex*sin(as/2.d0)**2)/ans
       xgam=(2.d0*(ex*sin(as/2.d0)**2-exh*sinh(ad/2.d0)))/ans            !hr11
 +ei
 
@@ -2490,9 +2469,7 @@
       enddo
 
       do i=1,nd-ndc
-!hr11   ad=dsta(i)*dble(jj(i))*angle(i)-dble(jp(i))*rad(i)+ad
         ad=((dsta(i)*dble(jj(i)))*angle(i)-dble(jp(i))*rad(i))+ad        !hr11
-!hr11   as=sta(i)*dble(jj(i))*angle(i)+as
         as=(sta(i)*dble(jj(i)))*angle(i)+as                              !hr11
       enddo
 
@@ -2504,19 +2481,15 @@
 +ei
       ex=exh**2
 +if crlibm
-!hr11 ans=4.d0*ex*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)             !hr11
 +ei
 +if .not.crlibm
-!hr11 ans=4.d0*ex*(dsinh(ad/2.d0)**2+sin(as/2.d0)**2)
       ans=(4.d0*ex)*(sinh(ad/2.d0)**2+sin(as/2.d0)**2)                  !hr11
 +ei
 +if crlibm
-!hr11 xgbm=sin_rn(as)*ex/ans
       xgbm=(sin_rn(as)*ex)/ans                                           !hr11
 +ei
 +if .not.crlibm
-!hr11 xgbm=sin(as)*ex/ans
       xgbm=(sin(as)*ex)/ans                                              !hr11
 +ei
 
@@ -2628,12 +2601,12 @@
 +ca coast
       integer h(*),t(*)
 
-      integer b1(ndim2),b2(ndim2),bb1,bb2
+      integer b1(ndim2),b2(ndim2),bb1(1),bb2(1)
 !
       call etall(b1,nd2)
       call etall(b2,nd2)
-      call etall(bb1,1)
-      call etall(bb2,1)
+      call etall(bb1(1),1)
+      call etall(bb2(1),1)
 
 +if crlibm
       x2pi=atan_rn(1.d0)*8.d0
@@ -2645,12 +2618,12 @@
       coe=1.d0/x2pi
 
       do i=1,nd-ndc
-        call datra(2*i,b2(2*i),bb1)
-        call dacmu(bb1,coe,t(i+nd))
-        call dacop(t(i+nd),bb1)
-        call daclr(bb2)
-        call rtoc(bb1,bb2,bb1)
-        call dacop(bb1,t(i))
+        call datra(2*i,b2(2*i),bb1(1))
+        call dacmu(bb1(1),coe,t(i+nd))
+        call dacop(t(i+nd),bb1(1))
+        call daclr(bb2(1))
+        call rtoc(bb1(1),bb2(1),bb1(1))
+        call dacop(bb1(1),t(i))
       enddo
 
       if(ndpt.ne.0) then
@@ -2658,8 +2631,8 @@
         call dacop(b1(ndt),t(nd2))
       endif
 
-      call dadal(bb2,1)
-      call dadal(bb1,1)
+      call dadal(bb2(1),1)
+      call dadal(bb1(1),1)
       call dadal(b2,nd2)
       call dadal(b1,nd2)
       return
@@ -2682,12 +2655,12 @@
 +ca coast
       integer h,t(*)
 
-      integer b1,b2,bb1,bb2
+      integer b1(1),b2(1),bb1(1),bb2(1)
 !
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
-      call etallnom(bb1,1,'BB1       ')
-      call etallnom(bb2,1,'BB2       ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
+      call etallnom(bb1(1),1,'BB1       ')
+      call etallnom(bb2(1),1,'BB2       ')
 
 +if crlibm
       x2pi=atan_rn(1.d0)*8.d0
@@ -2695,21 +2668,21 @@
 +if .not.crlibm
       x2pi=atan(1.d0)*8.d0
 +ei
-      call ctor(h,b1,b2)
+      call ctor(h,b1(1),b2(1))
       coe=-2.d0/x2pi
       do i=1,nd-ndc
-        call dader(2*i-1,b1,b2)
-        call datra(2*i,b2,bb2)
-        call dacmu(bb2,coe,t(i+nd))
-        call dacop(t(i+nd),bb2)
-        call daclr(b2)
-        call rtoc(bb2,b2,bb1)
-        call dacop(bb1,t(i))
+        call dader(2*i-1,b1(1),b2(1))
+        call datra(2*i,b2(1),bb2(1))
+        call dacmu(bb2(1),coe,t(i+nd))
+        call dacop(t(i+nd),bb2(1))
+        call daclr(b2(1))
+        call rtoc(bb2(1),b2(1),bb1(1))
+        call dacop(bb1(1),t(i))
       enddo
 
       if(ndpt.eq.nd2) then
         call dader(ndpt,h,t(nd))
-        call dader(ndpt,b1,t(nd2))
+        call dader(ndpt,b1(1),t(nd2))
         call dacmu(t(nd),-1.d0,t(nd))
         call dacmu(t(nd2),-1.d0,t(nd2))
       endif
@@ -2717,10 +2690,10 @@
         call dader(ndpt,h,t(nd))
         call dader(ndpt,b1,t(nd2))
       endif
-      call dadal(bb2,1)
-      call dadal(bb1,1)
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dadal(bb2(1),1)
+      call dadal(bb1(1),1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk h2pluflo
@@ -2755,7 +2728,6 @@
 
       do i=1,nd-ndc
         j(2*i-1)=1
-!hr11   r1=-ang(i)
         r1=-1d0*ang(i)                                                   !hr11
 !-----
         call dapok(h(2*i),j,r1)
@@ -2777,7 +2749,6 @@
         call dapok(h(ndt),j,ang(nd))
       elseif(ndpt.eq.nd2) then
         j(ndpt)=1
-!hr11   call dapok(h(ndt),j,-ang(nd))
         call dapok(h(ndt),j,-1d0*ang(nd))                                !hr11
       endif
       return
@@ -2816,7 +2787,6 @@
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-!hr11     si(i)=-sh*xx
           si(i)=(-1d0*sh)*xx                                             !hr11
         else
 +if crlibm
@@ -2837,7 +2807,6 @@
         if(ista(i).eq.0)then
           sim=si(i)
         else
-!hr11     sim=-si(i)
           sim=-1d0*si(i)                                                 !hr11
         endif
         j(2*i-1)=1
@@ -2892,17 +2861,14 @@
       call daclrd(roi)
       do i=1,nd-ndc
 +if crlibm
-!hr11   xx=exp_rn(-ra(i))
         xx=exp_rn(-1d0*ra(i))                                            !hr11
 +ei
 +if .not.crlibm
-!hr11   xx=exp(-ra(i))
         xx=exp(-1d0*ra(i))                                               !hr11
 +ei
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-!hr11     si(i)=-sh*xx
           si(i)=(-1d0*sh)*xx
         else
 +if crlibm
@@ -2923,17 +2889,14 @@
         if(ista(i).eq.0)then
           sim=si(i)
         else
-!hr11     sim=-si(i)
           sim=-1d0*si(i)                                                 !hr11
         endif
         j(2*i-1)=1
         call dapok(roi(2*i-1),j,co(i))
-!hr11   simv=-sim
         simv=-1d0*sim                                                    !hr11
         call dapok(roi(2*i),j,simv)
         j(2*i-1)=0
         j(2*i)=1
-!hr11   simv=-si(i)
         simv=-1d0*si(i)                                                  !hr11
         call dapok(roi(2*i),j,co(i))
         call dapok(roi(2*i-1),j,simv)
@@ -2991,21 +2954,21 @@
       parameter (ntt=40)
 +ca ii
       integer c1,r2,i2
-      integer b1,b2,x(ndim2)
+      integer b1(1),b2(1),x(ndim2)
 !
 !
-      call etallnom(b1,1,'B1        ')
-      call etallnom(b2,1,'B2        ')
+      call etallnom(b1(1),1,'B1        ')
+      call etallnom(b2(1),1,'B2        ')
       call etallnom(x,nd2  ,'X         ')
 
-      call ctoi(c1,b1)
+      call ctoi(c1,b1(1))
       call etcjg(x)
-      call trx(b1,b2,x)
-      call dalin(b1,.5d0,b2,.5d0,r2)
-      call dalin(b1,.5d0,b2,-.5d0,i2)
+      call trx(b1(1),b2(1),x)
+      call dalin(b1(1),.5d0,b2(1),.5d0,r2)
+      call dalin(b1(1),.5d0,b2(1),-.5d0,i2)
       call dadal(x,nd2)
-      call dadal(b2,1)
-      call dadal(b1,1)
+      call dadal(b2(1),1)
+      call dadal(b1(1),1)
       return
       end
 +dk rtoc
@@ -3024,13 +2987,13 @@
 +ca ii
       integer c2,r1,i1
 
-      integer b1
+      integer b1(1)
 !
-      call etallnom(b1,1,'B1        ')
+      call etallnom(b1(1),1,'B1        ')
 
-      call daadd(r1,i1,b1)
-      call itoc(b1,c2)
-      call dadal(b1,1)
+      call daadd(r1,i1,b1(1))
+      call itoc(b1(1),c2)
+      call dadal(b1(1),1)
       return
       end
 +dk ctorflo
@@ -3316,9 +3279,7 @@
 
       call mapflol(sa,sai,cr,cm,st)
       do i=1,nd-ndc
-!hr11   if(st(i)+0.001.gt.1.d0) then
         if(st(i)+0.001d0.gt.1.d0) then                                   !hr11
-!hr11     a(i)=dsqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)
           a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
 +if crlibm
           q(i)=acos_rn(cr(2*i-1,2*i-1)/a(i))
@@ -3334,18 +3295,15 @@
 +ei
           if(cr(2*i-1,2*i).lt.0.d0) q(i)=x2pi-q(i)
         else
-!hr11     a(i)=dsqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)
           a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)                 !hr11
           ch=cr(2*i-1,2*i-1)/a(i)
           shm=cr(2*i-1,2*i)/a(i)
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
 +if crlibm
-!hr11     q(i)=-log_rn(ch+shm)
           q(i)=-1d0*log_rn(ch+shm)                                       !hr11
 +ei
 +if .not.crlibm
-!hr11     q(i)=-log(ch+shm)
           q(i)=-1d0*log(ch+shm)                                          !hr11
 +ei
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
@@ -3359,7 +3317,6 @@
       enddo
 
       if(ndc.eq.0) then
-!hr11   if(st(3)+0.001.gt.1.d0.and.nd.eq.3.and.q(nd).gt.0.5d0)          &
         if(st(3)+0.001d0.gt.1.d0.and.nd.eq.3.and.q(nd).gt.0.5d0)        &!hr11
      &q(3)=q(3)-x2pi
       else
@@ -4095,17 +4052,17 @@
       parameter (ntt=40)
 +ca ii
       integer f1,f2
-      integer b1,x(ndim2)
+      integer b1(1),x(ndim2)
 !
 !
-      call etallnom(b1,1,'B1        ')
+      call etallnom(b1(1),1,'B1        ')
       call etallnom(x,nd2  ,'X         ')
 
-      call cpart(f1,b1)
+      call cpart(f1,b1(1))
       call etctr(x)
-      call trx(b1,f2,x)
+      call trx(b1(1),f2,x)
       call dadal(x,nd2)
-      call dadal(b1,1)
+      call dadal(b1(1),1)
       return
       end
 +dk itoc
@@ -4122,16 +4079,16 @@
       parameter (ntt=40)
 +ca ii
       integer f1,f2
-      integer b1,x(ndim2)
+      integer b1(1),x(ndim2)
 !
-      call etallnom(b1,1,'B1        ')
+      call etallnom(b1(1),1,'B1        ')
       call etallnom(x,nd2  ,'X         ')
 
       call etrtc(x)
-      call trx(f1,b1,x)
-      call cpart(b1,f2)
+      call trx(f1,b1(1),x)
+      call cpart(b1(1),f2)
       call dadal(x,nd2)
-      call dadal(b1,1)
+      call dadal(b1(1),1)
       return
       end
 +dk etrtc
@@ -5100,24 +5057,24 @@
 +ca printing
 +ca ii
       integer f,fave,a(*)
-      integer cosi,sine
+      integer cosi(1),sine(1)
       logical flag
       external avepol
 
       integer a1(ndim2),a2(ndim2),xy(ndim2),hf(ndim2),ftf(ndim2)
 
       if(.not.flag) then
-      call etall(cosi,1)
-      call etall(sine,1)
+      call etall(cosi(1),1)
+      call etall(sine(1),1)
       call trx(f,f,a)
-      call ctor(f,cosi,sine)
-      call dacfu(cosi,avepol,fave)
-      call dadal(cosi,1)
-      call dadal(sine,1)
+      call ctor(f,cosi(1),sine(1))
+      call dacfu(cosi(1),avepol,fave)
+      call dadal(cosi(1),1)
+      call dadal(sine(1),1)
       else
 
-      call etall(cosi,1)
-      call etall(sine,1)
+      call etall(cosi(1),1)
+      call etall(sine(1),1)
       call etall(ftf,nd2)
       call etall(hf,nd2)
       call etall(a2,nd2)
@@ -5131,11 +5088,11 @@
       call etcct(a1,a2,xy)
       call facflod(ftf,xy,a1,2,nord,1.d0,-1)
       call trx(f,f,a1)
-      call ctor(f,cosi,sine)
-      call dacfu(cosi,avepol,fave)
+      call ctor(f,cosi(1),sine(1))
+      call dacfu(cosi(1),avepol,fave)
 
-      call dadal(cosi,1)
-      call dadal(sine,1)
+      call dadal(cosi(1),1)
+      call dadal(sine(1),1)
       call dadal(ftf,nd2)
       call dadal(hf,nd2)
       call dadal(a2,nd2)
@@ -5194,23 +5151,23 @@
       parameter (ntt=40)
 +ca coast
 +ca ii
-      integer map1(*),oneturn(*),map2(*),ftf,hf
+      integer map1(*),oneturn(*),map2(*),ftf(1),hf(1)
       integer xy(ndim2),m1(ndim2),m2(ndim2),a2(ndim2),a1(ndim2)
-      integer cs,h
+      integer cs(1),h(1)
 
       double precision killnonl,planar,psq(ndim),radsq(ndim)
       double precision tune(ndim)
       external killnonl,planar
 
-      call etall(ftf,1)
-      call etall(hf,1)
+      call etall(ftf(1),1)
+      call etall(hf(1),1)
       call etall(a1,nd2)
       call etall(a2,nd2)
       call etall(m1,nd2)
       call etall(m2,nd2)
       call etall(xy,nd2)
-      call etall(cs,1)
-      call etall(h,1)
+      call etall(cs(1),1)
+      call etall(h(1),1)
 
 !     map1 is an a-script, the last nv entry should be empty
 !  this a-script should around the fixed point to all orders
@@ -5227,32 +5184,32 @@
       enddo
 
       call etini(xy)
-      call daclr(cs)
+      call daclr(cs(1))
 
       do i=1,nd-ndc
         call dasqr(xy(2*i-1),a2(2*i-1))
         call dasqr(xy(2*i),a2(2*i))
-        call daadd(a2(2*i-1),a2(2*i),ftf)
+        call daadd(a2(2*i-1),a2(2*i),ftf(1))
         crazy=-tune(i)*tpi/2.d0
-        call dacmu(ftf,crazy,ftf)
-        call daadd(ftf,cs,cs)
+        call dacmu(ftf(1),crazy,ftf(1))
+        call daadd(ftf(1),cs(1),cs(1))
       enddo
 
       call etinv(m1,m2)
-      call trx(cs,h,m2)
+      call trx(cs(1),h(1),m2)
 
-      call dacfu(h,planar,cs)
-      call dasub(h,cs,h)
+      call dacfu(h(1),planar,cs(1))
+      call dasub(h(1),cs(1),h(1))
       call davar(a2(1),0.d0,nv)
 
-      call damul(a2(1),h,h)
-      call daadd(cs,h,h)
-      call expnd2(h,xy,xy,1.d-9,1000)
+      call damul(a2(1),h(1),h(1))
+      call daadd(cs(1),h(1),h(1))
+      call expnd2(h(1),xy,xy,1.d-9,1000)
 
       call dacopd(xy,oneturn)
 
       nord=1
-      call mapnorm(xy,ftf,a2,a1,m2,hf,nord)
+      call mapnorm(xy,ftf(1),a2,a1,m2,hf(1),nord)
 
       call gettura(psq,radsq)
 +if cr
@@ -5264,19 +5221,19 @@
 
       call etini(xy)
       no1=no
-      call fexpo(ftf,xy,xy,3,no1,1.d0,-1)
+      call fexpo(ftf(1),xy,xy,3,no1,1.d0,-1)
       call etcct(a2,xy,map2)
       call etcct(a1,map2,map2)
 
-      call dadal(ftf,1)
-      call dadal(hf,1)
+      call dadal(ftf(1),1)
+      call dadal(hf(1),1)
       call dadal(a1,nd2)
       call dadal(a2,nd2)
       call dadal(m1,nd2)
       call dadal(m2,nd2)
       call dadal(xy,nd2)
-      call dadal(cs,1)
-      call dadal(h,1)
+      call dadal(cs(1),1)
+      call dadal(h(1),1)
 
       return
       end
