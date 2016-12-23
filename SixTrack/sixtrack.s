@@ -4803,7 +4803,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         endif
 +cd wirektrack
 ! wire
-        if(abs(kzz).eq.15) then
+        if(kzz.eq.15) then
           ktrack(i)=45
           goto 290
         endif
@@ -12579,28 +12579,6 @@ cc2008
           kp(i)=6
         endif
       endif
-! MF: remove and add to fort.3 block
-!--WIRE
-      if(abs(kz(i)).eq.15) then
-        write(*,*),'MF: 12558',i,kz(i)
-!        if(abs(ed(i)*el(i)).le.pieni.or.el(i).le.pieni                  &
-!     &.or.ek(i).le.pieni) then
-!           kz(i)=0
-!           ed(i)=0d0                                                     !hr05
-!           ek(i)=0d0                                                     !hr05
-!           el(i)=0d0                                                     !hr05
-!           write(*,*),'MF: 12561',i,kz(i)
-!        else
-           wirel(i)=el(i)
-           el(i)=0d0                                                     !hr05
-! flag for closed orbit subtraction in wire's map:
-          if (kz(i).lt.0) then
-            windex1(i)=1
-          else
-            windex1(i)=0
-          endif           
-!        endif
-      endif
 !----------------------------------------
 ! Handled by initialize_element subroutine:
 !-----------------------------------------
@@ -14943,7 +14921,7 @@ cc2008
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 1590
-            if(abs(kzz).eq.15) goto 1590
+            if(kzz.eq.15) goto 1590
             izu=izu+3
             read(30,10020,end=1591,iostat=ierro) ch
             if(ierro.gt.0) call prror(87)
@@ -17691,7 +17669,7 @@ cc2008
       if (ch(:4).eq.next) then
 !       4) loop over single elements to check that they have been defined in the fort.3 block
         do j=1,nele
-          if(abs(kz(j)).eq.15) then
+          if(kz(j).eq.15) then
             if(wire_flagco(j).eq.0) then
 +if cr
               write(lout,*)
@@ -17768,7 +17746,7 @@ cc2008
      &getfields_fields(1)(1:getfields_lfields(1))
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_wire=15)
-            if(abs(kz(j)).ne.15) then
+            if(kz(j).ne.15) then
 +if cr
                write(lout,*)
 +ei
@@ -17776,7 +17754,7 @@ cc2008
                write(*,*)
 +ei
      &              'ERROR: element type mismatch for WIRE! '//
-     &'Element type is kz(',j,') = ',kz(j),'!= +/-15'
+     &'Element type is kz(',j,') = ',kz(j),'!= +15'
                call prror(-1)
             endif
             if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
@@ -17987,18 +17965,6 @@ cc2008
           endif
         enddo
       endif
-!      do j=1,il
-!         write(*,*), 'MF: 17940',kz(j)
-!         if(abs(kz(j)).eq.15) then
-!            if(abs(xpl(j)).lt.pieni.and.abs(zpl(j)).lt.pieni) then
-!               kz(j)=0
-!               ed(j)=0d0                                                 !hr05
-!               ek(j)=0d0                                                 !hr05
-!               el(j)=0d0                                                 !hr05
-!               write(*,*), 'MF: 17952',kz(j)
-!            endif
-!         endif
-!      enddo
       if(iout.eq.0) return
 +if cr
       write(lout,10050)
@@ -18597,8 +18563,8 @@ cc2008
       subroutine initialize_element(ix,lfirst)
 !
 !-----------------------------------------------------------------------
-!     K.Sjobak & A.Santamaria, BE-ABP/HSS
-!     last modified: 16-12-2014
+!     K.Sjobak & A.Santamaria , BE-ABP/HSS
+!     last modified: 23-12-2016
 !     Initialize a lattice element with index elIdx,
 !     such as done when reading fort.2 (GEOM) and in DYNK.
 !     
@@ -18901,6 +18867,13 @@ c$$$         endif
          !Moved from daten()
          crabph4(ix)=el(ix)
          el(ix)=0d0
+!--Wire
+      else if(kz(ix).eq.15) then
+         ed(i)=0d0
+         ek(i)=0d0
+         el(i)=0d0
+         wirel(i)=0d0
+         windex1(i)=0
       endif
 
       return
@@ -20999,7 +20972,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               endif
             endif
           endif
-          if(abs(kzz).eq.15) then
+          if(kzz.eq.15) then
 *FOX  XX(1)=X(1) ;
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
@@ -21088,7 +21061,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             goto 480
           endif
 +ca trom20
-          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.abs(kzz).eq.15) then
+          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
             if(bez(ix).eq.'DAMAP') then
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
@@ -22272,10 +22245,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 440
    80   kzz=kz(ix)
 !--Wire-- is it correct?
-      if(abs(kzz).eq.15) then
-      
-!      write(*,*) 'kzzzzzzzzz', windex1(ix)
-      
+      if(kzz.eq.15) then
 ! the same as in umlalid1
           iww = iww+1
 ! is the error number correct?
@@ -22652,7 +22622,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           endif
 +ca trom20
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
-        if(abs(kzz).eq.15) goto 440
+        if(kzz.eq.15) goto 440
         ipch=0
         if(iqmodc.eq.1) then
           if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
@@ -25049,7 +25019,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 150
-          if(abs(kzz).eq.15) goto 150
+          if(kzz.eq.15) goto 150
           if(iorg.lt.0) mzu(i)=izu
           izu=mzu(i)+1
           smizf(i)=zfz(izu)*ek(ix)
@@ -38268,7 +38238,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       nlin=0
       if(nbeam.ge.1) then
         do 135 i=1,nele
-          if(kz(i).eq.20.or.abs(kz(i)).eq.15) then
+          if((kz(i).eq.20).or.(kz(i).eq.15)) then
             nlin=nlin+1
             if(nlin.gt.nele) call prror(81)
             bezl(nlin)=bez(i)
@@ -38285,7 +38255,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
-        if(abs(kzz).eq.15) goto 60
+        if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         smizf(i)=zfz(izu)*ek(ix)
@@ -49203,7 +49173,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
-        if(abs(kzz).eq.15) goto 60
+        if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.                    &
@@ -49318,7 +49288,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 10
-        if(abs(kzz).eq.15) goto 10
+        if(kzz.eq.15) goto 10
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if((kpz.eq.4.and.kzz.eq.1).or.(kpz.eq.-4.and.kzz.eq.-1)) then
@@ -49834,7 +49804,7 @@ c$$$            endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 50
-            if(abs(kzz).eq.15) goto 50
+            if(kzz.eq.15) goto 50
             mzu(i)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
@@ -49883,7 +49853,7 @@ c$$$            endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 110
-            if(abs(kzz).eq.15) goto 110
+            if(kzz.eq.15) goto 110
             do 80 j=1,iorg
               if(bez(ix).eq.bezr(1,j)) goto 90
    80       continue
@@ -49916,7 +49886,7 @@ c$$$            endif
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 115
-          if(abs(kzz).eq.15) goto 115
+          if(kzz.eq.15) goto 115
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
@@ -50000,7 +49970,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 190
-        if(abs(kzz).eq.15) goto 190
+        if(kzz.eq.15) goto 190
         if(icextal(i).ne.0) then
           izu=izu+2
           xrms(ix)=one
@@ -50242,7 +50212,7 @@ c$$$            endif
 +ca trom03
 +ca trom04
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
-        if(abs(kzz).eq.15) goto 450
+        if(kzz.eq.15) goto 450
 ! JBG RF CC Multipoles to 450
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
@@ -51383,7 +51353,7 @@ c$$$            endif
 !
 +ca trom10
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
-        if(abs(kzz).eq.15) goto 350
+        if(kzz.eq.15) goto 350
 !
 ! JBG RF CC Multipoles to 350
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
@@ -51395,7 +51365,7 @@ c$$$            endif
         xs=xpl(ix)+zfz(izu)*xrms(ix)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
-!        if(abs(kzz).eq.15) then
+!        if(kzz.eq.15) then
 !        ekk=0
 !        xs=0
 !        zs=0
@@ -51947,7 +51917,7 @@ c$$$            endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 770
-        if(abs(kzz).eq.15) goto 770
+        if(kzz.eq.15) goto 770
 ! JBG RF CC Multipoles to 770
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 770
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 770
@@ -53379,7 +53349,7 @@ c$$$            endif
           clo0(2)=t(2,3)
           clop0(2)=t(2,4)
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 790
-          if(abs(kzz).eq.15) goto 790
+          if(kzz.eq.15) goto 790
 ! JBG RF CC Multipoles to 790
           if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 790
           if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 790
@@ -54471,7 +54441,7 @@ c$$$            endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 740
-        if(abs(kzz).eq.15) goto 740
+        if(kzz.eq.15) goto 740
 ! JBG RF CC Multipoles to 740
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 740
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 740 
