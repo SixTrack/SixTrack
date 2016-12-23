@@ -8453,7 +8453,8 @@ cc2008
 !     4. The transport map is given for canonical variables (x,px...)
 !
 ! The MAP includes:
-!     1. Declaration of shifted canonical variables: XI = X-DX; YI = Y-DY  
+!     1. Declaration of shifted canonical variables: 
+!          XI = X+DX; YI = Y+DY  in the same way as for BEAM-BEAM element
 !     2. Symplectic Rotation on TX, TY (in 4D space: PX, XI, PY, YI)
 !     3. //Wire kick 
 !     4. Symplectic Rotation on -TY, -TX (in 4D space: ...taking only PX, PY)
@@ -8485,16 +8486,16 @@ cc2008
 !      write(*,*) 'AAAAAAAAAAA WT', CUR, ix, DX, DY, TX, TY
 !      write(*,*) 'AAAAAAAAAAA WT', ibeco
 
-!      IF (windex1(ix).eq.0) THEN
-!         dxi = dx*c1m3
-!         dyi = dy*c1m3 
-!      ELSE IF (windex1(ix).eq.1) THEN
-!         dxi = (dx-clowbeam(1,imww(i)) )*c1m3
-!         dyi = (dy-clowbeam(2,imww(i)) )*c1m3
-!      END IF 
+      IF (windex1(ix).eq.0) THEN
+         dxi = (dx+clowbeam(1,imww(i)) )*c1m3
+         dyi = (dy+clowbeam(2,imww(i)) )*c1m3 
+      ELSE IF (windex1(ix).eq.1) THEN
+         dxi = (dx)*c1m3
+         dyi = (dy)*c1m3
+      END IF 
       
-      dxi = dx*c1m3
-      dyi = dy*c1m3
+!      dxi = dx*c1m3
+!      dyi = dy*c1m3
       
       do j=1, napx
 
@@ -8510,10 +8511,10 @@ cc2008
          yi = (xv(2,j)+( dy-clowbeam(2,imww(i)) ))*c1m3 !SI
       END IF 
 
-!      write(*,*)'XY_____, INITIAL:x, dxi, dx, clox'
-!      write(*,*)'XY_____, X, mm',xi*c1e3, dxi*c1e3, dx, 
+!      write(*,*)'XY_____, INITIAL:x,xi, dxi, dx, clox'
+!      write(*,*)'XY_____, X, mm',xv(1,j),xi*c1e3, dxi*c1e3, dx, 
 !     &clowbeam(1,imww(i)), windex1(ix), ibeco
-!      write(*,*)'XY_____, Y, mm',yi*c1e3, dyi*c1e3, dy,
+!      write(*,*)'XY_____, Y, mm',xv(1,j),yi*c1e3, dyi*c1e3, dy,
 !     &clowbeam(2,imww(i)), windex1(ix), ibeco
       
 !      write(*,*)'PXPY_____, INITIAL: PX, PY'
@@ -23601,7 +23602,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     4. The transport map is given for canonical variables (x,px...)
 !
 ! The MAP includes:
-!     1. Declaration of shifted canonical variables: XI = X-DX; YI = Y-DY  
+!     1. Declaration of shifted canonical variables: XI = X+DX; YI = Y+DY
+!         in the same way as for BEAM-BEAM element  
 !     2. Symplectic Rotation on TX, TY (in 4D space: PX, XI, PY, YI)
 !     3. //Wire kick 
 !     4. Symplectic Rotation on -TY, -TX (in 4D space: ...taking only PX, PY)
@@ -23678,8 +23680,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YY(1)=YY(1)*C1M3;
 *FOX  YY(2)=YY(2)*C1M3;
 
+!*FOX  DXI=DX*C1M3;
+!*FOX  DYI=DY*C1M3;
+      IF (windex1(ix).eq.0) THEN
+*FOX  DXI=(DX+YCLO)*C1M3;
+*FOX  DYI=(DY+YCLO)*C1M3;
+      ELSE IF (windex1(ix).eq.1) THEN
 *FOX  DXI=DX*C1M3;
 *FOX  DYI=DY*C1M3;
+      END IF
 
 
 
@@ -23689,8 +23698,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YY(2)=YY(2)*(ONE+DPDA) ;
 
 ! 1 SHIFT - see the part of the code were wireda is called ....
-*FOX  XI=(XX(1))*C1M3;
-*FOX  YI=(XX(2))*C1M3;
 
       IF (windex1(ix).eq.0) THEN
 *FOX  XI=(XX(1)+DX)*C1M3;
