@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.45'/
-      data moddate /'19.12.2016'/
+      data moddate /'20.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -57920,11 +57920,12 @@ c$$$            endif
 +if cr
 +ca crcoall
 +ei
-      integer :: i,j,k,l,m,n !for do loops
-      integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
-      logical :: lopen              !flag to check if file is already open
-      logical :: lexist             !flag to check if file fma_fname exists
-      logical :: lread              !flag for file reading
+      integer :: i,j,k,l,m,n                    ! for do loops
+      integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
+      integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
+      logical :: lopen                          ! flag to check if file is already open
+      logical :: lexist                         ! flag to check if file fma_fname exists
+      logical :: lread                          ! flag for file reading
       character(len=getfields_l_max_string) :: ch,ch1
       character filefields_fields
      &     ( getfields_n_max_fields )*( getfields_l_max_string )
@@ -58002,6 +58003,25 @@ c$$$            endif
      &action='write',form='formatted')
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
+
+      if (idp.eq.0 .or. ition.eq.0) then
+         num_modes = 2          !4D tracking
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "'ERROR: FMA analysis currently only implemented "//
+     &        "for thin 6D tracking and 6D optics!'"
+         call prror(-1)
+         ! Note: It is possible that it works for 4D and thick tracking also,
+         ! as long as you have calculated 6D optics; however it has not been checked.
+         ! If you want to try, comment out the "call prror",
+         ! and if you were not eaten by a grue then please let us know...
+      else
+         num_modes = 3          !6D tracking
+      endif
       
 !     write the header
       write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
@@ -58064,7 +58084,11 @@ c$$$            endif
             enddo
             backspace(dumpunit(j),iostat=ierro)
 !   read in particle amplitudes
-            fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            if (dumplast(j) .eq. -1) then
+               fma_nturn(i) = numl-dumpfirst(j)+1        !Tricky if the particle is lost...
+            else
+               fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            endif
             if(fma_nturn(i).gt.fma_nturn_max) then
 +if .not.cr
               write(*,*) 'ERROR in fma_postpr: only ',                  &
@@ -58252,7 +58276,7 @@ c$$$            endif
 !     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
 !         fma_norm_flag > 0 use normalized coordinates
             do l=1,napx ! loop over particles
-              do m=1,3 ! loop over modes (hor.,vert.,long.)
+              do m=1,num_modes ! loop over modes (hor.,vert.,long.)
                  select case( trim(stringzerotrim(fma_method(i))) )
                  case('TUNELASK')
                  if(fma_norm_flag(i) .eq. 0) then
@@ -58342,19 +58366,26 @@ c$$$            endif
      &                   ' capital letters!','fma_postpr')
                  end select
                  
-                if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
-                eps123_0(m)=epsnxyzv(l,1,m)                          ! initial amplitude 
+                if(m.eq.3) q123(m)=one-q123(m)                          ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
+                eps123_0(m)=epsnxyzv(l,1,m)                             ! initial amplitude 
 +if crlibm
                 phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
 +if .not.crlibm
-                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
+                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))   ! inital phase
 +ei
                 eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
                 eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
      &fma_nturn(i) ! average emittance
               enddo
+              if ( num_modes .eq. 2 ) then
+                 q123(3)=0.0
+                 phi123_0(3)=0.0
+                 eps123_min(3)=0.0
+                 eps123_max(3)=0.0
+                 eps123_avg(3)=0.0
+              endif
               write(2001001,1988) trim(stringzerotrim(fma_fname(i))),   &
      &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
      &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
