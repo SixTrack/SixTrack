@@ -4802,6 +4802,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           goto 290
         endif
 +cd wirektrack
+! wire
         if(abs(kzz).eq.15) then
           ktrack(i)=45
           goto 290
@@ -7436,7 +7437,7 @@ cc2008
 !----------------------------------------------------------------------
 ! Wire element.
 
-+cd wire
++cd wirekick
 ! MODEL OF STRAIGHT CURRENT WIRE
 !
 !     The model provides a transfer map of a straight current wire. 
@@ -7445,7 +7446,7 @@ cc2008
 !     2. Thin element in SixTrack (L)=0
 !     3. Parameters: 
 !     dx, dy: horizontal and vertical distances between wire midpoint
-!     and closed orbit [m] 
+!     and closed orbit [mm] 
 !     (parameters are given by DISP par1=dx and par3=dy)
 !     tx, ty: tilt of the wire w.r.t the closed orbit in the
 !     horizontal and vertical planes (in degrees) 
@@ -7468,19 +7469,44 @@ cc2008
 
       chi = (sqrt(e0**2-pmap**2)*c1e6)/clight
 
-!     
-      tx = xrms(ix)
-      ty = zrms(ix)
-      tx = tx*(pi/180.0d0)
-      ty = ty*(pi/180.0d0)
-      TX = tx
-      TY = ty
-      dx = xpl(ix)
-      dy = zpl(ix)
-      embl = ek(ix)
-      l = wirel(ix)
-      cur = ed(ix)
+      write(*,*) 'MF: wirekick - wire_current(ix),wire_lint(ix),'//
+     &'wire_lphys(ix),wire_flagco(ix),wire_dispx(ix),wire_dispy(ix),'//
+     &'wire_tiltx(ix),wire_tilty(ix),wire_flagco(ix)',
+     &wire_current(ix),wire_lint(ix),
+     &wire_lphys(ix),wire_flagco(ix),wire_dispx(ix),wire_dispy(ix),
+     &wire_tiltx(ix),wire_tilty(ix),wire_flagco(ix)
+      tx = wire_tiltx(ix) !tilt x [degrees] 
+      ty = wire_tilty(ix) !tilt y [degrees]
+      tx = tx*(pi/180.0d0) ![rad]
+      ty = ty*(pi/180.0d0) ![rad]
+      dx = wire_dispx(ix) !displacement x [mm]
+      dy = wire_dispy(ix) !displacement y [mm]
+      embl = wire_lint(ix) !integrated length [m]
+      l = wire_lphys(ix) !physical length [m]
+      cur = wire_current(ix)
+                        
+      if (wire_flagco(ix).eq.-1) then
+        windex1(ix) = 1
+      else if (wire_flagco(ix).eq.1) then
+        windex1(ix) = 0
+      else
++if cr
+        write(lout,
++ei
++if .not.cr
+        write(*,
++ei
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
+     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
+     &'wire_flagco(',ix,') = ',wire_flagco(ix)
+        call prror(-1)
+      endif
       NNORM=c1m7/chi
+      write(*,*) 'MF: +cd wire - tx,ty,dx,dy,embl,l,cur,NNORM,'//
+     &'windex1(ix)',
+     &tx,ty,dx,dy,embl,l,cur,NNORM,windex1(ix)
+
 !      write(*,*) 'AAAAAAAAAAA WT clobeam X',windex1(ix),
 !     &clowbeam(1,imww(i)),xpl(ix)
 !      write(*,*) 'AAAAAAAAAAA WT clobeam Y',windex1(ix),
@@ -7629,7 +7655,7 @@ cc2008
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin(atan_rn(yv(2,j)/                                              &
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &                       
+      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &
      &sin(atan_rn(yv(1,j)/                                              &
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 !
@@ -7752,8 +7778,8 @@ cc2008
       yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin_rn(atan_rn(yv(2,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
-      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &                       
-     &sin_rn(atan_rn(yv(1,j)/                                           & 
+      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin_rn(atan_rn(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 
 !
@@ -17886,8 +17912,8 @@ cc2008
      &'hor. tilt          = ',wire_tiltx(j),' degrees',
      &'vert. tilt         = ',wire_tilty(j),' degrees'
 ! ignore wire if current, length or displacment are 0
-            if( wire_current(j)*wire_lint(j)*wire_lphys(j)*wire_dispx(j)
-     &*wire_dispy(j).le.pieni ) then
+            if( abs(wire_current(j)*wire_lint(j)*wire_lphys(j)
+     &*wire_dispx(j)*wire_dispy(j)).le.pieni ) then
               kz(j) = 0 ! treat element as marker
 
 +if cr
@@ -18598,6 +18624,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +if cr
 +ca crcoall
 +ei
@@ -23173,6 +23200,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commondl
 +ca commonl
 +ca commonxz
++ca wireparam
 +if bnlelens
 +ca rhicelens
 +ei
@@ -23195,26 +23223,46 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
-
+!-- WIRE
 !     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
-      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight                            
-!     
-      tx = xrms(ix)
-      ty = zrms(ix)
-      tx = tx*(pi/180.0d0)
-      ty = ty*(pi/180.0d0)
-      TX = tx
-      TY = ty
-      DX = xpl(ix)
-      DY = zpl(ix)
-      EMBL = ek(ix)
-      L = wirel(ix)
-      CUR = ed(ix)
-      NNORM_=c1m7/chi
+
+      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight
+      TX = wire_tiltx(ix) !tilt x [degrees] 
+      TY = wire_tilty(ix) !tilt y [degrees]
+      TX = TX*(pi/180.0d0) ![rad]
+      TY = TY*(pi/180.0d0) ![rad]
+      DX = wire_dispx(ix) !displacement x [mm]
+      DY = wire_dispy(ix) !displacement y [mm]
+      EMBL = wire_lint(ix) !integrated length [m]
+      L = wire_lphys(ix) !physical length [m]
+      CUR = wire_current(ix)
       XCLO = clowbeam(1,imww(i))
       YCLO = clowbeam(2,imww(i))
+      NNORM_=c1m7/chi
+                        
+      if (wire_flagco(ix).eq.-1) then
+        windex1(ix) = 1
+      else if (wire_flagco(ix).eq.1) then
+        windex1(ix) = 0
+      else
++if cr
+        write(lout,
++ei
++if .not.cr
+        write(*,
++ei
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
+     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
+     &'wire_flagco(',ix,') = ',wire_flagco(ix)
+        call prror(-1)
+      endif
+      write(*,*) 'MF: +cd wire - tx,ty,dx,dy,embl,l,cur,NNORM,'//
+     &'windex1(ix)',
+     &tx,ty,dx,dy,embl,l,cur,NNORM_,windex1(ix)
+
 !      write(*,*) 'AAAAAAAAAAA DA', CUR, ix, DX, DY, TX, TY
 !      write(*,*) 'AAAAAAAAAAA DA', ibeco
 !      write(*,*) 'AAAAAAAAAAA DA  clobeam X',windex1(ix),
@@ -28560,6 +28608,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -29000,7 +29049,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--Wire
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 620
 
@@ -29113,6 +29162,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -32340,7 +32390,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 640
 
@@ -33258,6 +33308,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -33762,7 +33813,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 640
 
@@ -35130,6 +35181,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -35591,7 +35643,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 470
 
@@ -35683,6 +35735,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 +if debug
@@ -36270,7 +36323,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 490
 
@@ -36387,6 +36440,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -36904,7 +36958,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue                                                      `
           goto 490
 
