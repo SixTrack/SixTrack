@@ -1227,11 +1227,42 @@
      &                    elens_bend_exit(nele) ! switch for elens bends
       common /elensco/ elens_type,elens_theta_max,elens_r2,
      &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
-     &     elens_bend_exit
+     &elens_bend_exit
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
       double precision :: rrelens,frrelens,r1elens,xelens,yelens
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd wireparam
+!     A. Patapenka (NIU), M. Fitterer (FNAL)
+!     Common block for wire definition
+      ! variables to save wire parameters for tracking etc.
+      double precision :: wire_current(nele)    ! wire current [A]
+      double precision :: wire_lint(nele)       ! integrated length of the wire [m]
+      double precision :: wire_lphys(nele)      ! physical length of the wire [m]
+      ! integer to include or not closed orbit in the separation between beam and wire
+      ! 0  : Un-initialized if wire element not found
+      ! +1 : dispx is the distance between x0=y0=0 and the beam
+      ! -1 : dispx is the distance between the closed orbit and the wire 
+      !
+      !    x=y=0    <->   xco     <->    xwire
+      !               closed orbit    wire position
+      ! wire_flagco = +1: dispx = xwire -> rx = x + xsep
+      ! wire_flagco = -1: dispx = xwire - xco -> rx = x - xco + xsep
+      ! -> rx = x + xwire
+      integer          :: wire_flagco(nele)     
+      double precision :: wire_dispx(nele),
+     &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
+      double precision :: wire_tiltx(nele),
+     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
+      common /wireco2/ wire_current,wire_lint,wire_lphys,wire_flagco,
+     &wire_dispx,wire_dispy,wire_tiltx,wire_tilty
+!+cd elenstracktmp
+!     Dummy variables used in tracking block for calculation
+!     of the kick for the ideal annualar e-lens
+!      double precision :: rrelens,frrelens,r1elens,xelens,yelens
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -12077,6 +12108,7 @@ cc2008
 +ca comdynk
 +ca fma
 +ca elensparam
++ca wireparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -12103,6 +12135,9 @@ cc2008
 !     - elens
       character*16 elens
       data elens /'ELEN'/
+!     - wire
+      character*16 wire
+      data wire /'WIRE'/
 
       double precision round_near
       
@@ -12360,6 +12395,7 @@ cc2008
       if(idat.eq.dynk)  goto 2200
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
+      if(idat.eq.wire)  goto 2500
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -12431,6 +12467,8 @@ cc2008
 +ei
       read(ch1,*,round='nearest')                                       &
      & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i) !read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
+      write(*,*), 'MF: 12470',idat,kz(i),ed(i),ek(i),el(i),bbbx(i),
+     &bbby(i),bbbs(i)
 +if crlibm
       call disable_xp()
 +ei
@@ -12439,7 +12477,8 @@ cc2008
 +if .not.crlibm
 !     write (*,*) 'ERIC'
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)!read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
-!     write (*,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+      write (*,*) 'MF: 12480',idat,kz(i),ed(i),ek(i),el(i),bbbx(i),
+     &bbby(i),bbbs(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
@@ -12514,15 +12553,18 @@ cc2008
           kp(i)=6
         endif
       endif
+! MF: remove and add to fort.3 block
 !--WIRE
       if(abs(kz(i)).eq.15) then
-        if(abs(ed(i)*el(i)).le.pieni.or.el(i).le.pieni                  &
-     &.or.ek(i).le.pieni) then
-           kz(i)=0
-           ed(i)=0d0                                                     !hr05
-           ek(i)=0d0                                                     !hr05
-           el(i)=0d0                                                     !hr05
-        else
+        write(*,*),'MF: 12558',i,kz(i)
+!        if(abs(ed(i)*el(i)).le.pieni.or.el(i).le.pieni                  &
+!     &.or.ek(i).le.pieni) then
+!           kz(i)=0
+!           ed(i)=0d0                                                     !hr05
+!           ek(i)=0d0                                                     !hr05
+!           el(i)=0d0                                                     !hr05
+!           write(*,*),'MF: 12561',i,kz(i)
+!        else
            wirel(i)=el(i)
            el(i)=0d0                                                     !hr05
 ! flag for closed orbit subtraction in wire's map:
@@ -12531,7 +12573,7 @@ cc2008
           else
             windex1(i)=0
           endif           
-        endif
+!        endif
       endif
 !----------------------------------------
 ! Handled by initialize_element subroutine:
@@ -17453,7 +17495,7 @@ cc2008
      &'ERROR: length el(j) (elens is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
-     &')=',ek(j),'. Please check you input in the single element '//
+     &')=',ek(j),'. Please check your input in the single element '//
      &'definition of your ELEN. All values except for the type need '//
      &'to be zero.'
                call prror(-1)
@@ -17610,6 +17652,281 @@ cc2008
       
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
 !-----------------------------------------------------------------------
+!  Wire, kz=+/-15,ktrack=45
+!  A. Patapenka (NIU), M. Fitterer,  FNAL
+!  last modified: 22-12-2016
+!-----------------------------------------------------------------------
+ 2500 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+!       4) loop over single elements to check that they have been defined in the fort.3 block
+        do j=1,nele
+          if(abs(kz(j)).eq.15) then
+            if(wire_flagco(j).eq.0) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
+     &'not defined in fort.3. You must define every wire in the '//
+     &'WIRE block in fort.3!'
+               call prror(-1)
+            endif
+          endif
+        enddo
+        goto 110 ! go to next BLOCK in fort.3 - we're done here!
+      endif
+
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in WIRE block: fortran IO format currently not ',
+     &       'supported!'
+        call prror(-1)
++ei
+
+!     1) read in wire parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in WIRE block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+
+!     Check number of arguments
+      if(getfields_nfields.ne.9) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in WIRE block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 9'
+        call prror(-1)
+      endif
+
+!     Find the element, and check that we're not double-defining
+      if (getfields_lfields(1) .gt. 16) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "ERROR in WIRE block: Element name max 16 characters;"//
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
+     &        //"' is too long."
+         call prror(-1)
+      endif
+      
+      do j=1,nele               !loop over single elements and set parameters of wire
+         write(*,*), 'MF: ', bez(j),kz(j),
+     &getfields_fields(1)(1:getfields_lfields(1))
+         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
+            ! check the element type (kz(j)_wire=15)
+            if(abs(kz(j)).ne.15) then
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &              'ERROR: element type mismatch for WIRE! '//
+     &'Element type is kz(',j,') = ',kz(j),'!= +/-15'
+               call prror(-1)
+            endif
+            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &'ERROR: length el(j) (wire is treated as thin element), '//
+     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
+     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
+     &')=',ek(j),'. Please check your input in the single element '//
+     &'definition of your WIRE. All values except for the type need '//
+     &'to be zero.'
+               call prror(-1)
+            endif
+            if (wire_flagco(j).ne.0) then
++if cr
+               write(lout,*) "ERROR in WIRE block:"//
++ei
++if .not.cr
+               write(*,*)    "ERROR in WIRE block:"//
++ei
+     &              "The element '"//bez(j)//"' was defined twice!"
+               call prror(-1)
+            endif
+
+            ! Parse the element
+            read(getfields_fields(2)(1:getfields_lfields(8)),'(I10)')
+     &           wire_flagco(j)
++if .not.crlibm
+            read (getfields_fields(3)(1:getfields_lfields(3)),*)
+     &           wire_current(j)
+            read (getfields_fields(4)(1:getfields_lfields(4)),*)
+     &           wire_lint(j)
+            read (getfields_fields(5)(1:getfields_lfields(5)),*)
+     &           wire_lphys(j)
+            read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     &           wire_dispx(j)
+            read (getfields_fields(7)(1:getfields_lfields(7)),*)
+     &           wire_dispy(j)
+            read (getfields_fields(8)(1:getfields_lfields(8)),*)
+     &           wire_tiltx(j)
+            read (getfields_fields(9)(1:getfields_lfields(9)),*)
+     &           wire_tilty(j)
++ei
++if crlibm
+            wire_current(j)= round_near (
+     &           errno,getfields_lfields(3)+1, getfields_fields(3) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,3,wire_current(j) )
+            wire_lint(j)       = round_near (
+     &           errno,getfields_lfields(4)+1, getfields_fields(4) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,4,wire_lint(j) )
+            wire_lphys(j)   = round_near (
+     &           errno,getfields_lfields(5)+1, getfields_fields(5) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,5,wire_lphys(j) )
+            wire_dispx(j) = round_near (
+     &           errno,getfields_lfields(6)+1, getfields_fields(6) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,6,wire_dispx(j) )
+            wire_dispy(j) = round_near (
+     &           errno,getfields_lfields(7)+1, getfields_fields(7) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,7,wire_dispy(j) )
+            wire_tiltx(j) = round_near (
+     &           errno,getfields_lfields(8)+1, getfields_fields(8) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,8,wire_tiltx(j) )
+            wire_tilty(j) = round_near (
+     &           errno,getfields_lfields(9)+1, getfields_fields(9) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,9,wire_tilty(j) )
++ei
+            
+            ! Make checks for the wire parameters
+            if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &"ERROR: WIRE flag for taking the closed orbit into account or "//
+     &" not must be -1 (disp* = distance closed orbit and beam)"//
+     &"or 1 (disp* = distance from x=y=0 <-> beam), but "//
+     &"wire_flagco = ",wire_flagco(j)
+               call prror(-1)
+            end if
+            if((wire_lint(j).lt.0) .or. (wire_lphys(j).lt.0)) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: WIRE integrated and physical length must larger than 0! '
+     &// 'wire_lint = ',wire_lint(j),', wire_lphys = ',wire_lphys(j)
+              call prror(-1)
+            end if
+            if((abs(wire_tiltx(j)) .ge. 90) .or. 
+     &         (abs(wire_tilty(j)) .ge. 90)) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '
+     &//'wire_tiltx = ',wire_tiltx(j),', wire_tilty = ',wire_tilty(j)
+              call prror(-1)
+            end if
+
+! print a summary of the wire parameters
++if cr
+            write(lout,
++ei
++if .not.cr
+            write(*,
++ei
+     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D9.3,A,/))')
+     &'WIRE found in list of single elements with: ',
+     &'name               = ',bez(j),
+     &'flagco             = ',wire_flagco(j),
+     &'current            = ',wire_current(j),' A',
+     &'integrated length  = ',wire_lint(j),' m',
+     &'physical length    = ',wire_lphys(j),' m',
+     &'hor. displacement  = ',wire_dispx(j),' mm',
+     &'vert. displacement = ',wire_dispy(j),' mm',
+     &'hor. tilt          = ',wire_tiltx(j),' degrees',
+     &'vert. tilt         = ',wire_tilty(j),' degrees'
+! ignore wire if current, length or displacment are 0
+            if( wire_current(j)*wire_lint(j)*wire_lphys(j)*wire_dispx(j)
+     &*wire_dispy(j).le.pieni ) then
+              kz(j) = 0 ! treat element as marker
+
++if cr
+              write(lout,
++ei
++if .not.cr
+              write(*,
++ei
+     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D9.3,/))')
+     &'WARNING: WIRE element ',bez(j),'ignored!',
+     &'Elements are ignored if current, displacment, integrated ',
+     &'or physical length are 0! ',
+     &'wire_dispx(',j,') = ',wire_dispx(j),
+     &'wire_dispy(',j,') = ',wire_dispy(j),
+     &'wire_lint(',j,') = ',wire_lint(j),
+     &'wire_lphys(',j,') = ',wire_lphys(j)
+            end if
+
+            goto 2501           !Search success :)
+            
+         endif
+      enddo
+
+!     Search for element failed!
++if cr
+      write(lout,*) "ERROR in WIRE: "//
++ei
++if .not.cr
+      write(*,*)    "ERROR in WIRE: "//
++ei
+     &     "Un-identified SINGLE ELEMENT '",
+     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
+      call prror(-1)
+      
+!     element search was a success :)
+ 2501 continue
+      
+      goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
+!-----------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
         if(nbeam.ge.1) parbe14=                                         &!hr05
@@ -17644,16 +17961,18 @@ cc2008
           endif
         enddo
       endif
-      do j=1,il
-         if(abs(kz(j)).eq.15) then
-            if(abs(xpl(j)).lt.pieni.and.abs(zpl(j)).lt.pieni) then
-               kz(j)=0
-               ed(j)=0d0                                                 !hr05
-               ek(j)=0d0                                                 !hr05
-               el(j)=0d0                                                 !hr05
-            endif
-         endif
-      enddo
+!      do j=1,il
+!         write(*,*), 'MF: 17940',kz(j)
+!         if(abs(kz(j)).eq.15) then
+!            if(abs(xpl(j)).lt.pieni.and.abs(zpl(j)).lt.pieni) then
+!               kz(j)=0
+!               ed(j)=0d0                                                 !hr05
+!               ek(j)=0d0                                                 !hr05
+!               el(j)=0d0                                                 !hr05
+!               write(*,*), 'MF: 17952',kz(j)
+!            endif
+!         endif
+!      enddo
       if(iout.eq.0) return
 +if cr
       write(lout,10050)
@@ -37899,6 +38218,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             nlin=nlin+1
             if(nlin.gt.nele) call prror(81)
             bezl(nlin)=bez(i)
+            write(*,*), 'MF: ',nlin,bezl(nlin),bez(i)
           endif
   135   continue
       endif
@@ -38399,6 +38719,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
 +ca elensparam
++ca wireparam
 
 +if collimat
 +ca collpara
@@ -38743,7 +39064,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hsyc(i)=zero
         phasc(i)=zero
         ptnfac(i)=zero
-        wirel(i)=zero
         windex1(i)=zero
         acdipph(i)=zero
         crabph(i)=zero
@@ -38814,8 +39134,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         sigmoff(i)=zero
         tiltc(i)=one
         tilts(i)=zero
-!--Wire-----------------------------------------------------------------
-        imww(i)=0
 !--Beam-Beam------------------------------------------------------------
         imbb(i)=0
         do 190 j=1,40
@@ -38895,12 +39213,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         enddo
         bbcu(i,11)=one
       enddo
-!--Wires----------------------------------------------------------------
-      do i=1,nwe
-        do j=1,6
-          clowbeam(j,i)=zero
-        enddo
-      enddo
 !--DA-------------------------------------------------------------------
       do i1=1,2
         xx_da(i1)=0
@@ -38969,10 +39281,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         enddo
       enddo
 !--ELEN - ELECTRON LENS---------------------------------------------------------
-!     M. Fitterer, FNAL
-!     last modified: 2016
-!     elensparam - used for tracking (parameters of single element)
+!--WIRE - WIRE ELEMENT---------------------------------------------------------
+!     M. Fitterer (FNAL), A. Patapenka (FNAL)
+!     last modified: 22-12-2016
+! 1) single elements
       do i=1,nele
+!     elensparam - used for tracking (parameters of single element)
         elens_type(i)          = 0
         elens_theta_max(i)     = 0
         elens_r2(i)            = 0
@@ -38981,6 +39295,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         elens_offset_y(i)      = 0
         elens_bend_entrance(i) = 0
         elens_bend_exit(i)     = 0
+!     wireparam - used for tracking (parameters of single element)
+        wire_flagco(i)  = 0
+        wire_current(i) = 0
+        wire_lint(i)    = 0
+        wire_lphys(i)   = 0
+        wire_dispx(i)   = 0
+        wire_dispy(i)   = 0
+        wire_tiltx(i)   = 0
+        wire_tilty(i)   = 0
+        wirel(i)=zero
+      enddo
+! 2) structure elements
+      do i=1,nblz
+        imww(i)=0
+      enddo
+! 3) number of wires
+      do i=1,nwe
+        do j=1,6
+          clowbeam(j,i)=zero
+        enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
