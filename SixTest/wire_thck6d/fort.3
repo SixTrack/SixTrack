@@ -2,24 +2,24 @@ GEOME-STRENG TITLE:ltrelens2016_coll%1%s%62.31_60.32%0_1%3%45
 PRINTOUT OF INPUT PARAMETERS--------------------------------------------
 NEXT
 TRACKING PARAMETERS-----------------------------------------------------
-100 0 32 5.0 5.0 0 1
-1 1 2 1 2
+1000 0 1 0.0 0.0 0 1
+1 1 0 1 2
 0 0 1 1 1 50000 2
 NEXT
 INITIAL COORDINATES-----------------------------------------------------
-        2 0. 0. 0.999999 0
+        0 0. 0. 0.999999 0
+        0.21000
+        0.
+        0.29000 
         0.
         0.
-        0. 
+        0.00000
+        .210001 
+        0.
+        0.29000 
         0.
         0.
-        0.00027
-        .000001 
-        0.
-        0. 
-        0.
-        0.
-        0.00027
+        0.00000
         6500000.
         6500000.
         6500000.
@@ -31,12 +31,29 @@ NEXT
 BEAM
 1.2000e+11   2.5  2.5  0.7700e-01  1.1000e-04  1  0 1 0
 NEXT
+//LINE
+//ELEMENT 0 2 1 2.5 2.5
+//NEXT
 DISP
-wire_2  10.0 0.0  10.0  0.0
+// for wire_1 closed orbit is subtracted:
+// if ibeco=0
+//wire_1    2.7425962  0.0  5.017988  0.0
+//if ibeco=1
+wire_1 2.7312753 0.0 4.9872422 0.0
+wire_2    5.0        0.0  5.0        0.0
+//wire_3 vs. beam-beam element
+wire_3   10.0    0.0    10.0    0.0
+wire_4   10.0    1.1    10.0    1.1 
+wire_5   10.0   -1.1    10.0   -1.1 
 NEXT
 DUMP
-wire_er5 1 500 2 DUMP
-//ip5 100 500 2 IP5_DUMP 
+op0    1 500 2 OP0_DUMP
+op1    1 501 2 OP1_DUMP 
+op2    1 502 2 OP2_DUMP 
+op_beam    100 506 2 OPBEAM_DUMP
+op3    1 503 2 OP3_DUMP 
+op4    1 504 2 OP4_DUMP
+op5    1 505 2 OP5_DUMP
 NEXT
 ITERATION-ACCURACY------------------------------------------------------
        50 1D-12 1D-15
