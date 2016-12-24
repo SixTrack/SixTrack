@@ -23134,7 +23134,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     2. Thin element in SixTrack (L)=0
 !     3. Parameters: 
 !     dx, dy: horizontal and vertical distances between wire midpoint
-!     and closed orbit [m] 
+!     and closed orbit [mm] 
 !     (parameters are given by DISP par1=dx and par3=dy )
 !     tx, ty: tilt of the wire w.r.t the closed orbit in the
 !     horizontal and vertical planes (in degrees)
