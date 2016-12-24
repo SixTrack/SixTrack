@@ -45,7 +45,7 @@ endif(NOT COLLIMAT)
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
 	SET(CR_ENABLE 1)
-	SET(CR_KILL_TIME 10)
+	SET(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024")
 else()
 	SET(CR_ENABLE 0)
 	SET(CR_KILL_TIME 0)

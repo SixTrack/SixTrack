@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <string>
+#include <vector>
 
 #include <unistd.h>
 #include <signal.h>
@@ -18,7 +19,6 @@
 //memcmp
 #include <string.h>
 
-//void RunSixTrack(char* argv[], int* Status);
 void KillSixTrack(size_t KillTime, pid_t sixpid);
 
 bool CopyFile(std::string InputFileName, std::string OutputFileName);
@@ -28,6 +28,7 @@ bool CheckFort10();
 bool CheckFort90();
 bool CheckSTF();
 bool PerformExtraChecks();
+std::vector<int> ParseKillTimes(char*);
 
 /**
 * SixTrack testing wrapper
@@ -63,7 +64,8 @@ int main(int argc, char* argv[])
 	bool CR = false;
 
 	//How long to wait in seconds before killing the CR run
-	size_t KillTime = 0;
+	std::vector<int> KillTimes;
+	int KillTime = 0;
 
 	bool fort6 = false;
 	bool fort10 = false;
@@ -93,7 +95,7 @@ int main(int argc, char* argv[])
 	if(atof(argv[5]) != 0)
 	{
 		CR = true;
-		KillTime = atof(argv[5]);
+		KillTimes = ParseKillTimes(argv[6]);
 	}
 
 	/**
@@ -105,7 +107,39 @@ int main(int argc, char* argv[])
 	*/
 	if(CR)
 	{
-		std::cout << "Starting Checkpoint/Resume (CR) SixTrack run" << std::endl;
+		for(size_t KillCount=0; KillCount < KillTimes.size(); KillCount++)
+		{
+			KillTime = KillTimes.at(KillCount);
+
+			std::cout << "Starting Checkpoint/Resume (CR) SixTrack run" << std::endl;
+			pid_t SixTrackpid = fork();
+			if(SixTrackpid == -1)
+			{
+				std::cerr << "ERROR: Could not fork to start SixTrack" << std::endl;
+				return EXIT_FAILURE;
+			}
+
+			//Check fork() status
+			if(SixTrackpid == 0)
+			{
+				//child, run sixtrack
+				int execStatus = execl(argv[1],(char*) 0);
+				if(execStatus == -1)
+				{
+					perror("ERROR - could not execute checkf10");
+				}
+			}
+			else
+			{
+				std::cout << "Will kill SixTrack after " << KillTime << " seconds" << std::endl;
+				KillSixTrack(KillTime, SixTrackpid);
+			}
+		}
+	}
+
+	//Normal run
+	else
+	{
 		pid_t SixTrackpid = fork();
 		if(SixTrackpid == -1)
 		{
@@ -125,38 +159,13 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			std::cout << "Will kill SixTrack after "  << KillTime << " seconds" << std::endl;
-			KillSixTrack(KillTime, SixTrackpid);
+			//main thread, wait()
+			std::cout << "Waiting for SixTrack to finish running - pid: " << SixTrackpid << std::endl;
+			int waitpidStatus;
+			waitpid(SixTrackpid, &waitpidStatus, WUNTRACED);
+			std::cout << "SixTrack finished running: " << waitpidStatus << std::endl;
 		}
 	}
-
-	//Normal run (or continuation of CR run)
-	pid_t SixTrackpid = fork();
-	if(SixTrackpid == -1)
-	{
-		std::cerr << "ERROR: Could not fork to start SixTrack" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	//Check fork() status
-	if(SixTrackpid == 0)
-	{
-		//child, run sixtrack
-		int execStatus = execl(argv[1],(char*) 0);
-		if(execStatus == -1)
-		{
-			perror("ERROR - could not execute checkf10");
-		}
-	}
-	else
-	{
-		//main thread, wait()
-		std::cout << "Waiting for SixTrack to finish running - pid: " << SixTrackpid << std::endl;
-		int waitpidStatus;
-		waitpid(SixTrackpid, &waitpidStatus, WUNTRACED);
-		std::cout << "SixTrack finished running: " << waitpidStatus << std::endl;
-	}
-
 	/*
 	* The next step is to check the output is valid.
 	* A number of checks against reference output files can be made
@@ -618,4 +627,29 @@ bool PerformExtraChecks()
 
 	std::cout << "------------------------------- End extra checks ------------------------------" << std::endl;
 	return AllTests;
+}
+
+std::vector<int> ParseKillTimes(char* in)
+{
+	std::vector<int> KillTimes;
+	std::string input = in;
+	size_t pos = 0;
+	size_t oldpos = 0;
+	while(pos != std::string::npos)
+	{
+		pos = input.find(",", oldpos);
+		int number = atoi(input.substr(oldpos,pos-oldpos).c_str());
+		oldpos=pos+1;
+
+		KillTimes.push_back(number);
+	}
+
+	std::cout << "Will try and kill CR run " << KillTimes.size() << " times." << std::endl;
+	std::cout << "Killing after ";
+	for(int k = 0; k < KillTimes.size(); k++)
+	{
+		std::cout << KillTimes.at(k) << "\t";
+	}
+	std::cout << " seconds." << std::endl;
+	return KillTimes;
 }
