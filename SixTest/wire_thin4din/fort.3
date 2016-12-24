@@ -34,14 +34,14 @@ NEXT
 //LINE
 //ELEMENT 0 2 1 2.5 2.5
 //NEXT
-DISP
+WIRE
 // for wire_1 closed orbit should be subtracted:
-wire_1 2.7312753 0.0 4.9872422 0.0
-wire_2    5.0        0.0  5.0        0.0
+wire_1 +1  1.0E+3   2.0  1.0 2.7312753 4.9872422  0.0 0.0
+wire_2 -1 -1.0E+3   2.0  1.0   5.0    5.0        0.0 0.0
 //wire_3 vs. beam-beam element
-wire_3   10.0    0.0    10.0    0.0
-wire_4   10.0    1.1    10.0    1.1 
-wire_5   10.0   -1.1    10.0   -1.1 
+wire_3   -1  +98.9   2.0  1.0   10.0   10.0     0.0     0.0
+wire_4   -1  +98.9   2.0  1.0   10.0   10.0     1.1     1.1
+wire_5   -1  -98.9   2.0  1.0   10.0   10.0    -1.1    -1.1
 NEXT
 DUMP
 op0    1 500 2 OP0_DUMP
