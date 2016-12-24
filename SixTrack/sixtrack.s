@@ -17743,8 +17743,6 @@ cc2008
       endif
       
       do j=1,nele               !loop over single elements and set parameters of wire
-         write(*,*), 'MF: ', bez(j),kz(j),
-     &getfields_fields(1)(1:getfields_lfields(1))
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_wire=15)
             if(kz(j).ne.15) then
