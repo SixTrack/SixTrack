@@ -275,7 +275,7 @@
      &phas,phas0,phasc,pi,pi2,pisqrt,pma,ptnfac,qs,qw0,qwsk,qx0,qxt,qz0,&
      &qzt,r00,rad,rat,ratio,ratioe,rrtr,rtc,rts,rvf,                    &
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
-     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
+     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,         &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4
 +if time
@@ -342,17 +342,15 @@
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
       common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
-!      common/wireco/ wirel(nele)
       common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
      &nturn3(nele), nturn4(nele)
       common/crabco/ crabph(nele),crabph2(nele),                        &
      &crabph3(nele),crabph4(nele)
 ! wire vars:
-      integer nwe, iww, imww, windex1
+      integer nwe, iww, imww
       parameter ( nwe = 350 )
       double precision clowbeam, startwco
-      common/wireco/ wirel(nele),clowbeam(6,nwe),imww(nblz),            &
-     &windex1(nele)
+      common/wireco/ clowbeam(6,nwe),imww(nblz)
 !
 +cd commons
       integer idz,itra
@@ -7485,12 +7483,8 @@ cc2008
       embl = wire_lint(ix) !integrated length [m]
       l = wire_lphys(ix) !physical length [m]
       cur = wire_current(ix)
-                        
-      if (wire_flagco(ix).eq.-1) then
-        windex1(ix) = 1
-      else if (wire_flagco(ix).eq.1) then
-        windex1(ix) = 0
-      else
+
+      if (abs(wire_flagco(ix)).ne.1) then
 +if cr
         write(lout,
 +ei
@@ -7504,27 +7498,14 @@ cc2008
         call prror(-1)
       endif
       NNORM=c1m7/chi
-      write(*,*) 'MF: +cd wire - tx,ty,dx,dy,embl,l,cur,NNORM,'//
-     &'windex1(ix)',
-     &tx,ty,dx,dy,embl,l,cur,NNORM,windex1(ix)
 
-!      write(*,*) 'AAAAAAAAAAA WT clobeam X',windex1(ix),
-!     &clowbeam(1,imww(i)),xpl(ix)
-!      write(*,*) 'AAAAAAAAAAA WT clobeam Y',windex1(ix),
-!     &clowbeam(2,imww(i)),zpl(ix)
-!      write(*,*) 'AAAAAAAAAAA WT', CUR, ix, DX, DY, TX, TY
-!      write(*,*) 'AAAAAAAAAAA WT', ibeco
-
-      IF (windex1(ix).eq.0) THEN
+      IF (wire_flagco(ix).eq.1) THEN
          dxi = (dx+clowbeam(1,imww(i)) )*c1m3
          dyi = (dy+clowbeam(2,imww(i)) )*c1m3 
-      ELSE IF (windex1(ix).eq.1) THEN
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
          dxi = (dx)*c1m3
          dyi = (dy)*c1m3
       END IF 
-      
-!      dxi = dx*c1m3
-!      dyi = dy*c1m3
       
       do j=1, napx
 
@@ -7532,22 +7513,13 @@ cc2008
       yv(2,j) = yv(2,j) * c1m3 !SI
     
 ! 1 SHIFT
-      IF (windex1(ix).eq.0) THEN
+      IF (wire_flagco(ix).eq.1) THEN
          xi = (xv(1,j)+dx)*c1m3 !SI
          yi = (xv(2,j)+dy)*c1m3 !SI
-      ELSE IF (windex1(ix).eq.1) THEN
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
          xi = (xv(1,j)+( dx-clowbeam(1,imww(i)) ))*c1m3 !SI
          yi = (xv(2,j)+( dy-clowbeam(2,imww(i)) ))*c1m3 !SI
       END IF 
-
-!      write(*,*)'XY_____, INITIAL:x, dxi, dx, clox'
-!      write(*,*)'XY_____, X, mm',xi*c1e3, dxi*c1e3, dx, 
-!     &clowbeam(1,imww(i)), windex1(ix), ibeco
-!      write(*,*)'XY_____, Y, mm',yi*c1e3, dyi*c1e3, dy,
-!     &clowbeam(2,imww(i)), windex1(ix), ibeco
-      
-!      write(*,*)'PXPY_____, INITIAL: PX, PY'
-!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
 
 +if .not.crlibm
 ! x'-> px; y'->py
@@ -7614,16 +7586,7 @@ cc2008
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin(atan_rn(yv(2,j)/                                              &
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)             
-!
-!      write(*,*)'XY_____, AFTER ROTATION: x, dxi, dx, clox'
-!      write(*,*)'XY_____ X, mm',xi*c1e3, dxi*c1e3, dx, 
-!     &clowbeam(1,imww(i)), windex1(ix), ibeco
-!      write(*,*)'XY_____ Y, mm',yi*c1e3, dyi*c1e3, dy,
-!     &clowbeam(2,imww(i)), windex1(ix), ibeco
-            
-!      write(*,*)'PXPY_____, BEFORE THE KICK: PX, PY'
-!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
-!
+ 
 ! 3 //WIRE KICK
       RTWO = xi**2+yi**2
       yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
@@ -7648,10 +7611,7 @@ cc2008
 
       endif
 
-!      
-!      write(*,*)'PXPY_____, AFTER THE KICK: PX, PY'
-!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
-!
+
 ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
       yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin(atan_rn(yv(2,j)/                                              &
@@ -7659,9 +7619,6 @@ cc2008
       yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &
      &sin(atan_rn(yv(1,j)/                                              &
      &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
-!
-!      write(*,*)'PXPY_____, AFTER ROTATION PX, PY:'
-!      write(*,*)'PXPY_____',yv(1,j), yv(2,j)
 
 ! px -> x'; py -> y'
       yv(1,j) = yv(1,j)/(1d0 + dpsv(j))
@@ -7736,16 +7693,7 @@ cc2008
       yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin_rn(atan_rn(yv(2,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)              
-!
-!      write(*,*)'XY_____, AFTER ROTATION: x, dxi, dx, clox'
-!      write(*,*)'XY_____ X, mm',xi*c1e3, dxi*c1e3, dx, 
-!     &clowbeam(1,imww(i)), windex1(ix), ibeco
-!      write(*,*)'XY_____ Y, mm',yi*c1e3, dyi*c1e3, dy,
-!     &clowbeam(2,imww(i)), windex1(ix), ibeco
-!
-!      write(*,*)'PXPY_____, BEFORE THE KICK: PX, PY'
-!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
-!
+
 ! 3 //WIRE KICK
       RTWO = xi**2+yi**2
       yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
@@ -7770,11 +7718,6 @@ cc2008
 
       endif
 
-!      
-!      write(*,*)'PXPY_____, AFTER THE KICK: PX, PY'
-!      write(*,*)'PXPY_____,',yv(1,j), yv(2,j)
-!
-
 ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
       yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
      &sin_rn(atan_rn(yv(2,j)/                                           &
@@ -7782,10 +7725,6 @@ cc2008
       yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
      &sin_rn(atan_rn(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
-
-!
-!      write(*,*)'PXPY_____, AFTER ROTATION PX, PY:'
-!      write(*,*)'PXPY_____',yv(1,j), yv(2,j)
 
 ! px -> x'; py -> y'
       yv(1,j) = yv(1,j)/(one + dpsv(j))
@@ -17888,9 +17827,10 @@ cc2008
      &'vert. displacement = ',wire_dispy(j),' mm',
      &'hor. tilt          = ',wire_tiltx(j),' degrees',
      &'vert. tilt         = ',wire_tilty(j),' degrees'
-! ignore wire if current, length or displacment are 0
-            if( abs(wire_current(j)*wire_lint(j)*wire_lphys(j)
-     &*wire_dispx(j)*wire_dispy(j)).le.pieni ) then
+! ignore wire if current, length or displacment are 0 or
+! wire_flagco not set (case wire_flagco = 0)
+            if( abs(wire_flagco(j)*wire_current(j)*wire_lint(j)
+     &*wire_lphys(j)*wire_dispx(j)*wire_dispy(j)).le.pieni ) then
               kz(j) = 0 ! treat element as marker
 
 +if cr
@@ -18871,8 +18811,6 @@ c$$$         endif
          ed(i)=0d0
          ek(i)=0d0
          el(i)=0d0
-         wirel(i)=0d0
-         windex1(i)=0
       endif
       
       return
@@ -20976,22 +20914,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-      IF (windex1(ix).eq.0) THEN
+      write(*,*) 'MF: wire_flagco(ix) 20923',wire_flagco(ix)
+      IF (wire_flagco(ix).eq.1) THEN
          startwco=(dare(x(1))-xpl(ix))            
          call dapok(XX(1),jj,startwco)
          startwco=(dare(x(2))-zpl(ix))
          call dapok(XX(2),jj,startwco)
-      ELSE IF (windex1(ix).eq.1) THEN
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
          startwco= dare(x(1))-(clowbeam(1,imww(i))+xpl(ix))            
          call dapok(XX(1),jj,startwco)
          startwco= dare(x(2))-(clowbeam(2,imww(i))+zpl(ix))
          call dapok(XX(2),jj,startwco)
       END IF
-!      write(*,*) 'AAAAAAAAAAA DA 2 clobeam X',windex1(ix),
-!     &clowbeam(1,imww(i)),xpl(ix)
-!      write(*,*) 'AAAAAAAAAAA DA 2 clobeam Y',windex1(ix),
-!     &clowbeam(2,imww(i)),zpl(ix)
-!      write(*,*) 'AAAAAAAAAAA DA 2 indexes: ',ix,i,windex1(ix)
           call wireda(ix,i)
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
@@ -21726,6 +21660,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdumpcr
 +ca fma
 !     for FMA analysis
++ca wireparam
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -22295,22 +22230,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          clowbeam(3,imww(i))=dare(SIGMDA)
          clowbeam(6,imww(i))=dare(DPDA)
       endif
-      IF (windex1(ix).eq.0) THEN
+      IF (wire_flagco(ix).eq.1) THEN
          startwco=(dare(x(1))-xpl(ix))            
          call dapok(XX(1),jj,startwco)
          startwco=(dare(x(2))-zpl(ix))
          call dapok(XX(2),jj,startwco)
-      ELSE IF (windex1(ix).eq.1) THEN
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
          startwco= dare(x(1))-(clowbeam(1,imww(i))+xpl(ix))            
          call dapok(XX(1),jj,startwco)
          startwco= dare(x(2))-(clowbeam(2,imww(i))+zpl(ix))
          call dapok(XX(2),jj,startwco)
       END IF
-!      write(*,*) 'AAAAAAAAAAA DA 1 clobeam X',windex1(ix),
-!     &clowbeam(1,imww(i)),xpl(ix)
-!      write(*,*) 'AAAAAAAAAAA DA 1 clobeam Y',windex1(ix),
-!     &clowbeam(2,imww(i)),zpl(ix)
-!      write(*,*) 'AAAAAAAAAAA DA 1 indexes: ',ix,i,windex1(ix)
 ! we are in umlauda subroutine
 ! try to skip the wire DA
 !        call wireda(ix,i)
@@ -23211,12 +23141,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       XCLO = clowbeam(1,imww(i))
       YCLO = clowbeam(2,imww(i))
       NNORM_=c1m7/chi
+
+      write(*,*) 'MF: wire_flagco(ix) 23151',wire_flagco(ix)
                         
-      if (wire_flagco(ix).eq.-1) then
-        windex1(ix) = 1
-      else if (wire_flagco(ix).eq.1) then
-        windex1(ix) = 0
-      else
+      if (abs(wire_flagco(ix)).ne.1) then
 +if cr
         write(lout,
 +ei
@@ -23229,27 +23157,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
         call prror(-1)
       endif
-      write(*,*) 'MF: +cd wire - tx,ty,dx,dy,embl,l,cur,NNORM,'//
-     &'windex1(ix)',
-     &tx,ty,dx,dy,embl,l,cur,NNORM_,windex1(ix)
-
-!      write(*,*) 'AAAAAAAAAAA DA', CUR, ix, DX, DY, TX, TY
-!      write(*,*) 'AAAAAAAAAAA DA', ibeco
-!      write(*,*) 'AAAAAAAAAAA DA  clobeam X',windex1(ix),
-!     &clowbeam(1,imww(i)),xpl(ix)
-!      write(*,*) 'AAAAAAAAAAA DA  clobeam Y',windex1(ix),
-!     &clowbeam(2,imww(i)),zpl(ix)
-!      write(*,*) 'AAAAAAAAAAA DA  indexes: ',ix,i,windex1(ix)
 
 *FOX  YY(1)=YY(1)*C1M3;
 *FOX  YY(2)=YY(2)*C1M3;
 
 !*FOX  DXI=DX*C1M3;
 !*FOX  DYI=DY*C1M3;
-      IF (windex1(ix).eq.0) THEN
+      IF (wire_flagco(ix).eq.1) THEN
 *FOX  DXI=(DX+YCLO)*C1M3;
 *FOX  DYI=(DY+YCLO)*C1M3;
-      ELSE IF (windex1(ix).eq.1) THEN
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
 *FOX  DXI=DX*C1M3;
 *FOX  DYI=DY*C1M3;
       END IF
@@ -23263,10 +23180,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 ! 1 SHIFT - see the part of the code were wireda is called ....
 
-      IF (windex1(ix).eq.0) THEN
+      IF (wire_flagco(ix).eq.1) THEN
 *FOX  XI=(XX(1)+DX)*C1M3;
 *FOX  YI=(XX(2)+DY)*C1M3;
-      ELSE IF (windex1(ix).eq.1) THEN
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
 *FOX  XI=(XX(1)+(DX-XCLO))*C1M3;
 *FOX  YI=(XX(2)+(DY-YCLO))*C1M3;
       END IF
@@ -39093,7 +39010,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hsyc(i)=zero
         phasc(i)=zero
         ptnfac(i)=zero
-        windex1(i)=zero
         acdipph(i)=zero
         crabph(i)=zero
         crabph2(i)=zero
@@ -39333,7 +39249,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         wire_dispy(i)   = 0
         wire_tiltx(i)   = 0
         wire_tilty(i)   = 0
-        wirel(i)=zero
       enddo
 ! 2) structure elements
       do i=1,nblz
