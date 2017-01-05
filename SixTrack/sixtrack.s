@@ -346,12 +346,14 @@
      &nturn3(nele), nturn4(nele)
       common/crabco/ crabph(nele),crabph2(nele),                        &
      &crabph3(nele),crabph4(nele)
-! wire vars:
-      integer nwe, iww, imww
-      parameter ( nwe = 350 )
-      double precision clowbeam, startwco
-      common/wireco/ clowbeam(6,nwe),imww(nblz)
-!
+! wire parameters for closed orbit calculation (FOX part)
+! for FOX length of variable names must be smaller 8
+      integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
+      double precision wire_clo            ! closed orbit at wire
+      double precision wireclo0         ! initial coordinates for closed orbit
+      integer wire_num_aux              ! auxiliary variable to count number of wires
+      integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
+      common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
 +cd commons
       integer idz,itra
 +if vvector
@@ -1490,7 +1492,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V RE INT PARBE14 ; D V RE INT PI ;
 *FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ;
 *FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
-*FOX  D V RE INT STARTWCO ;
+*FOX  D V RE INT WIRECLO0 ;
 +if .not.fast
 *FOX  D V RE INT C2E3 ; D V RE INT C1E6 ;
 +ei
@@ -1510,7 +1512,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
 *FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
 *FOX  D V IN INT IMBB NBLZ ;
-*FOX  D V IN INT IMWW NBLZ ;
+*FOX  D V IN INT WIRE_NUM NBLZ ;
 *FOX  D F RE DARE 1 ;
 *FOX  D V DA INT PZ NORD NVAR ;
 *FOX  E D ;
@@ -1549,7 +1551,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,imww,              &
+     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,              &
 +if vvector
      &as,al,sigm,dps,idz,dp1,itra,                                      &
 +ei
@@ -7500,8 +7502,8 @@ cc2008
       NNORM=c1m7/chi
 
       IF (wire_flagco(ix).eq.1) THEN
-         dxi = (dx+clowbeam(1,imww(i)) )*c1m3
-         dyi = (dy+clowbeam(2,imww(i)) )*c1m3 
+         dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
+         dyi = (dy+wire_clo(2,wire_num(i)) )*c1m3 
       ELSE IF (wire_flagco(ix).eq.-1) THEN
          dxi = (dx)*c1m3
          dyi = (dy)*c1m3
@@ -7517,8 +7519,8 @@ cc2008
          xi = (xv(1,j)+dx)*c1m3 !SI
          yi = (xv(2,j)+dy)*c1m3 !SI
       ELSE IF (wire_flagco(ix).eq.-1) THEN
-         xi = (xv(1,j)+( dx-clowbeam(1,imww(i)) ))*c1m3 !SI
-         yi = (xv(2,j)+( dy-clowbeam(2,imww(i)) ))*c1m3 !SI
+         xi = (xv(1,j)+( dx-wire_clo(1,wire_num(i)) ))*c1m3 !SI
+         yi = (xv(2,j)+( dy-wire_clo(2,wire_num(i)) ))*c1m3 !SI
       END IF 
 
 +if .not.crlibm
@@ -20916,15 +20918,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YY(2)=Y(2) ;
       write(*,*) 'MF: wire_flagco(ix) 20923',wire_flagco(ix)
       IF (wire_flagco(ix).eq.1) THEN
-         startwco=(dare(x(1))-xpl(ix))            
-         call dapok(XX(1),jj,startwco)
-         startwco=(dare(x(2))-zpl(ix))
-         call dapok(XX(2),jj,startwco)
+         wireclo0=(dare(x(1))-xpl(ix))            
+         call dapok(XX(1),jj,wireclo0)
+         wireclo0=(dare(x(2))-zpl(ix))
+         call dapok(XX(2),jj,wireclo0)
       ELSE IF (wire_flagco(ix).eq.-1) THEN
-         startwco= dare(x(1))-(clowbeam(1,imww(i))+xpl(ix))            
-         call dapok(XX(1),jj,startwco)
-         startwco= dare(x(2))-(clowbeam(2,imww(i))+zpl(ix))
-         call dapok(XX(2),jj,startwco)
+         wireclo0= dare(x(1))-(wire_clo(1,wire_num(i))+xpl(ix))
+         call dapok(XX(1),jj,wireclo0)
+         wireclo0= dare(x(2))-(wire_clo(2,wire_num(i))+zpl(ix))
+         call dapok(XX(2),jj,wireclo0)
       END IF
           call wireda(ix,i)
 *FOX  Y(1)=YY(1) ;
@@ -21881,7 +21883,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       phi(2)=zero
       phi(3)=zero
       ibb=0
-      iww=0
+      wire_num_aux=0
 +if debug
 !     call wda('biu',0d0,2,0,0,0)
 !     if (umcalls.eq.8) then
@@ -22181,10 +22183,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--Wire-- is it correct?
       if(kzz.eq.15) then
 ! the same as in umlalid1
-          iww = iww+1
+          wire_num_aux = wire_num_aux+1
 ! is the error number correct?
-          if(iww.gt.nwe) call prror(102)
-          imww(i) = iww
+          if(wire_num_aux.gt.wire_max) then
++if cr
+               write(lout,
++ei
++if .not.cr
+               write(*,
++ei
+     &*) 'ERROR: maximum number of wires exceeded! Number of wires ='//
+     &'wire_num_aux = ',wire_num_aux,' > ',wire_max,' = wire_max'
+            call prror(-1)
+          endif
+          wire_num(i) = wire_num_aux
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
 *FOX  DPDA1=DPDA*C1E3 ;
@@ -22222,24 +22234,24 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-      clowbeam(1,imww(i))=dare(x(1))
-      clowbeam(2,imww(i))=dare(x(2))
-      clowbeam(4,imww(i))=dare(y(1))*(one+dare(DPDA))
-      clowbeam(5,imww(i))=dare(y(2))*(one+dare(DPDA))
+      wire_clo(1,wire_num(i))=dare(x(1))
+      wire_clo(2,wire_num(i))=dare(x(2))
+      wire_clo(4,wire_num(i))=dare(y(1))*(one+dare(DPDA))
+      wire_clo(5,wire_num(i))=dare(y(2))*(one+dare(DPDA))
       if(ndimf.eq.3) then
-         clowbeam(3,imww(i))=dare(SIGMDA)
-         clowbeam(6,imww(i))=dare(DPDA)
+         wire_clo(3,wire_num(i))=dare(SIGMDA)
+         wire_clo(6,wire_num(i))=dare(DPDA)
       endif
       IF (wire_flagco(ix).eq.1) THEN
-         startwco=(dare(x(1))-xpl(ix))            
-         call dapok(XX(1),jj,startwco)
-         startwco=(dare(x(2))-zpl(ix))
-         call dapok(XX(2),jj,startwco)
+         wireclo0=(dare(x(1))-xpl(ix))            
+         call dapok(XX(1),jj,wireclo0)
+         wireclo0=(dare(x(2))-zpl(ix))
+         call dapok(XX(2),jj,wireclo0)
       ELSE IF (wire_flagco(ix).eq.-1) THEN
-         startwco= dare(x(1))-(clowbeam(1,imww(i))+xpl(ix))            
-         call dapok(XX(1),jj,startwco)
-         startwco= dare(x(2))-(clowbeam(2,imww(i))+zpl(ix))
-         call dapok(XX(2),jj,startwco)
+         wireclo0= dare(x(1))-(wire_clo(1,wire_num(i))+xpl(ix))
+         call dapok(XX(1),jj,wireclo0)
+         wireclo0= dare(x(2))-(wire_clo(2,wire_num(i))+zpl(ix))
+         call dapok(XX(2),jj,wireclo0)
       END IF
 ! we are in umlauda subroutine
 ! try to skip the wire DA
@@ -23138,8 +23150,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       EMBL = wire_lint(ix) !integrated length [m]
       L = wire_lphys(ix) !physical length [m]
       CUR = wire_current(ix)
-      XCLO = clowbeam(1,imww(i))
-      YCLO = clowbeam(2,imww(i))
+      XCLO = wire_clo(1,wire_num(i))
+      YCLO = wire_clo(2,wire_num(i))
       NNORM_=c1m7/chi
 
       write(*,*) 'MF: wire_flagco(ix) 23151',wire_flagco(ix)
@@ -39252,12 +39264,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       enddo
 ! 2) structure elements
       do i=1,nblz
-        imww(i)=0
+        wire_num(i)=0
       enddo
 ! 3) number of wires
-      do i=1,nwe
+      do i=1,wire_max
         do j=1,6
-          clowbeam(j,i)=zero
+          wire_clo(j,i)=zero
         enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
