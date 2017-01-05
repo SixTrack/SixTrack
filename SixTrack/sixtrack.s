@@ -1257,12 +1257,8 @@
      &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
       double precision :: wire_tiltx(nele),
      &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
-      common /wireco2/ wire_current,wire_lint,wire_lphys,wire_flagco,
-     &wire_dispx,wire_dispy,wire_tiltx,wire_tilty
-!+cd elenstracktmp
-!     Dummy variables used in tracking block for calculation
-!     of the kick for the ideal annualar e-lens
-!      double precision :: rrelens,frrelens,r1elens,xelens,yelens
+      common /wireparamco/ wire_current,wire_lint,wire_lphys,
+     &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -7470,12 +7466,6 @@ cc2008
 
       chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            
 
-      write(*,*) 'MF: wirekick - wire_current(ix),wire_lint(ix),'//
-     &'wire_lphys(ix),wire_flagco(ix),wire_dispx(ix),wire_dispy(ix),'//
-     &'wire_tiltx(ix),wire_tilty(ix),wire_flagco(ix)',
-     &wire_current(ix),wire_lint(ix),
-     &wire_lphys(ix),wire_flagco(ix),wire_dispx(ix),wire_dispy(ix),
-     &wire_tiltx(ix),wire_tilty(ix),wire_flagco(ix)
       tx = wire_tiltx(ix) !tilt x [degrees] 
       ty = wire_tilty(ix) !tilt y [degrees]
       tx = tx*(pi/180.0d0) ![rad]
@@ -12435,8 +12425,6 @@ cc2008
 +ei
       read(ch1,*,round='nearest')                                       &
      & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i) !read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
-      write(*,*), 'MF: 12470',idat,kz(i),ed(i),ek(i),el(i),bbbx(i),
-     &bbby(i),bbbs(i)
 +if crlibm
       call disable_xp()
 +ei
@@ -12445,8 +12433,6 @@ cc2008
 +if .not.crlibm
 !     write (*,*) 'ERIC'
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)!read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
-      write (*,*) 'MF: 12480',idat,kz(i),ed(i),ek(i),el(i),bbbx(i),
-     &bbby(i),bbbs(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
@@ -20916,7 +20902,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-      write(*,*) 'MF: wire_flagco(ix) 20923',wire_flagco(ix)
       IF (wire_flagco(ix).eq.1) THEN
          wireclo0=(dare(x(1))-xpl(ix))            
          call dapok(XX(1),jj,wireclo0)
@@ -23154,8 +23139,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       YCLO = wire_clo(2,wire_num(i))
       NNORM_=c1m7/chi
 
-      write(*,*) 'MF: wire_flagco(ix) 23151',wire_flagco(ix)
-                        
       if (abs(wire_flagco(ix)).ne.1) then
 +if cr
         write(lout,
@@ -38176,7 +38159,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             nlin=nlin+1
             if(nlin.gt.nele) call prror(81)
             bezl(nlin)=bez(i)
-            write(*,*), 'MF: ',nlin,bezl(nlin),bez(i)
           endif
   135   continue
       endif
