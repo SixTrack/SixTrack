@@ -1259,6 +1259,11 @@
      &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
       common /wireparamco/ wire_current,wire_lint,wire_lphys,
      &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
++cd wiretracktmp
+! temporary variables
+      double precision RTWO !RTWO=x^2+y^2
+      double precision NNORM_, NNORM
+      double precision l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -4797,7 +4802,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           endif
           goto 290
         endif
-+cd wirektrack
++cd wire
 ! wire
         if(kzz.eq.15) then
           ktrack(i)=45
@@ -23042,13 +23047,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
       end
 !
-+cd wirevar
-!-----------------------------------------------------------------------
-! WIRE ELEMENT, TEMP. VARIABLES
-!-----------------------------------------------------------------------
-      double precision RTWO !RTWO=x^2+y^2
-      double precision NNORM_, NNORM
-      double precision l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 !-----------------------------------------------------------------------
 ! WIRE DIFFERENTIAL ALGEBRA
 +dk wireda
@@ -26689,7 +26687,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beamwzf2
 +ca beama4o
 +ca beams24
-+ca wirektrack
++ca wire
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -28464,7 +28462,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1, crabamp, crabfreq
-+ca wirevar
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -29009,7 +29007,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision acdipamp, qd, acphase,acdipamp2,acdipamp1,       &
      &crabamp,crabfreq,                                                 &
      &crabamp2,crabamp3,crabamp4
-+ca wirevar
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -33164,7 +33162,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-+ca wirevar
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -34695,7 +34693,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beamwzf2
 +ca beama4o
 +ca beams24
-+ca wirektrack
++ca wire
 +ca elens
 +ca acdip1
 +ca crab1
@@ -35038,7 +35036,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1,crabamp,crabfreq
-+ca wirevar
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -35588,7 +35586,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-+ca wirevar
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -36297,7 +36295,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-+ca wirevar
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
