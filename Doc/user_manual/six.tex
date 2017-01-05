@@ -1632,6 +1632,94 @@ BLOC56            hel1              hel2
 \end{verbatim}
 Note that all parameters except for the type are set to 0 in the single element definition.
 
+\subsection{Wire} \label{sec:WIRE}
+
+\paragraph{Description} The wire module serves for reading in the input parameters for the wire. Each wire also needs to be added as single element in the list of single elements.
+
+\paragraph{Keyword} WIRE
+
+\paragraph{Number of data lines} variable
+
+\paragraph{Format} \emph{name flag\_co current int\_length phys\_length disp\_x disp\_y tilt\_x tilt\_y}
+A description of the input parameters for the wire is given in Table~\ref{tab:wire}.
+\begin{center}
+	\begin{longtable}{|p{2.0cm} p{1.0cm} p{9.2cm}|}
+		%Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+		\caption{Input parameters for WIRE block.}
+		\label{tab:wire} \\*
+		\hline
+		\rowcolor{blue!30}
+		Arguments & unit & Description \\*
+		\hline
+		\endfirsthead
+		
+		\hline
+		\rowcolor{blue!30}
+		Arguments & unit & Description \\*
+		%\hline
+		\endhead
+		
+		\rowcolor{gray!15}
+		\multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+		\hline
+		\endfoot
+		
+		\hline
+		\endlastfoot
+		
+		\hline
+		
+		\emph{name} & - &
+		Name of wire. Must be the same as in list of single elements.\\*
+		
+		\emph{flag\_co} & - &
+		flag to define the displacement of the wire in respect to the closed orbit or x=y=0. \\*
+		\emph{current} & A &
+		wire current \\*
+		\emph{int\_length} & m &
+		integrated length of the wire\\*
+		\emph{phys\_length} & m &
+		physical length of the wire\\*
+		\emph{disp\_x} & mm &
+		hor. displacement of the wire\\*
+		\emph{disp\_y} & mm &
+		vert. displacement of the wire\\*
+		\emph{tilt\_x} & degrees &
+		hor. tilt of the wire -90 < \emph{tilt\_x} < 90 (uses same defintion as DISP block) \\*
+		\emph{tilt\_y} & degrees &
+		vert. tilt of the wire -90 < \emph{tilt\_y} < 90 (uses same defintion as DISP block) \\*
+		\hline
+		
+	\end{longtable}
+\end{center}
+
+\paragraph{Remark} The user has to check that the wires defined in the WIRE block are also defined in the list of single elements and vice versa. All parameters except for the type (type 15) are ignored in the single element definition and the execution is aborted if the parameters are non-zero. In addition to the parameters defined in the WIRE block, the \emph{ibeco} parameter in the BEAM block (see Sec.~\ref{BeamBeam}) imposes the same behavior on the wire as for beam-beam. Explicitly, the closed orbit introduced by the wire is subtracted if \emph{ibeco}=1 and not subtracted if \emph{ibeco}=0.
+
+\paragraph{Example} In the following we give some examples for wire definitions. This example defines two wires wire\_1 and wire\_2.
+
+The input block in \verb|fort.3| is given by:
+\begin{verbatim}
+WIRE
+wire_1   -1  +98.9   2.0  1.0   10.0   10.0     1.1     1.1
+wire_2   -1  +98.9   2.0  1.0   10.0   10.0     0.0     0.0
+NEXT
+\end{verbatim}
+The single and structure element definition in \verb|fort.2| is given by:
+\begin{verbatim}
+SINGLE ELEMENTS---------------------------------------------------------
+...
+wire_1           15   0.000000000e+00   0.000000000e+00 
+0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+wire_2           15   0.000000000e+00   0.000000000e+00 
+0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+...
+STRUCTURE INPUT---------------------------------------------------------
+...
+BLOC56            wire_1              wire_2
+...
+\end{verbatim}
+Note that all parameters except for the type have to be set to 0 in the single element definition.
+
 \section{Organising Tasks}
 
 In this section the input data blocks are described, which are used to
@@ -3126,6 +3214,10 @@ code of Hirata~\cite{Hirata}.
   \pageref{LinOpt} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Element & & \\
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ELEN & 
+  & variable &
+  Electron lens &~\ref{sec:elen} &
+  \pageref{sec:elen} \\ 
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm}
   \thekwc & ENDE & & & End of SixTrack Input Structure & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & FLUC &
@@ -3261,6 +3353,10 @@ code of Hirata~\cite{Hirata}.
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``VMON= ''
   & & & Specifies an Vertical Orbit Monitor
   &~\ref{OrbCorr} & \pageref{OrbCorr} \\
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & WIRE & WIRE element
+  & variable &
+  Wire element &~\ref{sec:WIRE} &
+  \pageref{sec:WIRE} \\ 
   \hline
 \end{longtable}
 \normalsize
