@@ -1242,9 +1242,21 @@
       logical dist_load, dist_phys
       ! logical switch: distribution block is given -> discard all other dist load functions
       logical dist_block
+!     distribution read and echo unit
+      integer dist_read_unit
+      integer dist_echo_unit
       ! commons for initial distribution
-      common /dist_var/ dist_fname, dist_phys, dist_load, dist_block
-!     
+      common /dist_var/ dist_fname, dist_read_unit, dist_echo_unit,     &
+     & dist_phys, dist_load, dist_block
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+! PDH commons for heavy ions
++cd hions
+      double precision nucm0, mtc, nucm
+      integer aa0, zz0, naa, nzz
+      logical ionsQ
+      common /hion_var/ nucm0,aa0,zz0,naa(npart),nzz(npart),nucm(npart), &
+     &mtc(npart),ionsQ
+!      
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd   comgetfields
@@ -11978,7 +11990,8 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca fma
-+ca inidist      
++ca inidist
++ca hions      
 +ca elensparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
@@ -12268,6 +12281,7 @@ cc2008
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
       if(idat.eq.dist)  goto 2500
+      if(idat.eq.hion)  goto 2600      
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -17084,10 +17098,8 @@ cc2008
       call prror(51)
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-!  FMA
-!  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
-!  last modified: 07-01-2016
-!  always in main code
+!  DISTribution block
+!  P. Hermes, A. Mereghetti, R. de Maria, K. Sk..
 !-----------------------------------------------------------------------
  2500 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -17166,6 +17178,64 @@ cc2008
       
       
       goto 2500
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!  heavy ion block
+!  P. Hermes, A. Mereghetti, R. de Maria, K. Sk..
+!-----------------------------------------------------------------------
+ 2600 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2600 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+         goto 110 ! loop to next BLOCK in fort.3
+      endif
+
+      WRITE(*,*) '--> HION BLOCK READ'
+
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in HION block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+      
+      if(getfields_nfields.ne.3) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in HION block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 3'
+        call prror(-1)
+      endif      
+     
+
+      if(getfields_nfields.eq.3) then
+         read (getfields_fields(1)(1:getfields_lfields(1)),'(I3)')
+     &        zz0
+         read (getfields_fields(2)(1:getfields_lfields(2)),'(I3)')
+     &        aa0
+         read (getfields_fields(3)(1:getfields_lfields(3)),'(F22.20)')
+     &        nucm0
+         ionsq = .true.
+      endif
+      
+      WRITE(*,*) '--> HION: read the following reference nuclide'
+      WRITE(*,*) '--> HION (Z,A,m):', zz0, aa0, nucm0
+      WRITE(*,*) '--> HION: ionsq', ionsQ
+      
+      goto 2600      
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !  FMA
@@ -23744,7 +23814,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbmaincr
 +ca dblinopt
 +ca dbpencil
-+ca inidist      
++ca inidist
++ca hions      
 +ca database
 +ei
 +if cr
@@ -24981,13 +25052,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       WRITE(*,*) '--> DIST idfor', idfor
       WRITE(*,*) '--> DIST_READDIS, dist_block', dist_block
 
-
       ! assign reference momentum
       !e0f = sqrt(e0**2-pma**2)    
 
+      WRITE(*,*) '--> DIST REFERENCE MOMENTUM'
+      if (ionsQ) then
+         WRITE(*,*) '--> DIST USING HEAVY ION MASS'
+         e0f=sqrt(e0**2-nucm0**2)
+      else
+         WRITE(*,*) '--> DIST USING PROTON MASS'
+         e0f=sqrt(e0**2-pma**2)
+      endif
+      
       
       if (dist_block) then
-         call dist_read(dist_fname)
+         call dist_read( napx, npart, e0, e0f, clight,                  &
+     &       xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:),     &
+     &       naa(:), nzz(:), nucm(:) )
       endif
 !
 !      
@@ -26176,6 +26257,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonmn
 +ca commonm1
 +ca commontr
++ca hions      
 +ca beamdim
       dimension nbeaux(nbb)
 +if collimat
@@ -26186,7 +26268,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dblinopt
 +ca dbpencil
 +ca info
-+ca inidist            
++ca inidist
 +ei
 +if bnlelens
 +ca rhicelens
@@ -32739,6 +32821,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca inidist
++ca hions
 +ca elensparam
 +ca elenstracktmp
       save
@@ -38701,7 +38784,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do i=0,nblz+1
          dcum(i)=zero
       enddo
-
+      
+!--READ DIST------------------------------------------------------------
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     initialise common
+!     always in main code
+      !dist_enable = .false.
+      !dist_echo = .false.
+!dist_filename = ''
+!      dist_fname     = ''
+!
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
 !     K.Sjobak, BE-ABP/HSS
@@ -62876,7 +62969,7 @@ c$$$     &           myalphay * cos(phiy))
 
 !
 !========================================================================
-!     P. HERMES
+!     P.D. HERMES (PDH)
 !     read distribution from external file
 !     part of the extensions discussed in      
 !     https://github.com/SixTrack/SixTrack/issues/111
@@ -62898,62 +62991,147 @@ c$$$     &           myalphay * cos(phiy))
 !     m      - Particle mass [GeV/c^2]
 !     P      - Particle momentum [GeV/c^2]      
 !
-      subroutine dist_read(filename)
+      subroutine dist_read( napx, npart, enom, pnom, clight,
+     &                      x, y, xp, yp, s, pc, aa, zz, m )
 !
 !
       implicit none
 
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
+      
 +ca inidist     
+!+ca dist_var
 
+
+      
       character*80   filename
-      
-      logical lopen
-      integer stat
 
+!     interface variables:
       integer napx, npart
-      
-      save
+      double precision enom, pnom, clight
+      double precision x, y, xp, yp, s, pc
+      double precision m0                    ! hisix
 
+!     temporary variables:
+      integer id, gen, aa, zz
+      double precision weight, z, zp, m, dt
+      integer jj
+      character*240 tmp_line
+
+      character comment_char
+      parameter ( comment_char = '*' )
+
+      dimension x ( npart ), y ( npart )
+      dimension xp( npart ), yp( npart )
+      dimension s ( npart ), pc( npart )
+      dimension dt( npart )
+
+      ! P. HERMES hisix
+      dimension aa( npart ), zz( npart )
+      dimension m ( npart )      
+      
+      !double precision enom, pnom
+      !integer napx, npart
+      
+      !save
 
       WRITE(*,*) '--> DIST_READ SUBROUTINE CALLED'
-      WRITE(*,*) '--> DIST_SR filename ', filename
+      WRITE(*,*) '--> DIST_SR filename ', dist_fname
+      WRITE(*,*) '--> DIST_SR e0, p0   ', enom, pnom
+
+      dist_read_unit = 154
+      dist_echo_unit = 152
+
 
       
+!     initialise tracking variables:
+      do jj=1,npart
+        x (jj) = 0.0D+00
+        y (jj) = 0.0D+00
+        xp(jj) = 0.0D+00
+        yp(jj) = 0.0D+00
+        pc(jj) = 0.0D+00
+        s (jj) = 0.0D+00
+	aa(jj) = 0            ! hisix
+	zz(jj) = 0            ! hisix
+	m (jj) = 0.0D+00      ! hisix
+      enddo
+!     initialise particle counter
+      jj = 0      
+
+
+      write(*,*), '--> DIST, dist_read_unit', dist_read_unit
+      write(*,*), '--> DIST, dist_echo_unit', dist_echo_unit
+      write(*,*), '--> DIST, npart         ', npart
+      write(*,*), '--> DIST, napx          ', napx
       
-      
-!      write(*,*) "Reading input bunch from file ", filename_dis
+      open( unit=dist_read_unit, file=dist_fname )
 
-!      inquire( unit=53, opened=lopen )
-!      if (lopen) then
-!         write(*,*) "ERROR in subroutine readdis: "//
-!     &        "FORTRAN Unit 53 was already open!"
-!         goto 20
-!      endif
-!      open(unit=53, file=filename_dis, iostat=stat,
-!     &     status="OLD",action="read")
-!      if (stat.ne.0)then
-!         write(*,*) "Error in subroutine readdis: "//
-!     &        "Could not open the file."
-!         write(*,*) "Got iostat=",stat
-!         goto 20
-!      endif
+!     cycle on lines in file:
+ 1981 continue
+      read(dist_read_unit,'(A)',end=1983,err=1982) tmp_line
+      if ( tmp_line(1:1).eq.comment_char ) goto 1981
+      jj = jj+1
+      if ( jj.gt.napx ) then
+         write(*,*)''
+         write(*,*)'Stopping reading file, as already ',napx
+         write(*,*)' particles have been read, as requested by the user'
+         write(*,*)' in fort.3 file'
+         write(*,*)''
+         jj = napx
+         goto 1983
+      ! PHD: reordering to avoid error in case npart=napx 
+      elseif ( jj.gt.npart ) then
+         write(*,*)'Error while reading particles'
+         write(*,*)'not enough memory for all particles in file'
+         write(*,*)'please increase the npart parameter and recompile'
+         write(*,*)'present value:',npart
+         jj = npart
+         goto 1984
+      endif
+      read( tmp_line, *, err=1982 ) id, gen, weight,
+     &    x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj),   &
+     &pc(jj), dt(jj)                                        ! hisix
+      goto 1981
 
-!      do j=1,mynp
-!         read(53,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j),     &
-!     &        mys(j), myp(j)
-!      enddo
-!      
-! 10   mynp = j - 1
-!      write(*,*) "Number of particles read from the file = ",mynp
-!
-!      close(53)
+!     error while parsing file:
+ 1982 continue
+      write(*,*) 'Error while reading particles at line:'
+      write(*,*) tmp_line
+      goto 1984
 
+ 1983 continue
+      if ( jj.eq.0 ) then
+         write(*,*) 'Error while reading particles'
+         write(*,*) 'no particles read from file'
+         goto 1984
+      endif
+      close(dist_read_unit)
+      write(*,*) "Number of particles read = ", jj
+      if ( jj.lt.napx ) then
+         write(*,*)''
+         write(*,*)'Warning: read a number of particles'
+         write(*,*)'         LOWER than the one requested for tracking'
+         write(*,*)'         requested:',napx
+         write(*,*)''
+         napx = jj
+      endif
+!     fix units:
+      do jj=1,napx
+        x (jj) = x(jj)  * 1.0D+03 ! [m]       -> [mm]
+        y (jj) = y(jj)  * 1.0D+03 ! [m]       -> [mm]
+        xp(jj) = xp(jj) * 1.0D+03 ! []        -> [1.0E-03]
+        yp(jj) = yp(jj) * 1.0D+03 ! []        -> [1.0E-03]
+        pc(jj) = pc(jj) * 1.0D+03 ! [GeV/c]   -> [MeV/c]
+        m (jj) = m(jj)  * 1.0D+03 ! [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+        s (jj) = -pnom/enom * dt(jj)*clight * 1.0D+03
+      enddo
+
+      return
+
+!     exit with error
+ 1984 continue
+      close(dist_read_unit)
+      call prror(-1)
       return
       
 ! 20   continue
