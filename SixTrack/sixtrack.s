@@ -18801,9 +18801,14 @@ c$$$         endif
          el(ix)=0d0
 !--Wire
       else if(kz(ix).eq.15) then
-         ed(i)=0d0
-         ek(i)=0d0
-         el(i)=0d0
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
+!--e-lens
+      else if(kz(ix).eq.29) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
       endif
       
       return
