@@ -1244,18 +1244,17 @@
       logical dist_block
 !     distribution read and echo unit
       integer dist_read_unit
-      integer dist_echo_unit
       ! commons for initial distribution
-      common /dist_var/ dist_fname, dist_read_unit, dist_echo_unit,     &
+      common /dist_var/ dist_fname, dist_read_unit,                     &
      & dist_phys, dist_load, dist_block
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ! PDH commons for heavy ions
 +cd hions
-      double precision nucm0, mtc, nucm
+      double precision nucm0, mtc, nucm, moidpsv, omoidpsv
       integer aa0, zz0, naa, nzz
       logical ionsQ
       common /hion_var/ nucm0,aa0,zz0,naa(npart),nzz(npart),nucm(npart), &
-     &mtc(npart),ionsQ
+     &mtc(npart),moidpsv(npart),omoidpsv(npart),ionsQ
 !      
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -2052,13 +2051,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd kickvxxh
 +if .not.tilt
             yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
-            yv(2,j)=yv(2,j)-(strack(i)*oidpsv(j))*cikve                  !hr02
+            yv(2,j)=yv(2,j)-(strack(i)*oidpsv(j))*cikve !hr02
+            write(*,*) '--> DIST: x,y', yv(1,j), yv(2,j)
 +ei
 +if tilt
             yv(1,j)=yv(1,j)+oidpsv(j)*(strackc(i)*crkve+                &
      &stracks(i)*cikve)
             yv(2,j)=yv(2,j)+oidpsv(j)*(stracks(i)*crkve-                &!hr02
-     &strackc(i)*cikve)                                                  !hr02
+     &strackc(i)*cikve) !hr02
+            write(*,*) '--> DIST: x,y', yv(1,j), yv(2,j)            
 +ei
 +cd kickvdpe
 +if .not.tilt
@@ -25069,9 +25070,116 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          call dist_read( napx, npart, e0, e0f, clight,                  &
      &       xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:),     &
      &       naa(:), nzz(:), nucm(:) )
-      endif
+!      endif
 !
-!      
+!
+!       finalise beam distribution creation
+        do j=1, napx
+!         values related to losses (online aperture check not included)
+!          nlostp(j) = j
+!          pstop (j) = .false.
+
+!         values related to momentum
+          ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)	         
+          
+          if ( nzz(j).eq.zz0 .and. naa(j).eq.aa0 ) then
+!         PDH: mono-isotopic case - all particles same species as ref.
+             mtc     (j) = one
+             dpsv    (j) = (ejfv(j)-e0f)/e0f
+          else
+             ! PDH: general case - particle not same species as ref.
+             mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))
+             dpsv    (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f     
+          endif
+          
+          oidpsv  (j) = one/(one+dpsv(j))                                   ! unchanged for ions
+          dpsv1   (j) = (dpsv(j)*c1e3)*oidpsv(j)                            ! unchanged for ions
+          moidpsv (j) = mtc(j)*oidpsv(j)                                    ! new for ions
+          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))                       ! new for ions
+          rvv     (j) = (ejv(j)*e0f)/(e0*ejfv(j))                           ! unchanged for ions
+
+          
+	
+!         check existence of on-momentum particles in the distribution
+          if ( abs(dpsv(j)).lt.1.0D-15 .or.                             &
+     &         abs( (ejv(j)-e0)/e0 ) .lt. 1.0D-15 ) then
+
+!           warning with old infos:
+            write(*,*)''
+            write(*,'(5X,A22)') 'on-momentum particle!!'
+            write(*,'(5X,10X,4(1X,A25))')                               &
+     &   "momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
+            write(*,'(5X,"ORIGINAL: ",4(1X,1PE25.18))')                 &
+     &                       ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+
+	    ejfv(j)   = e0f*(nucm(j)/nucm0)          ! P. HERMES for hiSix
+            ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)  ! P. HERMES for hiSix
+            dpsv(j)   = 0.0D+00
+            oidpsv(j) = 1.0D+00
+
+!           warning with new infos:
+            write(*,'(5X,"CORRECTED:",4(1X,1PE25.18))')                 &
+     &                       ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+            write(*,*)''
+          endif
+        end do
+!
+!
+! hisix
+        if ( ionsQ ) then
+           write(*,*) '--> HISIXTRACK: Reference ion species:',aa0,zz0  
+           write(*,*) '--> HISIXTRACK: Ref energy [Z TeV]:', c1m6*e0/zz0
+	   write(*,*),'--> HISIXTRACK: Tracked ion bunch [A,Z,E(MeV)]'
+c$$$           do j=1,napx
+c$$$              write(*,*), naa(j),nzz(j),e0f*(nucm(j)/nucm0)
+c$$$           end do
+        endif
+!
+
+!
+!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!       last modified: 07-02-2014
+!       in principle there is no need to fill in the unused places:
+!       - nlostp(j) = j        with j=1,npart    filled in trauthin/trauthck
+!       - pstop (j) = .false.  with j=1,npart    filled in maincr
+!       - ejv   (j) = zero     with j=1,npart    filled in maincr
+!       - dpsv  (j) = zero     with j=1,npart    filled in maincr
+!       - oidpsv(j) = one      with j=1,npart    filled in maincr
+!       nevertheless, let's do it, to be fully sure:
+        do j=napx+1,npart
+!         values related to losses
+          nlostp(j) = j
+          pstop (j) = .true.
+!         values related to momentum
+          ejv   (j)   = 0.0D+00
+          dpsv  (j)   = 0.0D+00
+          oidpsv(j)   = 1.0D+00
+	  mtc   (j)   = 1.0D+00        ! P. HERMES for hiSix
+	  naa   (j)   = aa0            !
+	  nzz   (j)   = zz0            !
+	  nucm  (j)   = nucm0          !
+	  moidpsv (j) = 1.0D+00      !
+	  omoidpsv(j) = 0.0D+00      ! P. HERMES for hiSix
+	!PH: fill also mtc, etc.
+        enddo
+
+!       add closed orbit
+        if(iclo6.eq.2) then
+          do j=1, napx
+            xv(1,j)=xv(1,j)+clo6v(1,j)
+            yv(1,j)=yv(1,j)+clop6v(1,j)
+            xv(2,j)=xv(2,j)+clo6v(2,j)
+            yv(2,j)=yv(2,j)+clop6v(2,j)
+            sigmv(j)=sigmv(j)+clo6v(3,j)
+            dpsv(j)=dpsv(j)+clop6v(3,j)
+            oidpsv(j)=one/(one+dpsv(j))
+          end do
+        end if
+	write(*,*),'--> HISIXTRACK Properties of tracked ion bunch'
+	do j=1,napx
+	    write(*,*) xv(1,j), naa(j),nzz(j),mtc(j),e0/nzz(j)
+	end do
+      endif      
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
@@ -27575,6 +27683,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  Copy new particles to tracking arrays. Also add the orbit offset at
 !++  start of ring!
 !
+      ! PDH: DO ONLY WHEN DIST BLOCK IS NOT CALLED
+      ! MAYBE GIVE WARNING MESSAGE THAT USAGE IS DEPRECIATED
+      if (.not.dist_block) then
             do i = 1, napx00
               xv(1,i)  = 1d3*myx(i+(j-1)*napx00)  +torbx(1)              !hr08
               yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
@@ -27598,11 +27709,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
               dpsv(i)=(ejfv(i)-e0f)/e0f
               oidpsv(i)=one/(one+dpsv(i))
-              dpsv1(i)=(dpsv(i)*c1e3)*oidpsv(i)                          !hr08
+              dpsv1(i)=(dpsv(i)*c1e3)*oidpsv(i) !hr08
+          end do
+      endif
+!     PDH: END OF IF NOT DIST_BLOCK
 !GRD
 !APRIL2005
 !
-!              dpsv(i)  = 0d0
+!     dpsv(i)  = 0d0
+           do i = 1, napx00
               nlostp(i)=i
               do ieff =1, numeff
                  counted_r(i,ieff) = 0
@@ -28115,6 +28230,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonta
 +ca commonmn
 +ca commonm1
++ca hions      
 +ca commontr
 +ca beamdim
 +if cr
@@ -28661,6 +28777,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonm1
 +ca commontr
 +ca beamdim
++ca hions      
 +if collimat
 +ca collpara
 +ca dbcommon
@@ -38791,7 +38908,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     initialise common
 !     always in main code
       !dist_enable = .false.
-      !dist_echo = .false.
 !dist_filename = ''
 !      dist_fname     = ''
 !
@@ -63032,14 +63148,14 @@ c$$$     &           myalphay * cos(phiy))
       !double precision enom, pnom
       !integer napx, npart
       
-      !save
+      save
 
       WRITE(*,*) '--> DIST_READ SUBROUTINE CALLED'
       WRITE(*,*) '--> DIST_SR filename ', dist_fname
       WRITE(*,*) '--> DIST_SR e0, p0   ', enom, pnom
 
       dist_read_unit = 154
-      dist_echo_unit = 152
+!      dist_echo_unit = 152
 
 
       
@@ -63060,7 +63176,7 @@ c$$$     &           myalphay * cos(phiy))
 
 
       write(*,*), '--> DIST, dist_read_unit', dist_read_unit
-      write(*,*), '--> DIST, dist_echo_unit', dist_echo_unit
+!      write(*,*), '--> DIST, dist_echo_unit', dist_echo_unit
       write(*,*), '--> DIST, npart         ', npart
       write(*,*), '--> DIST, napx          ', napx
       
