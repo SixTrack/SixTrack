@@ -81,7 +81,7 @@ SixTrack is normally configured and built using CMake, and for simplicity a wrap
 This allows configuring the various build options, changing compilers, and changing build types.
 To run it, simply execute the command:\\
 \texttt{cmake\_six \textit{compiler} \textit{buildtype} \textit{OPTION1} \textit{OPTION2} \textit{-OPTION3}}\\
-Here the \texttt{\textit{compiler}} argument specifies the compiler to use, and the \texttt{\textit{buildtype}} argument wether to build a \texttt{release} or \texttt{debug} version.
+Here the \texttt{\textit{compiler}} argument specifies the compiler to use, and the \texttt{\textit{buildtype}} argument whether to build a \texttt{release} or \texttt{debug} version.
 To take the default compiler and build type, simply leave these options out.
 
 The other options (all UPPER CASE) switch on or off code features as described in Section~\ref{sec:building:options}.
@@ -90,7 +90,11 @@ Note that to switch an option off put a ``\texttt{-}'' sign in front of its name
 
 Each build will produce a new subfolder\\
 {
-  \texttt{SixTrack\_\-cmakesix\_\-OPTION1\_\-OPTION2\_\-NOOPTION3\_\-compiler\_\-buildtype}~.\\
+  \texttt{SixTrack\_\-cmakesix\_\-OPTION1\_\-OPTION2\_\-NOOPTION3\_\-compiler\_\-buildtype}~,\\
+}
+and each of the folders will contain a binary named\\
+{\scriptsize
+  \texttt{SixTrack\_\textit{VERSION}\_feature1\_feature2\_feature3\_etc\_cmake\_\textit{COMPILER}\_(static\_){32bit|64bit}}~.\\
 }
 To clear all such folders, simply run \texttt{cmake\_six clean}.
 
@@ -106,7 +110,7 @@ Furthermore, some of the support libraries are written in C/C++.
 We here support the following compilers:
 \begin{itemize}
 \item gcc
-\item icc
+\item icc / icpc
 \item LLVM (OS X)
 \end{itemize}
 These can be combined, by setting the compiler flags as shown by \texttt{cmake\_six help}.
@@ -157,28 +161,54 @@ Both 32- and 64-bit executables are supported, as well as both static- and dynam
 
 %In the future, maybe a new-ish Lahey.
 
-%how to configure them on lxplus...
-
-%32- vs 64- bit.
-
-%static/dynamic linking
-
 \subsection{Common build types}
 \label{sec:building:options}
+By selecting different sets of flags at compile time, the SixTrack sources can be compiled to different versions, which have different capabilities.
+This section lists the most common build types; note that it is often possible to combine these features, e.g. to use collimation together with increased particle numbers.
+If the features are incompatible, then this is detected by the cmake script, which will exit with an error message.
+
+\subsubsection{Standard build}
+This build type, used for generic tracking and dynamic aperture studies, is selected by using the standard build flags.
+In effect, just run \texttt{cmake\_six} without any flags, possibly except for explicitly selecting a compiler.
+Note that the standard build uses CRLIBM, described in Section~\ref{sec:building:libs:crlibm}.
 
 \subsubsection{Collimation}
+The collimation version of SixTrack is used for collimation studies.
+Here, more than 64 particles can be tracked by splitting it up in ``packs''; in total a maximum of \texttt{maxn=}20'000 particles can be used.
+Furthermore, the collimators can scatter particles; the scattering angle is determined through a Monte Carlo routine.
+The collimation-specific features are controlled by a \texttt{COLL} block in the \texttt{fort.3} input file; please see \todo{ref} for more information.
+
+In order to compile the collimation version, run \texttt{cmake\_six COLLIMAT -CRLIBM}.
+
+\todo[inline]{Sub versions - merlinscatter, hdf5, etc.}
 
 \subsubsection{Checkpoint/restart}
+The checkpoint/restart feature in SixTrack allows the simulation to continue from where it stopped after an abort, instead of restarting from the beginning.
+This is a vital feature when running on e.g.\ LHC@Home, and works by saving a checkpoint file every \texttt{numlcp} turns.
+The feature is included by using the \texttt{CR} build option, i.e.\ \texttt{cmake\_six CR}.
 
-\subsubsection{BOINC}
+\subsubsection{Increased particle numbers}
+It is possible to track more than 64 particles simultaniously in SixTrack; the main limitation for this is the ``binary data files'' fort.90, fort.89, etc., as one such file is written per pair of tracked particles.
+In order to work around this, the ``Single Track File'' (STF) functionality was invented, which basically packs the contents of these binary data files into a single file \texttt{singletrackfile.dat}.
+This makes it possible to increase the particle number to 2048, and to track this many particles compile with \texttt{cmake\_six STF BIGNPART}.
 
-\subsubsection{32 vs 64 bit}
+After this, the limiting factor is the size of the executable's BSS section, which contains the Fortran COMMON blocks, when using the ``small'' code model (2~GB).
+In order to break out of this limiation, some large matrices that are only needed for thick tracking can be allocated on demand in heap memory, and this is enabled by the \texttt{DATAMODS} option.
+This then makes it possible to track up to 65536 particles when the \texttt{HUGENPART} option is in use; to compile this run \texttt{cmake\_six STF DATAMODS HUGENPART}~.
+
+\todo[inline]{Reference sixtrack meeting slides?}
 
 \subsection{Libraries}
+languages, linking, what they do etc.
 
 \subsubsection{CRLIBM}
+\label{sec:building:libs:crlibm}
 
 \subsubsection{MerlinScatter}
+
+\subsubsection{HDF5}
+
+\subsubsection{BOINC}
 
 \subsection{Astuce}
 
@@ -189,6 +219,8 @@ Both 32- and 64-bit executables are supported, as well as both static- and dynam
 \subsubsection{Building on OS X}
 
 \subsubsection{Building on Windows}
+
+msys2
 
 \subsection{Legacy build environments}
 make\_six and the makefile
