@@ -275,6 +275,8 @@ To run specific tests, use the flag \texttt{-R \textit{name}}, where \textit{nam
 Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
 
 The tests will be ran in the \texttt{SixTest/\textit{testname}} sub-folder created by \texttt{cmake\_six}.
+It is therefore possible to find the produced files, together with the input- and reference files in this folder.
+The standard output of the simulation and output comparisons are by default stored in the \texttt{Testing/Temporary} subfolder.
 
 \subsection{Submitting to CDASH}
 
@@ -305,7 +307,7 @@ Please note that these scripts are deprecated, and are likely to be removed soon
 \subsection{Known failing tests}
 The following tests are currently known to fail:
 \begin{description}
-\item[bb] when compiling with ``Debug'': This is caused by an underflow in the initial closed orbit search, which is uncovered by trapping the underflow exception.
+\item[bb, bb\_ntwin1] when compiling with ``Debug'': This is caused by an underflow in the initial closed orbit search, which is uncovered by trapping the underflow exception.
 \end{description}
 
 \end{document}
