@@ -995,7 +995,7 @@ endif(CERNLIB)
 
 #if we are using crlibm, link to the crlibm library
 if(CRLIBM)
-	target_link_libraries(SixTrack crlibm)
+	target_link_libraries(SixTrack crlibm roundctl)
 endif(CRLIBM)
 
 #if we are using merlinscatter, link to the merlinscatter library
