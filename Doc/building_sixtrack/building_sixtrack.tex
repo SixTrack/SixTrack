@@ -78,7 +78,7 @@ Setting up git and github.
 \section{Building SixTrack}
 \label{sec:building}
 
-The SixTrack source code is located in the ``SixTrack'' subdirectory of the ``SixTrack'' repository.
+The SixTrack source code is located in the ``SixTrack'' sub-directory of the ``SixTrack'' repository.
 SixTrack is normally configured and built using CMake, and for simplicity a wrapper \texttt{cmake\_six} is provided.
 This allows configuring the various build options, changing compilers, and changing build types.
 To run it, simply execute the command:\\
@@ -121,10 +121,10 @@ Note that one may also use whatever compilers are the system default by using th
 Also note that some of these compilers may only be able to build either 32- or 64-bit executables, either due to limitations in the compiler itself, or due to which libraries have been installed on the machine you are compiling on.
 
 \subsubsection{gfortran and gcc}
-The gfortran and gcc compiler is the default on CERN's lxplus system and on most linux systems.
+The gfortran and gcc compiler is the default on CERN's LxPlus system and on most Linux systems.
 The system version (version 4.4.7) is old, but can be used to build both 32- and 64-bit executables.
 
-However the version installed and loaded by default on lxplus is quite old; it is however possible to load a newer version.
+However the version installed and loaded by default on LxPlus is quite old; it is however possible to load a newer version.
 This can be accomplished by running their setup script as\\
 {\scriptsize
   \texttt{source /afs/cern.ch/sw/lcg/external/gcc/4.9/\-x86\_64\--slc6\--gcc49\--opt/\-setup.sh}\\
@@ -135,7 +135,7 @@ where this version is selected to match the Geant4 version that can be loaded as
 }
 Unfortunately, this version only have the libraries for building the 64-bit version of SixTrack.
 
-\todo[inline]{Installing gfortran and libraries for 32- and 64-bit, static/nonstatic builds on Fedora and Ubuntu.}
+\todo[inline]{Installing gfortran and libraries for 32- and 64-bit, static/non-static builds on Fedora and Ubuntu.}
 
 \subsubsection{ifort and icc/icpc}
 Another popular set of compilers are Intel's ifort and icc.
@@ -151,7 +151,7 @@ for a 32-bit executable.
 
 However note that if using icc/icpc, it is not possible to compile static 64-bit executables, since Intel does not provide a static version of the \texttt{libcilkrts} library for 64-bit.
 
-If running the Intel compilers on LxPlus, it is reccomended to first load a newer version CMAKE.
+If running the Intel compilers on LxPlus, it is recommended to first load a newer version CMAKE.
 This can be accomplished through the commands:\\
 {\scriptsize
   \texttt{export PATH=/afs/cern.ch/sw/lcg/contrib/CMake/3.7.0/Linux-x86\_64/bin:\$PATH}\\
@@ -194,12 +194,12 @@ This is a vital feature when running on e.g.\ LHC@Home, and works by saving a ch
 The feature is included by using the \texttt{CR} build option, i.e.\ \texttt{cmake\_six CR}.
 
 \subsubsection{Increased particle numbers}
-It is possible to track more than 64 particles simultaniously in SixTrack; the main limitation for this is the ``binary data files'' fort.90, fort.89, etc., as one such file is written per pair of tracked particles.
+It is possible to track more than 64 particles simultaneously in SixTrack; the main limitation for this is the ``binary data files'' fort.90, fort.89, etc., as one such file is written per pair of tracked particles.
 In order to work around this, the ``Single Track File'' (STF) functionality was invented, which basically packs the contents of these binary data files into a single file \texttt{singletrackfile.dat}.
 This makes it possible to increase the particle number to 2048, and to track this many particles compile with \texttt{cmake\_six STF BIGNPART}.
 
 After this, the limiting factor is the size of the executable's BSS section, which contains the Fortran COMMON blocks, when using the ``small'' code model (2~GB).
-In order to break out of this limiation, some large matrices that are only needed for thick tracking can be allocated on demand in heap memory, and this is enabled by the \texttt{DATAMODS} option.
+In order to break out of this limitation, some large matrices that are only needed for thick tracking can be allocated on demand in heap memory, and this is enabled by the \texttt{DATAMODS} option.
 This then makes it possible to track up to 65536 particles when the \texttt{HUGENPART} option is in use; to compile this run \texttt{cmake\_six STF DATAMODS HUGENPART}~.
 
 \todo[inline]{Reference sixtrack meeting slides?}
@@ -212,14 +212,14 @@ This subsection describes how this is done, including any pitfalls.
 \subsubsection{CRLIBM}
 \label{sec:building:libs:crlibm}
 The CRLIBM library \todo{cite} is a replacement for the standard math library normally provided by the system, used to compute trigonometric functions, logarithms, etc.
-It is written in C, and contained in the \textrm{crlibm} subfolder.
+It is written in C, and contained in the \textrm{crlibm} sub-folder.
 
-The point of CRLIBM is primarilly to ensure that results are consistent accross different platforms, compilers, etc., which may provide different versions of libm giving slightly different results.
+The point of CRLIBM is primarily to ensure that results are consistent across different platforms, compilers, etc., which may provide different versions of libm giving slightly different results.
 
-In addition to the math library and its fortran interface (\texttt{ericc.c}), this folder also contains functions for converting strings to double (\textrm{strtod}) and a FORTRAN interface (\textrm{round\_near}), and functions to enable/disable x87 extended precission.
-The enabling/disabling of x87 extended precission is used to force the Intel x87 FPU to use 64-bit precission when storing numbers in internal registers, avoiding that results sometimes are stored with 80-bit precission and sometimes 64-bit.
-This is neccessary for CRLIBM to work correctly, and for SixTrack to give consistent results accross different compilers which may make different decissions for how long to keep results in registers etc.
-Furthermore, 80-bit precission is re-enabled before using \texttt{read} with \texttt{round='nearest'}.
+In addition to the math library and its fortran interface (\texttt{ericc.c}), this folder also contains functions for converting strings to double (\textrm{strtod}) and a FORTRAN interface (\textrm{round\_near}), and functions to enable/disable x87 extended precision.
+The enabling/disabling of x87 extended precision is used to force the Intel x87 FPU to use 64-bit precision when storing numbers in internal registers, avoiding that results sometimes are stored with 80-bit precision and sometimes 64-bit.
+This is necessary for CRLIBM to work correctly, and for SixTrack to give consistent results across different compilers which may make different decisions for how long to keep results in registers etc.
+Furthermore, 80-bit precision is re-enabled before using \texttt{read} with \texttt{round='nearest'}.
 
 Note that due to problems in GCC's x87 optimizer (introduced somewhere between version 4.4.7 and 4.8.3), the SSE instruction set should be used for all floating point calculations.
 
@@ -231,7 +231,7 @@ Note that due to problems in GCC's x87 optimizer (introduced somewhere between v
 
 \subsection{Tools}
 
-Two tools are required to preprocess the source code before it can be compiled -- astuce and dafor.
+Two tools are required to pre-process the source code before it can be compiled -- astuce and dafor.
 
 \subsubsection{Astuce}
 
@@ -250,10 +250,10 @@ msys2
 \subsection{Legacy build environments}
 
 In addition to the \texttt{cmake\_six} build script, there is the \texttt{make\_six}.
-These tools are used in a similar fashion, the main difference is that \texttt{make\_six} will automatically change depending options, i.e. swithcing on collimation will automatically switch crlibm off.
+These tools are used in a similar fashion, the main difference is that \texttt{make\_six} will automatically change depending options, i.e. switching on collimation will automatically switch crlibm off.
 The \texttt{make\_six} script works by modifying the ASTUCE input files before running ASTUCE and DAFOR to produce the FORTRAN files, and then modifying \texttt{Makefile\_six.template} to contain the correct paths etc. before compiling it.
 
-Additionally, there is a plain makefile, which uses an option resolver written in BASH.
+Additionally, there is a plain makefile, which uses an option resolver written in Bash.
 
 Note that these build environments are considered to be obsolete and may soon be removed.
 
@@ -274,7 +274,7 @@ To run specific tests, use the flag \texttt{-R \textit{name}}, where \textit{nam
 
 Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
 
-The tests will be ran in the \texttt{SixTest/\textit{testname}} subfolder created by \texttt{cmake\_six}.
+The tests will be ran in the \texttt{SixTest/\textit{testname}} sub-folder created by \texttt{cmake\_six}.
 
 \subsection{Submitting to CDASH}
 
@@ -297,10 +297,10 @@ You then need to set the EXECS environment variable to the full path of the exec
 }\\
 Note that not all tests are applicable for all binaries, and some of the tests are somewhat buggy.
 
-The tests can then be ran by excecuting \texttt{run\_pro} or \texttt{run\_kill} (for the CR version) with a single argument, the run number.
+The tests can then be ran by executing \texttt{run\_pro} or \texttt{run\_kill} (for the CR version) with a single argument, the run number.
 Once a test has finished, one can check that the results matches with the canonicals by executing \texttt{check\_10} (to check fort.10, produced by the POST block), \texttt{check\_90} (to check \texttt{fort.90}, produced by the tracking and read by the post-processing), \texttt{check\_stf} (to check \texttt{singletrackfile.dat}, produced instead of \texttt{fort.90} if STF is enabled), and \texttt{check\_extras} to check anything else.
 
-Please note that these scripts are depreceated, and are likely to be removed soon.
+Please note that these scripts are deprecated, and are likely to be removed soon.
 
 \subsection{Known failing tests}
 The following tests are currently known to fail:
