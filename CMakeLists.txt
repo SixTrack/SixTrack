@@ -761,7 +761,9 @@ SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}
 
 if(CRLIBM)
   add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/roundctl)
+endif()
+if(CRLIBM OR BUILD_TESTING )
+  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
@@ -1066,7 +1068,8 @@ IF(BUILD_TESTING)
 	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f)
 	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
 	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
-	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90 ${CMAKE_SOURCE_DIR}/SixTrack/roundctl/dtoa_c.c ${CMAKE_SOURCE_DIR}/SixTrack/roundctl/dtoaf.c)
+	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
+	target_link_libraries(read90 roundctl)
 
 	SET_TARGET_PROPERTIES(verify10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(checkf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
