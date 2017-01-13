@@ -334,7 +334,7 @@ C.............................................................
         Z(MF)=DCMPLX(X(MF),XP(MF))
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
-      ENDDO 
+      ENDDO
       CALL FFT_PLATO(ZSING,NPOINT,-1)
 C.......................SEARCH FOR MAXIMUM OF FOURIER SPECTRUM
       NPMIN=1
