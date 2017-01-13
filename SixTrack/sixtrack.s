@@ -20912,17 +20912,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-      IF (wire_flagco(ix).eq.1) THEN
-         wireclo0=(dare(x(1))-xpl(ix))            
-         call dapok(XX(1),jj,wireclo0)
-         wireclo0=(dare(x(2))-zpl(ix))
-         call dapok(XX(2),jj,wireclo0)
-      ELSE IF (wire_flagco(ix).eq.-1) THEN
-         wireclo0= dare(x(1))-(wire_clo(1,wire_num(i))+xpl(ix))
-         call dapok(XX(1),jj,wireclo0)
-         wireclo0= dare(x(2))-(wire_clo(2,wire_num(i))+zpl(ix))
-         call dapok(XX(2),jj,wireclo0)
-      END IF
           call wireda(ix,i)
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
@@ -22237,21 +22226,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          wire_clo(3,wire_num(i))=dare(SIGMDA)
          wire_clo(6,wire_num(i))=dare(DPDA)
       endif
-      IF (wire_flagco(ix).eq.1) THEN
-         wireclo0=(dare(x(1))-xpl(ix))            
-         call dapok(XX(1),jj,wireclo0)
-         wireclo0=(dare(x(2))-zpl(ix))
-         call dapok(XX(2),jj,wireclo0)
-      ELSE IF (wire_flagco(ix).eq.-1) THEN
-         wireclo0= dare(x(1))-(wire_clo(1,wire_num(i))+xpl(ix))
-         call dapok(XX(1),jj,wireclo0)
-         wireclo0= dare(x(2))-(wire_clo(2,wire_num(i))+zpl(ix))
-         call dapok(XX(2),jj,wireclo0)
-      END IF
-! we are in umlauda subroutine
-! try to skip the wire DA
-!        call wireda(ix,i)
-!
+
+      call wireda(ix,i)
+
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
           goto 440
@@ -23162,7 +23139,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !*FOX  DXI=DX*C1M3;
 !*FOX  DYI=DY*C1M3;
       IF (wire_flagco(ix).eq.1) THEN
-*FOX  DXI=(DX+YCLO)*C1M3;
+*FOX  DXI=(DX+XCLO)*C1M3;
 *FOX  DYI=(DY+YCLO)*C1M3;
       ELSE IF (wire_flagco(ix).eq.-1) THEN
 *FOX  DXI=DX*C1M3;
@@ -23188,7 +23165,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 ! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (TX, TY)
       if(ibeco.eq.0) then
-*FOX  YI=YI-XI*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YI=YI-((XI*SIN(TX))*YY(2))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
 *FOX  XI=XI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
@@ -23196,7 +23173,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
 
-*FOX  XI=XI-YI*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  XI=XI-((YI*SIN(TY))*YY(1))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
 *FOX  YI=YI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
@@ -23207,7 +23184,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
       if(ibeco.eq.1) then
 
-*FOX  DYI=DYI-DXI*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  DYI=DYI-((DXI*SIN(TX))*YY(2))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
 *FOX  DXI=DXI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
@@ -23220,7 +23197,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
 
-*FOX  DXI=DXI-DYI*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  DXI=DXI-((DYI*SIN(TY))*YY(1))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
 *FOX  DYI=DYI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
