@@ -73,6 +73,8 @@ forks and stuff.
 
 Setting up git and github.
 
+\todo[inline]{Reference / copy the text from the collimation workshop ``paper''.}
+
 \section{Building SixTrack}
 \label{sec:building}
 
@@ -199,10 +201,23 @@ This then makes it possible to track up to 65536 particles when the \texttt{HUGE
 \todo[inline]{Reference sixtrack meeting slides?}
 
 \subsection{Libraries}
-languages, linking, what they do etc.
+SixTrack leverages a few libraries in order to run correctly.
+These are generally not written in Fortran but in C or C++, and must be compiled before or alongside SixTrack and then linked with the final executable.
+This subsection describes how this is done, including any pitfalls.
 
 \subsubsection{CRLIBM}
 \label{sec:building:libs:crlibm}
+The CRLIBM library \todo{cite} is a replacement for the standard math library normally provided by the system, used to compute trigonometric functions, logarithms, etc.
+It is written in C, and contained in the \textrm{crlibm} subfolder.
+
+The point of CRLIBM is primarilly to ensure that results are consistent accross different platforms, compilers, etc., which may provide different versions of libm giving slightly different results.
+
+In addition to the math library and its fortran interface (\texttt{ericc.c}), this folder also contains functions for converting strings to double (\textrm{strtod}) and a FORTRAN interface (\textrm{round\_near}), and functions to enable/disable x87 extended precission.
+The enabling/disabling of x87 extended precission is used to force the Intel x87 FPU to use 64-bit precission when storing numbers in internal registers, avoiding that results sometimes are stored with 80-bit precission and sometimes 64-bit.
+This is neccessary for CRLIBM to work correctly, and for SixTrack to give consistent results accross different compilers which may make different decissions for how long to keep results in registers etc.
+Furthermore, 80-bit precission is re-enabled before using \texttt{read} with \texttt{round='nearest'}.
+
+Note that due to problems in GCC's x87 optimizer (introduced somewhere between version 4.4.7 and 4.8.3), the SSE instruction set should be used for all floating point calculations.
 
 \subsubsection{MerlinScatter}
 
@@ -210,31 +225,83 @@ languages, linking, what they do etc.
 
 \subsubsection{BOINC}
 
-\subsection{Astuce}
+\subsection{Tools}
 
-\subsection{DAFOR}
+Two tools are required to preprocess the source code before it can be compiled -- astuce and dafor.
+
+\subsubsection{Astuce}
+
+\subsubsection{DAFOR}
 
 \subsection{Building on platforms other than Linux}
 
 \subsubsection{Building on OS X}
+
+64-bit only
 
 \subsubsection{Building on Windows}
 
 msys2
 
 \subsection{Legacy build environments}
-make\_six and the makefile
+
+In addition to the \texttt{cmake\_six} build script, there is the \texttt{make\_six}.
+These tools are used in a similar fashion, the main difference is that \texttt{make\_six} will automatically change depending options, i.e. swithcing on collimation will automatically switch crlibm off.
+The \texttt{make\_six} script works by modifying the ASTUCE input files before running ASTUCE and DAFOR to produce the FORTRAN files, and then modifying \texttt{Makefile\_six.template} to contain the correct paths etc. before compiling it.
+
+Additionally, there is a plain makefile, which uses an option resolver written in BASH.
+
+Note that these build environments are considered to be obsolete and may soon be removed.
 
 \section{Testing SixTrack}
 
-Note on SSE etc.
+SixTrack supports the CTEST automatic test environment for black box testing of the build executables.
+This runs the SixTrack binary automatically over a range of input files, and compares the produced output with the expected output (known as ``canonicals'').
+In order to run CTEST, add the \texttt{BUILD\_TESTING} flag to the \texttt{cmake\_six} command line arguments.
+
+Note that when implementing new features, one should always run the tests before the new code can be accepted into the master.
 
 \subsection{Running CTEST}
+For running the most basic tests, simply execute \texttt{ctest} in the folder created by \texttt{cmake\_six}.
+This will iterate over the tests, running SixTrack for each of them, and check the output for pass/fail.
+
+To run several tests in parallel, use the flag \texttt{-j \textit{numjobs}}.
+To run specific tests, use the flag \texttt{-R \textit{name}}, where \textit{name} is a regexp contained in the names of the tests you want to run.
+
+Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
+
+The tests will be ran in the \texttt{SixTest/\textit{testname}} subfolder created by \texttt{cmake\_six}.
 
 \subsection{Submitting to CDASH}
 
+(+coverity)
+
 \subsection{Adding new tests}
 
+\subsection{Testing tools}
+In order to manage the binaries, 
+
 \subsection{Legacy test environment ``SixTest''}
+
+The legacy test environment SixTest can also be used to test SixTrack binaries.
+It uses the same tests and canonicals as the CDASH-based tests.
+
+To use it, go to the SixTest folder in the main SixTrack repository.
+You then need to set the EXECS environment variable to the full path of the executable(s) you want to test, and the TESTS variable to a list of the names of the tests you want to run:\\
+{
+  \texttt{export TESTS="bb bbe51 bbe52 bbe571ib0  bbinbb\_ntwin1 bnl crabamp dipedge distance dynk\_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d elensidealthin6d\_DYNK eric exact fma frs frs60 javier javier\_bignpart lost lostevery lostnotilt lostnumxv notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk thick6dsingles tilt"}
+}\\
+Note that not all tests are applicable for all binaries, and some of the tests are somewhat buggy.
+
+The tests can then be ran by excecuting \texttt{run\_pro} or \texttt{run\_kill} (for the CR version) with a single argument, the run number.
+Once a test has finished, one can check that the results matches with the canonicals by executing \texttt{check\_10} (to check fort.10, produced by the POST block), \texttt{check\_90} (to check \texttt{fort.90}, produced by the tracking and read by the post-processing), \texttt{check\_stf} (to check \texttt{singletrackfile.dat}, produced instead of \texttt{fort.90} if STF is enabled), and \texttt{check\_extras} to check anything else.
+
+Please note that these scripts are depreceated, and are likely to be removed soon.
+
+\subsection{Known failing tests}
+The following tests are currently known to fail:
+\begin{description}
+\item[bb] when compiling with ``Debug'': This is caused by an underflow in the initial closed orbit search, which is uncovered by trapping the underflow exception.
+\end{description}
 
 \end{document}
