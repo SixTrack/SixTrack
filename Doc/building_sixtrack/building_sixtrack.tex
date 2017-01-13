@@ -141,11 +141,15 @@ Unfortunately, this version only have the libraries for building the 64-bit vers
 Another popular set of compilers are Intel's ifort and icc.
 To load these from AFS, simply run their setup script as\\
 {\small
-  \texttt{source /afs/cern.ch/sw/IntelSoftware/linux/17-all-setup.sh}~.\\
+  \texttt{source /afs/cern.ch/sw/IntelSoftware/linux/17-all-setup.sh}\\
 }
-These compilers are capable of producing both 32- and 64-bit executables.
+if you want yo produce a 64-bit executable, or\\
+{\small
+  \texttt{source /afs/cern.ch/sw/IntelSoftware/linux/17-all-setup.sh~ia32}\\
+}
+for a 32-bit executable.
 
-However note that if using icc/icpc, it is not possible to compile static or 32-bit executables, since Intel does not provide the required libraries.
+However note that if using icc/icpc, it is not possible to compile static 64-bit executables, since Intel does not provide a static version of the \texttt{libcilkrts} library for 64-bit.
 
 If running the Intel compilers on LxPlus, it is reccomended to first load a newer version CMAKE.
 This can be accomplished through the commands:\\
