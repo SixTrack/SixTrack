@@ -130,8 +130,8 @@ generate_makefile()
 declare -a options
 declare -a values
 options=(junk tilt fast crlibm api   cernlib naglib da    collimat cpss  boinc cr    nagfor pgf90 g95   gfortran bpm   beamgas bnlelens bignblz debug hdf5  ifort fio   SSE   lf95  hugenblz stf   bignpart datamods hugenpart merlinscatter)
-values=( junk true true false  false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false false    false    false false)
-#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27    28       29       30    31
+values=( junk true true true   false true    true   false false    false false false false  false false false    false false   false    false   false false false false false false false    false false    false    false false)
+#Element 0    1    2    3      4     5       6      7     8        9     10    11    12     13    14    15       16    17      18       19      20    21    22    23    24    25    26       27    28       29       30   31
 
 # Overide for Darwin
 OSTYPE=`uname -s`
@@ -446,7 +446,7 @@ if test "$boinc" = ""
 then
   # BOINC includes the CPSS options
   cpss=""
-  values[10]=true
+  values[9]=true
 fi
 if test "$beamgas" = ""
 then
@@ -517,7 +517,7 @@ fi
 if test "$da" = "da"
 then
     naglib=""
-    values[7]=false
+    values[6]=false
 fi
 if test "$crlibm" = "NULL"
 then
@@ -526,12 +526,12 @@ then
   then
     # Turn it off for collimation
     crlibm="crlibm"
-    values[4]=false
+    values[3]=false
     echo "Option crlibm turned OFF for collimation"
   else
     # Turn it on
     crlibm=""
-    values[4]=true
+    values[3]=true
     echo "Option crlibm turned ON"
   fi
 fi
@@ -555,13 +555,13 @@ then
     # The api flag is now used to force the real BOINC api.
     # and we turn off cernlib
     cernlib=""
-    values[6]=false
+    values[5]=false
     echo "Option cernlib turned OFF"
     crlibm=""
-    values[4]=true
+    values[3]=true
     echo "Option crlibm turned ON"
     cr=""
-    values[12]=true
+    values[11]=true
     echo "Option Checkpoint/Restart turned ON"
 fi
 if test "$collimat" = "" -a "$cr" = ""
@@ -739,7 +739,7 @@ else
   then
     echo "Using ifort by default"
     ifort=""
-    values[23]=true
+    values[22]=true
   fi 
   export FC="ifort"
   if test "$myopt" = ""
@@ -810,7 +810,7 @@ then
   then
     echo "Ignoring $SSE option (valid for only ifort and default for MAC)"
     SSE="NULL"
-     values[25]=false
+    values[24]=false
   fi
 fi
 
