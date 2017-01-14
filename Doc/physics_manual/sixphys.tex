@@ -803,23 +803,23 @@ elements $(x_{co},x'_{co},y_{co},y'_{co},\sigma_{co})$.
 \end{align}
 
 \subsection{Wire}
-The generic formula for vector potential of straight current wire centered in Cartesian coordinate system, with length L is:  
+The generic formula for the vector potential of a straight current wire centered in Cartesian coordinate system, with length L is:  
 \begin{align}
-	{A(x,y,s)_i} =\frac{I\mu_0cos(c_i)}{4\pi}*(asinh\frac{L/2-a}{\sqrt{b-a^2}}-asinh\frac{-L/2-a}{\sqrt{b-a^2}})
+{A(x,y,s)_i} =\frac{I\mu_0cos(c_i)}{4\pi}*(\asinh\frac{L/2-a}{\sqrt{b-a^2}}-asinh\frac{-L/2-a}{\sqrt{b-a^2}})
 \end{align}
 where:
 index $i$ is $x,y,s$; ${a=xcos(c_x)+ycos(c_y)+scos(c_s)}$ and ${b=x^2+y^2+z^2}$; $cos(c_i)$ - direction cosine.
 
 For the wire parallel to longitudinal axis:
 \begin{align}
-	{A(x,y,s)_s} =\frac{I\mu_0}{4\pi}*(asinh\frac{L/2-s}{\sqrt{x^2+y^2}}-asinh\frac{-L/2-s}{\sqrt{x^2+y^2}}), {A(x,y,s)_x}=0, {A(x,y,s)_y}=0;
+{A(x,y,s)_s} =\frac{I\mu_0}{4\pi}*(arcsinh\frac{L/2-s}{\sqrt{x^2+y^2}}-asinh\frac{-L/2-s}{\sqrt{x^2+y^2}}), {A(x,y,s)_x}=0, {A(x,y,s)_y}=0;
 \end{align}  
 and the Hamiltonian $H=-A_s$. 
 
 For the firs order integrator the "kick" could be performed as:
 \begin{align}
- p_x=\int\limits_{-L{emb}/2}^{+L{emb}/2}{\frac{dA(x,y,s)_s}{dx}ds} \\
- p_y=\int\limits_{-L{emb}/2}^{+L{emb}/2}{\frac{dA(x,y,s)_s}{dy}ds};
+p_x=\int\limits_{-L{emb}/2}^{+L{emb}/2}{\frac{dA(x,y,s)_s}{dx}ds} \\
+p_y=\int\limits_{-L{emb}/2}^{+L{emb}/2}{\frac{dA(x,y,s)_s}{dy}ds};
 \end{align}
 where Lemb - embedding drift (or integration length) which takes into account the fringe filed of the wire.
 
@@ -830,16 +830,16 @@ tilt in respect of OY - ty; tilt in respect of OX - tx; wire current - I; wire l
 
 The first order transport map for "thin element" includes:
 
- Step 1. Shift to the origin:
- \begin{align*}
- XI &  \to x-dx &
- YI &  \to y-dy
- \end{align*}
+Step 1. Shift to the origin:
+\begin{align*}
+XI &  \to x -x_{closed orbit}  + dx &
+YI &  \to y -y_{closed orbit} + dy
+\end{align*}
 
- Step 2. Symplectic rotation (\cite{forest99}) 
- 
- Rotation on $\theta$ (OX tilt):
- \begin{align}
+Step 2. Symplectic rotation (\cite{forest99}) 
+
+Rotation on $\theta$ (OX tilt):
+\begin{align}
 p_z & \to \sqrt{1-p_x^2-p_y^2} \\
 p_x & \to   p_x \cos \theta + p_z \sin\theta &
 p_z & \to - p_x \sin \theta + p_z \cos\theta \\
@@ -858,111 +858,37 @@ YI & \to YI \cos\phi - L p_y/p_z  &
 XI & \to XI - L p_x/p_z  
 \end{align}
 
-  Step 3. Wire "kick"
-  
-  \begin{align*}
-  N & \to 10^{-7} I (e/P_0) &
-  R & \to XI^2 + YI^2
-  \end{align*}
-  
- \begin{align}
-     p_x &\to p_x - \frac{N\cdot XI}{R}
-     \left[\sqrt{(L_{emb}+L)^2+4R}-\sqrt{(L_{emb}-L)^2+4R} \right] \\
-    p_y &\to p_y - \frac{N\cdot YI}{R}
-    \left[\sqrt{(L_{emb}+L)^2+4R}-\sqrt{(L_{emb}-L)^2+4R} \right] 
+Step 3. Wire "kick" (WireOFF is a kick due to non zero closed orbit, it is subtracted if IBECO option is equal to 1)
+
+\begin{align*}
+N & \to 10^{-7} I (e/P_0) &
+R & \to XI^2 + YI^2
+\end{align*}
+
+\begin{align}
+p_x &\to p_x - \frac{N\cdot XI}{R}
+\left[\sqrt{(L_{emb}+L)^2+4R}-\sqrt{(L_{emb}-L)^2+4R} \right] - WireOFF \\
+p_y &\to p_y - \frac{N\cdot YI}{R}
+\left[\sqrt{(L_{emb}+L)^2+4R}-\sqrt{(L_{emb}-L)^2+4R} \right] - WireOFF 
 \end{align}
 
- Step 4. Backward rotation
- 
- Rotation on $-\phi$ (OY tilt):
- \begin{align}
- p_z & \to \sqrt{1-p_x^2-p_y^2} \\
- p_y & \to   p_y \cos \phi - p_z \sin\phi &
- p_z & \to   p_y \sin \phi + p_z \cos\phi 
- \end{align}
- 
- Rotation on $-\theta$ (OX tilt):
- \begin{align}
- p_z & \to \sqrt{1-p_x^2-p_y^2} \\
- p_x & \to   p_x \cos \theta - p_z \sin\theta &
- p_z & \to   p_x \sin \theta + p_z \cos\theta 
- \end{align}
- 
+Step 4. Backward rotation
+
+Rotation on $-\phi$ (OY tilt):
+\begin{align}
+p_z & \to \sqrt{1-p_x^2-p_y^2} \\
+p_y & \to   p_y \cos \phi - p_z \sin\phi &
+p_z & \to   p_y \sin \phi + p_z \cos\phi 
+\end{align}
+
+Rotation on $-\theta$ (OX tilt):
+\begin{align}
+p_z & \to \sqrt{1-p_x^2-p_y^2} \\
+p_x & \to   p_x \cos \theta - p_z \sin\theta &
+p_z & \to   p_x \sin \theta + p_z \cos\theta 
+\end{align}
+
 Note: the map doesn't change x,y (and $\sigma$ as given for "thin element"). 
-
-%For each part we define $p_z=\sqrt{(1+\delta)^2-x'^2-y'^2}$, using %the current values for $x'$ and $y'$.
-
-% Step 1. Initial backwards drift of length $L=\frac{embl}{2}$.
-% \begin{align*}
-% 	x &\to x - L\cdot\frac{x'}{p_z} \\
-%     y &\to y - L\cdot\frac{y'}{p_z}
-% \end{align*}
-
-% Step 2.
-% \begin{align*}
-% 	y &\to y - \frac{x\cdot\sin(t_x)}{
-%     \cos\left(\arctan\left(\frac{x'}{p_z}\right)-t_x\right)}\cdot
-%     \frac{y'}{\sqrt{(1+\delta)^2-y'^2}} \\
-%     x &\to x\cdot\left[\cos(t_x)-\sin(t_x)\cdot\tan\left(
-%     \arctan\left(\frac{x'}{p_z}\right)-t_x\right)\right] \\
-%     x' &\to \sqrt{(1+\delta)^2-y'^2}\cdot\sin\left(
-%     \arctan\left(\frac{x'}{p_z}\right)-t_x\right) \\
-%     x &\to x- \frac{y\cdot\sin(t_y)}{\cos\left(\arctan\left(\frac{y'}{p_z}\right)
-%     -t_y\right)} \cdot\frac{x'}{\sqrt{(1+\delta)^2-x'^2}} \\
-%     y &\to y \left[ \cos(t_y) - \sin(t_y)\cdot\tan\left(
-%     \arctan\left(\frac{y'}{p_z}\right)-t_y\right) \right] \\
-%     y' &\to \sqrt{(1+\delta)^2-x'^2}\sin\left(\arctan\left(
-%     \frac{y'}{p_z}\right)-t_y\right)
-% \end{align*}
-
-% Step 3. Drift part of length $L=lin$.
-% \begin{align*}
-%     x &\to x + L \cdot \frac{x'}{p_z} \\
-%     y &\to y + L \cdot \frac{y'}{p_z}
-% \end{align*}
-
-% Step 4. Here $x_i=x-r_x$ and $y=y-r_y$.
-% \begin{align*}
-%     x' &\to x' - \frac{\frac{cur\cdot10^{-7}}{chi}\cdot x_i}{x_i^2+y_i^2}
-%     \left[\sqrt{(lin+l)^2+x_i^2+y_i^2}-\sqrt{(lin-l)^2+x_i^2+y_i^2} \right] \\
-%     y' &\to y' - \frac{\frac{cur\cdot10^{-7}}{chi}\cdot y_i}{x_i^2+y_i^2}
-%     \left[\sqrt{(lin+l)^2+x_i^2+y_i^2}-\sqrt{(lin-l)^2+x_i^2+y_i^2} \right]
-% \end{align*}
-
-% Step 5. Drift of length $L=leff-lin$.
-% \begin{align*}
-%     x &\to x + L \frac{x'}{p_z} \\
-%     y &\to y + L \frac{y'}{p_z}
-% \end{align*}
-
-% Step 6.
-% \begin{align*}
-% 	x &\to x - \frac{y\cdot\sin(-t_y)}{
-%     \cos\left(\arctan\left(\frac{y'}{p_z}\right)+t_y\right)}\cdot
-%     \frac{x'}{\sqrt{(1+\delta)^2-x'^2}} \\
-%     y &\to y\cdot\left[\cos(-t_y)-\sin(-t_y)\cdot\tan\left(
-%     \arctan\left(\frac{y'}{p_z}\right)+t_y\right)\right] \\
-%     y' &\to \sqrt{(1+\delta)^2-x'^2}\cdot\sin\left(
-%     \arctan\left(\frac{y'}{p_z}\right)+t_y\right) \\
-%     y &\to y- \frac{x\cdot\sin(-t_x)}{\cos\left(\arctan\left(\frac{x'}{p_z}\right)
-%     +t_x\right)} \cdot\frac{y'}{\sqrt{(1+\delta)^2-y'^2}} \\
-%     x &\to x \left[ \cos(-t_x) - \sin(-t_x)\cdot\tan\left(
-%     \arctan\left(\frac{x'}{p_z}\right)+t_x\right) \right] \\
-%     x' &\to \sqrt{(1+\delta)^2-y'^2}\cdot\sin\left(\arctan\left(
-%     \frac{x'}{p_z}\right)+t_x\right)
-% \end{align*}
-
-% Step 7. Shift.
-% \begin{align*}
-%     x &\to x + embl\cdot \tan(t_x) \\
-%     y &\to y + embl\cdot\frac{\tan(t_y)}{\cos(t_x)}
-% \end{align*}
-
-% Step 8. Negative drift of length $L=\frac{embl}{2}$.
-% \begin{align*}
-%     x &\to x - L\cdot \frac{x'}{p_z} \\
-%     y &\to y - L\cdot \frac{y'}{p_z}
-% \end{align*}
 
 \subsection{Crab cavity}
 The voltage of the crab cavity is denoted by $V$, the frequency by $f$ and the phase by $\phi$. The map for a horizontal
