@@ -1,0 +1,313 @@
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{textcomp}
+\usepackage{amsmath, amsfonts}
+\usepackage{babel}
+\usepackage{lscape}
+\usepackage{hyperref}
+\usepackage{todonotes}
+
+\makeatletter
+\@ifpackageloaded{tex4ht}{%
+  \def\pgfsysdriver{pgfsys-tex4ht.def}%
+}{%
+  % only needed inside a class
+  \begingroup\expandafter\expandafter\expandafter\endgroup
+  \expandafter\ifx\csname HCode\endcsname\relax
+  \else
+    \def\pgfsysdriver{pgfsys-tex4ht.def}%
+  \fi
+}
+\makeatother
+
+\usepackage{tikz}
+
+\usepackage{cite}
+\usepackage{url}
+
+
+\begin{document}
+
+\author{K. Sjobak, J. Molson}
+\title{Compiling, building, and testing SixTrack}
+\date{Jan. 2017}
+
+\maketitle
+
+\begin{abstract}
+  The SixTrack code supports a wide variety of compile time options,compilers, and build environments.
+  This document intends to present what is supported, and how to build the most common versions.
+  Furthermore, an important sub-task of building SixTrack is to test that the built binary is correct; this is also covered.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Downloading SixTrack}
+The last stable release of SixTrack should be found on GitHub, in the SixTrack repository under the SixTrack organization:
+\url{https://github.com/SixTrack/SixTrack}.
+This provides the source code, which you'll then have to compile as described in Section~\ref{sec:building}.
+
+In order to download a release, you can either clone the git repository from our GitHub page, or download a tarball.
+Since installs downloaded as tarballs cannot be automatically updated, and there is no way to check if something has been modified after unpacking, \textbf{it is recommended to use git}.
+If you still want to download a tarball, the newest version is found at\\
+\url{https://github.com/SixTrack/SixTrack/archive/master.zip}, and older versions can be found through
+\url{https://github.com/SixTrack/SixTrack/releases}.
+
+Assuming that you have a \texttt{git} client installed, you can clone the repository anonymously using the command:\\
+\texttt{git clone https://github.com/SixTrack/SixTrack.git}\\
+You shall now get a new folder ``SixTrack'' within your current working directory.
+This folder contains the files from the newest version of SixTrack's ``master'' branch.
+Furthermore, it also contains a full clone of the original repository, meaning that you can check out old versions, create branches, commit changes, etc. completely off line.
+
+Assuming that no files tracked by version control have been modified, updating your local copy is done by running the command
+\texttt{git pull} anywhere in the repository.
+If you want to modify SixTrack, get feedback on your changes, and possibly contribute your changes back to the master branch; please also see Section~\ref{sec:downloading:contributing}.
+
+\subsection{Modifying sixtrack and contributing}
+\label{sec:downloading:contributing}
+
+
+forks and stuff.
+
+Setting up git and github.
+
+\todo[inline]{Reference / copy the text from the collimation workshop ``paper''.}
+
+\section{Building SixTrack}
+\label{sec:building}
+
+The SixTrack source code is located in the ``SixTrack'' sub-directory of the ``SixTrack'' repository.
+SixTrack is normally configured and built using CMake, and for simplicity a wrapper \texttt{cmake\_six} is provided.
+This allows configuring the various build options, changing compilers, and changing build types.
+To run it, simply execute the command:\\
+\texttt{cmake\_six \textit{compiler} \textit{buildtype} \textit{OPTION1} \textit{OPTION2} \textit{-OPTION3}}\\
+Here the \texttt{\textit{compiler}} argument specifies the compiler to use, and the \texttt{\textit{buildtype}} argument whether to build a \texttt{release} or \texttt{debug} version.
+To take the default compiler and build type, simply leave these options out.
+
+The other options (all UPPER CASE) switch on or off code features as described in Section~\ref{sec:building:options}.
+To see the list of options and their meaning, simply run \texttt{cmake\_six help}.
+Note that to switch an option off put a ``\texttt{-}'' sign in front of its name, i.e.\ \texttt{-OPTION}.
+
+Each build will produce a new subfolder\\
+{
+  \texttt{SixTrack\_\-cmakesix\_\-OPTION1\_\-OPTION2\_\-NOOPTION3\_\-compiler\_\-buildtype}~,\\
+}
+and each of the folders will contain a binary named\\
+{\scriptsize
+  \texttt{SixTrack\_\textit{VERSION}\_feature1\_feature2\_feature3\_etc\_cmake\_\textit{COMPILER}\_(static\_){32bit|64bit}}~.\\
+}
+To clear all such folders, simply run \texttt{cmake\_six clean}.
+
+\subsection{Supported compilers}
+Most of the code is written in Fortran, where we require Fortran 2003 support.
+The currently supported compilers are:
+\begin{itemize}
+\item gfortran
+\item ifort
+\item nagfor
+\end{itemize}
+Furthermore, some of the support libraries are written in C/C++.
+We here support the following compilers:
+\begin{itemize}
+\item gcc
+\item icc / icpc
+\item LLVM (OS X)
+\end{itemize}
+These can be combined, by setting the compiler flags as shown by \texttt{cmake\_six help}.
+Note that one may also use whatever compilers are the system default by using the \texttt{defaultcompiler} flag to \texttt{cmake\_six}.
+
+Also note that some of these compilers may only be able to build either 32- or 64-bit executables, either due to limitations in the compiler itself, or due to which libraries have been installed on the machine you are compiling on.
+
+\subsubsection{gfortran and gcc}
+The gfortran and gcc compiler is the default on CERN's LxPlus system and on most Linux systems.
+The system version (version 4.4.7) is old, but can be used to build both 32- and 64-bit executables.
+
+However the version installed and loaded by default on LxPlus is quite old; it is however possible to load a newer version.
+This can be accomplished by running their setup script as\\
+{\scriptsize
+  \texttt{source /afs/cern.ch/sw/lcg/external/gcc/4.9/\-x86\_64\--slc6\--gcc49\--opt/\-setup.sh}\\
+}
+where this version is selected to match the Geant4 version that can be loaded as
+{\scriptsize
+  \texttt{source /afs/cern.ch/sw/lcg/external/geant4/10.3/x86\_64\--slc6\--gcc49\--opt/\-CMake-setup.sh}~.\\
+}
+Unfortunately, this version only have the libraries for building the 64-bit version of SixTrack.
+
+\todo[inline]{Installing gfortran and libraries for 32- and 64-bit, static/non-static builds on Fedora and Ubuntu.}
+
+\subsubsection{ifort and icc/icpc}
+Another popular set of compilers are Intel's ifort and icc.
+To load these from AFS, simply run their setup script as\\
+{\small
+  \texttt{source /afs/cern.ch/sw/IntelSoftware/linux/17-all-setup.sh}\\
+}
+if you want yo produce a 64-bit executable, or\\
+{\small
+  \texttt{source /afs/cern.ch/sw/IntelSoftware/linux/17-all-setup.sh~ia32}\\
+}
+for a 32-bit executable.
+
+However note that if using icc/icpc, it is not possible to compile static 64-bit executables, since Intel does not provide a static version of the \texttt{libcilkrts} library for 64-bit.
+
+If running the Intel compilers on LxPlus, it is recommended to first load a newer version CMAKE.
+This can be accomplished through the commands:\\
+{\scriptsize
+  \texttt{export PATH=/afs/cern.ch/sw/lcg/contrib/CMake/3.7.0/Linux-x86\_64/bin:\$PATH}\\
+  \texttt{export CMAKE\_ROOT=/afs/cern.ch/sw/lcg/contrib/CMake/3.7.0/Linux-x86\_64}
+}
+
+\subsubsection{nagfor}
+
+To load nagfor version 6.0 on LxPlus, simply run\\
+\texttt{source /afs/cern.ch/sw/fortran/nag/usenag.bash 6.0}\\
+before any compilation commands.
+Both 32- and 64-bit executables are supported, as well as both static- and dynamic linking.
+
+%In the future, maybe a new-ish Lahey.
+
+\subsection{Common build types}
+\label{sec:building:options}
+By selecting different sets of flags at compile time, the SixTrack sources can be compiled to different versions, which have different capabilities.
+This section lists the most common build types; note that it is often possible to combine these features, e.g. to use collimation together with increased particle numbers.
+If the features are incompatible, then this is detected by the cmake script, which will exit with an error message.
+
+\subsubsection{Standard build}
+This build type, used for generic tracking and dynamic aperture studies, is selected by using the standard build flags.
+In effect, just run \texttt{cmake\_six} without any flags, possibly except for explicitly selecting a compiler.
+Note that the standard build uses CRLIBM, described in Section~\ref{sec:building:libs:crlibm}.
+
+\subsubsection{Collimation}
+The collimation version of SixTrack is used for collimation studies.
+Here, more than 64 particles can be tracked by splitting it up in ``packs''; in total a maximum of \texttt{maxn=}20'000 particles can be used.
+Furthermore, the collimators can scatter particles; the scattering angle is determined through a Monte Carlo routine.
+The collimation-specific features are controlled by a \texttt{COLL} block in the \texttt{fort.3} input file; please see \todo{ref} for more information.
+
+In order to compile the collimation version, run \texttt{cmake\_six COLLIMAT -CRLIBM}.
+
+\todo[inline]{Sub versions - merlinscatter, hdf5, etc.}
+
+\subsubsection{Checkpoint/restart}
+The checkpoint/restart feature in SixTrack allows the simulation to continue from where it stopped after an abort, instead of restarting from the beginning.
+This is a vital feature when running on e.g.\ LHC@Home, and works by saving a checkpoint file every \texttt{numlcp} turns.
+The feature is included by using the \texttt{CR} build option, i.e.\ \texttt{cmake\_six CR}.
+
+\subsubsection{Increased particle numbers}
+It is possible to track more than 64 particles simultaneously in SixTrack; the main limitation for this is the ``binary data files'' fort.90, fort.89, etc., as one such file is written per pair of tracked particles.
+In order to work around this, the ``Single Track File'' (STF) functionality was invented, which basically packs the contents of these binary data files into a single file \texttt{singletrackfile.dat}.
+This makes it possible to increase the particle number to 2048, and to track this many particles compile with \texttt{cmake\_six STF BIGNPART}.
+
+After this, the limiting factor is the size of the executable's BSS section, which contains the Fortran COMMON blocks, when using the ``small'' code model (2~GB).
+In order to break out of this limitation, some large matrices that are only needed for thick tracking can be allocated on demand in heap memory, and this is enabled by the \texttt{DATAMODS} option.
+This then makes it possible to track up to 65536 particles when the \texttt{HUGENPART} option is in use; to compile this run \texttt{cmake\_six STF DATAMODS HUGENPART}~.
+
+\todo[inline]{Reference sixtrack meeting slides?}
+
+\subsection{Libraries}
+SixTrack leverages a few libraries in order to run correctly.
+These are generally not written in Fortran but in C or C++, and must be compiled before or alongside SixTrack and then linked with the final executable.
+This subsection describes how this is done, including any pitfalls.
+
+\subsubsection{CRLIBM}
+\label{sec:building:libs:crlibm}
+The CRLIBM library \todo{cite} is a replacement for the standard math library normally provided by the system, used to compute trigonometric functions, logarithms, etc.
+It is written in C, and contained in the \textrm{crlibm} sub-folder.
+
+The point of CRLIBM is primarily to ensure that results are consistent across different platforms, compilers, etc., which may provide different versions of libm giving slightly different results.
+
+In addition to the math library and its fortran interface (\texttt{ericc.c}), this folder also contains functions for converting strings to double (\textrm{strtod}) and a FORTRAN interface (\textrm{round\_near}), and functions to enable/disable x87 extended precision.
+The enabling/disabling of x87 extended precision is used to force the Intel x87 FPU to use 64-bit precision when storing numbers in internal registers, avoiding that results sometimes are stored with 80-bit precision and sometimes 64-bit.
+This is necessary for CRLIBM to work correctly, and for SixTrack to give consistent results across different compilers which may make different decisions for how long to keep results in registers etc.
+Furthermore, 80-bit precision is re-enabled before using \texttt{read} with \texttt{round='nearest'}.
+
+Note that due to problems in GCC's x87 optimizer (introduced somewhere between version 4.4.7 and 4.8.3), the SSE instruction set should be used for all floating point calculations.
+
+\subsubsection{MerlinScatter}
+
+\subsubsection{HDF5}
+
+\subsubsection{BOINC}
+
+\subsection{Tools}
+
+Two tools are required to pre-process the source code before it can be compiled -- astuce and dafor.
+
+\subsubsection{Astuce}
+
+\subsubsection{DAFOR}
+
+\subsection{Building on platforms other than Linux}
+
+\subsubsection{Building on OS X}
+
+64-bit only
+
+\subsubsection{Building on Windows}
+
+msys2
+
+\subsection{Legacy build environments}
+
+In addition to the \texttt{cmake\_six} build script, there is the \texttt{make\_six}.
+These tools are used in a similar fashion, the main difference is that \texttt{make\_six} will automatically change depending options, i.e. switching on collimation will automatically switch crlibm off.
+The \texttt{make\_six} script works by modifying the ASTUCE input files before running ASTUCE and DAFOR to produce the FORTRAN files, and then modifying \texttt{Makefile\_six.template} to contain the correct paths etc. before compiling it.
+
+Additionally, there is a plain makefile, which uses an option resolver written in Bash.
+
+Note that these build environments are considered to be obsolete and may soon be removed.
+
+\section{Testing SixTrack}
+
+SixTrack supports the CTEST automatic test environment for black box testing of the build executables.
+This runs the SixTrack binary automatically over a range of input files, and compares the produced output with the expected output (known as ``canonicals'').
+In order to run CTEST, add the \texttt{BUILD\_TESTING} flag to the \texttt{cmake\_six} command line arguments.
+
+Note that when implementing new features, one should always run the tests before the new code can be accepted into the master.
+
+\subsection{Running CTEST}
+For running the most basic tests, simply execute \texttt{ctest} in the folder created by \texttt{cmake\_six}.
+This will iterate over the tests, running SixTrack for each of them, and check the output for pass/fail.
+
+To run several tests in parallel, use the flag \texttt{-j \textit{numjobs}}.
+To run specific tests, use the flag \texttt{-R \textit{name}}, where \textit{name} is a regexp contained in the names of the tests you want to run.
+
+Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
+
+The tests will be ran in the \texttt{SixTest/\textit{testname}} sub-folder created by \texttt{cmake\_six}.
+It is therefore possible to find the produced files, together with the input- and reference files in this folder.
+The standard output of the simulation and output comparisons are by default stored in the \texttt{Testing/Temporary} subfolder.
+
+\subsection{Submitting to CDASH}
+
+(+coverity)
+
+\subsection{Adding new tests}
+
+\subsection{Testing tools}
+In order to manage the binaries, 
+
+\subsection{Legacy test environment ``SixTest''}
+
+The legacy test environment SixTest can also be used to test SixTrack binaries.
+It uses the same tests and canonicals as the CDASH-based tests.
+
+To use it, go to the SixTest folder in the main SixTrack repository.
+You then need to set the EXECS environment variable to the full path of the executable(s) you want to test, and the TESTS variable to a list of the names of the tests you want to run:\\
+{
+  \texttt{export TESTS="bb bbe51 bbe52 bbe571ib0  bbinbb\_ntwin1 bnl crabamp dipedge distance dynk\_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d elensidealthin6d\_DYNK eric exact fma frs frs60 javier javier\_bignpart lost lostevery lostnotilt lostnumxv notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk thick6dsingles tilt"}
+}\\
+Note that not all tests are applicable for all binaries, and some of the tests are somewhat buggy.
+
+The tests can then be ran by executing \texttt{run\_pro} or \texttt{run\_kill} (for the CR version) with a single argument, the run number.
+Once a test has finished, one can check that the results matches with the canonicals by executing \texttt{check\_10} (to check fort.10, produced by the POST block), \texttt{check\_90} (to check \texttt{fort.90}, produced by the tracking and read by the post-processing), \texttt{check\_stf} (to check \texttt{singletrackfile.dat}, produced instead of \texttt{fort.90} if STF is enabled), and \texttt{check\_extras} to check anything else.
+
+Please note that these scripts are deprecated, and are likely to be removed soon.
+
+\subsection{Known failing tests}
+The following tests are currently known to fail:
+\begin{description}
+\item[bb, bb\_ntwin1] when compiling with ``Debug'': This is caused by an underflow in the initial closed orbit search, which is uncovered by trapping the underflow exception.
+\end{description}
+
+\end{document}
