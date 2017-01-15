@@ -823,14 +823,15 @@ if(BOINC)
 
 	target_link_libraries(SixTrack boinc_zip boinc)
 
-
-	find_library(nsl STATIC nsl)
 	find_library(dl STATIC dl)
-	#find_library(gcc_s STATIC gcc_s)
 	find_library(stdc++ STATIC stdc++)
 	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTrack dl stdc++ pthread)
 
-	target_link_libraries(SixTrack dl nsl stdc++ pthread)
+	if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+		find_library(nsl STATIC nsl)
+		target_link_libraries(SixTrack nsl)
+	endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
