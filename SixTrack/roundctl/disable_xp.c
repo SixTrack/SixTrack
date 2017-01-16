@@ -3,7 +3,7 @@
 
 // Bring our own FPU_control.h, as Windows doesn't have it.
 // Contains inline ASM macro...
-#include <fpu_control.h>
+#include "fpu_control.h"
 
 void disable_xp_(void)
 {
