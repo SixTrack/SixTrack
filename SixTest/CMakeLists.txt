@@ -110,3 +110,37 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	add_dependencies( SixTrack test_copy_${TST})
 endforeach()
 
+#add labels to tests
+#Lets say fast tests take <60 seconds to run
+SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d)
+
+#Medium tests take < 30 mins to run
+SET(MEDIUM_TESTS bbe571ib0 elensidealthin6d tilt lostevery fma frs frs60 eric distance bbe51 bbe52)
+
+#Slow is everything longer
+SET(SLOW_TESTS prob1 prob3)
+
+foreach(TST IN ITEMS ${SIXTRACK_TESTS})
+
+list(FIND FAST_TESTS ${TST} LABEL_FAST)
+list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
+list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
+
+	if(${LABEL_FAST} GREATER -1)
+		set_property(TEST ${TST} PROPERTY LABELS fast)
+	elseif(${LABEL_MEDIUM} GREATER -1)
+		set_property(TEST ${TST} PROPERTY LABELS medium)
+	elseif(${LABEL_SLOW} GREATER -1)
+		set_property(TEST ${TST} PROPERTY LABELS slow)
+	else()
+		message(STATUS "TEST ${TST} needs a label setting!")
+		set_property(TEST ${TST} PROPERTY LABELS NeedsLabel)
+	endif()
+endforeach()
+
+#tools
+SET(SELFTEST_TOOLS SelfTest_verify10 SelfTest_compf10 SelfTest_checkf1014 SelfTest_checkf10 SelfTest_checkf110 SelfTest_read90)
+foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
+		set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
+endforeach()
+
