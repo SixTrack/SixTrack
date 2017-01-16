@@ -12,12 +12,13 @@
 * $Log: cfft.F,v $
 * Revision 1.1.1.1  1996/02/15 17:48:48  mclareni
 * Kernlib
+* Conversion single->double precission by K.Sjobak, Dec. 2016
 *
       SUBROUTINE CFFT(A,MSIGN)
       IMPLICIT NONE
-      COMPLEX*8 A(1),U,W,T !Single precission complex, COMPLEX*8 is the same as COMPLEX(4)
+      COMPLEX*16 A(*),U,W,T
       INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
-      REAL*4 C,S ! Single precission real, REAL*4 is the same as REAL(4).
+      double precision C,S
       IF(MSIGN.EQ.0) RETURN
       M=IABS(MSIGN)
       N=2**M
@@ -47,7 +48,7 @@
       W=CMPLX(C,S,kind(1.d0))
       U=W
       C=SQRT(C*.5+.5)
-      S=AIMAG(W)/(C+C)
+      S=DIMAG(W)/(C+C)
       LE1=LE
       LE=LE1+LE1
       DO 9 I=1,N,LE
@@ -86,7 +87,7 @@ C
      &     TUNE1, TUNE
       INTEGER MAXN, MFT, NPOINT, MAXN2, MF, NPMIN, NPMAX, NFTMAX, NFT
       COMPLEX*16 Z
-      COMPLEX*8  ZSING(MAXITER)  !Single precision, to match CFFT
+      COMPLEX*16 ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
@@ -144,7 +145,7 @@ C.............................REJECTS FREQUENCIES NEAR 0 OR 1
           NFTMAX=NFT
         END IF
       ENDDO
-      TUNEFOU=DFLOAT(NFTMAX-1)/DFLOAT(NPOINT)
+      TUNEFOU=DBLE(NFTMAX-1)/DBLE(NPOINT)
       DELTAT=1D0/NPOINT
       TUNE1=TUNEFOU-DELTAT
       CALL ZFUN(TUNE,Z,MAXN,TUNE1,DELTAT)
@@ -195,7 +196,7 @@ C............................................................
       DUEPI=8*DATAN(1D0)
 +ei
 C.............................................................
-      C=DFLOAT(MAX)/2D0-DFLOAT(INT(MAX/2D0))
+      C=DBLE(MAX)/2D0-DBLE(INT(MAX/2D0))
       MAX1=MAX
       IF(C.GT.1D-1) MAX1=MAX-1
       MAX2=MAX1/2
@@ -227,7 +228,7 @@ C.............................................................
         TUNEAPA=PA/DUEPI
         SUMAPM=SUMAPM+TUNEAPA
         IF (N.GE.MAX2) THEN
-          TUNE(N-MAX2+1)=((SUMAPM/DFLOAT(N))/DFLOAT(N+1))*2.D0
+          TUNE(N-MAX2+1)=((SUMAPM/DBLE(N))/DBLE(N+1))*2.D0
           U(N-MAX2+1)=1.D0/N
         ENDIF
 C.............................................................
@@ -333,7 +334,7 @@ C.............................................................
         Z(MF)=DCMPLX(X(MF),XP(MF))
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
-      ENDDO 
+      ENDDO
       CALL FFT_PLATO(ZSING,NPOINT,-1)
 C.......................SEARCH FOR MAXIMUM OF FOURIER SPECTRUM
       NPMIN=1
@@ -357,23 +358,23 @@ C................................................INTERPOLATION
       CF3=ABS(ZSING(NFTMAX+1))
 +if crlibm
       IF (CF3.GT.CF1) THEN      
-        ASSK=DFLOAT(NFTMAX)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX)+(NPOINT/PI)*
      .       ATAN2_RN(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
-        ASSK=DFLOAT(NFTMAX-1)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX-1)+(NPOINT/PI)*
      .       ATAN2_RN(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
       ENDIF
 +ei
 +if .not.crlibm
       IF (CF3.GT.CF1) THEN      
-        ASSK=DFLOAT(NFTMAX)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX)+(NPOINT/PI)*
      .       ATAN2(CF3*SIN(PI/NPOINT),CF2+CF3*COS(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
-        ASSK=DFLOAT(NFTMAX-1)+(NPOINT/PI)*
+        ASSK=DBLE(NFTMAX-1)+(NPOINT/PI)*
      .       ATAN2(CF2*SIN(PI/NPOINT),CF1+CF2*COS(PI/NPOINT))
       ENDIF
 +ei
-      TUNEABT=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT) !1D+0 = 1D0, i.e. double precision 1.0?
+      TUNEABT=1D+0-(ASSK-1D+0)/DBLE(NPOINT) !1D+0 = 1D0, i.e. double precision 1.0?
 C............................................................  
       RETURN 
 C............................................................  
@@ -457,24 +458,24 @@ C.............................................................
       ENDIF
 C..........................................INTERPOLATION
 +if crlibm
-      CO=COS_RN((2*PI)/DFLOAT(NPOINT))
-      SI=SIN_RN((2*PI)/DFLOAT(NPOINT))
+      CO=COS_RN((2*PI)/DBLE(NPOINT))
+      SI=SIN_RN((2*PI)/DBLE(NPOINT))
 +ei
 +if .not.crlibm
-      CO=COS((2*PI)/DFLOAT(NPOINT))
-      SI=SIN((2*PI)/DFLOAT(NPOINT))
+      CO=COS((2*PI)/DBLE(NPOINT))
+      SI=SIN((2*PI)/DBLE(NPOINT))
 +ei
       SCRA1=CO**2*(P1+P2)**2-((2*P1)*P2)*((2*CO**2-CO)-1)
       SCRA2=(P1+P2*CO)*(P1-P2)
       SCRA3=(P1**2+P2**2)+((2*P1)*P2)*CO
       SCRA4=(-SCRA2+P2*SQRT(SCRA1))/SCRA3
 +if crlibm
-      ASSK=DFLOAT(NN)+((NPOINT/2)/PI)*ASIN_RN(SI*SCRA4)
+      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN_RN(SI*SCRA4)
 +ei
 +if .not.crlibm
-      ASSK=DFLOAT(NN)+((NPOINT/2)/PI)*ASIN(SI*SCRA4)
+      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN(SI*SCRA4)
 +ei
-      TUNEABT2=1D+0-(ASSK-1D+0)/DFLOAT(NPOINT)
+      TUNEABT2=1D+0-(ASSK-1D+0)/DBLE(NPOINT)
 C............................................................  
       RETURN 
 C............................................................  
@@ -507,8 +508,8 @@ C
       N=2*NN
 C create real array DATA out of complex array CDATA
       DO I=1,N,2
-        DATA(I)=REAL(CDATA(I/2+1))
-        DATA(I+1)=AIMAG(CDATA(I/2+1))
+        DATA(I)=DREAL(CDATA(I/2+1))
+        DATA(I+1)=DIMAG(CDATA(I/2+1))
       ENDDO
       J=1
       DO 11 I=1,N,2
@@ -662,7 +663,7 @@ C
       DOUBLE PRECISION X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,
      &TUNE
       COMPLEX*16 Z
-      COMPLEX*8 ZSING(MAXITER)
+      COMPLEX*16 ZSING(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
@@ -724,7 +725,7 @@ C.............................REJECTS FREQUENCIES NEAR 0 OR 1
           NFTMAX=NFT
         END IF
       ENDDO
-      TUNEFOU=DFLOAT(NFTMAX-1)/DFLOAT(NPOINT)
+      TUNEFOU=DBLE(NFTMAX-1)/DBLE(NPOINT)
       DELTAT=1D0/NPOINT
       TUNE1=TUNEFOU-DELTAT
       CALL ZFUN(TUNE,Z,MAXN,TUNE1,DELTAT)
@@ -771,7 +772,8 @@ C............................................................
       ENDDO
 C............................................................  
 +if crlibm
-      ZTUNE1=EXP_RN((-ZU*DUEPI)*TUNEA1)
+      ! EXP_RN expects a DOUBLE PRECISION, not COMPLEX -> rewrite expression for crlibm.
+      ZTUNE1=cos_rn(DUEPI*TUNEA1) + ZU*sin_rn(DUEPI*TUNEA1)
 +ei
 +if .not.crlibm
       ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
@@ -959,7 +961,7 @@ C............................................................
       INTEGER N,M,NPOINT,I,NPMIN,NPMAX
       DOUBLE PRECISION SUM,AMAX
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX  Z(MAXITER)
+      COMPLEX*16  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
 +if cr
 +ca crcoall
 +ei
@@ -1044,10 +1046,10 @@ C............................................................
       INTEGER*4 MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER*4 N,M,NPOINT,NPMAX,NPMIN,ITUNE,I
-      REAL*4 SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
+      DOUBLE PRECISION SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
      &X213,A,B
       DOUBLE PRECISION X(*),P(*)
-      COMPLEX Z(MAXITER)
+      COMPLEX*16 Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
 +ca crlibco
 +if cr
@@ -1165,7 +1167,7 @@ C............................................................
       DOUBLE PRECISION DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,
      &OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
       DOUBLE PRECISION X(*),PX(*)
-      COMPLEX*8 ZSING(MAXITER)
+      COMPLEX*16 ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
 
 +ca crlibco
@@ -1255,8 +1257,8 @@ C.........................................BISECTION PROCEDURE
 +if crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
      .        *(1D0+COS_RN(STEP*(2*N-MAX1)))
-            TMPR=REAL((-(0D+0,1D+0)*OME)*N)
-            TMPI=AIMAG((-(0D+0,1D+0)*OME)*N)
+            TMPR=DREAL((-(0D+0,1D+0)*OME)*N)
+            TMPI=DIMAG((-(0D+0,1D+0)*OME)*N)
             Z(N)=ZC*(EXP_RN(TMPR)*DCMPLX(COS_RN(TMPI),SIN_RN(TMPI))) !exp_rn is only defined for real numbers -> decompose in real and imaginary part
 +ei
 +if .not.crlibm
@@ -1273,7 +1275,7 @@ C..COMPUTATION OF SCALAR PRODUCT WITH ITERATED BODE ALGORITHM
             FOME=FOME+((7D0*(Z(1+K)+Z(5+K))+32D0*(Z(2+K)+Z(4+K)))
      .               +12D0*Z(3+K))
           ENDDO
-          FOME=((.5D0*FOME)/45D0)/DFLOAT(MBODE+1)
+          FOME=((.5D0*FOME)/45D0)/DBLE(MBODE+1)
 C..........SEARCH FOR MAXIMUM OF SCALAR PRODUCT AND DEFINITION
 C..........OF THE NEW INTERVAL (OMEMIN,OMEMAX) WHERE TO
 C........................................RESTART THE PROCEDURE

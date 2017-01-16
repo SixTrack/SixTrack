@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.40'/
-      data moddate /'22.11.2016'/
+      data version /'4.5.45'/
+      data moddate /'20.12.2016'/
 +cd license
 !!SixTrack
 !!
@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fitterer, M. Fiascaris, J.F.Wagner CERN
+!!M. Fitterer, M. Fiascaris, J.F.Wagner, J. Wretborn CERN
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
 !!J. Molson (LAL)
@@ -652,7 +652,8 @@
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !SEPT2005,OCT2006 added offset
-     &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
+     &xbeat,xbeatphase,ybeat,ybeatphase,
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
@@ -696,7 +697,8 @@
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !
-     &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
+     &xbeat,xbeatphase,ybeat,ybeatphase,
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,                                &
@@ -721,19 +723,23 @@
       integer   mynp
       common /mynp/ mynp
 !
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
       logical cut_input
       common /cut/ cut_input
 !
 !++ Vectors of coordinates
 !
-      double precision myemitx,mygammax,myemity,mygammay,xsigmax,ysigmay
+      double precision mygammax,mygammay
 !
       real rndm4
 !
       character*80 dummy
 !
-      double precision remitxn,remityn,remitx,remity
-      common  /remit/ remitxn, remityn, remitx, remity
+      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+      double precision remitx_dist,remity_dist,
+     &     remitx_collgap,remity_collgap
+      common  /remit/ remitx_dist, remity_dist,
+     &     remitx_collgap,remity_collgap
 !
       double precision mux(nblz),muy(nblz)
       common /mu/ mux,muy
@@ -765,11 +771,16 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbdaten
+
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
       logical cut_input
       common /cut/ cut_input
 !
-      double precision rselect,remitxn,remityn,remitx,remity
-      common  /remit/ remitxn,remityn,remitx,remity
+      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+      double precision remitx_dist,remity_dist,
+     &     remitx_collgap,remity_collgap
+      common  /remit/ remitx_dist, remity_dist,
+     &     remitx_collgap,remity_collgap
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -795,22 +806,10 @@
       integer coll_mingap_id
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbmaincr
-      double precision myemitx0,myemity0,myalphax,myalphay,mybetax,     &
-     &mybetay,rselect
-      common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
-     &mybetay,rselect
-!
-      logical cut_input
-      common /cut/ cut_input
-!
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dbthin6d
 !
 !
-      logical cut_input,firstcoll,found,onesided
+      logical firstcoll,found,onesided
 !
       integer myktrack,n_gt72,n_gt80,n_gt90,nx_gt72,nx_gt80,            &
      &ny_gt72,ny_gt80,rnd_lux,rnd_k1,rnd_k2,ios,num_surhit,numbin,ibin, &
@@ -870,7 +869,10 @@
 !
       character*4 c_material     !material
 !
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+      logical cut_input
       common /cut/ cut_input
+      
       common /mu/ mux, muy
       common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
      &ypineff
@@ -883,10 +885,15 @@
 !
       integer ieff,ieffdpop
 !
-      double precision myemitx0,myemity0,myalphay,mybetay,myalphax,     &
-     &mybetax,rselect
-      common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
-     &mybetay,rselect
+      double precision myemitx0_dist,myemity0_dist,
+     &     myemitx0_collgap,myemity0_collgap,
+     &     myemitx,myalphay,mybetay,myalphax,
+     &     mybetax,rselect
+      common /ralph/ myemitx0_dist,myemity0_dist,
+     &     myemitx0_collgap,myemity0_collgap,
+     &     myalphax,myalphay,mybetax,
+     &     mybetay,rselect
+
 !
 ! M. Fiascaris for the collimation team
 ! variables for global inefficiencies studies
@@ -1065,7 +1072,6 @@
 !
 !++ Vectors of coordinates
 !
-      logical cut_input
       integer i,j,mynp,nloop
       double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
      &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
@@ -1078,7 +1084,8 @@
 !
       character*80   dummy
 !
-!
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
+      logical cut_input
       common /cut/ cut_input
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -6870,14 +6877,14 @@ cc2008
       napx=lnapx
       return
 +cd lost5a
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/)
       end
 +cd lost5b
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
@@ -6885,7 +6892,7 @@ cc2008
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd lost5c
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
@@ -8842,6 +8849,18 @@ cc2008
 
 +dk nocode
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
++if .not.datamods
+      subroutine nodatamods
++if cr
+      write(lout,*)
++ei
++if .not.cr
+      write(*,*)
++ei
+     &     "Dummy routine in bigmats.f if beamgas module is off."
+      end subroutine
++ei
+
 +dk datamods
       module bigmats
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
@@ -11951,6 +11970,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      logical beam_xstr
 +if crlibm
       integer maxf,nofields
       parameter (maxf=30)
@@ -11982,6 +12002,9 @@ cc2008
 +ca dbdaten
 +ca dbpencil
 +ca database
++ei
++if .not.collimat
+      logical do_coll
 +ei
 !
 +if bnlelens
@@ -12170,7 +12193,9 @@ cc2008
       ise=0
       iskew=0
       preda=c1m38
-      
++if .not.collimat
+      do_coll = .false.
++ei
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -15997,36 +16022,42 @@ cc2008
  1285 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-+if .not.collimat
-+if cr
-      write(lout,*)
-      write(lout,*) "     collimation not forseen in this version"
-      write(lout,*) "     please use proper version"
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*)    "     collimation not forseen in this version"
-      write(*,*)    "     please use proper version"
-      write(*,*)
-+ei
- 1287 continue
-      if(ch(:4).eq.next) goto 110
-      read(3,10020,end=1530,iostat=ierro) ch
-      lineno3=lineno3+1
-      goto 1287
-+ei
-+if collimat
+
       if(ch(1:1).ne.'/') then
          iclr=iclr+1
       else
          goto 1285
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
+      
++if .not.collimat
+      if (iclr.eq.1) then
+         read(ch1,*) do_coll
+         if (do_coll) then
++if cr
+           write(lout,*)
+           write(lout,*) "ERR> Collimation not forseen in this version;"
+           write(lout,*) "ERR> Please use proper version"
+           write(lout,*) "ERR> or set do_coll to .FALSE."
+           write(lout,*)
++ei
++if .not.cr
+           write(*,*)
+           write(*,*)    "ERR> Collimation not forseen in this version;"
+           write(*,*)    "ERR> Please use proper version"
+           write(*,*)    "ERR> or set do_coll to .FALSE."
+           write(*,*)
++ei
+           call prror(-1)
+         endif
+      endif
++ei ! END +if .not.collimat
+
++if collimat
 !APRIL2005
 +if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & do_coll
+     & do_coll !Does not make sense with round=nearest: do_coll is a logical...
 +ei
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
@@ -16136,10 +16167,11 @@ cc2008
 !
 +if fio
       if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-     & emitx0,emity0
+     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if .not.fio
-      if(iclr.eq.9) read(ch1,*) emitx0,emity0
+      if(iclr.eq.9) read(ch1,*)
+     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if fio
       if(iclr.eq.10) read(ch1,*,round='nearest')                        &
@@ -16212,11 +16244,13 @@ cc2008
 +ei
      &jobnumber, sigsecut2, sigsecut3
 !
++ei ! END +if collimat
+
+!     Use this code for both collimat and non-collimat
       if(iclr.ne.17) goto 1285
  1287 continue
       iclr=0
       goto 110
-+ei
 !-----------------------------------------------------------------------
 !  COMMENT LINE
 !-----------------------------------------------------------------------
@@ -16397,6 +16431,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  Beam-Beam Element
 !-----------------------------------------------------------------------
+      ! ! ! Read 1st line of BEAM block ! ! !
  1600 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -16475,11 +16510,36 @@ cc2008
       if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
       nbeam=1
       if(ibtyp.eq.1) call wzset
+
+      ! ! ! Read other lines of BEAM block ! ! !
  1610 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1610
       if(ch(:4).eq.next) goto 110
+
+      !Check number of arguments gotten
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) call prror(-1)
+      beam_xstr = .false.
+      if (getfields_nfields .eq. 5) then
+         beam_xstr=.true.
+      elseif (getfields_nfields .eq. 4) then
+         beam_xstr=.false.
+      else
++if cr
+         write(lout,*) "ERROR in parsing BEAM block"
+         write(lout,*) "Number of arguments in data line 2,..."
+         write(lout,*) " is expected to be 4 or 5"
++ei
++if .not.cr
+         write(*,*)    "ERROR in parsing BEAM block"
+         write(*,*)    "Number of arguments in data line 2,..."
+         write(*,*)    " is expected to be 4 or 5"
++ei
+         call prror(-1)
+      end if
       call intepr(1,1,ch,ch1)
 +if fio
 +if crlibm
@@ -16519,6 +16579,18 @@ cc2008
       endif
 +ei
 +ei
+      if ( .not. beam_xstr ) then
++if cr
+         write(lout,*) "WARNING in parsing BEAM block"
+         write(lout,*) "No xstr present, assuming xstr=xang"
++ei
++if .not.cr
+         write(*,*)    "WARNING in parsing BEAM block"
+         write(*,*)    "No xstr present, assuming xstr=xang"
++ei
+         xstr = xang
+      endif
+      
       if(i.lt.0) i=0
       do 1620 j=1,il
       if(idat.eq.bez(j).and.kz(j).eq.20) then
@@ -17616,10 +17688,10 @@ cc2008
         emitx=emitnx*gammar
         emity=emitny*gammar
 +if collimat
-        remitxn=emitnx
-        remityn=emitny
-        remitx=emitx
-        remity=emity
+        remitx_dist=emitnx0_dist*gammar
+        remity_dist=emitny0_dist*gammar
+        remitx_collgap=emitnx0_collgap*gammar
+        remity_collgap=emitny0_collgap*gammar
 +ei
       endif
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
@@ -17932,7 +18004,7 @@ cc2008
      &'   ')
 10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
      &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-10110 format(t10,i3,' ---',i3,' --- ',30i3)
+!10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
 10140 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
@@ -18037,8 +18109,8 @@ cc2008
      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
      &'  -   DEVIATION=',f15.7)
-10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
+!10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
+!     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10430 format(/5x,'No cut on random distribution'//)
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
@@ -18052,7 +18124,7 @@ cc2008
      &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
      &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
      &'       MEAN            RMS-VALUE'/)
-10240 format(t10,a16,3(2x,d16.10),2x,i10)
+!10240 format(t10,a16,3(2x,d16.10),2x,i10)
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
@@ -21325,7 +21397,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -22700,12 +22772,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',f12.6,'|', f13.&
      &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10110 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10120 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
@@ -23026,7 +23098,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -23799,13 +23871,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ca commonc
 +if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
 +ca inidist
-+ca hions      
-+ca database
++ca hions
 +ei
 +if cr
 +ca crco
@@ -25662,19 +25729,19 @@ c$$$           end do
 +ei
              else if ( dumpfmt(i).eq.2 ) then
                 if (i.eq.0) then
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,i12)')
      &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                   write(dumpunit(i),fmt=*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
                 else
-                   write(dumpunit(i),*)
+                   write(dumpunit(i),
+     &                  '(1x,a,a16,a,i12)')
      &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                   write(dumpunit(i),fmt=*)
+                endif
+                write(dumpunit(i),
+     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
      &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
-                endif
-                write(dumpunit(i),*)
+                write(dumpunit(i),'(1x,a,a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
      &  'ktrack'
 +if cr
@@ -26186,7 +26253,7 @@ c$$$           end do
 +if .not.cr
       stop
 +ei
-10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,      &
+10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
@@ -26299,13 +26366,13 @@ c$$$           end do
      &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
-10240 format(1x/5x,'PARTICLE ',i3,' STABLE - RANDOM SEED ', i8,         &
+10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10250 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
-     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10260 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
+!     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5/)
-10270 format(1x/5x,'PARTICLE ',i3,' AND ',i3,' STABLE - RANDOM SEED ',  &
+10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',  &
      &i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10280 format(10x,f47.33)
 10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
@@ -26902,8 +26969,10 @@ c$$$           end do
       write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
       write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
       write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(lout,*) 'Info: Emitx0   [um]   ', remitx
-      write(lout,*) 'Info: Emity0   [um]   ', remity
+      write(lout,*) 'Info: Emitx0_dist [um]', remitx_dist
+      write(lout,*) 'Info: Emity0_dist [um]', remity_dist
+      write(lout,*) 'Info: Emitx0_collgap [um]', remitx_collgap
+      write(lout,*) 'Info: Emity0_collgap [um]', remity_collgap
       write(lout,*) 'Info: E0       [MeV]  ', e0
       write(lout,*)
       write(lout,*)
@@ -26917,15 +26986,20 @@ c$$$           end do
       write(*,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
       write(*,*) 'Info: Orbity0  [mm]   ', torby(1)
       write(*,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(*,*) 'Info: Emitx0   [um]   ', remitx
-      write(*,*) 'Info: Emity0   [um]   ', remity
+      write(*,*) 'Info: Emitx0_dist [um]', remitx_dist
+      write(*,*) 'Info: Emity0_dist [um]', remity_dist
+      write(*,*) 'Info: Emitx0_collgap [um]', remitx_collgap
+      write(*,*) 'Info: Emity0_collgap [um]', remity_collgap
       write(*,*) 'Info: E0       [MeV]  ', e0
       write(*,*)
       write(*,*)
 +ei
 !
-      myemitx0 = remitx*1d-6
-      myemity0 = remity*1d-6
+      myemitx0_dist = remitx_dist*1d-6
+      myemity0_dist = remity_dist*1d-6
+      myemitx0_collgap = remitx_collgap*1d-6
+      myemity0_collgap = remity_collgap*1d-6
+
       myalphax = talphax(1)
       myalphay = talphay(1)
       mybetax  = tbetax(1)
@@ -26933,20 +27007,50 @@ c$$$           end do
 !07-2006      myenom   = e0
 !      MYENOM   = 1.001*E0
 !
-      if (myemitx0.le.0.d0 .or. myemity0.le.0.d0) then                   !hr01
+      if (myemitx0_dist.le.0.d0 .or. myemity0_dist.le.0.d0
+     &.or. myemitx0_collgap.le.0.d0 .or. myemity0_collgap.le.0.d0) then
 +if cr
         write(lout,*)
 +ei
 +if .not.cr
         write(*,*)                                                      &
 +ei
-     &'ERR> Please use BEAM command to define emittances!'
+     &       'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
 +if cr
-        call abend('                                                  ')
+        write(lout,*)"ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
 +ei
 +if .not.cr
-        stop
+        write(*,*)   "ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
 +ei
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     & "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
+
++if cr
+        write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
++ei
++if .not.cr
+        write(*,*)    "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
++ei
+     & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, ",
+     & "THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
++if cr
+        write(lout,*) "ERR> EXAMPLE:"
++ei
++if .not.cr
+        write(*,*)    "ERR> EXAMPLE:"
++ei
++if cr
+        write(lout,*) "2.5 2.5 3.5 3.5"
++ei
++if .not.cr
+        write(*,*)    "2.5 2.5 3.5 3.5"
++ei
+        call prror(-1)
       endif
 !
 !++  Calculate the gammas
@@ -27128,8 +27232,11 @@ c$$$           end do
 ! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
 !
 +if cr
-      write(lout,*) 'INFO>  EMITX0            = ', emitx0
-      write(lout,*) 'INFO>  EMITY0            = ', emity0
+      write(lout,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
+      write(lout,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
+      write(lout,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
+      write(lout,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
+
       write(lout,*)
       write(lout,*) 'INFO>  DO_SELECT         = ', do_select
       write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
@@ -27178,8 +27285,10 @@ c$$$           end do
       write(lout,*)
 +ei
 +if .not.cr
-      write(*,*) 'INFO>  EMITX0            = ', emitx0
-      write(*,*) 'INFO>  EMITY0            = ', emity0
+      write(*,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
+      write(*,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
+      write(*,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
+      write(*,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
       write(*,*)
       write(*,*) 'INFO>  DO_SELECT         = ', do_select
       write(*,*) 'INFO>  DO_NOMINAL        = ', do_nominal
@@ -27244,13 +27353,13 @@ c$$$           end do
 !
 +if cr
       write(lout,*) 'INFO>  NAPX     = ', napx, mynp
-      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
+      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
+      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
 +ei
 +if .not.cr
       write(*,*) 'INFO>  NAPX     = ', napx, mynp
-      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-      write(*,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
+      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
+      write(*,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
 +ei
 !
 ! HERE WE SET THE MARKER FOR INITIALIZATION:
@@ -27288,30 +27397,34 @@ c$$$           end do
       if(do_coll) then
 !     GRD-SR
       if (radial) then
-         call   makedis_radial(mynp, myalphax, myalphay, mybetax,       &
-     &        mybetay, myemitx0, myemity0, myenom, nr, ndr,             &
+         call    makedis_radial(mynp, myalphax, myalphay, mybetax,
+     &        mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr,
      &        myx, myxp, myy, myyp, myp, mys)
       else
          if (do_thisdis.eq.1) then
-            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.2) then
-            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.3) then
-            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
          elseif(do_thisdis.eq.4) then
-               call  readdis(filename_dis,                                 &
-     &              mynp, myx, myxp, myy, myyp, myp, mys)
+            call readdis(filename_dis,
+     &           mynp, myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.5) then
-            call  makedis_ga(mynp, myalphax, myalphay, mybetax,         &
-     & mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,   &
-     &     myx, myxp, myy, myyp, myp, mys,                              &
-     &     enerror, bunchlength )
+            call makedis_ga(mynp, myalphax, myalphay, mybetax,
+     &           mybetay, myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
+     &           myx, myxp, myy, myyp, myp, mys,
+     &           enerror, bunchlength )
          else
 +if cr
       write(lout,*) 'INFO> review your distribution parameters !!'
@@ -28324,7 +28437,7 @@ c$$$           end do
      &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
    10     stracki=strack(i) 
-          if(iexact.eq.0) then ! exact drift
+          if(iexact.eq.0) then ! exact drift?
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
               xv(2,j)=xv(2,j)+stracki*yv(2,j)
@@ -29777,12 +29890,12 @@ c$$$           end do
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -29962,17 +30075,17 @@ c$$$           end do
 !FEBRUAR2007 added gap error to nsig      --------------- TW
           nsig = nsig + gap_rms_error(icoll)
 !FEBRUAR2007                              --------------- TW
-          xmax = nsig*sqrt(bx_dist*myemitx0)
-          ymax = nsig*sqrt(by_dist*myemity0)
+          xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
+          ymax = nsig*sqrt(by_dist*myemity0_collgap)
           xmax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(bx_dist*myemitx0)
+     &sqrt(bx_dist*myemitx0_collgap)
           ymax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(by_dist*myemity0)
+     &sqrt(by_dist*myemity0_collgap)
 !APRIL2005
 !          xmax_nom = nsig*sqrt(db_bx(icoll)*myemitx0)
 !          ymax_nom = nsig*sqrt(db_by(icoll)*myemity0)
-          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0)
-          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0)
+          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0_collgap)
+          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0_collgap)
 !APRIL2005
 !
           c_rotation = db_rotation(icoll)
@@ -30040,12 +30153,12 @@ c$$$           end do
 !     &                   * y_pencil(icoll) / sqrt(myemity0*tbetay(ie))
 !
           xp_pencil(icoll) =                                            &
-     &                   -1d0 * sqrt(myemitx0/tbetax(ie))*talphax(ie)   &
-     &                   * xmax / sqrt(myemitx0*tbetax(ie))
+     &              -1d0 * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)
+     &                   * xmax / sqrt(myemitx0_collgap*tbetax(ie))
 !     
           yp_pencil(icoll) =                                            &
-     &                    -1d0 * sqrt(myemity0/tbetay(ie))*talphay(ie)  &
-     &                   * ymax / sqrt(myemity0*tbetay(ie))
+     &              -1d0 * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)
+     &                   * ymax / sqrt(myemity0_collgap*tbetay(ie))
 !
 ! that the way xp is calculated for makedis subroutines !!!!
 !        if (rndm4().gt.0.5) then
@@ -30148,8 +30261,8 @@ c$$$           end do
 !JUNE2005
          elseif(db_name1(icoll)(1:4).eq.'COLM') then
 !
-            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0)
-            ymax = nsig_tcth2*sqrt(by_dist*myemity0)
+            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0_collgap)
+            ymax = nsig_tcth2*sqrt(by_dist*myemity0_collgap)
 !
             c_rotation = db_rotation(icoll)
             c_length   = db_length(icoll)
@@ -30190,9 +30303,9 @@ c$$$           end do
             write(outlun,'(a,i4)') 'Collimator number:   '              &
      &,icoll
             write(outlun,*) 'Beam size x [m]:     '                     &
-     &,sqrt(tbetax(ie)*myemitx0)
+     &,sqrt(tbetax(ie)*myemitx0_collgap), "(from collgap emittance)"
             write(outlun,*) 'Beam size y [m]:     '                     &
-     &,sqrt(tbetay(ie)*myemity0)
+     &,sqrt(tbetay(ie)*myemity0_collgap), "(from collgap emittance)"
             write(outlun,*) 'Divergence x [urad]:     '                 &
      &,1d6*xp_pencil(icoll)
             write(outlun,*) 'Divergence y [urad]:     '                 &
@@ -30207,14 +30320,14 @@ c$$$           end do
      &,gap_rms_error(icoll)
             write(outlun,*) ' '
 !
-            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')         &
+            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')
      &icoll,db_name1(icoll)(1:12),                                      &
      &db_rotation(icoll),                                               &
      &tbetax(ie), tbetay(ie), calc_aperture,                            &
      &db_material(icoll),                                               &
      &db_length(icoll),                                                 &
-     &sqrt(tbetax(ie)*myemitx0),                                        &
-     &sqrt(tbetay(ie)*myemity0),                                        &
+     &sqrt(tbetax(ie)*myemitx0_collgap),                                &
+     &sqrt(tbetay(ie)*myemity0_collgap),                                &
 !JUNE2005
      &db_tilt(icoll,1),                                                 &
      &db_tilt(icoll,2),                                                 &
@@ -30303,11 +30416,11 @@ c$$$           end do
 
 !     calculate beam size at start and end of collimator. account for collimation plane
              if((mynex.gt.0).and.(myney.eq.0.0)) then  ! horizontal halo 
-                beamsize1 = sqrt(betax1 * myemitx0)
-                beamsize2 = sqrt(betax2 * myemitx0)
+                beamsize1 = sqrt(betax1 * myemitx0_collgap)
+                beamsize2 = sqrt(betax2 * myemitx0_collgap)
              elseif((mynex.eq.0).and.(myney.gt.0.0)) then   ! vertical halo
-                beamsize1 = sqrt(betay1 * myemity0)
-                beamsize2 = sqrt(betay2 * myemity0)
+                beamsize1 = sqrt(betay1 * myemity0_collgap)
+                beamsize2 = sqrt(betay2 * myemity0_collgap)
              else
                 write(*,*) "attempting to use a halo not purely in the 
      &horizontal or vertical plane with pencil_dist=3 - abort."
@@ -30374,15 +30487,17 @@ c$$$           end do
              endif
 
              write(7878,*) napx,myalphax,myalphay, mybetax, mybetay,
-     &            myemitx0, myemity0, myenom, mynex2, mdex, myney2,mdey
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey
 
 !     create new pencil beam distribution with spread at start or end of collimator at the minAmpl
 !     note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
 !     but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
 !     the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
 !     This could possibly be improved in the future.
-             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay, &
-     &            myemitx0, myemity0, myenom, mynex2, mdex, myney2,mdey,  &
+             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay,
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey,
      &            myx, myxp, myy, myyp, myp, mys)
              
              do j = 1, napx
@@ -31080,17 +31195,17 @@ c$$$           end do
      &((                                                                &
      &(xv(1,j)*1d-3)**2                                                 &
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.                                         &
      &((                                                                &
      &(xv(2,j)*1d-3)**2                                                 &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
      &.ge.sigsecut3)                                                    &
      &) ) then
           xj     = (xv(1,j)-torbx(ie))/1d3
@@ -31515,12 +31630,12 @@ c$$$           end do
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -32057,23 +32172,23 @@ c$$$           end do
                 nspx    = sqrt(                                         &
      &               abs( gammax*(xj)**2 +                              &
      &               2d0*talphax(ie)*xj*xpj +                           &
-     &               tbetax(ie)*xpj**2 )/myemitx0                       &
+     &               tbetax(ie)*xpj**2 )/myemitx0_collgap
      &               )
                 nspy    = sqrt(                                         &
      &               abs( gammay*(yj)**2 +                              &
      &               2d0*talphay(ie)*yj*ypj +                           &
-     &               tbetay(ie)*ypj**2 )/myemity0                       &
+     &               tbetay(ie)*ypj**2 )/myemity0_collgap
      &               )
               else
                 nspx    = sqrt(                                         &
      &               abs( gammax*(xj)**2 +                              &
      &               2d0*talphax(ie-1)*xj*xpj +                         &
-     &               tbetax(ie-1)*xpj**2 )/myemitx0                     &
+     &               tbetax(ie-1)*xpj**2 )/myemitx0_collgap
      &               )
                 nspy    = sqrt(                                         &
      &               abs( gammay*(yj)**2 +                              &
      &               2d0*talphay(ie-1)*yj*ypj +                         &
-     &               tbetay(ie-1)*ypj**2 )/myemity0                     &
+     &               tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &               )
               endif
 !
@@ -32116,15 +32231,15 @@ c$$$           end do
                 xndisp = xj
                 nspxd   = sqrt(                                         &
      &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0                                     &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
      &)
                 nspx    = sqrt(                                         &
      &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !
 !
@@ -32132,27 +32247,27 @@ c$$$           end do
 !MAY2005
          if(part_abs(j).eq.0) then
 !MAY2005
-         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)   &
-     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
+         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
 !GRD                                                                    &
-     &(                                                                 &
-     &((                                                                &
-     &(xv(1,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &((                                                                &
-     &(xv(2,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
-     &.ge.sigsecut3)                                                    &
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
      &) ) then
                 xj     = (xv(1,j)-torbx(ie))/1d3
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
@@ -32320,7 +32435,7 @@ c$$$           end do
               nsurvive = nsurvive + 1
             endif
           end do
-          write(44,'(2i4)') iturn, nsurvive
+          write(44,'(2i7)') iturn, nsurvive
 !GRD
           if (iturn.eq.numl) then
             nsurvive_end = nsurvive_end + nsurvive
@@ -32387,12 +32502,12 @@ c$$$           end do
               nspx    = sqrt(                                           &
      &abs(gammax*xdisp**2 +                                             &
      &2d0*talphax(ie)*xdisp*(xpgrd(j)*1d-3)+                            &
-     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0                          &
+     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0_collgap
      &)
               nspy    = sqrt(                                           &
      &abs( gammay*(ygrd(j)*1d-3)**2 +                                   &
      &2d0*talphay(ie)*(ygrd(j)*1d-3*ypgrd(j)*1d-3)                      &
-     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0                        &
+     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0_collgap
      &)
 !
 !++  Populate the efficiency arrays at the end of each turn...
@@ -32406,12 +32521,12 @@ c$$$           end do
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
      &+                                                                 &
      &((yineff(j)*1d-3)**2 +                                            &
      & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neff(ieff) = neff(ieff)+1d0
                     counted_r(j,ieff)=1
@@ -32433,7 +32548,7 @@ c$$$           end do
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &	
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neffx(ieff) = neffx(ieff) + 1d0
                     counted_x(j,ieff)=1
@@ -32445,7 +32560,7 @@ c$$$           end do
      &((yineff(j)*1d-3)**2 +                                            &
      & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neffy(ieff) = neffy(ieff) + 1d0
                     counted_y(j,ieff)=1
@@ -32473,17 +32588,18 @@ c$$$           end do
 !
 !++  Do an emittance drift
 !
-              driftx = driftsx*sqrt(tbetax(ie)*myemitx0)
-              drifty = driftsy*sqrt(tbetay(ie)*myemity0)
+              driftx = driftsx*sqrt(tbetax(ie)*myemitx0_collgap)
+              drifty = driftsy*sqrt(tbetay(ie)*myemity0_collgap)
 !              DRIFTX = 0e-6
 !              DRIFTY = 1e-6
               if (ie.eq.iu) then
-                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0)
-                dnormy  = drifty / sqrt(tbetay(ie)*myemity0)
-                xnorm  = (xgrd(j)*1d-3) / sqrt(tbetax(ie)*myemitx0)
+                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0_collgap)
+                dnormy  = drifty / sqrt(tbetay(ie)*myemity0_collgap)
+                xnorm  = (xgrd(j)*1d-3) /
+     &                   sqrt(tbetax(ie)*myemitx0_collgap)
                 xpnorm = (talphax(ie)*(xgrd(j)*1d-3)+                   &
      &tbetax(ie)*(xpgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetax(ie)*myemitx0)
+     &sqrt(tbetax(ie)*myemitx0_collgap)
 +if crlibm
                 xangle = atan2_rn(xnorm,xpnorm)
 +ei
@@ -32502,16 +32618,19 @@ c$$$           end do
 +if .not.crlibm
                 xpnorm = xpnorm + dnormx*cos(xangle)
 +ei
-                xgrd(j)   = 1000d0*(xnorm * sqrt(tbetax(ie)*myemitx0))
-                xpgrd(j)  = 1000d0*((xpnorm*sqrt(tbetax(ie)*myemitx0)   &
-!    &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
+                xgrd(j)   = 1000d0 *
+     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
+                xpgrd(j)  = 1000d0 *
+     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
+!     &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
 !
 
-                ynorm  = (ygrd(j)*1d-3)  / sqrt(tbetay(ie)*myemity0)
+                ynorm  = (ygrd(j)*1d-3)
+     &               / sqrt(tbetay(ie)*myemity0_collgap)
                 ypnorm = (talphay(ie)*(ygrd(j)*1d-3)+                   &
      &tbetay(ie)*(ypgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetay(ie)*myemity0)
+     &sqrt(tbetay(ie)*myemity0_collgap)
 +if crlibm
                 yangle = atan2_rn(ynorm,ypnorm)
 +ei
@@ -32530,9 +32649,11 @@ c$$$           end do
 +if .not.crlibm
                 ypnorm = ypnorm + dnormy*cos(yangle)
 +ei
-                ygrd(j)   = 1000d0*(ynorm * sqrt(tbetay(ie)*myemity0))
-                ypgrd(j)  = 1000d0*((ypnorm*sqrt(tbetay(ie)*myemity0)   &
-!    &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
+                ygrd(j)   = 1000d0 *
+     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
+                ypgrd(j)  = 1000d0 * 
+     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
+!     &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
      &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
 !
                 endif
@@ -32684,12 +32805,12 @@ c$$$           end do
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -32697,12 +32818,12 @@ c$$$           end do
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie-1)*xj*xpj +                                        &
-     &tbetax(ie-1)*xpj**2 )/myemitx0                                    &
+     &tbetax(ie-1)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie-1)*yj*ypj +                                        &
-     &tbetay(ie-1)*ypj**2 )/myemity0                                    &
+     &tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &)
                 endif
 !
@@ -32743,15 +32864,15 @@ c$$$           end do
                 xndisp = xj
                 nspxd   = sqrt(                                         &
      &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0                                     &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
      &)
                 nspx    = sqrt(                                         &
      &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !
 !
@@ -32759,27 +32880,27 @@ c$$$           end do
 !MAY2005
          if(part_abs(j).eq.0) then
 !MAY2005
-        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)    &
-     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.                &
+        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
 !GRD                                                                    &
-     &(                                                                 &
-     &((                                                                &
-     &(xv(1,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &((                                                                &
-     &(xv(2,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
-     &.ge.sigsecut3)                                                    &
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
      &) ) then
                 xj     = (xv(1,j)-torbx(ie))/1d3
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
@@ -34121,7 +34242,7 @@ c$$$           end do
       backspace (lout,iostat=ierro)
 +ei
       return
-10000 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
       end
@@ -38363,22 +38484,36 @@ c$$$           end do
 +ca commonc
 +ca commonxz
 +ca commonmn
+
 +if bnlelens
 +ca rhicelens
 +ei
+
 +ca dbdcum
-+ca comgetfields
-+ca dbdump
+
++ca comgetfields !Contains parameters used in comdump and fma
+
 +ca fma
+
++ca dbdump
 +if cr
 +ca dbdumpcr
 +ei
+
 +ca stringzerotrim
 +ca comdynk
+
 +if cr
 +ca comdynkcr
 +ei
+
 +ca elensparam
+
++if collimat
++ca collpara
++ca database
++ca dbcommon
++ei
       save
 !-----------------------------------------------------------------------
 !
@@ -39012,6 +39147,22 @@ c$$$           end do
       end do
 +if cr
       dynkfilepos = -1
++ei
+
+!--COLLIMATION----------------------------------------------------------
++if collimat
+      do_coll = .false.
+      
+      ! From common /grd/
+      emitnx0_dist = 0.0
+      emitny0_dist = 0.0
+      emitnx0_collgap = 0.0
+      emitny0_collgap = 0.0
+      ! From common /ralph/
+      myemitx0_dist = 0.0
+      myemity0_dist = 0.0
+      myemitx0_collgap = 0.0
+      myemity0_collgap = 0.0
 +ei
 !
 !-----------------------------------------------------------------------
@@ -42503,7 +42654,7 @@ c$$$           end do
 10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT',      &
      &' IN THE ALLOWED RANGE [2 <= NV <= 5]')
 10540 format(t10,'MAXIMUM NUMBER OF PARTICLES FOR VECTORIZATION', ' IS '&
-     &,i4)
+     &,i7)
 10550 format(t10,'MAXIMUM NUMBER OF DIFFERENT SEEDS FOR VECTORIZATION', &
      &' IS ',i4)
 10560 format(t10,'PROBLEMS WITH FILE 13 WITH INITIAL COORDINATES ',     &
@@ -42819,13 +42970,15 @@ c$$$           end do
          if (lopen) then
 +if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+            write(lout,*)"DYNK> unit 664 for file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
 +if .not.cr
             write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+            write(*,*)   "DYNK> unit 664 for file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
             call prror(-1)
          end if
@@ -42835,13 +42988,13 @@ c$$$           end do
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():FILE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
             call prror(51)
          endif
@@ -42861,14 +43014,14 @@ c$$$           end do
             if ( filefields_lerr ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Error in getfields_split"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> Error in getfields_split"
 +ei
                call prror(-1)
@@ -42877,15 +43030,15 @@ c$$$           end do
             if ( filefields_nfields  .ne. 2 ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
@@ -42909,15 +43062,15 @@ c$$$           end do
             if (t .ne. ii) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Missing turn number", ii,
      &              ", got turn", t
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> Missing turn number", ii,
      &              ", got turn", t
 +ei
@@ -42926,16 +43079,16 @@ c$$$           end do
             if (nfexpr_dynk+1 .gt. maxdata_dynk) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Ran out of memory in fexpr_dynk ",
      &              "in turn", t
                write(lout,*) "DYNK> Please increase maxdata_dynk."
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> Ran out of memory in fexpr_dynk ",
      &              "in turn", t
                write(*,*)    "DYNK> Please increase maxdata_dynk."
@@ -43007,13 +43160,15 @@ c$$$           end do
             write(lout,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
             write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
 +if .not.cr
             write(*,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
             write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
             call prror(-1)
          end if
@@ -43022,13 +43177,13 @@ c$$$           end do
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //  "'"
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
             call prror(51)
          endif
@@ -43048,14 +43203,14 @@ c$$$           end do
             if ( filefields_lerr ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //"'"
                write(lout,*) "DYNK> Error in getfields_split"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //"'"
                write(*,*)    "DYNK> Error in getfields_split"
 +ei
                call prror(-1)
@@ -43064,15 +43219,15 @@ c$$$           end do
             if ( filefields_nfields  .ne. 2 ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
@@ -43099,15 +43254,15 @@ c$$$           end do
             if (ii.gt.0 .and. x.le. x2) then !Insane: Decreasing x
 +if cr
                write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write (lout,*) "DYNK> Error while reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write (lout,*) "DYNK> Error while reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write (lout,*) "DYNK> x values must "//
      &              "be in increasing order"
 +ei
 +if .not.cr
                write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
                write (*,*)    "DYNK> Error while reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write (*,*)    "DYNK> x values must "//
      &              "be in increasing order"
 +ei
@@ -43123,16 +43278,16 @@ c$$$           end do
          if (nfexpr_dynk+2*t .gt. maxdata_dynk) then
 +if cr
             write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write (lout,*) "DYNK> Error reading file '",
-     &           cexpr_dynk(ncexpr_dynk),"'"
+            write (lout,*) "DYNK> Error reading file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             write (lout,*) "DYNK> Not enough space in fexpr_dynk,"//
      &           " need", 2*t
             write (lout,*) "DYNK> Please increase maxdata_dynk"
 +ei
 +if .not.cr
             write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-            write (*,*)    "DYNK> Error reading file '",
-     &           cexpr_dynk(ncexpr_dynk),"'"
+            write (*,*)    "DYNK> Error reading file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             write (*,*)    "DYNK> Not enough space in fexpr_dynk,"//
      &           " need", 2*t
             write (*,*)    "DYNK> Please increase maxdata_dynk"
@@ -43148,17 +43303,17 @@ c$$$           end do
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
 +if cr
-                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*) "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (lout,*) "DYNK> ii=",ii,"t=",t
+                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*)"DYNK> Unexpected when reading file '"//
+     &                 trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)//"'"
+                  write (lout,*)"DYNK> ii=",ii,"t=",t
 
 +ei
 +if .not.cr
-                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-                  write (*,*)    "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (*,*)    "DYNK> ii=",ii,"t=",t
+                  write (*,*)   "DYNK> dynk_parseFUN():FILELIN"
+                  write (*,*)   "DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                  write (*,*)   "DYNK> ii=",ii,"t=",t
 +ei
                   call prror(51)
                endif
@@ -43170,17 +43325,17 @@ c$$$           end do
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
 +if cr
-                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*) "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
+                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*)"DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                   write (lout,*) "DYNK> ii=",ii,"t=",t
 
 +ei
 +if .not.cr
-                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-                  write (*,*)    "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (*,*)    "DYNK> ii=",ii,"t=",t
+                  write (*,*)   "DYNK> dynk_parseFUN():FILELIN"
+                  write (*,*)   "DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                  write (*,*)   "DYNK> ii=",ii,"t=",t
 +ei
                   call prror(51)
                endif
@@ -43193,14 +43348,14 @@ c$$$           end do
             if ( filefields_lerr ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> Error in getfields_split"
 +ei
                call prror(-1)
@@ -43209,15 +43364,15 @@ c$$$           end do
             if ( filefields_nfields  .ne. 2 ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
 +ei
@@ -43354,9 +43509,11 @@ c$$$           end do
 +if .not.cr
                      write(*,*)    "DYNK> "//
 +ei
-     & "PIPE FUN '"//cexpr_dynk(funcs_dynk(nfuncs_dynk,1))//
+     &                    "PIPE FUN '" //
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1)))) //
      & "' using same settings as previously defined FUN '"   //
-     & cexpr_dynk(funcs_dynk(ii,1))//"' -> reusing files!"
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) //
+     & "' -> reusing files !"
                      if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
      &                   cexpr_dynk(ncexpr_dynk)           ) then
 +if cr
@@ -43374,16 +43531,15 @@ c$$$           end do
       write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
       write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
       write(lout,*) "DYNK> between PIPE FUN '"               //
-     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
-     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
 +ei
 +if .not.cr
       write(*,*)    "DYNK> *** Error in dynk_parseFUN():PIPE ***"
       write(*,*)    "DYNK> Partial match of inPipe/outPipe/unit number"
       write(*,*)    "DYNK> between PIPE FUN '"               //
-     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
-     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
 +ei
+     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1))))//
+     &     "' and '" //
+     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) // "'"
                      call prror(-1)
                   endif
                endif
@@ -43397,49 +43553,46 @@ c$$$           end do
 +if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
-     &           //"' was already taken"
 +ei
 +if .not.cr
             write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk),
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
-     &           //"' was already taken"
 +ei
+     &           "for file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2)))
+     &           //"' was already taken"
+
             call prror(-1)
          end if
          
 +if cr
          write(lout,*) "DYNK> Opening input pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening input pipe '"//
++ei
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
+
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
      &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) //
+     &           "' stat=",stat
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():PIPE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) //
+     &           "' stat=",stat
 +ei
             call prror(51)
          endif
@@ -43447,36 +43600,31 @@ c$$$           end do
          ! Open the outPipe
 +if cr
          write(lout,*) "DYNK> Opening output pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk)))//"'"
 +ei
 +if .not.cr
          write(*,*)    "DYNK> Opening output pipe '"//
++ei
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
+
          inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
          if (lopen) then
 +if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
-     &           //"' was already taken"
 +ei
 +if .not.cr
             write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
-     &           //"' was already taken"
 +ei
+     &           "for file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1)))
+     &           //"' was already taken"
+
             call prror(-1)
          end if
          
@@ -43486,13 +43634,15 @@ c$$$           end do
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) //
+     &           "' stat=",stat
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():PIPE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) //
+     &           "' stat=",stat
 +ei
             call prror(51)
          endif
@@ -43747,13 +43897,15 @@ c$$$           end do
             write(lout,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
             write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
 +if .not.cr
             write(*,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
             write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
 +ei
             call prror(-1)
          end if
@@ -43762,13 +43914,13 @@ c$$$           end do
          if (stat .ne. 0) then
 +if cr
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
 +if .not.cr
             write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
+            write(*,*)    "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
 +ei
             call prror(51)
          endif
@@ -43784,14 +43936,14 @@ c$$$           end do
             if (stat.ne.0) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
 +ei
                call prror(-1)
@@ -43804,14 +43956,14 @@ c$$$           end do
             if (stat.ne.0) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
 +ei
                call prror(-1)
@@ -43826,13 +43978,13 @@ c$$$           end do
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split()"
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> Error in getfields_split()"
 +ei
                call prror(-1)
@@ -43841,16 +43993,18 @@ c$$$           end do
      &           ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &              "', line =", ii
                write(lout,*) "DYNK> Expected 3[5] fields ",
      &              "(idx, fac, init, selfFac, selfInit), ",
      &              "got ",filefields_nfields
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//
+     &              "', line =", ii
                write(*,*)    "DYNK> Expected 3[5] fields ",
      &              "(idx, fac, init, selfFac, selfInit), ",
      &              "got ",filefields_nfields
@@ -43889,14 +44043,14 @@ c$$$           end do
             if (t .ne. ii) then
 +if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
 +ei
 +if .not.cr
                write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(*,*)    "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(*,*)    "DYNK> Got line t =",t, ", expected ", ii
 +ei
                call prror(-1)
@@ -45345,6 +45499,40 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &           csets_unique_dynk(nsets_unique_dynk,2) ))
             found = .false.
 
+            ! Special case: the element name GLOBAL-VARS (not a real element)
+            ! can be used to redefine a global variable by some function.
+            if (element_name_s .eq. "GLOBAL-VARS") then
+               found=.true.
+               badelem = .false.
+               
+               if (att_name_s .eq. "E0") then
+                  if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
++if cr
+                     write(lout,*) "DYNK> Insane - attribute '",
++ei
++if .not.cr
+                     write(*,*)    "DYNK> Insane - attribute '",
++ei
+     &                  att_name_s, "' is not valid for 'GLOBAL-VARS' ",
+     &                  "when doing 4d tracking"
+                     call prror(-1)
+                  endif
+               else
+                  badelem=.true.
+               endif
+
+               if (badelem) then
++if cr
+                  write(lout,*) "DYNK> Insane - attribute '",
++ei
++if .not.cr
+                  write(*,*)    "DYNK> Insane - attribute '",
++ei
+     &                att_name_s, "' is not valid for 'GLOBAL-VARS'"
+                  call prror(-1)
+               endif
+            endif
+            
             do jj=1,il
                if ( bez(jj).eq. element_name_s) then
                   
@@ -45398,6 +45586,20 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         badelem = .true.
                      endif
                   endif
+
+                  ! Special case:
+                  ! Should the error only occur if we actually have a GLOBAL-VARS element?
+                  if (bez(jj) .eq. "GLOBAL-VARS") then
++if cr
+                     write(lout,*) "DYNK> Insane - element found '",
++ei
++if .not.cr
+                     write(*,*)    "DYNK> Insane - element found '",
++ei
+     &                    "GLOBAL-VARS' is not a valid element name, ",
+     &                    "it is reserved"
+                     call prror(-1) 
+                  endif
                   
                   if (badelem) then
 +if cr
@@ -45426,7 +45628,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             endif
 
             ! Store original value of data point
-            fsets_origvalue_dynk(nsets_unique_dynk) =  
+            fsets_origvalue_dynk(nsets_unique_dynk) =
      &           dynk_getvalue(csets_dynk(ii,1),csets_dynk(ii,2))
          endif
       enddo
@@ -46145,6 +46347,7 @@ C+ei
 +ca parnum
 +ca common
 +ca commonmn
++ca commonm1
 +ca commontr
 +ca stringzerotrim
 +ca comdynk
@@ -46158,7 +46361,7 @@ C+ei
       intent (in) element_name, att_name, newValue
       !Functions
       ! temp variables
-      integer el_type, ii
+      integer el_type, ii, j
       character(maxstrlen_dynk) element_name_stripped
       character(maxstrlen_dynk) att_name_stripped
       ! For sanity check
@@ -46181,7 +46384,28 @@ C+ei
       endif
       
 C     Here comes the logic for setting the value of the attribute for all instances of the element...
-      ! Get type
+
+      ! Special non-physical elements
+      if (element_name_stripped .eq. "GLOBAL-VARS") then
+         if (att_name_stripped .eq. "E0" ) then
+            ! Modify the reference particle
+            e0 = newValue
+            e0f = sqrt(e0**2 - pma**2)
+            gammar = pma/e0
+            ! Modify the Energy
+            do j = 1, napx
+              dpsv(j) = (ejfv(j) - e0f)/e0f
+              dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
+              dpd(j) = one + dpsv(j)
+              dpsq(j) = sqrt(dpd(j))
+              oidpsv(j) = one/(one + dpsv(j))
+              rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
+            enddo
+         endif
+         ldoubleElement = .true.
+      endif
+      
+      ! Normal SINGLE ELEMENTs
       do ii=1,il
          ! TODO: Here one could find the right ii in dynk_pretrack,
          ! and then avoid this loop / string-comparison
@@ -46394,6 +46618,16 @@ c$$$            endif
      &    trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
       end if
 
+      ! Special non-physical elements
+      if (element_name_s .eq. "GLOBAL-VARS") then
+         if (att_name_s .eq. "E0" ) then
+            ! Return the energy
+            dynk_getvalue = e0
+         endif
+         ldoubleElement = .true.
+      endif
+      
+      ! Normal SINGLE ELEMENTs
       do ii=1,il
          ! TODO: Here one could find the right ii in dynk_pretrack,
          ! and then avoid this loop / string-comparison
@@ -55187,7 +55421,7 @@ c$$$            endif
       if(icode.eq.6) hvs(1:11)='    Ver Syn'
       if(icode.eq.7) hvs(1:11)='Hor Ver Syn'
       toptit(2)(1:13)='Particle no. '
-      write(toptit(2)(14:16),'(I3)') ifipa
+      write(toptit(2)(14:16),'(I3)') ifipa !WARNING: Does not work for > 999 particles
       toptit(2)(17:30)=', Phase Space '
       write(toptit(2)(31:41),'(A11)') hvs
       toptit(2)(42:50)=', Dp/p = '
@@ -57484,8 +57718,8 @@ c$$$            endif
      &'TITLE AND COMMENT :'//a80//a80// )
 10050 format(10x,'THE FOLLOWING PARAMETERS ARE USED:'//                 &
      &10x,'PROGRAM NAME',t102,a8/                                       &
-     &10x,'PARTICLE NUMBER',t102,i3/                                    &
-     &10x,'TOTAL NUMBER OF PARTICLES',t102,i3/                          &
+     &10x,'PARTICLE NUMBER',t102,i7/                                    &
+     &10x,'TOTAL NUMBER OF PARTICLES',t102,i7/                          &
      &10x,'PHASE SPACE',t102,a11/                                       &
      &10x,'MAXIMUM NUMBER OF TURNS',t102,i8/                            &
      &10x,'HORIZONTAL BETA',t102,f16.10/                                &
@@ -57765,11 +57999,12 @@ c$$$            endif
 +if cr
 +ca crcoall
 +ei
-      integer :: i,j,k,l,m,n !for do loops
-      integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
-      logical :: lopen              !flag to check if file is already open
-      logical :: lexist             !flag to check if file fma_fname exists
-      logical :: lread              !flag for file reading
+      integer :: i,j,k,l,m,n                    ! for do loops
+      integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
+      integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
+      logical :: lopen                          ! flag to check if file is already open
+      logical :: lexist                         ! flag to check if file fma_fname exists
+      logical :: lread                          ! flag for file reading
       character(len=getfields_l_max_string) :: ch,ch1
       character filefields_fields
      &     ( getfields_n_max_fields )*( getfields_l_max_string )
@@ -57821,10 +58056,10 @@ c$$$            endif
      &     STAT=i)
       if (i.ne.0) then
 +if cr
-         write(lout,*) "Error in fma_postpr: Cannon ALLOCATE"//
+         write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
 +if .not.cr
-         write(*,*)    "Error in fma_postpr: Cannon ALLOCATE"//
+         write(*,*)    "Error in fma_postpr: Cannot ALLOCATE"//
 +ei
      &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
      &        " proportional to napx*fma_nturn_max."
@@ -57847,6 +58082,25 @@ c$$$            endif
      &action='write',form='formatted')
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
+
+      if (idp.eq.0 .or. ition.eq.0) then
+         num_modes = 2          !4D tracking
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "'ERROR: FMA analysis currently only implemented "//
+     &        "for thin 6D tracking and 6D optics!'"
+         call prror(-1)
+         ! Note: It is possible that it works for 4D and thick tracking also,
+         ! as long as you have calculated 6D optics; however it has not been checked.
+         ! If you want to try, comment out the "call prror",
+         ! and if you were not eaten by a grue then please let us know...
+      else
+         num_modes = 3          !6D tracking
+      endif
       
 !     write the header
       write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
@@ -57909,7 +58163,11 @@ c$$$            endif
             enddo
             backspace(dumpunit(j),iostat=ierro)
 !   read in particle amplitudes
-            fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            if (dumplast(j) .eq. -1) then
+               fma_nturn(i) = numl-dumpfirst(j)+1        !Tricky if the particle is lost...
+            else
+               fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            endif
             if(fma_nturn(i).gt.fma_nturn_max) then
 +if .not.cr
               write(*,*) 'ERROR in fma_postpr: only ',                  &
@@ -58097,7 +58355,7 @@ c$$$            endif
 !     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
 !         fma_norm_flag > 0 use normalized coordinates
             do l=1,napx ! loop over particles
-              do m=1,3 ! loop over modes (hor.,vert.,long.)
+              do m=1,num_modes ! loop over modes (hor.,vert.,long.)
                  select case( trim(stringzerotrim(fma_method(i))) )
                  case('TUNELASK')
                  if(fma_norm_flag(i) .eq. 0) then
@@ -58187,21 +58445,26 @@ c$$$            endif
      &                   ' capital letters!','fma_postpr')
                  end select
                  
-                if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
-                eps123_0(m)=epsnxyzv(l,1,m)                          ! initial amplitude 
+                if(m.eq.3) q123(m)=one-q123(m)                          ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
+                eps123_0(m)=epsnxyzv(l,1,m)                             ! initial amplitude 
 +if crlibm
                 phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
 +if .not.crlibm
-                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
+                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))   ! inital phase
 +ei
-                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! minimum emittance
-                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! maximum emittance
+                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
+                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
      &fma_nturn(i) ! average emittance
               enddo
+              if ( num_modes .eq. 2 ) then
+                 q123(3)=0.0
+                 phi123_0(3)=0.0
+                 eps123_min(3)=0.0
+                 eps123_max(3)=0.0
+                 eps123_avg(3)=0.0
+              endif
               write(2001001,1988) trim(stringzerotrim(fma_fname(i))),   &
      &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
      &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
@@ -62360,19 +62623,10 @@ c$$$            endif
       implicit none
 
 +ca collpara
++ca dbmkdist
 
-      ! Don't load the common blocks for these variables
-      logical cut_input
-      integer i,j,mynp,nloop
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-     &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-     &xsigmax,ysigmay,myenom,nr,ndr,pi, iix, iiy, phix,phiy,cutoff
-!
-      real      rndm4
-      character*80   dummy
-      common /cut/ cut_input
-
+      double precision pi, iix, iiy, phix,phiy,cutoff
+      
       save
 !
 !-----------------------------------------------------------------------
@@ -65855,13 +66109,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -66807,13 +67054,6 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ca comdynkcr
       double precision dynk_getvalue
 +ca dbdumpcr
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -67322,13 +67562,6 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -68266,6 +68499,7 @@ c$$$         backspace (93,iostat=ierro)
       character*(*) vname
       double precision value
       integer i,j,k,l
+      integer ierro
       character*(16) myname
       myname=vname
       write(100) myname,value,i,j,k,l
@@ -68275,32 +68509,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbl1(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -68313,32 +68523,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpzfz(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       integer j
       character*(*) dumpname
@@ -68356,32 +68542,10 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpxy(dumpname,n,i,k)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,k
       character*(*) dumpname
       save
@@ -68406,29 +68570,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRD-042008
       subroutine dumpbnl(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
-+ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
 +if bnlelens
 +ca rhicelens
 +ei
@@ -68454,32 +68596,10 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       subroutine dumpsynu(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
 +ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,l,m,k
       character*(*) dumpname
       save
@@ -68526,9 +68646,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dump(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -68536,22 +68654,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -69005,6 +69111,7 @@ c$$$         backspace (93,iostat=ierro)
       write(99,*) 'x1 ',x1
       write(99,*) 'x2 ',x2
       write(99,*) 'fake ',fake
+      
       write(99,*) 'e0f ',e0f
       write(99,*) 'numx ',numx
       write(99,*) 'cotr ',cotr
@@ -69027,9 +69134,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbin(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -69037,22 +69142,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       character*10 mydump
@@ -69532,9 +69625,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumphex(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -69542,22 +69633,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
