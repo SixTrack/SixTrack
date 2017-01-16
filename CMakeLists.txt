@@ -8,6 +8,7 @@
 
 #Set the cmake version required
 cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
 PROJECT(SixTrack)
