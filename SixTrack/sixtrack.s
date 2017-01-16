@@ -1238,6 +1238,7 @@
 +cd inidist
       ! string: file to be loaded
       character*16 dist_fname
+      character*4  dist_type
       ! logical switches: load dist. from file; loaded distribution is physical
       logical dist_load, dist_phys
       ! logical switch: distribution block is given -> discard all other dist load functions
@@ -1245,7 +1246,7 @@
 !     distribution read and echo unit
       integer dist_read_unit
       ! commons for initial distribution
-      common /dist_var/ dist_fname, dist_read_unit,                     &
+      common /dist_var/ dist_fname, dist_type, dist_read_unit,          &
      & dist_phys, dist_load, dist_block
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ! PDH commons for heavy ions
@@ -17145,38 +17146,25 @@ cc2008
       dist_fname=getfields_fields(2)(1:getfields_lfields(2))
       
       if(getfields_fields(3)(1:getfields_lfields(3)).eq.'PHYSICAL') then           
-         dist_phys=.true.
-         WRITE(*,*) '--> LOADING PHYCICAL DISTRIBUTION'           
-      
-
+         dist_phys  = .true.
+         dist_type  = 'FILE'         
+         WRITE(*,*) '--> LOADING PHYCICAL DISTRIBUTION', dist_fname         
 !    &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
       
       
       else if(getfields_fields(3)(1:getfields_lfields(3)).eq.'NORMED'   &
      &) then           
          dist_phys=.false.
-         WRITE(*,*) '--> LOADING NORMALIZED DISTRIBUTION'           
+         WRITE(*,*) '--> LOADING NORMALIZED DISTRIBUTION', dist_fname
+         
       endif      
 
-      WRITE(*,*) '--> LOADING INITIAL DISTRIBUTION FILE:', dist_fname      
           
         endif
       endif
 
       WRITE(*,*) '--> DIST BLOCK', dist_block
 
-!      fma_fname(fma_numfiles)  =
-!     &     getfields_fields(1)(1:getfields_lfields(1))
-!      fma_method(fma_numfiles) =
-!     &     getfields_fields(2)(1:getfields_lfields(2))
-!      if(getfields_nfields.eq.2) then
-!        fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
-!      endif
-!      if(getfields_nfields.eq.3) then
-!         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
-!     &        fma_norm_flag(fma_numfiles)
-!      endif      
-      
       
       goto 2500
 !-----------------------------------------------------------------------
@@ -25066,7 +25054,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       endif
       
       
-      if (dist_block) then
+      if (dist_block.and.dist_type.eq.'FILE') then
          call dist_read( napx, npart, e0, e0f, clight,                  &
      &       xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:),     &
      &       naa(:), nzz(:), nucm(:) )
