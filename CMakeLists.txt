@@ -8,6 +8,7 @@
 
 #Set the cmake version required
 cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
 PROJECT(SixTrack)
@@ -763,7 +764,10 @@ add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+endif()
+if(CRLIBM OR BUILD_TESTING )
+  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
@@ -1028,7 +1032,7 @@ endif(CERNLIB)
 
 #if we are using crlibm, link to the crlibm library
 if(CRLIBM)
-	target_link_libraries(SixTrack crlibm)
+	target_link_libraries(SixTrack crlibm roundctl)
 endif(CRLIBM)
 
 #if we are using merlinscatter, link to the merlinscatter library
@@ -1098,7 +1102,8 @@ IF(BUILD_TESTING)
 	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f)
 	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
 	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
-	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90 ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoa_c.c ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoaf.c)
+	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
+	target_link_libraries(read90 roundctl)
 
 	SET_TARGET_PROPERTIES(verify10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(checkf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
