@@ -1246,15 +1246,18 @@
       ! string: file to be loaded
       character*16 dist_fname
       character*4  dist_type
+      character*4  dist_input
       ! logical switches: load dist. from file; loaded distribution is physical
-      logical dist_load, dist_phys
+      logical dist_load
       ! logical switch: distribution block is given -> discard all other dist load functions
       logical dist_block
 !     distribution read and echo unit
       integer dist_read_unit
+!     normalized emittance
+      double precision dist_en
       ! commons for initial distribution
       common /dist_var/ dist_fname, dist_type, dist_read_unit,          &
-     & dist_phys, dist_load, dist_block
+     & dist_en(3), dist_load, dist_block
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ! PDH commons for heavy ions
 +cd hions
@@ -17182,14 +17185,26 @@ cc2008
       if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
 
       if (ch(:4).eq.next) then
+         dist_block = .true.
+         
+         if(dist_type.eq.'NORM'.and.dist_input.eq.'FILE') then
+            write(*,*), '--> DIST: ERROR'
+            write(*,*), '--> NORM DIST WITHOUT EMITTANCE'
+            call prror(-1)
+         end if
+         write(*,*), '--> DIST: EMITTANCE', dist_en
          goto 110 ! loop to next BLOCK in fort.3
       endif
 
       write(*,*), '--> DIST BLOCK CALLED'
+      write(*,*), ch
 
+
+
+      
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
-
+      
       if ( getfields_lerr ) then
 +if cr
         write(lout,*)
@@ -17201,42 +17216,83 @@ cc2008
         call prror(-1)
       endif
       
-      if(getfields_fields(1)(1:getfields_lfields(1)).eq.'READ') then
-         if (getfields_nfields.ne.3) then
+      
+
+!     READ INPUT FROM FILE
+      if(ch(:4).eq.'READ') then
+        dist_input = 'FILE'
+        if (getfields_nfields.ne.3) then
 +if cr
-        write(lout,*)
+          write(lout,*)
 +ei
 +if .not.cr
-        write(*,*)
+          write(*,*)
 +ei
-     &       '--> ERROR in DIST block: wrong number of input ',
+     &       '--> ERROR in DIST block (READ): wrong number of input ',
      &       '--> parameters: test'
-        call prror(-1)
+          call prror(-1)
         else
-      WRITE(*,*) '--> FOUND READ COMMAND IN DIST BLOCK'
-      dist_block = .true.
-      dist_fname=getfields_fields(2)(1:getfields_lfields(2))
-      
-      if(getfields_fields(3)(1:getfields_lfields(3)).eq.'PHYSICAL') then           
-         dist_phys  = .true.
-         dist_type  = 'FILE'         
-         WRITE(*,*) '--> LOADING PHYCICAL DISTRIBUTION', dist_fname         
-!    &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
-      
-      
-      else if(getfields_fields(3)(1:getfields_lfields(3)).eq.'NORMED'   &
-     &) then           
-         dist_phys=.false.
-         WRITE(*,*) '--> LOADING NORMALIZED DISTRIBUTION', dist_fname
-         
-      endif      
 
-          
+          WRITE(*,*) '--> FOUND READ COMMAND IN DIST BLOCK'
+           
+!         LOAD DISTRIBUTION NAME
+          dist_fname = getfields_fields(2)(1:getfields_lfields(2))
+!         SELECT DISTRIBUTION TYPE (PHYSICAL OR NORMALIZED)
+          dist_type  = getfields_fields(3)(1:4)
+          WRITE(*,*) '--> DIST_TYPE ', dist_type
+         
         endif
       endif
 
-      WRITE(*,*) '--> DIST BLOCK', dist_block
 
+!     LOAD THE PARAM OPTIONS
+
+      if(getfields_fields(1)(1:getfields_lfields(1)).eq.'PARAM') then
+         if (getfields_nfields.ne.3.and.getfields_nfields.ne.7.and.      &
+     &getfields_nfields.ne.4) then
++if cr
+          write(lout,*)
++ei
++if .not.cr
+          write(*,*)
++ei
+     &       '--> ERROR in DIST block (PARA): wrong number of input',
+     &       '--> parameters: ', getfields_nfields
+          call prror(-1)
+
+
+        else
+
+          WRITE(*,*) '--> FOUND PARAM COMMAND IN DIST BLOCK'
+           
+          dist_block = .true.
+          if (getfields_fields(2)(1:getfields_lfields(2)).eq.'X') then
+             read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
+     &       dist_en(1)             
+          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'Y')   &
+     &            then
+             read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
+     &       dist_en(2)                   
+             write(*,*), '--> DIST READ VERTICAL EMITTANCE'
+             !dist_en(2) = getfields_fields(3)(1:getfields_lfields(3))
+          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'Z')   &
+     &            then
+             read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
+     &       dist_en(3)                                
+             write(*,*), '--> DIST READ LONGITUDINAL EMITTANCE'             
+             !dist_en(3) = getfields_fields(3)(1:getfields_lfields(3))             
+          endif
+        endif
+
+      endif
+      
+      
+
+      WRITE(*,*) '--> DIST BLOCK', dist_block
+      
+!    &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
+      
+      
       
       goto 2500
 !-----------------------------------------------------------------------
@@ -25121,7 +25177,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       endif
       
       
-      if (dist_block.and.dist_type.eq.'FILE') then
+      if (dist_block.and.dist_input.eq.'FILE') then
          call dist_read( napx, npart, e0, e0f, clight,                  &
      &       xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:),     &
      &       naa(:), nzz(:), nucm(:) )
@@ -25153,7 +25209,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))                       ! new for ions
           rvv     (j) = (ejv(j)*e0f)/(e0*ejfv(j))                           ! unchanged for ions
 
-          
 	
 !         check existence of on-momentum particles in the distribution
           if ( abs(dpsv(j)).lt.1.0D-15 .or.                             &
