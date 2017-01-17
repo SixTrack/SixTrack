@@ -56,7 +56,7 @@
  * The hardware default is 0x037f which we use.
  */
 
-#include <features.h>
+// #include <features.h>
 
 /* masking of interrupts */
 #define _FPU_MASK_IM  0x01

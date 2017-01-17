@@ -8,6 +8,7 @@
 
 #Set the cmake version required
 cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
 PROJECT(SixTrack)
@@ -99,6 +100,7 @@ OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
 #OPTION(ROOT "Link to the root libraries" OFF)
 
+SET(BOINC_DIR "" CACHE PATH "Path to the boinc build folder")
 ###################################################################################################
 # Sixtrack binary name construction
 ###################################################################################################
@@ -228,6 +230,11 @@ endif()
 foreach(loop IN ITEMS ${FORS})
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
+
+if(BOINC)
+	#if we have a boinc build, add boinc_zipitall.cpp
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} boinc_zipitall.cpp)
+endif(BOINC)
 
 #add back in beamgas, which is in free format
 SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90)
@@ -363,30 +370,27 @@ if(HDF5)
 		message(FATAL_ERROR "Building with HDF5 requires COLLIMAT enabled")
 	endif()
 endif()
-if(BONIC)
-	if(NOT CPSS)
-		message(FATAL_ERROR "Building with HDF5 requires CPSS enabled")
-	endif()
+if(BOINC)
 	if(NOT CRLIBM)
-		message(FATAL_ERROR "Building with BONIC requires CRLIBM enabled")
-	endif()
-endif()
+		message(FATAL_ERROR "Building with BOINC requires CRLIBM enabled")
+	endif(NOT CRLIBM)
+endif(BOINC)
 if(API)
-	if(NOT BONIC)
-		message(FATAL_ERROR "Building with API requires BONIC enabled")
-	endif()
-endif()
+	if(NOT BOINC)
+		message(FATAL_ERROR "Building with API requires BOINC enabled")
+	endif(NOT BOINC)
+endif(API)
 if(BEAMGAS)
 	if(NOT COLLIMAT)
 		message(FATAL_ERROR "Building with BEAMGAS requires COLLIMAT enabled")
-	endif()
+	endif(NOT COLLIMAT)
 	if(BIGNBLZ)
 		message(FATAL_ERROR "Cannot build BEAMGAS with BIGNBLZ enabled.")
-	endif()
+	endif(BIGNBLZ)
 	if(HUGENBLZ)
 		message(FATAL_ERROR "Cannot build BEAMGAS with HUGENBLZ enabled.")
-	endif()
-endif()
+	endif(HUGENBLZ)
+endif(BEAMGAS)
 if(BIGNBLZ)
 	if(HUGENBLZ)
 		message(FATAL_ERROR "Cannot combine BIGNBLZ with HUGENBLZ.")
@@ -481,9 +485,9 @@ if(64BIT)
 	if(CERNLIB)
 		message(FATAL_ERROR "Cannot build CERNLIB with 64BIT enabled.")
 	endif()
-	if(BONIC)
-		message(FATAL_ERROR "Cannot build BONIC with 64BIT enabled.")
-	endif()
+#	if(BOINC)
+#		message(FATAL_ERROR "Cannot build BOINC with 64BIT enabled.")
+#	endif()
 endif()
 
 ###################################################################################################
@@ -760,7 +764,10 @@ add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+endif()
+if(CRLIBM OR BUILD_TESTING )
+  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
@@ -795,10 +802,40 @@ foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
 endforeach()
 
-#if we have a boinc build, add myboinc.f
 if(BOINC)
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR})
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_zipitall.cpp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/boinc_zipitall.cpp ${CMAKE_BINARY_DIR}/boinc_zipitall.cpp DEPENDS copy_input_files)
+
+	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/zip ${BOINC_DIR}/lib ${BOINC_DIR})
+
+	#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
+	#go into the boinc source folder, cd api; make boinc_api_fortran.o
+	add_library(boinc_api_fortran STATIC IMPORTED)
+	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
+	target_link_libraries(SixTrack boinc_api_fortran)
+
+	#add the libs
+	add_library(boinc STATIC IMPORTED)
+	add_library(boinc_zip STATIC IMPORTED)
+	set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+	set_target_properties(boinc_zip PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/zip/libboinc_zip.a)
+
+	if(API)
+		add_library(boinc_api STATIC IMPORTED)
+		set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
+		target_link_libraries(SixTrack boinc_api)
+	endif(API)
+
+	target_link_libraries(SixTrack boinc_zip boinc)
+
+	find_library(dl STATIC dl)
+	find_library(stdc++ STATIC stdc++)
+	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTrack dl stdc++ pthread)
+
+	if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+		find_library(nsl STATIC nsl)
+		target_link_libraries(SixTrack nsl)
+	endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -995,7 +1032,7 @@ endif(CERNLIB)
 
 #if we are using crlibm, link to the crlibm library
 if(CRLIBM)
-	target_link_libraries(SixTrack crlibm)
+	target_link_libraries(SixTrack crlibm roundctl)
 endif(CRLIBM)
 
 #if we are using merlinscatter, link to the merlinscatter library
@@ -1065,7 +1102,8 @@ IF(BUILD_TESTING)
 	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f)
 	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
 	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
-	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90 ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoa_c.c ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoaf.c)
+	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
+	target_link_libraries(read90 roundctl)
 
 	SET_TARGET_PROPERTIES(verify10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(checkf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")

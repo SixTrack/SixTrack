@@ -1189,6 +1189,24 @@ then
     exit 4
   fi
   cd ..
+
+  #roundctl library, now split up from CRLIBM:
+  export CRLIBM="$CRLIBM roundctl/roundctl.a"
+  mkdir -p roundctl
+  cp -r ../roundctl/* roundctl
+  cd roundctl
+  sed  -e 's/%%FC%%/'"${FC}"'/g' \
+       -e 's/%%FCF%%/'"${FCF}"'/g' \
+       Makefile_makesix.template > Makefile_makesix
+  echo "Making roundctl."
+  make -f Makefile_makesix clean
+  make -f Makefile_makesix roundctl.a
+  if test $? -ne 0
+  then
+    echo "Failed to make roundctl!!!"
+    exit 4
+  fi
+  cd ..
 fi
 # and merlinscatter
 if test "$merlinscatter" = ""

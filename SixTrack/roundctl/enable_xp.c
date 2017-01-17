@@ -1,24 +1,9 @@
 /* Initialise the IA32/64 FPU flags from Fortran */
 /* An init function which sets FPU flags when needed */
 
-#ifdef __APPLE__
-
-void enable_xp_(void)
-{
-}
-
-#elif defined(_WIN32)
-
-#include <float.h>
-
-void enable_xp_(void)
-{
-  _controlfp(_PC_64, _MCW_PC);
-}
-
-#else
-
-#include <fpu_control.h>
+// Bring our own FPU_control.h, as Windows doesn't have it.
+// Contains inline ASM macro...
+#include "fpu_control.h"
 
 void enable_xp_(void)
 {
@@ -27,5 +12,3 @@ void enable_xp_(void)
   short unsigned int cw = (_FPU_DEFAULT & ~_FPU_DOUBLE)|_FPU_EXTENDED;
   _FPU_SETCW(cw);
 }
-
-#endif
