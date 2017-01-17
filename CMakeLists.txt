@@ -57,7 +57,7 @@ OPTION(NAGLIB "Link to external NAGLIB library, used in subroutine coruglo and c
 # used for ifort only SSE
 #SSE="NULL"
 # and we have OFF
-OPTION(API "Link to external BOINC API" OFF)
+OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
 OPTION(DA "Build differential algebra version (NOT dynamic aperture!)" OFF)
 OPTION(COLLIMAT "Collimation code" OFF)
 OPTION(CPSS "CERN physics screensaver support" OFF)
