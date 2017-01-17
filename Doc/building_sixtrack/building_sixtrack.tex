@@ -209,7 +209,7 @@ This version allows computing DA maps of the machine.
 Please contact Frank Schmidt if you intend to use it.
 
 To compile it, simply use \texttt{cmake\_six DA NAGLIB}~.
-Note that the DA version requires the NAGFOR library (Section~\ref{sec:building:libs:naglib}), a proprietary library of mathematical that is available at CERN via AFS.
+Note that the DA version requires the NAGFOR library (Section~\ref{sec:building:libs:naglib}), a proprietary library of mathematical functions that is available at CERN via AFS.
 
 \subsection{Libraries}
 SixTrack leverages a few libraries in order to run correctly.
@@ -287,7 +287,7 @@ This will iterate over the tests, running SixTrack for each of them, and check t
 To run several tests in parallel, use the flag \texttt{-j \textit{numjobs}}.
 
 To run specific tests, use the flag \texttt{-R \textit{name}}, where \textit{name} is a regexp contained in the names of the tests you want to run.
-The tests are classified as \texttt{fast} ($\lesssim 30~\mathrm{secconds}$), \texttt{medium} ($\lesssim 30~\mathrm{minutes}$), or \texttt{slow}; it is possible to run a group by using the \texttt{-L} flag, e.g.\ \texttt{-L fast}~.
+The tests are classified as \texttt{fast} ($\lesssim 60~\mathrm{secconds}$), \texttt{medium} ($\lesssim 30~\mathrm{minutes}$), or \texttt{slow}; it is possible to run a group by using the \texttt{-L} flag, e.g.\ \texttt{-L fast}~.
 
 Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
 
