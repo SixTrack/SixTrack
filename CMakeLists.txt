@@ -832,10 +832,12 @@ if(BOINC)
 	find_library(pthread STATIC pthread)
 	target_link_libraries(SixTrack dl stdc++ pthread)
 
-	if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	#if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	if($CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		find_library(nsl STATIC nsl)
 		target_link_libraries(SixTrack nsl)
-	endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	endif()
+	#endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -995,6 +997,13 @@ endforeach()
 ###################################################################################################
 #linking
 ###################################################################################################
+set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/5.3.0/libquadmath.a")
+#just a work around to build on MSYS2 for now
+if(MSYS AND STATIC)
+	target_link_libraries(astuce ${MSYS_QUADMATH})
+	target_link_libraries(dafor ${MSYS_QUADMATH})
+	target_link_libraries(SixTrack ${MSYS_QUADMATH})
+endif()
 
 if(CERNLIB)
 #	if(EXISTS "/cern/pro/bin/cernlib")
@@ -1131,6 +1140,17 @@ IF(BUILD_TESTING)
 	endif()
 	#set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
 
+	#just a work around to build on MSYS2 for now
+	if(MSYS AND STATIC)
+		#set(CMAKE_EXECUTABLE_SUFFIX_Fortran "")
+		target_link_libraries(verify10 ${MSYS_QUADMATH})
+		target_link_libraries(checkf10 ${MSYS_QUADMATH})
+		target_link_libraries(checkf110 ${MSYS_QUADMATH})
+		target_link_libraries(checkf1014 ${MSYS_QUADMATH})
+		target_link_libraries(compf10 ${MSYS_QUADMATH})
+		target_link_libraries(read90 ${MSYS_QUADMATH})
+		target_link_libraries(SixTestWrapper ${MSYS_QUADMATH})
+	endif()
 ENDIF()
 
 #To make packages, run "make package" in the build directory
