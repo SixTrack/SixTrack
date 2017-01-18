@@ -1,6 +1,7 @@
 #General
 *.o
 *~
+*.exe
 
 # SixTest
 SixTest/*/fort.*.run_pro*
