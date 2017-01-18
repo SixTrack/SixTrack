@@ -66526,6 +66526,9 @@ C            backspace (dumpunit(i),iostat=ierro)
       end
 
       subroutine crpoint
++if datamods
+      use bigmats, only : as, al !Only take the variables from common, not from commonmn
++ei
       implicit none
 +ca crcoall
 +ca parpro
