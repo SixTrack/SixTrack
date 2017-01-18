@@ -64,9 +64,9 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
 	#check fort.90 by default
 	SET(FORT90 1)
-	if(TST MATCHES lostnumxv )
-		SET(FORT90 0)
-	endif()
+	# if(TST MATCHES lostnumxv )
+	# 	SET(FORT90 0)
+	# endif()
 
 	#if STF, we need to use the STF flag on read90
 	if(STF)

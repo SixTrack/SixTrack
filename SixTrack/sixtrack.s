@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.5.45'/
-      data moddate /'20.12.2016'/
+      data moddate /'18.01.2017'/
 +cd license
 !!SixTrack
 !!
@@ -66526,6 +66526,9 @@ C            backspace (dumpunit(i),iostat=ierro)
       end
 
       subroutine crpoint
++if datamods
+      use bigmats, only : as, al !Only take the variables from common, not from commonmn
++ei
       implicit none
 +ca crcoall
 +ca parpro
@@ -66783,6 +66786,7 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
++if .not.datamods
         write(95,err=100,iostat=ierro)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -66819,6 +66823,61 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if datamods
+        if(ithick.eq.1) then
++if .not.debug
+          if (ncalls.le.20.or.numx.ge.numl-20) then
++ei
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//
+     & ' for DATAMODS to fort.95'
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
++if .not.debug
+          endif
++ei
+          write(95,err=100,iostat=ierro)                                &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endfile (95,iostat=ierro)
+          backspace (95,iostat=ierro)
+        endif
+        
+        write(95,err=100,iostat=ierro)                                  &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
         endfile (95,iostat=ierro)
         backspace (95,iostat=ierro)
       endif
@@ -66971,6 +67030,7 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
++if .not.datamods
         write(96,err=100,iostat=ierro)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -67007,6 +67067,61 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if datamods
+        if (ithick.eq.1) then
++if .not.debug
+          if (ncalls.le.20.or.numx.ge.numl-20) then
++ei
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//
+     & ' for DATAMODS to fort.96'
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
++if .not.debug
+          endif
++ei
+          write(96,err=100,iostat=ierro)                                &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endfile   (96,iostat=ierro)
+          backspace (96,iostat=ierro)
+        endif
+        
+        write(96,err=100,iostat=ierro)                                  &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
       endif
       endfile (96,iostat=ierro)
       backspace (96,iostat=ierro)
@@ -67336,6 +67451,7 @@ c$$$         backspace (93,iostat=ierro)
 !       endif
 +ei
         if (read95) then
++if .not.datamods
           read(95,end=100,err=100,iostat=ierro)                         &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -67372,12 +67488,56 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if .not.datamods
+          if (ithick.eq.1) then
+            read(95,end=100,err=100,iostat=ierro)                       &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endif
+          
+          read(95,end=100,err=100,iostat=ierro)                         &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
           write(93,*) 'CRSTART read fort.95 EXTENDED OK'
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
           go to 102
         endif
         if (read96) then
++if .not.datamods
           read(96,end=101,err=101,iostat=ierro)                         &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -67414,6 +67574,48 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if datamods
+          if (ithick.eq.1) then
+            read(96,end=101,err=101,iostat=ierro)                       &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endif
+          read(96,end=101,err=101,iostat=ierro)                         &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
       write(93,*) 'CRSTART read fort.96 EXTENDED OK'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
