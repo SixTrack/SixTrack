@@ -100,7 +100,8 @@ OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
 #OPTION(ROOT "Link to the root libraries" OFF)
 
-SET(BOINC_DIR "" CACHE PATH "Path to the boinc build folder")
+SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
+
 ###################################################################################################
 # Sixtrack binary name construction
 ###################################################################################################
@@ -814,6 +815,7 @@ if(BOINC)
 	#go into the boinc source folder, cd api; make boinc_api_fortran.o
 	add_library(boinc_api_fortran STATIC IMPORTED)
 	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
+	# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp)
 	target_link_libraries(SixTrack boinc_api_fortran)
 
 	#add the libs
