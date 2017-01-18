@@ -193,6 +193,12 @@ The checkpoint/restart feature in SixTrack allows the simulation to continue fro
 This is a vital feature when running on e.g.\ LHC@Home, and works by saving a checkpoint file every \texttt{numlcp} turns.
 The feature is included by using the \texttt{CR} build option, i.e.\ \texttt{cmake\_six CR}.
 
+\subsubsection{BOINC support}
+\label{sec:building:options:BOINC}
+The BOINC libraries are used when running on LHC@Home.
+In order to build SixTrack with support for this, you must first build BOINC as described in Section~\ref{sec:building:libs:BOINC}.
+Once this is done, it is possible to build SixTrack with BOINC support by running \texttt{cmake\_six CR BOINC API}~.
+
 \subsubsection{Increased particle numbers}
 It is possible to track more than 64 particles simultaneously in SixTrack; the main limitation for this is the ``binary data files'' fort.90, fort.89, etc., as one such file is written per pair of tracked particles.
 In order to work around this, the ``Single Track File'' (STF) functionality was invented, which basically packs the contents of these binary data files into a single file \texttt{singletrackfile.dat}.
@@ -235,6 +241,18 @@ Note that due to problems in GCC's x87 optimizer (introduced somewhere between v
 \subsubsection{HDF5}
 
 \subsubsection{BOINC}
+\label{sec:building:libs:BOINC}
+The BOINC library is used for volunteer computing \todo{Cite BOINC}.
+It must be built separately from SixTrack, and then linked into SixTrack.
+As some modifications have been done to the upstream BOINC library, the correct version is linked into the repository as a \texttt{git submodule} \todo{cite} at \texttt{SixTrack/SixTrack/boinc}~.
+In order to load the submodule, run from anywhere in the SixTrack repository first \texttt{git submodule init} then \texttt{git submodule update}~.
+
+Then, you must build the BOINC library.
+This is accomplished by \texttt{cd}-ing to the the \texttt{boinc} directory, then running \texttt{./\_autosetup}~, then \texttt{./configure -{}-disable-client -{}-disable-server -{}-disable-manager -{}-enable-boinczip}~, and finally \texttt{make}~.
+Finally, you need to build the BOINC Fortran API; this is done by entering the \texttt{api} subdirectory and running \texttt{make boinc\_api\_fortran.o}~.
+Once this is done, you may compile SixTrack with BOINC support as described in Section~\ref{sec:building:options:BOINC}.
+
+This procedure has been tested on Linux (Fedora~23), Windows 10, and Mac~OS~X.
 
 \subsubsection{NAGLIB}
 \label{sec:building:libs:naglib}
