@@ -1,0 +1,3 @@
+[submodule "SixTrack/boinc"]
+	path = SixTrack/boinc
+	url = https://github.com/SixTrack/boinc.git
