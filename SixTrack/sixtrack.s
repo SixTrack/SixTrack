@@ -1254,10 +1254,10 @@
 !     distribution read and echo unit
       integer dist_read_unit
 !     normalized emittance
-      double precision dist_en
+      double precision dist_en, dist_tw
       ! commons for initial distribution
       common /dist_var/ dist_fname, dist_type, dist_read_unit,          &
-     & dist_en(3), dist_load, dist_block
+     & dist_en(3), dist_tw(3,4), dist_load, dist_block
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ! PDH commons for heavy ions
 +cd hions
@@ -17184,6 +17184,8 @@ cc2008
 
       if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
 
+      
+      
       if (ch(:4).eq.next) then
          dist_block = .true.
          
@@ -17193,12 +17195,11 @@ cc2008
             call prror(-1)
          end if
          write(*,*), '--> DIST: EMITTANCE', dist_en
+         !write(*,*), '--> DIST: TWISS    ', dist_tw
          goto 110 ! loop to next BLOCK in fort.3
       endif
 
-      write(*,*), '--> DIST BLOCK CALLED'
-      write(*,*), ch
-
+     
 
 
       
@@ -17237,6 +17238,7 @@ cc2008
            
 !         LOAD DISTRIBUTION NAME
           dist_fname = getfields_fields(2)(1:getfields_lfields(2))
+          
 !         SELECT DISTRIBUTION TYPE (PHYSICAL OR NORMALIZED)
           dist_type  = getfields_fields(3)(1:4)
           WRITE(*,*) '--> DIST_TYPE ', dist_type
@@ -17245,37 +17247,96 @@ cc2008
       endif
 
 
-!     LOAD THE PARAM OPTIONS
-
-      if(getfields_fields(1)(1:getfields_lfields(1)).eq.'PARAM') then
-         if (getfields_nfields.ne.3.and.getfields_nfields.ne.7.and.      &
-     &getfields_nfields.ne.4) then
+!     READ PARAMETERS
+      if(ch(:4).eq.'EMIT') then
+        if (getfields_nfields.ne.3) then
 +if cr
           write(lout,*)
 +ei
 +if .not.cr
           write(*,*)
 +ei
-     &       '--> ERROR in DIST block (PARA): wrong number of input',
-     &       '--> parameters: ', getfields_nfields
+     &       '--> ERROR in DIST block (EMIT): wrong number of input ',
+     &       '--> parameters: test'
           call prror(-1)
-
-
         else
 
-          WRITE(*,*) '--> FOUND PARAM COMMAND IN DIST BLOCK'
-           
-          dist_block = .true.
-          if (getfields_fields(2)(1:getfields_lfields(2)).eq.'X') then
+!         read horizontal parameters
+          if (getfields_fields(2)(1:getfields_lfields(2)).eq.'1') then
              read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
-     &       dist_en(1)             
-          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'Y')   &
+     &            dist_en(1)                           
+             
+          ! vertical parameters   
+          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'2')   &
+     &    then
+             read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
+     &            dist_en(2)                                                
+           !  endif
+
+          ! longitudinal parameters
+          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'3')   &
      &            then
              read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
+     &            dist_en(3)                                           
+          endif
+         endif
+       endif
+      
+      
+
+
+
+
+!     READ OPTICS PARAMETERS 
+!     include error message if second field not 1,2,3
+       
+      if(ch(:4).eq.'OPTI') then
+        if (getfields_nfields.ne.9) then
++if cr
+          write(lout,*)
++ei
++if .not.cr
+          write(*,*)
++ei
+     &       '--> ERROR in DIST block (EMIT): wrong number of input ',
+     &       '--> parameters: test'
+          call prror(-1)
+        else
+          WRITE(*,*) '--> FOUND PARAM COMMAND IN DIST BLOCK'
+
+          ! read horizontal parameters
+          if (getfields_fields(2)(1:getfields_lfields(2)).eq.'1') then
+             read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
+     &            dist_en(1)
+             if (getfields_nfields.eq.7) then
+                read(getfields_fields(4)(1:getfields_lfields(4)),*)     &
+     &               dist_tw(1,1)                                           ! BETX
+                read(getfields_fields(5)(1:getfields_lfields(5)),*)     &
+     &               dist_tw(1,2)                                           ! ALFX                
+                read(getfields_fields(6)(1:getfields_lfields(6)),*)     &
+     &               dist_tw(1,3)                                           ! DX                
+                read(getfields_fields(7)(1:getfields_lfields(7)),*)     &
+     &               dist_tw(1,4)                                           ! DPX                               
+             endif
+             
+          ! vertical parameters   
+          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'2')   &
+     &    then
+             read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
      &       dist_en(2)                   
-             write(*,*), '--> DIST READ VERTICAL EMITTANCE'
-             !dist_en(2) = getfields_fields(3)(1:getfields_lfields(3))
-          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'Z')   &
+             if (getfields_nfields.eq.7) then
+                read(getfields_fields(4)(1:getfields_lfields(4)),*)     &
+     &               dist_tw(2,1)                                           ! BETY
+                read(getfields_fields(5)(1:getfields_lfields(5)),*)     &
+     &               dist_tw(2,2)                                           ! ALFY                
+                read(getfields_fields(6)(1:getfields_lfields(6)),*)     &
+     &               dist_tw(2,3)                                           ! DY                
+                read(getfields_fields(7)(1:getfields_lfields(7)),*)     &
+     &               dist_tw(2,4)                                           ! DPY                               
+             endif
+
+          ! longitudinal parameters
+          elseif (getfields_fields(2)(1:getfields_lfields(2)).eq.'3')   &
      &            then
              read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
      &       dist_en(3)                                
@@ -17283,12 +17344,11 @@ cc2008
              !dist_en(3) = getfields_fields(3)(1:getfields_lfields(3))             
           endif
         endif
-
       endif
-      
+            
       
 
-      WRITE(*,*) '--> DIST BLOCK', dist_block
+     
       
 !    &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
       
