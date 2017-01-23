@@ -1244,7 +1244,7 @@
       double precision :: wire_lphys(nele)      ! physical length of the wire [m]
       ! integer to include or not closed orbit in the separation between beam and wire
       ! 0  : Un-initialized if wire element not found
-      ! +1 : dispx is the distance between x0=y0=0 and the beam
+      ! +1 : dispx is the distance between x0=y0=0 and the wire
       ! -1 : dispx is the distance between the closed orbit and the wire 
       !
       !    x=y=0    <->   xco     <->    xwire

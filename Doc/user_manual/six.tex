@@ -644,6 +644,17 @@ The definition of the multipole strength in a block will be given in
 These beam--beam elements become active when the ``Beam--Beam'' input
 block~\ref{BeamBeam} is used.
 
+\subsubsection{Wire} \label{WIRE}
+\paragraph{Format} {\em name type}
+\begin{description}
+	\item [name] May contain up to sixteen characters
+	\item [type] 15
+\end{description}
+
+\paragraph{Remark}
+The ``wire'' elements become active when the
+WIRE input block~\ref{sec:WIRE} is used. All parameters except name and type have to be set to zero, otherwise SixTrack aborts. The parameters for the wire are defined in the WIRE input block.
+
 \subsubsection{``Phase--trombone'' or matrix element} \label{PT}
 \paragraph{Format} {\em name type}
 \begin{description}
@@ -707,6 +718,17 @@ deflection angle.
 \end{description}
 
 %\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
+
+\subsubsection{Electron Lens} \label{ELEN}
+\paragraph{Format} {\em name type}
+\begin{description}
+	\item [name] May contain up to sixteen characters
+	\item [type] 29
+\end{description}
+
+\paragraph{Remark}
+The ``e-lens'' elements become active when the
+ELEN input block~\ref{sec:elen} is used. All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts. The parameters for the e-lens are defined in the ELEN input block.
 
 \subsubsection{Beam Position Monitor} \label{BPM}
 \paragraph{Format} {\em BPMname 0 0 0 0}
@@ -1481,9 +1503,9 @@ space~\cite{ripbeam}.
 \item [ibeco] (integer) Switch (0 = off; 1 = on) to subtract the
   closed orbit introduced by the separation of the beams. It is
   recommended to always subtract it as it is not yet calculated in a
-  selfconsistent manner.
+  selfconsistent manner. The \emph{ibeco} switch also acts on the ``wire'' elements \ref{sec:WIRE} in the same way as on the beam-beam elements. It subtracts the closed orbit introduced by the wire if \emph{ibeco}=1 and applies it if \emph{ibeco}=0.
 \item [ibtyp] (integer) Switch (0 = off; 1 = on) to use the fast
-  beam--beam algorithms developped in collaboration with G.A.~Erskine
+  beam--beam algorithms developed in collaboration with G.A.~Erskine
   and E.~McIntosh.  The linear optics are calculated with ``exact''
   beam--beam kicks.
 \item [lhc] For the LHC with its anti--symmetric IR the separation of
@@ -1501,8 +1523,7 @@ space~\cite{ripbeam}.
   In absence of crabbing user should make sure \textit{xstr=xang}; in case the \textit{xstr} flag is not set then \textit{xstr=xang} is assumed and a warning is printed (since version 4.5.45).
 \end{description}
 
-\subparagraph{Remark} These beam--beam elements have beam--beam have
-to appear in the single element list (~\ref{NonEle}) (type 20) together
+\subparagraph{Remark} These beam--beam elements have to appear in the single element list (~\ref{NonEle}) (type 20) together
 with their horizontal and vertical beam--beam separations
 (see~\ref{BBS}).
 
@@ -1634,7 +1655,7 @@ Note that all parameters except for the type are set to 0 in the single element 
 
 \subsection{Wire} \label{sec:WIRE}
 
-\paragraph{Description} The wire module serves for reading in the input parameters for the wire. Each wire also needs to be added as single element in the list of single elements.
+\paragraph{Description} The wire block serves for reading in the input parameters for the wire. Each wire also needs to be added as single element in the list of single elements.
 
 \paragraph{Keyword} WIRE
 
@@ -1673,7 +1694,7 @@ A description of the input parameters for the wire is given in Table~\ref{tab:wi
 		Name of wire. Must be the same as in list of single elements.\\*
 		
 		\emph{flag\_co} & - &
-		flag to define the displacement of the wire in respect to the closed orbit or x=y=0. \\*
+		flag to define the displacement of the wire in respect to the closed orbit or x=y=0. For \emph{flag\_co}=+1 \emph{disp\_*} is the distance between x=y=0 and the wire. For \emph{flag\_co}=-1 \emph{disp\_*} is the distance between the closed orbit and the wire.\\*
 		\emph{current} & A &
 		wire current \\*
 		\emph{int\_length} & m &
@@ -1685,11 +1706,10 @@ A description of the input parameters for the wire is given in Table~\ref{tab:wi
 		\emph{disp\_y} & mm &
 		vert. displacement of the wire\\*
 		\emph{tilt\_x} & degrees &
-		hor. tilt of the wire -90 < \emph{tilt\_x} < 90 (uses same defintion as DISP block) \\*
+		hor. tilt of the wire $-90 < tilt\_x < 90$ (uses same defintion as DISP block) \\*
 		\emph{tilt\_y} & degrees &
-		vert. tilt of the wire -90 < \emph{tilt\_y} < 90 (uses same defintion as DISP block) \\*
-		\hline
-		
+		vert. tilt of the wire $-90 < tilt\_y < 90$ (uses same defintion as DISP block) \\*
+		\hline		
 	\end{longtable}
 \end{center}
 
