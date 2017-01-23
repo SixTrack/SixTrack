@@ -123,10 +123,10 @@ int main(int argc, char* argv[])
 			if(SixTrackpid == 0)
 			{
 				//child, run sixtrack
-				int execStatus = execl(argv[1],(char*) 0);
+				int execStatus = execl(argv[1], argv[1], (char*) 0);
 				if(execStatus == -1)
 				{
-					perror("ERROR - could not execute checkf10");
+					perror("ERROR - could not execute SixTrack");
 				}
 			}
 			else
@@ -151,10 +151,10 @@ int main(int argc, char* argv[])
 		if(SixTrackpid == 0)
 		{
 			//child, run sixtrack
-			int execStatus = execl(argv[1],(char*) 0);
+			int execStatus = execl(argv[1], argv[1], (char*) 0);
 			if(execStatus == -1)
 			{
-				perror("ERROR - could not execute checkf10");
+				perror("ERROR - could not execute SixTrack");
 			}
 		}
 		else
@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
 //Run the actual sixtrack binary
 void RunSixTrack(char* argv[], int* Status)
 {
-	*Status = execl(argv[1],(char*) 0);
+	*Status = execl(argv[1], argv[1], (char*) 0);
 }
 
 /**
@@ -342,7 +342,7 @@ bool CheckFort10()
 	if(CheckFort10pid == 0)
 	{
 		//child, run checkf10
-		int status = execl("./checkf10",(char*) 0);
+		int status = execl("./checkf10", "checkf10", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute checkf10");
