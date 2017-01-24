@@ -78,6 +78,7 @@ OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
+OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 
 #Compiler stuff - not needed any more with cmake
 #OPTION(IFORT "Use the intel fortran compiler" OFF)
@@ -101,6 +102,8 @@ OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 #OPTION(ROOT "Link to the root libraries" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -187,6 +190,9 @@ endif()
 if(G4COLLIMAT)
 	SET(SIXTRACK_FEATURES "g4collimat_${SIXTRACK_FEATURES}")
 endif()
+if(LIBARCHIVE)
+	SET(SIXTRACK_FEATURES "libarchive_${SIXTRACK_FEATURES}")
+endif()
 
 #if(ROOT)
 #	SET(SIXTRACK_FEATURES "root_${SIXTRACK_FEATURES}")
@@ -239,6 +245,10 @@ endif()
 if(BOINC AND NOT API)
 	#We have a BOINC build but no API, load the fake API substitute for debugging.
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
+endif()
+
+if(LIBARCHIVE)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
 endif()
 
 #add back in beamgas, which is in free format
@@ -848,6 +858,22 @@ if(BOINC)
 	else()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myboinc.f POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR}/myboinc.f DEPENDS copy_input_files)
 	endif()
+endif()
+
+if(LIBARCHIVE)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c DEPENDS copy_input_files)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c DEPENDS copy_input_files)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
+	
+	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
+	
+	add_library(libarchive STATIC IMPORTED)
+	set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
+	target_link_libraries(SixTrack libarchive)
+
+	find_library(pthread STATIC pthread)
+	find_library(z STATIC z)
+	target_link_libraries(SixTrack pthread z)
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
