@@ -4,6 +4,7 @@
 
 set -e #Exit on error
 
+#Make sure we have the right submodule versions
 git submodule init
 git submodule update
 

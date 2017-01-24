@@ -26,11 +26,10 @@ extern "C" {
     {
         ZipFileList plist;
         string zipfile = "Sixout.zip";
-
-        bool
-status=boinc_filelist(".","fort.",&plist,SORT_NAME|SORT_DESCENDING,true);
-       
-status=boinc_filelist(".","stderr.",&plist,SORT_NAME|SORT_DESCENDING,false);
+	
+        bool status = boinc_filelist(".","fort.",  &plist,SORT_NAME|SORT_DESCENDING,true);
+	status      = boinc_filelist(".","stderr.",&plist,SORT_NAME|SORT_DESCENDING,false);
+	
         boinc_zip(ZIP_IT,zipfile,&plist);
         return;
     }
