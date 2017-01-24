@@ -835,10 +835,9 @@ if(BOINC)
 		
 		target_link_libraries(SixTrack boinc_zip boinc)
 		
-		find_library(dl STATIC dl)
 		find_library(stdc++ STATIC stdc++)
 		find_library(pthread STATIC pthread)
-		target_link_libraries(SixTrack dl stdc++ pthread)
+		target_link_libraries(SixTrack stdc++ pthread)
 
 		#if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 		if($CMAKE_SYSTEM_NAME} MATCHES "Linux")
