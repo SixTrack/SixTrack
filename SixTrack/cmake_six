@@ -299,7 +299,8 @@ fi
 
 #Run make
 #make -j  | tee make_log.txt # No pretty colors...
-make -j # VERBOSE=1
+#make -j # VERBOSE=1
+make -j 8 #FreeBSD's make doesn't like a bare -j
 
 if [ $? != 0 ]; then
     echo ""
