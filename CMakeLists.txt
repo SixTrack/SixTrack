@@ -878,11 +878,11 @@ if(LIBARCHIVE)
 		target_link_libraries(SixTrack libarchive bz2 Bcrypt pthread iconv)
 	else()
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
-		target_link_libraries(SixTrack libarchive)
 
 		find_library(pthread STATIC pthread)
+		find_library(bz2 STATIC bz2)
 		find_library(z STATIC z)
-		target_link_libraries(SixTrack z pthread)
+		target_link_libraries(SixTrack libarchive z bz2 pthread)
 	endif()
 endif()
 
