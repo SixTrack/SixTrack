@@ -868,12 +868,22 @@ if(LIBARCHIVE)
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
 	
 	add_library(libarchive STATIC IMPORTED)
-	set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
-	target_link_libraries(SixTrack libarchive)
+	if(WIN32)
+		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
+		
+		find_library(pthread STATIC pthread)
+		find_library(bz2 STATIC bz2)
+		find_library(Bcrypt STATIC Bcrypt)
+		find_library(iconv STATIC iconv)
+		target_link_libraries(SixTrack libarchive bz2 Bcrypt pthread iconv)
+	else()
+		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
+		target_link_libraries(SixTrack libarchive)
 
-	find_library(pthread STATIC pthread)
-	find_library(z STATIC z)
-	target_link_libraries(SixTrack pthread z)
+		find_library(pthread STATIC pthread)
+		find_library(z STATIC z)
+		target_link_libraries(SixTrack pthread z)
+	endif()
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder

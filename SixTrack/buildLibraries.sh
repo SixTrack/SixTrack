@@ -5,8 +5,11 @@
 set -e #Exit on error
 
 #Make sure we have the right submodule versions
-git submodule init
-git submodule update
+if [[ $(uname) != MINGW* ]]; then
+    # Use MSYS...
+    git submodule init
+    git submodule update
+fi
 
 ### BOINC
 
@@ -15,6 +18,6 @@ rm -rf libarchive_build
 mkdir libarchive_build
 cd libarchive_build
 
-cmake -DENABLE_BZip2=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -G "Unix Makefiles" ../libarchive -LH
+cmake -DENABLE_BZip2=ON -DENABLE_ZLIB=OFF -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -G "Unix Makefiles" ../libarchive -LH
 
-make -j
+make
