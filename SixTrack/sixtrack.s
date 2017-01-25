@@ -64078,7 +64078,7 @@ c$$$     &           myalphay * cos(phiy))
       double precision Avogadro
       double precision CalcElectronDensity
       double precision PartA, PartB
-      Avogadro = 6.022140857e23
+      parameter (Avogadro = 6.022140857e23)
       PartA = AtomicNumber * Avogadro * Density
       !1e-6 factor converts to n/m^-3
       PartB = AtomicMass * 1e-6
@@ -64092,24 +64092,28 @@ c$$$     &           myalphay * cos(phiy))
       implicit none
       double precision ElectronDensity
       double precision CalcPlasmaEnergy
-      double precision sqrtAB,PartA,PartB
+      double precision sqrtAB,PartA,PartB,FSPC2
 
       !Values from the 2016 PDG
       double precision PlanckConstantBar,ElectronCharge,ElectronMass
+      double precision ElectronCharge2
       double precision FreeSpacePermittivity,FreeSpacePermeability
       double precision SpeedOfLight,SpeedOfLight2
 
-      PlanckConstantBar = 1.054571800e-34
-      ElectronCharge = 1.6021766208e-19
-      ElectronMass = 9.10938356e-31
-      SpeedOfLight = 299792458
-      SpeedOfLight2 = SpeedOfLight*SpeedOfLight
+      parameter (PlanckConstantBar = 1.054571800e-34)
+      parameter (ElectronCharge = 1.6021766208e-19)
+      parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
+      parameter (ElectronMass = 9.10938356e-31)
+      parameter (SpeedOfLight = 299792458)
+      parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
 
-      FreeSpacePermeability = 16.0e-7*atan(1.0) ! Henry per meter
-      FreeSpacePermittivity = 1.0/FreeSpacePermeability/SpeedOfLight2
+      parameter (FreeSpacePermeability = 16.0e-7*atan(1.0)) ! Henry per meter
+      parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
+      parameter (FreeSpacePermittivity = 1.0/FSPC2)
+      parameter (PartB = ElectronMass * FreeSpacePermittivity)
 
-      PartA = ElectronDensity * ElectronCharge**2
-      PartB = ElectronMass * FreeSpacePermittivity
+      PartA = ElectronDensity * ElectronCharge2
+
       sqrtAB = sqrt(PartA/PartB)
       CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*1e-9
       return
