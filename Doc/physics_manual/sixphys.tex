@@ -886,9 +886,9 @@ The first order symplectic transport map in thin lens approximation for an arbit
 	\end{align}
 where $x_{co}$ and $y_{co}$ denotes the closed orbit at the center of the wire.
 
-\item[Step 2] Symplectic rotation in $(x,z)$ by $\theta$ as described in \cite{forest99}: In a drift space the normalized momenta $p_i$ are related by $p_x^2+p_y^2 +p_z^2=1$  and we can thus write $p_z$ as
+\item[Step 2] Symplectic rotation in $(x,z)$ by $\theta$ as described in \cite{forest99}: In a drift space the normalized momenta $p_i$ are related by $p_x^2+p_y^2 +p_z^2=(1+\delta)^2$  and we can thus write $p_z$ as
 \begin{align}
-p_z = \sqrt{1-p_x^2-p_y^2}
+p_z = \sqrt{(1+\delta)^2-p_x^2-p_y^2}
 \end{align}
 The rotation by $\theta$ can then be expressed as a rotation first in $(p_x,p_z)$:
  \begin{align}
@@ -902,7 +902,7 @@ The rotation by $\theta$ can then be expressed as a rotation first in $(p_x,p_z)
  \end{align}
 
 \item[Step 3] Symplectic rotation in $(y,z)$ by $\phi$ as described in \cite{forest99}: The new $p_z$ is again defined as
-$p_z = \sqrt{1-p_x^2-p_y^2}$ using the updated values of $p_x,p_y$ from Step 2. Analogical to the symplectic rotation in $(x,z)$, the rotation by $\phi$ in $(y,z)$ can be expressed as a rotation first in $(p_y,p_z)$:
+$p_z = \sqrt{(1+\delta)^2-p_x^2-p_y^2}$ using the updated values of $p_x,p_y$ from Step 2. Analogical to the symplectic rotation in $(x,z)$, the rotation by $\phi$ in $(y,z)$ can be expressed as a rotation first in $(p_y,p_z)$:
 \begin{align}
 p_y & \to   p_y \cdot\cos \phi + p_z \cdot\sin\phi \nonumber\\
 p_z & \to - p_y \cdot\sin \phi + p_z \cdot\cos\phi
@@ -930,13 +930,13 @@ d^-&=\sqrt{(L_{\mathrm{emb}}-L)^2+4r^2}
 As reminder $L$ denotes the physical length of the wire and $L_{\mathrm{emb}}$ the length of the embedded drift. The parameter $p_{co,wire}$ is the closed orbit kick due to the wire. This kick is only subtracted if \emph{ibeco} is equal to $1$ in the BEAM block.
 
 \item[Step 5] Backward rotation by $-\phi$ in $(p_y,p_z)$: The new $p_z$ is again defined as
-$p_z = \sqrt{1-p_x^2-p_y^2}$ using the updated values of $p_x,p_y$ from Step 4. The rotation is then given by:
+$p_z = \sqrt{(1+\delta)^2-p_x^2-p_y^2}$ using the updated values of $p_x,p_y$ from Step 4. The rotation is then given by:
 \begin{align}
 p_y & \to   p_y \cdot \cos \phi - p_z \cdot \sin\phi \nonumber\\
 p_z & \to   p_y \cdot \sin \phi + p_z \cdot \cos\phi 
 \end{align}
 \item[Step 6] Backward rotation by $-\theta$ in $(p_x,p_z)$: The new $p_z$ is again defined as
-$p_z = \sqrt{1-p_x^2-p_y^2}$ using the updated values of $p_x,p_y$ from Step 5. The rotation is then given by:
+$p_z = \sqrt{(1+\delta)^2-p_x^2-p_y^2}$ using the updated values of $p_x,p_y$ from Step 5. The rotation is then given by:
 \begin{align}
  p_x & \to   p_x \cdot \cos \theta - p_z \cdot \sin\theta \nonumber\\
  p_z & \to   p_x \cdot \sin \theta + p_z \cdot \cos\theta 
