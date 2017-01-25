@@ -12,7 +12,7 @@
 #include <stdlib.h>
 */
 
-double dtoa_strtod(const char *nptr, char **endptr);
+double strtod_cr(const char *nptr, char **endptr);
 
 double round_near_(int*ferrno,int* flen,char*field)
 {
@@ -30,7 +30,7 @@ double round_near_(int*ferrno,int* flen,char*field)
   }
 //  printf("strtod Field: %s\n",field);
   *ferrno=0;
-  good = dtoa_strtod(field,&endptr);
+  good = strtod_cr(field,&endptr);
 //  printf("strtod Errno: %i\n",errno);
 //  printf("strtod returning: %21.14G\n", good);
 //  if (*endptr != '\0') {       /* Not necessarily an error... */
