@@ -105,6 +105,7 @@ SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc b
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
 SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
 
+
 ###################################################################################################
 # Sixtrack binary name construction
 ###################################################################################################
@@ -867,16 +868,20 @@ if(LIBARCHIVE)
 	
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
 	
-	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
-		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
-		
+		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
+		# Therefore, must link as -L${LIBARCHIVE_BUILD_DIR}/libarchive/ -larchive
+		# Not just include the .a
+		find_library(archive STATIC PATH ${LIBARCHIVE_BUILD_DIR}/libarchive/ archive)
+
+		find_library(zlib STATIC z)
 		find_library(pthread STATIC pthread)
 		find_library(bz2 STATIC bz2)
 		find_library(Bcrypt STATIC Bcrypt)
 		find_library(iconv STATIC iconv)
-		target_link_libraries(SixTrack libarchive bz2 Bcrypt pthread iconv)
+		target_link_libraries(SixTrack archive z bz2 Bcrypt pthread iconv)
 	else()
+		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
 
 		find_library(pthread STATIC pthread)
