@@ -529,7 +529,7 @@ BCinfo { int dp0, dp1, dplen, dsign, e0, inexact, nd, nd0, rounding, scale, uflc
 
 #ifdef __cplusplus
 extern "C" double strtod_cr(const char *s00, char **se);
-extern "C" char *dtoa(double d, int mode, int ndigits,
+extern "C" char *dtoa_cr(double d, int mode, int ndigits,
 			int *decpt, int *sign, char **rve);
 #endif
 
@@ -3648,7 +3648,7 @@ freedtoa(char *s)
  */
 
  char *
-dtoa
+dtoa_cr
 #ifdef KR_headers
 	(dd, mode, ndigits, decpt, sign, rve)
 	double dd; int mode, ndigits, *decpt, *sign; char **rve;
