@@ -881,7 +881,8 @@ if(LIBARCHIVE)
 		target_link_libraries(SixTrack libarchive)
 
 		find_library(pthread STATIC pthread)
-		target_link_libraries(SixTrack pthread)
+		find_library(z STATIC z)
+		target_link_libraries(SixTrack z pthread)
 	endif()
 endif()
 
