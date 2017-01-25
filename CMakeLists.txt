@@ -883,12 +883,7 @@ if(LIBARCHIVE)
 		find_library(bz2 STATIC bz2)
 		find_library(z STATIC z)
 
-		if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-			find_library(iconv STATIC iconv)
-			target_link_libraries(SixTrack libarchive z bz2 iconv pthread)
-		else()
-			target_link_libraries(SixTrack libarchive z bz2 pthread)
-		endif()
+		target_link_libraries(SixTrack libarchive z bz2 pthread)
 	endif()
 endif()
 
