@@ -1,4 +1,4 @@
-Test the wire elements.
+Test the wire elements with ibeco=1 in the beam block.
 
 --- Input files:
 fort.2 - SixTrack input for the LHC of 2016 without Beam - beam interactions at IPs
