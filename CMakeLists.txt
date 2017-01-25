@@ -841,7 +841,7 @@ if(BOINC)
 		target_link_libraries(SixTrack dl stdc++ pthread)
 
 		#if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
-		if($CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 			find_library(nsl STATIC nsl)
 			target_link_libraries(SixTrack nsl)
 		endif()
