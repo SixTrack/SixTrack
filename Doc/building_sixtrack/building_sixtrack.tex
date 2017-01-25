@@ -259,12 +259,12 @@ This procedure has been tested on Linux (Fedora~23), Windows 10, and Mac~OS~X.
 The NAGLIB library \todo{cite} is used for the DA version.
 It is found on AFS, in the folder \texttt{/afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib}~.
 Note that in order to link with this library (when also using \texttt{DA}) when compiling with gfortran or nagfor, dynamic linking (i.e.\ the flag \texttt{-STATIC} to \texttt{cmake\_six}) is required.
-If compiling with with ifort, it is possible to link (mostly) statically.
+If compiling with ifort, it is possible to link (mostly) statically.
 
 \subsection{Tools}
 
 Two tools are required to pre-process the source code before it can be compiled -- astuce and dafor.
-These binaries must be compiled first, and are then ran by the build system to to convert the \texttt{.s} files into compileable Fortran.
+These binaries must be compiled first, and are then ran by the build system to convert the \texttt{.s} files into compileable Fortran.
 
 \subsubsection{Astuce}
 
