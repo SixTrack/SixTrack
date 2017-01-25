@@ -23,3 +23,8 @@ Doc/*/*.log
 Doc/*/*.lot
 Doc/*/*.out
 Doc/*/*.toc
+*.bbl
+*.blg
+
+#Python temps
+*.pyc
