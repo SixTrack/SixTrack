@@ -239,10 +239,6 @@ foreach(loop IN ITEMS ${FORS})
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
 
-if(BOINC AND API)
-	#if we have a boinc build, add boinc_zipitall.cpp
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} boinc_zipitall.cpp)
-endif()
 if(BOINC AND NOT API)
 	#We have a BOINC build but no API, load the fake API substitute for debugging.
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
@@ -826,9 +822,7 @@ endforeach()
 
 if(BOINC)
 	if(API)
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_zipitall.cpp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/boinc_zipitall.cpp ${CMAKE_BINARY_DIR}/boinc_zipitall.cpp DEPENDS copy_input_files)
-		
-		include_directories(${BOINC_DIR}/api ${BOINC_DIR}/zip ${BOINC_DIR}/lib ${BOINC_DIR})
+		include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
 		
 		#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
 		#go into the boinc source folder, cd api; make boinc_api_fortran.o
@@ -839,15 +833,13 @@ if(BOINC)
 		
 		#add the libs
 		add_library(boinc STATIC IMPORTED)
-		add_library(boinc_zip STATIC IMPORTED)
 		set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-		set_target_properties(boinc_zip PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/zip/libboinc_zip.a)
 		
 		add_library(boinc_api STATIC IMPORTED)
 		set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
 		target_link_libraries(SixTrack boinc_api)
 		
-		target_link_libraries(SixTrack boinc_zip boinc)
+		target_link_libraries(SixTrack boinc)
 		
 		find_library(stdc++ STATIC stdc++)
 		find_library(pthread STATIC pthread)
