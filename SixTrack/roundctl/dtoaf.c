@@ -6,7 +6,7 @@
 /*
 #include <stdio.h>
 */
-char *dtoa(double d, int mode, int ndigits,
+char *dtoa_cr(double d, int mode, int ndigits,
                         int *decpt, int *sign, char **rve);
 
 int dtoaf_(double *d,int *mode, int *ndigits, int *decpt,
@@ -20,7 +20,7 @@ int dtoaf_(double *d,int *mode, int *ndigits, int *decpt,
 /*
   printf("%e %d %d \n",*d,*mode,*ndigits);
 */
-  res=dtoa(*d,*mode,*ndigits,decpt,sign,&rve);
+  res=dtoa_cr(*d,*mode,*ndigits,decpt,sign,&rve);
 /*
   printf("%s\n",res);
 */
