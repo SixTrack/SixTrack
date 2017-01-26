@@ -7490,7 +7490,8 @@ cc2008
 +ei
      &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
      &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
-     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
+     &'be either 1 or -1! Did you define all wires in the WIRE block?',
+     &'bez(',ix,') = ',bez(ix),
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
         call prror(-1)
       endif
