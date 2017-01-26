@@ -17594,7 +17594,7 @@ cc2008
       lineno3 = lineno3+1 ! Line number used for some crash output
 
       if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
-
+     
       if (ch(:4).eq.next) then
 !       4) loop over single elements to check that they have been defined in the fort.3 block
         do j=1,nele
@@ -17711,7 +17711,7 @@ cc2008
             endif
 
             ! Parse the element
-            read(getfields_fields(2)(1:getfields_lfields(8)),'(I10)')
+            read(getfields_fields(2)(1:getfields_lfields(2)),'(I10)')
      &           wire_flagco(j)
 +if .not.crlibm
             read (getfields_fields(3)(1:getfields_lfields(3)),*)
