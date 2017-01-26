@@ -20,7 +20,7 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
   int fd;
   
   
-  printf("Writing outname='%s'\n",outname);
+  //printf("Writing outname='%s'\n",outname);
   
   a = archive_write_new(); //Constructs the archive in memory? If so, may be problematic for large archives.
   //For tar.gz:
@@ -32,11 +32,11 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
   archive_write_open_filename(a, outname);
   entry = archive_entry_new();
   for (int i=0;i<nFiles;i++){
-    printf("Compressing filename='%s'... ",filename[i]);
-
+    //printf("Compressing filename='%s'... ",filename[i]);
+    
     //Write the header
     err = stat(filename[i], &st); // POSIX only, use GetFileSizeEx on Windows.
-    printf("stat reported err=%i\n", err);
+    //printf("stat reported err=%i\n", err);
     if(err != 0) continue;
     
     archive_entry_set_pathname(entry, filename[i]);
@@ -51,7 +51,7 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
     while ( len > 0 ) {
       err=archive_write_data(a, buff, len);
       if (err < 0){
-	printf("Error when writing file, got err=%i\n",err);
+	printf("CRITICAL ERROR in write_archive(): When writing file, got err=%i\n",err);
 	exit(1);
       }
       len = read(fd, buff, sizeof(buff));
@@ -61,7 +61,7 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
     archive_entry_clear(entry);
   }
   archive_entry_free(entry);
-  printf("Complete!\n");
+  //printf("Complete!\n");
   archive_write_close(a); // Note 4
   archive_write_free(a); // called archive_write_finish() in old versions of libarchive
 }
@@ -70,6 +70,9 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
 void list_archive(const char* const infile) {
   // Adapted from:
   // https://github.com/libarchive/libarchive/wiki/Examples#List_contents_of_Archive_stored_in_File
+  // Note - this function will always be "chatty"; make sure to flush the stdout before using it...
+  // TODO: Write a function which *returns* the list of files
+  //       (by writing it into a char** supplied by the caller)
   
   printf("Opening archive '%s' for listing...\n",infile);
   
@@ -98,7 +101,7 @@ void read_archive(const char* const infile, const char* extractFolder){
   // Strongly inspired by
   // https://github.com/libarchive/libarchive/wiki/Examples#A_Complete_Extractor
   
-  printf("Opening archive '%s' for extracting to folder '%s'...\n",infile,extractFolder);
+  //printf("Opening archive '%s' for extracting to folder '%s'...\n",infile,extractFolder);
 
   //Check that the archive exists
 
@@ -113,7 +116,7 @@ void read_archive(const char* const infile, const char* extractFolder){
   int err;
   err = archive_read_open_filename(a, infile, 10240);
   if (err != ARCHIVE_OK) {
-    printf("Error opening archive '%s', err=%i\n",infile,err);
+    printf("CRITICAL ERROR in read_archive(): When opening archive '%s', err=%i\n",infile,err);
     exit(1);
   }
 
@@ -128,11 +131,11 @@ void read_archive(const char* const infile, const char* extractFolder){
       break;
     }
     else if (err != ARCHIVE_OK){
-      printf("Error when reading archive, err=%i\n",err);
+      printf("CRITICAL ERROR in read_archive(): When reading archive, err=%i\n",err);
       printf("%s\n",archive_error_string(a));
       exit(1);
     }
-    printf("Found file: '%s'\n",archive_entry_pathname(entry));
+    //printf("Found file: '%s'\n",archive_entry_pathname(entry));
 
     //Avoid clobbering files in current directory - solution from
     // http://stackoverflow.com/questions/4496001/libarchive-to-extract-to-a-specified-folder
@@ -142,8 +145,8 @@ void read_archive(const char* const infile, const char* extractFolder){
     
     err = archive_write_header(ext, entry);
     if (err != ARCHIVE_OK){
-      printf("Error when extracting archive (creating new file), err=%i\n",err);
-      printf("%s\n",archive_error_string(ext));
+      printf("CRITICAL ERROR in read_archive(): when extracting archive (creating new file), err=%i\n",err);
+      printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(ext));
       exit(1);
     }
 
@@ -161,27 +164,27 @@ void read_archive(const char* const infile, const char* extractFolder){
 	break;
       }
       else if (err != ARCHIVE_OK){
-	printf("Error when extracting archive (reading data), err=%i\n",err);
-	printf("%s\n",archive_error_string(a));
+	printf("CRITICAL ERROR in read_archive(): When extracting archive (reading data), err=%i\n",err);
+	printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
 	exit(1);
       }
 
       err = archive_write_data_block(ext,buff,size,offset);
       if (err != ARCHIVE_OK){
-	printf("Error when extracting archive (writing data), err=%i\n",err);
-	printf("%s\n",archive_error_string(a));
+	printf("CRITICAL ERROR in read_archive(): When extracting archive (writing data), err=%i\n",err);
+	printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
 	exit(1);
       }
     }
     if (!bcompleted){
-      printf("Error: The file writing block loop was aborted by the infinite loop guard\n");
+      printf("CRITICAL ERROR in read_archive(): The file writing block loop was aborted by the infinite loop guard\n");
       exit(1);
     }
     
     err=archive_write_finish_entry(ext);
     if (err != ARCHIVE_OK) {
-      printf("Error when extracting archive (closing new file), err=%i\n",err);
-      printf("%s\n",archive_error_string(ext));
+      printf("CRITICAL ERROR in read_archive(): When extracting archive (closing new file), err=%i\n",err);
+      printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(ext));
       exit(1);
     }
   }
@@ -189,16 +192,18 @@ void read_archive(const char* const infile, const char* extractFolder){
   archive_read_close(a);
   err=archive_read_free(a);
   if (err != ARCHIVE_OK){
-    printf("Error when calling archive_read_free(a), err=%i\n",err);
+    printf("CRITICAL ERROR in read_archive(): When calling archive_read_free(a), err=%i\n",err);
+    exit(1);
   }
   archive_write_close(ext);
   err = archive_write_free(ext);
   if (err != ARCHIVE_OK){
-    printf("Error when calling archive_read_free(ext), err=%i\n",err);
+    printf("CRITICAL ERROR in read_archive(): When calling archive_read_free(ext), err=%i\n",err);
+    exit(1);
   }
   
   if (!fcompleted) {
-    printf("Error: The file header loop was aborted by the infinite loop guard\n");
+    printf("CRITICAL ERROR in read_archive(): The file header loop was aborted by the infinite loop guard\n");
     exit(1);
   }
 }
