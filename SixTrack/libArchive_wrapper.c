@@ -159,7 +159,7 @@ void read_archive(const char* const infile, const char* extractFolder){
     //Write the data!
     const void* buff;
     size_t size;
-    off_t offset;
+    la_int64_t offset;
     
     const int bcount_max = 100000000;
     char bcompleted = 0; //C boolean
