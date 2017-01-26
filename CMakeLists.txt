@@ -530,7 +530,11 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(NATIVE)
 
 	if(STATIC)
-		SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic -static-libgcc -static-libgfortran ${CMAKE_Fortran_LINKER_FLAGS}")
+		else()
+			SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	endif(STATIC)
 
 	if(COVERAGE)
@@ -1015,6 +1019,14 @@ if(MSYS AND STATIC)
 	target_link_libraries(dafor ${MSYS_QUADMATH})
 	target_link_libraries(SixTrack ${MSYS_QUADMATH})
 endif()
+
+#same with OSX, using gfortran from homebrew
+if(STATIC)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/)
+		target_link_libraries(SixTrack ${lquadmath})
+	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+endif(STATIC)
 
 if(CERNLIB)
 #	if(EXISTS "/cern/pro/bin/cernlib")
