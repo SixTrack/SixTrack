@@ -109,7 +109,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${TFILE})
 		endforeach()
 	else()
-			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink Sixin.zip ${CMAKE_BINARY_DIR}/SixTest/${TST}/Sixin.zip)
+		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink Sixin.zip ${CMAKE_BINARY_DIR}/SixTest/${TST}/Sixin.zip)
 	endif(NOT BOINC)
 
 	add_dependencies( SixTrack test_copy_${TST})
