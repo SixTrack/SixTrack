@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <string>
+#include <sstream>
 #include <vector>
 
 #include <unistd.h>
@@ -19,7 +20,12 @@
 //memcmp
 #include <string.h>
 
-void KillSixTrack(size_t KillTime, pid_t sixpid);
+//pthread
+#include <pthread.h>
+
+void KillSixTrack(pid_t sixpid);
+void *pthread_kill_sixtrack(void*);
+void *pthread_wait_sixtrack(void*);
 
 bool CopyFile(std::string InputFileName, std::string OutputFileName);
 bool FileComparison(std::string f1, std::string f2);
@@ -29,6 +35,15 @@ bool CheckFort90();
 bool CheckSTF();
 bool PerformExtraChecks();
 std::vector<int> ParseKillTimes(char*);
+
+void UnlinkCRFiles();
+
+struct KillInfo
+{
+	pid_t SixPID;	//The pid
+	int kTime;		//The time to kill for
+	bool RunStatus;	//Did the run finish whilst we were waiting to kill?
+};
 
 /**
 * SixTrack testing wrapper
@@ -104,9 +119,15 @@ int main(int argc, char* argv[])
 	* In each case, to run sixtrack we call fork and let the child process do the exec()
 	* The main thread then calls waitpid() for sixtrack to finish executing.
 	* For CR we wait then send a kill signal after a specified number of seconds
+	*
+	* The following code is *really* ugly.
+	*
 	*/
 	if(CR)
 	{
+		std::cout << "Starting CR run loop - will clear out any files from a previous run" << std::endl;
+		UnlinkCRFiles();
+
 		for(size_t KillCount=0; KillCount < KillTimes.size(); KillCount++)
 		{
 			KillTime = KillTimes.at(KillCount);
@@ -126,15 +147,46 @@ int main(int argc, char* argv[])
 				int execStatus = execl(argv[1], argv[1], (char*) 0);
 				if(execStatus == -1)
 				{
-					perror("ERROR - could not execute SixTrack");
+					perror("ERROR - could not execute SixTrack CR");
 				}
 			}
 			else
 			{
-				std::cout << "Will kill SixTrack after " << KillTime << " seconds" << std::endl;
-				KillSixTrack(KillTime, SixTrackpid);
+				std::cout << "Will try to kill SixTrack after " << KillTime << " seconds" << std::endl;
+				//Parent process
+				pthread_t th_wait;	//This will call waitpid()
+				pthread_t th_kill;  //This will do the kill()
+
+				KillInfo th_wait_struct;
+				th_wait_struct.SixPID = SixTrackpid;
+				th_wait_struct.kTime = 0;
+				th_wait_struct.RunStatus = false;
+
+				KillInfo th_kill_struct;
+				th_kill_struct.SixPID = SixTrackpid;
+				th_kill_struct.kTime = KillTime;
+				th_kill_struct.RunStatus = false;
+
+				//The wait thread needs the pid + to return the status of the CR run (killed or finished).
+				int th_wait_ret = pthread_create(&th_wait, NULL, pthread_wait_sixtrack,(void*) &th_wait_struct);
+
+				//The kill thread needs the pid to kill + the kill time for this cycle
+				int th_kill_ret = pthread_create(&th_kill, NULL, pthread_kill_sixtrack,(void*) &th_kill_struct);
+
+				pthread_join(th_kill, NULL);
+				pthread_join(th_wait, NULL);
+
+				if(th_wait_struct.RunStatus == true)
+				{
+					std::cout << "CR run finished! Will terminate the loop." << std::endl;
+					KillCount = KillTimes.size();
+				}
 			}
+
+			//Wait a moment until the next run attempt is started?
+			sleep(1);
 		}
+		std::cout << "End CR run loop" << std::endl;
 	}
 
 	//Normal run
@@ -276,10 +328,9 @@ void RunSixTrack(char* argv[], int* Status)
 * @parm KillTime The time in seconds to wait until the run is killed
 * @parm sixpid The pid of the process to kill
 */
-void KillSixTrack(size_t KillTime, pid_t sixpid)
+//void KillSixTrack(size_t KillTime, pid_t sixpid)
+void KillSixTrack(pid_t sixpid)
 {
-	//std::this_thread::sleep_for(std::chrono::seconds(KillTime));
-	sleep(KillTime);
 	std::cout << "KillSixTrack() - killing pid: " << sixpid << std::endl;
 	int res = kill(sixpid, SIGKILL);
 	std::cout << "KillSixTrack() kill result: " << res << std::endl;
@@ -652,4 +703,82 @@ std::vector<int> ParseKillTimes(char* in)
 	}
 	std::cout << " seconds." << std::endl;
 	return KillTimes;
+}
+
+void *pthread_wait_sixtrack(void* InputStruct)
+{
+	//Grab the structure
+	KillInfo* ThreadStruct = (KillInfo*)InputStruct;
+
+	//Extract the PID from the structure
+	pid_t sixpid = ThreadStruct->SixPID;
+
+	int waitpidStatus;
+	//Wait for the thread to either end or to be killed.
+	waitpid(sixpid, &waitpidStatus, WUNTRACED);
+
+	//If the thread exited (and was not killed), then we can exit this run.
+	if(waitpidStatus == 0)
+	{
+		std::cout << "SixTrack CR exited okay: " << waitpidStatus << std::endl;
+		ThreadStruct->RunStatus = true;
+	}
+	else
+	{
+		std::cout << "SixTrack CR was killed: " << waitpidStatus << std::endl;
+	}
+}
+
+void *pthread_kill_sixtrack(void* InputStruct)
+{
+	//Grab the structure
+	KillInfo* ThreadStruct = (KillInfo*)InputStruct;
+
+	//Extract the kill time from the structure
+	int KillTime = ThreadStruct->kTime;
+
+	//Extract the PID from the structure
+	pid_t sixpid = ThreadStruct->SixPID;
+	bool ArmKill=true;
+
+	for(int tt=0; tt < KillTime; tt++)
+	{
+		sleep(1);
+		//std::cout << "At " << tt+1 << " of " << KillTime << " Testing pid " << sixpid << ": ";
+		int res = kill(sixpid, 0);
+		//std::cout << "Child exec() kill 0 check result: " <<  res << std::endl;
+		if(res != 0)
+		{
+			perror("ERROR - kill check on SixTrack - will jump out");
+			//No longer running, jump out;
+			ArmKill=false;
+			tt=KillTime;
+		}
+	}
+	if(ArmKill == true)
+	{
+		//Try and kill
+		KillSixTrack(sixpid);
+	}
+}
+
+/**
+* Deletes any checkpoint files that are appended to from previous CR runs.
+*/
+void UnlinkCRFiles()
+{
+	int forts[] = {6, 10, 90, 93, 95, 96};
+	for(int n=0; n < 6; n++)
+	{
+		std::stringstream fname;
+		fname << "fort." << forts[n];
+		std::cout << "Deleting old " << fname.str().c_str() << std::endl;
+
+		int unlink_status= unlink(fname.str().c_str());
+		if(unlink_status != 0)
+		{
+			std::string er = "WARNING: Could not unlink " + fname.str();
+			perror(er.c_str());
+		}
+	}
 }
