@@ -14,7 +14,7 @@ fi
 ### BOINC ###
 cd boinc
 
-./_autosetup
+./_autosetup -f
 ./configure --disable-client --disable-server --disable-manager --disable-boinczip
 
 make -j 4 # Machines with low memory doesn't like an automatic -j
