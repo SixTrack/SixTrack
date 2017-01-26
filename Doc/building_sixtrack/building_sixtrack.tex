@@ -274,7 +274,22 @@ These binaries must be compiled first, and are then ran by the build system to t
 
 \subsubsection{Building on OS X}
 
-64-bit only
+Since OSX does not come with a fortran compiler, gfortran must be installed.
+For the build system, it is currently assumed that additional tools are installed via homebrew - for details see \url{http://brew.sh/}.
+The native clang/LLVM C and C++ compiler can be used for the C and C++ components of sixtrack.
+
+Building has been tested on OSX 10.12.2 (Sierra).
+When running the buildLibraries.sh, the BOINC script will complain about libtool being missing, even when it is installed from homebrew.
+To avoid a conflict with a built in "libtool", the libtool and libtoolize have been renamed to glibtool and glibtoolize.
+Therefore you must run the script as:
+\begin{verbatim}
+LIBTOOLIZE=/usr/local/bin/glibtoolize ./buildLibraries.sh
+\end{verbatim}
+
+If you are building a static version of sixtrack, please check that the output binary is statically linked (excluding libSystem) by running "otool -L" on the resulting output binary.
+There have been issues with dynamic linking of libquadmath.dylib and other items in your /usr/local folders.
+There should exist in /usr/local/lib/gcc/6/ a symlink from libquadmath.dylib to libquadmath.0.dylib.
+Re-naming this link (libquadmath.dylib) should stop the linker from always selecting this library, even if static is enabled.
 
 \subsubsection{Building on Windows}
 
