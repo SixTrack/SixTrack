@@ -540,7 +540,11 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(NATIVE)
 
 	if(STATIC)
-		SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic -static-libgcc -static-libgfortran ${CMAKE_Fortran_LINKER_FLAGS}")
+		else()
+			SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	endif(STATIC)
 
 	if(COVERAGE)
@@ -1052,6 +1056,14 @@ if(MSYS AND STATIC)
 	target_link_libraries(SixTrack ${MSYS_QUADMATH})
 endif()
 
+#same with OSX, using gfortran from homebrew
+if(STATIC)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/)
+		target_link_libraries(SixTrack ${lquadmath})
+	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+endif(STATIC)
+
 if(CERNLIB)
 #	if(EXISTS "/cern/pro/bin/cernlib")
 		#running on lxplus and friends
@@ -1177,6 +1189,10 @@ IF(BUILD_TESTING)
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
+
+	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTestWrapper pthread)
+
 	IF(COVERAGE)
 		target_compile_options(SixTestWrapper PRIVATE -fprofile-arcs -ftest-coverage)
 		SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
