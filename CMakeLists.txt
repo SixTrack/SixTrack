@@ -1153,6 +1153,10 @@ IF(BUILD_TESTING)
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
+
+	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTestWrapper pthread)
+
 	IF(COVERAGE)
 		target_compile_options(SixTestWrapper PRIVATE -fprofile-arcs -ftest-coverage)
 		SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
