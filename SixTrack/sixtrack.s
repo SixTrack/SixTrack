@@ -39222,11 +39222,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         wire_tiltx(i)   = 0
         wire_tilty(i)   = 0
       enddo
-! 2) structure elements
+! 2) loop over structure elements
       do i=1,nblz
         wire_num(i)=0
       enddo
-! 3) number of wires
+! 3) loop over number of wires
       do i=1,wire_max
         do j=1,6
           wire_clo(j,i)=zero
