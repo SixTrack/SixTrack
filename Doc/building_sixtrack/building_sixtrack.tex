@@ -288,6 +288,8 @@ LIBTOOLIZE=/usr/local/bin/glibtoolize ./buildLibraries.sh
 
 If you are building a static version of sixtrack, please check that the output binary is statically linked (excluding libSystem) by running "otool -L" on the resulting output binary.
 There have been issues with dynamic linking of libquadmath.dylib and other items in your /usr/local folders.
+There should exist in /usr/local/lib/gcc/6/ a symlink from libquadmath.dylib to libquadmath.0.dylib.
+Re-naming this link (libquadmath.dylib) should stop the linker from always selecting this library, even if static is enabled.
 
 \subsubsection{Building on Windows}
 
