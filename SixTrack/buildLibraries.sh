@@ -5,10 +5,13 @@
 set -e #Exit on error
 
 #Make sure we have the right submodule versions
-if [[ $(uname) != MINGW* ]]; then
-    # Use MSYS on Windows, git on MINGW is buggy.
+if [[ $(uname) != MINGW* ]]; then     # Use MSYS on Windows, git on MINGW is buggy.
+    #On LxPlus, you need to run git submodule init
+    # from the toplevel of the working tree
+    cd ..
     git submodule init
     git submodule update
+    cd SixTrack
 fi
 
 ### BOINC ###
