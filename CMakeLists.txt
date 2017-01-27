@@ -867,7 +867,8 @@ if(LIBARCHIVE)
 	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
 	
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
-	
+
+	target_link_libraries(SixTrack libArchive_wrapper)
 	if(WIN32)
 		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
 		# Therefore, must link as -L${LIBARCHIVE_BUILD_DIR}/libarchive/ -larchive
@@ -890,7 +891,6 @@ if(LIBARCHIVE)
 
 		target_link_libraries(SixTrack libarchive z bz2 pthread)
 	endif()
-	target_link_libraries(SixTrack libArchive_wrapper)
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder

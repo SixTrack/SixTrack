@@ -1,5 +1,10 @@
 #include <stdlib.h>
+
 #include <limits.h>
+#ifndef PATH_MAX
+#define PATH_MAX 4096 //Not really good... But C99 does not have this constant.
+#endif
+
 #include <fcntl.h>
 
 #include <archive.h>
