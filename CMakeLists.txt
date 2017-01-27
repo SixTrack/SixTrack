@@ -245,7 +245,8 @@ if(BOINC AND NOT API)
 endif()
 
 if(LIBARCHIVE)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
+	add_library(libArchive_wrapper STATIC  libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
+	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif()
 
 #add back in beamgas, which is in free format
@@ -889,6 +890,7 @@ if(LIBARCHIVE)
 
 		target_link_libraries(SixTrack libarchive z bz2 pthread)
 	endif()
+	target_link_libraries(SixTrack libArchive_wrapper)
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
