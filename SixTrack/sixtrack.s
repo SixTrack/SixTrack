@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.45'/
-      data moddate /'18.01.2017'/
+      data version /'4.6.0'/
+      data moddate /'27.01.2017'/
 +cd license
 !!SixTrack
 !!
@@ -23923,8 +23923,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Either it is only the fort.* input data or it is a restart.
 ! Removed temporarily??? because of problems.
 ! Re-instated and REQUIRED version 4516
-        call boinc_unzip()
+        !call boinc_unzip()
         !call system('unzip Sixin.zip')
+        call f_read_archive("Sixin.zip",".")
         go to 611
       endif
 +if fio
