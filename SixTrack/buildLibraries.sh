@@ -14,21 +14,35 @@ if [[ $(uname) != MINGW* ]]; then     # Use MSYS on Windows, git on MINGW is bug
     cd SixTrack
 fi
 
-### BOINC ###
+####################################
+### BOINC ##########################
+####################################
 cd boinc
 
 ./_autosetup -f
 ./configure --disable-client --disable-server --disable-manager --disable-boinczip
 
-make -j 4 # Machines with low memory doesn't like an automatic -j
+if [[ $(pwd) == /afs/* ]]; then
+    #AFS doesn't like hardlinks between files in different directories and configure doesn't check for this corner case...
+    sed -i 's/\/bin\/ln/cp/g' Makefile
+    sed -i 's/\/bin\/ln/cp/g' api/Makefile
+    sed -i 's/\/bin\/ln/cp/g' lib/Makefile
+    #AFS doesn't like parallel make
+    make
+else
+    # Machines with low memory doesn't like an automatic -j
+    make -j 4
+fi
 
+#Need to build the boinc/api/boinc_api_fortran.o separately
 cd api
 make boinc_api_fortran.o
 cd ..
 
 cd ..
-
-### libArchive ###
+####################################
+### libArchive #####################
+####################################
 rm -rf libarchive_build
 mkdir libarchive_build
 cd libarchive_build
@@ -41,6 +55,12 @@ else
     cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=ON -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF -G "Unix Makefiles" ../libarchive -LH
 fi
 
-make -j 4 # Machines with low memory doesn't like an automatic -j
+if [[ $(pwd) == /afs/* ]]; then
+    #AFS doesn't like parallel make
+    make
+else
+    # Machines with low memory doesn't like an automatic -j
+    make -j 4
+fi
 
 cd ..
