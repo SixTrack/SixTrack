@@ -2,7 +2,7 @@
 
 # make_six-like wrapper for cmake and make
 # To run it, say (for example) "./cmake_six 64BIT -32BIT nagfor"
-# To see all available options, run ./cmake_six --help (TODO: Implement this...)
+# To see all available options, run ./cmake_six help
 
 set -e #Stop on error
 
@@ -24,6 +24,7 @@ if [ -x "$(command -v gawk)" ]; then
 	echo " but forgot about its partner."
 	echo "You may also just be missing the command 'gawk' (GNU AWK),"
 	echo " needed to run this script."
+	exit 1
     else
 	echo "--> count.awk completed without errors."
     fi
@@ -33,6 +34,7 @@ if [ -x "$(command -v gawk)" ]; then
 	echo "This most likely means that you have an extra space in an astuce +if statement"
 	echo "You may also just be missing the command 'gawk' (GNU AWK),"
 	echo " needed to run this script."
+	exit 1
     else
 	echo "--> check_astuce_ifs.awk completed without errors."
     fi
@@ -43,6 +45,7 @@ if [ -x "$(command -v gawk)" ]; then
 	echo " but forgot about its partner."
 	echo "You may also just be missing the command 'gawk' (GNU AWK),"
 	echo " needed to run this script."
+	exit 1
     else
 	echo "--> count.awk completed without errors."
     fi
@@ -52,6 +55,7 @@ if [ -x "$(command -v gawk)" ]; then
 	echo "This most likely means that you have an extra space in an astuce +if statement"
 	echo "You may also just be missing the command 'gawk' (GNU AWK),"
 	echo " needed to run this script."
+	exit 1
     else
 	echo "--> check_astuce_ifs.awk completed without errors."
     fi
@@ -59,7 +63,9 @@ else
     echo
     echo "WARNING: You have not installed gawk (GNU AWK)."
     echo "This is needed to check the correctness of the ASTUCE +if /+ei"
-    echo "If you are modifying the .s files, it is EXTREMELY STRONGLY RECCOMENDED to install gawk!"
+    echo -e "If you are modifying the .s files, it is \e[5m\e[41m EXTREMELY STRONGLY RECCOMENDED to install gawk! \e[49m\e[0m"
+    echo "If you're really sure, go ahead and delete the 'exit' just after this 'echo' from cmake_six..."
+    exit 1
 fi
 echo ""
 
@@ -268,9 +274,9 @@ cd $NAME
 
 set +e #From here on we catch errors manually...
 
-#Use EVAL to split the options from $CMAKE_OPTIONS_LIST
+#Use EVAL to split the options from $CMAKE_OPTIONS_LIST:
 # http://stackoverflow.com/questions/6087494/bash-inserting-quotes-into-string-before-execution
-#Ue TEE
+#Use TEE:
 # http://stackoverflow.com/questions/692000/how-do-i-write-stderr-to-a-file-while-using-tee-with-a-pipe
 eval cmake -G \"Unix Makefiles\"  $CMAKE_OPTIONS_LIST ../../. > >(tee cmake_stdout_log.txt) 2> >(tee cmake_stderr_log.txt)
 
@@ -278,13 +284,14 @@ if [ $? != 0 ]; then
     echo ""
     echo "ERROR in CMAKE;"
     echo "Most likely you specified a bad argument!"
+    echo "The output from CMAKE should tell you more, so please look above this error message."
     echo "Please run cmake_six help"
     echo ""
 #    echo "cleaning up..."
 #
 #    cd ..
 #    rm -rf $NAME
-    exit
+    exit 1
 fi
 echo ""
 
@@ -293,8 +300,9 @@ if [ -s cmake_stderr_log.txt ]; then
     echo "Warning in CMAKE;"
     echo "Did you misspell an argument?"
     echo "Run './cmake_six help' to see possible arguments, remember UPPER/lower-cAsE"
+    echo "The output from CMAKE should tell you more, so please look above this error message."
     echo ""
-    exit
+    exit 1
 fi
 
 #Run make
@@ -315,10 +323,11 @@ if [ $? != 0 ]; then
     echo ""
     echo "ERROR in MAKE;"
     echo "Could be a bug..."
-    echo ".. or maybe you need to install some libraries?"
+    echo ".. or maybe you need to install some libraries (or the compiler)?"
+    echo "The output from MAKE should tell you more, so please look above this error message."
     echo ""
 
-    exit
+    exit 1
 fi
 echo ""
 echo "Done! If everything went well, you'll find the executable in" $NAME
