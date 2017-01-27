@@ -316,12 +316,6 @@ int main(int argc, char* argv[])
 	return (fort10fail || fort90fail || STFfail || ExtraChecksfail);
 }
 
-//Run the actual sixtrack binary
-void RunSixTrack(char* argv[], int* Status)
-{
-	*Status = execl(argv[1], argv[1], (char*) 0);
-}
-
 /**
 * Copies one input file to an output file.
 * @parm InputFileName The name of the input file
