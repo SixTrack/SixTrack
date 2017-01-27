@@ -151,7 +151,10 @@ void read_archive(const char* const infile, const char* extractFolder){
     //Avoid clobbering files in current directory - solution from
     // http://stackoverflow.com/questions/4496001/libarchive-to-extract-to-a-specified-folder
     char newPath[PATH_MAX];
-    snprintf(newPath, PATH_MAX, "%s/%s",extractFolder,archive_entry_pathname(entry));
+    if (snprintf(newPath, PATH_MAX, "%s/%s",extractFolder,archive_entry_pathname(entry)) >= PATH_MAX){
+      printf("CRITICAL ERROR in read_archive(): Buffer overflow when creating the path.");
+      exit(1);
+    }
     archive_entry_set_pathname(entry,newPath);
     
     err = archive_write_header(ext, entry);
