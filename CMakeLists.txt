@@ -78,6 +78,7 @@ OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
+OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 
 #Compiler stuff - not needed any more with cmake
 #OPTION(IFORT "Use the intel fortran compiler" OFF)
@@ -101,6 +102,9 @@ OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 #OPTION(ROOT "Link to the root libraries" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
+
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -187,6 +191,9 @@ endif()
 if(G4COLLIMAT)
 	SET(SIXTRACK_FEATURES "g4collimat_${SIXTRACK_FEATURES}")
 endif()
+if(LIBARCHIVE)
+	SET(SIXTRACK_FEATURES "libarchive_${SIXTRACK_FEATURES}")
+endif()
 
 #if(ROOT)
 #	SET(SIXTRACK_FEATURES "root_${SIXTRACK_FEATURES}")
@@ -232,13 +239,14 @@ foreach(loop IN ITEMS ${FORS})
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
 
-if(BOINC AND API)
-	#if we have a boinc build, add boinc_zipitall.cpp
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} boinc_zipitall.cpp)
-endif()
 if(BOINC AND NOT API)
 	#We have a BOINC build but no API, load the fake API substitute for debugging.
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
+endif()
+
+if(LIBARCHIVE)
+	add_library(libArchive_wrapper STATIC  libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
+	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif()
 
 #add back in beamgas, which is in free format
@@ -381,6 +389,9 @@ if(BOINC)
 	endif(NOT CRLIBM)
 	if(NOT CR)
 		message(FATAL_ERROR "Building with BOINC requires CR enabled")
+	endif()
+	if(NOT LIBARCHIVE)
+		message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE enabled")
 	endif()
 endif(BOINC)
 if(API)
@@ -816,9 +827,7 @@ endforeach()
 
 if(BOINC)
 	if(API)
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_zipitall.cpp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/boinc_zipitall.cpp ${CMAKE_BINARY_DIR}/boinc_zipitall.cpp DEPENDS copy_input_files)
-		
-		include_directories(${BOINC_DIR}/api ${BOINC_DIR}/zip ${BOINC_DIR}/lib ${BOINC_DIR})
+		include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
 		
 		#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
 		#go into the boinc source folder, cd api; make boinc_api_fortran.o
@@ -829,20 +838,17 @@ if(BOINC)
 		
 		#add the libs
 		add_library(boinc STATIC IMPORTED)
-		add_library(boinc_zip STATIC IMPORTED)
 		set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-		set_target_properties(boinc_zip PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/zip/libboinc_zip.a)
 		
 		add_library(boinc_api STATIC IMPORTED)
 		set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
 		target_link_libraries(SixTrack boinc_api)
 		
-		target_link_libraries(SixTrack boinc_zip boinc)
+		target_link_libraries(SixTrack boinc)
 		
-		find_library(dl STATIC dl)
 		find_library(stdc++ STATIC stdc++)
 		find_library(pthread STATIC pthread)
-		target_link_libraries(SixTrack dl stdc++ pthread)
+		target_link_libraries(SixTrack stdc++ pthread)
 
 		#if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -852,6 +858,38 @@ if(BOINC)
 		#endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	else()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myboinc.f POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR}/myboinc.f DEPENDS copy_input_files)
+	endif()
+endif()
+
+if(LIBARCHIVE)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c DEPENDS copy_input_files)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c DEPENDS copy_input_files)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
+	
+	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
+
+	target_link_libraries(SixTrack libArchive_wrapper)
+	if(WIN32)
+		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
+		# Therefore, must link as -L${LIBARCHIVE_BUILD_DIR}/libarchive/ -larchive
+		# Not just include the .a
+		find_library(archive STATIC PATH ${LIBARCHIVE_BUILD_DIR}/libarchive/ archive)
+
+		find_library(zlib STATIC z)
+		find_library(pthread STATIC pthread)
+		find_library(bz2 STATIC bz2)
+		find_library(Bcrypt STATIC Bcrypt)
+		find_library(iconv STATIC iconv)
+		target_link_libraries(SixTrack archive z bz2 Bcrypt pthread iconv)
+	else()
+		add_library(libarchive STATIC IMPORTED)
+		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
+
+		find_library(pthread STATIC pthread)
+		find_library(bz2 STATIC bz2)
+		find_library(z STATIC z)
+
+		target_link_libraries(SixTrack libarchive z bz2 pthread)
 	endif()
 endif()
 

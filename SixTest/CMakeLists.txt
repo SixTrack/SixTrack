@@ -45,7 +45,8 @@ endif(NOT COLLIMAT)
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
 	SET(CR_ENABLE 1)
-	SET(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024")
+	#Should at least be able to reach the standard TIMEOUT.
+	SET(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
 else()
 	SET(CR_ENABLE 0)
 	SET(CR_KILL_TIME 0)
@@ -109,7 +110,22 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${TFILE})
 		endforeach()
 	else()
-		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink Sixin.zip ${CMAKE_BINARY_DIR}/SixTest/${TST}/Sixin.zip)
+		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/SixTest/${TST}/Sixin.zip ${CMAKE_BINARY_DIR}/SixTest/${TST}/Sixin.zip)
+
+		#Also need the canonicals
+		file(GLOB TEST_INPUT_CANONICAL LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/SixTest/${TST}/*canonical)
+		foreach(CANONICAL_FILES IN ITEMS ${TEST_INPUT_CANONICAL})
+			get_filename_component(CANONICAL_FILE ${CANONICAL_FILES} NAME)
+			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${CANONICAL_FILE})
+		endforeach()
+
+		#And extra_checks.txt
+		file(GLOB TEST_INPUT_EXTRAS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/SixTest/${TST}/extra_checks.txt)
+		foreach(EXTRA_FILES IN ITEMS ${TEST_INPUT_EXTRAS})
+			get_filename_component(EXTRA_FILE ${EXTRA_FILES} NAME)
+			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${EXTRA_FILE})
+		endforeach()
+
 	endif(NOT BOINC)
 
 	add_dependencies( SixTrack test_copy_${TST})
