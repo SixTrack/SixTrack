@@ -2049,45 +2049,67 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &strackc(i)*crkve)
 +ei
 +cd kickvso1
+
+! 	we need strackx(i)/2 and strackz(i)/2 below everywhere, so
+!       we divide them once here and later at end of code multiply back
+!  	instead of dividng in each line
+	strackx(i)=strack(i)/2
+	strackz(i)=strackz(i)/2
+!
             yv(1,j)=yv(1,j)-xv(2,j)*strackx(i)
             yv(2,j)=yv(2,j)+xv(1,j)*strackx(i)
+!	
 !
-! TODO: Check if ejf0v should be e0f?? or oidpsv=ejf0v(j)/ejfv(j)=1/(1+delta)
-!
-      crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-      cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
+      crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
+      cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
 +if crlibm
-            yv(1,j)=crkve*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &cikve*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
-            yv(2,j)=cikve*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &crkve*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
-            crkve=xv(1,j)*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &xv(2,j)*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
-            cikve=xv(2,j)*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &xv(1,j)*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
+            yv(1,j)=crkve*cos_rn((strackz(i)*oidpsv(j))+        &!hr02
+     &cikve*sin_rn((strackz(i)*oidpsv(j))                        !hr02
+            yv(2,j)=cikve*cos_rn((strackz(i)*oidpsv(j))-        &!hr02
+     &crkve*sin_rn((strackz(i)*oidpsv(j))                        !hr02
+            crkve=xv(1,j)*cos_rn((strackz(i)*oidpsv(j))+        &!hr02
+     &xv(2,j)*sin_rn((strackz(i)*oidpv(j))                      !hr02
+            cikve=xv(2,j)*cos_rn((strackz(i)*oidpsv(j))-        &!hr02
+     &xv(1,j)*sin_rn((strackz(i)*oidpsv(j))                      !hr02
 +ei
 +if .not.crlibm
-            yv(1,j)=crkve*cos((strackz(i)*ejf0v(j))/ejfv(j))+           &!hr02
-     &cikve*sin((strackz(i)*ejf0v(j))/ejfv(j))                           !hr02
-            yv(2,j)=cikve*cos((strackz(i)*ejf0v(j))/ejfv(j))-           &!hr02
-     &crkve*sin((strackz(i)*ejf0v(j))/ejfv(j))                           !hr02
-            crkve=xv(1,j)*cos((strackz(i)*ejf0v(j))/ejfv(j))+           &!hr02
-     &xv(2,j)*sin((strackz(i)*ejf0v(j))/ejfv(j))                         !hr02
-            cikve=xv(2,j)*cos((strackz(i)*ejf0v(j))/ejfv(j))-           &!hr02
-     &xv(1,j)*sin((strackz(i)*ejf0v(j))/ejfv(j))                         !hr02
+            yv(1,j)=crkve*cos((strackz(i)*oidpsv(j))+           &!hr02
+     &cikve*sin((strackz(i)*oidpsv(j))                           !hr02
+            yv(2,j)=cikve*cos((strackz(i)*oidpsv(j))-           &!hr02
+     &crkve*sin((strackz(i)*oidpsv(j))                           !hr02
+            crkve=xv(1,j)*cos((strackz(i)*oidpsv(j))+           &!hr02
+     &xv(2,j)*sin((strackz(i)*oidpsv(j))                         !hr02
+            cikve=xv(2,j)*cos((strackz(i)*oidpsv(j))-           &!hr02
+     &xv(1,j)*sin((strackz(i)*oidpsv(j))                         !hr02
 +ei
             xv(1,j)=crkve
             xv(2,j)=cikve
             yv(1,j)=yv(1,j)+xv(2,j)*strackx(i)
             yv(2,j)=yv(2,j)-xv(1,j)*strackx(i)
+!  	 revert back strackx and strackz at end of kickvso1
+	strackx(i)=strack(i)*2
+        strackz(i)=strackz(i)*2
+	
 +cd kickvso2
+!       we need strackx(i)/2 and strackz(i)/2 below everywhere, so
+!       we divide them once here and later at end of code multiply back
+!       instead of dividng in each line
+        strackx(i)=strack(i)/2
+        strackz(i)=strackz(i)/2
+	
         crkve=sigmv(j)-0.5d0*(((((((xv(1,j)**2+xv(2,j)**2)*strackx(i))* &!hr02
-     &strackz(i))*rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)           !hr02
+     &strackz(i))*rvv(j))*oidpsv(j)*oidpsv(j)           !hr02
             sigmv(j)=crkve
-      crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-      cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
+      crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
+      cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
-     &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
+     &rvv(j))*oidpsv(j)*oidpsv(j)                       !hr02
+!  	 revert back strackx and strackz at end of kickvso2
+	        strackx(i)=strack(i)*2
+	        strackz(i)=strackz(i)*2
+
+	
+
 +cd kickelens
             select case (elens_type(ix))
               case (1)
