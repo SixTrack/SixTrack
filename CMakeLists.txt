@@ -850,12 +850,17 @@ if(BOINC)
 		find_library(pthread STATIC pthread)
 		target_link_libraries(SixTrack stdc++ pthread)
 
-		#if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 			find_library(nsl STATIC nsl)
 			target_link_libraries(SixTrack nsl)
 		endif()
-		#endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+
+		#fix osx linking to the correct c++ stdlib
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			find_library(c++ STATIC c++)
+			target_link_libraries(SixTrack c++)
+		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 	else()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myboinc.f POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR}/myboinc.f DEPENDS copy_input_files)
 	endif()
