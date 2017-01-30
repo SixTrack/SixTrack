@@ -441,21 +441,33 @@ These binaries must be compiled first, and are then ran by the build system to t
 \subsubsection{Building on OS X}
 
 Since OSX does not come with a fortran compiler, gfortran must be installed.
-For the build system, it is currently assumed that additional tools are installed via homebrew - for details see \url{http://brew.sh/}.
-The native clang/LLVM C and C++ compiler can be used for the C and C++ components of sixtrack.
+For the build system, it is currently assumed that additional tools are installed via Homebrew - for details see \url{http://brew.sh/}.
+The native clang/LLVM C and C++ compiler can be used for the C and C++ components of sixtrack; if this is not already done, the installer for the Homebrew system will take care of this.
 
-Building has been tested on OSX 10.12.2 (Sierra).
-When running the buildLibraries.sh, the BOINC script will complain about libtool being missing, even when it is installed from homebrew.
-To avoid a conflict with a built in "libtool", the libtool and libtoolize have been renamed to glibtool and glibtoolize.
-Therefore you must run the script as:
+Building has been tested on OSX 10.12.2 (Sierra) and 10.11.6 (El Capitan).
+In addition to homebrew, you need to install several packages.
+This can be accomplished via the following sequence of commands:
 \begin{lstlisting}
-LIBTOOLIZE=/usr/local/bin/glibtoolize ./buildLibraries.sh
+brew install gcc
+brew install pkg-config
+brew install automake
+brew install libtool
+brew install cmake
+brew install gawk
 \end{lstlisting}
+Once this is done, you may build SixTrack in the standard way, by first running \texttt{buildLibraries.sh} and then \texttt{cmake\_six}.
 
-If you are building a static version of sixtrack, please check that the output binary is statically linked (excluding libSystem) by running "otool -L" on the resulting output binary.
-There have been issues with dynamic linking of libquadmath.dylib and other items in your /usr/local folders.
-There should exist in /usr/local/lib/gcc/6/ a symlink from libquadmath.dylib to libquadmath.0.dylib.
-Re-naming this link (libquadmath.dylib) should stop the linker from always selecting this library, even if static is enabled.
+%When running the buildLibraries.sh, the BOINC script will complain about libtool being missing, even when it is installed from homebrew.
+%To avoid a conflict with a built in "libtool", the libtool and libtoolize have been renamed to glibtool and glibtoolize.
+%Therefore you must run the script as:
+%\begin{lstlisting}
+%LIBTOOLIZE=/usr/local/bin/glibtoolize ./buildLibraries.sh
+%\end{lstlisting}
+
+Note that if you are building a static version of SixTrack, please check that the output binary is statically linked (excluding \texttt{libSystem}) by running \texttt{otool -L} on the resulting output binary.
+There have been issues with dynamic linking of \texttt{libquadmath.dylib} and other items in your \texttt{/usr/local} folders.
+There should exist in \texttt{/usr/local/lib/gcc/6/} a symlink from \texttt{libquadmath.dylib} to \texttt{libquadmath.0.dylib}.
+Re-naming or deleting this link (\texttt{libquadmath.dylib}) should stop the linker from always selecting this library, even if static is enabled.
 
 \subsubsection{Building on Windows}
 
