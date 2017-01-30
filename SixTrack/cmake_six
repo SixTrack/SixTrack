@@ -70,8 +70,8 @@ fi
 echo ""
 
 #Get options
-compilers=(defaultcompiler gfortran ifort ifort-icc ifort-icc-icpc nagfor gcc g++) # Valid compilers. defaultcompiler = system default compilers
-compilers_CMAKE=('' '-DCMAKE_Fortran_COMPILER=gfortran' '-DCMAKE_Fortran_COMPILER=ifort' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc' '-DCMAKE_Fortran_COMPILER=nagfor' '-DCMAKE_C_COMPILER=gcc' '-DCMAKE_CXX_COMPILER=g++')
+compilers=(defaultcompiler gfortran ifort ifort-icc ifort-icc-icpc nagfor gcc g++ gcc-g++ gcc-g++-gfortran clang clang++ clang-clang++) # Valid compilers. defaultcompiler = system default compilers
+compilers_CMAKE=('' '-DCMAKE_Fortran_COMPILER=gfortran' '-DCMAKE_Fortran_COMPILER=ifort' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc' '-DCMAKE_Fortran_COMPILER=nagfor' '-DCMAKE_C_COMPILER=gcc' '-DCMAKE_CXX_COMPILER=g++' '-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++' '-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran' '-DCMAKE_C_COMPILER=clang' '-DCMAKE_CXX_COMPILER=clang++' '-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++')
 options_COMPILER=defaultcompiler #which compilers to use
 
 buildtypes=(defaultbuildtype release debug)
