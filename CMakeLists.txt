@@ -114,7 +114,7 @@ SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Pa
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 SET(SIXTRACK_FEATURES "cmake")
-SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${Fortran_COMPILER_NAME}")
+SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 
 if(TILT)
 	SET(SIXTRACK_FEATURES "tilt_${SIXTRACK_FEATURES}")
@@ -850,12 +850,17 @@ if(BOINC)
 		find_library(pthread STATIC pthread)
 		target_link_libraries(SixTrack stdc++ pthread)
 
-		#if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 			find_library(nsl STATIC nsl)
 			target_link_libraries(SixTrack nsl)
 		endif()
-		#endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+
+		#fix osx linking to the correct c++ stdlib
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			find_library(c++ STATIC c++)
+			target_link_libraries(SixTrack c++)
+		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 	else()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myboinc.f POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR}/myboinc.f DEPENDS copy_input_files)
 	endif()
