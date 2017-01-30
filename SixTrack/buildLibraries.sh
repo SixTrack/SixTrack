@@ -20,9 +20,9 @@ fi
 cd boinc
 
 if [[ $(uname) == FreeBSD* ]]; then
-MAKE=/usr/local/bin/gmake ./_autosetup -f
+    MAKE=/usr/local/bin/gmake ./_autosetup -f
 else
-./_autosetup -f
+    ./_autosetup -f
 fi
 
 ./configure --disable-client --disable-server --disable-manager --disable-boinczip
