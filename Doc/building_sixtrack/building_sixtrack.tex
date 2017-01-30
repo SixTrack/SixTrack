@@ -1,4 +1,4 @@
-\documentclass[english]{scrartcl}
+\documentclass[english,BCOR=0mm,DIV=18]{scrartcl}
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \usepackage{textcomp}
@@ -30,6 +30,8 @@
 \lstset{language=sh,basicstyle=\small\ttfamily,numbers=left,numberstyle=\tiny,backgroundcolor=\color{lightgray},breaklines=true,columns=fullflexible,showstringspaces=false}
 
 \begin{document}
+
+\raggedbottom
 
 \author{K. Sjobak, J. Molson}
 \title{Compiling, building, and testing SixTrack}
@@ -108,7 +110,7 @@ and each of the folders will contain a binary named something like\\
 \texttt{SixTrack\_VERSION\_feature1\_feature2\_cmake\_COMPILER\_static\_{32bit|64bit}}~.\\
 To clear all such folders, simply run:
 \begin{lstlisting}
-./cmake\_six clean
+./cmake_six clean
 \end{lstlisting}
 
 \subsection{Supported compilers}
@@ -241,7 +243,7 @@ It is possible to track more than 64 particles simultaneously in SixTrack; the m
 In order to work around this, the ``Single Track File'' (STF) functionality was invented, which basically packs the contents of these binary data files into a single file \texttt{singletrackfile.dat}.
 This makes it possible to increase the particle number to 2048, and to track this many particles compile with:
 \begin{lstlisting}
-./cmake\_six STF BIGNPART
+./cmake_six STF BIGNPART
 \end{lstlisting}
 
 After this, the limiting factor is the size of the executable's BSS section, which contains the Fortran COMMON blocks, when using the ``small'' code model (2~GB).
