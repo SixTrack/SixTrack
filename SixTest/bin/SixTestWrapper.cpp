@@ -23,7 +23,6 @@
 //pthread
 #include <pthread.h>
 
-void KillSixTrack(pid_t sixpid);
 void *pthread_kill_sixtrack(void*);
 void *pthread_wait_sixtrack(void*);
 
@@ -315,25 +314,6 @@ int main(int argc, char* argv[])
 	//If all tests pass this will return 0 (good)
 	//if not we get something else out (bad)
 	return (fort10fail || fort90fail || STFfail || ExtraChecksfail);
-}
-
-//Run the actual sixtrack binary
-void RunSixTrack(char* argv[], int* Status)
-{
-	*Status = execl(argv[1], argv[1], (char*) 0);
-}
-
-/**
-* Kills the running SixTrack process for Checkpoint/Resume (CR) builds
-* @parm KillTime The time in seconds to wait until the run is killed
-* @parm sixpid The pid of the process to kill
-*/
-//void KillSixTrack(size_t KillTime, pid_t sixpid)
-void KillSixTrack(pid_t sixpid)
-{
-	std::cout << "KillSixTrack() - killing pid: " << sixpid << std::endl;
-	int res = kill(sixpid, SIGKILL);
-	std::cout << "KillSixTrack() kill result: " << res << std::endl;
 }
 
 /**
@@ -758,7 +738,9 @@ void *pthread_kill_sixtrack(void* InputStruct)
 	if(ArmKill == true)
 	{
 		//Try and kill
-		KillSixTrack(sixpid);
+		std::cout << "Kill thread - killing pid: " << sixpid << std::endl;
+		int res = kill(sixpid, SIGKILL);
+		std::cout << "Kill thread - kill() result: " << res << std::endl;
 	}
 }
 
