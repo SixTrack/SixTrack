@@ -41,6 +41,7 @@ fi
 
 #Need to build the boinc/api/boinc_api_fortran.o separately
 cd api
+rm boinc_api_fortran.o #In case we already have one of the wrong arch...
 make boinc_api_fortran.o
 cd ..
 
