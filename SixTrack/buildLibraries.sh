@@ -21,6 +21,8 @@ cd boinc
 
 if [[ $(uname) == FreeBSD* ]]; then
     MAKE=/usr/local/bin/gmake ./_autosetup -f
+elif [[ $(uname) == NetBSD* ]]; then
+    MAKE=/usr/pkg/bin/gmake ./_autosetup -f
 else
     ./_autosetup -f
 fi
