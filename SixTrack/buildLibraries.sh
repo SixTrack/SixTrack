@@ -43,7 +43,10 @@ fi
 
 #Need to build the boinc/api/boinc_api_fortran.o separately
 cd api
-rm boinc_api_fortran.o #In case we already have one of the wrong arch...
+if [[ -e boinc_api_fortran.o ]]; then
+    #In case we already have such an .o file, it may be of the wrong arch, so recompile.
+    rm boinc_api_fortran.o
+fi
 make boinc_api_fortran.o
 cd ..
 
