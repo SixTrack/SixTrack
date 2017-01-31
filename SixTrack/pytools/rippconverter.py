@@ -48,6 +48,7 @@ for l in ifile:
             else:
                 rTurn = ls[4]
 
+            assert len("RC-"+rName) < 20, "Error: FUN names cannot be longer than 20 chars (including the \0)"
             FUN = "FUN RC-"+rName+" COSF_RIPP " + rDepth + " " + rFreq + " " + rPhase
             print FUN
             SET = "SET "+rName+" average_ms RC-"+rName+" 1 -1 "+rTurn
