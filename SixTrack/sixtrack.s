@@ -15,8 +15,9 @@
 !!S. Redaelli, G. Robert-Demolaize, E. Quaranta
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
-!!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fitterer, M. Fiascaris, J.F.Wagner, J. Wretborn CERN
+!!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak, 
+!!M. Fitterer, M. Fiascaris, J.F.Wagner, J. Wretborn,
+!!A. Patapenka,  CERN
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
 !!J. Molson (LAL)
@@ -274,7 +275,7 @@
      &phas,phas0,phasc,pi,pi2,pisqrt,pma,ptnfac,qs,qw0,qwsk,qx0,qxt,qz0,&
      &qzt,r00,rad,rat,ratio,ratioe,rrtr,rtc,rts,rvf,                    &
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
-     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
+     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,         &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4
 +if time
@@ -341,11 +342,18 @@
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
       common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
-      common/wireco/ wirel(nele)
       common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
      &nturn3(nele), nturn4(nele)
       common/crabco/ crabph(nele),crabph2(nele),                        &
      &crabph3(nele),crabph4(nele)
+! wire parameters for closed orbit calculation (FOX part)
+! for FOX length of variable names must be smaller 8
+      integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
+      double precision wire_clo            ! closed orbit at wire
+      double precision wireclo0         ! initial coordinates for closed orbit
+      integer wire_num_aux              ! auxiliary variable to count number of wires
+      integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
+      common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
 +cd commons
       integer idz,itra
 +if vvector
@@ -888,11 +896,11 @@
       double precision myemitx0_dist,myemity0_dist,
      &     myemitx0_collgap,myemity0_collgap,
      &     myemitx,myalphay,mybetay,myalphax,
-     &     mybetax,rselect
+     &mybetax,rselect
       common /ralph/ myemitx0_dist,myemity0_dist,
      &     myemitx0_collgap,myemity0_collgap,
      &     myalphax,myalphay,mybetax,
-     &     mybetay,rselect
+     &mybetay,rselect
 
 !
 ! M. Fiascaris for the collimation team
@@ -1219,11 +1227,43 @@
      &                    elens_bend_exit(nele) ! switch for elens bends
       common /elensco/ elens_type,elens_theta_max,elens_r2,
      &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
-     &     elens_bend_exit
+     &elens_bend_exit
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
       double precision :: rrelens,frrelens,r1elens,xelens,yelens
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd wireparam
+!     A. Patapenka (NIU), M. Fitterer (FNAL)
+!     Common block for wire definition
+      ! variables to save wire parameters for tracking etc.
+      double precision :: wire_current(nele)    ! wire current [A]
+      double precision :: wire_lint(nele)       ! integrated length of the wire [m]
+      double precision :: wire_lphys(nele)      ! physical length of the wire [m]
+      ! integer to include or not closed orbit in the separation between beam and wire
+      ! 0  : Un-initialized if wire element not found
+      ! +1 : dispx is the distance between x0=y0=0 and the wire
+      ! -1 : dispx is the distance between the closed orbit and the wire 
+      !
+      !    x=y=0    <->   xco     <->    xwire
+      !               closed orbit    wire position
+      ! wire_flagco = +1: dispx = xwire -> rx = x + xsep
+      ! wire_flagco = -1: dispx = xwire - xco -> rx = x - xco + xsep
+      ! -> rx = x + xwire
+      integer          :: wire_flagco(nele)     
+      double precision :: wire_dispx(nele),
+     &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
+      double precision :: wire_tiltx(nele),
+     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
+      common /wireparamco/ wire_current,wire_lint,wire_lphys,
+     &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
++cd wiretracktmp
+! temporary variables
+      double precision RTWO !RTWO=x^2+y^2
+      double precision NNORM_, NNORM
+      double precision l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1274,7 +1314,7 @@
 ! K. Sjobak, BE-ABP/HSS
       integer stringzerotrim_maxlen
       parameter (stringzerotrim_maxlen=20) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
-      
+
       character(stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1453,6 +1493,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V RE INT PARBE14 ; D V RE INT PI ;
 *FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ;
 *FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
+*FOX  D V RE INT WIRECLO0 ;
 +if .not.fast
 *FOX  D V RE INT C2E3 ; D V RE INT C1E6 ;
 +ei
@@ -1472,6 +1513,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
 *FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
 *FOX  D V IN INT IMBB NBLZ ;
+*FOX  D V IN INT WIRE_NUM NBLZ ;
 *FOX  D F RE DARE 1 ;
 *FOX  D V DA INT PZ NORD NVAR ;
 *FOX  E D ;
@@ -1510,7 +1552,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,                   &
+     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,              &
 +if vvector
      &as,al,sigm,dps,idz,dp1,itra,                                      &
 +ei
@@ -4760,7 +4802,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           endif
           goto 290
         endif
-+cd wirektrack
++cd wire
+! wire
         if(kzz.eq.15) then
           ktrack(i)=45
           goto 290
@@ -6595,7 +6638,7 @@ cc2008
      &              ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
      &              ) then
                   call dump_beam_population( n, i, ix, dumpunit(0),
-     &                 dumpfmt(0), ldumphighprec )
+     &                              dumpfmt(0), ldumphighprec )
                endif
             endif
           endif
@@ -6607,11 +6650,11 @@ cc2008
                    if (   (n.ge.dumpfirst(ix)) .and. 
      &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
      &                ) then
-                      call dump_beam_population( n, i, ix, dumpunit(ix),
-     &                     dumpfmt(ix), ldumphighprec )
-                   endif
+                   call dump_beam_population( n, i, ix, dumpunit(ix),
+     &                                     dumpfmt(ix), ldumphighprec )
                 endif
              endif
+          endif
           endif
 
 +cd lostpart
@@ -7393,269 +7436,306 @@ cc2008
           enddo
 
 !----------------------------------------------------------------------
+! Wire element.
 
-! Wire.
-
-+cd wire
++cd wirekick
+! MODEL OF STRAIGHT CURRENT WIRE
+!
+!     The model provides a transfer map of a straight current wire. 
+!     Description:
+!     1. The infinitly thin wire with arbitrary orientation.
+!     2. Thin element in SixTrack (L)=0
+!     3. Parameters: 
+!     dx, dy: horizontal and vertical distances between wire midpoint
+!     and closed orbit [mm] 
+!     (parameters are given by DISP par1=dx and par3=dy)
+!     tx, ty: tilt of the wire w.r.t the closed orbit in the
+!     horizontal and vertical planes (in degrees) 
+!     (DISP: par2=tx, par4=ty)
+!     L - physical length of the wire element [m]
+!     cur - current [Amperes]
+!     EMBL - embedding drift (integration interval) [m] 
+!     4. The transport map is given for canonical variables (x,px...)
+!
+! The MAP includes:
+!     1. Declaration of shifted canonical variables: 
+!          XI = X+DX; YI = Y+DY  in the same way as for BEAM-BEAM element
+!     2. Symplectic Rotation on TX, TY (in 4D space: PX, XI, PY, YI)
+!     3. //Wire kick 
+!     4. Symplectic Rotation on -TY, -TX (in 4D space: ...taking only PX, PY)
+!
+!--------------------------------------------------------------
+!     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
+!     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
-      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            !hr03
 
-      ix = ixcav
-      tx = xrms(ix)
-      ty = zrms(ix)
-      dx = xpl(ix)
-      dy = zpl(ix)
-      embl = ek(ix)
-      l = wirel(ix)
-      cur = ed(ix)
+      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            
 
-+if crlibm
-      leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr03
+      tx = wire_tiltx(ix) !tilt x [degrees] 
+      ty = wire_tilty(ix) !tilt y [degrees]
+      tx = tx*(pi/180.0d0) ![rad]
+      ty = ty*(pi/180.0d0) ![rad]
+      dx = wire_dispx(ix) !displacement x [mm]
+      dy = wire_dispy(ix) !displacement y [mm]
+      embl = wire_lint(ix) !integrated length [m]
+      l = wire_lphys(ix) !physical length [m]
+      cur = wire_current(ix)
+
+      if (abs(wire_flagco(ix)).ne.1) then
++if cr
+        write(lout,
 +ei
++if .not.cr
+        write(*,
++ei
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
+     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
+     &'wire_flagco(',ix,') = ',wire_flagco(ix)
+        call prror(-1)
+      endif
+      NNORM=c1m7/chi
+
+      IF (wire_flagco(ix).eq.1) THEN
+         dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
+         dyi = (dy+wire_clo(2,wire_num(i)) )*c1m3 
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+         dxi = (dx)*c1m3
+         dyi = (dy)*c1m3
+      END IF 
+      
+      do j=1, napx
+
+      yv(1,j) = yv(1,j) * c1m3 !SI
+      yv(2,j) = yv(2,j) * c1m3 !SI
+    
+! 1 SHIFT
+      IF (wire_flagco(ix).eq.1) THEN
+         xi = (xv(1,j)+dx)*c1m3 !SI
+         yi = (xv(2,j)+dy)*c1m3 !SI
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+         xi = (xv(1,j)+( dx-wire_clo(1,wire_num(i)) ))*c1m3 !SI
+         yi = (xv(2,j)+( dy-wire_clo(2,wire_num(i)) ))*c1m3 !SI
+      END IF 
+
 +if .not.crlibm
-      leff = (embl/cos(tx))/cos(ty)                                      !hr03
+! x'-> px; y'->py
+      yv(1,j) = yv(1,j)*(1d0 + dpsv(j))
+      yv(2,j) = yv(2,j)*(1d0 + dpsv(j))
+
+! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (tx, ty)
+     if(ibeco.eq.0) then
+      yi = yi-(((xi*sin(tx))*yv(2,j))/                                  &
+     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-tx)                                                   
+      xi = xi*(cos(tx)-sin(tx)*tan_rn(atan_rn(yv(1,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               
+      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin(atan_rn(yv(1,j)/                                              &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)  
+      
+      xi = xi-(((yi*sin(ty))*yv(1,j))/                                  &
+     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-ty)                                                   
+      yi = yi*(cos(ty)-sin(ty)*tan_rn(atan_rn(yv(2,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               
+      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin(atan_rn(yv(2,j)/                                              &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty) 
+      endif
+
+! ibeco option:
+      if(ibeco.eq.1) then
+      yi = yi-(((xi*sin(tx))*yv(2,j))/                                  &
+     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-tx)                                                   
+      xi = xi*(cos(tx)-sin(tx)*tan_rn(atan_rn(yv(1,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+
+      dyi = dyi-(((dxi*sin(tx))*yv(2,j))/                               &
+     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-tx)                                                   
+      dxi = dxi*(cos(tx)-sin(tx)*tan_rn(atan_rn(yv(1,j)/                &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               
+  
+      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin(atan_rn(yv(1,j)/                                              &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+
+      xi = xi-(((yi*sin(ty))*yv(1,j))/                                  &
+     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-ty)                                                   
+      yi = yi*(cos(ty)-sin(ty)*tan_rn(atan_rn(yv(2,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)) 
+      
+      dxi = dxi-(((dyi*sin(ty))*yv(1,j))/                               &
+     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-           &
+     &yv(2,j)**2))-ty)                                                   
+      dyi = dyi*(cos(ty)-sin(ty)*tan_rn(atan_rn(yv(2,j)/                &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))  
+     
+      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin(atan_rn(yv(2,j)/                                              &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)             
+ 
+! 3 //WIRE KICK
+      RTWO = xi**2+yi**2
+      yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+      yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+!' + '
+      RTWO = dxi**2+dyi**2
+      yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*(sqrt((embl+L)**2+4d0*RTWO)- &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+      yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*(sqrt((embl+L)**2+4d0*RTWO)- &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO      
+
+      elseif(ibeco.eq.0) then 
+
+! 3 //WIRE KICK
+      RTWO = xi**2+yi**2
+      yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+      yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+
+      endif
+
+
+! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
+      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin(atan_rn(yv(2,j)/                                              &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
+      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin(atan_rn(yv(1,j)/                                              &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
+
+! px -> x'; py -> y'
+      yv(1,j) = yv(1,j)/(1d0 + dpsv(j))
+      yv(2,j) = yv(2,j)/(1d0 + dpsv(j))
 +ei
+!-----------------------------------------------------------------------
 +if crlibm
-      rx = dx *cos_rn(tx)-(embl*sin_rn(tx))*0.5d0                        !hr03
-+ei
-+if .not.crlibm
-      rx = dx *cos(tx)-(embl*sin(tx))*0.5d0                              !hr03
-+ei
-+if crlibm
-      lin= dx *sin_rn(tx)+(embl*cos_rn(tx))*0.5d0                        !hr03
-+ei
-+if .not.crlibm
-      lin= dx *sin(tx)+(embl*cos(tx))*0.5d0                              !hr03
-+ei
-+if crlibm
-      ry = dy *cos_rn(ty)-lin *sin_rn(ty)
-+ei
-+if .not.crlibm
-      ry = dy *cos(ty)-lin *sin(ty)
-+ei
-+if crlibm
-      lin= lin*cos_rn(ty)+dy  *sin_rn(ty)
-+ei
-+if .not.crlibm
-      lin= lin*cos(ty)+dy  *sin(ty)
-+ei
+! x'-> px; y'->py
+      yv(1,j) = yv(1,j)*(one + dpsv(j))
+      yv(2,j) = yv(2,j)*(one + dpsv(j))
 
-      do 750 j=1, napx
+! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (tx, ty)
+      if(ibeco.eq.0) then
+      yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                               &
+     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-tx)                                                   
+      xi = xi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/            &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               
+      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx) 
+      
+      xi = xi-(((yi*sin_rn(ty))*yv(1,j))/                               &
+     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-ty)                                                   
+      yi = yi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/            &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               
+      yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)  
+      endif
 
-      xv(1,j) = xv(1,j) * c1m3
-      xv(2,j) = xv(2,j) * c1m3
-      yv(1,j) = yv(1,j) * c1m3
-      yv(2,j) = yv(2,j) * c1m3
+! ibeco option:
 
-!      write(*,*) 'Start: ',j,xv(1,j),xv(2,j),yv(1,j),
-!     &yv(2,j)
+      if(ibeco.eq.1) then
 
-!     call drift(-embl/2)
+      dyi = dyi-(((dxi*sin_rn(tx))*yv(2,j))/                            &
+     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-tx)                                                   
+      dxi = dxi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/          &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)) 
+ 
+      yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                               &
+     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-tx)                                                   
+      xi = xi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/            &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
 
-      xv(1,j) = xv(1,j) -                                               &!hr03
-     &((embl*0.5d0)*yv(1,j))/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2)                                                        !hr03
-      xv(2,j) = xv(2,j) -                                               &!hr03
-     &((embl*0.5d0)*yv(2,j))/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2)                                                        !hr03
+      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+              
+!         
+      dxi = dxi-(((dyi*sin_rn(ty))*yv(1,j))/                            &
+     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-ty)                                                   
+      dyi = dyi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/          &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)) 
+      
+      xi = xi-(((yi*sin_rn(ty))*yv(1,j))/                               &
+     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-ty)                                                   
+      yi = yi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/            &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))  
 
-!     call tilt(tx,ty)
+      yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)              
 
-+if crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin_rn(tx))*yv(2,j))/                &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &!hr03
-     &cos_rn(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2))-tx)                                                   !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin(tx))*yv(2,j))/                   &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &!hr03
-     &cos(atan(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
-     &yv(2,j)**2))-tx)                                                   !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(1,j) = xv(1,j)*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/  &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               !hr03
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/              &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               !hr03
-+ei
-+if crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &!hr03
-     &sin_rn(atan_rn(yv(1,j)/                                           &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)                !hr03
-+ei
-+if .not.crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)                !hr03
-+ei
-+if crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin_rn(ty))*yv(1,j))/                &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos_rn(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2))-ty)                                                   !hr03
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin(ty))*yv(1,j))/                   &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
-     &yv(2,j)**2))-ty)                                                   !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(2,j) = xv(2,j)*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/  &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/              &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               !hr03
-+ei
-+if crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &!hr03
-     &sin_rn(atan_rn(yv(2,j)/                                           &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)                !hr03
-+ei
-+if .not.crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)                !hr03
-+ei
+! 3 //WIRE KICK
+      RTWO = xi**2+yi**2
+      yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+      yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+! ' + '      
+      RTWO = dxi**2+dyi**2
+      yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+      yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+      
+      elseif(ibeco.eq.0) then
+      
+! 3 //WIRE KICK
+      RTWO = xi**2+yi**2
+      yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+      yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+4d0*RTWO)-  &
+     & sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
 
-!     call drift(lin)
+      endif
 
-      xv(1,j) = xv(1,j) + (lin*yv(1,j))/                                &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-      xv(2,j) = xv(2,j) + (lin*yv(2,j))/                                &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
+! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
+      yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
+      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 
-!      call kick(l,cur,lin,rx,ry,chi)
-
-      xi = xv(1,j)-rx
-      yi = xv(2,j)-ry
-      yv(1,j) = yv(1,j)-((((c1m7*cur)/chi)*xi)/(xi**2+yi**2))*          &!hr03
-     &(sqrt(((lin+l)**2+xi**2)+yi**2)-sqrt(((lin-l)**2+                 &!hr03
-     &xi**2)+yi**2))                                                     !hr03
-!GRD FOR CONSISTENSY
-      yv(2,j) = yv(2,j)-((((c1m7*cur)/chi)*yi)/(xi**2+yi**2))*          &!hr03
-     &(sqrt(((lin+l)**2+xi**2)+yi**2)-sqrt(((lin-l)**2+                 &!hr03
-     &xi**2)+yi**2))                                                     !hr03
-
-!     call drift(leff-lin)
-
-      xv(1,j) = xv(1,j) + ((leff-lin)*yv(1,j))/sqrt(((1d0+dpsv(j))**2-  &!hr03
-     &yv(1,j)**2)-yv(2,j)**2)                                            !hr03
-      xv(2,j) = xv(2,j) + ((leff-lin)*yv(2,j))/sqrt(((1d0+dpsv(j))**2-  &!hr03
-     &yv(1,j)**2)-yv(2,j)**2)                                            !hr03
-
-!     call invtilt(tx,ty)
-
-+if crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin_rn(-ty))*yv(1,j))/               &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos_rn(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2))+ty)                                                   !hr03
+! px -> x'; py -> y'
+      yv(1,j) = yv(1,j)/(one + dpsv(j))
+      yv(2,j) = yv(2,j)/(one + dpsv(j))
 +ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin(-ty))*yv(1,j))/                  &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
-     &yv(2,j)**2))+ty)                                                   !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(2,j) = xv(2,j)*                                                &!hr03
-     &(cos_rn(-1d0*ty)-sin_rn(-1d0*ty)*tan_rn(atan_rn(yv(2,j)/          &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty))               !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)*(cos(-1d0*ty)-sin(-1d0*ty)*tan(atan(yv(2,j)/    &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty))               !hr03
-+ei
-+if crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &!hr03
-     &sin_rn(atan_rn(yv(2,j)/                                           &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)                !hr03
-+ei
-+if .not.crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)                !hr03
-+ei
-
-+if crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin_rn(-1d0*tx))*yv(2,j))/           &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/cos_rn(atan_rn(yv(1,j)/        &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin(-1d0*tx))*yv(2,j))/              &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/cos(atan(yv(1,j)/              &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(1,j) = xv(1,j)*                                                &!hr03
-     &(cos_rn(-1d0*tx)-sin_rn(-1d0*tx)*tan_rn(atan_rn(yv(1,j)/          &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx))               !hr03
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)*(cos(-1d0*tx)-sin(-1d0*tx)*tan(atan(yv(1,j)/    &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx))               !hr03
-+ei
-+if crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                       !hr03
-     &sin_rn(atan_rn(yv(1,j)/                                            !hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-+if .not.crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-
-!     call shift(-embl*tan(tx),-embl*tan(ty)/cos(tx))
-
-+if crlibm
-      xv(1,j) = xv(1,j) + embl*tan_rn(tx)
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j) + embl*tan(tx)
-+ei
-+if crlibm
-      xv(2,j) = xv(2,j) + (embl*tan_rn(ty))/cos_rn(tx)                   !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j) + (embl*tan(ty))/cos(tx)                         !hr03
-+ei
-
-!     call drift(-embl/2)
-
-      xv(1,j) = xv(1,j) - ((embl*0.5d0)*yv(1,j))/                       &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-      xv(2,j) = xv(2,j) - ((embl*0.5d0)*yv(2,j))/                       &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-
-      xv(1,j) = xv(1,j) * c1e3
-      xv(2,j) = xv(2,j) * c1e3
-      yv(1,j) = yv(1,j) * c1e3
-      yv(2,j) = yv(2,j) * c1e3
-
-!      write(*,*) 'End: ',j,xv(1,j),xv(2,j),yv(1,j),                       &
-!     &yv(2,j)
 
 !-----------------------------------------------------------------------
-
+! END OF WIRE MAP
+!-----------------------------------------------------------------------
+      yv(1,j) = yv(1,j) * c1e3
+      yv(2,j) = yv(2,j) * c1e3
+!-----------------------------------------------------------------------
+      enddo
+!-----------------------------------------------------------------------
 +cd open
 !--OPENING DATA FILES
 +if boinc
@@ -8658,7 +8738,7 @@ cc2008
 +ei ! END +if debug
 
 ! END of +cd open
-      
+
 +cd rvet0
       e0f=sqrt(e0**2-pma**2)                                             !hr03
 +if rvet
@@ -9116,7 +9196,7 @@ cc2008
          ! dynksets.dat
          inquire(unit=665, opened=lopen)
          if (lopen) close(665,err=665)
- 665     continue
+ 665    continue
          
          do i=1,nfuncs_dynk
             if ( funcs_dynk(i,2).eq.3) then !PIPE FUN
@@ -11991,6 +12071,7 @@ cc2008
 +ca comdynk
 +ca fma
 +ca elensparam
++ca wireparam
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -12017,6 +12098,9 @@ cc2008
 !     - elens
       character*16 elens
       data elens /'ELEN'/
+!     - wire
+      character*16 wire
+      data wire /'WIRE'/
 
       double precision round_near
       
@@ -12271,9 +12355,10 @@ cc2008
 !     last modified: 17-07-2013
 !     brand new input block for dynamic kicks
 !     always in main code
-      if(idat.eq.dynk)  goto 2200
+      if(idat.eq.dynk) goto 2200
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
+      if(idat.eq.wire)  goto 2500
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -12353,7 +12438,6 @@ cc2008
 +if .not.crlibm
 !     write (*,*) 'ERIC'
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)!read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
-!     write (*,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
@@ -12426,19 +12510,6 @@ cc2008
           ncy2=ncy2+1
           itionc(i)=kz(i)/abs(kz(i))
           kp(i)=6
-        endif
-      endif
-!--WIRE
-      if(abs(kz(i)).eq.15) then
-        if(abs(ed(i)*el(i)).le.pieni.or.el(i).le.pieni                  &
-     &.or.ek(i).le.pieni) then
-           kz(i)=0
-           ed(i)=0d0                                                     !hr05
-           ek(i)=0d0                                                     !hr05
-           el(i)=0d0                                                     !hr05
-        else
-           wirel(i)=el(i)
-           el(i)=0d0                                                     !hr05
         endif
       endif
 !----------------------------------------
@@ -14783,6 +14854,7 @@ cc2008
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 1590
+            if(kzz.eq.15) goto 1590
             izu=izu+3
             read(30,10020,end=1591,iostat=ierro) ch
             if(ierro.gt.0) call prror(87)
@@ -14923,7 +14995,7 @@ cc2008
       if(ch(1:1).eq.'/') goto 910
       if(ch(:4).eq.next) goto 110
       call intepr(3,1,ch,ch1)
-      ! bezr are character strings, should be OK
+! bezr are character strings, should be OK
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
       if(idat.ne.next) then !Isn't this already checked for above?
          if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)
@@ -14945,33 +15017,33 @@ cc2008
          if(idat.eq.mult.and.
      &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
 +if cr
-            write(lout,10400) bezr(2,iorg),bezr(3,iorg)
+        write(lout,10400)bezr(2,iorg),bezr(3,iorg)
 +ei
 +if .not.cr
-            write(*,10400)    bezr(2,iorg),bezr(3,iorg)
+        write(*,10400)bezr(2,iorg),bezr(3,iorg)
 +ei
-            im=im+1
-            j0=0
-            j1=0
-            do 920 i=1,il
-               if(bez(i).eq.bezr(2,iorg)) j1=i
- 920           if(bez(i).eq.bezr(3,iorg)) j0=i
-            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
-     &              call prror(29)
+        im=im+1
+        j0=0
+        j1=0
+        do 920 i=1,il
+          if(bez(i).eq.bezr(2,iorg)) j1=i
+  920   if(bez(i).eq.bezr(3,iorg)) j0=i
+        if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
+     &call prror(29)
 
-            irm(j0)=im
-            benkc(j0)=benkc(j1)
-            r00(j0)=r00(j1)
-            imo=irm(j1)
-            nmu(j0)=nmu(j1)
-            do 930 i1=1,nmu(j0)
-               bk0(im,i1)=bk0(imo,i1)
-               bka(im,i1)=bka(imo,i1)
-               ak0(im,i1)=ak0(imo,i1)
- 930           aka(im,i1)=aka(imo,i1)
+        irm(j0)=im
+        benkc(j0)=benkc(j1)
+        r00(j0)=r00(j1)
+        imo=irm(j1)
+        nmu(j0)=nmu(j1)
+        do 930 i1=1,nmu(j0)
+          bk0(im,i1)=bk0(imo,i1)
+          bka(im,i1)=bka(imo,i1)
+          ak0(im,i1)=ak0(imo,i1)
+  930   aka(im,i1)=aka(imo,i1)
 
-         endif
-         goto 900
+      endif
+      goto 900
       endif
 +if cr
       write(lout,10130)
@@ -15870,8 +15942,8 @@ cc2008
       if(nstart.lt.0) nstart=0
       if(nstop.lt.0) nstop=0
       if(nstop.lt.nstart) then
-         nstart=0
-         nstop=0
+      nstart=0
+      nstop=0
       endif
       if(iconv.ne.1) iconv=0
       if(abs(cma1).le.pieni) cma1=one
@@ -16007,18 +16079,18 @@ cc2008
          read(ch1,*) do_coll
          if (do_coll) then
 +if cr
-           write(lout,*)
+      write(lout,*)
            write(lout,*) "ERR> Collimation not forseen in this version;"
            write(lout,*) "ERR> Please use proper version"
            write(lout,*) "ERR> or set do_coll to .FALSE."
-           write(lout,*)
+      write(lout,*)
 +ei
 +if .not.cr
            write(*,*)
            write(*,*)    "ERR> Collimation not forseen in this version;"
            write(*,*)    "ERR> Please use proper version"
            write(*,*)    "ERR> or set do_coll to .FALSE."
-           write(*,*)
+      write(*,*)
 +ei
            call prror(-1)
          endif
@@ -16929,7 +17001,7 @@ cc2008
      &        "Error in DUMP: Expect first turn >= 1, got", i4
          call prror(-1)
       endif
-
+      
 !     find it in the list of SINGLE ELEMENTs:
       do j=1,il
          if(bez(j).eq.idat) then
@@ -17367,7 +17439,7 @@ cc2008
      &'ERROR: length el(j) (elens is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
-     &')=',ek(j),'. Please check you input in the single element '//
+     &')=',ek(j),'. Please check your input in the single element '//
      &'definition of your ELEN. All values except for the type need '//
      &'to be zero.'
                call prror(-1)
@@ -17524,6 +17596,280 @@ cc2008
       
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
 !-----------------------------------------------------------------------
+!  Wire, kz=+/-15,ktrack=45
+!  A. Patapenka (NIU), M. Fitterer,  FNAL
+!  last modified: 22-12-2016
+!-----------------------------------------------------------------------
+ 2500 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
+
+      if (ch(:4).eq.next) then
+!       4) loop over single elements to check that they have been defined in the fort.3 block
+        do j=1,nele
+          if(kz(j).eq.15) then
+            if(wire_flagco(j).eq.0) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
+     &'not defined in fort.3. You must define every wire in the '//
+     &'WIRE block in fort.3!'
+               call prror(-1)
+            endif
+          endif
+        enddo
+        goto 110 ! go to next BLOCK in fort.3 - we're done here!
+      endif
+
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in WIRE block: fortran IO format currently not ',
+     &       'supported!'
+        call prror(-1)
++ei
+
+!     1) read in wire parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in WIRE block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+
+!     Check number of arguments
+      if(getfields_nfields.ne.9) then
++if cr
+        write(lout,*)
++ei
++if .not.cr
+        write(*,*)
++ei
+     &       'ERROR in WIRE block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 9'
+        call prror(-1)
+      endif
+
+!     Find the element, and check that we're not double-defining
+      if (getfields_lfields(1) .gt. 16) then
++if cr
+         write(lout,*)
++ei
++if .not.cr
+         write(*,*)
++ei
+     &        "ERROR in WIRE block: Element name max 16 characters;"//
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
+     &        //"' is too long."
+         call prror(-1)
+      endif
+      
+      do j=1,nele               !loop over single elements and set parameters of wire
+         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
+            ! check the element type (kz(j)_wire=15)
+            if(kz(j).ne.15) then
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &              'ERROR: element type mismatch for WIRE! '//
+     &'Element type is kz(',j,') = ',kz(j),'!= +15'
+               call prror(-1)
+            endif
+            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &'ERROR: length el(j) (wire is treated as thin element), '//
+     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
+     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
+     &')=',ek(j),'. Please check your input in the single element '//
+     &'definition of your WIRE. All values except for the type need '//
+     &'to be zero.'
+               call prror(-1)
+            endif
+            if (wire_flagco(j).ne.0) then
++if cr
+               write(lout,*) "ERROR in WIRE block:"//
++ei
++if .not.cr
+               write(*,*)    "ERROR in WIRE block:"//
++ei
+     &              "The element '"//bez(j)//"' was defined twice!"
+               call prror(-1)
+            endif
+
+            ! Parse the element
+            read(getfields_fields(2)(1:getfields_lfields(8)),'(I10)')
+     &           wire_flagco(j)
++if .not.crlibm
+            read (getfields_fields(3)(1:getfields_lfields(3)),*)
+     &           wire_current(j)
+            read (getfields_fields(4)(1:getfields_lfields(4)),*)
+     &           wire_lint(j)
+            read (getfields_fields(5)(1:getfields_lfields(5)),*)
+     &           wire_lphys(j)
+            read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     &           wire_dispx(j)
+            read (getfields_fields(7)(1:getfields_lfields(7)),*)
+     &           wire_dispy(j)
+            read (getfields_fields(8)(1:getfields_lfields(8)),*)
+     &           wire_tiltx(j)
+            read (getfields_fields(9)(1:getfields_lfields(9)),*)
+     &           wire_tilty(j)
++ei
++if crlibm
+            wire_current(j)= round_near (
+     &           errno,getfields_lfields(3)+1, getfields_fields(3) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,3,wire_current(j) )
+            wire_lint(j)       = round_near (
+     &           errno,getfields_lfields(4)+1, getfields_fields(4) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,4,wire_lint(j) )
+            wire_lphys(j)   = round_near (
+     &           errno,getfields_lfields(5)+1, getfields_fields(5) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,5,wire_lphys(j) )
+            wire_dispx(j) = round_near (
+     &           errno,getfields_lfields(6)+1, getfields_fields(6) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,6,wire_dispx(j) )
+            wire_dispy(j) = round_near (
+     &           errno,getfields_lfields(7)+1, getfields_fields(7) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,7,wire_dispy(j) )
+            wire_tiltx(j) = round_near (
+     &           errno,getfields_lfields(8)+1, getfields_fields(8) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,8,wire_tiltx(j) )
+            wire_tilty(j) = round_near (
+     &           errno,getfields_lfields(9)+1, getfields_fields(9) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,9,wire_tilty(j) )
++ei
+            
+            ! Make checks for the wire parameters
+            if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
++if cr
+               write(lout,*)
++ei
++if .not.cr
+               write(*,*)
++ei
+     &"ERROR: WIRE flag for taking the closed orbit into account or "//
+     &" not must be -1 (disp* = distance closed orbit and beam)"//
+     &"or 1 (disp* = distance from x=y=0 <-> beam), but "//
+     &"wire_flagco = ",wire_flagco(j)
+               call prror(-1)
+            end if
+            if((wire_lint(j).lt.0) .or. (wire_lphys(j).lt.0)) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: WIRE integrated and physical length must larger than 0! '
+     &// 'wire_lint = ',wire_lint(j),', wire_lphys = ',wire_lphys(j)
+              call prror(-1)
+            end if
+            if((abs(wire_tiltx(j)) .ge. 90) .or. 
+     &         (abs(wire_tilty(j)) .ge. 90)) then
++if cr
+              write(lout,*)
++ei
++if .not.cr
+              write(*,*)
++ei
+     &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '
+     &//'wire_tiltx = ',wire_tiltx(j),', wire_tilty = ',wire_tilty(j)
+              call prror(-1)
+            end if
+
+! print a summary of the wire parameters
++if cr
+            write(lout,
++ei
++if .not.cr
+            write(*,
++ei
+     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D9.3,A,/))')
+     &'WIRE found in list of single elements with: ',
+     &'name               = ',bez(j),
+     &'flagco             = ',wire_flagco(j),
+     &'current            = ',wire_current(j),' A',
+     &'integrated length  = ',wire_lint(j),' m',
+     &'physical length    = ',wire_lphys(j),' m',
+     &'hor. displacement  = ',wire_dispx(j),' mm',
+     &'vert. displacement = ',wire_dispy(j),' mm',
+     &'hor. tilt          = ',wire_tiltx(j),' degrees',
+     &'vert. tilt         = ',wire_tilty(j),' degrees'
+! ignore wire if current, length or displacment are 0 or
+! wire_flagco not set (case wire_flagco = 0)
+            if( abs(wire_flagco(j)*wire_current(j)*wire_lint(j)
+     &*wire_lphys(j)*wire_dispx(j)*wire_dispy(j)).le.pieni ) then
+              kz(j) = 0 ! treat element as marker
+
++if cr
+              write(lout,
++ei
++if .not.cr
+              write(*,
++ei
+     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D9.3,/))')
+     &'WARNING: WIRE element ',bez(j),'ignored!',
+     &'Elements are ignored if current, displacment, integrated ',
+     &'or physical length are 0! ',
+     &'wire_dispx(',j,') = ',wire_dispx(j),
+     &'wire_dispy(',j,') = ',wire_dispy(j),
+     &'wire_lint(',j,') = ',wire_lint(j),
+     &'wire_lphys(',j,') = ',wire_lphys(j)
+            end if
+
+            goto 2501           !Search success :)
+            
+         endif
+      enddo
+
+!     Search for element failed!
++if cr
+      write(lout,*) "ERROR in WIRE: "//
++ei
++if .not.cr
+      write(*,*)    "ERROR in WIRE: "//
++ei
+     &     "Un-identified SINGLE ELEMENT '",
+     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
+      call prror(-1)
+      
+!     element search was a success :)
+ 2501 continue
+      
+      goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
+!-----------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
         if(nbeam.ge.1) parbe14=                                         &!hr05
@@ -17558,16 +17904,6 @@ cc2008
           endif
         enddo
       endif
-      do j=1,il
-         if(kz(j).eq.15) then
-            if(abs(xpl(j)).lt.pieni.and.abs(zpl(j)).lt.pieni) then
-               kz(j)=0
-               ed(j)=0d0                                                 !hr05
-               ek(j)=0d0                                                 !hr05
-               el(j)=0d0                                                 !hr05
-            endif
-         endif
-      enddo
       if(iout.eq.0) return
 +if cr
       write(lout,10050)
@@ -18162,12 +18498,12 @@ cc2008
       ch1(i2:i3)=ch(i1:nchars)//' / '
       return
       end
-      
+
       subroutine initialize_element(ix,lfirst)
 !
 !-----------------------------------------------------------------------
-!     K.Sjobak & A.Santamaria, BE-ABP/HSS
-!     last modified: 16-12-2014
+!     K.Sjobak & A.Santamaria , BE-ABP/HSS
+!     last modified: 23-12-2016
 !     Initialize a lattice element with index elIdx,
 !     such as done when reading fort.2 (GEOM) and in DYNK.
 !     
@@ -18193,6 +18529,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +if cr
 +ca crcoall
 +ei
@@ -18469,8 +18806,18 @@ c$$$         endif
          !Moved from daten()
          crabph4(ix)=el(ix)
          el(ix)=0d0
+!--Wire
+      else if(kz(ix).eq.15) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
+!--e-lens
+      else if(kz(ix).eq.29) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
       endif
-
+      
       return
 
       !Error handlers
@@ -20568,14 +20915,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
           endif
           if(kzz.eq.15) then
-             ixcav=ix
 *FOX  XX(1)=X(1) ;
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-             call wireda
-*FOX  X(1)=XX(1) ;
-*FOX  X(2)=XX(2) ;
+          call wireda(ix,i)
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
              goto 480
@@ -20643,7 +20987,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             goto 480
           endif
 +ca trom20
-          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
+          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
             if(bez(ix).eq.'DAMAP') then
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
@@ -21309,6 +21653,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdumpcr
 +ca fma
 !     for FMA analysis
++ca wireparam
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -21529,6 +21874,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       phi(2)=zero
       phi(3)=zero
       ibb=0
+      wire_num_aux=0
 +if debug
 !     call wda('biu',0d0,2,0,0,0)
 !     if (umcalls.eq.8) then
@@ -21825,15 +22171,71 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
         goto 440
    80   kzz=kz(ix)
-        if(kzz.eq.15) then
-          ixcav=ix
+!--Wire-- is it correct?
+      if(kzz.eq.15) then
+! the same as in umlalid1
+          wire_num_aux = wire_num_aux+1
+! is the error number correct?
+          if(wire_num_aux.gt.wire_max) then
++if cr
+               write(lout,
++ei
++if .not.cr
+               write(*,
++ei
+     &*) 'ERROR: maximum number of wires exceeded! Number of wires ='//
+     &'wire_num_aux = ',wire_num_aux,' > ',wire_max,' = wire_max'
+            call prror(-1)
+          endif
+          wire_num(i) = wire_num_aux
+*FOX  YP(1)=Y(1)*(ONE+DPDA) ;
+*FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+*FOX  DPDA1=DPDA*C1E3 ;
+          call dacop(x(1),damap(1))
+          call dacop(yp(1),damap(2))
+          call dacop(x(2),damap(3))
+          call dacop(yp(2),damap(4))
+          do j=1,2
+            ii=2*j
+            call dapek(damap(ii-1),jj,c(j))
+            call dapek(damap(ii),jj,cp(j))
+          enddo
+          call dacsu(damap(1),c(1),damap(1))
+          call dacsu(damap(2),cp(1),damap(2))
+          call dacsu(damap(3),c(2),damap(3))
+          call dacsu(damap(4),cp(2),damap(4))
+          if(ndimf.eq.3) then
+            call dacop(sigmda,damap(5))
+            call dacop(dpda1,damap(6))
+            call dapek(damap(5),jj,c(3))
+            call dapek(damap(6),jj,cp(3))
+            call dacsu(damap(5),c(3),damap(5))
+            call dacsu(damap(6),cp(3),damap(6))
+            if(iflag2.eq.1.and.ithick.eq.1) then
+              call dacct(damap,nvar,corrnew,nvar,damap,nvar)
+            endif
+          endif
+          call dainv(damap,nvar,damapi,nvar)
+          call dacct(damap,nvar,aa2,nvar,aa2r,nvar)
+          call dacct(damap,nvar,damap1,nvar,damap,nvar)
+          call dacct(damap,nvar,damapi,nvar,damap,nvar)
+! the same as in umlalid1
+      
 *FOX  XX(1)=X(1) ;
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-          call wireda
-*FOX  X(1)=XX(1) ;
-*FOX  X(2)=XX(2) ;
+      wire_clo(1,wire_num(i))=dare(x(1))
+      wire_clo(2,wire_num(i))=dare(x(2))
+      wire_clo(4,wire_num(i))=dare(y(1))*(one+dare(DPDA))
+      wire_clo(5,wire_num(i))=dare(y(2))*(one+dare(DPDA))
+      if(ndimf.eq.3) then
+         wire_clo(3,wire_num(i))=dare(SIGMDA)
+         wire_clo(6,wire_num(i))=dare(DPDA)
+      endif
+
+      call wireda(ix,i)
+
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
           goto 440
@@ -22140,6 +22542,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           endif
 +ca trom20
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
+        if(kzz.eq.15) goto 440
         ipch=0
         if(iqmodc.eq.1) then
           if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
@@ -22276,7 +22679,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 440
 !--SKEW ELEMENTS
   320   kzz=-kzz
-        goto(330,340,350,360,370,380,390,400,410,420),kzz
+        goto(330,340,350,360,370,380,390,400,410,420,                   &
+     &       440,440,440,440,440),kzz
         goto 440
 !---VERTICAL DIPOLE
   330   continue
@@ -22631,28 +23035,36 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &'   A T T E N T I O N : BETATRON PHASE CALCULATION MIGHT BE WRONG'&
      &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
       end
+!
+!-----------------------------------------------------------------------
+! WIRE DIFFERENTIAL ALGEBRA
 +dk wireda
-      subroutine wireda
-!     This program sends a particle with coordinates (x,a,y,b,d)
-!       through
-!     the map of a straight current wire.
-!     a=p_x/p_0, b=p_y/p_0; p_0 is the reference particle's momentum;
-!     d - relative momentum deviation.
-!     The wire may have arbitrary orientation (tilt), and the map is
-!       computed
-!     in the thin lens approximation (<=>second order symplectic
-!       integration).
-!     The current wire is specified by the following parameters:
-!       l -length
-!       cur - current (positive if it flows in the +z direction)
-!       (dx,dy) - horizontal and vertical distance between wire midpoint
-!       and closed orbit
-!       (tx,ty) - tilt of the wire w.r.t the closed orbit in the
-!       horizontal and vertical planes (in degrees)
-!       embl - length of the embedding drift. Without loss of generality
-!       it is assumed that the wire midpoint and the embedding
-!       drift midpoint coincide.
-!     Current is in Amperes and all distances are in meters.
+      subroutine wireda(ix,i)
+! MODEL OF STRAIGHT CURRENT WIRE
+!
+!     The model provides a transfer map of a straight current wire. 
+!     Description:
+!     1. The infinitly thin wire with arbitrary orientation.
+!     2. Thin element in SixTrack (L)=0
+!     3. Parameters: 
+!     dx, dy: horizontal and vertical distances between wire midpoint
+!     and closed orbit [mm] 
+!     (parameters are given by DISP par1=dx and par3=dy )
+!     tx, ty: tilt of the wire w.r.t the closed orbit in the
+!     horizontal and vertical planes (in degrees)
+!     (DISP: par2=tx, par4=ty)
+!     L - physical length of the wire element [m]
+!     cur - current [Amperes]
+!     EMBL - embedding drift (integration interval) [m] 
+!     4. The transport map is given for canonical variables (x,px...)
+!
+! The MAP includes:
+!     1. Declaration of shifted canonical variables: XI = X+DX; YI = Y+DY
+!         in the same way as for BEAM-BEAM element  
+!     2. Symplectic Rotation on TX, TY (in 4D space: PX, XI, PY, YI)
+!     3. //Wire kick 
+!     4. Symplectic Rotation on -TY, -TX (in 4D space: ...taking only PX, PY)
+!
       implicit none
 +if cr
 +ca crcoall
@@ -22660,8 +23072,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if crlibm
 +ca crlibco
 +ei
-      integer ix,idaa
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi
+      integer ix,idaa,i
+      double precision NNORM_, XCLO, YCLO
+      double precision l,cur,dx,dy,tx,ty,embl,chi
 +ca parpro
 +ca parnum
 +ca common
@@ -22671,6 +23084,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commondl
 +ca commonl
 +ca commonxz
++ca wireparam
 +if bnlelens
 +ca rhicelens
 +ei
@@ -22679,137 +23093,170 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  B D ;
 +ca dainicom
 *FOX  D V DA INT XI NORD NVAR ; D V DA INT YI NORD NVAR ;
+*FOX  D V DA INT DXI NORD NVAR ; D V DA INT DYI NORD NVAR ;
 *FOX  D V RE INT EMBL ; D V RE INT TX ; D V RE INT TY ;
-*FOX  D V RE INT DX ; D V RE INT DY ; D V RE INT CHI ;
-*FOX  D V RE INT LEFF ; D V RE INT LIN ; D V RE INT RX ;
-*FOX  D V RE INT RY ; D V RE INT CUR ;
+*FOX  D V RE INT DX ; D V RE INT DY ;
+*FOX  D V RE INT XCLO ; D V RE INT YCLO ;
+*FOX  D V RE INT CHI ;
+*FOX  D V RE INT CUR ;
 *FOX  D V RE INT L ; D V RE INT ONE ; D V RE INT TWO ;
 *FOX  D V RE INT C1M7 ;
 *FOX  D V RE INT C1E3 ; D V RE INT C1M3 ;
+*FOX  D V DA INT RTWO_ NORD NVAR ; 
+*FOX  D V RE INT NNORM_ ;
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
-
+!-- WIRE
+!     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
+!     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
-      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            !hr05
 
-!     The wire map consists of the following sequence of elements:
-!     drift, tilt, drift, kick, drift, tilt, shift, and drift.
-!     This way it is a zero length insertion. For details see upcoming paper.
+      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight
+      TX = wire_tiltx(ix) !tilt x [degrees] 
+      TY = wire_tilty(ix) !tilt y [degrees]
+      TX = TX*(pi/180.0d0) ![rad]
+      TY = TY*(pi/180.0d0) ![rad]
+      DX = wire_dispx(ix) !displacement x [mm]
+      DY = wire_dispy(ix) !displacement y [mm]
+      EMBL = wire_lint(ix) !integrated length [m]
+      L = wire_lphys(ix) !physical length [m]
+      CUR = wire_current(ix)
+      XCLO = wire_clo(1,wire_num(i))
+      YCLO = wire_clo(2,wire_num(i))
+      NNORM_=c1m7/chi
 
-      ix = ixcav
-      tx = xrms(ix)
-      ty = zrms(ix)
-      dx = xpl(ix)
-      dy = zpl(ix)
-      embl = ek(ix)
-      l = wirel(ix)
-      cur = ed(ix)
+      if (abs(wire_flagco(ix)).ne.1) then
++if cr
+        write(lout,
++ei
++if .not.cr
+        write(*,
++ei
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
+     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
+     &'wire_flagco(',ix,') = ',wire_flagco(ix)
+        call prror(-1)
+      endif
 
-+if crlibm
-      leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr05
-+ei
-+if .not.crlibm
-      leff = (embl/cos(tx))/cos(ty)                                      !hr05
-+ei
-+if crlibm
-      rx = dx *cos_rn(tx)-(embl*sin_rn(tx))/two                          !hr05
-+ei
-+if .not.crlibm
-      rx = dx *cos(tx)-(embl*sin(tx))/two                                !hr05
-+ei
-+if crlibm
-      lin= dx *sin_rn(tx)+(embl*cos_rn(tx))/two                          !hr05
-+ei
-+if .not.crlibm
-      lin= dx *sin(tx)+(embl*cos(tx))/two                                !hr05
-+ei
-+if crlibm
-      ry = dy *cos_rn(ty)-lin *sin_rn(ty)
-+ei
-+if .not.crlibm
-      ry = dy *cos(ty)-lin *sin(ty)
-+ei
-+if crlibm
-      lin= lin*cos_rn(ty)+dy  *sin_rn(ty)
-+ei
-+if .not.crlibm
-      lin= lin*cos(ty)+dy  *sin(ty)
-+ei
-
-
-*FOX  XX(1)=XX(1)*C1M3;
-*FOX  XX(2)=XX(2)*C1M3;
 *FOX  YY(1)=YY(1)*C1M3;
 *FOX  YY(2)=YY(2)*C1M3;
 
-!      CALL DRIFT(-EMBL/2)
-*FOX  XX(1)=XX(1)-EMBL/TWO*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)-EMBL/TWO*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-!      CALL TILT(TX,TY)
-*FOX  XX(2)=XX(2)-XX(1)*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+!*FOX  DXI=DX*C1M3;
+!*FOX  DYI=DY*C1M3;
+      IF (wire_flagco(ix).eq.1) THEN
+*FOX  DXI=(DX+XCLO)*C1M3;
+*FOX  DYI=(DY+YCLO)*C1M3;
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+*FOX  DXI=DX*C1M3;
+*FOX  DYI=DY*C1M3;
+      END IF
+
+
+
+!-----------------------------------------------------------------------
+! X' -> PX'; Y' -> PY
+*FOX  YY(1)=YY(1)*(ONE+DPDA) ;
+*FOX  YY(2)=YY(2)*(ONE+DPDA) ;
+
+! 1 SHIFT - see the part of the code were wireda is called ....
+
+      IF (wire_flagco(ix).eq.1) THEN
+*FOX  XI=(XX(1)+DX)*C1M3;
+*FOX  YI=(XX(2)+DY)*C1M3;
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+*FOX  XI=(XX(1)+(DX-XCLO))*C1M3;
+*FOX  YI=(XX(2)+(DY-YCLO))*C1M3;
+      END IF
+
+! 2 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (TX, TY)
+      if(ibeco.eq.0) then
+*FOX  YI=YI-((XI*SIN(TX))*YY(2))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
-*FOX  XX(1)=XX(1)*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
+*FOX  XI=XI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
 *FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
 *FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
-*FOX  XX(1)=XX(1)-XX(2)*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+
+*FOX  XI=XI-((YI*SIN(TY))*YY(1))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
-*FOX  XX(2)=XX(2)*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
+*FOX  YI=YI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
 *FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
 *FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
-!      CALL DRIFT(LIN)
-*FOX  XX(1)=XX(1)+LIN*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-
-*FOX  YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)+LIN*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-
-*FOX  YY(2)*YY(2)) ;
-!      CALL KICK(L,CUR,LIN,RX,RY)
-*FOX  XI=XX(1)-RX ;
-*FOX  YI=XX(2)-RY ;
-*FOX  YY(1)=YY(1)-C1M7*CUR/CHI*XI/(XI*XI+YI*YI)*(SQRT((LIN+L)*(LIN+L)+
-*FOX  XI*XI+YI*YI)-SQRT((LIN-L)*(LIN-L)+XI*XI+YI*YI)) ;
-*FOX  YY(2)=YY(2)-C1M7*CUR/CHI*YI/(XI*XI+YI*YI)*(SQRT((LIN+L)*(LIN+L)+
-*FOX  XI*XI+YI*YI)-SQRT((LIN-L)*(LIN-L)+XI*XI+YI*YI)) ;
-!     A = A-1E-7*2*L*CUR/CHI*XI/(XI*XI+YI*YI)
-!     B = B-1E-7*2*L*CUR/CHI*YI/(XI*XI+YI*YI)
-!
-!     THIS HAPPENS WHEN THE EMBEDDING DRIFT LENGTH IS PRACTICALLY INFINITE.
-!     CALL DRIFT(LEFF-LIN)
-*FOX  XX(1)=XX(1)+(LEFF-LIN)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)+(LEFF-LIN)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-!      CALL INVTILT(TX,TY)
-*FOX  XX(1)=XX(1)+XX(2)*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+      endif
+
+      if(ibeco.eq.1) then
+
+*FOX  DYI=DYI-((DXI*SIN(TX))*YY(2))/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
+*FOX  DXI=DXI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
+*FOX  YI=YI-XI*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
+*FOX  XI=XI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
+*FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
+*FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
+
+*FOX  DXI=DXI-((DYI*SIN(TY))*YY(1))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)))+TY) ;
-*FOX  XX(2)=XX(2)*(COS(TY)+SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
-*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TY)) ;
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+*FOX  DYI=DYI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
+*FOX  XI=XI-YI*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+*FOX  YI=YI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
+*FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
+*FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+
+! 3 //WIRE KICK
+*FOX  RTWO_=XI*XI+YI*YI;
+*FOX  YY(1)=YY(1)-(((CUR*NNORM_)*XI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+*FOX  YY(2)=YY(2)-(((CUR*NNORM_)*YI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+
+*FOX  RTWO_=DXI*DXI+DYI*DYI;
+*FOX  YY(1)=YY(1)+(((CUR*NNORM_)*DXI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+*FOX  YY(2)=YY(2)+(((CUR*NNORM_)*DYI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+
+      elseif(ibeco.eq.0) then
+
+! 3 //WIRE KICK
+*FOX  RTWO_=XI*XI+YI*YI;
+*FOX  YY(1)=YY(1)-(((CUR*NNORM_)*XI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+*FOX  YY(2)=YY(2)-(((CUR*NNORM_)*YI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+
+      endif
+
+! 4 SYMPLECTIC BACKWARD ROTATION OF COORDINATE SYSTEM (-TY, -TX)
 *FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TY) ;
-*FOX  XX(2)=XX(2)+XX(1)*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)))+TX) ;
-*FOX  XX(1)=XX(1)*(COS(TX)+SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
-*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TX)) ;
 *FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TX) ;
-!     CALL SHIFT(-EMBL*TAN(TX),-EMBL*TAN(TY)/COS(TX))
-*FOX  XX(1)=XX(1)+EMBL*TAN(TX) ;
-*FOX  XX(2)=XX(2)+EMBL*TAN(TY)/COS(TX) ;
-!     CALL DRIFT(-EMBL/2)
-*FOX  XX(1)=XX(1)-EMBL/TWO*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)-EMBL/TWO*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
 
-*FOX  XX(1)=XX(1)*C1E3;
-*FOX  XX(2)=XX(2)*C1E3;
+! PX -> X'; PY -> Y'
+*FOX  YY(1)=YY(1)/(ONE+DPDA) ;
+*FOX  YY(2)=YY(2)/(ONE+DPDA) ;
+
 *FOX  YY(1)=YY(1)*C1E3;
 *FOX  YY(2)=YY(2)*C1E3;
 
@@ -24341,15 +24788,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.stf
       do 70 i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 +if .not.cr
-         call postpr(91-i)
+          call postpr(91-i)
 +ei
 +if cr
-         write(93,*) 'Calling POSTPR nnuml=',nnuml
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
-         call postpr(91-i,nnuml)
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile (93,iostat=ierro)
+          backspace (93,iostat=ierro)
+          call postpr(91-i,nnuml)
 +ei
- 70      continue
+   70   continue
 +ei ! END +if .not.stf
 +if stf
 !--   ndafi normally set in fort.3 to be "number of files to postprocess"
@@ -24369,7 +24816,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
  70      continue
 +ei ! END +if stf
 
-      call sumpos
+        call sumpos
       goto 520 !Jump to after particle&optics initialization,
                ! and also after tracking.
       endif !if(ipos.eq.1.and.napx.eq.0)
@@ -24477,6 +24924,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 150
+          if(kzz.eq.15) goto 150
           if(iorg.lt.0) mzu(i)=izu
           izu=mzu(i)+1
           smizf(i)=zfz(izu)*ek(ix)
@@ -24909,9 +25357,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             oidpsv(ib2)=one/(one+dp1)
             nms(ib2)=m
             if (ithick.eq.1) then
-               do 230 i=1,nele
-                  ekv(ib2,i)=ek(i)
- 230           continue
+            do 230 i=1,nele
+              ekv(ib2,i)=ek(i)
+  230       continue
             endif
   240     continue
           ib0=ib0+napx
@@ -25393,7 +25841,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   440 continue
 
       end if
-!---------------------------------------END OF 'BLOCK'
+!---------------------------------------  END OF 'BLOCK'
 
 !     A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 01-07-2014
@@ -25817,10 +26265,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call postpr(91-ia2) !Postprocess file "fort.(91-ia2)"
 +ei
 +if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(91-ia2,nnuml)
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile (93,iostat=ierro)
+          backspace (93,iostat=ierro)
+          call postpr(91-ia2,nnuml)
 +ei
   480     continue
           if(iposc.ge.1) call sumpos
@@ -25832,13 +26280,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do 500 ia=1,ndafi2
             if(ia.gt.ndafi) goto 510
 +if .not.cr
-            call postpr(91-ia)
+          call postpr(91-ia)
 +ei
 +if cr
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(91-ia,nnuml)
+          write(93,*) 'Calling POSTPR nnuml=',nnuml
+          endfile (93,iostat=ierro)
+          backspace (93,iostat=ierro)
+          call postpr(91-ia,nnuml)
 +ei
   500     continue
   510     if(ndafi.ge.1) call sumpos
@@ -26229,7 +26677,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beamwzf2
 +ca beama4o
 +ca beams24
-+ca wirektrack
++ca wire
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -27126,7 +27574,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           mybetay, myemitx0_dist, myemity0_dist,
      &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys,
-     &           enerror, bunchlength )
+     &     enerror, bunchlength )
          else
 +if cr
       write(lout,*) 'INFO> review your distribution parameters !!'
@@ -27514,7 +27962,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                  counted_y(i,ieff) = 0
 	         do ieffdpop =1, numeffdpop
 		    counted2d(i,ieff,ieffdpop) = 0
-	         end do	
+              end do
               end do
 	      do ieffdpop =1, numeffdpop
                  counteddpop(i,ieffdpop) = 0
@@ -28004,7 +28452,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -28035,6 +28483,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -28123,7 +28572,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         745, 746, 751,  752, 753, 754, 630, 630, 630, 630, !51-60
      &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
-   10     stracki=strack(i) 
+   10     stracki=strack(i)
           if(iexact.eq.0) then ! exact drift?
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
@@ -28475,7 +28924,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--Wire
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 620
 
@@ -28548,7 +28997,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision acdipamp, qd, acphase,acdipamp2,acdipamp1,       &
      &crabamp,crabfreq,                                                 &
      &crabamp2,crabamp3,crabamp4
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -28588,6 +29037,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -29447,40 +29897,40 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             bez(myix)(1:4).eq.'tcdq') then
               nsig = nsig_tcdq
 ! YIL11: Checking only the IR value for TCT's..
-               elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
+            elseif(bez(myix)(1:4).eq.'TCTH' .or.                        &
      &                bez(myix)(1:4).eq.'tcth' .or.
      &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
      &                bez(myix)(1:5).eq.'tctph') then                   &
                   if(bez(myix)(8:8).eq.'1' .or.                         &
      &                 bez(myix)(9:9).eq.'1' ) then
-                     nsig = nsig_tcth1
+                nsig = nsig_tcth1
                   elseif(bez(myix)(8:8).eq.'2' .or.                     &
      &                 bez(myix)(9:9).eq.'2' ) then
-                     nsig = nsig_tcth2
+                nsig = nsig_tcth2
                   elseif(bez(myix)(8:8).eq.'5'.or.                      &
      &                 bez(myix)(9:9).eq.'5' ) then
-                     nsig = nsig_tcth5
+                nsig = nsig_tcth5
                   elseif(bez(myix)(8:8).eq.'8' .or.                     &
      &                 bez(myix)(9:9).eq.'8' ) then
-                     nsig = nsig_tcth8
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
+                nsig = nsig_tcth8
+              endif
+            elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
      &                bez(myix)(1:4).eq.'tctv'.or.
      &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
      &                bez(myix)(1:5).eq.'tctpv' ) then
-                  if(bez(myix)(8:8).eq.'1' .or.                         &
-     &                 bez(myix)(9:9).eq.'1' ) then
-                     nsig = nsig_tctv1
-                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
-     &                 bez(myix)(9:9).eq.'2' ) then
-                     nsig = nsig_tctv2
-                  elseif(bez(myix)(8:8).eq.'5' .or.                     &
-     &                 bez(myix)(9:9).eq.'5' ) then
-                     nsig = nsig_tctv5
-                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
-     &                 bez(myix)(9:9).eq.'8' ) then
-                     nsig = nsig_tctv8
-                  endif
+              if(bez(myix)(8:8).eq.'1' .or.                             &
+     &             bez(myix)(9:9).eq.'1') then
+                 nsig = nsig_tctv1
+              elseif(bez(myix)(8:8).eq.'2' .or.                         &
+     &             bez(myix)(9:9).eq.'2') then
+                 nsig = nsig_tctv2
+              elseif(bez(myix)(8:8).eq.'5' .or.                         &
+     &             bez(myix)(9:9).eq.'5') then
+                 nsig = nsig_tctv5
+              elseif(bez(myix)(8:8).eq.'8' .or.                         &
+     &             bez(myix)(9:9).eq.'8') then
+                 nsig = nsig_tctv8
+              endif
             elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
      &             bez(myix)(1:3).eq.'tdi') then
               nsig = nsig_tdi
@@ -31808,14 +32258,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   761      continue
          do j=1,napx
 +ca kickelens
-         enddo
-         goto 640
+          enddo
+          goto 640
 !----------------------------
 
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 640
 
@@ -32216,7 +32666,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &).ge.rsig(ieff)) then
                     neff(ieff) = neff(ieff)+1d0
                     counted_r(j,ieff)=1
-		endif
+                  endif
 
 !++ 2D eff
 		do ieffdpop =1, numeffdpop
@@ -32269,7 +32719,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 	          neffdpop(ieffdpop) = neffdpop(ieffdpop)+1d0
 	          counteddpop(j,ieffdpop)=1
 	          endif
-		end do
+                end do
               endif
 !
 !++  Do an emittance drift
@@ -32308,7 +32758,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
                 xpgrd(j)  = 1000d0 *
      &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
-!     &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
+!    &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
 !
 
@@ -32339,7 +32789,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
                 ypgrd(j)  = 1000d0 * 
      &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
-!     &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
+!    &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
      &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
 !
                 endif
@@ -32607,7 +33057,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
        call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
      &                    hdfdee,hdftyp)
 +ei
-+if .not.hdf5
++if .not.hdf5  
        write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
      &xv(1,j),yv(1,j),                                                  &
@@ -32702,7 +33152,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -32733,6 +33183,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -33229,15 +33680,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   761      continue
          do j=1,napx
 +ca kickelens
-         enddo
-         goto 640
+          enddo
+          goto 640
 
 !----------------------------
 
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 640
 
@@ -33373,7 +33824,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     nlostp(ia)=particle ID that is not changing
 !     (the particle arrays are compressed to remove lost particles)
 !     In the case of no lost particles, all nlostp(i)=i for 1..npart
-           if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
+          if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
      &(mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
             ia2=(nlostp(ia)+1)/2     !File ID for non-STF & binrecs
             ie=ia+1                  !ia = Particle ID 1, ie = Particle ID 2
@@ -34232,7 +34683,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beamwzf2
 +ca beama4o
 +ca beams24
-+ca wirektrack
++ca wire
 +ca elens
 +ca acdip1
 +ca crab1
@@ -34575,7 +35026,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1,crabamp,crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -34605,6 +35056,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -35058,15 +35510,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   761      continue
          do j=1,napx
 +ca kickelens
-         enddo
-         goto 470
+          enddo
+          goto 470
 
 !----------------------------
 
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 470
 
@@ -35124,7 +35576,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -35158,6 +35610,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 +if debug
@@ -35737,15 +36190,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   761      continue
          do j=1,napx
 +ca kickelens
-         enddo
-         goto 490
+          enddo
+          goto 490
 
 !----------------------------
 
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 490
 
@@ -35832,7 +36285,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -35862,6 +36315,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -36371,15 +36825,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   761      continue
          do j=1,napx
 +ca kickelens
-         enddo
-         goto 490
+          enddo
+          goto 490
 
 !----------------------------
 
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue                                                      `
           goto 490
 
@@ -37689,7 +38143,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       nlin=0
       if(nbeam.ge.1) then
         do 135 i=1,nele
-          if(kz(i).eq.20) then
+          if((kz(i).eq.20).or.(kz(i).eq.15)) then
             nlin=nlin+1
             if(nlin.gt.nele) call prror(81)
             bezl(nlin)=bez(i)
@@ -37705,6 +38159,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
+        if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         smizf(i)=zfz(izu)*ek(ix)
@@ -38192,6 +38647,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
 +ca elensparam
++ca wireparam
 
 +if collimat
 +ca collpara
@@ -38536,7 +38992,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hsyc(i)=zero
         phasc(i)=zero
         ptnfac(i)=zero
-        wirel(i)=zero
         acdipph(i)=zero
         crabph(i)=zero
         crabph2(i)=zero
@@ -38753,10 +39208,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         enddo
       enddo
 !--ELEN - ELECTRON LENS---------------------------------------------------------
-!     M. Fitterer, FNAL
-!     last modified: 2016
-!     elensparam - used for tracking (parameters of single element)
+!--WIRE - WIRE ELEMENT---------------------------------------------------------
+!     M. Fitterer (FNAL), A. Patapenka (FNAL)
+!     last modified: 22-12-2016
+! 1) single elements
       do i=1,nele
+!     elensparam - used for tracking (parameters of single element)
         elens_type(i)          = 0
         elens_theta_max(i)     = 0
         elens_r2(i)            = 0
@@ -38765,6 +39222,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         elens_offset_y(i)      = 0
         elens_bend_entrance(i) = 0
         elens_bend_exit(i)     = 0
+!     wireparam - used for tracking (parameters of single element)
+        wire_flagco(i)  = 0
+        wire_current(i) = 0
+        wire_lint(i)    = 0
+        wire_lphys(i)   = 0
+        wire_dispx(i)   = 0
+        wire_dispy(i)   = 0
+        wire_tiltx(i)   = 0
+        wire_tilty(i)   = 0
+      enddo
+! 2) structure elements
+      do i=1,nblz
+        wire_num(i)=0
+      enddo
+! 3) number of wires
+      do i=1,wire_max
+        do j=1,6
+          wire_clo(j,i)=zero
+        enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
@@ -38780,7 +39256,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       niexpr_dynk = 0
       nfexpr_dynk = 0
       ncexpr_dynk = 0
-
+      
       do i=1,maxfuncs_dynk
          funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
          funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
@@ -41490,7 +41966,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 , !71-80 
      &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 , !81-90 
      &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !91-100
-     &     1010,1020,1030,1040,1050),ier
+     &1010,1020,1030,1040,1050),ier
       goto 1870
 +if cr
    10 write(lout,10010)
@@ -42420,7 +42896,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 !     
       implicit none
-+ca parpro
++ca parpro      
 +ca stringzerotrim
 +ca comdynk
 +ca comgetfields
@@ -42441,7 +42917,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! define function return type
       integer dynk_findFUNindex
-      
+
       logical lopen
 
 +if crlibm
@@ -42978,17 +43454,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
 +if cr
-                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
                   write (lout,*)"DYNK> Unexpected when reading file '"//
      &                 trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)//"'"
-                  write (lout,*)"DYNK> ii=",ii,"t=",t
+                  write (lout,*) "DYNK> ii=",ii,"t=",t
 
 +ei
 +if .not.cr
-                  write (*,*)   "DYNK> dynk_parseFUN():FILELIN"
+                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
                   write (*,*)   "DYNK> Unexpected when reading file '"//
      &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
-                  write (*,*)   "DYNK> ii=",ii,"t=",t
+                  write (*,*)    "DYNK> ii=",ii,"t=",t
 +ei
                   call prror(51)
                endif
@@ -43000,17 +43476,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
 +if cr
-                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
                   write (lout,*)"DYNK> Unexpected when reading file '"//
      &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                   write (lout,*) "DYNK> ii=",ii,"t=",t
 
 +ei
 +if .not.cr
-                  write (*,*)   "DYNK> dynk_parseFUN():FILELIN"
+                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
                   write (*,*)   "DYNK> Unexpected when reading file '"//
      &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
-                  write (*,*)   "DYNK> ii=",ii,"t=",t
+                  write (*,*)    "DYNK> ii=",ii,"t=",t
 +ei
                   call prror(51)
                endif
@@ -43330,7 +43806,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        //" for FUN="//
      &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
          
-         
+
       case ("RANDG")
          ! RANDG: Gausian random number with mu, sigma, and optional cutoff
          
@@ -43399,7 +43875,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             call prror(51)
          endif
-         
+
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
          ! y[n] = \sum_{i=0}^N b_i*x[n-i]
@@ -44974,7 +45450,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     Dump arrays with DYNK FUN and SET data to the std. output for debugging
 !----------------------------------------------------------------------------
       implicit none
-+ca parpro
++ca parpro      
 +ca stringzerotrim
 +ca comdynk
 +if cr
@@ -45207,7 +45683,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   call prror(-1)
                endif
             endif
-            
+
             do jj=1,il
                if ( bez(jj).eq. element_name_s) then
                   
@@ -45261,7 +45737,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         badelem = .true.
                      endif
                   endif
-
+                  
                   ! Special case:
                   ! Should the error only occur if we actually have a GLOBAL-VARS element?
                   if (bez(jj) .eq. "GLOBAL-VARS") then
@@ -45303,7 +45779,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             endif
 
             ! Store original value of data point
-            fsets_origvalue_dynk(nsets_unique_dynk) =
+            fsets_origvalue_dynk(nsets_unique_dynk) =  
      &           dynk_getvalue(csets_dynk(ii,1),csets_dynk(ii,2))
          endif
       enddo
@@ -46964,7 +47440,7 @@ c$$$               endif
 
           if(ithick.eq.0.and.kz(jk).ne.0) then
             etl=etl+el(jk)
-            
+
 c$$$            nr=nr+1
 c$$$+if .not.collimat.and..not.bnlelens
 c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
@@ -46981,7 +47457,7 @@ c$$$            endif
             write(lout,*) "In block ", bezb(ix),
      &           "found a thick non-drift element",
      &           bez(jk), "while ithick=1. This should not be possible!"
-+ei            
++ei
 +if .not.cr
             write(*,*)    "ERROR in LINOPT:"
             write(*,*)    "In block ", bezb(ix),
@@ -46989,7 +47465,7 @@ c$$$            endif
      &           bez(jk), "while ithick=1. This should not be possible!"
 +ei
             call prror(-1)
-            goto 500
+             goto 500
           endif
 
 !--IN BLOCK: PURE DRIFTLENGTH (above: If ITHICK=1 and kz!=0, goto 120->MAGNETELEMENT)
@@ -47272,10 +47748,12 @@ c$$$            endif
 +ca trom06 !endif, ends the do over l; increase nr, writelin and cpltwis
 
 +if collimat.or.bnlelens
-        ! Marker, beam-beam, phase-trombone, or crab cavity (incl. multipole)
+
+        ! Marker, beam-beam, phase-trombone, crab cavity (incl. multipole), or wire
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
      &     .or. abs(kzz).eq.23.or.abs(kzz).eq.26.or.
-     &          abs(kzz).eq.27.or.abs(kzz).eq.28) then
+     &     .or. abs(kzz).eq.27.or.abs(kzz).eq.28
+                abs(kzz).eq.15) then
           
           nr=nr+1
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -47288,6 +47766,8 @@ c$$$            endif
 +if .not.collimat.and..not.bnlelens
         ! Marker, beam-beam or phase-trombone -> next element
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
+        ! Wire -> next element
+        if(kzz.eq.-15.or.kzz.eq.15) goto 500
         ! RF CC Multipoles -> next element
         if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.
      &      abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
@@ -47745,16 +48225,16 @@ c$$$            endif
 +if .not.collimat.and.bnlelens
         if (lhc.eq.9) then
 +ei
-          tbetax(max(ielem,1))  = b1(1)
-          tbetay(max(ielem,1))  = b1(2)
-          talphax(max(ielem,1)) = al1(1)
-          talphay(max(ielem,1)) = al1(2)
-          torbx(max(ielem,1))   = c(1)
-          torbxp(max(ielem,1))  = cp(1)
-          torby(max(ielem,1))   = c(2)
-          torbyp(max(ielem,1))  = cp(2)
-          tdispx(max(ielem,1))  = d(1)
-          tdispy(max(ielem,1))  = d(2)
+        tbetax(max(ielem,1))  = b1(1)
+        tbetay(max(ielem,1))  = b1(2)
+        talphax(max(ielem,1)) = al1(1)
+        talphay(max(ielem,1)) = al1(2)
+        torbx(max(ielem,1))   = c(1)
+        torbxp(max(ielem,1))  = cp(1)
+        torby(max(ielem,1))   = c(2)
+        torbyp(max(ielem,1))  = cp(2)
+        tdispx(max(ielem,1))  = d(1)
+        tdispy(max(ielem,1))  = d(2)
 +if .not.collimat.and.bnlelens
         endif
 +ei
@@ -47801,26 +48281,26 @@ c$$$            endif
 +ei
         else
            if(.not.isBLOC) then
-              if(kp(ixwl).eq.3) then
-                 nhmoni=nhmoni+1
-                 betam(nhmoni,1)=b1(1)
-                 pam(nhmoni,1)=(p1(1)*2d0)*pi
-                 bclorb(nhmoni,1)=c(1)
-              else if(kp(ixwl).eq.4) then
-                 nhcorr=nhcorr+1
-                 betac(nhcorr,1)=b1(1)
-                 pac(nhcorr,1)=(p1(1)*2d0)*pi
-              else if(kp(ixwl).eq.-3) then
-                 nvmoni=nvmoni+1
-                 betam(nvmoni,2)=b1(2)
-                 pam(nvmoni,2)=(p1(2)*2d0)*pi
-                 bclorb(nvmoni,2)=c(2)
-              else if(kp(ixwl).eq.-4) then
-                 nvcorr=nvcorr+1
-                 betac(nvcorr,2)=b1(2)
-                 pac(nvcorr,2)=(p1(2)*2d0)*pi
+          if(kp(ixwl).eq.3) then
+            nhmoni=nhmoni+1
+            betam(nhmoni,1)=b1(1)
+            pam(nhmoni,1)=(p1(1)*2d0)*pi                                 
+            bclorb(nhmoni,1)=c(1)
+          else if(kp(ixwl).eq.4) then
+            nhcorr=nhcorr+1
+            betac(nhcorr,1)=b1(1)
+            pac(nhcorr,1)=(p1(1)*2d0)*pi                                 
+          else if(kp(ixwl).eq.-3) then
+            nvmoni=nvmoni+1
+            betam(nvmoni,2)=b1(2)
+            pam(nvmoni,2)=(p1(2)*2d0)*pi                                 
+            bclorb(nvmoni,2)=c(2)
+          else if(kp(ixwl).eq.-4) then
+            nvcorr=nvcorr+1
+            betac(nvcorr,2)=b1(2)
+            pac(nvcorr,2)=(p1(2)*2d0)*pi
               endif
-           endif
+          endif
         endif
       endif
 !-----------------------------------------------------------------------
@@ -48595,6 +49075,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
+        if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.                    &
@@ -48709,6 +49190,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 10
+        if(kzz.eq.15) goto 10
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if((kpz.eq.4.and.kzz.eq.1).or.(kpz.eq.-4.and.kzz.eq.-1)) then
@@ -49224,6 +49706,7 @@ c$$$            endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 50
+            if(kzz.eq.15) goto 50
             mzu(i)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
@@ -49244,13 +49727,13 @@ c$$$            endif
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
                 if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
-     &               call prror(31)
+     &call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
                 if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
-     &               call prror(31)
+     &call prror(31)
                 jra(i,4)=kz(j)
               endif
    60       continue
@@ -49272,6 +49755,7 @@ c$$$            endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 110
+            if(kzz.eq.15) goto 110
             do 80 j=1,iorg
               if(bez(ix).eq.bezr(1,j)) goto 90
    80       continue
@@ -49304,6 +49788,7 @@ c$$$            endif
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 115
+          if(kzz.eq.15) goto 115
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
@@ -49321,7 +49806,7 @@ c$$$            endif
       
       ! "GO" was not the first structure element -> Reshuffle the structure
       if(kanf.ne.1) then
-        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+!-- Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
         kanf1=kanf-1
         do 130 i=1,kanf1
           if(iorg.ge.0) ilfr(i)=mzu(i)
@@ -49387,6 +49872,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 190
+        if(kzz.eq.15) goto 190
         if(icextal(i).ne.0) then
           izu=izu+2
           xrms(ix)=one
@@ -49628,6 +50114,7 @@ c$$$            endif
 +ca trom03
 +ca trom04
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
+        if(kzz.eq.15) goto 450
 ! JBG RF CC Multipoles to 450
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
@@ -50765,8 +51252,11 @@ c$$$            endif
         call prror(101)
         return
  70     continue
+!
 +ca trom10
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
+        if(kzz.eq.15) goto 350
+!
 ! JBG RF CC Multipoles to 350
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 350
@@ -50777,6 +51267,11 @@ c$$$            endif
         xs=xpl(ix)+zfz(izu)*xrms(ix)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
+!        if(kzz.eq.15) then
+!        ekk=0
+!        xs=0
+!        zs=0
+!        end if 
 +ca alignu
         if(kzz.lt.0) goto 220
         goto(80,90,100,110,120,130,140,150,160,170,180,350,350,350,     &
@@ -50956,8 +51451,9 @@ c$$$            endif
         goto 330
 !--SKEW ELEMENTS
   220   kzz=-kzz
-        goto(230,240,250,260,270,280,290,300,310,320),kzz
-        goto 350
+        goto(230,240,250,260,270,280,290,300,310,320,                   &
+     &       350,350,350,350,350,350), kzz 
+      goto 350
 !--VERTICAL DIPOLE
   230   ekk=ekk*c1e3
 +ca kicku01v
@@ -51323,6 +51819,7 @@ c$$$            endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 770
+        if(kzz.eq.15) goto 770
 ! JBG RF CC Multipoles to 770
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 770
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 770
@@ -52754,6 +53251,7 @@ c$$$            endif
           clo0(2)=t(2,3)
           clop0(2)=t(2,4)
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 790
+          if(kzz.eq.15) goto 790
 ! JBG RF CC Multipoles to 790
           if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 790
           if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 790
@@ -53845,6 +54343,7 @@ c$$$            endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 740
+        if(kzz.eq.15) goto 740
 ! JBG RF CC Multipoles to 740
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 740
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 740 
@@ -54915,7 +55414,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320)    nfile
+        write(*,10320) nfile
 +ei
         goto 550
       endif
@@ -54925,7 +55424,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320)    nfile
+        write(*,10320) nfile
 +ei
         goto 550
       endif
@@ -54935,7 +55434,7 @@ c$$$            endif
       !--bypass headers
       rewind nfile
       do i=1,itopa,2
-         read(nfile)
+      read(nfile)
       enddo
        !--read first track data for particle at posi
       do !Loop safe, will anyway end EOF is reached.
@@ -55078,7 +55577,7 @@ c$$$            endif
         bet0(2)=zero
       endif
       do 135 i=1,3
-	ii=2*i
+        ii=2*i
         rbeta(ii-1)=sqrt(bet0(i))
         rbeta(ii)=rbeta(ii-1)
         if(abs(rbeta(ii-1)).lt.pieni) rbeta(ii-1)=one
@@ -55319,7 +55818,7 @@ c$$$            endif
         write(lout,10290) nfile
 +ei
 +if .not.cr
-        write(*,10290)    nfile
+        write(*,10290) nfile
 +ei
         goto 550
       endif
@@ -55370,7 +55869,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320)    nfile
+        write(*,10320) nfile
 +ei
         goto 550
       endif
@@ -55444,7 +55943,7 @@ c$$$            endif
         goto 551
 +ei
 +if .not.cr
-        write(*,10320)    nfile
+        write(*,10320) nfile
         goto 550
 +ei
       endif
@@ -55459,7 +55958,7 @@ c$$$            endif
 +ei
 +ei ! END +if cr
 
- 210  ifipa=0
+  210 ifipa=0
 +if .not.stf
       if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
      &     ia,ifipa,b,c,d,e,f,g,h,p
@@ -55503,7 +56002,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320)    nfile
+        write(*,10320) nfile
 +ei
         goto 550
       endif
@@ -55553,49 +56052,49 @@ c$$$            endif
         write(lout,*) 'INITIAL COORDINATES'
 +ei
 +if .not.cr
-        write(*,*)    'INITIAL COORDINATES'
+        write(*,*) 'INITIAL COORDINATES'
 +ei
 +if cr
         write(lout,*) '       X = ',c
 +ei
 +if .not.cr
-        write(*,*)    '       X = ',c
+        write(*,*) '       X = ',c
 +ei
 +if cr
         write(lout,*) '      XP = ',d
 +ei
 +if .not.cr
-        write(*,*)    '      XP = ',d
+        write(*,*) '      XP = ',d
 +ei
 +if cr
         write(lout,*) '       Z = ',e
 +ei
 +if .not.cr
-        write(*,*)    '       Z = ',e
+        write(*,*) '       Z = ',e
 +ei
 +if cr
         write(lout,*) '      ZP = ',f
 +ei
 +if .not.cr
-        write(*,*)    '      ZP = ',f
+        write(*,*) '      ZP = ',f
 +ei
 +if cr
         write(lout,*) '   SIGMA = ',g
 +ei
 +if .not.cr
-        write(*,*)    '   SIGMA = ',g
+        write(*,*) '   SIGMA = ',g
 +ei
 +if cr
         write(lout,*) '    DP/P = ',h
 +ei
 +if .not.cr
-        write(*,*)    '    DP/P = ',h
+        write(*,*) '    DP/P = ',h
 +ei
 +if cr
         write(lout,*) '  ENERGY = ',p
 +ei
 +if .not.cr
-        write(*,*)    '  ENERGY = ',p
+        write(*,*) '  ENERGY = ',p
 +ei
       endif
       
@@ -55698,7 +56197,7 @@ c$$$            endif
         write(lout,*) 'DISTANCE = ',b
 +ei
 +if .not.cr
-        write(*,*)    'DISTANCE = ',b
+        write(*,*) 'DISTANCE = ',b
 +ei
       endif
 !--EMITTANCES WITH LINEAR COUPLING
@@ -55847,7 +56346,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320)    nfile
+        write(*,10320) nfile
 +ei
         goto 550
       endif
@@ -56086,7 +56585,7 @@ c$$$            endif
               write(lout,10310) nfile
 +ei
 +if .not.cr
-              write(*,10310)    nfile
+              write(*,10310) nfile
 +ei
               wgh(i2)=zero
             endif
@@ -56238,7 +56737,7 @@ c$$$            endif
         write(lout,*) '** ERROR ** - I11 IS ZERO'
 +ei
 +if .not.cr
-        write(*,*)    '** ERROR ** - I11 IS ZERO'
+        write(*,*) '** ERROR ** - I11 IS ZERO'
 +ei
         goto 550
       endif
@@ -56265,7 +56764,7 @@ c$$$            endif
         write(lout,10320) nfile
 +ei
 +if .not.cr
-        write(*,10320)    nfile
+        write(*,10320) nfile
 +ei
         goto 550
       endif
@@ -56300,7 +56799,7 @@ c$$$            endif
           write(lout,10320) nfile
 +ei
 +if .not.cr
-          write(*,10320)    nfile
+          write(*,10320) nfile
 +ei
           goto 550
         endif
@@ -56996,7 +57495,7 @@ c$$$            endif
               write(lout,10320) nfile
 +ei
 +if .not.cr
-              write(*,10320)    nfile
+              write(*,10320) nfile
 +ei
               goto 550
             endif
@@ -57260,7 +57759,7 @@ c$$$            endif
       write(lout,10300) nfile,'HEADER CORRUPTED'
 +ei
 +if .not.cr
-      write(*,10300)    nfile,'HEADER CORRUPTED'
+      write(*,10300) nfile,'HEADER CORRUPTED'
 +ei
       goto 550
   520 continue
@@ -57268,7 +57767,7 @@ c$$$            endif
       write(lout,10300) nfile,'HEADER OF MADFILE CORRUPTED'
 +ei
 +if .not.cr
-      write(*,10300)    nfile,'HEADER OF MADFILE CORRUPTED'
+      write(*,10300) nfile,'HEADER OF MADFILE CORRUPTED'
 +ei
       goto 550
   530 continue
@@ -57276,7 +57775,7 @@ c$$$            endif
       write(lout,10300) nfile,'NO DATA'
 +ei
 +if .not.cr
-      write(*,10300)    nfile,'NO DATA'
+      write(*,10300) nfile,'NO DATA'
 +ei
       goto 550
   535 continue
@@ -57284,7 +57783,7 @@ c$$$            endif
       write(lout,10300) nfile,'ONLY START VALUES'
 +ei
 +if .not.cr
-      write(*,10300)    nfile,'ONLY START VALUES'
+      write(*,10300) nfile,'ONLY START VALUES'
 +ei
       goto 550
   540 continue
@@ -57292,7 +57791,7 @@ c$$$            endif
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
 +ei
 +if .not.cr
-      write(*,10300)    nfile,'WRONG RANGE OF DATA FOR PROCESSING'
+      write(*,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
 +ei
       goto 550
 +if cr
@@ -57308,7 +57807,7 @@ c$$$            endif
       call abend('SIXTRACR POSTPR  *** ERROR ***                    ')
 +ei
 
- 550  continue
+  550 continue
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 !-- Will almost all be zeros but we now have napxto and ttime
 +if debug
@@ -57352,7 +57851,7 @@ c$$$            endif
         write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
 +ei
 +if .not.cr
-        write(*,*)   '*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
+        write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
 +ei
 +if cr
         write(lout,*) 'ERROR CODE : ',ierro
@@ -57378,7 +57877,7 @@ c$$$            endif
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 +ei
 +if .not.cr
-      if(nprint.eq.1) write(*,10280)    tim2-tim1
+      if(nprint.eq.1) write(*,10280) tim2-tim1
 +ei
 !----------------------------------------------------------------------
       return
@@ -60480,7 +60979,7 @@ c$$$            endif
          mat = 11
       elseif (c_material.eq.'Iner') then
          mat = 12
-!02/2008 TW added vacuum and black absorber (was missing)
+!02/2008 TW added vacuum and black absorber (was missing) 
       elseif (c_material.eq.'VA') then
          mat = nmat-1
       elseif (c_material.eq.'BL') then
@@ -62301,7 +62800,7 @@ c$$$            endif
 +ca dbmkdist
 
       double precision pi, iix, iiy, phix,phiy,cutoff
-      
+
       save
 !
 !-----------------------------------------------------------------------
@@ -62473,7 +62972,7 @@ c$$$     &           myalphay * cos(phiy))
 +ei
       do j=1, mynp
          if ((mynex.gt.0d0).and.(myney.eq.0d0)) then
-            myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
+           myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
             xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
             myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
@@ -62622,7 +63121,7 @@ c$$$     &           myalphay * cos(phiy))
       
       logical lopen
       integer stat
-      
+
       save
 
       write(*,*) "Reading input bunch from file ", filename_dis
@@ -62646,7 +63145,7 @@ c$$$     &           myalphay * cos(phiy))
          read(53,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j),     &
      &        mys(j), myp(j)
       enddo
-      
+
  10   mynp = j - 1
       write(*,*) "Number of particles read from the file = ",mynp
 
@@ -63217,7 +63716,7 @@ c$$$     &           myalphay * cos(phiy))
       data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
       data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
      & 682.2e-9/
- 
+
 !
 ! All cross-sections are in barns,nuclear values from RPP at 20geV
 ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
@@ -63226,7 +63725,7 @@ c$$$     &           myalphay * cos(phiy))
 ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
 ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
 !
- 
+
 ! Claudia 2013: updated cross section values. Unit: Barn. Old:
 !      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0, 0.0035d-2/
 !      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0, 0.034d-2/
@@ -63239,8 +63738,8 @@ c$$$     &           myalphay * cos(phiy))
       data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
       data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
       data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
-      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
-      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
+      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0 , 0.768d-2/
+      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0 , 0.907d-2/
       data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
       data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
       data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
@@ -66134,7 +66633,7 @@ c$$$         backspace (93,iostat=ierro)
                 write(94,err=105,iostat=ierro) tbuff
               endif
               mybinrecs=mybinrecs+1
- 14         continue
+   14       continue
             
             ! Second, copy crbinrecs(ia) records of data from fort.94 to fort.91-ia
             rewind 94
@@ -66273,7 +66772,7 @@ c$$$         backspace (93,iostat=ierro)
      &              (tbuff(k),k=1,17)
             else                !ntwin=2
                read(90,err=102,end=102,iostat=ierro) tbuff
-            endif
+          endif
             mybinrecs=mybinrecs+1
          end do
       enddo
