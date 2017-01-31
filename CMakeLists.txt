@@ -1042,11 +1042,11 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAK
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND astuce < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
 
 	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
 		message(STATUS "Will run dafor on ${loop}.f")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/dafor ${loop}n.f ${loop}.f > ${loop}_dafor.log DEPENDS run_astuce)
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND $<TARGET_FILE:dafor> ${loop}n.f ${loop}.f > ${loop}_dafor.log DEPENDS run_astuce)
 	else()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f DEPENDS run_astuce)
 	endif()
