@@ -1,21 +1,21 @@
 #Test that the testing tools run!
 ADD_TEST(NAME SelfTest_verify10 COMMAND verify10)
-set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*verify10_DIFF I\\/O error, wrong no of lines\\!\\!\\?\\? line no *0")
+set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in verify10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_checkf10 COMMAND checkf10)
-set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*checkf10_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_compf10 COMMAND compf10)
-set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*compf10_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in compf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_checkf110 COMMAND checkf110)
-set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf110 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
-set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*checkf1014_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf1014 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
-set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\nSTOP 19")
+set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\n.*19")
 
 #SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
 
