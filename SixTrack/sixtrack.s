@@ -1257,7 +1257,7 @@
       double precision dist_en, dist_tw
       ! commons for initial distribution
       common /dist_var/ dist_fname, dist_type, dist_read_unit,          &
-     & dist_en(3), dist_tw(3,4), dist_load, dist_block
+     & dist_en(3), dist_tw(3,4), dist_input, dist_load, dist_block
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ! PDH commons for heavy ions
 +cd hions
@@ -17183,25 +17183,20 @@ cc2008
       lineno3 = lineno3+1 ! Line number used for some crash output
 
       if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
-
       
       
       if (ch(:4).eq.next) then
          dist_block = .true.
-         
-         if(dist_type.eq.'NORM'.and.dist_input.eq.'FILE') then
-            write(*,*), '--> DIST: ERROR'
-            write(*,*), '--> NORM DIST WITHOUT EMITTANCE'
-            call prror(-1)
-         end if
+         write(*,*), '--> DIST: dist_input ', dist_input
+         !if(dist_type.eq.'NORM'.and.dist_input.eq.'FILE') then
+            !write(*,*), '--> DIST: ERROR'
+            !write(*,*), '--> NORM DIST WITHOUT EMITTANCE'
+            !call prror(-1)
+         !endif
          write(*,*), '--> DIST: EMITTANCE', dist_en
          !write(*,*), '--> DIST: TWISS    ', dist_tw
          goto 110 ! loop to next BLOCK in fort.3
       endif
-
-     
-
-
       
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
@@ -17217,11 +17212,11 @@ cc2008
         call prror(-1)
       endif
       
-      
 
 !     READ INPUT FROM FILE
       if(ch(:4).eq.'READ') then
         dist_input = 'FILE'
+        write(*,*), '--> DIST: ASSIGNED FILE TO DIST_INPUT' 
         if (getfields_nfields.ne.3) then
 +if cr
           write(lout,*)
@@ -17232,17 +17227,26 @@ cc2008
      &       '--> ERROR in DIST block (READ): wrong number of input ',
      &       '--> parameters: test'
           call prror(-1)
-        else
+        endif
 
-          WRITE(*,*) '--> FOUND READ COMMAND IN DIST BLOCK'
+        WRITE(*,*) '--> FOUND READ COMMAND IN DIST BLOCK'
            
-!         LOAD DISTRIBUTION NAME
-          dist_fname = getfields_fields(2)(1:getfields_lfields(2))
+!       LOAD DISTRIBUTION NAME
+        dist_fname = getfields_fields(2)(1:getfields_lfields(2))
           
-!         SELECT DISTRIBUTION TYPE (PHYSICAL OR NORMALIZED)
-          dist_type  = getfields_fields(3)(1:4)
-          WRITE(*,*) '--> DIST_TYPE ', dist_type
-         
+!       SELECT DISTRIBUTION TYPE (PHYSICAL OR NORMALIZED)
+        dist_type  = getfields_fields(3)(1:4)
+        
+        if (dist_type.ne.'NORM'.and.dist_type.ne.'PHYS') then
++if cr
+          write(lout,*)
++ei
++if .not.cr
+          write(*,*)
++ei
+     &       '--> ERROR in DIST block (READ): distribution type not ',
+     &       '--> indicated: used PHYS or NORM'
+          call prror(-1)
         endif
       endif
 
@@ -17259,7 +17263,7 @@ cc2008
      &       '--> ERROR in DIST block (EMIT): wrong number of input ',
      &       '--> parameters: test'
           call prror(-1)
-        else
+        endif
 
 !         read horizontal parameters
           if (getfields_fields(2)(1:getfields_lfields(2)).eq.'1') then
@@ -17278,7 +17282,7 @@ cc2008
      &            then
              read(getfields_fields(3)(1:getfields_lfields(3)),*)        &
      &            dist_en(3)                                           
-          endif
+          
          endif
        endif
       
@@ -25236,11 +25240,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          e0f=sqrt(e0**2-pma**2)
       endif
       
+      write(*,*), '--> DIST: dist_block ', dist_block
+      write(*,*), '--> DIST: dist_input ', dist_input
       
       if (dist_block.and.dist_input.eq.'FILE') then
+         write(*,*), '--> DIST: calling dist_read'
          call dist_read( napx, npart, e0, e0f, clight,                  &
      &       xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:),     &
-     &       naa(:), nzz(:), nucm(:) )
+     &        naa(:), nzz(:), nucm(:) )
 !      endif
 !
 !
@@ -63465,13 +63472,14 @@ c$$$     &           myalphay * cos(phiy))
 !     P      - Particle momentum [GeV/c^2]      
 !
       subroutine dist_read( napx, npart, enom, pnom, clight,
-     &                      x, y, xp, yp, s, pc, aa, zz, m )
+     &     x, y, xp, yp, s, pc, aa, zz, m )
 !
 !
       implicit none
 
       
-+ca inidist     
++ca inidist
++ca rtwiss      
 !+ca dist_var
 
 
@@ -63482,8 +63490,16 @@ c$$$     &           myalphay * cos(phiy))
       integer napx, npart
       double precision enom, pnom, clight
       double precision x, y, xp, yp, s, pc
+      !double precision dist_en
+
+      !if(dist_type.eq.'NORM') then
+         double precision xn,yn,xpn,ypn,sn,pcn
+      !end if
+      
       double precision m0                    ! hisix
 
+     ! double precision betx, bety, alfx, alfy
+      
 !     temporary variables:
       integer id, gen, aa, zz
       double precision weight, z, zp, m, dt
@@ -63497,6 +63513,13 @@ c$$$     &           myalphay * cos(phiy))
       dimension xp( npart ), yp( npart )
       dimension s ( npart ), pc( npart )
       dimension dt( npart )
+      !dimension dist_en(3)
+
+      !if(dist_type.eq.'NORM') then
+         dimension xn ( npart ), yn ( npart )
+         dimension xpn( npart ), ypn( npart )
+         dimension sn ( npart ), pcn( npart )
+      !endif
 
       ! P. HERMES hisix
       dimension aa( npart ), zz( npart )
@@ -63510,6 +63533,7 @@ c$$$     &           myalphay * cos(phiy))
       WRITE(*,*) '--> DIST_READ SUBROUTINE CALLED'
       WRITE(*,*) '--> DIST_SR filename ', dist_fname
       WRITE(*,*) '--> DIST_SR e0, p0   ', enom, pnom
+      WRITE(*,*) '--> DIST_EN          ', dist_en
 
       dist_read_unit = 154
 !      dist_echo_unit = 152
@@ -63526,14 +63550,21 @@ c$$$     &           myalphay * cos(phiy))
         s (jj) = 0.0D+00
 	aa(jj) = 0            ! hisix
 	zz(jj) = 0            ! hisix
-	m (jj) = 0.0D+00      ! hisix
+	m (jj) = 0.0D+00        ! hisix
+        if(dist_type.eq.'NORM') then
+           xn (jj) = 0.0D+00
+           yn (jj) = 0.0D+00
+           xpn(jj) = 0.0D+00
+           ypn(jj) = 0.0D+00
+           pcn(jj) = 0.0D+00
+           sn (jj) = 0.0D+00           
+        endif
       enddo
 !     initialise particle counter
       jj = 0      
 
 
       write(*,*), '--> DIST, dist_read_unit', dist_read_unit
-!      write(*,*), '--> DIST, dist_echo_unit', dist_echo_unit
       write(*,*), '--> DIST, npart         ', npart
       write(*,*), '--> DIST, napx          ', napx
       
@@ -63561,11 +63592,20 @@ c$$$     &           myalphay * cos(phiy))
          jj = npart
          goto 1984
       endif
-      read( tmp_line, *, err=1982 ) id, gen, weight,
+      
+      if(dist_type.ne.'NORM') then
+         read( tmp_line, *, err=1982 ) id, gen, weight,
      &    x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj),   &
-     &pc(jj), dt(jj)                                        ! hisix
+     &        pc(jj), dt(jj)    
+      else
+         read( tmp_line, *, err=1982 ) id, gen, weight,
+     &    xn(jj), yn(jj), z, xpn(jj), ypn(jj), zp, aa(jj), zz(jj),m(jj),&
+     &pcn(jj), dt(jj)             
+      endif
       goto 1981
+   
 
+      
 !     error while parsing file:
  1982 continue
       write(*,*) 'Error while reading particles at line:'
@@ -63588,6 +63628,22 @@ c$$$     &           myalphay * cos(phiy))
          write(*,*)''
          napx = jj
       endif
+
+!      write(*,*), '--> DIST , incoming beta', betx, bety
+      
+      write(*,*), '--> DIST MKP xn before', xn
+      ! make the normalized coordinates physical
+      if(dist_type.eq.'NORM') then
+        ! phd: calculate geometric emittance
+        !dist_en(1) = 
+
+         
+        call dist_makephys( napx, npart, enom, pnom, clight,
+     &        xn, yn, xpn, ypn, sn, pcn, aa, zz, m   )
+      endif
+      write(*,*), '--> DIST MKP xn after', xn
+
+      
 !     fix units:
       do jj=1,napx
         x (jj) = x(jj)  * 1.0D+03 ! [m]       -> [mm]
@@ -63598,6 +63654,8 @@ c$$$     &           myalphay * cos(phiy))
         m (jj) = m(jj)  * 1.0D+03 ! [GeV/c^2] -> [MeV/c^2] ! P. HERMES
         s (jj) = -pnom/enom * dt(jj)*clight * 1.0D+03
       enddo
+
+
 
       return
 
@@ -63613,7 +63671,56 @@ c$$$     &           myalphay * cos(phiy))
 !      call prror(-1)
       
       end subroutine
-!        
+!
+
+
+      subroutine dist_makephys( napx, npart, enom, pnom, 
+     &                          xn, yn, xpn, ypn, sn, pcn )
+
+      implicit none
+      
++ca inidist     
+     
+      character*80   filename
+
+!     interface variables:
+      integer napx, npart
+      double precision enom, pnom
+      double precision x, y, xp, yp, s, pc
+      double precision xn, yn, xpn, ypn, sn, pcn      
+      double precision m0                    ! hisix
+
+     ! double precision betx, alfx, bety, alfy
+      
+!     temporary variables:
+      integer id, gen, aa, zz
+      double precision weight, z, zp, m, dt
+      integer jj
+
+      dimension x ( npart ), y ( npart )
+      dimension xp( npart ), yp( npart )
+      dimension s ( npart ), pc( npart )
+      dimension dt( npart )
+
+      dimension xn ( npart ), yn ( npart )
+      dimension xpn( npart ), ypn( npart )
+      dimension sn ( npart ), pcn( npart )   
+
+      
+      save
+
+
+      do jj=1,napx
+         xn (jj) = xn (jj) / 2
+      enddo
+
+      
+
+      write(*,*), '--> DIST makephys'
+      write(*,*), '--> DIST MKP xn', xn
+      write(*,*), '--> DIST makephys en ', dist_en
+
+      end subroutine 
 !
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !
