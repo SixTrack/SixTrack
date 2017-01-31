@@ -3,6 +3,7 @@
       double precision prob(60),prob1(60),probv,probv1
       integer line,word,i
       logical diff,diffs
+      logical hasInputFile
 ! Now checks the closed orbit as well as Total Turns
       probv = 0
       probv1 = 0
@@ -12,6 +13,25 @@
       enddo
       line=0
       diff=.false.
+      
+      hasInputFile = .false.
+      INQUIRE(file="fort.20",EXIST=hasInputFile)
+      if (.not. hasInputFile) then
+         write(*,'(a,a)') "Error in verify10 - file 'fort.20'"//
+     &        " was not found"
+         stop 1
+      endif
+      hasInputFile = .false.
+      INQUIRE(file="fort.21",EXIST=hasInputFile)
+      if (.not. hasInputFile) then
+         write(*,'(a,a)') "Error in verify10 - file 'fort.21'"//
+     &        " was not found"
+         stop 2
+      endif
+      
+      open(20,status='OLD')
+      open(21,status='OLD')
+      
     1 read (20,*,end=100,err=99) prob
       line=line+1
       read (21,*,end=99,err=99) prob1

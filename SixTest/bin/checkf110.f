@@ -3,6 +3,7 @@
       double precision prob(60),prob1(60)
       integer line,word,i
       logical diff,diffs
+      logical hasInputFile
 ! Now compare the closed orbit in 53-60 as well
       do i=1,60
         prob(i) = 0
@@ -11,6 +12,25 @@
       line=0
       diff=.false.
       diffs=.false.
+      
+      hasInputFile = .false.
+      INQUIRE(file="fort.20",EXIST=hasInputFile)
+      if (.not. hasInputFile) then
+         write(*,'(a,a)') "Error in checkf110 - file 'fort.20'"//
+     &        " was not found"
+         stop 1
+      endif
+      hasInputFile = .false.
+      INQUIRE(file="fort.21",EXIST=hasInputFile)
+      if (.not. hasInputFile) then
+         write(*,'(a,a)') "Error in checkf110 - file 'fort.21'"//
+     &        " was not found"
+         stop 2
+      endif
+      
+      open(20,status='OLD')
+      open(21,status='OLD')
+      
     1 read (20,end=100,err=98) prob
       line=line+1
       read (21,end=99,err=97) prob1
