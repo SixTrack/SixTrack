@@ -196,8 +196,16 @@ The feature is included by using the \texttt{CR} build option, i.e.\ \texttt{cma
 \subsubsection{BOINC support}
 \label{sec:building:options:BOINC}
 The BOINC libraries are used when running on LHC@Home.
+This binary will look for a file \texttt{Sixin.zip} when started (unless restart files are present), which it will unpack in order to get the actual input files \texttt{fort.2} etc.
+
 In order to build SixTrack with support for this, you must first build BOINC as described in Section~\ref{sec:building:libs:BOINC}.
-Once this is done, it is possible to build SixTrack with BOINC support by running \texttt{cmake\_six CR BOINC API}~.
+The LIBARCHIVE library must also be built, please see Section~\ref{sec:building:libs:libarchive}.
+Once this is done, it is possible to build SixTrack with BOINC support by running \texttt{cmake\_six CR BOINC API LIBARCHIVE}~.
+
+Note that for debugging, it is possible to build BOINC without the ``real'' BOINC libraries; a set of surrogate functions are then inserted for these.
+To do this, simply drop the API flag.
+This makes it possible to test and debug the BOINC version even if the real BOINC libraries are not available; however libarchive is always needed.
+
 
 \subsubsection{Increased particle numbers}
 It is possible to track more than 64 particles simultaneously in SixTrack; the main limitation for this is the ``binary data files'' fort.90, fort.89, etc., as one such file is written per pair of tracked particles.
@@ -222,6 +230,12 @@ SixTrack leverages a few libraries in order to run correctly.
 These are generally not written in Fortran but in C or C++, and must be compiled before or alongside SixTrack and then linked with the final executable.
 This subsection describes how this is done, including any pitfalls.
 
+\subsubsection{Automatic building of ``external'' libraries}
+\label{sec:building:libs:automatic}
+
+It is possible to build some of the ``one time build'' libraries automatically using the shell script \texttt{buildLibraries.sh}, located in the \texttt{SixTrack/SixTrack} folder.
+This script should know about various platform dependent workarounds etc.
+
 \subsubsection{CRLIBM}
 \label{sec:building:libs:crlibm}
 The CRLIBM library \todo{cite} is a replacement for the standard math library normally provided by the system, used to compute trigonometric functions, logarithms, etc.
@@ -244,15 +258,40 @@ Note that due to problems in GCC's x87 optimizer (introduced somewhere between v
 \label{sec:building:libs:BOINC}
 The BOINC library is used for volunteer computing \todo{Cite BOINC}.
 It must be built separately from SixTrack, and then linked into SixTrack.
+Note that BOINC can be build with \texttt{buildLibraries.sh} as described in Section~\ref{sec:building:libs:automatic}.
+
 As some modifications have been done to the upstream BOINC library, the correct version is linked into the repository as a \texttt{git submodule} \todo{cite} at \texttt{SixTrack/SixTrack/boinc}~.
 In order to load the submodule, run from anywhere in the SixTrack repository first \texttt{git submodule init} then \texttt{git submodule update}~.
 
 Then, you must build the BOINC library.
-This is accomplished by \texttt{cd}-ing to the the \texttt{boinc} directory, then running \texttt{./\_autosetup}~, then \texttt{./configure -{}-disable-client -{}-disable-server -{}-disable-manager -{}-enable-boinczip}~, and finally \texttt{make}~.
+This is accomplished by \texttt{cd}-ing to the the \texttt{boinc} directory, then running \texttt{./\_autosetup -f}~, then \texttt{./configure -{}-disable-client -{}-disable-server -{}-disable-manager -{}-disable-boinczip}~, and finally \texttt{make}~.
 Finally, you need to build the BOINC Fortran API; this is done by entering the \texttt{api} subdirectory and running \texttt{make boinc\_api\_fortran.o}~.
 Once this is done, you may compile SixTrack with BOINC support as described in Section~\ref{sec:building:options:BOINC}.
 
-This procedure has been tested on Linux (Fedora~23), Windows 10, and Mac~OS~X.
+This procedure has been tested on Linux (Fedora~23), Windows Server 2012 (CYGWIN32/64 on MSYS2), and Mac~OS~X.
+
+Note that to build in a folder hosted on AFS, you must edit the Makefiles in the \texttt{api} and \texttt{lib} subfolders and change the variable \texttt{LN} from \texttt{/usr/bin/ln} to \texttt{cp}.
+This is neccessary because AFS does not support hard links between different folders, and configure does not check correctly for it.
+
+\subsubsection{libarchive}
+\label{sec:building:libs:libarchive}
+The libarchive libary is used to unpack the \texttt{Sixin.zip} file for the BOINC version, and is needed for the option \texttt{ZIPIT} block in \texttt{fort.3}\todo{ZIPIT is not yet implemented.}.
+It must be built separately from SixTrack, and then linked into SixTrack.
+Note that libarchive can be build with \texttt{buildLibraries.sh} as described in Section~\ref{sec:building:libs:automatic}.
+
+As some bugfixes have been done to the upstream libarchive library, the correct version is linked into the repository as a \texttt{git submodule} \todo{cite} at \texttt{SixTrack/SixTrack/libarchive}~.
+In order to load the submodule, run from anywhere in the SixTrack repository first \texttt{git submodule init} then \texttt{git submodule update}~.
+
+You must then build the libarchive library, which is done by CMAKE.
+To do this, create a new folder \texttt{SixTrack/SixTrack/libarchive\_build} and enter it.
+You can then configure it as \texttt{cmake -DCMAKE\_BUILD\_TYPE=Release -DENABLE\_BZip2=ON -DENABLE\_ZLIB=ON -DENABLE\_CAT=OFF -DENABLE\_CPIO=OFF -DENABLE\_EXPAT=OFF -DENABLE\_INSTALL=OFF -DENABLE\_LIBXML2=OFF -DENABLE\_LZMA=OFF -DENABLE\_NETTLE=OFF -DENABLE\_OPENSSL=OFF -DENABLE\_TAR=OFF -DENABLE\_CNG=OFF -DENABLE\_ICONV=\textit{ON|OFF} -DENABLE\_TEST=OFF -G "Unix Makefiles" ../libarchive -LH
+}~,
+where ICONV should be set ON on Windows and OFF on Linux.
+Finally, build the library using \texttt{make}~.
+
+Note that libarchive needs several libraries installed; it is the up to the user to install these.
+Especially note that libarchive depends on libz, for which a static version is not available on LxPlus.
+It is therefore only possible to build a dynamically linked version of SixTrack on LxPlus, by using the flag \texttt{-STATIC} on the \texttt{cmake\_six} command line.
 
 \subsubsection{NAGLIB}
 \label{sec:building:libs:naglib}
@@ -269,6 +308,8 @@ These binaries must be compiled first, and are then ran by the build system to c
 \subsubsection{Astuce}
 
 \subsubsection{DAFOR}
+
+\subsection{The ``beauty'' linters}
 
 \subsection{Building on platforms other than Linux}
 
@@ -293,7 +334,7 @@ Re-naming this link (libquadmath.dylib) should stop the linker from always selec
 
 \subsubsection{Building on Windows}
 
-msys2
+\todo[inline]{msys2 + CYGWIN32 or CYGWIN64 (msys2 alone cannot do static linking)}
 
 \subsection{Legacy build environments}
 
@@ -304,6 +345,9 @@ The \texttt{make\_six} script works by modifying the ASTUCE input files before r
 Additionally, there is a plain makefile, which uses an option resolver written in Bash.
 
 Note that these build environments are considered to be obsolete and may soon be removed.
+
+\subsection{Running cmake directly}
+\todo[inline]{ccmake etc, as normally done in cmake\_six}
 
 \section{Testing SixTrack}
 
@@ -358,6 +402,7 @@ Please note that these scripts are deprecated, and are likely to be removed soon
 The following tests are currently known to fail:
 \begin{description}
 \item[bb, bb\_ntwin1] when compiling with ``Debug'': This is caused by an underflow in the initial closed orbit search, which is uncovered by trapping the underflow exception.
+\item[lostnumxv] when compiling with \texttt{CR}. See the issue tracker: \url{https://github.com/SixTrack/SixTrack/issues/169}
 \end{description}
 
 \end{document}

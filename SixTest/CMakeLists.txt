@@ -1,21 +1,21 @@
 #Test that the testing tools run!
 ADD_TEST(NAME SelfTest_verify10 COMMAND verify10)
-set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*verify10_DIFF I\\/O error, wrong no of lines\\!\\!\\?\\? line no *0")
+set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in verify10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_checkf10 COMMAND checkf10)
-set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*checkf10_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_compf10 COMMAND compf10)
-set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*compf10_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in compf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_checkf110 COMMAND checkf110)
-set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf110 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
-set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Comparing VERSION    0.0000000000000000 *to *0.0000000000000000.*\n.*checkf1014_DIFF I\\/O error, wrong no of lines\\!\\! line no *0")
+set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf1014 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
-set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "At line .* of file .*read90.f90 \\(unit = 190\\)\nFortran runtime error: Cannot open file 'fort.190': No such file or directory")
+set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\n.*19")
 
 #SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
 
@@ -45,7 +45,8 @@ endif(NOT COLLIMAT)
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
 	SET(CR_ENABLE 1)
-	SET(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024")
+	#Should at least be able to reach the standard TIMEOUT.
+	SET(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
 else()
 	SET(CR_ENABLE 0)
 	SET(CR_KILL_TIME 0)
@@ -109,7 +110,22 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${TFILE})
 		endforeach()
 	else()
-		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink Sixin.zip ${CMAKE_BINARY_DIR}/SixTest/${TST}/Sixin.zip)
+		add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/SixTest/${TST}/Sixin.zip ${CMAKE_BINARY_DIR}/SixTest/${TST}/Sixin.zip)
+
+		#Also need the canonicals
+		file(GLOB TEST_INPUT_CANONICAL LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/SixTest/${TST}/*canonical)
+		foreach(CANONICAL_FILES IN ITEMS ${TEST_INPUT_CANONICAL})
+			get_filename_component(CANONICAL_FILE ${CANONICAL_FILES} NAME)
+			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${CANONICAL_FILE})
+		endforeach()
+
+		#And extra_checks.txt
+		file(GLOB TEST_INPUT_EXTRAS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/SixTest/${TST}/extra_checks.txt)
+		foreach(EXTRA_FILES IN ITEMS ${TEST_INPUT_EXTRAS})
+			get_filename_component(EXTRA_FILE ${EXTRA_FILES} NAME)
+			add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/SixTest/${TST}/${EXTRA_FILE})
+		endforeach()
+
 	endif(NOT BOINC)
 
 	add_dependencies( SixTrack test_copy_${TST})

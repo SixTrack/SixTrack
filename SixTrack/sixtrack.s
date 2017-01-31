@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.45'/
-      data moddate /'18.01.2017'/
+      data version /'4.6.2'/
+      data moddate /'31.01.2017'/
 +cd license
 !!SixTrack
 !!
@@ -12054,6 +12054,7 @@ cc2008
 +ca dbdaten
 +ca dbpencil
 +ca database
+      logical has_coll
 +ei
 +if .not.collimat
       logical do_coll
@@ -12243,6 +12244,9 @@ cc2008
       preda=c1m38
 +if .not.collimat
       do_coll = .false.
++ei
++if collimat
+      has_coll = .false.
 +ei
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
@@ -15954,16 +15958,23 @@ cc2008
  1290 continue
 +if cr
       write(lout,*)
-      write(lout,*) "     old RIPP module is not supported anymore"
-      write(lout,*) "     ignoring all concerned lines"
+      write(lout,*) "ERROR: old RIPP module is no longer supported"
+      write(lout,*) "Please convert your RIPP block (in fort.3) to DYNK"
+      write(lout,*) "The script rippconvert.py (in the pytools folder)"
+      write(lout,*) " can be used to automatically convert the fort.3!"
       write(lout,*)
 +ei
 +if .not.cr
       write(*,*)
-      write(*,*) "     old RIPP module is not supported anymore"
-      write(*,*) "     ignoring all concerned lines"
+      write(*,*) "ERROR: old RIPP module is no longer supported"
+      write(*,*) "Please convert your RIPP block (in fort.3) to DYNK"
+      write(*,*) "The script rippconvert.py (in the pytools folder)"
+      write(*,*) " can be used to automatically convert the fort.3!"
       write(*,*)
 +ei
+      call prror(-1)
+
+!Code for just skipping over the RIPP block, which runs the simulation without RIPP:
  1300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
 
@@ -16056,6 +16067,10 @@ cc2008
  1285 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
+
++if collimat
+      has_coll = .true. !We have a collimation block.
++ei
 
       if(ch(1:1).ne.'/') then
          iclr=iclr+1
@@ -17585,6 +17600,7 @@ cc2008
  2401 continue
       
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
+
 !-----------------------------------------------------------------------
 !  Wire, kz=+/-15,ktrack=45
 !  A. Patapenka (NIU), M. Fitterer,  FNAL
@@ -17860,6 +17876,10 @@ cc2008
       
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
 !-----------------------------------------------------------------------
+
+!----------------------------------------------------------------------------
+!     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
+!-----------------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
         if(nbeam.ge.1) parbe14=                                         &!hr05
@@ -17875,6 +17895,18 @@ cc2008
         remity_collgap=emitny0_collgap*gammar
 +ei
       endif
++if collimat
+      if (.not.has_coll) then
+         !Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
+         write(*,*) ""
+         write(*,*) "ERROR in parsing fort.3:"
+         write(*,*) "This is the collimation version of SixTrack,"
+         write(*,*) " but no COLL block was found,"
+         write(*,*) " not even one with do_coll = .false."
+         write(*,*) "Please use the non-collimation version!"
+         call prror(-1)
+      endif
++ei
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il
           parbe(j,2)=0d0                                                 !hr05
@@ -24367,8 +24399,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Either it is only the fort.* input data or it is a restart.
 ! Removed temporarily??? because of problems.
 ! Re-instated and REQUIRED version 4516
-        call boinc_unzip()
+        !call boinc_unzip()
         !call system('unzip Sixin.zip')
+        call f_read_archive("Sixin.zip",".")
         go to 611
       endif
 +if fio
