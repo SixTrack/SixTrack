@@ -48,9 +48,9 @@ for l in ifile:
             else:
                 rTurn = ls[4]
 
-            FUN = "FUN RIPP-"+rName+" COSF_RIPP " + rDepth + " " + rFreq + " " + rPhase
+            FUN = "FUN RC-"+rName+" COSF_RIPP " + rDepth + " " + rFreq + " " + rPhase
             print FUN
-            SET = "SET "+rName+" average_ms RIPP-"+rName+" 1 -1 "+rTurn
+            SET = "SET "+rName+" average_ms RC-"+rName+" 1 -1 "+rTurn
             print SET
 
             ofile.write(FUN+"\n")
