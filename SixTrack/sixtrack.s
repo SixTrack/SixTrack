@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.0'/
-      data moddate /'27.01.2017'/
+      data version /'4.6.1'/
+      data moddate /'31.01.2017'/
 +cd license
 !!SixTrack
 !!
@@ -15885,16 +15885,23 @@ cc2008
  1290 continue
 +if cr
       write(lout,*)
-      write(lout,*) "     old RIPP module is not supported anymore"
-      write(lout,*) "     ignoring all concerned lines"
+      write(lout,*) "ERROR: old RIPP module is no longer supported"
+      write(lout,*) "Please convert your RIPP block (in fort.3) to DYNK"
+      write(lout,*) "The script rippconvert.py (in the pytools folder)"
+      write(lout,*) " can be used to automatically convert the fort.3!"
       write(lout,*)
 +ei
 +if .not.cr
       write(*,*)
-      write(*,*) "     old RIPP module is not supported anymore"
-      write(*,*) "     ignoring all concerned lines"
+      write(*,*) "ERROR: old RIPP module is no longer supported"
+      write(*,*) "Please convert your RIPP block (in fort.3) to DYNK"
+      write(*,*) "The script rippconvert.py (in the pytools folder)"
+      write(*,*) " can be used to automatically convert the fort.3!"
       write(*,*)
 +ei
+      call prror(-1)
+
+!Code for just skipping over the RIPP block, which runs the simulation without RIPP:
  1300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
 
