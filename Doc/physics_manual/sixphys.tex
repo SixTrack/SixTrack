@@ -818,6 +818,12 @@ The wire element is described by in total 7 parameters: the wire current $I$, th
 	\caption{Vector potential (left) and magnetic field (right) of a current bearing wire with physical length $L=1$~m and embedded drift (integrational length) $L_{\mathrm{emb}}=2$~m.\label{wire:fig:1}}
 \end{figure}
 
+To calculate the kick strength $\mathcal{L}$ of the wire in order to compensate the beam-beam kick from one long-range beam-beam encounter, the following relation between holds \cite{Valishev:wire}:
+\begin{equation}
+	\mathcal{L}=e\cdot c\cdot N_p=L\cdot I
+\end{equation}
+with $N_p$ being the bunch charge and $L$ and $I$ are the length and current of the wire. $\mathcal{L}$ than has to units Am.
+
 The generic formula for a vector potential of a straight current bearing wire with length $L$ and current $I$ centered at the origin is given in Cartesian coordinates by the following expression\footnote{Note that Curvilinear and Cartesian coordinate system are equivalent as the curvature is zero at the location of the wire element.}: 
 \begin{align}\label{wire:eqn:1}
 	{A_i(x,y,z)} &=\frac{I\mu_0\cos(c_i)}{4\pi}\cdot\nonumber\\
@@ -841,7 +847,7 @@ and $\cos(c_i)$ are the direction cosines. The direction cosines can in general 
 	\draw [thick, ->] (-8,0) -- (8,0);
 	\draw [thick, ->] (0,-7) -- (0,7);
 	\draw [thick, ->] (-7,-7) -- (7,7);
-	\draw [blue, ultra thick] (-7,-3.5) -- (7,3.5);
+	\draw [red, ultra thick] (-7,-3.5) -- (7,3.5);
 	\node [below right] at (8,0) {$z$};
 	\node [below right] at (0,7) {$y$};
 	\node [below right] at (7,7) {$x$};
@@ -849,25 +855,24 @@ and $\cos(c_i)$ are the direction cosines. The direction cosines can in general 
 	\node [left] at (-7.0,-3.5) {$-L/2$};
 	%
 	\draw [dashed] (7, 3.5) -- (5.5, 2.0);
-	\draw [dashed] (5.5, 2.0) -- (5.5, 0.0);
-	\draw [dashed] (5.5, 0.0) -- (7.0, 1.5);
+	\draw [green, dashed] (5.5, 2.0) -- (5.5, 0.0);
+	\draw [blue, dashed] (5.5, 0.0) -- (7.0, 1.5);
 	\draw [dashed] (7.0, 1.5) -- (7.0, 3.5);
 	\draw [dashed] (7.0, 3.5) -- (1.5, 3.5);
 	\draw [dashed] (5.5, 2.0) -- (0.0, 2.0);
 	\draw [dashed] (0.0, 2.0) -- (1.5, 3.5);
 	\draw [dashed] (1.5, 3.5) -- (1.5, 1.5);
 	\draw [dashed] (1.5, 1.5) -- (7.0, 1.5);
-	\draw [red, ultra thick, dashed] (7.0, 1.5) -- (0.0, 0.0);
-	\draw [red, ultra thick, dashed] (0.0, 0.0) -- (5.5,2.0);
+	\draw [blue, ultra thick, dashed] (7.0, 1.5) -- (0.0, 0.0);
+	\draw [green, ultra thick, dashed] (0.0, 0.0) -- (5.5,2.0);
 	%
-	\draw[gray, very thick] (2.0,0.4) to [out=90,in=95] (2.1,0.0);
-	\draw[gray, very thick] (1.9,0.4) to [out=90,in=95] (2.0,0.0);
-	\draw[gray, very thick] (3.0,1.0) to [out=90,in=70] (3.0,0.0);
+	\draw[blue, very thick] (1.9,0.4) to [out=90,in=95] (2.0,0.0);
+	\draw[green, very thick] (3.0,1.0) to [out=90,in=70] (3.0,0.0);
 	%
 	\node [below] at (2.0,0.0) {${\theta}$};
 	\node [below] at (3.0,0.0) {${\phi}$};
 	\end{tikzpicture}
-	\caption{Wire centered at the origin including the angles $\phi$ and $\theta$ as defined for the directional cosines in Eqn.~\ref{wire:eqn:3}.\label{wire:fig:2}}
+	\caption{Wire centered (red) at the origin including the angles $\phi$ and $\theta$ as defined for the directional cosines in Eqn.~\ref{wire:eqn:3}.\label{wire:fig:2}}
 \end{figure}
 
 In case the wire lies parallel to the longitudinal axis ($\phi=\theta=0$), the transverse potential $A_{x,y}$ vanish and the longitudinal potential can be further simplified, leading to:
