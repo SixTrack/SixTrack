@@ -36,6 +36,7 @@ void *pthread_wait_sixtrack(void*);
 
 bool CopyFile(std::string InputFileName, std::string OutputFileName);
 bool FileComparison(std::string f1, std::string f2);
+size_t StripCR(std::string);
 
 bool CheckFort10(char**);
 bool CheckFort90(char**);
@@ -766,10 +767,8 @@ bool FileComparison(std::string FileName1, std::string FileName2)
 	while(position <= length1)
 	{
 		size_t rsize = std::min(length1, BufferSize);
-
 		f1.read(f1Buffer,rsize);
 		f2.read(f2Buffer,rsize);
-
 		//std::cerr << FileName1 << " is different from " << FileName2 << " at " << length2-length1 << " - comparison: " << comparison << std::endl;
 
 		int comparison = memcmp(f1Buffer, f2Buffer, rsize);
@@ -804,6 +803,11 @@ bool PerformExtraChecks()
 			if(FileName != "")
 			{
 				std::cout << "Performing extra checks on " << FileName << std::endl;
+#ifdef WIN32
+				//Strip out \r characters from windows new lines
+				size_t CRcount = StripCR(FileName);
+				std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+#endif
 				bool ThisTest = !FileComparison(FileName, FileName + ".canonical");
 				if(ThisTest)
 				{
@@ -931,4 +935,44 @@ void UnlinkCRFiles()
 			perror(er.c_str());
 		}
 	}
+}
+
+size_t StripCR(std::string FileName)
+{
+	std::ifstream InputFile(FileName.c_str(), std::ios::binary);
+	if(InputFile.good())
+	{
+		size_t count = 0;
+		char cbuffer;
+		std::streambuf* sbuffer = InputFile.rdbuf();
+		std::stringstream stream;
+
+		while(sbuffer->sgetc() != EOF)
+		{
+			if(cbuffer = sbuffer->sbumpc())
+			{
+				if(cbuffer == '\r')
+				{
+					//Increment the count and do nothing
+					count++;
+				}
+				else
+				{
+					stream << cbuffer;
+				}
+			}
+		}
+
+		//Now close the input file
+		InputFile.close();
+
+		//write!
+		std::ofstream OutputFile(FileName.c_str(), std::ios::binary);
+		OutputFile << stream.str();
+		OutputFile.close();
+
+		return count;
+	}
+
+	return 0;
 }
