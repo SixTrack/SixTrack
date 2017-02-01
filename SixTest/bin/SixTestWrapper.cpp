@@ -67,12 +67,14 @@ struct KillInfo
 * It then performs checks on the output
 * Currently we check fort.10 and fort.90
 * Arguments:
-* 1: Sixtrack binary to run
-* 2: bool to check fort.10
-* 3: bool to check fort.90
-* 4: bool for STF enabled
-* 5: CR enabled
-* 6: CR kill time
+* 1: Path to Sixtrack binary to run
+* 2: Path to checkf10 binary to run
+* 3: Path to read90 binary to run
+* 4: bool to check fort.10
+* 5: bool to check fort.90
+* 6: bool for STF enabled
+* 7: CR enabled
+* 8: CR kill time
 *
 * For running the tools:
 * On "Unix" we call fork() and exec()
