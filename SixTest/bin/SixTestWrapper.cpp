@@ -37,9 +37,9 @@ void *pthread_wait_sixtrack(void*);
 bool CopyFile(std::string InputFileName, std::string OutputFileName);
 bool FileComparison(std::string f1, std::string f2);
 
-bool CheckFort10();
-bool CheckFort90();
-bool CheckSTF();
+bool CheckFort10(char**);
+bool CheckFort90(char**);
+bool CheckSTF(char**);
 bool PerformExtraChecks();
 std::vector<int> ParseKillTimes(char*);
 
@@ -84,9 +84,9 @@ struct KillInfo
 int main(int argc, char* argv[])
 {
 	//First check we have the correct number of arguments
-	if(argc != 7)
+	if(argc != 9)
 	{
-		std::cout << argv[0] << " called with the incorrect number of arguments, should be 6, but was called with " << argc - 1 << " arguments" << std::endl;
+		std::cout << argv[0] << " called with the incorrect number of arguments, should be 8, but was called with " << argc - 1 << " arguments" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -115,25 +115,25 @@ int main(int argc, char* argv[])
 	bool STFfail = false;
 	bool ExtraChecksfail = false;
 
-	if(atof(argv[2]) != 0)
+	if(atof(argv[4]) != 0)
 	{
 		fort10 = true;
 	}
 
-	if(atof(argv[3]) != 0)
+	if(atof(argv[5]) != 0)
 	{
 		fort90 = true;
 	}
 
-	if(atof(argv[4]) != 0)
+	if(atof(argv[6]) != 0)
 	{
 		STF = true;
 	}
 
-	if(atof(argv[5]) != 0)
+	if(atof(argv[7]) != 0)
 	{
 		CR = true;
-		KillTimes = ParseKillTimes(argv[6]);
+		KillTimes = ParseKillTimes(argv[8]);
 	}
 
 	/**
@@ -345,7 +345,7 @@ int main(int argc, char* argv[])
 	if(fort10)
 	{
 		std::cout << "------------------------------ Checking fort.10 ------------------------------" << std::endl;
-		fort10fail = CheckFort10();
+		fort10fail = CheckFort10(argv);
 		std::cout << "---------------------------- End checking fort.10 ----------------------------" << std::endl;
 		if(fort10fail)
 		{
@@ -360,7 +360,7 @@ int main(int argc, char* argv[])
 	if(fort90)
 	{
 		std::cout << "------------------------------ Checking fort.90 ------------------------------" << std::endl;
-		fort90fail = CheckFort90();
+		fort90fail = CheckFort90(argv);
 		std::cout << "---------------------------- End checking fort.90 ----------------------------" << std::endl;
 		if(fort90fail)
 		{
@@ -376,7 +376,7 @@ int main(int argc, char* argv[])
 	if(STF)
 	{
 		std::cout << "------------------------ Checking singletrackfile.dat ------------------------" << std::endl;
-		STFfail = CheckSTF();
+		STFfail = CheckSTF(argv);
 		std::cout << "---------------------- End checking singletrackfile.dat ----------------------" << std::endl;
 		if(STFfail)
 		{
@@ -465,7 +465,7 @@ bool CopyFile(std::string InputFileName, std::string OutputFileName)
 * Checks if two fort.10 files are equivalent
 * @return true if there is a problem, false if there is not
 */
-bool CheckFort10()
+bool CheckFort10(char* argv[])
 {
 	//return false if all is good, true if anything else happens
 
@@ -492,7 +492,7 @@ bool CheckFort10()
 	if(CheckFort10pid == 0)
 	{
 		//child, run checkf10
-		int status = execl("./checkf10", "checkf10", (char*) 0);
+		int status = execl(argv[2], "checkf10", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute checkf10");
@@ -508,7 +508,7 @@ bool CheckFort10()
 		return waitpidStatus;
 	}
 #else
-	int status = _spawnl(_P_WAIT, "./checkf10", "checkf10", (char*) 0);
+	int status = _spawnl(_P_WAIT, argv[2], "checkf10", (char*) 0);
 	if(status == -1)
 	{
 		perror("ERROR - could not execute checkf10");
@@ -523,7 +523,7 @@ bool CheckFort10()
 * Checks if two fort.90 files are equivalent
 * @return true if there is a problem, false if there is not
 */
-bool CheckFort90()
+bool CheckFort90(char* argv[])
 {
 	//return false if all is good, true if anything else happens
 	//First we call read90 on each file.
@@ -543,7 +543,7 @@ bool CheckFort90()
 	if(CheckFort90pid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--fname", "fort.90", "--ofname", "fort.90.out", (char*) 0);
+		int status = execl(argv[3], "read90", "--fname", "fort.90", "--ofname", "fort.90.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -575,7 +575,7 @@ bool CheckFort90()
 	if(CheckFort90pid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", (char*) 0);
+		int status = execl(argv[3], "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -597,7 +597,7 @@ bool CheckFort90()
 #else
 	//Windows
 	//First file
-	int status1 = _spawnl(_P_WAIT, "./read90", "read90", "--fname", "fort.90", "--ofname", "fort.90.out", (char*) 0);
+	int status1 = _spawnl(_P_WAIT, argv[3], "read90", "--fname", "fort.90", "--ofname", "fort.90.out", (char*) 0);
 	if(status1 == -1)
 	{
 		perror("ERROR - could not execute read90");
@@ -605,7 +605,7 @@ bool CheckFort90()
 	std::cout << "read90 finished running on fort.90: " << status1 << std::endl;
 
 	//Second file (canonical)
-	int status2 = _spawnl(_P_WAIT, "./read90", "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", (char*) 0);
+	int status2 = _spawnl(_P_WAIT, argv[3], "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", (char*) 0);
 	if(status2 == -1)
 	{
 		perror("ERROR - could not execute read90");
@@ -620,7 +620,7 @@ bool CheckFort90()
 * Checks if two singletrackfile.dat files are equivalent
 * @return true if there is a problem, false if there is not
 */
-bool CheckSTF()
+bool CheckSTF(char* argv[])
 {
 	//return false if all is good, true if anything else happens
 	//First we call read90 on each file.
@@ -639,7 +639,7 @@ bool CheckSTF()
 	if(CheckSTFpid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--STF", "--fname", "singletrackfile.dat", "--ofname", "singletrackfile.dat.out", (char*) 0);
+		int status = execl(argv[3], "read90", "--STF", "--fname", "singletrackfile.dat", "--ofname", "singletrackfile.dat.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -671,7 +671,7 @@ bool CheckSTF()
 	if(CheckSTFpid == 0)
 	{
 		//child, run read90
-		int status = execl("./read90", "read90", "--STF", "--fname", "singletrackfile.dat.canonical", "--ofname", "singletrackfile.dat.canonical.out", (char*) 0);
+		int status = execl(argv[3], "read90", "--STF", "--fname", "singletrackfile.dat.canonical", "--ofname", "singletrackfile.dat.canonical.out", (char*) 0);
 		if(status == -1)
 		{
 			perror("ERROR: Could not execute read90");
@@ -693,7 +693,7 @@ bool CheckSTF()
 #else
 	//Windows
 	//First file
-	int status1 = _spawnl(_P_WAIT, "./read90", "read90", "--STF", "--fname", "singletrackfile.dat", "--ofname", "singletrackfile.dat.out", (char*) 0);
+	int status1 = _spawnl(_P_WAIT, argv[3], "read90", "--STF", "--fname", "singletrackfile.dat", "--ofname", "singletrackfile.dat.out", (char*) 0);
 	if(status1 == -1)
 	{
 		perror("ERROR - could not execute read90");
@@ -701,7 +701,7 @@ bool CheckSTF()
 	std::cout << "read90 finished running on singletrackfile.dat: " << status1 << std::endl;
 
 	//Second file (canonical)
-	int status2 = _spawnl(_P_WAIT, "./read90", "read90", "--STF", "--fname", "singletrackfile.dat.canonical", "--ofname", "singletrackfile.dat.canonical.out", (char*) 0);
+	int status2 = _spawnl(_P_WAIT, argv[3], "read90", "--STF", "--fname", "singletrackfile.dat.canonical", "--ofname", "singletrackfile.dat.canonical.out", (char*) 0);
 	if(status2 == -1)
 	{
 		perror("ERROR - could not execute read90");
