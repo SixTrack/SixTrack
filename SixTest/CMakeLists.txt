@@ -21,7 +21,7 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
-## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.10.
+## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90.
 ## Disabled: elensidealthin6d_DYNK (missing canonicals, see issue #189)
 ## "Totally untested": bnl
 ##
