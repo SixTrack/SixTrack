@@ -25275,7 +25275,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           moidpsv (j) = mtc(j)*oidpsv(j)                                    ! new for ions
           omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))                       ! new for ions
           rvv     (j) = (ejv(j)*e0f)/(e0*ejfv(j))                           ! unchanged for ions
-
 	
 !         check existence of on-momentum particles in the distribution
           if ( abs(dpsv(j)).lt.1.0D-15 .or.                             &
