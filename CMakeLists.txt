@@ -512,10 +512,12 @@ if(64BIT)
 	if(CERNLIB)
 		message(FATAL_ERROR "Cannot build CERNLIB with 64BIT enabled.")
 	endif()
-#	if(BOINC)
-#		message(FATAL_ERROR "Cannot build BOINC with 64BIT enabled.")
-#	endif()
 endif()
+if(AVX2)
+	if(NOT AVX)
+		message(FATAL_ERROR "Building with AVX2 requires AVX enabled")
+	endif(NOT AVX)
+endif(AVX2)
 
 ###################################################################################################
 # Settings for compiler build flags
