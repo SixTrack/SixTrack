@@ -9,9 +9,11 @@
 #include <unistd.h>
 #include <signal.h>
 
+#ifndef WIN32
 //waitpid()
 #include <sys/types.h>
 #include <sys/wait.h>
+#endif
 
 //to get errors from POSIX calls
 #include <errno.h>
@@ -23,8 +25,14 @@
 //pthread
 #include <pthread.h>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#ifndef WIN32
 void *pthread_kill_sixtrack(void*);
 void *pthread_wait_sixtrack(void*);
+#endif
 
 bool CopyFile(std::string InputFileName, std::string OutputFileName);
 bool FileComparison(std::string f1, std::string f2);
@@ -37,12 +45,21 @@ std::vector<int> ParseKillTimes(char*);
 
 void UnlinkCRFiles();
 
+#ifndef WIN32
 struct KillInfo
 {
 	pid_t SixPID;	//The pid
 	int kTime;		//The time to kill for
 	bool RunStatus;	//Did the run finish whilst we were waiting to kill?
 };
+#else
+struct KillInfo
+{
+	pid_t SixPID;	//The pid
+	int kTime;		//The time to kill for
+	bool RunStatus;	//Did the run finish whilst we were waiting to kill?
+};
+#endif
 
 /**
 * SixTrack testing wrapper
@@ -56,6 +73,13 @@ struct KillInfo
 * 4: bool for STF enabled
 * 5: CR enabled
 * 6: CR kill time
+*
+* For running the tools:
+* On "Unix" we call fork() and exec()
+* On windows we call spawn()
+* https://docs.microsoft.com/en-us/cpp/c-runtime-library/spawn-wspawn-functions
+* https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/spawnl-wspawnl
+*
 */
 int main(int argc, char* argv[])
 {
@@ -124,6 +148,7 @@ int main(int argc, char* argv[])
 	*/
 	if(CR)
 	{
+
 		std::cout << "Starting CR run loop - will clear out any files from a previous run" << std::endl;
 		UnlinkCRFiles();
 
@@ -132,6 +157,8 @@ int main(int argc, char* argv[])
 			KillTime = KillTimes.at(KillCount);
 
 			std::cout << "Starting Checkpoint/Resume (CR) SixTrack run" << std::endl;
+
+#ifndef WIN32
 			pid_t SixTrackpid = fork();
 			if(SixTrackpid == -1)
 			{
@@ -181,16 +208,98 @@ int main(int argc, char* argv[])
 					KillCount = KillTimes.size();
 				}
 			}
+#else
+			//a DWORD is a 32bit unsigned int
+
+			/*
+			typedef struct _STARTUPINFO {
+			  DWORD  cb;
+			  LPTSTR lpReserved;
+			  LPTSTR lpDesktop;
+			  LPTSTR lpTitle;
+			  DWORD  dwX;
+			  DWORD  dwY;
+			  DWORD  dwXSize;
+			  DWORD  dwYSize;
+			  DWORD  dwXCountChars;
+			  DWORD  dwYCountChars;
+			  DWORD  dwFillAttribute;
+			  DWORD  dwFlags;
+			  WORD   wShowWindow;
+			  WORD   cbReserved2;
+			  LPBYTE lpReserved2;
+			  HANDLE hStdInput;
+			  HANDLE hStdOutput;
+			  HANDLE hStdError;
+			} STARTUPINFO, *LPSTARTUPINFO;
+			*/
+			STARTUPINFO si;
+
+			/*
+			typedef struct _PROCESS_INFORMATION {
+			  HANDLE hProcess;
+			  HANDLE hThread;
+			  DWORD  dwProcessId;
+			  DWORD  dwThreadId;
+			} PROCESS_INFORMATION, *LPPROCESS_INFORMATION;
+			*/
+			PROCESS_INFORMATION pi;
+
+			//crashes happen if these are not first zero'ed
+			ZeroMemory( &si, sizeof(si) );
+			si.cb = sizeof(si);
+			ZeroMemory( &pi, sizeof(pi) );
+
+			/*
+			BOOL WINAPI CreateProcess(
+			  _In_opt_    LPCTSTR               lpApplicationName,
+			  _Inout_opt_ LPTSTR                lpCommandLine,
+			  _In_opt_    LPSECURITY_ATTRIBUTES lpProcessAttributes,
+			  _In_opt_    LPSECURITY_ATTRIBUTES lpThreadAttributes,
+			  _In_        BOOL                  bInheritHandles,
+			  _In_        DWORD                 dwCreationFlags,
+			  _In_opt_    LPVOID                lpEnvironment,
+			  _In_opt_    LPCTSTR               lpCurrentDirectory,
+			  _In_        LPSTARTUPINFO         lpStartupInfo,
+			  _Out_       LPPROCESS_INFORMATION lpProcessInformation
+			);
+			*/
+
+			//Start SixTrack running
+			BOOL cp = CreateProcess(NULL, argv[1], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+
+			if(!cp)
+			{
+				std::cerr << "Error in starting SixTrack" << std::endl;
+			}
+
+			/*
+			BOOL WINAPI GetExitCodeProcess(
+			  _In_  HANDLE  hProcess,
+			  _Out_ LPDWORD lpExitCode
+			);
+			*/
+			LPDWORD excode;
+			BOOL ecode = GetExitCodeProcess(pi.hProcess,  excode);
+			std::cout << "current code is " << excode << std::endl;
+			WaitForSingleObject( pi.hProcess, INFINITE );
+
+			CloseHandle( pi.hProcess );
+			CloseHandle( pi.hThread );
+#endif
 
 			//Wait a moment until the next run attempt is started?
 			sleep(1);
-		}
+
+		}//End for loop
+
 		std::cout << "End CR run loop" << std::endl;
 	}
 
 	//Normal run
 	else
 	{
+#ifndef WIN32
 		pid_t SixTrackpid = fork();
 		if(SixTrackpid == -1)
 		{
@@ -216,7 +325,16 @@ int main(int argc, char* argv[])
 			waitpid(SixTrackpid, &waitpidStatus, WUNTRACED);
 			std::cout << "SixTrack finished running: " << waitpidStatus << std::endl;
 		}
+#else
+	int execStatus = _spawnl(_P_WAIT, argv[1], argv[1], (char*) 0);
+	if(execStatus == -1)
+	{
+		perror("ERROR - could not execute SixTrack");
 	}
+	std::cout << "SixTrack finished running: " << execStatus << std::endl;
+#endif
+	}
+
 	/*
 	* The next step is to check the output is valid.
 	* A number of checks against reference output files can be made
@@ -361,6 +479,7 @@ bool CheckFort10()
 		return true;
 	}
 
+#ifndef WIN32
 	//Now again we fork() and exec()
 	pid_t CheckFort10pid = fork();
 	if(CheckFort10pid == -1)
@@ -388,6 +507,16 @@ bool CheckFort10()
 		std::cout << "checkf10 finished running and returned: " << waitpidStatus << std::endl;
 		return waitpidStatus;
 	}
+#else
+	int status = _spawnl(_P_WAIT, "./checkf10", "checkf10", (char*) 0);
+	if(status == -1)
+	{
+		perror("ERROR - could not execute checkf10");
+	}
+	std::cout << "checkf10 finished running and returned: " << status << std::endl;
+
+	return status;
+#endif
 }
 
 /**
@@ -400,6 +529,7 @@ bool CheckFort90()
 	//First we call read90 on each file.
 	//Then we must do a binary comparison
 
+#ifndef WIN32
 	//Now again we fork() and exec()
 	//Do this for the first file
 	pid_t CheckFort90pid = fork();
@@ -464,7 +594,24 @@ bool CheckFort90()
 			return waitpidStatus;
 		}
 	}
+#else
+	//Windows
+	//First file
+	int status1 = _spawnl(_P_WAIT, "./read90", "read90", "--fname", "fort.90", "--ofname", "fort.90.out", (char*) 0);
+	if(status1 == -1)
+	{
+		perror("ERROR - could not execute read90");
+	}
+	std::cout << "read90 finished running on fort.90: " << status1 << std::endl;
 
+	//Second file (canonical)
+	int status2 = _spawnl(_P_WAIT, "./read90", "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", (char*) 0);
+	if(status2 == -1)
+	{
+		perror("ERROR - could not execute read90");
+	}
+	std::cout << "read90 finished running on fort.90.canonical: " << status2 << std::endl;
+#endif
 	return !FileComparison("fort.90.out", "fort.90.canonical.out");
 
 }
@@ -478,7 +625,7 @@ bool CheckSTF()
 	//return false if all is good, true if anything else happens
 	//First we call read90 on each file.
 	//Then we must do a binary comparison
-
+#ifndef WIN32
 	//Now again we fork() and exec()
 	//Do this for the first file
 	pid_t CheckSTFpid = fork();
@@ -543,7 +690,24 @@ bool CheckSTF()
 			return waitpidStatus;
 		}
 	}
+#else
+	//Windows
+	//First file
+	int status1 = _spawnl(_P_WAIT, "./read90", "read90", "--STF", "--fname", "singletrackfile.dat", "--ofname", "singletrackfile.dat.out", (char*) 0);
+	if(status1 == -1)
+	{
+		perror("ERROR - could not execute read90");
+	}
+	std::cout << "read90 finished running on singletrackfile.dat: " << status1 << std::endl;
 
+	//Second file (canonical)
+	int status2 = _spawnl(_P_WAIT, "./read90", "read90", "--STF", "--fname", "singletrackfile.dat.canonical", "--ofname", "singletrackfile.dat.canonical.out", (char*) 0);
+	if(status2 == -1)
+	{
+		perror("ERROR - could not execute read90");
+	}
+	std::cout << "read90 finished running on singletrackfile.dat.canonical: " << status2 << std::endl;
+#endif
 	return !FileComparison("singletrackfile.dat.out", "singletrackfile.dat.canonical.out");
 
 }
@@ -685,6 +849,7 @@ std::vector<int> ParseKillTimes(char* in)
 	return KillTimes;
 }
 
+#ifndef WIN32
 void *pthread_wait_sixtrack(void* InputStruct)
 {
 	//Grab the structure
@@ -743,6 +908,7 @@ void *pthread_kill_sixtrack(void* InputStruct)
 		std::cout << "Kill thread - kill() result: " << res << std::endl;
 	}
 }
+#endif
 
 /**
 * Deletes any checkpoint files that are appended to from previous CR runs.
