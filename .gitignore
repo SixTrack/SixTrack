@@ -21,6 +21,8 @@ SixTrack/dafor
 
 SixTrack/libarchive_build
 
+SixTrack/count.log
+
 #LaTeX temps
 Doc/*/*.aux
 Doc/*/*.log

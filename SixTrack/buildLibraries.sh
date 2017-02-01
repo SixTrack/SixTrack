@@ -21,6 +21,10 @@ cd boinc
 
 if [[ $(uname) == FreeBSD* ]]; then
     MAKE=/usr/local/bin/gmake ./_autosetup -f
+elif [[ $(uname) == NetBSD* ]]; then
+    MAKE=/usr/pkg/bin/gmake ./_autosetup -f
+elif [[ $(uname) == Darwin* ]]; then
+    LIBTOOLIZE=/usr/local/bin/glibtoolize ./_autosetup -f
 else
     ./_autosetup -f
 fi
@@ -41,6 +45,10 @@ fi
 
 #Need to build the boinc/api/boinc_api_fortran.o separately
 cd api
+if [[ -e boinc_api_fortran.o ]]; then
+    #In case we already have such an .o file, it may be of the wrong arch, so recompile.
+    rm boinc_api_fortran.o
+fi
 make boinc_api_fortran.o
 cd ..
 
