@@ -2063,14 +2063,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +if .not.tilt
             yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
             yv(2,j)=yv(2,j)-(strack(i)*oidpsv(j))*cikve !hr02
-            write(*,*) '--> DIST: x,y', yv(1,j), yv(2,j)
 +ei
 +if tilt
             yv(1,j)=yv(1,j)+oidpsv(j)*(strackc(i)*crkve+                &
      &stracks(i)*cikve)
             yv(2,j)=yv(2,j)+oidpsv(j)*(stracks(i)*crkve-                &!hr02
      &strackc(i)*cikve) !hr02
-            write(*,*) '--> DIST: x,y', yv(1,j), yv(2,j)            
 +ei
 +cd kickvdpe
 +if .not.tilt
@@ -25790,7 +25788,7 @@ c$$$           end do
      &lkk,ia,j-1)*al(4,lkk,ia,ikk)
               hv(4,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(4,   &
      &lkk,ia,j-1)*al(4,lkk,ia,ikk)
-              hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,i kk)+ hv(6,  &!hr05
+              hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(2,lkk,ia,ikk))+al(5,lkk,ia,ikk)/dpoff               !hr05
               hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
@@ -27906,7 +27904,6 @@ c$$$           end do
 !++  start of ring!
 !
       ! PDH: DO ONLY WHEN DIST BLOCK IS NOT CALLED
-      ! MAYBE GIVE WARNING MESSAGE THAT USAGE IS DEPRECIATED
       if (.not.dist_block) then
             do i = 1, napx00
               xv(1,i)  = 1d3*myx(i+(j-1)*napx00)  +torbx(1)              !hr08
@@ -39146,15 +39143,6 @@ c$$$           end do
          dcum(i)=zero
       enddo
       
-!--READ DIST------------------------------------------------------------
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     initialise common
-!     always in main code
-      !dist_enable = .false.
-!dist_filename = ''
-!      dist_fname     = ''
-!
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
 !     K.Sjobak, BE-ABP/HSS
@@ -63448,7 +63436,8 @@ c$$$     &           myalphay * cos(phiy))
 
 !
 !========================================================================
-!     P.D. HERMES (PDH)
+!     PDH
+!     based on implementation of A. Mereghetti, extended for heavy ions      
 !     read distribution from external file
 !     part of the extensions discussed in      
 !     https://github.com/SixTrack/SixTrack/issues/111
@@ -63478,7 +63467,6 @@ c$$$     &           myalphay * cos(phiy))
 
       
 +ca inidist
-+ca rtwiss      
 !+ca dist_var
 
 
@@ -63628,19 +63616,15 @@ c$$$     &           myalphay * cos(phiy))
          napx = jj
       endif
 
-!      write(*,*), '--> DIST , incoming beta', betx, bety
-      
-      write(*,*), '--> DIST MKP xn before', xn
-      ! make the normalized coordinates physical
-      if(dist_type.eq.'NORM') then
-        ! phd: calculate geometric emittance
-        !dist_en(1) = 
 
-         
-        call dist_makephys( napx, npart, enom, pnom, clight,
-     &        xn, yn, xpn, ypn, sn, pcn, aa, zz, m   )
-      endif
-      write(*,*), '--> DIST MKP xn after', xn
+      
+
+!      make the normalized coordinates physical
+!      if(dist_type.eq.'NORM') then
+!        call subroutine dist_makephys and retreive back the physical
+!        coordinates
+!        call dist_makephys(    )
+!      endif
 
       
 !     fix units:
@@ -63708,15 +63692,9 @@ c$$$     &           myalphay * cos(phiy))
       
       save
 
-
-      do jj=1,napx
-         xn (jj) = xn (jj) / 2
-      enddo
-
-      
+     
 
       write(*,*), '--> DIST makephys'
-      write(*,*), '--> DIST MKP xn', xn
       write(*,*), '--> DIST makephys en ', dist_en
 
       end subroutine 
