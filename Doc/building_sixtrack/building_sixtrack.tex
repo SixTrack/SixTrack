@@ -50,6 +50,7 @@
 \newpage
 
 \section{Downloading SixTrack}
+\label{sec:downloading}
 The last stable release of SixTrack should be found on GitHub, in the SixTrack repository under the SixTrack organization:
 \url{https://github.com/SixTrack/SixTrack}.
 This provides the source code, which you will then have to compile as described in Section~\ref{sec:building}.
@@ -78,23 +79,27 @@ If you want to modify SixTrack, get feedback on your changes, and possibly contr
 \section{Contributing to SixTrack}
 \label{sec:contributing}
 
-
 The SixTrack code is being used and developed by a wide community, which makes keeping the code coherent between different development branches a challenge.
 In the past, the main development took place in an SVN repository, to which the main developers could commit what would become the new release versions.
-Alongside these ``official'' releases, it was common practice that various new features was developed in separate branches, sometimes in separate repositories, and often in a home-directory of the user/developer.
+Alongside these ``official'' releases, it was common practice that various new features were developed in separate branches, sometimes in separate repositories, but often in a home-directory of the user/developer writing and running the code.
 This lead to that these features were never integrated into the main release, resulting in a significant duplication of effort, bugs fixed in one version remaining unfixed in other versions for a long time, new features being unavailable to users of other branches or being lost, and fewer eyes on the code implementing new features.
 
 A switch from SVN to GIT was therefore investigated and implemented, including the preservation of the old commit history.
-This development tool has a greatly improved support for working with branches compared to SVN, which means that each new feature, bugfix etc. can be worked on in a separate branch.
+This development tool has a greatly improved support for working with branches compared to SVN, meaning that each new feature, bugfix etc. can be worked on in a separate branch.
 These branches are very easy to create, and allows the contributor to use a version control tool throughout a potentially complex development.
 When the development in a branch is finished, integration back to the master branch can be accomplished with a merge, something which is usually a trivial operation.
 This way, we avoid much of the feature leakage present in the old process.
 
-While GIT is a distributed version control system, meaning that each user has and manipulates full copy of all the history in their home folder, a central main repository is still useful.
-CERN IT provides this based on GitLab~\cite{CERNgitlab}, however this can only be accessed by internal users.
+GIT is a distributed version control system, meaning that each user has and manipulates full copy of the history in a local directory; one can commit, create branches, merge etc.\ completely off-line.
+However, a central main repository is still useful for synchronizing progress from different developers and distributing the code (as described in Section~\ref{sec:downloading}).
+CERN IT provides this based on GitLab~\cite{CERNgitlab}, however this service can only be accessed by internal CERN users.
 For projects that have external contributors, they therefore recommend to use GitHub~\cite{CERNgitProviders}.
 Hosting the project with GitHub has many advantages, as they provide a very good web interface to the repository and an issue tracker including ``pull requests''.
 Furthermore, GitHub has millions of users world wide, which means that solutions to common problems are easy to find.
+
+For the rest of this section, some familiarity with the use of GIT and GitHub is expected of the reader; many guides for this can be found on-line.
+Still, a brief description of how to configure your GIT client is given in Section~\ref{sec:contributing:git}.
+Note that if you are using a very old GIT client, such as the one installed on LxPlus, some of the commands given in this section may differ.
 
 For SixTrack, we have chosen the following development paradigm:
 \begin{enumerate}
@@ -102,52 +107,70 @@ For SixTrack, we have chosen the following development paradigm:
       These organizations are similar to service accounts.
 \item The SixTrack main repository is found at \url{https://github.com/SixTrack/SixTrack}.
       From here, users can browse the sources, see commit logs, view/edit the issue tracker etc.
-      If a user wants to use the standard version of the code, is possible to clone\footnote{Cloning a repository creates a new repository that is full copy of the old one, including history. This replaces the ``checkout'' process of SVN.} this repository directly.
+      If a user wants to use the standard version of the code, is possible to clone\footnote{Cloning a repository creates a new repository that is full copy of the old one, including history. This replaces the ``checkout'' process of SVN.} this repository directly as described in Section~\ref{sec:contributing}.
 \item Any development should take place in a branch in a personal fork.
       In order to create such a fork, the user must be logged in to a personal GitHub account.
       Creating the fork is then a matter of clicking the ``fork'' button on the web-page for the main repository.
       The user can then quickly clone this fork to the local computer.
 \item In the local clone of the user's fork, the user can then create a new branch from the master branch and start working, committing the changes as the work progresses, and pushing the commits back to their personal fork hosted at GitHub.
-\item After finishing the code changes, passing the SixTest tests, and writing the documentation, the developer submits a ``pull request'' for the branch to be merged into the main release branch.
+\item After finishing the code changes, passing the tests (See Section~\ref{sec:testing}), adding new tests, and writing the documentation, the developer submits a ``pull request'' for the branch to be merged into the main release branch.
       This triggers a code review by other developers, possibly recommending some further changes, and which usually leads to the branch being merged.
-      Before the branch is merged, the developer should add her/his name to the list of authors at the top of the \texttt{sixtrack.s} file.
-      Furthermore, if the changes since the last version bump is considered significant by the development group, the version number should be incremented.
-\item Once the branch is merged anyone who clones or pulls from the main repository will then get the new feature.
+      It is sometimes useful to submit the pull request early, as it makes tracking changes from master, getting feedback from the core developers etc.\ very easy.
+\item If it is a long time since the branch diverged from master, the contributor will usually be asked to merge the current master branch into their branch, resolve any conflicts, and re-test the code.
+\item Furthermore, if the changes since the last version bump is considered significant by the development group, the version number should be incremented.
+      The developer should also add her/his name to the list of authors at the top of the \texttt{sixtrack.s} file.
+      Note that increasing the version number, updating the date, and adding the name should be done just before merging, at the request of the core developers, after merging the current master into the branch.
+      This is to avoid merge conflicts when handling multiple branches.
+\item Once the branch is merged, anyone who clones or pulls from the main repository will then get the new feature.
 \end{enumerate}
 This process makes the development transparent and interactive, promoting collaboration between developers, and makes sure that all code that goes in the main release is reviewed, tested, and documented.
-The review process is also advantageous for the feature developer, as it makes it easy to get advice on how to implement the new feature and integrate it with existing functionality, and it reduces the chance of software bugs which can make the results of the study for which the feature was developed invalid.
+The review process is also advantageous for the feature developer, as it makes it easy to get advice on how to implement the new feature and integrate it with existing functionality, and it reduces the chance of software bugs which can make the physics results of the study for which the feature was developed invalid.
 
-When working on a local clone of a GitHub fork, it is important to keep it up to date with the main upstream repository.
-This can be done by adding the main upstream repository as as a ``remote'', in addition to the personal fork which is automatically added as the remote ``origin''.
-When this has been done, one can ``fetch'' (download) the changes from the main upstream repository, merge these into the master branch on the local repository, and then ``push'' (upload and update branch) the changes to the private fork, bringing it up to date with the main upstream repository.
+When working on a branch in a local clone of a GitHub fork, it is important to keep it up to date with the main upstream repository.
+This can be done by adding the main upstream repository as as a \texttt{remote}, in addition to the personal fork which is automatically added as the remote \texttt{origin}.
+When this has been done, one can \texttt{fetch} (download) the changes from the main upstream repository, merge these into the master branch of the local repository, and then \texttt{push} (upload and update a remote branch) the changes to the private fork, bringing it up to date with the main upstream repository.
 Using the command-line GIT client, this is done as follows:
 \begin{enumerate}
-\item[(first time only)] Add the ``upstream'' remote to the local clone:\\
-      \texttt{git remote add upstream git@github.com:SixTrack/SixTrack.git}
-\item Download the changes from the upstream:\\
-      \texttt{git fetch upstream}
-\item Switch to the ``master'' branch:\\
-      \texttt{git checkout master}
-\item Make sure that you are on the ``master'' branch:\\
-      \texttt{git checkout master}\\
-      It should say ``On branch master'', if not then do not proceed.
-\item Merge the upstream changes onto the local master:\\
-      \texttt{git merge upstream/master}\\
-      It should either say ``Already up to date'' or something like "Fast-forwarded"; if not then do not proceed.
+\item First time only: Add the \texttt{upstream} remote to the local clone:
+\begin{lstlisting}
+git remote add upstream git@github.com:SixTrack/SixTrack.git
+\end{lstlisting}
+\item Download the changes from the upstream:
+\begin{lstlisting}
+git fetch upstream
+\end{lstlisting}
+\item Switch to the \texttt{master} branch:
+\begin{lstlisting}
+git checkout master
+\end{lstlisting}
+\item Make sure that you are on the \texttt{master} branch:
+\begin{lstlisting}
+git checkout master
+\end{lstlisting}
+It should say ``On branch master'', if not then do not proceed.
+\item Merge the upstream changes onto the local master:
+\begin{lstlisting}
+git merge upstream/master
+\end{lstlisting}
+It should either say ``Already up to date'' or something like ``Fast-forwarded''; if not then do not proceed.
 \item Update the master branch in your fork with the changes in your local clone:
-      \texttt{git push}
-      If it asks about which remote to use, use the ``origin'' remote, which is the name of the remote corresponding to your personal fork.
+\begin{lstlisting}
+git push
+\end{lstlisting}
+If it asks about which remote to use, use the \texttt{origin} remote, which is the name of the remote corresponding to your personal fork.
 \end{enumerate}
-This process is necessary to do before starting a new branch (which is done by branching the ``master'' branch in the local clone) , in order to make sure that you start from the newest version.
+This process is necessary to do before starting a new branch (which is done by branching the \texttt{master} branch in the local clone) , in order to make sure that you start from the newest version.
 Furthermore, it is often useful to get an updated local master in order to update a long-running branch.
-Such updates are done by checking out the branch in question, and then running \texttt{git merge master} in order to merge the current status of the ``master'' branch onto the branch in question.
+Such updates are done by checking out the branch in question, and then running
+\begin{lstlisting}
+git merge master
+\end{lstlisting}
+in order to merge the current status of the \texttt{master} branch onto the branch in question.
+Note that \textbf{all development should take place in a new branch}; one should \textbf{never} commit directly to master.
 
+\subsection{Configuring your GIT client and GitHub account}
+\label{sec:contributing:git}
 
-forks and stuff.
-
-Setting up git and github.
-
-\todo[inline]{Reference / copy the text from the collimation workshop ``paper''.}
 
 \section{Building SixTrack}
 \label{sec:building}
@@ -488,7 +511,7 @@ Note that these build environments are considered to be obsolete and may soon be
 \todo[inline]{ccmake etc, as normally done in cmake\_six}
 
 \section{Testing SixTrack}
-
+\label{sec:testing}
 SixTrack supports the CTEST automatic test environment for black box testing of the build executables.
 This runs the SixTrack binary automatically over a range of input files, and compares the produced output with the expected output (known as ``canonicals'').
 In order to run CTEST, add the \texttt{BUILD\_TESTING} flag to the \texttt{cmake\_six} command line arguments.
