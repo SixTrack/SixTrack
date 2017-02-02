@@ -14,7 +14,7 @@ SHELL:=/bin/bash
 
 $(info **********************************************************************)
 $(info *** This makefile is obsolete, consider using 'cmake_six' instead! ***)	
-$(info *** Please see Doc/build_manual/ for more information.             ***)	
+$(info *** Please see Doc/building_sixtrack/ for more information.        ***)
 $(info **********************************************************************)
 
 # Library Path configuration
