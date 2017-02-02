@@ -484,7 +484,55 @@ Re-naming or deleting this link (\texttt{libquadmath.dylib}) should stop the lin
 
 \subsubsection{Building on Windows}
 
-\todo[inline]{msys2 + CYGWIN32 or CYGWIN64 (msys2 alone cannot do static linking)}
+It is possible to build SixTrack on Windows using the ``MSYS2'' UNIX-like environment.
+From here, one can install the required libraries and compilers, which can then be used for building a normal and staticly linked Windows executable.
+Building in this manner was tested on Windows Server 2012 R2, 64-bit version, with MSYS2 version \texttt{msys2\_x86\_64\_20161025} running in VirtualBox.
+
+To do this, first install MSYS2 from \url{http://msys2.github.io}; you should choose the 64-bit version (assuming that you have 64-bit Windows).
+This installs 3 Unix-like environments on your machine -- \texttt{MSYS2} which is used for managing packages and GIT, \texttt{MSYS2 MINGW 64-bit} which is used for compiling 64-bit executables, and \texttt{MSYS2 MINGW 32-bit} which is used for compiling 32-bit executables.
+After installing MSYS2, you need to bring it up to date.
+To do this, first update the \texttt{pacman} package manager using:
+\begin{lstlisting}
+pacman -Sy pacman
+\end{lstlisting}
+When it is complete, close the MSYS2 window.
+Then, open a new MSYS2 window and update the core packages:
+\begin{lstlisting}
+pacman -Syu
+\end{lstlisting}
+Close the window when asked to do so, and open a new window.
+Finally, do a general update using:
+\begin{lstlisting}
+pacman -Su
+\end{lstlisting}
+You can now start installing packages:
+\begin{lstlisting}
+pacman -Syu openssh git make
+pacman -Syu mingw-w64-x86_64-toolchain mingw64/mingw-w64-x86_64-cmake
+pacman -Syu mingw-w64-i686-toolchain mingw32/mingw-w64-i686-cmake
+\end{lstlisting}
+Install all the suggested packages when prompted; these packages should be sufficient to compile the basic version of SixTrack.
+You can now clone the SixTrack repository (in the MSYS2 shell) in order to get the sources, which should give you a new folder \texttt{SixTrack}.
+Once you have this folder you may compile the code as normally (in the MINGW32 or MINGW64 shell).
+Note that to build the 32-bit version, you should pass the options ``\texttt{-64BIT 32BIT}'' to \texttt{cmake\_six}.
+
+In order to build the BOINC and LIBARCHIVE libraries, you must first download their sources.
+Normally this is done automatically by the \texttt{buildLibraries.sh} script (Section~\ref{sec:building:libs:automatic}); however since git does not work correctly in the CYGWIN shells, you must do this step manually in the MSYS2 shell.
+Therefore run inside the \texttt{SixTrack} folder in the MSYS2 shell:
+\begin{lstlisting}
+git submodule init
+git submodule update
+\end{lstlisting}
+You also need to install the libraries -- again from the MSYS2 shell:
+\begin{lstlisting}
+pacman -Syu autoconf
+pacman -Syu automake
+pacman -Syu mingw32/mingw-w64-i686-headers-git mingw64/mingw-w64-x86_64-headers-git
+pacman -Syu mingw64/mingw-w64-x86_64-libtool mingw32/mingw-w64-i686-libtool
+\end{lstlisting}
+Once this is done, you may run \texttt{buildLibraries.sh} in the CYGWIN64/32 shell to build the libraries, and then build the BOINC version of SixTrack as normal.
+
+%In my notes, I also installed mingw64/mingw-w64-x86_64-dlfcn , however this does not appear to be neccessary...
 
 \subsection{Legacy build environments}
 
