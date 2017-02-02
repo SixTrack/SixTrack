@@ -449,17 +449,6 @@ It is found on AFS, in the folder \texttt{/afs/cern.ch/sw/nag/mark24/lnx/fll6i24
 Note that in order to link with this library (when also using \texttt{DA}) when compiling with gfortran or nagfor, dynamic linking (i.e.\ the flag \texttt{-STATIC} to \texttt{cmake\_six}) is required.
 If compiling with with ifort, it is possible to link (mostly) statically.
 
-\subsection{Tools}
-
-Two tools are required to pre-process the source code before it can be compiled -- astuce and dafor.
-These binaries must be compiled first, and are then ran by the build system to to convert the \texttt{.s} files into compileable Fortran.
-
-\subsubsection{Astuce}
-
-\subsubsection{DAFOR}
-
-\subsection{The ``beauty'' linters}
-
 \subsection{Building on platforms other than Linux}
 
 \subsubsection{Building on OS X}
@@ -503,12 +492,28 @@ In addition to the \texttt{cmake\_six} build script, there is the \texttt{make\_
 These tools are used in a similar fashion, the main difference is that \texttt{make\_six} will automatically change depending options, i.e. switching on collimation will automatically switch crlibm off.
 The \texttt{make\_six} script works by modifying the ASTUCE input files before running ASTUCE and DAFOR to produce the FORTRAN files, and then modifying \texttt{Makefile\_six.template} to contain the correct paths etc. before compiling it.
 
-Additionally, there is a plain makefile, which uses an option resolver written in Bash.
+Additionally, there is a plain makefile, which uses an option resolver written in BASH.
 
 Note that these build environments are considered to be obsolete and may soon be removed.
 
 \subsection{Running cmake directly}
 \todo[inline]{ccmake etc, as normally done in cmake\_six}
+
+\section{Organization of the SixTrack sources}
+
+\subsection{Coding standards}
+
+\subsection{Tools}
+
+Two tools are required to pre-process the source code before it can be compiled -- astuce and dafor.
+These binaries must be compiled first, and are then ran by the build system to to convert the \texttt{.s} files into compileable Fortran.
+
+\subsubsection{Astuce}
+
+\subsubsection{DAFOR}
+
+\subsubsection{The ``beauty'' linters}
+
 
 \section{Testing SixTrack}
 \label{sec:testing}
