@@ -565,9 +565,10 @@ These binaries must be compiled first, and are then ran by the build system to t
 
 \section{Testing SixTrack}
 \label{sec:testing}
-SixTrack supports the CTEST automatic test environment for black box testing of the build executables.
+SixTrack supports the \texttt{ctest} automatic test environment for black box testing of the build executables.
 This runs the SixTrack binary automatically over a range of input files, and compares the produced output with the expected output (known as ``canonicals'').
-In order to run CTEST, add the \texttt{BUILD\_TESTING} flag to the \texttt{cmake\_six} command line arguments.
+In order to run \texttt{ctest}, add the \texttt{BUILD\_TESTING} flag to the \texttt{cmake\_six} command line arguments.
+For GNU compilers, one can also add the flag \texttt{COVERAGE}, which makes it possible to see which lines of the code have been exercised by the test.
 
 Note that when implementing new features, one should always run the tests before the new code can be accepted into the master.
 
@@ -585,6 +586,8 @@ This will iterate over the tests, running SixTrack for each of them, and check t
 To run several tests in parallel, use the flag \texttt{-j \textit{numjobs}}.
 
 To run specific tests, use the flag \texttt{-R \textit{name}}, where \textit{name} is a regexp contained in the names of the tests you want to run.
+It is also possible to exclude certain tests using the \texttt{-E \texttt{name}} flag, where again \textit{name} is a regexp for the tests to exclude.
+
 The tests are classified as \texttt{fast} ($\lesssim 60~\mathrm{secconds}$), \texttt{medium} ($\lesssim 30~\mathrm{minutes}$), or \texttt{slow}; it is possible to run a group by using the \texttt{-L} flag, e.g.\ \texttt{-L fast}~.
 
 Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
@@ -593,9 +596,13 @@ The tests will be ran in the \texttt{SixTest/\textit{testname}} sub-folder creat
 It is therefore possible to find the produced files, together with the input- and reference files in this folder.
 The standard output of the simulation and output comparisons are by default stored in the \texttt{Testing/Temporary} subfolder.
 
-\subsection{Submitting to CDASH}
+\subsubsection{Submitting to CDASH}
+In order to collect the results of all tests in a organized way, there is a CDash page for SixTrack, which can be found at \url{http://abp-cdash.web.cern.ch/abp-cdash/index.php?project=SixTrack}.
+This page includes information about which tests are running correctly or failing, and optionally code coverage.
 
-(+coverity)
+In order to send the statistics for a build to CDash, add the argument \texttt{-D Experimental} to the \texttt{ctest} command line.
+
+On the page that is linked to above, you may either click on the name of a build to see the test results, or you may click on the percentage of coverage to see the coverage.
 
 \subsection{Adding new tests}
 
