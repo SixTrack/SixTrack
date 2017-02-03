@@ -17,6 +17,11 @@ set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Err
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
 set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\n.*19")
 
+if(BOINC)
+	ADD_TEST(NAME CheckTestInputForBOINC.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForBOINC.sh)
+	set_tests_properties(CheckTestInputForBOINC.sh PROPERTIES FAIL_REGULAR_EXPRESSION "[^-.*$]|[^diff]")
+endif(BOINC)
+
 #SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
 
 ##
@@ -173,6 +178,10 @@ endforeach()
 
 #tools
 SET(SELFTEST_TOOLS SelfTest_verify10 SelfTest_compf10 SelfTest_checkf1014 SelfTest_checkf10 SelfTest_checkf110 SelfTest_read90)
+if(BOINC)
+	SET(SELFTEST_TOOLS ${SELFTEST_TOOLS} CheckTestInputForBOINC.sh)
+endif(BOINC)
+
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
 		set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()

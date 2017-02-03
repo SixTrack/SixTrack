@@ -1226,6 +1226,11 @@ IF(BUILD_TESTING)
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
+	if(BOINC)
+		add_executable(CheckTestInputForBOINC.sh IMPORTED)
+		SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+	endif(BOINC)
+
 	#need to build the testing tools
 	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f)
 	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf10.f)
