@@ -20,10 +20,10 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 #SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
 
 ##
-## Needs checking: thick6dsingles (missing files)
-## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10
-## Disabled: elensidealthin6d_DYNK
-## "Totally untested": bnl
+## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
+## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.10.
+## Disabled: elensidealthin6d_DYNK (missing canonicals, see issue #189)
+## "Totally untested": bnl
 ##
 
 #List of tests which are STF compatible
@@ -154,11 +154,11 @@ SET(MEDIUM_TESTS bbe571ib0 elensidealthin6d tilt lostevery fma frs frs60 eric di
 SET(SLOW_TESTS prob1 prob3)
 
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
-
-list(FIND FAST_TESTS ${TST} LABEL_FAST)
-list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
-list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
-
+	
+	list(FIND FAST_TESTS ${TST} LABEL_FAST)
+	list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
+	list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
+	
 	if(${LABEL_FAST} GREATER -1)
 		set_property(TEST ${TST} PROPERTY LABELS fast)
 	elseif(${LABEL_MEDIUM} GREATER -1)
