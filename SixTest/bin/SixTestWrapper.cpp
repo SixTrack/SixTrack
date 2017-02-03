@@ -32,6 +32,9 @@
 #ifndef WIN32
 void *pthread_kill_sixtrack(void*);
 void *pthread_wait_sixtrack(void*);
+#else
+DWORD WINAPI winthread_kill_sixtrack(LPVOID);
+DWORD WINAPI winthread_wait_sixtrack(LPVOID);
 #endif
 
 bool CopyFile(std::string InputFileName, std::string OutputFileName);
@@ -56,9 +59,9 @@ struct KillInfo
 #else
 struct KillInfo
 {
-	pid_t SixPID;	//The pid
-	int kTime;		//The time to kill for
-	bool RunStatus;	//Did the run finish whilst we were waiting to kill?
+	HANDLE SixHANDLE;	//The handle
+	DWORD kTime;	//The time to kill for
+	BOOL RunStatus;	//Did the run finish whilst we were waiting to kill?
 };
 #endif
 
@@ -236,7 +239,7 @@ int main(int argc, char* argv[])
 			  HANDLE hStdError;
 			} STARTUPINFO, *LPSTARTUPINFO;
 			*/
-			STARTUPINFO si;
+			STARTUPINFO SixTrack_si;
 
 			/*
 			typedef struct _PROCESS_INFORMATION {
@@ -246,12 +249,12 @@ int main(int argc, char* argv[])
 			  DWORD  dwThreadId;
 			} PROCESS_INFORMATION, *LPPROCESS_INFORMATION;
 			*/
-			PROCESS_INFORMATION pi;
+			PROCESS_INFORMATION SixTrack_pi;
 
 			//crashes happen if these are not first zero'ed
-			ZeroMemory( &si, sizeof(si) );
-			si.cb = sizeof(si);
-			ZeroMemory( &pi, sizeof(pi) );
+			ZeroMemory( &SixTrack_si, sizeof(SixTrack_si) );
+			SixTrack_si.cb = sizeof(SixTrack_si);
+			ZeroMemory( &SixTrack_pi, sizeof(SixTrack_pi) );
 
 			/*
 			BOOL WINAPI CreateProcess(
@@ -267,28 +270,58 @@ int main(int argc, char* argv[])
 			  _Out_       LPPROCESS_INFORMATION lpProcessInformation
 			);
 			*/
-
+			std::cout << "CreateProcess()" << std::endl;
 			//Start SixTrack running
-			BOOL cp = CreateProcess(NULL, argv[1], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+			BOOL cp = CreateProcess(NULL, argv[1], NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &SixTrack_si, &SixTrack_pi);
 
 			if(!cp)
 			{
-				std::cerr << "Error in starting SixTrack" << std::endl;
+				std::cerr << "Error in starting SixTrack via CreateProcess() - Tried to run: " << argv[1] << " and error " << GetLastError() << std::endl;
 			}
+			else
+			{
+				//Our process should now be running
+				std::cout << "Will try to kill SixTrack after " << KillTime << " seconds" << std::endl;
 
-			/*
-			BOOL WINAPI GetExitCodeProcess(
-			  _In_  HANDLE  hProcess,
-			  _Out_ LPDWORD lpExitCode
-			);
-			*/
-			LPDWORD excode;
-			BOOL ecode = GetExitCodeProcess(pi.hProcess,  excode);
-			std::cout << "current code is " << excode << std::endl;
-			WaitForSingleObject( pi.hProcess, INFINITE );
+				//Make 2 threads, one to just wait, one to kill
+				KillInfo th_wait_struct;
+				th_wait_struct.SixHANDLE = SixTrack_pi.hProcess;
+				th_wait_struct.kTime = 0;
+				th_wait_struct.RunStatus = false;
 
-			CloseHandle( pi.hProcess );
-			CloseHandle( pi.hThread );
+				KillInfo th_kill_struct;
+				th_kill_struct.SixHANDLE = SixTrack_pi.hProcess;
+				th_kill_struct.kTime = KillTime;
+				th_kill_struct.RunStatus = false;
+
+				/*
+				HANDLE WINAPI CreateThread(
+				  _In_opt_  LPSECURITY_ATTRIBUTES  lpThreadAttributes,
+				  _In_      SIZE_T                 dwStackSize,
+				  _In_      LPTHREAD_START_ROUTINE lpStartAddress,
+				  _In_opt_  LPVOID                 lpParameter,
+				  _In_      DWORD                  dwCreationFlags,
+				  _Out_opt_ LPDWORD                lpThreadId
+				);
+				*/
+				//Now make 2 threads
+				HANDLE t_wait =  CreateThread(NULL, 0, winthread_wait_sixtrack, (LPVOID) &th_wait_struct, 0, NULL);
+				HANDLE t_kill =  CreateThread(NULL, 0, winthread_kill_sixtrack, (LPVOID) &th_kill_struct, 0, NULL);
+
+				WaitForSingleObject(t_wait, INFINITE);
+				WaitForSingleObject(t_kill, INFINITE);
+				CloseHandle(t_wait);
+				CloseHandle(t_kill);
+
+				CloseHandle(SixTrack_pi.hProcess);
+				CloseHandle(SixTrack_pi.hThread);
+
+				if(th_wait_struct.RunStatus == true)
+				{
+					std::cout << "CR run finished! Will terminate the loop." << std::endl;
+					KillCount = KillTimes.size();
+				}
+			}
 #endif
 
 			//Wait a moment until the next run attempt is started?
@@ -914,6 +947,102 @@ void *pthread_kill_sixtrack(void* InputStruct)
 		std::cout << "Kill thread - kill() result: " << res << std::endl;
 	}
 }
+#else
+DWORD winthread_wait_sixtrack(LPVOID InputStruct)
+{
+	//Grab the structure
+	KillInfo* ThreadStruct = (KillInfo*)InputStruct;
+
+	//Extract the HANDLE from the structure
+	HANDLE sixHANDLE = ThreadStruct->SixHANDLE;
+
+	//Wait for the thread to either end or to be killed.
+	WaitForSingleObject(sixHANDLE, INFINITE);
+
+	//If the thread exited (and was not killed), then we can exit this run.
+	/*
+	BOOL WINAPI GetExitCodeProcess(
+	  _In_  HANDLE  hProcess,
+	  _Out_ LPDWORD lpExitCode
+	);
+	*/
+	DWORD excode = 2;
+	LPDWORD excode_ptr = &excode;
+	BOOL ecode = GetExitCodeProcess(sixHANDLE, excode_ptr);
+	if(!ecode)
+	{
+		std::cerr << "GetExitCodeProcess() failed on SixTrack CR run!: " << GetLastError() << std::endl;
+	}
+	else
+	{
+		if(excode == 0)
+		{
+			std::cout << "SixTrack CR exited okay: " << excode << std::endl;
+			ThreadStruct->RunStatus = true;
+		}
+		else
+		{
+			std::cout << "SixTrack CR was killed: " << excode << std::endl;
+		}
+	}
+
+	return 0;
+}
+
+DWORD winthread_kill_sixtrack(LPVOID InputStruct)
+{
+	//Grab the structure
+	KillInfo* ThreadStruct = (KillInfo*)InputStruct;
+
+	//Extract the kill time from the structure
+	int KillTime = ThreadStruct->kTime;
+
+	//Extract the HANDLE from the structure
+	HANDLE sixHANDLE = ThreadStruct->SixHANDLE;
+	bool ArmKill=true;
+
+	for(int tt=0; tt < KillTime; tt++)
+	{
+		Sleep(1000);
+		//std::cout << "At " << tt+1 << " of " << KillTime << " Testing pid " << sixpid << ": ";
+		DWORD excode = 2;
+		LPDWORD excode_ptr = &excode;
+		BOOL ecode = GetExitCodeProcess(sixHANDLE, excode_ptr);
+		if(!ecode)
+		{
+			std::cerr << "GetExitCodeProcess() failed on SixTrack CR run!: " << GetLastError() << std::endl;
+		}
+		else
+		{
+			if(excode == 0)
+			{
+				std::cout << "SixTrack CR exited okay: " << excode << std::endl;
+				//No longer running, jump out;
+				ArmKill=false;
+				tt=KillTime;
+			}
+		}
+	}
+	if(ArmKill == true)
+	{
+		//Try and kill
+		std::cout << "Kill thread - calling TerminateProcess()" << std::endl;
+		/*
+		BOOL WINAPI TerminateProcess(
+		  _In_ HANDLE hProcess,
+		  _In_ UINT   uExitCode
+		);
+		*/
+		BOOL term = TerminateProcess(sixHANDLE, 9);
+		if(!term)
+		{
+			std::cerr << "Failed to TerminateProcess() on SixTrack CR run!: " << GetLastError() << std::endl;
+		}
+		std::cout << "Kill thread - TerminateProcess() result: " << term << std::endl;
+	}
+
+	return 0;
+}
 #endif
 
 /**
@@ -976,3 +1105,5 @@ size_t StripCR(std::string FileName)
 
 	return 0;
 }
+
+
