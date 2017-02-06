@@ -1,0 +1,26 @@
+Test the wire elements with ibeco=0 in the beam block. Here in particular test the ibeco option as in all other tests this option is set to 1 as usual done in all studies with beam-beam.
+
+--- Input files:
+fort.2 - SixTrack input for the LHC of 2016 without Beam - beam interactions at IPs
+
+Additional elements installed for the test:
+wire_1
+wire_2
+Beam-Beam element 
+wire_3
+wire_4
+wire_5
+
+--- Tests:
+1. Test subtraction of closed orbit (flagco):
+kick from wire_1 (positive current, closed orbit subtracted manually from wire's displacement) should be compensated by
+kick from wire_2 (negative current, closed orbit subtracted automatically from the wire's separations)
+
+2. Test that Beam-Beam lens compensates the wire:
+Beam-Beam element has approximately the same strength (but the opposite sign) with wire_3
+
+3. Test the tilt of the wire:
+wires 4 and 5 with opposite strengths and tilts compensate each other.
+
+
+ 
