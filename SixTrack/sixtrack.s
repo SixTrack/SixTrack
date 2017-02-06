@@ -6635,8 +6635,8 @@ cc2008
           if ( ldump(0) ) then
 !           dump at all SINGLE ELEMENTs
             if ( ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1 ) then
-               if (   (n.ge.dumpfirst(ix)) .and. 
-     &              ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+               if (   (n.ge.dumpfirst(0)) .and.
+     &              ( (n.le.dumplast(0)) .or. (dumplast(0).eq.-1) )
      &              ) then
                   call dump_beam_population( n, i, ix, dumpunit(0),
      &                 dumpfmt(0), ldumphighprec )
