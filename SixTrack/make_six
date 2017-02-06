@@ -993,6 +993,16 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 
+echo ""
+echo "   ********************************************************************************"
+echo "   *** PLEASE NOTE: 'make_six' is obsolete; consider using 'cmake_six' instead! ***"
+echo "   *** See Doc/building_sixtrack for more information                           ***"
+echo "   ********************************************************************************"
+echo ""
+echo "Hit any key to continue, or CTRL/C to exit."
+read junk
+
+
 # Make astuce and dafor (required for sixvefox and sixscfox)
 generate_makefile Makefile_makesix.template
 make -f Makefile_makesix astuce
