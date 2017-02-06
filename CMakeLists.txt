@@ -222,6 +222,9 @@ endif(AVX2)
 if(NATIVE)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_native")
 endif()
+
+SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${CMAKE_SYSTEM_PROCESSOR}")
+
 if(32BIT)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_32bit")
 endif()
@@ -1222,6 +1225,11 @@ IF(BUILD_TESTING)
 	endif()
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
+
+	if(BOINC)
+		add_executable(CheckTestInputForBOINC.sh IMPORTED)
+		SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+	endif(BOINC)
 
 	#need to build the testing tools
 	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f)
