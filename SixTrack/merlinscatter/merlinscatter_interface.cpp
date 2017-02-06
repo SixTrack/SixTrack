@@ -20,6 +20,7 @@ bool MScatterConfigured = false;
 
 //An internal store of the reference momentum
 double p_store;
+double s_store;
 
 //The pointer to the diffractive scattering class
 ppDiffractiveScatter* ppDiffractiveScatter_ptr = nullptr;
@@ -56,7 +57,9 @@ extern "C" void merlinscatter_setup_(double* Plab, int* seed)
 		double Mproton = PhysicalConstants::ProtonMassMeV * PhysicalUnits::MeV;
 		double Mpion = 0.1349766;
 //		double s = (2*pow(Mproton,2)+2*Mproton*p_store);
-		double s = (2 * PhysicalConstants::ProtonMassMeV * PhysicalUnits::MeV * *Plab) + (2 * pow(PhysicalConstants::ProtonMassMeV * PhysicalUnits::MeV,2));
+		double s = (2 * PhysicalConstants::ProtonMassMeV * PhysicalUnits::MeV * (*Plab)) + (2 * pow(PhysicalConstants::ProtonMassMeV * PhysicalUnits::MeV,2));
+		s_store = s;
+
 		double Mmin2 = pow(Mproton+Mpion,2);
 		double xi_th = Mmin2/s; // (M_p + M_pion)^2/s
 
@@ -110,8 +113,7 @@ extern "C" void merlinscatter_setup_(double* Plab, int* seed)
 */
 extern "C" void merlinscatter_setdata_(double* pptot, double* ppel, double* ppsd)
 {
-	double Mproton = 0.938272013;
-	double s = (2*pow(Mproton,2)+2*Mproton*p_store);
+	double s = s_store;
 
 	//Parameters for the Merlin total pp cross section, just taken from the current PDG equation.
 	const double Z_pp = 35.4548e-3;
@@ -165,10 +167,7 @@ extern "C" void merlinscatter_get_sd_t_(double* gettran)
 extern "C" void merlinscatter_get_sd_xi_(double* xm2)
 {
 	std::pair<double,double>TM = ppDiffractiveScatter_ptr->Select();
-	double m_rec = TM.second;
-	*xm2 = m_rec;
-//	double com_sqd = (2 * ProtonMassMeV * MeV * p_store) + (2 * ProtonMassMeV * MeV * ProtonMassMeV * MeV);
-//	double dp = m_rec * m_rec * E / com_sqd;
+	*xm2 = TM.second * TM.second;
 }
 
 extern "C" void merlinscatter_calc_ion_loss_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* StepSize, double* LostE)
