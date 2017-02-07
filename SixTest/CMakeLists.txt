@@ -33,6 +33,10 @@ endif(BOINC)
 #List of tests which are STF compatible
 SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d elensidealthck6d elensidealthin6d_DYNK wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
 
+if(LIBARCHIVE)
+	SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
+endif()
+
 #only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
 if(BNLELENS)
 	SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
@@ -88,7 +92,11 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	endif(STF)
 
 	if(LIBARCHIVE)
-		SET(SIXOUT_ENABLE 1)
+		if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
+			SET(SIXOUT_ENABLE 1)
+		else()
+			SET(SIXOUT_ENABLE 0)
+		endif()
 	else()
 		SET(SIXOUT_ENABLE 0)
 	endif(LIBARCHIVE)
@@ -155,7 +163,7 @@ endforeach()
 
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
-SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0)
+SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK elensidealthin6d_DYNK_ZIPF wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0)
 
 #Medium tests take < 30 mins to run
 SET(MEDIUM_TESTS bbe571ib0 tilt lostevery fma frs frs60 eric distance bbe51 bbe52)
