@@ -55614,7 +55614,7 @@ c$$$            endif
       toptit(2)(17:30)=', Phase Space '
       write(toptit(2)(31:41),'(A11)') hvs
       toptit(2)(42:50)=', Dp/p = '
-      toptit(2)(61:80)=' '
+      toptit(2)(62:80)=' '
       toptit(3)(1:5)='Ax = '
       toptit(3)(16:22)=', Ay = '
       toptit(3)(33:80)=' '
@@ -56061,7 +56061,7 @@ c$$$            endif
       endif
       
       dp1=h
-      write(toptit(2)(51:60),10000) dp1-clop(3)
+      write(toptit(2)(51:61),10000) dp1-clop(3)
       if(nprint.eq.1.and.ia.eq.0) then
 +if cr
         write(lout,*) 'INITIAL COORDINATES'
@@ -57897,7 +57897,7 @@ c$$$            endif
 !----------------------------------------------------------------------
       return
       
-10000 format(d10.4)
+10000 format(d11.4)
 10010 format(f10.6)
 10020 format(a80)
 10030 format(2f10.6)
