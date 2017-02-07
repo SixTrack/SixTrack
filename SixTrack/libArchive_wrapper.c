@@ -107,7 +107,7 @@ void list_archive(const char* const infile) {
 }
 
 //********************************************************************************************************
-void read_archive(const char* const infile, const char* extractFolder){
+void read_archive(const char* const infile, const char* const extractFolder){
   // Strongly inspired by
   // https://github.com/libarchive/libarchive/wiki/Examples#A_Complete_Extractor
   

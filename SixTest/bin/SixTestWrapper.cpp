@@ -30,6 +30,7 @@
 #endif
 
 #ifdef LIBARCHIVE
+#include <sys/stat.h>
 #include "libArchive_wrapper.h"
 #endif
 
@@ -126,6 +127,7 @@ int main(int argc, char* argv[])
 	bool fort90fail = false;
 	bool STFfail = false;
 	bool ExtraChecksfail = false;
+	bool sixoutzipfail = false;
 
 	if(atof(argv[4]) != 0)
 	{
@@ -433,9 +435,55 @@ int main(int argc, char* argv[])
 			std::cout << "STF: PASS" << std::endl;
 		}
 	}
+	
 	//Look at extra_checks.txt
 	ExtraChecksfail = PerformExtraChecks();
 
+	//Look at sixout.zip
+#ifdef LIBARCHIVE
+	if (sixoutzip)
+	{
+		std::cout <<  "------------------------ Checking sixout.zip ---------------------------------" << std::endl;
+
+		const char* const tmpdir = "sixoutzip_tmpdir";
+		const char* const sixoutzip_fname = "Sixout.zip";
+	  	
+		//(Re-)create tmpdir folder
+		struct stat st;
+		int status;
+		if (stat(tmpdir, &st) == 0)
+		{
+			if ( ! S_ISDIR(st.st_mode) )
+			{
+				std::cout << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "Folder sixoutzip_tmpdir exits, deleting!" << std::endl;
+
+			// TODO! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			
+		}
+		std::cout << "Creating sixoutzip_tmpdir..." << std::endl;
+#if defined(_WIN32)
+		status = CreateDirectory("sixoutzip_tmpdir",NULL);
+#else
+		status = mkdir("sixoutzip_tmpdir",S_IRWXU);
+#endif
+		if (status)
+		{
+			printf("Something went wrong when creating 'sixoutzip_tmpdir'. Sorry!");
+			exit(EXIT_FAILURE);
+		}
+		std::cout << "done." << std::endl;
+		
+		//Unzip!
+		read_archive(sixoutzip_fname,tmpdir);
+
+		// TODO : Actually confirm that the contents is OK. Possibly also print a list of the contents.
+		
+		std::cout <<  "----------------------- End checking sixout.zip ------------------------------" << std::endl;
+	}
+#endif
 	std::cout << "---------------------------------- SUMMARY -----------------------------------" << std::endl;
 	if(fort10)
 	{
