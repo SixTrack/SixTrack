@@ -927,7 +927,9 @@ if(LIBARCHIVE)
 	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
 	
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrack libArchive_wrapper)
 	if(WIN32)
 		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
@@ -951,6 +953,7 @@ if(LIBARCHIVE)
 
 		target_link_libraries(SixTrack libarchive z bz2 pthread)
 	endif()
+	add_definitions( -DLIBARCHIVE )
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -1259,6 +1262,14 @@ IF(BUILD_TESTING)
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+	if (LIBARCHIVE)
+		target_link_libraries(SixTestWrapper libArchive_wrapper)
+		if(WIN32)
+			target_link_libraries(SixTestWrapper archive z bz2 Bcrypt pthread iconv)
+		else()
+			target_link_libraries(SixTestWrapper libarchive z bz2 pthread)
+		endif()
+	endif()
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
 	find_library(pthread STATIC pthread)

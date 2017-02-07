@@ -29,6 +29,10 @@
 #include <windows.h>
 #endif
 
+#ifdef LIBARCHIVE
+#include "libArchive_wrapper.h"
+#endif
+
 #ifndef WIN32
 void *pthread_kill_sixtrack(void*);
 void *pthread_wait_sixtrack(void*);
@@ -77,8 +81,9 @@ struct KillInfo
 * 4: bool to check fort.10
 * 5: bool to check fort.90
 * 6: bool for STF enabled
-* 7: CR enabled
-* 8: CR kill time
+* 7: Bool for checking Sixout.zip
+* 8: CR enabled
+* 9: CR kill time
 *
 * For running the tools:
 * On "Unix" we call fork() and exec()
@@ -90,9 +95,9 @@ struct KillInfo
 int main(int argc, char* argv[])
 {
 	//First check we have the correct number of arguments
-	if(argc != 9)
+	if(argc != 10)
 	{
-		std::cout << argv[0] << " called with the incorrect number of arguments, should be 8, but was called with " << argc - 1 << " arguments" << std::endl;
+		std::cout << argv[0] << " called with the incorrect number of arguments, should be 9, but was called with " << argc - 1 << " arguments" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -115,7 +120,8 @@ int main(int argc, char* argv[])
 	bool fort10 = false;
 	bool fort90 = false;
 	bool STF = false;
-
+	bool sixoutzip = false;
+	
 	bool fort10fail = false;
 	bool fort90fail = false;
 	bool STFfail = false;
@@ -135,11 +141,15 @@ int main(int argc, char* argv[])
 	{
 		STF = true;
 	}
-
 	if(atof(argv[7]) != 0)
 	{
+		sixoutzip = true;
+	}
+
+	if(atof(argv[8]) != 0)
+	{
 		CR = true;
-		KillTimes = ParseKillTimes(argv[8]);
+		KillTimes = ParseKillTimes(argv[9]);
 	}
 
 	/**
