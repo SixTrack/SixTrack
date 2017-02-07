@@ -1078,7 +1078,7 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT BNLELENS)
 		ast_masks_deck(nwrtbnl ${loop})
 	endif()
-	
+
 	#From make_six:
 	#NOTA BENE! Definitions of cernlib and naglib are reversed
 	# in the sense that while a "" null value implies option is ON

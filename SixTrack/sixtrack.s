@@ -1421,7 +1421,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 +cd zipf
       integer zipf_maxfiles,zipf_numfiles
-      parameter (zipf_maxfiles=64)
+      parameter (zipf_maxfiles=256)
       character(stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
       character(stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
       
