@@ -152,7 +152,7 @@ endforeach()
 SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0)
 
 #Medium tests take < 30 mins to run
-SET(MEDIUM_TESTS bbe571ib0 tilt lostevery fma frs frs60 eric distance bbe51 bbe52)
+SET(MEDIUM_TESTS bbe571ib0 tilt lostevery fma frs frs60 eric distance bbe51 bbe52 javier_bignpart)
 
 #Slow is everything longer
 SET(SLOW_TESTS prob1 prob3)
