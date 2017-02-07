@@ -1419,6 +1419,16 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd zipf
+      integer zipf_maxfiles,zipf_numfiles
+      parameter (zipf_maxfiles=64)
+      character(stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
+      character(stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
+      
+      common /zipfCom/ zipf_numfiles, zipf_outfile, zipf_filenames
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd timefct
 +if crlibm
           expt =  exp_rn(-dble(n)/tcnst35(i))
@@ -12070,6 +12080,7 @@ cc2008
 +ca fma
 +ca elensparam
 +ca wireparam
++ca zipf
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -12099,7 +12110,10 @@ cc2008
 !     - wire
       character*16 wire
       data wire /'WIRE'/
-
+!     - zipf
+      character*16 zipf
+      data zipf /'ZIPF'/
+      
       double precision round_near
       
       save
@@ -12360,7 +12374,11 @@ cc2008
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
       if(idat.eq.wire)  goto 2500
-
+      !Reserved:
+      !DIST = 2600
+      !HION = 2700
+      if(idat.eq.zipf) goto 2800
+      
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
 +if cr
@@ -17183,7 +17201,7 @@ cc2008
             ldynk = .true.
          endif
          call dynk_inputsanitycheck
-         goto 110 ! loop BLOCK
+         goto 110 ! Read next block or ENDE
 
       else
 +if cr
@@ -17875,8 +17893,87 @@ cc2008
  2501 continue
       
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
-!-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+!  ZIPF
+!  K. Sjobak, BE-ABP/HSS
+!  Last modified: 7/2 2017
+!-----------------------------------------------------------------------
+ 2800 read(3,10020, end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2800 ! skip comment line
+      
+      if (ch(:4).eq.next) then
+         zipf_outfile(1:10) = "Sixout.zip" ! Output name fixed for now
++if cr
+            write(lout,'(a)')       "**** ZIPF ****"
+            write(lout,'(a,a,a)')   " Output file name = '",
+     &           trim(stringzerotrim(zipf_outfile)),"'"
+            write(lout,'(a,1x,i5)') " Number of files to pack=",
+     &           zipf_numfiles
+            write(lout,'(a)')       " Files:"
++ei
++if .not.cr
+            write(*,'(a)')          "**** ZIPF ****"
+            write(*,'(a,a,a)')      " Output file name = '",
+     &           trim(stringzerotrim(zipf_outfile)),"'"
+            write(*,'(a,1x,i5)')    " Number of files to pack=",
+     &           zipf_numfiles
+            write(*,'(a)')          " Files:"
++ei
+         do ii=1,zipf_numfiles
++if cr
+            write(lout,'(1x,i5,a,1x,a)') ii,":",
+     &            trim(stringzerotrim(zipf_filenames(ii)))
++ei
++if .not.cr
+            write(*,'(1x,i5,a,1x,a)')    ii,":",
+     &            trim(stringzerotrim(zipf_filenames(ii)))
++ei
+         end do
+         goto 110               !Read next block or ENDE
+      endif
+
+      !Read filenames
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) call prror(-1)
+
+      if (getfields_nfields .ne. 1) then
++if cr
+         write(lout,'(a)')         "ERROR in ZIPF:"
+         write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got",
+     &                              getfields_nfields, ", line=",ch
++ei
++if .not.cr
+         write(*,'(a)')            "ERROR in ZIPF:"
+         write(*,'(a,1x,i3,a)')    "Expected 1 filename per line, got",
+     &                              getfields_nfields, ", line=",ch
++ei
+         call prror(-1)
+      end if
+
+      zipf_numfiles = zipf_numfiles + 1
+      if (zipf_numfiles .ge. zipf_maxfiles) then
++if cr
+         write(lout,'(a)')       "ERROR in ZIPF:"
+         write(lout,'(a,1x,i5)') " Too many files, max=",
+     &         zipf_maxfiles
++ei
++if .not.cr
+         write(*,'(a)')          "ERROR in ZIPF:"
+         write(*,'(a,1x,i5)')    " Too many files, max=",
+     &        zipf_maxfiles
++ei
+         call prror(-1)
+      endif
+      
+      zipf_filenames(zipf_numfiles)(1:getfields_lfields(1)) =
+     &     getfields_fields(1)(1:getfields_lfields(1))
+      
+      goto 2800                 !Read the next line of the ZIPF block
 !----------------------------------------------------------------------------
 !     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
 !-----------------------------------------------------------------------------
@@ -38671,6 +38768,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca elensparam
 +ca wireparam
 
++ca zipf
+
 +if collimat
 +ca collpara
 +ca database
@@ -39322,7 +39421,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       dynkfilepos = -1
 +ei
-
+!--ZIPF----------------------------------------------------------------
+      zipf_numfiles = 0
+      
+      do j=1, stringzerotrim_maxlen
+         zipf_outfile(j:j)=char(0)
+      enddo
+      
+      do i=1, zipf_maxfiles
+         do j=1, stringzerotrim_maxlen
+            zipf_filenames(i)(j:j)=char(0)
+         enddo
+      enddo
+      
 !--COLLIMATION----------------------------------------------------------
 +if collimat
       do_coll = .false.
