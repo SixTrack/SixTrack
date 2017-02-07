@@ -58847,11 +58847,30 @@ c$$$            endif
       implicit none
 +ca stringzerotrim
 +ca zipf
-      
++if cr
++ca crcoall
++ei
+
++if cr
+      write(lout,'(a,a,a)')
++ei
++if .not.cr
+      write(*,'(a,a,a)')
++ei
+     &     "ZIPF: Compressing file '",
+     &     trim(stringzerotrim(zipf_outfile)),"'..."
+
 +if libarchive !If not, the zipf subroutine shall just be a stub.
       call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
 +ei
-      
+
++if cr
+      write(lout,'(a,a,a)') "Done!"
++ei
++if .not.cr
+      write(*,   '(a,a,a)') "Done!"
++ei
+
       end subroutine
       
       subroutine fft(ar,ai,m,n)
