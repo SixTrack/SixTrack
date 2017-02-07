@@ -17933,7 +17933,22 @@ cc2008
      &            trim(stringzerotrim(zipf_filenames(ii)))
 +ei
          end do
-         goto 110               !Read next block or ENDE
++if .not.libarchive
++if cr
+         write(lout,'(a)') "ERROR in ZIPF:"
+         write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
+         write(lout,'(a)') " but this SixTrack was "//
+     &        "compiled without it."
++ei
++if .not.cr
+         write(*,'(a)')    "ERROR in ZIPF:"
+         write(*,'(a)')    " ZIPF needs LIBARCHIVE to work,"
+         write(*,'(a)')    " but this SixTrack was "//
+     &        "compiled without it."
++ei
+         call prror(-1)
++ei
+         goto 110                  !Read next block or ENDE
       endif
 
       !Read filenames

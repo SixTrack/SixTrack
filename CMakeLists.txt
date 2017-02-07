@@ -992,9 +992,9 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-#First clean up the astuce decks for only what is enabled
-#set(OPT crlibm tilt fast bpm beamgas collimat bnlelens cr boinc nagfor bignblz debug hdf5 fio lf95 hugenblz stf bignpart datamods hugenpart)
+
 foreach(loop IN ITEMS ${FORS})
+	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
 	endif()
@@ -1058,7 +1058,11 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT MERLINSCATTER)
 		ast_masks_flag(merlinscatter ${loop})
 	endif()
+	if(NOT LIBARCHIVE)
+		ast_masks_flag(libarchive ${loop})
+	endif()
 
+	#Clean up the astuce decks for only what is enabled
 	if(NOT COLLIMAT)
 		ast_masks_deck(nwrtcoll ${loop})
 	endif()
@@ -1074,7 +1078,7 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT BNLELENS)
 		ast_masks_deck(nwrtbnl ${loop})
 	endif()
-
+	
 	#From make_six:
 	#NOTA BENE! Definitions of cernlib and naglib are reversed
 	# in the sense that while a "" null value implies option is ON
