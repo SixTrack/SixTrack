@@ -17933,6 +17933,21 @@ cc2008
      &            trim(stringzerotrim(zipf_filenames(ii)))
 +ei
          end do
+
+         if (.not.(zipf_numfiles.gt.0)) then
++if cr
+            write(lout,'(a)') "ERROR in ZIPF:"
+            write(lout,'(a)') " ZIPF block was empty;"
+            write(lout,'(a)') " no files specified!"
++ei
++if .not.cr
+            write(*,'(a)')    "ERROR in ZIPF:"
+            write(*,'(a)')    " ZIPF block was empty;"
+            write(*,'(a)')    " no files specified!"
++ei
+            call prror(-1)
+         endif
+
 +if .not.libarchive
 +if cr
          write(lout,'(a)') "ERROR in ZIPF:"
@@ -58825,7 +58840,7 @@ c$$$            endif
       subroutine zipf
 !-----------------------------------------------------------------------*
 !     ZIPF                                                              *
-!     COMPRESS SELECTED OUTPUT FILES INTO ZIPFILE                       *
+!     COMPRESS SELECTED OUTPUT FILES INTO .ZIP FILE                     *
 !     AT THE END OF THE SIMULATION                                      *
 !     K.SJOBAK, 7/02/2016                                               *
 !-----------------------------------------------------------------------*
