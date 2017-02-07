@@ -24307,6 +24307,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca fma
++ca zipf
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -26538,6 +26539,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call dumpzfz('THE END',9,9)
 +ei
       call closeUnits
+
+      if (zipf_numfiles.gt.0) then
+         call zipf
+      endif
+      
 +if cr
       call abend('                                                  ')
 +ei
@@ -58815,6 +58821,15 @@ c$$$            endif
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
  1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
       end subroutine fma_postpr
+      
+      subroutine zipf
+!-----------------------------------------------------------------------*
+!     ZIPF                                                              *
+!     COMPRESS SELECTED OUTPUT FILES INTO ZIPFILE                       *
+!     AT THE END OF THE SIMULATION                                      *
+!     K.SJOBAK, 7/02/2016                                               *
+!-----------------------------------------------------------------------*
+      end subroutine
       
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
