@@ -58844,6 +58844,14 @@ c$$$            endif
 !     AT THE END OF THE SIMULATION                                      *
 !     K.SJOBAK, 7/02/2016                                               *
 !-----------------------------------------------------------------------*
+      implicit none
++ca stringzerotrim
++ca zipf
+      
++if libarchive !If not, the zipf subroutine shall just be a stub.
+      call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
++ei
+      
       end subroutine
       
       subroutine fft(ar,ai,m,n)
