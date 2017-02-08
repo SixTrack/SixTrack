@@ -609,7 +609,7 @@ int main(int argc, char* argv[])
 			std::cout << "Extra checks MATCHES" << std::endl;
 		}
 	}
-
+#ifdef LIBARCHIVE
 	if(sixoutzip)
 	{
 		if(sixoutzipfail)
@@ -621,6 +621,7 @@ int main(int argc, char* argv[])
 			std::cout << sixoutzip_fname << " MATCHES" << std::endl;
 		}
 	}
+#endif
 	std::cout << "------------------------------------ EXIT ------------------------------------" << std::endl;
 
 	//or together any fail bits.
