@@ -49,7 +49,7 @@ size_t StripCR(std::string);
 bool CheckFort10(char**);
 bool CheckFort90(char**);
 bool CheckSTF(char**);
-bool PerformExtraChecks();
+bool PerformExtraChecks(bool&);
 std::vector<int> ParseKillTimes(char*);
 
 void UnlinkCRFiles();
@@ -121,6 +121,7 @@ int main(int argc, char* argv[])
 	bool fort10 = false;
 	bool fort90 = false;
 	bool STF = false;
+	bool extrachecks = false; //Returned from PerformExtraChecks
 	bool sixoutzip = false;
 	
 	bool fort10fail = false;
@@ -440,7 +441,7 @@ int main(int argc, char* argv[])
 	}
 	
 	//Look at extra_checks.txt
-	ExtraChecksfail = PerformExtraChecks();
+	ExtraChecksfail = PerformExtraChecks(extrachecks);
 
 	//Look at sixout.zip
 #ifdef LIBARCHIVE
@@ -570,6 +571,18 @@ int main(int argc, char* argv[])
 			std::cout << "singletrackfile.dat MATCHES" << std::endl;
 		}
 	}
+	if(extrachecks)
+	{
+		if(ExtraChecksfail)
+		{
+			std::cout << "Extra checks DOES NOT MATCH" << std::endl;
+		}
+		else
+		{
+			std::cout << "Extra checks MATCHES" << std::endl;
+		}
+	}
+
 	if(sixoutzip)
 	{
 		if(sixoutzipfail)
@@ -935,14 +948,14 @@ bool FileComparison(std::string FileName1, std::string FileName2)
 	return true;
 }
 
-bool PerformExtraChecks()
+bool PerformExtraChecks(bool &extrachecks)
 {
 	std::cout << "--------------------------- Performing extra checks ---------------------------" << std::endl;
 	bool AllTests = false;
 	std::ifstream extra_checks_in("extra_checks.txt");
 	if(extra_checks_in.good())
 	{
-
+		extrachecks=true;
 		std::cout << "Opened extra_checks.txt" << std::endl;
 		//Format should be some file to check followed by a command
 		while(extra_checks_in.good())
@@ -976,6 +989,7 @@ bool PerformExtraChecks()
 	else
 	{
 		std::cout << "Could not open extra_checks.txt" << std::endl;
+		extrachecks=false;
 	}
 
 	std::cout << "------------------------------- End extra checks ------------------------------" << std::endl;
