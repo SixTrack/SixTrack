@@ -481,7 +481,7 @@ int main(int argc, char* argv[])
 		else {
 			std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
 #if defined(_WIN32)
-			status = CreateDirectory(tmpdir,NULL);
+			status = not CreateDirectory(tmpdir,NULL);
 #else
 			status = mkdir(tmpdir,S_IRWXU);
 #endif
