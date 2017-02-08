@@ -522,7 +522,7 @@ int main(int argc, char* argv[])
 			
 			// Insert the right path separator
 #ifdef WIN32
-			snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\%s",tmpdir,archive_buff[i]);
+			snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\\%s",tmpdir,archive_buff[i]);
 #else
 			snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
 #endif
