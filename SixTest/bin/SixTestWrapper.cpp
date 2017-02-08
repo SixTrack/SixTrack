@@ -31,6 +31,7 @@
 
 #ifdef LIBARCHIVE
 #include <sys/stat.h>
+#include <dirent.h>
 #include "libArchive_wrapper.h"
 #endif
 
@@ -459,24 +460,38 @@ int main(int argc, char* argv[])
 				std::cout << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			std::cout << "Folder '" << tmpdir << "' exits, deleting!" << std::endl;
+			std::cout << "Folder '" << tmpdir << "' exits, deleting contents." << std::endl;
 
-			// TODO! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// From http://stackoverflow.com/questions/11007494/how-to-delete-all-files-in-a-folder-but-not-delete-the-folder-using-nix-standar
 			
+			// These are data types defined in the "dirent" header
+			DIR *theFolder = opendir(tmpdir);
+			struct dirent *next_file;
+			char filepath[256];
+			
+			while ( (next_file = readdir(theFolder)) != NULL )
+			{
+				// build the path for each file in the folder
+				snprintf(filepath, 256, "%s/%s", tmpdir, next_file->d_name);
+				remove(filepath);
+			}
+			closedir(theFolder);
+			std::cout << "done." << std::endl;
 		}
-		std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
+		else {
+			std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
 #if defined(_WIN32)
-		status = CreateDirectory(tmpdir,NULL);
+			status = CreateDirectory(tmpdir,NULL);
 #else
-		status = mkdir(tmpdir,S_IRWXU);
+			status = mkdir(tmpdir,S_IRWXU);
 #endif
-		if (status)
-		{
-			std::cout << "Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
-			exit(EXIT_FAILURE);
+			if (status)
+			{
+				std::cout << "Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "done." << std::endl;
 		}
-		std::cout << "done." << std::endl;
-
 		//List content
 		const int archive_nfiles_max = 256;
 		int archive_nfiles = archive_nfiles_max;
