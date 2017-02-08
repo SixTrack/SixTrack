@@ -150,8 +150,18 @@ void list_archive_get(const char* const infile, char** filenames, int* nfiles, c
   while (archive_read_next_header(a,&entry)==ARCHIVE_OK){
     //printf("Found file: '%s'\n",archive_entry_pathname(entry));
     //fflush(stdout);
-    
-    snprintf(filenames[*nfiles],buffsize,"%s",archive_entry_pathname(entry));
+    int buff_used = 0;
+    buff_used = snprintf(filenames[*nfiles],buffsize,"%s",archive_entry_pathname(entry));
+    if (buff_used >= buffsize) {
+      printf("CRITICAL ERROR in list_archive_get(): When reading file '%s' from archive '%s':\n",filenames[*nfiles],infile);
+      printf("CRITICAL ERROR in list_archive_get(): Buffer too small by %i characters\n",buff_used-buffsize+1);
+      exit(1);
+    }
+    else if (buff_used < 0) {
+      printf("CRITICAL ERROR in list_archive_get(): When reading file '%s' from archive '%s':\n",filenames[*nfiles],infile);
+      printf("CRITICAL ERROR in list_archive_get(): Error in snprintf.\n");
+      exit(1);
+    }
     
     archive_read_data_skip(a);
     

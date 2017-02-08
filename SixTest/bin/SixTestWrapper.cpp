@@ -473,7 +473,12 @@ int main(int argc, char* argv[])
 			while ( (next_file = readdir(theFolder)) != NULL )
 			{
 				// build the path for each file in the folder
-				snprintf(filepath, 256, "%s/%s", tmpdir, next_file->d_name);
+				int snprintf_err = snprintf(filepath, 256, "%s/%s", tmpdir, next_file->d_name);
+				if (snprintf_err >= 256 || snprintf_err < 0)
+				{
+					std::cout << "Error in snprintf while building the path for deleting a file" << std::endl;
+					exit(EXIT_FAILURE);
+				}
 				remove(filepath);
 			}
 			closedir(theFolder);
@@ -530,12 +535,19 @@ int main(int argc, char* argv[])
 			char* FileNameZip = new char[strlen(tmpdir)+1+archive_buffsize];
 			
 			// Insert the right path separator
+			int snprintf_err = 0;
 #ifdef WIN32
-			snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\\%s",tmpdir,archive_buff[i]);
+			snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\\%s",tmpdir,archive_buff[i]);
 #else
-			snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
+			snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
 #endif
-		  
+			if (snprintf_err >= (archive_buffsize+1+strlen(tmpdir)) || snprintf_err < 0)
+			{
+				std::cout << "Error in snprintf while building the path for unzipped file." << std::endl;
+				std::cout << "snprintf_err = " << snprintf_err << ", buffsize=" << (archive_buffsize+1+strlen(tmpdir)) << std::endl;
+				exit(EXIT_FAILURE);
+			}
+
 #ifdef WIN32
 			//Strip out \r characters from windows new lines
 			size_t CRcount = StripCR(FileNameZip);
