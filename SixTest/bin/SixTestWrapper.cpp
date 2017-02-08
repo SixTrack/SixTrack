@@ -128,7 +128,10 @@ int main(int argc, char* argv[])
 	bool STFfail = false;
 	bool ExtraChecksfail = false;
 	bool sixoutzipfail = false;
-
+	
+	const char* const tmpdir = "sixoutzip_tmpdir";
+	const char* const sixoutzip_fname = "Sixout.zip";
+	
 	if(atof(argv[4]) != 0)
 	{
 		fort10 = true;
@@ -444,9 +447,6 @@ int main(int argc, char* argv[])
 	if (sixoutzip)
 	{
 		std::cout <<  "------------------------ Checking sixout.zip ---------------------------------" << std::endl;
-
-		const char* const tmpdir = "sixoutzip_tmpdir";
-		const char* const sixoutzip_fname = "Sixout.zip";
 	  	
 		//(Re-)create tmpdir folder
 		struct stat st;
@@ -458,20 +458,20 @@ int main(int argc, char* argv[])
 				std::cout << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			std::cout << "Folder sixoutzip_tmpdir exits, deleting!" << std::endl;
+			std::cout << "Folder '" << tmpdir << "' exits, deleting!" << std::endl;
 
 			// TODO! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			
 		}
-		std::cout << "Creating sixoutzip_tmpdir..." << std::endl;
+		std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
 #if defined(_WIN32)
-		status = CreateDirectory("sixoutzip_tmpdir",NULL);
+		status = CreateDirectory(tmpdir,NULL);
 #else
-		status = mkdir("sixoutzip_tmpdir",S_IRWXU);
+		status = mkdir(tmpdir,S_IRWXU);
 #endif
 		if (status)
 		{
-			std::cout << "Something went wrong when creating 'sixoutzip_tmpdir'. Sorry!" << std::endl;
+			std::cout << "Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 		std::cout << "done." << std::endl;
@@ -481,21 +481,49 @@ int main(int argc, char* argv[])
 		int archive_nfiles = archive_nfiles_max;
 		const int archive_buffsize = 100;
 		char** archive_buff = new char*[archive_nfiles];
-		for (int i = 0; i< archive_nfiles_max; i++) {
+		for (int i = 0; i< archive_nfiles_max; i++)
+		{
 			archive_buff[i] = new char[archive_buffsize];
 		}
 		std::cout << "Calling list_archive_get..." << std::endl;
 		list_archive_get(sixoutzip_fname,archive_buff,&archive_nfiles,archive_buffsize);
 
 		std::cout << "Got files:" << std::endl;
-		for (int i = 0; i< archive_nfiles; i++) {
+		for (int i = 0; i< archive_nfiles; i++)
+		{
 			std::cout << "File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
 		}
 		
 		//Unzip!
+		std::cout << "Calling read_archive..." << std::endl;
 		read_archive(sixoutzip_fname,tmpdir);
-		
-		// TODO : Actually confirm that the contents is OK. Possibly also print a list of the contents.
+
+		for (int i = 0; i< archive_nfiles; i++){
+			char* FileNameZip = new char[strlen(tmpdir)+1+archive_buffsize];
+			
+			// Insert the right path separator
+#ifdef WIN32
+			snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\%s",tmpdir,archive_buff[i]);
+#else
+			snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
+#endif
+		  
+#ifdef WIN32
+			//Strip out \r characters from windows new lines
+			size_t CRcount = StripCR(FileNameZip);
+			std::cout << "Removed " << CRcount << " windows \\r entries from '" << FileNameZip << "'." << std::endl;
+#endif
+			
+			bool ThisTest = !FileComparison(FileNameZip, std::string(archive_buff[i]) + ".canonical");
+			if(ThisTest) {
+				std::cerr << "WARNING: Test of zipped file '" << FileNameZip << "' failed!" << std::endl;
+				sixoutzipfail = true;
+			}
+			else
+			{
+				std::cout << "Test of zipped file '" << FileNameZip << "' MATCHES" << std::endl;
+			}
+		}
 		
 		//Cleanup memory
 		for (int i = 0; i< archive_nfiles_max; i++) {
@@ -542,12 +570,23 @@ int main(int argc, char* argv[])
 			std::cout << "singletrackfile.dat MATCHES" << std::endl;
 		}
 	}
+	if(sixoutzip)
+	{
+		if(sixoutzipfail)
+		{
+			std::cout << sixoutzip_fname << " DOES NOT MATCH" << std::endl;
+		}
+		else
+		{
+			std::cout << sixoutzip_fname << " MATCHES" << std::endl;
+		}
+	}
 	std::cout << "------------------------------------ EXIT ------------------------------------" << std::endl;
 
 	//or together any fail bits.
 	//If all tests pass this will return 0 (good)
 	//if not we get something else out (bad)
-	return (fort10fail || fort90fail || STFfail || ExtraChecksfail);
+	return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail);
 }
 
 /**
