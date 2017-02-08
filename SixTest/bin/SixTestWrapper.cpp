@@ -471,15 +471,37 @@ int main(int argc, char* argv[])
 #endif
 		if (status)
 		{
-			printf("Something went wrong when creating 'sixoutzip_tmpdir'. Sorry!");
+			std::cout << "Something went wrong when creating 'sixoutzip_tmpdir'. Sorry!" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 		std::cout << "done." << std::endl;
+
+		//List content
+		const int archive_nfiles_max = 256;
+		int archive_nfiles = archive_nfiles_max;
+		const int archive_buffsize = 100;
+		char** archive_buff = new char*[archive_nfiles];
+		for (int i = 0; i< archive_nfiles_max; i++) {
+			archive_buff[i] = new char[archive_buffsize];
+		}
+		std::cout << "Calling list_archive_get..." << std::endl;
+		list_archive_get(sixoutzip_fname,archive_buff,&archive_nfiles,archive_buffsize);
+
+		std::cout << "Got files:" << std::endl;
+		for (int i = 0; i< archive_nfiles; i++) {
+			std::cout << "File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
+		}
 		
 		//Unzip!
 		read_archive(sixoutzip_fname,tmpdir);
-
+		
 		// TODO : Actually confirm that the contents is OK. Possibly also print a list of the contents.
+		
+		//Cleanup memory
+		for (int i = 0; i< archive_nfiles_max; i++) {
+			delete[] archive_buff[i];
+		}
+		delete[] archive_buff;
 		
 		std::cout <<  "----------------------- End checking sixout.zip ------------------------------" << std::endl;
 	}

@@ -106,6 +106,46 @@ void list_archive(const char* const infile) {
   }
 }
 
+void list_archive_get(const char* const infile, char** filenames, int* nfiles, const int buffsize) {
+  //printf("In list_archive_get\n");
+  //fflush(stdout);
+  
+  struct archive* a = archive_read_new();
+  archive_read_support_format_zip(a);
+  int err = archive_read_open_filename(a, infile,10240);//Note: Blocksize isn't neccessarilly adhered to
+  if (err != ARCHIVE_OK) {
+    printf("CRITICAL ERROR in list_archive_get(): When opening archive '%s', err=%i\n",infile,err);
+    printf("CRITICAL ERROR in list_archive_get(): %s\n",archive_error_string(a));
+    exit(1);
+  }
+  
+  const int nfiles_max = *nfiles;
+  *nfiles = 0;
+  
+  struct archive_entry* entry;
+  while (archive_read_next_header(a,&entry)==ARCHIVE_OK){
+    //printf("Found file: '%s'\n",archive_entry_pathname(entry));
+    //fflush(stdout);
+    
+    snprintf(filenames[*nfiles],buffsize,"%s",archive_entry_pathname(entry));
+    
+    archive_read_data_skip(a);
+    
+    if(++(*nfiles) >= nfiles_max) {
+      printf("CRITICAL ERROR in list_archive_get(): Number of files greater than nfiles_max=%i",nfiles_max);
+      exit(1);
+    }
+  }
+  
+  archive_read_close(a);
+  err = archive_read_free(a);
+  if (err != ARCHIVE_OK){
+    printf("CRITICAL ERROR in list_archive_get(): Error when calling archive_read_free(), '%s', err=%i\n",infile,err);
+    printf("CRITICAL ERROR in list_archive_get(): %s\n",archive_error_string(a));
+    exit(1);
+  }
+}
+
 //********************************************************************************************************
 void read_archive(const char* const infile, const char* const extractFolder){
   // Strongly inspired by
