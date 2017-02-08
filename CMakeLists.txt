@@ -929,6 +929,10 @@ if(LIBARCHIVE)
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+	#A very small but convenient test code for debugging libArchive.
+	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/SixTrack/libArchiveTester.cpp)
+	target_link_libraries(libArchiveTester libArchive_wrapper)
+
 	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrack libArchive_wrapper)
 	if(WIN32)
@@ -943,6 +947,7 @@ if(LIBARCHIVE)
 		find_library(Bcrypt STATIC Bcrypt)
 		find_library(iconv STATIC iconv)
 		target_link_libraries(SixTrack archive z bz2 Bcrypt pthread iconv)
+		target_link_libraries(libArchiveTester archive z bz2 Bcrypt pthread iconv)
 	else()
 		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
@@ -952,6 +957,7 @@ if(LIBARCHIVE)
 		find_library(z STATIC z)
 
 		target_link_libraries(SixTrack libarchive z bz2 pthread)
+		target_link_libraries(libArchiveTester libarchive z bz2 pthread)
 	endif()
 	add_definitions( -DLIBARCHIVE )
 endif()

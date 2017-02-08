@@ -22,7 +22,7 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
   int err;
   char buff[8192];
   int len;
-  int fd;
+  FILE* fd;
   
   
   //printf("Writing outname='%s'\n",outname);
@@ -38,21 +38,40 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
   entry = archive_entry_new();
   for (int i=0;i<nFiles;i++){
     //printf("Compressing filename='%s'... ",filename[i]);
-    
+
     //Write the header
-    err = stat(filename[i], &st); // POSIX only, use GetFileSizeEx on Windows.
+#ifdef __WIN32
+    LARGE_INTEGER filesize_union;
+    HANDLE hFile = CreateFile(filename[i], GENERIC_READ,
+			      FILE_SHARE_READ | FILE_SHARE_WRITE,
+			      NULL, OPEN_EXISTING,
+			      FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) continue;
+    if(!GetFileSizeEx(hFile, &filesize_union)) {
+      printf("CRITICAL ERROR in write_archive(): GetFileSizeEx failed.");
+      exit(1);
+    }
+    CloseHandle(hFile);
+    LONGLONG filesize = filesize_union.QuadPart;
+#else
+    off_t filesize = 0;
+    err = stat(filename[i], &st);
     //printf("stat reported err=%i\n", err);
     if(err != 0) continue;
+    filesize = st.st_size;
+#endif
     
     archive_entry_set_pathname(entry, filename[i]);
-    archive_entry_set_size(entry, st.st_size);
+    archive_entry_set_size(entry, filesize);
     archive_entry_set_filetype(entry, AE_IFREG);
     archive_entry_set_perm(entry, 0644);
     archive_write_header(a, entry);
     
     //Write the data
-    fd = open(filename[i], O_RDONLY);
-    len = read(fd, buff, sizeof(buff));
+    int len_total = 0;
+    fd = fopen(filename[i], "rb");
+    len = fread(buff, 1,sizeof(buff), fd);
+    len_total = len;
     while ( len > 0 ) {
       err=archive_write_data(a, buff, len);
       if (err < 0){
@@ -60,11 +79,16 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
 	printf("CRITICAL ERROR in write_archive(): %s\n",archive_error_string(a));
 	exit(1);
       }
-      len = read(fd, buff, sizeof(buff));
+      len = fread(buff, 1,sizeof(buff), fd);
+      len_total += len;
     }
-    close(fd);
-    
+    fclose(fd);
     archive_entry_clear(entry);
+    
+    //printf("Wrote file '%s', len_total = %i, filesize = %i\n", filename[i], len_total, filesize);
+    if (len_total != filesize) {
+      printf("CRITICAL ERROR in write_archive(): When writing file '%s', got len_total = %i but filesize = %i\n", filename[i], len_total, filesize);
+    }
   }
   archive_entry_free(entry);
   //printf("Complete!\n");

@@ -130,9 +130,10 @@ int main(int argc, char* argv[])
 	bool STFfail = false;
 	bool ExtraChecksfail = false;
 	bool sixoutzipfail = false;
-	
+#ifdef LIBARCHIVE
 	const char* const tmpdir = "sixoutzip_tmpdir";
 	const char* const sixoutzip_fname = "Sixout.zip";
+#endif
 	
 	if(atof(argv[4]) != 0)
 	{
@@ -492,7 +493,9 @@ int main(int argc, char* argv[])
 			}
 			std::cout << "done." << std::endl;
 		}
+		
 		//List content
+		//list_archive(sixoutzip_fname);
 		const int archive_nfiles_max = 256;
 		int archive_nfiles = archive_nfiles_max;
 		const int archive_buffsize = 100;
@@ -504,7 +507,7 @@ int main(int argc, char* argv[])
 		std::cout << "Calling list_archive_get..." << std::endl;
 		list_archive_get(sixoutzip_fname,archive_buff,&archive_nfiles,archive_buffsize);
 
-		std::cout << "Got files:" << std::endl;
+		std::cout << "Got " << archive_nfiles << " files:" << std::endl;
 		for (int i = 0; i< archive_nfiles; i++)
 		{
 			std::cout << "File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
