@@ -83,7 +83,7 @@ struct KillInfo
 * 4: bool to check fort.10
 * 5: bool to check fort.90
 * 6: bool for STF enabled
-* 7: Bool for checking Sixout.zip
+* 7: Number of files to expect in Sixout.zip (0 means no Sixout.zip)
 * 8: CR enabled
 * 9: CR kill time
 *
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 	bool fort90 = false;
 	bool STF = false;
 	bool extrachecks = false; //Returned from PerformExtraChecks
-	bool sixoutzip = false;
+	int sixoutzip = 0;
 	
 	bool fort10fail = false;
 	bool fort90fail = false;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 	}
 	if(atof(argv[7]) != 0)
 	{
-		sixoutzip = true;
+		sixoutzip = atof(argv[7]);
 	}
 
 	if(atof(argv[8]) != 0)
@@ -511,6 +511,15 @@ int main(int argc, char* argv[])
 		for (int i = 0; i< archive_nfiles; i++)
 		{
 			std::cout << "File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
+		}
+		if (archive_nfiles != sixoutzip)
+		{
+			std::cout << "WARNING: Expected " << sixoutzip << " files in '" << sixoutzip_fname << "', got " << archive_nfiles << std::endl;
+			sixoutzipfail = true;
+		}
+		else
+		{
+			std::cout << "The number of files in the archive '" << sixoutzip_fname << "' MATCHES the expected number " << archive_nfiles << std::endl;
 		}
 		
 		//Unzip!
