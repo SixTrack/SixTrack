@@ -57995,10 +57995,10 @@ c$$$            endif
      &'NUMBER OF BINARY FILES TO BE PROCESSED', ' ( 90 - [90-NDAFI+1] )'&
      &,t94,'NDAFI = ',i4 //)
 10110 format(/10x,'ANALYSING THE INCREASE OF THE DISTANCE IN PHASE-' ,  &
-     &'SPACE'/10x,53('-')/ //12x,'TURNS',10x,'DISTANCE',13x,            &
-     &'SLOPE          RESIDUAL' /10x,63('-'))
-10120 format(10x,i7,6x,d17.10,2(2x,f15.10))
-10130 format(10x,63('-')//)
+     &'SPACE'/10x,53('-')/ //12x,'TURNS',10x,'DISTANCE',20x,            &
+     &'SLOPE          RESIDUAL' /10x,70('-'))
+10120 format(10x,i7,6x,d17.10,2(2x,f18.11))
+10130 format(10x,70('-')//)
 10140 format(//10x,'AVERAGED PHASE-ADVANCE' /10x,22('-')/ /10x,         &
      &'X-PHASE :  ',f14.10,'   +/_ ',f14.10 /10x,'Y-PHASE :  ',f14.10,  &
      &'   +/_ ',f14.10/ /10x,'S-PHASE :  ',f14.10,'   +/_ ',f14.10/ /10 &
