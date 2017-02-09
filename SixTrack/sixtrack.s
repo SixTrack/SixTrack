@@ -26492,36 +26492,36 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
      &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
+     &t62,f15.9,1x,f15.10,f15.9/                                        &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9,f15.9/)
+     &t62,f15.9,1x,f15.10,f15.9,f15.9/)
 10160 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
      &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
+     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
+     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
      &t10,'  S  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/)
 10170 format(/t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,     &
      &'------ NO ACCELERATION ------'// t15,                            &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
      &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
+     &t62,f15.9,1x,f15.10,f15.9/                                        &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &t62,f15.9,1x,f15.10,f15.9/)
 10180 format(t5//t5,'BACK-TRACKING'/ t5, '============='//)
 10190 format(t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,      &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
      &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
+     &t62,f15.9,1x,f15.10,f15.9/                                        &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &t62,f15.9,1x,f15.10,f15.9/)
 10200 format(//131('-')//t10,16('O')/t10,2('O'),12x,2('O')/t10,         &
      &'OO  TRACKING  OO', /t10,2('O'),12x,2('O')/t10,16('O')//131('-')//&
      &)
@@ -26530,19 +26530,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
      &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
+     &t62,f15.9,1x,f15.10,f15.9/                                        &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &t62,f15.9,1x,f15.10,f15.9/)
 10220 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'------ NO ACCELERATION ------'// t15,                            &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
      &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
+     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
+     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
      &t10,'  S  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/)
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
 10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
@@ -59281,26 +59281,26 @@ c$$$            endif
 +ei
 !-----------------------------------------------------------------------
       return
-10000 format(/131('-')/t10,'SUMMARY OF THE POSTPROCESSING' //t1,125(    &
-     &'-'), /t1,'|',8x,'|',11x,'|',11x,'|',12x,'|',10x,                 &
-     &'|NORMALIZED| SLOPE  |',13x,'|',10x,'|',21x,'|', /t1,             &
-     &'|  TURN  |   LINEAR  |   BETA-   | AMPLITUDES | MOMENTUM |',     &
-     &'PHASESPACE| OF THE |  NONLINEAR  |  NEAREST |',7x,'SMEAR OF',6x, &
-     &'|', /t1,                                                         &
-     &'| NUMBER |   TUNES   | FUNCTIONS |            | DEVIATION|',     &
-     &' DISTANCE |DISTANCE|  DETUNING   | RESONANCE|    THE EMITTANCES' &
-     &,3x,'|',/t1,125('-'), /t1,                                        &
-     &'|        |           |     [M]   |     [MM]   |          |',     &
-     &'          |        |             |     |ORD.|',                  &
-     &'    [%]  |      [%]  |'/t1,125('-'))
+10000 format(/131('-')/t10,'SUMMARY OF THE POSTPROCESSING' //t1,128(    &
+     &'-'), /t1,'|',8x,'|',11x,'|',11x,'|',12x,'|',11x,                 &
+     &'|NORMALIZED | SLOPE  |',14x,'|',10x,'|',21x,'|', /t1,            &
+     &'|  TURN  |   LINEAR  |   BETA-   | AMPLITUDES | MOMENTUM  |',    &
+     &'PHASESPACE | OF THE |  NONLINEAR   |  NEAREST |',7x,'SMEAR OF',6x&
+     &,'|', /t1,                                                        &
+     &'| NUMBER |   TUNES   | FUNCTIONS |            | DEVIATION |',    &
+     &' DISTANCE  |DISTANCE|  DETUNING    | RESONANCE|   THE EMITTANCES'&
+     &  ,4x,'|',/t1,128('-'), /t1,                                      &
+     &'|        |           |     [M]   |     [MM]   |           |',    &
+     &'           |        |              |     |ORD.|',                &
+     &'    [%]  |      [%]  |'/t1,128('-'))
 10010 format(t1,'|',i8,'|X ',f9.5,'|X ',f9.4,'|X ',f10.6,'|',d11.4, '|',&
      &d11.4,'|',f8.4,'|X ',d12.5,'|X ',i3,'| ',i2,' |X ', f7.3,'|X+Y ', &
-     &f7.3,'|' /t1,'|  ',a4,'  |Y ',f9.5,'|Y ',f9.4,'|Y ',f10.6,'|',10x,&
-     &'|',10x,'|',8x,'|+/- ',d10.3,'|Y ',i3,'|    |Y ', f7.3,'|    ',7x,&
-     &'|' /t1,'|',8x,'|QS ',f8.6,'|  ',9x,'|  ',10x,'|',10x, '|',10x,'|'&
+     &f7.3,'|' /t1,'|  ',a4,'  |Y ',f9.5,'|Y ',f9.4,'|Y ',f10.6,'|',11x,&
+     &'|',11x,'|',8x,'|+/- ',d10.3,'|Y ',i3,'|    |Y ', f7.3,'|    ',7x,&
+     &'|' /t1,'|',8x,'|QS ',f8.6,'|  ',9x,'|  ',10x,'|',11x, '|',11x,'|'&
      &,8x,'|Y ',d12.5,'|  ',3x,'|    |  ', 7x,'|    ',7x,'|' /t1,'|',8x,&
-     &'|  ',9x,'|  ',9x,'|  ',10x,'|',10x, '|',10x,'|',8x,'|+/- ',d10.3,&
-     &'|  ',3x,'|    |  ', 7x,'|    ',7x,'|'/t1,125('-'))
+     &'|  ',9x,'|  ',9x,'|  ',10x,'|',11x, '|',11x,'|',8x,'|+/- ',d10.3,&
+     &'|  ',3x,'|    |  ', 7x,'|    ',7x,'|'/t1,128('-'))
 10020 format(/131('-')/t10,'RANDOM SETS USED' //                        &
      &'  CASE  |  # OF RANDOM SET  |  MAX. POSSIBLE SETS   |    ',      &
      &' SEED'/65('-'))
