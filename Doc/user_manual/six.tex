@@ -46,11 +46,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update December 2016
+  Update February 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.45 \\
+  Version 4.6.5 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -3121,6 +3121,30 @@ NEXT
 where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). 
 
 Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
+
+\subsection{ZIPFile combined and compressed output}
+\label{sec:ZIPF}
+
+\paragraph{Description}
+In order to retrieve extra simulation output such as DUMP or FMA from BOINC, it is neccessary to pack the output files into a single file with a special name that will be retrieved.
+This can be achieved with the ZIPF block, which packs the listed files into the compressed archive \texttt{Sixout.zip} at the end of the simulation.
+
+Note that if one of the files do not exist at the end of the simulation, it will be silently skipped and not included in the archive.
+
+\paragraph{Keyword}
+ZIPF
+
+\paragraph{Number of data lines}
+variable, one for each file that is to be packed.
+
+\paragraph{Example}
+\begin{verbatim}
+ZIPF
+fma_sixtrack
+IP3_DUMP_1
+fort.90
+NEXT
+\end{verbatim}
 
 \chapter*{Conclusions}
 
