@@ -1,0 +1,6 @@
+[submodule "SixTrack/boinc"]
+	path = SixTrack/boinc
+	url = https://github.com/SixTrack/boinc.git
+[submodule "SixTrack/libarchive"]
+	path = SixTrack/libarchive
+	url = https://github.com/SixTrack/libarchive.git
