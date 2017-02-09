@@ -2,6 +2,7 @@
 
 #include "libArchive_wrapper.h"
 
+#include <stdlib.h>
 #include <iostream>
 using namespace std;
 
@@ -9,10 +10,10 @@ int main(int argc, char* argv[]){
   if (argc != 2) {
     cout << "Usage: ./libArchiveTester path-to-zipfile" << endl;
     cout << "It will then print a list of the file contents." << endl;
-    return 0;
+    return EXIT_FAILURE;
   }
 
   list_archive(argv[1]);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

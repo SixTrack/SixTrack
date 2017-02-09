@@ -49,7 +49,7 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
     if (hFile == INVALID_HANDLE_VALUE) continue;
     if(!GetFileSizeEx(hFile, &filesize_union)) {
       printf("CRITICAL ERROR in write_archive(): GetFileSizeEx failed.");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
     CloseHandle(hFile);
     LONGLONG filesize = filesize_union.QuadPart;
@@ -77,7 +77,7 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
       if (err < 0){
 	printf("CRITICAL ERROR in write_archive(): When writing file, got err=%i\n",err);
 	printf("CRITICAL ERROR in write_archive(): %s\n",archive_error_string(a));
-	exit(1);
+	exit(EXIT_FAILURE);
       }
       len = fread(buff, 1,sizeof(buff), fd);
       len_total += len;
@@ -112,7 +112,7 @@ void list_archive(const char* const infile) {
   if (err != ARCHIVE_OK) {
     printf("CRITICAL ERROR in list_archive(): When opening archive '%s', err=%i\n",infile,err);
     printf("CRITICAL ERROR in list_archive(): %s\n",archive_error_string(a));
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   
   struct archive_entry* entry;
@@ -126,7 +126,7 @@ void list_archive(const char* const infile) {
   if (err != ARCHIVE_OK){
     printf("CRITICAL ERROR in list_archive(): Error when calling archive_read_free(), '%s', err=%i\n",infile,err);
     printf("CRITICAL ERROR in list_archive(): %s\n",archive_error_string(a));
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -140,7 +140,7 @@ void list_archive_get(const char* const infile, char** filenames, int* nfiles, c
   if (err != ARCHIVE_OK) {
     printf("CRITICAL ERROR in list_archive_get(): When opening archive '%s', err=%i\n",infile,err);
     printf("CRITICAL ERROR in list_archive_get(): %s\n",archive_error_string(a));
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   
   const int nfiles_max = *nfiles;
@@ -155,19 +155,19 @@ void list_archive_get(const char* const infile, char** filenames, int* nfiles, c
     if (buff_used >= buffsize) {
       printf("CRITICAL ERROR in list_archive_get(): When reading file '%s' from archive '%s':\n",filenames[*nfiles],infile);
       printf("CRITICAL ERROR in list_archive_get(): Buffer too small by %i characters\n",buff_used-buffsize+1);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
     else if (buff_used < 0) {
       printf("CRITICAL ERROR in list_archive_get(): When reading file '%s' from archive '%s':\n",filenames[*nfiles],infile);
       printf("CRITICAL ERROR in list_archive_get(): Error in snprintf.\n");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
     
     archive_read_data_skip(a);
     
     if(++(*nfiles) >= nfiles_max) {
       printf("CRITICAL ERROR in list_archive_get(): Number of files greater than nfiles_max=%i",nfiles_max);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   }
   
@@ -176,7 +176,7 @@ void list_archive_get(const char* const infile, char** filenames, int* nfiles, c
   if (err != ARCHIVE_OK){
     printf("CRITICAL ERROR in list_archive_get(): Error when calling archive_read_free(), '%s', err=%i\n",infile,err);
     printf("CRITICAL ERROR in list_archive_get(): %s\n",archive_error_string(a));
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -202,7 +202,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
   if (err != ARCHIVE_OK) {
     printf("CRITICAL ERROR in read_archive(): When opening archive '%s', err=%i\n",infile,err);
     printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   struct archive_entry *entry;
@@ -218,7 +218,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
     else if (err != ARCHIVE_OK){
       printf("CRITICAL ERROR in read_archive(): When reading archive, err=%i\n",err);
       printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
-      exit(1);
+      exit(EXIT_FAILURE);
     }
     //printf("Found file: '%s'\n",archive_entry_pathname(entry));
 
@@ -227,7 +227,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
     char newPath[PATH_MAX];
     if (snprintf(newPath, PATH_MAX, "%s/%s",extractFolder,archive_entry_pathname(entry)) >= PATH_MAX){
       printf("CRITICAL ERROR in read_archive(): Buffer overflow when creating the path.");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
     archive_entry_set_pathname(entry,newPath);
     
@@ -235,7 +235,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
     if (err != ARCHIVE_OK){
       printf("CRITICAL ERROR in read_archive(): when extracting archive (creating new file), err=%i\n",err);
       printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(ext));
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
     //Write the data!
@@ -254,26 +254,26 @@ void read_archive(const char* const infile, const char* const extractFolder){
       else if (err != ARCHIVE_OK){
 	printf("CRITICAL ERROR in read_archive(): When extracting archive (reading data), err=%i\n",err);
 	printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
-	exit(1);
+	exit(EXIT_FAILURE);
       }
 
       err = archive_write_data_block(ext,buff,size,offset);
       if (err != ARCHIVE_OK){
 	printf("CRITICAL ERROR in read_archive(): When extracting archive (writing data), err=%i\n",err);
 	printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
-	exit(1);
+	exit(EXIT_FAILURE);
       }
     }
     if (!bcompleted){
       printf("CRITICAL ERROR in read_archive(): The file writing block loop was aborted by the infinite loop guard\n");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
     
     err=archive_write_finish_entry(ext);
     if (err != ARCHIVE_OK) {
       printf("CRITICAL ERROR in read_archive(): When extracting archive (closing new file), err=%i\n",err);
       printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(ext));
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   }
 
@@ -282,19 +282,19 @@ void read_archive(const char* const infile, const char* const extractFolder){
   if (err != ARCHIVE_OK){
     printf("CRITICAL ERROR in read_archive(): When calling archive_read_free(a), err=%i\n",err);
     printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   archive_write_close(ext);
   err = archive_write_free(ext);
   if (err != ARCHIVE_OK){
     printf("CRITICAL ERROR in read_archive(): When calling archive_read_free(ext), err=%i\n",err);
     printf("CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   
   if (!fcompleted) {
     printf("CRITICAL ERROR in read_archive(): The file header loop was aborted by the infinite loop guard\n");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 

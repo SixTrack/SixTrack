@@ -484,7 +484,8 @@ int main(int argc, char* argv[])
 			closedir(theFolder);
 			std::cout << "done." << std::endl;
 		}
-		else {
+		else
+		{
 			std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
 #if defined(_WIN32)
 			status = not CreateDirectory(tmpdir,NULL);
@@ -531,7 +532,8 @@ int main(int argc, char* argv[])
 		std::cout << "Calling read_archive..." << std::endl;
 		read_archive(sixoutzip_fname,tmpdir);
 
-		for (int i = 0; i< archive_nfiles; i++){
+		for (int i = 0; i< archive_nfiles; i++)
+		{
 			char* FileNameZip = new char[strlen(tmpdir)+1+archive_buffsize];
 			
 			// Insert the right path separator
@@ -555,7 +557,8 @@ int main(int argc, char* argv[])
 #endif
 			
 			bool ThisTest = !FileComparison(FileNameZip, std::string(archive_buff[i]) + ".canonical");
-			if(ThisTest) {
+			if(ThisTest)
+			{
 				std::cerr << "WARNING: Test of zipped file '" << FileNameZip << "' failed!" << std::endl;
 				sixoutzipfail = true;
 			}
@@ -566,7 +569,8 @@ int main(int argc, char* argv[])
 		}
 		
 		//Cleanup memory
-		for (int i = 0; i< archive_nfiles_max; i++) {
+		for (int i = 0; i< archive_nfiles_max; i++)
+		{
 			delete[] archive_buff[i];
 		}
 		delete[] archive_buff;
