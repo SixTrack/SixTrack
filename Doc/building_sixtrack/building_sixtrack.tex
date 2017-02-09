@@ -418,7 +418,7 @@ This is neccessary because AFS does not support hard links between different fol
 
 \subsubsection{libarchive}
 \label{sec:building:libs:libarchive}
-The libarchive libary is used to unpack the \texttt{Sixin.zip} file for the BOINC version, and is needed for the option \texttt{ZIPIT} block in \texttt{fort.3}\todo{ZIPIT is not yet implemented.}.
+The libarchive libary is used to unpack the \texttt{Sixin.zip} file for the BOINC version, and is needed for the option \texttt{ZIPF} block in \texttt{fort.3}.
 It must be built separately from SixTrack, and then linked into SixTrack.
 Note that libarchive can be build with \texttt{buildLibraries.sh} as described in Section~\ref{sec:building:libs:automatic}.
 
@@ -439,8 +439,16 @@ where ICONV should be set ON on Windows and OFF on Linux.
 Finally, build the library using \texttt{make}~.
 
 Note that libarchive needs several libraries installed; it is the up to the user to install these.
-Especially note that libarchive depends on libz, for which a static version is not available on LxPlus.
+Especially note that libarchive depends on zlib, for which a static version is not available on LxPlus.
 It is therefore only possible to build a dynamically linked version of SixTrack on LxPlus, by using the flag \texttt{-STATIC} on the \texttt{cmake\_six} command line.
+
+Also note that if libarchive was compiled before installing zlib, it will not be able to uncompress compressed .zip files, and attempting to do so will result in a SixTrack runtime error
+\begin{verbatim}
+CRITICAL ERROR in read_archive(): When extracting archive (reading data), err=-25
+CRITICAL ERROR in read_archive(): Unsupported ZIP compression method (deflation)
+\end{verbatim}
+when opening Sixin.zip for BOINC.
+To solve this, make sure zlib is installed, and configure/compile libarchive again.
 
 \subsubsection{NAGLIB}
 \label{sec:building:libs:naglib}
