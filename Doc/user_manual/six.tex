@@ -2974,16 +2974,22 @@ The unit number and filename may be shared between different DUMP outputs, as lo
 \subparagraph{format}
 an integer specifying the output format. The following is accepted:
 \begin{enumerate}
-	\item[0] -- General format:\\
-	No header\\
-	Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
-	\item[1] -- Format for aperture check:\\
-	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
-	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
-	\item[2] -- Modified format for aperture check:\\  
-	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
-	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
-	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+        \item[0] -- General format:\\
+        No header\\
+        Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
+        \item[1] -- Format for aperture check:\\
+        Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
+        Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
+        \item[2] -- Modified format for aperture check:\\
+        Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+        A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+        Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+      \item[3] -- Modified format for aperture check (Binary):\\
+        No header\\
+        A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+        Records: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+        The Python code \texttt{SixTrack/pytools/read\_dump3.py} can be used to read the binary file.
+
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
