@@ -25895,8 +25895,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
-             open(dumpunit(i),file=dump_fname(i),
-     &            status='replace',form='formatted')
+             if ( dumpfmt(i).eq.3 ) then
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='unformatted')
+             else
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='formatted')
+             endif
 +if cr
              dumpfilepos(i) = 0
 +ei
@@ -34538,21 +34543,36 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &              (ejv(j)-e0)/e0, ktrack(i)
             enddo
          endif
-         
+
          !Flush
          endfile (unit,iostat=ierro)
          backspace (unit,iostat=ierro)
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
-      
+
+      else if (fmt .eq. 3) then
+         do j=1,napx
+            write(unit) nlostp(j)+(samplenumber-1)*npart,
+     &           nturn, dcum(i), xv(1,j),
+     &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+     &           (ejv(j)-e0)/e0, ktrack(i)
+         enddo
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+
       !Unrecognized format fmt
       else
 +if cr
-         write (lout,*) 
+         write (lout,*)
 +ei
 +if .not.cr
-         write (*,*) 
+         write (*,*)
 +ei
      & "DUMP> Format",fmt, "not understood for unit", unit
          call prror(-1)
