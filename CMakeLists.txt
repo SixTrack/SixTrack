@@ -927,7 +927,13 @@ if(LIBARCHIVE)
 	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
 	
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+	#A very small but convenient test code for debugging libArchive.
+	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/SixTrack/libArchiveTester.cpp)
+	target_link_libraries(libArchiveTester libArchive_wrapper)
+
+	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrack libArchive_wrapper)
 	if(WIN32)
 		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
@@ -941,6 +947,7 @@ if(LIBARCHIVE)
 		find_library(Bcrypt STATIC Bcrypt)
 		find_library(iconv STATIC iconv)
 		target_link_libraries(SixTrack archive z bz2 Bcrypt pthread iconv)
+		target_link_libraries(libArchiveTester archive z bz2 Bcrypt pthread iconv)
 	else()
 		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
@@ -950,7 +957,9 @@ if(LIBARCHIVE)
 		find_library(z STATIC z)
 
 		target_link_libraries(SixTrack libarchive z bz2 pthread)
+		target_link_libraries(libArchiveTester libarchive z bz2 pthread)
 	endif()
+	add_definitions( -DLIBARCHIVE )
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -992,9 +1001,9 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-#First clean up the astuce decks for only what is enabled
-#set(OPT crlibm tilt fast bpm beamgas collimat bnlelens cr boinc nagfor bignblz debug hdf5 fio lf95 hugenblz stf bignpart datamods hugenpart)
+
 foreach(loop IN ITEMS ${FORS})
+	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
 	endif()
@@ -1058,7 +1067,11 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT MERLINSCATTER)
 		ast_masks_flag(merlinscatter ${loop})
 	endif()
+	if(NOT LIBARCHIVE)
+		ast_masks_flag(libarchive ${loop})
+	endif()
 
+	#Clean up the astuce decks for only what is enabled
 	if(NOT COLLIMAT)
 		ast_masks_deck(nwrtcoll ${loop})
 	endif()
@@ -1255,6 +1268,14 @@ IF(BUILD_TESTING)
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+	if (LIBARCHIVE)
+		target_link_libraries(SixTestWrapper libArchive_wrapper)
+		if(WIN32)
+			target_link_libraries(SixTestWrapper archive z bz2 Bcrypt pthread iconv)
+		else()
+			target_link_libraries(SixTestWrapper libarchive z bz2 pthread)
+		endif()
+	endif()
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
 	find_library(pthread STATIC pthread)

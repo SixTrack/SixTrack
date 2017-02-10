@@ -29,6 +29,12 @@
 #include <windows.h>
 #endif
 
+#ifdef LIBARCHIVE
+#include <sys/stat.h>
+#include <dirent.h>
+#include "libArchive_wrapper.h"
+#endif
+
 #ifndef WIN32
 void *pthread_kill_sixtrack(void*);
 void *pthread_wait_sixtrack(void*);
@@ -44,7 +50,7 @@ size_t StripCR(std::string);
 bool CheckFort10(char**);
 bool CheckFort90(char**);
 bool CheckSTF(char**);
-bool PerformExtraChecks();
+bool PerformExtraChecks(bool&);
 std::vector<int> ParseKillTimes(char*);
 
 void UnlinkCRFiles();
@@ -77,8 +83,9 @@ struct KillInfo
 * 4: bool to check fort.10
 * 5: bool to check fort.90
 * 6: bool for STF enabled
-* 7: CR enabled
-* 8: CR kill time
+* 7: Number of files to expect in Sixout.zip (0 means no Sixout.zip)
+* 8: CR enabled
+* 9: CR kill time
 *
 * For running the tools:
 * On "Unix" we call fork() and exec()
@@ -90,9 +97,9 @@ struct KillInfo
 int main(int argc, char* argv[])
 {
 	//First check we have the correct number of arguments
-	if(argc != 9)
+	if(argc != 10)
 	{
-		std::cout << argv[0] << " called with the incorrect number of arguments, should be 8, but was called with " << argc - 1 << " arguments" << std::endl;
+		std::cout << argv[0] << " called with the incorrect number of arguments, should be 9, but was called with " << argc - 1 << " arguments" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -115,12 +122,19 @@ int main(int argc, char* argv[])
 	bool fort10 = false;
 	bool fort90 = false;
 	bool STF = false;
-
+	bool extrachecks = false; //Returned from PerformExtraChecks
+	int sixoutzip = 0;
+	
 	bool fort10fail = false;
 	bool fort90fail = false;
 	bool STFfail = false;
 	bool ExtraChecksfail = false;
-
+	bool sixoutzipfail = false;
+#ifdef LIBARCHIVE
+	const char* const tmpdir = "sixoutzip_tmpdir";
+	const char* const sixoutzip_fname = "Sixout.zip";
+#endif
+	
 	if(atof(argv[4]) != 0)
 	{
 		fort10 = true;
@@ -135,11 +149,15 @@ int main(int argc, char* argv[])
 	{
 		STF = true;
 	}
-
 	if(atof(argv[7]) != 0)
 	{
+		sixoutzip = atof(argv[7]);
+	}
+
+	if(atof(argv[8]) != 0)
+	{
 		CR = true;
-		KillTimes = ParseKillTimes(argv[8]);
+		KillTimes = ParseKillTimes(argv[9]);
 	}
 
 	/**
@@ -423,9 +441,143 @@ int main(int argc, char* argv[])
 			std::cout << "STF: PASS" << std::endl;
 		}
 	}
+	
 	//Look at extra_checks.txt
-	ExtraChecksfail = PerformExtraChecks();
+	ExtraChecksfail = PerformExtraChecks(extrachecks);
 
+	//Look at sixout.zip
+#ifdef LIBARCHIVE
+	if (sixoutzip)
+	{
+		std::cout <<  "------------------------ Checking sixout.zip ---------------------------------" << std::endl;
+	  	
+		//(Re-)create tmpdir folder
+		struct stat st;
+		int status;
+		if (stat(tmpdir, &st) == 0)
+		{
+			if ( ! S_ISDIR(st.st_mode) )
+			{
+				std::cout << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "Folder '" << tmpdir << "' exits, deleting contents." << std::endl;
+
+			// From http://stackoverflow.com/questions/11007494/how-to-delete-all-files-in-a-folder-but-not-delete-the-folder-using-nix-standar
+			
+			// These are data types defined in the "dirent" header
+			DIR *theFolder = opendir(tmpdir);
+			struct dirent *next_file;
+			char filepath[256];
+			
+			while ( (next_file = readdir(theFolder)) != NULL )
+			{
+				// build the path for each file in the folder
+				int snprintf_err = snprintf(filepath, 256, "%s/%s", tmpdir, next_file->d_name);
+				if (snprintf_err >= 256 || snprintf_err < 0)
+				{
+					std::cout << "Error in snprintf while building the path for deleting a file" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				remove(filepath);
+			}
+			closedir(theFolder);
+			std::cout << "done." << std::endl;
+		}
+		else
+		{
+			std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
+#if defined(_WIN32)
+			status = not CreateDirectory(tmpdir,NULL);
+#else
+			status = mkdir(tmpdir,S_IRWXU);
+#endif
+			if (status)
+			{
+				std::cout << "Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "done." << std::endl;
+		}
+		
+		//List content
+		//list_archive(sixoutzip_fname);
+		const int archive_nfiles_max = 256;
+		int archive_nfiles = archive_nfiles_max;
+		const int archive_buffsize = 100;
+		char** archive_buff = new char*[archive_nfiles];
+		for (int i = 0; i< archive_nfiles_max; i++)
+		{
+			archive_buff[i] = new char[archive_buffsize];
+		}
+		std::cout << "Calling list_archive_get..." << std::endl;
+		list_archive_get(sixoutzip_fname,archive_buff,&archive_nfiles,archive_buffsize);
+
+		std::cout << "Got " << archive_nfiles << " files:" << std::endl;
+		for (int i = 0; i< archive_nfiles; i++)
+		{
+			std::cout << "File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
+		}
+		if (archive_nfiles != sixoutzip)
+		{
+			std::cout << "WARNING: Expected " << sixoutzip << " files in '" << sixoutzip_fname << "', got " << archive_nfiles << std::endl;
+			sixoutzipfail = true;
+		}
+		else
+		{
+			std::cout << "The number of files in the archive '" << sixoutzip_fname << "' MATCHES the expected number " << archive_nfiles << std::endl;
+		}
+		
+		//Unzip!
+		std::cout << "Calling read_archive..." << std::endl;
+		read_archive(sixoutzip_fname,tmpdir);
+
+		for (int i = 0; i< archive_nfiles; i++)
+		{
+			char* FileNameZip = new char[strlen(tmpdir)+1+archive_buffsize];
+			
+			// Insert the right path separator
+			int snprintf_err = 0;
+#ifdef WIN32
+			snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\\%s",tmpdir,archive_buff[i]);
+#else
+			snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
+#endif
+			if (snprintf_err >= (archive_buffsize+1+strlen(tmpdir)) || snprintf_err < 0)
+			{
+				std::cout << "Error in snprintf while building the path for unzipped file." << std::endl;
+				std::cout << "snprintf_err = " << snprintf_err << ", buffsize=" << (archive_buffsize+1+strlen(tmpdir)) << std::endl;
+				exit(EXIT_FAILURE);
+			}
+
+#ifdef WIN32
+			//Strip out \r characters from windows new lines
+			size_t CRcount = StripCR(FileNameZip);
+			std::cout << "Removed " << CRcount << " windows \\r entries from '" << FileNameZip << "'." << std::endl;
+#endif
+			
+			bool ThisTest = !FileComparison(FileNameZip, std::string(archive_buff[i]) + ".canonical");
+			if(ThisTest)
+			{
+				std::cerr << "WARNING: Test of zipped file '" << FileNameZip << "' failed!" << std::endl;
+				sixoutzipfail = true;
+			}
+			else
+			{
+				std::cout << "Test of zipped file '" << FileNameZip << "' MATCHES" << std::endl;
+			}
+		}
+		
+		//Cleanup memory
+		for (int i = 0; i< archive_nfiles_max; i++)
+		{
+			delete[] archive_buff[i];
+		}
+		delete[] archive_buff;
+		
+		std::cout <<  "----------------------- End checking sixout.zip ------------------------------" << std::endl;
+	}
+#endif
 	std::cout << "---------------------------------- SUMMARY -----------------------------------" << std::endl;
 	if(fort10)
 	{
@@ -462,12 +614,36 @@ int main(int argc, char* argv[])
 			std::cout << "singletrackfile.dat MATCHES" << std::endl;
 		}
 	}
+	if(extrachecks)
+	{
+		if(ExtraChecksfail)
+		{
+			std::cout << "Extra checks DOES NOT MATCH" << std::endl;
+		}
+		else
+		{
+			std::cout << "Extra checks MATCHES" << std::endl;
+		}
+	}
+#ifdef LIBARCHIVE
+	if(sixoutzip)
+	{
+		if(sixoutzipfail)
+		{
+			std::cout << sixoutzip_fname << " DOES NOT MATCH" << std::endl;
+		}
+		else
+		{
+			std::cout << sixoutzip_fname << " MATCHES" << std::endl;
+		}
+	}
+#endif
 	std::cout << "------------------------------------ EXIT ------------------------------------" << std::endl;
 
 	//or together any fail bits.
 	//If all tests pass this will return 0 (good)
 	//if not we get something else out (bad)
-	return (fort10fail || fort90fail || STFfail || ExtraChecksfail);
+	return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail);
 }
 
 /**
@@ -816,14 +992,14 @@ bool FileComparison(std::string FileName1, std::string FileName2)
 	return true;
 }
 
-bool PerformExtraChecks()
+bool PerformExtraChecks(bool &extrachecks)
 {
 	std::cout << "--------------------------- Performing extra checks ---------------------------" << std::endl;
 	bool AllTests = false;
 	std::ifstream extra_checks_in("extra_checks.txt");
 	if(extra_checks_in.good())
 	{
-
+		extrachecks=true;
 		std::cout << "Opened extra_checks.txt" << std::endl;
 		//Format should be some file to check followed by a command
 		while(extra_checks_in.good())
@@ -857,6 +1033,7 @@ bool PerformExtraChecks()
 	else
 	{
 		std::cout << "Could not open extra_checks.txt" << std::endl;
+		extrachecks=false;
 	}
 
 	std::cout << "------------------------------- End extra checks ------------------------------" << std::endl;
