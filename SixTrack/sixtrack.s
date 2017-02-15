@@ -26062,7 +26062,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
                 dumpfilepos(i) = dumpfilepos(i) + 3
 +ei
-             else if ( dumpfmt(i).eq.3 ) then
+             else if ( dumpfmt(i).eq.4 ) then
                 if (i.eq.0) then
                    write(dumpunit(i),
      &                  '(1x,a,i12)')
