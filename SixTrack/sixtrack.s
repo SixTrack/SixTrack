@@ -26041,12 +26041,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              else if ( dumpfmt(i).eq.2 ) then
                 if (i.eq.0) then
                    write(dumpunit(i),
-     &                  '(1x,a,i12)')
-     &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
+     &                  '(1x,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #2, ALL ELEMENTS, number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
                 else
                    write(dumpunit(i),
-     &                  '(1x,a,a16,a,i12)')
-     &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
+     &                  '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #2, bez=', bez(i), ', number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
                 endif
                 write(dumpunit(i),
      &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
@@ -26140,9 +26144,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                       dumpfilepos(i) = 0
 +ei
                       if (dumpfmt(i).eq.2) then !More header
-                         write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i),
-     &  ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
+                         write(dumpunit(i),
+     &                        '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #2, bez=', bez(i), ', number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
 +if cr
                          dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
@@ -34788,7 +34794,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          xyz2(3:,1) = xyz2(3:,1)/napx
          xyz2(4:,1) = xyz2(4:,1)/napx
          xyz2(5:,1) = xyz2(5:,1)/napx
-         xyz2(6,1)  = xyz2(6,1)/napx
+         xyz2(6,1)  = xyz2(6,1) /napx
          
          if ( lhighprec ) then
             write(unit,1989) napx, nturn, dcum(i),
