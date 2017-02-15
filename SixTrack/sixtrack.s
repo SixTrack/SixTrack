@@ -34716,7 +34716,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
 
-      else if (fmt .eq. 3) then
+      else if (fmt .eq. 4) then
          do l=1,6
             xyz(l) = 0.0
             do k=1,6
