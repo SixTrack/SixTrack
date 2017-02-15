@@ -1,4 +1,4 @@
- # DUMP format #2, bez=op_beam         , number of particles=          64
+ # DUMP format #2, bez=op_beam         , number of particles=          64, dump period=         100, HIGH=F, FRONT=F
  # dump period=         100 , first turn=           1 , last turn=          -1
  # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
         1        1   6815.26943  1.005235230E+00 -7.757492413E-03  2.461128225E+00 -2.577183962E-03  1.577892860E-02  9.945768927E-06       31

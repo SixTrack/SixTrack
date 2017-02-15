@@ -1,4 +1,4 @@
- # DUMP format #2, bez=ip4..5          , number of particles=          60
+ # DUMP format #2, bez=ip4..5          , number of particles=          60, dump period=           1, HIGH=F, FRONT=F
  # dump period=           1 , first turn=           1 , last turn=         100
  # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
         1        1   3317.77422  7.248596996E-05  7.841317547E-07  0.000000000E+00  0.000000000E+00  0.000000000E+00 -1.293503576E-16       31

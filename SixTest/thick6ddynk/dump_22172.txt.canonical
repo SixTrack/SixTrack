@@ -1,4 +1,4 @@
- # DUMP format #2, bez=ip.bpcr.22172   , number of particles=          64
+ # DUMP format #2, bez=ip.bpcr.22172   , number of particles=          64, dump period=           1, HIGH=F, FRONT=F
  # dump period=           1 , first turn=           1 , last turn=          -1
  # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
         1        1   5920.68180 -4.248695256E+00 -2.003606098E-01  1.941661266E+00  2.731853825E-02  2.839598414E+02 -1.619085266E-03       31
