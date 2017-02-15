@@ -26044,7 +26044,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                  '(1x,a,i12,a,i12,a,L1,a,L1)')
      & '# DUMP format #2, ALL ELEMENTS, number of particles=', napx,
      & ', dump period=', ndumpt(i),
-     & ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
                 else
                    write(dumpunit(i),
      &                  '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
@@ -26069,12 +26069,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              else if ( dumpfmt(i).eq.4 ) then
                 if (i.eq.0) then
                    write(dumpunit(i),
-     &                  '(1x,a,i12)')
-     &  '# DUMP format #4, ALL ELEMENTS, number of particles=', napx
+     &                  '(1x,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #4, ALL ELEMENTS, number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
                 else
                    write(dumpunit(i),
-     &                  '(1x,a,a16,a,i12)')
-     &  '# DUMP format #4, bez=', bez(i), ', number of particles=', napx
+     &                  '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #4, bez=', bez(i), ', number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
                 endif
                 write(dumpunit(i),
      &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
@@ -26152,6 +26156,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
                          dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
+                      else if (dumpfmt(i).eq.4) then
+                         write(dumpunit(i),
+     &                        '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #4, bez=', bez(i), ', number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
++if cr
+                         dumpfilepos(i) = dumpfilepos(i) + 1
++ei                         
                       endif
                    endif
                 endif
