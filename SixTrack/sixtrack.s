@@ -26066,21 +26066,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 if (i.eq.0) then
                    write(dumpunit(i),
      &                  '(1x,a,i12)')
-     &  '# DUMP format #3, ALL ELEMENTS, number of particles=', napx
+     &  '# DUMP format #4, ALL ELEMENTS, number of particles=', napx
                 else
                    write(dumpunit(i),
      &                  '(1x,a,a16,a,i12)')
-     &  '# DUMP format #3, bez=', bez(i), ', number of particles=', napx
+     &  '# DUMP format #4, bez=', bez(i), ', number of particles=', napx
                 endif
                 write(dumpunit(i),
      &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
      &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
      &  ', last turn=', dumplast(i)
                 write(dumpunit(i),'(1x,a)')
-     &               '# ID napx turn s[m] ' //
+     &               '# napx turn s[m] ' //
      &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
-     &   '<x^2>[mm^2] <xp^2>[mrad^2] <y^2>[mm^2] <yp^2>[mrad^2] '//
-     &   '<z^2>[mm^2] <(dE/E)^2>[1]'
+     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//
+     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//
+     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//
+     &   '<yp^2> <yp*z> <yp*(dE/E)> '//
+     &   '<z^2> <z*(dE/E)> '//
+     &   '<(dE/E)^2>'
                 
                 !Flush file
                 endfile   (dumpunit(i))
@@ -34731,57 +34735,79 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             xyz(4) = xyz(4) + yv(2,j)
             xyz(5) = xyz(5) + sigmv(j)
             xyz(6) = xyz(6) + (ejv(j)-e0)/e0
-            
+
+            !Beam matrix - don't calulate what we know due to symmetry
             xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
-            xyz2(1,2) = xyz2(1,2) + xv(1,j)*xv(2,j)
-            xyz2(1,3) = xyz2(1,3) + xv(1,j)*yv(1,j)
-            xyz2(1,4) = xyz2(1,4) + xv(1,j)*yv(2,j)
-            xyz2(1,5) = xyz2(1,5) + xv(1,j)*sigmv(j)
-            xyz2(1,6) = xyz2(1,6) + xv(1,j)*((ejv(j)-e0)/e0)
-            
-            xyz2(2,1) = xyz2(2,1) + xv(2,j)*xv(1,j)
-            xyz2(2,2) = xyz2(2,2) + xv(2,j)*xv(2,j)
-            xyz2(2,3) = xyz2(2,3) + xv(2,j)*yv(1,j)
-            xyz2(2,4) = xyz2(2,4) + xv(2,j)*yv(2,j)
-            xyz2(2,5) = xyz2(2,5) + xv(2,j)*sigmv(j)
-            xyz2(2,6) = xyz2(2,6) + xv(2,j)*((ejv(j)-e0)/e0)
-            
-            xyz2(3,1) = xyz2(3,1) + yv(1,j)*xv(1,j)
-            xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
-            xyz2(3,3) = xyz2(3,3) + yv(1,j)*yv(1,j)
-            xyz2(3,4) = xyz2(3,4) + yv(1,j)*yv(2,j)
-            xyz2(3,5) = xyz2(3,5) + yv(1,j)*sigmv(j)
-            xyz2(3,6) = xyz2(3,6) + yv(1,j)*((ejv(j)-e0)/e0)
-            
-            xyz2(4,1) = xyz2(4,1) + yv(2,j)*xv(1,j)
-            xyz2(4,2) = xyz2(4,2) + yv(2,j)*xv(2,j)
-            xyz2(4,3) = xyz2(4,3) + yv(2,j)*yv(1,j)
-            xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
-            xyz2(4,5) = xyz2(4,5) + yv(2,j)*sigmv(j)
-            xyz2(4,6) = xyz2(4,6) + yv(2,j)*((ejv(j)-e0)/e0)
-            
-            xyz2(4,1) = xyz2(4,1) + ((ejv(j)-e0)/e0)*xv(1,j)
-            xyz2(4,2) = xyz2(4,2) + ((ejv(j)-e0)/e0)*xv(2,j)
-            xyz2(4,3) = xyz2(4,3) + ((ejv(j)-e0)/e0)*yv(1,j)
-            xyz2(4,4) = xyz2(4,4) + ((ejv(j)-e0)/e0)*yv(2,j)
-            xyz2(4,5) = xyz2(4,5) + ((ejv(j)-e0)/e0)*sigmv(j)
-            xyz2(4,6) = xyz2(4,6) + ((ejv(j)-e0)/e0)*((ejv(j)-e0)/e0)
-            
+            xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
+            xyz2(3,1) = xyz2(3,1) + xv(1,j)*xv(2,j)
+            xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
+            xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
+            xyz2(6,1) = xyz2(6,1) + xv(1,j)*((ejv(j)-e0)/e0)
+
+            !xyz2(1,1) = xyz2(1,1) + yv(1,j)*xv(1,j)
+            xyz2(2,1) = xyz2(2,1) + yv(1,j)*yv(1,j)
+            xyz2(3,1) = xyz2(3,1) + yv(1,j)*xv(2,j)
+            xyz2(4,1) = xyz2(4,1) + yv(1,j)*yv(2,j)
+            xyz2(5,1) = xyz2(5,1) + yv(1,j)*sigmv(j)
+            xyz2(6,1) = xyz2(6,1) + yv(1,j)*((ejv(j)-e0)/e0)
+
+            !xyz2(1,1) = xyz2(1,1) + xv(2,j)*xv(1,j)
+            !xyz2(2,1) = xyz2(2,1) + xv(2,j)*yv(1,j)
+            xyz2(3,1) = xyz2(3,1) + xv(2,j)*xv(2,j)
+            xyz2(4,1) = xyz2(4,1) + xv(2,j)*yv(2,j)
+            xyz2(5,1) = xyz2(5,1) + xv(2,j)*sigmv(j)
+            xyz2(6,1) = xyz2(6,1) + xv(2,j)*((ejv(j)-e0)/e0)
+
+            !xyz2(1,1) = xyz2(1,1) + yv(2,j)*xv(1,j)
+            !xyz2(2,1) = xyz2(2,1) + yv(2,j)*yv(1,j)
+            !xyz2(3,1) = xyz2(3,1) + yv(2,j)*xv(2,j)
+            xyz2(4,1) = xyz2(4,1) + yv(2,j)*yv(2,j)
+            xyz2(5,1) = xyz2(5,1) + yv(2,j)*sigmv(j)
+            xyz2(6,1) = xyz2(6,1) + yv(2,j)*((ejv(j)-e0)/e0)
+
+            !xyz2(1,1) = xyz2(1,1) + sigmv(j)*xv(1,j)
+            !xyz2(2,1) = xyz2(2,1) + sigmv(j)*yv(1,j)
+            !xyz2(3,1) = xyz2(3,1) + sigmv(j)*xv(2,j)
+            !xyz2(4,1) = xyz2(4,1) + sigmv(j)*yv(2,j)
+            xyz2(5,1) = xyz2(5,1) + sigmv(j)*sigmv(j)
+            xyz2(6,1) = xyz2(6,1) + sigmv(j)*((ejv(j)-e0)/e0)
+
+            !xyz2(1,1) = xyz2(1,1) + ((ejv(j)-e0)/e0)*xv(1,j)
+            !xyz2(2,1) = xyz2(2,1) + ((ejv(j)-e0)/e0)*yv(1,j)
+            !xyz2(3,1) = xyz2(3,1) + ((ejv(j)-e0)/e0)*xv(2,j)
+            !xyz2(4,1) = xyz2(4,1) + ((ejv(j)-e0)/e0)*yv(2,j)
+            !xyz2(5,1) = xyz2(5,1) + ((ejv(j)-e0)/e0)*sigmv(j)
+            xyz2(6,1) = xyz2(6,1) + ((ejv(j)-e0)/e0)*((ejv(j)-e0)/e0)
          enddo
+
+         xyz = xyz/napx
+
+         ! xyz2 = xyz2/napx
+         xyz2(:,1)  = xyz2(:,1) /napx
+         xyz2(2:,1) = xyz2(2:,1)/napx
+         xyz2(3:,1) = xyz2(3:,1)/napx
+         xyz2(4:,1) = xyz2(4:,1)/napx
+         xyz2(5:,1) = xyz2(5:,1)/napx
+         xyz2(6,1)  = xyz2(6,1)/napx
+         
          if ( lhighprec ) then
-            do j=1,napx
-               write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &              (ejv(j)-e0)/e0, ktrack(i)
-            enddo
+            write(unit,1989) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
          else
-            do j=1,napx
-               write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &              (ejv(j)-e0)/e0, ktrack(i)
-            enddo
+            write(unit,1990) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
          endif
       
       !Unrecognized format fmt
@@ -34805,6 +34831,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
  1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec
+
+ 1989 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 4 / hiprec
+ 1990 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 4 / hiprec
+      
       end subroutine
 
 +dk tra_thck
