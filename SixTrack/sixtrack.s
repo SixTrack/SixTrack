@@ -83,7 +83,7 @@
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
       logical rerun,start,restart,checkp,fort95,fort96,read95,read96
-      character*255 arecord
+      character*1024 arecord
       character*20 stxt
       character*80 runtim
 ! Note order of placement in COMMON crdata is important
@@ -24473,7 +24473,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       open(93,file='fort.93',form='formatted',status='unknown')
 +ei
 +ei
-  606 read(93,'(a255)',end=607) arecord
+  606 read(93,'(a1024)',end=607) arecord
       goto 606
   607 backspace (93,iostat=ierro)
 ! and if BOINC issue an informatory message
@@ -66874,7 +66874,7 @@ c$$$         backspace (93,iostat=ierro)
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
 !--   First we position fort.6 to last checkpoint
-  603   read(6,'(a255)',end=604,err=106,iostat=ierro) arecord
+  603   read(6,'(a1024)',end=604,err=106,iostat=ierro) arecord
         sixrecs=sixrecs+1
         if (sixrecs.lt.crsixrecs) goto 603
         endfile (6,iostat=ierro)
@@ -66893,7 +66893,7 @@ c$$$         backspace (93,iostat=ierro)
 !--   Now re-position beambeam-output.dat and lostID.dat
 !--   or only fort.10 if boinc
 +if .not.boinc
-  610     read(52,'(a255)',end=608,err=108,iostat=ierro) arecord
+  610     read(52,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
           endfile (52,iostat=ierro)
@@ -66902,7 +66902,7 @@ c$$$         backspace (93,iostat=ierro)
      &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-  611     read(53,'(a255)',end=609,err=109,iostat=ierro) arecord
+  611     read(53,'(a1024)',end=609,err=109,iostat=ierro) arecord
           bllrec=bllrec+1
           if (bllrec.lt.crbllrec) goto 611
           endfile (53,iostat=ierro)
@@ -66913,7 +66913,7 @@ c$$$         backspace (93,iostat=ierro)
           backspace (93,iostat=ierro)
 +ei
 +if boinc
-  610     read(10,'(a255)',end=608,err=108,iostat=ierro) arecord
+  610     read(10,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
           endfile (10,iostat=ierro)
@@ -67167,7 +67167,7 @@ c$$$         backspace (93,iostat=ierro)
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
          
- 701     read(665,'(a255)',end=110,err=110,iostat=ierro) arecord
+ 701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
          dynkfilepos=dynkfilepos+1
          if (dynkfilepos.lt.dynkfilepos_cr) goto 701
 
@@ -67207,7 +67207,7 @@ c$$$         backspace (93,iostat=ierro)
      &                form='formatted',action='readwrite')
             
             dumpfilepos(i) = 0
- 702        read(dumpunit(i),'(a255)',end=111,err=111,iostat=ierro)
+ 702        read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro)
      &           arecord
             dumpfilepos(i) = dumpfilepos(i) + 1
             if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
@@ -67311,9 +67311,9 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ei
 !--   Copy the lout to fort.6
         rewind lout
-    3   read(lout,'(a255)',end=1,err=107,iostat=ierro) arecord
-        lstring=255
-        do i=255,2,-1
+    3   read(lout,'(a1024)',end=1,err=107,iostat=ierro) arecord
+        lstring=1024
+        do i=1024,2,-1
           lstring=i
           if (arecord(i:i).ne.' ')goto 2
           lstring=lstring-1
@@ -67447,9 +67447,9 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ei
       osixrecs=sixrecs
       rewind lout
-    3 read(lout,'(a255)',end=1,err=101,iostat=ierro) arecord
-      lstring=255
-      do i=255,2,-1
+    3 read(lout,'(a1024)',end=1,err=101,iostat=ierro) arecord
+      lstring=1024
+      do i=1024,2,-1
         lstring=i
         if (arecord(i:i).ne.' ') goto 2
         lstring=lstring-1
@@ -68689,7 +68689,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
 
 ! Now we try and read fort.10 i.e. is it empty?
-      read(10,'(a255)',end=11,err=11,iostat=ierro) arecord
+      read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
 ! Seems to be OK
       goto 12    
  11   continue
@@ -68800,9 +68800,9 @@ c$$$         backspace (93,iostat=ierro)
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         rewind 92
-    3   read(92,'(a255)',end=1,err=8,iostat=ierro) arecord
-        lstring=255
-        do i=255,2,-1
+    3   read(92,'(a1024)',end=1,err=8,iostat=ierro) arecord
+        lstring=1024
+        do i=1024,2,-1
           lstring=i
           if (arecord(i:i).ne.' ')goto 2
           lstring=lstring-1
