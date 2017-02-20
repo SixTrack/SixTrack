@@ -936,21 +936,14 @@ if(LIBARCHIVE)
 	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrack libArchive_wrapper)
 	if(WIN32)
-		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
-		# Therefore, must link as -L${LIBARCHIVE_BUILD_DIR}/libarchive/ -larchive ##THIS GETS THE SYSTEM VERSION!
-		# Not just include the .a
-		#find_library(archive STATIC PATH ${LIBARCHIVE_BUILD_DIR}/libarchive/ archive)
 		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
-		add_library(libarchive2 STATIC IMPORTED)
-		set_target_properties(libarchive2 PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.dll.a)
 
-		find_library(zlib STATIC z)
+		find_library(z STATIC z)
 		find_library(pthread STATIC pthread)
-		find_library(bz2 STATIC bz2)
-		find_library(iconv STATIC iconv)
-		target_link_libraries(SixTrack libarchive2 libarchive z bz2 pthread iconv)
-		target_link_libraries(libArchiveTester  libarchive2 libarchive z bz2 pthread iconv)
+		target_link_libraries(SixTrack libarchive z pthread)
+		target_link_libraries(libArchiveTester libarchive z pthread)
+		add_definitions( -DLIBARCHIVE_STATIC )
 	else()
 		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
@@ -963,6 +956,9 @@ if(LIBARCHIVE)
 		target_link_libraries(libArchiveTester libarchive z bz2 pthread)
 	endif()
 	add_definitions( -DLIBARCHIVE )
+
+	#Note: More libarchive stuff under IF(BUILD_TESTING), further down!
+
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -1274,7 +1270,7 @@ IF(BUILD_TESTING)
 	if (LIBARCHIVE)
 		target_link_libraries(SixTestWrapper libArchive_wrapper)
 		if(WIN32)
-			target_link_libraries(SixTestWrapper libarchive2 libarchive z bz2 pthread iconv)
+			target_link_libraries(SixTestWrapper libarchive z pthread)
 		else()
 			target_link_libraries(SixTestWrapper libarchive z bz2 pthread)
 		endif()
