@@ -935,30 +935,20 @@ if(LIBARCHIVE)
 
 	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrack libArchive_wrapper)
+	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
-		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
-		# Therefore, must link as -L${LIBARCHIVE_BUILD_DIR}/libarchive/ -larchive
-		# Not just include the .a
-		find_library(archive STATIC PATH ${LIBARCHIVE_BUILD_DIR}/libarchive/ archive)
-
-		find_library(zlib STATIC z)
-		find_library(pthread STATIC pthread)
-		find_library(bz2 STATIC bz2)
-		find_library(Bcrypt STATIC Bcrypt)
-		find_library(iconv STATIC iconv)
-		target_link_libraries(SixTrack archive z bz2 Bcrypt pthread iconv)
-		target_link_libraries(libArchiveTester archive z bz2 Bcrypt pthread iconv)
+		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
+		add_definitions( -DLIBARCHIVE_STATIC )
 	else()
-		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
-
-		find_library(pthread STATIC pthread)
-		find_library(bz2 STATIC bz2)
-		find_library(z STATIC z)
-
-		target_link_libraries(SixTrack libarchive z bz2 pthread)
-		target_link_libraries(libArchiveTester libarchive z bz2 pthread)
 	endif()
+	
+	find_library(pthread STATIC pthread)
+	find_library(z STATIC z)
+	
+	target_link_libraries(SixTrack libarchive z pthread)
+	target_link_libraries(libArchiveTester libarchive z pthread)
+	
 	add_definitions( -DLIBARCHIVE )
 endif()
 
@@ -1269,12 +1259,7 @@ IF(BUILD_TESTING)
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
 	if (LIBARCHIVE)
-		target_link_libraries(SixTestWrapper libArchive_wrapper)
-		if(WIN32)
-			target_link_libraries(SixTestWrapper archive z bz2 Bcrypt pthread iconv)
-		else()
-			target_link_libraries(SixTestWrapper libarchive z bz2 pthread)
-		endif()
+		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z pthread)
 	endif()
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
