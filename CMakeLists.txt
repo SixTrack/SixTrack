@@ -935,29 +935,21 @@ if(LIBARCHIVE)
 
 	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrack libArchive_wrapper)
+	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
-		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
-
-		find_library(z STATIC z)
-		find_library(pthread STATIC pthread)
-		target_link_libraries(SixTrack libarchive z pthread)
-		target_link_libraries(libArchiveTester libarchive z pthread)
 		add_definitions( -DLIBARCHIVE_STATIC )
 	else()
-		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
-
-		find_library(pthread STATIC pthread)
-		find_library(z STATIC z)
-
-		target_link_libraries(SixTrack libarchive z pthread)
-		target_link_libraries(libArchiveTester libarchive z pthread)
 	endif()
+	
+	find_library(pthread STATIC pthread)
+	find_library(z STATIC z)
+	
+	target_link_libraries(SixTrack libarchive z pthread)
+	target_link_libraries(libArchiveTester libarchive z pthread)
+	
 	add_definitions( -DLIBARCHIVE )
-
-	#Note: More libarchive stuff under IF(BUILD_TESTING), further down!
-
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -1267,12 +1259,7 @@ IF(BUILD_TESTING)
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
 	if (LIBARCHIVE)
-		target_link_libraries(SixTestWrapper libArchive_wrapper)
-		if(WIN32)
-			target_link_libraries(SixTestWrapper libarchive z pthread)
-		else()
-			target_link_libraries(SixTestWrapper libarchive z pthread)
-		endif()
+		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z pthread)
 	endif()
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
