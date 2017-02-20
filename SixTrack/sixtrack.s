@@ -34828,7 +34828,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
          endif
-      
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
++ei
+
       !Unrecognized format fmt
       else
 +if cr
