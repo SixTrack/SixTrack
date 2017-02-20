@@ -2980,10 +2980,17 @@ an integer specifying the output format. The following is accepted:
 	\item[1] -- Format for aperture check:\\
 	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
 	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
-	\item[2] -- Modified format for aperture check:\\  
-	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+	\item[2] -- Modified format for aperture check:\\
+	Header line 1 (alt.\ 1): \texttt{\# DUMP format \#2, bez=\textit{bez(i)}, number of particles=\textit{napx}}\\
+        Here \textit{bez} is the name of the SINGLE ELEMENT.\\
+	Header line 1 (alt.\ 2): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}}\\
+	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+	If there are multiple single elements attached to the file, header line 2 is follwed by a number of lines similar to line 1, describing which elements are used and the current dump period.\\
+	Data lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+	\item[4] -- Beam mean and sigma:\\
+	Header: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\\
 	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
-	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles). The for the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
