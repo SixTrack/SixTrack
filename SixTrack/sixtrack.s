@@ -26112,18 +26112,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              ! Write the general header
              if (i.eq.0) then
                 write(dumpunit(i),
-     &               '(1x,a,i0,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #',dumpfmt(i),
-     & ', ALL ELEMENTS, number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
+     &               '(1x,a,i0,a,4(a,i12),2(a,L1))')
+     & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',
+     & ' number of particles=',napx, ', dump period=',ndumpt(i),
+     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
+     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
              else
                 write(dumpunit(i),
-     &               '(1x,a,i0,a,a16,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #',dumpfmt(i),
-     & ' bez=', bez(i), ', number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
+     &               '(1x,a,i0,a,a16,4(a,i12),2(a,L1))')
+     & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),
+     & ', number of particles=',napx,', dump period=',ndumpt(i),
+     & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),
+     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
              endif
                 
              !Flush file
