@@ -26096,7 +26096,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              endif
           endif
           if ( dumpfmt(i).eq.1 ) then ! Format 1 is special
-             write(dumpunit(i),*)
+             write(dumpunit(i),'(a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
                 
              !Flush file
@@ -26112,14 +26112,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              ! Write the general header
              if (i.eq.0) then
                 write(dumpunit(i),
-     &               '(1x,a,i0,a,4(a,i12),2(a,L1))')
+     &               '(a,i0,a,4(a,i12),2(a,L1))')
      & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',
      & ' number of particles=',napx, ', dump period=',ndumpt(i),
      & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
      & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
              else
                 write(dumpunit(i),
-     &               '(1x,a,i0,a,a16,4(a,i12),2(a,L1))')
+     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')
      & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),
      & ', number of particles=',napx,', dump period=',ndumpt(i),
      & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),
@@ -26134,7 +26134,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
              !Write the format-specific headers:
              if ( dumpfmt(i).eq.2 ) then ! FORMAT 2
-                write(dumpunit(i),'(1x,a,a)')
+                write(dumpunit(i),'(a,a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
      &  'ktrack'
 
@@ -26145,7 +26145,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
              else if ( dumpfmt(i).eq.4 ) then ! FORMAT 4
-                write(dumpunit(i),'(1x,a)')
+                write(dumpunit(i),'(a)')
      &               '# napx turn s[m] ' //
      &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
                    
@@ -26157,7 +26157,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
              else if ( dumpfmt(i).eq.5 ) then ! FORMAT 5
-                write(dumpunit(i),'(1x,a)')
+                write(dumpunit(i),'(a)')
      &               '# napx turn s[m] ' //
      &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
      &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//
