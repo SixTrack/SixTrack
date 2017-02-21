@@ -2974,23 +2974,31 @@ The unit number and filename may be shared between different DUMP outputs, as lo
 \subparagraph{format}
 an integer specifying the output format. The following is accepted:
 \begin{enumerate}
-	\item[0] -- General format:\\
+	\item[0] -- \textbf{General format:}\\
 	No header\\
 	Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
-	\item[1] -- Format for aperture check:\\
+	\item[1] -- \textbf{Format for aperture check:}\\
 	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
 	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
-	\item[2] -- Modified format for aperture check:\\
+	\item[2] -- \textbf{Modified format for aperture check:}\\
 	Header line 1 (alt.\ 1): \texttt{\# DUMP format \#2, bez=\textit{bez(i)}, number of particles=\textit{napx}}\\
-        Here \textit{bez} is the name of the SINGLE ELEMENT.\\
+        Here \textit{bez} is the name of the SINGLE ELEMENT, and \textit{napx} the number of particles being tracked (per pack in case of collimation).\\
 	Header line 1 (alt.\ 2): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}}\\
 	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
-	If there are multiple single elements attached to the file, header line 2 is follwed by a number of lines similar to line 1, describing which elements are used and the current dump period.\\
-	Data lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
-	\item[4] -- Beam mean and sigma:\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+	Data lines: as described in the header, one per particle and per turn.
+	\item[4] -- \textbf{Beam means:}\\
+        Header line 1 is the same as for format 2.\\
+        Header line 2: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+        Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+	\item[5] -- \textbf{Beam mean and sigma:}\\
+        Header line 1 is the same as for format 2.\\
 	Header: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
 	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
-	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles). The for the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+        For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.

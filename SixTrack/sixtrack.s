@@ -26002,8 +26002,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call cadcum
 
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 01-09-2014
-!     open units for dumping particle population or statistics or beam matrix
+!     K. Sjobak, for BE/ABP-HSS
+!     last modified: 21/02-2016
+!     open units for dumping particle population or statistics
 !     always in main code
       do i=0,il
 +if cr
@@ -26028,79 +26029,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
              dumpfilepos(i) = 0
 +ei
-             if ( dumpfmt(i).eq.1 ) then
-                write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
-                
-                !Flush file
-                endfile   (dumpunit(i))
-                backspace (dumpunit(i))
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-             else if ( dumpfmt(i).eq.2 ) then
-                if (i.eq.0) then
-                   write(dumpunit(i),
-     &                  '(1x,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #2, ALL ELEMENTS, number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-                else
-                   write(dumpunit(i),
-     &                  '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #2, bez=', bez(i), ', number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-                endif
-                write(dumpunit(i),
-     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
-                write(dumpunit(i),'(1x,a,a)')
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
-     &  'ktrack'
-                
-                !Flush file
-                endfile   (dumpunit(i))
-                backspace (dumpunit(i))
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 3
-+ei
-             else if ( dumpfmt(i).eq.4 ) then
-                if (i.eq.0) then
-                   write(dumpunit(i),
-     &                  '(1x,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #4, ALL ELEMENTS, number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-                else
-                   write(dumpunit(i),
-     &                  '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #4, bez=', bez(i), ', number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-                endif
-                write(dumpunit(i),
-     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
-                write(dumpunit(i),'(1x,a)')
-     &               '# napx turn s[m] ' //
-     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
-     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//
-     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//
-     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//
-     &   '<yp^2> <yp*z> <yp*(dE/E)> '//
-     &   '<z^2> <z*(dE/E)> '//
-     &   '<(dE/E)^2>'
-                
-                !Flush file
-                endfile   (dumpunit(i))
-                backspace (dumpunit(i))
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 3
-+ei
-             end if
           else
              !Sanity check: If already open, it should be by another DUMP
              ! (can't guarantee for files after this one)
@@ -26145,31 +26073,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                       ! Everything is fine
                       lopen = .true.
 +if cr
+                      !Dumpfilepos is separate for every element, even if they share files.
                       dumpfilepos(i) = 0
 +ei
-                      if (dumpfmt(i).eq.2) then !More header
-                         write(dumpunit(i),
-     &                        '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #2, bez=', bez(i), ', number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-+if cr
-                         dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-                      else if (dumpfmt(i).eq.4) then
-                         write(dumpunit(i),
-     &                        '(1x,a,a16,a,i12,a,i12,a,L1,a,L1)')
-     & '# DUMP format #4, bez=', bez(i), ', number of particles=', napx,
-     & ', dump period=', ndumpt(i),
-     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-+if cr
-                         dumpfilepos(i) = dumpfilepos(i) + 1
-+ei                         
-                      endif
                    endif
                 endif
              end do
-             !File was already open, but not by DUMP
+             ! LOPEN not set to true by sanity check in loop above
+             ! => File was already open, but not by DUMP.
              if ( .not.lopen ) then
 +if cr
                 write (lout,*)
@@ -26184,8 +26095,88 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 call prror(-1)
              endif
           endif
-        endif
-      enddo
+          if ( dumpfmt(i).eq.1 ) then ! Format 1 is special
+             write(dumpunit(i),*)
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
+                
+             !Flush file
+             endfile   (dumpunit(i))
+             backspace (dumpunit(i))
++if cr
+             dumpfilepos(i) = dumpfilepos(i) + 1
++ei
+          else if ( dumpfmt(i).eq.2 .or.
+     &              dumpfmt(i).eq.4 .or.
+     &              dumpfmt(i).eq.5      ) then
+
+             ! Write the general header
+             if (i.eq.0) then
+                write(dumpunit(i),
+     &               '(1x,a,i0,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #',dumpfmt(i),
+     & ', ALL ELEMENTS, number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
+             else
+                write(dumpunit(i),
+     &               '(1x,a,i0,a,a16,a,i12,a,i12,a,L1,a,L1)')
+     & '# DUMP format #',dumpfmt(i),
+     & ' bez=', bez(i), ', number of particles=', napx,
+     & ', dump period=', ndumpt(i),
+     & ', HIGH=', ldumphighprec, ', FRONT=', ldumpfront
+             endif
+                
+             !Flush file
+             endfile   (dumpunit(i))
+             backspace (dumpunit(i))
++if cr
+             dumpfilepos(i) = dumpfilepos(i) + 1
++ei
+             !Write the format-specific headers:
+             if ( dumpfmt(i).eq.2 ) then ! FORMAT 2
+                write(dumpunit(i),'(1x,a,a)')
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
+     &  'ktrack'
+
+                !Flush file
+                endfile   (dumpunit(i))
+                backspace (dumpunit(i))
++if cr
+                dumpfilepos(i) = dumpfilepos(i) + 1
++ei
+             else if ( dumpfmt(i).eq.4 ) then ! FORMAT 4
+                write(dumpunit(i),'(1x,a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
+                   
+                !Flush file
+                endfile   (dumpunit(i))
+                backspace (dumpunit(i))
++if cr
+                dumpfilepos(i) = dumpfilepos(i) + 1
++ei
+
+             else if ( dumpfmt(i).eq.5 ) then ! FORMAT 5
+                write(dumpunit(i),'(1x,a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
+     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//
+     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//
+     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//
+     &   '<yp^2> <yp*z> <yp*(dE/E)> '//
+     &   '<z^2> <z*(dE/E)> '//
+     &   '<(dE/E)^2>'
+                
+                !Flush file
+                endfile   (dumpunit(i))
+                backspace (dumpunit(i))
++if cr
+                dumpfilepos(i) = dumpfilepos(i) + 1
++ei
+             end if !Format-specific headers
+          end if !If format 2/4/5 -> General header
+        endif !If ldump(i) -> Dump on this element
+      enddo !Loop over elements with index i
 
 +if cr
       write(lout,10200)
@@ -34742,6 +34733,36 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       else if (fmt .eq. 4) then
          do l=1,6
             xyz(l) = 0.0
+         end do
+         
+         do j=1,napx
+            xyz(1) = xyz(1) + xv(1,j)
+            xyz(2) = xyz(2) + xv(2,j)
+            xyz(3) = xyz(3) + yv(1,j)
+            xyz(4) = xyz(4) + yv(2,j)
+            xyz(5) = xyz(5) + sigmv(j)
+            xyz(6) = xyz(6) + (ejv(j)-e0)/e0
+         enddo
+
+         xyz = xyz/napx
+         if ( lhighprec ) then
+            write(unit,1989) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+         else
+            write(unit,1990) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+         endif
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
++ei
+      
+      else if (fmt .eq. 5) then
+         do l=1,6
+            xyz(l) = 0.0
             do k=1,6
                xyz2(l,k) = 0.0
             end do
@@ -34810,7 +34831,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          xyz2(6,1)  = xyz2(6,1) /napx
          
          if ( lhighprec ) then
-            write(unit,1989) napx, nturn, dcum(i),
+            write(unit,1991) napx, nturn, dcum(i),
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
      &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
      &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
@@ -34819,7 +34840,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
          else
-            write(unit,1990) napx, nturn, dcum(i),
+            write(unit,1992) napx, nturn, dcum(i),
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
      &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
      &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
@@ -34858,8 +34879,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
  1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec
 
- 1989 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 4 / hiprec
- 1990 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 4 / hiprec
+ 1989 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18))        !fmt 4 / hiprec
+ 1990 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9))         !fmt 4 / not hiprec
+      
+ 1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5 / hiprec
+ 1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5 / not hiprec
       
       end subroutine
 
