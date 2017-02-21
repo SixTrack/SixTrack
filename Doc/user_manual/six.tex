@@ -2982,9 +2982,9 @@ The following formats are accepted:
 	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
 	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
 	\item[2] -- \textbf{Modified format for aperture check:}\\
-	Header line 1 (alt.\ 1): \texttt{\# DUMP format \#2, bez=\textit{bez(i)}, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
+	Header line 1 (single element): \texttt{\# DUMP format \#2, bez=\textit{bez(i)}, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
         Here \textit{bez} is the name of the SINGLE ELEMENT, and \textit{napx} the number of particles being tracked (per pack in case of collimation), \textit{ndumpt(i)} the dump frequency as described above, and \textit{dumpfirst(i)} and \textit{dumplast(i)} the first and last turn as descirbed below.\\
-	Header line 1 (alt.\ 2): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT\textit{T/F}}\\
+	Header line 1 (all elements): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT\textit{T/F}}\\
 	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
         If there are multiple single elements attached to the file, the headers are repeated.\\
 	Data lines: as described in the header, one per particle and per turn.
