@@ -34784,51 +34784,51 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
             xyz2(6,1) = xyz2(6,1) + xv(1,j)*((ejv(j)-e0)/e0)
 
-            !xyz2(1,1) = xyz2(1,1) + yv(1,j)*xv(1,j)
-            xyz2(2,1) = xyz2(2,1) + yv(1,j)*yv(1,j)
-            xyz2(3,1) = xyz2(3,1) + yv(1,j)*xv(2,j)
-            xyz2(4,1) = xyz2(4,1) + yv(1,j)*yv(2,j)
-            xyz2(5,1) = xyz2(5,1) + yv(1,j)*sigmv(j)
-            xyz2(6,1) = xyz2(6,1) + yv(1,j)*((ejv(j)-e0)/e0)
+            !xyz2(1,2) = xyz2(1,2) + yv(1,j)*xv(1,j)
+            xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
+            xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
+            xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
+            xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
+            xyz2(6,2) = xyz2(6,2) + yv(1,j)*((ejv(j)-e0)/e0)
 
-            !xyz2(1,1) = xyz2(1,1) + xv(2,j)*xv(1,j)
-            !xyz2(2,1) = xyz2(2,1) + xv(2,j)*yv(1,j)
-            xyz2(3,1) = xyz2(3,1) + xv(2,j)*xv(2,j)
-            xyz2(4,1) = xyz2(4,1) + xv(2,j)*yv(2,j)
-            xyz2(5,1) = xyz2(5,1) + xv(2,j)*sigmv(j)
-            xyz2(6,1) = xyz2(6,1) + xv(2,j)*((ejv(j)-e0)/e0)
+            !xyz2(1,3) = xyz2(1,3) + xv(2,j)*xv(1,j)
+            !xyz2(2,3) = xyz2(2,3) + xv(2,j)*yv(1,j)
+            xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
+            xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
+            xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
+            xyz2(6,3) = xyz2(6,3) + xv(2,j)*((ejv(j)-e0)/e0)
 
-            !xyz2(1,1) = xyz2(1,1) + yv(2,j)*xv(1,j)
-            !xyz2(2,1) = xyz2(2,1) + yv(2,j)*yv(1,j)
-            !xyz2(3,1) = xyz2(3,1) + yv(2,j)*xv(2,j)
-            xyz2(4,1) = xyz2(4,1) + yv(2,j)*yv(2,j)
-            xyz2(5,1) = xyz2(5,1) + yv(2,j)*sigmv(j)
-            xyz2(6,1) = xyz2(6,1) + yv(2,j)*((ejv(j)-e0)/e0)
+            !xyz2(1,4) = xyz2(1,4) + yv(2,j)*xv(1,j)
+            !xyz2(2,4) = xyz2(2,4) + yv(2,j)*yv(1,j)
+            !xyz2(3,4) = xyz2(3,4) + yv(2,j)*xv(2,j)
+            xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
+            xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
+            xyz2(6,4) = xyz2(6,4) + yv(2,j)*((ejv(j)-e0)/e0)
 
-            !xyz2(1,1) = xyz2(1,1) + sigmv(j)*xv(1,j)
-            !xyz2(2,1) = xyz2(2,1) + sigmv(j)*yv(1,j)
-            !xyz2(3,1) = xyz2(3,1) + sigmv(j)*xv(2,j)
-            !xyz2(4,1) = xyz2(4,1) + sigmv(j)*yv(2,j)
-            xyz2(5,1) = xyz2(5,1) + sigmv(j)*sigmv(j)
-            xyz2(6,1) = xyz2(6,1) + sigmv(j)*((ejv(j)-e0)/e0)
+            !xyz2(1,5) = xyz2(1,5) + sigmv(j)*xv(1,j)
+            !xyz2(2,5) = xyz2(2,5) + sigmv(j)*yv(1,j)
+            !xyz2(3,5) = xyz2(3,5) + sigmv(j)*xv(2,j)
+            !xyz2(4,5) = xyz2(4,5) + sigmv(j)*yv(2,j)
+            xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
+            xyz2(6,5) = xyz2(6,5) + sigmv(j)*((ejv(j)-e0)/e0)
 
-            !xyz2(1,1) = xyz2(1,1) + ((ejv(j)-e0)/e0)*xv(1,j)
-            !xyz2(2,1) = xyz2(2,1) + ((ejv(j)-e0)/e0)*yv(1,j)
-            !xyz2(3,1) = xyz2(3,1) + ((ejv(j)-e0)/e0)*xv(2,j)
-            !xyz2(4,1) = xyz2(4,1) + ((ejv(j)-e0)/e0)*yv(2,j)
-            !xyz2(5,1) = xyz2(5,1) + ((ejv(j)-e0)/e0)*sigmv(j)
-            xyz2(6,1) = xyz2(6,1) + ((ejv(j)-e0)/e0)*((ejv(j)-e0)/e0)
+            !xyz2(1,6) = xyz2(1,6) + ((ejv(j)-e0)/e0)*xv(1,j)
+            !xyz2(2,6) = xyz2(2,6) + ((ejv(j)-e0)/e0)*yv(1,j)
+            !xyz2(3,6) = xyz2(3,6) + ((ejv(j)-e0)/e0)*xv(2,j)
+            !xyz2(4,6) = xyz2(4,6) + ((ejv(j)-e0)/e0)*yv(2,j)
+            !xyz2(5,6) = xyz2(5,6) + ((ejv(j)-e0)/e0)*sigmv(j)
+            xyz2(6,6) = xyz2(6,6) + ((ejv(j)-e0)/e0)*((ejv(j)-e0)/e0)
          enddo
 
          xyz = xyz/napx
 
          ! xyz2 = xyz2/napx
          xyz2(:,1)  = xyz2(:,1) /napx
-         xyz2(2:,1) = xyz2(2:,1)/napx
-         xyz2(3:,1) = xyz2(3:,1)/napx
-         xyz2(4:,1) = xyz2(4:,1)/napx
-         xyz2(5:,1) = xyz2(5:,1)/napx
-         xyz2(6,1)  = xyz2(6,1) /napx
+         xyz2(2:,2) = xyz2(2:,2)/napx
+         xyz2(3:,3) = xyz2(3:,3)/napx
+         xyz2(4:,4) = xyz2(4:,4)/napx
+         xyz2(5:,5) = xyz2(5:,5)/napx
+         xyz2(6,6)  = xyz2(6,6) /napx
          
          if ( lhighprec ) then
             write(unit,1991) napx, nturn, dcum(i),
