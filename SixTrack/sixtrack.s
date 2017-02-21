@@ -26125,37 +26125,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),
      & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
              endif
-                
-             !Flush file
-             endfile   (dumpunit(i))
-             backspace (dumpunit(i))
-+if cr
-             dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
+             
              !Write the format-specific headers:
              if ( dumpfmt(i).eq.2 ) then ! FORMAT 2
                 write(dumpunit(i),'(a,a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
      &  'ktrack'
 
-                !Flush file
-                endfile   (dumpunit(i))
-                backspace (dumpunit(i))
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
              else if ( dumpfmt(i).eq.4 ) then ! FORMAT 4
                 write(dumpunit(i),'(a)')
      &               '# napx turn s[m] ' //
      &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
-                   
-                !Flush file
-                endfile   (dumpunit(i))
-                backspace (dumpunit(i))
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-
+                
              else if ( dumpfmt(i).eq.5 ) then ! FORMAT 5
                 write(dumpunit(i),'(a)')
      &               '# napx turn s[m] ' //
@@ -26167,13 +26148,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &   '<z^2> <z*(dE/E)> '//
      &   '<(dE/E)^2>'
                 
-                !Flush file
-                endfile   (dumpunit(i))
-                backspace (dumpunit(i))
+             else if ( dumpfmt(i).eq.6 ) then ! FORMAT 6
+                write(dumpunit(i),'(a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//
+     &   '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//
+     &   '<xp^2> <px*y> <px*py> <xp*sigma> <xp*psigma> '//
+     &   '<y^2> <y*py> <y*sigma> <y*psigma> '//
+     &   '<yp^2> <yp*z> <yp*psigma> '//
+     &   '<sigma^2> <sigma*psigma> '//
+     &   '<psigma^2>'
+                
+             end if  !Format-specific headers
+
+             ! Flush file
+             endfile   (dumpunit(i))
+             backspace (dumpunit(i))
 +if cr
-                dumpfilepos(i) = dumpfilepos(i) + 1
+             dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
-             end if !Format-specific headers
+             
           end if !If format 2/4/5 -> General header
         endif !If ldump(i) -> Dump on this element
       enddo !Loop over elements with index i
@@ -34637,7 +34631,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     temporary variables
       integer j,k,l
       character*16 localBez
-      
+
+      double precision xyz_particle(6)
       double precision xyz(6)
       double precision xyz2(6,6)
       
@@ -34737,8 +34732,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
          do j=1,napx
             xyz(1) = xyz(1) + xv(1,j)
-            xyz(2) = xyz(2) + xv(2,j)
-            xyz(3) = xyz(3) + yv(1,j)
+            xyz(2) = xyz(2) + yv(2,j)
+            xyz(3) = xyz(3) + xv(2,j)
             xyz(4) = xyz(4) + yv(2,j)
             xyz(5) = xyz(5) + sigmv(j)
             xyz(6) = xyz(6) + (ejv(j)-e0)/e0
@@ -34760,7 +34755,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 +ei
       
-      else if (fmt .eq. 5) then
+      else if (fmt.eq.5 .or. fmt.eq.6) then !Matrix
          do l=1,6
             xyz(l) = 0.0
             do k=1,6
@@ -34768,61 +34763,96 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             end do
          end do
          
-         do j=1,napx
-            xyz(1) = xyz(1) + xv(1,j)
-            xyz(2) = xyz(2) + xv(2,j)
-            xyz(3) = xyz(3) + yv(1,j)
-            xyz(4) = xyz(4) + yv(2,j)
-            xyz(5) = xyz(5) + sigmv(j)
-            xyz(6) = xyz(6) + (ejv(j)-e0)/e0
+         if(fmt.eq.5) then !Raw
+            do j=1,napx
+               xyz_particle(6)=(ejv(j)-e0)/e0
 
-            !Beam matrix - don't calulate what we know due to symmetry
-            xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
-            xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
-            xyz2(3,1) = xyz2(3,1) + xv(1,j)*xv(2,j)
-            xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
-            xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
-            xyz2(6,1) = xyz2(6,1) + xv(1,j)*((ejv(j)-e0)/e0)
-
-            !xyz2(1,2) = xyz2(1,2) + yv(1,j)*xv(1,j)
-            xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
-            xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
-            xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
-            xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
-            xyz2(6,2) = xyz2(6,2) + yv(1,j)*((ejv(j)-e0)/e0)
-
-            !xyz2(1,3) = xyz2(1,3) + xv(2,j)*xv(1,j)
-            !xyz2(2,3) = xyz2(2,3) + xv(2,j)*yv(1,j)
-            xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
-            xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
-            xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
-            xyz2(6,3) = xyz2(6,3) + xv(2,j)*((ejv(j)-e0)/e0)
-
-            !xyz2(1,4) = xyz2(1,4) + yv(2,j)*xv(1,j)
-            !xyz2(2,4) = xyz2(2,4) + yv(2,j)*yv(1,j)
-            !xyz2(3,4) = xyz2(3,4) + yv(2,j)*xv(2,j)
-            xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
-            xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
-            xyz2(6,4) = xyz2(6,4) + yv(2,j)*((ejv(j)-e0)/e0)
-
-            !xyz2(1,5) = xyz2(1,5) + sigmv(j)*xv(1,j)
-            !xyz2(2,5) = xyz2(2,5) + sigmv(j)*yv(1,j)
-            !xyz2(3,5) = xyz2(3,5) + sigmv(j)*xv(2,j)
-            !xyz2(4,5) = xyz2(4,5) + sigmv(j)*yv(2,j)
-            xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
-            xyz2(6,5) = xyz2(6,5) + sigmv(j)*((ejv(j)-e0)/e0)
-
-            !xyz2(1,6) = xyz2(1,6) + ((ejv(j)-e0)/e0)*xv(1,j)
-            !xyz2(2,6) = xyz2(2,6) + ((ejv(j)-e0)/e0)*yv(1,j)
-            !xyz2(3,6) = xyz2(3,6) + ((ejv(j)-e0)/e0)*xv(2,j)
-            !xyz2(4,6) = xyz2(4,6) + ((ejv(j)-e0)/e0)*yv(2,j)
-            !xyz2(5,6) = xyz2(5,6) + ((ejv(j)-e0)/e0)*sigmv(j)
-            xyz2(6,6) = xyz2(6,6) + ((ejv(j)-e0)/e0)*((ejv(j)-e0)/e0)
-         enddo
-
+               !Average beam position
+               xyz(1) = xyz(1) + xv(1,j)
+               xyz(2) = xyz(2) + yv(1,j)
+               xyz(3) = xyz(3) + xv(2,j)
+               xyz(4) = xyz(4) + yv(2,j)
+               xyz(5) = xyz(5) + sigmv(j)
+               xyz(6) = xyz(6) + xyz_particle(6)
+               
+               !Beam matrix (don't calulate identical elements twice (symmetry))
+               xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
+               xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
+               xyz2(3,1) = xyz2(3,1) + xv(1,j)*xv(2,j)
+               xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
+               xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
+               xyz2(6,1) = xyz2(6,1) + xv(1,j)*xyz_particle(6)
+               
+               xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
+               xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
+               xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
+               xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
+               xyz2(6,2) = xyz2(6,2) + yv(1,j)*xyz_particle(6)
+               
+               xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
+               xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
+               xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
+               xyz2(6,3) = xyz2(6,3) + xv(2,j)*xyz_particle(6)
+               
+               xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
+               xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
+               xyz2(6,4) = xyz2(6,4) + yv(2,j)*xyz_particle(6)
+               
+               xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
+               xyz2(6,5) = xyz2(6,5) + sigmv(j)*xyz_particle(6)
+               
+               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
+            enddo
+         else if (fmt.eq.6) then !Canonical
+            do j=1,napx
+               xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
+               xyz_particle(2) = (yv(1,j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
+               xyz_particle(3) = xv(1,j)*c1m3                 !y:      [mm]   -> [m]
+               xyz_particle(4) = (yv(2,j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
+               xyz_particle(5) = sigmv(j)*c1m3                !sigma:  [mm]   -> [m]
+               xyz_particle(6) = (((ejv(j)-e0)*e0)/e0f)/e0f   !psigma: [MeV]  -> [1]
+               
+               !Average beam position
+               xyz(1) = xyz(1) + xyz_particle(1)
+               xyz(2) = xyz(2) + xyz_particle(2)
+               xyz(3) = xyz(3) + xyz_particle(3)
+               xyz(4) = xyz(4) + xyz_particle(4)
+               xyz(5) = xyz(5) + xyz_particle(5)
+               xyz(6) = xyz(6) + xyz_particle(6)
+               
+               !Beam matrix (don't calulate identical elements twice (symmetry))
+               xyz2(1,1) = xyz2(1,1) + xyz_particle(1)*xyz_particle(1)
+               xyz2(2,1) = xyz2(2,1) + xyz_particle(1)*xyz_particle(2)
+               xyz2(3,1) = xyz2(3,1) + xyz_particle(1)*xyz_particle(3)
+               xyz2(4,1) = xyz2(4,1) + xyz_particle(1)*xyz_particle(4)
+               xyz2(5,1) = xyz2(5,1) + xyz_particle(1)*xyz_particle(5)
+               xyz2(6,1) = xyz2(6,1) + xyz_particle(1)*xyz_particle(6)
+               
+               xyz2(2,2) = xyz2(2,2) + xyz_particle(2)*xyz_particle(2)
+               xyz2(3,2) = xyz2(3,2) + xyz_particle(2)*xyz_particle(3)
+               xyz2(4,2) = xyz2(4,2) + xyz_particle(2)*xyz_particle(4)
+               xyz2(5,2) = xyz2(5,2) + xyz_particle(2)*xyz_particle(5)
+               xyz2(6,2) = xyz2(6,2) + xyz_particle(2)*xyz_particle(6)
+               
+               xyz2(3,3) = xyz2(3,3) + xyz_particle(3)*xyz_particle(3)
+               xyz2(4,3) = xyz2(4,3) + xyz_particle(3)*xyz_particle(4)
+               xyz2(5,3) = xyz2(5,3) + xyz_particle(3)*xyz_particle(5)
+               xyz2(6,3) = xyz2(6,3) + xyz_particle(3)*xyz_particle(6)
+               
+               xyz2(4,4) = xyz2(4,4) + xyz_particle(4)*xyz_particle(4)
+               xyz2(5,4) = xyz2(5,4) + xyz_particle(4)*xyz_particle(5)
+               xyz2(6,4) = xyz2(6,4) + xyz_particle(4)*xyz_particle(6)
+               
+               xyz2(5,5) = xyz2(5,5) + xyz_particle(5)*xyz_particle(5)
+               xyz2(6,5) = xyz2(6,5) + xyz_particle(5)*xyz_particle(6)
+               
+               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
+            enddo
+         end if
+         
+         !Normalize
          xyz = xyz/napx
-
-         ! xyz2 = xyz2/napx
+         
          xyz2(:,1)  = xyz2(:,1) /napx
          xyz2(2:,2) = xyz2(2:,2)/napx
          xyz2(3:,3) = xyz2(3:,3)/napx
@@ -34882,8 +34912,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
  1989 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18))        !fmt 4 / hiprec
  1990 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9))         !fmt 4 / not hiprec
       
- 1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5 / hiprec
- 1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5 / not hiprec
+ 1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5&6 / hiprec
+ 1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5&6 / not hiprec
       
       end subroutine
 

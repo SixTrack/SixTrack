@@ -2983,8 +2983,9 @@ The following formats are accepted:
 	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
 	\item[2] -- \textbf{Modified format for aperture check:}\\
 	Header line 1 (single element): \texttt{\# DUMP format \#2, bez=\textit{bez(i)}, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
-        Here \textit{bez} is the name of the SINGLE ELEMENT, and \textit{napx} the number of particles being tracked (per pack in case of collimation), \textit{ndumpt(i)} the dump frequency as described above, and \textit{dumpfirst(i)} and \textit{dumplast(i)} the first and last turn as descirbed below.\\
-	Header line 1 (all elements): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT\textit{T/F}}\\
+	Header line 1 (all elements): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
+        Here \textit{bez} is the name of the SINGLE ELEMENT, and \textit{napx} the number of particles being tracked (per pack in case of collimation), \textit{ndumpt(i)} the dump frequency as described above, and \textit{dumpfirst(i)} and \textit{dumplast(i)} the first and last turn as descirbed below.
+        HIGH and FRONT is normally false, unless this (global) option is active, as described below.\\
 	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
         If there are multiple single elements attached to the file, the headers are repeated.\\
 	Data lines: as described in the header, one per particle and per turn.
@@ -3000,6 +3001,15 @@ The following formats are accepted:
 	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
 	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
         For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
+	\item[6] -- \textbf{Beam mean and sigma (canonical):}\\
+        Header line 1 is the same as for format 2.\\
+	Header: \texttt{\# napx turn s[m] <x>[m] <px>[1] <y>[m] <py>[m] <sigma>[m] <psigma>[1] <x\^{}2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> <px\^{}2> <px*y> <px*py> <px*sigma> <px*psigma> <y\^{}2> <y*py> <y*sigma> <y*psigma> <py\^{}2> <py*sigma> <py*psigma> <sigma\^{}2> <sigma*psigma> <psigma\^{}2>}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+        For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
+        Note that the $\sigma=s -\beta_0 c t$ is the same as the $z$ used in the formats above, except for the units.
+        For more details, see the physics manual~\cite{sixphys}.
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
