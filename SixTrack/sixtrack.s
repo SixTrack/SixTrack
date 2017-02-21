@@ -34732,7 +34732,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          
          do j=1,napx
             xyz(1) = xyz(1) + xv(1,j)
-            xyz(2) = xyz(2) + yv(2,j)
+            xyz(2) = xyz(2) + yv(1,j)
             xyz(3) = xyz(3) + xv(2,j)
             xyz(4) = xyz(4) + yv(2,j)
             xyz(5) = xyz(5) + sigmv(j)
@@ -34807,7 +34807,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             do j=1,napx
                xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
                xyz_particle(2) = (yv(1,j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
-               xyz_particle(3) = xv(1,j)*c1m3                 !y:      [mm]   -> [m]
+               xyz_particle(3) = xv(2,j)*c1m3                 !y:      [mm]   -> [m]
                xyz_particle(4) = (yv(2,j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
                xyz_particle(5) = sigmv(j)*c1m3                !sigma:  [mm]   -> [m]
                xyz_particle(6) = (((ejv(j)-e0)*e0)/e0f)/e0f   !psigma: [MeV]  -> [1]
