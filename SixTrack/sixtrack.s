@@ -26165,7 +26165,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              endfile   (dumpunit(i))
              backspace (dumpunit(i))
 +if cr
-             dumpfilepos(i) = dumpfilepos(i) + 1
+             dumpfilepos(i) = dumpfilepos(i) + 2
 +ei
              
           end if !If format 2/4/5 -> General header
