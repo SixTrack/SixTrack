@@ -25,17 +25,18 @@ program readDum3
      call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
      if (len_trim(cmdarg_arg)==0) EXIT
 
-     if (cmdarg_status.eq.-1) then
-        write(*,*) "Error: Command line argument ", cmdarg_i, " was truncated."
-        stop 2
-     endif
-
-
      if (cmdarg_i.eq.0) then
         !Skip argument 0, the command name
         cmdarg_i = cmdarg_i+1
         cycle
-     else if (cmdarg_i.eq.1) then 
+     endif
+
+     if (cmdarg_status.eq.-1) then
+        write(*,*) "Error: Command line argument ", cmdarg_i, " was truncated."
+        stop 2
+     endif
+     
+     if (cmdarg_i.eq.1) then
         ifname = cmdarg_arg
      else if(cmdarg_i.eq.2) then
         ofname = cmdarg_arg
@@ -74,7 +75,8 @@ program readDum3
   close(100)
   close(101)
 
-  return ! Done :)
+  ! Done :)
+  stop
 
   !Error while reading
 6000 continue
