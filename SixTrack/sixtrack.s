@@ -66561,6 +66561,12 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
       dimension hbuff(253),tbuff(35)
       logical lopen
+
+      !For skipping through binary DUMP files (format 3)
+      integer tmp_ID, tmp_nturn, tmp_ktrack
+      double precision tmp_dcum, tmp_x,tmp_xp,
+     &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
+
 +if boinc
       character*256 filename
 +ei
@@ -67279,24 +67285,41 @@ c$$$         backspace (93,iostat=ierro)
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
             if (i .ne. 0) then
                write(93,*) "element=",bez(i), "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             else
                write(93,*) "element=","ALL" , "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             endif
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
             
             inquire( unit=dumpunit(i), opened=lopen )
-            if ( .not. lopen )
-     &           open(dumpunit(i),file=dump_fname(i), status='old',
-     &                form='formatted',action='readwrite')
-            
-            dumpfilepos(i) = 0
- 702        read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro)
-     &           arecord
-            dumpfilepos(i) = dumpfilepos(i) + 1
-            if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+            if (dumpfmt(i) .ne. 3 ) then ! ASCII
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i), status='old',
+     &                 form='formatted',action='readwrite')
+               endif
+
+               dumpfilepos(i) = 0
+ 702           read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro)
+     &              arecord
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+
+            else                         ! BINARY (format = 3)
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i),status='old',
+     &                 form='unformatted',action='readwrite')
+               endif
+               dumpfilepos(i) = 0
+ 703           read(dumpunit(i),end=111,err=111,iostat=ierro)
+     &              tmp_ID,tmp_nturn,tmp_dcum,
+     &              tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,
+     &              tmp_ktrack
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 703
+            endif
+
          endif
       end do
       !Crop DUMP files (if used by multiple DUMPs,
@@ -67307,8 +67330,13 @@ c$$$         backspace (93,iostat=ierro)
 C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
-            open(dumpunit(i),file=dump_fname(i), status='old',
-     &           position='append', form='formatted',action='write')
+            if (dumpfmt(i).ne.3) then ! ASCII
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='formatted',action='write')
+            else                      ! Binary (format = 3)
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='unformatted',action='write')
+            endif
          endif
       end do
       
