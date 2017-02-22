@@ -1,1 +1,2 @@
 dump.dat diff -q
+dumpASCII.dat diff -q
