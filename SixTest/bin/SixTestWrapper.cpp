@@ -1014,8 +1014,10 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
 			if(FileName != "")
 			{
 				std::cout << "Performing extra checks on '" << FileName << "'" << std::endl;
+				bool convertThis = false;
 				if(FileName == std::string(dump_bin_file))
 				{
+					convertThis = true;
 					std::cout << "This is a binary format 3 DUMP, must convert!" << std::endl;
 					std::cout << "Calling '"<<convert_dump_bin<<"'"<<std::endl;
 #ifndef WIN32
@@ -1083,23 +1085,24 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
 							exit(EXIT_FAILURE);
 						}
 					}
-// #else
-// 					//Windows
-// 					//First file
-// 					int status1 = _spawnl(_P_WAIT, argv[3], "read90", "--fname", "fort.90", "--ofname", "fort.90.out", (char*) 0);
-// 					if(status1 == -1)
-// 					{
-// 						perror("ERROR - could not execute read90");
-// 					}
-// 					std::cout << "read90 finished running on fort.90: " << status1 << std::endl;
+#else
+					//Windows
+					//First file
+					int status1 = _spawnl(_P_WAIT, convert_dump_bin, "readDump3", FileName.c_str(), (FileName+std::string(".converted")).c_str(), (char*) 0);
+					if(status1 == -1)
+					{
+						perror("ERROR - could not execute readDump3");
+						exit(EXIT_FAILURE);
+					}
+					std::cout << "readDump3 finished running on '" << FileName << "': " << status1 << std::endl;
 					
-// 					//Second file (canonical)
-// 					int status2 = _spawnl(_P_WAIT, argv[3], "read90", "--fname", "fort.90.canonical", "--ofname", "fort.90.canonical.out", (char*) 0);
-// 					if(status2 == -1)
-// 					{
-// 						perror("ERROR - could not execute read90");
-// 					}
-// 					std::cout << "read90 finished running on fort.90.canonical: " << status2 << std::endl;
+					//Second file (canonical)
+					int status2 = _spawnl(_P_WAIT, convert_dump_bin, "read90", (FileName.c_str()+std::string(".canonical")).c_str(), (FileName+std::string(".converted")+std::string(".canonical")).c_str(), (char*) 0);
+					if(status2 == -1)
+					{
+						perror("ERROR - could not execute readDump3");
+					}
+					std::cout << "readDump3 finished running on '" << FileName.c_str()+std::string(".canonical") << "': " << status2 << std::endl;
 #endif
 					// Update the filename
 					FileName = FileName+std::string(".converted");
@@ -1108,6 +1111,11 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
 				//Strip out \r characters from windows new lines
 				size_t CRcount = StripCR(FileName);
 				std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+				if (convertThis)
+				{
+					size_t CRcount = StripCR(FileName + std::string(".canonical"));
+					std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+				}
 #endif
 				bool ThisTest = !FileComparison(FileName, FileName + ".canonical");
 				if(ThisTest)
