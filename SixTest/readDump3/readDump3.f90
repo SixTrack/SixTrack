@@ -1,4 +1,4 @@
-program readDum3
+program readDump3
   ! Program to read a dump file of type 2 (Binary version of format 2)
   ! and convert it to a type 2.
 
@@ -87,4 +87,4 @@ program readDum3
 1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec
   
-end program readDum3
+end program readDump3
