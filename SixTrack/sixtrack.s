@@ -26153,9 +26153,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &               '# napx turn s[m] ' //
      &   '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//
      &   '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//
-     &   '<xp^2> <px*y> <px*py> <xp*sigma> <xp*psigma> '//
+     &   '<px^2> <px*y> <px*py> <px*sigma> <px*psigma> '//
      &   '<y^2> <y*py> <y*sigma> <y*psigma> '//
-     &   '<yp^2> <yp*z> <yp*psigma> '//
+     &   '<py^2> <py*sigma> <py*psigma> '//
      &   '<sigma^2> <sigma*psigma> '//
      &   '<psigma^2>'
                 
