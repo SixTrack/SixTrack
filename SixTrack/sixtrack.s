@@ -26107,7 +26107,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
           else if ( dumpfmt(i).eq.2 .or.
      &              dumpfmt(i).eq.4 .or.
-     &              dumpfmt(i).eq.5      ) then
+     &              dumpfmt(i).eq.5 .or.
+     &              dumpfmt(i).eq.6      ) then
 
              ! Write the general header
              if (i.eq.0) then
@@ -26168,10 +26169,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              dumpfilepos(i) = dumpfilepos(i) + 2
 +ei
              
-          end if !If format 2/4/5 -> General header
+          end if !If format 2/4/5/6 -> General header
         endif !If ldump(i) -> Dump on this element
       enddo !Loop over elements with index i
 
+!                                !
+!     ****** TRACKING ******     !
+!                                !
 +if cr
       write(lout,10200)
 +ei
