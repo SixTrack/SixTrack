@@ -1,2 +1,2 @@
-dump.dat diff -q
-dumpASCII.dat diff -q
+dump.dat         diff -q --strip-trailing-cr
+dumpASCII.dat    diff -q --strip-trailing-cr
