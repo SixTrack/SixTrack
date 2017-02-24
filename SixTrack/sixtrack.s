@@ -29305,6 +29305,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do j = 1, napx
          part_hit(j)    = 0
          part_abs(j)    = 0
+         part_select(j) = 1
+         part_indiv(j)  = -1e-6
+         part_linteract(j) = 0d0
          part_impact(j) = 0
       enddo
 !GRD
