@@ -934,9 +934,9 @@
       double precision neffx(numeff),neffy(numeff)
       common /efficiency/ neffx,neffy
 !
-      integer part_hit(maxn),part_abs(maxn),n_tot_absorbed,n_absorbed   &
-     &,part_select(maxn),nabs_type(maxn)
-      double precision part_impact(maxn)
+      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed   &
+     &,part_select(npart),nabs_type(npart)
+      double precision part_impact(npart)
       common /stats/ part_impact,part_hit,part_abs,nabs_type
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
@@ -988,16 +988,16 @@
      &myp(maxn),mys(maxn)
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
-      integer counted_r(maxn,numeff),counted_x(maxn,numeff),            &
-     &counted_y(maxn,numeff)
+      integer counted_r(npart,numeff),counted_x(npart,numeff),            &
+     &counted_y(npart,numeff)
       common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
-      integer secondary(maxn),tertiary(maxn),other(maxn),               &
-     &part_hit_before(maxn)
+      integer secondary(npart),tertiary(npart),other(npart),
+     &part_hit_before(npart)
 !APRIL2005
-      double precision part_indiv(maxn),part_linteract(maxn)
+      double precision part_indiv(npart),part_linteract(npart)
 !
       integer   samplenumber
       character*4 smpl
@@ -1019,11 +1019,16 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcollim
+!     BLOCK DBCOLLIM
+!     This block is common to collimaterhic and collimate2
+!     It is NOT compatible with block DBCOMMON, as some variable names overlap...
+      
+
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
 !MAY2005
 !      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart),nabs_type(maxn)
+      integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -1061,6 +1066,7 @@
 !
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
+!     END BLOCK DBCOLLIM
 +cd collMatNum
 !     EQ 2016 added variables for collimator material numbers
       integer nmat, nrmat
@@ -27847,20 +27853,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  Initialize efficiency array
 !
       do i = 1, mynp
-        part_hit(i)           = 0
-        part_abs(i)           = 0
-        part_select(i)        = 1
-        part_indiv(i)         = -1d-6
-        part_linteract(i)     = 0d0
-        part_hit_before(i)    = 0
-        tertiary(i)           = 0
-        secondary(i)          = 0
-!APRIL2005
-        other(i)              = 0
-!APRIL2005
+!        part_hit(i)           = 0
+!        part_abs(i)           = 0
+!        part_select(i)        = 1
+!        part_indiv(i)         = -1d-6
+!        part_linteract(i)     = 0d0
+!        part_hit_before(i)    = 0
+!        tertiary(i)           = 0
+!        secondary(i)          = 0
+!!APRIL2005
+!        other(i)              = 0
+!!APRIL2005
 !DEC 2008
-        nabs_type(i)          = 0
-!DEC2008
+!        nabs_type(i)          = 0
+!!DEC2008
         x00(i)      = myx(i)
         xp00(i)     = myxp(i)
         y00(i)      = myy(i)
@@ -61386,7 +61392,7 @@ c$$$            endif
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
       double precision s_impact
-      integer flagsec(maxn)
+      integer flagsec(npart)
 !
 !     SR, 18-08-2005: add temporary variable to write in FirstImpacts
 !     the initial distribution of the impacting particles in the
