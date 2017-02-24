@@ -30301,14 +30301,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                endif
             endif
           end do
-          if (.not. found .and. firstrun) then
+          if (.not. found .and. firstrun .and. iturn.eq.1) then
 +if cr
-            write(lout,*) 'ERR>  Collimator not found: ', bez(myix)
+            write(lout,*)
 +ei
 +if .not.cr
-            write(*,*) 'ERR>  Collimator not found: ', bez(myix)
+            write(*,*)
 +ei
-          endif
+     &           'ERR>  Collimator not found in colldb: ', bez(myix)
+      endif
 !
 !++ For known collimators
 !
@@ -33097,7 +33098,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
           write(*,*) 'INFO>  Compacted the particle distributions: ',   &
 +ei
-     &napx, ' -->  ', imov
+     &napx, ' -->  ', imov, ", turn =",iturn
           napx = imov
         endif
 !GRD
