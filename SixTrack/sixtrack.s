@@ -941,8 +941,8 @@
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
-      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
-      common   /beam00/ x00,xp00,y00,yp00
+!      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
+!      common   /beam00/ x00,xp00,y00,yp00
 !
       logical firstrun
       common /firstrun/ firstrun
@@ -27852,7 +27852,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !++  Initialize efficiency array
 !
-      do i = 1, mynp
+!      do i = 1, mynp
 !        part_hit(i)           = 0
 !        part_abs(i)           = 0
 !        part_select(i)        = 1
@@ -27867,11 +27867,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !DEC 2008
 !        nabs_type(i)          = 0
 !!DEC2008
-        x00(i)      = myx(i)
-        xp00(i)     = myxp(i)
-        y00(i)      = myy(i)
-        yp00(i)     = myyp(i)
-      end do
+!        x00(i)      = myx(i)
+!        xp00(i)     = myxp(i)
+!        y00(i)      = myy(i)
+!        yp00(i)     = myyp(i)
+!      end do
 !
       do i=1,iu
       sum_ax(i)   = 0d0
@@ -28159,10 +28159,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
               xv(2,i)  = 1d3*myy(i+(j-1)*napx00)  +torby(1)              !hr08
               yv(2,i)  = 1d3*myyp(i+(j-1)*napx00) +torbyp(1)             !hr08
-              x00(i)  = xv(1,i)
-              xp00(i) = yv(1,i)
-              y00(i)  = xv(2,i)
-              yp00(i) = yv(2,i)
+!              x00(i)  = xv(1,i)
+!              xp00(i) = yv(1,i)
+!              y00(i)  = xv(2,i)
+!              yp00(i) = yv(2,i)
 !JULY2005
 !JULY2005 assignation of the proper bunch length
 !              sigmv(i) = 0d0
