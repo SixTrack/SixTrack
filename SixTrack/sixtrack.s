@@ -33069,6 +33069,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD
               secondary(imov) = secondary(j)
               tertiary(imov) = tertiary(j)
+              other(imov) = other(j)
               nabs_type(imov) = nabs_type(j)
 !GRD
 !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
