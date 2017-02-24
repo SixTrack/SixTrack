@@ -17046,6 +17046,19 @@ cc2008
       enddo
       if ( idat(:3).eq.'ALL' ) then
          j=0
+         if (ldump(j)) then
++if cr
+            write(lout,*) "ERROR in parsing DUMP block:"
+            write(lout,*) "'Element' ALL was specified "//
+     &           "(at least) twice"
++ei
++if .not.cr
+            write(*,*)    "ERROR in parsing DUMP block:"
+            write(*,*)    "'Element' ALL was specified "//
+     &           "(at least) twice"
++ei
+            call prror(-1)
+         endif
          goto 2001
       endif
 !     search failed:
