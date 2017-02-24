@@ -50,7 +50,7 @@ size_t StripCR(std::string);
 bool CheckFort10(char**);
 bool CheckFort90(char**);
 bool CheckSTF(char**);
-bool PerformExtraChecks(bool&);
+bool PerformExtraChecks(bool&, char* convert_dump_bin, char* dump_bin_file);
 std::vector<int> ParseKillTimes(char*);
 
 void UnlinkCRFiles();
@@ -86,6 +86,8 @@ struct KillInfo
 * 7: Number of files to expect in Sixout.zip (0 means no Sixout.zip)
 * 8: CR enabled
 * 9: CR kill time
+* 10: Path to readDump3 binary to run
+* 11: Name of file in extra_checks that is a dump format 3 (binary)
 *
 * For running the tools:
 * On "Unix" we call fork() and exec()
@@ -97,9 +99,9 @@ struct KillInfo
 int main(int argc, char* argv[])
 {
 	//First check we have the correct number of arguments
-	if(argc != 10)
+	if(argc != 12)
 	{
-		std::cout << argv[0] << " called with the incorrect number of arguments, should be 9, but was called with " << argc - 1 << " arguments" << std::endl;
+		std::cout << argv[0] << " called with the incorrect number of arguments, should be 11, but was called with " << argc - 1 << " arguments" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -134,7 +136,7 @@ int main(int argc, char* argv[])
 	const char* const tmpdir = "sixoutzip_tmpdir";
 	const char* const sixoutzip_fname = "Sixout.zip";
 #endif
-	
+
 	if(atof(argv[4]) != 0)
 	{
 		fort10 = true;
@@ -159,7 +161,7 @@ int main(int argc, char* argv[])
 		CR = true;
 		KillTimes = ParseKillTimes(argv[9]);
 	}
-
+	
 	/**
 	* First step is to handle all the running of sixtrack.
 	* This include Checkpoint/resume builds where the run will be killed after a set period of time and then restarted.
@@ -443,7 +445,7 @@ int main(int argc, char* argv[])
 	}
 	
 	//Look at extra_checks.txt
-	ExtraChecksfail = PerformExtraChecks(extrachecks);
+	ExtraChecksfail = PerformExtraChecks(extrachecks, argv[10],argv[11]);
 
 	//Look at sixout.zip
 #ifdef LIBARCHIVE
@@ -992,7 +994,7 @@ bool FileComparison(std::string FileName1, std::string FileName2)
 	return true;
 }
 
-bool PerformExtraChecks(bool &extrachecks)
+bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bin_file)
 {
 	std::cout << "--------------------------- Performing extra checks ---------------------------" << std::endl;
 	bool AllTests = false;
@@ -1011,11 +1013,109 @@ bool PerformExtraChecks(bool &extrachecks)
 			getline(extra_checks_in, StringBuffer);
 			if(FileName != "")
 			{
-				std::cout << "Performing extra checks on " << FileName << std::endl;
+				std::cout << "Performing extra checks on '" << FileName << "'" << std::endl;
+				bool convertThis = false;
+				if(FileName == std::string(dump_bin_file))
+				{
+					convertThis = true;
+					std::cout << "This is a binary format 3 DUMP, must convert!" << std::endl;
+					std::cout << "Calling '"<<convert_dump_bin<<"'"<<std::endl;
+#ifndef WIN32
+					//Now again we fork() and exec()
+					//Do this for the first file
+					pid_t ReadDump3pid = fork();
+					if(ReadDump3pid == -1)
+					{
+						perror("ERROR: Could not fork to start readDump3");
+						exit(EXIT_FAILURE);
+					}
+					
+					//Check fork() status
+					if(ReadDump3pid == 0)
+					{
+						//child, run readDump3
+						int status = execl(convert_dump_bin, "readDump3", FileName.c_str(), (FileName+std::string(".converted")).c_str(), (char*) 0);
+						if(status == -1)
+						{
+							perror("ERROR: Could not execute readDump3");
+							exit(EXIT_FAILURE);
+						}
+					}
+					else
+					{
+						//main thread, wait()
+						int waitpidStatus;
+						waitpid(ReadDump3pid, &waitpidStatus, WUNTRACED);
+						std::cout << "readDump3 finished running on '"<< FileName << "': " << waitpidStatus << std::endl;
+						if(waitpidStatus != 0)
+						{
+							std::cerr << "ERROR: Problem running readDump3" << std::endl;
+							exit(EXIT_FAILURE);
+						}
+					}
+					
+					//Do this for the second file
+					ReadDump3pid = fork();
+					if(ReadDump3pid == -1)
+					{
+						perror("ERROR: Could not fork to start readDump3");
+						exit(EXIT_FAILURE);
+					}
+					
+					//Check fork() status
+					if(ReadDump3pid == 0)
+					{
+						//child, run readDump3
+						int status = execl(convert_dump_bin, "readDump3", (FileName.c_str()+std::string(".canonical")).c_str(), (FileName+std::string(".converted")+std::string(".canonical")).c_str(), (char*) 0);
+						if(status == -1)
+						{
+							perror("ERROR: Could not execute readDump3");
+							exit(EXIT_FAILURE);
+						}
+					}
+					else
+					{
+						//main thread, wait()
+						int waitpidStatus;
+						waitpid(ReadDump3pid, &waitpidStatus, WUNTRACED);
+						std::cout << "readDump3 finished running on '" << FileName.c_str()+std::string(".canonical") << "': " << waitpidStatus << std::endl;
+						if(waitpidStatus != 0)
+						{
+							std::cerr << "ERROR: Problem running readDump3" << std::endl;
+							exit(EXIT_FAILURE);
+						}
+					}
+#else
+					//Windows
+					//First file
+					int status1 = _spawnl(_P_WAIT, convert_dump_bin, "readDump3", FileName.c_str(), (FileName+std::string(".converted")).c_str(), (char*) 0);
+					if(status1 == -1)
+					{
+						perror("ERROR - could not execute readDump3");
+						exit(EXIT_FAILURE);
+					}
+					std::cout << "readDump3 finished running on '" << FileName << "': " << status1 << std::endl;
+					
+					//Second file (canonical)
+					int status2 = _spawnl(_P_WAIT, convert_dump_bin, "read90", (FileName.c_str()+std::string(".canonical")).c_str(), (FileName+std::string(".converted")+std::string(".canonical")).c_str(), (char*) 0);
+					if(status2 == -1)
+					{
+						perror("ERROR - could not execute readDump3");
+					}
+					std::cout << "readDump3 finished running on '" << FileName.c_str()+std::string(".canonical") << "': " << status2 << std::endl;
+#endif
+					// Update the filename
+					FileName = FileName+std::string(".converted");
+				} // Done converting to ASCII...
 #ifdef WIN32
 				//Strip out \r characters from windows new lines
 				size_t CRcount = StripCR(FileName);
 				std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+				if (convertThis)
+				{
+					size_t CRcount = StripCR(FileName + std::string(".canonical"));
+					std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+				}
 #endif
 				bool ThisTest = !FileComparison(FileName, FileName + ".canonical");
 				if(ThisTest)

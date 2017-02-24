@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.7'/
-      data moddate /'22.02.2017'/
+      data version /'4.6.8'/
+      data moddate /'24.02.2017'/
 +cd license
 !!SixTrack
 !!
@@ -26024,8 +26024,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
-             open(dumpunit(i),file=dump_fname(i),
-     &            status='replace',form='formatted')
+             if ( dumpfmt(i).eq.3 ) then
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='unformatted')
+             else
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='formatted')
+             endif
 +if cr
              dumpfilepos(i) = 0
 +ei
@@ -26095,6 +26100,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 call prror(-1)
              endif
           endif
+
+          ! Write format-specific headers
           if ( dumpfmt(i).eq.1 ) then ! Format 1 is special
              write(dumpunit(i),'(a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
@@ -34721,6 +34728,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &              (ejv(j)-e0)/e0, ktrack(i)
             enddo
          endif
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+      
+      else if (fmt .eq. 3) then
+         do j=1,napx
+            write(unit) nlostp(j)+(samplenumber-1)*npart,
+     &           nturn, dcum(i), xv(1,j),
+     &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+     &           (ejv(j)-e0)/e0, ktrack(i)
+         enddo
          
          !Flush
          endfile (unit,iostat=ierro)
@@ -34728,7 +34750,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
-
       else if (fmt .eq. 4) then
          do l=1,6
             xyz(l) = 0.0
@@ -34894,10 +34915,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       !Unrecognized format fmt
       else
 +if cr
-         write (lout,*) 
+         write (lout,*)
 +ei
 +if .not.cr
-         write (*,*) 
+         write (*,*)
 +ei
      & "DUMP> Format",fmt, "not understood for unit", unit
          call prror(-1)
@@ -66540,6 +66561,12 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
       dimension hbuff(253),tbuff(35)
       logical lopen
+
+      !For skipping through binary DUMP files (format 3)
+      integer tmp_ID, tmp_nturn, tmp_ktrack
+      double precision tmp_dcum, tmp_x,tmp_xp,
+     &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
+
 +if boinc
       character*256 filename
 +ei
@@ -67258,24 +67285,41 @@ c$$$         backspace (93,iostat=ierro)
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
             if (i .ne. 0) then
                write(93,*) "element=",bez(i), "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             else
                write(93,*) "element=","ALL" , "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             endif
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
             
             inquire( unit=dumpunit(i), opened=lopen )
-            if ( .not. lopen )
-     &           open(dumpunit(i),file=dump_fname(i), status='old',
-     &                form='formatted',action='readwrite')
-            
-            dumpfilepos(i) = 0
- 702        read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro)
-     &           arecord
-            dumpfilepos(i) = dumpfilepos(i) + 1
-            if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+            if (dumpfmt(i) .ne. 3 ) then ! ASCII
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i), status='old',
+     &                 form='formatted',action='readwrite')
+               endif
+
+               dumpfilepos(i) = 0
+ 702           read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro)
+     &              arecord
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+
+            else                         ! BINARY (format = 3)
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i),status='old',
+     &                 form='unformatted',action='readwrite')
+               endif
+               dumpfilepos(i) = 0
+ 703           read(dumpunit(i),end=111,err=111,iostat=ierro)
+     &              tmp_ID,tmp_nturn,tmp_dcum,
+     &              tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,
+     &              tmp_ktrack
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 703
+            endif
+
          endif
       end do
       !Crop DUMP files (if used by multiple DUMPs,
@@ -67286,8 +67330,13 @@ c$$$         backspace (93,iostat=ierro)
 C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
-            open(dumpunit(i),file=dump_fname(i), status='old',
-     &           position='append', form='formatted',action='write')
+            if (dumpfmt(i).ne.3) then ! ASCII
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='formatted',action='write')
+            else                      ! Binary (format = 3)
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='unformatted',action='write')
+            endif
          endif
       end do
       

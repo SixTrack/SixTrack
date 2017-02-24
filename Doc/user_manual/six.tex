@@ -50,7 +50,7 @@
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.6.7 \\
+  Version 4.6.8 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -2989,6 +2989,11 @@ The following formats are accepted:
 	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
         If there are multiple single elements attached to the file, the headers are repeated.\\
 	Data lines: as described in the header, one per particle and per turn.
+        \item[3] -- \textbf{Modified format for aperture check (Binary):}\\
+        No header\\
+        A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+        Records: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+        The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers).
 	\item[4] -- \textbf{Beam means:}\\
         Header line 1 is the same as for format 2.\\
         Header line 2: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]}\\
