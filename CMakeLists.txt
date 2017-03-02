@@ -8,6 +8,7 @@
 
 #Set the cmake version required
 cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
 PROJECT(SixTrack)
@@ -56,7 +57,7 @@ OPTION(NAGLIB "Link to external NAGLIB library, used in subroutine coruglo and c
 # used for ifort only SSE
 #SSE="NULL"
 # and we have OFF
-OPTION(API "Link to external BOINC API" OFF)
+OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
 OPTION(DA "Build differential algebra version (NOT dynamic aperture!)" OFF)
 OPTION(COLLIMAT "Collimation code" OFF)
 OPTION(CPSS "CERN physics screensaver support" OFF)
@@ -77,6 +78,7 @@ OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
+OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 
 #Compiler stuff - not needed any more with cmake
 #OPTION(IFORT "Use the intel fortran compiler" OFF)
@@ -94,12 +96,18 @@ OPTION(32BIT "Create a 32bit binary" OFF)
 OPTION(64BIT "Create a 64bit binary" ON)
 OPTION(STATIC "Create a statically linked binary" ON)
 OPTION(NATIVE "Enable optimizations for the current machine" OFF)
+OPTION(AVX "Enable use of the Advanced Vector Extensions (AVX) instruction set - Sandy Bridge and later" OFF)
+OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction set - Haswell and later" OFF)
 
 OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
 #OPTION(ROOT "Link to the root libraries" OFF)
 
-SET(BOINC_DIR "" CACHE PATH "Path to the boinc build folder")
+SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
+
+
 ###################################################################################################
 # Sixtrack binary name construction
 ###################################################################################################
@@ -108,7 +116,7 @@ SET(BOINC_DIR "" CACHE PATH "Path to the boinc build folder")
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 SET(SIXTRACK_FEATURES "cmake")
-SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${Fortran_COMPILER_NAME}")
+SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 
 if(TILT)
 	SET(SIXTRACK_FEATURES "tilt_${SIXTRACK_FEATURES}")
@@ -185,6 +193,9 @@ endif()
 if(G4COLLIMAT)
 	SET(SIXTRACK_FEATURES "g4collimat_${SIXTRACK_FEATURES}")
 endif()
+if(LIBARCHIVE)
+	SET(SIXTRACK_FEATURES "libarchive_${SIXTRACK_FEATURES}")
+endif()
 
 #if(ROOT)
 #	SET(SIXTRACK_FEATURES "root_${SIXTRACK_FEATURES}")
@@ -202,9 +213,18 @@ endif()
 if(STATIC)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_static")
 endif()
+if(AVX)
+	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_avx")
+endif(AVX)
+if(AVX2)
+	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_avx2")
+endif(AVX2)
 if(NATIVE)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_native")
 endif()
+
+SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${CMAKE_SYSTEM_PROCESSOR}")
+
 if(32BIT)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_32bit")
 endif()
@@ -230,10 +250,15 @@ foreach(loop IN ITEMS ${FORS})
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
 
-if(BOINC)
-	#if we have a boinc build, add boinc_zipitall.cpp
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} boinc_zipitall.cpp)
-endif(BOINC)
+if(BOINC AND NOT API)
+	#We have a BOINC build but no API, load the fake API substitute for debugging.
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
+endif()
+
+if(LIBARCHIVE)
+	add_library(libArchive_wrapper STATIC  libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
+	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
+endif()
 
 #add back in beamgas, which is in free format
 SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90)
@@ -373,6 +398,12 @@ if(BOINC)
 	if(NOT CRLIBM)
 		message(FATAL_ERROR "Building with BOINC requires CRLIBM enabled")
 	endif(NOT CRLIBM)
+	if(NOT CR)
+		message(FATAL_ERROR "Building with BOINC requires CR enabled")
+	endif()
+	if(NOT LIBARCHIVE)
+		message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE enabled")
+	endif()
 endif(BOINC)
 if(API)
 	if(NOT BOINC)
@@ -484,10 +515,12 @@ if(64BIT)
 	if(CERNLIB)
 		message(FATAL_ERROR "Cannot build CERNLIB with 64BIT enabled.")
 	endif()
-#	if(BOINC)
-#		message(FATAL_ERROR "Cannot build BOINC with 64BIT enabled.")
-#	endif()
 endif()
+if(AVX2)
+	if(NOT AVX)
+		message(FATAL_ERROR "Building with AVX2 requires AVX enabled")
+	endif(NOT AVX)
+endif(AVX2)
 
 ###################################################################################################
 # Settings for compiler build flags
@@ -516,12 +549,23 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 		set(CMAKE_Fortran_FLAGS "-m64 ${CMAKE_Fortran_FLAGS}")
 	endif(64BIT)
 
+	if(AVX)
+		set(CMAKE_Fortran_FLAGS "-mavx ${CMAKE_Fortran_FLAGS}")
+	endif(AVX)
+	if(AVX2)
+		set(CMAKE_Fortran_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+	endif(AVX2)
+
 	if(NATIVE)
 	  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
 	endif(NATIVE)
 
 	if(STATIC)
-		SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic -static-libgcc -static-libgfortran ${CMAKE_Fortran_LINKER_FLAGS}")
+		else()
+			SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	endif(STATIC)
 
 	if(COVERAGE)
@@ -545,6 +589,13 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m64 ${CMAKE_Fortran_FLAGS_DEBUG}")
 		SET(CMAKE_Fortran_LINKER_FLAGS "-m64 ${CMAKE_Fortran_LINKER_FLAGS}")
 	endif(64BIT)
+
+	if(AVX)
+		set(CMAKE_Fortran_FLAGS "-mavx ${CMAKE_Fortran_FLAGS}")
+	endif(AVX)
+	if(AVX2)
+		set(CMAKE_Fortran_FLAGS "-mavx2 -no-fma ${CMAKE_Fortran_FLAGS}")
+	endif(AVX2)
 
 	if(NATIVE)
 		SET(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -617,6 +668,13 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 		set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
 	endif(64BIT)
 
+	if(AVX)
+		set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
+	endif(AVX)
+	if(AVX2)
+		set(CMAKE_C_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+	endif(AVX2)
+
 	if(NATIVE)
 		set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
 	endif(NATIVE)
@@ -644,6 +702,13 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
 		set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
 	endif(64BIT)
 
+	if(AVX)
+		set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
+	endif(AVX)
+	if(AVX2)
+		set(CMAKE_C_FLAGS "-mavx2 -no-fma ${CMAKE_C_FLAGS}")
+	endif(AVX2)
+
 	if(NATIVE)
 		set(CMAKE_C_FLAGS "-xHost ${CMAKE_C_FLAGS}")
 	endif(NATIVE)
@@ -668,6 +733,13 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 		set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
 	endif(64BIT)
 
+	if(AVX)
+		set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
+	endif(AVX)
+	if(AVX2)
+		set(CMAKE_CXX_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+	endif(AVX2)
+
 	if(NATIVE)
 		set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
 	endif(NATIVE)
@@ -690,6 +762,13 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 	if(64BIT)
 		set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
 	endif(64BIT)
+
+	if(AVX)
+		set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
+	endif(AVX)
+	if(AVX2)
+		set(CMAKE_CXX_FLAGS "-mavx2 -no-fma ${CMAKE_CXX_FLAGS}")
+	endif(AVX2)
 
 	if(NATIVE)
 		set(CMAKE_CXX_FLAGS "-march=xHost ${CMAKE_CXX_FLAGS}")
@@ -763,7 +842,10 @@ add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+endif()
+if(CRLIBM OR BUILD_TESTING )
+  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
@@ -799,39 +881,75 @@ foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 endforeach()
 
 if(BOINC)
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_zipitall.cpp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/boinc_zipitall.cpp ${CMAKE_BINARY_DIR}/boinc_zipitall.cpp DEPENDS copy_input_files)
-
-	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/zip ${BOINC_DIR}/lib ${BOINC_DIR})
-
-	#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
-	#go into the boinc source folder, cd api; make boinc_api_fortran.o
-	add_library(boinc_api_fortran STATIC IMPORTED)
-	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
-	target_link_libraries(SixTrack boinc_api_fortran)
-
-	#add the libs
-	add_library(boinc STATIC IMPORTED)
-	add_library(boinc_zip STATIC IMPORTED)
-	set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-	set_target_properties(boinc_zip PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/zip/libboinc_zip.a)
-
 	if(API)
+		include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
+		
+		#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
+		#go into the boinc source folder, cd api; make boinc_api_fortran.o
+		add_library(boinc_api_fortran STATIC IMPORTED)
+		set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
+		# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
+		target_link_libraries(SixTrack boinc_api_fortran)
+		
+		#add the libs
+		add_library(boinc STATIC IMPORTED)
+		set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+		
 		add_library(boinc_api STATIC IMPORTED)
 		set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
 		target_link_libraries(SixTrack boinc_api)
-	endif(API)
+		
+		target_link_libraries(SixTrack boinc)
+		
+		find_library(stdc++ STATIC stdc++)
+		find_library(pthread STATIC pthread)
+		target_link_libraries(SixTrack stdc++ pthread)
 
-	target_link_libraries(SixTrack boinc_zip boinc)
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+			find_library(nsl STATIC nsl)
+			target_link_libraries(SixTrack nsl)
+		endif()
 
-	find_library(dl STATIC dl)
-	find_library(stdc++ STATIC stdc++)
+		#fix osx linking to the correct c++ stdlib
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			find_library(c++ STATIC c++)
+			target_link_libraries(SixTrack c++)
+		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+	else()
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myboinc.f POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR}/myboinc.f DEPENDS copy_input_files)
+	endif()
+endif()
+
+if(LIBARCHIVE)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c DEPENDS copy_input_files)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c DEPENDS copy_input_files)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
+	
+	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+	#A very small but convenient test code for debugging libArchive.
+	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/SixTrack/libArchiveTester.cpp)
+	target_link_libraries(libArchiveTester libArchive_wrapper)
+
+	#See also further down for SixTestWrapper linking
+	target_link_libraries(SixTrack libArchive_wrapper)
+	add_library(libarchive STATIC IMPORTED)
+	if(WIN32)
+		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
+		add_definitions( -DLIBARCHIVE_STATIC )
+	else()
+		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
+	endif()
+	
 	find_library(pthread STATIC pthread)
-	target_link_libraries(SixTrack dl stdc++ pthread)
-
-	if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
-		find_library(nsl STATIC nsl)
-		target_link_libraries(SixTrack nsl)
-	endif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	find_library(z STATIC z)
+	
+	target_link_libraries(SixTrack libarchive z pthread)
+	target_link_libraries(libArchiveTester libarchive z pthread)
+	
+	add_definitions( -DLIBARCHIVE )
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -873,9 +991,9 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-#First clean up the astuce decks for only what is enabled
-#set(OPT crlibm tilt fast bpm beamgas collimat bnlelens cr boinc nagfor bignblz debug hdf5 fio lf95 hugenblz stf bignpart datamods hugenpart)
+
 foreach(loop IN ITEMS ${FORS})
+	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
 	endif()
@@ -939,7 +1057,11 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT MERLINSCATTER)
 		ast_masks_flag(merlinscatter ${loop})
 	endif()
+	if(NOT LIBARCHIVE)
+		ast_masks_flag(libarchive ${loop})
+	endif()
 
+	#Clean up the astuce decks for only what is enabled
 	if(NOT COLLIMAT)
 		ast_masks_deck(nwrtcoll ${loop})
 	endif()
@@ -978,11 +1100,11 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAK
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND astuce < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
 
 	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
 		message(STATUS "Will run dafor on ${loop}.f")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/dafor ${loop}n.f ${loop}.f > ${loop}_dafor.log DEPENDS run_astuce)
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND $<TARGET_FILE:dafor> ${loop}n.f ${loop}.f > ${loop}_dafor.log DEPENDS run_astuce)
 	else()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f DEPENDS run_astuce)
 	endif()
@@ -991,6 +1113,21 @@ endforeach()
 ###################################################################################################
 #linking
 ###################################################################################################
+set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/5.3.0/libquadmath.a")
+#just a work around to build on MSYS2 for now
+if(MSYS AND STATIC)
+	target_link_libraries(astuce ${MSYS_QUADMATH})
+	target_link_libraries(dafor ${MSYS_QUADMATH})
+	target_link_libraries(SixTrack ${MSYS_QUADMATH})
+endif()
+
+#same with OSX, using gfortran from homebrew
+if(STATIC)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/)
+		target_link_libraries(SixTrack ${lquadmath})
+	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+endif(STATIC)
 
 if(CERNLIB)
 #	if(EXISTS "/cern/pro/bin/cernlib")
@@ -1028,7 +1165,7 @@ endif(CERNLIB)
 
 #if we are using crlibm, link to the crlibm library
 if(CRLIBM)
-	target_link_libraries(SixTrack crlibm)
+	target_link_libraries(SixTrack crlibm roundctl)
 endif(CRLIBM)
 
 #if we are using merlinscatter, link to the merlinscatter library
@@ -1092,13 +1229,21 @@ IF(BUILD_TESTING)
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
+	if(BOINC)
+		add_executable(CheckTestInputForBOINC.sh IMPORTED)
+		SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+	endif(BOINC)
+
 	#need to build the testing tools
 	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f)
 	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf10.f)
 	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f)
 	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
 	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
-	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90 ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoa_c.c ${CMAKE_SOURCE_DIR}/SixTrack/crlibm/dtoaf.c)
+	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
+	add_executable(readDump3 ${CMAKE_SOURCE_DIR}/SixTest/readDump3/readDump3.f90)
+
+	target_link_libraries(read90 roundctl)
 
 	SET_TARGET_PROPERTIES(verify10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(checkf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
@@ -1106,6 +1251,7 @@ IF(BUILD_TESTING)
 	SET_TARGET_PROPERTIES(checkf110 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(checkf1014 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+	SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 	if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
 		target_link_libraries(verify10 ${g2cLink})
@@ -1115,7 +1261,14 @@ IF(BUILD_TESTING)
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+	if (LIBARCHIVE)
+		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z pthread)
+	endif()
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
+
+	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTestWrapper pthread)
+
 	IF(COVERAGE)
 		target_compile_options(SixTestWrapper PRIVATE -fprofile-arcs -ftest-coverage)
 		SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
@@ -1126,6 +1279,18 @@ IF(BUILD_TESTING)
 	endif()
 	#set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
 
+	#just a work around to build on MSYS2 for now
+	if(MSYS AND STATIC)
+		#set(CMAKE_EXECUTABLE_SUFFIX_Fortran "")
+		target_link_libraries(verify10 ${MSYS_QUADMATH})
+		target_link_libraries(checkf10 ${MSYS_QUADMATH})
+		target_link_libraries(checkf110 ${MSYS_QUADMATH})
+		target_link_libraries(checkf1014 ${MSYS_QUADMATH})
+		target_link_libraries(compf10 ${MSYS_QUADMATH})
+		target_link_libraries(read90 ${MSYS_QUADMATH})
+		target_link_libraries(SixTestWrapper ${MSYS_QUADMATH})
+		target_link_libraries(readDump3 ${MSYS_QUADMATH})
+	endif()
 ENDIF()
 
 #To make packages, run "make package" in the build directory

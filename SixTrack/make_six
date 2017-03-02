@@ -972,6 +972,16 @@ echo ""
 echo "Hit any key to continue, or CTRL/C to exit."
 read junk
 
+echo ""
+echo "   ********************************************************************************"
+echo "   *** PLEASE NOTE: 'make_six' is obsolete; consider using 'cmake_six' instead! ***"
+echo "   *** See Doc/building_sixtrack for more information                           ***"
+echo "   ********************************************************************************"
+echo ""
+echo "Hit any key to continue, or CTRL/C to exit."
+read junk
+
+
 # Make astuce and dafor (required for sixvefox and sixscfox)
 generate_makefile Makefile_makesix.template
 make -f Makefile_makesix astuce
@@ -1165,6 +1175,24 @@ then
   if test $? -ne 0
   then
     echo "Failed to make crlibm!!! Please inform McIntosh."
+    exit 4
+  fi
+  cd ..
+
+  #roundctl library, now split up from CRLIBM:
+  export CRLIBM="$CRLIBM roundctl/roundctl.a"
+  mkdir -p roundctl
+  cp -r ../roundctl/* roundctl
+  cd roundctl
+  sed  -e 's/%%FC%%/'"${FC}"'/g' \
+       -e 's/%%FCF%%/'"${FCF}"'/g' \
+       Makefile_makesix.template > Makefile_makesix
+  echo "Making roundctl."
+  make -f Makefile_makesix clean
+  make -f Makefile_makesix roundctl.a
+  if test $? -ne 0
+  then
+    echo "Failed to make roundctl!!!"
     exit 4
   fi
   cd ..

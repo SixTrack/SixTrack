@@ -1,10 +1,13 @@
 #General
 *.o
 *~
+*.exe
 
 # SixTest
-SixTest/*/fort.*.run_pro*
+SixTest/*/*.run_pro*
+SixTest/*/*.run_kill*
 SixTest/run_pro_*
+SixTest/run_kill_*
 #SixTest/read90/dtoa_c.o
 #SixTest/read90/dtoaf.o
 
@@ -16,9 +19,18 @@ SixTrack/SixTrack
 SixTrack/astuce
 SixTrack/dafor
 
+SixTrack/libarchive_build
+
+SixTrack/count.log
+
 #LaTeX temps
 Doc/*/*.aux
 Doc/*/*.log
 Doc/*/*.lot
 Doc/*/*.out
 Doc/*/*.toc
+*.bbl
+*.blg
+
+#Python temps
+*.pyc
