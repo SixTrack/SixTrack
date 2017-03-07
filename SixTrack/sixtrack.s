@@ -45104,6 +45104,32 @@ C Should get me a NaN
          fexpr_dynk(nfexpr_dynk+12) = Inom
          
          nfexpr_dynk = nfexpr_dynk + 12
+
+      case("ONOFF")
+         ! ONOFF: On for p1 turns, then off for the rest of the period p2
+         call dynk_checkargs(getfields_nfields,5,
+     &        "FUN funname ONOFF p1 p2" )
+         call dynk_checkspace(0,0,1)
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 81          !TYPE (PELP)
+         funcs_dynk(nfuncs_dynk,3) = -1          !ARG1 (p1)
+         funcs_dynk(nfuncs_dynk,4) = -1          !ARG2 (p2)
+         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3 (unused)
+         
+         ! Store data
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        funcs_dynk(nfuncs_dynk,3) ! p1
+         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+     &        funcs_dynk(nfuncs_dynk,4) ! p2
          
       case default
          ! UNKNOWN function
@@ -46703,6 +46729,15 @@ C+ei
             ! Constant Inom
             retval = fexpr_dynk(foff+12)
          endif
+
+      case (81)                                                         ! ONOFF
+         ii=mod(turn,funcs_dynk(funNum,4))
+         if (ii .le. funcs_dynk(funNum,3)) then
+            retval = 1.0
+         else
+            retval = 0.0
+         endif
+         
       case default
 +if cr
          write(lout,*) "DYNK> **** ERROR in dynk_computeFUN(): ****"
