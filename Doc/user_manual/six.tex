@@ -1209,6 +1209,12 @@ The functions are always evaluated as a function of the current turn number $t$,
   \item The start time of the ramp \emph{te}, which describes at what time it switches from the parabolic (first) to the exponential (second) segment.
   \end{itemize}
   \\*
+  ONOFF       & \emph{p1[int] p2[int]} &
+  This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
+  It may be described as
+  $y(t) =  \left\{1.0 \; \mathrm{if} \; \mathrm{mod}(t,p2) \le p1 \right\}; \; \left\{ 0.0 \; \mathrm{otherwise} \right\}$.
+  Note that it is expected that $p1 >= 1$, $p2 > 1$, and $p1 < p2$.
+  Also note that for negative $t$, the function will always return 1.0.
 \end{longtable}
 \end{center}
 %\end{tabular}
