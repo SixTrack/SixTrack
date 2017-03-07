@@ -45130,6 +45130,21 @@ C Should get me a NaN
      &        funcs_dynk(nfuncs_dynk,3) ! p1
          read(getfields_fields(5)(1:getfields_lfields(5)),*)
      &        funcs_dynk(nfuncs_dynk,4) ! p2
+
+         !Check for bad input
+         if ( funcs_dynk(nfuncs_dynk,3) .lt. 1 .or.                    ! p1 < 1  ?
+     &        funcs_dynk(nfuncs_dynk,4) .le. 1 .or.                    ! p2 <= 1  ?
+     &        funcs_dynk(nfuncs_dynk,4) .lt. funcs_dynk(nfuncs_dynk,3) ! p2 < p1 ?
+     &        ) then
++if cr
+            write(lout,*)
++ei
++if .not.cr
+            write(*,*)
++ei
+     &      "DYNK> Error in ONOFF: Expected p1 >= 1, p2 > 1, p1 < p2"
+            call prror(-1)
+         end if
          
       case default
          ! UNKNOWN function
