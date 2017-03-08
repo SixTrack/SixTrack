@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.8'/
-      data moddate /'24.02.2017'/
+      data version /'4.6.9'/
+      data moddate /'08.03.2017'/
 +cd license
 !!SixTrack
 !!
@@ -934,15 +934,15 @@
       double precision neffx(numeff),neffy(numeff)
       common /efficiency/ neffx,neffy
 !
-      integer part_hit(maxn),part_abs(maxn),n_tot_absorbed,n_absorbed   &
-     &,part_select(maxn),nabs_type(maxn)
-      double precision part_impact(maxn)
+      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed   &
+     &,part_select(npart),nabs_type(npart)
+      double precision part_impact(npart)
       common /stats/ part_impact,part_hit,part_abs,nabs_type
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
-      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
-      common   /beam00/ x00,xp00,y00,yp00
+!      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
+!      common   /beam00/ x00,xp00,y00,yp00
 !
       logical firstrun
       common /firstrun/ firstrun
@@ -988,16 +988,16 @@
      &myp(maxn),mys(maxn)
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
-      integer counted_r(maxn,numeff),counted_x(maxn,numeff),            &
-     &counted_y(maxn,numeff)
+      integer counted_r(npart,numeff),counted_x(npart,numeff),            &
+     &counted_y(npart,numeff)
       common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
-      integer secondary(maxn),tertiary(maxn),other(maxn),               &
-     &part_hit_before(maxn)
+      integer secondary(npart),tertiary(npart),other(npart),
+     &part_hit_before(npart)
 !APRIL2005
-      double precision part_indiv(maxn),part_linteract(maxn)
+      double precision part_indiv(npart),part_linteract(npart)
 !
       integer   samplenumber
       character*4 smpl
@@ -1019,11 +1019,16 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcollim
+!     BLOCK DBCOLLIM
+!     This block is common to collimaterhic and collimate2
+!     It is NOT compatible with block DBCOMMON, as some variable names overlap...
+      
+
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
 !MAY2005
 !      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart),nabs_type(maxn)
+      integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -1061,6 +1066,7 @@
 !
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
+!     END BLOCK DBCOLLIM
 +cd collMatNum
 !     EQ 2016 added variables for collimator material numbers
       integer nmat, nrmat
@@ -27846,27 +27852,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !++  Initialize efficiency array
 !
-      do i = 1, mynp
-        part_hit(i)           = 0
-        part_abs(i)           = 0
-        part_select(i)        = 1
-        part_indiv(i)         = -1d-6
-        part_linteract(i)     = 0d0
-        part_hit_before(i)    = 0
-        tertiary(i)           = 0
-        secondary(i)          = 0
-!APRIL2005
-        other(i)              = 0
-!APRIL2005
-!DEC 2008
-        nabs_type(i)          = 0
-!DEC2008
-        x00(i)      = myx(i)
-        xp00(i)     = myxp(i)
-        y00(i)      = myy(i)
-        yp00(i)     = myyp(i)
-      end do
-!
       do i=1,iu
       sum_ax(i)   = 0d0
       sqsum_ax(i) = 0d0
@@ -28153,10 +28138,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
               xv(2,i)  = 1d3*myy(i+(j-1)*napx00)  +torby(1)              !hr08
               yv(2,i)  = 1d3*myyp(i+(j-1)*napx00) +torbyp(1)             !hr08
-              x00(i)  = xv(1,i)
-              xp00(i) = yv(1,i)
-              y00(i)  = xv(2,i)
-              yp00(i) = yv(2,i)
 !JULY2005
 !JULY2005 assignation of the proper bunch length
 !              sigmv(i) = 0d0
@@ -29299,6 +29280,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do j = 1, napx
          part_hit(j)    = 0
          part_abs(j)    = 0
+         part_select(j) = 1
+         part_indiv(j)  = -1e-6
+         part_linteract(j) = 0d0
          part_impact(j) = 0
       enddo
 !GRD
@@ -30292,14 +30276,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                endif
             endif
           end do
-          if (.not. found .and. firstrun) then
+          if (.not. found .and. firstrun .and. iturn.eq.1) then
 +if cr
-            write(lout,*) 'ERR>  Collimator not found: ', bez(myix)
+            write(lout,*)
 +ei
 +if .not.cr
-            write(*,*) 'ERR>  Collimator not found: ', bez(myix)
+            write(*,*)
 +ei
-          endif
+     &           'ERR>  Collimator not found in colldb: ', bez(myix)
+      endif
 !
 !++ For known collimators
 !
@@ -33063,6 +33048,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD
               secondary(imov) = secondary(j)
               tertiary(imov) = tertiary(j)
+              other(imov) = other(j)
               nabs_type(imov) = nabs_type(j)
 !GRD
 !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
@@ -33087,7 +33073,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
           write(*,*) 'INFO>  Compacted the particle distributions: ',   &
 +ei
-     &napx, ' -->  ', imov
+     &napx, ' -->  ', imov, ", turn =",iturn
           napx = imov
         endif
 !GRD
@@ -61386,7 +61372,7 @@ c$$$            endif
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
       double precision s_impact
-      integer flagsec(maxn)
+      integer flagsec(npart)
 !
 !     SR, 18-08-2005: add temporary variable to write in FirstImpacts
 !     the initial distribution of the impacting particles in the
