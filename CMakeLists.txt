@@ -534,28 +534,32 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops")
 	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
 	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 
-	if(32BIT)
-		set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
-	endif(32BIT)
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+		SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
 
-	if(64BIT)
-		set(CMAKE_Fortran_FLAGS "-m64 ${CMAKE_Fortran_FLAGS}")
-	endif(64BIT)
+		if(32BIT)
+			set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
+		endif(32BIT)
 
-	if(AVX)
-		set(CMAKE_Fortran_FLAGS "-mavx ${CMAKE_Fortran_FLAGS}")
-	endif(AVX)
-	if(AVX2)
-		set(CMAKE_Fortran_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
-	endif(AVX2)
+		if(64BIT)
+			set(CMAKE_Fortran_FLAGS "-m64 ${CMAKE_Fortran_FLAGS}")
+		endif(64BIT)
 
-	if(NATIVE)
-	  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
-	endif(NATIVE)
+		if(AVX)
+			set(CMAKE_Fortran_FLAGS "-mavx ${CMAKE_Fortran_FLAGS}")
+		endif(AVX)
+		if(AVX2)
+			set(CMAKE_Fortran_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+		endif(AVX2)
+
+		if(NATIVE)
+		  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+		endif(NATIVE)
+	endif()
 
 	if(STATIC)
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -657,27 +661,29 @@ endif ()
 #${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 
-	if(32BIT)
-		set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
-	endif(32BIT)
-
-	if(64BIT)
-		set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
-	endif(64BIT)
-
-	if(AVX)
-		set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
-	endif(AVX)
-	if(AVX2)
-		set(CMAKE_C_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
-	endif(AVX2)
-
-	if(NATIVE)
-		set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
-	endif(NATIVE)
-
 	set (CMAKE_C_FLAGS_RELEASE "-O2")
 	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
+
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+		if(32BIT)
+			set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
+		endif(32BIT)
+
+		if(64BIT)
+			set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
+		endif(64BIT)
+
+		if(AVX)
+			set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
+		endif(AVX)
+		if(AVX2)
+			set(CMAKE_C_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+		endif(AVX2)
+
+		if(NATIVE)
+			set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
+		endif(NATIVE)
+	endif()
 
 	if(STATIC)
 		SET(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
@@ -722,27 +728,29 @@ endif()
 #${CMAKE_CXX_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
-	if(32BIT)
-		set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
-	endif(32BIT)
-
-	if(64BIT)
-		set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
-	endif(64BIT)
-
-	if(AVX)
-		set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
-	endif(AVX)
-	if(AVX2)
-		set(CMAKE_CXX_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
-	endif(AVX2)
-
-	if(NATIVE)
-		set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
-	endif(NATIVE)
-
 	set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
+
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+		if(32BIT)
+			set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+		endif(32BIT)
+
+		if(64BIT)
+			set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
+		endif(64BIT)
+
+		if(AVX)
+			set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
+		endif(AVX)
+		if(AVX2)
+			set(CMAKE_CXX_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+		endif(AVX2)
+
+		if(NATIVE)
+			set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
+		endif(NATIVE)
+	endif()
 
 	if(STATIC)
 		SET(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
