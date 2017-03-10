@@ -7,8 +7,10 @@
 
 void enable_xp_(void)
 {
+#ifdef __i386__
   /* Set FPU flags to use not double but extended,
      with rounding to nearest */
   short unsigned int cw = (_FPU_DEFAULT & ~_FPU_DOUBLE)|_FPU_EXTENDED;
   _FPU_SETCW(cw);
+#endif
 }

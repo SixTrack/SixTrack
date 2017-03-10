@@ -1,0 +1,2 @@
+dump.dat             diff -q --strip-trailing-cr
+dynksets.dat         diff -q --strip-trailing-cr

@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.5'/
-      data moddate /'09.02.2017'/
+      data version /'4.6.9'/
+      data moddate /'08.03.2017'/
 +cd license
 !!SixTrack
 !!
@@ -83,7 +83,7 @@
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
       logical rerun,start,restart,checkp,fort95,fort96,read95,read96
-      character*255 arecord
+      character*1024 arecord
       character*20 stxt
       character*80 runtim
 ! Note order of placement in COMMON crdata is important
@@ -934,15 +934,15 @@
       double precision neffx(numeff),neffy(numeff)
       common /efficiency/ neffx,neffy
 !
-      integer part_hit(maxn),part_abs(maxn),n_tot_absorbed,n_absorbed   &
-     &,part_select(maxn),nabs_type(maxn)
-      double precision part_impact(maxn)
+      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed   &
+     &,part_select(npart),nabs_type(npart)
+      double precision part_impact(npart)
       common /stats/ part_impact,part_hit,part_abs,nabs_type
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
-      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
-      common   /beam00/ x00,xp00,y00,yp00
+!      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
+!      common   /beam00/ x00,xp00,y00,yp00
 !
       logical firstrun
       common /firstrun/ firstrun
@@ -988,16 +988,16 @@
      &myp(maxn),mys(maxn)
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
-      integer counted_r(maxn,numeff),counted_x(maxn,numeff),            &
-     &counted_y(maxn,numeff)
+      integer counted_r(npart,numeff),counted_x(npart,numeff),            &
+     &counted_y(npart,numeff)
       common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
-      integer secondary(maxn),tertiary(maxn),other(maxn),               &
-     &part_hit_before(maxn)
+      integer secondary(npart),tertiary(npart),other(npart),
+     &part_hit_before(npart)
 !APRIL2005
-      double precision part_indiv(maxn),part_linteract(maxn)
+      double precision part_indiv(npart),part_linteract(npart)
 !
       integer   samplenumber
       character*4 smpl
@@ -1019,11 +1019,16 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcollim
+!     BLOCK DBCOLLIM
+!     This block is common to collimaterhic and collimate2
+!     It is NOT compatible with block DBCOMMON, as some variable names overlap...
+      
+
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
 !MAY2005
 !      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart),nabs_type(maxn)
+      integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -1061,6 +1066,7 @@
 !
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
+!     END BLOCK DBCOLLIM
 +cd collMatNum
 !     EQ 2016 added variables for collimator material numbers
       integer nmat, nrmat
@@ -17046,6 +17052,19 @@ cc2008
       enddo
       if ( idat(:3).eq.'ALL' ) then
          j=0
+         if (ldump(j)) then
++if cr
+            write(lout,*) "ERROR in parsing DUMP block:"
+            write(lout,*) "'Element' ALL was specified "//
+     &           "(at least) twice"
++ei
++if .not.cr
+            write(*,*)    "ERROR in parsing DUMP block:"
+            write(*,*)    "'Element' ALL was specified "//
+     &           "(at least) twice"
++ei
+            call prror(-1)
+         endif
          goto 2001
       endif
 !     search failed:
@@ -24473,7 +24492,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       open(93,file='fort.93',form='formatted',status='unknown')
 +ei
 +ei
-  606 read(93,'(a255)',end=607) arecord
+  606 read(93,'(a1024)',end=607) arecord
       goto 606
   607 backspace (93,iostat=ierro)
 ! and if BOINC issue an informatory message
@@ -26002,8 +26021,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call cadcum
 
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 01-09-2014
-!     open units for dumping particle population or statistics or beam matrix
+!     K. Sjobak, for BE/ABP-HSS
+!     last modified: 21/02-2016
+!     open units for dumping particle population or statistics
 !     always in main code
       do i=0,il
 +if cr
@@ -26023,38 +26043,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
-             open(dumpunit(i),file=dump_fname(i),
-     &            status='replace',form='formatted')
+             if ( dumpfmt(i).eq.3 ) then
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='unformatted')
+             else
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='formatted')
+             endif
 +if cr
              dumpfilepos(i) = 0
 +ei
-             if ( dumpfmt(i).eq.1 ) then
-                write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-             else if ( dumpfmt(i).eq.2 ) then
-                if (i.eq.0) then
-                   write(dumpunit(i),
-     &                  '(1x,a,i12)')
-     &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                else
-                   write(dumpunit(i),
-     &                  '(1x,a,a16,a,i12)')
-     &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                endif
-                write(dumpunit(i),
-     &               '(1x,a,i12,1x,a,i12,1x,a,i12)')
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
-                write(dumpunit(i),'(1x,a,a)')
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
-     &  'ktrack'
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 3
-+ei
-             end if
           else
              !Sanity check: If already open, it should be by another DUMP
              ! (can't guarantee for files after this one)
@@ -26099,20 +26097,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                       ! Everything is fine
                       lopen = .true.
 +if cr
+                      !Dumpfilepos is separate for every element, even if they share files.
                       dumpfilepos(i) = 0
 +ei
-                      if (dumpfmt(i).eq.2) then !More header
-                         write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i),
-     &  ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-+if cr
-                         dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-                      endif
                    endif
                 endif
              end do
-             !File was already open, but not by DUMP
+             ! LOPEN not set to true by sanity check in loop above
+             ! => File was already open, but not by DUMP.
              if ( .not.lopen ) then
 +if cr
                 write (lout,*)
@@ -26127,9 +26119,89 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 call prror(-1)
              endif
           endif
-        endif
-      enddo
 
+          ! Write format-specific headers
+          if ( dumpfmt(i).eq.1 ) then ! Format 1 is special
+             write(dumpunit(i),'(a)')
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
+                
+             !Flush file
+             endfile   (dumpunit(i))
+             backspace (dumpunit(i))
++if cr
+             dumpfilepos(i) = dumpfilepos(i) + 1
++ei
+          else if ( dumpfmt(i).eq.2 .or.
+     &              dumpfmt(i).eq.4 .or.
+     &              dumpfmt(i).eq.5 .or.
+     &              dumpfmt(i).eq.6      ) then
+
+             ! Write the general header
+             if (i.eq.0) then
+                write(dumpunit(i),
+     &               '(a,i0,a,4(a,i12),2(a,L1))')
+     & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',
+     & ' number of particles=',napx, ', dump period=',ndumpt(i),
+     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
+     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
+             else
+                write(dumpunit(i),
+     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')
+     & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),
+     & ', number of particles=',napx,', dump period=',ndumpt(i),
+     & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),
+     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
+             endif
+             
+             !Write the format-specific headers:
+             if ( dumpfmt(i).eq.2 ) then ! FORMAT 2
+                write(dumpunit(i),'(a,a)')
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
+     &  'ktrack'
+
+             else if ( dumpfmt(i).eq.4 ) then ! FORMAT 4
+                write(dumpunit(i),'(a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
+                
+             else if ( dumpfmt(i).eq.5 ) then ! FORMAT 5
+                write(dumpunit(i),'(a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
+     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//
+     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//
+     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//
+     &   '<yp^2> <yp*z> <yp*(dE/E)> '//
+     &   '<z^2> <z*(dE/E)> '//
+     &   '<(dE/E)^2>'
+                
+             else if ( dumpfmt(i).eq.6 ) then ! FORMAT 6
+                write(dumpunit(i),'(a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//
+     &   '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//
+     &   '<px^2> <px*y> <px*py> <px*sigma> <px*psigma> '//
+     &   '<y^2> <y*py> <y*sigma> <y*psigma> '//
+     &   '<py^2> <py*sigma> <py*psigma> '//
+     &   '<sigma^2> <sigma*psigma> '//
+     &   '<psigma^2>'
+                
+             end if  !Format-specific headers
+
+             ! Flush file
+             endfile   (dumpunit(i))
+             backspace (dumpunit(i))
++if cr
+             dumpfilepos(i) = dumpfilepos(i) + 2
++ei
+             
+          end if !If format 2/4/5/6 -> General header
+        endif !If ldump(i) -> Dump on this element
+      enddo !Loop over elements with index i
+
+!                                !
+!     ****** TRACKING ******     !
+!                                !
 +if cr
       write(lout,10200)
 +ei
@@ -27780,27 +27852,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !++  Initialize efficiency array
 !
-      do i = 1, mynp
-        part_hit(i)           = 0
-        part_abs(i)           = 0
-        part_select(i)        = 1
-        part_indiv(i)         = -1d-6
-        part_linteract(i)     = 0d0
-        part_hit_before(i)    = 0
-        tertiary(i)           = 0
-        secondary(i)          = 0
-!APRIL2005
-        other(i)              = 0
-!APRIL2005
-!DEC 2008
-        nabs_type(i)          = 0
-!DEC2008
-        x00(i)      = myx(i)
-        xp00(i)     = myxp(i)
-        y00(i)      = myy(i)
-        yp00(i)     = myyp(i)
-      end do
-!
       do i=1,iu
       sum_ax(i)   = 0d0
       sqsum_ax(i) = 0d0
@@ -28087,10 +28138,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
               xv(2,i)  = 1d3*myy(i+(j-1)*napx00)  +torby(1)              !hr08
               yv(2,i)  = 1d3*myyp(i+(j-1)*napx00) +torbyp(1)             !hr08
-              x00(i)  = xv(1,i)
-              xp00(i) = yv(1,i)
-              y00(i)  = xv(2,i)
-              yp00(i) = yv(2,i)
 !JULY2005
 !JULY2005 assignation of the proper bunch length
 !              sigmv(i) = 0d0
@@ -29233,6 +29280,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do j = 1, napx
          part_hit(j)    = 0
          part_abs(j)    = 0
+         part_select(j) = 1
+         part_indiv(j)  = -1e-6
+         part_linteract(j) = 0d0
          part_impact(j) = 0
       enddo
 !GRD
@@ -30226,14 +30276,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                endif
             endif
           end do
-          if (.not. found .and. firstrun) then
+          if (.not. found .and. firstrun .and. iturn.eq.1) then
 +if cr
-            write(lout,*) 'ERR>  Collimator not found: ', bez(myix)
+            write(lout,*)
 +ei
 +if .not.cr
-            write(*,*) 'ERR>  Collimator not found: ', bez(myix)
+            write(*,*)
 +ei
-          endif
+     &           'ERR>  Collimator not found in colldb: ', bez(myix)
+      endif
 !
 !++ For known collimators
 !
@@ -32997,6 +33048,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD
               secondary(imov) = secondary(j)
               tertiary(imov) = tertiary(j)
+              other(imov) = other(j)
               nabs_type(imov) = nabs_type(j)
 !GRD
 !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
@@ -33021,7 +33073,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.cr
           write(*,*) 'INFO>  Compacted the particle distributions: ',   &
 +ei
-     &napx, ' -->  ', imov
+     &napx, ' -->  ', imov, ", turn =",iturn
           napx = imov
         endif
 !GRD
@@ -34587,9 +34639,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 
 !     temporary variables
-      integer j
+      integer j,k,l
       character*16 localBez
 
+      double precision xyz_particle(6)
+      double precision xyz(6)
+      double precision xyz2(6,6)
+      
 +if cr      
       !For accessing dumpfilepos
       integer dumpIdx
@@ -34633,7 +34689,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Format for aperture check
       else if (fmt .eq. 1) then
-        if ( lhighprec ) then
+         if ( lhighprec ) then
             do j=1,napx
                write(unit,1983) nlostp(j)+(samplenumber-1)*npart,
      &              nturn, dcum(i), xv(1,j),
@@ -34671,7 +34727,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &              (ejv(j)-e0)/e0, ktrack(i)
             enddo
          endif
-         
+
          !Flush
          endfile (unit,iostat=ierro)
          backspace (unit,iostat=ierro)
@@ -34679,13 +34735,189 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
       
+      else if (fmt .eq. 3) then
+         do j=1,napx
+            write(unit) nlostp(j)+(samplenumber-1)*npart,
+     &           nturn, dcum(i), xv(1,j),
+     &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+     &           (ejv(j)-e0)/e0, ktrack(i)
+         enddo
+         
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+      else if (fmt .eq. 4) then
+         do l=1,6
+            xyz(l) = 0.0
+         end do
+         
+         do j=1,napx
+            xyz(1) = xyz(1) + xv(1,j)
+            xyz(2) = xyz(2) + yv(1,j)
+            xyz(3) = xyz(3) + xv(2,j)
+            xyz(4) = xyz(4) + yv(2,j)
+            xyz(5) = xyz(5) + sigmv(j)
+            xyz(6) = xyz(6) + (ejv(j)-e0)/e0
+         enddo
+
+         xyz = xyz/napx
+         if ( lhighprec ) then
+            write(unit,1989) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+         else
+            write(unit,1990) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+         endif
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
++ei
+      
+      else if (fmt.eq.5 .or. fmt.eq.6) then !Matrix
+         do l=1,6
+            xyz(l) = 0.0
+            do k=1,6
+               xyz2(l,k) = 0.0
+            end do
+         end do
+         
+         if(fmt.eq.5) then !Raw
+            do j=1,napx
+               xyz_particle(6)=(ejv(j)-e0)/e0
+
+               !Average beam position
+               xyz(1) = xyz(1) + xv(1,j)
+               xyz(2) = xyz(2) + yv(1,j)
+               xyz(3) = xyz(3) + xv(2,j)
+               xyz(4) = xyz(4) + yv(2,j)
+               xyz(5) = xyz(5) + sigmv(j)
+               xyz(6) = xyz(6) + xyz_particle(6)
+               
+               !Beam matrix (don't calulate identical elements twice (symmetry))
+               xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
+               xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
+               xyz2(3,1) = xyz2(3,1) + xv(1,j)*xv(2,j)
+               xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
+               xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
+               xyz2(6,1) = xyz2(6,1) + xv(1,j)*xyz_particle(6)
+               
+               xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
+               xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
+               xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
+               xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
+               xyz2(6,2) = xyz2(6,2) + yv(1,j)*xyz_particle(6)
+               
+               xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
+               xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
+               xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
+               xyz2(6,3) = xyz2(6,3) + xv(2,j)*xyz_particle(6)
+               
+               xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
+               xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
+               xyz2(6,4) = xyz2(6,4) + yv(2,j)*xyz_particle(6)
+               
+               xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
+               xyz2(6,5) = xyz2(6,5) + sigmv(j)*xyz_particle(6)
+               
+               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
+            enddo
+         else if (fmt.eq.6) then !Canonical
+            do j=1,napx
+               xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
+               xyz_particle(2) = (yv(1,j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
+               xyz_particle(3) = xv(2,j)*c1m3                 !y:      [mm]   -> [m]
+               xyz_particle(4) = (yv(2,j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
+               xyz_particle(5) = sigmv(j)*c1m3                !sigma:  [mm]   -> [m]
+               xyz_particle(6) = (((ejv(j)-e0)*e0)/e0f)/e0f   !psigma: [MeV]  -> [1]
+               
+               !Average beam position
+               xyz(1) = xyz(1) + xyz_particle(1)
+               xyz(2) = xyz(2) + xyz_particle(2)
+               xyz(3) = xyz(3) + xyz_particle(3)
+               xyz(4) = xyz(4) + xyz_particle(4)
+               xyz(5) = xyz(5) + xyz_particle(5)
+               xyz(6) = xyz(6) + xyz_particle(6)
+               
+               !Beam matrix (don't calulate identical elements twice (symmetry))
+               xyz2(1,1) = xyz2(1,1) + xyz_particle(1)*xyz_particle(1)
+               xyz2(2,1) = xyz2(2,1) + xyz_particle(1)*xyz_particle(2)
+               xyz2(3,1) = xyz2(3,1) + xyz_particle(1)*xyz_particle(3)
+               xyz2(4,1) = xyz2(4,1) + xyz_particle(1)*xyz_particle(4)
+               xyz2(5,1) = xyz2(5,1) + xyz_particle(1)*xyz_particle(5)
+               xyz2(6,1) = xyz2(6,1) + xyz_particle(1)*xyz_particle(6)
+               
+               xyz2(2,2) = xyz2(2,2) + xyz_particle(2)*xyz_particle(2)
+               xyz2(3,2) = xyz2(3,2) + xyz_particle(2)*xyz_particle(3)
+               xyz2(4,2) = xyz2(4,2) + xyz_particle(2)*xyz_particle(4)
+               xyz2(5,2) = xyz2(5,2) + xyz_particle(2)*xyz_particle(5)
+               xyz2(6,2) = xyz2(6,2) + xyz_particle(2)*xyz_particle(6)
+               
+               xyz2(3,3) = xyz2(3,3) + xyz_particle(3)*xyz_particle(3)
+               xyz2(4,3) = xyz2(4,3) + xyz_particle(3)*xyz_particle(4)
+               xyz2(5,3) = xyz2(5,3) + xyz_particle(3)*xyz_particle(5)
+               xyz2(6,3) = xyz2(6,3) + xyz_particle(3)*xyz_particle(6)
+               
+               xyz2(4,4) = xyz2(4,4) + xyz_particle(4)*xyz_particle(4)
+               xyz2(5,4) = xyz2(5,4) + xyz_particle(4)*xyz_particle(5)
+               xyz2(6,4) = xyz2(6,4) + xyz_particle(4)*xyz_particle(6)
+               
+               xyz2(5,5) = xyz2(5,5) + xyz_particle(5)*xyz_particle(5)
+               xyz2(6,5) = xyz2(6,5) + xyz_particle(5)*xyz_particle(6)
+               
+               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
+            enddo
+         end if
+         
+         !Normalize
+         xyz = xyz/napx
+         
+         xyz2(:,1)  = xyz2(:,1) /napx
+         xyz2(2:,2) = xyz2(2:,2)/napx
+         xyz2(3:,3) = xyz2(3:,3)/napx
+         xyz2(4:,4) = xyz2(4:,4)/napx
+         xyz2(5:,5) = xyz2(5:,5)/napx
+         xyz2(6,6)  = xyz2(6,6) /napx
+         
+         if ( lhighprec ) then
+            write(unit,1991) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
+         else
+            write(unit,1992) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
+         endif
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
++ei
+
       !Unrecognized format fmt
       else
 +if cr
-         write (lout,*) 
+         write (lout,*)
 +ei
 +if .not.cr
-         write (*,*) 
+         write (*,*)
 +ei
      & "DUMP> Format",fmt, "not understood for unit", unit
          call prror(-1)
@@ -34700,6 +34932,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
  1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec
+
+ 1989 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18))        !fmt 4 / hiprec
+ 1990 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9))         !fmt 4 / not hiprec
+      
+ 1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5&6 / hiprec
+ 1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5&6 / not hiprec
+      
       end subroutine
 
 +dk tra_thck
@@ -61133,7 +61372,7 @@ c$$$            endif
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
       double precision s_impact
-      integer flagsec(maxn)
+      integer flagsec(npart)
 !
 !     SR, 18-08-2005: add temporary variable to write in FirstImpacts
 !     the initial distribution of the impacting particles in the
@@ -66321,6 +66560,12 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
       dimension hbuff(253),tbuff(35)
       logical lopen
+
+      !For skipping through binary DUMP files (format 3)
+      integer tmp_ID, tmp_nturn, tmp_ktrack
+      double precision tmp_dcum, tmp_x,tmp_xp,
+     &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
+
 +if boinc
       character*256 filename
 +ei
@@ -66720,7 +66965,7 @@ c$$$         backspace (93,iostat=ierro)
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
 !--   First we position fort.6 to last checkpoint
-  603   read(6,'(a255)',end=604,err=106,iostat=ierro) arecord
+  603   read(6,'(a1024)',end=604,err=106,iostat=ierro) arecord
         sixrecs=sixrecs+1
         if (sixrecs.lt.crsixrecs) goto 603
         endfile (6,iostat=ierro)
@@ -66739,7 +66984,7 @@ c$$$         backspace (93,iostat=ierro)
 !--   Now re-position beambeam-output.dat and lostID.dat
 !--   or only fort.10 if boinc
 +if .not.boinc
-  610     read(52,'(a255)',end=608,err=108,iostat=ierro) arecord
+  610     read(52,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
           endfile (52,iostat=ierro)
@@ -66748,7 +66993,7 @@ c$$$         backspace (93,iostat=ierro)
      &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-  611     read(53,'(a255)',end=609,err=109,iostat=ierro) arecord
+  611     read(53,'(a1024)',end=609,err=109,iostat=ierro) arecord
           bllrec=bllrec+1
           if (bllrec.lt.crbllrec) goto 611
           endfile (53,iostat=ierro)
@@ -66759,7 +67004,7 @@ c$$$         backspace (93,iostat=ierro)
           backspace (93,iostat=ierro)
 +ei
 +if boinc
-  610     read(10,'(a255)',end=608,err=108,iostat=ierro) arecord
+  610     read(10,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
           endfile (10,iostat=ierro)
@@ -67013,7 +67258,7 @@ c$$$         backspace (93,iostat=ierro)
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
          
- 701     read(665,'(a255)',end=110,err=110,iostat=ierro) arecord
+ 701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
          dynkfilepos=dynkfilepos+1
          if (dynkfilepos.lt.dynkfilepos_cr) goto 701
 
@@ -67039,24 +67284,41 @@ c$$$         backspace (93,iostat=ierro)
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
             if (i .ne. 0) then
                write(93,*) "element=",bez(i), "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             else
                write(93,*) "element=","ALL" , "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             endif
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
             
             inquire( unit=dumpunit(i), opened=lopen )
-            if ( .not. lopen )
-     &           open(dumpunit(i),file=dump_fname(i), status='old',
-     &                form='formatted',action='readwrite')
-            
-            dumpfilepos(i) = 0
- 702        read(dumpunit(i),'(a255)',end=111,err=111,iostat=ierro)
-     &           arecord
-            dumpfilepos(i) = dumpfilepos(i) + 1
-            if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+            if (dumpfmt(i) .ne. 3 ) then ! ASCII
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i), status='old',
+     &                 form='formatted',action='readwrite')
+               endif
+
+               dumpfilepos(i) = 0
+ 702           read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro)
+     &              arecord
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+
+            else                         ! BINARY (format = 3)
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i),status='old',
+     &                 form='unformatted',action='readwrite')
+               endif
+               dumpfilepos(i) = 0
+ 703           read(dumpunit(i),end=111,err=111,iostat=ierro)
+     &              tmp_ID,tmp_nturn,tmp_dcum,
+     &              tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,
+     &              tmp_ktrack
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 703
+            endif
+
          endif
       end do
       !Crop DUMP files (if used by multiple DUMPs,
@@ -67067,8 +67329,13 @@ c$$$         backspace (93,iostat=ierro)
 C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
-            open(dumpunit(i),file=dump_fname(i), status='old',
-     &           position='append', form='formatted',action='write')
+            if (dumpfmt(i).ne.3) then ! ASCII
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='formatted',action='write')
+            else                      ! Binary (format = 3)
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='unformatted',action='write')
+            endif
          endif
       end do
       
@@ -67157,9 +67424,9 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ei
 !--   Copy the lout to fort.6
         rewind lout
-    3   read(lout,'(a255)',end=1,err=107,iostat=ierro) arecord
-        lstring=255
-        do i=255,2,-1
+    3   read(lout,'(a1024)',end=1,err=107,iostat=ierro) arecord
+        lstring=1024
+        do i=1024,2,-1
           lstring=i
           if (arecord(i:i).ne.' ')goto 2
           lstring=lstring-1
@@ -67293,9 +67560,9 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ei
       osixrecs=sixrecs
       rewind lout
-    3 read(lout,'(a255)',end=1,err=101,iostat=ierro) arecord
-      lstring=255
-      do i=255,2,-1
+    3 read(lout,'(a1024)',end=1,err=101,iostat=ierro) arecord
+      lstring=1024
+      do i=1024,2,-1
         lstring=i
         if (arecord(i:i).ne.' ') goto 2
         lstring=lstring-1
@@ -68535,7 +68802,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
 
 ! Now we try and read fort.10 i.e. is it empty?
-      read(10,'(a255)',end=11,err=11,iostat=ierro) arecord
+      read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
 ! Seems to be OK
       goto 12    
  11   continue
@@ -68646,9 +68913,9 @@ c$$$         backspace (93,iostat=ierro)
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         rewind 92
-    3   read(92,'(a255)',end=1,err=8,iostat=ierro) arecord
-        lstring=255
-        do i=255,2,-1
+    3   read(92,'(a1024)',end=1,err=8,iostat=ierro) arecord
+        lstring=1024
+        do i=1024,2,-1
           lstring=i
           if (arecord(i:i).ne.' ')goto 2
           lstring=lstring-1
