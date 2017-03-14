@@ -64515,11 +64515,13 @@ c$$$     &           myalphay * cos(phiy))
 !       m_dpodx=get_dpodx(p,mat)
 +if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)
+       p=p-m_dpodx*s
 +ei
 +if merlinscatter
-       call calc_ion_loss(mat,p,rlen,m_dpodx)
+       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
 +ei
-       p=p-m_dpodx*s
        dpop=(p-p0)/p0
        if(dowrite_impact) then
 ! write Coll_Scatter.dat for complete scattering histories
@@ -64551,11 +64553,13 @@ c$$$     &           myalphay * cos(phiy))
 !       m_dpodx=get_dpodx(p,mat)
 +if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)
+       p=p-m_dpodx*s
 +ei
 +if merlinscatter
-       call calc_ion_loss(mat,p,rlen,m_dpodx)
+       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
 +ei
-       p=p-m_dpodx*s
        dpop=(p-p0)/p0
 ! write Coll_Scatter.dat for complete scattering histories
            write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
