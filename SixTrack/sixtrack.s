@@ -64056,15 +64056,15 @@ c$$$     &           myalphay * cos(phiy))
       if ( inter.eq.2 ) then
            gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
 
-         elseif ( inter .eq. 3 ) then
+      elseif ( inter .eq. 3 ) then
            call merlinscatter_get_elastic_t(gettran)
 
-         elseif ( inter .eq. 4 ) then
+      elseif ( inter .eq. 4 ) then
            call merlinscatter_get_sd_xi(xm2)
            call merlinscatter_get_sd_t(gettran)
            p = p  * (1.d0 - (xm2/ecmsq))
 
-         elseif ( inter.eq.5 ) then
+      elseif ( inter.eq.5 ) then
            length=1
            call funlux( cgen(1,mat) , xran, length)
            truth=xran(1)
