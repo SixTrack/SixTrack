@@ -102,18 +102,3 @@ double EnergyLoss(double p, double ElectronDensity, double PlasmaEnergy, double 
 	return dp;
 }
 
-/*
-double Material::CalculateElectronDensity()
-{
-	return AtomicNumber * Avogadro * Density * 0.001 / (AtomicMass * pow(centimeter,3)); // n_e m^-3 (1e6 conversion from cm^3)
-}
-double Material::CalculatePlasmaEnergy()
-{
-	return (PlanckConstantBar * sqrt((ElectronDensity * pow(ElectronCharge,2)) / (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
-}
-
-double Material::CalculateMeanExcitationEnergy()
-{
-	return AtomicNumber * 10.0 *eV;
-}
-*/

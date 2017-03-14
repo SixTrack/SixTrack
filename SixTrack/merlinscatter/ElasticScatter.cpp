@@ -146,6 +146,9 @@ void ppElasticScatter::GenerateTDistribution(double energy)
 {
 	if(!Configured)
 	{
+		Uniformt = new std::vector<double>;
+		DSig = new std::vector<double>;
+		DSigN = new std::vector<double>;
 		/*
 		std::cout << "*******************************************************************************" << std::endl;
 		std::cout << "*******   Generating pp elastic differential cross section   ******************" << std::endl;
@@ -164,13 +167,19 @@ void ppElasticScatter::GenerateTDistribution(double energy)
 		std::cout << "*******************************************************************************" << std::endl;
 		*/
 		Configured = true;
+		delete Uniformt;
+		delete DSig;
+		delete DSigN;
 	}
 }
 
-//ppElasticScatter::~ppElasticScatter()
-//{
-//delete LinearInterpolation;
-//}
+ppElasticScatter::~ppElasticScatter()
+{
+	if(LinearInterpolation)
+	{
+		delete LinearInterpolation;
+	}
+}
 
 /**
 * Generates the elastic differential cross section
@@ -198,10 +207,12 @@ void ppElasticScatter::GenerateDsigDt(double energy)
 
 
 	unsigned int nSteps = (t_max - t_min) / step;
-	Uniformt.reserve(nSteps);
-	DSig.reserve(nSteps);
-	DSigN.reserve(nSteps);
-	IntSig.reserve(nSteps);
+	Uniformt->clear();
+	DSig->clear();
+	DSigN->clear();
+	Uniformt->reserve(nSteps);
+	DSig->reserve(nSteps);
+	DSigN->reserve(nSteps);
 
 	/**
 	* Get the energy of this interaction
@@ -221,9 +232,9 @@ void ppElasticScatter::GenerateDsigDt(double energy)
 	{
 		for(unsigned int n = 0; n <= nSteps; n++)
 		{
-			Uniformt.push_back((static_cast<double>(n) * step) + t_min);
-			DSig.push_back(PomeronScatter(Uniformt[n],sqrts,true));
-			DSigN.push_back(PomeronScatter(Uniformt[n],sqrts,false));
+			Uniformt->push_back((static_cast<double>(n) * step) + t_min);
+			DSig->push_back(PomeronScatter((*Uniformt)[n],sqrts,true));
+			DSigN->push_back(PomeronScatter((*Uniformt)[n],sqrts,false));
 			//Old function
 			//DSig.push_back((ppel*b)*exp(-b*Uniformt[n]));
 			//std::cout << DSig[n] << "\t" << Uniformt[n] << std::endl;
@@ -234,10 +245,10 @@ void ppElasticScatter::GenerateDsigDt(double energy)
 		std::ofstream *dSigDebug = new std::ofstream("DSigDebugLog");
 		for(unsigned int n = 0; n <= nSteps; n++)
 		{
-			Uniformt.push_back((static_cast<double>(n) * step) + t_min);
-			DSig.push_back(PomeronScatter(Uniformt[n],sqrts,true));
-			DSigN.push_back(PomeronScatter(Uniformt[n],sqrts,false));
-			(*dSigDebug) << Uniformt[n] << "\t" << DSig[n] << std::endl;
+			Uniformt->push_back((static_cast<double>(n) * step) + t_min);
+			DSig->push_back(PomeronScatter((*Uniformt)[n],sqrts,true));
+			DSigN->push_back(PomeronScatter((*Uniformt)[n],sqrts,false));
+			(*dSigDebug) << (*Uniformt)[n] << "\t" << (*DSig)[n] << std::endl;
 
 		}
 	}
@@ -249,10 +260,13 @@ void ppElasticScatter::GenerateDsigDt(double energy)
 */
 void ppElasticScatter::IntegrateDsigDt()
 {
-	unsigned int nSteps = Uniformt.size();
+	unsigned int nSteps = Uniformt->size();
+	std::vector<double> Sig;
 	Sig.reserve(nSteps);
 
 	//Add the 0.0 value first!
+	std::vector<double> IntSig;
+	IntSig.reserve(nSteps);
 	IntSig.push_back(0.0);
 
 	SigElastic = 0;
@@ -261,10 +275,10 @@ void ppElasticScatter::IntegrateDsigDt()
 	* Integrate the elastic differential cross section
 	*/
 	std::vector<double>::iterator itr;
-	itr = DSig.begin()+1;
+	itr = DSig->begin()+1;
 	std::vector<double>::iterator itrN;
-	itrN = DSigN.begin()+1;
-	while(itr != DSig.end())
+	itrN = DSigN->begin()+1;
+	while(itr != DSig->end())
 	{
 		SigElastic += ((*itr) * step);
 		SigElasticN += ((*itrN) * step);
@@ -277,20 +291,20 @@ void ppElasticScatter::IntegrateDsigDt()
 	std::cout << "Elastic Cross section (without peak): " << SigElasticN * 1000 << " mb" << std::endl;
 	std::cout << "Sixtrack Elastic Cross section: " << 7 * pow((7000 / 450),0.04792) << " mb" << std::endl;
 
-	std::ofstream* ofile = nullptr;
-	std::ofstream* SigmaDistributionFile = nullptr;
+	std::ofstream* ofile;
+	std::ofstream* SigmaDistributionFile;
 	itr = IntSig.begin()+1;
 	if(Debug)
 	{
 		ofile = new std::ofstream("IntegratedSigNormalized");
 		ofile->precision(16);
-		(*ofile) << Uniformt[0] << "\t" << IntSig[0] << std::endl;
+		(*ofile) << (*Uniformt)[0] << "\t" << IntSig[0] << std::endl;
 
 		//Switch to normalized values to make our life easier
 		for(unsigned int n = 1; n < nSteps; n++)
 		{
 			IntSig[n] /= SigElastic;
-			(*ofile) << Uniformt[n] << "\t" << IntSig[n] << std::endl;
+			(*ofile) << (*Uniformt)[n] << "\t" << IntSig[n] << std::endl;
 		}
 	}
 	else
@@ -303,7 +317,7 @@ void ppElasticScatter::IntegrateDsigDt()
 		}
 	}
 
-	InversionInterpolation = new Interpolation(IntSig, Uniformt);
+	InversionInterpolation = new Interpolation(IntSig, *Uniformt);
 
 	if(Debug)
 	{
