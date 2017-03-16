@@ -536,7 +536,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops")
 
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AARCH64 )
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
 	endif()
 
@@ -666,7 +666,7 @@ endif ()
 #${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AARCH64 )
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_C_FLAGS "-ffp-contract=off ${CMAKE_C_FLAGS}")
 	endif()
 	set (CMAKE_C_FLAGS_RELEASE "-O2")
@@ -736,7 +736,7 @@ endif()
 #${CMAKE_CXX_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AARCH64 )
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_CXX_FLAGS "-ffp-contract=off ${CMAKE_CXX_FLAGS}")
 	endif()
 	set (CMAKE_CXX_FLAGS_RELEASE "-O3")
