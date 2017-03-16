@@ -534,7 +534,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -ffp-contract=off")
 	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
 	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 
@@ -661,6 +661,7 @@ endif ()
 #${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 
+	set (CMAKE_C_FLAGS "-ffp-contract=off ${CMAKE_C_FLAGS}")
 	set (CMAKE_C_FLAGS_RELEASE "-O2")
 	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
 
@@ -728,6 +729,7 @@ endif()
 #${CMAKE_CXX_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
+	set (CMAKE_CXX_FLAGS "-ffp-contract=off ${CMAKE_CXX_FLAGS}")
 	set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
