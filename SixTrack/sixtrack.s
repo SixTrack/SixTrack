@@ -28094,7 +28094,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         open(unit=4801, file='FLUKA_impacts_all.dat')
         open(unit=3998, file='Coll_Scatter.dat')
         open(unit=39, file='FirstImpacts.dat')
-        open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
+        !open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
         if (firstrun) then
 !          write(45,'(a)')                                               &
 !     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
@@ -62124,14 +62124,14 @@ c$$$            endif
 !
 ! output for comparing the particle in accelerator frame 
 !
-          if(dowrite_impact) then
-             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
-     &            name(j),iturn,icoll,nabs,                             &
-     &            s_in(j),                                              &
-     &            s+sp + (dble(j_slices)-1d0) * c_length,               &!hr09
-     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
-     &            x,xp,z,zp
-          endif
+c$$$          if(dowrite_impact) then
+c$$$             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
+c$$$     &            name(j),iturn,icoll,nabs,                             &
+c$$$     &            s_in(j),                                              &
+c$$$     &            s+sp + (dble(j_slices)-1d0) * c_length,               &!hr09
+c$$$     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
+c$$$     &            x,xp,z,zp
+c$$$          endif
 !
 !++  End of check for particles not being lost before
 !
