@@ -16432,12 +16432,8 @@ cc2008
         write(lout,10460) dump
         write(lout,*) ''
         write(lout,*) '       The last column states the format'
-        write(lout,*) '            of the output file (see Twiki page):'
-        write(lout,*) '       ==0 -> regular output (default)'
-        write(lout,*) '       ==1 -> special one, for post-processing'
-        write(lout,*) '              with LHC Coll Team tools'
-        write(lout,*) '       ==2 -> as 1, but add z as column 8'
-         
+        write(lout,*) '            of the output file (see manual):'
+        
         ! ldump(0)=.true. : DUMP all elements found
         if ( ldump(0) ) then
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
