@@ -16429,7 +16429,6 @@ cc2008
       !Done with DUMP, write out!
       if(ch(:4).eq.next) then
         ! HEADER
-+if cr
         write(lout,10460) dump
         write(lout,*) ''
         write(lout,*) '       The last column states the format'
@@ -16438,45 +16437,16 @@ cc2008
         write(lout,*) '       ==1 -> special one, for post-processing'
         write(lout,*) '              with LHC Coll Team tools'
         write(lout,*) '       ==2 -> as 1, but add z as column 8'
-+ei
-+if .not.cr
-        write(*,10460) dump
-        write(*,*)    ''
-        write(*,*)    '       The last column states the format'
-        write(*,*)    '            of the output file (see Twiki page):'
-        write(*,*)    '       ==0 -> regular output (default)'
-        write(*,*)    '       ==1 -> special one, for post-processing'
-        write(*,*)    '              with LHC Coll Team tools'
-        write(*,*)    '       ==2 -> as 1, but add z as column 8'
-+ei
          
         ! ldump(0)=.true. : DUMP all elements found
-+if cr
         if ( ldump(0) ) then
-!           write(lout,'(t10,a50)')
-!     &          ' required dump at ALL SINGLE ELEMENTs'
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
      &          dumpunit(0), dump_fname(0), dumpfmt(0),
      &          dumpfirst(0), dumplast(0)
         endif
-+ei
-+if .not.cr
-        if ( ldump(0) ) then
-!           write(*,'(t10,a50)')
-!     &          ' required dump at ALL SINGLE ELEMENTs'
-           write(*,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0),
-     &          dumpfirst(0), dumplast(0)
-        endif
-+ei
         do ii=1,il
           if(ldump(ii)) then
-+if cr
             write(lout,10470)
-+ei
-+if .not.cr
-            write(*,10470)
-+ei
      &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
      &     dumpfirst(ii), dumplast(ii)
       
@@ -16485,19 +16455,13 @@ cc2008
             do jj=1,mper*mbloz      ! Loop over all structure elements
               if ( ic(jj)-nblo .eq. ii ) then
                 write (ch1,*) jj    ! internal write for left-adjusting
-+if cr
                 write (lout,10472)
-+ei
-+if .not.cr
-                write (*,10472)
-+ei
      &               " -> Found as structure element no. "
      &               // trim(adjustl(ch1))
                 kk = kk + 1
               end if
             end do
             if (kk .eq. 0) then
-+if cr
                write (lout,10472) " !! Warning: No structure elements "
      &              // "found for '" // bez(ii) // "'!"
                write (lout,10472)
@@ -16506,41 +16470,18 @@ cc2008
                write (lout,10472) " !! Please fix your DUMP block"
      &              // " in fort.3"
 
-+ei
-+if .not.cr
-               write (*,10472)    " !! Warning: No structure elements "
-     &              // "found for '" // bez(ii) // "'!"
-               write (*,10472)
-     &              " !! This element is probably only found"
-     &              // " in a BLOC, or it is not used at all."
-               write (*,10472)    " !! Please fix your DUMP block"
-     &              // " in fort.3"
-+ei
                call prror(-1)
             endif
           endif
         enddo
 
         if ( ldumphighprec ) then
-+if cr
           write(lout,*) ''
           write(lout,*) '        --> requested high precision dumping!'
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    '        --> requested high precision dumping!'
-+ei
         endif
         if ( ldumpfront ) then
-+if cr
           write(lout,*) ''
           write(lout,*) '        --> requested FRONT dumping!'
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    '        --> requested FRONT dumping!'
-+ei
-           
         endif
         goto 110
       endif
@@ -16569,31 +16510,17 @@ cc2008
       if ( (getfields_nfields .lt. 4) .or. 
      &     (getfields_nfields .gt. 7) .or.
      &     (getfields_nfields .eq. 6)      ) then
-+if cr
          write(lout,*) "ERROR in DUMP:"
          write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",
      &        getfields_nfields
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in DUMP:"
-         write(*,*)    "Expected 4 to 7 (but not 6)arguments, got",
-     &        getfields_nfields
-         write(*,*)
-+ei
      &        ("'"//getfields_fields(kk)(1:getfields_lfields(kk))//"' ",
      &        kk=1,getfields_nfields)
          call prror(-1)
       endif
       if (getfields_lfields(1) > 16) then
-+if cr
          write(lout,*) "ERROR in DUMP:"
          write(lout,*) "element names are max. 16 characters"
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in DUMP:"
-         write(*,*)    "element names are max. 16 characters"
-+ei
          call prror(-1)
 
       endif
@@ -16620,24 +16547,14 @@ cc2008
 !Check that first/last turn is sane
       if ( i5.ne.-1 ) then
          if ( i5 .lt. i4 ) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
      &           "Error in DUMP: Expect last turn >= first turn, ",
      &           "unless last turn = -1 (infinity), got", i4,i5
            call prror(-1)
          endif
       endif
       if ( i4 .lt. 1 ) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "Error in DUMP: Expect first turn >= 1, got", i4
          call prror(-1)
       endif
@@ -16646,16 +16563,9 @@ cc2008
       do j=1,il
          if(bez(j).eq.idat) then
             if (ldump(j)) then !Only enable once/element!
-+if cr
                write(lout,*) "Error in parsing DUMP block:"
                write(lout,*) "Element '",idat, "' was specified",
      &              " more than once"
-+ei
-+if .not.cr
-               write(*,*)    "Error in parsing DUMP block:"
-               write(*,*)    "Element '",idat, "' was specified",
-     &              " more than once"
-+ei
                call prror(-1)
             endif
             goto 2001
@@ -16664,37 +16574,20 @@ cc2008
       if ( idat(:3).eq.'ALL' ) then
          j=0
          if (ldump(j)) then
-+if cr
             write(lout,*) "ERROR in parsing DUMP block:"
             write(lout,*) "'Element' ALL was specified "//
      &           "(at least) twice"
-+ei
-+if .not.cr
-            write(*,*)    "ERROR in parsing DUMP block:"
-            write(*,*)    "'Element' ALL was specified "//
-     &           "(at least) twice"
-+ei
             call prror(-1)
          endif
          goto 2001
       endif
 !     search failed:
-+if cr
       write(lout,*) ''
       write(lout,*) " Un-identified SINGLE ELEMENT '", idat, "'"
       write(lout,*) '   in block ',dump, '(fort.3)'
       write(lout,*) '   parsed line:'
       write(lout,*) ch(:80)
       write(lout,*) ''
-+ei
-+if .not.cr
-      write(*,*)    ''
-      write(*,*)    " Un-identified SINGLE ELEMENT '", idat, "'"
-      write(*,*)    '   in block ',dump, '(fort.3)'
-      write(*,*)    '   parsed line:'
-      write(*,*)    ch(:80)
-      write(*,*)    ''
-+ei
       call prror(-1)
 
 !     element found:
