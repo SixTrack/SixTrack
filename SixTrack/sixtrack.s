@@ -12012,9 +12012,7 @@ cc2008
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -12283,43 +12281,13 @@ cc2008
 ! imod=1: free, definition of elements in fort.3
 ! imod=2: geom, definition of elements in fort.2
       if(idat.eq.geom) imod=2
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
-+if cr
       write(lout,10180) ihead
-+ei
-+if .not.cr
-      write(*,10180) ihead
-+ei
       sixtit(1:60)=ihead
-+if cr
       if(imod.eq.1) write(lout,10190)
-+ei
-+if .not.cr
-      if(imod.eq.1) write(*,10190)
-+ei
-+if cr
       if(imod.eq.2) write(lout,10200)
-+ei
-+if .not.cr
-      if(imod.eq.2) write(*,10200)
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       if(imod.eq.2) then
   100   read(2,10000,end=1520,iostat=ierro) idat
         if(ierro.gt.0) call prror(57)
@@ -12328,12 +12296,7 @@ cc2008
         if(idat(1:1).eq.'/') goto 100
 ! single elements
         if(idat.eq.sing) goto 120
-+if cr
           write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-          write(*,*)    "idat = '"//idat//""
-+ei
           call prror(15)
         endif
   110 read(3,10000,end=1530,iostat=ierro) idat
@@ -12393,12 +12356,7 @@ cc2008
       
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
-+if cr
       write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-      write(*,*)    "idat = '"//idat//"'"
-+ei
       call prror(15)
 !-----------------------------------------------------------------------
 !  DATENBLOCK SINGLE ELEMENTS
@@ -12426,12 +12384,7 @@ cc2008
           lineno2=lineno2+1
           if(idat(1:1).eq.'/') goto 160
           if(idat.ne.bloc) then
-+if cr
             write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-            write(*,*)    "idat = '"//idat//""
-+ei
             call prror(15)
           endif
           goto 190
@@ -12516,14 +12469,8 @@ cc2008
       !Check that the name is unique
       do j=1,i-1! i = index of current line
          if ( bez(j).eq.idat ) then
-+if cr
             write(lout,*) "ERROR in DATEN:"
             write(lout,*) "Got multiple copies of element ", bez(j)
-+ei
-+if .not.cr
-            write(*,*)    "ERROR in DATEN:"
-            write(*,*)    "Got multiple copies of element ", bez(j)
-+ei
             call prror(-1)
          endif
       enddo
@@ -12663,12 +12610,7 @@ cc2008
           zpl(j)=0d0
           zrms(j)=0d0
           if(xrms0.eq.0d0.and.zpl0.eq.0d0.and.zrms0.eq.0d0) then         !hr05
-+if cr
             write(lout,*) "ac dipole disregarded (0 length)"
-+ei
-+if .not.cr
-            write(*,*) "ac dipole disregarded (0 length)"
-+ei
             kz(j)=0
             ed(j)=0d0                                                    !hr05
             ek(j)=0d0                                                    !hr05
@@ -12720,12 +12662,7 @@ cc2008
           lineno2=lineno2+1
           if(idat(1:1).eq.'/') goto 260
           if(idat.ne.stru) then
-+if cr
             write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-            write(*,*)    "idat = '"//idat//""
-+ei
             call prror(15)
           endif
           goto 320
@@ -13475,24 +13412,9 @@ cc2008
   540   continue
       else
         ncor=0
-+if cr
         write(lout,*)' '
-+ei
-+if .not.cr
-        write(*,*)' '
-+ei
-+if cr
         write(lout,*)'NO EXTRA PARAMETERS FOR THE MAP SPECIFIED'
-+ei
-+if .not.cr
-        write(*,*)'NO EXTRA PARAMETERS FOR THE MAP SPECIFIED'
-+ei
-+if cr
         write(lout,*)' '
-+ei
-+if .not.cr
-        write(*,*)' '
-+ei
       endif
       ndum=0
       nvar=nvar2+ncor
@@ -13596,12 +13518,7 @@ cc2008
   620     if(iqq(2).eq.bez(j)) iq(2)=j
           goto 110
         else
-+if cr
           write(lout,10370)
-+ei
-+if .not.cr
-          write(*,10370)
-+ei
           iqmod=0
           iqmod6=0
           goto 110
@@ -13734,15 +13651,10 @@ cc2008
  650    continue
         goto 110
       else
-+if cr
         write(lout,10370)
-+ei
-+if .not.cr
-        write(*,10370)
-+ei
         iqmod=0
         iqmod6=0
-        write(*,*) 'TUNE ADJUSTED'
+        write(lout,*) 'TUNE ADJUSTED'
         goto 110
       endif
 !-----------------------------------------------------------------------
@@ -13921,24 +13833,9 @@ cc2008
       if(abs(pma-pmap).le.c1m1) pmat=pmap
       if(abs(pma-pmae).le.c1m1) pmat=pmae
       if(pmat.ne.pmap.and.pmat.ne.pmae) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) 'Warning: Particle is neither proton nor electron'
-+ei
-+if .not.cr
-        write(*,*) 'Warning: Particle is neither proton nor electron'
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
       if(pma.lt.pieni) call prror(27)
       crad=(crade*pmae)/pma                                              !hr05
@@ -13948,18 +13845,8 @@ cc2008
         idp=1
         if(ncy.ne.0) goto 720
         idp=0
-+if cr
         write(lout,10130)
-+ei
-+if .not.cr
-        write(*,10130)
-+ei
-+if cr
         write(lout,10340)
-+ei
-+if .not.cr
-        write(*,10340)
-+ei
   720   phas=phag*rad
         if(ncy.ne.0) then
           hsy(1)=u0/dble(ncy)
@@ -14060,18 +13947,8 @@ cc2008
         goto 760
       endif
   750 continue
-+if cr
   760 write(lout,10130)
-+ei
-+if .not.cr
-  760 write(*,10130)
-+ei
-+if cr
       write(lout,10210) imn,r0,benki
-+ei
-+if .not.cr
-      write(*,10210) imn,r0,benki
-+ei
       ! Read data lines: B_n rms-B_n A_n rms-A_n
   770 bk0d=zero
       bkad=zero
@@ -14121,12 +13998,7 @@ cc2008
       ! to the currently highest multipole seen (i)
       if(abs(bk0d).gt.pieni.or.abs(bkad).gt.pieni                       &
      &.or.abs(ak0d).gt.pieni.or.abs(akad).gt.pieni) nmu(j)=i
-+if cr
       write(lout,10220) i,bk0d,bkad,ak0d,akad
-+ei
-+if .not.cr
-      write(*,10220) i,bk0d,bkad,ak0d,akad
-+ei
       bk0(im,i)=(benki*bk0d)/r0a                                         !hr05
       ak0(im,i)=(benki*ak0d)/r0a                                         !hr05
       bka(im,i)=(benki*bkad)/r0a                                         !hr05
@@ -14135,13 +14007,8 @@ cc2008
       r0a=r0a*r0
       if(i.gt.mmul+1) call prror(105)
       if(ch(:4).ne.next) goto 770 ! loop
-+if cr
       write(lout,10380)
-+ei
-+if .not.cr
-      write(*,10380)
-+ei
-      write (*,*) 'BENKI done'
+      write (lout,*) 'BENKI done'
       goto 770
 !-----------------------------------------------------------------------
 !  FLUCTUATION RANDOM STARTING NUMBER
@@ -14180,30 +14047,10 @@ cc2008
       do 810 i=1,nzfz
   810 rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
       rdev=sqrt(rsqsum/dble(nzfz))                                       !hr05
-+if cr
       write(lout,10410) izu0,nzfz,rmean,rdev
-+ei
-+if .not.cr
-      write(*,10410) izu0,nzfz,rmean,rdev
-+ei
-+if cr
       if(mcut.eq.0) write(lout,10430)
-+ei
-+if .not.cr
-      if(mcut.eq.0) write(*,10430)
-+ei
-+if cr
       if(mcut.gt.0) write(lout,10440) mcut
-+ei
-+if .not.cr
-      if(mcut.gt.0) write(*,10440) mcut
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       ! Set flags mout1, mout2, mount3, mout4 depending on mout
       ! Enables/disables different functionality
       if(mout.ge.8) mout4=1
@@ -14230,25 +14077,10 @@ cc2008
       
       ! Reads from fort.16 IF mout1==1
       if(mout1.eq.1) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '          Multipole errors read in ' ,           &
-+ei
-+if .not.cr
-        write(*,*) '          Multipole errors read in ' ,              &
-+ei
      &'from external file'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         iexread=0 ! Reading regular multipoles(1) or skew components (2)
         ifiend16=0
         iexnum=0
@@ -14459,41 +14291,16 @@ cc2008
           endif
   860   continue
   861   continue
-+if cr
         write(lout,*) '        From file fort.16 :',iexnum,             &
-+ei
-+if .not.cr
-        write(*,*) '        From file fort.16 :',iexnum,                &
-+ei
      &' values read in.'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 +if time
       if(mout1.eq.1) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '  Time-d  Multipole errors read in ' ,           &
-+ei
-+if .not.cr
-        write(*,*) '  Time-d  Multipole errors read in ' ,              &
-+ei
      &'from external file'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         iexread=0
         ifiend35=0
         iexnum=0
@@ -14734,41 +14541,16 @@ cc2008
           endif
  1860  continue
  1861  continue
-+if cr
         write(lout,*) '        From file fort.35 :',iexnum,             &
-+ei
-+if .not.cr
-        write(*,*) '        From file fort.35 :',iexnum,                &
-+ei
      &' values read in.'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 +ei
       if(mout3.eq.1) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '          Alignment errors read in ' ,           &
-+ei
-+if .not.cr
-        write(*,*) '          Alignment errors read in ' ,              &
-+ei
      &'from external file'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         iexread=0
         ifiend8=0
         iexnum=0
@@ -14859,19 +14641,9 @@ cc2008
           endif
  1580   continue
  1581   continue
-+if cr
         write(lout,*) '        From file fort.8 :',iexnum,              &
-+ei
-+if .not.cr
-        write(*,*) '        From file fort.8 :',iexnum,                 &
-+ei
      &' values read in.'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
       izu=0
       iexnum=0
