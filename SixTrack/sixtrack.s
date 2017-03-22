@@ -42141,9 +42141,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca comgetfields
-+if cr
 +ca crcoall
-+ei
 
       intent(in) getfields_fields, getfields_lfields, getfields_nfields
       
@@ -42460,7 +42458,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                write(lout,*) "DYNK> Error reading file '" //
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //"'"
                write(lout,*) "DYNK> Error in getfields_split"
-+ei
                call prror(-1)
             end if
             
@@ -43689,16 +43686,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
       subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
       implicit none
++ca crcoall
       integer nfields, nfields_expected
       character(*) funsyntax
       intent(in) nfields, nfields_expected, funsyntax
       
       if (nfields .ne. nfields_expected) then
-         write (*,*) "ERROR in DYNK block parsing (fort.3)"
-         write (*,*) "The function expected",nfields_expected,
+         write (lout,*) "ERROR in DYNK block parsing (fort.3)"
+         write (lout,*) "The function expected",nfields_expected,
      &               "arguments, got",nfields
-         write (*,*) "Expected syntax:"
-         write (*,*) funsyntax(:)
+         write (lout,*) "Expected syntax:"
+         write (lout,*) funsyntax(:)
          call prror(51)
       endif
       end subroutine
@@ -43711,27 +43709,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk      
 
-+if cr
 +ca crcoall
-+ei
 
       if ( (niexpr_dynk+iblocks .gt. maxdata_dynk) .or.
      &     (nfexpr_dynk+fblocks .gt. maxdata_dynk) .or.
      &     (ncexpr_dynk+cblocks .gt. maxdata_dynk) ) then
-+if cr
+         
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Max number of maxdata_dynk to be exceeded"
          write (lout,*) "niexpr_dynk:", niexpr_dynk
          write (lout,*) "nfexpr_dynk:", nfexpr_dynk
          write (lout,*) "ncexpr_dynk:", ncexpr_dynk
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Max number of maxdata_dynk to be exceeded"
-         write (*,*)    "niexpr_dynk:", niexpr_dynk
-         write (*,*)    "nfexpr_dynk:", nfexpr_dynk
-         write (*,*)    "ncexpr_dynk:", ncexpr_dynk
-+ei
+         
          call prror(51)
       endif
       end subroutine
@@ -43750,32 +43739,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca comgetfields
 
-+if cr
 +ca crcoall
-+ei
 
       integer ii
       
       integer dynk_findFUNindex
 
       if (nsets_dynk+1 .gt. maxsets_dynk) then
-+if cr
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Maximum number of SET exceeded, ",
      &               "please increase parameter maxsets_dynk."
          write (lout,*) "Current value of maxsets_dynk:", maxsets_dynk
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Maximum number of SET exceeded, ",
-     &                  "please increase parameter maxsets_dynk."
-         write (*,*)    "Current value of maxsets_dynk:", maxsets_dynk
-+ei
          call prror(51)
       endif
 
       if (getfields_nfields .ne. 7) then
-+if cr
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Expected 6 fields on line while parsing SET."
          write (lout,*) "Correct syntax:"
@@ -43786,19 +43764,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write (lout,*) "Field(",ii,") ='",
      &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
          enddo
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Expected 6 fields on line while parsing SET."
-         write (*,*)    "Correct syntax:"
-         write (*,*)    "SET element_name attribute_name function_name",
-     &                  " startTurn endTurn turnShift"
-         write (*,*)    "got field:"
-         do ii=1,getfields_nfields
-            write (*,*)    "Field(",ii,") ='",
-     &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
-         enddo
-+ei
          call prror(51)
       endif
 
@@ -43817,7 +43782,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       !Sanity check on string lengths
       if (getfields_lfields(2).gt.16 .or.
      &    getfields_lfields(2).gt.maxstrlen_dynk-1) then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET got an element name with length =",
@@ -43825,34 +43789,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "The name was: '",
      &        getfields_fields(2)(1:getfields_lfields(2)),"'"
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got an element name with length =",
-     &        getfields_lfields(2), "> 16 or > maxstrlen_dynk-1."
-         write (*,*)    "The name was: '",
-     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       endif
       
       if (getfields_lfields(3).gt.maxstrlen_dynk-1) then
-+if cr
          write(lout,*) "ERROR in DYNK block parsing (fort.3) (SET):"
          write(lout,*) "The attribute name '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "is too long! Max length is",
      &        maxstrlen_dynk-1
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in DYNK block parsing (fort.3) (SET):"
-         write(*,*)    "The attribute name '"//
-     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
-         write(*,*)    "is too long! Max length is",
-     &        maxstrlen_dynk-1
-+ei
          call prror(51)         
       endif
       
@@ -43864,7 +43809,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Sanity check
       if (sets_dynk(nsets_dynk,1).eq.-1) then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET wanting function '",
@@ -43872,22 +43816,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "Calculated index:", sets_dynk(nsets_dynk,1)
          write (lout,*) "This function is not known."
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET wanting function '",
-     &        getfields_fields(4)(1:getfields_lfields(4)), "'"
-         write (*,*)    "Calculated index:", sets_dynk(nsets_dynk,1)
-         write (*,*)    "This function is not known."
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       endif
       
       if (  (sets_dynk(nsets_dynk,3) .ne. -1) .and. !Not the special case
      &      (sets_dynk(nsets_dynk,2) .gt. sets_dynk(nsets_dynk,3)) )then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET got first turn num > last turn num"
@@ -43895,23 +43828,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "last =",sets_dynk(nsets_dynk,3)
          write (lout,*) "SET #", nsets_dynk
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got first turn num > last turn num"
-         write (*,*)    "first=",sets_dynk(nsets_dynk,2)
-         write (*,*)    "last =",sets_dynk(nsets_dynk,3)
-         write (*,*)    "SET #", nsets_dynk
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       end if
       
       if ( (sets_dynk(nsets_dynk,2) .le. 0 ) .or.
      &     (sets_dynk(nsets_dynk,3) .lt. -1) .or. 
      &     (sets_dynk(nsets_dynk,3) .eq. 0 )     ) then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET got turn number <= 0 "
@@ -43920,17 +43842,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "last =",sets_dynk(nsets_dynk,3)
          write (lout,*) "SET #", nsets_dynk
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got turn number <= 0 "
-         write (*,*)    "(not last = -1 meaning infinity)"
-         write (*,*)    "first=",sets_dynk(nsets_dynk,2)
-         write (*,*)    "last =",sets_dynk(nsets_dynk,3)
-         write (*,*)    "SET #", nsets_dynk
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       end if
 
@@ -43952,9 +43863,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca parpro
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
       character(*) funName_input
       character(maxstrlen_dynk) funName
       integer startfrom
@@ -43966,30 +43875,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 C      write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)      
 
       if (len(funName_input).gt.maxstrlen_dynk) then
-+if cr
          write (lout,*) "ERROR in dynk_findFUNindex"
          write (lout,*) "len(funName_input) = ",len(funName_input),
      &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in dynk_findFUNindex"
-         write (*,*)    "len(funName_input) = ",len(funName_input),
-     &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1      
-+ei
          call prror(-1)
       endif
       ! If the length is exactly maxstrlen_dynk, it should be zero-terminated.
       if (( len(funName_input).eq.maxstrlen_dynk ) .and.
      &    ( funName_input(len(funName_input):len(funName_input))
      &     .ne.char(0)) ) then
-+if cr
          write (lout,*) "ERROR in dynk_findFUNindex"
          write (lout,*) "Expected funName_input[-1]=NULL"
-+ei
-+if .not.cr
-         write (*,*) "ERROR in dynk_findFUNindex"
-         write (*,*) "Expected funName_input[-1]=NULL"
-+ei
          call prror(-1)
       endif
       
@@ -44059,9 +43955,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca parpro
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
       ! functions
       integer dynk_findFUNindex , dynk_findSETindex
 
@@ -44075,12 +43969,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          jj = dynk_findFUNindex(cexpr_dynk(funcs_dynk(ii,1)),ii+1)
          if ( jj.ne. -1) then
             sane = .false.
-+if cr
             write (lout,*)
-+ei
-+if .not.cr
-            write (*,*) 
-+ei
      &           "DYNK> Insane: function ", 
      &           ii, "has the same name as", jj
          end if
@@ -44096,12 +43985,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       biggestTurn = biggestTurn+1 !Make sure it is unique
       if (biggestTurn .le. 0) then
          !In case of integer overflow
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "FATAL ERROR: Integer overflow in dynk_inputsanitycheck!"
          call prror(-1)
       endif
@@ -44130,12 +44014,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             if ( sets_dynk(jj,2) .le. sets_dynk(ii,2) .and.
      &           sets_dynk(jj,3) .ge. sets_dynk(ii,2) ) then
                sane = .false.
-+if cr
                write (lout,"(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
-+if .not.cr
-               write (*,   "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
      &              " DYNK> Insane: Lower edge of SET #", jj,
      &        " =", sets_dynk(jj,2)," <= lower edge of SET #",ii,
      &        " =", sets_dynk(ii,2),"; and also higer edge of SET #",jj,
@@ -44144,12 +44023,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             else if (sets_dynk(jj,3) .ge. sets_dynk(ii,3) .and.
      &               sets_dynk(jj,2) .le. sets_dynk(ii,3) ) then
                sane = .false.
-+if cr
                write(lout, "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
-+if .not.cr
-               write (*,   "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
      &              " DYNK> Insane: Upper edge of SET #", jj,
      &        " =", sets_dynk(jj,3)," >= upper edge of SET #",ii,
      &        " =", sets_dynk(ii,3),"; and also lower edge of SET #",jj,
@@ -44159,12 +44033,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &               sets_dynk(jj,3) .le. sets_dynk(ii,3) ) then
                ! (other way round gets caugth by the first "if")
                sane = .false.
-+if cr
                write(lout, "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)")
-+ei
-+if .not.cr
-               write (*,   "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)")
-+ei
      &              " DYNK> Insane: SET #", jj,
      &        " = (", sets_dynk(jj,2),", ", sets_dynk(jj,3), ")",
      &        " is inside SET #", ii, " = (", 
@@ -44176,25 +44045,13 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       enddo
 
       if (.not. sane) then
-+if cr
          write (lout,*) "****************************************"
          write (lout,*) "*******DYNK input was insane************"
          write (lout,*) "****************************************"
-+ei
-+if .not.cr
-         write (*,*)    "****************************************"
-         write (*,*)    "*******DYNK input was insane************"
-         write (*,*)    "****************************************"
-+ei
          call dynk_dumpdata
          call prror(-11)
       else if (sane .and. ldynkdebug) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "DYNK> DYNK input was sane"
       end if
       end subroutine
@@ -44209,143 +44066,58 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca parpro
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
 
       integer ii
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei      
      &     "**************** DYNK parser knows: ****************"
 
-+if cr
       write (lout,*) "OPTIONS:"
       write (lout,*) " ldynk            =", ldynk
       write (lout,*) " ldynkdebug       =", ldynkdebug
       write (lout,*) " ldynkfiledisable =", ldynkfiledisable
-+ei
-+if .not.cr
-      write (*,*)    "OPTIONS:"
-      write (*,*)    " ldynk            =", ldynk
-      write (*,*)    " ldynkdebug       =", ldynkdebug
-      write (*,*)    " ldynkfiledisable =", ldynkfiledisable
-+ei
 
-+if cr
       write (lout,*) "FUN:"
       write (lout,*) "ifuncs: (",nfuncs_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "FUN:"
-      write (*,*)    "ifuncs: (",nfuncs_dynk,")"
-+ei
       do ii=1,nfuncs_dynk
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*) 
-+ei
      &        ii, ":", funcs_dynk(ii,:)
-
       end do
-+if cr
       write (lout,*) "iexpr_dynk: (",niexpr_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "iexpr_dynk: (",niexpr_dynk,")"
-+ei
       do ii=1,niexpr_dynk
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &     ii, ":", iexpr_dynk(ii)
       end do
-+if cr
       write (lout,*) "fexpr_dynk: (",nfexpr_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "fexpr_dynk: (",nfexpr_dynk,")"
-+ei
       do ii=1,nfexpr_dynk
-+if cr
          write (lout, '(1x,I8,1x,A,1x,E16.9)')
-+ei
-+if .not.cr
-         write (*,    '(1x,I8,1x,A,1x,E16.9)')
-+ei
      &   ii, ":", fexpr_dynk(ii)
       end do
-+if cr
       write (lout,*) "cexpr_dynk: (",ncexpr_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "cexpr_dynk: (",ncexpr_dynk,")"
-+ei
       do ii=1,ncexpr_dynk
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &   ii, ":", "'"//trim(stringzerotrim(cexpr_dynk(ii)))//"'"
       end do
 
-+if cr
       write (lout,*) "SET:"      
       write (lout,*) "sets(,:) csets(,1) csets(,2): (",
      &     nsets_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "SET:"      
-      write (*,*)    "sets(,:) csets(,1) csets(,2): (",
-     &     nsets_dynk,")"
-+ei
       do ii=1,nsets_dynk
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*) 
-+ei
      &        ii, ":", sets_dynk(ii,:),
      &        "'"//trim(stringzerotrim(csets_dynk(ii,1)))//
      &  "' ", "'"//trim(stringzerotrim(csets_dynk(ii,2)))//"'"
       end do
-      
-+if cr
       write (lout,*) "csets_unique_dynk: (",nsets_unique_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "csets_unique_dynk: (",nsets_unique_dynk,")"
-+ei
       do ii=1,nsets_unique_dynk
-+if cr
          write(lout, '(1x,I8,1x,A,1x,E16.9)')
-+ei
-+if .not.cr
-         write (*,   '(1x,I8,1x,A,1x,E16.9)')
-+ei
      &       ii, ": '"//
      &       trim(stringzerotrim(csets_unique_dynk(ii,1)))//"' '"//
      &       trim(stringzerotrim(csets_unique_dynk(ii,2)))//"' = ",
      &        fsets_origvalue_dynk(ii)
       end do
 
-+if cr
       write (lout,*) "*************************************************"
-+ei
-+if .not.cr
-      write (*,*)    "*************************************************"
-+ei
       
       end subroutine
       
@@ -44362,9 +44134,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca common
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
 +ca commondl
 
       !Functions
@@ -44377,12 +44147,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       logical found, badelem
       integer ix
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &    "DYNKDEBUG> In dynk_pretrack()"
       end if
       
@@ -44414,12 +44179,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                
                if (att_name_s .eq. "E0") then
                   if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
-+if cr
                      write(lout,*) "DYNK> Insane - attribute '",
-+ei
-+if .not.cr
-                     write(*,*)    "DYNK> Insane - attribute '",
-+ei
      &                  att_name_s, "' is not valid for 'GLOBAL-VARS' ",
      &                  "when doing 4d tracking"
                      call prror(-1)
@@ -44429,12 +44189,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                endif
 
                if (badelem) then
-+if cr
                   write(lout,*) "DYNK> Insane - attribute '",
-+ei
-+if .not.cr
-                  write(*,*)    "DYNK> Insane - attribute '",
-+ei
      &                att_name_s, "' is not valid for 'GLOBAL-VARS'"
                   call prror(-1)
                endif
@@ -44459,12 +44214,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         badelem = .true.
                      endif
                      if (kp(jj).ne.6) then
-+if cr
                         write(lout,*) "DYNK> Insane - want to modify ",
-+ei
-+if .not.cr
-                        write(*,*)    "DYNK> Insane - want to modify ",
-+ei
 
      &                      "DISABLED RF cavity named '",element_name_s,
      &                      ". Please make sure that the voltage and ",
@@ -44473,12 +44223,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         call prror(-1)
                      endif
                      if (nvar .eq. 5) then
-+if cr
                         write(lout,*) "DYNK> Insane - want to modify ",
-+ei
-+if .not.cr
-                        write(*,*)    "DYNK> Insane - want to modify ",
-+ei
      &                       "RF cavity named '", element_name_s, "', ",
      &                       "but nvars=5 (from DIFF block)."
                      endif
@@ -44497,24 +44242,14 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   ! Special case:
                   ! Should the error only occur if we actually have a GLOBAL-VARS element?
                   if (bez(jj) .eq. "GLOBAL-VARS") then
-+if cr
                      write(lout,*) "DYNK> Insane - element found '",
-+ei
-+if .not.cr
-                     write(*,*)    "DYNK> Insane - element found '",
-+ei
      &                    "GLOBAL-VARS' is not a valid element name, ",
      &                    "it is reserved"
                      call prror(-1) 
                   endif
                   
                   if (badelem) then
-+if cr
                      write(lout,*) "DYNK> Insane - attribute '",
-+ei
-+if .not.cr
-                     write(*,*)    "DYNK> Insane - attribute '",
-+ei
      &                    att_name_s, "' is not valid for element '",
      &                    element_name_s, "' which is of type",kz(jj)
                      call prror(-1) 
@@ -44523,14 +44258,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                endif
             enddo
             if (.not. found) then
-+if cr
                write (lout,*) "DYNK> Insane: Element '", element_name_s,
      &                        "' was not found"
-+ei
-+if .not.cr
-               write (*,*)    "DYNK> Insane: Element '", element_name_s,
-     &                        "' was not found"
-+ei
                call prror(-1)
             endif
 
@@ -44575,9 +44304,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 
-+if cr
 +ca crcoall
-+ei
 +ca parpro
 +ca parnum
 +ca common
@@ -44611,12 +44338,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       integer whichSET(maxsets_dynk) !Which SET was used for a given elem/attr?
 
       if ( ldynkdebug ) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &   'DYNKDEBUG> In dynk_apply(), turn = ',
 +if collimat
      & turn, "samplenumber =", samplenumber
@@ -44640,12 +44362,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          do ii=1, nfuncs_dynk
             if (funcs_dynk(ii,2) .eq. 6) then !RANDG
                if (ldynkdebug) then
-+if cr
                   write (lout,*) 
-+ei
-+if .not.cr
-                  write (*,*) 
-+ei
      &               "DYNKDEBUG> Resetting RNG for FUN named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
@@ -44656,12 +44373,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &         iexpr_dynk(funcs_dynk(ii,3)+1)
             else if (funcs_dynk(ii,2) .eq. 10) then !FIR
                if (ldynkdebug) then
-+if cr
                   write (lout,*)
-+ei
-+if .not.cr
-                  write (*,*)
-+ei
      &               "DYNKDEBUG> Resetting FIR named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
@@ -44671,12 +44383,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                enddo
             else if (funcs_dynk(ii,2) .eq. 11) then !IIR
                if (ldynkdebug) then
-+if cr
                   write (lout,*)
-+ei
-+if .not.cr
-                  write (*,*)
-+ei
      &               "DYNKDEBUG> Resetting IIR named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
@@ -44700,16 +44407,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
             inquire( unit=665, opened=lopen )
             if (lopen) then
-+if cr
                write(lout,*) "DYNK> **** ERROR in dynk_apply() ****"
                write(lout,*) "DYNK> unit 665 for dynksets.dat"//
      &                       " was already taken"
-+ei
-+if .not.cr
-              write(*,*)    "DYNK> **** ERROR in dynk_apply() ****"
-              write(*,*)    "DYNK> unit 665 for dynksets.dat"//
-     &                      " was already taken"
-+ei
               call prror(-1)
             end if
             open(unit=665, file="dynksets.dat",
@@ -44741,14 +44441,14 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! Reset values to original settings in turn 1 
          if (samplenumber.gt.1) then
             if (ldynkdebug) then
-               write (*,*) "DYNKDEBUG> New collimat sample, ",
+               write (lout,*) "DYNKDEBUG> New collimat sample, ",
      &            "samplenumber = ", samplenumber,
      &                     "resetting the SET'ed values."
             endif
             do ii=1, nsets_unique_dynk
                newValue = fsets_origvalue_dynk(ii)
                if (ldynkdebug) then
-                  write (*,*) "DYNKDEBUG> Resetting: '",
+                  write (lout,*) "DYNKDEBUG> Resetting: '",
      &         trim(stringzerotrim(csets_unique_dynk(ii,1))),
      &         "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))),
      &         "', newValue=", newValue
@@ -44778,12 +44478,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             !Set the value
             newValue = dynk_computeFUN(sets_dynk(ii,1),shiftedTurn)
             if (ldynkdebug) then
-+if cr
                write (lout, '(1x,A,I5,A,I8,A,E16.9)')
-+ei
-+if .not.cr
-               write     (*,'(1x,A,I5,A,I8,A,E16.9)')
-+ei
      &              "DYNKDEBUG> Applying set #", ii, " on '"//
      &           trim(stringzerotrim(csets_dynk(ii,1)))//
      &           "':'"// trim(stringzerotrim(csets_dynk(ii,2)))//
@@ -44797,21 +44492,11 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             if (ldynkdebug) then
                getvaldata = dynk_getvalue( csets_dynk(ii,1), 
      &                                     csets_dynk(ii,2) )
-+if cr
                write (lout, '(1x,A,E16.9)')
-+ei
-+if .not.cr
-               write (*,    '(1x,A,E16.9)')
-+ei
      &              "DYNKDEBUG> Read back value = ", getvaldata
 
                if (getvaldata .ne. newValue) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
      &            "DYNKDEBUG> WARNING Read back value differs from set!"
                end if
             endif
@@ -44887,9 +44572,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if crlibm
 +ca crlibco
 +ei
-+if cr
 +ca crcoall
-+ei
       
       ! Temporaries for FILELIN
       integer filelin_start, filelin_xypoints
@@ -44923,16 +44606,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
       
       if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
          write(lout,*) "DYNK> funNum =", funNum
          write(lout,*) "DYNK> Invalid funNum, nfuncs_dynk=", nfuncs_dynk
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_computeFUN() ****"
-         write(*,*)    "DYNK> funNum =", funNum
-         write(*,*)    "DYNK> Invalid funNum, nfuncs_dynk=", nfuncs_dynk
-+ei
          call dynk_dumpdata
          call prror(-1)
       endif
@@ -44942,31 +44618,16 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          retval = fexpr_dynk(funcs_dynk(funNum,3))
       case (1)                                                          ! FILE
          if (turn .gt. funcs_dynk(funNum,5) ) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
             write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
             write(lout,*)"DYNK> Turn > length of file = ", 
      &           funcs_dynk(funNum,5)
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():FILE****"
-            write(*,*)   "DYNK> funNum =", funNum, "turn=", turn
-            write(*,*)   "DYNK> Turn > length of file = ", 
-     &           funcs_dynk(funNum,5)
-+ei
             call dynk_dumpdata
             call prror(-1)
          elseif (turn .lt. 1) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
             write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
             write(lout,*)"DYNK> Turn < 1, check your turn-shift!"
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():FILE****"
-            write(*,*)   "DYNK> funNum =", funNum, "turn=", turn
-            write(*,*)   "DYNK> Turn < 1, check your turn-shift!"
-+ei
             call dynk_dumpdata
             call prror(-1)
          endif
@@ -44995,27 +44656,14 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          call getfields_split( ch, getfields_fields, getfields_lfields,
      &                             getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
             write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
-            write(*,*)   "DYNK> getfields_lerr=", getfields_lerr
-+ei
             call prror(-1)
          endif
          if (getfields_nfields .ne. 1) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
             write(lout,*)"DYNK> getfields_nfields=", getfields_nfields
             write(lout,*)"DYNK> Expected a single number."
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
-            write(*,*)   "DYNK> getfields_nfields=", getfields_nfields
-            write(*,*)   "DYNK> Expected a single number."
-+ei
             call prror(-1)
          endif
          retval = round_near(errno,
@@ -45224,18 +44872,10 @@ C+ei
             retval = fexpr_dynk(foff+12)
          endif
       case default
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_computeFUN(): ****"
          write(lout,*) "DYNK> funNum =", funNum, "turn=", turn
          write(lout,*) "DYNK> Unknown function type ",
      &        funcs_dynk(funNum,2)
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_computeFUN(): ****"
-         write(*,*)    "DYNK> funNum =", funNum, "turn=", turn
-         write(*,*)    "DYNK> Unknown function type ",
-     &        funcs_dynk(funNum,2)
-+ei
          call dynk_dumpdata
          call prror(-1)
       end select
@@ -45259,9 +44899,7 @@ C+ei
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-+if cr
 +ca crcoall
-+ei
 
       character(maxstrlen_dynk) element_name, att_name
       double precision newValue
@@ -45279,12 +44917,7 @@ C+ei
       att_name_stripped = trim(stringzerotrim(att_name))
 
       if ( ldynkdebug ) then
-+if cr
          write (lout, '(1x,A,E16.9)')
-+ei
-+if .not.cr
-         write (*,    '(1x,A,E16.9)')
-+ei
      &        "DYNKDEBUG> In dynk_setvalue(), element_name = '"//
      &        trim(element_name_stripped)//"', att_name = '"//
      &        trim(att_name_stripped)//"', newValue =", newValue
@@ -45320,12 +44953,7 @@ C     Here comes the logic for setting the value of the attribute for all instan
             el_type=kz(ii)      ! type found
             
             if (ldoubleElement) then ! Sanity check
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &            "DYNK> ERROR: two elements with the same BEZ?"
                call prror(-1)
             end if
@@ -45425,18 +45053,10 @@ c$$$            endif
                endif
                
             else
-+if cr
                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
                write (lout,*) "DYNK> Unsupported element type", el_type
                write (lout,*) "DYNK> element name = '",
      &              element_name_stripped,"'"
-+ei
-+if .not.cr
-               WRITE (*,*) "DYNK> *** ERROR in dynk_setvalue() ***"
-               write (*,*) "DYNK> Unsupported element type", el_type
-               write (*,*) "DYNK> element name = '",
-     &              element_name_stripped,"'"
-+ei
                call prror(-1)
             endif
          endif
@@ -45451,29 +45071,15 @@ c$$$            endif
       
       !Error handlers
  100  continue
-+if cr
       WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
       WRITE (lout,*)"DYNK> Attribute'", att_name_stripped,
      &     "' does not exist for type =", el_type
-+ei
-+if .not.cr
-      WRITE (*,*)   "DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (*,*)   "DYNK> Attribute '", att_name_stripped,
-     &     "' does not exist for type =", el_type
-+ei
       call prror(-1)
 
  101  continue
-+if cr
       WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
       WRITE (lout,*)"DYNK> The element named '",element_name_stripped,
      &     "' was not found."
-+ei
-+if .not.cr
-      WRITE (*,*)   "DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (*,*)   "DYNK> The element named '",element_name_stripped,
-     &     "' was not found."
-+ei
       call prror(-1)
       
       end subroutine
@@ -45497,10 +45103,7 @@ c$$$            endif
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-
-+if cr
 +ca crcoall
-+ei
 
       character(maxstrlen_dynk) element_name, att_name
       intent(in) element_name, att_name
@@ -45515,12 +45118,7 @@ c$$$            endif
       att_name_s = trim(stringzerotrim(att_name))
       
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &   "DYNKDEBUG> In dynk_getvalue(), element_name = '"//
      &    trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
       end if
@@ -45541,12 +45139,7 @@ c$$$            endif
          if (element_name_s.eq.bez(ii)) then ! name found
             el_type=kz(ii)
             if (ldoubleElement) then
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "DYNK> ERROR: two elements with the same BEZ"
                call prror(-1)
             end if
@@ -45655,12 +45248,7 @@ c$$$               endif
       enddo
       
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &   "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
       end if
 
@@ -45668,17 +45256,10 @@ c$$$               endif
       
       !Error handlers
  100  continue
-+if cr
       write(lout,*) "DYNK> *** ERROR in dynk_getvalue() ***"
       write(lout,*) "DYNK> Unknown attribute '", trim(att_name_s),"'",
      &     " for type",el_type," name '", trim(bez(ii)), "'"
 
-+ei
-+if .not.cr
-      write(*,*)    "DYNK> *** ERROR in dynk_getvalue() ***"
-      write(*,*)    "DYNK> Unknown attribute '", trim(att_name_s),"'",
-     &     " for type",el_type," name '", trim(bez(ii)), "'"
-+ei
       call prror(-1)
   
       end function
@@ -45700,9 +45281,7 @@ c$$$               endif
 !     
 !-----------------------------------------------------------------------
 
-+if cr
 +ca crcoall
-+ei
 
       double precision x, xvals(*),yvals(*)
       integer datalen
@@ -45713,26 +45292,14 @@ c$$$               endif
       
       !Sanity checks
       if (datalen .le. 0) then
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
          write(lout,*) "DYNK> datalen was 0!"
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_lininterp() ****"
-         write(*,*)    "DYNK> datalen was 0!"
-+ei
 
          call prror(-1)
       endif
       if ( x .lt. xvals(1) .or. x .gt. xvals(datalen) ) then
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
          write(lout,*) "x =",x, "outside range", xvals(1),xvals(datalen)
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_lininterp() ****"
-         write(*,*)    "x =",x, "outside range", xvals(1),xvals(datalen)
-+ei
          call prror(-1)
       endif
 
@@ -45745,16 +45312,9 @@ c$$$               endif
       
       do ii=1, datalen-1
          if (xvals(ii) .ge. xvals(ii+1)) then
-+if cr
             write (lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
             write (lout,*) "DYNK> xvals should be in increasing order"
             write (lout,*) "DYNK> xvals =", xvals(:datalen)
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> **** ERROR in dynk_lininterp() ****"
-            write (*,*)    "DYNK> xvals should be in increasing order"
-            write (*,*)    "DYNK> xvals =", xvals(:datalen)
-+ei
             call prror(-1)
          endif
          
@@ -45768,18 +45328,10 @@ c$$$               endif
       enddo
       
       !We didn't return yet: Something wrong
-+if cr
       write (lout,*) "DYNK> ****ERROR in dynk_lininterp() ****"
       write (lout,*) "DYNK> Reached the end of the function"
       write (lout,*) "DYNK> This should not happen, "//
      &               "please contact developers"
-+ei
-+if .not.cr
-      write (*,*)    "DYNK> ****ERROR in dynk_lininterp() ****"
-      write (*,*)    "DYNK> Reached the end of the function"
-      write (*,*)    "DYNK> This should not happen, "//
-     &               "please contact developers"
-+ei
       call prror(-1)
 
       end function
@@ -45797,9 +45349,7 @@ c$$$               endif
 +ca common
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
 
       integer, intent(in) :: i
       integer ix,k
@@ -45807,23 +45357,13 @@ c$$$               endif
 
       !Sanity check
       if (i .gt. iu .or. i .le. 0) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "Error in dynk_isused(): i=",i,"out of range"
          call prror(-1)
       endif
       ix = ic(i)-nblo
       if (i .le. 0) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "Error in dynk_isused(): ix-nblo=",ix,"is a block?"
          call prror(-1)
       endif
@@ -45834,12 +45374,7 @@ c$$$               endif
          if (bez(ix) .eq. element_name_stripped) then
             dynk_isused = .true.
             if (ldynkdebug)
-+if cr
      &         write(lout,*)
-+ei
-+if .not.cr
-     &         write(*,*)
-+ei
      &         "DYNKDEBUG> dynk_isused = TRUE, bez='"//bez(ix)//
      &         "', element_name_stripped='"//element_name_stripped//"'"
             return
@@ -45847,12 +45382,7 @@ c$$$               endif
       end do
       
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)   
-+ei
      &      "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
       endif
 
@@ -45882,29 +45412,18 @@ c$$$               endif
 +ca parnum
 +ca common
 +ca dbdcum
-+if cr
 +ca crcoall
-+ei
       save
 
 !     temporary variables
       double precision tmpdcum, ds
       integer ientry, jentry, kentry, ix
 
-+if cr
       write(lout,*)''
       write(lout,10010)
       write(lout,*)''
       write(lout,*)' CALL TO CADCUM'
       write(lout,*)''
-+ei
-+if .not.cr
-      write(*,*)   ''
-      write(*,10010)
-      write(*,*)   ''
-      write(*,*)   ' CALL TO CADCUM'
-      write(*,*)   ''
-+ei
 
 !     initialise cumulative length
       tmpdcum=zero
@@ -45933,43 +45452,21 @@ c$$$               endif
 
       if ( print_dcum ) then
 !       a useful printout
-+if cr
         write(lout,10030)'ientry','ix','name            ','dcum [m]'
         write(lout,10020) 0,-1,'START           ',dcum(0)
-+ei
-+if .not.cr
-        write(*,10030)   'ientry','ix','name            ','dcum [m]'
-        write(*,10020)    0,-1,'START           ',dcum(0)
-+ei
         do ientry=1,iu
           ix=ic(ientry)
           if(ix.gt.nblo) then
 !            SINGLE ELEMENT
              ix=ix-nblo
-+if cr
              write(lout,10020) ientry,ix,bez(ix),dcum(ientry)
-+ei
-+if .not.cr
-             write(*,10020)    ientry,ix,bez(ix),dcum(ientry)
-+ei
           else
 !            BLOC
-+if cr
              write(lout,10020) ientry,ix,bezb(ix),dcum(ientry)
-+ei
-+if .not.cr
-             write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
-+ei
           endif
         enddo
-+if cr
         write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
         write(lout,*)     ''
-+ei
-+if .not.cr
-        write(*,10020)    iu+1,-1,'END            ',dcum(iu+1)
-        write(*,*)        ''
-+ei
       endif
 
 !     au revoir:
