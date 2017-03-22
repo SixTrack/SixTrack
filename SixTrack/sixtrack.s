@@ -16615,23 +16615,13 @@ cc2008
 
       if (ch(:4).eq."DEBU") then
          ldynkdebug = .true.
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "DYNK> DYNK block debugging is ON"
          goto 2200 !loop DYNK
          
       else if (ch(:6).eq."NOFILE") then
          ldynkfiledisable = .true.
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "DYNK> Disabled writing dynksets.dat"
          goto 2200 !loop DYNK
          
@@ -16640,21 +16630,11 @@ cc2008
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(51)
          if (ldynkdebug) then
-+if cr
             write (lout,'(1x,A,I4,A)')
-+ei
-+if .not.cr
-            write    (*,'(1x,A,I4,A)')
-+ei
      &           "DYNKDEBUG> Got a FUN block, len=",
      &           len(ch), ": '"// trim(ch)// "'"
             do ii=1,getfields_nfields
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "DYNKDEBUG> Field(",ii,") ='",
      &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
             enddo
@@ -16668,21 +16648,11 @@ cc2008
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(51)
          if (ldynkdebug) then
-+if cr
             write (lout,'(1x,A,I4,A)')
-+ei
-+if .not.cr
-            write    (*,'(1x,A,I4,A)')
-+ei
      &           "DYNKDEBUG> Got a SET block, len=",
      &           len(ch), ": '"//trim(ch)//"'"
             do ii=1,getfields_nfields
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "DYNKDEBUG> Field(",ii,") ='",
      &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
             enddo
@@ -16693,28 +16663,15 @@ cc2008
 
       else if (ch(:4).eq.next) then
          if (ldynkdebug) then
-+if cr
             write (lout,*)
-+ei
-+if .not.cr
-            write (*,*)
-+ei
      &           "DYNKDEBUG> Finished parsing DYNK block"
             call dynk_dumpdata
          endif
          if (ldynk) then
-+if cr
             write (lout,*)
             write (lout,*) "******************************************"
             write (lout,*) "** More than one DYNK block encountered **"
             write (lout,*) "******************************************"
-+ei
-+if .not.cr
-            write (*,*)
-            write (*,*) "******************************************"
-            write (*,*) "** More than one DYNK block encountered **"
-            write (*,*) "******************************************"
-+ei
             call prror(51)
          else
             ldynk = .true.
@@ -16723,7 +16680,6 @@ cc2008
          goto 110 ! Read next block or ENDE
 
       else
-+if cr
          write (lout,*)
          write (lout,*) "*******************************************"
          write (lout,*) "ERROR while parsing DYNK block in fort.3"
@@ -16732,29 +16688,12 @@ cc2008
          write (lout,*) "Got ch:"
          write (lout,*) "'"//ch//"'"
          write (lout,*) "*******************************************"
-+ei
-+if .not.cr
-         write (*,*)
-         write (*,*) "*******************************************"
-         write (*,*) "ERROR while parsing DYNK block in fort.3"
-         write (*,*) "Expected keywords FUN, SET, DEBU, NOFILE or NEXT"
-         write (*,*) "Got ch:"
-         write (*,*) "'"//ch//"'"
-         write (*,*) "*******************************************"
-+ei
          call prror(51)
       endif
       ! Should never arrive here
-+if .not.cr
       write (*,*) "*****************************"
       write (*,*) "*LOGIC ERROR IN PARSING DYNK*"
       write (*,*) "*****************************"
-+ei
-+if cr
-      write (lout,*) "*****************************"
-      write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
-      write (lout,*) "*****************************"
-+ei
       call prror(51)
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -16774,12 +16713,7 @@ cc2008
       endif
  
       if(fma_numfiles.ge.fma_max) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR: you can only do ',fma_max,' number of FMAs'
         call prror(-1) 
       endif
@@ -16789,22 +16723,12 @@ cc2008
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in FMA block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
       if(getfields_nfields.eq.1 .or. getfields_nfields.ge.4) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in FMA block: wrong number of input ',
      &       'parameters: ninput = ', getfields_nfields, ' != 2 (or 3)'
         call prror(-1)
@@ -16834,21 +16758,11 @@ cc2008
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1")
      &   ) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "ERROR in DATEN::FMA: The FMA method '"//
      &        trim(stringzerotrim(fma_method(fma_numfiles)))
      &        //"' is unknown. FMA index = ", fma_numfiles
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &       "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//
      &       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT2, TUNEABT2. "//
      &       "Note that it is case-sensitive, so use uppercase only."
@@ -16857,12 +16771,7 @@ cc2008
 
       if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or.
      &           fma_norm_flag(fma_numfiles).eq.1      )) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0."//
      &        "Got:", fma_norm_flag(fma_numfiles),
      &        "FMA index =",fma_numfiles
@@ -16886,12 +16795,7 @@ cc2008
         do j=1,nele
           if(kz(j).eq.29) then
             if(elens_type(j).eq.0) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
      &'not defined in fort.3. You must define every elens in the '//
      &'ELEN block in fort.3!'
@@ -16904,12 +16808,7 @@ cc2008
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in ELEN block: fortran IO format currently not ',
      &       'supported!'
         call prror(-1)
@@ -16919,12 +16818,7 @@ cc2008
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in ELEN block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
@@ -16932,12 +16826,7 @@ cc2008
 !     Check number of arguments
 !     If a new type of elens is implemented, may need to modify this!
       if(getfields_nfields.ne.9) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in ELEN block: wrong number of input ',
      &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
@@ -16945,12 +16834,7 @@ cc2008
 
 !     Find the element, and check that we're not double-defining
       if (getfields_lfields(1) .gt. 16) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "ERROR in ELEN block: Element name max 16 characters;"//
      &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
      &        //"' is too long."
@@ -16961,23 +16845,13 @@ cc2008
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_elens=29)
             if(kz(j).ne.29) then
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write(*,*)
-+ei
      &              'ERROR: element type mismatch for ELEN!'//
      &              'Element type is kz(',j,') = ',kz(j),'!= 29'
                call prror(-1)
             endif
             if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write(*,*)
-+ei
      &'ERROR: length el(j) (elens is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
@@ -16987,12 +16861,7 @@ cc2008
                call prror(-1)
             endif
             if (elens_type(j).ne.0) then
-+if cr
                write(lout,*) "ERROR in ELEN block:"//
-+ei
-+if .not.cr
-               write(*,*)    "ERROR in ELEN block:"//
-+ei
      &              "The element '"//bez(j)//"' was defined twice!"
                call prror(-1)
             endif
@@ -17043,12 +16912,7 @@ cc2008
                
                ! Make checks for this case
                if(elens_r2ovr1(j).le.1) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
      &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',
      &elens_r2ovr1(j),'<1'
                  call prror(-1)
@@ -17056,12 +16920,7 @@ cc2008
               if(elens_bend_entrance(j).ne. 1 .and.
      &           elens_bend_entrance(j).ne.-1 .and.
      &           elens_bend_entrance(j).ne. 0      ) then
-+if cr
                  write(lout,*)
-+ei
-+if .not.cr
-                 write(*,*)
-+ei
      &'ERROR: ELEN flag for taking bends at entrance into account must'
      &//' be -1,0,1, but elens_bend_entrance =',
      &elens_bend_entrance(j)
@@ -17070,12 +16929,7 @@ cc2008
               if(elens_bend_exit(j).ne. 1 .and.
      &           elens_bend_exit(j).ne.-1 .and.
      &           elens_bend_exit(j).ne.0       ) then
-+if cr
                  write(lout,*)
-+ei
-+if .not.cr
-                 write(*,*)
-+ei
      &'ERROR: ELEN flag for taking bends at exit into account must'
      &//' be -1,0,1, but elens_bend_exit =',
      &elens_bend_exit(j)
@@ -17083,12 +16937,7 @@ cc2008
               end if
 
               ! print a summary of elens parameters
-+if cr
               write(lout,
-+ei
-+if .not.cr
-              write(*,
-+ei
      &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),'
      &//'2(A,I4,/))')
      &'ELENS found in list of single elements with: ',
@@ -17105,12 +16954,7 @@ cc2008
      &'  exit     = ',elens_bend_exit(j)
       
             case default
-+if cr
                write(lout,*) "ERROR in ELEN: "//
-+ei
-+if .not.cr
-               write(*,*)    "ERROR in ELEN: "//
-+ei
      &              "Elens type '"//
      &              getfields_fields(2)(1:getfields_lfields(2))//
      &              "' not recognized. Remember to use all UPPER CASE!"
@@ -17123,12 +16967,7 @@ cc2008
       enddo
 
 !     Search for element failed!
-+if cr
       write(lout,*) "ERROR in ELEN: "//
-+ei
-+if .not.cr
-      write(*,*)    "ERROR in ELEN: "//
-+ei
      &     "Un-identified SINGLE ELEMENT '",
      &     getfields_fields(1)(1:getfields_lfields(1)), "'"
       call prror(-1)
@@ -17154,12 +16993,7 @@ cc2008
         do j=1,nele
           if(kz(j).eq.15) then
             if(wire_flagco(j).eq.0) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
      &'not defined in fort.3. You must define every wire in the '//
      &'WIRE block in fort.3!'
@@ -17172,12 +17006,7 @@ cc2008
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in WIRE block: fortran IO format currently not ',
      &       'supported!'
         call prror(-1)
@@ -17187,24 +17016,14 @@ cc2008
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in WIRE block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
 
 !     Check number of arguments
       if(getfields_nfields.ne.9) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in WIRE block: wrong number of input ',
      &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
@@ -17212,12 +17031,7 @@ cc2008
 
 !     Find the element, and check that we're not double-defining
       if (getfields_lfields(1) .gt. 16) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "ERROR in WIRE block: Element name max 16 characters;"//
      &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
      &        //"' is too long."
@@ -17228,23 +17042,13 @@ cc2008
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_wire=15)
             if(kz(j).ne.15) then
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write(*,*)
-+ei
      &              'ERROR: element type mismatch for WIRE! '//
      &'Element type is kz(',j,') = ',kz(j),'!= +15'
                call prror(-1)
             endif
             if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write(*,*)
-+ei
      &'ERROR: length el(j) (wire is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
@@ -17254,12 +17058,7 @@ cc2008
                call prror(-1)
             endif
             if (wire_flagco(j).ne.0) then
-+if cr
                write(lout,*) "ERROR in WIRE block:"//
-+ei
-+if .not.cr
-               write(*,*)    "ERROR in WIRE block:"//
-+ei
      &              "The element '"//bez(j)//"' was defined twice!"
                call prror(-1)
             endif
@@ -17316,12 +17115,7 @@ cc2008
             
             ! Make checks for the wire parameters
             if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write(*,*)
-+ei
      &"ERROR: WIRE flag for taking the closed orbit into account or "//
      &" not must be -1 (disp* = distance closed orbit and beam)"//
      &"or 1 (disp* = distance from x=y=0 <-> beam), but "//
@@ -17329,36 +17123,21 @@ cc2008
                call prror(-1)
             end if
             if((wire_lint(j).lt.0) .or. (wire_lphys(j).lt.0)) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &'ERROR: WIRE integrated and physical length must larger than 0! '
      &// 'wire_lint = ',wire_lint(j),', wire_lphys = ',wire_lphys(j)
               call prror(-1)
             end if
             if((abs(wire_tiltx(j)) .ge. 90) .or. 
      &         (abs(wire_tilty(j)) .ge. 90)) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '
      &//'wire_tiltx = ',wire_tiltx(j),', wire_tilty = ',wire_tilty(j)
               call prror(-1)
             end if
 
 ! print a summary of the wire parameters
-+if cr
             write(lout,
-+ei
-+if .not.cr
-            write(*,
-+ei
      &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D9.3,A,/))')
      &'WIRE found in list of single elements with: ',
      &'name               = ',bez(j),
@@ -17376,12 +17155,7 @@ cc2008
      &*wire_lphys(j)*wire_dispx(j)*wire_dispy(j)).le.pieni ) then
               kz(j) = 0 ! treat element as marker
 
-+if cr
               write(lout,
-+ei
-+if .not.cr
-              write(*,
-+ei
      &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D9.3,/))')
      &'WARNING: WIRE element ',bez(j),'ignored!',
      &'Elements are ignored if current, displacment, integrated ',
@@ -17398,12 +17172,7 @@ cc2008
       enddo
 
 !     Search for element failed!
-+if cr
       write(lout,*) "ERROR in WIRE: "//
-+ei
-+if .not.cr
-      write(*,*)    "ERROR in WIRE: "//
-+ei
      &     "Un-identified SINGLE ELEMENT '",
      &     getfields_fields(1)(1:getfields_lfields(1)), "'"
       call prror(-1)
@@ -17426,60 +17195,29 @@ cc2008
       
       if (ch(:4).eq.next) then
          zipf_outfile(1:10) = "Sixout.zip" ! Output name fixed for now
-+if cr
             write(lout,'(a)')       "**** ZIPF ****"
             write(lout,'(a,a,a)')   " Output file name = '",
      &           trim(stringzerotrim(zipf_outfile)),"'"
             write(lout,'(a,1x,i5)') " Number of files to pack=",
      &           zipf_numfiles
             write(lout,'(a)')       " Files:"
-+ei
-+if .not.cr
-            write(*,'(a)')          "**** ZIPF ****"
-            write(*,'(a,a,a)')      " Output file name = '",
-     &           trim(stringzerotrim(zipf_outfile)),"'"
-            write(*,'(a,1x,i5)')    " Number of files to pack=",
-     &           zipf_numfiles
-            write(*,'(a)')          " Files:"
-+ei
          do ii=1,zipf_numfiles
-+if cr
             write(lout,'(1x,i5,a,1x,a)') ii,":",
      &            trim(stringzerotrim(zipf_filenames(ii)))
-+ei
-+if .not.cr
-            write(*,'(1x,i5,a,1x,a)')    ii,":",
-     &            trim(stringzerotrim(zipf_filenames(ii)))
-+ei
          end do
 
          if (.not.(zipf_numfiles.gt.0)) then
-+if cr
             write(lout,'(a)') "ERROR in ZIPF:"
             write(lout,'(a)') " ZIPF block was empty;"
             write(lout,'(a)') " no files specified!"
-+ei
-+if .not.cr
-            write(*,'(a)')    "ERROR in ZIPF:"
-            write(*,'(a)')    " ZIPF block was empty;"
-            write(*,'(a)')    " no files specified!"
-+ei
             call prror(-1)
          endif
 
 +if .not.libarchive
-+if cr
          write(lout,'(a)') "ERROR in ZIPF:"
          write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
          write(lout,'(a)') " but this SixTrack was "//
      &        "compiled without it."
-+ei
-+if .not.cr
-         write(*,'(a)')    "ERROR in ZIPF:"
-         write(*,'(a)')    " ZIPF needs LIBARCHIVE to work,"
-         write(*,'(a)')    " but this SixTrack was "//
-     &        "compiled without it."
-+ei
          call prror(-1)
 +ei
          goto 110                  !Read next block or ENDE
@@ -17491,31 +17229,17 @@ cc2008
       if ( getfields_lerr ) call prror(-1)
 
       if (getfields_nfields .ne. 1) then
-+if cr
          write(lout,'(a)')         "ERROR in ZIPF:"
          write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got",
      &                              getfields_nfields, ", line=",ch
-+ei
-+if .not.cr
-         write(*,'(a)')            "ERROR in ZIPF:"
-         write(*,'(a,1x,i3,a)')    "Expected 1 filename per line, got",
-     &                              getfields_nfields, ", line=",ch
-+ei
          call prror(-1)
       end if
 
       zipf_numfiles = zipf_numfiles + 1
       if (zipf_numfiles .ge. zipf_maxfiles) then
-+if cr
          write(lout,'(a)')       "ERROR in ZIPF:"
          write(lout,'(a,1x,i5)') " Too many files, max=",
      &         zipf_maxfiles
-+ei
-+if .not.cr
-         write(*,'(a)')          "ERROR in ZIPF:"
-         write(*,'(a,1x,i5)')    " Too many files, max=",
-     &        zipf_maxfiles
-+ei
          call prror(-1)
       endif
       
@@ -17544,12 +17268,12 @@ cc2008
 +if collimat
       if (.not.has_coll) then
          !Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
-         write(*,*) ""
-         write(*,*) "ERROR in parsing fort.3:"
-         write(*,*) "This is the collimation version of SixTrack,"
-         write(*,*) " but no COLL block was found,"
-         write(*,*) " not even one with do_coll = .false."
-         write(*,*) "Please use the non-collimation version!"
+         write(lout,*) ""
+         write(lout,*) "ERROR in parsing fort.3:"
+         write(lout,*) "This is the collimation version of SixTrack,"
+         write(lout,*) " but no COLL block was found,"
+         write(lout,*) " not even one with do_coll = .false."
+         write(lout,*) "Please use the non-collimation version!"
          call prror(-1)
       endif
 +ei
@@ -17560,12 +17284,7 @@ cc2008
       else
         do j=1,il
           if(parbe(j,2).gt.dble(mbea)) then                              !hr05
-+if cr
             write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of '//  &!hr12
-+ei
-+if .not.cr
-            write(*,'(a48,i4,a29,i4)') '     WARNING: Number of '//     &!hr12
-+ei
      &'slices set to maximum : ',mbea,' for 6D beam-beam element'//     &!hr12
      &' #: ',j
             parbe(j,2)=dble(mbea)                                        !hr05
@@ -17573,72 +17292,27 @@ cc2008
         enddo
       endif
       if(iout.eq.0) return
-+if cr
       write(lout,10050)
-+ei
-+if .not.cr
-      write(*,10050)
-+ei
-+if cr
       write(lout,10060)
-+ei
-+if .not.cr
-      write(*,10060)
-+ei
       il1=il
       if(ncy2.eq.0) il1=il-1
       do 1435 k=1,il1
       if(abs(kz(k)).eq.12) then
-+if cr
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
-+ei
-+if .not.cr
-        write(*,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),      &
-+ei
      &xrms(k),zpl(k),zrms(k)
         kz(k)=abs(kz(k))
         phasc(k)=phasc(k)*rad
       else
-+if cr
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),      &
      &xrms(k),                                                          &
-+ei
-+if .not.cr
-        write(*,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k), &
-+ei
      &zpl(k),zrms(k)
       endif
  1435 continue
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10080)
-+ei
-+if .not.cr
-      write(*,10080)
-+ei
-+if cr
       write(lout,10090) mper,(msym(k),k=1,mper)
-+ei
-+if .not.cr
-      write(*,10090) mper,(msym(k),k=1,mper)
-+ei
-+if cr
       write(lout,10250) mblo,mbloz
-+ei
-+if .not.cr
-      write(*,10250) mblo,mbloz
-+ei
-+if cr
       write(lout,10100)
-+ei
-+if .not.cr
-      write(*,10100)
-+ei
       do 1450 l=1,mblo
       kk=mel(l)
       ll=kk/6
@@ -17647,45 +17321,20 @@ cc2008
           l2=(l1-1)*6+1
           l3=l2+5
           if(l2.eq.1) then
-+if cr
             write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,6)
-+ei
-+if .not.cr
-            write(*,10260) l,bezb(l),kk,(beze(l,k),k=1,6)
-+ei
           else
-+if cr
             write(lout,10270) (beze(l,k),k=l2,l3)
-+ei
-+if .not.cr
-            write(*,10270) (beze(l,k),k=l2,l3)
-+ei
           endif
  1440   continue
         if(mod(kk,6).ne.0) then
           l4=ll*6+1
-+if cr
           write(lout,10270) (beze(l,k),k=l4,kk)
-+ei
-+if .not.cr
-          write(*,10270) (beze(l,k),k=l4,kk)
-+ei
         endif
       else
-+if cr
         write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,kk)
-+ei
-+if .not.cr
-        write(*,10260) l,bezb(l),kk,(beze(l,k),k=1,kk)
-+ei
       endif
  1450 continue
-+if cr
       write(lout,10120)
-+ei
-+if .not.cr
-      write(*,10120)
-+ei
       mblozz=mbloz/5+1
       do 1480 k=1,mblozz
       k10=(k-1)*5
@@ -17700,92 +17349,37 @@ cc2008
  1460   ic0(l)=bez0(icc-nblo)
  1470 continue
       k11=k10+1
-+if cr
       write(lout,10280) k11,(ic0(l),l=1,5)
-+ei
-+if .not.cr
-      write(*,10280) k11,(ic0(l),l=1,5)
-+ei
  1480 continue
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
  1490 if(idp.eq.0) goto 1500
       if(nbeam.ge.1) then
         if(partnum.gt.zero) then
-+if cr
           write(lout,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,    &
-+ei
-+if .not.cr
-          write(*,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,       &
-+ei
      &ibeco,                                                            &
      &ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
         else
-+if cr
           write(lout,10141)ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,&
-+ei
-+if .not.cr
-          write(*,10141) ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,  &
-+ei
      &ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
         endif
       else
-+if cr
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
-+ei
-+if .not.cr
-        write(*,10142) ncy,dp1,dppoff,tlen,pma,e0
-+ei
       endif
       if(ncy2.eq.0) then
-+if cr
         write(lout,10143) harm,u0,phag,qs,alc
-+ei
-+if .not.cr
-        write(*,10143) harm,u0,phag,qs,alc
-+ei
       else
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
         if(ibb6d.eq.1) then
-+if cr
           write(lout,10144)
-+ei
-+if .not.cr
-          write(*,10144)
-+ei
           do j=1,il
-+if cr
             if(parbe(j,2).gt.0d0) write(lout,10145) bez(j),             &!hr12
-+ei
-+if .not.cr
-            if(parbe(j,2).gt.0d0) write(*,10145) bez(j),                &!hr12
-+ei
      &int(parbe(j,2)),parbe(j,1),parbe(j,3)
           enddo
         endif
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
  1500 continue
-+if cr
       write(lout,10150)
-+ei
-+if .not.cr
-      write(*,10150)
-+ei
       nfb=nde(1)
       nac=nde(2)
       nft=numl-nde(2)
@@ -17793,38 +17387,13 @@ cc2008
       if(numl.le.nde(2)) nac=numl
       if(numl.le.nde(1)) nac=0
       if(numl.le.nde(1)) nfb=numl
-+if cr
       write(lout,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,    &
      &nwr(3),                                                           &
-+ei
-+if .not.cr
-      write(*,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,nwr(3),&
-+ei
      &kanf,amp(1),rat,itco,dma,dmap,itqv,dkq,dqq
-+if cr
       write(lout,10170) itcro,dsm0,dech,de0,ded,dsi
-+ei
-+if .not.cr
-      write(*,10170) itcro,dsm0,dech,de0,ded,dsi
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10040)
-+ei
-+if .not.cr
-      write(*,10040)
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       goto 1540
  1520 call prror(41)
  1530 call prror(42)
