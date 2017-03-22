@@ -75,6 +75,9 @@
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
 +cd crcoall
+!     Standard output unit
+!     For CR version, this is the "buffer file" fort.92;
+!     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
       integer lout
       common /crflags/lout
 +cd commtim
@@ -24263,10 +24266,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if datamods
       use bigmats
 +ei
+      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -24513,22 +24515,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if boinc
       call boincrf('fort.6',filename)
 +if fio
-      open(6,file=filename,form='formatted',status='old',err=602,       &
+      open(output_unit,
+     &file=filename,form='formatted',status='old',err=602,
      &round='nearest')
 +ei
 +if .not.fio
-      open(6,file=filename,form='formatted',status='old',err=602)
+      open(output_unit,
+     &file=filename,form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
 +ei
 +if .not.boinc
 +if fio
-      open(6,file='fort.6',form='formatted',status='old',err=602,       &
+      open(output_unit,
+     &file='fort.6',form='formatted',status='old',err=602,
      &round='nearest')
 +ei
 +if .not.fio
-      open(6,file='fort.6',form='formatted',status='old',err=602)
+      open(output_unit,
+     &file='fort.6',form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
@@ -24555,22 +24561,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         go to 611
       endif
 +if fio
-      open(6,file=filename,form='formatted',status='unknown',           &
+      open(output_unit,
+     &file=filename,form='formatted',status='unknown',
      &round='nearest')
 +ei
 +if .not.fio
-      open(6,file=filename,form='formatted',status='unknown')
+      open(output_unit,
+     &file=filename,form='formatted',status='unknown')
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
 +ei
 +if .not.boinc
 +if fio
-  602 open(6,file='fort.6',form='formatted',status='new',               &
+ 602  open(output_unit,
+     &file='fort.6',form='formatted',status='new',
      &round='nearest')
 +ei
 +if .not.fio
-  602 open(6,file='fort.6',form='formatted',status='new')
+ 602  open(output_unit,
+     &file='fort.6',form='formatted',status='new')
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
@@ -24629,17 +24639,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei ! END +if cr -- END of Main start for Checkpoint/Restart
 
++if .not.cr
+      lout=output_unit
++ei
+      
 +if debug
                    !call system('../crmain  >> crlog')
 +ei
 !-----------------------------------------------------------------------
 +ca open
-+if cr
       write(lout,10010) version,moddate
-+ei
-+if .not.cr
-      write(*,10010) version,moddate
-+ei
       tlim=1e7
       call timest(tlim)
       call datime(idate,itime)
@@ -24697,12 +24706,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
         endif
       endif
-+if cr
       write(lout,'(a80)') runtim
-+ei
-+if .not.cr
-      write(*,'(a80)') runtim
-+ei
 +if cr
 !     Log start messages
       write(93,*)
@@ -24877,25 +24881,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       call crcheck
 +ei
-+if cr
       if(ithick.eq.1) write(lout,10030)
-+ei
-+if .not.cr
-      if(ithick.eq.1) write(*,10030)
-+ei
-+if cr
       if(ithick.eq.0) write(lout,10040)
-+ei
-+if .not.cr
-      if(ithick.eq.0) write(*,10040)
-+ei
       if(ibidu.eq.2) then
-+if cr
         write(lout,10025)
-+ei
-+if .not.cr
-        write(*,10025)
-+ei
         goto 550
       endif
 !--SETTING UP THE PLOTTING
@@ -25025,18 +25014,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do 110 i=1,nzfz
   110     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
           rdev=sqrt(rsqsum/dble(nzfz))                                   !hr05
-+if cr
           write(lout,10320) m*izu0,nzfz,rmean,rdev
-+ei
-+if .not.cr
-          write(*,10320) m*izu0,nzfz,rmean,rdev
-+ei
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
         endif
         if(m.eq.1) call ord
         call clorb(ded)
@@ -25395,51 +25374,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
   220     continue
           if(ierro.ne.0) then
-+if cr
             write(lout,10230) dp1
-+ei
-+if .not.cr
-            write(*,10230) dp1
-+ei
             goto 520
           endif
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
           phag=(phas*180d0)/pi                                           !hr05
           if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))         &
-+if cr
      &write(lout,10170)                                                 &
-+ei
-+if .not.cr
-     &write(*,10170)                                                    &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
           if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
             if(iclo6.eq.0) then
-+if cr
               write(lout,10150) phag,                                   &
-+ei
-+if .not.cr
-              write(*,10150) phag,                                      &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
             else
-+if cr
               write(lout,10160) phag,                                   &
-+ei
-+if .not.cr
-              write(*,10160) phag,                                      &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -25452,35 +25406,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
           endif
           if(idp.eq.1.and.ition.eq.0.and.abs(phas).gt.pieni)            &
-+if cr
      &write(lout,10190) phag,                                           &
-+ei
-+if .not.cr
-     &write(*,10190) phag,                                              &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
           if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
             if(iclo6.eq.0) then
-+if cr
               write(lout,10210)                                         &
-+ei
-+if .not.cr
-              write(*,10210)                                            &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
             else
-+if cr
               write(lout,10220)                                         &
-+ei
-+if .not.cr
-              write(*,10220)                                            &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -25492,29 +25431,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &bet0s3,alf0s3,gam0s3
             endif
           endif
-+if cr
           write(lout,10080) dp1
-+ei
-+if .not.cr
-          write(*,10080) dp1
-+ei
           e0f=sqrt(e0**2-pma**2)                                         !hr05
           if(iclo6.eq.0) then
-+if cr
             write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),     &
-+ei
-+if .not.cr
-            write(*,10110) clo(1),clop(1),clo(2),clop(2),idz(1),        &
-+ei
      &idz(2),                                                           &
      &iver, idfor,iclo6,ition
           else
-+if cr
             write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
-+ei
-+if .not.cr
-            write(*,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),   &
-+ei
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
           endif
           do 240 ib1=1,napx
@@ -25571,12 +25495,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-+if cr
           write(lout,10050)
-+ei
-+if .not.cr
-          write(*,10050)
-+ei
           tasia56=tas(ia,5,6)*c1m3
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
@@ -25642,20 +25561,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
             chi=chi+dchi
   320     continue
-+if cr
           write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-+ei
-+if .not.cr
-          write(*,10260) ia,nms(ia)*izu0,dpsv(ia)
-+ei
-+if cr
           write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),        &
      &sigmv(ia),                                                        &
-+ei
-+if .not.cr
-          write(*,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),           &
-     &sigmv(ia),                                                        &
-+ei
      &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
      &(ia+1),dpsv(ia+1)
 !---------------------------------------  END OF 'ANFB'
@@ -25691,12 +25599,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
-+if cr
           write(lout,10020) ampv(ia),amp(2),epsa
-+ei
-+if .not.cr
-          write(*,10020) ampv(ia),amp(2),epsa
-+ei
         else
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
@@ -25708,12 +25611,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
         endif
-+if cr
         write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
-+ei
-+if .not.cr
-        write(*,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),   &
-+ei
      &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
      &(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
         idam=3
@@ -25771,20 +25669,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-+if cr
           if (lhc.eq.9) then
             write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
-+ei
-+if .not.cr
-          if (lhc.eq.9) then
-            write(*,*)                                                  &
-     & 'SKIPPING Binary File Initialisation for BNLELENS'
-            go to 340
-          endif
-+ei
 !GRDRHIC
 !GRD-042008
 +ei !END +if bnlelens
@@ -25850,20 +25739,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-+if cr
           if (lhc.eq.9) then
             write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
-+ei
-+if .not.cr
-          if (lhc.eq.9) then
-            write(*,*)                                                  &
-     & 'SKIPPING Binary File Initialisation for BNLELENS'
-              go to 340
-          endif
-+ei
 !GRDRHIC
 !GRD-042008
 +ei !END +if bnlelens
@@ -25928,31 +25808,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei ! END +if stf
         endif
         if(ierro.ne.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91&
-+ei
-+if .not.cr
-          write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91   &
-+ei
      &-ia2
-+if cr
           write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-          write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           goto 520
         endif
   340 continue
@@ -26071,32 +25931,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              do j=0,i-1
                 if (dumpunit(j).eq.dumpunit(i)) then
                    if (dumpfmt(j).ne.dumpfmt(i)) then
-+if cr
                       write(lout,*)
-+ei
-+if .not.cr
-                      write(*,*)
-+ei
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " formats are not the same."
                       call prror(-1)
                    else if (j.eq.0) then
-+if cr
                       write(lout,*)
-+ei
-+if .not.cr
-                      write(*,*)
-+ei
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " one of which is ALL"
                       call prror(-1)
                    else if (dump_fname(j).ne.dump_fname(i)) then
-+if cr
                       write(lout,*)
-+ei
-+if .not.cr
-                      write(*,*)
-+ei
      & "ERROR in DUMP: Output unit",dumpunit(i),"is used by to DUMPS,"//
      & " but filenames differ:", dump_fname(i), " vs ", dump_fname(j)
                       call prror(-1)
@@ -26113,12 +25958,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              ! LOPEN not set to true by sanity check in loop above
              ! => File was already open, but not by DUMP.
              if ( .not.lopen ) then
-+if cr
                 write (lout,*)
-+ei
-+if .not.cr
-                write (*,*)
-+ei
      & "ERROR in DUMP: unit", dumpunit(i), " is already open, ",
      & " but not by DUMP. Please pick another unit! ",
      & " Note: This test is not watertight, as other parts of",
@@ -26209,12 +26049,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !                                !
 !     ****** TRACKING ******     !
 !                                !
-+if cr
       write(lout,10200)
-+ei
-+if .not.cr
-      write(*,10200)
-+ei
 +if debug
 !     call dumpbin('btrack',1,1)
 !     call abend('btrack                                            ')
@@ -26304,26 +26139,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
         if(pstop(ia).and.pstop(ie)) then
 !-- BOTH PARTICLES LOST
-+if cr
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-+ei
-+if .not.cr
-          write(*,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),            &
-+ei
      &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-+if cr
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-+ei
-+if .not.cr
-          write(*,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),            &
-+ei
      &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejvl(ia),ejvl(ie)
@@ -26338,25 +26158,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(.not.pstop(ia).and.pstop(ie)) then
 !-- SECOND PARTICLE LOST
           id=id+1
-+if cr
           write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if .not.cr
-          write(*,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if cr
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-+ei
-+if .not.cr
-          write(*,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),            &
-+ei
      &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
@@ -26364,31 +26169,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
-     &'corrupted output probably due to lost particle: ',ie
+          if(ierro.ne.0)
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+     &         'corrupted output probably due to lost particle: ',ie
         endif
         if(pstop(ia).and..not.pstop(ie)) then
 !-- FIRST PARTICLE LOST
           id=id+1
-+if cr
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-+ei
-+if .not.cr
-          write(*,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),            &
-+ei
      &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-+if cr
           write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-+ei
-+if .not.cr
-          write(*,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-+ei
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
@@ -26396,25 +26187,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
-     &'corrupted output probably due to lost particle: ',ia
+          if(ierro.ne.0)
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+     &         'corrupted output probably due to lost particle: ',ia
         endif
         if(.not.pstop(ia).and..not.pstop(ie)) then
 !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-+if cr
           write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if .not.cr
-          write(*,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
      &e0,ejv(id),ejv(ig)
@@ -26422,8 +26204,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
      &e0,ejv(id),ejv(ig)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
-     &'corrupted output although particles stable'
+          if(ierro.ne.0)
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+     &         'corrupted output although particles stable'
           id=ig
         endif
   470 continue
@@ -26562,12 +26345,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
 !     start fma
       if(fma_flag) then
-+if cr
         write(lout,*)'Calling FMA_POSTPR'
-+ei
-+if .not.cr
-        write(*,*)   'Calling FMA_POSTPR'
-+ei
         call fma_postpr
       endif
 !--HPLOTTING END
@@ -26581,22 +26359,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Note that crpoint no longer destroys time2
       posttime=time3-time2
 +if debug
-+if cr
       write(lout,*) 'BUG:',time3,time2,pretime,trtime,posttime
-      write(93,*) 'BUG:',time3,time2,pretime,trtime,posttime
-+ei
-+if .not.cr
-      write(*,*) 'BUG:',time3,time2,pretime,trtime,posttime
++if cr
+      write(93,*)   'BUG:',time3,time2,pretime,trtime,posttime
 +ei
 +ei
 ! and now get grand total including post-processing
       tottime=(pretime+trtime)+posttime
-+if cr
       write(lout,10290) pretime
-+ei
-+if .not.cr
-      write(*,10290) pretime
-+ei
 +if cr
 ! and TRY a FIX for napxto
 !     if (nnuml.ne.numl) then
@@ -26615,17 +26385,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !         endif
 !       enddo 
 !     endif
++ei
       write(lout,10300) napxto,trtime
-+ei
-+if .not.cr
-      write(*,10300) napxto,trtime
-+ei
-+if cr
       write(lout,10310) tottime
-+ei
-+if .not.cr
-      write(*,10310) tottime
-+ei
 +if debug
 !     call wda('THE END',0d0,9,9,9,9)
 !     call dumpum('THE END',999,9999)
