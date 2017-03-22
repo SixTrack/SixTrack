@@ -14681,38 +14681,13 @@ cc2008
           endif
  1590   continue
         if(iexnum.gt.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*)'          Single (random) kick errors read in ',&
-+ei
-+if .not.cr
-          write(*,*) '          Single (random) kick errors read in ' , &
-+ei
      &'from external file'
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*) '        From file fort.30 :',iexnum,           &
-+ei
-+if .not.cr
-          write(*,*) '        From file fort.30 :',iexnum,              &
-+ei
      &' values read in.'
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
         endif
         iexread=0
         ifiend8=0
@@ -14775,18 +14750,8 @@ cc2008
 !-----------------------------------------------------------------------
 !  ORGANISATION OF RANDOM NUMBERS
 !-----------------------------------------------------------------------
-+if cr
   880 write(lout,10130)
-+ei
-+if .not.cr
-  880 write(*,10130)
-+ei
-+if cr
       write(lout,10350)
-+ei
-+if .not.cr
-      write(*,10350)
-+ei
       do 890 i=1,3
       do 890 j=1,nele
   890 bezr(i,j)=idum !Initialize all bezr to idum=' '
@@ -14802,29 +14767,14 @@ cc2008
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
       if(idat.ne.next) then !Isn't this already checked for above?
          if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)
-+if cr
      &        write(lout,10360) idat
-+ei
-+if .not.cr
-     &        write(*,10360)    idat
-+ei
          if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)
-+if cr
      &        write(lout,10390) idat,bezr(2,iorg)
-+ei
-+if .not.cr
-     &        write(*,10390)    idat,bezr(2,iorg)
-+ei
          if(idat.ne.mult)
      &        bezr(1,iorg)=idat
          if(idat.eq.mult.and.
      &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
-+if cr
             write(lout,10400) bezr(2,iorg),bezr(3,iorg)
-+ei
-+if .not.cr
-            write(*,10400)    bezr(2,iorg),bezr(3,iorg)
-+ei
             im=im+1
             j0=0
             j1=0
@@ -14848,12 +14798,7 @@ cc2008
          endif
          goto 900
       endif
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       goto 110
 !-----------------------------------------------------------------------
 !  ITERATION ERRORS FOR CLOSED ORBIT ,TUNE ADJUSTMENT AND CHROMATICITY
@@ -15006,12 +14951,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  APERTURE LIMITATIONS
 !-----------------------------------------------------------------------
-+if cr
   950 write(lout,10320)
-+ei
-+if .not.cr
-  950 write(*,10320)
-+ei
   960 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -15066,12 +15006,7 @@ cc2008
         ape(2,j)=apxx**2                                                 !hr05
         ape(3,j)=apxx**2*apzz**2                                         !hr05
       endif
-+if cr
       write(lout,10330) bez(j),irel,apxx,apzz
-+ei
-+if .not.cr
-      write(*,10330) bez(j),irel,apxx,apzz
-+ei
   970 continue
 ! Eric temporary fix for BUG??? Uncommnted for Riccardo 14/2/2015
       if(idat.ne.next) goto 960
@@ -15164,18 +15099,8 @@ cc2008
       do 1040 jj=1,ncom
       do 1040 ll=1,20
  1040 icel(jj,ll)=idum
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10300)
-+ei
-+if .not.cr
-      write(*,10300)
-+ei
  1050 ii=ii+1
       if(ii.gt.ncom) goto 1100
  1060 read(3,10020,end=1530,iostat=ierro) ch
@@ -15234,12 +15159,7 @@ cc2008
         ico=icomb(ii,m)
         if(ico.eq.jj) call prror(92)
         if(ico.eq.0) goto 1090
-+if cr
         write(lout,10310) bez(jj),bez(ico),ratio(ii,m)
-+ei
-+if .not.cr
-        write(*,10310) bez(jj),bez(ico),ratio(ii,m)
-+ei
         iratioe(ico)=jj
         if(el(jj).le.pieni) then
           if(el(ico).le.pieni) then
@@ -15256,12 +15176,7 @@ cc2008
         endif
  1090 continue
       goto 1050
-+if cr
  1100 write(lout,10290) ncom
-+ei
-+if .not.cr
- 1100 write(*,10290) ncom
-+ei
       goto 110
 !-----------------------------------------------------------------------
 !  SUBRESONANCE CALCULATION
@@ -15724,14 +15639,8 @@ cc2008
 
 +if stf
       if (imad.eq.1) then
-+if cr
          write(lout,*) "ERROR in daten::POST:"
          write(lout,*) "imad not supported for STF version."
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in daten::POST:"
-         write(*,*)    "imad not supported for STF version."
-+ei
          call prror(-1)
       endif
 +ei !END +if stf
@@ -15758,36 +15667,20 @@ cc2008
 !  POWER SUPPLY RIPPLE
 !-----------------------------------------------------------------------
  1290 continue
-+if cr
       write(lout,*)
       write(lout,*) "ERROR: old RIPP module is no longer supported"
       write(lout,*) "Please convert your RIPP block (in fort.3) to DYNK"
       write(lout,*) "The script rippconvert.py (in the pytools folder)"
       write(lout,*) " can be used to automatically convert the fort.3!"
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) "ERROR: old RIPP module is no longer supported"
-      write(*,*) "Please convert your RIPP block (in fort.3) to DYNK"
-      write(*,*) "The script rippconvert.py (in the pytools folder)"
-      write(*,*) " can be used to automatically convert the fort.3!"
-      write(*,*)
-+ei
       call prror(-1)
 
 !Code for just skipping over the RIPP block, which runs the simulation without RIPP:
  1300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
 
-+if cr
       write(lout,*) 'ignoring line:'
       write(lout,*) ch
-+ei
-+if .not.cr
-      write(*,*) 'ignoring line:'
-      write(*,*) ch
-+ei
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1300
       if(ch(:4).eq.next) goto 110
@@ -15885,20 +15778,11 @@ cc2008
       if (iclr.eq.1) then
          read(ch1,*) do_coll
          if (do_coll) then
-+if cr
            write(lout,*)
            write(lout,*) "ERR> Collimation not forseen in this version;"
            write(lout,*) "ERR> Please use proper version"
            write(lout,*) "ERR> or set do_coll to .FALSE."
            write(lout,*)
-+ei
-+if .not.cr
-           write(*,*)
-           write(*,*)    "ERR> Collimation not forseen in this version;"
-           write(*,*)    "ERR> Please use proper version"
-           write(*,*)    "ERR> or set do_coll to .FALSE."
-           write(*,*)
-+ei
            call prror(-1)
          endif
       endif
@@ -15924,7 +15808,6 @@ cc2008
       !Does not work for bnlelens, but collimat+bnlelens doesn't work anyway...
       !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
       if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
-+if cr
          write(lout,*) ""
          write(lout,*) "Error in parsing COLL block in fort.3"
          write(lout,*) "nloop =", nloop
@@ -15934,18 +15817,6 @@ cc2008
          write(lout,*) "Please reduce the number of particles or loops"
          write(lout,*) ""
         call abend('                                                  ')
-+ei
-+if .not.cr
-         write(*,*)    ""
-         write(*,*)    "Error in parsing COLL block in fort.3"
-         write(*,*)    "nloop =", nloop
-         write(*,*)    "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
-         write(*,*)    "maxn  =", maxn
-         write(*,*)    "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
-         write(*,*)    "Please reduce the number of particles or loops"
-         write(*,*)    ""
-         stop
-+ei
       endif
 
 +if fio
@@ -16124,18 +15995,8 @@ cc2008
       goto 110
       else
       if(idial.eq.0.and.numl.ne.0) then
-+if cr
         write(lout,10130)
-+ei
-+if .not.cr
-        write(*,10130)
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         call prror(78)
       endif
       inorm=1
@@ -16379,16 +16240,9 @@ cc2008
       elseif (getfields_nfields .eq. 4) then
          beam_xstr=.false.
       else
-+if cr
          write(lout,*) "ERROR in parsing BEAM block"
          write(lout,*) "Number of arguments in data line 2,..."
          write(lout,*) " is expected to be 4 or 5"
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in parsing BEAM block"
-         write(*,*)    "Number of arguments in data line 2,..."
-         write(*,*)    " is expected to be 4 or 5"
-+ei
          call prror(-1)
       end if
       call intepr(1,1,ch,ch1)
@@ -16431,14 +16285,8 @@ cc2008
 +ei
 +ei
       if ( .not. beam_xstr ) then
-+if cr
          write(lout,*) "WARNING in parsing BEAM block"
          write(lout,*) "No xstr present, assuming xstr=xang"
-+ei
-+if .not.cr
-         write(*,*)    "WARNING in parsing BEAM block"
-         write(*,*)    "No xstr present, assuming xstr=xang"
-+ei
          xstr = xang
       endif
       
@@ -16480,24 +16328,9 @@ cc2008
  1710 continue
       call prror(98)
  1720 j1=0
-+if cr
       if(imtr0.eq.1) write(lout,10130)
-+ei
-+if .not.cr
-      if(imtr0.eq.1) write(*,10130)
-+ei
-+if cr
       if(imtr0.eq.1) write(lout,10700)
-+ei
-+if .not.cr
-      if(imtr0.eq.1) write(*,10700)
-+ei
-+if cr
       write(lout,10710) imtr0,imn
-+ei
-+if .not.cr
-      write(*,10710) imtr0,imn
-+ei
  1730 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
