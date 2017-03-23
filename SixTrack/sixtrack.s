@@ -38371,9 +38371,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE SIX-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38396,12 +38394,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
-+if cr
       write(lout,10010) nd2
-+ei
-+if .not.cr
-      write(*,10010) nd2
-+ei
       do l=1,nd2
         xx(l)=zero
         cloc(l)=zero
@@ -38466,12 +38459,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
         enddo
         call dinv(nd2,am,nd2,idummy,nerror)
-+if cr
         if(nerror.ne.0) write(lout,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
-+if .not.cr
-        if(nerror.ne.0) write(*,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
 +if debug
 !       do i4=1,nd2
 !         do j4=1,nd2
@@ -38522,21 +38510,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
           if(abs(dppoff).gt.pieni) dlo(6)=zero
         enddo
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
         cor=zero
         do l=1,ndimf
           ll=2*l
-+if cr
           write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-          write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
 +if debug
 !     call warr('corl ll',cor,l,ll,1,0)
 !     call warr('dcll*2',dc(ll-1)**2,l,ll,1,0)
@@ -38562,44 +38540,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             cloc(l)=cloc(l)+dlo(l)
           enddo
           if(ii.ne.itco) then
-+if cr
             write(lout,10030)
-+ei
-+if .not.cr
-            write(*,10030)
-+ei
             do l=1,ndimf
               ll=2*l
-+if cr
               write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-              write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
             enddo
-+if cr
             write(lout,10080) ii,cor
-+ei
-+if .not.cr
-            write(*,10080) ii,cor
-+ei
           endif
         else
-+if cr
           write(lout,10040) nd2,ii
-+ei
-+if .not.cr
-          write(*,10040) nd2,ii
-+ei
           goto 91
         endif
  80   continue
-+if cr
       write(lout,10000) itco
-+ei
-+if .not.cr
-      write(*,10000) itco
-+ei
       ii=itco
  90   continue
       if(ii.ne.itco) then
@@ -38610,21 +38563,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
           if(abs(dppoff).gt.pieni) dlo(6)=zero
         enddo
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
         cor=zero
         do l=1,ndimf
           ll=2*l
-+if cr
           write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-          write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
 +if debug
 !     call warr('corl ll',cor,l,ll,2,0)
 !     call warr('dcll*2',dc(ll-1)**2,l,ll,2,0)
@@ -38644,34 +38587,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do l=1,nd2
             cloc(l)=cloc(l)+dlo(l)
           enddo
-+if cr
           write(lout,10030)
-+ei
-+if .not.cr
-          write(*,10030)
-+ei
           do l=1,ndimf
             ll=2*l
-+if cr
             write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-            write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
           enddo
-+if cr
           write(lout,10080) ii,cor
-+ei
-+if .not.cr
-          write(*,10080) ii,cor
-+ei
         else
-+if cr
           write(lout,10040) nd2,ii
-+ei
-+if .not.cr
-          write(*,10040) nd2,ii
-+ei
           goto 91
         endif
         do l=1,2
@@ -38688,12 +38611,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
         enddo
         call dinv(nd2,am,nd2,idummy,nerror)
-+if cr
         if(nerror.ne.0) write(lout,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
-+if .not.cr
-        if(nerror.ne.0) write(*,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
         if(ndimf.eq.3) then
           do l=1,2
             ll=2*l
@@ -38719,31 +38637,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if(l.eq.5) dc(5)=dc(5)*c1m2
         enddo
       endif
-+if cr
       write(lout,10050) nd2,ii
-+ei
-+if .not.cr
-      write(*,10050) nd2,ii
-+ei
       cor=zero
       do l=1,ndimf
         ll=2*l
-+if cr
         write(lout,10070) chp(l),cloc(ll-1),cloc(ll),
-+ei
-+if .not.cr
-        write(*,10070) chp(l),cloc(ll-1),cloc(ll),                      &
-+ei
      &chd(l),dc(ll-1),dc(ll)
         cor=cor+dc(ll-1)**2                                              !hr06
       enddo
       cor=sqrt(cor)
-+if cr
       write(lout,10080) ii,cor
-+ei
-+if .not.cr
-      write(*,10080) ii,cor
-+ei
  91   continue
       if(ndimf.eq.3) then
         do l=1,2
@@ -38801,9 +38704,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38841,12 +38742,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call dumpbin('alieinit',1,11)
 !     call abend('alieinit in mydaini                               ')
 +ei
-+if cr
       write(lout,10000) nord,nvar,ndimf
-+ei
-+if .not.cr
-      write(*,10000) nord,nvar,ndimf
-+ei
       call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
 +if debug
@@ -38889,9 +38785,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38925,12 +38819,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call daeps(preda)
       call idprset(-102)
       call lieinit(nord,nvar,ndimf,ndpt,0,nis)
-+if cr
       write(lout,10000) nord,nvar,nndim
-+ei
-+if .not.cr
-      write(*,10000) nord,nvar,nndim
-+ei
       call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
       if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
@@ -39688,9 +39577,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39705,12 +39592,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       save
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !1-10  
      &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !11-20 
      &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !21-30 
@@ -39723,740 +39605,216 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !91-100
      &     1010,1020,1030,1040,1050),ier
       goto 1870
-+if cr
    10 write(lout,10010)
-+ei
-+if .not.cr
-   10 write(*,10010)
-+ei
       goto 1870
-+if cr
    20 write(lout,10020) nele
-+ei
-+if .not.cr
-   20 write(*,10020) nele
-+ei
       goto 1870
-+if cr
    30 write(lout,10030)
-+ei
-+if .not.cr
-   30 write(*,10030)
-+ei
       goto 1870
-+if cr
    40 write(lout,10040)
-+ei
-+if .not.cr
-   40 write(*,10040)
-+ei
       goto 1870
-+if cr
    50 write(lout,10050)
-+ei
-+if .not.cr
-   50 write(*,10050)
-+ei
       goto 1870
-+if cr
    60 write(lout,10060)
-+ei
-+if .not.cr
-   60 write(*,10060)
-+ei
       goto 1870
-+if cr
    70 write(lout,10070)
-+ei
-+if .not.cr
-   70 write(*,10070)
-+ei
       goto 1870
-+if cr
    80 write(lout,10080)
-+ei
-+if .not.cr
-   80 write(*,10080)
-+ei
       goto 1870
-+if cr
    90 write(lout,10090)
-+ei
-+if .not.cr
-   90 write(*,10090)
-+ei
       goto 1870
-+if cr
   100 write(lout,10100)
-+ei
-+if .not.cr
-  100 write(*,10100)
-+ei
       goto 1870
-+if cr
   110 write(lout,10110)
-+ei
-+if .not.cr
-  110 write(*,10110)
-+ei
       goto 1870
-+if cr
   120 write(lout,10120)
-+ei
-+if .not.cr
-  120 write(*,10120)
-+ei
       goto 1870
-+if cr
   130 write(lout,10130)
-+ei
-+if .not.cr
-  130 write(*,10130)
-+ei
       goto 1870
-+if cr
   140 write(lout,10140)
-+ei
-+if .not.cr
-  140 write(*,10140)
-+ei
       goto 1870
-+if cr
   150 write(lout,10150)
-+ei
-+if .not.cr
-  150 write(*,10150)
-+ei
       goto 1870
-+if cr
   160 write(lout,10160) nele
-+ei
-+if .not.cr
-  160 write(*,10160) nele
-+ei
       goto 1870
-+if cr
   170 write(lout,10170) nper
-+ei
-+if .not.cr
-  170 write(*,10170) nper
-+ei
       goto 1870
-+if cr
   180 write(lout,10180) nblo
-+ei
-+if .not.cr
-  180 write(*,10180) nblo
-+ei
       goto 1870
-+if cr
   190 write(lout,10190) erbez
-+ei
-+if .not.cr
-  190 write(*,10190) erbez
-+ei
       goto 1870
-+if cr
   200 write(lout,10200) erbez
-+ei
-+if .not.cr
-  200 write(*,10200) erbez
-+ei
       goto 1870
-+if cr
   210 write(lout,10210)
-+ei
-+if .not.cr
-  210 write(*,10210)
-+ei
       goto 1870
-+if cr
   220 write(lout,10220)
-+ei
-+if .not.cr
-  220 write(*,10220)
-+ei
       goto 1870
-+if cr
   230 write(lout,10230)
-+ei
-+if .not.cr
-  230 write(*,10230)
-+ei
       goto 1870
-+if cr
   240 write(lout,10240)
-+ei
-+if .not.cr
-  240 write(*,10240)
-+ei
       goto 1870
-+if cr
   250 write(lout,10250)
-+ei
-+if .not.cr
-  250 write(*,10250)
-+ei
       goto 1870
-+if cr
   260 write(lout,10260) nelb
-+ei
-+if .not.cr
-  260 write(*,10260) nelb
-+ei
       goto 1870
-+if cr
   270 write(lout,10270)
-+ei
-+if .not.cr
-  270 write(*,10270)
-+ei
       goto 1870
-+if cr
   280 write(lout,10280)
-+ei
-+if .not.cr
-  280 write(*,10280)
-+ei
       goto 1870
-+if cr
   290 write(lout,10290)
-+ei
-+if .not.cr
-  290 write(*,10290)
-+ei
       goto 1870
-+if cr
   300 write(lout,10300) nran
-+ei
-+if .not.cr
-  300 write(*,10300) nran
-+ei
       goto 1870
-+if cr
   310 write(lout,10310)
-+ei
-+if .not.cr
-  310 write(*,10310)
-+ei
       goto 1870
-+if cr
   320 write(lout,10320)
-+ei
-+if .not.cr
-  320 write(*,10320)
-+ei
       goto 1870
-+if cr
   330 write(lout,10330)
-+ei
-+if .not.cr
-  330 write(*,10330)
-+ei
       goto 1870
-+if cr
   340 write(lout,10340) mran
-+ei
-+if .not.cr
-  340 write(*,10340) mran
-+ei
       goto 1870
-+if cr
   350 write(lout,10350)
-+ei
-+if .not.cr
-  350 write(*,10350)
-+ei
       goto 1870
-+if cr
   360 write(lout,10360)
-+ei
-+if .not.cr
-  360 write(*,10360)
-+ei
       goto 1870
-+if cr
   370 write(lout,10370)
-+ei
-+if .not.cr
-  370 write(*,10370)
-+ei
       goto 1870
-+if cr
   380 write(lout,10380)
-+ei
-+if .not.cr
-  380 write(*,10380)
-+ei
       goto 1870
-+if cr
   390 write(lout,10390)
-+ei
-+if .not.cr
-  390 write(*,10390)
-+ei
       goto 1870
-+if cr
   400 write(lout,10400)
-+ei
-+if .not.cr
-  400 write(*,10400)
-+ei
       goto 1870
-+if cr
   410 write(lout,10410)
-+ei
-+if .not.cr
-  410 write(*,10410)
-+ei
       goto 1870
-+if cr
   420 write(lout,10420)
-+ei
-+if .not.cr
-  420 write(*,10420)
-+ei
       goto 1870
-+if cr
   430 write(lout,10430) nzfz
-+ei
-+if .not.cr
-  430 write(*,10430) nzfz
-+ei
       goto 1870
-+if cr
   440 write(lout,10440)
-+ei
-+if .not.cr
-  440 write(*,10440)
-+ei
       goto 1870
-+if cr
   450 write(lout,10450)
-+ei
-+if .not.cr
-  450 write(*,10450)
-+ei
       goto 1870
-+if cr
   460 write(lout,10460) nrco
-+ei
-+if .not.cr
-  460 write(*,10460) nrco
-+ei
       goto 1870
-+if cr
   470 write(lout,10470)
-+ei
-+if .not.cr
-  470 write(*,10470)
-+ei
       goto 1870
-+if cr
   480 write(lout,10480)
-+ei
-+if .not.cr
-  480 write(*,10480)
-+ei
       goto 1870
-+if cr
   490 write(lout,10490)
-+ei
-+if .not.cr
-  490 write(*,10490)
-+ei
       goto 1870
-+if cr
   500 write(lout,10500)
-+ei
-+if .not.cr
-  500 write(*,10500)
-+ei
       goto 1870
-+if cr
   510 write(lout,10510)
-+ei
-+if .not.cr
-  510 write(*,10510)
-+ei
       goto 1870
-+if cr
   520 write(lout,10520) nema
-+ei
-+if .not.cr
-  520 write(*,10520) nema
-+ei
       goto 1870
-+if cr
   530 write(lout,10530)
-+ei
-+if .not.cr
-  530 write(*,10530)
-+ei
       goto 1870
-+if cr
   540 write(lout,10540) npart
-+ei
-+if .not.cr
-  540 write(*,10540) npart
-+ei
       goto 1870
-+if cr
   550 write(lout,10550) nmac
-+ei
-+if .not.cr
-  550 write(*,10550) nmac
-+ei
       goto 1870
-+if cr
   560 write(lout,10560) ierro
-+ei
-+if .not.cr
-  560 write(*,10560) ierro
-+ei
       goto 1870
-+if cr
   570 write(lout,10570) ierro
-+ei
-+if .not.cr
-  570 write(*,10570) ierro
-+ei
       goto 1870
-+if cr
   580 write(lout,10580) ierro
-+ei
-+if .not.cr
-  580 write(*,10580) ierro
-+ei
       goto 1870
-+if cr
   590 write(lout,10590) ierro
-+ei
-+if .not.cr
-  590 write(*,10590) ierro
-+ei
       goto 1870
-+if cr
   600 write(lout,10600) ierro
-+ei
-+if .not.cr
-  600 write(*,10600) ierro
-+ei
       goto 1870
-+if cr
   610 write(lout,10610) ierro
-+ei
-+if .not.cr
-  610 write(*,10610) ierro
-+ei
       goto 1870
-+if cr
   620 write(lout,10620)
-+ei
-+if .not.cr
-  620 write(*,10620)
-+ei
       goto 1870
-+if cr
   630 write(lout,10630)
-+ei
-+if .not.cr
-  630 write(*,10630)
-+ei
       goto 1870
-+if cr
   640 write(lout,10640)
-+ei
-+if .not.cr
-  640 write(*,10640)
-+ei
       goto 1870
-+if cr
   650 write(lout,10650) mcor
-+ei
-+if .not.cr
-  650 write(*,10650) mcor
-+ei
       goto 1870
-+if cr
   660 write(lout,10660)
-+ei
-+if .not.cr
-  660 write(*,10660)
-+ei
       goto 1870
-+if cr
   670 write(lout,10670)
-+ei
-+if .not.cr
-  670 write(*,10670)
-+ei
       goto 1870
-+if cr
   680 write(lout,10680)
-+ei
-+if .not.cr
-  680 write(*,10680)
-+ei
       goto 1870
-+if cr
   690 write(lout,10690)
-+ei
-+if .not.cr
-  690 write(*,10690)
-+ei
       goto 1870
-+if cr
   700 write(lout,10700)
-+ei
-+if .not.cr
-  700 write(*,10700)
-+ei
       goto 1870
-+if cr
   710 write(lout,10710)
-+ei
-+if .not.cr
-  710 write(*,10710)
-+ei
       goto 1870
-+if cr
   720 write(lout,10720)
-+ei
-+if .not.cr
-  720 write(*,10720)
-+ei
       goto 1870
-+if cr
   730 write(lout,10730)
-+ei
-+if .not.cr
-  730 write(*,10730)
-+ei
       goto 1870
-+if cr
   740 write(lout,10740)
-+ei
-+if .not.cr
-  740 write(*,10740)
-+ei
       goto 1870
-+if cr
   750 write(lout,10750)
-+ei
-+if .not.cr
-  750 write(*,10750)
-+ei
       goto 1870
-+if cr
   760 write(lout,10760)
-+ei
-+if .not.cr
-  760 write(*,10760)
-+ei
       goto 1870
-+if cr
   770 write(lout,10770)
-+ei
-+if .not.cr
-  770 write(*,10770)
-+ei
       goto 1870
-+if cr
   780 write(lout,10780)
-+ei
-+if .not.cr
-  780 write(*,10780)
-+ei
       goto 1870
-+if cr
   790 write(lout,10790)
-+ei
-+if .not.cr
-  790 write(*,10790)
-+ei
       goto 1870
-+if cr
   800 write(lout,10800)
-+ei
-+if .not.cr
-  800 write(*,10800)
-+ei
       goto 1870
-+if cr
   810 write(lout,10810)
-+ei
-+if .not.cr
-  810 write(*,10810)
-+ei
       goto 1870
-+if cr
   820 write(lout,10820)
-+ei
-+if .not.cr
-  820 write(*,10820)
-+ei
       goto 1870
-+if cr
   830 write(lout,10830)
-+ei
-+if .not.cr
-  830 write(*,10830)
-+ei
       goto 1870
-+if cr
   840 write(lout,10840)
-+ei
-+if .not.cr
-  840 write(*,10840)
-+ei
       goto 1870
-+if cr
   850 write(lout,10850) mmul
-+ei
-+if .not.cr
-  850 write(*,10850) mmul
-+ei
       goto 1870
-+if cr
   860 write(lout,10860)
-+ei
-+if .not.cr
-  860 write(*,10860)
-+ei
       goto 1870
-+if cr
   870 write(lout,10870)
-+ei
-+if .not.cr
-  870 write(*,10870)
-+ei
       goto 1870
-+if cr
   880 write(lout,10880)
-+ei
-+if .not.cr
-  880 write(*,10880)
-+ei
       goto 1870
-+if cr
   890 write(lout,10890)
-+ei
-+if .not.cr
-  890 write(*,10890)
-+ei
       goto 1870
-+if cr
   900 write(lout,10900)
-+ei
-+if .not.cr
-  900 write(*,10900)
-+ei
       goto 1870
-+if cr
   910 write(lout,10910)
-+ei
-+if .not.cr
-  910 write(*,10910)
-+ei
       goto 1870
-+if cr
   920 write(lout,10920)
-+ei
-+if .not.cr
-  920 write(*,10920)
-+ei
       goto 1870
-+if cr
   930 write(lout,10930)
-+ei
-+if .not.cr
-  930 write(*,10930)
-+ei
       goto 1870
-+if cr
   940 write(lout,10940)
-+ei
-+if .not.cr
-  940 write(*,10940)
-+ei
       goto 1870
-+if cr
   950 write(lout,10950)
-+ei
-+if .not.cr
-  950 write(*,10950)
-+ei
       goto 1870
-+if cr
   960 write(lout,10960)
-+ei
-+if .not.cr
-  960 write(*,10960)
-+ei
       goto 1870
-+if cr
   970 write(lout,10970)
-+ei
-+if .not.cr
-  970 write(*,10970)
-+ei
       goto 1870
-+if cr
   980 write(lout,10980)
-+ei
-+if .not.cr
-  980 write(*,10980)
-+ei
       goto 1870
-+if cr
   990 write(lout,10990)
-+ei
-+if .not.cr
-  990 write(*,10990)
-+ei
       goto 1870
-+if cr
  1000 write(lout,11000) ntr
-+ei
-+if .not.cr
- 1000 write(*,11000) ntr
-+ei
       goto 1870
-+if cr
  1010 write(lout,11010)
-+ei
-+if .not.cr
- 1010 write(*,11010)
-+ei
       goto 1870
-+if cr
  1020 write(lout,11020) nbb
-+ei
-+if .not.cr
- 1020 write(*,11020) nbb
-+ei
       goto 1870
-+if cr
  1030 write(lout,11030)
-+ei
-+if .not.cr
- 1030 write(*,11030)
-+ei
       goto 1870
-+if cr
  1040 write(lout,11040)
-+ei
-+if .not.cr
- 1040 write(*,11040)
-+ei
       goto 1870
-+if cr
  1050 write(lout,11050) mmul
-+ei
-+if .not.cr
- 1050 write(*,11050) mmul
-+ei
+
  1870 continue
 !-----------------------------------------------------------------------
       call closeUnits
