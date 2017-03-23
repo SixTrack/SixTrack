@@ -9086,9 +9086,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -9372,9 +9370,7 @@ cc2008
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10022,9 +10018,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10306,9 +10300,7 @@ cc2008
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10851,9 +10843,6 @@ cc2008
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11111,9 +11100,6 @@ cc2008
 !----------------------------------------------------------------------*
 !---- double precision version.
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11492,9 +11478,6 @@ cc2008
 !
 !  *********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11591,9 +11574,6 @@ cc2008
 !  ADIABATIC ENERGY-INCREASE
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11631,9 +11611,6 @@ cc2008
 !  ADIABATIC ENERGY-DECREASE
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -17219,9 +17196,6 @@ cc2008
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -17319,9 +17293,6 @@ cc2008
 !   CH1 ... OUTPUT CHARACTERSTRING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -17420,9 +17391,7 @@ cc2008
 +ca comdynk
 +ca elensparam
 +ca wireparam
-+if cr
 +ca crcoall
-+ei
 
       !Temp variables
       integer i
@@ -17712,16 +17681,9 @@ c$$$         endif
 
       !Error handlers
  100  continue
-+if cr
       write (lout,*) "ERROR in initialize_element, tried to set"
       write (lout,*) "the strength of an element which is disabled."
       write (lout,*) "bez = ", bez(ix)
-+ei
-+if .not.cr
-      write (*,*)    "ERROR in initialize_element, tried to set"
-      write (*,*)    "the strength of an element which is disabled."
-      write (*,*)    "bez = ", bez(ix)
-+ei
       call prror(-1)
 
       end subroutine
@@ -18045,9 +18007,6 @@ C Should get me a NaN
 !
 !  *********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18073,9 +18032,6 @@ C Should get me a NaN
       end
       subroutine mywwerf(x,y,wr,wi)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18282,9 +18238,6 @@ C Should get me a NaN
 +dk ranecu
       subroutine ranecu(rvec,len,mcut)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18350,9 +18303,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18783,9 +18733,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -19163,9 +19110,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -19265,9 +19209,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !        5 --> 6  AND  ASD6 / ALD6
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -21996,9 +21938,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22098,9 +22038,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !        SPECIALLY PREPARED FOR NEW D.A.
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22280,9 +22217,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22364,9 +22298,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22428,9 +22359,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !**SBCF ***Synchro-Beam for headon collision*********************
 !****************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22577,9 +22505,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 ! BOOSTIF **************inverse boost ****************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22650,9 +22575,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! SIGXX is \Sigma
 !**********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -27202,46 +27124,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !YIL call beam gas initiation routine
       call beamGasInit(myenom)
 +ei
-+if .not.cr
-        write(*,*) 'number of collimators', db_ncoll
-        do icoll = 1, db_ncoll
-            write(*,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
-            write(*,*) 'collimator', icoll, ' ', db_name2(icoll)
-        end do
-!******write settings for alignment error in colltrack.out file
-!
-      write(outlun,*) ' '
-      write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
-      write(outlun,*) ' '
-      write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
-      write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
-      write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
-      write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
-      write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
-      write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
-      write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
-      write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
-      write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
-      write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
-      write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
-      write(outlun,*) ' '
-!     TW - 01/2007
-!     added offset and random_seed for tilt and offset
-!     APRIL2005
-!*****intialize random generator with offset_seed
-      c_offsettilt_seed = abs(c_offsettilt_seed)
-      rnd_lux = 3
-      rnd_k1  = 0
-      rnd_k2  = 0
-      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)         
-!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
-!
-! reset counter to assure starting at the same position in case of
-! using rndm5 somewhere else in the code before
-! 
-      zbv = rndm5(1)
-+ei
-+if cr
+      write(lout,*) 'number of collimators', db_ncoll
+      do icoll = 1, db_ncoll
+         write(lout,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
+         write(lout,*) 'collimator', icoll, ' ', db_name2(icoll)
+      end do
 !******write settings for alignment error in colltrack.out file
 !
       write(outlun,*) ' '
@@ -27261,7 +27148,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(outlun,*) ' '
 !        write(lout,*) db_name1(icoll)
 !        write(lout,*) db_name2(icoll)
-+ei
+!     TW - 01/2007
+!     added offset and random_seed for tilt and offset
+!     APRIL2005
+!*****intialize random generator with offset_seed
+      c_offsettilt_seed = abs(c_offsettilt_seed)
+      rnd_lux = 3
+      rnd_k1  = 0
+      rnd_k2  = 0
+      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)         
+!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
+!
+! reset counter to assure starting at the same position in case of
+! using rndm5 somewhere else in the code before
+! 
+      zbv = rndm5(1)
 !APRIL2005
 !
 !++  Generate random tilts (Gaussian distribution plus systematic)
@@ -27495,11 +27396,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   endif
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
                else
-                  write(*,*) "WARNING: Problem detected while "//
+                  write(lout,*) "WARNING: Problem detected while "//
      &                 "writing twisslike.out' and " //
      &                 "'sigmasettings.out': Collimator name '" //
      &                 bez(myix) // "' was not recognized!"
-                  write(*,*) " ->Setting nsig=1000.0."
+                  write(lout,*) " ->Setting nsig=1000.0."
                   nsig = 1000.0
                endif
 !     FEBRUAR2007
@@ -28081,10 +27982,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               endif
            else
               if(firstrun.and.iturn.eq.1) then
-                 write(*,*) "WARNING: When setting opening for the "//
+                 write(lout,*) "WARNING: When setting opening for the"//
      &                " collimator named '" // bez(myix) //
      &                "' from fort.3, the name was not recognized."
-                 write(*,*) " -> Setting nsig=1000.0."
+                 write(lout,*) " -> Setting nsig=1000.0."
               endif
               nsig=1000.0
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
@@ -28176,12 +28077,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
           end do
           if (.not. found .and. firstrun .and. iturn.eq.1) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
      &           'ERR>  Collimator not found in colldb: ', bez(myix)
       endif
 !
@@ -28470,7 +28366,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                c_tilt(1) = c_tilt(1) + (xp_pencil0*cos(c_rotation)       &
      &                     + sin(c_rotation)*yp_pencil0)
 +ei
-               write(*,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",     &
+               write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
      &              icoll, c_tilt(1)
 !
 !! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is 
@@ -28492,7 +28388,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !!                  c_tilt(2) = c_tilt(2) + (xp_pencil0*cos(c_rotation)   &
 !!     &                 + sin(c_rotation)*yp_pencil0)
 !!               endif
-               write(*,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",      &
+               write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",   &
      &              icoll, c_tilt(2)
             endif
 !++ TW -- tilt angle changed (added to genetated on if spec. in fort.3) 
@@ -28663,8 +28559,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 beamsize1 = sqrt(betay1 * myemity0_collgap)
                 beamsize2 = sqrt(betay2 * myemity0_collgap)
              else
-                write(*,*) "attempting to use a halo not purely in the 
-     &horizontal or vertical plane with pencil_dist=3 - abort."
+                write(lout,*)
+     &               "attempting to use a halo not purely in the "//
+     &               "horizontal or vertical plane with pencil_dist=3"//
+     &               " - abort."
                 stop
              endif
              
@@ -28796,7 +28694,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
                 endif
               else
-                Write(*,*) "ERROR: Non-zero length collimator!"
+                Write(lout,*) "ERROR: Non-zero length collimator!"
                 STOP
               endif
 !
@@ -28905,16 +28803,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             .or. db_name1(icoll)(1:5).eq.'TCRYO')) then
                       
                   if (firstrun) then
-+if cr
-                  write(lout,*) 'INFO> slice - Collimator ',            &
-     &              db_name1(icoll), ' sliced in ',n_slices,            &
-     &              ' pieces!'
-+ei
-+if .not.cr
-                  write(*,*) 'INFO> slice - Collimator ',               &
-     &              db_name1(icoll), ' sliced in ',n_slices,            &
-     &              ' pieces!'
-+ei
+                     write(lout,*) 'INFO> slice - Collimator ',         &
+     &                    db_name1(icoll), ' sliced in ',n_slices,      &
+     &                    ' pieces !'
                   endif
 !
 !!     In this preliminary try, all secondary collimators are sliced.
@@ -29032,23 +28923,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !!     Check the collimator jaw surfaces (beam frame, before taking into
 !!     account the azimuthal angle of the collimator)
                   if (firstrun) then
-+if cr
                   write(lout,*) 'Slicing collimator ',db_name1(icoll)
-+ei
-+if .not.cr
-                  write(*,*) 'Slicing collimator ',db_name1(icoll)
-+ei
                      do jjj=1,n_slices
-+if cr
                        write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), &
      &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
      &                   db_tilt(icoll,2)
-+ei
-+if .not.cr
-                       write(*,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj),    &
-     &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
-     &                   db_tilt(icoll,2)
-+ei
                      enddo
                   endif
 !
@@ -29639,16 +29518,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             do j = 1, napx
               if ( part_hit(j).eq.(10000*ie+iturn) ) then
                 if (part_impact(j).lt.-0.5d0) then
-+if cr
                   write(lout,*) 'ERR>  Found invalid impact parameter!',&
-     &                  part_impact(j)
-+ei
-+if .not.cr
-                  write(*,*) 'ERR>  Found invalid impact parameter!',   &
      &                  part_impact(j)
                   write(outlun,*) 'ERR>  Invalid impact parameter!',    &
      &                  part_impact(j)
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -29674,44 +29547,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !++  Some information
 !
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Selected collimator had N hits. N: ',                     &
      &num_selhit
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Number of impacts                : ',                     &
      &n_impact
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Number of escaped protons        : ',                     &
      &num_surhit
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Average impact parameter [m]     : ',                     &
      &average
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Sigma impact parameter [m]       : ',                     &
      &sigma
 !
@@ -30966,12 +30814,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               end do
             endif
           end do
-+if cr
           write(lout,*) 'INFO>  Compacted the particle distributions: ',
-+ei
-+if .not.cr
-          write(*,*) 'INFO>  Compacted the particle distributions: ',   &
-+ei
      &napx, ' -->  ', imov, ", turn =",iturn
           napx = imov
         endif
@@ -31832,9 +31675,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -31976,31 +31817,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             endif
             if(ierro.ne.0) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
-+if cr
               write(lout,*) '*** ERROR ***,PROBLEM WRITING TO FILE# : ',&
-+ei
-+if .not.cr
-              write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE# : ',  &
-+ei
      &91-ia2
-+if cr
               write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-              write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
 +if cr
               endfile (lout,iostat=ierro)
               backspace (lout,iostat=ierro)
@@ -32067,9 +31888,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -32305,9 +32124,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -32376,9 +32192,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -32412,20 +32226,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !-- PARTICLES STABLE
         if(.not.pstop(ia).and..not.pstop(ig)) then
-+if cr
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
-+ei
-+if .not.cr
-          write(*,10000) ia,nms(ia)*izu0,dp0v(ia),n
-+ei
           id=id+1
           ie=id+1
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)                                                &
-+ei
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
      &e0,ejv(id),ejv(ie)
@@ -32457,7 +32261,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
    10 continue
 +if .not.cr
-      if(ierro.ne.0) write(*,*) 'Warning from write6: fort.12 has ',    &
+      if(ierro.ne.0) write(lout,*) 'Warning from write6: fort.12 has ', &
      &'corrupted output probably due to lost particles'
       if(ierro.ne.0) then                                                !hr09
 +if debug
@@ -32501,9 +32305,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer nturn, i, ix, unit, fmt
       logical lhighprec
       intent (in) nturn, i, ix, unit, fmt, lhighprec
-+if cr
-+ca crcoall
-+ei
 +ca parpro
 +ca parnum
 +ca common
@@ -32840,9 +32641,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -32874,14 +32673,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 +if collimat
       if (do_coll) then
-+if cr
          write(lout,*) "Error: in trauthck and do_coll is TRUE"
          write(lout,*) "Collimation is not supported for thick tracking"
-+ei
-+if .not.cr
-         write(*,*)    "Error: in trauthck and do_coll is TRUE"
-         write(*,*)    "Collimation is not supported for thick tracking"
-+ei
          STOP
       endif
 +ei
@@ -33067,12 +32860,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(abs(r0).le.pieni.or.nmz.eq.0) then
           if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
             if ( dynk_isused(i) ) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &        "ERROR: Element of type 11 (bez=",bez(ix),
      &        ") is off in fort.2, but on in DYNK. Not implemented."
               call prror(-1)
@@ -33238,16 +33026,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if (ldynk) call dynk_pretrack
 
       if(idp.eq.0.or.ition.eq.0) then
-+if cr
         write(lout,*) ''
         write(lout,*) 'Calling thck4d subroutine'
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*)    ''
-        write(*,*)    'Calling thck4d subroutine'
-        write(*,*)    ''
-+ei
         call thck4d(nthinerr)
       else
         hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
@@ -33255,28 +33036,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
   310   continue
         if(abs(phas).ge.pieni) then
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thck6dua subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thck6dua subroutine'
-          write(*,*)    ''
-+ei
           call thck6dua(nthinerr)
         else
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thck6d subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thck6d subroutine'
-          write(*,*)    ''
-+ei
           call thck6d(nthinerr)
         endif
       endif
@@ -35155,9 +34922,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -35698,9 +35462,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -36214,10 +35975,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       end
 +dk mainda
       program mainda
+      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -36293,13 +36053,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       data lineno /0/
 +ei
 +ca version
-+ca open
-+if cr
-      write(lout,10000) version,moddate
-+ei
+
 +if .not.cr
-      write(*,10000) version,moddate
+      lout=output_unit
 +ei
+
++ca open
+      write(lout,10000) version,moddate
       tlim=1e7
       call timest(tlim)
       time0=0.
@@ -36341,12 +36101,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
         endif
       endif
-+if cr
       write(lout,'(a80)') runtim
-+ei
-+if .not.cr
-      write(*,'(a80)') runtim
-+ei
       do 10 i=1,2
         eps(i)=zero
         epsa(i)=zero
@@ -36366,25 +36121,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       rad=pi/180d0                                                       !hr08
       call daten
       if(nord.le.0.or.nvar.le.0) call prror(91)
-+if cr
       if(ithick.eq.1) write(lout,10020)
-+ei
-+if .not.cr
-      if(ithick.eq.1) write(*,10020)
-+ei
-+if cr
       if(ithick.eq.0) write(lout,10030)
-+ei
-+if .not.cr
-      if(ithick.eq.0) write(*,10030)
-+ei
       if(ibidu.eq.2) then
-+if cr
         write(lout,10025)
-+ei
-+if .not.cr
-        write(*,10025)
-+ei
         goto 550
       endif
       call ord
@@ -36566,50 +36306,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       alf0s2 =-1d0*(tas(5,1)*tas61+tas(5,2)*tas62)                       !hr08
       alf0s3 =-1d0*(tas(5,3)*tas63+tas(5,4)*tas64)                       !hr08
       if(ierro.eq.0) goto 90
-+if cr
       write(lout,10200) dp1
-+ei
-+if .not.cr
-      write(*,10200) dp1
-+ei
       goto 160
-+if cr
    90 write(lout,10040)
-+ei
-+if .not.cr
-   90 write(*,10040)
-+ei
       phag=(phas*180d0)/pi                                               !hr08
       if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))             &
-+if cr
      &write(lout,10140)                                                 &
-+ei
-+if .not.cr
-     &write(*,10140)                                                    &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
       if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
         if(iclo6.eq.0) then
-+if cr
           write(lout,10120) phag,
-+ei
-+if .not.cr
-          write(*,10120) phag,                                          &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
         else
-+if cr
           write(lout,10130) phag,
-+ei
-+if .not.cr
-          write(*,10130) phag,                                          &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -36622,35 +36337,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
       endif
       if(idp.eq.1.and.ition.eq.0.and.abs(phas).gt.pieni)                &
-+if cr
      &write(lout,10160) phag,                                           &
-+ei
-+if .not.cr
-     &write(*,10160) phag,                                              &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
       if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
         if(iclo6.eq.0) then
-+if cr
           write(lout,10180)
-+ei
-+if .not.cr
-          write(*,10180)                                                &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
         else
-+if cr
           write(lout,10190)
-+ei
-+if .not.cr
-          write(*,10190)                                                &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -36662,12 +36362,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &bet0s3,alf0s3,gam0s3
         endif
       endif
-+if cr
       write(lout,10050) dp1
-+ei
-+if .not.cr
-      write(*,10050) dp1
-+ei
       call anfb(tas)
       if(iclo6.eq.2) then
         x(1,1) = x(1,1) + clo6(1)
@@ -36691,20 +36386,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   100 continue
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       if(iclo6.eq.0) then
-+if cr
         write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),
-+ei
-+if .not.cr
-        write(*,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),     &
-+ei
      &iver, idfor,iclo6,ition
       else
-+if cr
         write(lout,10090) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),
-+ei
-+if .not.cr
-        write(*,10090) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),       &
-+ei
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
       endif
       if(idfor.eq.1.and.iclo6.ne.2) goto 110
@@ -36715,25 +36400,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       goto 120
   110 ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
       ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
-+if cr
   120 write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x
-+ei
-+if .not.cr
-  120 write(*,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x      &
-+ei
      &(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
-+if cr
       write(lout,10010) amp,epsa
-+ei
-+if .not.cr
-      write(*,10010) amp,epsa
-+ei
-+if cr
       write(lout,10170)
-+ei
-+if .not.cr
-      write(*,10170)
-+ei
       if(e0.gt.pieni) then
 +ca rvet2
 +if rvet
@@ -36746,12 +36416,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call prror(79)
       endif
       if(numl.eq.0.or.numlr.ne.0) then
-+if cr
         write(lout,10070)
-+ei
-+if .not.cr
-        write(*,10070)
-+ei
         goto 160
       endif
       if(nsix.eq.1.and.nvar2.eq.6) then
@@ -36882,9 +36547,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -37618,9 +37280,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -37661,12 +37321,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           read(iu1,'(6X,2X,G20.14,I5)') c,ii
           write(iu2,'(6X,2X,G20.14,I5)') c,ii+1
           read(iu1,'(6X,2X,G20.14,I5)') c,ii
-+if cr
           if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
-+ei
-+if .not.cr
-          if(ii.ne.0) write(*,*) ' ERROR IN UMSCHR'
-+ei
         else
    20     read(iu1,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i  &
      &=1,5)
@@ -37701,9 +37356,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +dk daliesix
       subroutine daliesix
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -37804,61 +37457,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call daprimax(hc,mf3)
       call daprid(df,ndim+1,nd2,mf4)
       call daprid(df,1,ndim,mf5)
-+if cr
       write(lout,10060)
-+ei
-+if .not.cr
-      write(*,10060)
-+ei
       if(imod1.eq.0) then
-+if cr
         write(lout,10020) nordf
-+ei
-+if .not.cr
-        write(*,10020) nordf
-+ei
       else
-+if cr
         write(lout,10010) nordf
-+ei
-+if .not.cr
-        write(*,10010) nordf
-+ei
       endif
-+if cr
       write(lout,10025) nord1
-+ei
-+if .not.cr
-      write(*,10025) nord1
-+ei
       if(imod2.eq.0) then
-+if cr
         write(lout,10040) nvarf
-+ei
-+if .not.cr
-        write(*,10040) nvarf
-+ei
       else
-+if cr
         write(lout,10030) nvarf
-+ei
-+if .not.cr
-        write(*,10030) nvarf
-+ei
       endif
-+if cr
       write(lout,10050)
-+ei
-+if .not.cr
-      write(*,10050)
-+ei
       angle(3)=angle(3)*(-one)
-+if cr
       write(lout,*) (angle(i),i=1,ndim)
-+ei
-+if .not.cr
-      write(*,*) (angle(i),i=1,ndim)
-+ei
 !--Clean-Up
       call dadal(damap,nd2)
       call dadal(a1,nd2)
@@ -37881,12 +37494,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       time1=0.
       call timex(time1)
       time = time1-time0
-+if cr
       write(lout,10000) no,time
-+ei
-+if .not.cr
-      write(*,10000) no,time
-+ei
       return
 !-----------------------------------------------------------------------
 10000 format(/10x,'DA-CALCULATION OF ORDER : ',i7,' TAKES ', f12.3,     &
@@ -37911,9 +37519,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -37984,9 +37589,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF INITIAL COORDINATES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38001,12 +37604,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension tas(6,6),x1(6),x2(6)
       save
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
       if(itra.eq.0) goto 60
       tas56=tas(5,6)*c1m3
       bet0x2=tas(1,3)**2+tas(1,4)**2                                     !hr08
@@ -38075,19 +37673,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
         chi=chi+dchi
    50 continue
-+if cr
       write(lout,10000) itra,amp,chi0,chid
-+ei
-+if .not.cr
-      write(*,10000) itra,amp,chi0,chid
-+ei
-+if cr
       write(lout,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),     &
      &x(2,1),
-+ei
-+if .not.cr
-      write(*,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),x(2,1), &
-+ei
      &y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
       return
    60 itra=2
@@ -38100,19 +37688,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           y(i,l)=exz(i,2+ll)
    70   continue
    80 continue
-+if cr
       write(lout,10020)
-+ei
-+if .not.cr
-      write(*,10020)
-+ei
-+if cr
       write(lout,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),     &
      &x(2,1),
-+ei
-+if .not.cr
-      write(*,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),x(2,1), &
-+ei
      &y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
 !-----------------------------------------------------------------------
       return
@@ -38135,9 +37713,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !                   BETA-, ALFA-FUNCTIONS, Q-VALUES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38330,9 +37905,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38389,9 +37961,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX, USED FOR DISPERSION
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38453,9 +38022,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF CHROMATICITY FROM 5 ENERGIE-VALUES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38491,12 +38058,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         cro0(i)=zero
    20 continue
       qwc(3)=zero
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
       dsm(1,2)=dsm0
       dsm(2,3)=dsm0
       de2=de0*half
@@ -38549,51 +38111,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               if(kp(isl).eq.5) call combel(isl)
  70         continue
           else
-+if cr
             write(lout,10035)
-+ei
-+if .not.cr
-            write(*,10035)
-+ei
             return
           endif
    80   continue
-+if cr
         write(lout,10020) sens(1,1),sens(1,4),sens(2,1),sens(2,4)
-+ei
-+if .not.cr
-        write(*,10020) sens(1,1),sens(1,4),sens(2,1),sens(2,4)
-+ei
         chromc(1)=sens(1,4)*c1m3
         chromc(2)=sens(2,4)*c1m3
-+if cr
         write(lout,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),&
-+ei
-+if .not.cr
-        write(*,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),   &
-+ei
      &bez(is(2))
-+if cr
         write(lout,10040) xi,zi
-+ei
-+if .not.cr
-        write(*,10040) xi,zi
-+ei
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
         if(abs(sens(1,4)-cro(1)).lt.dech.and.abs(sens(2,4)-cro(2))      &
      &.lt.dech) return
    90 continue
-+if cr
       write(lout,10000) itcro
-+ei
-+if .not.cr
-      write(*,10000) itcro
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(/131('-')//t10,'CHROMATICITY CORRECTION'/t10,              &
@@ -38615,9 +38147,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38638,12 +38168,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       save
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       nd=2
       nd2=4
       dps(1)=dp1+dppoff
@@ -38697,87 +38222,37 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             edcor(1)=ed(iq1)
             edcor(2)=ed(iq2)
             if(ncorr.eq.1) then
-+if cr
               write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),           &
-+ei
-+if .not.cr
-              write(*,10010) cro(1),corr(1,1)*c1e3,cro(2),              &
-+ei
      &corr(1,2)*c1e3,ncorr-1,cor
-+if cr
               write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-+ei
-+if .not.cr
-              write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),    &
-+ei
      &bez(iq2)
             else
-+if cr
               write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),           &
-+ei
-+if .not.cr
-              write(*,10020) cro(1),corr(1,1)*c1e3,cro(2),              &
-+ei
      &corr(1,2)*c1e3,ncorr-1,cor
-+if cr
               write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-+ei
-+if .not.cr
-              write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),    &
-+ei
      &bez(iq2)
             endif
           else
-+if cr
             write(lout,10040) ncorr-1
-+ei
-+if .not.cr
-            write(*,10040) ncorr-1
-+ei
             goto 1
           endif
         else
-+if cr
           write(lout,10050) ncorr-1
-+ei
-+if .not.cr
-          write(*,10050) ncorr-1
-+ei
           goto 1
         endif
       enddo
  1    continue
       chromc(1)=corr(1,1)
       chromc(2)=corr(1,2)
-+if cr
       if(ncorr.eq.itcro+1) write(lout,10060) itcro
-+ei
-+if .not.cr
-      if(ncorr.eq.itcro+1) write(*,10060) itcro
-+ei
       if(ncorr.eq.1) then
-+if cr
         write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),                 &
-+ei
-+if .not.cr
-        write(*,10010) cro(1),corr(1,1)*c1e3,cro(2),                    &
-+ei
      &corr(1,2)*c1e3,ncorr-1,cor
       else
-+if cr
         write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,  &
-+ei
-+if .not.cr
-        write(*,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,     &
-+ei
      &ncorr-1,cor
       endif
-+if cr
       write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
-+ei
-+if .not.cr
-      write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
-+ei
 !-----------------------------------------------------------------------
 10000 format(/131('-')/t10,'ENTERING DA CHROMATICITY CORRECTION'/)
 10010 format(/131('-')/t10,                                             &
@@ -38809,9 +38284,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38869,20 +38342,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           clop(l)=clop(l)+dclop(l)
    30   continue
    40 continue
-+if cr
       if(ncorru.ne.1) write(lout,10000) itco
-+ei
-+if .not.cr
-      if(ncorru.ne.1) write(*,10000) itco
-+ei
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
       if(iout.eq.1.and.ncorru.ne.1) then
-+if cr
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
-+ei
-+if .not.cr
-        write(*,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
-+ei
 +if debug
 !     call warr('dpp',dpp,0,0,0,0)
 !     call warr('dpp',dpp,0,0,0,0)
