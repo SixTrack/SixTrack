@@ -19386,36 +19386,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 *FOX  Y(2)=YP(2)/(ONE+DPDA) ;
-+if cr
       write(lout,*) ' ENTERING MAP '
-+ei
-+if .not.cr
-      write(*,*) ' ENTERING MAP '
-+ei
-+if cr
       write(lout,*) 'INITIAL COORDINATES'
-+ei
-+if .not.cr
-      write(*,*) 'INITIAL COORDINATES'
-+ei
-+if cr
       write(lout,*) dare(x(1)),dare(y(1))
-+ei
-+if .not.cr
-      write(*,*) dare(x(1)),dare(y(1))
-+ei
-+if cr
       write(lout,*) dare(x(2)),dare(y(2))
-+ei
-+if .not.cr
-      write(*,*) dare(x(2)),dare(y(2))
-+ei
-+if cr
       write(lout,*) dare(sigmda),dare(dpda)
-+ei
-+if .not.cr
-      write(*,*) dare(sigmda),dare(dpda)
-+ei
       if(ncor.gt.0) then
         do 20 i=1,ncor
           do 20 ii=1,iu
@@ -19622,12 +19597,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    70     ix=ix-nblo
           if(abs(dare(x(1))).gt.aint(aper(1)).or.                       &
      &abs(dare(x(2))).gt.aint(aper(2))) then
-+if cr
             write(lout,10000) j,numx,i,dare(x(1)),aper(1),dare(x(2)),
-+ei
-+if .not.cr
-            write(*,10000) j,numx,i,dare(x(1)),aper(1),dare(x(2)),      &
-+ei
      &aper(2),ix, kz(ix),bez(ix)
             goto 520
           endif
@@ -19648,12 +19618,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call dapri(sigmda,19)
             call dapri(dpda1,19)
             if(ncor.gt.0) then
-+if cr
               write(lout,*) ' WARNING: in the 5*6 mode no extra ',
-+ei
-+if .not.cr
-              write(*,*) ' WARNING: in the 5*6 mode no extra ',         &
-+ei
      &'parameters allowed'
             endif
             rewind 19
@@ -20373,59 +20338,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         do 510 i11=1,ncor
   510   call dapri(smida(i11),18)
       endif
-+if cr
       write(lout,*) 'END COORDINATES'
-+ei
-+if .not.cr
-      write(*,*) 'END COORDINATES'
-+ei
-+if cr
       write(lout,*) dare(x(1)),dare(y(1))
-+ei
-+if .not.cr
-      write(*,*) dare(x(1)),dare(y(1))
-+ei
-+if cr
       write(lout,*) dare(x(2)),dare(y(2))
-+ei
-+if .not.cr
-      write(*,*) dare(x(2)),dare(y(2))
-+ei
-+if cr
       write(lout,*) dare(sigmda),dare(dpda)
-+ei
-+if .not.cr
-      write(*,*) dare(sigmda),dare(dpda)
-+ei
+      
       write(12,*) dare(x(1))
       write(12,*) dare(y(1))
       write(12,*) dare(x(2))
       write(12,*) dare(y(2))
       write(12,*) dare(sigmda)
       write(12,*) dare(dpda)
-+if cr
+
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
+      
   520 continue
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
       call timex(time2)
 !     time=time2-time1
-+if cr
       write(lout,10020) time1-time0
-+ei
-+if .not.cr
-      write(*,10020) time1-time0
-+ei
-+if cr
       write(lout,10030) nord,time2-time1
-+ei
-+if .not.cr
-      write(*,10030) nord,time2-time1
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
@@ -20744,36 +20677,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     endif
 +ei
         if(ilinc.eq.1.and.i.eq.1) then
-+if cr
           write(lout,10000) nd2
-+ei
-+if .not.cr
-          write(*,10000) nd2
-+ei
-+if cr
           if(iprint.eq.1) write(lout,10130)
-+ei
-+if .not.cr
-          if(iprint.eq.1) write(*,10130)
-+ei
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
-+if cr
           write(lout,10020)
-+ei
-+if .not.cr
-          write(*,10020)
-+ei
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
           tl=zero
 +ca umlalid
         endif
@@ -20978,12 +20886,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         if(abs(dare(x(1))).gt.aint(aper(1)).or.                         &
      &abs(dare(x(2))).gt.aint(aper(2))) then
-+if cr
           write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,
-+ei
-+if .not.cr
-          write(*,10120) j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,  &
-+ei
      &kz(ix),bez(ix)
           call prror(97)
         endif
@@ -21017,12 +20920,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           wire_num_aux = wire_num_aux+1
 ! is the error number correct?
           if(wire_num_aux.gt.wire_max) then
-+if cr
                write(lout,
-+ei
-+if .not.cr
-               write(*,
-+ei
      &*) 'ERROR: maximum number of wires exceeded! Number of wires ='//
      &'wire_num_aux = ',wire_num_aux,' > ',wire_max,' = wire_max'
             call prror(-1)
@@ -21752,12 +21650,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(iqmodc.eq.1.or.iqmodc.eq.3) then
         call gettura(wxys,rrad)
         wxys(3)=abs(wxys(3))
-+if cr
         write(lout,*) (wxys(i),i=1,ndimf)
-+ei
-+if .not.cr
-        write(*,*) (wxys(i),i=1,ndimf)
-+ei
         do i=1,nd2
           jj(i)=1
           do ii=1,nd2
@@ -21908,9 +21801,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -21969,12 +21860,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       NNORM_=c1m7/chi
 
       if (abs(wire_flagco(ix)).ne.1) then
-+if cr
         write(lout,
-+ei
-+if .not.cr
-        write(*,
-+ei
      &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
      &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
      &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
@@ -22133,12 +22019,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       betr0=sqrt(one-(pma/e0)**2)
-+if cr
       write(lout,*) ' REENTERING MAP '
-+ei
-+if .not.cr
-      write(*,*) ' REENTERING MAP '
-+ei
       call davar(x(1),zero,1)
       call davar(yp(1),zero,2)
       call davar(x(2),zero,3)
@@ -22176,59 +22057,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(nvar2.eq.5) call dapri(dpda1,18)
       if(nvar2.eq.6) call dapri(sigmda,18)
       if(nvar2.eq.6) call dapri(dpda1,18)
-+if cr
+      
       write(lout,*) 'END COORDINATES'
-+ei
-+if .not.cr
-      write(*,*) 'END COORDINATES'
-+ei
-+if cr
       write(lout,*) dare(x(1)),dare(y(1))
-+ei
-+if .not.cr
-      write(*,*) dare(x(1)),dare(y(1))
-+ei
-+if cr
       write(lout,*) dare(x(2)),dare(y(2))
-+ei
-+if .not.cr
-      write(*,*) dare(x(2)),dare(y(2))
-+ei
-+if cr
       write(lout,*) dare(sigmda),dare(dpda)
-+ei
-+if .not.cr
-      write(*,*) dare(sigmda),dare(dpda)
-+ei
+      
       write(12,*) dare(x(1))
       write(12,*) dare(y(1))
       write(12,*) dare(x(2))
       write(12,*) dare(y(2))
       write(12,*) dare(sigmda)
       write(12,*) dare(dpda)
-+if cr
+      
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
       call timex(time2)
 !     time=time2-time1
-+if cr
       write(lout,10020) time1-time0
-+ei
-+if .not.cr
-      write(*,10020) time1-time0
-+ei
-+if cr
       write(lout,10030) nord,time2-time1
-+ei
-+if .not.cr
-      write(*,10030) nord,time2-time1
-+ei
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
      &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
@@ -22305,9 +22154,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !   WX, WY    (REAL)    FUNCTION RESULT.                               *
 !----------------------------------------------------------------------*
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22352,23 +22199,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  X=XX ;
 *FOX  Y=YY ;
       if(dare(x).lt.zero) then
-+if cr
         write(lout,*)                                                   &
      &' Problem in DA complex error function: dare(x) < 0'
-+ei
-+if .not.cr
-        write(*,*) ' Problem in DA complex error function: dare(x) < 0'
-+ei
 *FOX    X=-X ;
       endif
       if(dare(y).lt.zero) then
-+if cr
         write(lout,*)                                                   &
      &' Problem in DA complex error function: dare(y) < 0'
-+ei
-+if .not.cr
-        write(*,*) ' Problem in DA complex error function: dare(y) < 0'
-+ei
 *FOX    Y=-Y ;
       endif
       if(dare(y).lt.ylim.and.dare(x).lt.xlim) then
@@ -24818,7 +24655,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejvl(ia),ejvl(ie)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
+          if(ierro.ne.0) write(lout,*)
+     &'Warning from maincr: fort.12 has ',                              &
      &'corrupted output probably due to lost particle: ',ia,            &
      &' or: ',ie
         endif
@@ -25219,9 +25057,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CHANGES FOR COLLIMATION MADE BY G. ROBERT-DEMOLAIZE, October 29th, 2004
 !--------------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -25441,12 +25277,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(abs(r0).le.pieni.or.nmz.eq.0) then
           if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
             if ( dynk_isused(i) ) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &        "ERROR: Element of type 11 (bez=",bez(ix),
      &        ") is off in fort.2, but on in DYNK. Not implemented."
               call prror(-1)
@@ -25618,34 +25449,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.collimat
       if(idp.eq.0.or.ition.eq.0) then
 +ei
-+if cr
         write(lout,*) ''
         write(lout,*) 'Calling thin4d subroutine'
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*)    ''
-        write(*,*)    'Calling thin4d subroutine'
-        write(*,*)    ''
-+ei
         call thin4d(nthinerr)
       else
 +if collimat
         if (idp.eq.0.or.ition.eq.0) then
-+if cr
            write(lout,*) ""
            write(lout,*) "******* WARNING *******"
            write(lout,*) "Calling 6D tracking due to collimation!"
            write(lout,*) "Would normally have called thin4d"
            write(lout,*) ""
-+ei
-+if .not.cr
-           write(*,*)    ""
-           write(*,*)    "******* WARNING *******"
-           write(*,*)    "Calling 6D tracking due to collimation!"
-           write(*,*)    "Would normally have called thin4d"
-           write(*,*)    ""
-+ei
         endif
 +ei
 
@@ -25654,29 +25469,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
   310   continue
         if(abs(phas).ge.pieni) then
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thin6dua subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thin6dua subroutine'
-          write(*,*)    ''
-+ei
 
 +if collimat
           if (do_coll) then
-+if cr
             write(lout,*)
             write(lout,*) "ERROR"
             write(lout,*) "thin6dua not supported by collimation"
-+ei
-+if .not.cr
-            write(*,*)
-            write(*,*)    "ERROR"
-            write(*,*)    "thin6dua not supported by collimation"
-+ei
             STOP
           endif
 +ei
@@ -25685,7 +25486,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if collimat
       open(unit=outlun, file='colltrack.out')
 !
-+if cr
       write(lout,*) '         -------------------------------'
       write(lout,*)
       write(lout,*) '         Program      C O L L T R A C K '
@@ -25701,26 +25501,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*)
       write(lout,*) '         -------------------------------'
       write(lout,*) 'Collimation version of Sixtrack running... 08/2009'
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) '         -------------------------------'
-      write(*,*)
-      write(*,*) '          Program      C O L L T R A C K '
-      write(*,*)
-      write(*,*) '            R. Assmann           -    AB/ABP'
-      write(*,*) '            C. Bracco            -    AB/ABP'
-      write(*,*) '            V. Previtali         -    AB/ABP'
-      write(*,*) '            S. Redaelli          -    AB/OP'
-      write(*,*) '            G. Robert-Demolaize  -    BNL'
-      write(*,*) '            A. Rossi             -    AB/ABP'
-      write(*,*) '            T. Weiler            -    IEKP'
-      write(*,*) '                 CERN 2001 - 2009'
-      write(*,*)
-      write(*,*) '         -------------------------------'
-      write(*,*)
-      write(*,*)
-+ei
+
       write(outlun,*)
       write(outlun,*)
       write(outlun,*) '         -------------------------------'
@@ -25741,7 +25522,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(outlun,*)
       write(outlun,*)
 !
-+if cr
       write(lout,*) '                     R. Assmann, F. Schmidt, CERN'
       write(lout,*) '                           C. Bracco,        CERN'
       write(lout,*) '                           V. Previtali,     CERN'
@@ -25749,36 +25529,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) '                       G. Robert-Demolaize,  BNL'
       write(lout,*) '                           A. Rossi,         CERN'
       write(lout,*) '                           T. Weiler         IEKP'
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) 'Collimation version of Sixtrack running... 08/2009'
-      write(*,*)
-      write(*,*) '                     R. Assmann, F. Schmidt, CERN'
-      write(*,*) '                           C. Bracco,        CERN'
-      write(*,*) '                           V. Previtali,     CERN'
-      write(*,*) '                           S. Redaelli,      CERN'
-      write(*,*) '                       G. Robert-Demolaize,  BNL'
-      write(*,*) '                           A. Rossi,         CERN'
-      write(*,*) '                           T. Weiler         IEKP'
-+ei
-+if cr
+
       write(lout,*)
       write(lout,*) 'Generating particle distribution at FIRST element!'
       write(lout,*) 'Optical functions obtained from Sixtrack internal!'
       write(lout,*) 'Emittance and energy obtained from Sixtrack input!'
       write(lout,*)
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) 'Generating particle distribution at FIRST element!'
-      write(*,*) 'Optical functions obtained from Sixtrack internal!'
-      write(*,*) 'Emittance and energy obtained from Sixtrack input!'
-      write(*,*)
-      write(*,*)
-+ei
-+if cr
+      
       write(lout,*) 'Info: Betax0   [m]    ', tbetax(1)
       write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
       write(lout,*) 'Info: Alphax0         ', talphax(1)
@@ -25794,24 +25552,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'Info: E0       [MeV]  ', e0
       write(lout,*)
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*) 'Info: Betax0   [m]    ', tbetax(1)
-      write(*,*) 'Info: Betay0   [m]    ', tbetay(1)
-      write(*,*) 'Info: Alphax0         ', talphax(1)
-      write(*,*) 'Info: Alphay0         ', talphay(1)
-      write(*,*) 'Info: Orbitx0  [mm]   ', torbx(1)
-      write(*,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
-      write(*,*) 'Info: Orbity0  [mm]   ', torby(1)
-      write(*,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(*,*) 'Info: Emitx0_dist [um]', remitx_dist
-      write(*,*) 'Info: Emity0_dist [um]', remity_dist
-      write(*,*) 'Info: Emitx0_collgap [um]', remitx_collgap
-      write(*,*) 'Info: Emity0_collgap [um]', remity_collgap
-      write(*,*) 'Info: E0       [MeV]  ', e0
-      write(*,*)
-      write(*,*)
-+ei
 !
       myemitx0_dist = remitx_dist*1d-6
       myemity0_dist = remity_dist*1d-6
@@ -25827,47 +25567,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       if (myemitx0_dist.le.0.d0 .or. myemity0_dist.le.0.d0
      &.or. myemitx0_collgap.le.0.d0 .or. myemity0_collgap.le.0.d0) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)                                                      &
-+ei
      &       'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
-+if cr
         write(lout,*)"ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
-+ei
-+if .not.cr
-        write(*,*)   "ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      & "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
 
-+if cr
         write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
-+ei
-+if .not.cr
-        write(*,*)    "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
-+ei
      & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, ",
      & "THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
-+if cr
         write(lout,*) "ERR> EXAMPLE:"
-+ei
-+if .not.cr
-        write(*,*)    "ERR> EXAMPLE:"
-+ei
-+if cr
         write(lout,*) "2.5 2.5 3.5 3.5"
-+ei
-+if .not.cr
-        write(*,*)    "2.5 2.5 3.5 3.5"
-+ei
         call prror(-1)
       endif
 !
@@ -25889,7 +25599,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      NSIG_SEC=6.
       rselect=64
 !
-+if cr
       write(lout,*) 'INFO>  NLOOP     = ', nloop
       write(lout,*) 'INFO>  DO_THISDIS     = ', do_thisdis
       write(lout,*) 'INFO>  MYNEX     = ', mynex
@@ -25901,20 +25610,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
       write(lout,*) 'INFO>  RSELECT   = ', int(rselect)
       write(lout,*) 'INFO>  DO_COLL   = ', do_coll
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NLOOP     = ', nloop
-      write(*,*) 'INFO>  DO_THISDIS     = ', do_thisdis
-      write(*,*) 'INFO>  MYNEX     = ', mynex
-      write(*,*) 'INFO>  MYDEX     = ', mdex
-      write(*,*) 'INFO>  MYNEY     = ', myney
-      write(*,*) 'INFO>  MYDEY     = ', mdey
-      write(*,*) 'INFO>  FILENAME_DIS     = ', filename_dis
-      write(*,*) 'INFO>  ENERROR     = ', enerror
-      write(*,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
-      write(*,*) 'INFO>  RSELECT   = ', int(rselect)
-      write(*,*) 'INFO>  DO_COLL   = ', do_coll
-+ei
 !APRIL2005
 !+if cr
 !      write(lout,*) 'INFO>  NSIG_PRIM = ', nsig_prim
@@ -25928,13 +25623,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !+if .not.cr
 !      write(*,*) 'INFO>  NSIG_SEC  = ', nsig_sec
 !+ei
-+if cr
       write(lout,*) 'INFO>  DO_NSIG   = ', do_nsig
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  DO_NSIG   = ', do_nsig
-+ei
-+if cr
       write(lout,*) 'INFO>  NSIG_TCP3    = ', nsig_tcp3
       write(lout,*) 'INFO>  NSIG_TCSG3   = ', nsig_tcsg3
       write(lout,*) 'INFO>  NSIG_TCSM3   = ', nsig_tcsm3
@@ -25959,38 +25648,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
       write(lout,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
       write(lout,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NSIG_TCP3    = ', nsig_tcp3
-      write(*,*) 'INFO>  NSIG_TCSG3   = ', nsig_tcsg3
-      write(*,*) 'INFO>  NSIG_TCSM3   = ', nsig_tcsm3
-      write(*,*) 'INFO>  NSIG_TCLA3   = ', nsig_tcla3
-      write(*,*) 'INFO>  NSIG_TCP7    = ', nsig_tcp7
-      write(*,*) 'INFO>  NSIG_TCSG7   = ', nsig_tcsg7
-      write(*,*) 'INFO>  NSIG_TCSM7   = ', nsig_tcsm7
-      write(*,*) 'INFO>  NSIG_TCLA7   = ', nsig_tcla7
-      write(*,*) 'INFO>  NSIG_TCLP    = ', nsig_tclp
-      write(*,*) 'INFO>  NSIG_TCLI    = ', nsig_tcli
-!      write(*,*) 'INFO>  NSIG_TCTH    = ', nsig_tcth
-!      write(*,*) 'INFO>  NSIG_TCTV    = ', nsig_tctv
-      write(*,*) 'INFO>  NSIG_TCTH1   = ', nsig_tcth1
-      write(*,*) 'INFO>  NSIG_TCTV1   = ', nsig_tctv1
-      write(*,*) 'INFO>  NSIG_TCTH2   = ', nsig_tcth2
-      write(*,*) 'INFO>  NSIG_TCTV2   = ', nsig_tctv2
-      write(*,*) 'INFO>  NSIG_TCTH5   = ', nsig_tcth5
-      write(*,*) 'INFO>  NSIG_TCTV5   = ', nsig_tctv5
-      write(*,*) 'INFO>  NSIG_TCTH8   = ', nsig_tcth8
-      write(*,*) 'INFO>  NSIG_TCTV8   = ', nsig_tctv8
-!
-      write(*,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
-      write(*,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
-      write(*,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
-      write(*,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
-      write(*,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
-+ei
+      write(lout,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
+      write(lout,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
 !APRIL2005
 !SEPT2005
-+if cr
       write(lout,*)
       write(lout,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
       write(lout,*)
@@ -26016,45 +25677,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  FIT2_6   = ',fit2_6
       write(lout,*) 'INFO>  SCALING2 = ',ssf2
       write(lout,*)
-+ei
-!
-+if .not.cr
-      write(*,*)
-      write(*,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
-      write(*,*)
-      write(*,*) 'INFO>  N_SLICES    = ', n_slices
-      write(*,*) 'INFO>  SMIN_SLICES = ',smin_slices
-      write(*,*) 'INFO>  SMAX_SLICES = ',smax_slices
-      write(*,*) 'INFO>  RECENTER1   = ',recenter1
-      write(*,*) 'INFO>  RECENTER2   = ',recenter2
-      write(*,*)
-      write(*,*) 'INFO>  FIT1_1   = ',fit1_1
-      write(*,*) 'INFO>  FIT1_2   = ',fit1_2
-      write(*,*) 'INFO>  FIT1_3   = ',fit1_3
-      write(*,*) 'INFO>  FIT1_4   = ',fit1_4
-      write(*,*) 'INFO>  FIT1_5   = ',fit1_5
-      write(*,*) 'INFO>  FIT1_6   = ',fit1_6
-      write(*,*) 'INFO>  SCALING1 = ',ssf1
-      write(*,*)
-      write(*,*) 'INFO>  FIT2_1   = ',fit2_1
-      write(*,*) 'INFO>  FIT2_2   = ',fit2_2
-      write(*,*) 'INFO>  FIT2_3   = ',fit2_3
-      write(*,*) 'INFO>  FIT2_4   = ',fit2_4
-      write(*,*) 'INFO>  FIT2_5   = ',fit2_5
-      write(*,*) 'INFO>  FIT2_6   = ',fit2_6
-      write(*,*) 'INFO>  SCALING2 = ',ssf2
-      write(*,*)
-+ei
+
 !SEPT2005
 !
 ! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
 !
-+if cr
       write(lout,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
       write(lout,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
       write(lout,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
       write(lout,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
-
       write(lout,*)
       write(lout,*) 'INFO>  DO_SELECT         = ', do_select
       write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
@@ -26075,6 +25706,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  C_RMSTILT_SEC     = ', c_rmstilt_sec
       write(lout,*) 'INFO>  C_SYSTILT_PRIM    = ', c_systilt_prim
       write(lout,*) 'INFO>  C_SYSTILT_SEC     = ', c_systilt_sec
+      write(lout,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
+      write(lout,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
+      write(lout,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
+      write(lout,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
+      write(lout,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
+      write(lout,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
+      write(lout,*) 'INFO>  DO_MINGAP          = ', do_mingap
       write(lout,*)
       write(lout,*) 'INFO>  RADIAL            = ', radial
       write(lout,*) 'INFO>  NR                = ', nr
@@ -26087,6 +25725,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*)
       write(lout,*) 'INFO>  IPENCIL           = ', ipencil
       write(lout,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
+      write(lout,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
+      write(lout,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
+      write(lout,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
       write(lout,*)
       write(lout,*) 'INFO>  COLL_DB           = ', coll_db
       write(lout,*) 'INFO>  IBEAM             = ', ibeam
@@ -26101,84 +25742,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*)
       write(lout,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
-      write(*,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
-      write(*,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
-      write(*,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
-      write(*,*)
-      write(*,*) 'INFO>  DO_SELECT         = ', do_select
-      write(*,*) 'INFO>  DO_NOMINAL        = ', do_nominal
-      write(*,*) 'INFO>  RND_SEED          = ', rnd_seed
-      write(*,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
-      write(*,*) 'INFO>  NAME_SEL          = ', name_sel
-      write(*,*) 'INFO>  DO_ONESIDE        = ', do_oneside
-      write(*,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
-      write(*,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
-      write(*,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
-      write(*,*)
-      write(*,*) 'INFO>  XBEAT             = ', xbeat
-      write(*,*) 'INFO>  XBEATPHASE        = ', xbeatphase
-      write(*,*) 'INFO>  YBEAT             = ', ybeat
-      write(*,*) 'INFO>  YBEATPHASE        = ', ybeatphase
-      write(*,*)
-      write(*,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
-      write(*,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
-      write(*,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
-      write(*,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
-      write(*,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
-      write(*,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
-      write(*,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
-      write(*,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
-      write(*,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
-      write(*,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
-      write(*,*) 'INFO>  DO_MINGAP          = ', do_mingap
-      write(*,*)
-      write(*,*) 'INFO>  RADIAL            = ', radial
-      write(*,*) 'INFO>  NR                = ', nr
-      write(*,*) 'INFO>  NDR               = ', ndr
-      write(*,*)
-      write(*,*) 'INFO>  DRIFTSX           = ', driftsx
-      write(*,*) 'INFO>  DRIFTSY           = ', driftsy
-      write(*,*) 'INFO>  CUT_INPUT         = ', cut_input
-      write(*,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
-      write(*,*)
-      write(*,*) 'INFO>  IPENCIL           = ', ipencil
-      write(*,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
-      write(*,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
-      write(*,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
-      write(*,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
-      write(*,*)
-      write(*,*) 'INFO>  COLL_DB           = ', coll_db
-      write(*,*) 'INFO>  IBEAM             = ', ibeam
-      write(*,*)
-      write(*,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
-      write(*,*)
-      write(*,*) 'INFO>  CERN              = ', cern
-      write(*,*)
-      write(*,*) 'INFO>  CASTORDIR     = ', castordir
-      write(*,*)
-      write(*,*) 'INFO>  JOBNUMBER     = ', jobnumber
-      write(*,*)
-      write(*,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
-      write(*,*)
-+ei
 !
       mynp = nloop*napx
 !
       napx00 = napx
 !
-+if cr
       write(lout,*) 'INFO>  NAPX     = ', napx, mynp
       write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
       write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NAPX     = ', napx, mynp
-      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
-      write(*,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
-+ei
 !
 ! HERE WE SET THE MARKER FOR INITIALIZATION:
 !
@@ -26196,13 +25767,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         rnd_k1  = 0
         rnd_k2  = 0
         call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
         write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
-+ei
 !      ENDIF
 !GRD-SR, 09-02-2006
 !Call distribution routines only if collimation block is in fort.3, otherwise
@@ -26239,12 +25805,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           myx, myxp, myy, myyp, myp, mys,
      &           enerror, bunchlength )
          else
+            write(lout,*) 'INFO> review your distribution parameters !!'
 +if cr
-      write(lout,*) 'INFO> review your distribution parameters !!'
       call abend('                                                  ')
 +ei
 +if .not.cr
-            write(*,*) 'INFO> review your distribution parameters !!'
             stop
 +ei
          endif
@@ -26257,14 +25822,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  Reset distribution for pencil beam
 !
        if (ipencil.gt.0) then
-+if cr
          write(lout,*) 'WARN>  Distributions reset to pencil beam!'
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*) 'WARN>  Distributions reset to pencil beam!'
-         write(*,*)
-+ei
          write(outlun,*) 'WARN>  Distributions reset to pencil beam!'
          do j = 1, mynp
             myx(j)  = 0d0
@@ -26354,12 +25913,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !================================================================================
           do j = 1, int(mynp/napx00)
 !
-+if cr
             write(lout,*) 'Sample number ', j, int(mynp/napx00)
-+ei
-+if .not.cr
-            write(*,*) 'Sample number ', j, int(mynp/napx00)
-+ei
 !GRD
             samplenumber=j
 !
@@ -26625,17 +26179,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !FOR FAST TRACKING CHECKS
 !       open(unit=999,file='checkturns.dat')
 !
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thin6d subroutine'
           write(lout,*) ''
-
-+ei
-+if .not.cr
-          write(*,*) ''
-          write(*,*) 'Calling thin6d subroutine'
-          write(*,*) ''
-+ei
           call thin6d(nthinerr)
 !
 !++  Save particle offsets to a file
@@ -26698,98 +26244,38 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !UPGRADE JANUARY 2005
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !
 !----
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'INFO>  Number of impacts             : ',          &
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of impacts             : ',             &
-+ei
 !     &N_TOT_ABSORBED+NSURVIVE
      &n_tot_absorbed+nsurvive_end
-+if cr
       write(lout,*) 'INFO>  Number of impacts at selected : ',
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of impacts at selected : ',             &
-+ei
      &num_selhit
-+if cr
       write(lout,*) 'INFO>  Number of surviving particles : ',          &
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of surviving particles : ',             &
-+ei
 !     &NSURVIVE
      &nsurvive_end
-+if cr
       write(lout,*) 'INFO>  Number of absorbed particles  : ',
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of absorbed particles  : ',             &
-+ei
      &n_tot_absorbed
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !GRD UPGRADE JANUARY 2005
       if(n_tot_absorbed.ne.0) then                                       !hr08
 !     if(n_tot_absorbed.ne.0) then
 !
-+if cr
       write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',
-+ei
-+if .not.cr
-      write(*,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',                &
-+ei
      &(neff(5)/dble(n_tot_absorbed))/1d-4                               !hr08
-+if cr
       write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',
-+ei
-+if .not.cr
-      write(*,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',                &
-+ei
      &(neff(9)/dble(n_tot_absorbed))/1d-4                                !hr08
-+if cr
       write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',
-+ei
-+if .not.cr
-      write(*,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',                &
-+ei
      &((neff(9)-neff(19))/dble(n_tot_absorbed))/1d-4                     !hr08
 !
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !
 !UPGRADE JANUARY 2005
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !
 !------------------------------------------------------------------------
@@ -26797,7 +26283,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       inquire( unit=1991, opened=lopen)
       if (lopen) then
-	  write(*,*) "ERROR in efficiency.dat: FILE 1991 already taken"
+         write(lout,*)
+     &        "ERROR in efficiency.dat: FILE 1991 already taken"
 	  call prror(-1)
       endif
       open(unit=1991, file='efficiency.dat')
@@ -26815,12 +26302,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &neff(k), n_tot_absorbed
       end do
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !END OF UPGRADE
       close(1991)
@@ -26829,7 +26311,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 	inquire( unit=1992, opened=lopen )
 	if (lopen) then
-	  write(*,*)"ERROR in efficiency_dpop.dat:FILE 1992 already taken"
+           write(lout,*)
+     &          "ERROR in efficiency_dpop.dat: FILE 1992 already taken"
 	  call prror(-1)
 	endif
       open(unit=1992, file='efficiency_dpop.dat')
@@ -26843,12 +26326,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &neffdpop(k), n_tot_absorbed, npartdpop(k)
       end do
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !END OF UPGRADE
       close(1992)
@@ -26857,7 +26335,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       inquire( unit=1993, opened=lopen )
       if (lopen) then
-	  write(*,*)"ERROR in efficiency_2d.dat:FILE 1993 already taken"
+         write(lout,*)
+     &        "ERROR in efficiency_2d.dat:FILE 1993 already taken"
 	  call prror(-1)
       endif
       open(unit=1993, file='efficiency_2d.dat')
@@ -26872,12 +26351,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 	end do
       end do
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !END OF UPGRADE
       close(1993)
@@ -27045,16 +26519,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ei ! endif collimat
 +if .not.collimat
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thin6d subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thin6d subroutine'
-          write(*,*)    ''
-+ei
           call thin6d(nthinerr)
         endif
       endif
@@ -42105,7 +41572,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                if (ii .ne. t) then
                   write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
                   write (lout,*)"DYNK> Unexpected when reading file '"//
-     &                 trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)//"'"
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                   write (lout,*)"DYNK> ii=",ii,"t=",t
                   call prror(51)
                endif
