@@ -2206,12 +2206,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                 endif
 ! include bends at entrance and exit of elens
               case default
-+if cr
                write(lout,*) 'ERROR in deck kickelens: elens_type='
-+ei
-+if .not.cr
-               write(*,*) 'ERROR in deck kickelens: elens_type='
-+ei
      &,elens_type(ix),' not recognized. Possible values for type are: ',
      &'1.'
                 call prror(-1) 
@@ -6294,12 +6289,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
              backspace (10,iostat=ierro)
 +ei
              call bnlrdis(20000)
-+if cr
                write(lout,*) 'Sample number 1'
-+ei
-+if .not.cr
-               write(*,*) 'Sample number 1'
-+ei
 !TEST
 !ERIC              napx=napx00
                do j = 1, napx
@@ -6409,12 +6399,7 @@ cc2008
 +ei
 !GRD-042008
           if(mod(n,nwr(3)).eq.0) then
-+if cr
             write(lout,*) 'dumping stats at turn number ',n
-+ei
-+if .not.cr
-            write(*,*) 'dumping stats at turn number ',n
-+ei
 +if crlibm
 ! Use dtostr for correct binary decimal conversion
            l1=1
@@ -6757,45 +6742,25 @@ cc2008
           nnumxv(nlostp(j))=numx
 +cd lost3a
           if(mod(nlostp(j),2).eq.one) then
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j))*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j))*izu0,               &
-+ei
      &dp0v(nlostp(j)),numxv(nlostp(j)),abs(xvl(1,nlostp(j))),           &
      &aperv(nlostp(j),1),abs(xvl(2,nlostp(j))),                         &
      &aperv(nlostp(j),2)
           else
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j)-1)*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j)-1)*izu0,             &
-+ei
      &dp0v(nlostp(j)-1),numxv(nlostp(j)),abs(xvl(1,nlostp(j))),         &
      &aperv(nlostp(j),1),abs(xvl(2,nlostp(j))),                         &
      &aperv(nlostp(j),2)
           endif
 +cd lost3b
           if(mod(nlostp(j),2).eq.one) then
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j))*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j))*izu0,               &
-+ei
      &dp0v(nlostp(j)),numxv(nlostp(j)),iv(nlostp(j)),                   &
      &abs(xvl(1,nlostp(j))),aperv(nlostp(j),1),                         &
      &abs(xvl(2,nlostp(j))),aperv(nlostp(j),2),                         &
      &ixv(nlostp(j)),kz(ixv(nlostp(j))),bez(ixv(nlostp(j)))
           else
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j)-1)*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j)-1)*izu0,             &
-+ei
      &dp0v(nlostp(j)-1),numxv(nlostp(j)),iv(nlostp(j)),                 &
      &abs(xvl(1,nlostp(j))),aperv(nlostp(j),1),                         &
      &abs(xvl(2,nlostp(j))),aperv(nlostp(j),2),                         &
@@ -6853,54 +6818,14 @@ cc2008
         endif
    30 continue
       if(lnapx.eq.0) then
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
-+if cr
         write(lout,*) '***********************'
-+ei
-+if .not.cr
-        write(*,*) '***********************'
-+ei
-+if cr
         write(lout,*) '** ALL PARTICLE LOST **'
-+ei
-+if .not.cr
-        write(*,*) '** ALL PARTICLE LOST **'
-+ei
-+if cr
         write(lout,*) '**   PROGRAM STOPS   **'
-+ei
-+if .not.cr
-        write(*,*) '**   PROGRAM STOPS   **'
-+ei
-+if cr
         write(lout,*) '***********************'
-+ei
-+if .not.cr
-        write(*,*) '***********************'
-+ei
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
         nthinerr=3001
         nnuml=numl
         return
@@ -7111,93 +7036,28 @@ cc2008
           if(iwrite.eq.1) then
             iii=i
             if(typ(:8).eq.'START   ') iii=0
-+if cr
             write(lout,10030) iii,typ(:8),tl,phi(1),b1(1),al1(1),g1(1),
-+ei
-+if .not.cr
-            write(*,10030) iii,typ(:8),tl,phi(1),b1(1),al1(1),g1(1),    &
-+ei
      &d(1),dp(1),c(1),cp(1)
             if(ndimf.eq.3) then
-+if cr
               write(lout,10040) b2(1),al2(1),g2(1)
-+ei
-+if .not.cr
-              write(*,10040) b2(1),al2(1),g2(1)
-+ei
-+if cr
               write(lout,10050) typ(9:16),b3(1),al3(1),g3(1)
-+ei
-+if .not.cr
-              write(*,10050) typ(9:16),b3(1),al3(1),g3(1)
-+ei
             else
-+if cr
               write(lout,10055) typ(9:16),b2(1),al2(1),g2(1)
-+ei
-+if .not.cr
-              write(*,10055) typ(9:16),b2(1),al2(1),g2(1)
-+ei
             endif
-+if cr
             write(lout,10060)
-+ei
-+if .not.cr
-            write(*,10060)
-+ei
-+if cr
             write(lout,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),&
-+ei
-+if .not.cr
-            write(*,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),   &
-+ei
      &cp(2)
-+if cr
             write(lout,10080) b2(2),al2(2),g2(2)
-+ei
-+if .not.cr
-            write(*,10080) b2(2),al2(2),g2(2)
-+ei
             if(ndimf.eq.3) then
-+if cr
               write(lout,10090) b3(2),al3(2),g3(2)
-+ei
-+if .not.cr
-              write(*,10090) b3(2),al3(2),g3(2)
-+ei
-+if cr
               write(lout,10060)
-+ei
-+if .not.cr
-              write(*,10060)
-+ei
-+if cr
               write(lout,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),  &
      &c(3),
-+ei
-+if .not.cr
-              write(*,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),c(3),&
-+ei
      &cp(3)
-+if cr
               write(lout,10080) b2(3),al2(3),g2(3)
-+ei
-+if .not.cr
-              write(*,10080) b2(3),al2(3),g2(3)
-+ei
-+if cr
               write(lout,10040) b3(3),al3(3),g3(3)
-+ei
-+if .not.cr
-              write(*,10040) b3(3),al3(3),g3(3)
-+ei
             endif
-+if cr
             write(lout,10010)
-+ei
-+if .not.cr
-            write(*,10010)
-+ei
           endif
 +cd umlalid1
           ibb=ibb+1
@@ -7504,12 +7364,7 @@ cc2008
       cur = wire_current(ix)
 
       if (abs(wire_flagco(ix)).ne.1) then
-+if cr
         write(lout,
-+ei
-+if .not.cr
-        write(*,
-+ei
      &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
      &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
      &'be either 1 or -1! Did you define all wires in the WIRE block?',
@@ -8925,12 +8780,7 @@ cc2008
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
 +if .not.datamods
       subroutine nodatamods
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
      &     "Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
 +ei
@@ -8953,34 +8803,22 @@ cc2008
       integer, intent(in) :: npart,nele,nblo
       integer stat
       integer i1,i2,i3,i4,i
-+if cr
 +ca crcoall
-+ei
 +ca parnum
 
 +if .not.vvector
-+if cr
       write(lout,*) "ERROR: DATAMODS requires VVECTOR!"
-+ei
-+if .not.cr
-      write(*,*)    "ERROR: DATAMODS requires VVECTOR!"
-+ei
       call prror(-1)
 +ei      
       
-      write(*,*) "ALLOCATE_THICKARRAYS: npart/nele/nblo=",
+      write(lout,*) "ALLOCATE_THICKARRAYS: npart/nele/nblo=",
      &npart,nele,nblo
       
       allocate(al(6,2,npart,nele), as(6,2,npart,nele),
      &     ekv(npart,nele),
      &     hv(6,2,npart,nblo), bl1v(6,2,npart,nblo), STAT = stat)
       if (stat.ne.0) then
-+if cr
          write(lout,*) "ERROR in allocate_thickarrays(); stat=",stat
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in allocate_thickarrays(): stat=",stat
-+ei
          call prror(-1)
       endif
 
@@ -9348,30 +9186,10 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES ON THE EXIT FILE
 !-----------------------------------------------------------------------
-+if cr
   130 write(lout,10000)
-+ei
-+if .not.cr
-  130 write(*,10000)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10020) jeltot,jaord,jpord
-+ei
-+if .not.cr
-      write(*,10020) jeltot,jaord,jpord
-+ei
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
 !-----------------------------------------------------------------------
       nrel=2
       nconf=jeltot-2
@@ -9444,12 +9262,7 @@ cc2008
 !-----------------------------------------------------------------------
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10040) ifail
-+ei
-+if .not.cr
-          write(*,10040) ifail
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -9461,12 +9274,7 @@ cc2008
 !-----------------------------------------------------------------------
         do 200 jsex=1,jeltot
           sex(jsex)=x(jsex)
-+if cr
           write(lout,10050) coel(jsex),sex(jsex)
-+ei
-+if .not.cr
-          write(*,10050) coel(jsex),sex(jsex)
-+ei
   200   continue
 !-----------------------------------------------------------------------
 !---- COMPUTES THE NEW HAMILTONIAN IN DP/P AFTER THE CORRECTIONS
@@ -9476,42 +9284,12 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUES OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10060) jord
-+ei
-+if .not.cr
-          write(*,10060) jord
-+ei
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
-+if cr
           write(lout,10080) hda(1,1,jord,0),hda(0,1,jord,0)
-+ei
-+if .not.cr
-          write(*,10080) hda(1,1,jord,0),hda(0,1,jord,0)
-+ei
-+if cr
           write(lout,10090)
-+ei
-+if .not.cr
-          write(*,10090)
-+ei
-+if cr
           write(lout,10080) ham(1),ham(0)
-+ei
-+if .not.cr
-          write(*,10080) ham(1),ham(0)
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   210   continue
 !-----------------------------------------------------------------------
@@ -9547,42 +9325,17 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUE OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10110) jord
-+ei
-+if .not.cr
-          write(*,10110) jord
-+ei
-+if cr
           write(lout,10120)
-+ei
-+if .not.cr
-          write(*,10120)
-+ei
 !-----------------------------------------------------------------------
           do 220 jcomp=0,jord
 !-----------------------------------------------------------------------
-+if cr
             write(lout,10130)jcomp,jord-jcomp,hda(jcomp,jord,0,0),jcomp,
-+ei
-+if .not.cr
-            write(*,10130) jcomp,jord-jcomp,hda(jcomp,jord,0,0),jcomp,  &
-+ei
      &jord-jcomp,ham(jcomp)
 !-----------------------------------------------------------------------
   220     continue
-+if cr
           write(lout,10140) jord-1,chib,jord-1,chia
-+ei
-+if .not.cr
-          write(*,10140) jord-1,chib,jord-1,chia
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   230   continue
 !-----------------------------------------------------------------------
@@ -9729,12 +9482,7 @@ cc2008
           point=point+ind(j)*3**(j-1)
    20   continue
         if(point.gt.4000) then
-+if cr
           write(lout,10000)
-+ei
-+if .not.cr
-          write(*,10000)
-+ei
           call closeUnits
 +if cr
       call abend('Problem with data in fort.23')
@@ -10375,30 +10123,10 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES ON THE EXIT FILE
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10020) jeltot,nordm,nordp,delta,weig1,weig2,value
-+ei
-+if .not.cr
-      write(*,10020) jeltot,nordm,nordp,delta,weig1,weig2,value
-+ei
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
 !-----------------------------------------------------------------------
       do 210 jconf=1,jeltot-2
 !-----------------------------------------------------------------------
@@ -10458,12 +10186,7 @@ cc2008
 !-----------------------------------------------------------------------
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10040) ifail
-+ei
-+if .not.cr
-          write(*,10040) ifail
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -10475,12 +10198,7 @@ cc2008
 !-----------------------------------------------------------------------
         do 170 jsex=1,jeltot
           sex(jsex)=x(jsex)
-+if cr
           write(lout,10050) coel(jsex),sex(jsex)
-+ei
-+if .not.cr
-          write(*,10050) coel(jsex),sex(jsex)
-+ei
   170   continue
 !-----------------------------------------------------------------------
 !---- COMPUTES THE NEW HAMILTONIAN IN DP/P AFTER THE CORRECTIONS
@@ -10493,42 +10211,12 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUES OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10060) jord
-+ei
-+if .not.cr
-          write(*,10060) jord
-+ei
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
-+if cr
           write(lout,10080) hdp(1,jord,0),hdp(0,jord,0)
-+ei
-+if .not.cr
-          write(*,10080) hdp(1,jord,0),hdp(0,jord,0)
-+ei
-+if cr
           write(lout,10090)
-+ei
-+if .not.cr
-          write(*,10090)
-+ei
-+if cr
           write(lout,10080) hamp(1),hamp(0)
-+ei
-+if .not.cr
-          write(*,10080) hamp(1),hamp(0)
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   180   continue
 !-----------------------------------------------------------------------
@@ -10568,42 +10256,17 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUE OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10110) jord
-+ei
-+if .not.cr
-          write(*,10110) jord
-+ei
-+if cr
           write(lout,10120)
-+ei
-+if .not.cr
-          write(*,10120)
-+ei
 !-----------------------------------------------------------------------
           do 190 jcomp=0,jord
 !-----------------------------------------------------------------------
-+if cr
             write(lout,10130) jcomp,jord-jcomp,hda(jcomp,jord,0), jcomp,
-+ei
-+if .not.cr
-            write(*,10130) jcomp,jord-jcomp,hda(jcomp,jord,0), jcomp,   &
-+ei
      &jord-jcomp,hama(jcomp)
 !-----------------------------------------------------------------------
   190     continue
-+if cr
           write(lout,10140) jord-1,chib,jord-1,chia
-+ei
-+if .not.cr
-          write(*,10140) jord-1,chib,jord-1,chia
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   200   continue
 !-----------------------------------------------------------------------
@@ -10741,12 +10404,7 @@ cc2008
           point=point+ind(j)*(nordp+1)**(j-1)
    20   continue
         if(point.gt.8000) then
-+if cr
           write(lout,10000)
-+ei
-+if .not.cr
-          write(*,10000)
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -10768,12 +10426,7 @@ cc2008
           point=point+ind(j)*(nordp+1)**(j-1)
    30   continue
         if(point.gt.8000) then
-+if cr
           write(lout,10000)
-+ei
-+if .not.cr
-          write(*,10000)
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -18076,6 +17729,7 @@ c$$$         endif
 +if crlibm
       subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
       implicit none
++ca crcoall
       integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
       character*(*) chars
       character*(*) fields(*)
@@ -18106,7 +17760,7 @@ c$$$         endif
             do j=1,nf
               l=len(fields(j))
               localstr=fields(j)(1:l)
-              write(*,*) 'splitfld:'//localstr(1:30)//':'
+              write(lout,*) 'splitfld:'//localstr(1:30)//':'
             enddo
             errno=2
             call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
@@ -18143,7 +17797,7 @@ c$$$         endif
       do j=1,nf
         l=len(fields(j)) 
         localstr=fields(j)(1:l)
-        write(*,*) 'splitfld:'//localstr//':'
+        write(lout,*) 'splitfld:'//localstr//':'
       enddo
       call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       end
@@ -18161,27 +17815,16 @@ c$$$         endif
       endif
       return
       end
+      
       subroutine rounderr(errno,fields,f,value)
       implicit none
-+if cr
 +ca crcoall
-+ei
       integer nchars,nofields
       integer errno,nfields,f,l
       character*(*) fields(*)
       character*999 localstr
       double precision value
-+if .not.cr
-      write (*,10000)
-      write (*,*) 'Data Input Error (probably in subroutine daten)'
-      write (*,*) 'Overfow/Underflow in strtod()'
-      write (*,*) 'Errno: ',errno
-      l=len(fields(f))
-      localstr=fields(f)(1:l)
-      write (*,*) 'f:fieldf:',f,':'//localstr
-      write (*,*) 'Function fround (rounderr) returning:',value
-+ei
-+if cr
+
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
       write (lout,*) 'Overfow/Underflow in strtod()'
@@ -18190,41 +17833,19 @@ c$$$         endif
       localstr=fields(f)(1:l)
       write (lout,*) 'f:fieldf:',f,':'//localstr
       write (lout,*) 'Function fround (rounderr) returning:',value
-+ei
+      
       call abend('Treating this as FATAL!!!                         ')
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
       return
       end
+      
       subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       implicit none
-+if cr
 +ca crcoall
-+ei
       integer errno,nunit,lineno,nfields,nf,lf,l
       character* (*) chars
       character*999 localstr
-+if .not.cr
-      write (*,10000)
-      write (*,*) 'Data Input Error (probably in subroutine daten)'
-      write (*,*) 'Reading unit no (fort.)',nunit,' Line',lineno
-      l=len(chars)
-      localstr=chars(1:l)
-      write (*,*) 'Input line:'//localstr//':'
-      if (errno.eq.1) then
-        write (*,*)                                                     &
-     &  'Input string too long, exceeds',len(chars),' characters'
-      endif
-      if (errno.eq.2) then
-        write (*,*)                                                     &
-     &  'Field too long, exceeds',lf-1,' characters'
-      endif
-      if (errno.eq.3) then
-        write (*,*)                                                     &
-     &  'Too many input fields, maximum of',nfields,' exceeded'
-      endif
-+ei
-+if cr
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
       write (lout,*) 'Reading unit no (fort.)',nunit,' Line',lineno
@@ -18243,19 +17864,18 @@ c$$$         endif
         write (lout,*)                                                     &
      &  'Too many input fields, maximum of',nfields,' exceeded'
       endif
-+ei
+      
       call abend('Treating this error as FATAL!!!                   ')
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
       end
+      
       integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
       implicit none
-+if cr
 +ca crcoall
-+ei
       double precision x
       character*(24) results
       integer dtoaf 
@@ -18264,19 +17884,14 @@ c$$$         endif
       character*1 str(17)
       character*24 lstr
       character*3 e3
+      
       mode=2
       ndigits=17
       ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1),1)
       if (ilen.le.0.or.ilen.gt.17) then
 ! Always returns 17 or less characters as requested
-+if cr
       write (lout,10000)
       write (lout,*) 'Routine dtoa[f] returned string length ',ilen
-+ei
-+if .not.cr
-      write (*,10000)
-      write (*,*) 'Routine dtoa[f] returned string length ',ilen
-+ei
       call abend('Error from dtostr, string length not 17           ')
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
@@ -18575,9 +18190,7 @@ C Should get me a NaN
 !
       implicit none
 +ca   comgetfields
-+if cr
 +ca crcoall
-+ei
       
       character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
 
@@ -18620,16 +18233,9 @@ C Should get me a NaN
 *              a new what starts
                getfields_nfields = getfields_nfields +1
                if ( getfields_nfields.gt.getfields_n_max_fields ) then
-+if cr
                   write (lout,*)'error! too many fields in line:'
                   write (lout,*) tmpline
                   write (lout,*)'please increase getfields_n_max_fields'
-+ei
-+if .not.cr
-                  write (*,*)   'error! too many fields in line:'
-                  write (*,*)   tmpline
-                  write (*,*)   'please increase getfields_n_max_fields'
-+ei
                   getfields_lerr = .true.
                   exit !Break do
                endif
@@ -20840,9 +20446,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -27471,9 +27075,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       implicit none
 +ca exactvars
 +ca commonex
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -28009,9 +27611,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       implicit none
 +ca exactvars
 +ca commonex
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -32176,9 +31776,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       implicit none
 +ca exactvars
 +ca commonex
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33088,9 +32686,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33127,9 +32723,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33167,9 +32761,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33207,9 +32799,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -34237,9 +33827,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -34787,9 +34375,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -35496,9 +35082,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
