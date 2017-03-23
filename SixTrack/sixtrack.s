@@ -45483,9 +45483,7 @@ c$$$               endif
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -45529,18 +45527,8 @@ c$$$               endif
       ium=6
       pie=two*pi
       if(ncorru.eq.0) then
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         write(lout,10000)
-+ei
-+if .not.cr
-        write(*,10000)
-+ei
       endif
       do 10 i=1,ium
         dpr(i)=zero
@@ -45584,28 +45572,13 @@ c$$$               endif
         t(6,ll-1)=di0(l)
    60 t(6,ll)=dip0(l)
       if(ncorru.eq.0) then
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         write(lout,10050) (di0(l),dip0(l),l=1,2)
-+ei
-+if .not.cr
-        write(*,10050) (di0(l),dip0(l),l=1,2)
-+ei
       endif
       call betalf(dpp,qw)
       call phasad(dpp,qwc)
       if(ierro.ne.0) call prror(22+ierro)
-+if cr
       if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
-+ei
-+if .not.cr
-      if(ncorru.eq.0) write(*,10040) dpp,qwc(1),qwc(2)
-+ei
       call envar(dpp)
       if(ithick.eq.1) call envardis(dpp1,aeg,bl1eg,bl2eg)
 !--STARTVALUES OF THE TRAJECTORIES
@@ -45618,30 +45591,10 @@ c$$$               endif
           t(i+1,j)=ta(j,i)
    80 t(i+1,j)=ta(j,i)
       if(ncorru.eq.0) then
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         if(iprint.eq.1) write(lout,10030)
-+ei
-+if .not.cr
-        if(iprint.eq.1) write(*,10030)
-+ei
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
       endif
 
 !--START OF THE MACHINE
@@ -45705,18 +45658,10 @@ c$$$            if(ntco.ne.0) then
 c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 c$$$            endif
             
-+if cr
             write(lout,*) "ERROR in LINOPT:"
             write(lout,*) "In block ", bezb(ix),
      &           "found a thick non-drift element",
      &           bez(jk), "while ithick=1. This should not be possible!"
-+ei            
-+if .not.cr
-            write(*,*)    "ERROR in LINOPT:"
-            write(*,*)    "In block ", bezb(ix),
-     &           "found a thick non-drift element",
-     &           bez(jk), "while ithick=1. This should not be possible!"
-+ei
             call prror(-1)
             goto 500
           endif
@@ -46386,12 +46331,7 @@ c$$$            endif
       bezii=t(4,3)**2+t(5,3)**2                                          !hr06
       if(ncorru.eq.0) write(34,10070) etl,idum,iiii,zero,bexi,bezii,phi
       if(ncorru.eq.0)                                                   &
-+if cr
      &write(lout,10060)
-+ei
-+if .not.cr
-     &write(*,10060)
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(t5 ,'---- ENTRY LINOPT ----')
@@ -46423,9 +46363,7 @@ c$$$            endif
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -46494,44 +46432,14 @@ c$$$            endif
 +ei
 
       if(ncorru.eq.0) then
-+if cr
           write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),&
-+ei
-+if .not.cr
-          write(*,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),   &
-+ei
      &dp(1),c(1),cp(1)
-+if cr
           write(lout,10010) b2(1),al2(1),g2(1)
-+ei
-+if .not.cr
-          write(*,10010) b2(1),al2(1),g2(1)
-+ei
-+if cr
           write(lout,10030) typ(9:16)
-+ei
-+if .not.cr
-          write(*,10030) typ(9:16)
-+ei
-+if cr
           write(lout,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),        &
-+ei
-+if .not.cr
-          write(*,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),           &
-+ei
      &c(2),cp(2)
-+if cr
           write(lout,10010) b2(2),al2(2),g2(2)
-+ei
-+if .not.cr
-          write(*,10010) b2(2),al2(2),g2(2)
-+ei
-+if cr
           write(lout,10040)
-+ei
-+if .not.cr
-          write(*,10040)
-+ei
         else
            if(.not.isBLOC) then
               if(kp(ixwl).eq.3) then
@@ -46580,9 +46488,6 @@ c$$$            endif
 !  COUUANGL
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -46725,9 +46630,7 @@ c$$$            endif
 !  VEC1 = VEC2 * RMAT , WITH VEC2 AS RESULT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -46748,12 +46651,7 @@ c$$$            endif
           indi=ik
    10   continue
         if(abs(emax).lt.eps) then
-+if cr
           write(lout,*) '  ****   ERROR IN LOESD   **** '
-+ei
-+if .not.cr
-          write(*,*) '  ****   ERROR IN LOESD   **** '
-+ei
           return
         endif
    20   do 30 l=j,dimakt
@@ -46786,9 +46684,6 @@ c$$$            endif
 +dk matrix
       subroutine matrix(dpp,am)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -46834,9 +46729,7 @@ c$$$            endif
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -46885,43 +46778,18 @@ c$$$            endif
       ivflag=0
       icflag=0
 
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       if(ncorru.eq.0) then
         call prror(84)
       else
         if(ncorrep.le.0) then
-+if cr
           write(lout,10010) ncorru,sigma0(1),sigma0(2)
-+ei
-+if .not.cr
-          write(*,10010) ncorru,sigma0(1),sigma0(2)
-+ei
         else
-+if cr
           write(lout,10020) ncorru,ncorrep
-+ei
-+if .not.cr
-          write(*,10020) ncorru,ncorrep
-+ei
         endif
       endif
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 
 !-- SAVE OLD 'LINOPT' SETTINGS
       iprinto=iprint
@@ -46945,61 +46813,26 @@ c$$$            endif
       call phasad(zero,qwc1)
 
 !-- CHECK SOME CONDITIONS
-+if cr
       write(lout,10100) nhmoni,nhcorr,nvmoni,nvcorr
-+ei
-+if .not.cr
-      write(*,10100) nhmoni,nhcorr,nvmoni,nvcorr
-+ei
       if(nhmoni.gt.nmon1) then
-+if cr
         write(lout,10070) nhmoni,nmon1
-+ei
-+if .not.cr
-        write(*,10070) nhmoni,nmon1
-+ei
         return
       endif
       if(nvmoni.gt.nmon1) then
-+if cr
         write(lout,10070) nvmoni,nmon1
-+ei
-+if .not.cr
-        write(*,10070) nvmoni,nmon1
-+ei
         return
       endif
       if(nhcorr.gt.ncor1) then
-+if cr
         write(lout,10080) nhcorr,ncor1
-+ei
-+if .not.cr
-        write(*,10080) nhcorr,ncor1
-+ei
         return
       endif
       if(nvcorr.gt.ncor1) then
-+if cr
         write(lout,10080) nvcorr,ncor1
-+ei
-+if .not.cr
-        write(*,10080) nvcorr,ncor1
-+ei
         return
       endif
-+if cr
       if(nhmoni.lt.nhcorr.or.nvmoni.lt.nvcorr) write(lout,10090)
-+ei
-+if .not.cr
-      if(nhmoni.lt.nhcorr.or.nvmoni.lt.nvcorr) write(*,10090)
-+ei
 
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
       call orbinit
 !-- CORRECT BOTH PLANES
       if(ncorrep.eq.0) then
@@ -47038,59 +46871,24 @@ c$$$            endif
 +ei
    80   continue
         call calrms(b,nvmoni,rmsz,ptpz)
-+if cr
         write(lout,10030) ii-1,rmsx,rmsz
-+ei
-+if .not.cr
-        write(*,10030) ii-1,rmsx,rmsz
-+ei
-+if cr
         write(lout,10040) ii-1,ptpx,ptpz
-+ei
-+if .not.cr
-        write(*,10040) ii-1,ptpx,ptpz
-+ei
         if(icflag.eq.1.and.sigma0(1).gt.rmsx.and.ihflag.eq.0) then
-+if cr
           write(lout,10110)
-+ei
-+if .not.cr
-          write(*,10110)
-+ei
           ihflag=1
         endif
         if(icflag.eq.1.and.sigma0(2).gt.rmsz.and.ivflag.eq.0) then
-+if cr
           write(lout,10120)
-+ei
-+if .not.cr
-          write(*,10120)
-+ei
           ivflag=1
         endif
 
         if(ihflag.eq.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           do 90 ij=1,ncorru/10
-+if cr
             write(lout,10050) (nx(10*(ij-1)+k), k=1,10)
-+ei
-+if .not.cr
-            write(*,10050) (nx(10*(ij-1)+k), k=1,10)
-+ei
    90     continue
           if(mod(ncorru,10).gt.0) then
-+if cr
             write(lout,10050) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
-+if .not.cr
-            write(*,10050) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
           endif
           call putorb(xinc,nx,1)
         endif
@@ -47098,27 +46896,12 @@ c$$$            endif
         call htls(ar,b,nvmoni,nvcorr,xinc,nx,orbr,ncorru,rzero,rzero1)
 
         if(ivflag.eq.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           do 100 ij=1,ncorru/10
-+if cr
             write(lout,10060) (nx(10*(ij-1)+k), k=1,10)
-+ei
-+if .not.cr
-            write(*,10060) (nx(10*(ij-1)+k), k=1,10)
-+ei
   100     continue
           if(mod(ncorru,10).gt.0) then
-+if cr
             write(lout,10060) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
-+if .not.cr
-            write(*,10060) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
           endif
           call putorb(xinc,nx,2)
         endif
@@ -47137,42 +46920,17 @@ c$$$            endif
         b(i)=real(bclorb(i,2))                                           !hr06
   130 continue
       call calrms(b,nvmoni,rmsz,ptpz)
-+if cr
       write(lout,10030) ncorrep,rmsx,rmsz
-+ei
-+if .not.cr
-      write(*,10030) ncorrep,rmsx,rmsz
-+ei
-+if cr
       write(lout,10040) ncorrep,ptpx,ptpz
-+ei
-+if .not.cr
-      write(*,10040) ncorrep,ptpx,ptpz
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 
   140 continue
-+if cr
       if((ii-1).eq.itco) write(lout,10130) itco
-+ei
-+if .not.cr
-      if((ii-1).eq.itco) write(*,10130) itco
-+ei
 
 !-- SCALE TO DESIRED RMS VALUE IF IT IS GREATER THAN ZERO
       if(sigma0(1).gt.pieni.or.sigma0(2).gt.pieni) then
         do 180 ii=1,itco
-+if cr
           write(lout,10140)
-+ei
-+if .not.cr
-          write(*,10140)
-+ei
           hfac=sigma0(1)/dble(rmsx)                                      !hr06
           vfac=sigma0(2)/dble(rmsz)                                      !hr06
           do 150 i=1,il
@@ -47203,35 +46961,15 @@ c$$$            endif
             b(i)=real(bclorb(i,2))                                       !hr06
   170     continue
           call calrms(b,nvmoni,rmsz,ptpz)
-+if cr
           write(lout,10150) ii,rmsx,rmsz
-+ei
-+if .not.cr
-          write(*,10150) ii,rmsx,rmsz
-+ei
-+if cr
           write(lout,10160) ii,ptpx,ptpz
-+ei
-+if .not.cr
-          write(*,10160) ii,ptpx,ptpz
-+ei
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           if(abs(dble(rmsx)-sigma0(1)).lt.dsi.and.                      &!hr06
      &       abs(dble(rmsz)-sigma0(2)).lt.dsi)                          &!hr06
      &goto 190                                                         
   180   continue
       endif
-+if cr
       if((ii-1).eq.itco) write(lout,10130) itco
-+ei
-+if .not.cr
-      if((ii-1).eq.itco) write(*,10130) itco
-+ei
   190 continue
 
 !-- WRITE OUT ADJUSTED CLOSED ORBIT
@@ -47297,9 +47035,7 @@ c$$$            endif
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47340,12 +47076,7 @@ c$$$            endif
               ckickold=sm(ix)+zfz(izu)*ek(ix)
               zfz(izu)=zfz(izu)+dble(xinc(j))/ek(ix)                     !hr06
               ckicknew=sm(ix)+zfz(izu)*ek(ix)
-+if cr
               write(lout,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,    &
-+ei
-+if .not.cr
-              write(*,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,       &
-+ei
      &ckicknew*c1e3
             endif
    10     continue
@@ -47373,13 +47104,8 @@ c$$$            endif
            zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-ak0     &!hr06
      &(im,k)))/aka(im,k)                                                 !hr06
                   ckicknew=(ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k)))/r0a  !hr06
-+if cr
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
      &ckicknew
-+ei
-+if .not.cr
-                  write(*,10000) kcorru,kcorr,bez(ix), ckickold,ckicknew
-+ei
                 endif
    30         continue
             endif
@@ -47393,13 +47119,8 @@ c$$$            endif
            zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-bk0     &!hr06
      &(im,k)))/bka(im,k)                                                 !hr06
                   ckicknew=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
-+if cr
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
      &ckicknew
-+ei
-+if .not.cr
-                  write(*,10000) kcorru,kcorr,bez(ix), ckickold,ckicknew
-+ei
                 endif
    40         continue
             endif
@@ -47417,9 +47138,6 @@ c$$$            endif
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47492,9 +47210,7 @@ c$$$            endif
 !     PTP  - PEAK TO PEAK VALUE TO CORRECT FOR                       *
 !*********************************************************************
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47591,36 +47307,11 @@ c$$$            endif
           h=rho(j)-(a(k,j))*(a(k,j))
 
           if(h.lt.0.0000001) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
-+if cr
             write(lout,*) 'CORRECTION PROCESS ABORTED.'
-+ei
-+if .not.cr
-            write(*,*) 'CORRECTION PROCESS ABORTED.'
-+ei
-+if cr
             write(lout,*) 'DIVISION BY ZERO EXPECTED.'
-+ei
-+if .not.cr
-            write(*,*) 'DIVISION BY ZERO EXPECTED.'
-+ei
-+if cr
             write(lout,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
-+ei
-+if .not.cr
-            write(*,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
-+ei
-+if cr
             write(lout,10000) ' SUSPECTED CORRECTOR: ',j
-+ei
-+if .not.cr
-            write(*,10000) ' SUSPECTED CORRECTOR: ',j
-+ei
             call closeUnits
 +if cr
       call abend('777                                               ')
@@ -47689,9 +47380,6 @@ c$$$            endif
 !     Householder transform of matrix A
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47725,9 +47413,6 @@ c$$$            endif
 !     Householder transform of vector B
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47759,9 +47444,6 @@ c$$$            endif
 !     calculate residual orbit vector
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47796,9 +47478,6 @@ c$$$            endif
 !     calculate vector U
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47832,9 +47511,6 @@ c$$$            endif
 !     calculates rms and p.to.p value of R(1) .... R(M)
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47867,9 +47543,6 @@ c$$$            endif
 !     if N<1, MAXMIN=1
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47895,9 +47568,7 @@ c$$$            endif
 !  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47965,12 +47636,7 @@ c$$$            endif
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
             if(izu.gt.nzfz) then
-+if cr
               write(lout,*) "ERROR in ORD: nzfz was too small"
-+ei
-+if .not.cr
-              write(*,*)    "ERROR in ORD: nzfz was too small"
-+ei
               call prror(-1)
             endif
    50     continue
@@ -48046,12 +47712,7 @@ c$$$            endif
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
           if(izu.gt.nzfz) then
-+if cr
             write(lout,*) "ERROR in ORD: nzfz was too small"
-+ei
-+if .not.cr
-            write(*,*)    "ERROR in ORD: nzfz was too small"
-+ei
             call prror(-1)
           endif
   115   continue
@@ -48174,9 +47835,7 @@ c$$$            endif
 !  ADDITIONAL ADJUSTMENT OF THE X-PHASEADVANCE BETWEEN 2 POSITIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48671,9 +48330,7 @@ c$$$            endif
 !  X-PHASEADVANCE BETWEEN 2 POSITIONS IN THE MACHINE
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48709,12 +48366,7 @@ c$$$            endif
         do 30 j=1,2
           aa1(i,j)=zero
    30 continue
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
       sqx=zero
       sqz=zero
       sqxh=zero
@@ -48754,31 +48406,11 @@ c$$$            endif
       if(nite.eq.3) then
         sens(3,1)=qw0(3)
         sens(3,5)=qwc(3)
-+if cr
         write(lout,10100)
-+ei
-+if .not.cr
-        write(*,10100)
-+ei
-+if cr
         write(lout,10120) qwc,qw0
-+ei
-+if .not.cr
-        write(*,10120) qwc,qw0
-+ei
       else
-+if cr
         write(lout,10110)
-+ei
-+if .not.cr
-        write(*,10110)
-+ei
-+if cr
         write(lout,10130) qwc(1),qwc(2),qw0(1),qw0(2)
-+ei
-+if .not.cr
-        write(*,10130) qwc(1),qwc(2),qw0(1),qw0(2)
-+ei
       endif
       do 60 ii=1,itqv
         do 40 n=1,nite
@@ -48796,19 +48428,9 @@ c$$$            endif
           sens(2,n+1)=qwc(2)
           if(nite.eq.3) then
             sens(3,n+1)=qwc(3)
-+if cr
             write(lout,10140) ii,n,qwc
-+ei
-+if .not.cr
-            write(*,10140) ii,n,qwc
-+ei
           else
-+if cr
             write(lout,10150) ii,n,qwc(1),qwc(2)
-+ei
-+if .not.cr
-            write(*,10150) ii,n,qwc(1),qwc(2)
-+ei
           endif
           if (abs(el(iql)).le.pieni) then
             ed(iql)=ed(iql)-dkq
@@ -48868,77 +48490,27 @@ c$$$            endif
         sens(2,5)=qwc(2)
         if(nite.eq.3) then
           sens(3,5)=qwc(3)
-+if cr
           write(lout,10020) qw0(1),qwc(1),qw0(2),qwc(2),qw0(3),qwc(3)
-+ei
-+if .not.cr
-          write(*,10020) qw0(1),qwc(1),qw0(2),qwc(2),qw0(3),qwc(3)
-+ei
           if (abs(el(iq1)).le.pieni) then
-+if cr
             write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez   &
-+ei
      &(iq2),sm0(3),ed(iq3),bez(iq3)
           else
-+if cr
             write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez   &
-+ei
      &(iq2),sm0(3),ek(iq3),bez(iq3)
           endif
-+if cr
           write(lout,10080) sqx,sqz,sqxh
-+ei
-+if .not.cr
-          write(*,10080) sqx,sqz,sqxh
-+ei
-+if cr
           write(lout,10060) a11,a12,a13,a21,a22,a23,a31,a32,a33
-+ei
-+if .not.cr
-          write(*,10060) a11,a12,a13,a21,a22,a23,a31,a32,a33
-+ei
         else
-+if cr
           write(lout,10030) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
-+if .not.cr
-          write(*,10030) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
           if (abs(el(iq1)).le.pieni) then
-+if cr
             write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez   &
-+ei
      &(iq2)
           else
-+if cr
             write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez   &
-+ei
      &(iq2)
           endif
-+if cr
           write(lout,10090) sqx,sqz
-+ei
-+if .not.cr
-          write(*,10090) sqx,sqz
-+ei
-+if cr
           write(lout,10070) a11,a12,a21,a22
-+ei
-+if .not.cr
-          write(*,10070) a11,a12,a21,a22
-+ei
         endif
         if (abs(el(iq(1))).le.pieni) then
           sm0(1)=ed(iq(1))
@@ -48961,12 +48533,7 @@ c$$$            endif
           if(dq1.lt.dqq.and.dq2.lt.dqq) return
         endif
    60 continue
-+if cr
       write(lout,10000) itqv
-+ei
-+if .not.cr
-      write(*,10000) itqv
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(t5/t10,'TUNE ADJUSTMENT'/ t10,                             &
@@ -49010,9 +48577,7 @@ c$$$            endif
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -49088,50 +48653,15 @@ c$$$            endif
           nd=mm
 +ca beamcou
         endif
-+if cr
         if(iqmod6.eq.1) write(lout,10080) nd2
-+ei
-+if .not.cr
-        if(iqmod6.eq.1) write(*,10080) nd2
-+ei
-+if cr
         if(iqmod6.ne.1) write(lout,10090) nd2
-+ei
-+if .not.cr
-        if(iqmod6.ne.1) write(*,10090) nd2
-+ei
         if(mm.eq.2) then
-+if cr
           write(lout,10010) clo(1),clop(1)
-+ei
-+if .not.cr
-          write(*,10010) clo(1),clop(1)
-+ei
-+if cr
           write(lout,10010) clo(2),clop(2)
-+ei
-+if .not.cr
-          write(*,10010) clo(2),clop(2)
-+ei
         elseif(mm.eq.3) then
-+if cr
           write(lout,10010) clo6(1),clop6(1)
-+ei
-+if .not.cr
-          write(*,10010) clo6(1),clop6(1)
-+ei
-+if cr
           write(lout,10010) clo6(2),clop6(2)
-+ei
-+if .not.cr
-          write(*,10010) clo6(2),clop6(2)
-+ei
-+if cr
           write(lout,10010) clo6(3),clop6(3)
-+ei
-+if .not.cr
-          write(*,10010) clo6(3),clop6(3)
-+ei
         endif
         iqmodc=2
 +if debug 
@@ -49168,12 +48698,7 @@ c$$$            endif
 !     call abend('after  daini                                      ')
 +ei
         if(iqmod6.eq.1) then
-+if cr
           write(lout,10000) nd2
-+ei
-+if .not.cr
-          write(*,10000) nd2
-+ei
           iqmodc=1
           call mydaini(2,3,ndh,mm,nd2,1)
 +if debug 
@@ -49228,73 +48753,33 @@ c$$$            endif
                 edcor(2)=ek(iq(2))
               endif
               if(ncorr.eq.1) then
-+if cr
                 write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
      &ncorr-1,                                                          &
-+ei
-+if .not.cr
-                write(*,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1, &
-+ei
      &cor
               else
-+if cr
                 write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
      &ncorr-1,                                                          &
-+ei
-+if .not.cr
-                write(*,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1, &
-+ei
      &cor
               endif
               if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-+if cr
                 write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ed(iq(2)),bez(iq(2))
               elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-+if cr
                 write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ek(iq(2)),bez(iq(2))
               elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-+if cr
                 write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ed(iq(2)),bez(iq(2))
               else
-+if cr
                 write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ek(iq(2)),bez(iq(2))
               endif
             else
-+if cr
               write(lout,10050) nd2,ncorr-1
-+ei
-+if .not.cr
-              write(*,10050) nd2,ncorr-1
-+ei
               goto 1
             endif
           else
-+if cr
             write(lout,10060) nd2,ncorr-1
-+ei
-+if .not.cr
-            write(*,10060) nd2,ncorr-1
-+ei
             goto 1
           endif
         else
@@ -49330,58 +48815,23 @@ c$$$            endif
         do i=1,mm
           qwc(i)=dble(intwq(i))+wxys(i)                                  !hr06
         enddo
-+if cr
         if(ncorr.eq.itqv+1) write(lout,10070) nd2,itqv
-+ei
-+if .not.cr
-        if(ncorr.eq.itqv+1) write(*,10070) nd2,itqv
-+ei
         if(ncorr.eq.1) then
-+if cr
           write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
-+if .not.cr
-          write(*,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
         else
-+if cr
           write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
-+if .not.cr
-          write(*,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
         endif
         if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-+if cr
           write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),  &
-+ei
      &bez(iq(2))
         elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-+if cr
           write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),  &
-+ei
      &bez(iq(2))
         elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-+if cr
           write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),  &
-+ei
      &bez(iq(2))
         else
-+if cr
           write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),  &
-+ei
      &bez(iq(2))
         endif
       endif
@@ -49425,9 +48875,6 @@ c$$$            endif
 !     ONE TURN-TRANSFORMATION (INCLUDING QUADRUPOLE CONTRIBUTIONS)
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -49846,9 +49293,6 @@ c$$$            endif
 !  USED FOR RMOD
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -50596,9 +50040,7 @@ c$$$            endif
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -50645,18 +50087,8 @@ c$$$            endif
       jjr=2*nre
       de2=de0*half
       if(nre.eq.0) goto 50
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
-+if cr
       write(lout,10010) npp,totl,qxt,qzt,tam1
-+ei
-+if .not.cr
-      write(*,10010) npp,totl,qxt,qzt,tam1
-+ei
       call resex(dpp)
       do 40 i=1,nre
         i2=2*i
@@ -50667,12 +50099,7 @@ c$$$            endif
         sn(i2)=ed(irr(i2))
         dsm(i1)=dsm0
         dsm(i2)=dsm0
-+if cr
         write(lout,10020) i,nrr(i),ipr(i)
-+ei
-+if .not.cr
-        write(*,10020) i,nrr(i),ipr(i)
-+ei
         sen(i1)=dtr(i1)
         bb(i1)=sen(i1)
         sen(i2)=dtr(i2)
@@ -50682,27 +50109,12 @@ c$$$            endif
    40 continue
       j2=jjr
    50 if(nur.eq.0) goto 70
-+if cr
       write(lout,10030) nur
-+ei
-+if .not.cr
-      write(*,10030) nur
-+ei
       do 60 i=1,nur
-+if cr
         write(lout,10040) nu(i),i
-+ei
-+if .not.cr
-        write(*,10040) nu(i),i
-+ei
    60 continue
    70 if(nch.eq.0) goto 90
-+if cr
       write(lout,10050)
-+ei
-+if .not.cr
-      write(*,10050)
-+ei
       j1=j2+1
       j2=j2+2
       irr(j1)=ire(7)
@@ -50731,12 +50143,7 @@ c$$$            endif
       ss(j1)=sen(j1)
       ss(j2)=sen(j2)
    90 if(nqc.eq.0) goto 100
-+if cr
       write(lout,10060)
-+ei
-+if .not.cr
-      write(*,10060)
-+ei
       j1=j2+1
       j2=j2+2
       jj1=j1
@@ -50860,103 +50267,38 @@ c$$$            endif
         ss(j2)=qwc(2)
         d1(j1)=abs(qwc(1)-qw0(1))
         d1(j2)=abs(qwc(2)-qw0(2))
-+if cr
   220   write(lout,10070)
-+ei
-+if .not.cr
-  220   write(*,10070)
-+ei
         if(nre.eq.0) goto 270
-+if cr
         write(lout,10080) no,nrr(1),sen(1),ss(1),sen(2),ss(2)
-+ei
-+if .not.cr
-        write(*,10080) no,nrr(1),sen(1),ss(1),sen(2),ss(2)
-+ei
         if(nre.eq.1) goto 240
         do 230 i=2,nre
           i2=2*i
           i1=i2-1
-+if cr
   230   write(lout,10090) nrr(i),sen(i1),ss(i1),sen(i2),ss(i2)
-+ei
-+if .not.cr
-  230   write(*,10090) nrr(i),sen(i1),ss(i1),sen(i2),ss(i2)
-+ei
-+if cr
   240   write(lout,10100)
-+ei
-+if .not.cr
-  240   write(*,10100)
-+ei
-+if cr
         write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),&
-+ei
-+if .not.cr
-        write(*,10110) bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),  &
-+ei
      &ed(irr(2))
         if(nre.eq.1) goto 260
         do 250 i=2,nre
           i2=2*i
           i1=i2-1
-+if cr
   250   write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn&
-+ei
-+if .not.cr
-  250   write(*,10110) bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn  &
-+ei
      &(i2), ed(irr(i2))
-+if cr
   260   write(lout,10070)
-+ei
-+if .not.cr
-  260   write(*,10070)
-+ei
   270   if(nch.eq.0) goto 280
-+if cr
         write(lout,10120) sen(j3),ss(j3),sen(j4),ss(j4)
-+ei
-+if .not.cr
-        write(*,10120) sen(j3),ss(j3),sen(j4),ss(j4)
-+ei
-+if cr
         write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn&
-+ei
-+if .not.cr
-        write(*,10110) bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn  &
-+ei
      &(j4), ed(irr(j4))
-+if cr
         write(lout,10070)
-+ei
-+if .not.cr
-        write(*,10070)
-+ei
   280   if(nqc.eq.0) goto 290
-+if cr
         write(lout,10130) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
-+if .not.cr
-        write(*,10130) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
         if (abs(el(irr(j1))).le.pieni) then
-+if cr
           write(lout,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),          &
-     &ed(irr(j2)),                                                      &                                     
-+ei
-+if .not.cr
-          write(*,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),ed(irr(j2)), &
-+ei
+     &ed(irr(j2)),                                                      &
      &irr(j2)
         else
-+if cr
           write(lout,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),          &
      &ek(irr(j2)),                                                      &
-+ei
-+if .not.cr
-          write(*,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),ek(irr(j2)), &
-+ei
      &irr(j2)
         endif
   290   do 300 i=1,j2
@@ -51007,9 +50349,7 @@ c$$$            endif
 !  FINDING THE BEST POSITIONS FOR CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -51032,60 +50372,15 @@ c$$$            endif
       nte=mp
       ref='REFERENCE       '
       id=0
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10020) mp
-+ei
-+if .not.cr
-      write(*,10020) mp
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10030) m21,ise1,m22,ise2,m23,ise3
-+ei
-+if .not.cr
-      write(*,10030) m21,ise1,m22,ise2,m23,ise3
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10040)
-+ei
-+if .not.cr
-      write(*,10040)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
       n21=m21+mp
       n22=m22+mp
       n23=m23+mp
@@ -51101,12 +50396,7 @@ c$$$            endif
       call subsea(dpp)
       c3=rtc(mp,n23,mp,1)
       s3=rts(mp,n23,mp,1)
-+if cr
       write(lout,10050) ref,id,c1,s1,c2,s2,c3,s3
-+ei
-+if .not.cr
-      write(*,10050) ref,id,c1,s1,c2,s2,c3,s3
-+ei
       do 10 i=1,mesa
         ed(isea(i))=ed(isea(i))+dsm0
         if(kp(isea(i)).eq.5) call combel(isea(i))
@@ -51122,12 +50412,7 @@ c$$$            endif
         call subsea(dpp)
         f=rtc(mp,n23,mp,1)-c3
         g=rts(mp,n23,mp,1)-s3
-+if cr
         write(lout,10050) bez(isea(i)),i,b,c,d,e,f,g
-+ei
-+if .not.cr
-        write(*,10050) bez(isea(i)),i,b,c,d,e,f,g
-+ei
         ed(isea(i))=ed(isea(i))-dsm0
         if(kp(isea(i)).eq.5) call combel(isea(i))
    10 continue
@@ -51151,9 +50436,7 @@ c$$$            endif
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -51276,18 +50559,8 @@ c$$$            endif
   100       continue
   110     continue
   120   continue
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
         pie=two*pi
         etl=zero
         radi=totl/pie
@@ -51303,27 +50576,12 @@ c$$$            endif
         do 140 l=1,2
           di0(l)=(clo0(l)-clo(l))/ded
   140   dip0(l)=(clop0(l)-clop(l))/ded
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10120) (di0(l),dip0(l),l=1,2)
-+ei
-+if .not.cr
-        write(*,10120) (di0(l),dip0(l),l=1,2)
-+ei
         call betalf(dpp,qw)
         call phasad(dpp,qwc)
         if(ierro.ne.0) call prror(22+ierro)
-+if cr
         write(lout,10070) dpp,qwc(1),qwc(2)
-+ei
-+if .not.cr
-        write(*,10070) dpp,qwc(1),qwc(2)
-+ei
         call envar(dpp)
 !--STARTVALUES OF THE TRAJECTORIES
         do 150 l=1,2
@@ -51338,47 +50596,17 @@ c$$$            endif
           do 160 j=1,4
             t(i+1,j)=ta(j,i)
   160   t(i+1,j)=ta(j,i)
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10040)
-+ei
-+if .not.cr
-        write(*,10040)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),     &
      &phi(l),                                                           &
-+ei
-+if .not.cr
-        write(*,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l), &
-+ei
      &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
 !--EP=EMITTANCE IN PI*MM*MRAD
         ep(1)=tam1**2/beta(1)                                            !hr06
         ep(2)=tam2**2/beta(2)                                            !hr06
-+if cr
         write(lout,10050) tam1,ep(1),tam2,ep(2)
-+ei
-+if .not.cr
-        write(*,10050) tam1,ep(1),tam2,ep(2)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
 !--SINGLE TURN BLOCKLOOP
         izu=0
         do 790 k=1,iu
@@ -51998,112 +51226,39 @@ c$$$            endif
         e(4,7)=e(4,6)*seb
         e(6,5)=e(5,5)*sea
         e(5,6)=e(5,5)*seb
-+if cr
         write(lout,10000)
-+ei
-+if .not.cr
-        write(*,10000)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10010)nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),&
-+ei
-+if .not.cr
-        write(*,10010) nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),  &
-+ei
      &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10110) etl,qwc(1),qwc(2)
-+ei
-+if .not.cr
-        write(*,10110) etl,qwc(1),qwc(2)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
         do 800 iv=2,5
           gtu1=gtu1+dtu(1,iv)
           gtu2=gtu2+dtu(2,iv)
   800   continue
-+if cr
         write(lout,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu &
-+ei
-+if .not.cr
-        write(*,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu    &
-+ei
      &(2,2),dtu(2,3),dtu(2,4),dtu(2,5),gtu2
         do 810 i=1,2
           do 810 j=1,5
             do 810 l=0,4
               do 810 k=0,4
-+if cr
                 if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
      &(lout,10160)
                 if(abs(dtup(i,j,k,l)).gt.pieni) write(lout,             &
      &'(10X,G16.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
-+ei
-+if .not.cr
-                if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
-     &(*,10160)
-                if(abs(dtup(i,j,k,l)).gt.pieni) write(*,                &
-     &'(10X,G16.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
-+ei
   810   continue
-+if cr
         write(lout,10060)
-+ei
-+if .not.cr
-        write(*,10060)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
         do 880 np=nta,nte
-+if cr
           write(lout,10080) np
-+ei
-+if .not.cr
-          write(*,10080) np
-+ei
-+if cr
           write(lout,10030)
-+ei
-+if .not.cr
-          write(*,10030)
-+ei
           vdt1=dble(nnf(np))/(dble(nz2(np))*pi)                          !hr06
           np2=np
           nkk=0
-+if cr
           write(lout,10090) np
-+ei
-+if .not.cr
-          write(*,10090) np
-+ei
           goto 830
-+if cr
   820     write(lout,10100) np,np2
-+ei
-+if .not.cr
-  820     write(*,10100) np,np2
-+ei
   830     nkk=nkk+1
           n2e=2*np2
           do 850 i=1,nkk
@@ -52137,30 +51292,15 @@ c$$$            endif
   860       continue
             sdel2=sqrt(rc**2+rs**2)                                      !hr06
             n22=nv-np2
-+if cr
             write(lout,10140) n22,ip(np2,nv),ipc,rc,rs,re(np2,nv),sdel2
-+ei
-+if .not.cr
-            write(*,10140) n22,ip(np2,nv),ipc,rc,rs,re(np2,nv),sdel2
-+ei
   870     continue
           np2=np2-2
           if(np2.ge.1) goto 820
   880   continue
         ntx=nte-2
-+if cr
         write(lout,10130)
-+ei
-+if .not.cr
-        write(*,10130)
-+ei
         do 930 np=1,nte
-+if cr
           write(lout,10090) np
-+ei
-+if .not.cr
-          write(*,10090) np
-+ei
           n2e=2*np
           do 920 nv=1,n2e
             n2=nv-np
@@ -52181,12 +51321,7 @@ c$$$            endif
   910       cc=rtc(np,nv,np,1)
             ss=rts(np,nv,np,1)
             sdel=sqrt(cc**2+ss**2)                                       !hr06
-+if cr
             write(lout,10140) n2,ip(np,nv),ipc,cc,ss,re(np,nv),sdel
-+ei
-+if .not.cr
-            write(*,10140) n2,ip(np,nv),ipc,cc,ss,re(np,nv),sdel
-+ei
   920     continue
   930   continue
   940 continue
@@ -52255,9 +51390,7 @@ c$$$            endif
 !  USED FOR SUBRE - CALCULATES DETUNING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -52270,36 +51403,11 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
       if(iv.lt.2) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '       ***** ERROR IN DETUNE *****'
-+ei
-+if .not.cr
-        write(*,*) '       ***** ERROR IN DETUNE *****'
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '       IV LESS THAN 2, NO DETUNING POSSIBLE'
-+ei
-+if .not.cr
-        write(*,*) '       IV LESS THAN 2, NO DETUNING POSSIBLE'
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         return
       endif
 +if crlibm
@@ -53094,9 +52202,7 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53128,12 +52234,7 @@ c$$$            endif
         qwc(i)=zero
    20 continue
       dpp=zero
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       call betalf(dpp,qw)
       call phasad(dpp,qwc)
       sen(1)=ta(3,1)
@@ -53224,71 +52325,26 @@ c$$$            endif
           ss(5)=qwc(1)
           ss(6)=qwc(2)
         endif
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen&
-+ei
-+if .not.cr
-        write(*,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen   &
-+ei
      &(4),ss(4)
-+if cr
         write(lout,10030) bez(nskew(1)),sn(1),ed(nskew(1)),             &
      &bez(nskew(2)),sn                                                  &
-+ei
-+if .not.cr
-        write(*,10030) bez(nskew(1)),sn(1),ed(nskew(1)),bez(nskew(2)),sn&
-+ei
      &(2),ed(nskew(2)),bez(nskew(3)),sn(3),ed(nskew(3)), bez            &
      &(nskew(4)),sn(4),ed(nskew(4))
         if(iskew.eq.1) then
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
-+if cr
           write(lout,10040) qwsk(1),qwc(1),qwsk(2),qwc(2)
-+ei
-+if .not.cr
-          write(*,10040) qwsk(1),qwc(1),qwsk(2),qwc(2)
-+ei
           if (abs(el(nskew(5))).le.pieni) then
-+if cr
             write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed      &
-+ei
-+if .not.cr
-            write(*,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed         &
-+ei
      &(nskew(6)), nskew(6)
           else
-+if cr
             write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek      &
-+ei
-+if .not.cr
-            write(*,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek         &
-+ei
      &(nskew(6)), nskew(6)
           endif
         else if(iskew.eq.2) then
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
-+if cr
           write(lout,10050) qwc(1),qwc(2)
-+ei
-+if .not.cr
-          write(*,10050) qwc(1),qwc(2)
-+ei
         endif
         do 60 i=1,6
           if(iskew.eq.2.and.i.gt.4) goto 60
@@ -53356,9 +52412,7 @@ c$$$            endif
 !  NNUML   :  ??
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53552,12 +52606,11 @@ c$$$            endif
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
      &dnumlr,sigcor,dpscor
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
++if cr
         goto 551
 +ei
 +if .not.cr
-        write(*,10320) nfile
         goto 550
 +ei
       endif
@@ -53596,12 +52649,11 @@ c$$$            endif
         ta(6,4)=ta(6,4)*c1m3
         ta(6,5)=ta(6,5)*c1m3
         if(ierro.gt.0) then
-+if cr
           write(lout,10320) nfile
++if cr
           goto 551
 +ei
 +if .not.cr
-          write(*,10320) nfile
           goto 550
 +ei
         endif
@@ -53624,12 +52676,11 @@ c$$$            endif
       ! TODO: Protect against no valid headers found,
       ! i.e. posi > itopa.
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
++if cr
         goto 551
 +ei
 +if .not.cr
-        write(*,10320) nfile
         goto 550
 +ei
       endif
@@ -53655,22 +52706,12 @@ c$$$            endif
 !--PREVENT FAULTY POST-PROCESSING
       read(nfile,end=530,iostat=ierro) iaa
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       read(nfile,end=535,iostat=ierro) iab
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +ei !END +if .not.stf
@@ -53687,12 +52728,7 @@ c$$$            endif
          if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       !--bypass records till 2nd run of same particle is reached
@@ -53701,12 +52737,7 @@ c$$$            endif
          if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +ei !END +if stf
@@ -53812,12 +52843,7 @@ c$$$            endif
       alf04(1)=alf0(1)
       alf04(2)=alf0(2)
       if(bet0(1).le.pieni.or.bet0(2).le.pieni) then
-+if cr
         write(lout,*) 'WARNING: BETA VALUES ARE ZERO'
-+ei
-+if .not.cr
-        write(*,*) 'WARNING: BETA VALUES ARE ZERO'
-+ei
         bet0(1)=zero
         bet0(2)=zero
       endif
@@ -53906,55 +52932,20 @@ c$$$            endif
       endif
       if(iav.lt.1) iav=1
       if(nprint.eq.1) then
-+if cr
         write(lout,10040) sixtit,commen
-+ei
-+if .not.cr
-        write(*,10040) sixtit,commen
-+ei
-+if cr
         write(lout,10050) progrm,ifipa,itopa,hvs,numl,                  &
-+ei
-+if .not.cr
-        write(*,10050) progrm,ifipa,itopa,hvs,numl,                     &
-+ei
      &bet0(1),bet0x2,bet0x3,                                            &
      &bet0(2),bet0z2,bet0z3,bet0(3),bet0s2,bet0s3,                      &
      &alf0(1),alf0x2,alf0x3
-+if cr
         write(lout,10060) alf0(2),alf0z2,alf0z3,alf0(3),alf0s2,alf0s3,  &
-+ei
-+if .not.cr
-        write(*,10060) alf0(2),alf0z2,alf0z3,alf0(3),alf0s2,alf0s3,     &
-+ei
      &gam0x1,gam0x2,gam0x3,                                             &
      &gam0z1,gam0z2,gam0z3,gam0s1,gam0s2,gam0s3,                        &
      &clo(1),clo(2),clo(3),clop(1),clop(2),clop(3),                     &
      &di0(1),di0(2),dip0(1),dip0(2),qwc(1),qwc(2),qwc(3)
-+if cr
         write(lout,10070) iav,nstart,nstop,dphix,dphiz,iwg, qx0,qz0
-+ei
-+if .not.cr
-        write(*,10070) iav,nstart,nstop,dphix,dphiz,iwg, qx0,qz0
-+ei
-+if cr
         write(lout,10080) ivox,ivoz,ires,dres,ifh,dfft
-+ei
-+if .not.cr
-        write(*,10080) ivox,ivoz,ires,dres,ifh,dfft
-+ei
-+if cr
         write(lout,10090) idis,icow,istw,iffw
-+ei
-+if .not.cr
-        write(*,10090) idis,icow,istw,iffw
-+ei
-+if cr
         write(lout,10100) iskip,iconv,imad,cma1,cma2,nprint,ndafi
-+ei
-+if .not.cr
-        write(*,10100) iskip,iconv,imad,cma1,cma2,nprint,ndafi
-+ei
       endif ! END if(nprint.eq.1)
       
 !--INITIALISATION
@@ -54059,12 +53050,7 @@ c$$$            endif
       if(abs(tasum).ge.pieni) its6d=1
       call dinv(6,t,6,idummy,nerror)
       if(nerror.eq.-1) then  !TODO: Using the file number makes no sense in STF case (seen in multiple places)
-+if cr
         write(lout,10290) nfile
-+ei
-+if .not.cr
-        write(*,10290)    nfile
-+ei
         goto 550
       endif
 !----------------------------------------------------------------------
@@ -54110,12 +53096,7 @@ c$$$            endif
       endif
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       if(ifipa.lt.1) goto 190
@@ -54138,12 +53119,7 @@ c$$$            endif
         endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
       endif ! END if(program.eq.'MAD')
@@ -54183,12 +53159,11 @@ c$$$            endif
       enddo
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
++if cr
         goto 551
 +ei
 +if .not.cr
-        write(*,10320)    nfile
         goto 550
 +ei
       endif
@@ -54243,12 +53218,7 @@ c$$$            endif
       endif
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +if cr
@@ -54280,12 +53250,7 @@ c$$$            endif
         endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
       endif
@@ -54293,54 +53258,14 @@ c$$$            endif
       dp1=h
       write(toptit(2)(51:60),10000) dp1-clop(3)
       if(nprint.eq.1.and.ia.eq.0) then
-+if cr
         write(lout,*) 'INITIAL COORDINATES'
-+ei
-+if .not.cr
-        write(*,*)    'INITIAL COORDINATES'
-+ei
-+if cr
         write(lout,*) '       X = ',c
-+ei
-+if .not.cr
-        write(*,*)    '       X = ',c
-+ei
-+if cr
         write(lout,*) '      XP = ',d
-+ei
-+if .not.cr
-        write(*,*)    '      XP = ',d
-+ei
-+if cr
         write(lout,*) '       Z = ',e
-+ei
-+if .not.cr
-        write(*,*)    '       Z = ',e
-+ei
-+if cr
         write(lout,*) '      ZP = ',f
-+ei
-+if .not.cr
-        write(*,*)    '      ZP = ',f
-+ei
-+if cr
         write(lout,*) '   SIGMA = ',g
-+ei
-+if .not.cr
-        write(*,*)    '   SIGMA = ',g
-+ei
-+if cr
         write(lout,*) '    DP/P = ',h
-+ei
-+if .not.cr
-        write(*,*)    '    DP/P = ',h
-+ei
-+if cr
         write(lout,*) '  ENERGY = ',p
-+ei
-+if .not.cr
-        write(*,*)    '  ENERGY = ',p
-+ei
       endif
       
       if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 540
@@ -54438,12 +53363,7 @@ c$$$            endif
   220 continue
 !--INITIAL COORDINATES
       if(nprint.eq.1.and.ia.eq.0) then
-+if cr
         write(lout,*) 'DISTANCE = ',b
-+ei
-+if .not.cr
-        write(*,*)    'DISTANCE = ',b
-+ei
       endif
 !--EMITTANCES WITH LINEAR COUPLING
       evx=txyz(1)**2+txyz(2)**2                                          !hr06
@@ -54587,12 +53507,7 @@ c$$$            endif
       endif
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +if cr
@@ -54623,12 +53538,7 @@ c$$$            endif
         endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
       endif
@@ -54826,12 +53736,7 @@ c$$$            endif
 !           call warr('wgh(i2)',wgh(i2),i2,0,0,0)
 +ei
             else
-+if cr
               write(lout,10310) nfile
-+ei
-+if .not.cr
-              write(*,10310)    nfile
-+ei
               wgh(i2)=zero
             endif
           else
@@ -54945,21 +53850,11 @@ c$$$            endif
 +ei
   280 continue
       if(iapx.eq.0) then
-+if cr
         write(lout,*) 'WARNING: IAPX IS ZERO'
-+ei
-+if .not.cr
-        write(*,*) 'WARNING: IAPX IS ZERO'
-+ei
         iapx=1
       endif
       if(iapz.eq.0) then
-+if cr
         write(lout,*) 'WARNING: IAPZ IS ZERO'
-+ei
-+if .not.cr
-        write(*,*) 'WARNING: IAPZ IS ZERO'
-+ei
         iapz=1
       endif
       tphx=dphx/dble(iapx)                                               !hr06
@@ -54978,12 +53873,7 @@ c$$$            endif
 !--AVERAGED EMITTANCES
       di11=i11
       if(i11.eq.0) then
-+if cr
         write(lout,*) '** ERROR ** - I11 IS ZERO'
-+ei
-+if .not.cr
-        write(*,*)    '** ERROR ** - I11 IS ZERO'
-+ei
         goto 550
       endif
       emxa=emxa/di11
@@ -55005,12 +53895,7 @@ c$$$            endif
       enddo
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       iskc=-1
@@ -55040,12 +53925,7 @@ c$$$            endif
         p=p_stf
 +ei
         if(ierro.gt.0) then
-+if cr
           write(lout,10320) nfile
-+ei
-+if .not.cr
-          write(*,10320)    nfile
-+ei
           goto 550
         endif
         if(ifipa.lt.1) goto 340
@@ -55059,12 +53939,7 @@ c$$$            endif
           p=p*c1e3
 +ei
 +if stf
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
      &         "ERROR in postpr: program=MAD not valid for STF."
           call prror(-1)
 +ei
@@ -55176,32 +54051,17 @@ c$$$            endif
 !--NOW CONSIDERING ONLY TURNS LARGER THAN NSTART
       tidnt=dble(((ia-nstart)+idnt)/i11)                                 !hr06
       if(i2.ge.2) then
-+if cr
         if(nprint.eq.1) write(lout,10110)
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10110)
-+ei
         ilyap=0
         slopem=zero
         do 360 i=1,i2-1
           iturn=nint(dble((i+1)*iav)*tidnt)                              !hr06
-+if cr
           if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),     &
-+ei
-+if .not.cr
-          if(nprint.eq.1) write(*,10120) iturn,biav(i),slope(i),        &
-+ei
      &varlea(i)
           if(biav(i).gt.0.1d0) ilyap=1
           slopem=max(slopem,slope(i))
   360   continue
-+if cr
         if(nprint.eq.1) write(lout,10130)
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10130)
-+ei
         sumda(10)=biav(i2-1)
         if(ilyap.eq.0) then
          sumda(11)=slope(i2-1)                                           !hr06
@@ -55211,12 +54071,7 @@ c$$$            endif
       endif
 !--CALCULATION OF AVERAGED PHASEADVANCES
       tph6=abs(tph6)
-+if cr
       if(nprint.eq.1) write(lout,10140)tphx,sdpx,tphz,sdpz,tph6,sdp6,qwc&
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10140)tphx,sdpx,tphz,sdpz,tph6,sdp6,qwc   &
-+ei
      &(1),tphx-qwc(1) ,qwc(2),tphz-qwc(2),qwc(3),tph6-qwc(3),dres,ires
       sumda(3)=qwc(1)
       sumda(4)=qwc(2)
@@ -55256,39 +54111,19 @@ c$$$            endif
             im1s=im1
             jm1s=-jm1
           endif
-+if cr
           if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,  &
      &jm1,                                                              &
-+ei
-+if .not.cr
-          if(abs(ares).lt.dres.and.nprint.eq.1) write(*,10170) im1,jm1, &
-+ei
      &dares,ares
           if(abs(ared).lt.dres.and.jm1.ne.0.and.im1.ne.0.and.nprint.eq. &
-+if cr
      &1) write(lout,10170) im1,-jm1,dared,ared
-+ei
-+if .not.cr
-     &1) write(*,10170) im1,-jm1,dared,ared
-+ei
   370 continue
       if(armin.lt.armin0) then
         sumda(16)=dble(im1s)                                             !hr06
         sumda(17)=dble(jm1s)                                             !hr06
         sumda(18)=sumda(16)+abs(sumda(17))
       endif
-+if cr
       if(iwarx.eq.1.and.nprint.eq.1) write(lout,10150)
-+ei
-+if .not.cr
-      if(iwarx.eq.1.and.nprint.eq.1) write(*,10150)
-+ei
-+if cr
       if(iwarz.eq.1.and.nprint.eq.1) write(lout,10160)
-+ei
-+if .not.cr
-      if(iwarz.eq.1.and.nprint.eq.1) write(*,10160)
-+ei
 !--Q-VALUES BY AN FFT-ROUTINE
   380 ifp=ifp+1
       ife=2**ifp
@@ -55299,22 +54134,12 @@ c$$$            endif
         ife=ife/2
       endif
       if(ife.eq.0) then
-+if cr
         write(lout,*) '** ERROR ** - IFE IS ZERO'
-+ei
-+if .not.cr
-        write(*,*) '** ERROR ** - IFE IS ZERO'
-+ei
         goto 550
       endif
       dife=ife
       if(ifp.gt.1) then
-+if cr
         if(nprint.eq.1) write(lout,10180) ife,dfft*100
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10180) ife,dfft*100
-+ei
         call fft(xxr,xxi,ifp,ife)
         call fft(zzr,zzi,ifp,ife)
         xxmax=zero
@@ -55355,21 +54180,11 @@ c$$$            endif
         if(abs(xxmax).gt.pieni) xxmin=xxmin/xxmax
         if(abs(zzmax).gt.pieni) zzmin=zzmin/zzmax
         if(xxmax.le.pieni) then
-+if cr
           write(lout,*) 'WARNING: XXMAX IS SET TO : ',pieni
-+ei
-+if .not.cr
-          write(*,*) 'WARNING: XXMAX IS SET TO : ',pieni
-+ei
           xxmax=pieni
         endif
         if(zzmax.le.pieni) then
-+if cr
           write(lout,*) 'WARNING: ZZMAX IS SET TO : ',pieni
-+ei
-+if .not.cr
-          write(*,*) 'WARNING: ZZMAX IS SET TO : ',pieni
-+ei
           zzmax=pieni
         endif
         do 400 i=if1,if2
@@ -55379,30 +54194,13 @@ c$$$            endif
           if(abs(zzaux-zzmax).le.pieni) ffz=(dble(i-1)/dife)+qz0         !hr06
           xxaux=xxaux/xxmax
           zzaux=zzaux/zzmax
-+if cr
           if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190)           &!hr06
      &dble(i-1)/dife+qx0,xxaux*100d0                                     !hr06
-+ei
-+if .not.cr
-          if(xxaux.gt.dfft.and.nprint.eq.1) write(*,10190)              &!hr06
-     &dble(i-1)/dife+qx0,xxaux*100d0                                     !hr06
-+ei
-+if cr
       if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) dble(i-1)/dife&!hr06
      &+qz0,zzaux*100d0                                                   !hr06
-+ei
-+if .not.cr
-      if(zzaux.gt.dfft.and.nprint.eq.1) write(*,10200) dble(i-1)/dife   &!hr06
-     &+qz0,zzaux*100d0                                                   !hr06
-+ei
   400   continue
-+if cr
         if(nprint.eq.1) write(lout,10210) ffx,ffz,qwc(1),ffx-qwc(1),    &
      &qwc(2),                                                           &
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10210) ffx,ffz,qwc(1),ffx-qwc(1),qwc(2),&
-+ei
      &ffz-qwc(2),dres,ires
 !--DISTANCE OF Q-VALUES (FFT) TO RESONANCES
         do 410 i=1,21
@@ -55417,40 +54215,20 @@ c$$$            endif
             ared=dble(im1)*ffx-dble(jm1)*ffz                             !hr06
             dared=anint(ared)
             ared=ared-dared
-+if cr
             if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,&
-+ei
-+if .not.cr
-            if(abs(ares).lt.dres.and.nprint.eq.1) write(*,10170) im1,   &
-+ei
      &jm1,dares,ares
             if(abs(ared).lt.dres.and.jm1.ne.0.and.im1.ne.0.and.nprint.eq&
-+if cr
      &.1) write(lout,10170) im1,-jm1,dared,ared
-+ei
-+if .not.cr
-     &.1) write(*,10170) im1,-jm1,dared,ared
-+ei
   410   continue
       endif
 !--PRINT 4-D INVARIANTS WITH LINEAR COUPLING
-+if cr
       if(nprint.eq.1) write(lout,10270) emi,emii,emiii,angi,angii,      &
      &angiii,                                                           &
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10270) emi,emii,emiii,angi,angii,angiii,  &
-+ei
      &evxm,sevx,evxma,evxmi,evzm,sevz,evzma,evzmi,evtm,sevt,evtma,evtmi
 !--PRINT EMITTANCES AND SMEAR
       ampx0=sqrt(bet0(1)*emx0)
       ampz0=sqrt(bet0(2)*emz0)
-+if cr
       if(nprint.eq.1) write(lout,10220) emx0,ampx0,emz0,ampz0,emxa,emxs,&
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10220) emx0,ampx0,emz0,ampz0,emxa,emxs,   &
-+ei
      &emax,emix,emza, emzs,emaz,emiz,emta,emts,emat,emit
       sumda(46)=emi
       sumda(47)=emii
@@ -55539,30 +54317,10 @@ c$$$            endif
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 +ei
       if(ierro.ne.0) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
-+ei
-+if .not.cr
-        write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
-+ei
-+if cr
         write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-        write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 !--CALCULATION THE INVARIANCES OF THE 4D TRANSVERSAL MOTION
       do 420 i=1,ninv
@@ -55587,30 +54345,10 @@ c$$$            endif
       endif
       pinx=(pinx/dble(ninv))*100d0                                       !hr06
       pinz=(pinz/dble(ninv))*100d0                                       !hr06
-+if cr
       if(nprint.eq.1) write(lout,10230)
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10230)
-+ei
-+if cr
       if(nuez.lt.ninv.and.nprint.eq.1) write(lout,10240) nuez,ninv
-+ei
-+if .not.cr
-      if(nuez.lt.ninv.and.nprint.eq.1) write(*,10240) nuez,ninv
-+ei
-+if cr
       if(nuex.lt.ninv.and.nprint.eq.1) write(lout,10250) nuex,ninv
-+ei
-+if .not.cr
-      if(nuex.lt.ninv.and.nprint.eq.1) write(*,10250) nuex,ninv
-+ei
-+if cr
       if(nprint.eq.1) write(lout,10260) nuez,nuix,nuex,nuiz, ninv,pinx, &
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10260) nuez,nuix,nuex,nuiz, ninv,pinx,    &
-+ei
      &pixr,pinz,pizr,xing,zing
 !----------------------------------------------------------------------
 !--PLOTTING
@@ -55685,12 +54423,11 @@ c$$$            endif
           enddo
 +ei
           if(ierro.gt.0) then
-+if cr
             write(lout,10320) nfile
++if cr
             goto 551
 +ei
 +if .not.cr
-            write(*,10320) nfile
             goto 550
 +ei
           endif
@@ -55736,12 +54473,7 @@ c$$$            endif
       endif
 +ei
             if(ierro.gt.0) then
-+if cr
               write(lout,10320) nfile
-+ei
-+if .not.cr
-              write(*,10320)    nfile
-+ei
               goto 550
             endif
             if(ifipa.lt.1) goto 460
@@ -55766,12 +54498,7 @@ c$$$            endif
               endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
 
@@ -55872,18 +54599,8 @@ c$$$            endif
               fxs(k1)=real(dble(k-1)/dife+qx0)                           !hr06
               if(iffw.eq.2) then
                 if(abs(xxaux).lt.pieni) then
-+if cr
                   write(lout,*) '* * * ERROR * * *'
-+ei
-+if .not.cr
-                  write(*,*) '* * * ERROR * * *'
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'Apparently horizontal FFT data are corrupted'
                   xxaux=one
                 endif
@@ -55899,31 +54616,11 @@ c$$$            endif
               if(nprint.eq.1) then
                 write(14,10030,iostat=ierro) fxs(k1),fzs(k1)
                 if(ierro.ne.0) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'*** ERROR ***,PROBLEMS WRITING TO FILE # : ',14
-+if cr
                   write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-                  write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
                 endif
               endif
   480       continue
@@ -55936,18 +54633,8 @@ c$$$            endif
               fxs(k1)=real(dble(k-1)/dife+qz0)                           !hr06
               if(iffw.eq.2) then
                 if(abs(zzaux).lt.pieni) then
-+if cr
                   write(lout,*) '* * * ERROR * * *'
-+ei
-+if .not.cr
-                  write(*,*) '* * * ERROR * * *'
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'Apparently vertical FFT data are corrupted'
                   zzaux=one
                 endif
@@ -55963,31 +54650,11 @@ c$$$            endif
               if(nprint.eq.1) then
                 write(15,10030,iostat=ierro) fxs(k1),fzs(k1)
                 if(ierro.ne.0) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'*** ERROR ***,PROBLEMS WRITING TO FILE # : ',14
-+if cr
                   write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-                  write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
                 endif
               endif
   490       continue
@@ -56000,44 +54667,19 @@ c$$$            endif
      &call hdelet(0)
       goto 560
   510 continue
-+if cr
       write(lout,10300) nfile,'HEADER CORRUPTED'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'HEADER CORRUPTED'
-+ei
       goto 550
   520 continue
-+if cr
       write(lout,10300) nfile,'HEADER OF MADFILE CORRUPTED'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'HEADER OF MADFILE CORRUPTED'
-+ei
       goto 550
   530 continue
-+if cr
       write(lout,10300) nfile,'NO DATA'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'NO DATA'
-+ei
       goto 550
   535 continue
-+if cr
       write(lout,10300) nfile,'ONLY START VALUES'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'ONLY START VALUES'
-+ei
       goto 550
   540 continue
-+if cr
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'WRONG RANGE OF DATA FOR PROCESSING'
-+ei
       goto 550
 +if cr
   551 write(93,*)'SIXTRACR POSTPR  *** ERROR *** (see fort.6)'
@@ -56086,30 +54728,10 @@ c$$$            endif
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 +ei
       if(ierro.ne.0) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
-+ei
-+if .not.cr
-        write(*,*)   '*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
-+ei
-+if cr
         write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-        write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 !--REWIND USED FILES
   560 rewind nfile
@@ -56118,12 +54740,7 @@ c$$$            endif
 !--TIME COUNT
       tim2=0.
       call timex(tim2)
-+if cr
       if(nprint.eq.1) write(lout,10280) tim2-tim1
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10280)    tim2-tim1
-+ei
 !----------------------------------------------------------------------
       return
       
