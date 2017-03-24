@@ -25411,15 +25411,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       write(lout,*) '         -------------------------------'
       write(lout,*)
-      write(lout,*) '         Program      C O L L T R A C K '
+      write(lout,*) '          Program      C O L L T R A C K '
       write(lout,*)
       write(lout,*) '            R. Assmann           -    AB/ABP'
       write(lout,*) '            C. Bracco            -    AB/ABP'
       write(lout,*) '            V. Previtali         -    AB/ABP'
       write(lout,*) '            S. Redaelli          -    AB/OP'
-      write(lout,*) '            G. Robert-Demolaize  -    SLAC'
+      write(lout,*) '            G. Robert-Demolaize  -    BNL'
       write(lout,*) '            A. Rossi             -    AB/ABP'
-      write(lout,*) '            T. Weiler            -    AB/ABP'
+      write(lout,*) '            T. Weiler            -    IEKP'
       write(lout,*) '                 CERN 2001 - 2009'
       write(lout,*)
       write(lout,*) '         -------------------------------'
@@ -25625,10 +25625,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  YBEAT             = ', ybeat
       write(lout,*) 'INFO>  YBEATPHASE        = ', ybeatphase
       write(lout,*)
-      write(lout,*) 'INFO>  C_RMSTILT_PRIM    = ', c_rmstilt_prim
-      write(lout,*) 'INFO>  C_RMSTILT_SEC     = ', c_rmstilt_sec
-      write(lout,*) 'INFO>  C_SYSTILT_PRIM    = ', c_systilt_prim
-      write(lout,*) 'INFO>  C_SYSTILT_SEC     = ', c_systilt_sec
+      write(lout,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
+      write(lout,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
+      write(lout,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
+      write(lout,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
       write(lout,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
       write(lout,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
       write(lout,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
