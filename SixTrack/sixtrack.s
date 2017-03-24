@@ -16437,12 +16437,7 @@ cc2008
       ! Which type of block? Look at start of string (no leading blanks allowed)
       if (ch(:4).eq."DEBU") then
          bdex_debug = .true.
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "BDEX> BDEX block debugging is ON"
          goto 2250 !loop BDEX
 
@@ -16451,21 +16446,11 @@ cc2008
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(-1)
          if (bdex_debug) then
-+if cr
             write (lout,'(1x,A,I4,A)')
-+ei
-+if .not.cr
-            write    (*,'(1x,A,I4,A)')
-+ei
      &           "BDEXDEBUG> Got a ELEM block, len=",
      &           len(ch), ": '"// trim(ch)// "'"
             do ii=1,getfields_nfields
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "BDEXDEBUG> Field(",ii,") ='",
      &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
             enddo
@@ -16473,14 +16458,8 @@ cc2008
          
          !Parse ELEM
          if ( getfields_nfields .ne. 4 ) then
-+if cr
             write(lout,*)"ELEM expects the following arguments:"
             write(lout,*)"ELEM chanName elemName action"
-+ei
-+if .not.cr
-            write(*,*)   "ELEM expects the following arguments:"
-            write(*,*)   "ELEM chanName elemName action"
-+ei
             call prror(-1)
          endif
          
@@ -16493,12 +16472,7 @@ cc2008
             endif
          enddo
          if (jj.eq.-1) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
      &"BDEX> ERROR: The element '"//
      &getfields_fields(3)(1:getfields_lfields(3)) //"' was not found "//
      &"in the single element list."
@@ -16506,26 +16480,15 @@ cc2008
          endif
 
          if (kz(jj).ne.0 .or. el(jj).gt.pieni) then
-+if cr
             write(lout,*) "BDEX> Error: The element ",bez(jj),
      & "is not a marker. kz=", kz(jj), "el=",el(jj)
-+ei
-+if .not.cr
-            write(*,*)    "BDEX> Error: The element ",bez(jj),
-     & "is not a marker. kz=", kz(jj), "el=",el(jj)
-+ei
             call prror(-1)
          endif
 
          read(getfields_fields(4)(1:getfields_lfields(4)),*) ! Action
      &        bdex_elementAction(jj)
          if (bdex_elementAction(jj).ne.1) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
      &   "BDEX> Error: Only action 1 (exchange) is currently supported."
             call prror(-1)
          endif
@@ -16538,14 +16501,8 @@ cc2008
             endif
          enddo
          if ( bdex_elementChannel(jj).eq.-1 ) then
-+if cr
             write(lout,*) "BDEX> ERROR: The channel '"//
      &getfields_fields(2)(1:getfields_lfields(2)) //"' was not found"
-+ei
-+if .not.cr
-            write(*,*)    "BDEX> ERROR: The channel '"//
-     &getfields_fields(2)(1:getfields_lfields(2)) //"' was not found"
-+ei
             call prror(-1)
          endif
 
@@ -16556,33 +16513,18 @@ cc2008
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(-1)
          if (bdex_debug) then
-+if cr
             write (lout,'(1x,A,I4,A)')
-+ei
-+if .not.cr
-            write    (*,'(1x,A,I4,A)')
-+ei
      &           "BDEXDEBUG> Got a CHAN block, len=",
      &           len(ch), ": '"// trim(ch)// "'"
             do ii=1,getfields_nfields
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "BDEXDEBUG> Field(",ii,") ='",
      &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
             enddo
          endif
          
          if ( getfields_nfields .lt. 3 ) then
-+if cr
             write(lout,*)"CHAN expects at least 3 arguments!"
-+ei
-+if .not.cr
-            write(*,*)   "CHAN expects at least 3 arguments!"
-+ei
             call prror(-1)
          endif
          
@@ -16597,18 +16539,10 @@ cc2008
             
          case default
             !Unknown
-+if cr
             write(lout,*) "Error in BDEX CHAN block parsing:"
             write(lout,*) "Unknown keyword '"//
      &         trim(stringzerotrim(getfields_fields(3)))//"'"
             write(lout,*) "Expected PIPE or TCPIP"
-+ei
-+if .not.cr
-            write(*,*)    "Error in BDEX CHAN block parsing:"
-            write(*,*)    "Unknown keyword '"//
-     &         trim(stringzerotrim(getfields_fields(3)))//"'"
-            write(*,*)    "Expected PIPE or TCPIP"
-+ei
 
             call prror(-1)
 
@@ -16617,69 +16551,50 @@ cc2008
          
       else if (ch(:4).eq.next) then
          if (bdex_debug) then
-+if cr
             write (lout,*)
-+ei
-+if .not.cr
-            write (*,*)
-+ei
      &           "BDEXDEBUG> Finished parsing BDEX block"
          endif
          if (bdex_enable) then
-+if cr
             write (lout,*)
             write (lout,*) "******************************************"
             write (lout,*) "** More than one BDEX block encountered **"
             write (lout,*) "******************************************"
-+ei
-+if .not.cr
-            write (*,*)
-            write (*,*)    "******************************************"
-            write (*,*)    "** More than one BDEX block encountered **"
-            write (*,*)    "******************************************"
-+ei
             call prror(-1)
          else
             bdex_enable = .true.
          endif
          
          if (bdex_debug) then
-+if cr
-            ! TODO - no CR support in BDEX, so I'll try to avoid the double-writes here...
-+ei
-+if .not.cr
-            write(*,*) "BDEXDEBUG> Done parsing block, data dump:"
-            write(*,*) "BDEXDEBUG> bdex_enable = ", bdex_enable
-            write(*,*) "BDEXDEBUG> bdex_debug  = ", bdex_debug
+            write(lout,*) "BDEXDEBUG> Done parsing block, data dump:"
+            write(lout,*) "BDEXDEBUG> bdex_enable = ", bdex_enable
+            write(lout,*) "BDEXDEBUG> bdex_debug  = ", bdex_debug
             do ii=1,il
                if ( bdex_elementAction(ii).ne.0 ) then
-                  write(*,*) "BDEXDEBUG> Single element number", ii,
+                  write(lout,*) "BDEXDEBUG> Single element number", ii,
      &"named ",bez(ii), "bdex_elementAction(#)=",bdex_elementAction(ii),
      &"bdex_elementChannel(#)=",bdex_elementChannel(ii)
                endif
             enddo
-            write(*,*) "BDEXDEBUG> bdex_nchannels=",bdex_nchannels,
+            write(lout,*) "BDEXDEBUG> bdex_nchannels=",bdex_nchannels,
      &           ">=",bdex_maxchannels
             do ii=1,bdex_nchannels
-               write(*,*) "BDEXDEBUG> Channel #",ii,
+               write(lout,*) "BDEXDEBUG> Channel #",ii,
      &"bdex_channelNames(#)='"//
      &trim(stringzerotrim(bdex_channelNames(ii)))//"'",
      &"bdex_channels(#,:)=",bdex_channels(ii,1),bdex_channels(ii,2),
      &bdex_channels(ii,3),bdex_channels(ii,4)
             enddo
-            write(*,*) "BDEXDEBUG> bdex_nstringStorage=",
+            write(lout,*) "BDEXDEBUG> bdex_nstringStorage=",
      &bdex_nstringStorage,">=",bdex_maxStore
             do ii=1,bdex_nstringStorage
-               write(*,*) "BDEXDEBUG> #",ii,"= '"//
+               write(lout,*) "BDEXDEBUG> #",ii,"= '"//
      &trim(stringzerotrim(bdex_stringStorage(ii)))//"'"
             enddo
-            write(*,*) "BDEXDEBUG> Dump completed."
-+ei
+            write(lout,*) "BDEXDEBUG> Dump completed."
          endif
 !         stop
          goto 110 ! loop BLOCK
       else
-+if cr
          write (lout,*)
          write (lout,*) "*******************************************"
          write (lout,*) "ERROR while parsing BDEX block in fort.3"
@@ -16688,32 +16603,14 @@ cc2008
          write (lout,*) "Got ch:"
          write (lout,*) "'"//ch//"'"
          write (lout,*) "*******************************************"
-+ei
-+if .not.cr
-         write (*,*)
-         write (*,*)    "*******************************************"
-         write (*,*)    "ERROR while parsing BDEX block in fort.3"
-         write (*,*)
-     &        "Expected keywords DEBU or NEXT"
-         write (*,*)    "Got ch:"
-         write (*,*)    "'"//ch//"'"
-         write (*,*)    "*******************************************"
-+ei
          call prror(-1)
          
       endif
 
       ! Should never arrive here
-+if cr
       write (lout,*) "*****************************"
       write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
       write (lout,*) "*****************************"
-+ei
-+if .not.cr
-      write (*,*)    "*****************************"
-      write (*,*)    "*LOGIC ERROR IN PARSING BDEX*"
-      write (*,*)    "*****************************"
-+ei
       call prror(-1)
 
 !-----------------------------------------------------------------------
@@ -26969,12 +26866,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
           if (bdex_enable) then
-+if cr
              write(lout,*) "BDEX> BDEX only available for thin6d"
-+ei
-+if .not.cr
-             write(*,*)    "BDEX> BDEX only available for thin6d"
-+ei
              call prror(-1)
           endif
 
@@ -31622,12 +31514,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
           if (bdex_enable) then
              !TODO - if you have a test case, please contact developers!
-+if cr
              write(lout,*) "BDEX> BDEX only available for thin6d"
-+ei
-+if .not.cr
-             write(*,*)    "BDEX> BDEX only available for thin6d"
-+ei
              call prror(-1)
           endif
 
@@ -33607,12 +33494,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
-+if cr
                write(lout,*) "BDEX> BDEX only available for thin6d"
-+ei
-+if .not.cr
-               write(*,*)    "BDEX> BDEX only available for thin6d"
-+ei
                call prror(-1)
             endif
 
@@ -34195,12 +34077,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
-+if cr
                write(lout,*) "BDEX> BDEX only available for thin6d"
-+ei
-+if .not.cr
-               write(*,*)    "BDEX> BDEX only available for thin6d"
-+ei
                call prror(-1)
             endif
 
@@ -34882,12 +34759,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
-+if cr
                write(lout,*) "BDEX> BDEX only available for thin6d"
-+ei
-+if .not.cr
-               write(*,*)    "BDEX> BDEX only available for thin6d"
-+ei
                call prror(-1)
             endif
 !----------count 56
@@ -43739,9 +43611,7 @@ c$$$               endif
 +ca stringzerotrim
 +ca combdex
 
-+if cr
 +ca crcoall
-+ei
       !Temp variables
       ! For checking files before opening:
       logical lopen
@@ -43750,37 +43620,20 @@ c$$$               endif
       !PIPE: Use a pair of pipes to communicate the particle distributions
       !Arguments: InFileName OutFileName format fileUnit
       if ( getfields_nfields .ne. 7 ) then
-+if cr
          write(lout,*)"CHAN PIPE expects the following arguments:"
          write(lout,*)
      &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
-+ei
-+if .not.cr
-         write(*,*)   "CHAN PIPE expects the following arguments:"
-         write(*,*)
-     &       "CHAN chanName PIPE InFileName OutFileName format fileUnit"
-+ei
          call prror(-1)
       endif
       
       bdex_nchannels = bdex_nchannels+1
       if (bdex_nchannels.gt.bdex_maxchannels) then
-+if cr
          write(lout,*) "BDEX: max channels exceeded!"
-+ei
-+if .not.cr
-         write(*,*)    "BDEX: max channels exceeded!"
-+ei
          call prror(-1)
       endif
       
       if (bdex_nStringStorage+2.gt.bdex_maxStore) then
-+if cr
          write(lout,*) "BDEX: maxStore exceeded for strings!"
-+ei
-+if .not.cr
-         write(*,*)    "BDEX: maxStore exceeded for strings!"
-+ei
          call prror(-1)
       endif
       
@@ -43807,98 +43660,50 @@ c$$$               endif
       ! Open the inPipe
       inquire( unit=bdex_channels(bdex_nchannels,4),opened=lopen )
       if (lopen) then
-+if cr
          write(lout,*)"BDEX> ERROR in daten():BDEX:CHAN:PIPE"
          write(lout,*)"BDEX> unit=",
      &        bdex_channels(bdex_nchannels,4),
      &        "for file '"//bdex_stringStorage(
      &        bdex_channels(bdex_nchannels,3) )
      &        //"' was already taken"
-+ei
-+if .not.cr
-         write(*,*)   "BDEX> ERROR in daten():BDEX:CHAN:PIPE"
-         write(*,*)   "BDEX> unit =",
-     &        bdex_channels(bdex_nchannels,4),
-     &        "for file '"//bdex_stringStorage(
-     &        bdex_channels(bdex_nchannels,3) )
-     &        //"' was already taken"
-+ei
          call prror(-1)
       end if
             
-+if cr
       write(lout,*) "BDEX> Opening input pipe '"//
      &trim(stringzerotrim(
      &bdex_stringStorage(bdex_channels(bdex_nchannels,3)) ))//"'"
-+ei
-+if .not.cr
-      write(*,*)    "BDEX> Opening input pipe '"//
-     &trim(stringzerotrim(
-     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)) ))//"'"
-+ei
       open(unit=bdex_channels(bdex_nchannels,4),
      &file=bdex_stringStorage( bdex_channels(bdex_nchannels,3) ),
      &action='read',iostat=stat,status="OLD")
       if (stat .ne. 0) then
-+if cr
          write(lout,*) "BDEX> Error opening file '",
      &bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), "', stat=",
      &stat
-+ei
-+if .not.cr
-         write(*,*)    "BDEX> Error opening file '",
-     &bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), "', stat=",
-     &stat
-+ei
          call prror(-1)
       endif
 
       ! Open the outPipe
       inquire(unit=bdex_channels(bdex_nchannels,4)+1,opened=lopen)
       if (lopen) then
-+if cr
          write(lout,*)"BDEX> ERROR in daten():PIPE "
          write(lout,*)"BDEX> unit=",
      &              bdex_channels(bdex_nchannels,4)+1,
      &              "for file '"//bdex_stringStorage(
      &              bdex_channels(bdex_nchannels,3)+1 )
      &              //"' was already taken"
-+ei
-+if .not.cr
-         write(*,*)   "BDEX> ERROR in daten():PIPE "
-         write(*,*)   "BDEX> unit =",
-     &              bdex_channels(bdex_nchannels,4)+1,
-     &              "for file '"//bdex_stringStorage(
-     &              bdex_channels(bdex_nchannels,3)+1 )
-     &              //"' was already taken"
-+ei
          call prror(-1)
       end if
-            
-+if cr
+      
       write(lout,*) "BDEX> Opening output pipe '"//
      &trim(stringzerotrim(
      &bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1) ))//"'"
-+ei
-+if .not.cr
-      write(*,*)    "BDEX> Opening output pipe '"//
-     &trim(stringzerotrim(
-     &bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1) ))//"'"
-+ei
       open(unit=bdex_channels(bdex_nchannels,4)+1,
      &file=bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),
      &action='write',iostat=stat,status="OLD")
       if (stat .ne. 0) then
-+if cr
          write(lout,*) "BDEX> Error opening file '",
      &bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",
      &stat
-+ei
-+if .not.cr
-         write(*,*)    "BDEX> Error opening file '",
-     &bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",
-     &stat
-+ei
          call prror(-1)
       endif
       write(bdex_channels(bdex_nchannels,4)+1,'(a)')
@@ -43909,6 +43714,7 @@ c$$$               endif
       subroutine bdex_initializeTCPIP( getfields_fields,
      &              getfields_lfields,getfields_nfields )
       implicit none
++ca crcoall
 +ca parpro
 
 +ca comgetfields
@@ -43921,12 +43727,7 @@ c$$$               endif
 
       !TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
       ! Currently not implemented.
-+if cr
       write(lout,*) "CHAN TCPIP currently not supported in BDEX."
-+ei
-+if .not.cr
-      write(*,*)    "CHAN TCPIP currently not supported in BDEX."
-+ei
       call prror(-1)
 
       end subroutine
@@ -43942,6 +43743,8 @@ c$$$               endif
       
       integer i, ix,n
       intent(in) i, ix, n
+
++ca crcoall
 
 +ca parpro
 +ca common
@@ -43960,12 +43763,7 @@ c$$$               endif
       
       if (bdex_elementAction(ix).eq.1) then !Particle exchange
          if (bdex_debug) then
-+if cr
             write(lout,*) "BDEXDEBUG> "//
-+ei
-+if .not.cr
-            write(*,*)    "BDEXDEBUG> "//
-+ei
      &           "Doing particle exchange in bez=",bez(ix)
          endif
          
@@ -43994,14 +43792,8 @@ c$$$               endif
                ii=dtostr(dpsv1(j),ch(ii:ii+24))+1+ii
                
                if (ii .ne. 1+(24+1)*11) then !Also check if too big?
-+if cr
                   write(lout,*) "BDEX> ERROR, ii=",ii
                   write(lout,*) "ch=",ch
-+ei
-+if .not.cr
-                  write(*,*)    "BDEX> ERROR, ii=",ii
-                  write(*,*)    "ch=",ch
-+ei
                   call prror(-1)
                endif
                
@@ -44027,32 +43819,17 @@ c$$$               endif
             read(bdex_channels(bdex_elementChannel(ix),4),*) j
             if ( j .eq. -1 ) then !Don't change the distribution at all
                if (bdex_debug) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
      &                 "BDEXDEBUG> No change in distribution."
                endif
             else
                if (j.gt.npart) then
-+if cr
                   write(lout,*) "BDEX> ERROR: j=",j,">",npart
-+ei
-+if .not.cr
-                  write(*,*)    "BDEX> ERROR: j=",j,">",npart
-+ei
                   call prror(-1)
                endif
                napx=j
                if (bdex_debug) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
      &                 "BDEXDEBUG> Reading",napx, "particles back..."
                endif
                do j=1,napx
@@ -44068,14 +43845,8 @@ c$$$               endif
          endif
          
       else
-+if cr
          write(lout,*) "BDEX> elementAction=",
      &bdex_elementAction(i), "not understood."
-+ei
-+if .not.cr
-         write(*,*)    "BDEX> elementAction=",
-     &bdex_elementAction(i), "not understood."
-+ei
          call prror(-1)
       endif
       
