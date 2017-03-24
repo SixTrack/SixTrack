@@ -897,13 +897,13 @@
 !
       integer ieff,ieffdpop
 !
-      double precision myemitx0_dist,myemity0_dist,
-     &     myemitx0_collgap,myemity0_collgap,
-     &     myemitx,myalphay,mybetay,myalphax,
+      double precision myemitx0_dist,myemity0_dist,                     &
+     &     myemitx0_collgap,myemity0_collgap,                           &
+     &     myemitx,myalphay,mybetay,myalphax,                           &
      &     mybetax,rselect
-      common /ralph/ myemitx0_dist,myemity0_dist,
-     &     myemitx0_collgap,myemity0_collgap,
-     &     myalphax,myalphay,mybetax,
+      common /ralph/ myemitx0_dist,myemity0_dist,                       &
+     &     myemitx0_collgap,myemity0_collgap,                           &
+     &     myalphax,myalphay,mybetax,                                   &
      &     mybetay,rselect
 
 !
@@ -917,7 +917,7 @@
 ! 
       integer counteddpop(npart,numeffdpop)                            
       integer counted2d(npart,numeff,numeffdpop)
-      double precision neffdpop(numeffdpop),dpopbins(numeffdpop)        &
+      double precision neffdpop(numeffdpop),dpopbins(numeffdpop)
       integer npartdpop(numeffdpop)
       common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
       double precision dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
@@ -991,13 +991,13 @@
      &myp(maxn),mys(maxn)
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
-      integer counted_r(npart,numeff),counted_x(npart,numeff),            &
+      integer counted_r(npart,numeff),counted_x(npart,numeff),          &
      &counted_y(npart,numeff)
       common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
-      integer secondary(npart),tertiary(npart),other(npart),
+      integer secondary(npart),tertiary(npart),other(npart),            &
      &part_hit_before(npart)
 !APRIL2005
       double precision part_indiv(npart),part_linteract(npart)
@@ -8780,8 +8780,9 @@ cc2008
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
 +if .not.datamods
       subroutine nodatamods
-      write(lout,*)
-     &     "Dummy routine in bigmats.f if beamgas module is off."
++ca crcoall
+      write(lout,*) &
+      "Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
 +ei
 
@@ -60387,6 +60388,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if datamods
       use bigmats
 +ei
+!      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
 +ca parpro
@@ -61279,7 +61281,9 @@ C            backspace (dumpunit(i),iostat=ierro)
 +if debug
                    !call system('../crcheck >> crlog')
 +ei
-!--   Copy the lout to fort.6
+!--   Copy the lout to fort.6 (the file, not output_unit)
+!     It seems that FORTRAN will open the file automatically?
+!     There are no open(unit=6) etc. calls anywhere...
         rewind lout
     3   read(lout,'(a1024)',end=1,err=107,iostat=ierro) arecord
         lstring=1024
@@ -62723,31 +62727,11 @@ c$$$         backspace (93,iostat=ierro)
         write(10,'(a)',iostat=ierro) ch(1:l1-1)
 +ei
         if(ierro.ne.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*)                                                 &
      &'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
-+ei
-+if .not.cr
-          write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
-+ei
-+if cr
           write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-          write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
         endif
       enddo
  12   continue
@@ -62827,6 +62811,7 @@ c$$$         backspace (93,iostat=ierro)
       stop
 +ei
 +if .not.cr
+      !This one should probably remain as write(*,*) or use output_unit
       write(*,*)                                                        &
      &'SIXTRACK STOP/ABEND '//cstring
 +if debug
@@ -64664,6 +64649,9 @@ c$$$         backspace (93,iostat=ierro)
       CONTAINS
       
       SUBROUTINE WRITETOFILE
++if debug
++ca crcoall
++ei
           CALL h5dextend_f(h5set_id, h5dims, h5error)
           CALL h5dget_space_f(h5set_id, h5space_id, h5error)
           
@@ -64681,7 +64669,7 @@ c$$$         backspace (93,iostat=ierro)
      &                               offset, data_dims , h5error)
           CALL h5screate_simple_f(h5rank, data_dims, memspace, h5error) 
 +if debug
-      write (*,*) "DBG HDFw",h5dims,"off",offset,"ddims",data_dims
+      write (lout,*) "DBG HDFw",h5dims,"off",offset,"ddims",data_dims
 +ei
           CALL H5dwrite_f(h5set_id, H5T_NATIVE_REAL, data_in2,          &
             data_dims, h5error,file_space_id = h5space_id, mem_space_id &
@@ -64694,7 +64682,6 @@ c$$$         backspace (93,iostat=ierro)
       !< 
       SUBROUTINE INITHDF5
         USE SIXTRACKHDF5
-        
 
         CHARACTER(LEN=9), PARAMETER :: aname = "header"   ! Attribute name
 
@@ -64755,10 +64742,12 @@ c$$$         backspace (93,iostat=ierro)
        USE SIXTRACKHDF5
        INTEGER turn,pid,typ
        DOUBLE PRECISION x,xp,y,yp,dee,s
-
++if debug
++ca crcoall
++ei
 
 +if debug
-      write (*,*) "DBG HDF app: using position mod(h5dims(2),incr)",    &
+      write (lout,*) "DBG HDF app: using position mod(h5dims(2),incr)", &
       & mod(h5dims(2),incr)
 +ei
        data_in2(1,mod(h5dims(2),incr) + 1)=pid
@@ -64773,12 +64762,12 @@ c$$$         backspace (93,iostat=ierro)
 
        h5dims(2)=h5dims(2)+1
 +if debug
-       write (*,*) "DBG HDF app: h5dims(2) now,", h5dims(2)
+       write (lout,*) "DBG HDF app: h5dims(2) now,", h5dims(2)
 +ei
 
 +if debug
 !rkwee
-       write (*,*) "DBG HDF app: data_in2[-1]", pid, turn, &
+       write (lout,*) "DBG HDF app: data_in2[-1]", pid, turn, &
        & s, x, xp, y, yp, dee, typ
 +ei
           !
@@ -64820,7 +64809,9 @@ c$$$         backspace (93,iostat=ierro)
 +dk beamGasK
 +if .not.beamgas
       subroutine nobeamgasactive
-        write(*,*) "Dummy routine in beamgas.f if beamgas module off"
++ca crcoall
+      write(lout,*) &
+      "Dummy routine in beamgas.f if beamgas module off"
       end subroutine
 +ei
 +if beamgas
@@ -64913,6 +64904,7 @@ c$$$         backspace (93,iostat=ierro)
 !YIL: commontr
 +ca commontr
 
++ca crcoall
 
 !YIL: This is leftovers that does not have a cd-block
 
@@ -64944,7 +64936,7 @@ c$$$         backspace (93,iostat=ierro)
         j=j+1
       enddo
       if (pressID.eq.0) then
-       write(*,*) 'Couldnt find pressure marker at',totals
+       write(lout,*) 'Couldnt find pressure marker at',totals
        stop
       endif
       
@@ -64962,7 +64954,7 @@ c$$$         backspace (93,iostat=ierro)
       if ((secondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
      &      (bgParameters(1).le.totals)) then   
 +if debug
-      write(*,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
+      write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
      & pressARRAY(2,pressID)*njobs*dpmjetevents
 +ei
   668 continue
