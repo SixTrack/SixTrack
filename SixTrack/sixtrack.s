@@ -60254,12 +60254,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       double precision fround
 +ei
       save
-+if cr
       write(lout,*) "Reading input bunch from beambeamdist.dat"
-+ei
-+if .not.cr
-      write(*,*) 'Reading input bunch from beambeamdist.dat'
-+ei
       mynp=0
 !ERIC napx00???
       do j=1,napx
@@ -60312,24 +60307,18 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       mynp=1
  10   continue
       if(mynp.eq.0) then
-+if cr
         write(lout,*)
         write(lout,*) '!!!!! WARNING !!!!!'
         write(lout,*)'beambeamdist.dat is either missing or too small'
         write(lout,*)
++if cr
         call abend('bnlelens input file error                         ')
++ei      
++if .not.cr
+        stop
++ei
       else
         write(lout,*) "Number of samples in the bunch = ",mynp
-+ei
-+if .not.cr
-        write(*,*)
-        write(*,*) '!!!!! WARNING !!!!!'
-        write(*,*) 'beambeamdist.dat, is either missing or too small'
-        write(*,*)
-        stop
-      else
-         write(*,*) "Number of samples in the bunch = ",mynp
-+ei
       endif
 !ERIC napx00???
       do j=1,napx
