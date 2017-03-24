@@ -26,3 +26,4 @@ for l in ifile.xreadlines():
     
 ifile.close()
 ofile.close()
+print "Done! Please see file 'COUNTED-"+sys.argv[1]+"' !"
