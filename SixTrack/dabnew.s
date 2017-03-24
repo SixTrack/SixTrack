@@ -229,9 +229,7 @@
 !
       subroutine daini(no,nv,iunit)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -303,24 +301,14 @@
       enddo
 !
       if(nv.gt.lnv.or.no.gt.lno) then
-+if cr
          write(lout,*)'ERROR IN SUBROUTINE DAINI, NO, NV = ',no,nv
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN SUBROUTINE DAINI, NO, NV = ',no,nv
-+ei
          call dadeb(31,'ERR DAINI ',1)
       endif
 !
       ibase = no+1
       js    = nv/2
       if(real(ibase)**((nv+1)/2).gt.real(lia)) then                      !hr10
-+if cr
          write(lout,*)'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',
-+ei
-+if .not.cr
-         write(*,*)'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',     &
-+ei
      &' LIA = ',lia
          call dadeb(31,'ERR DAINI ',1)
       endif
@@ -425,12 +413,7 @@
   110 continue
 !
       if(nn.gt.lea) then
-+if cr
          write(lout,*)'ERROR IN DAINI, NN = ',nn,' EXCEEDS LEA'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAINI, NN = ',nn,' EXCEEDS LEA'
-+ei
          call dadeb(31,'ERR DAINI ',1)
       endif
 !
@@ -457,14 +440,8 @@
 !
       jjj = ia1(ie1(i)) + ia2(ie2(i))
       if(jjj.ne.i) then
-+if cr
          write(lout,*)                                                  &
      &'ERROR IN DAINI IN ARRAYS IE1,IE2,IA1,IA2 AT I = ',i
-+ei
-+if .not.cr
-         write(*,*)                                                     &
-     &'ERROR IN DAINI IN ARRAYS IE1,IE2,IA1,IA2 AT I = ',i
-+ei
          call dadeb(31,'ERR DAINI ',1)
       endif
 !
@@ -472,12 +449,7 @@
 !
       if(iunit.eq.0) return
 !
-+if cr
       write(lout,*)'ARRAY SETUP DONE, BEGIN PRINTING'
-+ei
-+if .not.cr
-      write(*,*)'ARRAY SETUP DONE, BEGIN PRINTING'
-+ei
 !
       iout = 32
 +if boinc
@@ -518,9 +490,6 @@
 +dk daexter
       subroutine daexter
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -543,9 +512,7 @@
 +dk dallsta
       subroutine dallsta(ldanow)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -563,12 +530,7 @@
         if(allvec(i)) ldanow=ldanow+1
 5     continue
 
-+if cr
       write(lout,*) ' ALLOCATED ',ldanow
-+ei
-+if .not.cr
-      write(*,*) ' ALLOCATED ',ldanow
-+ei
 
       return
       end
@@ -633,9 +595,7 @@
 +dk daallno
       subroutine daallno(ic,l,ccc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -667,12 +627,7 @@
 !         IF(IDANO(IC(I)).EQ.NO.AND.IDANV(IC(I)).EQ.NV) THEN
         else
           if(nv.ne.0.and.(no.gt.nomax.or.nv.gt.nvmax)) then
-+if cr
              write(lout,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ',
-+ei
-+if .not.cr
-             write(*,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ',    &
-+ei
      &no,nv,' NOMAX, NVMAX = ',nomax,nvmax
             call dadeb(31,'ERR DAALL ',1)
           endif
@@ -687,14 +642,8 @@
              incnda = .true.
              nda = nda + 1
              if(nda.gt.lda) then
-+if cr
          write(lout,*)                                                  &
      &'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
-+ei
-+if .not.cr
-         write(*,*)                                                     &
-     &'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
-+ei
              call dadeb(31,'ERR DAALL ',1)
              endif
           endif
@@ -733,36 +682,11 @@
 !
           if(nst.gt.lst) then
             x=-1.d0
-+if cr
             write(lout,*)'ERROR IN DAALL, STACK EXHAUSTED '
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAALL, STACK EXHAUSTED '
-+ei
-+if cr
             write(lout,*) ' NST,LST '
-+ei
-+if .not.cr
-            write(*,*) ' NST,LST '
-+ei
-+if cr
             write(lout,*)  nst,lst
-+ei
-+if .not.cr
-            write(*,*)  nst,lst
-+ei
-+if cr
             write(lout,*) ' NDA,NDANUM,NDA*NDANUM '
-+ei
-+if .not.cr
-            write(*,*) ' NDA,NDANUM,NDA*NDANUM '
-+ei
-+if cr
             write(lout,*)  nda,ndanum,nda*ndanum
-+ei
-+if .not.cr
-            write(*,*)  nda,ndanum,nda*ndanum
-+ei
 !            X=DSQRT(X)
             call dadeb(31,'ERR DAALL ',1)
           endif
@@ -781,9 +705,7 @@
 +dk daall
       subroutine daall(ic,l,ccc,no,nv)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -815,12 +737,7 @@
 !         IF(IDANO(IC(I)).EQ.NO.AND.IDANV(IC(I)).EQ.NV) THEN
         else
           if(nv.ne.0.and.(no.gt.nomax.or.nv.gt.nvmax)) then
-+if cr
              write(lout,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ',
-+ei
-+if .not.cr
-             write(*,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ',    &
-+ei
      &no,nv,' NOMAX, NVMAX = ',nomax,nvmax
             call dadeb(31,'ERR DAALL ',1)
           endif
@@ -836,14 +753,8 @@
              nda = nda + 1
              ndat=nda
              if(nda.gt.lda) then
-+if cr
         write(lout,*)                                                   &
      &'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
-+ei
-+if .not.cr
-        write(*,*)                                                      &
-     &'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
-+ei
              call dadeb(31,'ERR DAALL ',1)
              endif
           endif
@@ -883,36 +794,11 @@
 !
           if(nst.gt.lst) then
             x=-1.d0
-+if cr
             write(lout,*)'ERROR IN DAALL, STACK EXHAUSTED '
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAALL, STACK EXHAUSTED '
-+ei
-+if cr
             write(lout,*) ' NST,LST '
-+ei
-+if .not.cr
-            write(*,*) ' NST,LST '
-+ei
-+if cr
             write(lout,*)  nst,lst
-+ei
-+if .not.cr
-            write(*,*)  nst,lst
-+ei
-+if cr
             write(lout,*) ' NDA,NDANUM,NDA*NDANUM '
-+ei
-+if .not.cr
-            write(*,*) ' NDA,NDANUM,NDA*NDANUM '
-+ei
-+if cr
             write(lout,*)  nda,ndanum,nda*ndanum
-+ei
-+if .not.cr
-            write(*,*)  nda,ndanum,nda*ndanum
-+ei
 !            X=DSQRT(X)
             call dadeb(31,'ERR DAALL ',1)
           endif
@@ -933,9 +819,7 @@
 +dk dadal
       subroutine dadal(idal,l)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -954,14 +838,8 @@
 
       do 10 i=l,1,-1
         if(idal(i).le.nomax+2.or.idal(i).gt.nda) then
-+if cr
           write(lout,*)                                                 &
      &'ERROR IN ROUTINE DADAL, IDAL(I),NDA = ',idal(i),nda
-+ei
-+if .not.cr
-          write(*,*)                                                    &
-     &'ERROR IN ROUTINE DADAL, IDAL(I),NDA = ',idal(i),nda
-+ei
           call dadeb(31,'ERR DADAL ',1)
         endif
         if(idal(i).eq.nda) then
@@ -991,9 +869,7 @@
 +dk davar
       subroutine davar(ina,ckon,i)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1012,25 +888,14 @@
 !
 !
       if(i.gt.inva) then
-+if cr
          write(lout,*)'ERROR IN DAVAR, I = ',i,' EXCEEDS INVA = ',inva
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAVAR, I = ',i,' EXCEEDS INVA = ',inva
-+ei
          call dadeb(31,'ERR DAVAR ',1)
       endif
 !
       if(nomax.eq.1) then
          if(i.gt.inva) then
-+if cr
             write(lout,*)                                               &
      &'ERROR IN DAVAR, I = ',i,' EXCEEDS INVA = ',inva
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-     &'ERROR IN DAVAR, I = ',i,' EXCEEDS INVA = ',inva
-+ei
 !           CALL DADEB(31,'ERR DAVAR3',1)
          endif
          call daclr(ina)
@@ -1071,9 +936,6 @@
 +dk dacon
       subroutine dacon(ina,ckon)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1107,9 +969,7 @@
 +dk danot
       subroutine danot(not)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1122,12 +982,7 @@
 +ca dabinc
 !
       if(not.gt.nomax) then
-+if cr
          write(lout,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
-+ei
-+if .not.cr
-         write(*,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
-+ei
          call dadeb(31,'ERR DANOT ',1)
       endif
 !
@@ -1142,9 +997,7 @@
 +dk getdanot
       subroutine getdanot(not)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1157,12 +1010,7 @@
 +ca dabinc
 !
       if(not.gt.nomax) then
-+if cr
          write(lout,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
-+ei
-+if .not.cr
-         write(*,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
-+ei
          call dadeb(31,'ERR DANOT ',1)
       endif
 !
@@ -1174,9 +1022,6 @@
 +dk daeps
       subroutine daeps(deps)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1201,9 +1046,7 @@
 +dk dapek
       subroutine dapek(ina,jj,cjj)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1261,14 +1104,8 @@
             jj1 = jj(1)
          endif
          if(jj1.lt.1.or.jj1.gt.illa) then
-+if cr
             write(lout,*)                                               &
      &'ERROR IN DAPEK, INDEX OUTSIDE RANGE, JJ(1) = ',jj1
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-     &'ERROR IN DAPEK, INDEX OUTSIDE RANGE, JJ(1) = ',jj1
-+ei
 !           CALL DADEB(31,'ERR DAPEK1',1)
          endif
          ipek = ipoa + jj1 - 1
@@ -1294,16 +1131,9 @@
 !
 !ETIENNE
       if(ic1.gt.lia.or.ic2.gt.lia) then
-+if cr
        write(lout,*) 'DISASTER IN DAPEK, INA= ',ina
        write(lout,*) ic1,ic2
        write(lout,*) (jj(ikk),ikk=1,lnv)
-+ei
-+if .not.cr
-       write(*,*) 'DISASTER IN DAPEK, INA= ',ina
-       write(*,*) ic1,ic2
-       write(*,*) (jj(ikk),ikk=1,lnv)
-+ei
       endif
 !ETIENNE
       ic = ia1(ic1) + ia2(ic2)
@@ -1389,9 +1219,7 @@
 +dk dapok
       subroutine dapok(ina,jj,cjj)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1444,14 +1272,8 @@
             jj1 = jj(1)
          endif
          if(jj1.lt.1.or.jj1.gt.illa) then
-+if cr
             write(lout,*)                                               &
      &'ERROR IN DAPOK, INDEX OUTSIDE RANGE, JJ(1) = ',jj1
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-     &'ERROR IN DAPOK, INDEX OUTSIDE RANGE, JJ(1) = ',jj1
-+ei
 !           CALL DADEB(31,'ERR DAPOK1',1)
          endif
          ipok = ipoa + jj1 - 1
@@ -1567,12 +1389,7 @@
 !
       idall(ina) = illa + 1
       if(idall(ina).gt.idalm(ina)) then
-+if cr
          write(lout,*)'ERROR IN DAPOK '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPOK '
-+ei
          call dadeb(31,'ERR DAPOK ',1)
       endif
 !
@@ -1603,9 +1420,6 @@
 +dk daclr
       subroutine daclr(inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1632,9 +1446,7 @@
 +dk dacop
       subroutine dacop(ina,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1697,12 +1509,7 @@
 !
       idall(inb) = (ib - ipob) + 1                                       !hr10
       if(idall(inb).gt.idalm(inb)) then
-+if cr
          write(lout,*)'ERROR IN DACOP'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACOP'
-+ei
          call dadeb(31,'ERR DACOP ',1)
       endif
 !
@@ -1713,9 +1520,7 @@
 +dk datrashn
       subroutine datrashn(idif,ina,inbb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1774,9 +1579,6 @@
 +dk daadd
       subroutine daadd(ina,inb,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1803,9 +1605,6 @@
 +dk dasub
       subroutine dasub(ina,inb,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1832,9 +1631,6 @@
 +dk damulin
       subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1867,9 +1663,7 @@
 +dk daexx
       subroutine daexx(ina,inb,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1882,12 +1676,7 @@
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
 !
 !-----------------------------------------------------------------------------1
-+if cr
        write(lout,*) "daexx"
-+ei
-+if .not.cr
-       write(*,*) "daexx"
-+ei
       if(ina.ne.inc.and.inb.ne.inc) then
          call daexxt(ina,inb,inc)
       else
@@ -1910,9 +1699,6 @@
 +dk daexxt
       subroutine daexxt(ina,inb,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1943,9 +1729,7 @@
 +dk dacex
       subroutine dacex(ina,ckon,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1959,12 +1743,7 @@
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
 !
 !-----------------------------------------------------------------------------1
-+if cr
         write(lout,*) "dacex"
-+ei
-+if .not.cr
-        write(*,*) "dacex"
-+ei
       if(ina.eq.inb) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
         incc(1)=0
@@ -1981,9 +1760,7 @@
 +dk dacext
       subroutine dacext(ina,ckon,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2001,12 +1778,7 @@
       call dainf(inb,inob,invb,ipob,ilmb,illb)
 !
       if(ckon.le.0) then
-+if cr
          write(lout,*)'ERROR IN DACEX, CKON NOT POSITIVE'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACEX, CKON NOT POSITIVE'
-+ei
 !        CALL DADEB(31,'ERR DACEX1',1)
       endif
 !
@@ -2028,9 +1800,6 @@
 +dk daexc
       subroutine daexc(ina,ckon,inb)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2304,9 +2073,7 @@
 +dk dasqrt
       subroutine dasqrt(ina,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2333,12 +2100,7 @@
   5      cc(ipoc+i) = cc(ipoa+i)**2                                      !hr10
          idall(inc) = idall(ina)
          if(idall(inc).gt.idalm(inc)) then
-+if cr
             write(lout,*)'ERROR IN DASQR '
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DASQR '
-+ei
             call dadeb(31,'ERR DASQR ',1)
          endif
          return
@@ -2660,9 +2422,7 @@
 +dk dacmut
       subroutine dacmut(ina,ckon,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2732,12 +2492,7 @@
 !
       idall(inb) = (ib-ipob)+1                                           !hr10
       if(idall(inb).gt.idalm(inb)) then
-+if cr
          write(lout,*)'ERROR IN DACMU '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACMU '
-+ei
          call dadeb(31,'ERR DACMU ',1)
       endif
 !
@@ -2747,9 +2502,7 @@
 +dk dacdi
       subroutine dacdi(ina,ckon,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2764,12 +2517,7 @@
 +ca dabinc
 !
       if(ckon.eq.0.d0) then
-+if cr
          write(lout,*)'ERROR IN DACDI, CKON IS ZERO'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACDI, CKON IS ZERO'
-+ei
          call dadeb(31,'ERR DACDI ',1)
       endif
 !
@@ -2785,9 +2533,7 @@
 +dk dadic
       subroutine dadic(ina,ckon,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2815,12 +2561,7 @@
       call daall(idadic(1),1,'$$DADIC $$',inoc,invc)
 
       if(ckon.eq.0.d0) then
-+if cr
          write(lout,*)'ERROR IN DACDI and DADIC, CKON IS ZERO'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACDI and DADIC, CKON IS ZERO'
-+ei
          call dadeb(31,'ERR DACDI ',1)
       endif
       call dacdi(ina,ckon,idadic(1))
@@ -2864,9 +2605,6 @@
 +dk dalin
       subroutine dalin(ina,afac,inb,bfac,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2899,9 +2637,7 @@
 +dk dalint
       subroutine dalint(ina,afac,inb,bfac,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3056,12 +2792,7 @@
       idall(inc) = (ic - ipoc) + 1                                       !hr10
 !
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DALIN, RESULT HAS TOO MANY TERMS '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DALIN, RESULT HAS TOO MANY TERMS '
-+ei
          call dadeb(31,'ERR DALIN ',1)
       endif
 !
@@ -3125,9 +2856,7 @@
 +dk dafunt
       subroutine dafunt(cf,ina,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3202,12 +2931,7 @@
       if(cf.eq.'INV ') then
 !        1/(A0+P) = 1/A0*(1-(P/A0)+(P/A0)**2-...)
          if(a0.eq.0d0) then                                              !hr10
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3219,12 +2943,7 @@
       elseif(cf.eq.'SQRT') then
 !        SQRT(A0+P) = SQRT(A0)*(1+1/2(P/A0)-1/8*(P/A0)**2+...)
          if(a0.le.0d0) then                                              !hr10
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3237,12 +2956,7 @@
       elseif(cf.eq.'ISRT') then
 !        1/SQRT(A0+P) = 1/SQRT(A0)*(1-1/2(P/A0)+3/8*(P/A0)**2-...)
          if(a0.le.0d0) then                                              !hr10
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3267,12 +2981,7 @@
       elseif(cf.eq.'LOG ') then
 !        LOG(A0+P) = LOG(A0) + (P/A0) - 1/2*(P/A0)**2 + 1/3*(P/A0)**3 - ...)
          if(a0.le.0d0) then                                              !hr10
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3329,12 +3038,7 @@
       elseif(cf.eq.'SIRX') then
 !        SIN(SQRT(P))/SQRT(P) = 1 - P/3! + P**2/5! - P**3/7! + ...
          if(a0.ne.0d0) then                                              !hr10
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3346,12 +3050,7 @@
       elseif(cf.eq.'CORX') then
 !        COS(SQRT(P)) = 1 - P/2! + P**2/4! - P**3/6! + ...
          if(a0.ne.0d0) then                                              !hr10
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3363,12 +3062,7 @@
       elseif(cf.eq.'SIDX') then
 !        SIN(P)/P = 1 - P**2/3! + P**4/5! - P**6/7! + ...
          if(a0.ne.0d0) then                                              !hr10
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3385,12 +3079,7 @@
 +if .not.crlibm
          if(abs(cos(a0)).lt.epsmac) then
 +ei
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3415,12 +3104,7 @@
          xf(5) = (((((((((16.d0*ca**2+(24.d0*ca**2)*sa**2)+80.d0*sa**2)+&!hr10
      &40.d0*sa**4)/ca)/ca)/ca)/ca)/ca)/ca)/120.d0                        !hr10
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
 +if cr
       call abend('                                                  ')
@@ -3436,12 +3120,7 @@
 +if .not.crlibm
          if(abs(sin(a0)).lt.epsmac) then
 +ei
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3466,12 +3145,7 @@
          xf(5) = (((((((-1d0*(((16.d0*sa**2+(24.d0*sa**2)*ca**2)+       &!hr10
      &80.d0*ca**2)+ 40.d0*ca**4))/sa)/sa)/sa)/sa)/sa)/sa)/120.d0         !hr10
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
 +if cr
       call abend('                                                  ')
@@ -3482,12 +3156,7 @@
          endif
       elseif(cf.eq.'ASIN') then
          if((1.d0-abs(a0)).lt.0.d0) then
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
@@ -3514,12 +3183,7 @@
          xf(5) = ((9.d0+72.d0*(a0*a0)+24.d0*(a0*a0*a0*a0))*             &
      &   (xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/120.d0 !eric
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -3530,12 +3194,7 @@
       elseif(cf.eq.'ACOS')then
          if((1.d0-abs(a0)).lt.0.d0) then
             call dadeb(31,'ERR DAFUN ',1)
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             lfun = 0
             return
          endif
@@ -3554,12 +3213,7 @@
          xf(4) = ((-1d0*(9.d0*a0+6.d0*a0**3))*scr**7.d0)/24.d0           !hr10
          xf(5) =((-1d0*(9.d0+72.d0*a0**2+24.d0*a0**4))*scr**9.d0)/120.d0 !hr10
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ATAN') then
@@ -3576,12 +3230,7 @@
          xf(4) = (a0-a0*a0*a0)*xf(1)**4
          xf(5) = (1.d0/5.d0+a0**4-2.d0*a0*a0)*xf(1)**5
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ACOT') then
@@ -3598,12 +3247,7 @@
          xf(4) = -(a0-a0*a0*a0)*scr**4
          xf(5) = -(1.d0/5.d0+a0**4-2.d0*a0*a0)*scr**5
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'SINH') then
@@ -3626,12 +3270,7 @@
          xf(4) = sa/24.d0
          xf(5) = ca/120.d0
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'COSH') then
@@ -3654,12 +3293,7 @@
          xf(4) = ca/24.d0
          xf(5) = sa/120.d0
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'TANH') then
@@ -3683,12 +3317,7 @@
          xf(5) = (16.d0*ca*ca-24.d0*ca*ca*sa*sa-80.d0*sa*sa+            &
      &40.d0*sa*sa*sa*sa)/ca/ca/ca/ca/ca/ca/120.d0
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'COTH') then
@@ -3699,12 +3328,7 @@
          if(abs(sinh(a0)).lt.epsmac) then
 +ei
             lfun = 0
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
@@ -3728,12 +3352,7 @@
          xf(5) = (16.d0*sa*sa+24.d0*sa*sa*ca*ca-80.d0*ca*ca-            &
      &40.d0*ca*ca*ca*ca)/sa/sa/sa/sa/sa/sa/120.d0
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ASNH') then
@@ -3749,23 +3368,13 @@
          xf(4) = (9.d0*a0-6.d0*a0*a0*a0)*xf(1)**7.d0/24.d0
          xf(5) = (9.d0-72.d0*a0*a0+24.d0*a0*a0*a0*a0)*xf(1)**9.d0/120.d0
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ACSH') then
          if((1.d0-a0).ge.0.d0) then
             lfun = 0
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
@@ -3781,23 +3390,13 @@
          xf(4) = (-9.d0*a0-6.d0*a0*a0*a0)*xf(1)**7.d0/24.d0
          xf(5) = (9.d0+72.d0*a0*a0+24.d0*a0*a0*a0*a0)*xf(1)**9.d0/120.d0
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ATNH') then
          if((abs(a0)-1.d0).ge.0.d0) then
             lfun = 0
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
@@ -3813,23 +3412,13 @@
          xf(4) = (a0+a0*a0*a0)*xf(1)**4
          xf(5) = (1.d0/5.d0+a0**4+2.d0*a0*a0)*xf(1)**5
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ACTH') then
          if(1.d0-abs(a0).ge.0.d0) then
             lfun = 0
-+if cr
             write(lout,1000) cf,ina,a0
-+ei
-+if .not.cr
-            write(*,1000) cf,ina,a0
-+ei
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
@@ -3846,12 +3435,7 @@
          xf(4) = (a0+a0*a0*a0)*scr**4.d0
          xf(5) = (-1.d0/5.d0-a0**4-2.d0*a0*a0)*scr**5.d0
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
 !      ELSEIF(CF.EQ.'ABF ') THEN
@@ -3923,21 +3507,11 @@
          xf(4) = (12.d0*a0-8.d0*a0*a0*a0)/24.d0*e1/rpi4
          xf(5) = (16.d0*a0*a0*a0*a0-48.d0*a0*a0+12.d0)/120.d0*e1/rpi4
          if(no.gt.5) then
-+if cr
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+ei
             call dadeb(31,'ERR DAFUN ',1)
          endif
       else
-+if cr
          write(lout,*)'ERROR, UNSOPPORTED FUNCTION ',cf
-+ei
-+if .not.cr
-         write(*,*)'ERROR, UNSOPPORTED FUNCTION ',cf
-+ei
       endif
 !
       call dacon(inc,xf(0))
@@ -3967,9 +3541,6 @@
 +dk daabs
       subroutine daabs(ina,anorm)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4022,9 +3593,7 @@
 +dk dapos
       subroutine dapos(ina,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4057,12 +3626,7 @@
 !
       idall(inb) = ib - ipob + 1
       if(idall(inb).gt.idalm(inb)) then
-+if cr
          write(lout,*)'ERROR IN DAPOS '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPOS '
-+ei
          call dadeb(31,'ERR DAPOS ',1)
       endif
 !
@@ -4072,9 +3636,6 @@
 +dk dacct
       subroutine dacct(ma,ia,mb,ib,mc,ic)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4110,9 +3671,7 @@
 +dk dacctt
       subroutine dacctt(mb,ib,mc,ic,ma,ia)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4148,20 +3707,10 @@
       call damch(mb,ib)
 !
       if(ia.ne.ib) then
-+if cr
          write(lout,*)'ERROR IN DACCT, IA .NE. IB'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACCT, IA .NE. IB'
-+ei
          call dadeb(31,'ERR DACCT1',1)
       elseif(ic.ne.invb) then
-+if cr
          write(lout,*)'ERROR IN DACCT, IC.NE.INVB'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACCT, IC.NE.INVB'
-+ei
          call dadeb(31,'ERR DACCT2',1)
       endif
 !
@@ -4211,9 +3760,7 @@
 +dk mtree
       subroutine mtree(mb,ib,mc,ic)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4245,12 +3792,7 @@
       call damch(mc,ic)
 !
       if(ib.ne.ic) then
-+if cr
          write(lout,*)'ERROR IN MTREE, IB .NE. IC'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN MTREE, IB .NE. IC'
-+ei
          call dadeb(31,'ERR MTREE1',1)
       endif
 !
@@ -4336,13 +3878,8 @@
       if(chkjj.gt.0.5d0) then
          call dapok(ichk(1),jj,-1.d0)
       else
-+if cr
          write(lout,*)                                                  &
      &'ERROR IN MTREE, ZEROTH ORDER TERM OF ICHK IS ZERO'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN MTREE, ZEROTH ORDER TERM OF ICHK IS ZERO'
-+ei
          call dadeb(31,'ERR MTREE2',1)
       endif
 !
@@ -4381,12 +3918,7 @@
 !
       nterm = nterm + 1
       if(nterm.gt.idalm(mc(1))) then
-+if cr
          write(lout,*)'ERROR IN MTREE, NTERM TOO LARGE'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN MTREE, NTERM TOO LARGE'
-+ei
          call dadeb(31,'ERR MTREE3',1)
       endif
 !
@@ -4411,24 +3943,14 @@
 !     ***********************
 !
       if(nterm.ne.ntermf.or.nterm.ne.idall(ichk(1))) then
-+if cr
          write(lout,*)'ERROR IN MTREE, NTERM, NTERMF, IDALL(ICHK) =  '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN MTREE, NTERM, NTERMF, IDALL(ICHK) =  '     &
-+ei
      &,nterm,ntermf,idall(ichk(1))
          call dadeb(31,'ERR MTREE4',1)
       endif
 !
       do 270 i=idapo(ichk(1)),idapo(ichk(1))+nterm-1
       if(abs(cc(i)+1.d0).gt.epsmac) then
-+if cr
          write(lout,*)'ERROR IN MTREE, NOT ALL TERMS IN ICHK ARE -1'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN MTREE, NOT ALL TERMS IN ICHK ARE -1'
-+ei
          call dadeb(31,'ERR MTREE5',1)
       endif
  270  continue
@@ -4441,9 +3963,6 @@
 +dk ppushpr
       subroutine ppushpri(mc,ic,mf,jc,line)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4476,9 +3995,6 @@
 +dk ppush
       subroutine ppush(mc,ic,xi,xf)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4519,9 +4035,6 @@
 +dk ppush1
       subroutine ppush1(mc,xi,xf)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4561,9 +4074,6 @@
 +dk dainv
       subroutine dainv(ma,ia,mb,ib)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4612,9 +4122,7 @@
 +dk dainvt
       subroutine dainvt(ma,ia,mb,ib)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4647,20 +4155,10 @@
 !etienne
 !
       if(ia.ne.ib) then
-+if cr
          write(lout,*)'ERROR IN DAINV, IA .NE. IB'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAINV, IA .NE. IB'
-+ei
          call dadeb(31,'ERR DAINV1',1)
       elseif(ia.ne.inva.or.ib.ne.invb) then
-+if cr
          write(lout,*)'ERROR IN DAINV, IA.NE.INVA.OR.IB.NE.INVB'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAINV, IA.NE.INVA.OR.IB.NE.INVB'
-+ei
          call dadeb(31,'ERR DAINV2',1)
       endif
 !
@@ -4695,12 +4193,7 @@
       call matinv(aa,ai,ia,lnv,ier)
 !
       if(ier.eq.132) then
-+if cr
          write(lout,*)'ERROR IN ROUTINE DAINV'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN ROUTINE DAINV'
-+ei
          call dadeb(31,'ERR DAINV3',1)
       endif
 !
@@ -4713,13 +4206,8 @@
  120  prod = prod + aa(i,k)*ai(k,j)
       if(i.eq.j) prod = prod - 1.d0
       if(abs(prod).gt.100*epsmac) then
-+if cr
          write(lout,*)                                                  &
      &'ERROR IN DAINV, INVERSION DID NOT WORK,I,J,PROD = ',
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAINV, INVERSION DID NOT WORK,I,J,PROD = ',&
-+ei
      &i,j,prod,epsmac,eps
          ier = 1
 !ETIENNE
@@ -4780,9 +4268,6 @@
 +dk matinv
       subroutine matinv(a,ai,n,nmx,ier)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4817,9 +4302,6 @@
 +dk ludcmp
       subroutine ludcmp(a,n,np,indx,d,ier)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4902,9 +4384,6 @@
 +dk lubksb
       subroutine lubksb(a,n,np,indx,b,nmx)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4954,9 +4433,6 @@
 +dk dapin
       subroutine dapin(ma,ia,mb,ib,jx)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5005,9 +4481,6 @@
 +dk dapint
       subroutine dapint(ma,ia,mb,ib,jind)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5065,9 +4538,6 @@
 +dk dader
       subroutine dader(idif,ina,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5099,9 +4569,7 @@
 +dk dadert
       subroutine dadert(idif,ina,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5188,12 +4656,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DADER '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DADER '
-+ei
          call dadeb(31,'ERR DADER2',1)
       endif
 !
@@ -5203,9 +4666,6 @@
 +dk dapoi
       subroutine dapoi(ina,inb,inc,n)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5253,9 +4713,6 @@
 +dk dacfur
       subroutine dacfur(ina,fun,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5291,9 +4748,7 @@
 +dk dacfurt
       subroutine dacfurt(ina,fun,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5365,12 +4820,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DACFU '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACFU '
-+ei
          call dadeb(31,'ERR DACFU ',1)
       endif
 !
@@ -5380,9 +4830,6 @@
 +dk dacfu
       subroutine dacfu(ina,fun,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5418,9 +4865,6 @@
 +dk dacfui
       subroutine dacfui(ina,fun,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5456,9 +4900,7 @@
 +dk dacfuit
       subroutine dacfuit(ina,fun,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5530,12 +4972,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DACFU '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACFU '
-+ei
          call dadeb(31,'ERR DACFU ',1)
       endif
 !
@@ -5545,9 +4982,7 @@
 +dk dacfut
       subroutine dacfut(ina,fun,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5617,12 +5052,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DACFU '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DACFU '
-+ei
          call dadeb(31,'ERR DACFU ',1)
       endif
 !
@@ -5633,9 +5063,7 @@
 +dk dapri
       subroutine dapri(ina,iunit)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5654,12 +5082,7 @@
 !
 !
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPRI, INA = ',ina
-+ei
 !        X = SQRT(-ONE)
 !        PRINT*,X
 +if cr
@@ -5779,9 +5202,7 @@
 +dk dapri77
       subroutine dapri77(ina,iunit)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5801,12 +5222,7 @@
         if(iunit.eq.0) return
 !
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPRI, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -5918,9 +5334,7 @@
 +dk dashift
       subroutine dashift(ina,inc,ishift)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5939,12 +5353,7 @@
 
       inb(1)=0
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPRI, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -6063,9 +5472,7 @@
 +dk darea
       subroutine darea(ina,iunit)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6082,12 +5489,7 @@
       dimension j(lnv)
 !
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
          write(lout,*)'ERROR IN DAREA, INA = ',ina
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAREA, INA = ',ina
-+ei
 !        X = SQRT(-ONE)
 !        PRINT*,X
 +if cr
@@ -6231,9 +5633,7 @@
 +dk darea77
       subroutine darea77(ina,iunit)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6253,12 +5653,7 @@
       dimension j(lnv)
 !
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPRI, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -6324,9 +5719,7 @@
 +dk dadeb
       subroutine dadeb(iunit,c,istop)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6345,12 +5738,7 @@
 !
 !etienne
 
-+if cr
       write(lout,*) '  ',c
-+ei
-+if .not.cr
-      write(*,*) '  ',c
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -6364,9 +5752,6 @@
 +dk danum
       subroutine danum(no,nv,numda)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6388,9 +5773,7 @@
 +dk dainf
       subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6412,12 +5795,7 @@
          return
       endif
 !
-+if cr
       write(lout,*) 'ERROR IN DAINF, DA VECTOR ',inc,' NOT FOUND '
-+ei
-+if .not.cr
-      write(*,*) 'ERROR IN DAINF, DA VECTOR ',inc,' NOT FOUND '
-+ei
       call dadeb(31,'ERR DAINF ',1)
 !
       return
@@ -6426,9 +5804,7 @@
 +dk dapac
       subroutine dapac(inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6459,12 +5835,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DAPAC '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPAC '
-+ei
          call dadeb(31,'ERR DAPAC ',1)
       endif
 !
@@ -6475,9 +5846,7 @@
 +dk dachk
       subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6506,12 +5875,7 @@
             if(inoa.gt.inoc.or.inva.gt.invc) ierr = 1
          endif
          if(ierr.eq.1) then
-+if cr
             write(lout,*)'ERROR IN DACHK, ',ina,' AND ',inc,
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DACHK, ',ina,' AND ',inc,               &
-+ei
      &' ARE INCOMPATIBLE',inoa,inva,inoc,invc
             call dadeb(31,'ERR DACHK1',1)
          endif
@@ -6530,11 +5894,7 @@
      &inva.gt.invc.or.invb.gt.invc) ierr = 1
          endif
          if(ierr.eq.1) then
-+if cr
             write(lout,*)'ERROR IN DACHK, ',ina,',',inb,' AND ',inc,
-+ei
-+if .not.cr
-            write(*,*)'ERROR IN DACHK, ',ina,',',inb,' AND ',inc,       &
 +ei
      &' ARE INCOMPATIBLE'
             call dadeb(31,'ERR DACHK2',1)
@@ -6547,9 +5907,7 @@
 +dk damch
       subroutine damch(iaa,ia)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6566,12 +5924,7 @@
       do 10 i=2,ia
       call dainf(iaa(i),inoi,invi,ipoa,ilma,illa)
       if(ino1.ne.inoi.or.inv1.ne.invi) then
-+if cr
          write(lout,*)'ERROR IN DAMCH, VECTORS ',iaa(1),' AND ',iaa(i),
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAMCH, VECTORS ',iaa(1),' AND ',iaa(i),    &
-+ei
      &' ARE INCOMPATIBLE '
 +if cr
       call abend('                                                  ')
@@ -6588,9 +5941,6 @@
 +dk dadcd
       subroutine dadcd(jj,ic1,ic2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6620,9 +5970,6 @@
 +dk dancd
       subroutine dancd(ic1,ic2,jj)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6661,9 +6008,7 @@
 +dk datra
       subroutine datra(idif,ina,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6741,12 +6086,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DADTRA'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DADTRA'
-+ei
          call dadeb(111,'ERR DADTRA',1)
       endif
 !
@@ -6756,9 +6096,7 @@
 +dk etred
       subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6774,12 +6112,7 @@
       integer jj(lnv)
 
       if(nv1.gt.lnv.or.nv2.gt.lnv) then
-+if cr
       write(lout,*) ' ERROR IN RECODING '
-+ei
-+if .not.cr
-      write(*,*) ' ERROR IN RECODING '
-+ei
 +if cr
       call abend('123                                               ')
 +ei
@@ -6817,9 +6150,6 @@
 +dk hash
       subroutine hash(no1,nv1,jj,ic1,ic2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6849,9 +6179,7 @@
 +dk dehash
       subroutine dehash(no1,nv1,ic1,ic2,jj)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6889,9 +6217,6 @@
 +dk daswap
       subroutine daswap(j1,j2,inb)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6936,9 +6261,6 @@
 +dk dagauss
       subroutine dagauss(ina,inb,nd2,anorm)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6977,9 +6299,7 @@
 +dk daran
       subroutine daran(ina,cm,xran)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7014,12 +6334,7 @@
       endif
 !
       if(inoa.ne.nomax.or.inva.ne.nvmax) then
-+if cr
          write(lout,*)'ERROR IN DARAN, ONLY VECTORS WITH NO = NOMAX AND'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DARAN, ONLY VECTORS WITH NO = NOMAX AND'   &
-+ei
      &//' NV = NVMAX ALLOWED'
          call dadeb(31,'ERR DARAN1',1)
       endif
@@ -7034,12 +6349,7 @@
          cc(i) = int(1+10*bran(xran))
          if(cc(i).gt.-10.d0*cm) cc(i) = 0.d0
       else
-+if cr
          write(lout,*)'ERROR IN ROUTINE DARAN'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN ROUTINE DARAN'
-+ei
          call dadeb(31,'ERR DARAN2',1)
       endif
  100  continue
@@ -7052,9 +6362,6 @@
 +dk bran
       double precision function bran(xran)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7083,9 +6390,6 @@
 +dk danorm2
       subroutine danorm2(ina,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7119,9 +6423,7 @@
 +dk danorm2t
       subroutine danorm2t(ina,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7157,12 +6459,7 @@
 !
       idall(inb) = ib-ipob+1
       if(idall(inb).gt.idalm(inb)) then
-+if cr
          write(lout,*)'ERROR IN DANORM'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DANORM'
-+ei
          call dadeb(31,'ERR DANOR1',1)
       endif
 !
@@ -7172,9 +6469,6 @@
 +dk danormr
       subroutine danormr(ina,inc)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7208,9 +6502,7 @@
 +dk danormrt
       subroutine danormrt(ina,inb)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7246,12 +6538,7 @@
 !
       idall(inb) = ib-ipob+1
       if(idall(inb).gt.idalm(inb)) then
-+if cr
          write(lout,*)'ERROR IN DANORM '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DANORM '
-+ei
          call dadeb(31,'ERR DANOR2',1)
       endif
 !
@@ -7260,9 +6547,6 @@
 +dk dakey
       subroutine dakey(c)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7276,9 +6560,7 @@
 +dk dapri6
       subroutine dapri6(ina,result,ien,i56)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7298,12 +6580,7 @@
       dimension j(lnv)
       result=0.
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
         write(lout,*)'ERROR IN DAPRI6, INA = ',ina
-+ei
-+if .not.cr
-        write(*,*)'ERROR IN DAPRI6, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -7369,9 +6646,7 @@
 +dk darea6
       subroutine darea6(ina,zfeld,i56)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7391,12 +6666,7 @@
 !-----------------------------------------------------------------------------3
       dimension j(lnv)
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
         write(lout,*)'ERROR IN DAREA6, INA = ',ina
-+ei
-+if .not.cr
-        write(*,*)'ERROR IN DAREA6, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -7439,12 +6709,7 @@
         io1=io1+j(i)
   15  continue
       if(io1.ne.io) then
-+if cr
         if(iwarnv.eq.0) write(lout,*)'WARNING IN DAREA6, FILE ',
-+ei
-+if .not.cr
-        if(iwarnv.eq.0) write(*,*)'WARNING IN DAREA6, FILE ',           &
-+ei
      &'CONTAINS MORE VARIABLES THAN VECTOR'
         iwarnv = 1
         goto 10
@@ -7469,9 +6734,6 @@
 +dk dare
       double precision function dare(ina)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7523,9 +6785,7 @@
 +dk daprimax
       subroutine daprimax(ina,iunit)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7544,12 +6804,7 @@
       dimension j(lnv)
 !
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPRI, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -7642,9 +6897,7 @@
 +dk damono
       subroutine damono(ina,jd,cfac,istart,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7663,12 +6916,7 @@
       dimension jd(*)
 !
       if(ina.eq.inc) then
-+if cr
        write(lout,*) ' USE DIFFERENT POWER SERIES IN DAMONO '
-+ei
-+if .not.cr
-       write(*,*) ' USE DIFFERENT POWER SERIES IN DAMONO '
-+ei
 +if cr
       call abend('999                                               ')
 +ei
@@ -7703,12 +6951,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DAMONO'
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAMONO'
-+ei
          call dadeb(31,'ERR DAMONO',1)
       endif
 !
@@ -7720,9 +6963,7 @@
 +dk dacycle
       subroutine dacycle(ina,ipresent,value,j,illa)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7741,12 +6982,7 @@
 !
 !
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
         write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+ei
-+if .not.cr
-        write(*,*)'ERROR IN DAPRI, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -7782,9 +7018,7 @@
 +dk daorder
       subroutine daorder(ina,iunit,jx,invo,nchop)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7805,12 +7039,7 @@
       dimension j(lnv),jx(lnv),jt(lnv)
 !
       if(ina.lt.1.or.ina.gt.nda) then
-+if cr
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DAPRI, INA = ',ina
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -7903,9 +7132,7 @@
 +dk datrash
       subroutine datrash(idif,ina,inc)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -7983,12 +7210,7 @@
 !
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
-+if cr
          write(lout,*)'ERROR IN DATRASH '
-+ei
-+if .not.cr
-         write(*,*)'ERROR IN DATRASH '
-+ei
          call dadeb(111,'ERR DATRAS',1)
       endif
 !
