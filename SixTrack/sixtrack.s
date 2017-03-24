@@ -52804,21 +52804,13 @@ c$$$            endif
 !  purpose: error messages for fma analysis                             *
 !-----------------------------------------------------------------------*
       implicit none
-+if cr
 +ca crcoall
-+ei
       integer,       intent(in)  :: ierro
       character (*), intent (in) :: subroutine_name
       character (*), intent (in) :: str             !error message
       if(ierro.ne.0) then
-+if .not.cr
-        write(*,*) 'ERROR in ',subroutine_name,': ',
-     & str,', iostat=',ierro
-+ei
-+if cr
         write(lout,*) 'ERROR in ',subroutine_name,': ',
      & str,', iostat=',ierro
-+ei
         call prror(-1)
       endif
       end subroutine
@@ -52904,9 +52896,7 @@ c$$$            endif
 +if crlibm
 +ca crlibco
 +ei
-+if cr
 +ca crcoall
-+ei
       integer :: i,j,k,l,m,n                    ! for do loops
       integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
       integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
@@ -52941,12 +52931,7 @@ c$$$            endif
 
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
-+if cr
       write (lout,*) "FIO not supported in FMA!"
-+ei
-+if .not.cr
-      write (*,*)    "FIO not supported in FMA!"
-+ei
       call prror(-1)
 +ei
 
@@ -52963,12 +52948,7 @@ c$$$            endif
      &     epsnxyzv(napx,fma_nturn_max,3),
      &     STAT=i)
       if (i.ne.0) then
-+if cr
          write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
-+ei
-+if .not.cr
-         write(*,*)    "Error in fma_postpr: Cannot ALLOCATE"//
-+ei
      &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
      &        " proportional to napx*fma_nturn_max."
          call prror(-1)
@@ -52977,12 +52957,7 @@ c$$$            endif
 !     fma_six = data file for storing the results of the FMA analysis
       inquire(unit=2001001,opened=lopen)
       if(lopen) then
-+if cr
          write(lout,*) "ERROR in FMA: Tried to open unit 2001001",
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in FMA: Tried to open unit 2001001",
-+ei
      &        "for file 'fma_sixtrack', but it was already taken?"
          call prror(-1)
       endif
@@ -52993,12 +52968,7 @@ c$$$            endif
 
       if (idp.eq.0 .or. ition.eq.0) then
          num_modes = 2          !4D tracking
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "'ERROR: FMA analysis currently only implemented "//
      &        "for thin 6D tracking and 6D optics!'"
          call prror(-1)
@@ -53024,16 +52994,9 @@ c$$$            endif
           if(trim(stringzerotrim(fma_fname(i))).eq.
      &trim(stringzerotrim(dump_fname(j)))) then 
             lexist=.true.     !set lexist = true if the file fma_fname(j) exists
-+if .not.cr
-            write(*,*) 'start FMA analysis using file ',                &
-     &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
-     &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
-+ei
-+if cr
             write(lout,*) 'start FMA analysis using file ',             &
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
      &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
-+ei
 
 !    check the format, if dumpfmt != 2 abort
             if(dumpfmt(j).ne.2) then
@@ -53077,18 +53040,10 @@ c$$$            endif
                fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
             endif
             if(fma_nturn(i).gt.fma_nturn_max) then
-+if .not.cr
-              write(*,*) 'ERROR in fma_postpr: only ',                  &
-     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
-              write(*,*) '->reset fma_nturn_max > ', fma_nturn_max
-              call prror(-1)
-+ei
-+if cr
               write(lout,*) 'ERROR in fma_postpr: only ',               &
      &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
               write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
               call prror(-1)
-+ei
             endif
 
 !    - now we have done all checks, we only need the normalisation matrix
@@ -53110,12 +53065,7 @@ c$$$            endif
 !     dump normalized particle amplitudes for debugging (200101+i*10)
             inquire(unit=200101+i*10,opened=lopen)
             if(lopen) then
-+if cr
                write(lout,*) "ERROR in FMA: Tried to open unit",
-+ei
-+if .not.cr
-               write(*,*)    "ERROR in FMA: Tried to open unit",
-+ei
      &            200101+i*10, "for file 'NORM_"//dump_fname(j)//
      &            "', but it was already taken?!?"
                call prror(-1)
@@ -53169,18 +53119,10 @@ c$$$            endif
      &ds_split','fma_postpr') !error in getfields_split while reading
 !    check if number of fields is correct
                 if( filefields_nfields  .ne. 10 ) then 
-+if cr
                   write(lout,*) 'ERROR in fma_postpr while reading parti&
      &cles from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields &
      &expected from getfields_split, got ',filefields_nfields, ' and ch &
      &=',ch
-+ei
-+if .not.cr
-                  write(*,*) 'ERROR in fma_postpr while reading particle&
-     &s from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields exp&
-     &ected from getfields_split, got ',filefields_nfields, ' and ch =',&
-     &ch
-+ei
                   call prror(-1)
                 endif
                 read(filefields_fields(1)(1:filefields_lfields(1)),*) id
@@ -53419,16 +53361,9 @@ c$$$            endif
       implicit none
 +ca stringzerotrim
 +ca zipf
-+if cr
 +ca crcoall
-+ei
 
-+if cr
       write(lout,'(a,a,a)')
-+ei
-+if .not.cr
-      write(*,'(a,a,a)')
-+ei
      &     "ZIPF: Compressing file '",
      &     trim(stringzerotrim(zipf_outfile)),"'..."
 
@@ -53436,12 +53371,7 @@ c$$$            endif
       call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
 +ei
 
-+if cr
-      write(lout,'(a,a,a)') "Done!"
-+ei
-+if .not.cr
-      write(*,   '(a,a,a)') "Done!"
-+ei
+      write(lout,'(a)') "Done!"
 
       end subroutine
       
@@ -53627,9 +53557,6 @@ c$$$            endif
       end
       subroutine sinpro(a,b,c,d,e)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53655,9 +53582,7 @@ c$$$            endif
 +dk join
       subroutine join
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53692,12 +53617,7 @@ c$$$            endif
      &(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), ta&
      &(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6)
       if(ierro.gt.0) then
-+if cr
         write(lout,10010) 90,ierro
-+ei
-+if .not.cr
-        write(*,10010) 90,ierro
-+ei
         goto 70
       endif
 !-----------------------------------------------------------------------
@@ -53715,33 +53635,18 @@ c$$$            endif
       do 50 i=1,ihalf
         read(91-i,end=50,iostat=ierro)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 50
         endif
         read(91-i-ihalf,end=50,iostat=ierro)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i-ihalf,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i-ihalf,ierro
-+ei
           goto 50
         endif
    10   read(91-i,end=20,iostat=ierro) ia,ipa,dummy, x(1,1),y(1,1),x    &
      &(1,2),y(1,2),sigm(1),dps(1),e0
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 20
         endif
         x(1,1)=x(1,1)*c1e3
@@ -53753,12 +53658,7 @@ c$$$            endif
         read(91-i-ihalf,end=20,iostat=ierro) idummy,idummy,dummy, x     &
      &(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i-ihalf,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i-ihalf,ierro
-+ei
           goto 20
         endif
         x(2,1)=x(2,1)*c1e3
@@ -53770,12 +53670,7 @@ c$$$            endif
      &(1,2),sigm(1),dps(1),e0, ipa+1,dam,x(2,1),y(2,1),x(2,2),y(2,2),   &
      &sigm(2),dps(2),e0
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 90,ierro
-+ei
-+if .not.cr
-          write(*,10010) 90,ierro
-+ei
           goto 20
         endif
         goto 10
@@ -53783,12 +53678,7 @@ c$$$            endif
         rewind 91-i-ihalf
         write(91-i-ihalf,iostat=ierro)
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 91-i-ihalf,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i-ihalf,ierro
-+ei
         endif
         rewind 90
         read(91-i,iostat=ierro) sixtit,commen,cdate,ctime, progrm,ifipa,&
@@ -53800,12 +53690,7 @@ c$$$            endif
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta       &
      &(5,6), ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 40
         endif
         rewind 91-i
@@ -53824,36 +53709,21 @@ c$$$            endif
      &zero,zero,zero,zero, zero,zero,zero,zero,zero,zero,zero,zero,     &
      &zero,zero
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 40
         endif
    30   read(90,end=40,iostat=ierro) ia,ipa,dam, x(1,1),y(1,1),x(1,2),y &
      &(1,2),sigm(1),dps(1),e0, ipa1,dam,x(2,1),y(2,1),x(2,2),y(2,2),    &
      &sigm(2),dps(2),e0
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 90,ierro
-+ei
-+if .not.cr
-          write(*,10010) 90,ierro
-+ei
           goto 40
         endif
         write(91-i,iostat=ierro) ia,ipa,dam, x(1,1),y(1,1),x(1,2),y     &
      &(1,2),sigm(1),dps(1),e0, ipa1,dam,x(2,1),y(2,1),x(2,2),y(2,2),    &
      &sigm(2),dps(2),e0
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 40
         endif
         goto 30
@@ -53862,12 +53732,7 @@ c$$$            endif
    50 continue
       goto 70
    60 continue
-+if cr
       write(lout,10000) 90
-+ei
-+if .not.cr
-      write(*,10000) 90
-+ei
    70 continue
 !-----------------------------------------------------------------------
       return
@@ -53882,9 +53747,7 @@ c$$$            endif
 !  SUBROUTINE TO SUMMARIZE THE RESULTS OF THE POSTPROCESSING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53932,39 +53795,19 @@ c$$$            endif
         enddo
 +ei
         if(ierro.gt.0) then
-+if cr
           write(lout,*) '**ERROR**'
-+ei
-+if .not.cr
-          write(*,*) '**ERROR**'
-+ei
-+if cr
           write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
-+ei
-+if .not.cr
-          write(*,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',         &
-+ei
      &' POSTPROCESSING ERROR # : ',ierro
           return
         endif
-+if cr
         if(i.eq.1) write(lout,10000)
-+ei
-+if .not.cr
-        if(i.eq.1) write(*,10000)
-+ei
         if(abs(d(2)).gt.pieni) ch='LOST'
         if(d(22).ge.d(23)) then
           dlost=d(23)
         else
           dlost=d(22)
         endif
-+if cr
         write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),  &
-+ei
-+if .not.cr
-        write(*,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),     &
-+ei
      &d(12),nint(d(16)),nint(d(18)),d(19),d(21),ch,d(4),d(6),d(8),      &
      &d(13),nint(d(17)),d(20),d(25),d(14),d(15)
    10 continue
@@ -53972,12 +53815,7 @@ c$$$            endif
 +if crlibm
       lineno=0
 +ei
-+if cr
       write(lout,10020)
-+ei
-+if .not.cr
-      write(*,10020)
-+ei
       do 30 i=1,1000
 +if .not.crlibm
         read(10,*,end=40,iostat=ierro) (d(j),j=1,60)
@@ -53996,18 +53834,8 @@ c$$$            endif
         enddo
 +ei
         if(ierro.gt.0) then
-+if cr
           write(lout,*) '**ERROR**'
-+ei
-+if .not.cr
-          write(*,*) '**ERROR**'
-+ei
-+if cr
           write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
-+ei
-+if .not.cr
-          write(*,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',         &
-+ei
      &' POSTPROCESSING ERROR # : ',ierro
           return
         endif
@@ -54018,22 +53846,11 @@ c$$$            endif
 ! N.B. If particle is lost nms is 0, so we set mmac to zero too 
       d(60)=dble(nmac)
       if (nint(d(59)).eq.0) d(60)=zero
-+if cr
       write(lout,10030) i,nint(d(59)),nint(d(60)),                      &
      &nint(d(59))*nint(d(24))
-+ei
-+if .not.cr
-      write(*,10030) i,nint(d(59)),nint(d(60)),                         &
-     &nint(d(59))*nint(d(24))
-+ei
    30 continue
    40 continue
-+if cr
       write(lout,10040)
-+ei
-+if .not.cr
-      write(*,10040)
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(/131('-')/t10,'SUMMARY OF THE POSTPROCESSING' //t1,125(    &
@@ -54534,9 +54351,7 @@ c$$$            endif
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54589,12 +54404,7 @@ c$$$            endif
       gauinv=(t+f0)+f1/(f2+t)                                            !hr06
  200  if(p.lt.0d0) gauinv=-1d0*gauinv                                    !hr06
       return
-+if cr
  900  write(lout,910) p0
-+ei
-+if .not.cr
- 900  write(*,910) p0
-+ei
  910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
       call closeUnits
 +if cr
@@ -54607,9 +54417,7 @@ c$$$            endif
 +dk myrinv
       subroutine kerset(ercode,lgfile,limitm,limitr)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54669,12 +54477,7 @@ c$$$            endif
       do 20     i  =  1, kounte
          if(ercode .eq. code(i))  goto 21
   20     continue
-+if cr
       write(lout,1000)  ercode
-+ei
-+if .not.cr
-      write(*,1000)  ercode
-+ei
       call abend('KERNLIB Library Error                             ')
       return
   21  rflag  =  kntr(i) .ge. 1
@@ -54683,24 +54486,14 @@ c$$$            endif
       if(mflag  .and.  (kntm(i) .lt. 255))  kntm(i)  =  kntm(i) - 1
       if(.not. rflag)  then
          if(logf .lt. 1)  then
-+if cr
             write(lout,1001)  code(i)
-+ei
-+if .not.cr
-            write(*,1001)  code(i)
-+ei
          else
             write(logf,1001)  code(i)
          endif
       endif
       if(mflag .and. rflag)  then
          if(logf .lt. 1)  then
-+if cr
             write(lout,1002)  code(i)
-+ei
-+if .not.cr
-            write(*,1002)  code(i)
-+ei
          else
             write(logf,1002)  code(i)
          endif
@@ -54727,9 +54520,6 @@ c$$$            endif
 !     ******************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54848,9 +54638,6 @@ c$$$            endif
 !     ******************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54972,9 +54759,7 @@ c$$$            endif
 !
 !     ******************************************************************
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54986,18 +54771,8 @@ c$$$            endif
       call kermtr('F010.1',lgfile,mflag,rflag)
       if(mflag) then
          if(lgfile.eq.0)  then
-+if cr
             if(kprnt.eq.0) write(lout,2000) name,n,idim
-+ei
-+if .not.cr
-            if(kprnt.eq.0) write(*,2000) name,n,idim
-+ei
-+if cr
             if(kprnt.ne.0) write(lout,2001) name,n,idim,k
-+ei
-+if .not.cr
-            if(kprnt.ne.0) write(*,2001) name,n,idim,k
-+ei
          else
             if(kprnt.eq.0) write(lgfile,2000) name,n,idim
             if(kprnt.ne.0) write(lgfile,2001) name,n,idim,k
@@ -55017,9 +54792,6 @@ c$$$            endif
       end
       subroutine rfact(n,a,idim,ir,ifail,det,jfail)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55104,9 +54876,6 @@ c$$$            endif
       end
       subroutine dfact(n,a,idim,ir,ifail,det,jfail)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55191,9 +54960,6 @@ c$$$            endif
       end
       subroutine rfeqn(n,a,idim,ir,k,b)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55250,9 +55016,6 @@ c$$$            endif
       end
       subroutine dfeqn(n,a,idim,ir,k,b)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55309,9 +55072,6 @@ c$$$            endif
       end
       subroutine rfinv(n,a,idim,ir)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55382,9 +55142,6 @@ c$$$            endif
       end
       subroutine dfinv(n,a,idim,ir)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55454,9 +55211,7 @@ c$$$            endif
       end
       subroutine tmprnt(name,n,idim,k)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55473,19 +55228,9 @@ c$$$            endif
       if(mflag) then
          if(lgfile .eq. 0) then
             if(name(3:6) .eq. 'FEQN') then
-+if cr
                write(lout,1002) name, n, idim, k
-+ei
-+if .not.cr
-               write(*,1002) name, n, idim, k
-+ei
             else
-+if cr
                write(lout,1001) name, n, idim
-+ei
-+if .not.cr
-               write(*,1001) name, n, idim
-+ei
             endif
          else
             if(name(3:6) .eq. 'FEQN') then
@@ -55517,9 +55262,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55587,9 +55329,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
