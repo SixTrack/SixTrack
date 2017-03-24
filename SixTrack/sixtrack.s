@@ -55437,9 +55437,7 @@ c$$$            endif
 !++  - Put real dp/dx
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -55508,18 +55506,10 @@ c$$$            endif
       elseif (c_material.eq.'BL') then
          mat = nmat
       else
-+if cr
          write(lout,*)
          write(lout,*) 'ERR>  In subroutine collimate2:'
          write(lout,*) 'ERR>  Material "', c_material, '" not found.'
          write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-+ei
-+if .not.cr
-         write(*,*)
-         write(*,*)    'ERR>  In subroutine collimate2:'
-         write(*,*)    'ERR>  Material "', c_material, '" not found.'
-         write(*,*)    'ERR>  Check your CollDB! Stopping now.'
-+ei
          STOP
       endif
 !
@@ -55824,12 +55814,7 @@ c$$$            endif
 !
             s = (-1d0*x) / xp
             if (s.le.0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen'
-+ei
               stop
             endif
 !
@@ -56252,9 +56237,7 @@ c$$$          endif
 !++  - Put real dp/dx
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -56308,12 +56291,7 @@ c$$$          endif
       elseif (c_material.eq.'Iner') then
          mat = 12
       else
-+if cr
          write(lout,*) 'ERR>  Material not found. STOP', c_material
-+ei
-+if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP', c_material
-+ei
 !        STOP
       endif
 !
@@ -56574,12 +56552,7 @@ c$$$          endif
 !
             s = (-1.0d0*x) / xp
             if (s.le.0d0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen (1)'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (1)'
-+ei
               stop
             endif
 !
@@ -56600,12 +56573,7 @@ c$$$          endif
 !
             s = (-1.0d0*z) / zp
             if (s.le.0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen (2)'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (2)'
-+ei
               stop
             endif
 !
@@ -56634,12 +56602,7 @@ c$$$          endif
             if(sx.ge.sz) s=sz
 !
             if (s.le.0d0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen (3)'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (3)'
-+ei
               stop
             endif
 !
@@ -56972,9 +56935,7 @@ c$$$          endif
 !  Generate distribution
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -57009,54 +56970,14 @@ c$$$          endif
 !
 !++  Number of points and generate distribution
 !
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'Generation of particle distribution Version 1'
-+ei
-+if .not.cr
-      write(*,*) 'Generation of particle distribution Version 1'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'This routine generates particles in phase space'
-+ei
-+if .not.cr
-      write(*,*) 'This routine generates particles in phase space'
-+ei
-+if cr
       write(lout,*) 'X/XP and Y/YP ellipses, as defined in the input'
-+ei
-+if .not.cr
-      write(*,*) 'X/XP and Y/YP ellipses, as defined in the input'
-+ei
-+if cr
       write(lout,*) 'parameters. Distribution is flat in the band.'
-+ei
-+if .not.cr
-      write(*,*) 'parameters. Distribution is flat in the band.'
-+ei
-+if cr
       write(lout,*) 'X and Y are fully uncorrelated.'
-+ei
-+if .not.cr
-      write(*,*) 'X and Y are fully uncorrelated.'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !
       write(outlun,*)
       write(outlun,*) 'Generation of particle distribution Version 1'
@@ -57156,9 +57077,7 @@ c$$$          endif
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -57179,14 +57098,8 @@ c$$$          endif
 !
 !++  Calculate the gammas
 !
-+if cr
       write(lout,*) '  New routine to add the finite beam size in the'
       write(lout,*) '  other dimension (SR, 08-06-2005).'
-+ei
-+if .not.cr
-      write(*,*) '  New routine to add the finite beam size in the'
-      write(*,*) '  other dimension (SR, 08-06-2005).'
-+ei
 
       pi=4d0*atan(1d0)
 !
@@ -57290,7 +57203,7 @@ c$$$          endif
      &           myalphay * cos(phiy))                                   !hr09
 +ei
          else
-            write(*,*) "Error - beam parameters not correctly set!"
+            write(lout,*) "Error - beam parameters not correctly set!"
          endif
 !
          myp(j)   = myenom
@@ -57318,7 +57231,7 @@ c$$$          endif
      &     myx, myxp, myy, myyp, myp, mys)
  
       implicit none
-
++ca crcoall
 +ca collpara
 +ca dbmkdist
 
@@ -57331,7 +57244,7 @@ c$$$          endif
 !
 !++  Calculate the gammas
 !
-      write(*,*) '  RB 2013: new pencil beam routine'
+      write(lout,*) '  RB 2013: new pencil beam routine'
       pi=4d0*atan(1d0)
 !
       mygammax = (1d0+myalphax**2)/mybetax
@@ -57432,9 +57345,7 @@ c$$$     &           myalphay * cos(phiy))
 !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -57475,7 +57386,7 @@ c$$$     &           myalphay * cos(phiy))
 !GRD      else
       en_error = enerror
       bunch_length = bunchlength
-+if cr
+      
 !GRD         write(lout,*)"Warning-Energy different from LHC inj or top!"
 !GRD         write(lout,*)"  => 7TeV values of dp/p and bunch length used!"
 !GRD      endif
@@ -57483,16 +57394,7 @@ c$$$     &           myalphay * cos(phiy))
       write(lout,*) "Generation of bunch with dp/p and length:"
       write(lout,*) "  RMS bunch length  = ", bunch_length
       write(lout,*) "  RMS energy spread = ", en_error
-+ei
-+if .not.cr
-!GRD         write(*,*)"Warning-Energy different from LHC inj or top!"
-!GRD         write(*,*)"     => 7TeV values of dp/p and bunch length used!"
-!GRD      endif
-!GRD
-      write(*,*) "Generation of bunch with dp/p and length:"
-      write(*,*) "  RMS bunch length  = ", bunch_length
-      write(*,*) "  RMS energy spread = ", en_error
-+ei
+
       do j=1, mynp
          if ((mynex.gt.0d0).and.(myney.eq.0d0)) then
             myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
@@ -57590,7 +57492,7 @@ c$$$     &           myalphay * cos(phiy))
      &           myalphay * cos(phiy))                                   !hr09
 +ei
          else
-            write(*,*) "Error - beam parameters not correctly set!"
+            write(lout,*) "Error - beam parameters not correctly set!"
          endif
 !
       end do
@@ -57631,9 +57533,7 @@ c$$$     &           myalphay * cos(phiy))
 !
       implicit none
 
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -57647,20 +57547,20 @@ c$$$     &           myalphay * cos(phiy))
       
       save
 
-      write(*,*) "Reading input bunch from file ", filename_dis
+      write(lout,*) "Reading input bunch from file ", filename_dis
 
       inquire( unit=53, opened=lopen )
       if (lopen) then
-         write(*,*) "ERROR in subroutine readdis: "//
+         write(lout,*) "ERROR in subroutine readdis: "//
      &        "FORTRAN Unit 53 was already open!"
          goto 20
       endif
       open(unit=53, file=filename_dis, iostat=stat,
      &     status="OLD",action="read")
       if (stat.ne.0)then
-         write(*,*) "Error in subroutine readdis: "//
+         write(lout,*) "Error in subroutine readdis: "//
      &        "Could not open the file."
-         write(*,*) "Got iostat=",stat
+         write(lout,*) "Got iostat=",stat
          goto 20
       endif
 
@@ -57670,7 +57570,7 @@ c$$$     &           myalphay * cos(phiy))
       enddo
       
  10   mynp = j - 1
-      write(*,*) "Number of particles read from the file = ",mynp
+      write(lout,*) "Number of particles read from the file = ",mynp
 
       close(53)
 
@@ -57678,7 +57578,7 @@ c$$$     &           myalphay * cos(phiy))
       
  20   continue
 !      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
-      write(*,*) "I/O Error on Unit 53 in subroutine readdis"
+      write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
       call prror(-1)
       
       end
@@ -57690,9 +57590,7 @@ c$$$     &           myalphay * cos(phiy))
      &myyp, myp, mys)
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -57726,42 +57624,12 @@ c$$$     &           myalphay * cos(phiy))
       myney = nr/sqrt(2d0)
       mdey = ndr/sqrt(2d0)
 !
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'Generation of particle distribution Version 2'
-+ei
-+if .not.cr
-      write(*,*) 'Generation of particle distribution Version 2'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'This routine generates particles in that are fully'
-+ei
-+if .not.cr
-      write(*,*) 'This routine generates particles in that are fully'
-+ei
-+if cr
       write(lout,*) 'correlated between X and Y.'
-+ei
-+if .not.cr
-      write(*,*) 'correlated between X and Y.'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !
       write(outlun,*)
       write(outlun,*) 'Generation of particle distribution Version 2'
@@ -57884,9 +57752,7 @@ c$$$     &           myalphay * cos(phiy))
      &     enerror, bunchlength )
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -57927,21 +57793,21 @@ c$$$     &           myalphay * cos(phiy))
       en_error = enerror
       bunch_length = bunchlength
 
-      write (*,*) "Generation of bunch with dp/p and length:"
-      write (*,*) "  RMS bunch length  = ", bunch_length
-      write (*,*) "  RMS energy spread = ", en_error
+      write (lout,*) "Generation of bunch with dp/p and length:"
+      write (lout,*) "  RMS bunch length  = ", bunch_length
+      write (lout,*) "  RMS energy spread = ", en_error
 ! JBG August 2007
-      write (*,*)
-      write (*,*) "   ***STEP 1 for Gaussian Beam***"
-      write (*,*)
-      write (*,*) "   Beam generated with 5 sigma cut"
-      write (*,*)
-      write (*,*) "  Parameters used for Distribution Generation"
-      write (*,*) "  BetaX =", mybetax    
-      write (*,*) "  BetaY =", mybetay
-      write (*,*) "  EmittanceX =", myemitx0
-      write (*,*) "  EmittanceY =", myemity0
-      write (*,*)
+      write (lout,*)
+      write (lout,*) "   ***STEP 1 for Gaussian Beam***"
+      write (lout,*)
+      write (lout,*) "   Beam generated with 5 sigma cut"
+      write (lout,*)
+      write (lout,*) "  Parameters used for Distribution Generation"
+      write (lout,*) "  BetaX =", mybetax    
+      write (lout,*) "  BetaY =", mybetay
+      write (lout,*) "  EmittanceX =", myemitx0
+      write (lout,*) "  EmittanceY =", myemity0
+      write (lout,*)
       
       startpar=1
 +if beamgas
@@ -58027,9 +57893,6 @@ c$$$     &           myalphay * cos(phiy))
 !
       function ichoix(ma)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58056,9 +57919,6 @@ c$$$     &           myalphay * cos(phiy))
 !++        is modified (energy loss is applied)
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58144,9 +58004,6 @@ c$$$     &           myalphay * cos(phiy))
 !
       subroutine tetat(t,p,tx,tz)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58168,9 +58025,6 @@ c$$$     &           myalphay * cos(phiy))
 !
       function ruth(t)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58195,9 +58049,6 @@ c$$$     &           myalphay * cos(phiy))
 !GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
 !GRD
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58321,9 +58172,6 @@ c$$$     &           myalphay * cos(phiy))
       implicit none
 +if merlinscatter
 +ca database
-+ei
-+if cr
-+ca crcoall
 +ei
 +if crlibm
 +ca crlibco
@@ -58456,9 +58304,6 @@ c$$$     &           myalphay * cos(phiy))
 !     nabs=1....absorption
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58711,9 +58556,6 @@ c$$$     &           myalphay * cos(phiy))
 !     nabs=1....absorption
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58866,9 +58708,6 @@ c$$$     &           myalphay * cos(phiy))
 !     collimator: x>0 and y<zlm1
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58919,9 +58758,6 @@ c$$$     &           myalphay * cos(phiy))
 
       subroutine scamcs(xx,xxp,s,radl_mat)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58960,9 +58796,6 @@ c$$$     &           myalphay * cos(phiy))
 
       subroutine soln3(a,b,dh,smax,s)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59271,9 +59104,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 
       function rndm4()
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59442,15 +59272,13 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !!!      ISVEC must be dimensioned 25 in the calling program        ++
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
       integer lenv,isdext,iseeds,maxlev,ndskip,itwo24,next,j24,i24,     &
      &inseed,mkount,kount,in24,nskip,lxdflt,jsdflt,jseed,lp,i,k,icons,  &
-     &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout,ins,lux,ilx, &
+     &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout2,ins,lux,ilx,&
      &iouter
       real rvec,seeds,twop12,twom12,twom24,carry,uni
       dimension rvec(lenv)
@@ -59479,12 +59307,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          notyet = .false.
          jseed = jsdflt
          inseed = jseed
-+if cr
          write(lout,'(A,I12)') ' RANLUX DEFAULT INITIALIZATION: ',jseed
-+ei
-+if .not.cr
-         write(*,'(A,I12)') ' RANLUX DEFAULT INITIALIZATION: ',jseed
-+ei
          luxlev = lxdflt
          nskip = ndskip(luxlev)
          lp = nskip + 24
@@ -59570,18 +59393,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
   195    twom24 = twom24 * 0.5
          next(1) = 24
          twom12 = twom24 * 4096.
-+if cr
       write(lout,*) ' FULL INITIALIZATION OF RANLUX WITH 25 INTEGERS:'
-+ei
-+if .not.cr
-      write(*,*) ' FULL INITIALIZATION OF RANLUX WITH 25 INTEGERS:'
-+ei
-+if cr
       write(lout,'(5X,5I12)') isdext
-+ei
-+if .not.cr
-      write(*,'(5X,5I12)') isdext
-+ei
       do 200 i= 1, 24
       seeds(i) = real(isdext(i))*twom24
   200 continue
@@ -59597,29 +59410,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       luxlev = isd
         if (luxlev .le. maxlev) then
           nskip = ndskip(luxlev)
-+if cr
           write(lout,'(A,I2)')' RANLUX LUXURY LEVEL SET BY RLUXIN TO: ',
-+ei
-+if .not.cr
-          write(*,'(A,I2)') ' RANLUX LUXURY LEVEL SET BY RLUXIN TO: ',  &
-+ei
      &luxlev
         else  if (luxlev .ge. 24) then
           nskip = luxlev - 24
-+if cr
           write(lout,'(A,I5)')' RANLUX P-VALUE SET BY RLUXIN TO:',luxlev
-+ei
-+if .not.cr
-          write(*,'(A,I5)') ' RANLUX P-VALUE SET BY RLUXIN TO:',luxlev
-+ei
         else
           nskip = ndskip(maxlev)
-+if cr
           write(lout,'(A,I5)') ' RANLUX ILLEGAL LUXURY RLUXIN: ',luxlev
-+ei
-+if .not.cr
-          write(*,'(A,I5)') ' RANLUX ILLEGAL LUXURY RLUXIN: ',luxlev
-+ei
           luxlev = maxlev
         endif
       inseed = -1
@@ -59634,12 +59432,12 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       if (carry .gt. 0.)  isdext(25) = -isdext(25)
       return
 !
-!                    Entry to output the "convenient" restart point
-!STRANGENESS: Entry point 'rluxat' not used,
-!             strange first argument "lout" (should be luxury level)
-!             This is not compatible with CR!
-      entry rluxat(lout,inout,k1,k2)
-      lout = luxlev
+!     Entry to output the "convenient" restart point
+!     Note: The first argument was originall called "lout";
+!     however this conflicts with the variable name used for selecting output unit.
+!     It was therefore renamed to "lout2".
+      entry rluxat(lout2,inout,k1,k2)
+      lout2 = luxlev
       inout = inseed
       k1 = kount
       k2 = mkount
@@ -59653,12 +59451,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
             luxlev = lux
          else if (lux .lt. 24 .or. lux .gt. 2000) then
             luxlev = maxlev
-+if cr
             write(lout,'(A,I7)') ' RANLUX ILLEGAL LUXURY RLUXGO: ',lux
-+ei
-+if .not.cr
-            write(*,'(A,I7)') ' RANLUX ILLEGAL LUXURY RLUXGO: ',lux
-+ei
          else
             luxlev = lux
             do 310 ilx= 0, maxlev
@@ -59667,50 +59460,25 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          endif
       if (luxlev .le. maxlev)  then
          nskip = ndskip(luxlev)
-+if cr
          write(lout,'(A,I2,A,I4)')                                      &
      &' RANLUX LUXURY LEVEL SET BY RLUXGO :',
-+ei
-+if .not.cr
-         write(*,'(A,I2,A,I4)') ' RANLUX LUXURY LEVEL SET BY RLUXGO :', &
-+ei
      &luxlev,'     P=', nskip+24
       else
           nskip = luxlev - 24
-+if cr
           write(lout,'(A,I5)')                                          &
      &' RANLUX P-VALUE SET BY RLUXGO TO:',luxlev
-+ei
-+if .not.cr
-          write(*,'(A,I5)') ' RANLUX P-VALUE SET BY RLUXGO TO:',luxlev
-+ei
       endif
       in24 = 0
-+if cr
       if (ins .lt. 0)  write(lout,*)
-+ei
-+if .not.cr
-      if (ins .lt. 0)  write(*,*)                                       &
-+ei
      &' Illegal initialization by RLUXGO, negative input seed'
       if (ins .gt. 0)  then
         jseed = ins
-+if cr
         write(lout,'(A,3I12)')                                          &
      &' RANLUX INITIALIZED BY RLUXGO FROM SEEDS',
-+ei
-+if .not.cr
-        write(*,'(A,3I12)') ' RANLUX INITIALIZED BY RLUXGO FROM SEEDS', &
-+ei
      &jseed, k1,k2
       else
         jseed = jsdflt
-+if cr
         write(lout,*)' RANLUX INITIALIZED BY RLUXGO FROM DEFAULT SEED'
-+ei
-+if .not.cr
-        write(*,*)' RANLUX INITIALIZED BY RLUXGO FROM DEFAULT SEED'
-+ei
       endif
       inseed = jseed
       notyet = .false.
@@ -59763,12 +59531,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         endif
 !       Now IN24 had better be between zero and 23 inclusive
         if (in24 .gt. 23) then
-+if cr
            write(lout,'(A/A,3I11,A,I5)')
-+ei
-+if .not.cr
-           write(*,'(A/A,3I11,A,I5)')                                   &
-+ei
      &'  Error in RESTARTING with RLUXGO:','  The values', ins,         &
      &k1, k2, ' cannot occur at luxury level', luxlev
            in24 = 0
@@ -59791,9 +59554,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !    4. both FUNLXP and FUNPCT use RADAPT for Gaussian integration.
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59811,12 +59572,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       call funlz(func,x2low,x2high,xlow,xhigh)
       xrange = xhigh-xlow
       if(xrange .le. 0.)  then
-+if cr
         write(lout,'(A,2G15.5)') ' FUNLXP finds function range .LE.0',
-+ei
-+if .not.cr
-        write(*,'(A,2G15.5)') ' FUNLXP finds function range .LE.0',     &
-+ei
      &xlow,xhigh
         go to 900
       endif
@@ -59842,12 +59598,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
      &' between',g12.3,' and',g12.3,' for FUNLUX')
       return
   900 continue
-+if cr
       write(lout,*) ' Fatal error in FUNLXP. FUNLUX will not work.'
-+ei
-+if .not.cr
-      write(*,*) ' Fatal error in FUNLXP. FUNLUX will not work.'
-+ei
       end
 !
       subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,    &
@@ -59855,9 +59606,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !        Array XFCUM is filled from NLO to NLO+NBINS, which makes
 !        the number of values NBINS+1, or the number of bins NBINS
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59906,12 +59655,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       f1 = f
       x1 = x
   500 continue
-+if cr
       write(lout,*) ' FUNLUX:  WARNING. FUNPCT fails trapezoid.'
-+ei
-+if .not.cr
-      write(*,*) ' FUNLUX:  WARNING. FUNPCT fails trapezoid.'
-+ei
 !         END OF TRAPEZOID LOOP
 !         Adjust interval using Gaussian integration with
 !             Newton corrections since F is the derivative
@@ -59926,12 +59670,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       x = xbest + xincr
       x2 = x
         if (ihome .gt. 1 .and. x2 .eq. xbest) then
-+if cr
         write(lout,'(A,G12.3)')
-+ei
-+if .not.cr
-        write(*,'(A,G12.3)')                                            &
-+ei
      &' FUNLUX: WARNING from FUNPCT: insufficient precision at X=',x
         go to 580
         endif
@@ -59950,12 +59689,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       if(f .lt. 0.) goto 900
       if(dtabs .lt. rteps*tpctil) goto 580
   550 continue
-+if cr
       write(lout,'(A,I4)')
-+ei
-+if .not.cr
-      write(*,'(A,I4)')                                                 &
-+ei
      &' FUNLUX: WARNING from FUNPCT: cannot converge, bin',ibin
 !
   580 continue
@@ -59971,19 +59705,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       call radapt(func,x1,x2,1,rteps,0.,tpart ,uncert)
       aberr = abs(tpart-tpctil)/tftot
 !      WRITE(6,1001) IFUNC,XLOW,XHIGH
-+if cr
       if(aberr .gt. rteps)  write(lout,1002) aberr
-+ei
-+if .not.cr
-      if(aberr .gt. rteps)  write(*,1002) aberr
-+ei
       return
-+if cr
   900 write(lout,1000) x,f
-+ei
-+if .not.cr
-  900 write(*,1000) x,f
-+ei
       ierr = 1
       return
  1000 format(/' FUNLUX fatal error in FUNPCT: function negative:'/      &
@@ -60001,9 +59725,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60074,9 +59795,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !         OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
 !         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60100,18 +59819,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
    20 continue
    30 continue
 !         FALLING THROUGH LOOP MEANS CANNOT FIND NON-ZERO VALUE
-+if cr
       write(lout,554)
-+ei
-+if .not.cr
-      write(*,554)
-+ei
-+if cr
       write(lout,555) xlow, xhigh
-+ei
-+if .not.cr
-      write(*,555) xlow, xhigh
-+ei
       xlow = 0.
       xhigh = 0.
       go to 220
@@ -60128,12 +59837,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
    68 xl = xnew
    70 continue
       xlow = xl
-+if cr
       write(lout,555) x2low,xlow
-+ei
-+if .not.cr
-      write(*,555) x2low,xlow
-+ei
   120 continue
       if (func(xhigh) .gt. 0.) go to 220
 !         DELETE 'TRAILING' RANGE OF ZEROES
@@ -60147,12 +59851,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
   168 xh = xnew
   170 continue
       xhigh = xh
-+if cr
       write(lout,555) xhigh, x2high
-+ei
-+if .not.cr
-      write(*,555) xhigh, x2high
-+ei
 !
   220 continue
       return
@@ -60176,9 +59875,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !        can be set to zero, in which case only the other is used.
 
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60261,9 +59957,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine rgs56p(f,a,b,res,err)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60312,9 +60005,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       integer function mclock_liar( )
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60333,19 +60024,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          call system_clock( mclock, count_rate, count_max )
          if ( count_max .eq. 0 ) then
             clock_ok = .false.
-+if cr
             write(lout,*)'INFO>  System Clock not present or not',
-+ei
-+if .not.cr
-            write(*,*)'INFO>  System Clock not present or not',         &
-+ei
      &' Responding'
-+if cr
             write(lout,*)'INFO>  R.N.G. Reseed operation disabled.'
-+ei
-+if .not.cr
-            write(*,*)'INFO>  R.N.G. Reseed operation disabled.'
-+ei
          endif
 !
       endif
@@ -60366,9 +60047,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60422,6 +60100,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         subroutine readcollimator
 !
         integer I,J,K
++ca crcoall
 +ca parpro
 +ca collpara
 +ca database
@@ -60438,7 +60117,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !      write(*,*) 'reading collimator database'
       inquire( unit=53, opened=lopen )
       if (lopen) then
-         write(*,*) "ERROR in subroutine readcollimator: "//
+         write(lout,*) "ERROR in subroutine readcollimator: "//
      &        "FORTRAN Unit 53 was already open!"
          call prror(-1)
       endif
@@ -60446,9 +60125,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       open(unit=53,file=coll_db, iostat=ios,
      &     status="OLD",action="read")
       if (ios.ne.0)then
-         write(*,*) "Error in subroutine readcollimator: "//
+         write(lout,*) "Error in subroutine readcollimator: "//
      &        "Could not open the file ",coll_db
-         write(*,*) "Got iostat=",ios
+         write(lout,*) "Got iostat=",ios
          call prror(-1)
       endif
 !
@@ -60456,7 +60135,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !      I = 0
       read(53,*)
       read(53,*,iostat=ios) db_ncoll
-      write(*,*) 'number of collimators = ',db_ncoll
+      write(lout,*) 'number of collimators = ',db_ncoll
 !     write(*,*) 'ios = ',ios
       if (ios.ne.0) then
         write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
