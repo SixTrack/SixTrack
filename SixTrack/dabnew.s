@@ -5895,7 +5895,6 @@
          endif
          if(ierr.eq.1) then
             write(lout,*)'ERROR IN DACHK, ',ina,',',inb,' AND ',inc,
-+ei
      &' ARE INCOMPATIBLE'
             call dadeb(31,'ERR DACHK2',1)
          endif
