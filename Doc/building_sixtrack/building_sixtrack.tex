@@ -202,6 +202,8 @@ To clear all such folders, simply run:
 \end{lstlisting}
 
 \subsection{Supported compilers}
+\label{sec:building:compilers}
+
 Most of the code is written in Fortran, where we require Fortran 2003 support.
 The currently supported compilers are:
 \begin{itemize}
@@ -225,6 +227,7 @@ Note that one may also use whatever compilers are the system default by using th
 Also note that some of these compilers may only be able to build either 32- or 64-bit executables, either due to limitations in the compiler itself, or due to which libraries have been installed on the machine you are compiling on.
 
 \subsubsection{gfortran and gcc}
+\label{sec:building:compilers:gcc}
 The gfortran and gcc compiler is the default on CERN's LxPlus system and on most Linux systems.
 The system version (version 4.4.7) is old, but can be used to build both 32- and 64-bit executables.
 
@@ -242,6 +245,7 @@ Unfortunately, this version only have the libraries for building the 64-bit vers
 \todo[inline]{Installing gfortran and libraries for 32- and 64-bit, static/non-static builds on Fedora and Ubuntu.}
 
 \subsubsection{ifort and icc/icpc}
+\label{sec:building:compilers:intel}
 Another popular set of compilers are Intel's ifort and icc.
 To load these from AFS, simply run their setup script as:
 \begin{lstlisting}
@@ -346,12 +350,12 @@ This then makes it possible to track up to 65\;536 particles when the \texttt{HU
 \subsubsection{DA (differential algebra)}
 This version allows computing DA maps of the machine.
 Please contact Frank Schmidt if you intend to use it.
-
-To compile it, simply use:
+To compile it, simply run:
 \begin{lstlisting}
-./cmake_six DA NAGLIB
+./cmake_six DA NAGLIB ifort
 \end{lstlisting}
 Note that the DA version requires the NAGFOR library (Section~\ref{sec:building:libs:naglib}), a proprietary library of mathematical functions that is available at CERN via AFS.
+This itself is usually easier to build using ifort (Section~\ref{sec:building:compilers:intel}).
 
 \subsection{Libraries}
 SixTrack leverages a few libraries in order to run correctly.
