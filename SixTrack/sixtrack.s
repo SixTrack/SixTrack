@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.11'/
-      data moddate /'21.03.2017'/
+      data version /'4.6.12'/
+      data moddate /'24.03.2017'/
 +cd license
 !!SixTrack
 !!
