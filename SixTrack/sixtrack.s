@@ -41572,12 +41572,7 @@ C Should get me a NaN
      &        funcs_dynk(nfuncs_dynk,4) .le. 1 .or.                    ! p2 <= 1  ?
      &        funcs_dynk(nfuncs_dynk,4) .lt. funcs_dynk(nfuncs_dynk,3) ! p2 < p1 ?
      &        ) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
      &      "DYNK> Error in ONOFF: Expected p1 >= 1, p2 > 1, p1 <= p2"
             call prror(-1)
          end if
@@ -42290,12 +42285,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                
             else if (funcs_dynk(ii,2) .eq. 7) then !RANDU
                if (ldynkdebug) then
-+if cr
                   write (lout,*) 
-+ei
-+if .not.cr
-                  write (*,*) 
-+ei
      &               "DYNKDEBUG> Resetting RANDU for FUN named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
