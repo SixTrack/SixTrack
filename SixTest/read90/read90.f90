@@ -98,6 +98,7 @@
       character(len=100) :: fname
       character(len=100) :: ofname
       logical ofoutput
+      logical hasInputFile
       integer ounit
 !----------------------------------------------------------------------
       ofoutput = .FALSE.
@@ -249,11 +250,19 @@
          cmdarg_i = cmdarg_i+1
       end do
       
-!--open fort.190
+!--open fort.190 (the input file)
       nfile=190
       n=0
+      
+      INQUIRE(FILE=fname,EXIST=hasInputFile)
+      if (.not. hasInputFile) then
+         write(*,'(a,a,a)') "Error in read90 - file '"//trim(fname)//"' was not found"
+         stop 19
+      endif
+      
       open(nfile,file=fname,form='UNFORMATTED',status='OLD')
 
+!--open the optional output file
       if (ofoutput .eqv. .TRUE.) then
          open(191,file=ofname,action='WRITE',status='REPLACE')
          ounit = 191
@@ -453,7 +462,7 @@
 ! Always returns 17 or less characters as requested
       write (*,10000)
       write (*,*) 'Routine dtoa[f] returned string length ',ilen,'!!!'
-      stop
+      stop 18
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
       endif

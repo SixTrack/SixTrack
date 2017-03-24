@@ -63,7 +63,7 @@ do
   echo "=== $dir ==="
     echo "First time NO interrupts"
   rm -f *
-  if test "$API" = ""
+  if test "$BOINC" = ""
   then
     for j in 2 3 8 16
     do
@@ -224,7 +224,7 @@ do
   # Remove all files including output and restart
   rm -f fort.* *.dat Six*.zip
   # and get inputs
-  if test "$API" = ""
+  if test "$BOINC" = ""
   then
     for j in 2 3 8 16
     do

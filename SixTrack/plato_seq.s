@@ -93,17 +93,10 @@ C
       DIMENSION Z(MAXITER)
       
 +ca crlibco
-+if cr
 +ca crcoall
-+ei
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
-+if cr
          WRITE(lout,'(a)') '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
-+ei
-+if .not.cr
-         WRITE(*,   '(a)') '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
-+ei
          call prror(-1)
       ENDIF
 C.............................................................
@@ -174,17 +167,10 @@ C
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
 +ca crlibco
-+if cr
 +ca crcoall
-+ei
 C............................................................
       IF (MAX.LE.0) THEN
-+if cr
          WRITE(lout,'(a)')
-+ei
-+if .not.cr
-         WRITE(*,   '(a)')
-+ei
      &        '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
@@ -255,17 +241,10 @@ C
       INTEGER N,I
       DOUBLE PRECISION X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
       DIMENSION X(*),Y(*)
-+if cr
 +ca crcoall
-+ei
 C............................................................
       IF (N.LE.0) THEN
-+if cr
         WRITE(lout,'(a)')
-+ei
-+if .not.cr
-        WRITE(*,   '(a)')
-+ei
      &       '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
@@ -334,7 +313,7 @@ C.............................................................
         Z(MF)=DCMPLX(X(MF),XP(MF))
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
-      ENDDO 
+      ENDDO
       CALL FFT_PLATO(ZSING,NPOINT,-1)
 C.......................SEARCH FOR MAXIMUM OF FOURIER SPECTRUM
       NPMIN=1
@@ -668,17 +647,10 @@ C
       DIMENSION Z(MAXITER)
 
 +ca crlibco
-+if cr
 +ca crcoall
-+ei
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
-+if cr
         WRITE(lout,'(a)') '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
-+ei
-+if .not.cr
-        WRITE(*,   '(a)') '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
-+ei
         call prror(-1)
       ENDIF
 C.............................................................
@@ -873,19 +845,12 @@ C............................................................
       DIMENSION X(*),P(*)
 
 +ca crlibco
-+if cr
 +ca crcoall
-+ei
 C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
 C............................................................
       IF (N.LE.0) THEN
-+if cr
         WRITE(lout,'(a)')
-+ei
-+if .not.cr
-        WRITE(*,   '(a)')
-+ei
      &       '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
@@ -962,28 +927,16 @@ C............................................................
       DOUBLE PRECISION SUM,AMAX
       DOUBLE PRECISION X(*),P(*)
       COMPLEX*16  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
-+if cr
 +ca crcoall
-+ei
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-+if cr
         write(lout,'(a)')
-+ei
-+if .not.cr
-        write(*,   '(a)')
-+ei
      &       '***ERROR(TUNEFFT): TOO MANY ITERATES'
         call prror(-1)
       ENDIF
 C............................................................
       IF (N.LE.0) THEN
-+if cr
         write(lout,'(a)')
-+ei
-+if .not.cr
-        write(*,   '(a)')
-+ei
      &       '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
@@ -1052,28 +1005,16 @@ C............................................................
       COMPLEX*16 Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
 +ca crlibco
-+if cr
 +ca crcoall
-+ei
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-+if cr
         write(lout,'(a)')
-+ei
-+if .not.cr
-        write(*,   '(a)')
-+ei
      &       '***ERROR(TUNEFFTI): TOO MANY ITERATES'
         call prror(-1)
       ENDIF
 C............................................................
       IF (N.LE.0) THEN
-+if cr
         write(lout,'(a)')
-+ei
-+if .not.cr
-        write(*,   '(a)')
-+ei
      &       '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
@@ -1171,9 +1112,7 @@ C............................................................
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
 
 +ca crlibco
-+if cr
 +ca crcoall
-+ei
 +if crlibm
       DUEPI=8*ATAN_RN(1D+0)
 +ei
@@ -1182,23 +1121,13 @@ C............................................................
 +ei
 C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
-+if cr
         write(lout,'(a)')
-+ei
-+if .not.cr
-        write(*,   '(a)')
-+ei
      &       '***ERROR(TUNELASK): TOO MANY ITERATIONS'
         call prror(-1)
       ENDIF
 C............................................................
       IF (MAX.LE.0) THEN
-+if cr
         write(lout,'(a)')
-+ei
-+if .not.cr
-        write(*,   '(a)')
-+ei
      &       '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
