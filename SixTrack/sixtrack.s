@@ -16322,9 +16322,9 @@ cc2008
          call prror(51)
       endif
       ! Should never arrive here
-      write (*,*) "*****************************"
-      write (*,*) "*LOGIC ERROR IN PARSING DYNK*"
-      write (*,*) "*****************************"
+      write (lout,*) "*****************************"
+      write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
+      write (lout,*) "*****************************"
       call prror(51)
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -25795,7 +25795,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       n_tot_absorbed = 0
       
       if (int(mynp/napx00) .eq. 0) then
-+if cr
          write (lout,*) ""
          write (lout,*) "********************************************"
          write (lout,*) "Error in setting up collimation tracking:"
@@ -25807,20 +25806,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "Value of mynp    = ", mynp
          write (lout,*) "Value of napx00  = ", napx00
          write (lout,*) "********************************************"
-+ei
-+if .not.cr
-         write (*,*)    ""
-         write (*,*)    "********************************************"
-         write (*,*)    "Error in setting up collimation tracking:"
-         write (*,*)    "Number of samples is zero!"
-         write (*,*)    "Did you forget the COLL block in fort.3?"
-         write (*,*)    "If you want to do standard (not collimation)"//
-     &                  " tracking, please use the standard SixTrack."
-         write (*,*)    "Value of do_coll = ", do_coll
-         write (*,*)    "Value of mynp    = ", mynp
-         write (*,*)    "Value of napx00  = ", napx00
-         write (*,*)    "********************************************"
-+ei
          call prror(-1)
       endif
       
@@ -27815,7 +27800,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !41-50
      &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !51-60
      &        757, 760, 761 ),myktrack
-          write (*,*) "WARNING: Non-handled element in thin6d()!",
+          write (lout,*) "WARNING: Non-handled element in thin6d()!",
      &                " i=", i, "ix=", ix, "myktrack=",  myktrack,
      &                " bez(ix)='", bez(ix),"' SKIPPED"
 +ei
@@ -32320,6 +32305,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdumpcr
 +ei
 
++ca crcoall
+
 +if collimat
 +ca collpara
 +ca dbcommon
@@ -32604,12 +32591,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
       !Unrecognized format fmt
       else
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      & "DUMP> Format",fmt, "not understood for unit", unit
          call prror(-1)
       endif
@@ -33181,12 +33163,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei bpm
       
       if (ldumpfront) then
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
       stop
@@ -33754,12 +33731,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei bpm
 
       if (ldumpfront) then
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
       stop
@@ -34440,12 +34412,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei bpm
 
       if (ldumpfront) then
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
       stop
@@ -57300,7 +57267,7 @@ c$$$          endif
      &           myalphax * cos(phix))                             
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then  ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
-            write(*,*) "Stop in makedis_coll. attempting to use halo type 
+            write(lout,*) "Stop in makedis_coll. attempting to use halo type 
      &3 with Gaussian dist. "
             stop
 c$$$            phix = (2d0*pi)*dble(rndm4())                                 
@@ -57317,7 +57284,7 @@ c$$$            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin(phiy) +     &
 c$$$     &           myalphay * cos(phiy))                                    
 
          else
-            write(*,*) "Error - beam parameters not correctly set!"
+            write(lout,*) "Error - beam parameters not correctly set!"
          endif
 !
          myp(j)   = myenom
@@ -60143,7 +60110,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         call prror(-1)
       endif
       if (db_ncoll.gt.max_ncoll) then
-         write(*,*) 'ERR> db_ncoll > max_ncoll '
+         write(lout,*) 'ERR> db_ncoll > max_ncoll '
          call prror(-1)
       endif
 !
@@ -65026,7 +64993,7 @@ c$$$         backspace (93,iostat=ierro)
 !          rotating the vector into the orbit reference system:
          z = matmul(rotm,z)
           if (z(3).eq.0) then
-           write(*,*) "ERROR> there is something wrong",                &
+           write(lout,*) "ERROR> there is something wrong",             &
      &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
      &      new4MomCoord
            stop
@@ -65122,6 +65089,8 @@ c$$$         backspace (93,iostat=ierro)
       
       use beamgascommon
       IMPLICIT NONE
+
++ca crcoall
       
       integer check,j,i
       double precision myenom,minenergy
@@ -65133,12 +65102,12 @@ c$$$         backspace (93,iostat=ierro)
       integer filereaderror, previousEvent,numberOfEvents
       real bg_val,ecutoff,pPOS,pVAL
 
-      write(*,*) '************************'
-      write(*,*) '****                 ***'
-      write(*,*) '***Beam gas initiation**'
-      write(*,*) '****      YIL        ***'
-      write(*,*) '************************'
-      write(*,*) ''
+      write(lout,*) '************************'
+      write(lout,*) '****                 ***'
+      write(lout,*) '***Beam gas initiation**'
+      write(lout,*) '****      YIL        ***'
+      write(lout,*) '************************'
+      write(lout,*) ''
       
 ! DEBUG: open debug file...      
 !      open(684,file='debugfile.txt')
@@ -65182,7 +65151,7 @@ c$$$         backspace (93,iostat=ierro)
       pressARRAY(2,j)=pVAL
       j=j+1
        if (j>bgmaxx) then
-         write(*,*) 'ERROR> Too many pressure markers!'
+         write(lout,*) 'ERROR> Too many pressure markers!'
          stop
        endif
       else if (filereaderror.lt.0) then
@@ -65225,25 +65194,25 @@ c$$$         backspace (93,iostat=ierro)
 !        what we are supposed to simulate, we stop here...
          if (previousEvent.gt.dpmjetevents) exit
          if (numberOfEvents.gt.(bgmaxx-1)) then
-         write(*,*) 'ERROR> Too many dpmjet events!'
+         write(lout,*) 'ERROR> Too many dpmjet events!'
          stop
       endif
       enddo
 !       number of lines in dpmjet - 1
       bgmax=j
       close(666)
-      write(*,*) 'INFO> Trackable events in dpmjet.eve: ', bgmax-1
+      write(lout,*) 'INFO> Trackable events in dpmjet.eve: ', bgmax-1
       if (numberOfEvents.gt.mynp) then 
-         write(*,*) 'ERROR> You need to generate less dpmjet events!'
-         write(*,*) 'ERROR> There were too many trackable events...'
-         write(*,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
-         write(*,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
+         write(lout,*) 'ERROR> You need to generate less dpmjet events!'
+         write(lout,*) 'ERROR> There were too many trackable events...'
+         write(lout,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
+         write(lout,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
      &events'
          stop
       endif
-      write(*,*) 'INFO> This is job number: ', njobthis
-      write(*,*) 'INFO> Total number of jobs is: ', njobs
-      write(*,*) 'INFO> Total number of particles in simulation: ',     &
+      write(lout,*) 'INFO> This is job number: ', njobthis
+      write(lout,*) 'INFO> Total number of jobs is: ', njobs
+      write(lout,*) 'INFO> Total number of particles in simulation: ',     &
      &   njobs*dpmjetevents
       close(778)
       open(777,file='localLOSSES.txt')
