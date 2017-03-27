@@ -1441,6 +1441,58 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd scatter
+      !Common block for the SCATTER routine
+      integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
+                                         ! (0 => not used)
+      integer scatter_numElems
+      parameter (scatter_numElems=200)   ! Max of scattering ELEM statements in use.
+      integer scatter_numProcElem
+      parameter (scatter_numProcElem=5)  ! Number of processes per ELEM.
+
+      ! Configuration for an ELEM, columns are:
+      ! (1) = pointer to PROFILE
+      ! (2)--(scatter_numProcElem) = pointer to PROCESSs
+      integer scatter_ELEM(scatter_numElems, scatter_numProcElem)
+
+      ! Configuration for PROFILE
+      integer scatter_maxPROFILE
+      parameter (scatter_maxPROFILE=200)  ! Max number of profiles
+      integer scatter_PROFILE(scatter_maxPROFILE, 5)
+      ! Columns of scatter_PROFILE:
+      ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
+      ! (2)   : Profile type
+      ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+
+      ! Configuration for PROCESS
+      integer scatter_maxPROCESS
+      parameter (scatter_maxPROCESS=10)
+      integer scatter_PROCESS(scatter_maxPROCESS,5)
+      ! (1)   : Process name in fort.3
+      ! (2)   : Process type
+      ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+      
+      ! General data storage ala DYNK
+      integer scatter_maxdata, scatter_maxstrlen
+      parameter (scatter_maxdata   = 5000,
+     &           scatter_maxstrlen = stringzerotrim_maxlen )
+      
+      integer                       scatter_iexpr (scatter_maxdata)
+      double precision              scatter_fexpr (scatter_maxdata)
+      character (scatter_maxstrlen) scatter_cexpr (scatter_maxdata)
+
+      !Number of currently used positions in arrays
+      integer scatter_nELEM, scatter_nPROFILE, scatter_nPROCESS
+      integer scatter_niexpr, scatter_nfexpr, scatter_ncexpr
+      
+      common /scatterCom/ scatter_elemPointer, scatter_ELEM,
+     &     scatter_PROFILE, scatter_PROCESS,
+     &     scatter_iexpr, scatter_fexpr, scatter_cexpr,
+     &     scatter_nELEM, scatter_nPROFILE, scatter_nPROCESS,
+     &     scatter_niexpr, scatter_nfexpr, scatter_ncexpr
+!     
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd timefct
 +if crlibm
           expt =  exp_rn(-dble(n)/tcnst35(i))
@@ -11722,6 +11774,7 @@ cc2008
 +ca elensparam
 +ca wireparam
 +ca zipf
++ca scatter
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -36557,6 +36610,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca wireparam
 
 +ca zipf
+
++ca scatter
 
 +if collimat
 +ca collpara
