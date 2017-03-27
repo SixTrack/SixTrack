@@ -2307,7 +2307,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         y(1,1)=y(1,1)+ekk*tiltc(k)
         y(1,2)=y(1,2)+ekk*tilts(k)
 +ei
-+cd kickuxxh                                                            
++cd kickuxxh
 +if .not.tilt
         dyy1=ekk*crkve
         dyy2=(-1d0*ekk)*cikve                                            !hr08
