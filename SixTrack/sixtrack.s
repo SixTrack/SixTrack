@@ -1466,8 +1466,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 
       ! Configuration for GENERATOR
       integer scatter_maxGENERATOR
-      parameter (scatter_maxGENERATOR=10)
-      integer scatter_GENERATOR(scatter_maxPROCESS,5)
+      parameter (scatter_maxGENERATOR=20)
+      integer scatter_GENERATOR(scatter_maxGENERATOR,5)
       ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
       ! (2)   : Generator type
       ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
@@ -1482,15 +1482,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       character (scatter_maxstrlen) scatter_cexpr (scatter_maxdata)
 
       !Number of currently used positions in arrays
-      integer scatter_nELEM, scatter_nPROFILE, scatter_nPROCESS
+      integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
       integer scatter_niexpr, scatter_nfexpr, scatter_ncexpr
 
       logical scatter_debug
       
       common /scatterCom/ scatter_elemPointer, scatter_ELEM,
-     &     scatter_PROFILE, scatter_PROCESS,
+     &     scatter_PROFILE, scatter_GENERATOR,
      &     scatter_iexpr, scatter_fexpr, scatter_cexpr,
-     &     scatter_nELEM, scatter_nPROFILE, scatter_nPROCESS,
+     &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
      &     scatter_niexpr, scatter_nfexpr, scatter_ncexpr,
      &     scatter_debug
 !     
@@ -37332,6 +37332,49 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          do j=1, stringzerotrim_maxlen
             zipf_filenames(i)(j:j)=char(0)
          enddo
+      enddo
+      
+!--SCATTER-------------------------------------------------------------
+      scatter_debug = .false.
+      scatter_niexpr = 0
+      scatter_nfexpr = 0
+      scatter_ncexpr = 0
+      scatter_nELEM  = 0
+      scatter_nPROFILE = 0
+      scatter_nGENERATOR  = 0
+
+      do i=1,nele
+         scatter_elemPointer(i) = 0
+      end do
+
+      do i=1,scatter_numElems
+         do j=1,scatter_numProcElem
+            scatter_ELEM(i,j) = 0
+         end do
+      end do
+      
+      do i=1,scatter_maxPROFILE
+         scatter_PROFILE(i,1)=0
+         scatter_PROFILE(i,2)=0
+         scatter_PROFILE(i,3)=0
+         scatter_PROFILE(i,4)=0
+         scatter_PROFILE(i,5)=0
+      end do
+      
+      do i=1,scatter_maxGENERATOR
+         scatter_GENERATOR(i,1)=0
+         scatter_GENERATOR(i,2)=0
+         scatter_GENERATOR(i,3)=0
+         scatter_GENERATOR(i,4)=0
+         scatter_GENERATOR(i,5)=0
+      end do
+
+      do i=1, scatter_maxdata
+         scatter_iexpr(i) = 0
+         scatter_fexpr(i) = 0.0
+         do j=1, scatter_maxstrlen
+            scatter_cexpr(i)(j:j) = char(0)
+         end do
       enddo
       
 !--COLLIMATION----------------------------------------------------------
