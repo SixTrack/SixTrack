@@ -1,0 +1,44 @@
+! Links definitions
+option, warn,info;
+system,"ln -fns /afs/cern.ch/eng/lhc/optics/runII/2016 db5";
+
+is_thin=1;
+
+! Sequence definition
+Option, -echo,-warn,-info;
+call,file="db5/lhc_as-built.seq";
+if (is_thin==1){call,file="db5/toolkit/slice.madx";};
+Option, -echo,warn,info;
+
+if (is_thin==0){
+  ! call, file="db5/opt_inj.madx";
+  ! call, file="db5/opt_800_10000_800_3000.madx";
+  call, file="db5/opt_90000_10000_90000_10000_hibeta_coll.madx";
+} else {
+  ! call, file="db5/opt_inj_thin.madx";
+  ! call, file="db5/opt_800_10000_800_3000_thin.madx";
+  call, file="db5/opt_90000_10000_90000_10000_hibeta_coll_thin.madx";
+};
+
+
+! Beam definition
+beam, sequence=lhcb1, bv= 1, energy=NRJ,  particle=proton,
+  npart=1.2e11,kbunch=2748, ex=7.29767146889e-09,ey=7.29767146889e-09;
+beam, sequence=lhcb2, bv=-1, energy=NRj,  particle=proton,
+  npart=1.2e11,kbunch=2748, ex=7.29767146889e-09,ey=7.29767146889e-09;
+
+
+set,format={"9.6f","-5s"};
+select,flag=twiss,clear;
+select,flag=twiss, pattern="IP[1258]$",column=name,betx,bety,x,y,px,py;
+
+use, sequence=lhcb1;
+twiss;
+write,table=twiss;
+
+if (is_thin==1){ sixtrack, radius=17E-03; };
+
+!use, sequence=lhcb2;
+!twiss;
+!write,table=twiss;
+
