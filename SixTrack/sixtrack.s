@@ -16326,8 +16326,8 @@ cc2008
      &           len(ch), ": '"// trim(ch)// "'"
             do ii=1,getfields_nfields
                write (lout,*)
-     &              "DYNKDEBUG> Field(",ii,") ='",
-     &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+     &              "DYNKDEBUG> Field(",ii,") ='"//
+     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
             enddo
          endif
          call dynk_parseFUN(getfields_fields,
@@ -16344,8 +16344,8 @@ cc2008
      &           len(ch), ": '"//trim(ch)//"'"
             do ii=1,getfields_nfields
                write (lout,*)
-     &              "DYNKDEBUG> Field(",ii,") ='",
-     &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+     &              "DYNKDEBUG> Field(",ii,") ='"//
+     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
             enddo
          endif
          call dynk_parseSET(getfields_fields,
@@ -16966,23 +16966,76 @@ cc2008
       if (scatter_debug) then
          write (lout,'(A,I4,A)')
      &        "SCATTER> Got a block, len=",
-     &        len(ch), ": '"// trim(ch)// "'"
+     &        len(trim(ch)), ": '"// trim(ch)// "'"
          do ii=1,getfields_nfields
-            write (lout,'(a,I4,A,A)')
-     &           "SCATTER> Field(",ii,") ='",
-     &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+            write (lout,'(a,I4,A)')
+     &           "SCATTER> Field(",ii,") ='"//
+     &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
          enddo
       endif
       
       if (ch(:4).eq."ELEM") then
-         write(lout,*) "TODO: ELEM"
+         if(getfields_nfields .lt. 4) then
+            write(lout,'(a)')
+     &           "SCATTER> ERROR, ELEM expected at least 4 arguments:"
+            write(lout,'(a)') "ELEM elemname profile gen1 (gen2...)"
+            call prror(-1)
+         endif
+
+         ! Add the element to the list
+         
+         ! Find the single element referenced
+         
+         ! Find the profile name referenced
+
+         ! Find the generator(s) refenced
+
+         
       else if (ch(:3).eq."PRO") then
-         write(lout,*) "TODO: PRO"
+         if(getfields_nfields .lt. 3) then
+            write(lout,'(a)')
+     &           "SCATTER> ERROR, PRO expected at least 3 arguments:"
+            write(lout,'(a)') "PRO name type (arguments...)"
+            call prror(-1)
+         endif
+
+         ! Add a profile to the list
+         scatter_nPROFILE = scatter_nPROFILE + 1
+         if (scatter_nPROFILE .gt. scatter_maxPROFILE ) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, max profile = ",
+     &           scatter_maxPROFILE, " exceeded."
+            call prror(-1)
+         endif
+
+         ! Store the generator name
+         scatter_ncexpr = scatter_ncexpr + 1
+         if (scatter_ncexpr .gt. scatter_maxdata ) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",
+     &           scatter_maxdata, " exceeded for scatter_ncexpr"
+            call prror(-1)
+         endif
+         scatter_cexpr(scatter_ncexpr)(1:getfields_lfields(2)) =
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncexpr
+
+         ! Profile type dependent code
+         select case ( getfields_fields(3)(1:getfields_lfields(3)) )
+         case ( "BEAMGAUSS_FLAT" )
+            scatter_PROFILE(scatter_nPROFILE,2) = 1 !Code for BEAMGAUSS_FLAT
+            !TODO: Read sigma x,y for the beam...
+         case default
+            write(lout,'(a)') "SCATTER> ERROR, PRO name '"//
+     &           getfields_fields(3)(1:getfields_lfields(3))//
+     &           "' not recognized."
+            call prror(-1)
+            
+         end select
+         
       else if (ch(:3).eq."GEN") then
          if(getfields_nfields .lt. 3) then
             write(lout,'(a)')
      &           "SCATTER> ERROR, GEN expected at least 3 arguments:"
-            write(lout,'(a)') "GEN name type"
+            write(lout,'(a)') "GEN name type (arguments...)"
             call prror(-1)
          endif
 
