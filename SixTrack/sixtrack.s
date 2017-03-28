@@ -16979,9 +16979,50 @@ cc2008
       else if (ch(:3).eq."PRO") then
          write(lout,*) "TODO: PRO"
       else if (ch(:3).eq."GEN") then
-         write(lout,*) "TODO: GEN"
+         if(getfields_nfields .lt. 3) then
+            write(lout,'(a)')
+     &           "SCATTER> ERROR, GEN expected at least 3 arguments:"
+            write(lout,'(a)') "GEN name type"
+            call prror(-1)
+         endif
+
+         !Add a generator to the list
+         scatter_nGENERATOR = scatter_nGENERATOR + 1
+         if (scatter_nGENERATOR .gt. scatter_maxGENERATOR ) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, max generators = ",
+     &           scatter_maxGENERATOR, " exceeded."
+            call prror(-1)
+         endif
+
+         ! Store the generator name
+         scatter_ncexpr = scatter_ncexpr + 1
+         if (scatter_ncexpr .gt. scatter_maxdata ) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",
+     &           scatter_maxdata, " exceeded for scatter_ncexpr"
+            call prror(-1)
+         endif
+         scatter_cexpr(scatter_ncexpr)(1:getfields_lfields(2)) =
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncexpr
+
+         ! Generator type dependent code...
+         select case ( getfields_fields(3)(1:getfields_lfields(3)) )
+         case ( "ABSORBER" )
+            scatter_GENERATOR(scatter_nGENERATOR,2) = 1 ! Code for ABSORBER
+            
+         case ( "PPBEAMELASTIC" )
+            scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
+            
+         case default
+            write(lout,'(a)') "SCATTER> ERROR, GEN name '"//
+     &           getfields_fields(3)(1:getfields_lfields(3))//
+     &           "' not recognized."
+            call prror(-1)
+            
+         end select
+         
       else
-         write(lout,'(a)') "SCATTER> Error, line type not recognized:"
+         write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
          write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
          call prror(-1)
       endif
