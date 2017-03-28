@@ -1484,12 +1484,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       !Number of currently used positions in arrays
       integer scatter_nELEM, scatter_nPROFILE, scatter_nPROCESS
       integer scatter_niexpr, scatter_nfexpr, scatter_ncexpr
+
+      logical scatter_debug
       
       common /scatterCom/ scatter_elemPointer, scatter_ELEM,
      &     scatter_PROFILE, scatter_PROCESS,
      &     scatter_iexpr, scatter_fexpr, scatter_cexpr,
      &     scatter_nELEM, scatter_nPROFILE, scatter_nPROCESS,
-     &     scatter_niexpr, scatter_nfexpr, scatter_ncexpr
+     &     scatter_niexpr, scatter_nfexpr, scatter_ncexpr,
+     &     scatter_debug
 !     
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -11807,6 +11810,9 @@ cc2008
 !     - zipf
       character*16 zipf
       data zipf /'ZIPF'/
+!     - scatter
+      character*16 scatter
+      data zipf /'SCATTER'/
       
       double precision round_near
       
@@ -12037,6 +12043,7 @@ cc2008
       !DIST = 2600
       !HION = 2700
       if(idat.eq.zipf) goto 2800
+      if(idat.eq.scatter) goto 2900
       
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -16869,7 +16876,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  ZIPF
 !  K. Sjobak, BE-ABP/HSS
-!  Last modified: 7/2 2017
+!  Last modified: 7/2-2017
 !-----------------------------------------------------------------------
  2800 read(3,10020, end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -16931,6 +16938,56 @@ cc2008
      &     getfields_fields(1)(1:getfields_lfields(1))
       
       goto 2800                 !Read the next line of the ZIPF block
+
+!-----------------------------------------------------------------------
+!  SCATTER
+!  K. Sjobak, BE-ABP/HSS
+!  Last modified: 28/3-2017
+!-----------------------------------------------------------------------
+ 2900 read(3,10020, end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2900 ! skip comment line
+      
+      if (ch(:4).eq.next) then
+         goto 110               !Read next block or ENDE
+      endif
+      
+      if (ch(:5).eq."DEBUG") then
+         scatter_debug = .true.
+         write(lout,'(a)') "SCATTER> Scatter block debugging is ON."
+         goto 2900
+      endif
+      
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) call prror(51)
+      if (scatter_debug) then
+         write (lout,'(1x,A,I4,A)')
+     &        "SCATTER> Got a block, len=",
+     &        len(ch), ": '"// trim(ch)// "'"
+         do ii=1,getfields_nfields
+            write (lout,'(a,I4,A,A)')
+     &           "SCATTER> Field(",ii,") ='",
+     &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+         enddo
+      endif
+      
+      if (ch(:4).eq."ELEM") then
+         write(lout,*) "TODO: ELEM"
+      else if (ch(:3).eq."PRO") then
+         write(lout,*) "TODO: PRO"
+      else if (ch(:3).eq."GEN") then
+         write(lout,*) "TODO: GEN"
+      else
+         write(lout,'(a)') "SCATTER> Error, line type not recognized:"
+         write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
+         call prror(-1)
+      endif
+      
+      goto 2900                 !Read the next line of the SCATTER block
+      
 !----------------------------------------------------------------------------
 !     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
 !-----------------------------------------------------------------------------
