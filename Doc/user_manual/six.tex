@@ -747,6 +747,62 @@ the names must differ.
 Some other elements, such as dipole edge (24), solenoid (25), multipole RF kicks ($\pm$26, $\pm$27, $\pm$28) are accepted by SixTrack, but they are not currently supported by the development team or tested for correctness.
 It is therefore advised to not use these elements.
 
+How to use the RF multipoles (from MadX to SixTrack):
+
+\subsubsection{1st order multipole (i.e. dipole)}
+In Mad-x write:
+MULT.1, FREQ=<freq in MHz>., KNL={V [MV]/E0[MeV]}, PNL={phase}, TILT=<H: 0; V:PI/2.>; where phase is 0.25 (phase for multipoles in SixTrack).
+E.g. to have the effect of a vertical Crab Cavity of f=400MHz, V=6MV, beam energy [MeV]: BEAM->PC/1e3: 
+MULT.1, FREQ=400., KNL={6./BEAM->PC/1e3}, PNL={0.25}, TILT=PI/2.; 
+(if you don’t want to have a vertical Crab Cavity then just remove the TILT, 
+and if you don’t want to have CC but a simple dipole field then remove the FREQ parameter)
+
+This creates the following line in fort.2: 
+mult.1d          -23   6.000000000e+00   4.000000000e+02    0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+
+\subsubsection{Higher order multipoles, 2nd/3rd/4th: quad/sext/oct}
+For quadrupole, in  the madx script write: 
+MULT.1, KNL={0,-0.06*1e-3}, PNL={0,0.25};
+where -0.06*1e-3 is the b2 value in units of 
+$$
+Tm/m^{n-1}.
+$$
+
+This gives the following fc.2 line at the location of the multipole: 
+mult.1q           26   6.000000000e-05   400.000000000e+00   -1.570796327e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+For sextupole, in  the madx script write:
+MULT.1, FREQ=400., KNL={0,0,1159.*1e-3}, PNL={0,0,0.25};
+where 1159.*1e-3 is the b3 value in units of
+$$
+Tm/m^{n-1}.
+$$
+This gives the following fc.2 line at the location of the multipole:
+mult.1s           27  -5.795000000e-01   4.000000000e+02   -1.570796327e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+For octupole, in  the madx script write:
+MULT.1, FREQ=400., KNL={0,0,0,-4.*1e-3}, PNL={0,0,0,0.25};
+where -4.*1e-3 is the b4 value in units of
+$$
+Tm/m^{n-1}.
+$$
+This gives the following fc.2 line at the location of the multipole:
+mult.1o           28   6.666666667e-04   4.000000000e+02   -1.570796327e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+The b2, b3, b4 values used in the above examples were taken from Table II of paper: https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.19.101003
+
+The effect of these multipoles was checked on a beam of particles with x=xp=yp=0, and y=1, 2 and 3 mm, with different z positions.
+The effect on yp was linear, cuadratic and cubic with y when using b2, b3, or b4, respectively, as expected. 
+Furthermore, the amplitude of the yp agrees with the analytical formulas found in the appendix of this paper: https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.19.101003
+under "Normal quadrupole/sextupole/octupole". 
+
+Important note: $B\rho$ and the factorial (n-1)! are already included in K2, K3 etc of madx,
+i.e. b3=1159e-3 in madx results in a kick as if b3 is 1159e-3/(n-1)!
+So in order for this paper's analytical equations to be compatible with madx, the equations for normal quadrupole should read: 
+$\Delta x'=-\frac{b2}{(2-1)!B\rho}...$
+
+
 \subsection{Block Definitions} \label{BloDef}
 
 \subparagraph{Description} In four--dimensional transverse tracking,
