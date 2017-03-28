@@ -1464,12 +1464,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       ! (2)   : Profile type
       ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
 
-      ! Configuration for PROCESS
-      integer scatter_maxPROCESS
-      parameter (scatter_maxPROCESS=10)
-      integer scatter_PROCESS(scatter_maxPROCESS,5)
-      ! (1)   : Process name in fort.3
-      ! (2)   : Process type
+      ! Configuration for GENERATOR
+      integer scatter_maxGENERATOR
+      parameter (scatter_maxGENERATOR=10)
+      integer scatter_GENERATOR(scatter_maxPROCESS,5)
+      ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
+      ! (2)   : Generator type
       ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
       
       ! General data storage ala DYNK
@@ -11811,8 +11811,8 @@ cc2008
       character*16 zipf
       data zipf /'ZIPF'/
 !     - scatter
-      character*16 scatter
-      data zipf /'SCATTER'/
+      character*16 scat
+      data scat /'SCAT'/
       
       double precision round_near
       
@@ -12043,7 +12043,7 @@ cc2008
       !DIST = 2600
       !HION = 2700
       if(idat.eq.zipf) goto 2800
-      if(idat.eq.scatter) goto 2900
+      if(idat.eq.scat) goto 2900
       
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -16964,7 +16964,7 @@ cc2008
      &     getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) call prror(51)
       if (scatter_debug) then
-         write (lout,'(1x,A,I4,A)')
+         write (lout,'(A,I4,A)')
      &        "SCATTER> Got a block, len=",
      &        len(ch), ": '"// trim(ch)// "'"
          do ii=1,getfields_nfields
