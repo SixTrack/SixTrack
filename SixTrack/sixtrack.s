@@ -1445,15 +1445,17 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       !Common block for the SCATTER routine
       integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
                                          ! (0 => not used)
-      integer scatter_numElems
-      parameter (scatter_numElems=200)   ! Max of scattering ELEM statements in use.
-      integer scatter_numProcElem
-      parameter (scatter_numProcElem=5)  ! Number of processes per ELEM.
+      integer scatter_maxELEM
+      parameter (scatter_maxELEM=200)    ! Max of scattering ELEM statements in use.
+      integer scatter_maxProcELEM
+      parameter (scatter_maxProcELEM=5)  ! Number of processes per ELEM
+                                         ! (2 slots taken by pointers to singleElement and profile).
 
       ! Configuration for an ELEM, columns are:
-      ! (1) = pointer to PROFILE
-      ! (2)--(scatter_numProcElem) = pointer to PROCESSs
-      integer scatter_ELEM(scatter_numElems, scatter_numProcElem)
+      ! (1) = pointer to the SingleElement
+      ! (2) = pointer to PROFILE
+      ! (3)--(scatter_maxProcElem) = pointer to PROCESSs
+      integer scatter_ELEM(scatter_maxELEM, scatter_maxProcELEM)
 
       ! Configuration for PROFILE
       integer scatter_maxPROFILE
@@ -1477,21 +1479,21 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       parameter (scatter_maxdata   = 5000,
      &           scatter_maxstrlen = stringzerotrim_maxlen )
       
-      integer                       scatter_iexpr (scatter_maxdata)
-      double precision              scatter_fexpr (scatter_maxdata)
-      character (scatter_maxstrlen) scatter_cexpr (scatter_maxdata)
+      integer                       scatter_idata (scatter_maxdata)
+      double precision              scatter_fdata (scatter_maxdata)
+      character (scatter_maxstrlen) scatter_cdata (scatter_maxdata)
 
       !Number of currently used positions in arrays
       integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
-      integer scatter_niexpr, scatter_nfexpr, scatter_ncexpr
+      integer scatter_nidata, scatter_nfdata, scatter_ncdata
 
       logical scatter_debug
       
       common /scatterCom/ scatter_elemPointer, scatter_ELEM,
      &     scatter_PROFILE, scatter_GENERATOR,
-     &     scatter_iexpr, scatter_fexpr, scatter_cexpr,
+     &     scatter_idata, scatter_fdata, scatter_cdata,
      &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
-     &     scatter_niexpr, scatter_nfexpr, scatter_ncexpr,
+     &     scatter_nidata, scatter_nfdata, scatter_ncdata,
      &     scatter_debug
 !     
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -16951,6 +16953,7 @@ cc2008
       if(ch(1:1).eq.'/') goto 2900 ! skip comment line
       
       if (ch(:4).eq.next) then
+         if (scatter_debug) call scatter_dumpdata
          goto 110               !Read next block or ENDE
       endif
       
@@ -16973,7 +16976,8 @@ cc2008
      &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
          enddo
       endif
-      
+
+      ! ***** PARSE SCATTER ELEM STATEMENT *****
       if (ch(:4).eq."ELEM") then
          if(getfields_nfields .lt. 4) then
             write(lout,'(a)')
@@ -16983,14 +16987,100 @@ cc2008
          endif
 
          ! Add the element to the list
+         scatter_nELEM = scatter_nELEM + 1
+         if (scatter_nELEM .gt. scatter_maxELEM ) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, max elements = ",
+     &           scatter_maxELEM, " exceeded."
+            call prror(-1)
+         endif
          
          ! Find the single element referenced
+         ii = -1
+         do j=1,il
+            if (bez(j) .eq. getfields_fields(2)(1:getfields_lfields(2)))
+     &           then
+               if (ii.ne.-1) then
+                  write(lout,'(a)') "SCATTER> ERROR, found element '"//
+     &                 getfields_fields(2)(1:getfields_lfields(2))//
+     &                 "' twice in SINGLE ELEMENTS list."
+                  call prror(-1)
+               endif
+               ii = j
+               
+               if (scatter_elemPointer(j).ne.0) then
+                  write(lout,'(a)')
+     &                 "SCATTER> ERROR, tried to define element '"//
+     &                 getfields_fields(2)(1:getfields_lfields(2))//
+     &                 "' twice."
+                  call prror(-1)
+               endif
+               
+               scatter_elemPointer(j) = scatter_nELEM
+               scatter_ELEM(scatter_nELEM,1) = j
+            endif
+         end do
+         if (scatter_ELEM(scatter_nELEM,1).eq.0) then
+            write(lout,*) "SCATTER> ERROR: Could not find element '" //
+     &           getfields_fields(2)(1:getfields_lfields(2)) // "'"
+            call prror(-1)
+         endif
          
          ! Find the profile name referenced
-
-         ! Find the generator(s) refenced
-
+         do j=1,scatter_nPROFILE
+            if (
+     &         trim(stringzerotrim(scatter_cdata(scatter_PROFILE(j,1))))
+     &         .eq. getfields_fields(3)(1:getfields_lfields(3)) ) then
+               scatter_ELEM(scatter_nELEM,2) = j
+            endif
+         end do
+         if (scatter_ELEM(scatter_nELEM,2).eq.0) then
+            write(lout,*) "SCATTER> ERROR: Could not find profile '" //
+     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
+            call prror(-1)
+         endif
          
+         ! Find the generator(s) refenced
+         if (getfields_nfields-3 .gt. scatter_maxProcELEM-2) then
+            write(lout,*) "SCATTER> ERROR when parsing ELEM,",
+     &           getfields_nfields-3, "generators specified, space for",
+     &           scatter_maxProcELEM-2
+            call prror(-1)
+         endif
+         
+         do ii=4,getfields_nfields
+            !Take care of offsets in getfields_field and scatter_ELEM
+            scatter_ELEM(scatter_nELEM,ii-3+2) = -1
+            ! Search for the generator with the right name
+            do j=1, scatter_nGENERATOR
+               if (
+     & trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1))))
+     & .eq. getfields_fields(ii)(1:getfields_lfields(ii)) ) then
+                  ! Found it
+                  scatter_ELEM(scatter_nELEM,ii-3+2) = 
+     &                 scatter_GENERATOR(j,1)
+               end if
+            end do
+
+            if (scatter_ELEM(scatter_nELEM,ii-3+2) .eq. -1) then
+               write(lout,*)
+     &              "SCATTER> ERROR when parsing ELEM, generator '"//
+     &              getfields_fields(ii)(1:getfields_lfields(ii)) //
+     &              "' not found."
+               call prror(-1)
+            end if
+
+            do j=3, ii-3+2-1
+               if (scatter_ELEM(scatter_nELEM,j) .eq.
+     &             scatter_ELEM(scatter_nELEM,ii-3+2) ) then
+                  write(lout,*)
+     &                 "SCATTER> ERROR when parsing ELEM, generator '"//
+     &                 getfields_fields(ii)(1:getfields_lfields(ii)) //
+     &                 "' used twice."
+                  call prror(-1)
+               end if
+            end do
+         end do
+      ! ***** PARSE SCATTER PRO STATEMENT *****
       else if (ch(:3).eq."PRO") then
          if(getfields_nfields .lt. 3) then
             write(lout,'(a)')
@@ -17002,27 +17092,30 @@ cc2008
          ! Add a profile to the list
          scatter_nPROFILE = scatter_nPROFILE + 1
          if (scatter_nPROFILE .gt. scatter_maxPROFILE ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, max profile = ",
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, max profiles = ",
      &           scatter_maxPROFILE, " exceeded."
             call prror(-1)
          endif
 
          ! Store the generator name
-         scatter_ncexpr = scatter_ncexpr + 1
-         if (scatter_ncexpr .gt. scatter_maxdata ) then
+         scatter_ncdata = scatter_ncdata + 1
+         if (scatter_ncdata .gt. scatter_maxdata ) then
             write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",
-     &           scatter_maxdata, " exceeded for scatter_ncexpr"
+     &           scatter_maxdata, " exceeded for scatter_ncdata"
             call prror(-1)
          endif
-         scatter_cexpr(scatter_ncexpr)(1:getfields_lfields(2)) =
+         scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =
      &        getfields_fields(2)(1:getfields_lfields(2))
-         scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncexpr
+         scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncdata
 
          ! Profile type dependent code
          select case ( getfields_fields(3)(1:getfields_lfields(3)) )
-         case ( "BEAMGAUSS_FLAT" )
-            scatter_PROFILE(scatter_nPROFILE,2) = 1 !Code for BEAMGAUSS_FLAT
-            !TODO: Read sigma x,y for the beam...
+         case ("BEAM_FLAT")
+            scatter_PROFILE(scatter_nPROFILE,2) = 10  !Code for BEAM_FLAT
+            !TODO: Read overall density...
+         case ( "BEAM_GAUSS1" )
+            scatter_PROFILE(scatter_nPROFILE,2) = 11  !Code for BEAM_GAUSS1
+            !TODO: Read sigma x,y, density
          case default
             write(lout,'(a)') "SCATTER> ERROR, PRO name '"//
      &           getfields_fields(3)(1:getfields_lfields(3))//
@@ -17030,7 +17123,8 @@ cc2008
             call prror(-1)
             
          end select
-         
+
+      ! ***** PARSE SCATTER GEN STATEMENT *****
       else if (ch(:3).eq."GEN") then
          if(getfields_nfields .lt. 3) then
             write(lout,'(a)')
@@ -17048,15 +17142,15 @@ cc2008
          endif
 
          ! Store the generator name
-         scatter_ncexpr = scatter_ncexpr + 1
-         if (scatter_ncexpr .gt. scatter_maxdata ) then
+         scatter_ncdata = scatter_ncdata + 1
+         if (scatter_ncdata .gt. scatter_maxdata ) then
             write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",
-     &           scatter_maxdata, " exceeded for scatter_ncexpr"
+     &           scatter_maxdata, " exceeded for scatter_ncdata"
             call prror(-1)
          endif
-         scatter_cexpr(scatter_ncexpr)(1:getfields_lfields(2)) =
+         scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =
      &        getfields_fields(2)(1:getfields_lfields(2))
-         scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncexpr
+         scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncdata
 
          ! Generator type dependent code...
          select case ( getfields_fields(3)(1:getfields_lfields(3)) )
@@ -37430,9 +37524,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
 !--SCATTER-------------------------------------------------------------
       scatter_debug = .false.
-      scatter_niexpr = 0
-      scatter_nfexpr = 0
-      scatter_ncexpr = 0
+      scatter_nidata = 0
+      scatter_nfdata = 0
+      scatter_ncdata = 0
       scatter_nELEM  = 0
       scatter_nPROFILE = 0
       scatter_nGENERATOR  = 0
@@ -37441,8 +37535,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          scatter_elemPointer(i) = 0
       end do
 
-      do i=1,scatter_numElems
-         do j=1,scatter_numProcElem
+      do i=1,scatter_maxELEM
+         do j=1,scatter_maxProcELEM
             scatter_ELEM(i,j) = 0
          end do
       end do
@@ -37464,10 +37558,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       end do
 
       do i=1, scatter_maxdata
-         scatter_iexpr(i) = 0
-         scatter_fexpr(i) = 0.0
+         scatter_idata(i) = 0
+         scatter_fdata(i) = 0.0
          do j=1, scatter_maxstrlen
-            scatter_cexpr(i)(j:j) = char(0)
+            scatter_cdata(i)(j:j) = char(0)
          end do
       enddo
       
@@ -65658,3 +65752,58 @@ c$$$         backspace (93,iostat=ierro)
 
 
 +ei
+
++dk scatter
+!     Deck for the scattering routines implemented in the SCATTER block
+      subroutine scatter_dumpdata
+      implicit none
++ca crcoall
++ca parpro      
++ca stringzerotrim
++ca scatter
+
+      integer ii,jj
+      
+      write(lout,'(a)') "*** BEGIN SCATTER DUMP ***"
+
+      write(lout,'(a)') "Options:"
+      write(lout,*)     "scatter_debug =", scatter_debug
+
+      write(lout,'(a)') "Arrays:"
+      write(lout,*) "scatter_ELEM: (",
+     &     scatter_nELEM,",",scatter_maxProcELEM,"):"
+      do ii=1, scatter_nELEM
+         write(lout,*) ii, ":", scatter_ELEM(ii,:)
+      end do
+
+      write(lout,*) "scatter_PROFILE: (",
+     &     scatter_nPROFILE,",",5,"):"
+      do ii=1, scatter_nPROFILE
+         write(lout,*) ii, ":", scatter_PROFILE(ii,:)
+      end do
+
+      write(lout,*) "scatter_GENERATOR: (",
+     &     scatter_nGENERATOR,",",5,"):"
+      do ii=1, scatter_nGENERATOR
+         write(lout,*) ii, ":", scatter_GENERATOR(ii,:)
+      end do
+
+      write(lout,*) "scatter_idata: (",scatter_nidata,"):"
+      do ii=1, scatter_nidata
+         write(lout,*) ii, ":", scatter_idata(ii)
+      end do
+      
+      write(lout,*) "scatter_fdata: (",scatter_nfdata,"):"
+      do ii=1, scatter_nfdata
+         write(lout,*) ii, ":", scatter_fdata(ii)
+      end do
+
+      write(lout,*) "scatter_cdata: (",scatter_ncdata,"):"
+      do ii=1, scatter_ncdata
+         write(lout,*) ii, ": '"//
+     &        trim(stringzerotrim(scatter_cdata(ii)))//"'"
+      end do
+
+      write(lout,'(a)') "***** END SCATTER DUMP ***"
+      
+      end subroutine
