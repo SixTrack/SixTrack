@@ -36,21 +36,22 @@ endif(BOINC)
 #List of tests which are STF compatible
 SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d elensidealthck6d elensidealthin6d_DYNK wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
 
-if(LIBARCHIVE)
-	SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
-endif()
-
-#only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
-if(BNLELENS)
-	SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
-endif(BNLELENS)
-
-if(BIGNPART OR HUGENPART)
-	SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
-endif()
-
 if(NOT COLLIMAT)
-	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 ${SIXTRACK_TESTS})
+	if(LIBARCHIVE)
+		SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
+	endif()
+
+	#only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
+	if(BNLELENS)
+		SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
+	endif(BNLELENS)
+	
+	if(BIGNPART OR HUGENPART)
+		SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
+	endif()
+
+	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 fcc ${SIXTRACK_TESTS})
+	
 endif(NOT COLLIMAT)
 
 #For CR builds, test the CR functions, so kill/resume the test
