@@ -1441,7 +1441,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd scatter
++cd comscatter
       !Common block for the SCATTER routine
       integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
                                          ! (0 => not used)
@@ -2268,6 +2268,18 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &'1.'
                 call prror(-1) 
               end select
++cd scat_tck
+      if (scatter_debug) then
+         write(lout,*) "SCATTER> In kickscatter_thick, ix=",
+     &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
+      endif
+!     TODO
++cd scat_thi
+      if (scatter_debug) then
+         write(lout,*) "SCATTER> In kickscatter_thin, ix=",
+     &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
+      endif
+!     TODO
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -4887,6 +4899,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !electron lens (HEL)
         if(kzz.eq.29) then
           ktrack(i)=63
+          goto 290
+        endif
++cd scatter
+! SCATTER block
+       if (kzz.eq.40) then
+          ! FOR NOW, ASSUME THIN SCATTER; ktrack(i)=65 RESERVED FOR THICK SCATTER
+          ktrack(i)=64
           goto 290
         endif
 +cd crab1
@@ -11779,7 +11798,7 @@ cc2008
 +ca elensparam
 +ca wireparam
 +ca zipf
-+ca scatter
++ca comscatter
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -25314,6 +25333,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
++ca comscatter
 ! +ca elensparam
       save
 !-----------------------------------------------------------------------
@@ -25372,22 +25392,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beam13
 +ca beama4o
             else if(ibtyp.eq.1) then
-+ca beam11
++ca beam11   !do j=1,napx
 +ca beama1
 +ca beamcoo
 +ca beama2
 +ca beama3
-+ca beamwzf1
-+ca beama4o
-+ca beams23
-+ca beam21
++ca beamwzf1 !end do; do j=1,napx
++ca beama4o  !end do
++ca beams23  !end if; end if; end if;    if;if;if
++ca beam21   !do
 +ca beama1
 +ca beamcoo
 +ca beama2
 +ca beam22
 +ca beama3
 +ca beam23
-+ca beama4o
++ca beama4o !end do
             else if(ibtyp.eq.1) then
 +ca beam21
 +ca beama1
@@ -25396,12 +25416,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beama3
 +ca beamwzf2
 +ca beama4o
-+ca beams24
++ca beams24 !end if; end if; end if; goto 290
+      
 +ca wire
 +ca acdip1
 +ca crab1
 +ca crab_mult
 +ca elens
++ca scatter
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
@@ -27346,6 +27368,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
++ca comscatter
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -28076,14 +28099,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
-! JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
+!     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
+!          if (ktrack(i) .eq. 1) then !BLOCK of linear elements
+!             write (lout,*) "Kick for element", i,ix, "[BLOCK]"
+!          else
+!             write(lout,*) "Kick for element",
+!     &            i,ix,bez(ix),ktrack(i),kp(ix)
+!          endif
           goto( 10, 30,740,650,650,650,650,650,650,650,!1-10
      &          50, 70, 90,110,130,150,170,190,210,230,!11-20
      &         440,460,480,500,520,540,560,580,600,620,!21-30
      &         640,410,250,270,290,310,330,350,370,390,!31-40
      &         680,700,720,730,748,650,650,650,650,650,!41-50
      &         745,746,751,752,753,754,755,758,756,759,!51-60
-     &         757,760,761),ktrack(i)
+     &         757,760,761,762,763),ktrack(i)
 +ei
 +if collimat
 !          if (myktrack .eq. 1) then !BLOCK of linear elements
@@ -28097,7 +28126,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        640, 410, 250, 270, 290, 310, 330, 350, 370, 390, !31-40
      &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !41-50
      &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !51-60
-     &        757, 760, 761 ),myktrack
+     &        757, 760, 761, 762, 763 ),myktrack
           write (lout,*) "WARNING: Non-handled element in thin6d()!",
      &                " i=", i, "ix=", ix, "myktrack=",  myktrack,
      &                " bez(ix)='", bez(ix),"' SKIPPED"
@@ -30496,6 +30525,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          do j=1,napx
 +ca kickelens
          enddo
+         goto 640
+!--scatter (thin)
+ 762     continue
++ca scat_thi
+         goto 640
+!--scatter (thick)
+ 763     continue
++ca scat_tck
          goto 640
 !----------------------------
 
@@ -36856,7 +36893,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ca zipf
 
-+ca scatter
++ca comscatter
 
 +if collimat
 +ca collpara
@@ -65760,7 +65797,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca crcoall
 +ca parpro      
 +ca stringzerotrim
-+ca scatter
++ca comscatter
 
       integer ii,jj
       
