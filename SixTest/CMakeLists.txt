@@ -75,7 +75,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	#Check fort.10 by default
 	SET(FORT10 1)
 	#no fort.10 for the "exact" test
-	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6)
+	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6 OR TST MATCHES rfMultipoles_2ndOrder)
 		SET(FORT10 0)
 	endif()
 
