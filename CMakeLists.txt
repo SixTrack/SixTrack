@@ -846,12 +846,16 @@ endif()
 add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
-#build astuce
-add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/astuce.f)
-SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	target_link_libraries(astuce ${g2cLink})
-endif()
+##build astuce
+#add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/astuce.f)
+#SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+#if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
+#	target_link_libraries(astuce ${g2cLink})
+#endif()
+
+add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/ast/astuce.cpp)
+add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/ast/astuce++.cpp)
+target_link_libraries(astuce astuce++)
 
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
@@ -1116,7 +1120,8 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAK
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+#	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
 
 	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
 		message(STATUS "Will run dafor on ${loop}.f")
