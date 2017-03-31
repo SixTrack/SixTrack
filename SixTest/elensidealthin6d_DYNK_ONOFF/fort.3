@@ -74,9 +74,12 @@ NEXT
 /NEXT
 DYNK
 DEBUG
-FUN elens-pulsed GET hel1 thetamax
-FUN zero CONST 0.0
-SET hel2 thetamax zero 50 -1 0
+FUN elens-orig GET hel1 thetamax
+FUN mypulse ONOFF 2 5
+FUN theta MUL mypulse elens-orig
+/ Turn-shift by -2 to test that ONOFF behaves
+/ as described in the manual for negative t
+SET hel1 thetamax theta 1 -1 -2
 NEXT
 LINEAR OPTICS
 ELEMENT  0 2 1 2.5 2.5
