@@ -62,7 +62,8 @@ NEXT
 SCATTER
 DEBUG
 GEN  mygen       PPBEAMELASTIC
-PRO  ipPRO       BEAM_GAUSS1
+/PRO  ipPRO       GAUSS1
+PRO  ipPRO       FLAT 1e14 1.0 6500000
 ELEM ip1_scatter ipPRO mygen
 NEXT
 ENDE

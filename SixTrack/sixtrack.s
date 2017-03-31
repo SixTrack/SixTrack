@@ -2281,7 +2281,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
          write(lout,*) "SCATTER> In scat_thi, ix=",
      &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
       endif
-      call scatter_thin()
+      ! It is already checked that scatter_elemPointer != 0
+      call scatter_thin(ix)
       
 +cd kickv01v
 +if .not.tilt
@@ -4906,7 +4907,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         endif
 +cd scatter
 ! SCATTER block
-       if (kzz.eq.40) then
+       if (kzz.eq.40 .and. scatter_elemPointer(ix).ne.0) then
           ! FOR NOW, ASSUME THIN SCATTER; ktrack(i)=65 RESERVED FOR THICK SCATTER
           ktrack(i)=64
           goto 290
@@ -17119,7 +17120,7 @@ cc2008
             call prror(-1)
          endif
 
-         ! Store the generator name
+         ! Store the profile name
          scatter_ncdata = scatter_ncdata + 1
          if (scatter_ncdata .gt. scatter_maxdata ) then
             write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",
@@ -17129,14 +17130,78 @@ cc2008
          scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =
      &        getfields_fields(2)(1:getfields_lfields(2))
          scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncdata
-
+         ! Check that the profile name is unique
+         do ii=1,scatter_nPROFILE-1
+            if ( trim(stringzerotrim(
+     &           scatter_cdata(scatter_PROFILE(ii,1)) )) .eq.
+     &           getfields_fields(2)(1:getfields_lfields(2)) ) then
+               write(lout,'(a)') "SCATTER> ERROR, profile name '"//
+     &              getfields_fields(2)(1:getfields_lfields(2)) //
+     &              "' is not unique."
+               call prror(-1)
+            end if
+         end do
+         
          ! Profile type dependent code
          select case ( getfields_fields(3)(1:getfields_lfields(3)) )
-         case ("BEAM_FLAT")
-            scatter_PROFILE(scatter_nPROFILE,2) = 10  !Code for BEAM_FLAT
-            !TODO: Read overall density...
-         case ( "BEAM_GAUSS1" )
-            scatter_PROFILE(scatter_nPROFILE,2) = 11  !Code for BEAM_GAUSS1
+         case ("FLAT")
+            scatter_PROFILE(scatter_nPROFILE,2) = 1 !Integer code for FLAT
+            if(getfields_nfields .ne. 6) then
+               write(lout,'(a)')
+     &           "SCATTER> ERROR, PRO expected at least 6 arguments:"
+               write(lout,'(a)') "PRO name type density[targets/m^2]"//
+     &              " mass[MeV/c^2] momentum[MeV/c]"
+            call prror(-1)
+         endif
+         
+         ! Request space to store the density
+         scatter_PROFILE(scatter_nPROFILE,3) = scatter_nfdata+1
+         scatter_nfdata = scatter_nfdata + 3
+         if (scatter_nfdata .gt. scatter_maxdata ) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",
+     &           scatter_maxdata, " exceeded for floats."
+            call prror(-1)
+         endif
++if crlibm
+         ! Density
+         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)) =
+     &        round_near( errno,
+     &           getfields_lfields(4)+1, getfields_fields(4) )
+         if (errno.ne.0)
+     &        call rounderr( errno,getfields_fields,4,
+     &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)) )
+         ! Mass
+         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1) =
+     &        round_near( errno,
+     &           getfields_lfields(5)+1, getfields_fields(4) )
+         if (errno.ne.0)
+     &        call rounderr( errno,getfields_fields,5,
+     &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1) )
+
+         ! Momentum
+         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2) =
+     &        round_near( errno,
+     &           getfields_lfields(6)+1, getfields_fields(6) )
+         if (errno.ne.0)
+     &        call rounderr( errno,getfields_fields,6,
+     &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2) )
++ei
++if .not.crlibm
+         ! Density
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3))
+         
+         ! Mass
+         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+     &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1)
+
+         ! Momentum
+         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+     &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2)
++ei
+
+         case ( "GAUSS1" )
+            scatter_PROFILE(scatter_nPROFILE,2) = 10  !Integer code for BEAM_GAUSS1
             !TODO: Read sigma x,y, density
          case default
             write(lout,'(a)') "SCATTER> ERROR, PRO name '"//
@@ -17173,7 +17238,18 @@ cc2008
          scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =
      &        getfields_fields(2)(1:getfields_lfields(2))
          scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncdata
-
+         ! Check that the generator name is unique
+         do ii=1,scatter_nGENERATOR-1
+            if ( trim(stringzerotrim(
+     &           scatter_cdata(scatter_GENERATOR(ii,1)) )) .eq.
+     &           getfields_fields(2)(1:getfields_lfields(2)) ) then
+               write(lout,'(a)') "SCATTER> ERROR, generator name '"//
+     &              getfields_fields(2)(1:getfields_lfields(2)) //
+     &              "' is not unique."
+               call prror(-1)
+            end if
+         end do
+         
          ! Generator type dependent code...
          select case ( getfields_fields(3)(1:getfields_lfields(3)) )
          case ( "ABSORBER" )
@@ -65849,7 +65925,7 @@ c$$$         backspace (93,iostat=ierro)
       
       end subroutine
 
-      subroutine scatter_thin
+      subroutine scatter_thin(ix)
       implicit none
 +ca crcoall
 +ca parpro
@@ -65858,20 +65934,31 @@ c$$$         backspace (93,iostat=ierro)
 
 +ca common
 +ca commonmn
-
+!     Define functions
+      double precision profile_getDensity
+!     Temp variables
+      integer ELEMidx,PROidx
       integer i,j
       double precision s,t,xi
-      double precision P
+      double precision N,P
+!     Input
+      integer, intent(in) :: ix
+      
+      ELEMidx = scatter_elemPointer(ix)
+      PROidx = scatter_ELEM(ELEMidx,2)
       
       !Compute the "standard" s (used for cross-sections)
       !(ask profile for the p)
       
       !Loop over generators
       do i=3,scatter_maxProcELEM
+         
          !Compute the cross-section at this s
          
          do j=1, napx
             !Ask profile for density at x,y
+            N = profile_getDensity(PROidx,xv(j,1),xv(j,2))
+            
             !Compute probability P
             !If RNG < P -> scatter; else go to next particle
             ! (Output?)
@@ -65880,3 +65967,30 @@ c$$$         backspace (93,iostat=ierro)
          end do
       end do
       end subroutine
+
+      double precision function profile_getDensity(profileIdx, x,y)
+      implicit none
++ca crcoall
++ca parpro
++ca stringzerotrim
++ca comscatter
+
+      integer, intent(in) :: profileIdx
+      double precision, intent(in) :: x,y
+      
+      select case (scatter_PROFILE(profileIdx,2))
+      case (1)                 ! FLAT
+         profile_getDensity =
+     &        scatter_fdata(scatter_PROFILE(profileIdx,3))
+      !case (10)                ! GAUSS1
+         ! TODO
+      case default
+         write(lout,*) "SCATTER> ERROR in profile_getDensity"
+         write(lout,*) "Type", scatter_PROFILE(profileIdx,2),
+     &        "for profile '"// trim(stringzerotrim(
+     &        scatter_cdata(scatter_PROFILE(profileIdx,1))
+     &        ))//"' not understood."
+         call prror(-1)
+      end select
+      
+      end function
