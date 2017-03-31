@@ -195,7 +195,9 @@ void Astuce::ParseSourceFile()
 //+cd "COMDECK"
 //+ca "CALL"
 //+if if
-//.not. not
+//.NOT. not
+//.AND. and
+//.OR. or
 //+ei end if
 //+el else if (not used in sixtrack?)
 //+dk "DECK"
@@ -427,7 +429,6 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		//Disable this line
 		line->Enabled = false;
 
-		bool NOT = false;
 		bool EnabledState = false;
 
 		//Find the name of this statement
@@ -435,33 +436,99 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		size_t NameEnd = line->Text.find_first_of(" ", NameStart+1);
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
 
-		//Check if there is a .NOT. modifier
-		if(FlagName.substr(0,5) == ".NOT.")
+		size_t Position = 0;
+		size_t NextOR = 0;
+		size_t NextAND = 0;
+		std::vector<size_t> Splits;
+		std::vector<std::string> FlagNames;
+		std::vector<bool> And;
+		std::vector<bool> Or;
+		std::vector<bool> States;
+
+		Splits.push_back(Position);
+		while(NextOR != std::string::npos && NextAND != std::string::npos)
 		{
-			FlagName = FlagName.substr(5, FlagName.size()-5);
-			NOT = true;
+			NextOR = FlagName.find(".OR.", Position);
+			NextAND = FlagName.find(".AND.", Position);
+			Position = std::min(NextOR, NextAND);
+			if(Position != std::string::npos)
+			{
+				Splits.push_back(Position);
+			}
+			Position++;
 		}
-		else
+		Splits.push_back(FlagName.size());
+
+		for(size_t n=1; n < Splits.size(); n++)
 		{
-			NOT = false;
+			std::string SplitSubString = FlagName.substr(Splits.at(n-1),Splits.at(n));
+			FlagNames.push_back(SplitSubString);
 		}
 
-		//Enable/disable lines
-		std::set<std::string>::const_iterator Flags_itr = Flags.find(FlagName);
-		if(Flags_itr != Flags.end())
+		for(size_t n=0; n < FlagNames.size(); n++)
 		{
-			//flag is found -> enabled
-			if(NOT == false){EnabledState = true;}
-			else{EnabledState = false;}
-		}
-		else
-		{
-			//flag is NOT found -> enabled
-			//.not.xxx and xxx is not enabled
-			if(NOT == false){EnabledState = false;}
-			else{EnabledState = true;}
+			bool NOT = false;
+			bool AND = false;
+			bool OR = false;
+
+			if(FlagNames.at(n).substr(0,5) == ".AND.")
+			{
+				AND = true;
+				FlagNames.at(n).erase(0,5);
+			}
+			if(FlagNames.at(n).substr(0,4) == ".OR.")
+			{
+				OR = true;
+				FlagNames.at(n).erase(0,4);
+			}
+			if(FlagNames.at(n).substr(0,5) == ".NOT.")
+			{
+				FlagNames.at(n).erase(0,5);
+				NOT = true;
+			}
+
+			//Enable/disable lines
+			std::set<std::string>::const_iterator Flags_itr = Flags.find(FlagNames.at(n));
+			if(Flags_itr != Flags.end())
+			{
+				//flag is found -> enabled
+				if(NOT == false){EnabledState = true;}
+				else{EnabledState = false;}
+			}
+			else
+			{
+				//flag is NOT found -> enabled
+				//.not.xxx and xxx is not enabled
+				if(NOT == false){EnabledState = false;}
+				else{EnabledState = true;}
+			}
+			Or.push_back(OR);
+			And.push_back(AND);
+			States.push_back(EnabledState);
 		}
 
+		//Do the first
+		EnabledState = States.at(0);
+
+		for(size_t n = 1; n < States.size(); n++)
+		{
+			if(And.at(n) == true)
+			{
+				EnabledState = (EnabledState & States.at(n));
+			}
+			else if(Or.at(n) == true)
+			{
+				EnabledState = (EnabledState | States.at(n));
+			}
+			else
+			{
+				//Should never hit this
+				std::cerr << "ERROR: in .if. .and. .or. processing - Multiple entries and neither .and. or .or. true at entry " << n << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+
+		//AND (&) the result of the above with the current stack top
 		EnabledStates.push(EnabledState & EnabledStates.top());
 	}
 	else if(line->Text.substr(0,3) == "+ei")
