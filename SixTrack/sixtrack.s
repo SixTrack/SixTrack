@@ -41573,7 +41573,7 @@ C Should get me a NaN
      &        funcs_dynk(nfuncs_dynk,4) .lt. funcs_dynk(nfuncs_dynk,3) ! p2 < p1 ?
      &        ) then
             write(lout,*)
-     &      "DYNK> Error in ONOFF: Expected p1 >= 1, p2 > 1, p1 <= p2"
+     &      "DYNK> Error in ONOFF: Expected p1 >= 0, p2 > 1, p1 <= p2"
             call prror(-1)
          end if
          
@@ -42810,8 +42810,8 @@ C+ei
          endif
 
       case (81)                                                         ! ONOFF
-         ii=mod(turn,funcs_dynk(funNum,4))
-         if (ii .le. funcs_dynk(funNum,3)) then
+         ii=mod(turn-1,funcs_dynk(funNum,4))
+         if (ii .lt. funcs_dynk(funNum,3)) then
             retval = 1.0
          else
             retval = 0.0
