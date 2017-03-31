@@ -54,7 +54,7 @@ if(NOT COLLIMAT)
 		SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
 	endif()
 	
-	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 rfMultipoles_2ndOrder ${SIXTRACK_TESTS})
+	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF rfMultipoles_2ndOrder${SIXTRACK_TESTS})
 	
 endif(NOT COLLIMAT)
 
@@ -74,7 +74,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	#determine what we need to do:
 	#Check fort.10 by default
 	SET(FORT10 1)
-	#no fort.10 for the "exact" test
+	#.. But some tests are missing this file:
 	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6 OR TST MATCHES rfMultipoles_2ndOrder)
 		SET(FORT10 0)
 	endif()
@@ -176,7 +176,7 @@ endforeach()
 
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
-SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK elensidealthin6d_DYNK_ZIPF wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 fcc)
+SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK elensidealthin6d_DYNK_ZIPF wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 fcc elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF)
 
 #Medium tests take < 30 mins to run
 SET(MEDIUM_TESTS bbe571ib0 tilt lostevery fma frs frs60 eric distance bbe51 bbe52 javier_bignpart)

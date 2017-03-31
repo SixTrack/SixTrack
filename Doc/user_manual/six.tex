@@ -46,11 +46,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update February 2017
+  Update March 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.6.8 \\
+  Version 4.6.13 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -1174,16 +1174,14 @@ The functions are always evaluated as a function of the current turn number $t$,
   
   RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
   Returns a pseudorandom number generated from a Gaussian distribution.
-  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
-  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
+  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
   Note that every RANDG function defined in DYNK uses its own separate random number stream.\\
 
-%   RANDU      & \emph{seed1[int] seed2[int] rangemin[real] rangemax[real] } &
-%   Returns a pseudorandom number generated from a uniform distribution.
-%   The values \emph{rangemin} and \emph{rangemax} define the interval of the uniform distribution.
-%   The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
-%   Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
-
+  RANDU      & \emph{seed1[int] seed2[int]} &
+  Returns a pseudorandom number generated from a uniform distribution.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
+  Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
   
   \hline
   \rowcolor{blue!15}
@@ -1306,6 +1304,13 @@ The functions are always evaluated as a function of the current turn number $t$,
   \item The start time of the ramp \emph{te}, which describes at what time it switches from the parabolic (first) to the exponential (second) segment.
   \end{itemize}
   \\*
+  ONOFF       & \emph{p1[int] p2[int]} &
+  This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
+  It may be described as
+  $y(t) =  \left\{1.0 \; \mathrm{if} \; \mathrm{mod}(t-1,p2) < p1 \right\}; \; \left\{ 0.0 \; \mathrm{otherwise} \right\}$.
+  The reason for using $t-1$ is that the modulus is naturally zero-based, while SixTrack counts turns starting from 1.
+  Note that it is expected that $p1 >= 0$, $p2 > 1$, and $p1 <= p2$.
+  Also note that for negative $t$, the function will always return 1.0.
 \end{longtable}
 \end{center}
 %\end{tabular}
