@@ -41568,8 +41568,8 @@ C Should get me a NaN
      &        funcs_dynk(nfuncs_dynk,4) ! p2
 
          !Check for bad input
-         if ( funcs_dynk(nfuncs_dynk,3) .lt. 0 .or.                    ! p1 < 1  ?
-     &        funcs_dynk(nfuncs_dynk,4) .le. 1 .or.                    ! p2 <= 1  ?
+         if ( funcs_dynk(nfuncs_dynk,3) .lt. 0 .or.                    ! p1 <  1 ?
+     &        funcs_dynk(nfuncs_dynk,4) .le. 1 .or.                    ! p2 <= 1 ?
      &        funcs_dynk(nfuncs_dynk,4) .lt. funcs_dynk(nfuncs_dynk,3) ! p2 < p1 ?
      &        ) then
             write(lout,*)
