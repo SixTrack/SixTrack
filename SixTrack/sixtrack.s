@@ -2269,17 +2269,20 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                 call prror(-1) 
               end select
 +cd scat_tck
+      !Thick scattering
       if (scatter_debug) then
-         write(lout,*) "SCATTER> In kickscatter_thick, ix=",
+         write(lout,*) "SCATTER> In scat_tck, ix=",
      &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
       endif
 !     TODO
 +cd scat_thi
+      !Thin scattering
       if (scatter_debug) then
-         write(lout,*) "SCATTER> In kickscatter_thin, ix=",
+         write(lout,*) "SCATTER> In scat_thi, ix=",
      &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
       endif
-!     TODO
+      call scatter_thin()
+      
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -65792,6 +65795,7 @@ c$$$         backspace (93,iostat=ierro)
 
 +dk scatter
 !     Deck for the scattering routines implemented in the SCATTER block
+
       subroutine scatter_dumpdata
       implicit none
 +ca crcoall
@@ -65843,4 +65847,36 @@ c$$$         backspace (93,iostat=ierro)
 
       write(lout,'(a)') "***** END SCATTER DUMP ***"
       
+      end subroutine
+
+      subroutine scatter_thin
+      implicit none
++ca crcoall
++ca parpro
++ca stringzerotrim
++ca comscatter
+
++ca common
++ca commonmn
+
+      integer i,j
+      double precision s,t,xi
+      double precision P
+      
+      !Compute the "standard" s (used for cross-sections)
+      !(ask profile for the p)
+      
+      !Loop over generators
+      do i=3,scatter_maxProcELEM
+         !Compute the cross-section at this s
+         
+         do j=1, napx
+            !Ask profile for density at x,y
+            !Compute probability P
+            !If RNG < P -> scatter; else go to next particle
+            ! (Output?)
+            !Ask generator for t and xi
+            !Apply scattering kick to particle
+         end do
+      end do
       end subroutine
