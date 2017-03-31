@@ -853,8 +853,8 @@ SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" 
 #	target_link_libraries(astuce ${g2cLink})
 #endif()
 
-add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/ast/astuce.cpp)
-add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/ast/astuce++.cpp)
+add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
+add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
 target_link_libraries(astuce astuce++)
 
 #build dafor
