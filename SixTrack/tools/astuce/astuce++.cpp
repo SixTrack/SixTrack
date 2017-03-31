@@ -1,6 +1,7 @@
 #include "astuce++.h"
 #include <cctype>
 #include <iomanip>
+#include <cstdlib>
 
 void Astuce::Run()
 {
@@ -168,7 +169,7 @@ void Astuce::ReadInputFiles()
 	std::set<std::string>::const_iterator InputFileNames_itr =  InputFileNames.begin();
 	while(InputFileNames_itr != InputFileNames.end())
 	{
-		std::ifstream* InputFileRead = new std::ifstream(*InputFileNames_itr, std::ios::binary);
+		std::ifstream* InputFileRead = new std::ifstream(InputFileNames_itr->c_str(), std::ios::binary);
 		char cbuffer;
 		std::streambuf* sbuffer = InputFileRead->rdbuf();
 
@@ -277,7 +278,7 @@ void Astuce::ExtractFlags()
 
 	if(OutputFlag)
 	{
-		std::map<std::string, std::list<LineStorage>>::const_iterator it = CallStorage.begin();
+		std::map<std::string, std::list<LineStorage> >::const_iterator it = CallStorage.begin();
 		while(it!=CallStorage.end())
 		{
 			*LogStream << it->first << " ";
@@ -350,7 +351,7 @@ void Astuce::ExtractDecks()
 
 	if(OutputFlag)
 	{
-		std::map<std::string, std::list<LineStorage>>::const_iterator it = DeckStorage.begin();
+		std::map<std::string, std::list<LineStorage> >::const_iterator it = DeckStorage.begin();
 		while(it!=DeckStorage.end())
 		{
 			*LogStream << it->first << " ";
@@ -671,7 +672,7 @@ void Astuce::DoOutput()
 		Decks_itr++;
 	}
 
-	std::ofstream* OutputStream = new std::ofstream(OutputFileName);
+	std::ofstream* OutputStream = new std::ofstream(OutputFileName.c_str());
 	*OutputStream << OutputFileBufferStream.rdbuf();
 	OutputStream->close();
 	delete OutputStream;
@@ -689,7 +690,7 @@ void Astuce::LogToFile(bool flg)
 		if(flg)
 		{
 			std::string fname = (std::string)InputFileName + ".log";
-			LogStream = new std::ofstream(fname);
+			LogStream = new std::ofstream(fname.c_str());
 		}
 	}
 }
