@@ -397,12 +397,21 @@ void Astuce::DoExpandIF(std::map<std::string, std::list<LineStorage> >::iterator
 	while(Lines_itr != Storage_itr->second.end())
 	{
 		ProcessIfBlock(Lines_itr);
-//		if(BlockName == "PARNUM")
-//		std::cout << "\"" << Lines_itr->Text << "\"" << std::endl;
 		Lines_itr++;
 	}
 
 	EnabledStates.pop();
+
+	if(OutputFlag)
+	{
+		Lines_itr = Storage_itr->second.begin();
+		while(Lines_itr != Storage_itr->second.end())
+		{
+			*LogStream << BlockName << "\t" << Lines_itr->Enabled << " " << Lines_itr->Text << std::endl;
+			Lines_itr++;
+		}
+
+	}
 }
 
 void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
