@@ -4,6 +4,10 @@ import sys
 import os,shutil
 import re
 
+CUTSPACE=True #Cut trailing spaces; old astuce seems to
+              # - remove trailing spaces except for
+              # - Add a single space to empty lines
+
 if len(sys.argv) != 2:
     print "Usage:"
     print sys.argv[0] + " file_to_split.f"
@@ -25,6 +29,16 @@ junklines = []
 inSUB = False
 inFUN = False
 inPRO = False
+
+def doWrite(ofile,line,level,tag=""):
+        if inSUB or inFUN or inPRO:
+            if CUTSPACE:
+                line = line.rstrip()+'\n'
+            ofile.write(str(level) + ":" + line)
+        else:
+            print "JUNK: "+line[:-1]+tag
+            junklines.append(line)
+
 isCONT = False
 blocname = None
 ofile = None
@@ -35,13 +49,8 @@ FUN_counter = 0
 for line in ifile.xreadlines():
     if line[0] != ' ':
         #Comment line -> skip
-        if inSUB or inFUN or inPRO:
-            ofile.write(str(level) + ":" + line)
-        else:
-            print "JUNK: "+line[:-1]
-            junklines.append(line)
+        doWrite(ofile,line,level)
         continue
-    
     #Don't consider labels!
     line_stripped = line[6:]
     #Don't consider anything past the end of the CARD
@@ -86,11 +95,7 @@ for line in ifile.xreadlines():
     if isCONT and inIF_cont:
         if "then" in line_stripped:
             level +=1
-            if inSUB or inFUN or inPRO:
-                ofile.write(str(level) + ":" + line)
-            else:
-                print "JUNK: "+line[:-1]
-                junklines.append(line)
+            doWrite(ofile,line,level)
             continue
 
     #Look for the start of a new block
@@ -137,11 +142,7 @@ for line in ifile.xreadlines():
             atSubEnd = True
     elif "function" in line_stripped:
         if ("'" in line_stripped) or ('"' in line_stripped):
-            if inSUB or inFUN or inPRO:
-                ofile.write(str(level) + ":" + line)
-            else:
-                print "JUNK: "+line[:-1]+ "(FAKEFUN)"
-                junklines.append(line)
+            doWrite(ofile,line,level,"(FAKEFUN)")
         else:
             #print line[:-1]
             assert(inSUB==False and inFUN==False and inPRO==False), (inSUB, inFUN, inPRO, line)
@@ -158,13 +159,7 @@ for line in ifile.xreadlines():
             level += 1
     assert level >= 0
 
-    if inSUB or inFUN or inPRO:
-        ofile.write(str(level) + ":" + line)
-    else:
-        print "JUNK: "+line[:-1] + "(OUTSIDE)"
-        print line_stripped[:-1]
-        junklines.append(line)
-        #exit (1)
+    doWrite(ofile,line,level,"(OUTSIDE)")
         
     if atSubEnd:
         print "End of block",blocname
