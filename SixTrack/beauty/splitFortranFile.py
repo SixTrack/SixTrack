@@ -97,7 +97,8 @@ for line in ifile.xreadlines():
             level +=1
             doWrite(ofile,line,level)
             continue
-    print line[:-1], line_stripped
+
+    #print line[:-1], line_stripped
         
     #Look for the start of a new block
     if line_stripped.startswith("subroutine") or line_stripped.startswith("SUBROUTINE"):
@@ -112,14 +113,28 @@ for line in ifile.xreadlines():
         ofile = open(os.path.join(DIRNAME,"SUB-"+blocname+".f"),'w')
 
         level += 1
+    elif line_stripped.startswith("program") or line_stripped.startswith("PROGRAM"):
+        #print line[:-1]
+        assert(inSUB==False and inFUN==False and inPRO==False), line
+        inPRO = True
+        
+        assert blocname == None
+        blocname = line_stripped.split()[1].split("(")[0].strip()
+
+        print "New program block:", blocname
+        ofile = open(os.path.join(DIRNAME,"PRO-"+blocname+".f"),'w')
+
+        level += 1
+
     elif (line_stripped.startswith("do") or line_stripped.startswith("DO"))\
-         and not (line_stripped.startswith("double") or line_stripped.startswith("DOUBLE")):
+         and not (line_stripped.startswith("double") or line_stripped.startswith("DOUBLE") or\
+                  line_stripped.startswith("do_") or line_stripped.startswith("dotf")):
         do_tmp = line_stripped[2:].strip()
-        if do_tmp[0].isdigit():
+        if len(do_tmp) > 0 and do_tmp[0].isdigit():
             #old style 'do LABEL'
             #print "dolabel:", line_stripped
             pass
-        elif do_tmp[:4]=="uble":
+        elif len(do_tmp) >= 4 and do_tmp[:4]=="uble":
             #double precision something something...
             #print "double:", line_stripped
             pass
@@ -172,4 +187,9 @@ for line in ifile.xreadlines():
             inSUB = False
         elif inFUN:
             inFUN = False
+        elif inPRO:
+            inPRO = False
+        else:
+            print "WTF?"
+            exit(1)
         atSubEnd = False
