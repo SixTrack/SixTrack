@@ -87,7 +87,7 @@ public:
 	void ParseSourceFile();
 
 	//Extracts +cd flags
-	void ExtractFlags();
+	void ExtractCalls();
 
 	//Extracts +dk decks
 	void ExtractDecks();

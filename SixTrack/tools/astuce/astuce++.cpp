@@ -30,10 +30,10 @@ void Astuce::LoadInputMask()
 		exit(EXIT_FAILURE);
 	}
 
-	char c_buffer[4096];
+	std::string c_buffer;
 	while(infile->good())
 	{
-		infile->getline(c_buffer, 4096);
+		getline(*infile, c_buffer);
 		if(!infile->eof())
 		{
 			InputBuffer.push_back(c_buffer);
@@ -204,7 +204,7 @@ void Astuce::ParseSourceFile()
 //+dk "DECK"
 
 	//Step 1: Extract all +cd blocks into a string map
-	ExtractFlags();
+	ExtractCalls();
 
 	//Step 2: Extract all +dk blocks into a string map
 	ExtractDecks();
@@ -216,7 +216,7 @@ void Astuce::ParseSourceFile()
 	ExpandCA();
 }
 
-void Astuce::ExtractFlags()
+void Astuce::ExtractCalls()
 {
 	size_t CurrentPosition = 0;
 	size_t LineEnd = 0;
@@ -603,11 +603,11 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 				//Get the +ca name
 				size_t NameStart = Lines_itr->Text.find_first_not_of(" ", 4);
 				size_t NameEnd = Lines_itr->Text.find_first_of(" ", NameStart+1);
-				std::string FlagName = FixCase(Lines_itr->Text.substr(NameStart,NameEnd-NameStart));
+				std::string CallName = FixCase(Lines_itr->Text.substr(NameStart,NameEnd-NameStart));
 
 				//Find this name
 				std::map<std::string, std::list<LineStorage> >::iterator CallStorage_itr = CallStorage.begin();
-				CallStorage_itr = CallStorage.find(FlagName);
+				CallStorage_itr = CallStorage.find(CallName);
 				if(CallStorage_itr != CallStorage.end())
 				{
 					//Delete the +ca statement line
@@ -615,7 +615,7 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 
 					LineStorage Title;
 					Title.Enabled=true;
-					Title.Text="!!! START " + FlagName;
+					Title.Text="!!! START " + CallName;
 ///					Storage_itr->second.insert(Lines_itr,Title);
 
 					std::list<LineStorage>::iterator Insert_itr = CallStorage_itr->second.begin();
@@ -630,7 +630,7 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 					Replaced = true;
 
 
-					Title.Text="!!! END " + FlagName;
+					Title.Text="!!! END " + CallName;
 ///					Storage_itr->second.insert(Lines_itr,Title);
 				}
 				else
@@ -674,8 +674,8 @@ void Astuce::DoOutput()
 			{
 				if(Lines_itr->Enabled == true)
 				{
-					OutputFileBufferStream << Lines_itr->Text.substr(0,80) << "\n";
-//					OutputFileBufferStream << Lines_itr->Text << "\n";
+//					OutputFileBufferStream << Lines_itr->Text.substr(0,80) << "\n";
+					OutputFileBufferStream << Lines_itr->Text << "\n";
 				}
 				Lines_itr++;
 			}
