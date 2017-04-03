@@ -71,12 +71,12 @@ void Astuce::ReadInputMaskFile()
 		}
 		else
 		{
-			if(itr->substr(0,2) == "EX" || itr->substr(0,2) == "ex")
+			if(itr->substr(0,3) == "EX " || itr->substr(0,3) == "ex ")
 			{
 				//Exit processing
 				break;
 			}
-			else if(itr->substr(0,2) == "DF" || itr->substr(0,2) == "df")
+			else if(itr->substr(0,3) == "DF " || itr->substr(0,3) == "df ")
 			{
 				//flag defines
 				//Need to extract first, then split on a ',' char
@@ -394,6 +394,7 @@ void Astuce::DoExpandIF(std::map<std::string, std::list<LineStorage> >::iterator
 		*LogStream << "Processing: " << BlockName << " with " << Storage_itr->second.size() << " lines." << std::endl;
 	}
 
+	//This keeps track of the current state of +if/+ei statements, and if they are enabled or not.
 	EnabledStates.push(true);
 
 	std::list<LineStorage>::iterator Lines_itr = Storage_itr->second.begin();
@@ -404,6 +405,13 @@ void Astuce::DoExpandIF(std::map<std::string, std::list<LineStorage> >::iterator
 	}
 
 	EnabledStates.pop();
+
+	//Check we are now empty
+	if(!EnabledStates.empty())
+	{
+		std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
 	if(OutputFlag)
 	{
@@ -477,7 +485,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 				AND = true;
 				FlagNames.at(n).erase(0,5);
 			}
-			if(FlagNames.at(n).substr(0,4) == ".OR.")
+			else if(FlagNames.at(n).substr(0,4) == ".OR.")
 			{
 				OR = true;
 				FlagNames.at(n).erase(0,4);
@@ -550,12 +558,13 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 void Astuce::ExpandCA()
 {
 	bool Replaced = true;
+
+	//First step, go through existing +cd blocks and check for +ca
 	while(Replaced)
 	{
 		//Repeat until no +ca exists
 		Replaced = false;
 
-		//First step, go through existing +cd blocks and check for +ca
 		std::map<std::string, std::list<LineStorage> >::iterator CallStorage_itr = CallStorage.begin();
 
 		//This loops over each +cd block
