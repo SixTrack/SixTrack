@@ -30,22 +30,32 @@ blocname = None
 ofile = None
 level=0
 atSubEnd=False
+inIF_cont = False
 for line in ifile.xreadlines():
-    isCONT = False
+
+    if line[0] != ' ':
+        #Comment line -> skip
+        if inSUB or inFUN or inPRO:
+            ofile.write(str(level) + ":" + line)
+        else:
+            print "JUNK: "+line[:-1]
+            junklines.append(line)
+        continue
+    
     #Don't consider labels!
     line_stripped = line[6:]
     #Don't consider anything past the end of the CARD
     CARDLEN = 66
     if len(line_stripped) > CARDLEN: 
         line_stripped=line_stripped[:CARDLEN]
+
+    #Identify continuation lines
+    isCONT = False
     if len(line)>5 and line[5] != ' ':
         isCONT = True
     else:
         inIF_cont = False
     line_stripped = line_stripped.strip()
-    if line[0] != ' ':
-        #Comment line -> skip
-        continue
     
     if isCONT and inIF_cont:
         if "then" in line_stripped:
@@ -83,6 +93,7 @@ for line in ifile.xreadlines():
         if "then" in line_stripped:
             level +=1
         else:
+            #print "setting inIF_cont"
             inIF_cont = True # The "then" may come later...
     elif line_stripped.startswith("select"):
         level += 1
@@ -95,7 +106,7 @@ for line in ifile.xreadlines():
     assert level >= 0
 
     if inSUB or inFUN or inPRO:
-        ofile.write(str(level) + " " + line)
+        ofile.write(str(level) + ":" + line)
     else:
         print "JUNK: "+line[:-1]
         junklines.append(line)
