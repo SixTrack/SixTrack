@@ -635,7 +635,19 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 				}
 				else
 				{
-					std::cerr << "Searched for +ca " << BlockName << " and it was not defined anywhere!" << std::endl;
+					std::cerr << "Searched for " << BlockName << " and it was not defined anywhere!" << std::endl;
+					std::cerr << "The following +cd blocks exist:" << std::endl;
+					CallStorage_itr = CallStorage.begin();
+					while(CallStorage_itr != CallStorage.end())
+					{
+						std::cerr << "\"" << CallStorage_itr->first << "\" ";
+						CallStorage_itr++;
+					}
+					std::cerr << std::endl;
+
+					std::cerr << "Calls entry count: " << CallStorage.size() << std::endl;
+					std::cerr << "Decks entry count: " << DeckStorage.size() << std::endl;
+
 					exit(EXIT_FAILURE);
 				}
 

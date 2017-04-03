@@ -1116,7 +1116,7 @@ add_dependencies(generate_input run_astuce dafor rename_beamgas)
 #we rename beamgas.f to beamgas.f90 since it should be in free format fortran
 add_custom_target(rename_beamgas)
 add_dependencies(rename_beamgas run_astuce)
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E rename beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E copy beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
