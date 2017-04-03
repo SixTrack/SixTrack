@@ -79,11 +79,13 @@ for line in ifile.xreadlines():
             level +=1
     elif line_stripped.startswith("if"):
         #TODO: if statements may be short form, i.e. no "then".
-        print "if:",line_stripped
+        #print "if:",line_stripped
         if "then" in line_stripped:
             level +=1
         else:
             inIF_cont = True # The "then" may come later...
+    elif line_stripped.startswith("select"):
+        level += 1
     elif line_stripped.startswith("end"):
         #print line[:-1]
         level -=1
@@ -97,7 +99,7 @@ for line in ifile.xreadlines():
     else:
         print "JUNK: "+line[:-1]
         junklines.append(line)
-        exit (1)
+        #exit (1)
         
     if atSubEnd:
         print "End of block",blocname
