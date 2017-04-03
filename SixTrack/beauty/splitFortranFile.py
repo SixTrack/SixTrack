@@ -99,7 +99,7 @@ for line in ifile.xreadlines():
             continue
 
     #Look for the start of a new block
-    if line_stripped.startswith("subroutine"):
+    if line_stripped.startswith("subroutine") or line_stripped.startswith("SUBROUTINE"):
         #print line[:-1]
         assert(inSUB==False and inFUN==False and inPRO==False), line
         inSUB = True
@@ -111,7 +111,8 @@ for line in ifile.xreadlines():
         ofile = open(os.path.join(DIRNAME,"SUB-"+blocname+".f"),'w')
 
         level += 1
-    elif line_stripped.startswith("do") and not line_stripped.startswith("double"):
+    elif (line_stripped.startswith("do") or line_stripped.startswith("DO"))\
+         and not (line_stripped.startswith("double") or line_stripped.startswith("DOUBLE")):
         do_tmp = line_stripped[2:].strip()
         if do_tmp[0].isdigit():
             #old style 'do LABEL'
@@ -125,22 +126,23 @@ for line in ifile.xreadlines():
             #print line[:-1]
             #print "do:",line_stripped
             level +=1
-    elif line_stripped.startswith("if"):
+    elif line_stripped.startswith("if") or line_stripped.startswith("IF"):
         #TODO: if statements may be short form, i.e. no "then".
         #print "if:",line_stripped
-        if "then" in line_stripped:
+        if ("then" in line_stripped) or ("THEN" in line_stripped):
             level +=1
         else:
             #print "setting inIF_cont"
             inIF_cont = True # The "then" may come later...
-    elif line_stripped.startswith("select"):
+    elif line_stripped.startswith("select") or line_stripped.startswith("SELECT"):
         level += 1
-    elif line_stripped.startswith("end") and (not line_stripped.startswith("endfile")):
+    elif (line_stripped.startswith("end") or line_stripped.startswith("END"))\
+         and (not (line_stripped.startswith("endfile") or line_stripped.startswith("ENDFILE"))):
         #print "END: ", line[:-1]
         level -=1
         if level == 0:
             atSubEnd = True
-    elif "function" in line_stripped:
+    elif ("function" in line_stripped) or ("FUNCTION" in line_stripped):
         if ("'" in line_stripped) or ('"' in line_stripped):
             doWrite(ofile,line,level,"(FAKEFUN)")
         else:
