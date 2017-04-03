@@ -47,7 +47,7 @@ atSubEnd=False
 inIF_cont = False
 FUN_counter = 0
 for line in ifile.xreadlines():
-    if line[0] != ' ':
+    if line[0] != ' ' and not line[0].isdigit():
         #Comment line -> skip
         doWrite(ofile,line,level)
         continue
@@ -97,7 +97,8 @@ for line in ifile.xreadlines():
             level +=1
             doWrite(ofile,line,level)
             continue
-
+    print line[:-1], line_stripped
+        
     #Look for the start of a new block
     if line_stripped.startswith("subroutine") or line_stripped.startswith("SUBROUTINE"):
         #print line[:-1]
