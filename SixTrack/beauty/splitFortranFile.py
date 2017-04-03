@@ -31,8 +31,8 @@ ofile = None
 level=0
 atSubEnd=False
 inIF_cont = False
+FUN_counter = 0
 for line in ifile.xreadlines():
-
     if line[0] != ' ':
         #Comment line -> skip
         if inSUB or inFUN or inPRO:
@@ -48,7 +48,33 @@ for line in ifile.xreadlines():
     CARDLEN = 66
     if len(line_stripped) > CARDLEN: 
         line_stripped=line_stripped[:CARDLEN]
-
+    #Don't consider the part of the line that is a comment
+    commentIdx = line_stripped.find('!')
+    if commentIdx != -1:
+        line_stripped = line_stripped[:commentIdx]
+    # #Don't consider whatever is inside a string
+    # startStrStrip=0
+    # while True:
+    #     strIdx1 = line_stripped.find("'",startStrStrip)
+    #     if strIdx1 != -1:
+    #         strIdx2 = line_stripped.find("'",strIdx1+1)
+    #         print line_stripped
+    #         if strIdx2 == -1: #String runs to the end of the line
+    #             print "type1:"
+    #             print line_stripped[:-1]
+    #             line_stripped=line_stripped[:strIdx1+1]
+    #             print line_stripped[:-1]
+    #             startStrStrip = -1
+    #         else: #String runs to the end of the line
+    #             print "type2:"
+    #             print line_stripped[:-1]
+    #             line_stripped=line_stripped[:strIdx1+1]+line_stripped[strIdx2:]
+    #             print line_stripped[:-1]
+    #             startStrStrip = strIdx2+1
+    #     else:
+    #         #print "Done."
+    #         break
+    
     #Identify continuation lines
     isCONT = False
     if len(line)>5 and line[5] != ' ':
@@ -56,11 +82,18 @@ for line in ifile.xreadlines():
     else:
         inIF_cont = False
     line_stripped = line_stripped.strip()
-    
+    #Some if ... then with continuation
     if isCONT and inIF_cont:
         if "then" in line_stripped:
             level +=1
-    
+            if inSUB or inFUN or inPRO:
+                ofile.write(str(level) + ":" + line)
+            else:
+                print "JUNK: "+line[:-1]
+                junklines.append(line)
+            continue
+
+    #Look for the start of a new block
     if line_stripped.startswith("subroutine"):
         #print line[:-1]
         assert(inSUB==False and inFUN==False and inPRO==False), line
@@ -73,7 +106,7 @@ for line in ifile.xreadlines():
         ofile = open(os.path.join(DIRNAME,"SUB-"+blocname+".f"),'w')
 
         level += 1
-    elif line_stripped.startswith("do"):
+    elif line_stripped.startswith("do") and not line_stripped.startswith("double"):
         do_tmp = line_stripped[2:].strip()
         if do_tmp[0].isdigit():
             #old style 'do LABEL'
@@ -98,17 +131,38 @@ for line in ifile.xreadlines():
     elif line_stripped.startswith("select"):
         level += 1
     elif line_stripped.startswith("end") and (not line_stripped.startswith("endfile")):
-        #print line[:-1]
+        #print "END: ", line[:-1]
         level -=1
         if level == 0:
             atSubEnd = True
+    elif "function" in line_stripped:
+        if ("'" in line_stripped) or ('"' in line_stripped):
+            if inSUB or inFUN or inPRO:
+                ofile.write(str(level) + ":" + line)
+            else:
+                print "JUNK: "+line[:-1]+ "(FAKEFUN)"
+                junklines.append(line)
+        else:
+            #print line[:-1]
+            assert(inSUB==False and inFUN==False and inPRO==False), (inSUB, inFUN, inPRO, line)
+            inFUN = True
         
+            assert blocname == None
+            #blocname = line_stripped.split()[1].split("(")[0].strip()
+            blocname=str(FUN_counter)
+            FUN_counter += 1
+            
+            print "New function block:", blocname
+            ofile = open(os.path.join(DIRNAME,"FUN-"+blocname+".f"),'w')
+
+            level += 1
     assert level >= 0
 
     if inSUB or inFUN or inPRO:
         ofile.write(str(level) + ":" + line)
     else:
-        print "JUNK: "+line[:-1]
+        print "JUNK: "+line[:-1] + "(OUTSIDE)"
+        print line_stripped[:-1]
         junklines.append(line)
         #exit (1)
         
@@ -118,4 +172,6 @@ for line in ifile.xreadlines():
         blocname=None
         if inSUB:
             inSUB = False
+        elif inFUN:
+            inFUN = False
         atSubEnd = False
