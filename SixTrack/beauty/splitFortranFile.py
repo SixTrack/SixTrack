@@ -38,18 +38,28 @@ for line in ifile.xreadlines():
     CARDLEN = 66
     if len(line_stripped) > CARDLEN: 
         line_stripped=line_stripped[:CARDLEN]
-    if len(line)>=5 and line[5] != ' ':
+    if len(line)>5 and line[5] != ' ':
         isCONT = True
+    else:
+        inIF_cont = False
     line_stripped = line_stripped.strip()
+    if line[0] != ' ':
+        #Comment line -> skip
+        continue
+    
+    if isCONT and inIF_cont:
+        if "then" in line_stripped:
+            level +=1
+    
     if line_stripped.startswith("subroutine"):
-        print line[:-1]
+        #print line[:-1]
         assert(inSUB==False and inFUN==False and inPRO==False), line
         inSUB = True
         
         assert blocname == None
         blocname = line_stripped.split()[1].split("(")[0].strip()
 
-        print blocname
+        print "New subrotine block:", blocname
         ofile = open(os.path.join(DIRNAME,"SUB-"+blocname+".f"),'w')
 
         level += 1
@@ -69,8 +79,11 @@ for line in ifile.xreadlines():
             level +=1
     elif line_stripped.startswith("if"):
         #TODO: if statements may be short form, i.e. no "then".
-        #print "if:",line_stripped
-        level +=1
+        print "if:",line_stripped
+        if "then" in line_stripped:
+            level +=1
+        else:
+            inIF_cont = True # The "then" may come later...
     elif line_stripped.startswith("end"):
         #print line[:-1]
         level -=1
@@ -84,9 +97,12 @@ for line in ifile.xreadlines():
     else:
         print "JUNK: "+line[:-1]
         junklines.append(line)
+        exit (1)
         
     if atSubEnd:
+        print "End of block",blocname
         ofile.close()
+        blocname=None
         if inSUB:
             inSUB = False
         atSubEnd = False
