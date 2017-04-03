@@ -86,7 +86,7 @@ for line in ifile.xreadlines():
             inIF_cont = True # The "then" may come later...
     elif line_stripped.startswith("select"):
         level += 1
-    elif line_stripped.startswith("end"):
+    elif line_stripped.startswith("end") and (not line_stripped.startswith("endfile")):
         #print line[:-1]
         level -=1
         if level == 0:
