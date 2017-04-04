@@ -404,14 +404,15 @@ void Astuce::DoExpandIF(std::map<std::string, std::list<LineStorage> >::iterator
 		Lines_itr++;
 	}
 
-	EnabledStates.pop();
-
-	//Check we are now empty
-	if(!EnabledStates.empty())
+	//Check the current state
+	if(EnabledStates.size() != 1)
 	{
 		std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
+		std::cerr << "Currently processing section " << BlockName << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	EnabledStates.pop();
+
 
 	if(OutputFlag)
 	{
@@ -537,6 +538,12 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			}
 		}
 
+		if(EnabledStates.empty())
+		{
+			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
+			std::cerr << "Currently processing " << line->Text << std::endl;
+			exit(EXIT_FAILURE);
+		}
 		//AND (&) the result of the above with the current stack top
 		EnabledStates.push(EnabledState & EnabledStates.top());
 	}
@@ -545,11 +552,23 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		//Disable this line
 		line->Enabled = false;
 
+		if(EnabledStates.empty())
+		{
+			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
+			std::cerr << "Currently processing " << line->Text << std::endl;
+			exit(EXIT_FAILURE);
+		}
 		EnabledStates.pop();
 	}
 	else
 	{
 		//If a general line is to be enabled or disabled, this depends on the current state
+		if(EnabledStates.empty())
+		{
+			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
+			std::cerr << "Currently processing " << line->Text << std::endl;
+			exit(EXIT_FAILURE);
+		}
 		line->Enabled = EnabledStates.top();
 		return;
 	}
