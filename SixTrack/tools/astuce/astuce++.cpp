@@ -71,7 +71,7 @@ void Astuce::ReadInputMaskFile()
 		}
 		else
 		{
-			if(itr->substr(0,3) == "EX " || itr->substr(0,3) == "ex ")
+			if(itr->substr(0,3) == "EX" || itr->substr(0,3) == "ex")
 			{
 				//Exit processing
 				break;
