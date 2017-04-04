@@ -76,7 +76,7 @@ void Astuce::ReadInputMaskFile()
 				//Exit processing
 				break;
 			}
-			else if(itr->substr(0,3) == "DF " || itr->substr(0,3) == "df ")
+			else if(itr->substr(0,2) == "DF" || itr->substr(0,2) == "df")
 			{
 				//flag defines
 				//Need to extract first, then split on a ',' char
