@@ -209,10 +209,13 @@ void Astuce::ParseSourceFile()
 	//Step 2: Extract all +dk blocks into a string map
 	ExtractDecks();
 
-	//Step 3: enable/disable +if/+ei blocks
+	//Step 3: Verify the input - do the requested decks exist?
+	VerifyInput();
+
+	//Step 4: enable/disable +if/+ei blocks
 	ExpandIF();
 
-	//Step 4: Insert +cd blocks into the code where +ca exists
+	//Step 5: Insert +cd blocks into the code where +ca exists
 	ExpandCA();
 }
 
@@ -663,7 +666,7 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 				}
 				else
 				{
-					std::cerr << "Searched for " << BlockName << " and it was not defined anywhere!" << std::endl;
+					std::cerr << "Searched for " << CallName << " and it was not defined anywhere!" << std::endl;
 					std::cerr << "The following +cd blocks exist:" << std::endl;
 					CallStorage_itr = CallStorage.begin();
 					while(CallStorage_itr != CallStorage.end())
@@ -732,5 +735,22 @@ void Astuce::LogToFile(bool flg)
 			std::string fname = (std::string)InputFileName + ".log";
 			LogStream = new std::ofstream(fname.c_str());
 		}
+	}
+}
+
+void Astuce::VerifyInput()
+{
+	std::set<std::string>::const_iterator Decks_itr = Decks.begin();
+	while(Decks_itr != Decks.end())
+	{
+		std::map<std::string, std::list<LineStorage> >::iterator DeckStorage_itr = DeckStorage.begin();
+		DeckStorage_itr = DeckStorage.find(*Decks_itr);
+		if(DeckStorage_itr == DeckStorage.end())
+		{
+			std::cerr << "ERROR: Deck \"" << *Decks_itr << "\" requested but was not found in the input files!" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		Decks_itr++;
 	}
 }

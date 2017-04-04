@@ -92,6 +92,9 @@ public:
 	//Extracts +dk decks
 	void ExtractDecks();
 
+	//Verify input calls/decks exist
+	void VerifyInput();
+
 	//Expands +if/+ei statements (enables/disables lines)
 	void ExpandIF();
 
