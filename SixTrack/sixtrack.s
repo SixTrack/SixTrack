@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.13'/
-      data moddate /'31.03.2017'/
+      data version /'4.6.14'/
+      data moddate /'04.04.2017'/
 +cd license
 !!SixTrack
 !!
@@ -16747,8 +16747,8 @@ cc2008
             ! Make checks for the wire parameters
             if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
                write(lout,*)
-     &"ERROR: WIRE flag for taking the closed orbit into account or "//
-     &" not must be -1 (disp* = distance closed orbit and beam)"//
+     &"ERROR: WIRE flag for defining the wire separation "//
+     &"must be -1 (disp* = distance closed orbit and beam)"//
      &"or 1 (disp* = distance from x=y=0 <-> beam), but "//
      &"wire_flagco = ",wire_flagco(j)
                call prror(-1)
@@ -16782,8 +16782,9 @@ cc2008
      &'vert. tilt         = ',wire_tilty(j),' degrees'
 ! ignore wire if current, length or displacment are 0 or
 ! wire_flagco not set (case wire_flagco = 0)
-            if( abs(wire_flagco(j)*wire_current(j)*wire_lint(j)
-     &*wire_lphys(j)*wire_dispx(j)*wire_dispy(j)).le.pieni ) then
+! for displacement only ignore if wire_dispx = wire_dispy = 0
+            if( abs(wire_flagco(j)*(wire_current(j)*(wire_lint(j)
+     &*(wire_lphys(j)*(wire_dispx(j)+wire_dispy(j)))))).le.pieni ) then
               kz(j) = 0 ! treat element as marker
 
               write(lout,
