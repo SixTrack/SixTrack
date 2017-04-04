@@ -276,7 +276,16 @@ void Astuce::ExtractCalls()
 			Lines.push_back(Entry);
 			StartPosition = BlockPosition+1;
 		}
-		CallStorage.insert(std::make_pair(BlockName,Lines));
+
+		std::pair<std::map<std::string, std::list<LineStorage> >::const_iterator,bool > check;
+		check = CallStorage.insert(std::make_pair(BlockName,Lines));
+
+		if(check.second == false)
+		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "Multiple definitions of call: \"" << BlockName << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	if(OutputFlag)
@@ -349,7 +358,16 @@ void Astuce::ExtractDecks()
 			Lines.push_back(Entry);
 			StartPosition = BlockPosition+1;
 		}
-		DeckStorage.insert(std::make_pair(BlockName,Lines));
+
+		std::pair<std::map<std::string, std::list<LineStorage> >::const_iterator,bool > check;
+		check = DeckStorage.insert(std::make_pair(BlockName,Lines));
+
+		if(check.second == false)
+		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "Multiple definitions of deck: \"" << BlockName << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	if(OutputFlag)
@@ -454,7 +472,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			exit(EXIT_FAILURE);
 		}
 
-		size_t NameEnd = line->Text.find_first_of(" ", NameStart+1);
+		size_t NameEnd = line->Text.find_first_of(" !", NameStart+1);
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
 
 		size_t Position = 0;
@@ -645,7 +663,7 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 			{
 				//Get the +ca name
 				size_t NameStart = Lines_itr->Text.find_first_not_of(" ", 4);
-				size_t NameEnd = Lines_itr->Text.find_first_of(" ", NameStart+1);
+				size_t NameEnd = Lines_itr->Text.find_first_of(" !", NameStart+1);
 				std::string CallName = FixCase(Lines_itr->Text.substr(NameStart,NameEnd-NameStart));
 
 				//Find this name
