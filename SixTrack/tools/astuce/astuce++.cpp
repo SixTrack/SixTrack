@@ -113,8 +113,8 @@ void Astuce::ReadInputMaskFile()
 			}
 			else
 			{
-				*LogStream  << "Bad entry in input: " << *itr << std::endl;
-				*LogStream  << "Exiting" << std::endl;
+				std::cerr << "ERROR processing " << InputFileName << std::endl;
+				std::cerr << "ERROR: Bad entry in input: " << *itr << std::endl;
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -410,6 +410,7 @@ void Astuce::DoExpandIF(std::map<std::string, std::list<LineStorage> >::iterator
 	//Check the current state
 	if(EnabledStates.size() != 1)
 	{
+		std::cerr << "ERROR processing " << InputFileName << std::endl;
 		std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 		std::cerr << "Currently processing section " << BlockName << std::endl;
 		exit(EXIT_FAILURE);
@@ -536,6 +537,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			else
 			{
 				//Should never hit this
+				std::cerr << "ERROR processing " << InputFileName << std::endl;
 				std::cerr << "ERROR: in .if. .and. .or. processing - Multiple entries and neither .and. or .or. true at entry " << n << std::endl;
 				exit(EXIT_FAILURE);
 			}
@@ -543,6 +545,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 
 		if(EnabledStates.empty())
 		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
 			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 			std::cerr << "Currently processing " << line->Text << std::endl;
 			exit(EXIT_FAILURE);
@@ -557,6 +560,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 
 		if(EnabledStates.empty())
 		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
 			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 			std::cerr << "Currently processing " << line->Text << std::endl;
 			exit(EXIT_FAILURE);
@@ -568,6 +572,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		//If a general line is to be enabled or disabled, this depends on the current state
 		if(EnabledStates.empty())
 		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
 			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 			std::cerr << "Currently processing " << line->Text << std::endl;
 			exit(EXIT_FAILURE);
@@ -666,6 +671,7 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 				}
 				else
 				{
+					std::cerr << "ERROR processing " << InputFileName << std::endl;
 					std::cerr << "Searched for " << CallName << " and it was not defined anywhere!" << std::endl;
 					std::cerr << "The following +cd blocks exist:" << std::endl;
 					CallStorage_itr = CallStorage.begin();
@@ -747,6 +753,7 @@ void Astuce::VerifyInput()
 		DeckStorage_itr = DeckStorage.find(*Decks_itr);
 		if(DeckStorage_itr == DeckStorage.end())
 		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
 			std::cerr << "ERROR: Deck \"" << *Decks_itr << "\" requested but was not found in the input files!" << std::endl;
 			exit(EXIT_FAILURE);
 		}
