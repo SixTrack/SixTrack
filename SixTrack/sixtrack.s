@@ -16783,8 +16783,8 @@ cc2008
 ! ignore wire if current, length or displacment are 0 or
 ! wire_flagco not set (case wire_flagco = 0)
 ! for displacement only ignore if wire_dispx = wire_dispy = 0
-            if( abs(wire_flagco(j)*wire_current(j)*wire_lint(j)
-     &*wire_lphys(j)*(wire_dispx(j)+wire_dispy(j))).le.pieni ) then
+            if( abs(wire_flagco(j)*(wire_current(j)*(wire_lint(j)
+     &*(wire_lphys(j)*(wire_dispx(j)+wire_dispy(j)))))).le.pieni ) then
               kz(j) = 0 ! treat element as marker
 
               write(lout,
