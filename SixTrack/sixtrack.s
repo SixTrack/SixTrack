@@ -8781,8 +8781,8 @@ cc2008
 +if .not.datamods
       subroutine nodatamods
 +ca crcoall
-      write(lout,*) &
-      "Dummy routine in bigmats.f if beamgas module is off."
+      write(lout,*)
+     &"Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
 +ei
 
