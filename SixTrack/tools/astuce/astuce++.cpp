@@ -447,6 +447,13 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 
 		//Find the name of this statement
 		size_t NameStart = line->Text.find_first_not_of(" ", 4);
+		if(NameStart == std::string::npos)
+		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "+if statement with no associated flag? : \"" << line->Text << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
 		size_t NameEnd = line->Text.find_first_of(" ", NameStart+1);
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
 
