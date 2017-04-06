@@ -25438,8 +25438,8 @@ C Should get me a NaN
 !********************************************************************
 ! THIS IS THE END OF THE 'DO' LOOP OVER THE thin6d SUBROUTINE  !!!!!
 !********************************************************************
-        endif
-      endif
+        endif !end if(abs(phas).ge.pieni) then
+      endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
 
       call collimate_exit
 +ei ! endif collimat
