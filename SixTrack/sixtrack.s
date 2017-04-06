@@ -25412,409 +25412,7 @@ C Should get me a NaN
           call thin6dua(nthinerr)
         else
 +if collimat
-      open(unit=outlun, file='colltrack.out')
-!
-      write(lout,*) '         -------------------------------'
-      write(lout,*)
-      write(lout,*) '          Program      C O L L T R A C K '
-      write(lout,*)
-      write(lout,*) '            R. Assmann           -    AB/ABP'
-      write(lout,*) '            C. Bracco            -    AB/ABP'
-      write(lout,*) '            V. Previtali         -    AB/ABP'
-      write(lout,*) '            S. Redaelli          -    AB/OP'
-      write(lout,*) '            G. Robert-Demolaize  -    BNL'
-      write(lout,*) '            A. Rossi             -    AB/ABP'
-      write(lout,*) '            T. Weiler            -    IEKP'
-      write(lout,*) '                 CERN 2001 - 2009'
-      write(lout,*)
-      write(lout,*) '         -------------------------------'
-      write(lout,*) 'Collimation version of Sixtrack running... 08/2009'
-
-      write(outlun,*)
-      write(outlun,*)
-      write(outlun,*) '         -------------------------------'
-      write(outlun,*)
-      write(outlun,*) '         Program      C O L L T R A C K '
-      write(outlun,*)
-      write(outlun,*) '            R. Assmann       -    AB/ABP'
-      write(outlun,*) '             C.Bracco        -    AB/ABP'
-      write(outlun,*) '           V. Previtali      -    AB/ABP'
-      write(outlun,*) '           S. Redaelli       -    AB/OP'
-      write(outlun,*) '      G. Robert-Demolaize    -    BNL'
-      write(outlun,*) '             A. Rossi        -    AB/ABP'
-      write(outlun,*) '             T. Weiler       -    IEKP'
-      write(outlun,*)
-      write(outlun,*) '                 CERN 2001 - 2009'
-      write(outlun,*)
-      write(outlun,*) '         -------------------------------'
-      write(outlun,*)
-      write(outlun,*)
-!
-      write(lout,*) '                     R. Assmann, F. Schmidt, CERN'
-      write(lout,*) '                           C. Bracco,        CERN'
-      write(lout,*) '                           V. Previtali,     CERN'
-      write(lout,*) '                           S. Redaelli,      CERN'
-      write(lout,*) '                       G. Robert-Demolaize,  BNL'
-      write(lout,*) '                           A. Rossi,         CERN'
-      write(lout,*) '                           T. Weiler         IEKP'
-
-      write(lout,*)
-      write(lout,*) 'Generating particle distribution at FIRST element!'
-      write(lout,*) 'Optical functions obtained from Sixtrack internal!'
-      write(lout,*) 'Emittance and energy obtained from Sixtrack input!'
-      write(lout,*)
-      write(lout,*)
-      
-      write(lout,*) 'Info: Betax0   [m]    ', tbetax(1)
-      write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
-      write(lout,*) 'Info: Alphax0         ', talphax(1)
-      write(lout,*) 'Info: Alphay0         ', talphay(1)
-      write(lout,*) 'Info: Orbitx0  [mm]   ', torbx(1)
-      write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
-      write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
-      write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(lout,*) 'Info: Emitx0_dist [um]', remitx_dist
-      write(lout,*) 'Info: Emity0_dist [um]', remity_dist
-      write(lout,*) 'Info: Emitx0_collgap [um]', remitx_collgap
-      write(lout,*) 'Info: Emity0_collgap [um]', remity_collgap
-      write(lout,*) 'Info: E0       [MeV]  ', e0
-      write(lout,*)
-      write(lout,*)
-!
-      myemitx0_dist = remitx_dist*1d-6
-      myemity0_dist = remity_dist*1d-6
-      myemitx0_collgap = remitx_collgap*1d-6
-      myemity0_collgap = remity_collgap*1d-6
-
-      myalphax = talphax(1)
-      myalphay = talphay(1)
-      mybetax  = tbetax(1)
-      mybetay  = tbetay(1)
-!07-2006      myenom   = e0
-!      MYENOM   = 1.001*E0
-!
-      if (myemitx0_dist.le.0.d0 .or. myemity0_dist.le.0.d0
-     &.or. myemitx0_collgap.le.0.d0 .or. myemity0_collgap.le.0.d0) then
-        write(lout,*)
-     &       'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
-        write(lout,*)"ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
-        write(lout,*)
-     & "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
-
-        write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
-     & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, ",
-     & "THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
-        write(lout,*) "ERR> EXAMPLE:"
-        write(lout,*) "2.5 2.5 3.5 3.5"
-        call prror(-1)
-      endif
-!
-!++  Calculate the gammas
-!
-      mygammax = (1d0+myalphax**2)/mybetax
-      mygammay = (1d0+myalphay**2)/mybetay
-!
-!++  Number of points and generate distribution
-!
-!GRD SEMI-AUTOMATIC INPUT
-!      NLOOP=10
-!      MYNEX=6.003
-!      MYDEX=0.0015
-!      MYNEY=6.003
-!      MYDEY=0.0015
-!      DO_COLL=1
-!      NSIG_PRIM=5.
-!      NSIG_SEC=6.
-      rselect=64
-!
-      write(lout,*) 'INFO>  NLOOP     = ', nloop
-      write(lout,*) 'INFO>  DO_THISDIS     = ', do_thisdis
-      write(lout,*) 'INFO>  MYNEX     = ', mynex
-      write(lout,*) 'INFO>  MYDEX     = ', mdex
-      write(lout,*) 'INFO>  MYNEY     = ', myney
-      write(lout,*) 'INFO>  MYDEY     = ', mdey
-      write(lout,*) 'INFO>  FILENAME_DIS     = ', filename_dis
-      write(lout,*) 'INFO>  ENERROR     = ', enerror
-      write(lout,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
-      write(lout,*) 'INFO>  RSELECT   = ', int(rselect)
-      write(lout,*) 'INFO>  DO_COLL   = ', do_coll
-!APRIL2005
-!+if cr
-!      write(lout,*) 'INFO>  NSIG_PRIM = ', nsig_prim
-!+ei
-!+if .not.cr
-!      write(*,*) 'INFO>  NSIG_PRIM = ', nsig_prim
-!+ei
-!+if cr
-!      write(lout,*) 'INFO>  NSIG_SEC  = ', nsig_sec
-!+ei
-!+if .not.cr
-!      write(*,*) 'INFO>  NSIG_SEC  = ', nsig_sec
-!+ei
-      write(lout,*) 'INFO>  DO_NSIG   = ', do_nsig
-      write(lout,*) 'INFO>  NSIG_TCP3    = ', nsig_tcp3
-      write(lout,*) 'INFO>  NSIG_TCSG3   = ', nsig_tcsg3
-      write(lout,*) 'INFO>  NSIG_TCSM3   = ', nsig_tcsm3
-      write(lout,*) 'INFO>  NSIG_TCLA3   = ', nsig_tcla3
-      write(lout,*) 'INFO>  NSIG_TCP7    = ', nsig_tcp7
-      write(lout,*) 'INFO>  NSIG_TCSG7   = ', nsig_tcsg7
-      write(lout,*) 'INFO>  NSIG_TCSM7   = ', nsig_tcsm7
-      write(lout,*) 'INFO>  NSIG_TCLA7   = ', nsig_tcla7
-      write(lout,*) 'INFO>  NSIG_TCLP    = ', nsig_tclp
-      write(lout,*) 'INFO>  NSIG_TCLI    = ', nsig_tcli
-!      write(lout,*) 'INFO>  NSIG_TCTH    = ', nsig_tcth
-!      write(lout,*) 'INFO>  NSIG_TCTV    = ', nsig_tctv
-      write(lout,*) 'INFO>  NSIG_TCTH1   = ', nsig_tcth1
-      write(lout,*) 'INFO>  NSIG_TCTV1   = ', nsig_tctv1
-      write(lout,*) 'INFO>  NSIG_TCTH2   = ', nsig_tcth2
-      write(lout,*) 'INFO>  NSIG_TCTV2   = ', nsig_tctv2
-      write(lout,*) 'INFO>  NSIG_TCTH5   = ', nsig_tcth5
-      write(lout,*) 'INFO>  NSIG_TCTV5   = ', nsig_tctv5
-      write(lout,*) 'INFO>  NSIG_TCTH8   = ', nsig_tcth8
-      write(lout,*) 'INFO>  NSIG_TCTV8   = ', nsig_tctv8
-!
-      write(lout,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
-      write(lout,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
-      write(lout,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
-      write(lout,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
-      write(lout,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
-!APRIL2005
-!SEPT2005
-      write(lout,*)
-      write(lout,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
-      write(lout,*)
-      write(lout,*) 'INFO>  N_SLICES    = ', n_slices
-      write(lout,*) 'INFO>  SMIN_SLICES = ',smin_slices
-      write(lout,*) 'INFO>  SMAX_SLICES = ',smax_slices
-      write(lout,*) 'INFO>  RECENTER1   = ',recenter1
-      write(lout,*) 'INFO>  RECENTER2   = ',recenter2
-      write(lout,*)
-      write(lout,*) 'INFO>  FIT1_1   = ',fit1_1
-      write(lout,*) 'INFO>  FIT1_2   = ',fit1_2
-      write(lout,*) 'INFO>  FIT1_3   = ',fit1_3
-      write(lout,*) 'INFO>  FIT1_4   = ',fit1_4
-      write(lout,*) 'INFO>  FIT1_5   = ',fit1_5
-      write(lout,*) 'INFO>  FIT1_6   = ',fit1_6
-      write(lout,*) 'INFO>  SCALING1 = ',ssf1
-      write(lout,*)
-      write(lout,*) 'INFO>  FIT2_1   = ',fit2_1
-      write(lout,*) 'INFO>  FIT2_2   = ',fit2_2
-      write(lout,*) 'INFO>  FIT2_3   = ',fit2_3
-      write(lout,*) 'INFO>  FIT2_4   = ',fit2_4
-      write(lout,*) 'INFO>  FIT2_5   = ',fit2_5
-      write(lout,*) 'INFO>  FIT2_6   = ',fit2_6
-      write(lout,*) 'INFO>  SCALING2 = ',ssf2
-      write(lout,*)
-
-!SEPT2005
-!
-! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
-!
-      write(lout,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
-      write(lout,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
-      write(lout,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
-      write(lout,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
-      write(lout,*)
-      write(lout,*) 'INFO>  DO_SELECT         = ', do_select
-      write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
-      write(lout,*) 'INFO>  RND_SEED          = ', rnd_seed
-      write(lout,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
-      write(lout,*) 'INFO>  NAME_SEL          = ', name_sel
-      write(lout,*) 'INFO>  DO_ONESIDE        = ', do_oneside
-      write(lout,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
-      write(lout,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
-      write(lout,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
-      write(lout,*)
-      write(lout,*) 'INFO>  XBEAT             = ', xbeat
-      write(lout,*) 'INFO>  XBEATPHASE        = ', xbeatphase
-      write(lout,*) 'INFO>  YBEAT             = ', ybeat
-      write(lout,*) 'INFO>  YBEATPHASE        = ', ybeatphase
-      write(lout,*)
-      write(lout,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
-      write(lout,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
-      write(lout,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
-      write(lout,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
-      write(lout,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
-      write(lout,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
-      write(lout,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
-      write(lout,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
-      write(lout,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
-      write(lout,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
-      write(lout,*) 'INFO>  DO_MINGAP          = ', do_mingap
-      write(lout,*)
-      write(lout,*) 'INFO>  RADIAL            = ', radial
-      write(lout,*) 'INFO>  NR                = ', nr
-      write(lout,*) 'INFO>  NDR               = ', ndr
-      write(lout,*)
-      write(lout,*) 'INFO>  DRIFTSX           = ', driftsx
-      write(lout,*) 'INFO>  DRIFTSY           = ', driftsy
-      write(lout,*) 'INFO>  CUT_INPUT         = ', cut_input
-      write(lout,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
-      write(lout,*)
-      write(lout,*) 'INFO>  IPENCIL           = ', ipencil
-      write(lout,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
-      write(lout,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
-      write(lout,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
-      write(lout,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
-      write(lout,*)
-      write(lout,*) 'INFO>  COLL_DB           = ', coll_db
-      write(lout,*) 'INFO>  IBEAM             = ', ibeam
-      write(lout,*)
-      write(lout,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
-      write(lout,*)
-      write(lout,*) 'INFO>  CERN              = ', cern
-      write(lout,*)
-      write(lout,*) 'INFO>  CASTORDIR     = ', castordir
-      write(lout,*)
-      write(lout,*) 'INFO>  JOBNUMBER     = ', jobnumber
-      write(lout,*)
-      write(lout,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
-      write(lout,*)
-!
-      mynp = nloop*napx
-!
-      napx00 = napx
-!
-      write(lout,*) 'INFO>  NAPX     = ', napx, mynp
-      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
-      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
-!
-! HERE WE SET THE MARKER FOR INITIALIZATION:
-!
-      firstrun = .true.
-!
-! ...and here is implemented colltrack's beam distribution:
-!
-!
-!++  Initialize random number generator
-!
-!      IF (FIRSTRUN) THEN
-        if (rnd_seed.eq.0) rnd_seed = mclock_liar()
-        if (rnd_seed.lt.0) rnd_seed = abs(rnd_seed)
-        rnd_lux = 3
-        rnd_k1  = 0
-        rnd_k2  = 0
-        call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
-        write(lout,*)
-        write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
-!      ENDIF
-!GRD-SR, 09-02-2006
-!Call distribution routines only if collimation block is in fort.3, otherwise
-!the standard sixtrack would be prevented by the 'stop' command
-      if(do_coll) then
-!GRD-SR
-      if (radial) then
-         call    makedis_radial(mynp, myalphax, myalphay, mybetax,
-     &        mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr,
-     &        myx, myxp, myy, myyp, myp, mys)
-      else
-         if (do_thisdis.eq.1) then
-            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,
-     &           myemitx0_dist, myemity0_dist,
-     &           myenom, mynex, mdex, myney, mdey,
-     &           myx, myxp, myy, myyp, myp, mys)
-         elseif(do_thisdis.eq.2) then
-            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay,
-     &           myemitx0_dist, myemity0_dist,
-     &           myenom, mynex, mdex, myney, mdey,
-     &           myx, myxp, myy, myyp, myp, mys)
-         elseif(do_thisdis.eq.3) then
-            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay,
-     &           myemitx0_dist, myemity0_dist,
-     &           myenom, mynex, mdex, myney, mdey,
-     &           myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
-         elseif(do_thisdis.eq.4) then
-            call readdis(filename_dis,
-     &           mynp, myx, myxp, myy, myyp, myp, mys)
-         elseif(do_thisdis.eq.5) then
-            call makedis_ga(mynp, myalphax, myalphay, mybetax,
-     &           mybetay, myemitx0_dist, myemity0_dist,
-     &           myenom, mynex, mdex, myney, mdey,
-     &           myx, myxp, myy, myyp, myp, mys,
-     &           enerror, bunchlength )
-         else
-            write(lout,*) 'INFO> review your distribution parameters !!'
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-            stop
-+ei
-         endif
-!
-       endif
-!
-!GRD-SR,09-02-2006
-      endif
-!GRD-SR
-!++  Reset distribution for pencil beam
-!
-       if (ipencil.gt.0) then
-         write(lout,*) 'WARN>  Distributions reset to pencil beam!'
-         write(lout,*)
-         write(outlun,*) 'WARN>  Distributions reset to pencil beam!'
-         do j = 1, mynp
-            myx(j)  = 0d0
-            myxp(j) = 0d0
-            myy(j)  = 0d0
-            myyp(j) = 0d0
-         end do
-       endif
-!
-!++  Optionally write the generated particle distribution
-!
-      open(unit=52,file='dist0.dat')
-       if (dowrite_dist) then
-        do j = 1, mynp
-          write(52,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j),   &
-!     SR, 11-08-2005
-     &          mys(j), myp(j)
-        end do
-       endif
-      close(52)
-!
-!++  Initialize efficiency array
-!
-      do i=1,iu
-      sum_ax(i)   = 0d0
-      sqsum_ax(i) = 0d0
-      sum_ay(i)   = 0d0
-      sqsum_ay(i) = 0d0
-      nampl(i)    = 0d0
-      sampl(i)    = 0d0
-      end do
-!
-      nspx = 0d0
-      nspy = 0d0
-!
-      np0  = mynp
-!
-      ax0  = myalphax
-      bx0  = mybetax
-      mux0 = mux(1)
-      ay0  = myalphay
-      by0  = mybetay
-      muy0 = muy(1)
-      iturn = 1
-      ie    = 1
-      n_tot_absorbed = 0
-      
-      if (int(mynp/napx00) .eq. 0) then
-         write (lout,*) ""
-         write (lout,*) "********************************************"
-         write (lout,*) "Error in setting up collimation tracking:"
-         write (lout,*) "Number of samples is zero!"
-         write (lout,*) "Did you forget the COLL block in fort.3?"
-         write (lout,*) "If you want to do standard (not collimation)"//
-     &                  " tracking, please use the standard SixTrack."
-         write (lout,*) "Value of do_coll = ", do_coll
-         write (lout,*) "Value of mynp    = ", mynp
-         write (lout,*) "Value of napx00  = ", napx00
-         write (lout,*) "********************************************"
-         call prror(-1)
-      endif
-      
-!
+      call collimate_init
 !================================================================================
 !Ralph make loop over 1e6/napx, a read xv(1,j) etc
 !Du solltest zur Sicherheit dies resetten bevor Du in thin6d gehst
@@ -25824,471 +25422,20 @@ C Should get me a NaN
 !        nnumxv(i)=numl
 !   80 numxv(i)=numl
 !================================================================================
-          do j = 1, int(mynp/napx00)
-!
-            write(lout,*) 'Sample number ', j, int(mynp/napx00)
-!GRD
-            samplenumber=j
-!
-!
-! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
-!
-      open(unit=42, file='beta_beat.dat')
-      write(42,*)                                                       &
-     &'# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
-!
-      open(unit=43, file='collgaps.dat')
-      open(unit=44, file='survival.dat') ! RB, DM: 2014 bug fix
-      write(44,*)                                                       &
-     &'# 1=turn 2=n_particle'
-!APRIL2005
-      if(firstrun) write(43,*)                                          &
-     &'# ID name  angle[rad]  betax[m]  betay[m] ',                     &
-     &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m] ',             &
-!JUNE2005
-     &'tilt1[rad] tilt2[rad] nsig'
-!JUNE2005
-!      write(43,*)                                                       &
-!     &'#name  angle[rad]  betax[m]  betay[m] ',                         &
-!     &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m]'
-!APRIL2005
-!
-!
-!
-!      if (dowrite_impact) then
-!        open(unit=46, file='coll_impact.dat')
-!        write(46,*)                                                     &
-!     &'# 1=sample 2=iturn 3=icoll 4=nimp 5=nabs 6=imp_av 7=imp_sig'
-!      endif
-!
-      open(unit=40, file='collimator-temp.db')
-!
-!      open(unit=47, file='tertiary.dat')
-!      write(47,*)                                                       &
-!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
-!
-!      if (dowrite_secondary) then
-!        open(unit=48, file='secondary.dat')
-!        write(48,'(2a)')                                                &
-!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
-!      endif
-!
-! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
-      open(unit=55, file='collsettings.dat')
-      if(firstrun) write(55,*)                                          &
-     &'# name  slicenumber  halfgap[m]  gap_offset[m] ',                &
-     &'tilt jaw1[rad]  tilt jaw2[rad] length[m] material'               &
-! TW06/08
-      if (dowrite_impact) then
-        open(unit=49,file='impact.dat')
-        write(49,*)                                                     &
-     &'# 1=impact 2=divergence'
-      endif
-!
-!APRIL2005
-      if (dowritetracks) then
-!        open(unit=39,file='tracks3.dat')
-!        if(firstrun) write(39,*)                                        &
-!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
-!      if (dowritetracks) then
-!        open(unit=39,file='steftracks3.dat')
-!        write(39,*)                                                     &
-!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
-!APRIL2005
-!GRD
-!
-!GRD SPECIAL FILE FOR SECONDARY HALO
-!
-      if (cern) then
-!
-        open(unit=41,file='stuff')
-        write(41,*) samplenumber
-        close(41)
-        open(unit=41,file='stuff')
-        read(41,*) smpl
-        close(41)
-!GRD
-        pfile(1:8) = 'tracks2.'
-        if(samplenumber.le.9) then
-           pfile(9:9) = smpl
-           pfile(10:13) = '.dat'
-        elseif(samplenumber.gt.9.and.samplenumber.le.99) then
-           pfile(9:10) = smpl
-           pfile(11:14) = '.dat'
-        elseif(samplenumber.gt.99.and.                                  &
-     &samplenumber.le.int(mynp/napx00)) then
-           pfile(9:11) = smpl
-           pfile(12:15) = '.dat'
-        endif
-!GRD
-        if(samplenumber.le.9)                                           &
-     &open(unit=38,file=pfile(1:13))
-        if(samplenumber.gt.9.and.samplenumber.le.99)                    &
-     &open(unit=38,file=pfile(1:14))
-        if(samplenumber.gt.99.and.                                      &
-     &samplenumber.le.int(mynp/napx00))                                 &
-     &open(unit=38,file=pfile(1:15))
-!GRD
-        else
-!
-        open(unit=38,file='tracks2.dat')
-!
-        endif
-!GRD
-        if(firstrun) write(38,*)                                        &
-     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
+      do j = 1, int(mynp/napx00)
+        write(lout,*) 'Sample number ', j, int(mynp/napx00)
+        call collimate_start_sample
 
-!AUGUST2006:write pencul sheet beam coordiantes to file ---- TW
-      open(unit=9997, file='pencilbeam_distr.dat')
-      if(firstrun) write(9997,*) 'x    xp    y      yp'      
-!
-! TW 
-!      open(unit=9998, file='TCXRA.dat')
-!      open(unit=9999, file='TCXRB.dat')
-!      if(firstrun) write(9998,*)                                        &
-!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp' 
-!      if(firstrun) write(9999,*)                                        &
-!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp'
-!
-!GRD
-      endif
-!GRD
-!UPGRADE January 2005
-!      if(dowritetracks) then
-!      open(unit=58, file='TCLA_impacts.dat')
-!      write(58,'(a)')                                                   &
-!     &'# 1=name 2=x 3=xp 4=y 5=yp 6=p'
-!      endif
-!End of Upgrade
-!APRIL2005
-!      if(dowritetracks) then
-!      open(unit=581, file='all_impacts.dat')
-!      if(firstrun) write(581,'(a)')                                     &
-!     &'# 1=name 2=turn 3=s'
-!      open(unit=582, file='all_absorptions.dat')
-!      if(firstrun) write(582,'(a)')                                     &
-!     &'# 1=name 2=turn 3=s'
-!      endif
-!
-!GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
-      if(do_select) then
-        open(unit=45, file='coll_ellipse.dat')
-        if (firstrun) then
-!           write(45,'(a)')                                               &
-           write(45,*)                                                  &
-!     &          '#  1=x 2=y 3=xp 4=yp 5=E 6=s 7=turn'
-!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
-     &          '#  1=name 2=x 3=y 4=xp 5=yp 6=E 7=s 8=turn 9=halo ',   &
-     & '10=nabs_type'
-        endif
-      endif
-      if(dowrite_impact) then
-        open(unit=46, file='all_impacts.dat')
-        open(unit=47, file='all_absorptions.dat')
-        open(unit=48, file='FLUKA_impacts.dat')
-! RB: adding output files FLUKA_impacts_all.dat and Coll_Scatter.dat
-        open(unit=4801, file='FLUKA_impacts_all.dat')
-        open(unit=3998, file='Coll_Scatter.dat')
-        open(unit=39, file='FirstImpacts.dat')
-        !open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
-        if (firstrun) then
-!          write(45,'(a)')                                               &
-!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
-          write(46,'(a)') '# 1=name 2=turn 3=s'
-          write(47,'(a)') '# 1=name 2=turn 3=s'
-          write(48,'(a)')                                               &
-     &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-          write(39,*)                                                   &
-     &     '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
-     &     '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
-     &     '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
+        write(lout,*) ''
+        write(lout,*) 'Calling thin6d subroutine'
+        write(lout,*) ''
+        call thin6d(nthinerr)
 
-! RB: write headers in new output files
-          write(4801,'(a)')                                               &
-     &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-          write(3998,*)
-     &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nucle
-     &ar-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb), 5=dp, 6=d
-     &x', 7=dy'"
-
-        endif
-      endif
-!GRD-SR,09-02-2006
-!
-!JUNE2005
-      if(name_sel(1:3).eq.'COL') then
-      open(unit=555, file='RHIClosses.dat')
-      if(firstrun) write(555,'(a)')                                     &
-     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
-      endif
-!JUNE2005
-!
-!FOR FAST TRACKING CHECKS AND MULTIPLE SAMPLES
-!       open(unit=999,file='checkturns.dat')
-!
-!++  Reset this as advised by Frank
-!
-!            do 80 i=1,npart
-!              pstop(i)=.false.
-!              nnumxv(i)=numl
-!   80       numxv(i)=numl
-!
-!++  Copy new particles to tracking arrays. Also add the orbit offset at
-!++  start of ring!
-!
-            do i = 1, napx00
-              xv(1,i)  = 1d3*myx(i+(j-1)*napx00)  +torbx(1)              !hr08
-              yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
-              xv(2,i)  = 1d3*myy(i+(j-1)*napx00)  +torby(1)              !hr08
-              yv(2,i)  = 1d3*myyp(i+(j-1)*napx00) +torbyp(1)             !hr08
-!JULY2005
-!JULY2005 assignation of the proper bunch length
-!              sigmv(i) = 0d0
-              sigmv(i) = mys(i+(j-1)*napx00)
-!JULY2005
-!APRIL2005
-!              ejv(i)   = myenom
-              ejv(i)   = myp(i+(j-1)*napx00)
-!
-!GRD FOR NOT FAST TRACKING ONLY
-              ejfv(i)=sqrt(ejv(i)**2-pma**2)                             !hr08
-              rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
-              dpsv(i)=(ejfv(i)-e0f)/e0f
-              oidpsv(i)=one/(one+dpsv(i))
-              dpsv1(i)=(dpsv(i)*c1e3)*oidpsv(i)                          !hr08
-!GRD
-!APRIL2005
-!
-!              dpsv(i)  = 0d0
-              nlostp(i)=i
-              do ieff =1, numeff
-                 counted_r(i,ieff) = 0
-                 counted_x(i,ieff) = 0
-                 counted_y(i,ieff) = 0
-	         do ieffdpop =1, numeffdpop
-		    counted2d(i,ieff,ieffdpop) = 0
-	         end do	
-              end do
-	      do ieffdpop =1, numeffdpop
-                 counteddpop(i,ieffdpop) = 0
-              end do
-
-            end do
-!
-!++  Initialize random number generator
-!
-!      IF (FIRSTRUN) THEN
-!        IF (RND_SEED.EQ.0) RND_SEED = MCLOCK_LIAR()
-!        IF (RND_SEED.LT.0) RND_SEED = ABS(RND_SEED)
-!        RND_LUX = 3
-!        RND_K1  = 0
-!        RND_K2  = 0
-!        CALL RLUXGO(RND_LUX, RND_SEED, RND_k1, RND_K2)
-!        WRITE(*,*)
-!      ENDIF
-!
-!++  Thin lens tracking
-!
-!FOR FAST TRACKING CHECKS
-!       open(unit=999,file='checkturns.dat')
-!
-          write(lout,*) ''
-          write(lout,*) 'Calling thin6d subroutine'
-          write(lout,*) ''
-          call thin6d(nthinerr)
-!
-!++  Save particle offsets to a file
-!
-!
-!Mars 2005
-!       close(999)
-!Mars 2005
-!      CLOSE(987)
-      close(42)
-!      close(43)
-      close(44)
-!      if(dowrite_impact) close(46)
-!GRD-SR,09-02-2006 => freeing unit, file no longer needed
-!      close(47)
-!      if(dowrite_secondary) close(48)
-      if(dowrite_impact) close(49)
-!GRD
-!APRIL2005
-!      if(dowritetracks) close(38)
-      if(dowritetracks) then
-      if(cern) close(38)
-      endif
-!APRIL2005
-!UPGRADE Januray 2005
-!      close(58)
-!APRIL2005
-!      close(581)
-!GRD
-!------------------------------------------------------------------------
-!++  Write the number of absorbed particles
-!
-      write(outlun,*) 'INFO>  Number of impacts             : ',        &
-!     &N_TOT_ABSORBED+NSURVIVE
-     &n_tot_absorbed+nsurvive_end
-      write(outlun,*) 'INFO>  Number of impacts at selected : ',        &
-     &num_selhit
-      write(outlun,*) 'INFO>  Number of surviving particles : ',        &
-!     &NSURVIVE
-     &nsurvive_end
-      write(outlun,*) 'INFO>  Number of absorbed particles  : ',        &
-     &n_tot_absorbed
-!
-      write(outlun,*)
-!GRD UPGRADE JANUARY 2005
-      if(n_tot_absorbed.ne.0) then                                       !hr08
-!
-      write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',           &
-     &(neff(5)/dble(n_tot_absorbed))/1d-4                                !hr08
-      write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',           &
-     &(neff(9)/dble(n_tot_absorbed))/1d-4                                !hr08
-      write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',           &
-     &((neff(9)-neff(19))/(dble(n_tot_absorbed)))/1d-4                   !hr08
-!
-      write(outlun,*)
-      write(outlun,*) neff(5)/dble(n_tot_absorbed),                     &
-     &neff(9)/dble(n_tot_absorbed),                                     &
-     &(neff(9)-neff(19))/(dble(n_tot_absorbed)), ' !eff'
-      write(outlun,*)
-!
-!UPGRADE JANUARY 2005
-      else
-          write(lout,*) 'NO PARTICLE ABSORBED'
-      endif
-!
-!----
-      write(lout,*)
-      write(lout,*) 'INFO>  Number of impacts             : ',          &
-!     &N_TOT_ABSORBED+NSURVIVE
-     &n_tot_absorbed+nsurvive_end
-      write(lout,*) 'INFO>  Number of impacts at selected : ',
-     &num_selhit
-      write(lout,*) 'INFO>  Number of surviving particles : ',          &
-!     &NSURVIVE
-     &nsurvive_end
-      write(lout,*) 'INFO>  Number of absorbed particles  : ',
-     &n_tot_absorbed
-      write(lout,*)
-!GRD UPGRADE JANUARY 2005
-      if(n_tot_absorbed.ne.0) then                                       !hr08
-!     if(n_tot_absorbed.ne.0) then
-!
-      write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',
-     &(neff(5)/dble(n_tot_absorbed))/1d-4                               !hr08
-      write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',
-     &(neff(9)/dble(n_tot_absorbed))/1d-4                                !hr08
-      write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',
-     &((neff(9)-neff(19))/dble(n_tot_absorbed))/1d-4                     !hr08
-!
-      write(lout,*)
-!
-!UPGRADE JANUARY 2005
-      else
-          write(lout,*) 'NO PARTICLE ABSORBED'
-      endif
-!
-!------------------------------------------------------------------------
-!++  Write efficiency file
-!
-      inquire( unit=1991, opened=lopen)
-      if (lopen) then
-         write(lout,*)
-     &        "ERROR in efficiency.dat: FILE 1991 already taken"
-	  call prror(-1)
-      endif
-      open(unit=1991, file='efficiency.dat')
-!UPGRADE JANUARY 2005
-      if(n_tot_absorbed.ne.0) then
-      write(1991,*)                                                       &
-     &'# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r'
-      do k=1,numeff
-        write(1991,'(7(1x,e15.7),1x,I5)') rsig(k),                        &
-     &neffx(k)/dble(n_tot_absorbed),                                    &
-     &neffy(k)/dble(n_tot_absorbed),                                    &
-     &neff(k)/dble(n_tot_absorbed),                                     &
-     &neffx(k),                                                         &
-     &neffy(k),                                                         &
-     &neff(k), n_tot_absorbed
+        call collimate_end_sample
       end do
-      else
-          write(lout,*) 'NO PARTICLE ABSORBED'
-      endif
-!END OF UPGRADE
-      close(1991)
-!!------------------------------------------------------------------------
-!++  Write efficiency vs dp/p file
-!
-	inquire( unit=1992, opened=lopen )
-	if (lopen) then
-           write(lout,*)
-     &          "ERROR in efficiency_dpop.dat: FILE 1992 already taken"
-	  call prror(-1)
-	endif
-      open(unit=1992, file='efficiency_dpop.dat')
-!UPGRADE 4/11/2014
-      if(n_tot_absorbed.ne.0) then
-      write(1992,*)                                                       &
-     &'# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart' 
-      do k=1,numeffdpop
-        write(1992,'(3(1x,e15.7),2(1x,I5))') dpopbins(k),                 &
-     &neffdpop(k)/dble(n_tot_absorbed),                                 &
-     &neffdpop(k), n_tot_absorbed, npartdpop(k)
-      end do
-      else
-          write(lout,*) 'NO PARTICLE ABSORBED'
-      endif
-!END OF UPGRADE
-      close(1992)
-!!------------------------------------------------------------------------
-!++  Write 2D efficiency file (eff vs. A_r and dp/p)
-!
-      inquire( unit=1993, opened=lopen )
-      if (lopen) then
-         write(lout,*)
-     &        "ERROR in efficiency_2d.dat:FILE 1993 already taken"
-	  call prror(-1)
-      endif
-      open(unit=1993, file='efficiency_2d.dat')
-      if(n_tot_absorbed.ne.0) then
-      write(1993,*)                                                       &
-     &'# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs' 
-      do i=1,numeff
-	do k=1,numeffdpop
-        write(1993,'(4(1x,e15.7),1(1x,I5))') rsig(i),  dpopbins(k),       &
-     &neff2d(i,k)/dble(n_tot_absorbed),                                 &
-     &neff2d(i,k), n_tot_absorbed
-	end do
-      end do
-      else
-          write(lout,*) 'NO PARTICLE ABSORBED'
-      endif
-!END OF UPGRADE
-      close(1993)
-!!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!++  Write collimation summary file
-!
-      open(unit=50, file='coll_summary.dat')
-      write(50,*)                                                       &
-     &'# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
-      do icoll = 1, db_ncoll
-        if(db_length(icoll).gt.0d0) then
-        write(50,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f3.1)')              &
-     &icoll, db_name1(icoll),cn_impact(icoll), cn_absorbed(icoll),      &
-     &caverage(icoll), csigma(icoll),db_length(icoll)
-      endif
-      end do
-      close(50)
-!GRD
 !********************************************************************
 ! THIS IS THE END OF THE 'DO' LOOP OVER THE thin6d SUBROUTINE  !!!!!
 !********************************************************************
-      end do
-!
 !GRD
       close(outlun)
       close(43)
@@ -26331,7 +25478,8 @@ C Should get me a NaN
 !=============================================================================
         endif
       endif
-!
+
+!      call collimate_exit
       open(unit=56, file='amplitude.dat')
       open(unit=51, file='amplitude2.dat')
 !UPGRADE JANUARY 2005
@@ -55481,6 +54629,444 @@ c$$$            endif
 !<
       subroutine collimate_init()
       implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ei
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
+      open(unit=outlun, file='colltrack.out')
+
+      write(lout,*) '         -------------------------------'
+      write(lout,*)
+      write(lout,*) '          Program      C O L L T R A C K '
+      write(lout,*)
+      write(lout,*) '            R. Assmann           -    AB/ABP'
+      write(lout,*) '            C. Bracco            -    AB/ABP'
+      write(lout,*) '            V. Previtali         -    AB/ABP'
+      write(lout,*) '            S. Redaelli          -    AB/OP'
+      write(lout,*) '            G. Robert-Demolaize  -    BNL'
+      write(lout,*) '            A. Rossi             -    AB/ABP'
+      write(lout,*) '            T. Weiler            -    IEKP'
+      write(lout,*) '                 CERN 2001 - 2009'
+      write(lout,*)
+      write(lout,*) '         -------------------------------'
+      write(lout,*) 'Collimation version of Sixtrack running... 08/2009'
+
+      write(outlun,*)
+      write(outlun,*)
+      write(outlun,*) '         -------------------------------'
+      write(outlun,*)
+      write(outlun,*) '         Program      C O L L T R A C K '
+      write(outlun,*)
+      write(outlun,*) '            R. Assmann       -    AB/ABP'
+      write(outlun,*) '             C.Bracco        -    AB/ABP'
+      write(outlun,*) '           V. Previtali      -    AB/ABP'
+      write(outlun,*) '           S. Redaelli       -    AB/OP'
+      write(outlun,*) '      G. Robert-Demolaize    -    BNL'
+      write(outlun,*) '             A. Rossi        -    AB/ABP'
+      write(outlun,*) '             T. Weiler       -    IEKP'
+      write(outlun,*)
+      write(outlun,*) '                 CERN 2001 - 2009'
+      write(outlun,*)
+      write(outlun,*) '         -------------------------------'
+      write(outlun,*)
+      write(outlun,*)
+!
+      write(lout,*) '                     R. Assmann, F. Schmidt, CERN'
+      write(lout,*) '                           C. Bracco,        CERN'
+      write(lout,*) '                           V. Previtali,     CERN'
+      write(lout,*) '                           S. Redaelli,      CERN'
+      write(lout,*) '                       G. Robert-Demolaize,  BNL'
+      write(lout,*) '                           A. Rossi,         CERN'
+      write(lout,*) '                           T. Weiler         IEKP'
+
+      write(lout,*)
+      write(lout,*) 'Generating particle distribution at FIRST element!'
+      write(lout,*) 'Optical functions obtained from Sixtrack internal!'
+      write(lout,*) 'Emittance and energy obtained from Sixtrack input!'
+      write(lout,*)
+      write(lout,*)
+      
+      write(lout,*) 'Info: Betax0   [m]    ', tbetax(1)
+      write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
+      write(lout,*) 'Info: Alphax0         ', talphax(1)
+      write(lout,*) 'Info: Alphay0         ', talphay(1)
+      write(lout,*) 'Info: Orbitx0  [mm]   ', torbx(1)
+      write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
+      write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
+      write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
+      write(lout,*) 'Info: Emitx0_dist [um]', remitx_dist
+      write(lout,*) 'Info: Emity0_dist [um]', remity_dist
+      write(lout,*) 'Info: Emitx0_collgap [um]', remitx_collgap
+      write(lout,*) 'Info: Emity0_collgap [um]', remity_collgap
+      write(lout,*) 'Info: E0       [MeV]  ', e0
+      write(lout,*)
+      write(lout,*)
+!
+      myemitx0_dist = remitx_dist*1d-6
+      myemity0_dist = remity_dist*1d-6
+      myemitx0_collgap = remitx_collgap*1d-6
+      myemity0_collgap = remity_collgap*1d-6
+
+      myalphax = talphax(1)
+      myalphay = talphay(1)
+      mybetax  = tbetax(1)
+      mybetay  = tbetay(1)
+!07-2006      myenom   = e0
+!      MYENOM   = 1.001*E0
+!
+      if (myemitx0_dist.le.0.d0 .or. myemity0_dist.le.0.d0
+     &.or. myemitx0_collgap.le.0.d0 .or. myemity0_collgap.le.0.d0) then
+        write(lout,*)
+     &       'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
+        write(lout,*)"ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
+        write(lout,*)
+     & "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
+
+        write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
+     & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, ",
+     & "THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
+        write(lout,*) "ERR> EXAMPLE:"
+        write(lout,*) "2.5 2.5 3.5 3.5"
+        call prror(-1)
+      endif
+!
+!++  Calculate the gammas
+!
+      mygammax = (1d0+myalphax**2)/mybetax
+      mygammay = (1d0+myalphay**2)/mybetay
+!
+!++  Number of points and generate distribution
+!
+!GRD SEMI-AUTOMATIC INPUT
+!      NLOOP=10
+!      MYNEX=6.003
+!      MYDEX=0.0015
+!      MYNEY=6.003
+!      MYDEY=0.0015
+!      DO_COLL=1
+!      NSIG_PRIM=5.
+!      NSIG_SEC=6.
+      rselect=64
+!
+      write(lout,*) 'INFO>  NLOOP     = ', nloop
+      write(lout,*) 'INFO>  DO_THISDIS     = ', do_thisdis
+      write(lout,*) 'INFO>  MYNEX     = ', mynex
+      write(lout,*) 'INFO>  MYDEX     = ', mdex
+      write(lout,*) 'INFO>  MYNEY     = ', myney
+      write(lout,*) 'INFO>  MYDEY     = ', mdey
+      write(lout,*) 'INFO>  FILENAME_DIS     = ', filename_dis
+      write(lout,*) 'INFO>  ENERROR     = ', enerror
+      write(lout,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
+      write(lout,*) 'INFO>  RSELECT   = ', int(rselect)
+      write(lout,*) 'INFO>  DO_COLL   = ', do_coll
+!APRIL2005
+!+if cr
+!      write(lout,*) 'INFO>  NSIG_PRIM = ', nsig_prim
+!+ei
+!+if .not.cr
+!      write(*,*) 'INFO>  NSIG_PRIM = ', nsig_prim
+!+ei
+!+if cr
+!      write(lout,*) 'INFO>  NSIG_SEC  = ', nsig_sec
+!+ei
+!+if .not.cr
+!      write(*,*) 'INFO>  NSIG_SEC  = ', nsig_sec
+!+ei
+      write(lout,*) 'INFO>  DO_NSIG   = ', do_nsig
+      write(lout,*) 'INFO>  NSIG_TCP3    = ', nsig_tcp3
+      write(lout,*) 'INFO>  NSIG_TCSG3   = ', nsig_tcsg3
+      write(lout,*) 'INFO>  NSIG_TCSM3   = ', nsig_tcsm3
+      write(lout,*) 'INFO>  NSIG_TCLA3   = ', nsig_tcla3
+      write(lout,*) 'INFO>  NSIG_TCP7    = ', nsig_tcp7
+      write(lout,*) 'INFO>  NSIG_TCSG7   = ', nsig_tcsg7
+      write(lout,*) 'INFO>  NSIG_TCSM7   = ', nsig_tcsm7
+      write(lout,*) 'INFO>  NSIG_TCLA7   = ', nsig_tcla7
+      write(lout,*) 'INFO>  NSIG_TCLP    = ', nsig_tclp
+      write(lout,*) 'INFO>  NSIG_TCLI    = ', nsig_tcli
+!      write(lout,*) 'INFO>  NSIG_TCTH    = ', nsig_tcth
+!      write(lout,*) 'INFO>  NSIG_TCTV    = ', nsig_tctv
+      write(lout,*) 'INFO>  NSIG_TCTH1   = ', nsig_tcth1
+      write(lout,*) 'INFO>  NSIG_TCTV1   = ', nsig_tctv1
+      write(lout,*) 'INFO>  NSIG_TCTH2   = ', nsig_tcth2
+      write(lout,*) 'INFO>  NSIG_TCTV2   = ', nsig_tctv2
+      write(lout,*) 'INFO>  NSIG_TCTH5   = ', nsig_tcth5
+      write(lout,*) 'INFO>  NSIG_TCTV5   = ', nsig_tctv5
+      write(lout,*) 'INFO>  NSIG_TCTH8   = ', nsig_tcth8
+      write(lout,*) 'INFO>  NSIG_TCTV8   = ', nsig_tctv8
+!
+      write(lout,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
+      write(lout,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
+      write(lout,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
+      write(lout,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
+      write(lout,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
+!APRIL2005
+!SEPT2005
+      write(lout,*)
+      write(lout,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
+      write(lout,*)
+      write(lout,*) 'INFO>  N_SLICES    = ', n_slices
+      write(lout,*) 'INFO>  SMIN_SLICES = ',smin_slices
+      write(lout,*) 'INFO>  SMAX_SLICES = ',smax_slices
+      write(lout,*) 'INFO>  RECENTER1   = ',recenter1
+      write(lout,*) 'INFO>  RECENTER2   = ',recenter2
+      write(lout,*)
+      write(lout,*) 'INFO>  FIT1_1   = ',fit1_1
+      write(lout,*) 'INFO>  FIT1_2   = ',fit1_2
+      write(lout,*) 'INFO>  FIT1_3   = ',fit1_3
+      write(lout,*) 'INFO>  FIT1_4   = ',fit1_4
+      write(lout,*) 'INFO>  FIT1_5   = ',fit1_5
+      write(lout,*) 'INFO>  FIT1_6   = ',fit1_6
+      write(lout,*) 'INFO>  SCALING1 = ',ssf1
+      write(lout,*)
+      write(lout,*) 'INFO>  FIT2_1   = ',fit2_1
+      write(lout,*) 'INFO>  FIT2_2   = ',fit2_2
+      write(lout,*) 'INFO>  FIT2_3   = ',fit2_3
+      write(lout,*) 'INFO>  FIT2_4   = ',fit2_4
+      write(lout,*) 'INFO>  FIT2_5   = ',fit2_5
+      write(lout,*) 'INFO>  FIT2_6   = ',fit2_6
+      write(lout,*) 'INFO>  SCALING2 = ',ssf2
+      write(lout,*)
+
+!SEPT2005
+!
+! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
+!
+      write(lout,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
+      write(lout,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
+      write(lout,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
+      write(lout,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
+      write(lout,*)
+      write(lout,*) 'INFO>  DO_SELECT         = ', do_select
+      write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
+      write(lout,*) 'INFO>  RND_SEED          = ', rnd_seed
+      write(lout,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
+      write(lout,*) 'INFO>  NAME_SEL          = ', name_sel
+      write(lout,*) 'INFO>  DO_ONESIDE        = ', do_oneside
+      write(lout,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
+      write(lout,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
+      write(lout,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
+      write(lout,*)
+      write(lout,*) 'INFO>  XBEAT             = ', xbeat
+      write(lout,*) 'INFO>  XBEATPHASE        = ', xbeatphase
+      write(lout,*) 'INFO>  YBEAT             = ', ybeat
+      write(lout,*) 'INFO>  YBEATPHASE        = ', ybeatphase
+      write(lout,*)
+      write(lout,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
+      write(lout,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
+      write(lout,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
+      write(lout,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
+      write(lout,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
+      write(lout,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
+      write(lout,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
+      write(lout,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
+      write(lout,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
+      write(lout,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
+      write(lout,*) 'INFO>  DO_MINGAP          = ', do_mingap
+      write(lout,*)
+      write(lout,*) 'INFO>  RADIAL            = ', radial
+      write(lout,*) 'INFO>  NR                = ', nr
+      write(lout,*) 'INFO>  NDR               = ', ndr
+      write(lout,*)
+      write(lout,*) 'INFO>  DRIFTSX           = ', driftsx
+      write(lout,*) 'INFO>  DRIFTSY           = ', driftsy
+      write(lout,*) 'INFO>  CUT_INPUT         = ', cut_input
+      write(lout,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
+      write(lout,*)
+      write(lout,*) 'INFO>  IPENCIL           = ', ipencil
+      write(lout,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
+      write(lout,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
+      write(lout,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
+      write(lout,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
+      write(lout,*)
+      write(lout,*) 'INFO>  COLL_DB           = ', coll_db
+      write(lout,*) 'INFO>  IBEAM             = ', ibeam
+      write(lout,*)
+      write(lout,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
+      write(lout,*)
+      write(lout,*) 'INFO>  CERN              = ', cern
+      write(lout,*)
+      write(lout,*) 'INFO>  CASTORDIR     = ', castordir
+      write(lout,*)
+      write(lout,*) 'INFO>  JOBNUMBER     = ', jobnumber
+      write(lout,*)
+      write(lout,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
+      write(lout,*)
+!
+      mynp = nloop*napx
+!
+      napx00 = napx
+!
+      write(lout,*) 'INFO>  NAPX     = ', napx, mynp
+      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
+      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
+!
+! HERE WE SET THE MARKER FOR INITIALIZATION:
+!
+      firstrun = .true.
+!
+! ...and here is implemented colltrack's beam distribution:
+!
+!
+!++  Initialize random number generator
+!
+!      IF (FIRSTRUN) THEN
+        if (rnd_seed.eq.0) rnd_seed = mclock_liar()
+        if (rnd_seed.lt.0) rnd_seed = abs(rnd_seed)
+        rnd_lux = 3
+        rnd_k1  = 0
+        rnd_k2  = 0
+        call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
+        write(lout,*)
+        write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
+!      ENDIF
+!GRD-SR, 09-02-2006
+!Call distribution routines only if collimation block is in fort.3, otherwise
+!the standard sixtrack would be prevented by the 'stop' command
+      if(do_coll) then
+!GRD-SR
+      if (radial) then
+         call    makedis_radial(mynp, myalphax, myalphay, mybetax,
+     &        mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr,
+     &        myx, myxp, myy, myyp, myp, mys)
+      else
+         if (do_thisdis.eq.1) then
+            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
+     &           myx, myxp, myy, myyp, myp, mys)
+         elseif(do_thisdis.eq.2) then
+            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
+     &           myx, myxp, myy, myyp, myp, mys)
+         elseif(do_thisdis.eq.3) then
+            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
+     &           myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
+         elseif(do_thisdis.eq.4) then
+            call readdis(filename_dis,
+     &           mynp, myx, myxp, myy, myyp, myp, mys)
+         elseif(do_thisdis.eq.5) then
+            call makedis_ga(mynp, myalphax, myalphay, mybetax,
+     &           mybetay, myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
+     &           myx, myxp, myy, myyp, myp, mys,
+     &           enerror, bunchlength )
+         else
+            write(lout,*) 'INFO> review your distribution parameters !!'
++if cr
+      call abend('                                                  ')
++ei
++if .not.cr
+            stop
++ei
+         endif
+!
+       endif
+!
+!GRD-SR,09-02-2006
+      endif
+!GRD-SR
+!++  Reset distribution for pencil beam
+!
+       if (ipencil.gt.0) then
+         write(lout,*) 'WARN>  Distributions reset to pencil beam!'
+         write(lout,*)
+         write(outlun,*) 'WARN>  Distributions reset to pencil beam!'
+         do j = 1, mynp
+            myx(j)  = 0d0
+            myxp(j) = 0d0
+            myy(j)  = 0d0
+            myyp(j) = 0d0
+         end do
+       endif
+!
+!++  Optionally write the generated particle distribution
+!
+      open(unit=52,file='dist0.dat')
+       if (dowrite_dist) then
+        do j = 1, mynp
+          write(52,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j),   &
+!     SR, 11-08-2005
+     &          mys(j), myp(j)
+        end do
+       endif
+      close(52)
+!
+!++  Initialize efficiency array
+!
+      do i=1,iu
+      sum_ax(i)   = 0d0
+      sqsum_ax(i) = 0d0
+      sum_ay(i)   = 0d0
+      sqsum_ay(i) = 0d0
+      nampl(i)    = 0d0
+      sampl(i)    = 0d0
+      end do
+!
+      nspx = 0d0
+      nspy = 0d0
+!
+      np0  = mynp
+!
+      ax0  = myalphax
+      bx0  = mybetax
+      mux0 = mux(1)
+      ay0  = myalphay
+      by0  = mybetay
+      muy0 = muy(1)
+      iturn = 1
+      ie    = 1
+      n_tot_absorbed = 0
+      
+      if (int(mynp/napx00) .eq. 0) then
+         write (lout,*) ""
+         write (lout,*) "********************************************"
+         write (lout,*) "Error in setting up collimation tracking:"
+         write (lout,*) "Number of samples is zero!"
+         write (lout,*) "Did you forget the COLL block in fort.3?"
+         write (lout,*) "If you want to do standard (not collimation)"//
+     &                  " tracking, please use the standard SixTrack."
+         write (lout,*) "Value of do_coll = ", do_coll
+         write (lout,*) "Value of mynp    = ", mynp
+         write (lout,*) "Value of napx00  = ", napx00
+         write (lout,*) "********************************************"
+         call prror(-1)
+      endif
 
 !Then do any implementation specific initial loading
 +if collimate_k2
@@ -55501,6 +55087,307 @@ c$$$            endif
 !<
       subroutine collimate_start_sample()
       implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ei
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+!GRD
+            samplenumber=j
+!
+!
+! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
+!
+      open(unit=42, file='beta_beat.dat')
+      write(42,*)                                                       &
+     &'# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
+!
+      open(unit=43, file='collgaps.dat')
+      open(unit=44, file='survival.dat') ! RB, DM: 2014 bug fix
+      write(44,*)                                                       &
+     &'# 1=turn 2=n_particle'
+!APRIL2005
+      if(firstrun) write(43,*)                                          &
+     &'# ID name  angle[rad]  betax[m]  betay[m] ',                     &
+     &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m] ',             &
+!JUNE2005
+     &'tilt1[rad] tilt2[rad] nsig'
+!JUNE2005
+!      write(43,*)                                                       &
+!     &'#name  angle[rad]  betax[m]  betay[m] ',                         &
+!     &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m]'
+!APRIL2005
+!
+!
+!
+!      if (dowrite_impact) then
+!        open(unit=46, file='coll_impact.dat')
+!        write(46,*)                                                     &
+!     &'# 1=sample 2=iturn 3=icoll 4=nimp 5=nabs 6=imp_av 7=imp_sig'
+!      endif
+!
+      open(unit=40, file='collimator-temp.db')
+!
+!      open(unit=47, file='tertiary.dat')
+!      write(47,*)                                                       &
+!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
+!
+!      if (dowrite_secondary) then
+!        open(unit=48, file='secondary.dat')
+!        write(48,'(2a)')                                                &
+!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
+!      endif
+!
+! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
+      open(unit=55, file='collsettings.dat')
+      if(firstrun) write(55,*)                                          &
+     &'# name  slicenumber  halfgap[m]  gap_offset[m] ',                &
+     &'tilt jaw1[rad]  tilt jaw2[rad] length[m] material'               &
+! TW06/08
+      if (dowrite_impact) then
+        open(unit=49,file='impact.dat')
+        write(49,*)                                                     &
+     &'# 1=impact 2=divergence'
+      endif
+!
+!APRIL2005
+      if (dowritetracks) then
+!        open(unit=39,file='tracks3.dat')
+!        if(firstrun) write(39,*)                                        &
+!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
+!      if (dowritetracks) then
+!        open(unit=39,file='steftracks3.dat')
+!        write(39,*)                                                     &
+!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
+!APRIL2005
+!GRD
+!
+!GRD SPECIAL FILE FOR SECONDARY HALO
+!
+      if (cern) then
+!
+        open(unit=41,file='stuff')
+        write(41,*) samplenumber
+        close(41)
+        open(unit=41,file='stuff')
+        read(41,*) smpl
+        close(41)
+!GRD
+        pfile(1:8) = 'tracks2.'
+        if(samplenumber.le.9) then
+           pfile(9:9) = smpl
+           pfile(10:13) = '.dat'
+        elseif(samplenumber.gt.9.and.samplenumber.le.99) then
+           pfile(9:10) = smpl
+           pfile(11:14) = '.dat'
+        elseif(samplenumber.gt.99.and.                                  &
+     &samplenumber.le.int(mynp/napx00)) then
+           pfile(9:11) = smpl
+           pfile(12:15) = '.dat'
+        endif
+!GRD
+        if(samplenumber.le.9)                                           &
+     &open(unit=38,file=pfile(1:13))
+        if(samplenumber.gt.9.and.samplenumber.le.99)                    &
+     &open(unit=38,file=pfile(1:14))
+        if(samplenumber.gt.99.and.                                      &
+     &samplenumber.le.int(mynp/napx00))                                 &
+     &open(unit=38,file=pfile(1:15))
+!GRD
+        else
+!
+        open(unit=38,file='tracks2.dat')
+!
+        endif
+!GRD
+        if(firstrun) write(38,*)                                        &
+     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
+
+!AUGUST2006:write pencul sheet beam coordiantes to file ---- TW
+      open(unit=9997, file='pencilbeam_distr.dat')
+      if(firstrun) write(9997,*) 'x    xp    y      yp'      
+!
+! TW 
+!      open(unit=9998, file='TCXRA.dat')
+!      open(unit=9999, file='TCXRB.dat')
+!      if(firstrun) write(9998,*)                                        &
+!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp' 
+!      if(firstrun) write(9999,*)                                        &
+!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp'
+!
+!GRD
+      endif
+!GRD
+!UPGRADE January 2005
+!      if(dowritetracks) then
+!      open(unit=58, file='TCLA_impacts.dat')
+!      write(58,'(a)')                                                   &
+!     &'# 1=name 2=x 3=xp 4=y 5=yp 6=p'
+!      endif
+!End of Upgrade
+!APRIL2005
+!      if(dowritetracks) then
+!      open(unit=581, file='all_impacts.dat')
+!      if(firstrun) write(581,'(a)')                                     &
+!     &'# 1=name 2=turn 3=s'
+!      open(unit=582, file='all_absorptions.dat')
+!      if(firstrun) write(582,'(a)')                                     &
+!     &'# 1=name 2=turn 3=s'
+!      endif
+!
+!GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
+      if(do_select) then
+        open(unit=45, file='coll_ellipse.dat')
+        if (firstrun) then
+!           write(45,'(a)')                                               &
+           write(45,*)                                                  &
+!     &          '#  1=x 2=y 3=xp 4=yp 5=E 6=s 7=turn'
+!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
+     &          '#  1=name 2=x 3=y 4=xp 5=yp 6=E 7=s 8=turn 9=halo ',   &
+     & '10=nabs_type'
+        endif
+      endif
+      if(dowrite_impact) then
+        open(unit=46, file='all_impacts.dat')
+        open(unit=47, file='all_absorptions.dat')
+        open(unit=48, file='FLUKA_impacts.dat')
+! RB: adding output files FLUKA_impacts_all.dat and Coll_Scatter.dat
+        open(unit=4801, file='FLUKA_impacts_all.dat')
+        open(unit=3998, file='Coll_Scatter.dat')
+        open(unit=39, file='FirstImpacts.dat')
+        !open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
+        if (firstrun) then
+!          write(45,'(a)')                                               &
+!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
+          write(46,'(a)') '# 1=name 2=turn 3=s'
+          write(47,'(a)') '# 1=name 2=turn 3=s'
+          write(48,'(a)')                                               &
+     &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
+          write(39,*)                                                   &
+     &     '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
+     &     '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
+     &     '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
+
+! RB: write headers in new output files
+          write(4801,'(a)')                                               &
+     &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
+          write(3998,*)
+     &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nucle
+     &ar-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb), 5=dp, 6=d
+     &x', 7=dy'"
+
+        endif
+      endif
+!GRD-SR,09-02-2006
+!
+!JUNE2005
+      if(name_sel(1:3).eq.'COL') then
+      open(unit=555, file='RHIClosses.dat')
+      if(firstrun) write(555,'(a)')                                     &
+     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
+      endif
+!JUNE2005
+!
+!FOR FAST TRACKING CHECKS AND MULTIPLE SAMPLES
+!       open(unit=999,file='checkturns.dat')
+!
+!++  Reset this as advised by Frank
+!
+!            do 80 i=1,npart
+!              pstop(i)=.false.
+!              nnumxv(i)=numl
+!   80       numxv(i)=numl
+!
+!++  Copy new particles to tracking arrays. Also add the orbit offset at
+!++  start of ring!
+!
+            do i = 1, napx00
+              xv(1,i)  = 1d3*myx(i+(j-1)*napx00)  +torbx(1)              !hr08
+              yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
+              xv(2,i)  = 1d3*myy(i+(j-1)*napx00)  +torby(1)              !hr08
+              yv(2,i)  = 1d3*myyp(i+(j-1)*napx00) +torbyp(1)             !hr08
+!JULY2005
+!JULY2005 assignation of the proper bunch length
+!              sigmv(i) = 0d0
+              sigmv(i) = mys(i+(j-1)*napx00)
+!JULY2005
+!APRIL2005
+!              ejv(i)   = myenom
+              ejv(i)   = myp(i+(j-1)*napx00)
+!
+!GRD FOR NOT FAST TRACKING ONLY
+              ejfv(i)=sqrt(ejv(i)**2-pma**2)                             !hr08
+              rvv(i)=(ejv(i)*e0f)/(e0*ejfv(i))
+              dpsv(i)=(ejfv(i)-e0f)/e0f
+              oidpsv(i)=one/(one+dpsv(i))
+              dpsv1(i)=(dpsv(i)*c1e3)*oidpsv(i)                          !hr08
+!GRD
+!APRIL2005
+!
+!              dpsv(i)  = 0d0
+              nlostp(i)=i
+              do ieff =1, numeff
+                 counted_r(i,ieff) = 0
+                 counted_x(i,ieff) = 0
+                 counted_y(i,ieff) = 0
+	         do ieffdpop =1, numeffdpop
+		    counted2d(i,ieff,ieffdpop) = 0
+	         end do	
+              end do
+	      do ieffdpop =1, numeffdpop
+                 counteddpop(i,ieffdpop) = 0
+              end do
+
+            end do
+!
+!++  Initialize random number generator
+!
+!      IF (FIRSTRUN) THEN
+!        IF (RND_SEED.EQ.0) RND_SEED = MCLOCK_LIAR()
+!        IF (RND_SEED.LT.0) RND_SEED = ABS(RND_SEED)
+!        RND_LUX = 3
+!        RND_K1  = 0
+!        RND_K2  = 0
+!        CALL RLUXGO(RND_LUX, RND_SEED, RND_k1, RND_K2)
+!        WRITE(*,*)
+!      ENDIF
+!
+!++  Thin lens tracking
+!
+!FOR FAST TRACKING CHECKS
+!       open(unit=999,file='checkturns.dat')
+!
       end
 
 !>
@@ -55510,6 +55397,276 @@ c$$$            endif
 !<
       subroutine collimate_end_sample()
       implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ei
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+!
+!++  Save particle offsets to a file
+!
+!
+!Mars 2005
+!       close(999)
+!Mars 2005
+!      CLOSE(987)
+      close(42)
+!      close(43)
+      close(44)
+!      if(dowrite_impact) close(46)
+!GRD-SR,09-02-2006 => freeing unit, file no longer needed
+!      close(47)
+!      if(dowrite_secondary) close(48)
+      if(dowrite_impact) close(49)
+!GRD
+!APRIL2005
+!      if(dowritetracks) close(38)
+      if(dowritetracks) then
+      if(cern) close(38)
+      endif
+!APRIL2005
+!UPGRADE Januray 2005
+!      close(58)
+!APRIL2005
+!      close(581)
+!GRD
+!------------------------------------------------------------------------
+!++  Write the number of absorbed particles
+!
+      write(outlun,*) 'INFO>  Number of impacts             : ',        &
+!     &N_TOT_ABSORBED+NSURVIVE
+     &n_tot_absorbed+nsurvive_end
+      write(outlun,*) 'INFO>  Number of impacts at selected : ',        &
+     &num_selhit
+      write(outlun,*) 'INFO>  Number of surviving particles : ',        &
+!     &NSURVIVE
+     &nsurvive_end
+      write(outlun,*) 'INFO>  Number of absorbed particles  : ',        &
+     &n_tot_absorbed
+!
+      write(outlun,*)
+!GRD UPGRADE JANUARY 2005
+      if(n_tot_absorbed.ne.0) then                                       !hr08
+!
+      write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',           &
+     &(neff(5)/dble(n_tot_absorbed))/1d-4                                !hr08
+      write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',           &
+     &(neff(9)/dble(n_tot_absorbed))/1d-4                                !hr08
+      write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',           &
+     &((neff(9)-neff(19))/(dble(n_tot_absorbed)))/1d-4                   !hr08
+!
+      write(outlun,*)
+      write(outlun,*) neff(5)/dble(n_tot_absorbed),                     &
+     &neff(9)/dble(n_tot_absorbed),                                     &
+     &(neff(9)-neff(19))/(dble(n_tot_absorbed)), ' !eff'
+      write(outlun,*)
+!
+!UPGRADE JANUARY 2005
+      else
+          write(lout,*) 'NO PARTICLE ABSORBED'
+      endif
+!
+!----
+      write(lout,*)
+      write(lout,*) 'INFO>  Number of impacts             : ',          &
+!     &N_TOT_ABSORBED+NSURVIVE
+     &n_tot_absorbed+nsurvive_end
+      write(lout,*) 'INFO>  Number of impacts at selected : ',
+     &num_selhit
+      write(lout,*) 'INFO>  Number of surviving particles : ',          &
+!     &NSURVIVE
+     &nsurvive_end
+      write(lout,*) 'INFO>  Number of absorbed particles  : ',
+     &n_tot_absorbed
+      write(lout,*)
+!GRD UPGRADE JANUARY 2005
+      if(n_tot_absorbed.ne.0) then                                       !hr08
+!     if(n_tot_absorbed.ne.0) then
+!
+      write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',
+     &(neff(5)/dble(n_tot_absorbed))/1d-4                               !hr08
+      write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',
+     &(neff(9)/dble(n_tot_absorbed))/1d-4                                !hr08
+      write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',
+     &((neff(9)-neff(19))/dble(n_tot_absorbed))/1d-4                     !hr08
+!
+      write(lout,*)
+!
+!UPGRADE JANUARY 2005
+      else
+          write(lout,*) 'NO PARTICLE ABSORBED'
+      endif
+!
+!------------------------------------------------------------------------
+!++  Write efficiency file
+!
+      inquire( unit=1991, opened=lopen)
+      if (lopen) then
+         write(lout,*)
+     &        "ERROR in efficiency.dat: FILE 1991 already taken"
+	  call prror(-1)
+      endif
+      open(unit=1991, file='efficiency.dat')
+!UPGRADE JANUARY 2005
+      if(n_tot_absorbed.ne.0) then
+      write(1991,*)                                                       &
+     &'# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r'
+      do k=1,numeff
+        write(1991,'(7(1x,e15.7),1x,I5)') rsig(k),                        &
+     &neffx(k)/dble(n_tot_absorbed),                                    &
+     &neffy(k)/dble(n_tot_absorbed),                                    &
+     &neff(k)/dble(n_tot_absorbed),                                     &
+     &neffx(k),                                                         &
+     &neffy(k),                                                         &
+     &neff(k), n_tot_absorbed
+      end do
+      else
+          write(lout,*) 'NO PARTICLE ABSORBED'
+      endif
+!END OF UPGRADE
+      close(1991)
+!!------------------------------------------------------------------------
+!++  Write efficiency vs dp/p file
+!
+	inquire( unit=1992, opened=lopen )
+	if (lopen) then
+           write(lout,*)
+     &          "ERROR in efficiency_dpop.dat: FILE 1992 already taken"
+	  call prror(-1)
+	endif
+      open(unit=1992, file='efficiency_dpop.dat')
+!UPGRADE 4/11/2014
+      if(n_tot_absorbed.ne.0) then
+      write(1992,*)                                                       &
+     &'# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart' 
+      do k=1,numeffdpop
+        write(1992,'(3(1x,e15.7),2(1x,I5))') dpopbins(k),                 &
+     &neffdpop(k)/dble(n_tot_absorbed),                                 &
+     &neffdpop(k), n_tot_absorbed, npartdpop(k)
+      end do
+      else
+          write(lout,*) 'NO PARTICLE ABSORBED'
+      endif
+!END OF UPGRADE
+      close(1992)
+!!------------------------------------------------------------------------
+!++  Write 2D efficiency file (eff vs. A_r and dp/p)
+!
+      inquire( unit=1993, opened=lopen )
+      if (lopen) then
+         write(lout,*)
+     &        "ERROR in efficiency_2d.dat:FILE 1993 already taken"
+	  call prror(-1)
+      endif
+      open(unit=1993, file='efficiency_2d.dat')
+      if(n_tot_absorbed.ne.0) then
+      write(1993,*)                                                       &
+     &'# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs' 
+      do i=1,numeff
+	do k=1,numeffdpop
+        write(1993,'(4(1x,e15.7),1(1x,I5))') rsig(i),  dpopbins(k),       &
+     &neff2d(i,k)/dble(n_tot_absorbed),                                 &
+     &neff2d(i,k), n_tot_absorbed
+	end do
+      end do
+      else
+          write(lout,*) 'NO PARTICLE ABSORBED'
+      endif
+!END OF UPGRADE
+      close(1993)
+!!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!++  Write collimation summary file
+!
+      open(unit=50, file='coll_summary.dat')
+      write(50,*)                                                       &
+     &'# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
+      do icoll = 1, db_ncoll
+        if(db_length(icoll).gt.0d0) then
+        write(50,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f3.1)')              &
+     &icoll, db_name1(icoll),cn_impact(icoll), cn_absorbed(icoll),      &
+     &caverage(icoll), csigma(icoll),db_length(icoll)
+      endif
+      end do
+      close(50)
+!GRD
+      end
+
+!>
+!! collimate_exit()
+!! This routine is called once at the end of the simulation and
+!! can be used to do any final postrocessing and/or file saving.
+!<
+      subroutine collimate_exit()
+      implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ei
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
       end
 
 !>
