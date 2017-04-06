@@ -23282,7 +23282,7 @@ C Should get me a NaN
       progrm='SIXTRACK'
 +if collimat
       !do some collimation variable set up
-      call collimat_init
+      call collimate_init
 +ei
 +if crlibm
       pi=four*atan_rn(one)
@@ -55455,9 +55455,49 @@ c$$$            endif
     4 return
       end
 +dk nwrtcoll
-      !This routine pre-calcuates some varibles for
-      !the nuclear properties
-      subroutine collimat_init()
+! General routines:
+! collimate_init()
+! collimate_start_turn()
+! collimate_start_collimator()
+! collimate_do_collimator()
+! collimate_end_collimator()
+! collimate_end_turn()
+! collimate_exit()
+!
+! To stop a messy future, each of these should contain calls to
+! implementation specific functions: e.g. collimate_init_k2(), etc.
+! These should contain the "real" code.
+
+! In addition, these files contain:
+! 1: The RNG used in collimation.
+! 2: A bunch distribution generator
+
+!>
+!! collimate_init()
+!! This routine is called once at the start of the simulation and
+!! can be used to do any initial configuration and/or file loading.
+!<
+      subroutine collimate_init()
+      implicit none
+
+!Then do any implementation specific initial loading
++if collimate_k2
+      call collimate_init_k2
++ei
++if collimate_merlin
+      call collimate_init_merlin
++ei
++if collimate_geant4
+!      call collimate_init_geant4
++ei
+      end
+
+!>
+!! "Merlin" scattering collimation configuration
+!! This routine pre-calcuates some varibles for
+!! the nuclear properties
+!<
+      subroutine collimate_init_merlin()
       implicit none
       integer i
       double precision CalcElectronDensity,CalcPlasmaEnergy
@@ -55469,54 +55509,55 @@ c$$$            endif
       end do
       end
 
+
+!>
+!! K2 scattering collimation configuration
+!<
+      subroutine collimate_init_k2()
+      end
+
+!>
+!! subroutine collimate2(c_material, c_length, c_rotation,           &
+!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
+!!----                                                                    -----
+!!-----  NEW ROUTINES PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
+!!-----                                                                   -----
+!!-----          G. ROBERT-DEMOLAIZE, November 1st, 2004                  -----
+!!-----                                                                   -----
+!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
+!!++  Based on routines by JBJ. Changed by RA 2001.
+!!GRD
+!!GRD MODIFIED VERSION FOR COLLIMATION SYSTEM: G. ROBERT-DEMOLAIZE
+!!GRD
+!!
+!!++  - Deleted all HBOOK stuff.
+!!++  - Deleted optics routine and all parser routines.
+!!++  - Replaced RANMAR call by RANLUX call
+!!++  - Included RANLUX code from CERNLIB into source
+!!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
+!!++  - Replaced FUNPRE with FUNLXP
+!!++  - Replaced FUNRAN with FUNLUX
+!!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
+!!++                                         FUNPCT, FUNLZ, RADAPT,
+!!++                                           RGS56P
+!!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT,
+!!++                                           RLUXGO
+!!++
+!!++  - Changed program so that Nev is total number of particles
+!!++    (scattered and not-scattered)
+!!++  - Added debug comments
+!!++  - Put real dp/dx
+!<
       subroutine collimate2(c_material, c_length, c_rotation,           &
      &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
-!MAY2005
-!     &np, enom, lhit,part_abs, impact, indiv, lint, onesided)
-!     &np, enom, lhit,part_abs, impact, indiv, lint, onesided, name)
      &np, enom, lhit,part_abs, impact, indiv, lint, onesided, name,     &
      &flagsec, j_slices, nabs_type)
-!MAY2005
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!----                                                                    -----
-!-----  NEW ROUTINES PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
-!-----                                                                   -----
-!-----          G. ROBERT-DEMOLAIZE, November 1st, 2004                  -----
-!-----                                                                   -----
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!
-!
-!++  Based on routines by JBJ. Changed by RA 2001.
-!
-!
-!GRD
-!GRD MODIFIED VERSION FOR COLLIMATION SYSTEM: G. ROBERT-DEMOLAIZE
-!GRD
-!
-!++  - Deleted all HBOOK stuff.
-!++  - Deleted optics routine and all parser routines.
-!++  - Replaced RANMAR call by RANLUX call
-!++  - Included RANLUX code from CERNLIB into source
-!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
-!++  - Replaced FUNPRE with FUNLXP
-!++  - Replaced FUNRAN with FUNLUX
-!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
-!++                                         FUNPCT, FUNLZ, RADAPT,
-!++                                           RGS56P
-!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT,
-!++                                           RLUXGO
-!++
-!++  - Changed program so that Nev is total number of particles
-!++    (scattered and not-scattered)
-!++  - Added debug comments
-!++  - Put real dp/dx
-!
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
-!
+
 +ca commonex
 +ca parpro
 +ca collpara
@@ -55524,33 +55565,32 @@ c$$$            endif
 +ca info
 +ca dbcollim
 +ca flukavars
-!
+
 +ca database
 +ca collMatNum
-!
+
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
-!
+
       double precision s_impact
       integer flagsec(npart)
-!
+
 !     SR, 18-08-2005: add temporary variable to write in FirstImpacts
 !     the initial distribution of the impacting particles in the
 !     collimator frame.
       double precision xinn,xpinn,yinn,ypinn
-!
+
 !     SR, 29-08-2005: add the slice number to calculate the impact
 !     location within the collimator.
 !     j_slices = 1 for the a non sliced collimator!
       integer j_slices
-!
+
       save
-!
+
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
-!
 ! LHC uses:    Al, 0.2 m
 !              Cu, 1.0 m
-!
+
       if (c_material.eq.'BE') then
          mat = 1
       elseif (c_material.eq.'AL') then
@@ -55587,24 +55627,22 @@ c$$$            endif
          write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
          STOP
       endif
-!
+
         length  = c_length
         nev = np
         p0  = enom
-!
+
 !++  Initialize scattering processes
-!
       call scatin(p0)
 
 ! EVENT LOOP,  initial distribution is here a flat distribution with
 ! xmin=x-, xmax=x+, etc. from the input file
-!
+
       nhit    = 0
       fracab  = 0d0
       mirror  = 1d0
-!
+
 !==> SLICE here
-!
 
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       do j = 1, nev
@@ -55612,11 +55650,11 @@ c$$$            endif
 ! SR-GRD (04-08-2005):
 !        Don't do scattering process for particles already absorbed
          if (part_abs(j) .ne. 0) goto 777
-!
+
         impact(j) = -1d0
         lint(j)   = -1d0
         indiv(j)  = -1d0
-!
+
         x   = x_in(j)
         xp  = xp_in(j)
         z   = y_in(j)
@@ -56277,17 +56315,16 @@ c$$$          endif
 !      WRITE(*,*) 'Fraction of absorped particles: ', 100.*fracab/Nhit
 !
       end
-!
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!
+
+!>
+!! collimaterhic()
+!! ???
+!<
       subroutine collimaterhic(c_material, c_length, c_rotation,        &
-!JUNE2005
      &c_aperture, n_aperture,                                           &
-!JUNE2005
      &c_offset, c_tilt,                                                 &
      &x_in, xp_in, y_in,                                                &
      &yp_in, p_in, s_in, np, enom, lhit,                                &
-!     &part_abs, impact, indiv, lint, onesided)
      &part_abs, impact, indiv, lint, onesided,                          &
      &name)
 !
@@ -57002,7 +57039,1211 @@ c$$$          endif
       end
 !
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
+!! END collimaterhic()
+
+!>
+!! ichoix(ma)
+!! ???
+!<
+      function ichoix(ma)
+      implicit none
++if crlibm
++ca crlibco
++ei
++ca interac
+      integer ma,i,ichoix
+      double precision aran
+      real rndm4
+      aran=dble(rndm4())
+      i=1
+  10  if ( aran.gt.cprob(i,ma) ) then
+          i=i+1
+          goto 10
+      endif
+      ichoix=i
+      return
+      end
+
+!>
+!! gettran(inter,xmat,p)
+!! This function determines: GETTRAN - rms transverse momentum transfer
+!! Note: For single-diffractive scattering the vector p of momentum
+!! is modified (energy loss is applied)
+!<
+      function gettran(inter,xmat,p)
+
+      implicit none
++if crlibm
++ca crlibco
++ei
++ca interac
+      integer inter,length,xmat
+      double precision p,gettran,t,xm2,bsd
+      real rndm4,truth,xran(1)
+
+! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
++if .not.merlinscatter
+      if        ( inter.eq.2 ) then
++if crlibm
+           gettran = (-1d0*log_rn(dble(rndm4())))/bn(xmat)               !hr09
++ei
++if .not.crlibm
+           gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
++ei
 !
+         elseif ( inter .eq. 3 ) then
++if crlibm
+           gettran = (-1d0*log_rn(dble(rndm4())))/bpp                    !hr09
++ei
++if .not.crlibm
+           gettran = (-1d0*log(dble(rndm4())))/bpp                       !hr09
++ei
+!
+         elseif ( inter .eq. 4 ) then
++if crlibm
+           xm2 = exp_rn( dble(rndm4()) * xln15s )
++ei
++if .not.crlibm
+           xm2 = exp( dble(rndm4()) * xln15s )
++ei
+           p = p  *(1.d0 - xm2/ecmsq)
+           if ( xm2 .lt. 2.d0 ) then
+                bsd = 2.d0 * bpp
+              elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
+                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 36.d0                !hr09
+              elseif ( xm2 .gt. 5.d0 ) then
+                bsd = (7.d0 * bpp) / 12.d0                               !hr09
+           endif
++if crlibm
+           gettran = (-1d0*log_rn(dble(rndm4())))/bsd                    !hr09
++ei
++if .not.crlibm
+           gettran = (-1d0*log(dble(rndm4())))/bsd                       !hr09
++ei
+
+         elseif ( inter.eq.5 ) then
+           length=1
+           call funlux( cgen(1,mat) , xran, length)
+           truth=xran(1)
+           t=dble(truth)                                                 !hr09
+           gettran = t
+      endif
++ei
++if merlinscatter
+
+      if ( inter.eq.2 ) then
+           gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
+
+      elseif ( inter .eq. 3 ) then
+           call merlinscatter_get_elastic_t(gettran)
+
+      elseif ( inter .eq. 4 ) then
+           call merlinscatter_get_sd_xi(xm2)
+           call merlinscatter_get_sd_t(gettran)
+           p = p  * (1.d0 - (xm2/ecmsq))
+
+      elseif ( inter.eq.5 ) then
+           length=1
+           call funlux( cgen(1,mat) , xran, length)
+           truth=xran(1)
+           t=dble(truth)                                                 !hr09
+           gettran = t
+      endif
+
++ei
+      return
+      end
+
+!>
+!! tetat(t,p,tx,tz)
+!! ???
+!!
+!<
+      subroutine tetat(t,p,tx,tz)
+      implicit none
++if crlibm
++ca crlibco
++ei
+      double precision t,p,tx,tz,va,vb,va2,vb2,r2,teta
+      real rndm4
+      teta = sqrt(t)/p
+! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
+   10 va  =(2d0*dble(rndm4()))-1d0                                       !hr09
+      vb = dble(rndm4())
+      va2 = va**2
+      vb2 = vb**2
+      r2 = va2 + vb2
+      if ( r2.gt.1.d0) go to 10
+      tx = teta * ((2.d0*va)*vb) / r2                                    !hr09
+      tz = teta * (va2 - vb2) / r2
+      return
+      end
+
+!>
+!! ruth(t)
+!! ???
+!<
+      function ruth(t)
+      implicit none
++if crlibm
++ca crlibco
++ei
++ca interac
+      real ruth,t
+      double precision cnorm,cnform
+      parameter(cnorm=2.607d-5,cnform=0.8561d3) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
+
++if crlibm
+      ruth=real((cnorm*exp_rn(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*  &!hr09
+     &(zatom(mcurr)/dble(t))**2)
++ei
++if .not.crlibm
+      ruth=((cnorm*exp(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*         &!hr09
+     &(zatom(mcurr)/dble(t))**2)                                         !hr09
++ei
+      end
+
+!>
+!! block data scdata
+!! Cross section inputs and material property database
+!! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
+!<
+      block data scdata
+      implicit none
++if crlibm
++ca crlibco
++ei
++ca interac
+      integer i
+! Total number of materials are defined in nmat
+! Number of real materials are defined in nrmat
+! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
+
+! Reference data at pRef=450Gev
+      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2',      &
+     & 'MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
+
+      data mname(nmat-1), mname(nmat)/'vacu','blac'/
+
+!GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
+      data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
+      data (anuc(i),i=6,7)/12.01d0,12.01d0/
+      data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
+
+      data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
+      data (zatom(i),i=6,7)/ 6d0, 6d0/
+      data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
+
+      data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
+      data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
+      data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
+
+      data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
+      data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
+      data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, &
+     & 0.00385d0/
+      data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
+
+!MAY06-GRD value for Tungsten (W) not stated
+      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
+      data (emr(i),i=6,7)/  0.25d0, 0.25d0/
+      data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0,       &
+     & 0.578d0/
+
+      data tlcut / 0.0009982d0/
+      data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
+      data (hcut(i),i=6,7)/0.02d0, 0.02d0/
+      data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
+!
+
+      data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
+      data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
+
+!October 2013
+!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
+      data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
+      data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
+      data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
+     & 682.2e-9/
+ 
+! All cross-sections are in barns,nuclear values from RPP at 20geV
+! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
+
+! in Cs and CsRef,1st index: Cross-sections for processes
+! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
+! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
+
+! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
+      data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
+      data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
+      data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
+      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
+      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
+      data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
+      data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
+      data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
+      data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
+      data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
+      data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
+      data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
+
+! pp cross-sections and parameters for energy dependence
+      data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
+      data pptco,ppeco,freeco/0.05788d0,0.04792d0,1.618d0/
+
+! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
+!MAY06-GRD value for Tungsten (W) not stated
+      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
+      data (bnref(i),i=6,7)/70.d0, 70.d0/
+      data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0,      &
+     & 392.1d0/
+!GRD LAST 2 ONES INTERPOLATED
+
+! Cprob to choose an interaction in iChoix
+      data (cprob(0,i),i=1,nmat)/nmat*0.0d0/
+      data (cprob(5,i),i=1,nmat)/nmat*1.0d0/
+      end
+
+!>
+!! scatin(plab)
+!! Configure the K2 scattering routine cross sections
+!!
+!<
+      subroutine scatin(plab)
+      implicit none
++if merlinscatter
++ca database
++ei
++if crlibm
++ca crlibco
++ei
++ca interac
+      integer ma,i
+      double precision plab
+      real ruth,tlow,thigh
+      external ruth
+!
+      ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
++if .not.merlinscatter
++if crlibm
+      xln15s=log_rn(0.15d0*ecmsq)                                        !hr09
++ei
++if .not.crlibm
+      xln15s=log(0.15d0*ecmsq)                                           !hr09
++ei
+
++if crlibm
+!Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
+      pptot=0.041084d0-0.0023302d0*log_rn(ecmsq)+0.00031514d0*
+     &  log_rn(ecmsq)**2
+
+!Claudia used the fit from TOTEM for ppel (in barn)
+      ppel=(11.7d0-1.59d0*log_rn(ecmsq)+0.134d0*log_rn(ecmsq)**2)/1000
+
+!Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
+      ppsd=(4.3d0+0.3d0*log_rn(ecmsq))/1000
+
+!Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
+      bpp=7.156d0+1.439d0*log_rn(sqrt(ecmsq))
++ei
+
++if .not.crlibm
+!Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
+      pptot=0.041084d0-0.0023302d0*log(ecmsq)+0.00031514d0*log(ecmsq)**2
+
+!Claudia used the fit from TOTEM for ppel (in barn)
+      ppel=(11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000
+
+!Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
+      ppsd=(4.3d0+0.3d0*log(ecmsq))/1000
++ei
++ei
++if merlinscatter !No crlibm...
+      call merlinscatter_setup(plab,rnd_seed)
+      call merlinscatter_setdata(pptot,ppel,ppsd)
++ei
+!Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
+      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))
+      
+! unmeasured tungsten data,computed with lead data and power laws
+      bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(2d0/3d0)
+      emr(4) = emr(5) * (anuc(4)/anuc(5))**(1d0/3d0)
+   10 format(/' ppRef TOT El     ',4f12.6//)
+   11 format(/' pp    TOT El Sd b',4f12.6//)
+
+! Compute cross-sections (CS) and probabilities + Interaction length
+! Last two material treated below statement number 100
+
+      tlow=real(tlcut)                                                   !hr09
+      do 100 ma=1,nrmat
+        mcurr=ma
+! prepare for Rutherford differential distribution
+        thigh=real(hcut(ma))                                             !hr09
+        call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
+
+! freep: number of nucleons involved in single scattering
+        freep(ma) = freeco * anuc(ma)**(1d0/3d0)
+
+! compute pp and pn el+single diff contributions to cross-section
+! (both added : quasi-elastic or qel later)
+        cs(3,ma) = freep(ma) * ppel
+        cs(4,ma) = freep(ma) * ppsd
+
+! correct TOT-CSec for energy dependence of qel
+! TOT CS is here without a Coulomb contribution
+        cs(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
+        bn(ma) = (bnref(ma) * cs(0,ma)) / csref(0,ma)                    !hr09
+! also correct inel-CS
+        cs(1,ma) = (csref(1,ma) * cs(0,ma)) / csref(0,ma)                !hr09
+!
+! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
+        cs(2,ma) = ((cs(0,ma) - cs(1,ma)) - cs(3,ma)) - cs(4,ma)         !hr09
+        cs(5,ma) = csref(5,ma)
+! Now add Coulomb
+        cs(0,ma) = cs(0,ma) + cs(5,ma)
+! Interaction length in meter
+      xintl(ma) = (0.01d0*anuc(ma))/(((fnavo * rho(ma))*cs(0,ma))*1d-24) !hr09
+
+   20   format(/1x,a4,' Int.Len. ',f10.6,' CsTot',2f12.4/)
+
+   21   format('  bN freep',2 f12.6,'   emR ',f7.4/)
+
+! Filling CProb with cumulated normalised Cross-sections
+        do 50 i=1,4
+          cprob(i,ma)=cprob(i-1,ma)+cs(i,ma)/cs(0,ma)
+
+ 50     continue
+
+   22   format(i4,' prob CS CsRref',3(f12.5,2x))
+  100 continue
+
+! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
+      cprob(1,nmat-1)=1d0
+      cprob(1,nmat)=1d0
+      xintl(nmat-1)=1d12
+      xintl(nmat)=0.0d0
+  120 format(/1x,a4,' Int.Len. ',e10.3/)
+      return
+      end
+
+!>
+!! jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
+!! ???
+!!     RB: adding as input arguments to jaw variables icoll,iturn,ipart
+!!         these are only used for the writeout of particle histories
+!!
+!!++  Input:   ZLM is interaction length
+!!++           MAT is choice of material
+!!
+!!++  Output:  nabs = 1   Particle is absorped
+!!++           nabs = 4   Single-diffractive scattering
+!!++           dpop       Adjusted for momentum loss (dE/dx)
+!!++           s          Exit longitudinal position
+!!
+!!++  Physics:  If monte carlo interaction length greater than input
+!!++            interaction length, then use input interaction length
+!!++            Is that justified???
+!!
+!!     nabs=1....absorption
+!!
+!<
+      subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
+
+      implicit none
++if crlibm
++ca crlibco
++ei
+!
++ca interac
++ca flukavars
+      integer nabs,inter,ichoix,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
+      logical dowrite_impact
+      double precision  m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
+      double precision p,rlen,s,t,gettran,dxp,dzp,p1,zpBef,xpBef,pBef
+      real get_dpodx
+      real rndm4
+!...cne=1/(sqrt(b))
+!...dpodx=dE/(dx*c)
+
+!++  Note that the input parameter is dpop. Here the momentum p is
+!++  constructed out of this input.
+
+      p=p0*(1.d0+dpop)
+      nabs=0
+      nabs_tmp=nabs
+
+      if(mat.eq.nmat) then
+!++  Collimator treated as black absorber
+        nabs=1
+        nabs_tmp=nabs
+        s=0d0
+
+        if(dowrite_impact) then
+! write Coll_Scatter.dat for complete scattering histories
+           write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
+     &     icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+        end if
+        return
+      else if(mat.eq.nmat-1) then
+!++  Collimator treated as drift
+        s=zlm
+        x=x+s*xp
+        z=z+s*zp
+
+        if(dowrite_impact) then
+! write Coll_Scatter.dat for complete scattering histories
+           write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
+     &     icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+        end if
+
+        return
+      end if
+
+!++  Initialize the interaction length to input interaction length
+      rlen=zlm
+
+!++  Do a step for a point-like interaction. This is a loop with
+!++  label 10!!!
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!++  Get monte-carlo interaction length.
+
++if crlibm
+10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
++ei
++if .not.crlibm
+10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))                          !hr09
++ei
+      nabs_tmp=0 !! type of interaction reset before following scattering process 
+
+      xpBef=xp ! save angles and momentum before scattering
+      zpBef=zp
+      pBef=p
+
+      if(zlm1.gt.rlen) then
+
+!++  If the monte-carlo interaction length is longer than the
+!++  remaining collimator length, then put it to the remaining
+!++  length, do multiple coulomb scattering and return.
+!++  LAST STEP IN ITERATION LOOP
+
+
+       zlm1=rlen
+       call mcs(s)
+       s=(zlm-rlen)+s                                                    !hr09
+!       m_dpodx=get_dpodx(p,mat) ! Claudia 2013
++if .not.merlinscatter
+       call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
+       p=p-m_dpodx*s
++ei
++if merlinscatter
+!void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
+      call merlinscatter_calc_ion_loss(p,edens(mat),                     &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
++ei
+
+       dpop=(p-p0)/p0
+       if(dowrite_impact) then
+! write Coll_Scatter.dat for complete scattering histories
+          write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))')           &
+     &    icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+       end if
+       return
+      end if
+
+!++  Otherwise do multi-coulomb scattering.
+!++  REGULAR STEP IN ITERATION LOOP
+
+      call mcs(s)
+
+!++  Check if particle is outside of collimator (X.LT.0) after
+!++  MCS. If yes, calculate output longitudinal position (s),
+!++  reduce momentum (output as dpop) and return.
+!++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
+
+      if(x.le.0d0) then
+       s=(zlm-rlen)+s                                                    !hr09
+
++if .not.merlinscatter
+       call calc_ion_loss(mat,p,rlen,m_dpodx)
+       p=p-m_dpodx*s
++ei
++if merlinscatter
+       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
++ei
+       dpop=(p-p0)/p0
+
+       if(dowrite_impact) then
+! write Coll_Scatter.dat for complete scattering histories
+          write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))')           &
+     &    icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+       end if
+
+       return
+      end if
+
+!++  Check whether particle is absorbed. If yes, calculate output
+!++  longitudinal position (s), reduce momentum (output as dpop)
+!++  and return.
+!++  PARTICLE WAS ABSORPED INSIDE COLLIMATOR DURING MCS.
+
+      inter=ichoix(mat)
+
+      nabs=inter
+      nabs_tmp=nabs
+
+!     RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
+      xInt=x
+      xpInt=xp
+      yInt=z
+      ypInt=zp
+      sInt=(zlm-rlen)+zlm1                                                 !hr09
+
+      if(inter.eq.1) then
+       s=(zlm-rlen)+zlm1                                                 !hr09
+
++if .not.merlinscatter
+       call calc_ion_loss(mat,p,rlen,m_dpodx)
+       p=p-m_dpodx*s
++ei
++if merlinscatter
+       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
++ei
+
+       dpop=(p-p0)/p0
+
+! write Coll_Scatter.dat for complete scattering histories
+           write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
+     &     icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+       return
+      end if
+
+!++  Now treat the other types of interaction, as determined by ICHOIX:
+
+!++      Nuclear-Elastic:          inter = 2
+!++      pp Elastic:               inter = 3
+!++      Single-Diffractive:       inter = 4    (changes momentum p)
+!++      Coulomb:                  inter = 5
+
+!++  As the single-diffractive interaction changes the momentum, save
+!++  input momentum in p1.
+      p1 = p
+
+!++  Gettran returns some monte carlo number, that, as I believe, gives
+!++  the rms transverse momentum transfer.
+      t = gettran(inter,mat,p)
+
+!++  Tetat calculates from the rms transverse momentum transfer in
+!++  monte-carlo fashion the angle changes for x and z planes. The
+!++  angle change is proportional to SQRT(t) and 1/p, as expected.
+      call tetat(t,p,dxp,dzp)
+
+!++  Apply angle changes
+      xp=xp+dxp
+      zp=zp+dzp
+
+!++  Treat single-diffractive scattering.
+      if(inter.eq.4) then
+
+!++ added update for s
+        s=(zlm-rlen)+zlm1                                                !hr09
+        xpsd=dxp
+        zpsd=dzp
+        psd=p1
+!
+!++  Add this code to get the momentum transfer also in the calling
+!++  routine...
+        dpop=(p-p0)/p0
+
+      end if
+
+!++  Calculate the remaining interaction length and close the iteration
+!++  loop.
+      if(dowrite_impact) then
+! write Coll_Scatter.dat for complete scattering histories. 
+! Includes changes in angle from both
+         write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))')            & 
+     &   icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+      end if
+      rlen=rlen-zlm1
+      goto 10
+
+      end
+
+!>
+!! jaw0(s,nabs)
+!! ???
+!!
+!!++  Input:   ZLM is interaction length
+!!++           MAT is choice of material
+!!
+!!++  Output:  nabs = 1   Particle is absorped
+!!++           nabs = 4   Single-diffractive scattering
+!!++           dpop       Adjusted for momentum loss (dE/dx)
+!!++           s          Exit longitudinal position
+!!
+!!++  Physics:  If monte carlo interaction length greater than input
+!!++            interaction length, then use input interaction length
+!!++            Is that justified???
+!!
+!!     nabs=1....absorption
+!!
+!<
+      subroutine jaw0(s,nabs)
+      implicit none
++if crlibm
++ca crlibco
++ei
+!
++ca interac
+      integer nabs,inter,ichoix,icoll,iturn,ipart
+      double precision p,rlen,s,t,gettran,dxp,dzp,p1
+      real rndm4
+!...cne=1/(sqrt(b))
+!...dpodx=dE/(dx*c)
+      p=p0/(1.d0-dpop)
+      nabs=0
+      if(mat.eq.nmat) then
+!
+!++  Collimator treated as black absorber
+!
+        nabs=1
+        s=0d0
+        return
+      else if(mat.eq.nmat-1) then
+!
+!++  Collimator treated as drift
+!
+        s=zlm
+        x=x+s*xp
+        z=z+s*zp
+        return
+      end if
+!
+!++  Initialize the interaction length to input interaction length
+!
+      rlen=zlm
+!
+!++  Do a step for a point-like interaction. This is a loop with
+!++  label 10!!!
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!++  Get monte-carlo interaction length.
+!
++if crlibm
+10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
++ei
++if .not.crlibm
+10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))
++ei
+!
+      if(zlm1.gt.rlen) then
+!
+!++  If the monte-carlo interaction length is shorter than the
+!++  remaining collimator length, then put it to the remaining
+!++  length, do multiple coulomb scattering and return.
+!++  LAST STEP IN ITERATION LOOP
+!
+       zlm1=rlen
+       call mcs(s)
+       s=(zlm-rlen)+s                                                    !hr09
+       p=p-dpodx(mat)*s
+       dpop=1.d0-p0/p
+       return
+      end if
+!
+!++  Otherwise do multi-coulomb scattering.
+!++  REGULAR STEP IN ITERATION LOOP                                   
+!
+      call mcs(s)
+!
+!++  Check if particle is outside of collimator (X.LT.0) after
+!++  MCS. If yes, calculate output longitudinal position (s),
+!++  reduce momentum (output as dpop) and return.
+!++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
+!
+      if(x.le.0.d0) then
+       s=(zlm-rlen)+s                                                    !hr09
+       p=p-dpodx(mat)*s
+       dpop=1.d0-p0/p
+       return
+      end if
+!
+!++  Check whether particle is absorbed. If yes, calculate output
+!++  longitudinal position (s), reduce momentum (output as dpop)
+!++  and return.
+!++  PARTICLE WAS ABSORPED INSIDE COLLIMATOR DURING MCS.
+!
+      inter=ichoix(mat)
+      if(inter.eq.1) then
+       nabs=1
+       s=(zlm-rlen)+zlm1                                                 !hr09
+       p=p-dpodx(mat)*s
+       dpop=1.d0-p0/p
+! write Coll_Scatter.dat for complete scattering histories
+       write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &  
+     & icoll,iturn,ipart,nabs,-1.d0,0.d0,0.d0
+       return
+      end if
+!
+!++  Now treat the other types of interaction, as determined by ICHOIX:
+!
+!++      Nuclear-Elastic:          inter = 2
+!++      pp Elastic:               inter = 3
+!++      Single-Diffractive:       inter = 4    (changes momentum p)
+!++      Coulomb:                  inter = 5
+!
+!++  As the single-diffractive interaction changes the momentum, save
+!++  input momentum in p1.
+!
+      p1 = p
+!
+!++  Gettran returns some monte carlo number, that, as I believe, gives
+!++  the rms transverse momentum transfer.
+!
+      t = gettran(inter,mat,p)
+!
+!++  Tetat calculates from the rms transverse momentum transfer in
+!++  monte-carlo fashion the angle changes for x and z planes. The
+!++  angle change is proportional to SQRT(t) and 1/p, as expected.
+!
+      call tetat(t,p,dxp,dzp)
+!
+!++  Apply angle changes
+!
+      xp=xp+dxp
+      zp=zp+dzp
+!
+!++  Treat single-diffractive scattering.
+!
+      if(inter.eq.4) then
+        nabs=4
+        xpsd=dxp
+        zpsd=dzp
+        psd=p1
+      end if
+!
+!++  Calculate the remaining interaction length and close the iteration
+!++  loop.
+!
+      rlen=rlen-zlm1
+      goto 10
+!
+      end
+
+!>
+!! mcs(s)
+!!++  Input:   zlm1   Monte-carlo interaction length
+!!
+!!++  Output:  s      Longitudinal position
+!!++           p0     Reference momentum
+!!++           dpop   Relative momentum offset
+!!
+!!     collimator: x>0 and y<zlm1
+!<
+      subroutine mcs(s)
+      implicit none
++if crlibm
++ca crlibco
++ei
+!      save h,dh,bn
++ca interac
+      double precision h,dh,theta,rlen0,rlen,ae,be,bn0,s
+      double precision radl_mat,rad_len ! Claudia 2013 added variables
+
+
+!   bn=sqrt(3)/(number of sigmas for s-determination(=4))
+      data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
+
+      radl_mat=radl(mat)
+      theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
+      rad_len=radl(mat)                    !Claudia
+
+      x=(x/theta)/radl(mat)                                              !hr09
+      xp=xp/theta
+      z=(z/theta)/radl(mat)                                              !hr09
+      zp=zp/theta
+      rlen0=zlm1/radl(mat)
+      rlen=rlen0
+10    ae=bn0*x
+      be=bn0*xp
+      call soln3(ae,be,dh,rlen,s)
+      if(s.lt.h) s=h
+      call scamcs(x,xp,s,radl_mat)
+      if(x.le.0.d0) then
+       s=(rlen0-rlen)+s                                                  !hr09
+       goto 20
+      end if
+      if(s+dh.ge.rlen) then
+       s=rlen0
+       goto 20
+      end if
+      rlen=rlen-s
+      goto 10
+20    call scamcs(z,zp,s,radl_mat)
+      s=s*radl(mat)
+      x=(x*theta)*radl(mat)                                              !hr09
+      xp=xp*theta
+      z=(z*theta)*radl(mat)                                              !hr09
+      zp=zp*theta
+      end
+
+!>
+!! scamcs(xx,xxp,s,radl_mat)
+!! ???
+!<
+      subroutine scamcs(xx,xxp,s,radl_mat)
+      implicit none
++if crlibm
++ca crlibco
++ei
+      double precision v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
+      double precision radl_mat
+      real rndm4
+      x0=xx
+      xp0=xxp
+5     v1=2d0*dble(rndm4())-1d0
+      v2=2d0*dble(rndm4())-1d0
+      r2=v1**2+v2**2                                                     !hr09
+      if(r2.ge.1.d0) goto 5
++if crlibm
+      a=sqrt((-2.d0*log_rn(r2))/r2)                                      !hr09
++ei
++if .not.crlibm
+      a=sqrt((-2.d0*log(r2))/r2)                                         !hr09
++ei
+      z1=v1*a
+      z2=v2*a
+      ss=sqrt(s)    
++if crlibm
+      xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log_rn(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
+      xxp=xp0+ss*z2*(1+0.038*log_rn(s))  
+
++ei
++if .not.crlibm
+      xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
+      xxp=xp0+ss*z2*(1+0.038*log(s))  
++ei
+      end
+
+!>
+!! soln3(a,b,dh,smax,s)
+!! ???
+!<
+      subroutine soln3(a,b,dh,smax,s)
+      implicit none
++if crlibm
++ca crlibco
++ei
+      double precision b,a,s,smax,c,dh
+      if(b.eq.0.d0) then
+       s=a**0.6666666666666667d0
+!      s=a**(2.d0/3.d0)
+       if(s.gt.smax) s=smax
+       return
+      end if
+      if(a.eq.0.d0) then
+       if(b.gt.0.d0) then
+         s=b**2
+       else
+         s=0.d0
+       end if
+       if(s.gt.smax) s=smax
+       return
+      end if
+      if(b.gt.0.d0) then
+       if(smax**3.le.(a+b*smax)**2) then
+        s=smax
+        return
+       else
+        s=smax*.5d0
+        call iterat(a,b,dh,s)
+       end if
+      else
+       c=(-1d0*a)/b
+       if(smax.lt.c) then
+        if(smax**3.le.(a+b*smax)**2) then
+         s=smax
+         return
+        else
+         s=smax*.5d0
+         call iterat(a,b,dh,s)
+        end if
+       else
+        s=c*.5d0
+        call iterat(a,b,dh,s)
+       end if
+      end if
+      end
+
+
+      subroutine iterat(a,b,dh,s)
+      implicit none
++if cr
++ca crcoall
++ei
++if crlibm
++ca crlibco
++ei
+      double precision ds,s,a,b,dh
+
+      ds=s
+10    ds=ds*.5d0
+      if(s**3.lt.(a+b*s)**2) then
+        s=s+ds
+      else
+        s=s-ds
+      end if
+      if(ds.lt.dh) then
+        return
+      else
+        goto 10
+      end if
+      end
+
+!>
+!! get_dpodx(p,mat_i)
+!! calculate mean ionization energy loss according to Bethe-Bloch
+!<
+      function get_dpodx(p,mat_i)          !Claudia
+      implicit none
+      integer mat
++ca collMatNum
+      common/materia/mat
+      double precision anuc,zatom,rho,emr,exenergy
+      double precision PE,me,mp,K,gamma_p
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
+      common/meanexen/exenergy(nmat)
+      double precision beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,   &
+     &I_s,delta
+      parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
+      double precision p
+      integer mat_i
+      double precision dpodx,get_dpodx   
++if crlibm
++ca crlibco
++ei
+
+      mp2=mp**2
+      me2=me**2
+      beta_p=1.
+      gamma_p=p/mp
+      beta_s=beta_p**2
+      gamma_s=gamma_p**2
+      T=(2*me*beta_s*gamma_s)/(1+(2*gamma_p*me/mp)+me2/mp2)
+      PE=dsqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9
+      I_s=exenergy(mat_i)**2
+      part_1=K*zatom(mat_i)/(anuc(mat_i)*beta_s)
++if crlibm 
+      delta=log_rn(PE/exenergy(mat_i))+log_rn(beta_p*gamma_p)-0.5
+      part_2=0.5*log_rn((2*me*beta_s*gamma_s*T)/I_s)
++ei                   
++if .not.crlibm 
+      delta=log(PE/exenergy(mat_i))+log(beta_p*gamma_p)-0.5
+      part_2=0.5*log((2*me*beta_s*gamma_s*T)/I_s)
++ei
+      get_dpodx = part_1*(part_2-beta_s-delta)*rho(mat_i)*1.e-1
+      return
+      end
+
+!>
+!! CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+!! Function to calculate the electron density in a material
+!! Should give the number per cubic meter
+!<
+      function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+      implicit none
+      double precision AtomicNumber, Density, AtomicMass
+      double precision Avogadro
+      double precision CalcElectronDensity
+      double precision PartA, PartB
+      parameter (Avogadro = 6.022140857e23)
+      PartA = AtomicNumber * Avogadro * Density
+      !1e-6 factor converts to n/m^-3
+      PartB = AtomicMass * 1e-6
+      CalcElectronDensity = PartA/PartB
+      return
+      end
+
+!>
+!! CalcPlasmaEnergy(ElectronDensity)
+!! Function to calculate the plasma energy in a material
+!! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
+!<
+      function CalcPlasmaEnergy(ElectronDensity)
+      implicit none
+      double precision ElectronDensity
+      double precision CalcPlasmaEnergy
+      double precision sqrtAB,PartA,PartB,FSPC2
+
+      !Values from the 2016 PDG
+      double precision PlanckConstantBar,ElectronCharge,ElectronMass
+      double precision ElectronCharge2
+      double precision FreeSpacePermittivity,FreeSpacePermeability
+      double precision SpeedOfLight,SpeedOfLight2
+
+      parameter (PlanckConstantBar = 1.054571800e-34)
+      parameter (ElectronCharge = 1.6021766208e-19)
+      parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
+      parameter (ElectronMass = 9.10938356e-31)
+      parameter (SpeedOfLight = 299792458)
+      parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
+
+      parameter (FreeSpacePermeability = 16.0e-7*atan(1.0)) ! Henry per meter
+      parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
+      parameter (FreeSpacePermittivity = 1.0/FSPC2)
+      parameter (PartB = ElectronMass * FreeSpacePermittivity)
+
+      PartA = ElectronDensity * ElectronCharge2
+
+      sqrtAB = sqrt(PartA/PartB)
+      CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*1e-9
+      return
+      end
+
+!>
+!! CALC_ION_LOSS(IS,PC,DZ,EnLo)
+!! subroutine for the calculazion of the energy loss by ionization
+!! Either mean energy loss from Bethe-Bloch, or higher energy loss, according to finite probability from cross section
+!! written by DM for crystals, introduced in main code by RB
+!<
+      SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
+
+! IS material ID
+! PC momentum in GeV
+! DZ length traversed in material (meters)
+! EnLo energy loss in GeV/meter
+
+      IMPLICIT none
+      integer IS
++ca collMatNum
+      double precision PC,DZ,EnLo,exenergy,exEn
+      double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+      double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
+      double precision Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
+      double precision thl,Tt,cs_tail,prob_tail
+      double precision ranc
+      REAL*4 RNDM4
+      double precision anuc,zatom,rho,emr
+
+
+      common/meanexen/exenergy(nmat)
+
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
+!      common/betheBl/enr,mom,gammar,betar,bgr,exEn,Tmax,plen
+
+      data k/0.307075/      !constant in front bethe-bloch [MeV g^-1 cm^2]
+      data re/2.818d-15/  !electron radius [m]
+      data me/0.510998910/ !electron mass [MeV/c^2]
+      data mp/938.272013/ !proton mass [MeV/c^2]
+
++if crlibm
++ca crlibco
++ei
+
+      mom=PC*1.0d3              ! [GeV/c] -> [MeV/c]
+      enr=(mom*mom+mp*mp)**0.5  ! [MeV]
+      gammar=enr/mp
+      betar=mom/enr
+      bgr=betar*gammar
+      
+      ! mean excitation energy - convert to MeV
+      exEn=exenergy(IS)*1.0d3
+
+      ! Tmax is max energy loss from kinematics
+      Tmax=(2.0d0*me*bgr**2)/(1.0d0+2*gammar*me/mp+(me/mp)**2) ![MeV]
+
+      ! plasma energy - see PDG 2010 table 27.1
+      plen=((rho(IS)*zatom(IS)/anuc(IS))**0.5)*28.816d-6 ![MeV]
+      
+      ! calculate threshold energy
+      ! Above this threshold, the cross section for high energy loss is calculated and then a random number is generated to determine if tail energy loss should be applied, or only mean from Bethe-Bloch
+      ! below threshold, only the standard bethe-bloch is used (all particles get average energy loss)
+
+      ! thl is 2* width of landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
+      thl= 4.0d0*k*zatom(IS)*DZ*100.0d0*rho(IS)/(anuc(IS)*betar**2) ![MeV]
+!     write(3456,*) thl     ! should typically be >0.06MeV for approximations to be valid - check!
+
++if crlibm
+      ! Bethe Bloch mean energy loss
+      EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
+     +     (0.5*log_rn((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
+     +     -betar**2.0-log_rn(plen/exEn)-log_rn(bgr)+0.5);
+
+      EnLo=EnLo*rho(IS)*0.1*DZ  ![GeV]
+
+      ! threshold Tt is bethe bloch + 2*width of Landau distribution
+      Tt=EnLo*1000.0d0+thl      ![MeV]
+
+       ! cross section - see Alfredo's presentation for derivation
+       cs_tail=((k*zatom(IS))/(anuc(IS)*betar**2))*
+     + ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-
+     + (log_rn(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+
+     + ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
+
+       ! probability of being in tail: cross section * density * path length
+       prob_tail=cs_tail*rho(IS)*DZ*100.0d0;
+
+       ranc=dble(rndm4())
+
+       ! determine based on random number if tail energy loss occurs.
+       if(ranc.lt.prob_tail)then
+         EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
+     +   (0.5*log_rn((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
+     +   -betar**2.0-log_rn(plen/exEn)-log_rn(bgr)+0.5+
+     +   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
+
+
++ei                   
++if .not.crlibm 
+      ! Bethe Bloch mean energy loss
+      EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
+     +     (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
+     +     -betar**2.0-log(plen/exEn)-log(bgr)+0.5);
+
+      EnLo=EnLo*rho(IS)*0.1*DZ  ![GeV]
+
+      ! threshold Tt is bethe bloch + 2*width of Landau distribution
+      Tt=EnLo*1000.0d0+thl      ![MeV]
+
+       ! cross section - see Alfredo's presentation for derivation
+       cs_tail=((k*zatom(IS))/(anuc(IS)*betar**2))*
+     + ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-
+     + (log(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+
+     + ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
+
+       ! probability of being in tail: cross section * density * path length
+       prob_tail=cs_tail*rho(IS)*DZ*100.0d0;
+
+       ranc=dble(rndm4())
+
+       ! determine based on random number if tail energy loss occurs.
+       if(ranc.lt.prob_tail)then
+         EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
+     +   (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
+     +   -betar**2.0-log(plen/exEn)-log(bgr)+0.5+
+     +   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
+
++ei
+
+
+         EnLo=EnLo*rho(IS)*0.1 ![GeV/m]
+
+       else 
+          ! if tial energy loss does not occur, just use the standard Bethe Bloch
+         EnLo=EnLo/DZ  ![GeV/m]
+       endif
+     
+c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
+
+      RETURN
+      END
+
       subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
      &myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,             &
      &myx, myxp, myy, myyp, myp, mys)
@@ -57963,1218 +59204,7 @@ c$$$     &           myalphay * cos(phiy))
       end subroutine
 ! end of subroutine makedis_ga
 
-!
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!
-      function ichoix(ma)
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-+ca interac
-      integer ma,i,ichoix
-      double precision aran
-      real rndm4
-      aran=dble(rndm4())
-      i=1
-  10  if ( aran.gt.cprob(i,ma) ) then
-          i=i+1
-          goto 10
-      endif
-      ichoix=i
-      return
-      end
-!---------------------------------------------------------------
-!
-      function gettran(inter,xmat,p)
-!
-!++  This function determines: GETTRAN - rms transverse momentum transfer
-!
-!++  Note: For single-diffractive scattering the vector p of momentum
-!++        is modified (energy loss is applied)
-!
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-+ca interac
-      integer inter,length,xmat
-      double precision p,gettran,t,xm2,bsd
-      real rndm4,truth,xran(1)
-!
-! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractif, 5:Coulomb
-!
-+if .not.merlinscatter
-      if        ( inter.eq.2 ) then
-+if crlibm
-           gettran = (-1d0*log_rn(dble(rndm4())))/bn(xmat)               !hr09
-+ei
-+if .not.crlibm
-           gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
-+ei
-!
-         elseif ( inter .eq. 3 ) then
-+if crlibm
-           gettran = (-1d0*log_rn(dble(rndm4())))/bpp                    !hr09
-+ei
-+if .not.crlibm
-           gettran = (-1d0*log(dble(rndm4())))/bpp                       !hr09
-+ei
-!
-         elseif ( inter .eq. 4 ) then
-+if crlibm
-           xm2 = exp_rn( dble(rndm4()) * xln15s )
-+ei
-+if .not.crlibm
-           xm2 = exp( dble(rndm4()) * xln15s )
-+ei
-           p = p  *(1.d0 - xm2/ecmsq)
-           if ( xm2 .lt. 2.d0 ) then
-                bsd = 2.d0 * bpp
-              elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
-                bsd = ((106.d0-17.d0*xm2) *  bpp )/ 36.d0                !hr09
-              elseif ( xm2 .gt. 5.d0 ) then
-                bsd = (7.d0 * bpp) / 12.d0                               !hr09
-           endif
-+if crlibm
-           gettran = (-1d0*log_rn(dble(rndm4())))/bsd                    !hr09
-+ei
-+if .not.crlibm
-           gettran = (-1d0*log(dble(rndm4())))/bsd                       !hr09
-+ei
-!
-         elseif ( inter.eq.5 ) then
-           length=1
-           call funlux( cgen(1,mat) , xran, length)
-           truth=xran(1)
-           t=dble(truth)                                                 !hr09
-           gettran = t
-      endif
-+ei
-+if merlinscatter
 
-      if ( inter.eq.2 ) then
-           gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
-
-      elseif ( inter .eq. 3 ) then
-           call merlinscatter_get_elastic_t(gettran)
-
-      elseif ( inter .eq. 4 ) then
-           call merlinscatter_get_sd_xi(xm2)
-           call merlinscatter_get_sd_t(gettran)
-           p = p  * (1.d0 - (xm2/ecmsq))
-
-      elseif ( inter.eq.5 ) then
-           length=1
-           call funlux( cgen(1,mat) , xran, length)
-           truth=xran(1)
-           t=dble(truth)                                                 !hr09
-           gettran = t
-      endif
-
-+ei
-      return
-      end
-!---------------------------------------------------------------
-!
-      subroutine tetat(t,p,tx,tz)
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-      double precision t,p,tx,tz,va,vb,va2,vb2,r2,teta
-      real rndm4
-      teta = sqrt(t)/p
-! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-   10 va  =(2d0*dble(rndm4()))-1d0                                       !hr09
-      vb = dble(rndm4())
-      va2 = va**2
-      vb2 = vb**2
-      r2 = va2 + vb2
-      if ( r2.gt.1.d0) go to 10
-      tx = teta * ((2.d0*va)*vb) / r2                                    !hr09
-      tz = teta * (va2 - vb2) / r2
-      return
-      end
-!---------------------------------------------------------------
-!
-      function ruth(t)
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-+ca interac
-      real ruth,t
-      double precision cnorm,cnform
-      parameter(cnorm=2.607d-5,cnform=0.8561d3) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
-!c      write(6,'('' t,exp'',2e15.8)')t,t*cnform*EMr(mcurr)**2
-+if crlibm
-      ruth=real((cnorm*exp_rn(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*  &!hr09
-     &(zatom(mcurr)/dble(t))**2)
-+ei
-+if .not.crlibm
-      ruth=((cnorm*exp(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*         &!hr09
-     &(zatom(mcurr)/dble(t))**2)                                         !hr09
-+ei
-      end
-!---------------------------------------------------------------
-!
-      block data scdata
-!GRD
-!GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
-!GRD
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-+ca interac
-      integer i
-! Total number of materials are defined in nmat
-! Number of real materials are defined in nrmat
-! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
-!
-! Reference data at pRef=450Gev
-!      data (mname(i),i=1,nrmat)/ 'Be' , 'Al' , 'Cu' , 'W'  , 'Pb' /
-      data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2',      &
-     & 'MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
-!
-      data mname(nmat-1), mname(nmat)/'vacu','blac'/
-!GRD
-!GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
-!GRD
-!      data (Anuc(i),i=1,nrmat)/ 9.01, 26.98, 63.55, 183.85, 207.19/
-      data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
-      data (anuc(i),i=6,7)/12.01d0,12.01d0/
-      data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
-!
-!GRD      data (Z(i),i=1,nrmat)/       4,    13,    29,     74,     82/
-      data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
-      data (zatom(i),i=6,7)/ 6d0, 6d0/
-      data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
-!
-!GRD      data (Rho(i),i=1,nrmat)/ 1.848,  2.70,  8.96,   19.3,  11.35/
-      data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-      data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
-      data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
-!
-!GRD      data (RadL(i),i=1,nrmat)/ 0.353, 0.089, 0.0143, 0.0035, 0.0056/
-      data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-      data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
-      data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, &
-     & 0.00385d0/
-      data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
-!
-!GRD      data (EMR(i),i=1,nrmat)/  0.22, 0.302, 0.366,    0.0,  0.542/
-!MAY06-GRD value for Tungsten (W) not stated
-!      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.0d0, 0.542d0/
-      data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
-!MAY06-GRD end of changes
-      data (emr(i),i=6,7)/  0.25d0, 0.25d0/
-      data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0,       &
-     & 0.578d0/
-!
-!GRD      data tLcut,(Hcut(i),i=1,nrmat)/0.9982e-3,0.02,0.02,3*0.01/
-      data tlcut / 0.0009982d0/
-      data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
-      data (hcut(i),i=6,7)/0.02d0, 0.02d0/
-      data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
-!
-!      data (dpodx(i),i=1,nrmat)/ nrmat*0.d0 /
-!GRD      data (dpodx(i),i=1,nrmat)/ .55, .81, 2.69, 5.79, 3.4 /
-      data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
-      data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
-!October 2013
-!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-      data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-      data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
-      data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
-     & 682.2e-9/
- 
-!
-! All cross-sections are in barns,nuclear values from RPP at 20geV
-! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
-!
-! in Cs and CsRef,1st index: Cross-sections for processes
-! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
-! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
-!
- 
-! Claudia 2013: updated cross section values. Unit: Barn. Old:
-!      data csref(0,1),csref(1,1),csref(5,1)/0.268d0, 0.199d0, 0.0035d-2/
-!      data csref(0,2),csref(1,2),csref(5,2)/0.634d0, 0.421d0, 0.034d-2/
-!      data csref(0,3),csref(1,3),csref(5,3)/1.232d0, 0.782d0, 0.153d-2/
-!      data csref(0,4),csref(1,4),csref(5,4)/2.767d0, 1.65d0 , 0.768d-2/
-!      data csref(0,5),csref(1,5),csref(5,5)/2.960d0, 1.77d0 , 0.907d-2/
-!      data csref(0,6),csref(1,6),csref(5,6)/0.331d0, 0.231d0, 0.0076d-2/
-!      data csref(0,7),csref(1,7),csref(5,7)/0.331d0, 0.231d0, 0.0076d-2/
-! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
-      data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
-      data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
-      data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
-      data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
-      data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
-      data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
-      data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
-      data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
-      data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
-      data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
-      data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
-      data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
-!
-! pp cross-sections and parameters for energy dependence
-      data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
-      data pptco,ppeco,freeco/0.05788d0,0.04792d0,1.618d0/
-! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-!GRD      data (bNRef(i),i=1,nrmat)/74.7,120.3,217.8,0.0,455.3/
-!MAY06-GRD value for Tungsten (W) not stated
-!      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,0.0d0,455.3d0/
-      data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
-!MAY06-GRD end of changes
-      data (bnref(i),i=6,7)/70.d0, 70.d0/
-      data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0,      &
-     & 392.1d0/
-!GRD LAST 2 ONES INTERPOLATED
-!
-! Cprob to choose an interaction in iChoix
-      data (cprob(0,i),i=1,nmat)/nmat*0.0d0/
-      data (cprob(5,i),i=1,nmat)/nmat*1.0d0/
-!
-      end
-
-!---------------------------------------------------------------
-!
-      subroutine scatin(plab)
-      implicit none
-+if merlinscatter
-+ca database
-+ei
-+if crlibm
-+ca crlibco
-+ei
-+ca interac
-      integer ma,i
-      double precision plab
-      real ruth,tlow,thigh
-      external ruth
-!
-      ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
-+if .not.merlinscatter
-+if crlibm
-      xln15s=log_rn(0.15d0*ecmsq)                                        !hr09
-+ei
-+if .not.crlibm
-      xln15s=log(0.15d0*ecmsq)                                           !hr09
-+ei
-! pp(pn) data
-!      pptot = pptref *(plab / pref)** pptco
-!      ppel = pperef *(plab / pref)** ppeco
-!      bpp = 8.5d0 + 1.086d0 * log(sqrt(ecmsq))
-
-+if crlibm
-      pptot=0.041084d0-0.0023302d0*log_rn(ecmsq)+0.00031514d0*
-     &  log_rn(ecmsq)**2          !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002" 
-      ppel=(11.7d0-1.59d0*log_rn(ecmsq)+0.134d0*log_rn(ecmsq)**2)/1000 !Claudia used the fit from TOTEM for ppel (in barn)
-!      ppsd = sdcoe * log_rn(0.15d0 * ecmsq)
-      ppsd=(4.3d0+0.3d0*log_rn(ecmsq))/1000 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-      bpp=7.156d0+1.439d0*log_rn(sqrt(ecmsq))      !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-+ei
-
-+if .not.crlibm
-      pptot=0.041084d0-0.0023302d0*log(ecmsq)+0.00031514d0*log(ecmsq)**2     !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002" 
-      ppel=(11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000 !Claudia used the fit from TOTEM for ppel (in barn)
-!      ppsd = sdcoe * log(0.15d0 * ecmsq)
-      ppsd=(4.3d0+0.3d0*log(ecmsq))/1000 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-+ei
-+ei
-+if merlinscatter !No crlibm...
-      call merlinscatter_setup(plab,rnd_seed)
-      call merlinscatter_setdata(pptot,ppel,ppsd)
-+ei
-      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))      !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-      
-! unmeasured tungsten data,computed with lead data and power laws
-      bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(2d0/3d0)
-      emr(4) = emr(5) * (anuc(4)/anuc(5))**(1d0/3d0)
-   10 format(/' ppRef TOT El     ',4f12.6//)
-!      write(6,10)ppTRef,ppEref
-   11 format(/' pp    TOT El Sd b',4f12.6//)
-!      write(6,11)ppTot,ppEl,ppSD,bpp
-!
-! Compute cross-sections (CS) and probabilities + Interaction length
-! Last two material treated below statement number 100
-!
-      tlow=real(tlcut)                                                   !hr09
-      do 100 ma=1,nrmat
-        mcurr=ma
-! prepare for Rutherford differential distribution
-        thigh=real(hcut(ma))                                             !hr09
-        call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
-!
-! freep: number of nucleons involved in single scattering
-        freep(ma) = freeco * anuc(ma)**(1d0/3d0)
-! compute pp and pn el+single diff contributions to cross-section
-! (both added : quasi-elastic or qel later)
-        cs(3,ma) = freep(ma) * ppel
-        cs(4,ma) = freep(ma) * ppsd
-!
-! correct TOT-CSec for energy dependence of qel
-! TOT CS is here without a Coulomb contribution
-        cs(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
-        bn(ma) = (bnref(ma) * cs(0,ma)) / csref(0,ma)                    !hr09
-! also correct inel-CS
-        cs(1,ma) = (csref(1,ma) * cs(0,ma)) / csref(0,ma)                !hr09
-!
-! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-        cs(2,ma) = ((cs(0,ma) - cs(1,ma)) - cs(3,ma)) - cs(4,ma)         !hr09
-        cs(5,ma) = csref(5,ma)
-! Now add Coulomb
-        cs(0,ma) = cs(0,ma) + cs(5,ma)
-! Interaction length in meter
-      xintl(ma) = (0.01d0*anuc(ma))/(((fnavo * rho(ma))*cs(0,ma))*1d-24) !hr09
-!
-   20   format(/1x,a4,' Int.Len. ',f10.6,' CsTot',2f12.4/)
-!        write(6,20)mname(ma),xIntL(ma),Cs(0,ma),CsRef(0,ma)
-   21   format('  bN freep',2 f12.6,'   emR ',f7.4/)
-!        write(6,21)bN(ma),freep(ma),emR(ma)
-! Filling CProb with cumulated normalised Cross-sections
-        do 50 i=1,4
-          cprob(i,ma)=cprob(i-1,ma)+cs(i,ma)/cs(0,ma)
-!          write(6,22)i,Cprob(i,ma),Cs(i,ma),CsRef(i,ma)
- 50     continue
-!        write(6,22)5,Cprob(5,ma),Cs(5,ma),CsRef(5,ma)
-   22   format(i4,' prob CS CsRref',3(f12.5,2x))
-  100 continue
-!
-! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
-!
-      cprob(1,nmat-1)=1d0
-      cprob(1,nmat)=1d0
-      xintl(nmat-1)=1d12
-      xintl(nmat)=0.0d0
-  120 format(/1x,a4,' Int.Len. ',e10.3/)
-!      write(6,120)mname(nmat-1),xIntL(nmat-1)
-!      write(6,120)mname(nmat),xIntL(nmat)
-      return
-      end
-
-!-----------------------------------------------------------------------
-!
-!     RB: adding as input arguments to jaw variables icoll,iturn,ipart
-!         these are only used for the writeout of particle histories
-      subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
-
-!
-!++  Input:   ZLM is interaction length
-!++           MAT is choice of material
-!
-!++  Output:  nabs = 1   Particle is absorped
-!++           nabs = 4   Single-diffractive scattering
-!++           dpop       Adjusted for momentum loss (dE/dx)
-!++           s          Exit longitudinal position
-!
-!++  Physics:  If monte carlo interaction length greater than input
-!++            interaction length, then use input interaction length
-!++            Is that justified???
-!
-!     nabs=1....absorption
-!
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-!
-+ca interac
-+ca flukavars
-      integer nabs,inter,ichoix,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
-      logical dowrite_impact
-      double precision  m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
-      double precision p,rlen,s,t,gettran,dxp,dzp,p1,zpBef,xpBef,pBef
-      real get_dpodx
-      real rndm4
-!...cne=1/(sqrt(b))
-!...dpodx=dE/(dx*c)
-!
-!++  Note that the input parameter is dpop. Here the momentum p is
-!++  constructed out of this input.
-!
-!      p=p0/(1.d0-dpop)
-      p=p0*(1.d0+dpop)
-      nabs=0
-      nabs_tmp=nabs
-!
-      if(mat.eq.nmat) then
-!
-!++  Collimator treated as black absorber
-!
-        nabs=1
-        nabs_tmp=nabs
-        s=0d0
-        if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories
-           write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
-     &     icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
-        end if
-        return
-      else if(mat.eq.nmat-1) then
-!
-!++  Collimator treated as drift
-!
-        s=zlm
-        x=x+s*xp
-        z=z+s*zp
-        if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories
-           write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
-     &     icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
-        end if
-        return
-      end if
-!
-!++  Initialize the interaction length to input interaction length
-!
-      rlen=zlm
-!
-!++  Do a step for a point-like interaction. This is a loop with
-!++  label 10!!!
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!++  Get monte-carlo interaction length.
-!
-+if crlibm
-10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
-+ei
-+if .not.crlibm
-10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))                          !hr09
-+ei
-      nabs_tmp=0 !! type of interaction reset before following scattering process 
-!
-      xpBef=xp ! save angles and momentum before scattering
-      zpBef=zp
-      pBef=p
-!
-      if(zlm1.gt.rlen) then
-!
-!++  If the monte-carlo interaction length is longer than the
-!++  remaining collimator length, then put it to the remaining
-!++  length, do multiple coulomb scattering and return.
-!++  LAST STEP IN ITERATION LOOP
-!
-
-       zlm1=rlen
-       call mcs(s)
-       s=(zlm-rlen)+s                                                    !hr09
-!       m_dpodx=get_dpodx(p,mat) ! Claudia 2013
-+if .not.merlinscatter
-       call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
-       p=p-m_dpodx*s
-+ei
-+if merlinscatter
-!void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
-      call merlinscatter_calc_ion_loss(p,edens(mat),                     &
-     & pleng(mat),exenergy(mat),s,m_dpodx)
-       p=p-m_dpodx
-+ei
-
-!       dpop=1.d0-p0/p
-       dpop=(p-p0)/p0
-       if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories
-          write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))')           &
-     &    icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
-       end if
-       return
-      end if
-!
-!++  Otherwise do multi-coulomb scattering.
-!++  REGULAR STEP IN ITERATION LOOP
-!
-      call mcs(s)
-!
-!++  Check if particle is outside of collimator (X.LT.0) after
-!++  MCS. If yes, calculate output longitudinal position (s),
-!++  reduce momentum (output as dpop) and return.
-!++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
-!
-      if(x.le.0d0) then
-       s=(zlm-rlen)+s                                                    !hr09
-!       m_dpodx=get_dpodx(p,mat)
-+if .not.merlinscatter
-       call calc_ion_loss(mat,p,rlen,m_dpodx)
-       p=p-m_dpodx*s
-+ei
-+if merlinscatter
-       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
-     & pleng(mat),exenergy(mat),s,m_dpodx)
-       p=p-m_dpodx
-+ei
-       dpop=(p-p0)/p0
-       if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories
-          write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))')           &
-     &    icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
-       end if
-       return
-      end if
-!
-!++  Check whether particle is absorbed. If yes, calculate output
-!++  longitudinal position (s), reduce momentum (output as dpop)
-!++  and return.
-!++  PARTICLE WAS ABSORPED INSIDE COLLIMATOR DURING MCS.
-!
-      inter=ichoix(mat)
-
-      nabs=inter
-      nabs_tmp=nabs
-!     RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
-      xInt=x
-      xpInt=xp
-      yInt=z
-      ypInt=zp
-      sInt=(zlm-rlen)+zlm1                                                 !hr09
-
-      if(inter.eq.1) then
-       s=(zlm-rlen)+zlm1                                                 !hr09
-!       p=p-dpodx(mat)*s  ! Why calculate ionization energy loss if particle is absorbed? This is used nowhere....?
-!       m_dpodx=get_dpodx(p,mat)
-+if .not.merlinscatter
-       call calc_ion_loss(mat,p,rlen,m_dpodx)
-       p=p-m_dpodx*s
-+ei
-+if merlinscatter
-       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
-     & pleng(mat),exenergy(mat),s,m_dpodx)
-       p=p-m_dpodx
-+ei
-       dpop=(p-p0)/p0
-! write Coll_Scatter.dat for complete scattering histories
-           write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
-     &     icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
-       return
-      end if
-!
-!++  Now treat the other types of interaction, as determined by ICHOIX:
-!
-!++      Nuclear-Elastic:          inter = 2
-!++      pp Elastic:               inter = 3
-!++      Single-Diffractive:       inter = 4    (changes momentum p)
-!++      Coulomb:                  inter = 5
-!
-!++  As the single-diffractive interaction changes the momentum, save
-!++  input momentum in p1.
-!
-      p1 = p
-!
-!++  Gettran returns some monte carlo number, that, as I believe, gives
-!++  the rms transverse momentum transfer.
-!
-      t = gettran(inter,mat,p)
-!
-!++  Tetat calculates from the rms transverse momentum transfer in
-!++  monte-carlo fashion the angle changes for x and z planes. The
-!++  angle change is proportional to SQRT(t) and 1/p, as expected.
-!
-      call tetat(t,p,dxp,dzp)
-!
-!++  Apply angle changes
-!
-      xp=xp+dxp
-      zp=zp+dzp
-!
-!++  Treat single-diffractive scattering.
-!
-      if(inter.eq.4) then
-!
-!++ added update for s
-!
-        s=(zlm-rlen)+zlm1                                                !hr09
-        xpsd=dxp
-        zpsd=dzp
-        psd=p1
-!
-!++  Add this code to get the momentum transfer also in the calling
-!++  routine...
-!
-        dpop=(p-p0)/p0
-!
-      end if
-!
-!++  Calculate the remaining interaction length and close the iteration
-!++  loop.
-!
-      if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories. 
-! Includes changes in angle from both
-         write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))')            & 
-     &   icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
-      end if
-      rlen=rlen-zlm1
-      goto 10
-!
-      end
-!------------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!
-      subroutine jaw0(s,nabs)
-!
-!++  Input:   ZLM is interaction length
-!++           MAT is choice of material
-!
-!++  Output:  nabs = 1   Particle is absorped
-!++           nabs = 4   Single-diffractive scattering
-!++           dpop       Adjusted for momentum loss (dE/dx)
-!++           s          Exit longitudinal position
-!
-!++  Physics:  If monte carlo interaction length greater than input
-!++            interaction length, then use input interaction length
-!++            Is that justified???
-!
-!     nabs=1....absorption
-!
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-!
-+ca interac
-      integer nabs,inter,ichoix,icoll,iturn,ipart
-      double precision p,rlen,s,t,gettran,dxp,dzp,p1
-      real rndm4
-!...cne=1/(sqrt(b))
-!...dpodx=dE/(dx*c)
-      p=p0/(1.d0-dpop)
-      nabs=0
-      if(mat.eq.nmat) then
-!
-!++  Collimator treated as black absorber
-!
-        nabs=1
-        s=0d0
-        return
-      else if(mat.eq.nmat-1) then
-!
-!++  Collimator treated as drift
-!
-        s=zlm
-        x=x+s*xp
-        z=z+s*zp
-        return
-      end if
-!
-!++  Initialize the interaction length to input interaction length
-!
-      rlen=zlm
-!
-!++  Do a step for a point-like interaction. This is a loop with
-!++  label 10!!!
-!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!++  Get monte-carlo interaction length.
-!
-+if crlibm
-10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
-+ei
-+if .not.crlibm
-10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))
-+ei
-!
-      if(zlm1.gt.rlen) then
-!
-!++  If the monte-carlo interaction length is shorter than the
-!++  remaining collimator length, then put it to the remaining
-!++  length, do multiple coulomb scattering and return.
-!++  LAST STEP IN ITERATION LOOP
-!
-       zlm1=rlen
-       call mcs(s)
-       s=(zlm-rlen)+s                                                    !hr09
-       p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
-       return
-      end if
-!
-!++  Otherwise do multi-coulomb scattering.
-!++  REGULAR STEP IN ITERATION LOOP                                   
-!
-      call mcs(s)
-!
-!++  Check if particle is outside of collimator (X.LT.0) after
-!++  MCS. If yes, calculate output longitudinal position (s),
-!++  reduce momentum (output as dpop) and return.
-!++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
-!
-      if(x.le.0.d0) then
-       s=(zlm-rlen)+s                                                    !hr09
-       p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
-       return
-      end if
-!
-!++  Check whether particle is absorbed. If yes, calculate output
-!++  longitudinal position (s), reduce momentum (output as dpop)
-!++  and return.
-!++  PARTICLE WAS ABSORPED INSIDE COLLIMATOR DURING MCS.
-!
-      inter=ichoix(mat)
-      if(inter.eq.1) then
-       nabs=1
-       s=(zlm-rlen)+zlm1                                                 !hr09
-       p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
-! write Coll_Scatter.dat for complete scattering histories
-       write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &  
-     & icoll,iturn,ipart,nabs,-1.d0,0.d0,0.d0
-       return
-      end if
-!
-!++  Now treat the other types of interaction, as determined by ICHOIX:
-!
-!++      Nuclear-Elastic:          inter = 2
-!++      pp Elastic:               inter = 3
-!++      Single-Diffractive:       inter = 4    (changes momentum p)
-!++      Coulomb:                  inter = 5
-!
-!++  As the single-diffractive interaction changes the momentum, save
-!++  input momentum in p1.
-!
-      p1 = p
-!
-!++  Gettran returns some monte carlo number, that, as I believe, gives
-!++  the rms transverse momentum transfer.
-!
-      t = gettran(inter,mat,p)
-!
-!++  Tetat calculates from the rms transverse momentum transfer in
-!++  monte-carlo fashion the angle changes for x and z planes. The
-!++  angle change is proportional to SQRT(t) and 1/p, as expected.
-!
-      call tetat(t,p,dxp,dzp)
-!
-!++  Apply angle changes
-!
-      xp=xp+dxp
-      zp=zp+dzp
-!
-!++  Treat single-diffractive scattering.
-!
-      if(inter.eq.4) then
-        nabs=4
-        xpsd=dxp
-        zpsd=dzp
-        psd=p1
-      end if
-!
-!++  Calculate the remaining interaction length and close the iteration
-!++  loop.
-!
-      rlen=rlen-zlm1
-      goto 10
-!
-      end
-!------------------------------------------------------------------------
-
-      subroutine mcs(s)
-!
-!++  Input:   zlm1   Monte-carlo interaction length
-!
-!++  Output:  s      Longitudinal position
-!++           p0     Reference momentum
-!++           dpop   Relative momentum offset
-!
-!     collimator: x>0 and y<zlm1
-!
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-!      save h,dh,bn
-+ca interac
-      double precision h,dh,theta,rlen0,rlen,ae,be,bn0,s
-      double precision radl_mat,rad_len ! Claudia 2013 added variables
-
-
-!   bn=sqrt(3)/(number of sigmas for s-determination(=4))
-      data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
-!
-!++
-
-      radl_mat=radl(mat)
-!     theta=13.6d-3*(1.d0-dpop)/p0          !Claudia
-      theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
-      rad_len=radl(mat)                    !Claudia
-!
-      x=(x/theta)/radl(mat)                                              !hr09
-      xp=xp/theta
-      z=(z/theta)/radl(mat)                                              !hr09
-      zp=zp/theta
-      rlen0=zlm1/radl(mat)
-      rlen=rlen0
-10    ae=bn0*x
-      be=bn0*xp
-      call soln3(ae,be,dh,rlen,s)
-      if(s.lt.h) s=h
-      call scamcs(x,xp,s,radl_mat)
-      if(x.le.0.d0) then
-       s=(rlen0-rlen)+s                                                  !hr09
-       goto 20
-      end if
-      if(s+dh.ge.rlen) then
-       s=rlen0
-       goto 20
-      end if
-      rlen=rlen-s
-      goto 10
-20    call scamcs(z,zp,s,radl_mat)
-      s=s*radl(mat)
-      x=(x*theta)*radl(mat)                                              !hr09
-      xp=xp*theta
-      z=(z*theta)*radl(mat)                                              !hr09
-      zp=zp*theta
-      end
-
-      subroutine scamcs(xx,xxp,s,radl_mat)
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-      double precision v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-      double precision radl_mat
-      real rndm4
-      x0=xx
-      xp0=xxp
-5     v1=2d0*dble(rndm4())-1d0
-      v2=2d0*dble(rndm4())-1d0
-      r2=v1**2+v2**2                                                     !hr09
-      if(r2.ge.1.d0) goto 5
-+if crlibm
-      a=sqrt((-2.d0*log_rn(r2))/r2)                                      !hr09
-+ei
-+if .not.crlibm
-      a=sqrt((-2.d0*log(r2))/r2)                                         !hr09
-+ei
-      z1=v1*a
-      z2=v2*a
-      ss=sqrt(s)    
-+if crlibm
-      xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log_rn(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
-!     x=x0+s*(xp0+.5d0*ss*(z2+z1/dsqrt(3.d0)))
-      xxp=xp0+ss*z2*(1+0.038*log_rn(s))  
-
-+ei
-+if .not.crlibm
-      xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
-!     x=x0+s*(xp0+.5d0*ss*(z2+z1/dsqrt(3.d0)))
-      xxp=xp0+ss*z2*(1+0.038*log(s))  
-+ei
-      end
-
-!-------------------------------------------------------------
-
-      subroutine soln3(a,b,dh,smax,s)
-      implicit none
-+if crlibm
-+ca crlibco
-+ei
-      double precision b,a,s,smax,c,dh
-      if(b.eq.0.d0) then
-       s=a**0.6666666666666667d0
-!      s=a**(2.d0/3.d0)
-       if(s.gt.smax) s=smax
-       return
-      end if
-      if(a.eq.0.d0) then
-       if(b.gt.0.d0) then
-         s=b**2
-       else
-         s=0.d0
-       end if
-       if(s.gt.smax) s=smax
-       return
-      end if
-      if(b.gt.0.d0) then
-       if(smax**3.le.(a+b*smax)**2) then
-        s=smax
-        return
-       else
-        s=smax*.5d0
-        call iterat(a,b,dh,s)
-       end if
-      else
-       c=(-1d0*a)/b
-       if(smax.lt.c) then
-        if(smax**3.le.(a+b*smax)**2) then
-         s=smax
-         return
-        else
-         s=smax*.5d0
-         call iterat(a,b,dh,s)
-        end if
-       else
-        s=c*.5d0
-        call iterat(a,b,dh,s)
-       end if
-      end if
-      end
-
-
-      subroutine iterat(a,b,dh,s)
-      implicit none
-+if cr
-+ca crcoall
-+ei
-+if crlibm
-+ca crlibco
-+ei
-      double precision ds,s,a,b,dh
-
-      ds=s
-10    ds=ds*.5d0
-      if(s**3.lt.(a+b*s)**2) then
-        s=s+ds
-      else
-        s=s-ds
-      end if
-      if(ds.lt.dh) then
-        return
-      else
-        goto 10
-      end if
-      end
-!
-!cccccccccccccccccccccccccccccccccc
-!
-
-!cccccccccccccccccccccccccccccccccc
-! calculate mean ionization energy loss according to Bethe-Bloch
-
-      function get_dpodx(p,mat_i)          !Claudia
-      implicit none
-      integer mat
-+ca collMatNum
-      common/materia/mat
-      double precision anuc,zatom,rho,emr,exenergy
-      double precision PE,me,mp,K,gamma_p
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-      common/meanexen/exenergy(nmat)
-      double precision beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,   &
-     &I_s,delta
-      parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
-      double precision p
-      integer mat_i
-      double precision dpodx,get_dpodx   
-+if crlibm
-+ca crlibco
-+ei
-
-      mp2=mp**2
-      me2=me**2
-      beta_p=1.
-      gamma_p=p/mp
-      beta_s=beta_p**2
-      gamma_s=gamma_p**2
-      T=(2*me*beta_s*gamma_s)/(1+(2*gamma_p*me/mp)+me2/mp2)
-      PE=dsqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9
-      I_s=exenergy(mat_i)**2
-      part_1=K*zatom(mat_i)/(anuc(mat_i)*beta_s)
-+if crlibm 
-      delta=log_rn(PE/exenergy(mat_i))+log_rn(beta_p*gamma_p)-0.5
-      part_2=0.5*log_rn((2*me*beta_s*gamma_s*T)/I_s)
-+ei                   
-+if .not.crlibm 
-      delta=log(PE/exenergy(mat_i))+log(beta_p*gamma_p)-0.5
-      part_2=0.5*log((2*me*beta_s*gamma_s*T)/I_s)
-+ei
-      get_dpodx = part_1*(part_2-beta_s-delta)*rho(mat_i)*1.e-1
-      return
-      end
-!
-!cccccccccccccccccccccccccccccccccc
-
-! Function to calculate the electron density in a material
-! Should give the number per cubic meter
-      function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
-      implicit none
-      double precision AtomicNumber, Density, AtomicMass
-      double precision Avogadro
-      double precision CalcElectronDensity
-      double precision PartA, PartB
-      parameter (Avogadro = 6.022140857e23)
-      PartA = AtomicNumber * Avogadro * Density
-      !1e-6 factor converts to n/m^-3
-      PartB = AtomicMass * 1e-6
-      CalcElectronDensity = PartA/PartB
-      return
-      end
-
-! Function to calculate the plasma energy in a material
-! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
-      function CalcPlasmaEnergy(ElectronDensity)
-      implicit none
-      double precision ElectronDensity
-      double precision CalcPlasmaEnergy
-      double precision sqrtAB,PartA,PartB,FSPC2
-
-      !Values from the 2016 PDG
-      double precision PlanckConstantBar,ElectronCharge,ElectronMass
-      double precision ElectronCharge2
-      double precision FreeSpacePermittivity,FreeSpacePermeability
-      double precision SpeedOfLight,SpeedOfLight2
-
-      parameter (PlanckConstantBar = 1.054571800e-34)
-      parameter (ElectronCharge = 1.6021766208e-19)
-      parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
-      parameter (ElectronMass = 9.10938356e-31)
-      parameter (SpeedOfLight = 299792458)
-      parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
-
-      parameter (FreeSpacePermeability = 16.0e-7*atan(1.0)) ! Henry per meter
-      parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
-      parameter (FreeSpacePermittivity = 1.0/FSPC2)
-      parameter (PartB = ElectronMass * FreeSpacePermittivity)
-
-      PartA = ElectronDensity * ElectronCharge2
-
-      sqrtAB = sqrt(PartA/PartB)
-      CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*1e-9
-      return
-      end
-
-C.**************************************************************************
-C     subroutine for the calculazion of the energy loss by ionization
-C     Either mean energy loss from Bethe-Bloch, or higher energy loss, according to finite probability from cross section
-C     written by DM for crystals, introduced in main code by RB
-C.**************************************************************************
-      SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
-
-! IS material ID
-! PC momentum in GeV
-! DZ length traversed in material (meters)
-! EnLo energy loss in GeV/meter
-
-      IMPLICIT none
-      integer IS
-+ca collMatNum
-      double precision PC,DZ,EnLo,exenergy,exEn
-      double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-      double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-      double precision Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-      double precision thl,Tt,cs_tail,prob_tail
-      double precision ranc
-      REAL*4 RNDM4
-      double precision anuc,zatom,rho,emr
-
-
-      common/meanexen/exenergy(nmat)
-
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-!      common/betheBl/enr,mom,gammar,betar,bgr,exEn,Tmax,plen
-
-      data k/0.307075/      !constant in front bethe-bloch [MeV g^-1 cm^2]
-      data re/2.818d-15/  !electron radius [m]
-      data me/0.510998910/ !electron mass [MeV/c^2]
-      data mp/938.272013/ !proton mass [MeV/c^2]
-
-+if crlibm
-+ca crlibco
-+ei
-
-      mom=PC*1.0d3              ! [GeV/c] -> [MeV/c]
-      enr=(mom*mom+mp*mp)**0.5  ! [MeV]
-      gammar=enr/mp
-      betar=mom/enr
-      bgr=betar*gammar
-      
-      ! mean excitation energy - convert to MeV
-      exEn=exenergy(IS)*1.0d3
-
-      ! Tmax is max energy loss from kinematics
-      Tmax=(2.0d0*me*bgr**2)/(1.0d0+2*gammar*me/mp+(me/mp)**2) ![MeV]
-
-      ! plasma energy - see PDG 2010 table 27.1
-      plen=((rho(IS)*zatom(IS)/anuc(IS))**0.5)*28.816d-6 ![MeV]
-      
-      ! calculate threshold energy
-      ! Above this threshold, the cross section for high energy loss is calculated and then a random number is generated to determine if tail energy loss should be applied, or only mean from Bethe-Bloch
-      ! below threshold, only the standard bethe-bloch is used (all particles get average energy loss)
-
-      ! thl is 2* width of landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
-      thl= 4.0d0*k*zatom(IS)*DZ*100.0d0*rho(IS)/(anuc(IS)*betar**2) ![MeV]
-!     write(3456,*) thl     ! should typically be >0.06MeV for approximations to be valid - check!
-
-+if crlibm
-      ! Bethe Bloch mean energy loss
-      EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     +     (0.5*log_rn((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
-     +     -betar**2.0-log_rn(plen/exEn)-log_rn(bgr)+0.5);
-
-      EnLo=EnLo*rho(IS)*0.1*DZ  ![GeV]
-
-      ! threshold Tt is bethe bloch + 2*width of Landau distribution
-      Tt=EnLo*1000.0d0+thl      ![MeV]
-
-       ! cross section - see Alfredo's presentation for derivation
-       cs_tail=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     + ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-
-     + (log_rn(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+
-     + ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
-
-       ! probability of being in tail: cross section * density * path length
-       prob_tail=cs_tail*rho(IS)*DZ*100.0d0;
-
-       ranc=dble(rndm4())
-
-       ! determine based on random number if tail energy loss occurs.
-       if(ranc.lt.prob_tail)then
-         EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     +   (0.5*log_rn((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
-     +   -betar**2.0-log_rn(plen/exEn)-log_rn(bgr)+0.5+
-     +   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
-
-
-+ei                   
-+if .not.crlibm 
-      ! Bethe Bloch mean energy loss
-      EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     +     (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
-     +     -betar**2.0-log(plen/exEn)-log(bgr)+0.5);
-
-      EnLo=EnLo*rho(IS)*0.1*DZ  ![GeV]
-
-      ! threshold Tt is bethe bloch + 2*width of Landau distribution
-      Tt=EnLo*1000.0d0+thl      ![MeV]
-
-       ! cross section - see Alfredo's presentation for derivation
-       cs_tail=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     + ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-
-     + (log(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+
-     + ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
-
-       ! probability of being in tail: cross section * density * path length
-       prob_tail=cs_tail*rho(IS)*DZ*100.0d0;
-
-       ranc=dble(rndm4())
-
-       ! determine based on random number if tail energy loss occurs.
-       if(ranc.lt.prob_tail)then
-         EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     +   (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
-     +   -betar**2.0-log(plen/exEn)-log(bgr)+0.5+
-     +   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
-
-+ei
-
-
-         EnLo=EnLo*rho(IS)*0.1 ![GeV/m]
-
-       else 
-          ! if tial energy loss does not occur, just use the standard Bethe Bloch
-         EnLo=EnLo/DZ  ![GeV/m]
-       endif
-     
-c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
-
-      RETURN
-      END
-****************************************************************************
 
 
       function rndm4()
@@ -60172,6 +60202,12 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
           ran_gauss = x
         return
       end
+
+!>
+!! readcollimator()
+!! This routine is called once at the start of the simulation and
+!! is used to read the collimator settings input file
+!<
         subroutine readcollimator
 !
         integer I,J,K
