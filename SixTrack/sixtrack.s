@@ -23280,10 +23280,6 @@ C Should get me a NaN
       call comnul
       commen=' '
       progrm='SIXTRACK'
-+if collimat
-      !do some collimation variable set up
-      call collimate_init
-+ei
 +if crlibm
       pi=four*atan_rn(one)
 +ei
