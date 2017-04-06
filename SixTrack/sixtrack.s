@@ -55457,11 +55457,13 @@ c$$$            endif
 +dk nwrtcoll
 ! General routines:
 ! collimate_init()
+! collimate_start_sample()
 ! collimate_start_turn()
 ! collimate_start_collimator()
 ! collimate_do_collimator()
 ! collimate_end_collimator()
 ! collimate_end_turn()
+! collimate_end_sample()
 ! collimate_exit()
 !
 ! To stop a messy future, each of these should contain calls to
@@ -55493,6 +55495,24 @@ c$$$            endif
       end
 
 !>
+!! collimate_start_sample()
+!! This routine is called from trauthin before each sample
+!! is injected into thin 6d
+!<
+      subroutine collimate_start_sample()
+      implicit none
+      end
+
+!>
+!! collimate_end_sample()
+!! This routine is called from trauthin after each sample
+!! has been tracked by thin6d
+!<
+      subroutine collimate_end_sample()
+      implicit none
+      end
+
+!>
 !! "Merlin" scattering collimation configuration
 !! This routine pre-calcuates some varibles for
 !! the nuclear properties
@@ -55508,7 +55528,6 @@ c$$$            endif
          pleng(i) = CalcPlasmaEnergy(edens(i))
       end do
       end
-
 
 !>
 !! K2 scattering collimation configuration
