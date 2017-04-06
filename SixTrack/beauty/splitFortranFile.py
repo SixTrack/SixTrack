@@ -128,7 +128,7 @@ for line in ifile.xreadlines():
 
     elif (line_stripped.startswith("do") or line_stripped.startswith("DO"))\
          and not (line_stripped.startswith("double") or line_stripped.startswith("DOUBLE") or\
-                  line_stripped.startswith("do_") or line_stripped.startswith("dotf")):
+                  line_stripped.startswith("do_") or line_stripped.startswith("dotf") or line_stripped.startswith("dow")):
         do_tmp = line_stripped[2:].strip()
         if len(do_tmp) > 0 and do_tmp[0].isdigit():
             #old style 'do LABEL'
