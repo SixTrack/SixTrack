@@ -54546,30 +54546,17 @@ c$$$            endif
         write(49,*)                                                     &
      &'# 1=impact 2=divergence'
       endif
-!
-!APRIL2005
+
+
       if (dowritetracks) then
-!        open(unit=39,file='tracks3.dat')
-!        if(firstrun) write(39,*)                                        &
-!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
-!      if (dowritetracks) then
-!        open(unit=39,file='steftracks3.dat')
-!        write(39,*)                                                     &
-!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp'
-!APRIL2005
-!GRD
-!
 !GRD SPECIAL FILE FOR SECONDARY HALO
-!
-      if (cern) then
-!
+        if (cern) then
         open(unit=41,file='stuff')
         write(41,*) samplenumber
         close(41)
         open(unit=41,file='stuff')
         read(41,*) smpl
         close(41)
-!GRD
         pfile(1:8) = 'tracks2.'
         if(samplenumber.le.9) then
            pfile(9:9) = smpl
@@ -54582,68 +54569,39 @@ c$$$            endif
            pfile(9:11) = smpl
            pfile(12:15) = '.dat'
         endif
-!GRD
+
         if(samplenumber.le.9)                                           &
      &open(unit=38,file=pfile(1:13))
+
         if(samplenumber.gt.9.and.samplenumber.le.99)                    &
      &open(unit=38,file=pfile(1:14))
+
         if(samplenumber.gt.99.and.                                      &
      &samplenumber.le.int(mynp/napx00))                                 &
      &open(unit=38,file=pfile(1:15))
-!GRD
         else
-!
-        open(unit=38,file='tracks2.dat')
-!
-        endif
-!GRD
+          open(unit=38,file='tracks2.dat')
+        endif !end if (cern)
+
         if(firstrun) write(38,*)                                        &
      &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
 
 !AUGUST2006:write pencul sheet beam coordiantes to file ---- TW
-      open(unit=9997, file='pencilbeam_distr.dat')
-      if(firstrun) write(9997,*) 'x    xp    y      yp'      
-!
-! TW 
-!      open(unit=9998, file='TCXRA.dat')
-!      open(unit=9999, file='TCXRB.dat')
-!      if(firstrun) write(9998,*)                                        &
-!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp' 
-!      if(firstrun) write(9999,*)                                        &
-!     &'# 1=name 2=rcx0 3=rcy0 4=rcx 5=rcy 6=rcxpy 7=rcyp'
-!
-!GRD
-      endif
-!GRD
-!UPGRADE January 2005
-!      if(dowritetracks) then
-!      open(unit=58, file='TCLA_impacts.dat')
-!      write(58,'(a)')                                                   &
-!     &'# 1=name 2=x 3=xp 4=y 5=yp 6=p'
-!      endif
-!End of Upgrade
-!APRIL2005
-!      if(dowritetracks) then
-!      open(unit=581, file='all_impacts.dat')
-!      if(firstrun) write(581,'(a)')                                     &
-!     &'# 1=name 2=turn 3=s'
-!      open(unit=582, file='all_absorptions.dat')
-!      if(firstrun) write(582,'(a)')                                     &
-!     &'# 1=name 2=turn 3=s'
-!      endif
-!
+        open(unit=9997, file='pencilbeam_distr.dat')
+        if(firstrun) write(9997,*) 'x    xp    y      yp'
+
+      endif !end if (dowritetracks) then
+
 !GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
       if(do_select) then
         open(unit=45, file='coll_ellipse.dat')
         if (firstrun) then
-!           write(45,'(a)')                                               &
            write(45,*)                                                  &
-!     &          '#  1=x 2=y 3=xp 4=yp 5=E 6=s 7=turn'
-!     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
      &          '#  1=name 2=x 3=y 4=xp 5=yp 6=E 7=s 8=turn 9=halo ',   &
      & '10=nabs_type'
         endif
       endif
+
       if(dowrite_impact) then
         open(unit=46, file='all_impacts.dat')
         open(unit=47, file='all_absorptions.dat')
@@ -54652,10 +54610,8 @@ c$$$            endif
         open(unit=4801, file='FLUKA_impacts_all.dat')
         open(unit=3998, file='Coll_Scatter.dat')
         open(unit=39, file='FirstImpacts.dat')
-        !open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
+
         if (firstrun) then
-!          write(45,'(a)')                                               &
-!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
           write(46,'(a)') '# 1=name 2=turn 3=s'
           write(47,'(a)') '# 1=name 2=turn 3=s'
           write(48,'(a)')                                               &
@@ -54666,35 +54622,21 @@ c$$$            endif
      &     '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
 
 ! RB: write headers in new output files
-          write(4801,'(a)')                                               &
+          write(4801,'(a)')                                             &
      &'# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
           write(3998,*)
      &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nucle
      &ar-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb), 5=dp, 6=d
      &x', 7=dy'"
-
         endif
       endif
-!GRD-SR,09-02-2006
-!
-!JUNE2005
+
       if(name_sel(1:3).eq.'COL') then
-      open(unit=555, file='RHIClosses.dat')
-      if(firstrun) write(555,'(a)')                                     &
+        open(unit=555, file='RHIClosses.dat')
+        if(firstrun) write(555,'(a)')                                   &
      &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
       endif
-!JUNE2005
-!
-!FOR FAST TRACKING CHECKS AND MULTIPLE SAMPLES
-!       open(unit=999,file='checkturns.dat')
-!
-!++  Reset this as advised by Frank
-!
-!            do 80 i=1,npart
-!              pstop(i)=.false.
-!              nnumxv(i)=numl
-!   80       numxv(i)=numl
-!
+
 !++  Copy new particles to tracking arrays. Also add the orbit offset at
 !++  start of ring!
             do i = 1, napx00
@@ -54730,23 +54672,6 @@ c$$$            endif
               end do
 
             end do
-
-!++  Initialize random number generator
-!
-!      IF (FIRSTRUN) THEN
-!        IF (RND_SEED.EQ.0) RND_SEED = MCLOCK_LIAR()
-!        IF (RND_SEED.LT.0) RND_SEED = ABS(RND_SEED)
-!        RND_LUX = 3
-!        RND_K1  = 0
-!        RND_K2  = 0
-!        CALL RLUXGO(RND_LUX, RND_SEED, RND_k1, RND_K2)
-!        WRITE(*,*)
-!      ENDIF
-!
-!++  Thin lens tracking
-!
-!FOR FAST TRACKING CHECKS
-!       open(unit=999,file='checkturns.dat')
 
 !!START THIN6D CUT
 
