@@ -25424,6 +25424,7 @@ C Should get me a NaN
 !================================================================================
       do j = 1, int(mynp/napx00)
         write(lout,*) 'Sample number ', j, int(mynp/napx00)
+
         call collimate_start_sample
 
         write(lout,*) ''
@@ -25432,163 +25433,28 @@ C Should get me a NaN
         call thin6d(nthinerr)
 
         call collimate_end_sample
+
       end do
 !********************************************************************
 ! THIS IS THE END OF THE 'DO' LOOP OVER THE thin6d SUBROUTINE  !!!!!
 !********************************************************************
-!GRD
-      close(outlun)
-      close(43)
-!      CLOSE(46)
-!APRIL2005
-      if(dowritetracks) then
-!       close(39)
-       if(.not. cern) close(38)
-!
-!       close(58)
-!
-!Mars2005
-!JUNE2005
-      if(name_sel(1:3).eq.'COL') close(555)
-!JUNE2005
-!     SR, 10-08-2005: Use this close!
-!       close(999)
-!
-      endif
-!
-      if(do_select) then
-         close(45)
-      endif
-      if(dowrite_impact) then
-        close(46)
-        close(47)
-        close(48)
-        close(4801)
-        close(3998)
-        close(39)
-      endif
-!      close(9998)
-!      close(9999)
-!
-!APRIL2005
-!      CLOSE(38)
-!
-!++  End of Ralph's own little loop
-!
-!=============================================================================
         endif
       endif
 
-!      call collimate_exit
-      open(unit=56, file='amplitude.dat')
-      open(unit=51, file='amplitude2.dat')
-!UPGRADE JANUARY 2005
-      open(unit=57, file='betafunctions.dat')
-      if(dowrite_amplitude) then
-      write(56,*)                                                       &
-     &'# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS',         &
-     &'8=alphax 9=alphay 10=betax 11=betay 12=orbitx',                  &
-     &'13=orbity 14=tdispx 15=tdispy',                                  &
-     &'16=xbob 17=ybob 18=xpbob 19=ypbob'
-      do i=1,iu
-        write(56,'(i4, (1x,a16), 17(1x,e20.13))')                       &!hr08
-     &i, ename(i), sampl(i),                                            &!hr08
-     &sum_ax(i)/dble(max(nampl(i),1)),                                  &!hr08
-     &sqrt(abs((sqsum_ax(i)/dble(max(nampl(i),1)))-                     &!hr08
-     &(sum_ax(i)/dble(max(nampl(i),1)))**2)),                           &!hr08
-     &sum_ay(i)/dble(max(nampl(i),1)),                                  &!hr08
-     &sqrt(abs((sqsum_ay(i)/dble(max(nampl(i),1)))-                     &!hr08
-     &(sum_ay(i)/dble(max(nampl(i),1)))**2)),                           &!hr08
-     &talphax(i), talphay(i),                                           &!hr08
-     &tbetax(i), tbetay(i), torbx(i), torby(i),                         &!hr08
-     &tdispx(i), tdispy(i),                                             &!hr08
-     &xbob(i),ybob(i),xpbob(i),ypbob(i)                                  !hr08
-      end do
-!GRD
-      write(51,*)                                                       &
-     &'# 1=ielem 2=name 3=s 4=ORBITX',                                  &
-     &'5=orbity 6=tdispx 7=tdispy',                                     &
-     &'8=xbob 9=ybob 10=xpbob 11=ypbob'
-      do i=1,iu
-        write(51,'(i4, (1x,a16), 9(1x,e15.7))')                         &
-     &i, ename(i), sampl(i),                                            &
-     &torbx(i), torby(i),                                               &
-     &tdispx(i), tdispy(i),                                             &
-     &xbob(i),ybob(i),xpbob(i),ypbob(i)
-      end do
-!GRD UPGRADE
-      write(57,*)                                                       &
-     &'# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m
-     &)     6=TORBX(mm)    7=TORBY(mm)     8=TORBXP(mrad)   9=TORBYP(mrad
-     &)  10=TDISPX(m)  11=MUX()    12=MUY()'
-
-
-      do i=1,iu
-        write(57,'(i4, (1x,a16), 10(1x,e15.7))')                         &
-     &      i, ename(i), sampl(i),                                            &
-     &      tbetax(i), tbetay(i), 
-     &      torbx(i), torby(i), torbxp(i), torbyp(i), tdispx(i), mux(i), 
-     &      muy(i)            ! RB: added printout of closed orbit and angle
-
-      end do
-      endif
-      close(56)
-      close(51)
-      close(57)
-!GRD END OF UPGRADE
-!GRD
-!      DO J=1,iu
-!        DO I=1,numl
-!        xaveragesumoverturns(j)  = xaverage(j,i)
-!     &                             + xaverage(j,MAX((i-1),1))
-!        yaveragesumoverturns(j)  = yaverage(j,i)
-!     &                             + yaverage(j,MAX((i-1),1))
-!        xpaveragesumoverturns(j) = xpaverage(j,i)
-!     &                             + xpaverage(j,MAX((i-1),1))
-!        ypaveragesumoverturns(j) = ypaverage(j,i)
-!     &                             + ypaverage(j,MAX((i-1),1))
-!        END DO
-!        xclosedorbitcheck(j)=(xaveragesumoverturns(j)
-!     &                        +xaverage(j,numl))/(2*numl)
-!        yclosedorbitcheck(j)=(yaveragesumoverturns(j)
-!     &                        +yaverage(j,numl))/(2*numl)
-!        xpclosedorbitcheck(j)=(xpaveragesumoverturns(j)
-!     &                        +xpaverage(j,numl))/(2*numl)
-!        ypclosedorbitcheck(j)=(ypaveragesumoverturns(j)
-!     &                        +ypaverage(j,numl))/(2*numl)
-!      END DO
-!
-!      OPEN(unit=99, file='xchecking.dat')
-!      WRITE(99,*) '# 1=s 2=x 3=xp 4=y 5=yp'
-!      DO J=1,iu
-!      WRITE(99,'(i, 5(1x,e15.7))')
-!     &     j, SAMPL(j),
-!     &     xclosedorbitcheck(j), xpclosedorbitcheck(j),
-!     &     yclosedorbitcheck(j), ypclosedorbitcheck(j)
-!      END DO
-!      CLOSE(99)
-!GRD
-!GRD WE CAN ALSO MAKE AN ORBIT CHECKING
-!GRD
-      open(unit=99, file='orbitchecking.dat')
-      write(99,*) '# 1=s 2=torbitx 3=torbity'
-      do j=1,iu
-      write(99,'(i4, 3(1x,e15.7))')                                     &
-     &j, sampl(j),torbx(j), torby(j)
-      end do
-      close(99)
-
+      call collimate_exit
 +ei ! endif collimat
 +if .not.collimat
           write(lout,*) ''
           write(lout,*) 'Calling thin6d subroutine'
           write(lout,*) ''
           call thin6d(nthinerr)
-        endif
-      endif
+        endif !end if(abs(phas).ge.pieni) then
+      endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
 +ei
       return
       end
+
+
       subroutine thin4d(nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -55667,6 +55533,125 @@ c$$$            endif
 +ca comdynk
       logical dynk_isused
 
+      close(outlun)
+      close(43)
+
+      if(dowritetracks) then
+        if(.not. cern) close(38)
+        if(name_sel(1:3).eq.'COL') close(555)
+      endif
+
+      if(do_select) then
+         close(45)
+      endif
+
+      if(dowrite_impact) then
+        close(46)
+        close(47)
+        close(48)
+        close(4801)
+        close(3998)
+        close(39)
+      endif
+
+      open(unit=56, file='amplitude.dat')
+      open(unit=51, file='amplitude2.dat')
+!UPGRADE JANUARY 2005
+      open(unit=57, file='betafunctions.dat')
+      if(dowrite_amplitude) then
+      write(56,*)                                                       &
+     &'# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS',         &
+     &'8=alphax 9=alphay 10=betax 11=betay 12=orbitx',                  &
+     &'13=orbity 14=tdispx 15=tdispy',                                  &
+     &'16=xbob 17=ybob 18=xpbob 19=ypbob'
+      do i=1,iu
+        write(56,'(i4, (1x,a16), 17(1x,e20.13))')                       &!hr08
+     &i, ename(i), sampl(i),                                            &!hr08
+     &sum_ax(i)/dble(max(nampl(i),1)),                                  &!hr08
+     &sqrt(abs((sqsum_ax(i)/dble(max(nampl(i),1)))-                     &!hr08
+     &(sum_ax(i)/dble(max(nampl(i),1)))**2)),                           &!hr08
+     &sum_ay(i)/dble(max(nampl(i),1)),                                  &!hr08
+     &sqrt(abs((sqsum_ay(i)/dble(max(nampl(i),1)))-                     &!hr08
+     &(sum_ay(i)/dble(max(nampl(i),1)))**2)),                           &!hr08
+     &talphax(i), talphay(i),                                           &!hr08
+     &tbetax(i), tbetay(i), torbx(i), torby(i),                         &!hr08
+     &tdispx(i), tdispy(i),                                             &!hr08
+     &xbob(i),ybob(i),xpbob(i),ypbob(i)                                  !hr08
+      end do
+!GRD
+      write(51,*)                                                       &
+     &'# 1=ielem 2=name 3=s 4=ORBITX',                                  &
+     &'5=orbity 6=tdispx 7=tdispy',                                     &
+     &'8=xbob 9=ybob 10=xpbob 11=ypbob'
+      do i=1,iu
+        write(51,'(i4, (1x,a16), 9(1x,e15.7))')                         &
+     &i, ename(i), sampl(i),                                            &
+     &torbx(i), torby(i),                                               &
+     &tdispx(i), tdispy(i),                                             &
+     &xbob(i),ybob(i),xpbob(i),ypbob(i)
+      end do
+!GRD UPGRADE
+      write(57,*)                                                       &
+     &'# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m
+     &)     6=TORBX(mm)    7=TORBY(mm)     8=TORBXP(mrad)   9=TORBYP(mrad
+     &)  10=TDISPX(m)  11=MUX()    12=MUY()'
+
+
+      do i=1,iu
+        write(57,'(i4, (1x,a16), 10(1x,e15.7))')                         &
+     &      i, ename(i), sampl(i),                                            &
+     &      tbetax(i), tbetay(i), 
+     &      torbx(i), torby(i), torbxp(i), torbyp(i), tdispx(i), mux(i), 
+     &      muy(i)            ! RB: added printout of closed orbit and angle
+
+      end do
+      endif
+
+      close(56)
+      close(51)
+      close(57)
+!GRD END OF UPGRADE
+!GRD
+!      DO J=1,iu
+!        DO I=1,numl
+!        xaveragesumoverturns(j)  = xaverage(j,i)
+!     &                             + xaverage(j,MAX((i-1),1))
+!        yaveragesumoverturns(j)  = yaverage(j,i)
+!     &                             + yaverage(j,MAX((i-1),1))
+!        xpaveragesumoverturns(j) = xpaverage(j,i)
+!     &                             + xpaverage(j,MAX((i-1),1))
+!        ypaveragesumoverturns(j) = ypaverage(j,i)
+!     &                             + ypaverage(j,MAX((i-1),1))
+!        END DO
+!        xclosedorbitcheck(j)=(xaveragesumoverturns(j)
+!     &                        +xaverage(j,numl))/(2*numl)
+!        yclosedorbitcheck(j)=(yaveragesumoverturns(j)
+!     &                        +yaverage(j,numl))/(2*numl)
+!        xpclosedorbitcheck(j)=(xpaveragesumoverturns(j)
+!     &                        +xpaverage(j,numl))/(2*numl)
+!        ypclosedorbitcheck(j)=(ypaveragesumoverturns(j)
+!     &                        +ypaverage(j,numl))/(2*numl)
+!      END DO
+!
+!      OPEN(unit=99, file='xchecking.dat')
+!      WRITE(99,*) '# 1=s 2=x 3=xp 4=y 5=yp'
+!      DO J=1,iu
+!      WRITE(99,'(i, 5(1x,e15.7))')
+!     &     j, SAMPL(j),
+!     &     xclosedorbitcheck(j), xpclosedorbitcheck(j),
+!     &     yclosedorbitcheck(j), ypclosedorbitcheck(j)
+!      END DO
+!      CLOSE(99)
+!GRD
+!GRD WE CAN ALSO MAKE AN ORBIT CHECKING
+!GRD
+      open(unit=99, file='orbitchecking.dat')
+      write(99,*) '# 1=s 2=torbitx 3=torbity'
+      do j=1,iu
+      write(99,'(i4, 3(1x,e15.7))')                                     &
+     &j, sampl(j),torbx(j), torby(j)
+      end do
+      close(99)
       end
 
 !>
