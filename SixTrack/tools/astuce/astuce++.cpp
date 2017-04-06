@@ -67,7 +67,11 @@ void Astuce::ReadInputMaskFile()
 		}
 		else if(line == 2)
 		{
-			OutputFileName = *itr;
+			Buffer = *itr;
+
+			size_t space = Buffer.find_first_of(" \n", 0);
+			OutputFileName = Buffer.substr(0,space);
+
 		}
 		else
 		{
@@ -243,9 +247,9 @@ void Astuce::ExtractCalls()
 		}
 
 		LineEnd = InputFileBuffer.find("\n", CurrentPosition+1);
-
-		size_t NameStart = InputFileBuffer.rfind(" ", LineEnd);
-		std::string BlockName = FixCase(InputFileBuffer.substr(NameStart+1,LineEnd-NameStart-1));
+		size_t NameStart = InputFileBuffer.find_first_not_of(" ", CurrentPosition+4);
+		size_t NameEnd = InputFileBuffer.find_first_of(" !\n", NameStart+1);
+		std::string BlockName = FixCase(InputFileBuffer.substr(NameStart,NameEnd-NameStart));
 
 		//This could end at either the next +cd or the next +dk
 		//Find where the next one of these takes place and read until there.
@@ -325,9 +329,9 @@ void Astuce::ExtractDecks()
 		}
 
 		LineEnd = InputFileBuffer.find("\n", CurrentPosition+1);
-
-		size_t NameStart = InputFileBuffer.rfind(" ", LineEnd);
-		std::string BlockName = FixCase(InputFileBuffer.substr(NameStart+1,LineEnd-NameStart-1));
+		size_t NameStart = InputFileBuffer.find_first_not_of(" ", CurrentPosition+4);
+		size_t NameEnd = InputFileBuffer.find_first_of(" !\n", NameStart+1);
+		std::string BlockName = FixCase(InputFileBuffer.substr(NameStart,NameEnd-NameStart));
 
 		//This could end at either the next +cd or the next +dk
 		//Find where the next one of these takes place and read until there.
@@ -467,7 +471,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		size_t NameStart = line->Text.find_first_not_of(" ", 4);
 		if(NameStart == std::string::npos)
 		{
-			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
 			std::cerr << "+if statement with no associated flag? : \"" << line->Text << "\"" << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -562,7 +566,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			else
 			{
 				//Should never hit this
-				std::cerr << "ERROR processing " << InputFileName << std::endl;
+				std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
 				std::cerr << "ERROR: in .if. .and. .or. processing - Multiple entries and neither .and. or .or. true at entry " << n << std::endl;
 				exit(EXIT_FAILURE);
 			}
@@ -570,9 +574,9 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 
 		if(EnabledStates.empty())
 		{
-			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
 			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
-			std::cerr << "Currently processing " << line->Text << std::endl;
+			std::cerr << "Currently processing \"" << line->Text << "\"" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 		//AND (&) the result of the above with the current stack top
@@ -585,7 +589,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 
 		if(EnabledStates.empty())
 		{
-			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
 			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 			std::cerr << "Currently processing " << line->Text << std::endl;
 			exit(EXIT_FAILURE);
@@ -597,7 +601,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		//If a general line is to be enabled or disabled, this depends on the current state
 		if(EnabledStates.empty())
 		{
-			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
 			std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 			std::cerr << "Currently processing " << line->Text << std::endl;
 			exit(EXIT_FAILURE);
@@ -696,8 +700,8 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 				}
 				else
 				{
-					std::cerr << "ERROR processing " << InputFileName << std::endl;
-					std::cerr << "Searched for " << CallName << " and it was not defined anywhere!" << std::endl;
+					std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
+					std::cerr << "Searched for \"" << CallName << "\" and it was not defined anywhere!" << std::endl;
 					std::cerr << "The following +cd blocks exist:" << std::endl;
 					CallStorage_itr = CallStorage.begin();
 					while(CallStorage_itr != CallStorage.end())
@@ -778,7 +782,7 @@ void Astuce::VerifyInput()
 		DeckStorage_itr = DeckStorage.find(*Decks_itr);
 		if(DeckStorage_itr == DeckStorage.end())
 		{
-			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
 			std::cerr << "ERROR: Deck \"" << *Decks_itr << "\" requested but was not found in the input files!" << std::endl;
 			exit(EXIT_FAILURE);
 		}
