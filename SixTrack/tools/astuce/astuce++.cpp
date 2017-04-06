@@ -462,6 +462,12 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 	//Does this block have a +if statement?
 	if(line->Text.substr(0,3) == "+if")
 	{
+		if(line->Text.substr(3,1) != " ")
+		{
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
+			std::cerr << "+if statement with no space following \"+if\" : \"" << line->Text << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
 		//Disable this line
 		line->Enabled = false;
 
