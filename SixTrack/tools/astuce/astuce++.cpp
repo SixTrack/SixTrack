@@ -490,9 +490,22 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			exit(EXIT_FAILURE);
 		}
 
+		//Strip off comments
 		size_t NameEnd = line->Text.find_first_of("!", NameStart+1);
+		//Strip off trailing whitespace
+		if (NameEnd != std::string::npos) NameEnd-=1;
+		NameEnd = line->Text.find_last_not_of(" ",NameEnd);
+		if (NameEnd != std::string::npos) NameEnd+=1;
+		
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
+		
+		//Check that there are no spaces inside the STATEMENT
+		if(OutputFlag)
+		{
+			*LogStream << "Evaluating flag: '" << FlagName << "'" << std::endl;
+		}
 
+		
 		size_t Position = 0;
 		size_t NextOR = 0;
 		size_t NextAND = 0;
