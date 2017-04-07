@@ -65,9 +65,9 @@ void f_write_archive_(const char* const outname, const char* const filenames, in
   //printf("\n");
 
   //Build c-style string arrays
-  char* outname_c = malloc(outname_len*sizeof(char));
+  char* outname_c = malloc((outname_len+1)*sizeof(char));
   strncpy(outname_c,outname,outname_len);
-  outname_c[outname_len]=0;
+  outname_c[outname_len]='\0';
   //printf("outname_c = '%s'\n",outname_c);
   
   char** filenames_c = malloc((*nFiles)*sizeof(char*));

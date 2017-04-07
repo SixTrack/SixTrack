@@ -46,11 +46,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update December 2016
+  Update March 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.45 \\
+  Version 4.6.13 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -1079,16 +1079,14 @@ The functions are always evaluated as a function of the current turn number $t$,
   
   RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
   Returns a pseudorandom number generated from a Gaussian distribution.
-  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
-  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
+  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
   Note that every RANDG function defined in DYNK uses its own separate random number stream.\\
 
-%   RANDU      & \emph{seed1[int] seed2[int] rangemin[real] rangemax[real] } &
-%   Returns a pseudorandom number generated from a uniform distribution.
-%   The values \emph{rangemin} and \emph{rangemax} define the interval of the uniform distribution.
-%   The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
-%   Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
-
+  RANDU      & \emph{seed1[int] seed2[int]} &
+  Returns a pseudorandom number generated from a uniform distribution.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
+  Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
   
   \hline
   \rowcolor{blue!15}
@@ -1211,6 +1209,13 @@ The functions are always evaluated as a function of the current turn number $t$,
   \item The start time of the ramp \emph{te}, which describes at what time it switches from the parabolic (first) to the exponential (second) segment.
   \end{itemize}
   \\*
+  ONOFF       & \emph{p1[int] p2[int]} &
+  This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
+  It may be described as
+  $y(t) =  \left\{1.0 \; \mathrm{if} \; \mathrm{mod}(t-1,p2) < p1 \right\}; \; \left\{ 0.0 \; \mathrm{otherwise} \right\}$.
+  The reason for using $t-1$ is that the modulus is naturally zero-based, while SixTrack counts turns starting from 1.
+  Note that it is expected that $p1 >= 0$, $p2 > 1$, and $p1 <= p2$.
+  Also note that for negative $t$, the function will always return 1.0.
 \end{longtable}
 \end{center}
 %\end{tabular}
@@ -2951,7 +2956,7 @@ How to do this is described below.
 The DUMP block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.
 This can be done in any SINGLE ELEMENTS which are directly mentioned in the STRUCTURE INPUT part of fort.2 (BLOCs cannot be used).
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
-Please note that each single element can only be selected once; it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence.
+Please note that each single element can only be selected once; however it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence (by editing fort.2).
 
 \paragraph{Keyword}
 DUMP
@@ -2972,18 +2977,49 @@ how often the beam population should be dumped in number of turns.
 fortran unit number to use, should not be used in other parts of SixTrack.
 The unit number and filename may be shared between different DUMP outputs, as long as they have the same format and \texttt{element\_name} is not \texttt{ALL}.
 \subparagraph{format}
-an integer specifying the output format. The following is accepted:
+an integer specifying the output format.
+The following formats are accepted:
 \begin{enumerate}
-	\item[0] -- General format:\\
+	\item[0] -- \textbf{General format:}\\
 	No header\\
 	Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
-	\item[1] -- Format for aperture check:\\
+	\item[1] -- \textbf{Format for aperture check:}\\
 	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
 	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
-	\item[2] -- Modified format for aperture check:\\  
-	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+	\item[2] -- \textbf{Modified format for aperture check:}\\
+	Header line 1 (single element): \texttt{\# DUMP format \#2, bez=\textit{bez(i)}, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
+	Header line 1 (all elements): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
+        Here \textit{bez} is the name of the SINGLE ELEMENT, and \textit{napx} the number of particles being tracked (per pack in case of collimation), \textit{ndumpt(i)} the dump frequency as described above, and \textit{dumpfirst(i)} and \textit{dumplast(i)} the first and last turn as descirbed below.
+        HIGH and FRONT is normally false, unless this (global) option is active, as described below.\\
+	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+	Data lines: as described in the header, one per particle and per turn.
+        \item[3] -- \textbf{Modified format for aperture check (Binary):}\\
+        No header\\
+        A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+        Records: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+        The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers).
+	\item[4] -- \textbf{Beam means:}\\
+        Header line 1 is the same as for format 2.\\
+        Header line 2: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+        Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+	\item[5] -- \textbf{Beam mean and sigma:}\\
+        Header line 1 is the same as for format 2.\\
+	Header: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
 	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
-	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+        For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
+	\item[6] -- \textbf{Beam mean and sigma (canonical):}\\
+        Header line 1 is the same as for format 2.\\
+	Header: \texttt{\# napx turn s[m] <x>[m] <px>[1] <y>[m] <py>[m] <sigma>[m] <psigma>[1] <x\^{}2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> <px\^{}2> <px*y> <px*py> <px*sigma> <px*psigma> <y\^{}2> <y*py> <y*sigma> <y*psigma> <py\^{}2> <py*sigma> <py*psigma> <sigma\^{}2> <sigma*psigma> <psigma\^{}2>}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+        For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
+        Note that the $\sigma=s -\beta_0 c t$ is the same as the $z$ used in the formats above, except for the unit of m instead of mm; and that $p_\sigma = \Delta E / \left(\beta_0 P_0 c\right)$.
+        For more details, see the physics manual~\cite{sixphys}.
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
@@ -3123,6 +3159,30 @@ NEXT
 where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). 
 
 Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
+
+\subsection{ZIPFile combined and compressed output}
+\label{sec:ZIPF}
+
+\paragraph{Description}
+In order to retrieve extra simulation output such as DUMP or FMA from BOINC, it is neccessary to pack the output files into a single file with a special name that will be retrieved.
+This can be achieved with the ZIPF block, which packs the listed files into the compressed archive \texttt{Sixout.zip} at the end of the simulation.
+
+Note that if one of the files do not exist at the end of the simulation, it will be silently skipped and not included in the archive.
+
+\paragraph{Keyword}
+ZIPF
+
+\paragraph{Number of data lines}
+variable, one for each file that is to be packed.
+
+\paragraph{Example}
+\begin{verbatim}
+ZIPF
+fma_sixtrack
+IP3_DUMP_1
+fort.90
+NEXT
+\end{verbatim}
 
 \chapter*{Conclusions}
 

@@ -28,8 +28,8 @@
          stop 2
       endif
       
-      open(20,status='OLD')
-      open(21,status='OLD')
+      open(20,status='OLD',file="fort.20")
+      open(21,status='OLD',file="fort.21")
       
     1 read (20,*,end=100,err=98) prob
       line=line+1

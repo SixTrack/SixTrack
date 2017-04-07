@@ -54,9 +54,7 @@
 +dk lieinit
       subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -101,12 +99,7 @@
             else
               ndt=nd2
               if(ndpt.ne.nd2-1) then
-+if cr
                 write(lout,*) ' LETHAL ERROR IN LIEINIT'
-+ei
-+if .not.cr
-                write(*,*) ' LETHAL ERROR IN LIEINIT'
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -128,12 +121,7 @@
         endif
       if(iref1.eq.0) iref=-1
 
-+if cr
       if(idpr.eq.1)write(lout,*) ' NO = ',no,' IN DA-CALCULATIONS '
-+ei
-+if .not.cr
-      if(idpr.eq.1)write(*,*) ' NO = ',no,' IN DA-CALCULATIONS '
-+ei
 
       do i=0,20
       xintex(i)=0.d0
@@ -154,9 +142,6 @@
 +dk flowpara
       subroutine flowpara(ifl,jtu)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -169,9 +154,6 @@
 +dk pertpeek
       subroutine pertpeek(st,ang,ra)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -198,9 +180,6 @@
 +dk inputres
       subroutine inputres(mx1,nres1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -227,9 +206,6 @@
 +dk respoke
       subroutine respoke(mres,nre,ire)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -260,9 +236,6 @@
 +dk liepeek
       subroutine liepeek(iia,icoast)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -289,9 +262,6 @@
 +dk lienot
       subroutine lienot(not)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -305,9 +275,6 @@
 +dk etallnom
       subroutine etallnom(x,n,nom)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -330,9 +297,6 @@
 +dk etall
       subroutine etall(x,n)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -353,9 +317,6 @@
 +dk etall1
       subroutine etall1(x)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -369,9 +330,6 @@
 +dk dadal1
       subroutine dadal1(x)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -382,9 +340,6 @@
 +dk etppulnv
       subroutine etppulnv(x,xi,xff)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -414,9 +369,6 @@
 +dk etmtree
       subroutine etmtree(y,x)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -449,9 +401,6 @@
 +dk etppush
       subroutine etppush(x,xi)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -478,9 +427,6 @@
 +dk etppush2
       subroutine etppush2(x,xi,xff)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -507,9 +453,6 @@
 +dk ppushlnv
       subroutine ppushlnv(x,xi,xff,nd1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -539,9 +482,6 @@
 +dk etcct
       subroutine etcct(x,y,z)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -574,9 +514,6 @@
 +dk trx
       subroutine trx(h,rh,y)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -610,9 +547,6 @@
 +dk trxflo
       subroutine trxflo(h,rh,y)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -655,9 +589,6 @@
 +dk simil
       subroutine simil(a,x,ai,y)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -686,9 +617,6 @@
 +dk etini
       subroutine etini(x)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -708,9 +636,6 @@
 +dk etinv
       subroutine etinv(x,y)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -752,9 +677,6 @@
 +dk etpin
       subroutine etpin(x,y,jj)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -796,9 +718,6 @@
 +dk dapek0
       subroutine dapek0(v,x,jj)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -818,9 +737,6 @@
 +dk dapok0
       subroutine dapok0(v,x,jj)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -839,9 +755,6 @@
 +dk dapokzer
       subroutine dapokzer(v,jj)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -858,9 +771,6 @@
 +dk davar0
       subroutine davar0(v,x,jj)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -877,9 +787,6 @@
 +dk comcfu
       subroutine comcfu(b,f1,f2,c)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -902,9 +809,6 @@
 +dk take
       subroutine take(h,m,ht)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -967,9 +871,6 @@
 +dk taked
       subroutine taked(h,m,ht)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1002,9 +903,6 @@
 +dk daclrd
       subroutine daclrd(h)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1021,9 +919,6 @@
 +dk dacopd
       subroutine dacopd(h,ht)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1040,9 +935,6 @@
 +dk dacmud
       subroutine dacmud(h,sca,ht)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1059,9 +951,6 @@
 +dk dalind
       subroutine dalind(h,rh,ht,rt,hr)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1084,9 +973,6 @@
 +dk daread
       subroutine daread(h,nd1,mfile,xipo)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1109,9 +995,6 @@
 +dk daprid
       subroutine daprid(h,n1,n2,mfile)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1128,9 +1011,6 @@
 +dk prresflo
       subroutine prresflo(h,eps,mfile)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1164,9 +1044,6 @@
 +dk filtres
       double precision function filtres(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1193,9 +1070,6 @@
 +dk daflo
       subroutine daflo(h,x,y)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1231,9 +1105,6 @@
 +dk daflod
       subroutine daflod(h,x,y)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1262,9 +1133,6 @@
 +dk intd
       subroutine intd(v,h,sca)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1314,9 +1182,6 @@
 +dk difd
       subroutine difd(h1,v,sca)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1344,9 +1209,7 @@
 +dk expflo
       subroutine expflo(h,x,y,eps,nrmax)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1400,18 +1263,8 @@
       call dacop(b3(1),b4(1))
  1    continue
       if(idpr.ge.0) then
-+if cr
       write(lout,*) ' NORM ',eps,' NEVER REACHED IN EXPFLO '
-+ei
-+if .not.cr
-      write(*,*) ' NORM ',eps,' NEVER REACHED IN EXPFLO '
-+ei
-+if cr
       write(lout,*) 'NEW IDPR '
-+ei
-+if .not.cr
-      write(*,*) 'NEW IDPR '
-+ei
       read(5,*) idpr
       endif
       call dacop(b3(1),y)
@@ -1424,9 +1277,6 @@
 +dk expflod
       subroutine expflod(h,x,w,eps,nrmax)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1456,9 +1306,6 @@
 +dk facflo
       subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1513,9 +1360,6 @@
 +dk facflod
       subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1540,9 +1384,6 @@
 +dk fexpo
       subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1571,9 +1412,6 @@
 +dk etcom
       subroutine etcom(x,y,h)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1612,9 +1450,6 @@
 +dk etpoi
       subroutine etpoi(x,y,h)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1655,9 +1490,6 @@
 +dk exp1d
       subroutine exp1d(h,x,y,eps,non)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1684,9 +1516,6 @@
 +dk expnd2
       subroutine expnd2(h,x,w,eps,nrmax)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1717,9 +1546,7 @@
 +dk flofacg
       subroutine flofacg(xy,h,epsone)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1763,12 +1590,7 @@
 ! write(20,*) "$$$$$$$$$$$$$$",k,"$$$$$$$$$$$$$$$$$$$$"
 ! call daprid(t,1,1,20)
        if(xn.lt.epsone) then
-+if cr
             if(idpr.ge.0) write(lout,*) "xn quadratic",xn
-+ei
-+if .not.cr
-            if(idpr.ge.0) write(*,*) "xn quadratic",xn
-+ei
         call daflod(t,t,w)
         call dalind(t,1.d0,w,-0.5d0,t)
         call dacopd(t,z)
@@ -1794,24 +1616,14 @@
       xnorm=xnorm+r
        enddo
       xn=xnorm/xnorm1
-+if cr
       if(xn.ge.epsone.and.(idpr.ge.0)) write(lout,*)" xn linear ",xn
-+ei
-+if .not.cr
-      if(xn.ge.epsone.and.(idpr.ge.0)) write(*,*)" xn linear ",xn
-+ei
       if(xn.lt.eps.or.more) then
       more=.true.
       if(xn.ge.xnbefore) goto 1000
       xnbefore=xn
       endif
  333  continue
-+if cr
 1000  write(lout,*) " iteration " , k
-+ei
-+if .not.cr
-1000  write(*,*) " iteration " , k
-+ei
       call dadal(x,nd2)
       call dadal(w,nd2)
       call dadal(v,nd2)
@@ -1822,9 +1634,6 @@
 +dk flofac
       subroutine flofac(xy,x,h)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1865,9 +1674,6 @@
 +dk liefact
       subroutine liefact(xy,x,h)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1893,9 +1699,6 @@
 +dk mapnorm
       subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1922,9 +1725,6 @@
 +dk gettura
       subroutine gettura(psq,radsq)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1946,9 +1746,6 @@
 +dk setidpr
       subroutine setidpr(idprint,nplan)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1970,9 +1767,6 @@
 +dk idprset
       subroutine idprset(idprint)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -1990,9 +1784,7 @@
 +dk mapnormf
       subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2046,18 +1838,8 @@
       enddo
       if(ndc.eq.1) p(nd)=angle(nd)
       if(idpr.ge.0) then
-+if cr
         write(lout,*) 'tune    ',(p(ij),ij=1,nd)
-+ei
-+if .not.cr
-        write(*,*) 'tune    ',(p(ij),ij=1,nd)
-+ei
-+if cr
         write(lout,*) 'damping ', (rad(ij),ij=1,nd)
-+ei
-+if .not.cr
-        write(*,*) 'damping ', (rad(ij),ij=1,nd)
-+ei
       endif
       do ij=1,nd       !  -ndc    frank
         ps(ij)=p(ij)
@@ -2072,12 +1854,7 @@
         p(ij)=angle(ij)
         if(angle(ij).gt.x2pi/2.d0.and.st(ij).gt.0.d0.and.itu.eq.1)then
           p(ij)=angle(ij)-x2pi
-+if cr
           write(lout,*) ij,' TH TUNE MODIFIED IN H2 TO ',p(ij)/x2pi
-+ei
-+if .not.cr
-          write(*,*) ij,' TH TUNE MODIFIED IN H2 TO ',p(ij)/x2pi
-+ei
         endif
       enddo
       call h2pluflo(h,p,rad)
@@ -2092,9 +1869,6 @@
 +dk gofix
       subroutine gofix(xy,a1,a1i,nord)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2197,9 +1971,6 @@
 +dk transver
       double precision function transver(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2223,9 +1994,7 @@
 +dk orderflo
       subroutine orderflo(h,ft,x,ang,ra)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2278,12 +2047,7 @@
 ! W = V o X
       call etcct(v,x,w)
       if(idpr.ge.0) then
-+if cr
         write(lout,*) ' ORDERFLO K= ', k
-+ei
-+if .not.cr
-        write(*,*) ' ORDERFLO K= ', k
-+ei
       endif
 ! X = EXP(B9) W
       call facflod(b9,w,x,k,k,1.d0,1)
@@ -2304,9 +2068,6 @@
 +dk nuanaflo
       subroutine nuanaflo(h,ft)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2369,9 +2130,6 @@
 +dk xgam
       double precision function xgam(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2434,9 +2192,6 @@
 +dk xgbm
       double precision function xgbm(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2498,9 +2253,6 @@
 +dk filt
       double precision function filt(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2553,9 +2305,6 @@
 +dk dfilt
       double precision function dfilt(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2585,9 +2334,6 @@
 +dk dhdjflo
       subroutine dhdjflo(h,t)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2640,9 +2386,6 @@
 +dk dhdj
       subroutine dhdj(h,t)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2699,9 +2442,6 @@
 +dk h2pluflo
       subroutine h2pluflo(h,ang,ra)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2756,9 +2496,6 @@
 +dk rotflo
       subroutine rotflo(ro,ang,ra)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2835,9 +2572,6 @@
 +dk rotiflo
       subroutine rotiflo(roi,ang,ra)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2919,9 +2653,6 @@
 +dk hyper
       subroutine hyper(a,ch,sh)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2941,9 +2672,6 @@
 +dk ctor
       subroutine ctor(c1,r2,i2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2974,9 +2702,6 @@
 +dk rtoc
       subroutine rtoc(r1,i1,c2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -2999,9 +2724,6 @@
 +dk ctorflo
       subroutine ctorflo(c,dr,di)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3020,9 +2742,6 @@
 +dk rtocflo
       subroutine rtocflo(dr,di,c)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3048,9 +2767,6 @@
 +dk ctord
       subroutine ctord(c,cr,ci)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3071,9 +2787,6 @@
 +dk rtocd
       subroutine rtocd(cr,ci,c)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3092,9 +2805,6 @@
 +dk resvec
       subroutine resvec(cr,ci,dr,di)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3146,9 +2856,6 @@
 +dk reelflo
       subroutine reelflo(c,ci,f,fi)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3193,9 +2900,6 @@
 +dk compcjg
       subroutine compcjg(cr,ci,dr,di)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3220,9 +2924,6 @@
 +dk midbflo
       subroutine midbflo(c,a2,a2i,q,a,st)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3343,9 +3044,7 @@
 +dk mapflol
       subroutine mapflol(sa,sai,cr,cm,st)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3401,32 +3100,17 @@
       call mulnd2(xj,w)
       call mulnd2(cr,w)
       if(idpr.ge.0.or.idpr.eq.-102) then
-+if cr
         write(lout,*)                                                   &
      &'Check of the symplectic condition on the linear part'
-+ei
-+if .not.cr
-        write(*,*)'Check of the symplectic condition on the linear part'
-+ei
         xsu=0.d0
         do i=1,nd2
-+if cr
           write(lout,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
-+ei
-+if .not.cr
-          write(*,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
-+ei
           do j=1,nd2
             xsu=xsu+abs(w(i,j))
           enddo
         enddo
-+if cr
         write(lout,*)'deviation for symplecticity ',                    &
      &100.d0*(xsu-nd2)/xsu,
-+ei
-+if .not.cr
-        write(*,*)'deviation for symplecticity ',100.d0*(xsu-nd2)/xsu,  &
-+ei
      &' %'
 +if debug
 !       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
@@ -3434,83 +3118,33 @@
       endif
       call eig6(cr,rr,ri,vr,vi)
       if(idpr.ge.0) then
-+if cr
         write(lout,*) '   '
-+ei
-+if .not.cr
-        write(*,*) '   '
-+ei
-+if cr
         write(lout,*) '       Index         Real Part  ',
-+ei
-+if .not.cr
-        write(*,*) '       Index         Real Part  ',                  &
-+ei
      &'       ArcSin(Imaginary Part)/2/pi'
-+if cr
         write(lout,*) '   '
-+ei
-+if .not.cr
-        write(*,*) '   '
-+ei
         do i=1,nd-ndc
           rd1=dsqrt(rr(2*i-1)**2+ri(2*i-1)**2)
           rd=dsqrt(rr(2*i)**2+ri(2*i)**2)
 +if crlibm
-+if cr
           write(lout,*) 2*i-1,rr(2*i-1),asin_rn(ri(2*i-1)/rd1)/x2pi
 +ei
-+if .not.cr
-          write(*,*) 2*i-1,rr(2*i-1),asin_rn(ri(2*i-1)/rd1)/x2pi
-+ei
-+ei
 +if .not.crlibm
-+if cr
           write(lout,*) 2*i-1,rr(2*i-1),asin(ri(2*i-1)/rd1)/x2pi
 +ei
-+if .not.cr
-          write(*,*) 2*i-1,rr(2*i-1),asin(ri(2*i-1)/rd1)/x2pi
-+ei
-+ei
 +if crlibm
-+if cr
           write(lout,*) 2*i,rr(2*i),asin_rn(ri(2*i)/rd)/x2pi
 +ei
-+if .not.cr
-          write(*,*) 2*i,rr(2*i),asin_rn(ri(2*i)/rd)/x2pi
-+ei
-+ei
 +if .not.crlibm
-+if cr
           write(lout,*) 2*i,rr(2*i),asin(ri(2*i)/rd)/x2pi
 +ei
-+if .not.cr
-          write(*,*) 2*i,rr(2*i),asin(ri(2*i)/rd)/x2pi
-+ei
-+ei
 +if crlibm
-+if cr
           write(lout,*) ' alphas ', log_rn(dsqrt(rd*rd1))
 +ei
-+if .not.cr
-          write(*,*) ' alphas ', log_rn(dsqrt(rd*rd1))
-+ei
-+ei
 +if .not.crlibm
-+if cr
           write(lout,*) ' alphas ', log(dsqrt(rd*rd1))
 +ei
-+if .not.cr
-          write(*,*) ' alphas ', log(dsqrt(rd*rd1))
-+ei
-+ei
         enddo
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)                                                      &
-+ei
      &' select ',nd-ndc,                                                &
      &' eigenplanes (odd integers <0 real axis)'
         read(5,*) (n(i),i=1,nd-ndc)
@@ -3637,9 +3271,6 @@
 +dk mulnd2
       subroutine mulnd2(rt,r)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3671,9 +3302,7 @@
 +dk movearou
       subroutine movearou(rt)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3779,52 +3408,22 @@
 
       if(ic.eq.0) then
         call movemul(rt,s,rto,xr)
-+if cr
         if(idpr.gt.-101) write(lout,*) " no exchanged"
-+ei
-+if .not.cr
-        if(idpr.gt.-101) write(*,*) " no exchanged"
-+ei
       elseif(ic.eq.1) then
         call movemul(rt,xy,rto,xr)
-+if cr
         if(idpr.gt.-101) write(lout,*) " x-y exchanged"
-+ei
-+if .not.cr
-        if(idpr.gt.-101) write(*,*) " x-y exchanged"
-+ei
       elseif(ic.eq.2) then
         call movemul(rt,xz,rto,xr)
-+if cr
         if(idpr.gt.-101) write(lout,*) " x-z exchanged"
-+ei
-+if .not.cr
-        if(idpr.gt.-101) write(*,*) " x-z exchanged"
-+ei
       elseif(ic.eq.3) then
         call movemul(rt,yz,rto,xr)
-+if cr
         if(idpr.gt.-101) write(lout,*) " y-z exchanged"
-+ei
-+if .not.cr
-        if(idpr.gt.-101) write(*,*) " y-z exchanged"
-+ei
       elseif(ic.eq.4) then
         call movemul(rt,xyz,rto,xr)
-+if cr
         if(idpr.gt.-101) write(lout,*) " x-y-z permuted"
-+ei
-+if .not.cr
-        if(idpr.gt.-101) write(*,*) " x-y-z permuted"
-+ei
       elseif(ic.eq.5) then
         call movemul(rt,xzy,rto,xr)
-+if cr
         if(idpr.gt.-101) write(lout,*) " x-z-y permuted"
-+ei
-+if .not.cr
-        if(idpr.gt.-101) write(*,*) " x-z-y permuted"
-+ei
       endif
 
       do i=1,nd2
@@ -3838,9 +3437,6 @@
 +dk movemul
       subroutine movemul(rt,xy,rto,xr)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3882,9 +3478,7 @@
 +dk initpert
       subroutine initpert(st,ang,ra)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3905,20 +3499,10 @@
 +ca resfile
 
       if(iref.gt.0) then
-+if cr
       write(lout,*) iref
-+ei
-+if .not.cr
-      write(*,*) iref
-+ei
       read(iref,*) nres
       if(nres.ge.nreso) then
-+if cr
        write(lout,*) ' NRESO IN LIELIB TOO SMALL '
-+ei
-+if .not.cr
-       write(*,*) ' NRESO IN LIELIB TOO SMALL '
-+ei
 +if cr
       call abend('999                                               ')
 +ei
@@ -3929,12 +3513,7 @@
       elseif(iref.eq.0) then
       nres=0
       endif
-+if cr
       if(nres.ne.0) write(lout,*)' warning resonances left in the map'
-+ei
-+if .not.cr
-      if(nres.ne.0) write(*,*)' warning resonances left in the map'
-+ei
       if(iref.gt.0) then
       do i=1,nres
         read(iref,*) (mx(nn,i),nn=1,nd-ndc)
@@ -3969,9 +3548,6 @@
 +dk dlie
       double precision function dlie(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -3991,9 +3567,6 @@
 +dk rext
       double precision function rext(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4022,9 +3595,6 @@
 +dk cpart
       subroutine cpart(h,ch)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4041,9 +3611,6 @@
 +dk ctoi
       subroutine ctoi(f1,f2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4068,9 +3635,6 @@
 +dk itoc
       subroutine itoc(f1,f2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4094,9 +3658,6 @@
 +dk etrtc
       subroutine etrtc(x)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4125,9 +3686,6 @@
 +dk etctr
       subroutine etctr(x)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4155,9 +3713,6 @@
 +dk etcjg
       subroutine etcjg(x)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4192,9 +3747,7 @@
 +dk eig6
       subroutine eig6(fm,reval,aieval,revec,aievec)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4241,12 +3794,7 @@
       call etyt(mdim,nn,ilo,ihi,aa,ort,vv)
       call ety2(mdim,nn,ilo,ihi,aa,reval,aieval,vv,info)
       if ( info .ne. 0 ) then
-+if cr
         write(lout,*) '  ERROR IN EIG6'
-+ei
-+if .not.cr
-        write(*,*) '  ERROR IN EIG6'
-+ei
         return
       endif
 !      call neigv(vv,pbkt)
@@ -4260,12 +3808,7 @@
       enddo
       do i=1,nd2-ndc2
         if(abs(reval(i)**2+aieval(i)**2 -1.d0).gt.1.d-10) then
-+if cr
           write(lout,*) ' EIG6: Eigenvalues off the unit circle!'
-+ei
-+if .not.cr
-          write(*,*) ' EIG6: Eigenvalues off the unit circle!'
-+ei
         endif
       enddo
       return
@@ -4273,9 +3816,6 @@
 +dk ety
       subroutine ety(nm,n,low,igh,a,ort)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4385,9 +3925,6 @@
 +dk etyt
       subroutine etyt(nm,n,low,igh,a,ort,z)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4476,9 +4013,6 @@
 +dk ety2
       subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4906,9 +4440,6 @@
 +dk etdiv
       subroutine etdiv(a,b,c,d,e,f)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -4979,9 +4510,6 @@
 !  Written by F. Neri  Feb 7 1986
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5039,9 +4567,6 @@
 +dk averaged
       subroutine averaged(f,a,flag,fave)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5106,9 +4631,6 @@
 +dk avepol
       double precision function avepol(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5132,9 +4654,7 @@
 +dk couplean
       subroutine couplean(map1,tune,map2,oneturn)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5212,12 +4732,7 @@
       call mapnorm(xy,ftf(1),a2,a1,m2,hf(1),nord)
 
       call gettura(psq,radsq)
-+if cr
       write(lout,*) (psq(i),i=1,nd)
-+ei
-+if .not.cr
-      write(*,*) (psq(i),i=1,nd)
-+ei
 
       call etini(xy)
       no1=no
@@ -5240,9 +4755,6 @@
 +dk planar
       double precision function planar(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5274,9 +4786,6 @@
 +dk killnonl
       double precision function killnonl(j)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5302,9 +4811,6 @@
 +dk fexpo1
       subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -5330,9 +4836,6 @@
 +dk etcctpar
       subroutine etcctpar(x,ix,xj,z)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei

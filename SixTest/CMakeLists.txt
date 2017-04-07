@@ -17,6 +17,9 @@ set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Err
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
 set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\n.*19")
 
+ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
+set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
+
 if(BOINC)
 	ADD_TEST(NAME CheckTestInputForBOINC.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForBOINC.sh)
 	set_tests_properties(CheckTestInputForBOINC.sh PROPERTIES FAIL_REGULAR_EXPRESSION "[^-.*$]|[^diff]")
@@ -27,24 +30,32 @@ endif(BOINC)
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90.
-## Disabled: elensidealthin6d_DYNK (missing canonicals, see issue #189)
 ## "Totally untested": bnl
 ##
 
 #List of tests which are STF compatible
-SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
-
-#only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
-if(BNLELENS)
-	SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
-endif(BNLELENS)
-
-if(BIGNPART OR HUGENPART)
-	SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
-endif()
+SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d elensidealthck6d elensidealthin6d_DYNK wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
 
 if(NOT COLLIMAT)
-	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 ${SIXTRACK_TESTS})
+	if(LIBARCHIVE)
+		SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
+	endif()
+
+	#only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
+	if(BNLELENS)
+		SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
+	endif(BNLELENS)
+	
+	if(BIGNPART OR HUGENPART)
+		SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
+	endif()
+
+	if(BIGNBLZ OR HUGENBLZ)
+		SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
+	endif()
+	
+	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF ${SIXTRACK_TESTS})
+	
 endif(NOT COLLIMAT)
 
 #For CR builds, test the CR functions, so kill/resume the test
@@ -63,8 +74,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	#determine what we need to do:
 	#Check fort.10 by default
 	SET(FORT10 1)
-	#no fort.10 for the "exact" test
-	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk)
+	#.. But some tests are missing this file:
+	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6)
 		SET(FORT10 0)
 	endif()
 
@@ -88,7 +99,22 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 		SET(STF_ENABLE 0)
 	endif(STF)
 
-	ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${CR_ENABLE} ${CR_KILL_TIME})
+	if(LIBARCHIVE)
+		if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
+			SET(SIXOUT_NUMFILES 6)
+		else()
+			SET(SIXOUT_NUMFILES 0)
+		endif()
+	else()
+		SET(SIXOUT_NUMFILES 0)
+	endif(LIBARCHIVE)
+
+	SET( DUMP_BIN_FILE NONE )
+	if(TST MATCHES dump_binary)
+		SET( DUMP_BIN_FILE dump.dat )
+	endif()
+	
+	ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE})
 
 	#some tests take a very long time (set a 2 day timeout)
 	set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
@@ -150,10 +176,10 @@ endforeach()
 
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
-SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0)
+SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK elensidealthin6d_DYNK_ZIPF wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 fcc elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF)
 
 #Medium tests take < 30 mins to run
-SET(MEDIUM_TESTS bbe571ib0 elensidealthin6d tilt lostevery fma frs frs60 eric distance bbe51 bbe52)
+SET(MEDIUM_TESTS bbe571ib0 tilt lostevery fma frs frs60 eric distance bbe51 bbe52 javier_bignpart)
 
 #Slow is everything longer
 SET(SLOW_TESTS prob1 prob3)
@@ -177,12 +203,12 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 endforeach()
 
 #tools
-SET(SELFTEST_TOOLS SelfTest_verify10 SelfTest_compf10 SelfTest_checkf1014 SelfTest_checkf10 SelfTest_checkf110 SelfTest_read90)
+SET(SELFTEST_TOOLS SelfTest_verify10 SelfTest_compf10 SelfTest_checkf1014 SelfTest_checkf10 SelfTest_checkf110 SelfTest_read90 SelfTest_readDump3)
 if(BOINC)
 	SET(SELFTEST_TOOLS ${SELFTEST_TOOLS} CheckTestInputForBOINC.sh)
 endif(BOINC)
 
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
-		set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
+	set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
 
