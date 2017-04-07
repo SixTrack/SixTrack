@@ -498,6 +498,13 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		if (NameEnd != std::string::npos) NameEnd+=1;
 		
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
+
+		if (FlagName.find(" ") != std::string::npos)
+		{
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
+			std::cerr << "The +if statement '" << line->Text << "' contains a space inside the actual statement '" << FlagName << "'." << std::endl;
+			exit(EXIT_FAILURE);
+		}
 		
 		//Check that there are no spaces inside the STATEMENT
 		if(OutputFlag)
