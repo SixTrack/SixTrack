@@ -478,6 +478,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		//Disable this line
 		line->Enabled = false;
 
+		//The result of the +if
 		bool EnabledState = false;
 
 		//Find the name of this statement
@@ -489,7 +490,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			exit(EXIT_FAILURE);
 		}
 
-		size_t NameEnd = line->Text.find_first_of(" !", NameStart+1);
+		size_t NameEnd = line->Text.find_first_of("!", NameStart+1);
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
 
 		size_t Position = 0;
