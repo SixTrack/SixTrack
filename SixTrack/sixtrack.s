@@ -911,11 +911,11 @@
 ! variables for global inefficiencies studies
 ! of normalized and off-momentum halo
 ! Last modified: July 2016
-!
+
       double precision neff(numeff),rsig(numeff)
       common  /eff/ neff,rsig
-! 
-      integer counteddpop(npart,numeffdpop)                            
+
+      integer counteddpop(npart,numeffdpop)
       integer counted2d(npart,numeff,numeffdpop)
       double precision neffdpop(numeffdpop),dpopbins(numeffdpop)
       integer npartdpop(numeffdpop)
@@ -1120,7 +1120,7 @@
      &pptco,ppeco,sdcoe,freeco,fnavo,zatom,exenergy
 !electron density and plasma energy
       double precision edens, pleng
-      parameter(fnavo=6.02214129d23)                                          
+      parameter(fnavo=6.02214129d23)
       real cgen
       character * 4 mname(nmat)
       common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
@@ -26575,7 +26575,9 @@ C Should get me a NaN
 !       call graphic_progress(n,numl)
 +ei
 +if collimat
-       iturn=n
+        call collimate_start_turn
+        iturn=n
+        totals=0d0
 +ei
         numx=n-1
 
@@ -26596,9 +26598,7 @@ C Should get me a NaN
            call dynk_apply(n)
         endif
 
-+if collimat
-        totals=0d0
-+ei
+!! This is the loop over each element
         do 650 i=1,iu
 +if collimat
         ie=i
@@ -26735,13 +26735,13 @@ C Should get me a NaN
 
    10     stracki=strack(i)
 +if collimat
+
+!!!!!!!This should go in the pre-collimator function
+
 !==========================================
 !Ralph drift length is stracki
 !bez(ix) is name of drift
-!GRD
-!GRD
           totals=totals+stracki
-!          write(*,*) 'ralph> Drift, total length: ', stracki,totals
 !________________________________________________________________________
 !++  If we have a collimator then...
 !
@@ -27174,11 +27174,6 @@ C Should get me a NaN
 ! therefore 1E-3 is used to  
             if ((icoll.eq.ipencil).and.(iturn.eq.1).and.
      &           (pencil_distr.ne.3)) then ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
-
-!!               write(*,*) " ************************************** "
-!!               write(*,*) " * INFO> seting tilt for pencil beam  * "
-!!               write(*,*) " ************************************** "
-!     c_tilt(1) =  (xp_pencil0*cos(c_rotation)                  &
 +if crlibm
 !adriana
                c_tilt(1) = c_tilt(1) + (xp_pencil0*cos_rn(c_rotation)    &
@@ -27211,10 +27206,8 @@ C Should get me a NaN
             endif
 
 !++ TW -- tilt angle changed (added to genetated on if spec. in fort.3) 
-!
-!JUNE2005
+
 !JUNE2005   HERE IS THE SPECIAL TREATMENT...
-!JUNE2005
          elseif(db_name1(icoll)(1:4).eq.'COLM') then
 
             xmax = nsig_tcth1*sqrt(bx_dist*myemitx0_collgap)
@@ -27386,13 +27379,6 @@ C Should get me a NaN
             Nap1neg=(c_aperture/2d0 - c_offset + tiltOffsNeg1)/beamsize1
             Nap2neg=(c_aperture/2d0 - c_offset + tiltOffsNeg2)/beamsize2
 
-! debugging output - can be removed when not needed
-!            write(7878,*) c_tilt(1),c_tilt(2),c_offset
-!       write(7878,*) tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
-!            write(7878,*) Nap1pos,Nap2pos,Nap1neg,Nap2neg
-!            write(7878,*) min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
-!            write(7878,*) mynex * sqrt(tbetax(ie)/betax1)
-
 !     Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
             minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg) 
 
@@ -27457,7 +27443,6 @@ C Should get me a NaN
 ! end RB addition
 
 !++  Copy particle data to 1-dim array and go back to meters
-!
             do j = 1, napx
               rcx(j)  = (xv(1,j)-torbx(ie))/1d3
               rcxp(j) = (yv(1,j)-torbxp(ie))/1d3
@@ -27492,6 +27477,8 @@ C Should get me a NaN
               flukaname(j) = ipart(j)+100*samplenumber
             end do
 
+!!!!!!!This should go in the do-collimator function
+
 !++  Do the collimation tracking
              enom_gev = myenom*1d-3
 
@@ -27503,6 +27490,8 @@ C Should get me a NaN
           else
             onesided = .false.
           endif
+
+
 
 !GRD HERE IS THE MAJOR CHANGE TO THE CODE: IN ORDER TO TRACK PROPERLY THE
 !GRD SPECIAL RHIC PRIMARY COLLIMATOR, IMPLEMENTATION OF A DEDICATED ROUTINE
@@ -27529,7 +27518,7 @@ C Should get me a NaN
                if(db_name1(icoll)(1:4).eq.'TCDQ') onesided = .true.
                if(db_name1(icoll)(1:5).eq.'TCXRP') onesided = .true.
 !GRD-SR
-!
+
 !==> SLICE here is possible
 !
 !     SR, 29-08-2005: Slice the collimator jaws in 'n_slices' pieces
@@ -27567,37 +27556,7 @@ C Should get me a NaN
      &                    db_name1(icoll), ' sliced in ',n_slices,      &
      &                    ' pieces !'
                   endif
-!
-!!     In this preliminary try, all secondary collimators are sliced.
-!!     Slice only collimators with finite length!!
-!               if (db_name1(icoll)(1:4).eq.'TCSG' .and.
-!     &              c_length.gt.0d0 ) then
-!!     Slice the primaries, to have more statistics faster!
-!!               if (db_name1(icoll)(1:3).eq.'TCP' .and.
-!!     +              c_length.gt.0d0 ) then
-!!
-!!
-!!     Calculate longitudinal positions of slices and corresponding heights
-!!     and angles from the fit parameters.
-!!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
-!!     Note: here, take (n_slices+1) points in order to calculate the
-!!           tilt angle of the last slice!!
-!                  do jjj=1,n_slices+1
-!                     x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
-!                     y1_sl(jjj) =  fit1_1 +                             &
-!     &                    fit1_2*x_sl(jjj) +                            &
-!     &                    fit1_3*(x_sl(jjj)**2) +                       &
-!     &                    fit1_4*(x_sl(jjj)**3) +                       &
-!     &                    fit1_5*(x_sl(jjj)**4) +                       &
-!     &                    fit1_6*(x_sl(jjj)**5)
-!
-!                     y2_sl(jjj) = -1d0 * (fit2_1 +                      &
-!     &                    fit2_2*x_sl(jjj) +                            &
-!     &                    fit2_3*(x_sl(jjj)**2) +                       &
-!     &                    fit2_4*(x_sl(jjj)**3) +                       &
-!     &                    fit2_5*(x_sl(jjj)**4) +                       &
-!     &                    fit2_6*(x_sl(jjj)**5))
-!                  enddo
+
 !     CB:10-2007 deformation of the jaws scaled with length
                do jjj=1,n_slices+1
                   x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
@@ -27615,13 +27574,7 @@ C Should get me a NaN
      &                 fit2_5*(x_sl(jjj)**4) +                          &
      &                 fit2_6*(x_sl(jjj)**5))
                enddo
-!     Apply the slicing scaling factors (ssf's):
-!     
-!                  do jjj=1,n_slices+1
-!                     y1_sl(jjj) = ssf1 * y1_sl(jjj)
-!                     y2_sl(jjj) = ssf2 * y2_sl(jjj)
-!                  enddo
-!
+
 !     CB:10-2007 coordinates rotated of the tilt 
                   do jjj=1,n_slices+1
                      y1_sl(jjj) = ssf1 * y1_sl(jjj)
@@ -27656,7 +27609,7 @@ C Should get me a NaN
 !     the nominal aperture
 !     Index here must go up to (n_slices+1) in case the last point is the
 !     closest (and also for the later calculation of 'a_tmp1' and 'a_tmp2')
-!
+
 !     SR, 01-09-2005: add the recentring flag, as given in 'fort.3' to
 !     choose whether recentre the deepest point or not
                   max_tmp = 1e6
@@ -27679,7 +27632,7 @@ C Should get me a NaN
                      y2_sl(jjj) = y2_sl(jjj) - max_tmp * recenter2      &
      &                    - 0.5 *c_aperture
                   enddo
-!
+
 !!     Check the collimator jaw surfaces (beam frame, before taking into
 !!     account the azimuthal angle of the collimator)
                   if (firstrun) then
@@ -27690,30 +27643,11 @@ C Should get me a NaN
      &                   db_tilt(icoll,2)
                      enddo
                   endif
-!
-!!     Check the calculation of slice gap and centre
-!                  if (firstrun) then
-!                     write(*,*) 'Verify centre and gap!'
-!                     do jjj=1,n_slices
-!                        if ( angle1(jjj).gt.0d0 ) then
-!                           a_tmp1 = y1_sl(jjj)
-!                        else
-!                           a_tmp1 = y1_sl(jjj+1)
-!                        endif
-!                        if ( angle2(jjj).lt.0d0 ) then
-!                           a_tmp2 = y2_sl(jjj)
-!                        else
-!                           a_tmp2 = y2_sl(jjj+1)
-!                        endif
-!                        write(*,*) a_tmp1 - a_tmp2,
-!     +                       0.5 * ( a_tmp1 + a_tmp2 )
-!                     enddo
-!                  endif
-!
+
 !     Now, loop over the number of slices and call collimate2 each time!
 !     For each slice, the corresponding offset and angle are to be used.
                   do jjj=1,n_slices
-!
+
 !     First calculate aperture and centre of the slice
 !     Note that:
 !     (1)due to our notation for the angle sign,
@@ -27722,7 +27656,7 @@ C Should get me a NaN
 !     (2) New version of 'collimate2' is required: one must pass
 !     the slice number in order the calculate correctly the 's'
 !     coordinate in the impact files.
-!
+
 !     Here, 'a_tmp1' and 'a_tmp2' are, for each slice, the closest
 !     corners to the beam
                         if ( angle1(jjj).gt.0d0 ) then
@@ -27735,21 +27669,9 @@ C Should get me a NaN
                         else
                            a_tmp2 = y2_sl(jjj+1)
                         endif
-!!     Write down the information on slice centre and offset
-!                     if (firstrun) then
-!                        write(*,*) 'Processing slice number ',jjj,
-!     &                       ' of ',n_slices,' for the collimator ',
-!     &                       db_name1(icoll)
-!                        write(*,*) 'Aperture [m]= ',
-!     &                       a_tmp1 - a_tmp2
-!                        write(*,*) 'Offset [m]  = ',
-!     &                       0.5 * ( a_tmp1 + a_tmp2 )
-!                     endif
-!!
+
 !     Be careful! the initial tilt must be added!
 !     We leave it like this for the moment (no initial tilt)
-!                     c_tilt(1) = c_tilt(1) + angle1(jjj)
-!                     c_tilt(2) = c_tilt(2) + angle2(jjj)
                      c_tilt(1) = angle1(jjj)
                      c_tilt(2) = angle2(jjj)
 !     New version of 'collimate2' is required: one must pass the
@@ -27762,7 +27684,7 @@ C Should get me a NaN
 ! -- TW tilt error is added to y1_sl and y2_sl therfore included in 
 ! -- TW angle1 and angle2 no additinal changes needed 
 ! -- TW offset error directly added to call of collimate2
-!
+
 ! --- TW JUNE08 
                      if (firstrun) then
                         write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')         &
@@ -27788,18 +27710,6 @@ C Should get me a NaN
      &                    part_linteract, onesided, flukaname,          &
      &                    secondary,                                    &
      &                    jjj, nabs_type)
-!                     do ijk=1,npart
-!                        if ( part_hit(ijk).eq. (10000*ie + iturn)) then
-
-!!                    Some checks....
-!                     do ijk=1,npart
-!                        if ( part_hit(ijk).eq. (10000*ie + iturn)) then
-!                           write(*,*) 'INFOijk',
-!     +                          ijk, jjj, db_name1(icoll),
-!     +                          part_abs(ijk), rcx(ijk), rcy(ijk),
-!     +                          rcp(ijk), rcs(ijk)
-!                        endif
-!                     enddo
                   enddo
                else
 !     Treatment of non-sliced collimators
@@ -27810,11 +27720,21 @@ C Should get me a NaN
      &                 part_impact, part_indiv, part_linteract,         &
      &                 onesided, flukaname, secondary, 1, nabs_type)    &
                endif
-!
+
 ! end of check for RHIC
                endif
+
 ! end of check for 'found'
           endif
+
+
+
+
+
+
+
+!!!!!!!This should go in the post-collimator function
+
 
 !++  Output information:
 !++
@@ -27825,29 +27745,18 @@ C Should get me a NaN
 !------------------------------------------------------------------------------
 !++  Calculate average impact parameter and save info for all
 !++  collimators. Copy information back and do negative drift.
-!
           n_impact = 0
           n_absorbed = 0
           sum      = 0d0
           sqsum    = 0d0
-!
-!APRIL2005 COMMENTED OUT TO AVOID RESET
-!          do j=1,max_ncoll
-!            cn_impact(j) = zero
-!            csum(j) = zero
-!            csqsum(j) = zero
-!          enddo
-!APRIL2005
+
 !++  Copy particle data back and do path length stuff; check for absorption
 !++  Add orbit offset back.
+          do j = 1, napx
 
-            do j = 1, napx
-
-!APRIL2005
 !APRIL2005 IN ORDER TO GET RID OF NUMERICAL ERRORS, JUST DO THE TREATMENT FOR
 !APRIL2005 IMPACTING PARTICLES...
             if (part_hit(j).eq.(10000*ie+iturn)) then
-!APRIL2005
 !++  For zero length element track back half collimator length
 ! DRIFT PART
               if (stracki.eq.0.) then
@@ -27877,9 +27786,8 @@ C Should get me a NaN
               dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
               yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j)
               yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j)
-!APRIL2005
+
 !APRIL2005 ...OTHERWISE JUST GET BACK FORMER COORDINATES
-!APRIL2005
             else
               xv(1,j) = rcx0(j)*1d3+torbx(ie)
               yv(1,j) = rcxp0(j)*1d3+torbxp(ie)
@@ -27951,11 +27859,10 @@ C Should get me a NaN
               endif
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
-              if (dowritetracks) then
-                if(part_abs(j).eq.0) then
-        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)    &
+      if (dowritetracks) then
+        if(part_abs(j).eq.0) then
+          if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)  &
      & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
-
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
      &(                                                                 &
      &((                                                                &
@@ -27972,6 +27879,7 @@ C Should get me a NaN
      &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
      &.ge.sigsecut3)                                                    &
      &) ) then
+
           xj     = (xv(1,j)-torbx(ie))/1d3
           xpj    = (yv(1,j)-torbxp(ie))/1d3
           yj     = (xv(2,j)-torby(ie))/1d3
@@ -28018,27 +27926,22 @@ C Should get me a NaN
      &xv(2,j)+0.5*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
      &secondary(j)+tertiary(j)+other(j)
 +ei
+          endif
         endif
-              endif
-            endif
+      endif
 
 !++  Calculate impact observables, fill histograms, save collimator info, ...
-!
               n_impact = n_impact + 1
               sum = sum + part_impact(j)
               sqsum = sqsum + part_impact(j)**2
-!
               cn_impact(icoll) = cn_impact(icoll) + 1
               csum(icoll) = csum(icoll) + part_impact(j)
               csqsum(icoll) = csqsum(icoll) + part_impact(j)**2
-!
+
 !++  If the interacting particle was lost, add-up counters for absorption
 !++  Note: a particle with x/y >= 99. never hits anything any more in
 !++        the logic of this program. Be careful to always fulfill this!
-!
-!              if (xv(1,j).gt.99d0 .or. xv(2,j).gt.99d0) then
               if (part_abs(j).ne.0) then
-!              if (xgrd(j).gt.99 .or. ygrd(j).gt.99) then
                 n_absorbed = n_absorbed + 1
                 cn_absorbed(icoll) = cn_absorbed(icoll) + 1
                 n_tot_absorbed = n_tot_absorbed + 1
@@ -28053,12 +27956,7 @@ C Should get me a NaN
 
 !++  End of check for hit this turn and element
             endif
-
-!++  Now copy the new particle momenta
-!
-!            XPgrd(J) = RCXP(j)
-!            YPgrd(J) = RCYP(j)
-          end do
+          end do ! end do j = 1, napx
 
 !++  Calculate statistical observables and save into files...
           if (n_impact.gt.0) then
@@ -28192,7 +28090,6 @@ C Should get me a NaN
             do 23 j=1,napx
                 xv(1,j)=xv(1,j)+stracki*yv(1,j)
                 xv(2,j)=xv(2,j)+stracki*yv(2,j)
-!APRIL2005
 +if rvet
             rvet(j)=c1e3*pma*pma*(two+dpsv(j))*dpsv(j)/e0/(one+dpsv(j))
             rvet(j)=rvet(j)/(e0*(one+dpsv(j))+                          &
@@ -28235,60 +28132,20 @@ C Should get me a NaN
      &2d0*talphay(ie)*yj*ypj +                                          &
      &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
-!                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
-!                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
                 sum_ax(ie)   = sum_ax(ie) + nspx
                 sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
                 sum_ay(ie)   = sum_ay(ie) + nspy
                 sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
                 nampl(ie)    = nampl(ie) + 1
-!                sampl(ie)    = totals
-!                ename(ie)    = bez(myix)(1:16)
               else
                 nspx = 0d0
                 nspy = 0d0
               endif
                 sampl(ie)    = totals
                 ename(ie)    = bez(myix)(1:16)
-!APRIL2005
+
  23           continue
-!!JUNE2005
-!      do j=1,napx
-!!         write(*,*) 'check:',xv(1,j),xv(2,j)
-!!         read(*,*)
-!         if(part_abs(j).eq.0) then
-!!
-!         if((xv(1,j).ge.40d0).or.(xv(2,j).ge.40d0).or.                  &
-!     &      (xv(1,j).le.-40d0).or.(xv(2,j).le.-40d0)) then
-!!GRD+KAD here we dump the location within RHIC where any one transvere
-!!GRD+KAD dimension of the beam gets bigger than 4 cm => kind of like a
-!!GRD+KAD raw aperture check to obtain loss maps...
-!           write(555,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')         &
-!     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
-!     &xv(1,j),yv(1,j),                                                  &
-!     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
-!     &secondary(j)+tertiary(j)+other(j)
-!!GRD+KAD then we just delete the particle from the tracking, so as not to have
-!!GRD+KAD strange values for the impact parameter and have losses at other crazy
-!!GRD+KAD locations
-!!AUGUST2005 comment that out for LHC studies
-!!           xv(1,j) = 0d0
-!!           yv(1,j) = 0d0
-!!           xv(2,j) = 0d0
-!!           yv(2,j) = 0d0
-!!           ejv(j)  = myenom
-!!           sigmv(j)= 0d0
-!!           part_abs(j) = 10000*ie + iturn
-!!           secondary(j) = 0
-!!           tertiary(j)  = 0
-!!           other(j) = 0
-!!AUGUST2005
-!         endif
-!!
-!         endif
-!!
-!      enddo
-!!JUNE2005
+
           endif
           goto 650
 
@@ -28738,26 +28595,22 @@ C Should get me a NaN
 +ei
 
   640     continue
-!GRD
 !GRD UPGRADE JANUARY 2005
-!GRD
 +if collimat
       if (firstrun) then
         if (rselect.gt.0 .and. rselect.lt.65) then
           do j = 1, napx
-!
             xj     = (xv(1,j)-torbx(ie))/1d3
             xpj    = (yv(1,j)-torbxp(ie))/1d3
             yj     = (xv(2,j)-torby(ie))/1d3
             ypj    = (yv(2,j)-torbyp(ie))/1d3
             pj     = ejv(j)/1d3
-!GRD
+
             if (iturn.eq.1.and.j.eq.1) then
               sum_ax(ie)=0d0
               sum_ay(ie)=0d0
             endif
-!GRD
-!
+
             if (tbetax(ie).gt.0.) then
               gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
               gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
@@ -28765,7 +28618,7 @@ C Should get me a NaN
               gammax = (1d0 + talphax(ie-1)**2)/tbetax(ie-1)
               gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
             endif
-!
+
             if (part_abs(j).eq.0) then
               if(tbetax(ie).gt.0.) then
                 nspx    = sqrt(                                         &
@@ -28790,14 +28643,12 @@ C Should get me a NaN
      &               tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &               )
               endif
-!
+
               sum_ax(ie)   = sum_ax(ie) + nspx
               sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
               sum_ay(ie)   = sum_ay(ie) + nspy
               sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
               nampl(ie)    = nampl(ie) + 1
-!              sampl(ie)    = totals
-!              ename(ie)    = bez(myix)(1:16)
             else
               nspx = 0d0
               nspy = 0d0
@@ -28807,19 +28658,18 @@ C Should get me a NaN
           end do
         endif
       endif
-!GRD
+
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
-!GRD
           if (dowritetracks) then
             do j = 1, napx
               xj     = (xv(1,j)-torbx(ie))/1d3
               xpj    = (yv(1,j)-torbxp(ie))/1d3
               yj     = (xv(2,j)-torby(ie))/1d3
               ypj    = (yv(2,j)-torbyp(ie))/1d3
-!
+
               arcdx = 2.5d0
               arcbetax = 180d0
-!
+
                 if (xj.le.0.) then
                   xdisp = xj + (pj-myenom)/myenom * arcdx               &
      &* sqrt(tbetax(ie)/arcbetax)
@@ -28840,29 +28690,21 @@ C Should get me a NaN
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
      &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
-!
-!
-!
-!MAY2005
+
          if(part_abs(j).eq.0) then
-!MAY2005
          if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
      & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
-!GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-!GRD                                                                    &
      &(
      &((
      &(xv(1,j)*1d-3)**2
      &/
      &(tbetax(ie)*myemitx0_collgap)
-!     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.
      &((
      &(xv(2,j)*1d-3)**2
      &/
      &(tbetay(ie)*myemity0_collgap)
-!     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.
      &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
      &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
@@ -28873,8 +28715,6 @@ C Should get me a NaN
                 yj     = (xv(2,j)-torby(ie))/1d3
                 ypj    = (yv(2,j)-torbyp(ie))/1d3
 +if hdf5
-!       INTEGER hdfturn,hdfpid,hdftyp
-!       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
        hdfpid=ipart(j)+100*samplenumber
        hdfturn=iturn
        hdfs=sampl(ie)
@@ -28897,56 +28737,12 @@ C Should get me a NaN
               endif
          endif
             end do
-!JUNE2005
-!      endif
-!!JUNE2005
-!      do j=1,napx
-!!         write(*,*) 'check:',xv(1,j),xv(2,j)
-!!         read(*,*)
-!         if((xv(1,j).ge.40d0).or.(xv(2,j).ge.40d0).or.                  &
-!     &      (xv(1,j).le.-40d0).or.(xv(2,j).le.-40d0)) then
-!!GRD+KAD here we dump the location within RHIC where any one transvere
-!!GRD+KAD dimension of the beam gets bigger than 4 cm => kind of like a
-!!GRD+KAD raw aperture check to obtain loss maps...
-!           write(555,'(1x,i8,1x,i4,1x,f8.2,5(1x,e11.3),1x,i4)')         &
-!     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
-!     &xv(1,j),yv(1,j),                                                  &
-!     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
-!     &secondary(j)+tertiary(j)+other(j)
-!!GRD+KAD then we just delete the particle from the tracking, so as not to have
-!!GRD+KAD strange values for the impact parameter and have losses at other crazy
-!!GRD+KAD locations
-!!AUGUST2005 comment that out for LHC studies
-!!           xv(1,j) = 0d0
-!!           yv(1,j) = 0d0
-!!           xv(2,j) = 0d0
-!!           yv(2,j) = 0d0
-!!           ejv(j)  = myenom
-!!           sigmv(j)= 0d0
-!!           part_abs(j) = 10000*ie + iturn
-!!           secondary(j) = 0
-!!           tertiary(j)  = 0
-!!           other(j) = 0
-!!AUGUST2005
-!         endif
-!      enddo
+
 !!JUNE2005 here I close the "if(dowritetracks)" outside of the firstrun flag
       endif
 !JUNE2005
 +ei
-!GRD
 !GRD END OF UPGRADE
-!GRD
-
-!A.Megreghetti & K.Sjobak:
-!This code is pointless: If collimat is true,
-! then the only effect is to skip dumplines, which is new.
-! Thus before the addition of dumplines, it was basically a NOP.
-!+if collimat
-!          kpz=abs(kp(ix))
-!          if(kpz.eq.0) goto 650
-!          if(kpz.eq.1) goto 650
-!+ei
 
 +if .not.collimat
 +ca lostpart
@@ -28958,30 +28754,29 @@ C Should get me a NaN
 
  650  continue !END loop over structure elements
 
-!GRD
+
+!!! END TURN
+
 !UPGRADE JANUARY 2005
-!GRD
 +if collimat
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
-!
+
 !++  Save twiss functions of present element
-!
         ax0  = talphax(ie)
         bx0  = tbetax(ie)
         mux0 = mux(ie)
         ay0  = talphay(ie)
         by0  = tbetay(ie)
         muy0 = muy(ie)
-!GRD
+
 !GRD GET THE COORDINATES OF THE PARTICLES AT THE IEth ELEMENT:
-!GRD
         do j = 1,napx
               xgrd(j)  = xv(1,j)
               xpgrd(j) = yv(1,j)
               ygrd(j)  = xv(2,j)
               ypgrd(j) = yv(2,j)
-!
+
               xineff(j)  = xv(1,j)                                      &
      &- torbx(ie)
               xpineff(j) = yv(1,j)                                      &
@@ -28990,7 +28785,7 @@ C Should get me a NaN
      &- torby(ie)
               ypineff(j) = yv(2,j)                                      &
      &- torbyp(ie)
-!
+
               pgrd(j)  = ejv(j)
 !APRIL2005
               ejfvgrd(j) = ejfv(j)
@@ -29007,10 +28802,9 @@ C Should get me a NaN
               ygrd(j)  = 99.5d0
            endif
         end do
-!
+
 !++  For LAST ELEMENT in the ring calculate the number of surviving
 !++  particles and save into file versus turn number
-!
         if (ie.eq.iu) then
           nsurvive = 0
           do j = 1, napx
@@ -29018,70 +28812,49 @@ C Should get me a NaN
               nsurvive = nsurvive + 1
             endif
           end do
+
           write(44,'(2i7)') iturn, nsurvive
-!GRD
           if (iturn.eq.numl) then
             nsurvive_end = nsurvive_end + nsurvive
           endif
-!GRD
         endif
-!
+
 !=======================================================================
 !++  Do collimation analysis at element 20 ("zero" turn) or LAST
 !++  ring element.
-!
+
 !++  If selecting, look at number of scattered particles at selected
 !++  collimator. For the "zero" turn consider the information at element
 !++  20 (before collimation), otherwise take information at last ring
 !++  element.
-!
         if (do_coll .and.                                               &
      &(  (iturn.eq.1 .and. ie.eq.20) .or.                               &
      &(ie.eq.iu)  )    ) then
-!
+
 !++  Calculate gammas
 !------------------------------------------------------------------------
-!
           gammax = (1 + talphax(ie)**2)/tbetax(ie)
           gammay = (1 + talphay(ie)**2)/tbetay(ie)
-!
+
 !________________________________________________________________________
 !++  Loop over all particles.
-!
           do j = 1, napx
-!
-!------------------------------------------------------------------------
-!++  Save initial distribution of particles that were scattered on
-!++  the first turn at the selected primary collimator
-!
-!            IF (DOWRITE_DIST .AND. DO_SELECT .AND. ITURN.EQ.1 .AND.
-!     &          PART_SELECT(j).EQ.1) THEN
-!              WRITE(987,'(4(1X,E15.7))') X00(J), XP00(J),
-!     &                                        Y00(J), YP00(J)
-!            ENDIF
 !------------------------------------------------------------------------
 !++  Do the binning in amplitude, only considering particles that were
 !++  not absorbed before.
-!
+
             if (xgrd(j).lt.99d0 .and. ygrd(j) .lt.99d0 .and.            &
      &(part_select(j).eq.1 .or. ie.eq.20)) then
-!
+
 !++  Normalized amplitudes are calculated
-!
+
 !++  Allow to apply some dispersive offset. Take arc dispersion (2m) and
 !++  normalize with arc beta_x function (180m).
-!
-!              ARCDX    = 0
               arcdx    = 2.5d0
               arcbetax = 180d0
               xdisp = abs(xgrd(j)*1d-3) +                               &
      &abs((pgrd(j)-myenom)/myenom)*arcdx                                &
      &* sqrt(tbetax(ie)/arcbetax)
-!              IF (ABS(P(j)-ENOM).GT.7000.)
-!     1             write(OUTLUN,*) XDISP, X(j), ABS((P(j)-ENOM)/ENOM),
-!     1             ABS((P(j)-ENOM)/ENOM) * ARCDX
-!     2             * sqrt(BX(ie)/ARCBETAX), sqrt(BX(ie)*EMITX0)
-!
               nspx    = sqrt(                                           &
      &abs(gammax*xdisp**2 +                                             &
      &2d0*talphax(ie)*xdisp*(xpgrd(j)*1d-3)+                            &
@@ -29092,14 +28865,12 @@ C Should get me a NaN
      &2d0*talphay(ie)*(ygrd(j)*1d-3*ypgrd(j)*1d-3)                      &
      &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0_collgap
      &)
-!
+
 !++  Populate the efficiency arrays at the end of each turn...
 ! Modified by M.Fiascaris, July 2016
-!
               if (ie.eq.iu) then
                 do ieff = 1, numeff
                   if (counted_r(j,ieff).eq.0 .and.                      &
-!GRD     &SQRT(NSPX**2+NSPY**2).GE.RSIG(IEFF)) THEN
      &sqrt(                                                             &
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
@@ -29113,7 +28884,7 @@ C Should get me a NaN
      &).ge.rsig(ieff)) then
                     neff(ieff) = neff(ieff)+1d0
                     counted_r(j,ieff)=1
-        endif
+                  endif
 
 !++ 2D eff
         do ieffdpop =1, numeffdpop
@@ -29124,9 +28895,7 @@ C Should get me a NaN
           endif
         end do
 
-
-                  if (counted_x(j,ieff).eq.0 .and.                      &
-!GRD     &NSPX.GE.RSIG(IEFF)) THEN
+        if (counted_x(j,ieff).eq.0 .and.                                &
      &sqrt(                                                             &
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
@@ -29135,46 +28904,42 @@ C Should get me a NaN
      &).ge.rsig(ieff)) then
                     neffx(ieff) = neffx(ieff) + 1d0
                     counted_x(j,ieff)=1
-                  endif
-!
-                  if (counted_y(j,ieff).eq.0 .and.
-!GRD     1                      NSPY.GE.RSIG(IEFF)) THEN                &
+        endif
+
+        if (counted_y(j,ieff).eq.0 .and.
      &sqrt(                                                             &
      &((yineff(j)*1d-3)**2 +                                            &
      & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
      &(tbetay(ie)*myemity0_collgap)                                     &
      &).ge.rsig(ieff)) then
-                    neffy(ieff) = neffy(ieff) + 1d0
-                    counted_y(j,ieff)=1
-                  endif
-!
-                end do
-	        do ieffdpop = 1, numeffdpop
-	          if (counteddpop(j,ieffdpop).eq.0) then
-	          dpopmin = 0d0
-	          mydpop = abs((ejv(j)-myenom)/myenom)
-	          if (ieffdpop.gt.1) dpopmin = dpopbins(ieffdpop-1)
-	          dpopmax = dpopbins(ieffdpop)
-	          if (mydpop.ge.dpopmin .and. mydpop.lt.mydpop) then
-	                npartdpop(ieffdpop)=npartdpop(ieffdpop)+1
-	                endif
-	          endif
-!
-		  if (counteddpop(j,ieffdpop).eq.0 .and.                
-     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then
-	          neffdpop(ieffdpop) = neffdpop(ieffdpop)+1d0
-	          counteddpop(j,ieffdpop)=1
-	          endif
-		end do
+          neffy(ieff) = neffy(ieff) + 1d0
+          counted_y(j,ieff)=1
+        endif
+      end do !do ieff = 1, numeff
+
+            do ieffdpop = 1, numeffdpop
+              if (counteddpop(j,ieffdpop).eq.0) then
+                dpopmin = 0d0
+                mydpop = abs((ejv(j)-myenom)/myenom)
+                if (ieffdpop.gt.1) dpopmin = dpopbins(ieffdpop-1)
+                  dpopmax = dpopbins(ieffdpop)
+                if (mydpop.ge.dpopmin .and. mydpop.lt.mydpop) then
+                   npartdpop(ieffdpop)=npartdpop(ieffdpop)+1
+                endif
               endif
-!
+
+             if (counteddpop(j,ieffdpop).eq.0 .and.
+     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then
+               neffdpop(ieffdpop) = neffdpop(ieffdpop)+1d0
+               counteddpop(j,ieffdpop)=1
+             endif
+            end do
+          endif
+
 !++  Do an emittance drift
-!
               driftx = driftsx*sqrt(tbetax(ie)*myemitx0_collgap)
               drifty = driftsy*sqrt(tbetay(ie)*myemity0_collgap)
-!              DRIFTX = 0e-6
-!              DRIFTY = 1e-6
               if (ie.eq.iu) then
                 dnormx  = driftx / sqrt(tbetax(ie)*myemitx0_collgap)
                 dnormy  = drifty / sqrt(tbetay(ie)*myemity0_collgap)
@@ -29205,9 +28970,7 @@ C Should get me a NaN
      &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
                 xpgrd(j)  = 1000d0 *
      &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
-!     &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
-!
 
                 ynorm  = (ygrd(j)*1d-3)
      &               / sqrt(tbetay(ie)*myemity0_collgap)
@@ -29236,29 +28999,24 @@ C Should get me a NaN
      &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
                 ypgrd(j)  = 1000d0 * 
      &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
-!     &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
      &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
-!
+
                 endif
-!
+
 !------------------------------------------------------------------------
 !++  End of check for selection flag and absorption
-!
             endif
-!
+
 !++  End of do loop over particles
-!
           end do
-!
+
 !_________________________________________________________________
 !
 !++  End of collimation efficiency analysis for selected particles
-!
         end if
 !------------------------------------------------------------------
 !++  For LAST ELEMENT in the ring compact the arrays by moving all
 !++  lost particles to the end of the array.
-!
         if (ie.eq.iu) then
           imov = 0
           do j = 1, napx
@@ -29269,38 +29027,28 @@ C Should get me a NaN
               xpgrd(imov)          = xpgrd(j)
               ypgrd(imov)          = ypgrd(j)
               pgrd(imov)           = pgrd(j)
-!APRIL2005
               ejfvgrd(imov)        = ejfvgrd(j)
               sigmvgrd(imov)       = sigmvgrd(j)
               rvvgrd(imov)         = rvvgrd(j)
               dpsvgrd(imov)        = dpsvgrd(j)
               oidpsvgrd(imov)      = oidpsvgrd(j)
               dpsv1grd(imov)       = dpsv1grd(j)
-!APRIL2005
               part_hit(imov)    = part_hit(j)
               part_abs(imov)    = part_abs(j)
               part_select(imov) = part_select(j)
               part_impact(imov) = part_impact(j)
               part_indiv(imov)  = part_indiv(j)
               part_linteract(imov)  = part_linteract(j)
-!APRIL2005
               part_hit_before(imov) = part_hit_before(j)
-!APRIL2005
-!GRD
               secondary(imov) = secondary(j)
               tertiary(imov) = tertiary(j)
               other(imov) = other(j)
               nabs_type(imov) = nabs_type(j)
-!GRD
 !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-!GRD
               ipart(imov) = ipart(j)
-!MAY2005
               flukaname(imov) = flukaname(j)
 !KNS: Also compact nlostp (used for standard LOST calculations + output)
               nlostp(imov) = nlostp(j)
-!MAY2005
-!GRD
               do ieff = 1, numeff
                 counted_r(imov,ieff) = counted_r(j,ieff)
                 counted_x(imov,ieff) = counted_x(j,ieff)
@@ -29312,29 +29060,25 @@ C Should get me a NaN
      &napx, ' -->  ', imov, ", turn =",iturn
           napx = imov
         endif
-!GRD
-!
+
 !------------------------------------------------------------------------
-!
 !++  Write final distribution
-!
       if (dowrite_dist.and.(ie.eq.iu).and.(n.eq.numl)) then
         open(unit=9998, file='distn.dat')
         write(9998,*)
      &'# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
+
         do j = 1, napx
           write(9998,'(6(1X,E15.7))') (xgrd(j)-torbx(1))/1d3,           &
      &(xpgrd(j)-torbxp(1))/1d3, (ygrd(j)-torby(1))/1d3,                 &
      &(ypgrd(j)-torbyp(1))/1d3,sigmvgrd(j),ejfvgrd(j)
-!     2             , S(J)
         end do
+
         close(9998)
       endif
-!
-!GRD
+
 !GRD NOW ONE HAS TO COPY BACK THE NEW DISTRIBUTION TO ITS "ORIGINAL NAME"
 !GRD AT THE END OF EACH TURN
-!GRD
       if (ie.eq.iu) then
          do j = 1,napx
             xv(1,j) = xgrd(j)
@@ -29342,35 +29086,28 @@ C Should get me a NaN
             xv(2,j) = ygrd(j)
             yv(2,j) = ypgrd(j)
             ejv(j)  = pgrd(j)
-!APRIL2005
             ejfv(j)   = ejfvgrd(j)
             sigmv(j)  = sigmvgrd(j)
             rvv(j)    = rvvgrd(j)
             dpsv(j)   = dpsvgrd(j)
             oidpsv(j) = oidpsvgrd(j)
             dpsv1(j)  = dpsv1grd(j)
-!APRIL2005
          end do
       endif
-!GRD
+
          if (firstrun) then
        if (rselect.gt.0 .and. rselect.lt.65) then
             do j = 1, napx
-!
               xj     = (xv(1,j)-torbx(ie))/1d3
               xpj    = (yv(1,j)-torbxp(ie))/1d3
               yj     = (xv(2,j)-torby(ie))/1d3
               ypj    = (yv(2,j)-torbyp(ie))/1d3
               pj     = ejv(j)/1d3
-!GRD
               if (iturn.eq.1.and.j.eq.1) then
-              sum_ax(ie)=0d0
-              sum_ay(ie)=0d0
+                sum_ax(ie)=0d0
+                sum_ay(ie)=0d0
               endif
 
-
-!GRD
-!
               if (tbetax(ie).gt.0.) then
           gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
                 gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
@@ -29391,8 +29128,6 @@ C Should get me a NaN
      &2d0*talphay(ie)*yj*ypj +                                          &
      &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
-!                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
-!                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
                 else
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
@@ -29405,7 +29140,6 @@ C Should get me a NaN
      &tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &)
                 endif
-!
                 sum_ax(ie)   = sum_ax(ie) + nspx
                 sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
                 sum_ay(ie)   = sum_ay(ie) + nspy
@@ -29420,19 +29154,17 @@ C Should get me a NaN
             end do
           endif
          endif
-!GRD
+
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
-!GRD
           if (dowritetracks) then
             do j = 1, napx
               xj     = (xv(1,j)-torbx(ie))/1d3
               xpj    = (yv(1,j)-torbxp(ie))/1d3
               yj     = (xv(2,j)-torby(ie))/1d3
               ypj    = (yv(2,j)-torbyp(ie))/1d3
-!
               arcdx = 2.5d0
               arcbetax = 180d0
-!
+
                 if (xj.le.0.) then
                   xdisp = xj + (pj-myenom)/myenom * arcdx               &
      &* sqrt(tbetax(ie)/arcbetax)
@@ -29440,6 +29172,7 @@ C Should get me a NaN
                   xdisp = xj - (pj-myenom)/myenom * arcdx               &
      &* sqrt(tbetax(ie)/arcbetax)
                 endif
+
                 xndisp = xj
                 nspxd   = sqrt(                                         &
      &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
@@ -29453,29 +29186,21 @@ C Should get me a NaN
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
      &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
-!
-!
-!
-!MAY2005
+
          if(part_abs(j).eq.0) then
-!MAY2005
         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
      &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
-!GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-!GRD                                                                    &
      &(
      &((
      &(xv(1,j)*1d-3)**2
      &/
      &(tbetax(ie)*myemitx0_collgap)
-!     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.
      &((
      &(xv(2,j)*1d-3)**2
      &/
      &(tbetay(ie)*myemity0_collgap)
-!     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.
      &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
      &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
@@ -29486,8 +29211,6 @@ C Should get me a NaN
                 yj     = (xv(2,j)-torby(ie))/1d3
                 ypj    = (yv(2,j)-torbyp(ie))/1d3
 +if hdf5
-!       INTEGER hdfturn,hdfpid,hdftyp
-!       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
        hdfpid=ipart(j)+100*samplenumber
        hdfturn=iturn
        hdfs=sampl(ie)
@@ -29504,45 +29227,24 @@ C Should get me a NaN
        write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
      &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
      &xv(1,j),yv(1,j),                                                  &
-!     &xv(2,j),yv(2,j)
      &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
      &secondary(j)+tertiary(j)+other(j)
 +ei
+                endif
               endif
-!GRD
-!GRD-SR,09-02-2006 => freeing unit, file no longer needed
-!              if ((tertiary(j).eq.2) .and.                              &
-!     &(xv(1,j).lt.99d0 .and. xv(2,j) .lt.99d0) ) then
-!                xj     = (xv(1,j)-torbx(ie))/1d3
-!                xpj    = (yv(1,j)-torbxp(ie))/1d3
-!                yj     = (xv(2,j)-torby(ie))/1d3
-!                ypj    = (yv(2,j)-torbyp(ie))/1d3
-!                write(39,'(1x,i8,1x,i4,1x,f8.2,4(1x,e11.3))')           &
-!     &ipart(j)+100*samplenumber,                                        &
-!     &iturn,sampl(ie),xv(1,j),yv(1,j),xv(2,j),yv(2,j)
-!     2          ITURN,SAMPL(ie),XJ,XPJ,YJ,YPJ
-!              endif
-!GRD-SR,09-02-2006
-!MAY2005
-         endif
-!MAY2005
             end do
           endif
-!GRD
-!            END DO
-!          ENDIF
-!      ENDIF
-!GRD
 !=======================================================================
 +ei
 !GRD END OF UPGRADE
-!GRD
+
 +if .not.collimat
         call lostpart(nthinerr)
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
         if(mod(n,nwr(4)).eq.0) call write6(n)
 +ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -29552,18 +29254,20 @@ C Should get me a NaN
 !GRDRHIC
 !GRD-042008
 +ei
+
   660 continue
+
 +if collimat
       close(99)
       close(53)
-!GRD
+
 !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
-!GRD
       firstrun = .false.
 +ei
+
       return
       end
-!
+
 !==============================================================================
 !
       subroutine thin6dua(nthinerr)
@@ -43416,7 +43120,7 @@ c$$$            endif
           write(lout,*)
           if(abs(dble(rmsx)-sigma0(1)).lt.dsi.and.                      &!hr06
      &       abs(dble(rmsz)-sigma0(2)).lt.dsi)                          &!hr06
-     &goto 190                                                         
+     &goto 190
   180   continue
       endif
       if((ii-1).eq.itco) write(lout,10130) itco
@@ -53962,6 +53666,7 @@ c$$$            endif
 ! collimate_init()
 ! collimate_start_sample()
 ! collimate_start_turn()
+! collimate_each_element()
 ! collimate_start_collimator()
 ! collimate_do_collimator()
 ! collimate_end_collimator()
@@ -55045,6 +54750,25 @@ c$$$            endif
       end do
       close(99)
       end
+
+!>
+!! This routine is called at the start of each tracking turn
+!<
+      subroutine collimate_start_turn()
+      implicit none
+!+ca info
+!+ca dbthin6d
+!        iturn=n
+!        totals=0d0
+      end
+
+!>
+!! This routine is called at the start of every element
+!<
+      subroutine collimate_each_element()
+      implicit none
+      end
+
 
 !>
 !! "Merlin" scattering collimation configuration
@@ -57311,7 +57035,7 @@ c$$$          endif
       end if
 !
 !++  Otherwise do multi-coulomb scattering.
-!++  REGULAR STEP IN ITERATION LOOP                                   
+!++  REGULAR STEP IN ITERATION LOOP
 !
       call mcs(s)
 !
