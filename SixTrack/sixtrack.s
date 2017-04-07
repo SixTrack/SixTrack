@@ -25408,7 +25408,7 @@ C Should get me a NaN
           call thin6dua(nthinerr)
         else
 +if collimat
-      call collimate_init
+          call collimate_init
 !================================================================================
 !Ralph make loop over 1e6/napx, a read xv(1,j) etc
 !Du solltest zur Sicherheit dies resetten bevor Du in thin6d gehst
@@ -25418,34 +25418,30 @@ C Should get me a NaN
 !        nnumxv(i)=numl
 !   80 numxv(i)=numl
 !================================================================================
-      do j = 1, int(mynp/napx00)
-        write(lout,*) 'Sample number ', j, int(mynp/napx00)
+          do j = 1, int(mynp/napx00)
+            write(lout,*) 'Sample number ', j, int(mynp/napx00)
 
-        call collimate_start_sample
+            call collimate_start_sample
 
-        write(lout,*) ''
-        write(lout,*) 'Calling thin6d subroutine'
-        write(lout,*) ''
-        call thin6d(nthinerr)
+            write(lout,*) ''
+            write(lout,*) 'Calling thin6d subroutine'
+            write(lout,*) ''
+            call thin6d(nthinerr)
 
-        call collimate_end_sample
+            call collimate_end_sample
 
-      end do
-!********************************************************************
-! THIS IS THE END OF THE 'DO' LOOP OVER THE thin6d SUBROUTINE  !!!!!
-!********************************************************************
-        endif !end if(abs(phas).ge.pieni) then
-      endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
-
-      call collimate_exit
+          end do
 +ei ! endif collimat
 +if .not.collimat
           write(lout,*) ''
           write(lout,*) 'Calling thin6d subroutine'
           write(lout,*) ''
           call thin6d(nthinerr)
++ei
         endif !end if(abs(phas).ge.pieni) then
       endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
++if collimat
+      call collimate_exit
 +ei
       return
       end
@@ -26109,7 +26105,7 @@ C Should get me a NaN
 !++  are saved in memory to use exactly the same info for each sample.
 !++  COMMON block to decide for first usage and to save coll info.
       if (firstrun) then
-
+      !Reading of collimation database moved to subroutine collimate_init
 +if beamgas
 !YIL call beam gas initiation routine
       call beamGasInit(myenom)
@@ -26145,7 +26141,8 @@ C Should get me a NaN
       rnd_lux = 3
       rnd_k1  = 0
       rnd_k2  = 0
-      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)         
+      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
+!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
 
 ! reset counter to assure starting at the same position in case of
 ! using rndm5 somewhere else in the code before
@@ -26207,6 +26204,8 @@ C Should get me a NaN
 !++  Keep all collimator database info and errors in memeory (COMMON
 !++  block) in order to re-use exactly the same information for every
 !++  sample and throughout a all run.
+!         if (c_rmserror_gap.gt.0.) then
+!            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
             do icoll = 1, db_ncoll 
                gap_rms_error(icoll) = c_rmserror_gap * myran_gauss(3d0)
                write(outlun,*) 'INFO>  gap_rms_error: ',                &
@@ -26577,7 +26576,8 @@ C Should get me a NaN
 +if collimat
         call collimate_start_turn
         iturn=n
-        totals=0d0
+        totals=0d0 !This keeps track of the s position of the current element,
+                   ! which is also done by cadcum
 +ei
         numx=n-1
 
@@ -26698,6 +26698,8 @@ C Should get me a NaN
           else
             myktrack = ktrack(i)
           endif
+!          write(*,*) 'ralph>  Element name: ', bez(myix), ktrack(i),
+!     &                myktrack
 +ei
 +if .not.collimat
 !---------count:44
@@ -26720,6 +26722,11 @@ C Should get me a NaN
      &         757,760,761),ktrack(i)
 +ei
 +if collimat
+!          if (myktrack .eq. 1) then !BLOCK of linear elements
+!             write (*,*) "Kick for element", i,ix, "[BLOCK]"
+!          else
+!             write(*,*) "Kick for element", i,ix,bez(ix),myktrack,kp(ix)
+!          endif
           goto(10,  30, 740, 650, 650, 650, 650, 650, 650, 650, !1-10
      &         50,  70,  90, 110, 130, 150, 170, 190, 210, 230, !11-20
      &        440, 460, 480, 500, 520, 540, 560, 580, 600, 620, !21-30
@@ -26742,6 +26749,7 @@ C Should get me a NaN
 !Ralph drift length is stracki
 !bez(ix) is name of drift
           totals=totals+stracki
+!          write(*,*) 'ralph> Drift, total length: ', stracki,totals
 !________________________________________________________________________
 !++  If we have a collimator then...
 !
@@ -26982,7 +26990,9 @@ C Should get me a NaN
 
 !++ For known collimators
        if (found) then
+!-----------------------------------------------------------------------
 !GRD NEW COLLIMATION PARAMETERS
+!-----------------------------------------------------------------------
 !++  Get the aperture from the beta functions and emittance
 !++  A simple estimate of beta beating can be included that
 !++  has twice the betatron phase advance
@@ -27007,7 +27017,7 @@ C Should get me a NaN
             scale_by0 = scale_by
             firstcoll = .false.
           endif
-
+!-------------------------------------------------------------------
 !++  Assign nominal OR design beta functions for later
           if (do_nominal) then
             bx_dist = db_bx(icoll) * scale_bx / scale_bx0
@@ -27150,6 +27160,37 @@ C Should get me a NaN
      &              -1d0 * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)
      &                   * ymax / sqrt(myemity0_collgap*tbetay(ie))
 
+! that the way xp is calculated for makedis subroutines !!!!
+!        if (rndm4().gt.0.5) then
+!          myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
+!     &myalphax*myx(j)/mybetax
+!        else
+!          myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
+!     &myalphax*myx(j)/mybetax
+!        endif
+!            xp_pencil(icoll) =                                          &
+!     &           sqrt(sqrt((myemitx0/tbetax(ie)                         &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
+!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) " ************************************ "
+!            write(*,*) myemitx0/tbetax(ie)                              &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2
+!            write(*,*)sqrt(sqrt((myemitx0/tbetax(ie)                    &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))
+!            write(*,*) -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) sqrt(myemitx0/tbetax(ie))*talphax(ie)            &
+!     &                   * x_pencil(icoll) / sqrt(myemitx0*tbetax(ie))
+!            write(*,*)  sqrt(sqrt((myemitx0/tbetax(ie)                  &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
+!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) xp_pencil(icoll)
+!            write(*,*) " ************************************ "
+!
+!            yp_pencil(icoll) =                                          &
+!     &           sqrt(sqrt((myemity0/tbetay(ie)                         &
+!     &           -y_pencil(icoll)**2/tbetay(ie)**2)**2))                &
+!     &           -talphay(ie)*y_pencil(icoll)/tbetay(ie)
+!!
             xp_pencil0 = xp_pencil(icoll)
             yp_pencil0 = yp_pencil(icoll)
 
@@ -27174,6 +27215,11 @@ C Should get me a NaN
 ! therefore 1E-3 is used to  
             if ((icoll.eq.ipencil).and.(iturn.eq.1).and.
      &           (pencil_distr.ne.3)) then ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
+
+!!               write(*,*) " ************************************** "
+!!               write(*,*) " * INFO> seting tilt for pencil beam  * "
+!!               write(*,*) " ************************************** "
+!     c_tilt(1) =  (xp_pencil0*cos(c_rotation)                  &
 +if crlibm
 !adriana
                c_tilt(1) = c_tilt(1) + (xp_pencil0*cos_rn(c_rotation)    &
@@ -27201,6 +27247,10 @@ C Should get me a NaN
                 c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos(c_rotation)     &
      &                 + sin(c_rotation)*yp_pencil0)
 +ei
+!!               else
+!!                  c_tilt(2) = c_tilt(2) + (xp_pencil0*cos(c_rotation)   &
+!!     &                 + sin(c_rotation)*yp_pencil0)
+!!               endif
                write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",   &
      &              icoll, c_tilt(2)
             endif
@@ -27222,8 +27272,7 @@ C Should get me a NaN
       calc_aperture = xmax
       nom_aperture = ymax
          endif
-!JUNE2005
-
+!-------------------------------------------------------------------
 !++  Further output
         if(firstrun) then
           if (iturn.eq.1) then
@@ -27285,7 +27334,8 @@ C Should get me a NaN
          endif
 !JUNE2005
           c_aperture = 2d0*calc_aperture
-
+!          IF(IPENCIL.GT.zero) THEN
+!          C_APERTURE = 2.*pencil_aperture
 !GRD-------------------------------------------------------------------
       if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
       open(unit=99,file='distsec')
@@ -27378,6 +27428,13 @@ C Should get me a NaN
             Nap2pos=(c_aperture/2d0 + c_offset + tiltOffsPos2)/beamsize2
             Nap1neg=(c_aperture/2d0 - c_offset + tiltOffsNeg1)/beamsize1
             Nap2neg=(c_aperture/2d0 - c_offset + tiltOffsNeg2)/beamsize2
+
+! debugging output - can be removed when not needed
+!            write(7878,*) c_tilt(1),c_tilt(2),c_offset
+!       write(7878,*) tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
+!            write(7878,*) Nap1pos,Nap2pos,Nap1neg,Nap2neg
+!            write(7878,*) min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
+!            write(7878,*) mynex * sqrt(tbetax(ie)/betax1)
 
 !     Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
             minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg) 
@@ -27556,7 +27613,37 @@ C Should get me a NaN
      &                    db_name1(icoll), ' sliced in ',n_slices,      &
      &                    ' pieces !'
                   endif
-
+!
+!!     In this preliminary try, all secondary collimators are sliced.
+!!     Slice only collimators with finite length!!
+!               if (db_name1(icoll)(1:4).eq.'TCSG' .and.
+!     &              c_length.gt.0d0 ) then
+!!     Slice the primaries, to have more statistics faster!
+!!               if (db_name1(icoll)(1:3).eq.'TCP' .and.
+!!     +              c_length.gt.0d0 ) then
+!!
+!!
+!!     Calculate longitudinal positions of slices and corresponding heights
+!!     and angles from the fit parameters.
+!!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
+!!     Note: here, take (n_slices+1) points in order to calculate the
+!!           tilt angle of the last slice!!
+!                  do jjj=1,n_slices+1
+!                     x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
+!                     y1_sl(jjj) =  fit1_1 +                             &
+!     &                    fit1_2*x_sl(jjj) +                            &
+!     &                    fit1_3*(x_sl(jjj)**2) +                       &
+!     &                    fit1_4*(x_sl(jjj)**3) +                       &
+!     &                    fit1_5*(x_sl(jjj)**4) +                       &
+!     &                    fit1_6*(x_sl(jjj)**5)
+!
+!                     y2_sl(jjj) = -1d0 * (fit2_1 +                      &
+!     &                    fit2_2*x_sl(jjj) +                            &
+!     &                    fit2_3*(x_sl(jjj)**2) +                       &
+!     &                    fit2_4*(x_sl(jjj)**3) +                       &
+!     &                    fit2_5*(x_sl(jjj)**4) +                       &
+!     &                    fit2_6*(x_sl(jjj)**5))
+!                  enddo
 !     CB:10-2007 deformation of the jaws scaled with length
                do jjj=1,n_slices+1
                   x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
@@ -27574,7 +27661,13 @@ C Should get me a NaN
      &                 fit2_5*(x_sl(jjj)**4) +                          &
      &                 fit2_6*(x_sl(jjj)**5))
                enddo
-
+!     Apply the slicing scaling factors (ssf's):
+!     
+!                  do jjj=1,n_slices+1
+!                     y1_sl(jjj) = ssf1 * y1_sl(jjj)
+!                     y2_sl(jjj) = ssf2 * y2_sl(jjj)
+!                  enddo
+!
 !     CB:10-2007 coordinates rotated of the tilt 
                   do jjj=1,n_slices+1
                      y1_sl(jjj) = ssf1 * y1_sl(jjj)
@@ -27643,7 +27736,26 @@ C Should get me a NaN
      &                   db_tilt(icoll,2)
                      enddo
                   endif
-
+!
+!!     Check the calculation of slice gap and centre
+!                  if (firstrun) then
+!                     write(*,*) 'Verify centre and gap!'
+!                     do jjj=1,n_slices
+!                        if ( angle1(jjj).gt.0d0 ) then
+!                           a_tmp1 = y1_sl(jjj)
+!                        else
+!                           a_tmp1 = y1_sl(jjj+1)
+!                        endif
+!                        if ( angle2(jjj).lt.0d0 ) then
+!                           a_tmp2 = y2_sl(jjj)
+!                        else
+!                           a_tmp2 = y2_sl(jjj+1)
+!                        endif
+!                        write(*,*) a_tmp1 - a_tmp2,
+!     +                       0.5 * ( a_tmp1 + a_tmp2 )
+!                     enddo
+!                  endif
+!
 !     Now, loop over the number of slices and call collimate2 each time!
 !     For each slice, the corresponding offset and angle are to be used.
                   do jjj=1,n_slices
@@ -27669,9 +27781,21 @@ C Should get me a NaN
                         else
                            a_tmp2 = y2_sl(jjj+1)
                         endif
-
+!!     Write down the information on slice centre and offset
+!                     if (firstrun) then
+!                        write(*,*) 'Processing slice number ',jjj,
+!     &                       ' of ',n_slices,' for the collimator ',
+!     &                       db_name1(icoll)
+!                        write(*,*) 'Aperture [m]= ',
+!     &                       a_tmp1 - a_tmp2
+!                        write(*,*) 'Offset [m]  = ',
+!     &                       0.5 * ( a_tmp1 + a_tmp2 )
+!                     endif
+!!
 !     Be careful! the initial tilt must be added!
 !     We leave it like this for the moment (no initial tilt)
+!                     c_tilt(1) = c_tilt(1) + angle1(jjj)
+!                     c_tilt(2) = c_tilt(2) + angle2(jjj)
                      c_tilt(1) = angle1(jjj)
                      c_tilt(2) = angle2(jjj)
 !     New version of 'collimate2' is required: one must pass the
@@ -27795,6 +27919,54 @@ C Should get me a NaN
               yv(2,j) = rcyp0(j)*1d3+torbyp(ie)
               ejv(j) = rcp0(j)*1d3
             endif
+!APRIL2005
+! 
+!TW for roman pot checking
+!            if(icoll.eq.73) then
+!               do j = 1,napx 
+!                  write(9998,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
+!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
+!               enddo
+!            elseif(icoll.eq.74) then
+!               do j = 1,napx 
+!                  write(9999,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
+!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
+!               enddo
+!            endif
+!
+!++  Write trajectory for any selected particle
+!
+!!            if (firstrun) then
+!!              if (rselect.gt.0 .and. rselect.lt.65) then
+!            DO j = 1, NAPX
+!
+!!              xj     = (xv(1,j)-torbx(ie))/1d3
+!!              xpj    = (yv(1,j)-torbxp(ie))/1d3
+!!              yj     = (xv(2,j)-torby(ie))/1d3
+!!              ypj    = (yv(2,j)-torbyp(ie))/1d3
+!!              pj     = ejv(j)/1d3
+!GRD
+!07-2006 TEST
+!!              if (iturn.eq.1.and.j.eq.1) then
+!!              sum_ax(ie)=0d0
+!!              sum_ay(ie)=0d0
+!!              endif
+!GRD
+!
+!!              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+!!              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+!
+!!             if (part_abs(j).eq.0) then
+!!          nspx    = sqrt(                                               &
+!!     &abs( gammax*(xj)**2 +                                             &
+!!     &2d0*talphax(ie)*xj*xpj +                                          &
+!!     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+!!     &)
+!!                nspy    = sqrt(                                         &
+!!     &abs( gammay*(yj)**2 +                                             &
+!!     &2d0*talphay(ie)*yj*ypj +                                          &
+!!     &tbetay(ie)*ypj**2 )/myemity0                                      &
+!!     &)
 
 !++  First check for particle interaction at this collimator and this turn
             if (part_hit(j).eq. (10000*ie+iturn) ) then
@@ -28755,7 +28927,7 @@ C Should get me a NaN
  650  continue !END loop over structure elements
 
 
-!!! END TURN
+!!! END TURN COLLIMAT - please stuff this into a new function or at least a +cd!
 
 !UPGRADE JANUARY 2005
 +if collimat
@@ -28839,6 +29011,16 @@ C Should get me a NaN
 !________________________________________________________________________
 !++  Loop over all particles.
           do j = 1, napx
+!
+!------------------------------------------------------------------------
+!++  Save initial distribution of particles that were scattered on
+!++  the first turn at the selected primary collimator
+!
+!            IF (DOWRITE_DIST .AND. DO_SELECT .AND. ITURN.EQ.1 .AND.
+!     &          PART_SELECT(j).EQ.1) THEN
+!              WRITE(987,'(4(1X,E15.7))') X00(J), XP00(J),
+!     &                                        Y00(J), YP00(J)
+!            ENDIF
 !------------------------------------------------------------------------
 !++  Do the binning in amplitude, only considering particles that were
 !++  not absorbed before.
