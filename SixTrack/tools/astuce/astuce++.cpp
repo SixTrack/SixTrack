@@ -441,6 +441,7 @@ void Astuce::DoExpandIF(std::map<std::string, std::list<LineStorage> >::iterator
 		std::cerr << "ERROR processing " << InputFileName << std::endl;
 		std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 		std::cerr << "Currently processing section " << BlockName << std::endl;
+		std::cerr << "Current level of +if/+ei: " << EnabledStates.size() << " (Expected: 1)" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	EnabledStates.pop();
