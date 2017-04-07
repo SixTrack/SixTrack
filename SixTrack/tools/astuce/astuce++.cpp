@@ -183,6 +183,12 @@ void Astuce::ReadInputFiles()
 		char cbuffer;
 		std::streambuf* sbuffer = InputFileRead->rdbuf();
 
+		//Make sure every file in the buffer begins with a \n,
+		// which makes looking for +cd,+dk etc. easier.
+		// It is also helpfull when reading multiple source files
+		// in case one of them is ending on a newline.
+		InputFileBufferStream << '\n';
+		
 		while(sbuffer->sgetc() != EOF)
 		{
 			if((cbuffer = sbuffer->sbumpc()))
@@ -238,14 +244,7 @@ void Astuce::ExtractCalls()
 
 	while(CurrentPosition < InputFileBuffer.size())
 	{
-		if(CurrentPosition == 0)
-		{
-			CurrentPosition = InputFileBuffer.find("+cd", CurrentPosition);
-		}
-		else
-		{
-			CurrentPosition = InputFileBuffer.find("\n+cd", CurrentPosition);
-		}
+		CurrentPosition = InputFileBuffer.find("\n+cd", CurrentPosition);
 
 		if(CurrentPosition == std::string::npos)
 		{
@@ -320,15 +319,8 @@ void Astuce::ExtractDecks()
 
 	while(CurrentPosition < InputFileBuffer.size())
 	{
-		if(CurrentPosition == 0)
-		{
-			CurrentPosition = InputFileBuffer.find("+dk", CurrentPosition);
-		}
-		else
-		{
-			CurrentPosition = InputFileBuffer.find("\n+dk", CurrentPosition);
-		}
-
+		CurrentPosition = InputFileBuffer.find("\n+dk", CurrentPosition);
+		
 		if(CurrentPosition == std::string::npos)
 		{
 			break;
