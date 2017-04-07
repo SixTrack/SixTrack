@@ -764,7 +764,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 	endif()
 
 	if(STATIC)
-		SET(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
+		SET(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
 	endif(STATIC)
 
 endif()
