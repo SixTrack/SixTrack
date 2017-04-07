@@ -174,9 +174,21 @@ void Astuce::ReadInputFiles()
 	while(InputFileNames_itr != InputFileNames.end())
 	{
 		std::ifstream* InputFileRead = new std::ifstream(InputFileNames_itr->c_str(), std::ios::binary);
+		if (!InputFileRead->good())
+		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "ERROR: Error reading input file '" << InputFileNames_itr->c_str() << "'"<< std::endl;
+			exit(EXIT_FAILURE);
+		}
 		char cbuffer;
 		std::streambuf* sbuffer = InputFileRead->rdbuf();
 
+		//Make sure every file in the buffer begins with a \n,
+		// which makes looking for +cd,+dk etc. easier.
+		// It is also helpfull when reading multiple source files
+		// in case one of them is ending on a newline.
+		InputFileBufferStream << '\n';
+		
 		while(sbuffer->sgetc() != EOF)
 		{
 			if((cbuffer = sbuffer->sbumpc()))
@@ -232,14 +244,7 @@ void Astuce::ExtractCalls()
 
 	while(CurrentPosition < InputFileBuffer.size())
 	{
-		if(CurrentPosition == 0)
-		{
-			CurrentPosition = InputFileBuffer.find("+cd", CurrentPosition);
-		}
-		else
-		{
-			CurrentPosition = InputFileBuffer.find("\n+cd", CurrentPosition);
-		}
+		CurrentPosition = InputFileBuffer.find("\n+cd", CurrentPosition);
 
 		if(CurrentPosition == std::string::npos)
 		{
@@ -314,15 +319,8 @@ void Astuce::ExtractDecks()
 
 	while(CurrentPosition < InputFileBuffer.size())
 	{
-		if(CurrentPosition == 0)
-		{
-			CurrentPosition = InputFileBuffer.find("+dk", CurrentPosition);
-		}
-		else
-		{
-			CurrentPosition = InputFileBuffer.find("\n+dk", CurrentPosition);
-		}
-
+		CurrentPosition = InputFileBuffer.find("\n+dk", CurrentPosition);
+		
 		if(CurrentPosition == std::string::npos)
 		{
 			break;
@@ -435,6 +433,7 @@ void Astuce::DoExpandIF(std::map<std::string, std::list<LineStorage> >::iterator
 		std::cerr << "ERROR processing " << InputFileName << std::endl;
 		std::cerr << "ERROR: Mismatched number of +if and +ei statements, check your .s files!" << std::endl;
 		std::cerr << "Currently processing section " << BlockName << std::endl;
+		std::cerr << "Current level of +if/+ei: " << EnabledStates.size() << " (Expected: 1)" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	EnabledStates.pop();
@@ -471,6 +470,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		//Disable this line
 		line->Enabled = false;
 
+		//The result of the +if
 		bool EnabledState = false;
 
 		//Find the name of this statement
@@ -482,9 +482,29 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			exit(EXIT_FAILURE);
 		}
 
-		size_t NameEnd = line->Text.find_first_of(" !", NameStart+1);
+		//Strip off comments
+		size_t NameEnd = line->Text.find_first_of("!", NameStart+1);
+		//Strip off trailing whitespace
+		if (NameEnd != std::string::npos) NameEnd-=1;
+		NameEnd = line->Text.find_last_not_of(" ",NameEnd);
+		if (NameEnd != std::string::npos) NameEnd+=1;
+		
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
 
+		if (FlagName.find(" ") != std::string::npos)
+		{
+			std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
+			std::cerr << "The +if statement '" << line->Text << "' contains a space inside the actual statement '" << FlagName << "'." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		
+		//Check that there are no spaces inside the STATEMENT
+		if(OutputFlag)
+		{
+			*LogStream << "Evaluating flag: '" << FlagName << "'" << std::endl;
+		}
+
+		
 		size_t Position = 0;
 		size_t NextOR = 0;
 		size_t NextAND = 0;
@@ -536,6 +556,13 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 				NOT = true;
 			}
 
+			//Check that there is actually a flag following the .AND./.OR./.NOT.
+			if (FlagNames.at(n).length() == 0) {
+				std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
+				std::cerr << "The +if statement '" << line->Text << "' has an orphan .AND./.OR./.NOT." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			
 			//Enable/disable lines
 			std::set<std::string>::const_iterator Flags_itr = Flags.find(FlagNames.at(n));
 			if(Flags_itr != Flags.end())
