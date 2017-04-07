@@ -564,6 +564,13 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 				NOT = true;
 			}
 
+			//Check that there is actually a flag following the .AND./.OR./.NOT.
+			if (FlagNames.at(n).length() == 0) {
+				std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
+				std::cerr << "The +if statement '" << line->Text << "' has an orphan .AND./.OR./.NOT." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			
 			//Enable/disable lines
 			std::set<std::string>::const_iterator Flags_itr = Flags.find(FlagNames.at(n));
 			if(Flags_itr != Flags.end())
