@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.14'/
-      data moddate /'04.04.2017'/
+      data version /'4.6.15'/
+      data moddate /'07.04.2017'/
 +cd license
 !!SixTrack
 !!
@@ -2307,7 +2307,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         y(1,1)=y(1,1)+ekk*tiltc(k)
         y(1,2)=y(1,2)+ekk*tilts(k)
 +ei
-+cd kickuxxh                                                            
++cd kickuxxh
 +if .not.tilt
         dyy1=ekk*crkve
         dyy2=(-1d0*ekk)*cikve                                            !hr08
@@ -8781,8 +8781,8 @@ cc2008
 +if .not.datamods
       subroutine nodatamods
 +ca crcoall
-      write(lout,*) &
-      "Dummy routine in bigmats.f if beamgas module is off."
+      write(lout,*)
+     &"Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
 +ei
 
@@ -64696,7 +64696,7 @@ c$$$         backspace (93,iostat=ierro)
       end
 !DUMPS
 +ei
-+dk hdf5K 
++dk hdf5K
 +if hdf5
 !>
 !! @brief module that contains the code necessary for hdf5 support
