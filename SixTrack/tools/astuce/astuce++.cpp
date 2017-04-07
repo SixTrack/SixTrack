@@ -174,6 +174,12 @@ void Astuce::ReadInputFiles()
 	while(InputFileNames_itr != InputFileNames.end())
 	{
 		std::ifstream* InputFileRead = new std::ifstream(InputFileNames_itr->c_str(), std::ios::binary);
+		if (!InputFileRead->good())
+		{
+			std::cerr << "ERROR processing " << InputFileName << std::endl;
+			std::cerr << "ERROR: Error reading input file '" << InputFileNames_itr->c_str() << "'"<< std::endl;
+			exit(EXIT_FAILURE);
+		}
 		char cbuffer;
 		std::streambuf* sbuffer = InputFileRead->rdbuf();
 
