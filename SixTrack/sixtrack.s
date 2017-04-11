@@ -762,10 +762,10 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbthin6d
 !
-      integer myktrack,ios,num_surhit,numbin,ibin,                      &
+      integer ios,num_surhit,numbin,ibin,                               &
      &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
      &ipart(npart),totalelem,selelem,unitnumber,distnumber,turnnumber,  &
-     &jb,myix,                                                          &
+     &jb,                                                               &
 !MAY2005
      &flukaname(npart)
 !MAY2005
@@ -824,6 +824,8 @@
       logical firstcoll,found,onesided
       integer rnd_lux,rnd_k1,rnd_k2
 
+      integer myix,myktrack
+
       double precision nspx,nspy,mux0,muy0
       double precision ax0,ay0,bx0,by0
 
@@ -838,6 +840,8 @@
      &ypineff
       double precision mux(nblz),muy(nblz)
       common /mu/ mux,muy
+
+      common /collocal/ myix,myktrack
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
@@ -26017,7 +26021,7 @@ C Should get me a NaN
 !GRD-042008
 +ei
 
-!Here is the loop over turns
+!This is the loop over turns: label 660
 +if cr
       if (restart) then
         call crstart
@@ -26047,6 +26051,7 @@ C Should get me a NaN
 !       call graphic_progress(n,numl)
 +ei
 +if collimat
+        !this call currently does nothing, but could be useful in the future
         call collimate_start_turn
         iturn=n
         totals=0d0 !This keeps track of the s position of the current element,
@@ -26071,49 +26076,10 @@ C Should get me a NaN
            call dynk_apply(n)
         endif
 
-!! This is the loop over each element
+!! This is the loop over each element: label 650
         do 650 i=1,iu
 +if collimat
-        ie=i
-!++  For absorbed particles set all coordinates to zero. Also
-!++  include very large offsets, let's say above 100mm or
-!++  100mrad.
-          do j = 1, napx
-            if (part_abs(j).gt.0 .or.                                   &
-     &xv(1,j).gt.100d0 .or.                                             &
-     &yv(1,j).gt.100d0 .or.                                             &
-     &xv(2,j).gt.100d0 .or.                                             &
-     &yv(2,j).gt.100d0) then
-              xv(1,j) = 0d0
-              yv(1,j) = 0d0
-              xv(2,j) = 0d0
-              yv(2,j) = 0d0
-              ejv(j)  = myenom
-              sigmv(j)= 0d0
-              part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
-              secondary(j) = 0
-              tertiary(j)  = 0
-              other(j) = 0
-              nabs_type(j) = 0
-            endif
-          end do
-
-!GRD SAVE COORDINATES OF PARTICLE 1 TO CHECK ORBIT
-          if(firstrun) then
-            xbob(ie)=xv(1,1)
-            ybob(ie)=xv(2,1)
-            xpbob(ie)=yv(1,1)
-            ypbob(ie)=yv(2,1)
-          endif
-
-!++  Here comes sixtrack stuff
-          if(ic(i).le.nblo) then
-            do jb=1,mel(ic(i))
-               myix=mtyp(ic(i),jb)
-            enddo
-          else
-              myix=ic(i)-nblo
-          endif
+      call collimate_start_element()
 +ei
 +if bnlelens
 +ca bnltwiss
@@ -26146,34 +26112,6 @@ C Should get me a NaN
 +ca timefct
 +ei
 
-+if collimat
-!++  Make sure we go into collimation routine for any definition
-!++  of collimator element, relying on element name instead.
-          if (                                                          &
-!GRD HERE ARE SOME CHANGES TO MAKE RHIC TRAKING AVAILABLE
-!APRIL2005
-     &(bez(myix)(1:3).eq.'TCP'.or.bez(myix)(1:3).eq.'tcp') .or.         &
-     &(bez(myix)(1:3).eq.'TCS'.or.bez(myix)(1:3).eq.'tcs') .or.         &
-!UPGRADE January 2005
-     &(bez(myix)(1:3).eq.'TCL'.or.bez(myix)(1:3).eq.'tcl') .or.         &
-     &(bez(myix)(1:3).eq.'TCT'.or.bez(myix)(1:3).eq.'tct') .or.         &
-     &(bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
-     &(bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
-! UPGRADE MAI 2006 -> TOTEM
-     &(bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
-! TW 04/2008 adding TCRYO 
-     &(bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') .or.         &
-!RHIC
-     &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then
-!GRD     write(*,*) bez(myix),'found!!'
-!APRIL2005
-         myktrack = 1
-          else
-            myktrack = ktrack(i)
-          endif
-!          write(*,*) 'ralph>  Element name: ', bez(myix), ktrack(i),
-!     &                myktrack
-+ei
 +if .not.collimat
 !---------count:44
 +if debug
@@ -27328,10 +27266,10 @@ C Should get me a NaN
 
 
 
-
+      call collimate_do_collimator()
 
 !!!!!!!This should go in the post-collimator function
-
+      call collimate_end_collimator()
 
 !++  Output information:
 !++
@@ -54500,6 +54438,33 @@ c$$$            endif
       end
 
 !>
+!! collimate_start_collimator()
+!! This routine is called each time we hit a collimator
+!<
+      subroutine collimate_start_collimator()
+      implicit none
+
+      end
+
+!>
+!! collimate_do_collimator()
+!! This routine is calls the actual scattering functions
+!<
+      subroutine collimate_do_collimator()
+      implicit none
+
+      end
+
+!>
+!! collimate_end_collimator()
+!! This routine is called at the exit of a collimator
+!<
+      subroutine collimate_end_collimator()
+      implicit none
+
+      end
+
+!>
 !! collimate_end_sample()
 !! This routine is called from trauthin after each sample
 !! has been tracked by thin6d
@@ -54890,6 +54855,112 @@ c$$$            endif
 !<
       subroutine collimate_start_element()
       implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ca dbcolcom
++ei
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
+        ie=i
+!++  For absorbed particles set all coordinates to zero. Also
+!++  include very large offsets, let's say above 100mm or
+!++  100mrad.
+          do j = 1, napx
+            if (part_abs(j).gt.0 .or.                                   &
+     &xv(1,j).gt.100d0 .or.                                             &
+     &yv(1,j).gt.100d0 .or.                                             &
+     &xv(2,j).gt.100d0 .or.                                             &
+     &yv(2,j).gt.100d0) then
+              xv(1,j) = 0d0
+              yv(1,j) = 0d0
+              xv(2,j) = 0d0
+              yv(2,j) = 0d0
+              ejv(j)  = myenom
+              sigmv(j)= 0d0
+              part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
+              secondary(j) = 0
+              tertiary(j)  = 0
+              other(j) = 0
+              nabs_type(j) = 0
+            endif
+          end do
+
+!GRD SAVE COORDINATES OF PARTICLE 1 TO CHECK ORBIT
+          if(firstrun) then
+            xbob(ie)=xv(1,1)
+            ybob(ie)=xv(2,1)
+            xpbob(ie)=yv(1,1)
+            ypbob(ie)=yv(2,1)
+          endif
+
+!++  Here comes sixtrack stuff
+          if(ic(i).le.nblo) then
+            do jb=1,mel(ic(i))
+               myix=mtyp(ic(i),jb)
+            enddo
+          else
+              myix=ic(i)-nblo
+          endif
+
+!++  Make sure we go into collimation routine for any definition
+!++  of collimator element, relying on element name instead.
+          if (                                                          &
+!GRD HERE ARE SOME CHANGES TO MAKE RHIC TRAKING AVAILABLE
+!APRIL2005
+     &(bez(myix)(1:3).eq.'TCP'.or.bez(myix)(1:3).eq.'tcp') .or.         &
+     &(bez(myix)(1:3).eq.'TCS'.or.bez(myix)(1:3).eq.'tcs') .or.         &
+!UPGRADE January 2005
+     &(bez(myix)(1:3).eq.'TCL'.or.bez(myix)(1:3).eq.'tcl') .or.         &
+     &(bez(myix)(1:3).eq.'TCT'.or.bez(myix)(1:3).eq.'tct') .or.         &
+     &(bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
+     &(bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
+! UPGRADE MAI 2006 -> TOTEM
+     &(bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
+! TW 04/2008 adding TCRYO 
+     &(bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') .or.         &
+!RHIC
+     &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then
+!GRD     write(*,*) bez(myix),'found!!'
+!APRIL2005
+         myktrack = 1
+          else
+            myktrack = ktrack(i)
+          endif
+!          write(*,*) 'ralph>  Element name: ', bez(myix), ktrack(i),
+!     &                myktrack
+
       end
 
 !>
