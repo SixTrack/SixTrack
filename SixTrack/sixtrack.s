@@ -783,7 +783,7 @@
       double precision cx(npart),cxp(npart),cy(npart),cyp(npart),       &
      &cp(npart),cs(npart),rcx(npart),rcxp(npart),rcy(npart),rcyp(npart),&
      &rcp(npart),rcs(npart),rcx0(npart),rcxp0(npart),rcy0(npart),       &
-     &rcyp0(npart),rcp0(npart),enom_gev,totals,betax,betay,xmax,ymax,   &
+     &rcyp0(npart),rcp0(npart),enom_gev,betax,betay,xmax,ymax,          &
      &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
      &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
      &rxpjco,rypjco,c_rmstilt,                                          &
@@ -793,17 +793,12 @@
      &yp_pencil(max_ncoll),x_pencil0,y_pencil0,sum,sqsum,               &
      &csum(max_ncoll),csqsum(max_ncoll),average,sigma,sigsecut,nspxd,   &
      &xndisp,xgrd(npart),xpgrd(npart),ygrd(npart),ypgrd(npart),zpj,     &
-!APRIL2005
-!     &pgrd(npart),ax0,ay0,bx0,by0,dnormx,dnormy,driftx,drifty,xnorm,    &
-!     &xpnorm,xangle,ynorm,ypnorm,yangle,xbob(nblz),ybob(nblz),          &
-!     &xpbob(nblz),ypbob(nblz),xineff(npart),yineff(npart),              &
-!     &xpineff(npart),ypineff(npart),grdpiover2,grdpiover4,grd3piover4
      &pgrd(npart),ejfvgrd(npart),sigmvgrd(npart),rvvgrd(npart),         &
      &dpsvgrd(npart),oidpsvgrd(npart),dpsv1grd(npart),                  &
      &dnormx,dnormy,driftx,drifty,                                      &
      &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
      &grdpiover2,grdpiover4,grd3piover4
-!APRIL2005
+
 !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
       double precision x_sl(100),x1_sl(100),x2_sl(100),                 &
      &     y1_sl(100), y2_sl(100),                                      &
@@ -818,6 +813,42 @@
 
       character*4 c_material     !material
 
+      common /dbthinc/ cx,cxp,cy,cyp,                                   &
+     &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
+     &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
+     &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
+     &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
+     &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
+     &rxpjco,rypjco,c_rmstilt,                                          &
+     &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
+     &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
+     &nom_aperture,pencil_aperture,xp_pencil,                           &
+     &yp_pencil,x_pencil0,y_pencil0,sum,sqsum,                          &
+     &csum,csqsum,average,sigma,sigsecut,nspxd,                         &
+     &xndisp,xgrd,xpgrd,ygrd,ypgrd,zpj,                                 &
+     &pgrd,ejfvgrd,sigmvgrd,rvvgrd,                                     &
+     &dpsvgrd,oidpsvgrd,dpsv1grd,                                       &
+     &dnormx,dnormy,driftx,drifty,                                      &
+     &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
+     &grdpiover2,grdpiover4,grd3piover4,                                &
+     &x_sl,x1_sl,x2_sl,                                                 &
+     &     y1_sl, y2_sl,                                                &
+     &     angle1, angle2,                                              &
+     &     max_tmp,                                                     &
+     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2, 
+     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,
+     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,
+     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,
+     &     alphax1, alphax2,alphay1,alphay2,minAmpl,
+     &ios,num_surhit,numbin,ibin,                                       &
+     &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
+     &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
+     &jb,flukaname,                                                     &
+     &jjj,ijk,zbv,ran_gauss,c_length,c_rotation,                        &
+     &c_aperture,c_offset,c_tilt,c_material
+
+! myran_gauss,rndm5,
+
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcolcom
@@ -828,6 +859,7 @@
 
       double precision nspx,nspy,mux0,muy0
       double precision ax0,ay0,bx0,by0
+      double precision totals
 
       ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
       logical cut_input
@@ -841,7 +873,7 @@
       double precision mux(nblz),muy(nblz)
       common /mu/ mux,muy
 
-      common /collocal/ myix,myktrack
+      common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
@@ -859,7 +891,7 @@
      &     myalphax,myalphay,mybetax,                                   &
      &     mybetay,rselect
 
-!
+
 ! M. Fiascaris for the collimation team
 ! variables for global inefficiencies studies
 ! of normalized and off-momentum halo
@@ -25371,7 +25403,7 @@ C Should get me a NaN
           do j = 1, int(mynp/napx00)
             write(lout,*) 'Sample number ', j, int(mynp/napx00)
 
-            call collimate_start_sample
+            call collimate_start_sample(j)
 
             write(lout,*) ''
             write(lout,*) 'Calling thin6d subroutine'
@@ -26051,11 +26083,7 @@ C Should get me a NaN
 !       call graphic_progress(n,numl)
 +ei
 +if collimat
-        !this call currently does nothing, but could be useful in the future
-        call collimate_start_turn
-        iturn=n
-        totals=0d0 !This keeps track of the s position of the current element,
-                   ! which is also done by cadcum
+        call collimate_start_turn(n)
 +ei
         numx=n-1
 
@@ -26079,7 +26107,7 @@ C Should get me a NaN
 !! This is the loop over each element: label 650
         do 650 i=1,iu
 +if collimat
-      call collimate_start_element()
+      call collimate_start_element(i)
 +ei
 +if bnlelens
 +ca bnltwiss
@@ -26497,6 +26525,8 @@ C Should get me a NaN
      &,tbetax(ie)
             write(outlun,*) 'Optics beta y [m]:   '                     &
      &,tbetay(ie)
+!          else
+!            write(lout,*) 'C WRITE', iturn,firstrun
           endif
 
 !-------------------------------------------------------------------
@@ -26708,7 +26738,7 @@ C Should get me a NaN
             write(outlun,*) 'RMS error on halfgap [sigma]:  '           &
      &,gap_rms_error(icoll)
             write(outlun,*) ' '
-!
+
             write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')
      &icoll,db_name1(icoll)(1:12),                                      &
      &db_rotation(icoll),                                               &
@@ -26945,6 +26975,20 @@ C Should get me a NaN
               flukaname(j) = ipart(j)+100*samplenumber
             end do
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+!      call collimate_do_collimator()
 !!!!!!!This should go in the do-collimator function
 
 !++  Do the collimation tracking
@@ -27266,10 +27310,15 @@ C Should get me a NaN
 
 
 
-      call collimate_do_collimator()
+
+
+
+
+
+
 
 !!!!!!!This should go in the post-collimator function
-      call collimate_end_collimator()
+!      call collimate_end_collimator()
 
 !++  Output information:
 !++
@@ -53670,9 +53719,8 @@ c$$$            endif
             myyp(j) = 0d0
          end do
        endif
-!
+
 !++  Optionally write the generated particle distribution
-!
       open(unit=52,file='dist0.dat')
        if (dowrite_dist) then
         do j = 1, mynp
@@ -53744,13 +53792,13 @@ c$$$            endif
 !! This routine is called from trauthin before each sample
 !! is injected into thin 6d
 !<
-      subroutine collimate_start_sample()
+      subroutine collimate_start_sample(nsample)
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
-      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
       double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
@@ -53788,33 +53836,27 @@ c$$$            endif
 +ca crco
 +ei
 !GRD
-            samplenumber=j
-!
-!
+      j = nsample
+      samplenumber=j
+
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
-!
+
+      open(unit=99,file='betatron.dat')
+
       open(unit=42, file='beta_beat.dat')
       write(42,*)                                                       &
      &'# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
-!
-      open(unit=43, file='collgaps.dat')
+
       open(unit=44, file='survival.dat') ! RB, DM: 2014 bug fix
       write(44,*)                                                       &
      &'# 1=turn 2=n_particle'
-!APRIL2005
+
+      open(unit=43, file='collgaps.dat')
       if(firstrun) write(43,*)                                          &
      &'# ID name  angle[rad]  betax[m]  betay[m] ',                     &
      &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m] ',             &
-!JUNE2005
      &'tilt1[rad] tilt2[rad] nsig'
-!JUNE2005
-!      write(43,*)                                                       &
-!     &'#name  angle[rad]  betax[m]  betay[m] ',                         &
-!     &'halfgap[m]  Material  Length[m]  sigx[m]  sigy[m]'
-!APRIL2005
-!
-!
-!
+
 !      if (dowrite_impact) then
 !        open(unit=46, file='coll_impact.dat')
 !        write(46,*)                                                     &
@@ -53890,6 +53932,7 @@ c$$$            endif
 
       endif !end if (dowritetracks) then
 
+
 !GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
       if(do_select) then
         open(unit=45, file='coll_ellipse.dat')
@@ -53934,6 +53977,7 @@ c$$$            endif
         if(firstrun) write(555,'(a)')                                   &
      &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
       endif
+
 
 !++  Copy new particles to tracking arrays. Also add the orbit offset at
 !++  start of ring!
@@ -53983,13 +54027,6 @@ c$$$            endif
         dpopbins(i)= dble(i-1)*4d-4
       enddo
 
-!      n_gt72 = 0
-!      n_gt80 = 0
-!      n_gt90 = 0
-!      nx_gt72 = 0
-!      nx_gt80 = 0
-!      ny_gt72 = 0
-!      ny_gt80 = 0
       firstcoll = .true.
 
 !GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
@@ -54001,7 +54038,18 @@ c$$$            endif
          part_indiv(j)  = -1e-6
          part_linteract(j) = 0d0
          part_impact(j) = 0
-      enddo
+!      enddo
+!++ Moved initialization to the start of EACH set, RA/GRD 14/6/04
+!      do j=1,napx
+        tertiary(j)=0
+        secondary(j)=0
+        other(j)=0
+        nabs_type(j) = 0
+!GRD HERE WE INITIALIZE THE VALUES OF IPART(j)
+        ipart(j) = j
+        flukaname(j) = 0
+      end do
+
 !GRD
 
 !++  This we only do once, for the first call to this routine. Numbers
@@ -54417,24 +54465,7 @@ c$$$            endif
 !++ End of first call stuff (end of first run)
       endif
 
-!++ Moved initialization to the start of EACH set, RA/GRD 14/6/04
-      do j=1,napx
-        tertiary(j)=0
-        secondary(j)=0
-        other(j)=0
-        nabs_type(j) = 0
-      end do
-
-!GRD HERE WE INITIALIZE THE VALUES OF IPART(j)
-      do j=1,napx
-         ipart(j) = j
-         flukaname(j) = 0
-      end do
-!GRD
 !GRD NOW WE CAN BEGIN THE LOOPS
-!GRD
-      open(unit=99,file='betatron.dat')
-
       end
 
 !>
@@ -54492,6 +54523,7 @@ c$$$            endif
 +ca commontr
 +ca beamdim
       dimension nbeaux(nbb)
+
 +if collimat
 +ca collpara
 +ca dbtrthin
@@ -54502,6 +54534,7 @@ c$$$            endif
 +ca info
 +ca dbcolcom
 +ei
+
 +if bnlelens
 +ca rhicelens
 +ei
@@ -54842,18 +54875,50 @@ c$$$            endif
 !>
 !! This routine is called at the start of each tracking turn
 !<
-      subroutine collimate_start_turn()
+      subroutine collimate_start_turn(n)
       implicit none
-!+ca info
-!+ca dbthin6d
-!        iturn=n
-!        totals=0d0
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ca dbcolcom
++ei
+      integer n
+
+      iturn=n
+      totals=0d0 !This keeps track of the s position of the current element,
+                   ! which is also done by cadcum
       end
 
 !>
 !! This routine is called at the start of every element
 !<
-      subroutine collimate_start_element()
+      subroutine collimate_start_element(i)
       implicit none
 +ca crcoall
 +if crlibm
@@ -54964,10 +55029,12 @@ c$$$            endif
       end
 
 !>
+!! collimate_end_element()
 !! This routine is called at the end of every element
 !<
       subroutine collimate_end_element()
       implicit none
+
       end
 
 
@@ -55064,7 +55131,8 @@ c$$$            endif
       integer j_slices
 
       save
-
+!      write(lout,*) 'In col2 ', c_material, c_length, c_aperture,       &
+!     &c_offset, c_tilt, x_in, xp_in, y_in,p_in, np, enom
 !=======================================================================
 ! Be=1 Al=2 Cu=3 W=4 Pb=5
 ! LHC uses:    Al, 0.2 m
@@ -56522,7 +56590,7 @@ c$$$          endif
 
 !>
 !! ichoix(ma)
-!! ???
+!! Select a scattering type (elastic, sd, inelastic, ...)
 !<
       function ichoix(ma)
       implicit none
@@ -56660,7 +56728,7 @@ c$$$          endif
 
 !>
 !! ruth(t)
-!! ???
+!! Calculate the rutherford scattering cross section
 !<
       function ruth(t)
       implicit none
