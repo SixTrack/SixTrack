@@ -628,36 +628,20 @@
       parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
      &numeffdpop=29,outlun=54)
 +cd database
-!GRD
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
-!GRD
-!APRIL2005
       logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
      &dowrite_impact,dowrite_secondary,dowrite_amplitude,radial,        &
      &systilt_antisymm,dowritetracks,cern,do_nsig,do_mingap
-!     &systilt_antisymm,dowritetracks,cern
-!APRIL2005
-!
-!      integer nloop,rnd_seed,ibeam,jobnumber,sigsecut2
-!JUNE2005
-!      integer nloop,rnd_seed,ibeam,jobnumber
+
 !SEPT2005 for slicing process
-!      integer nloop,rnd_seed,ibeam,jobnumber,do_thisdis
       integer nloop,rnd_seed,c_offsettilt_seed,ibeam,jobnumber,         &
      &do_thisdis,n_slices,pencil_distr
-!JUNE2005
-!
-!UPGRADE JANUARY 2005
-!APRIL2005
-!      double precision myenom,mynex,mdex,myney,mdey,nsig_prim,nsig_sec, &
-!     &nsig_ter,emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,         &
+
       double precision myenom,mynex,mdex,myney,mdey,                    &
      &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
      &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-!
      &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
      &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-!
      &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
 !SEPT2005 add these lines for the slicing procedure
      &smin_slices,smax_slices,recenter1,recenter2,                      &
@@ -669,78 +653,47 @@
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
-!     &driftsx,driftsy,pencil_offset,sigsecut3
-!JUNE2005
-!     &driftsx,driftsy,pencil_offset,sigsecut3,sigsecut2
      &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
      &sigsecut3,sigsecut2,enerror,bunchlength
-!JUNE2005
-!APRIL2005
-!
+
       character*24 name_sel
       character*80 coll_db
       character*16 castordir
-!JUNE2005
       character*80 filename_dis
-!JUNE2005
-!
-!UPGRADE JANUARY 2005
-!APRIL2005
-!JUNE2005
-!SEPT2005
-!      common /grd/ myenom,mynex,mdex,myney,mdey,nsig_prim,nsig_sec,     &
-!     &nsig_ter,emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,         &
-!     &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,nr,     &
-!     &ndr,driftsx,driftsy,pencil_offset,sigsecut3,coll_db,name_sel,     &
-!     &castordir,abs_db,nloop,rnd_seed,ibeam,jobnumber,sigsecut2,do_coll,&
-!     &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
-!     &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
-!     &dowritetracks,cern
+
       common /grd/ myenom,mynex,mdex,myney,mdey,                        &
      &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
      &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-!
      &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
      &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-!
      &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
-!
      &smin_slices,smax_slices,recenter1,recenter2,                      &
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-!
      &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
      &xbeat,xbeatphase,ybeat,ybeatphase,
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,                                &
-!
      &ndr,driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,        &
      &sigsecut3,sigsecut2,enerror,                                      &
      &bunchlength,coll_db,name_sel,                                     &
      &castordir,filename_dis,nloop,rnd_seed,c_offsettilt_seed,          &
      &ibeam,jobnumber,do_thisdis,n_slices,pencil_distr,                 &
      &do_coll,                                                          &
-!
      &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
      &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
      &dowritetracks,cern,do_nsig,do_mingap
-!SEPT2005
-!JUNE2005
-!APRIL2005
-!
+
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbtrthin
+
       integer   mynp
       common /mynp/ mynp
-!
-      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
-      logical cut_input
-      common /cut/ cut_input
-!
+
 !++ Vectors of coordinates
-!
+
       double precision mygammax,mygammay
 !
       real rndm4
@@ -748,29 +701,18 @@
       character*80 dummy
 !
       ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-      double precision remitx_dist,remity_dist,
-     &     remitx_collgap,remity_collgap
-      common  /remit/ remitx_dist, remity_dist,
-     &     remitx_collgap,remity_collgap
+!      double precision remitx_dist,remity_dist,
+!     &     remitx_collgap,remity_collgap
+!      common  /remit/ remitx_dist, remity_dist,
+!     &     remitx_collgap,remity_collgap
 !
-      double precision mux(nblz),muy(nblz)
-      common /mu/ mux,muy
-!
+
       double precision ielem,iclr,grd
       character*160 ch
       character*320 ch1
       logical flag
 !
-      integer k,np0,rnd_lux,rnd_k1,rnd_k2
-!
-      double precision ax0,ay0,bx0,by0,mux0,muy0,nspx,nspy
-!
-      double precision xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),   &
-     &xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
-!
-      common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
-     &ypineff
-!
+      integer k,np0
       integer   mclock_liar
 !
       character*160 cmd
@@ -785,9 +727,9 @@
 +cd dbdaten
 
       ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-      logical cut_input
-      common /cut/ cut_input
-!
+!      logical cut_input
+!      common /cut/ cut_input
+
       ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
       double precision remitx_dist,remity_dist,
      &     remitx_collgap,remity_collgap
@@ -820,11 +762,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbthin6d
 !
-!
-      logical firstcoll,found,onesided
-!
-      integer myktrack,n_gt72,n_gt80,n_gt90,nx_gt72,nx_gt80,            &
-     &ny_gt72,ny_gt80,rnd_lux,rnd_k1,rnd_k2,ios,num_surhit,numbin,ibin, &
+      integer myktrack,ios,num_surhit,numbin,ibin,                      &
      &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
      &ipart(npart),totalelem,selelem,unitnumber,distnumber,turnnumber,  &
      &jb,myix,                                                          &
@@ -847,8 +785,8 @@
      &rcp(npart),rcs(npart),rcx0(npart),rcxp0(npart),rcy0(npart),       &
      &rcyp0(npart),rcp0(npart),enom_gev,totals,betax,betay,xmax,ymax,   &
      &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-     &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,nspx,nspy,rxjco,ryjco,      &
-     &rxpjco,rypjco,dummy,mux(nblz),muy(nblz),mux0,muy0,c_rmstilt,      &
+     &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
+     &rxpjco,rypjco,c_rmstilt,                                          &
      &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
      &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
      &nom_aperture,pencil_aperture,xp_pencil(max_ncoll),                &
@@ -862,10 +800,9 @@
 !     &xpineff(npart),ypineff(npart),grdpiover2,grdpiover4,grd3piover4
      &pgrd(npart),ejfvgrd(npart),sigmvgrd(npart),rvvgrd(npart),         &
      &dpsvgrd(npart),oidpsvgrd(npart),dpsv1grd(npart),                  &
-     &ax0,ay0,bx0,by0,dnormx,dnormy,driftx,drifty,                      &
-     &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,xbob(nblz),ybob(nblz),    &
-     &xpbob(nblz),ypbob(nblz),xineff(npart),yineff(npart),              &
-     &xpineff(npart),ypineff(npart),grdpiover2,grdpiover4,grd3piover4
+     &dnormx,dnormy,driftx,drifty,                                      &
+     &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
+     &grdpiover2,grdpiover4,grd3piover4
 !APRIL2005
 !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
       double precision x_sl(100),x1_sl(100),x2_sl(100),                 &
@@ -878,19 +815,31 @@
      &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,
      &     alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
-!
+
       character*4 c_material     !material
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd dbcolcom
+      logical firstcoll,found,onesided
+      integer rnd_lux,rnd_k1,rnd_k2
+
+      double precision nspx,nspy,mux0,muy0
+      double precision ax0,ay0,bx0,by0
+
       ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
       logical cut_input
       common /cut/ cut_input
-      
-      common /mu/ mux, muy
+
+      double precision xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),   &
+     &xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
+
       common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
      &ypineff
-!
+      double precision mux(nblz),muy(nblz)
+      common /mu/ mux,muy
+
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dbcommon
 !
 ! THIS BLOCK IS COMMON TO BOTH THIN6D AND TRAUTHIN SUBROUTINES
@@ -1046,8 +995,6 @@
       double precision c_offset    !offset in m
       double precision c_tilt(2)   !tilt in radian
       character*4      c_material  !material
-!
-!
 !
       character*(nc) filen,tit
 !
@@ -11705,6 +11652,7 @@ cc2008
 +ca dbdaten
 +ca dbpencil
 +ca database
++ca dbcolcom
       logical has_coll
 +ei
 +if .not.collimat
@@ -24969,17 +24917,14 @@ C Should get me a NaN
 10330 format(/10x,'ERROR IN OPENING FILES')
       end
 +dk tra_thin
+!>
+!!--------------------------------------------------------------------------
+!!  TRACK THIN LENS PART
+!!  F. SCHMIDT
+!!  CHANGES FOR COLLIMATION MADE BY G. ROBERT-DEMOLAIZE, October 29th, 2004
+!!--------------------------------------------------------------------------
+!<
       subroutine trauthin(nthinerr)
-!--------------------------------------------------------------------------
-!
-!  TRACK THIN LENS PART
-!
-!
-!  F. SCHMIDT
-!
-!
-!  CHANGES FOR COLLIMATION MADE BY G. ROBERT-DEMOLAIZE, October 29th, 2004
-!--------------------------------------------------------------------------
       implicit none
 +ca crcoall
 +if crlibm
@@ -25010,6 +24955,7 @@ C Should get me a NaN
 +ca dblinopt
 +ca dbpencil
 +ca info
++ca dbcolcom
 +ei
 +if bnlelens
 +ca rhicelens
@@ -26028,6 +25974,7 @@ C Should get me a NaN
 +ca commonm1
 +ca commontr
 +ca beamdim
+
 +if collimat
 +ca collpara
 +ca dbcommon
@@ -26036,7 +25983,9 @@ C Should get me a NaN
 +ca dblinopt
 +ca dbpencil
 +ca info
++ca dbcolcom
 +ei
+
 +if cr
 +ca crco
 +ei
@@ -26069,148 +26018,9 @@ C Should get me a NaN
 +ei
 
 +if collimat
-!++  Some initialization
-      do i = 1, numeff
-        rsig(i) = (dble(i)/2d0 - 0.5d0) + 5d0                           !hr08
-      enddo
 
-      dpopbins(1)= 1d-4
-
-      do i = 2, numeffdpop
-        dpopbins(i)= dble(i-1)*4d-4
-      enddo
-
-!      n_gt72 = 0
-!      n_gt80 = 0
-!      n_gt90 = 0
-!      nx_gt72 = 0
-!      nx_gt80 = 0
-!      ny_gt72 = 0
-!      ny_gt80 = 0
-      firstcoll = .true.
-
-!GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
-      napx = napx00
-      do j = 1, napx
-         part_hit(j)    = 0
-         part_abs(j)    = 0
-         part_select(j) = 1
-         part_indiv(j)  = -1e-6
-         part_linteract(j) = 0d0
-         part_impact(j) = 0
-      enddo
-!GRD
-
-!++  This we only do once, for the first call to this routine. Numbers
-!++  are saved in memory to use exactly the same info for each sample.
-!++  COMMON block to decide for first usage and to save coll info.
       if (firstrun) then
-      !Reading of collimation database moved to subroutine collimate_init
-+if beamgas
-!YIL call beam gas initiation routine
-      call beamGasInit(myenom)
-+ei
 
-      write(lout,*) 'number of collimators', db_ncoll
-      do icoll = 1, db_ncoll
-         write(lout,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
-         write(lout,*) 'collimator', icoll, ' ', db_name2(icoll)
-      end do
-
-!******write settings for alignment error in colltrack.out file
-      write(outlun,*) ' '
-      write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
-      write(outlun,*) ' '
-      write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
-      write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
-      write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
-      write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
-      write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
-      write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
-      write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
-      write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
-      write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
-      write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
-      write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
-      write(outlun,*) ' '
-
-!     TW - 01/2007
-!     added offset and random_seed for tilt and offset
-!*****intialize random generator with offset_seed
-      c_offsettilt_seed = abs(c_offsettilt_seed)
-      rnd_lux = 3
-      rnd_k1  = 0
-      rnd_k2  = 0
-      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
-!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
-
-! reset counter to assure starting at the same position in case of
-! using rndm5 somewhere else in the code before
-      zbv = rndm5(1)
-
-!++  Generate random tilts (Gaussian distribution plus systematic)
-!++  Do this only for the first call of this routine (first sample)
-!++  Keep all collimator database info and errors in memeory (COMMON
-!++  block) in order to re-use exactly the same information for every
-!++  sample.
-         if (c_rmstilt_prim.gt.0.d0 .or. c_rmstilt_sec.gt.0.d0 .or.     &!hr08
-     &        c_systilt_prim.ne.0.d0 .or. c_systilt_sec.ne.0.d0) then    !hr08
-            do icoll = 1, db_ncoll
-               if (db_name1(icoll)(1:3).eq.'TCP') then
-                  c_rmstilt = c_rmstilt_prim
-                  c_systilt = c_systilt_prim
-               else
-                  c_rmstilt = c_rmstilt_sec
-                  c_systilt = c_systilt_sec
-               endif
-               db_tilt(icoll,1) = c_systilt+c_rmstilt*myran_gauss(3d0)
-               if (systilt_antisymm) then
-                  db_tilt(icoll,2) =                                    &
-     &                 -1d0*c_systilt+c_rmstilt*myran_gauss(3d0)
-!    &                 c_rmstilt*myran_gauss(3d0)-c_systilt              !hr01
-               else
-                  db_tilt(icoll,2) =                                    &
-     &                 c_systilt+c_rmstilt*myran_gauss(3d0)
-               endif
-               write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),   &
-     &              ' jaw 1 has tilt [rad]: ', db_tilt(icoll,1)
-               write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),   &
-     &              ' jaw 2 has tilt [rad]: ', db_tilt(icoll,2)
-            end do
-         endif
-
-!++  Generate random offsets (Gaussian distribution plus systematic)
-!++  Do this only for the first call of this routine (first sample)
-!++  Keep all collimator database info and errors in memeory (COMMON
-!++  block) in order to re-use exactly the same information for every
-!++  sample and throughout a all run.
-         if (c_sysoffset_prim.ne.0.d0 .or. c_sysoffset_sec.ne.0.d0 .or. &!hr08
-     &        c_rmsoffset_prim.gt.0.d0.or.c_rmsoffset_sec.gt.0.d0) then  !hr08
-            do icoll = 1, db_ncoll 
-               if (db_name1(icoll)(1:3).eq.'TCP') then
-                  db_offset(icoll) = c_sysoffset_prim +                 &
-     &                 c_rmsoffset_prim*myran_gauss(3d0)
-               else
-                  db_offset(icoll) = c_sysoffset_sec +                  &
-     &                 c_rmsoffset_sec*myran_gauss(3d0)
-               endif
-               write(outlun,*) 'INFO>  offset: ', db_name1(icoll),      &
-     &              db_offset(icoll)
-            end do
-         endif
-
-!++  Generate random offsets (Gaussian distribution)
-!++  Do this only for the first call of this routine (first sample)
-!++  Keep all collimator database info and errors in memeory (COMMON
-!++  block) in order to re-use exactly the same information for every
-!++  sample and throughout a all run.
-!         if (c_rmserror_gap.gt.0.) then
-!            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
-            do icoll = 1, db_ncoll 
-               gap_rms_error(icoll) = c_rmserror_gap * myran_gauss(3d0)
-               write(outlun,*) 'INFO>  gap_rms_error: ',                &
-     &              db_name1(icoll),gap_rms_error(icoll)
-            end do
 
 !---- creating a file with beta-functions at TCP/TCS 
          open(unit=10000, file='twisslike.out')
@@ -53900,6 +53710,8 @@ c$$$            endif
 +ca dblinopt
 +ca dbpencil
 +ca info
++ca dbcolcom
++ca dbdaten
 +ei
 +if bnlelens
 +ca rhicelens
@@ -54336,7 +54148,7 @@ c$$$            endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
@@ -54361,7 +54173,8 @@ c$$$            endif
 +ca dblinopt
 +ca dbpencil
 +ca info
-!+ca dbthin6d
++ca dbthin6d
++ca dbcolcom
 +ei
 +if bnlelens
 +ca rhicelens
@@ -54557,7 +54370,150 @@ c$$$            endif
             end do
 
 !!START THIN6D CUT
+!++  Some initialization
+      do i = 1, numeff
+        rsig(i) = (dble(i)/2d0 - 0.5d0) + 5d0                           !hr08
+      enddo
 
+      dpopbins(1)= 1d-4
+
+      do i = 2, numeffdpop
+        dpopbins(i)= dble(i-1)*4d-4
+      enddo
+
+!      n_gt72 = 0
+!      n_gt80 = 0
+!      n_gt90 = 0
+!      nx_gt72 = 0
+!      nx_gt80 = 0
+!      ny_gt72 = 0
+!      ny_gt80 = 0
+      firstcoll = .true.
+
+!GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
+      napx = napx00
+      do j = 1, napx
+         part_hit(j)    = 0
+         part_abs(j)    = 0
+         part_select(j) = 1
+         part_indiv(j)  = -1e-6
+         part_linteract(j) = 0d0
+         part_impact(j) = 0
+      enddo
+!GRD
+
+!++  This we only do once, for the first call to this routine. Numbers
+!++  are saved in memory to use exactly the same info for each sample.
+!++  COMMON block to decide for first usage and to save coll info.
+      if (firstrun) then
+      !Reading of collimation database moved to subroutine collimate_init
++if beamgas
+!YIL call beam gas initiation routine
+      call beamGasInit(myenom)
++ei
+
+      write(lout,*) 'number of collimators', db_ncoll
+      do icoll = 1, db_ncoll
+         write(lout,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
+         write(lout,*) 'collimator', icoll, ' ', db_name2(icoll)
+      end do
+
+!******write settings for alignment error in colltrack.out file
+      write(outlun,*) ' '
+      write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
+      write(outlun,*) ' '
+      write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
+      write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
+      write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
+      write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
+      write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
+      write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
+      write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
+      write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
+      write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
+      write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
+      write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
+      write(outlun,*) ' '
+
+!     TW - 01/2007
+!     added offset and random_seed for tilt and offset
+!*****intialize random generator with offset_seed
+      c_offsettilt_seed = abs(c_offsettilt_seed)
+      rnd_lux = 3
+      rnd_k1  = 0
+      rnd_k2  = 0
+      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
+!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
+
+! reset counter to assure starting at the same position in case of
+! using rndm5 somewhere else in the code before
+      zbv = rndm5(1)
+
+!++  Generate random tilts (Gaussian distribution plus systematic)
+!++  Do this only for the first call of this routine (first sample)
+!++  Keep all collimator database info and errors in memeory (COMMON
+!++  block) in order to re-use exactly the same information for every
+!++  sample.
+         if (c_rmstilt_prim.gt.0.d0 .or. c_rmstilt_sec.gt.0.d0 .or.     &!hr08
+     &        c_systilt_prim.ne.0.d0 .or. c_systilt_sec.ne.0.d0) then    !hr08
+            do icoll = 1, db_ncoll
+               if (db_name1(icoll)(1:3).eq.'TCP') then
+                  c_rmstilt = c_rmstilt_prim
+                  c_systilt = c_systilt_prim
+               else
+                  c_rmstilt = c_rmstilt_sec
+                  c_systilt = c_systilt_sec
+               endif
+               db_tilt(icoll,1) = c_systilt+c_rmstilt*myran_gauss(3d0)
+               if (systilt_antisymm) then
+                  db_tilt(icoll,2) =                                    &
+     &                 -1d0*c_systilt+c_rmstilt*myran_gauss(3d0)
+!    &                 c_rmstilt*myran_gauss(3d0)-c_systilt              !hr01
+               else
+                  db_tilt(icoll,2) =                                    &
+     &                 c_systilt+c_rmstilt*myran_gauss(3d0)
+               endif
+               write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),   &
+     &              ' jaw 1 has tilt [rad]: ', db_tilt(icoll,1)
+               write(outlun,*) 'INFO>  Collimator ', db_name1(icoll),   &
+     &              ' jaw 2 has tilt [rad]: ', db_tilt(icoll,2)
+            end do
+         endif
+
+!++  Generate random offsets (Gaussian distribution plus systematic)
+!++  Do this only for the first call of this routine (first sample)
+!++  Keep all collimator database info and errors in memeory (COMMON
+!++  block) in order to re-use exactly the same information for every
+!++  sample and throughout a all run.
+         if (c_sysoffset_prim.ne.0.d0 .or. c_sysoffset_sec.ne.0.d0 .or. &!hr08
+     &        c_rmsoffset_prim.gt.0.d0.or.c_rmsoffset_sec.gt.0.d0) then  !hr08
+            do icoll = 1, db_ncoll 
+               if (db_name1(icoll)(1:3).eq.'TCP') then
+                  db_offset(icoll) = c_sysoffset_prim +                 &
+     &                 c_rmsoffset_prim*myran_gauss(3d0)
+               else
+                  db_offset(icoll) = c_sysoffset_sec +                  &
+     &                 c_rmsoffset_sec*myran_gauss(3d0)
+               endif
+               write(outlun,*) 'INFO>  offset: ', db_name1(icoll),      &
+     &              db_offset(icoll)
+            end do
+         endif
+
+!++  Generate random offsets (Gaussian distribution)
+!++  Do this only for the first call of this routine (first sample)
+!++  Keep all collimator database info and errors in memeory (COMMON
+!++  block) in order to re-use exactly the same information for every
+!++  sample and throughout a all run.
+!         if (c_rmserror_gap.gt.0.) then
+!            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
+            do icoll = 1, db_ncoll 
+               gap_rms_error(icoll) = c_rmserror_gap * myran_gauss(3d0)
+               write(outlun,*) 'INFO>  gap_rms_error: ',                &
+     &              db_name1(icoll),gap_rms_error(icoll)
+            end do
+
+      endif
       end
 
 !>
@@ -54596,6 +54552,7 @@ c$$$            endif
 +ca dblinopt
 +ca dbpencil
 +ca info
++ca dbcolcom
 +ei
 +if bnlelens
 +ca rhicelens
@@ -54804,6 +54761,7 @@ c$$$            endif
 +ca dblinopt
 +ca dbpencil
 +ca info
++ca dbcolcom
 +ei
 +if bnlelens
 +ca rhicelens
