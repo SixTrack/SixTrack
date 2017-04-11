@@ -26017,344 +26017,7 @@ C Should get me a NaN
 !GRD-042008
 +ei
 
-+if collimat
-
-      if (firstrun) then
-
-
-!---- creating a file with beta-functions at TCP/TCS 
-         open(unit=10000, file='twisslike.out')
-         open(unit=10001, file='sigmasettings.out')
-         mingap = 20
-
-         do j=1,iu
-! this transformation gives the right marker/name to the corresponding 
-! beta-dunctions or vice versa ;)
-            if(ic(j).le.nblo) then
-               do jb=1,mel(ic(j))
-                  myix=mtyp(ic(j),jb)
-               enddo
-            else
-               myix=ic(j)-nblo
-            endif
-
-! Using same code-block as below to evalute the collimator opening
-! for each collimator, this is needed to get the smallest collimator gap
-! in principal only looking for primary and secondary should be enough
-! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB 
-! both namings before and after V6.503 can be used 
-            if ( bez(myix)(1:2).eq.'TC'                                 &
-     &           .or. bez(myix)(1:2).eq.'tc'                            &
-     &           .or. bez(myix)(1:2).eq.'TD'                            &
-     &           .or. bez(myix)(1:2).eq.'td'                            &
-     &           .or. bez(myix)(1:3).eq.'COL'                           &
-     &           .or. bez(myix)(1:3).eq.'col') then
-               if(bez(myix)(1:3).eq.'TCP' .or.                          &
-     &              bez(myix)(1:3).eq.'tcp') then
-                  if(bez(myix)(7:9).eq.'3.B' .or.                       &
-     &                 bez(myix)(7:9).eq.'3.b') then
-                     nsig = nsig_tcp3
-                  else
-                     nsig = nsig_tcp7
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCSG' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcsg') then
-                  if(bez(myix)(8:10).eq.'3.B' .or.                      &
-     &                 bez(myix)(8:10).eq.'3.b' .or.                    &
-     &                 bez(myix)(9:11).eq.'3.B' .or.                    &
-     &                 bez(myix)(9:11).eq.'3.b') then
-                     nsig = nsig_tcsg3
-                  else
-                     nsig = nsig_tcsg7
-                  endif
-                  if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')&
-     &                 ) then
-                     nsig = nsig_tcstcdq
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
-     &                 bez(myix)(1:4).eq.'tcsp') then
-                  if(bez(myix)(9:11).eq.'6.B'.or.
-     &                 bez(myix)(9:11).eq.'6.b') then
-                     nsig = nsig_tcstcdq
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCSM' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcsm') then
-                  if(bez(myix)(8:10).eq.'3.B' .or.                      &
-     &                 bez(myix)(8:10).eq.'3.b' .or.                    &
-     &                 bez(myix)(9:11).eq.'3.B' .or.                    &
-     &                 bez(myix)(9:11).eq.'3.b') then
-                     nsig = nsig_tcsm3
-                  else
-                     nsig = nsig_tcsm7
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCLA' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcla') then
-                  if(bez(myix)(9:11).eq.'7.B' .or.                      &
-     &                 bez(myix)(9:11).eq.'7.b') then
-                     nsig = nsig_tcla7
-                  else
-                     nsig = nsig_tcla3
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCDQ' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcdq') then
-                  nsig = nsig_tcdq
-! YIL11: Checking only the IR value for TCT's..
-               elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
-     &                bez(myix)(1:4).eq.'tcth' .or.
-     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
-     &                bez(myix)(1:5).eq.'tctph') then                   &
-                  if(bez(myix)(8:8).eq.'1' .or.                         &                                                                                                                                       
-     &                 bez(myix)(9:9).eq.'1' ) then
-                     nsig = nsig_tcth1
-                  elseif(bez(myix)(8:8).eq.'2' .or.                     &                                                                                                                                           
-     &                 bez(myix)(9:9).eq.'2' ) then
-                     nsig = nsig_tcth2
-                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
-     &                 bez(myix)(9:9).eq.'5' ) then
-                     nsig = nsig_tcth5
-                  elseif(bez(myix)(8:8).eq.'8' .or.                     &                                                                                                                                           
-     &                 bez(myix)(9:9).eq.'8' ) then
-                     nsig = nsig_tcth8
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
-     &                bez(myix)(1:4).eq.'tctv'.or.
-     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
-     &                bez(myix)(1:5).eq.'tctpv' ) then
-                  if(bez(myix)(8:8).eq.'1' .or.                         &
-     &                 bez(myix)(9:9).eq.'1' ) then
-                     nsig = nsig_tctv1
-                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
-     &                 bez(myix)(9:9).eq.'2' ) then
-                     nsig = nsig_tctv2
-                  elseif(bez(myix)(8:8).eq.'5' .or.                     &
-     &                 bez(myix)(9:9).eq.'5' ) then
-                     nsig = nsig_tctv5
-                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
-     &                 bez(myix)(9:9).eq.'8' ) then
-                     nsig = nsig_tctv8
-                  endif
-               elseif(bez(myix)(1:3).eq.'TDI' .or.                      &
-     &                 bez(myix)(1:3).eq.'tdi') then
-                  nsig = nsig_tdi
-               elseif(bez(myix)(1:4).eq.'TCLP' .or.                     &
-     &                 bez(myix)(1:4).eq.'tclp' .or.                    &
-     &                 bez(myix)(1:4).eq.'TCL.' .or.                    &
-     &                 bez(myix)(1:4).eq.'tcl.'.or.                     &                                                                                                  
-     &                 bez(myix)(1:4).eq.'TCLX' .or.                    &                                                                                                                   
-     &                 bez(myix)(1:4).eq.'tclx') then
-                  nsig = nsig_tclp
-               elseif(bez(myix)(1:4).eq.'TCLI' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcli') then
-                  nsig = nsig_tcli
-               elseif(bez(myix)(1:4).eq.'TCXR' .or.                     &
-     &                 bez(myix)(1:4).eq.'tcxr') then
-                  nsig = nsig_tcxrp
-!     TW 04/2008 ---- start adding TCRYO
-               elseif(bez(myix)(1:5).eq.'TCRYO' .or.                    &
-     &                 bez(myix)(1:5).eq.'tcryo'.or.                    &
-     &                 bez(myix)(1:5).eq.'TCLD.' .or.                   &
-     &                 bez(myix)(1:5).eq.'tcld.') then
-                  nsig = nsig_tcryo
-!     TW 04/2008 ---- end adding TCRYO
-               elseif(bez(myix)(1:3).eq.'COL' .or.                      &
-     &                 bez(myix)(1:3).eq.'col') then
-                  if(bez(myix)(1:4).eq.'COLM' .or.                      &
-     &                 bez(myix)(1:4).eq.'colm' .or.                    &
-     &                 bez(myix)(1:5).eq.'COLH0' .or.                   &
-     &                 bez(myix)(1:5).eq.'colh0') then
-                     nsig = nsig_tcth1
-                  elseif(bez(myix)(1:5).eq.'COLV0' .or.                 &
-     &                    bez(myix)(1:5).eq.'colv0') then
-                     nsig = nsig_tcth2
-                  elseif(bez(myix)(1:5).eq.'COLH1' .or.                 &
-     &                    bez(myix)(1:5).eq.'colh1') then
-!     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
-!     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
-!     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
-                     nsig = nsig_tcth5
-                  elseif(bez(myix)(1:5).eq.'COLV1' .or.                 &
-     &                    bez(myix)(1:5).eq.'colv1') then
-                     nsig = nsig_tcth8
-                  elseif(bez(myix)(1:5).eq.'COLH2' .or.                 &
-     &                    bez(myix)(1:5).eq.'colh2') then
-                     nsig = nsig_tctv1
-                  endif
-!     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
-               else
-                  write(lout,*) "WARNING: Problem detected while "//
-     &                 "writing twisslike.out' and " //
-     &                 "'sigmasettings.out': Collimator name '" //
-     &                 bez(myix) // "' was not recognized!"
-                  write(lout,*) " ->Setting nsig=1000.0."
-                  nsig = 1000.0
-               endif
-
-               do i = 1, db_ncoll
-! start searching minimum gap 
-                  if ((db_name1(i)(1:11).eq.bez(myix)(1:11)) .or.       &
-     &                 (db_name2(i)(1:11).eq.bez(myix)(1:11))) then
-                     if ( db_length(i) .gt. 0d0 ) then
-                        nsig_err = nsig + gap_rms_error(i)
-! jaw 1 on positive side x-axis
-                        gap_h1 = nsig_err - sin(db_tilt(i,1))*          &
-     &                       db_length(i)/2
-                        gap_h2 = nsig_err + sin(db_tilt(i,1))*          &
-     &                       db_length(i)/2
-! jaw 2 on negative side of x-axis (see change of sign comapred 
-! to above code lines, alos have a look to setting of tilt angle)
-                        gap_h3 = nsig_err + sin(db_tilt(i,2))*          &
-     &                       db_length(i)/2
-                        gap_h4 = nsig_err - sin(db_tilt(i,2))*          &
-     &                       db_length(i)/2
-! find minumum halfgap
-! --- searching for smallest halfgap
-!! ---scaling for beta beat needed? 
-!                        if (do_nominal) then                            
-!                           bx_dist = db_bx(icoll) * scale_bx / scale_bx0
-!                           by_dist = db_by(icoll) * scale_by / scale_by0
-!                        else
-!                           bx_dist = tbetax(j) * scale_bx / scale_bx0
-!                           by_dist = tbetay(j) * scale_by / scale_by0
-!                        endif
-                        if (do_nominal) then                            
-                           bx_dist = db_bx(icoll) 
-                           by_dist = db_by(icoll)
-                        else
-                           bx_dist = tbetax(j)
-                           by_dist = tbetay(j)
-                        endif
-
-                        sig_offset = db_offset(i) /                     &
-     &                       (sqrt(bx_dist**2 * cos(db_rotation(i))**2  &
-     &                       + by_dist**2 * sin(db_rotation(i))**2 ))
-                        write(10000,*) bez(myix),tbetax(j),tbetay(j),   &
-     &                       torbx(j),torby(j), nsig, gap_rms_error(i)
-                        write(10001,*) bez(myix), gap_h1, gap_h2,       & 
-     &                       gap_h3, gap_h4, sig_offset, db_offset(i),  &
-     &                       nsig, gap_rms_error(i)
-                        if ((gap_h1 + sig_offset) .le. mingap) then
-                           mingap = gap_h1 + sig_offset
-                           coll_mingap_id = i
-                           coll_mingap1 = db_name1(i)
-                           coll_mingap2 = db_name2(i) 
-                        elseif ((gap_h2 + sig_offset) .le. mingap) then
-                           mingap = gap_h2 + sig_offset
-                           coll_mingap_id = i
-                           coll_mingap1 = db_name1(i)
-                           coll_mingap2 = db_name2(i) 
-                        elseif ((gap_h3 - sig_offset) .le. mingap) then
-                           mingap = gap_h3 - sig_offset
-                           coll_mingap_id = i
-                           coll_mingap1 = db_name1(i)
-                           coll_mingap2 = db_name2(i) 
-                        elseif ((gap_h4 - sig_offset) .le. mingap) then
-                           mingap = gap_h4 - sig_offset
-                           coll_mingap_id = i
-                           coll_mingap1 = db_name1(i)
-                           coll_mingap2 = db_name2(i)
-                        endif
-                     endif
-                  endif
-               enddo !do i = 1, db_ncoll
-
-! could be done more elegant the above code to search the minimum gap
-! and should also consider the jaw tilt
-            endif
-         enddo !do j=1,iu
-
-         write(10000,*) coll_mingap_id,coll_mingap1,coll_mingap2,       &
-     &        mingap
-         write(10000,*) 'INFO> IPENCIL initial ',ipencil
-
-! if pencil beam is used and on collimator with smallest gap the
-! distribution should be generated, set ipencil to coll_mingap_id    
-         if (ipencil.gt.0 .and. do_mingap) then
-            ipencil = coll_mingap_id
-         endif
-
-         write(10000,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
-         write(10001,*) coll_mingap_id,coll_mingap1,coll_mingap2,       &
-     &        mingap
-
-! if pencil beam is used and on collimator with smallest gap the
-! distribution should be generated, set ipencil to coll_mingap_id    
-         write(10001,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
-         write(10001,*) 'INFO> rnd_seed is (before reinit)',rnd_seed
-
-         close(10000)
-         close(10001)
-
-!****** re-intialize random generator with rnd_seed 
-!       reinit with initial value used in first call  
-         rnd_lux = 3
-         rnd_k1  = 0
-         rnd_k2  = 0
-         call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
-! TW - 01/2007
-
-!GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, ie THE ONE WE DON'T WANT
-!GRD TO KEEP OVER EACH LOOP
-         do j=1,napx
-           tertiary(j)=0
-           secondary(j)=0
-           other(j)=0
-           nabs_type(j) = 0
-         end do
-
-         do k = 1, numeff
-           neff(k)  = 0d0
-           neffx(k) = 0d0
-           neffy(k) = 0d0
-
-             do j = 1, numeffdpop
-              neff2d(k,j) = 0d0
-             enddo
-         enddo
-
-         do k = 1, numeffdpop
-           neffdpop(k)  = 0d0
-           npartdpop(k) = 0
-         enddo
-
-         do j=1,max_ncoll
-           cn_impact(j) = 0
-           cn_absorbed(j) = 0
-           csum(j) = 0d0
-           csqsum(j) = 0d0
-         enddo
-
-!++ End of first call stuff (end of first run)
-      endif
-
-
-
-
-
-
-
-
-
-
-
-!++ Moved initialization to the start of EACH set, RA/GRD 14/6/04
-      do j=1,napx
-        tertiary(j)=0
-        secondary(j)=0
-        other(j)=0
-        nabs_type(j) = 0
-      end do
-
-!GRD HERE WE INITIALIZE THE VALUES OF IPART(j)
-      do j=1,napx
-         ipart(j) = j
-         flukaname(j) = 0
-      end do
-!GRD
-!GRD NOW WE CAN BEGIN THE LOOPS
-!GRD
-      open(unit=99,file='betatron.dat')
-+ei
-
+!Here is the loop over turns
 +if cr
       if (restart) then
         call crstart
@@ -53658,10 +53321,11 @@ c$$$            endif
 ! collimate_init()
 ! collimate_start_sample()
 ! collimate_start_turn()
-! collimate_each_element()
+! collimate_start_element()
 ! collimate_start_collimator()
 ! collimate_do_collimator()
 ! collimate_end_collimator()
+! collimate_end_element()
 ! collimate_end_turn()
 ! collimate_end_sample()
 ! collimate_exit()
@@ -54512,8 +54176,327 @@ c$$$            endif
                write(outlun,*) 'INFO>  gap_rms_error: ',                &
      &              db_name1(icoll),gap_rms_error(icoll)
             end do
+!---- creating a file with beta-functions at TCP/TCS 
+         open(unit=10000, file='twisslike.out')
+         open(unit=10001, file='sigmasettings.out')
+         mingap = 20
 
+         do j=1,iu
+! this transformation gives the right marker/name to the corresponding 
+! beta-dunctions or vice versa ;)
+            if(ic(j).le.nblo) then
+               do jb=1,mel(ic(j))
+                  myix=mtyp(ic(j),jb)
+               enddo
+            else
+               myix=ic(j)-nblo
+            endif
+
+! Using same code-block as below to evalute the collimator opening
+! for each collimator, this is needed to get the smallest collimator gap
+! in principal only looking for primary and secondary should be enough
+! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB 
+! both namings before and after V6.503 can be used 
+            if ( bez(myix)(1:2).eq.'TC'                                 &
+     &           .or. bez(myix)(1:2).eq.'tc'                            &
+     &           .or. bez(myix)(1:2).eq.'TD'                            &
+     &           .or. bez(myix)(1:2).eq.'td'                            &
+     &           .or. bez(myix)(1:3).eq.'COL'                           &
+     &           .or. bez(myix)(1:3).eq.'col') then
+               if(bez(myix)(1:3).eq.'TCP' .or.                          &
+     &              bez(myix)(1:3).eq.'tcp') then
+                  if(bez(myix)(7:9).eq.'3.B' .or.                       &
+     &                 bez(myix)(7:9).eq.'3.b') then
+                     nsig = nsig_tcp3
+                  else
+                     nsig = nsig_tcp7
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCSG' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcsg') then
+                  if(bez(myix)(8:10).eq.'3.B' .or.                      &
+     &                 bez(myix)(8:10).eq.'3.b' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.B' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.b') then
+                     nsig = nsig_tcsg3
+                  else
+                     nsig = nsig_tcsg7
+                  endif
+                  if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')&
+     &                 ) then
+                     nsig = nsig_tcstcdq
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
+     &                 bez(myix)(1:4).eq.'tcsp') then
+                  if(bez(myix)(9:11).eq.'6.B'.or.
+     &                 bez(myix)(9:11).eq.'6.b') then
+                     nsig = nsig_tcstcdq
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCSM' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcsm') then
+                  if(bez(myix)(8:10).eq.'3.B' .or.                      &
+     &                 bez(myix)(8:10).eq.'3.b' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.B' .or.                    &
+     &                 bez(myix)(9:11).eq.'3.b') then
+                     nsig = nsig_tcsm3
+                  else
+                     nsig = nsig_tcsm7
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCLA' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcla') then
+                  if(bez(myix)(9:11).eq.'7.B' .or.                      &
+     &                 bez(myix)(9:11).eq.'7.b') then
+                     nsig = nsig_tcla7
+                  else
+                     nsig = nsig_tcla3
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCDQ' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcdq') then
+                  nsig = nsig_tcdq
+! YIL11: Checking only the IR value for TCT's..
+               elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
+     &                bez(myix)(1:4).eq.'tcth' .or.
+     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
+     &                bez(myix)(1:5).eq.'tctph') then                   &
+                  if(bez(myix)(8:8).eq.'1' .or.                         &                                                                                                                                       
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tcth1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tcth2
+                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tcth5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &                                                                                                                                           
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tcth8
+                  endif
+               elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
+     &                bez(myix)(1:4).eq.'tctv'.or.
+     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
+     &                bez(myix)(1:5).eq.'tctpv' ) then
+                  if(bez(myix)(8:8).eq.'1' .or.                         &
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tctv1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tctv2
+                  elseif(bez(myix)(8:8).eq.'5' .or.                     &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tctv5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tctv8
+                  endif
+               elseif(bez(myix)(1:3).eq.'TDI' .or.                      &
+     &                 bez(myix)(1:3).eq.'tdi') then
+                  nsig = nsig_tdi
+               elseif(bez(myix)(1:4).eq.'TCLP' .or.                     &
+     &                 bez(myix)(1:4).eq.'tclp' .or.                    &
+     &                 bez(myix)(1:4).eq.'TCL.' .or.                    &
+     &                 bez(myix)(1:4).eq.'tcl.'.or.                     &                                                                                                  
+     &                 bez(myix)(1:4).eq.'TCLX' .or.                    &                                                                                                                   
+     &                 bez(myix)(1:4).eq.'tclx') then
+                  nsig = nsig_tclp
+               elseif(bez(myix)(1:4).eq.'TCLI' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcli') then
+                  nsig = nsig_tcli
+               elseif(bez(myix)(1:4).eq.'TCXR' .or.                     &
+     &                 bez(myix)(1:4).eq.'tcxr') then
+                  nsig = nsig_tcxrp
+!     TW 04/2008 ---- start adding TCRYO
+               elseif(bez(myix)(1:5).eq.'TCRYO' .or.                    &
+     &                 bez(myix)(1:5).eq.'tcryo'.or.                    &
+     &                 bez(myix)(1:5).eq.'TCLD.' .or.                   &
+     &                 bez(myix)(1:5).eq.'tcld.') then
+                  nsig = nsig_tcryo
+!     TW 04/2008 ---- end adding TCRYO
+               elseif(bez(myix)(1:3).eq.'COL' .or.                      &
+     &                 bez(myix)(1:3).eq.'col') then
+                  if(bez(myix)(1:4).eq.'COLM' .or.                      &
+     &                 bez(myix)(1:4).eq.'colm' .or.                    &
+     &                 bez(myix)(1:5).eq.'COLH0' .or.                   &
+     &                 bez(myix)(1:5).eq.'colh0') then
+                     nsig = nsig_tcth1
+                  elseif(bez(myix)(1:5).eq.'COLV0' .or.                 &
+     &                    bez(myix)(1:5).eq.'colv0') then
+                     nsig = nsig_tcth2
+                  elseif(bez(myix)(1:5).eq.'COLH1' .or.                 &
+     &                    bez(myix)(1:5).eq.'colh1') then
+!     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
+!     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
+!     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
+                     nsig = nsig_tcth5
+                  elseif(bez(myix)(1:5).eq.'COLV1' .or.                 &
+     &                    bez(myix)(1:5).eq.'colv1') then
+                     nsig = nsig_tcth8
+                  elseif(bez(myix)(1:5).eq.'COLH2' .or.                 &
+     &                    bez(myix)(1:5).eq.'colh2') then
+                     nsig = nsig_tctv1
+                  endif
+!     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+               else
+                  write(lout,*) "WARNING: Problem detected while "//
+     &                 "writing twisslike.out' and " //
+     &                 "'sigmasettings.out': Collimator name '" //
+     &                 bez(myix) // "' was not recognized!"
+                  write(lout,*) " ->Setting nsig=1000.0."
+                  nsig = 1000.0
+               endif
+
+               do i = 1, db_ncoll
+! start searching minimum gap 
+                  if ((db_name1(i)(1:11).eq.bez(myix)(1:11)) .or.       &
+     &                 (db_name2(i)(1:11).eq.bez(myix)(1:11))) then
+                     if ( db_length(i) .gt. 0d0 ) then
+                        nsig_err = nsig + gap_rms_error(i)
+! jaw 1 on positive side x-axis
+                        gap_h1 = nsig_err - sin(db_tilt(i,1))*          &
+     &                       db_length(i)/2
+                        gap_h2 = nsig_err + sin(db_tilt(i,1))*          &
+     &                       db_length(i)/2
+! jaw 2 on negative side of x-axis (see change of sign comapred 
+! to above code lines, alos have a look to setting of tilt angle)
+                        gap_h3 = nsig_err + sin(db_tilt(i,2))*          &
+     &                       db_length(i)/2
+                        gap_h4 = nsig_err - sin(db_tilt(i,2))*          &
+     &                       db_length(i)/2
+! find minumum halfgap
+! --- searching for smallest halfgap
+!! ---scaling for beta beat needed? 
+!                        if (do_nominal) then                            
+!                           bx_dist = db_bx(icoll) * scale_bx / scale_bx0
+!                           by_dist = db_by(icoll) * scale_by / scale_by0
+!                        else
+!                           bx_dist = tbetax(j) * scale_bx / scale_bx0
+!                           by_dist = tbetay(j) * scale_by / scale_by0
+!                        endif
+                        if (do_nominal) then                            
+                           bx_dist = db_bx(icoll) 
+                           by_dist = db_by(icoll)
+                        else
+                           bx_dist = tbetax(j)
+                           by_dist = tbetay(j)
+                        endif
+
+                        sig_offset = db_offset(i) /                     &
+     &                       (sqrt(bx_dist**2 * cos(db_rotation(i))**2  &
+     &                       + by_dist**2 * sin(db_rotation(i))**2 ))
+                        write(10000,*) bez(myix),tbetax(j),tbetay(j),   &
+     &                       torbx(j),torby(j), nsig, gap_rms_error(i)
+                        write(10001,*) bez(myix), gap_h1, gap_h2,       & 
+     &                       gap_h3, gap_h4, sig_offset, db_offset(i),  &
+     &                       nsig, gap_rms_error(i)
+                        if ((gap_h1 + sig_offset) .le. mingap) then
+                           mingap = gap_h1 + sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i) 
+                        elseif ((gap_h2 + sig_offset) .le. mingap) then
+                           mingap = gap_h2 + sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i) 
+                        elseif ((gap_h3 - sig_offset) .le. mingap) then
+                           mingap = gap_h3 - sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i) 
+                        elseif ((gap_h4 - sig_offset) .le. mingap) then
+                           mingap = gap_h4 - sig_offset
+                           coll_mingap_id = i
+                           coll_mingap1 = db_name1(i)
+                           coll_mingap2 = db_name2(i)
+                        endif
+                     endif
+                  endif
+               enddo !do i = 1, db_ncoll
+
+! could be done more elegant the above code to search the minimum gap
+! and should also consider the jaw tilt
+            endif
+         enddo !do j=1,iu
+         write(10000,*) coll_mingap_id,coll_mingap1,coll_mingap2,       &
+     &        mingap
+         write(10000,*) 'INFO> IPENCIL initial ',ipencil
+
+! if pencil beam is used and on collimator with smallest gap the
+! distribution should be generated, set ipencil to coll_mingap_id    
+         if (ipencil.gt.0 .and. do_mingap) then
+            ipencil = coll_mingap_id
+         endif
+
+         write(10000,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
+         write(10001,*) coll_mingap_id,coll_mingap1,coll_mingap2,       &
+     &        mingap
+
+! if pencil beam is used and on collimator with smallest gap the
+! distribution should be generated, set ipencil to coll_mingap_id    
+         write(10001,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
+         write(10001,*) 'INFO> rnd_seed is (before reinit)',rnd_seed
+
+         close(10000)
+         close(10001)
+
+!****** re-intialize random generator with rnd_seed 
+!       reinit with initial value used in first call  
+         rnd_lux = 3
+         rnd_k1  = 0
+         rnd_k2  = 0
+         call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
+! TW - 01/2007
+
+!GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, ie THE ONE WE DON'T WANT
+!GRD TO KEEP OVER EACH LOOP
+         do j=1,napx
+           tertiary(j)=0
+           secondary(j)=0
+           other(j)=0
+           nabs_type(j) = 0
+         end do
+
+         do k = 1, numeff
+           neff(k)  = 0d0
+           neffx(k) = 0d0
+           neffy(k) = 0d0
+
+             do j = 1, numeffdpop
+              neff2d(k,j) = 0d0
+             enddo
+         enddo
+
+         do k = 1, numeffdpop
+           neffdpop(k)  = 0d0
+           npartdpop(k) = 0
+         enddo
+
+         do j=1,max_ncoll
+           cn_impact(j) = 0
+           cn_absorbed(j) = 0
+           csum(j) = 0d0
+           csqsum(j) = 0d0
+         enddo
+
+!++ End of first call stuff (end of first run)
       endif
+
+!++ Moved initialization to the start of EACH set, RA/GRD 14/6/04
+      do j=1,napx
+        tertiary(j)=0
+        secondary(j)=0
+        other(j)=0
+        nabs_type(j) = 0
+      end do
+
+!GRD HERE WE INITIALIZE THE VALUES OF IPART(j)
+      do j=1,napx
+         ipart(j) = j
+         flukaname(j) = 0
+      end do
+!GRD
+!GRD NOW WE CAN BEGIN THE LOOPS
+!GRD
+      open(unit=99,file='betatron.dat')
+
       end
 
 !>
@@ -54905,9 +54888,17 @@ c$$$            endif
 !>
 !! This routine is called at the start of every element
 !<
-      subroutine collimate_each_element()
+      subroutine collimate_start_element()
       implicit none
       end
+
+!>
+!! This routine is called at the end of every element
+!<
+      subroutine collimate_end_element()
+      implicit none
+      end
+
 
 
 !>
