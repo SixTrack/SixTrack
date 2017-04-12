@@ -758,6 +758,8 @@
       double precision gap_rms_error(max_ncoll), nsig_err, sig_offset
       double precision mingap,gap_h1,gap_h2,gap_h3,gap_h4
       integer coll_mingap_id
+
+      common /gap_err/ gap_rms_error
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbthin6d
@@ -26181,8 +26183,6 @@ C Should get me a NaN
 
    10     stracki=strack(i)
 +if collimat
-!          call collimate_start_collimator(stracki)
-
 
 !==========================================
 !Ralph drift length is stracki
@@ -26213,1491 +26213,14 @@ C Should get me a NaN
      &         .or. bez(myix)(1:2).eq.'td'                              &
      &         .or. bez(myix)(1:3).eq.'COL'                             &
      &         .or. bez(myix)(1:3).eq.'col')) then
-            if(bez(myix)(1:3).eq.'TCP' .or.                             &
-     &           bez(myix)(1:3).eq.'tcp') then
-              if(bez(myix)(7:9).eq.'3.B' .or.                           &
-     &             bez(myix)(7:9).eq.'3.b') then
-                nsig = nsig_tcp3
-              else
-                nsig = nsig_tcp7
-              endif
-            elseif(bez(myix)(1:4).eq.'TCSG' .or.                        &
-     &             bez(myix)(1:4).eq.'tcsg') then
-              if(bez(myix)(8:10).eq.'3.B' .or.                          &
-     &             bez(myix)(8:10).eq.'3.b' .or.                        &
-     &             bez(myix)(9:11).eq.'3.B' .or.                        &
-     &             bez(myix)(9:11).eq.'3.b') then
-                nsig = nsig_tcsg3
-              else
-                nsig = nsig_tcsg7
-              endif
-              if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')    &
-     &             ) then
-                nsig = nsig_tcstcdq
-              endif
-            elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
-     &             bez(myix)(1:4).eq.'tcsp') then
-             if(bez(myix)(9:11).eq.'6.B'.or.
-     &          bez(myix)(9:11).eq.'6.b') then
-                nsig = nsig_tcstcdq
-              endif
-            elseif(bez(myix)(1:4).eq.'TCSM' .or.                        &
-     &             bez(myix)(1:4).eq.'tcsm') then
-              if(bez(myix)(8:10).eq.'3.B' .or.                          &
-     &             bez(myix)(8:10).eq.'3.b' .or.                        &
-     &             bez(myix)(9:11).eq.'3.B' .or.                        &
-     &             bez(myix)(9:11).eq.'3.b') then
-                nsig = nsig_tcsm3
-              else
-                nsig = nsig_tcsm7
-              endif
-            elseif(bez(myix)(1:4).eq.'TCLA' .or.                        &
-     &             bez(myix)(1:4).eq.'tcla') then
-              if(bez(myix)(9:11).eq.'7.B' .or.                          &
-     &             bez(myix)(9:11).eq.'7.b') then
-                nsig = nsig_tcla7
-              else
-                nsig = nsig_tcla3
-              endif
-            elseif(bez(myix)(1:4).eq.'TCDQ' .or.                        &
-     &             bez(myix)(1:4).eq.'tcdq') then
-              nsig = nsig_tcdq
-! YIL11: Checking only the IR value for TCT's..
-               elseif(bez(myix)(1:4).eq.'TCTH' .or.                     &
-     &                bez(myix)(1:4).eq.'tcth' .or.
-     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
-     &                bez(myix)(1:5).eq.'tctph') then                   &
-                  if(bez(myix)(8:8).eq.'1' .or.                         &
-     &                 bez(myix)(9:9).eq.'1' ) then
-                     nsig = nsig_tcth1
-                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
-     &                 bez(myix)(9:9).eq.'2' ) then
-                     nsig = nsig_tcth2
-                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
-     &                 bez(myix)(9:9).eq.'5' ) then
-                     nsig = nsig_tcth5
-                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
-     &                 bez(myix)(9:9).eq.'8' ) then
-                     nsig = nsig_tcth8
-                  endif
-               elseif(bez(myix)(1:4).eq.'TCTV' .or.                     &
-     &                bez(myix)(1:4).eq.'tctv'.or.
-     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
-     &                bez(myix)(1:5).eq.'tctpv' ) then
-                  if(bez(myix)(8:8).eq.'1' .or.                         &
-     &                 bez(myix)(9:9).eq.'1' ) then
-                     nsig = nsig_tctv1
-                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
-     &                 bez(myix)(9:9).eq.'2' ) then
-                     nsig = nsig_tctv2
-                  elseif(bez(myix)(8:8).eq.'5' .or.                     &
-     &                 bez(myix)(9:9).eq.'5' ) then
-                     nsig = nsig_tctv5
-                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
-     &                 bez(myix)(9:9).eq.'8' ) then
-                     nsig = nsig_tctv8
-                  endif
-            elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
-     &             bez(myix)(1:3).eq.'tdi') then
-              nsig = nsig_tdi
-            elseif(bez(myix)(1:4).eq.'TCLP' .or.                        &
-     &             bez(myix)(1:4).eq.'tclp' .or.                        &
-     &             bez(myix)(1:4).eq.'TCL.' .or.                        &
-     &             bez(myix)(1:4).eq.'tcl.'.or.                         &
-     &             bez(myix)(1:4).eq.'TCLX' .or.                        &
-     &             bez(myix)(1:4).eq.'tclx') then
-              nsig = nsig_tclp
-            elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
-     &             bez(myix)(1:4).eq.'tcli') then
-              nsig = nsig_tcli
-            elseif(bez(myix)(1:4).eq.'TCXR' .or.                        &
-     &             bez(myix)(1:4).eq.'tcxr') then
-              nsig = nsig_tcxrp
-            elseif(bez(myix)(1:5).eq.'TCRYO' .or.                       &
-     &             bez(myix)(1:5).eq.'tcryo'.or.
-     &             bez(myix)(1:5).eq.'TCLD.' .or.                       &
-     &             bez(myix)(1:5).eq.'tcld.') then
-              nsig = nsig_tcryo
-            elseif(bez(myix)(1:3).eq.'COL' .or.                         &
-     &             bez(myix)(1:3).eq.'col') then
-              if(bez(myix)(1:4).eq.'COLM' .or.                          &
-     &             bez(myix)(1:4).eq.'colm' .or.                        &
-     &             bez(myix)(1:5).eq.'COLH0' .or.                       &
-     &             bez(myix)(1:5).eq.'colh0') then
-                nsig = nsig_tcth1
-              elseif(bez(myix)(1:5).eq.'COLV0' .or.                     &
-     &               bez(myix)(1:5).eq.'colv0') then
-                nsig = nsig_tcth2
-              elseif(bez(myix)(1:5).eq.'COLH1' .or.                     &
-     &               bez(myix)(1:5).eq.'colh1') then
-!     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
-!     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
-!     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
-                nsig = nsig_tcth5
-              elseif(bez(myix)(1:5).eq.'COLV1' .or.                     &
-     &               bez(myix)(1:5).eq.'colv1') then
-                nsig = nsig_tcth8
-              elseif(bez(myix)(1:5).eq.'COLH2' .or.                     &
-     &               bez(myix)(1:5).eq.'colh2') then
-                nsig = nsig_tctv1
-              endif
-           else
-              if(firstrun.and.iturn.eq.1) then
-                 write(lout,*) "WARNING: When setting opening for the"//
-     &                " collimator named '" // bez(myix) //
-     &                "' from fort.3, the name was not recognized."
-                 write(lout,*) " -> Setting nsig=1000.0."
-              endif
-              nsig=1000.0
-!JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
-            endif
 
-!++  Write trajectory for any selected particle
-        c_length = 0d0
-
-!     SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
-        if ( firstrun ) then
-          if (rselect.gt.0 .and. rselect.lt.65) then
-            do j = 1, napx
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-              pj     = ejv(j)/1d3
-
-              if (iturn.eq.1.and.j.eq.1) then
-                sum_ax(ie)=0d0
-                sum_ay(ie)=0d0
-              endif
-
-!-- DRIFT PART
-              if (stracki.eq.0.) then
-                if(iexact.eq.0) then
-                  xj  = xj + 0.5d0*c_length*xpj
-                  yj  = yj + 0.5d0*c_length*ypj
-                else
-                  zpj=sqrt(1d0-xpj**2-ypj**2)
-                  xj = xj + 0.5d0*c_length*(xpj/zpj)
-                  yj = yj + 0.5d0*c_length*(ypj/zpj)
-                endif
-              endif
-!
-              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
-!
-              if (part_abs(j).eq.0) then
-          nspx    = sqrt(                                               &
-     &abs( gammax*(xj)**2 +                                             &
-     &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0_collgap
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*(yj)**2 +                                             &
-     &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0_collgap
-     &)
-                sum_ax(ie)   = sum_ax(ie) + nspx
-                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-                sum_ay(ie)   = sum_ay(ie) + nspy
-                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-                nampl(ie)    = nampl(ie) + 1
-              else
-                nspx = 0d0
-                nspy = 0d0
-              endif
-                sampl(ie)    = totals
-                ename(ie)    = bez(myix)(1:16)
-            end do
-          endif
-      endif
-
-!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
-          found = .false.
-!     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
-          do j = 1, db_ncoll
-            if ((db_name1(j)(1:11).eq.bez(myix)(1:11)) .or.             &
-     &          (db_name2(j)(1:11).eq.bez(myix)(1:11))) then
-               if ( db_length(j) .gt. 0d0 ) then
-                 found = .true.
-                 icoll = j
-               endif
-            endif
-          end do
-          if (.not. found .and. firstrun .and. iturn.eq.1) then
-            write(lout,*)
-     &           'ERR>  Collimator not found in colldb: ', bez(myix)
-      endif
+          call collimate_start_collimator(stracki)
 
 !++ For known collimators
-       if (found) then
-!-----------------------------------------------------------------------
-!GRD NEW COLLIMATION PARAMETERS
-!-----------------------------------------------------------------------
-!++  Get the aperture from the beta functions and emittance
-!++  A simple estimate of beta beating can be included that
-!++  has twice the betatron phase advance
-         if(.not. do_nsig) nsig = db_nsig(icoll)
-+if crlibm
-          scale_bx = (1d0 + xbeat*sin_rn(4*pi*mux(ie)+
-+ei
-+if .not.crlibm
-          scale_bx = (1d0 + xbeat*sin(4*pi*mux(ie)+                     &
-+ei
-     &xbeatphase)  )
-+if crlibm
-          scale_by = (1d0 + ybeat*sin_rn(4*pi*muy(ie)+
-+ei
-+if .not.crlibm
-          scale_by = (1d0 + ybeat*sin(4*pi*muy(ie)+                     &
-+ei
-     &ybeatphase)  )
-!
-          if (firstcoll) then
-            scale_bx0 = scale_bx
-            scale_by0 = scale_by
-            firstcoll = .false.
-          endif
-!-------------------------------------------------------------------
-!++  Assign nominal OR design beta functions for later
-          if (do_nominal) then
-            bx_dist = db_bx(icoll) * scale_bx / scale_bx0
-            by_dist = db_by(icoll) * scale_by / scale_by0
-          else
-            bx_dist = tbetax(ie) * scale_bx / scale_bx0
-            by_dist = tbetay(ie) * scale_by / scale_by0
-          endif
-
-!++  Write beam ellipse at selected collimator
-! ---- changed name_sel(1:11) name_sel(1:12) to be checked if feasible!!
-          if (                                                          &
-     &         ((db_name1(icoll).eq.name_sel(1:12))                     &
-     &         .or.(db_name2(icoll).eq.name_sel(1:12)))                 &
-     &         .and. dowrite_dist) then
-!          if (firstrun .and.                                            &
-!     &         ((db_name1(icoll).eq.name_sel(1:11))                     &
-!     &         .or.(db_name2(icoll).eq.name_sel(1:11)))                 &
-!     &         .and. dowrite_dist) then
-! --- get halo on each turn
-!     &.and. iturn.eq.1 .and. dowrite_dist) then
-! --- put open and close at the pso. where it is done for the 
-! --- other files belonging to dowrite_impact flag !(may not a good loc.)
-!            open(unit=45, file='coll_ellipse.dat')
-!            write(45,'(a)')                                             &
-!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
-            do j = 1, napx
-            write(45,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))')              &
-     &ipart(j)+100*samplenumber,xv(1,j), xv(2,j), yv(1,j), yv(2,j),     &
-     &ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j),           &
-     &nabs_type(j)
-            end do
-!            close(45)
-          endif
-
-!-------------------------------------------------------------------
-!++  Output to temporary database and screen
-          if (iturn.eq.1.and.firstrun) then
-            write(40,*) '# '
-            write(40,*) db_name1(icoll)(1:11)
-            write(40,*) db_material(icoll)
-            write(40,*) db_length(icoll)
-            write(40,*) db_rotation(icoll)
-            write(40,*) db_offset(icoll)
-            write(40,*) tbetax(ie)
-            write(40,*) tbetay(ie)
-!
-            write(outlun,*) ' '
-            write(outlun,*)   'Collimator information: '
-            write(outlun,*) ' '
-            write(outlun,*) 'Name:                '                     &
-     &, db_name1(icoll)(1:11)
-            write(outlun,*) 'Material:            '                     &
-     &, db_material(icoll)
-            write(outlun,*) 'Length [m]:          '                     &
-     &, db_length(icoll)
-            write(outlun,*) 'Rotation [rad]:      '                     &
-     &, db_rotation(icoll)
-            write(outlun,*) 'Offset [m]:          '                     &
-     &,db_offset(icoll)
-            write(outlun,*) 'Design beta x [m]:   '                     &
-     &,db_bx(icoll)
-            write(outlun,*) 'Design beta y [m]:   '                     &
-     &,db_by(icoll)
-            write(outlun,*) 'Optics beta x [m]:   '                     &
-     &,tbetax(ie)
-            write(outlun,*) 'Optics beta y [m]:   '                     &
-     &,tbetay(ie)
-!          else
-!            write(lout,*) 'C WRITE', iturn,firstrun
-          endif
-
-!-------------------------------------------------------------------
-!++  Calculate aperture of collimator
-!JUNE2005   HERE ONE HAS TO HAVE PARTICULAR TREATMENT OF THE OPENING OF
-!JUNE2005   THE PRIMARY COLLIMATOR OF RHIC
-         if(db_name1(icoll)(1:4).ne.'COLM') then
-          nsig = nsig + gap_rms_error(icoll)
-          xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
-          ymax = nsig*sqrt(by_dist*myemity0_collgap)
-          xmax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(bx_dist*myemitx0_collgap)
-          ymax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(by_dist*myemity0_collgap)
-          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0_collgap)
-          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0_collgap)
-          c_rotation = db_rotation(icoll)
-          c_length   = db_length(icoll)
-          c_material = db_material(icoll)
-          c_offset   = db_offset(icoll)
-          c_tilt(1)  = db_tilt(icoll,1)
-          c_tilt(2)  = db_tilt(icoll,2)
-
-+if crlibm
-          calc_aperture = sqrt( xmax**2 * cos_rn(c_rotation)**2         &
-+ei
-+if .not.crlibm
-          calc_aperture = sqrt( xmax**2 * cos(c_rotation)**2            &
-+ei
-+if crlibm
-     &                    + ymax**2 * sin_rn(c_rotation)**2 )
-+ei
-+if .not.crlibm
-     &                    + ymax**2 * sin(c_rotation)**2 )
-+ei
-
-+if crlibm
-          nom_aperture = sqrt( xmax_nom**2 * cos_rn(c_rotation)**2      &
-     &                   + ymax_nom**2 * sin_rn(c_rotation)**2 )
-+ei
-+if .not.crlibm
-          nom_aperture = sqrt( xmax_nom**2 * cos(c_rotation)**2         &
-     &                   + ymax_nom**2 * sin(c_rotation)**2 )
-+ei
-!
-            pencil_aperture =                                           &
-+if crlibm
-     &                    sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2  &
-     &                    + ymax_pencil**2 * sin_rn(c_rotation)**2 )
-+ei
-+if .not.crlibm
-     &                    sqrt( xmax_pencil**2 * cos(c_rotation)**2     &
-     &                    + ymax_pencil**2 * sin(c_rotation)**2 )
-+ei
-
-!++  Get x and y offsets at collimator center point
-+if crlibm
-            x_pencil(icoll) = xmax_pencil * (cos_rn(c_rotation))
-            y_pencil(icoll) = ymax_pencil * (sin_rn(c_rotation))
-+ei
-+if .not.crlibm
-            x_pencil(icoll) = xmax_pencil * (cos(c_rotation))
-            y_pencil(icoll) = ymax_pencil * (sin(c_rotation))
-+ei
-
-!++  Get corresponding beam angles (uses xp_max)
-          xp_pencil(icoll) =                                            &
-     &              -1d0 * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)
-     &                   * xmax / sqrt(myemitx0_collgap*tbetax(ie))
-     
-          yp_pencil(icoll) =                                            &
-     &              -1d0 * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)
-     &                   * ymax / sqrt(myemity0_collgap*tbetay(ie))
-
-! that the way xp is calculated for makedis subroutines !!!!
-!        if (rndm4().gt.0.5) then
-!          myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
-!     &myalphax*myx(j)/mybetax
-!        else
-!          myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
-!     &myalphax*myx(j)/mybetax
-!        endif
-!            xp_pencil(icoll) =                                          &
-!     &           sqrt(sqrt((myemitx0/tbetax(ie)                         &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
-!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
-!            write(*,*) " ************************************ "
-!            write(*,*) myemitx0/tbetax(ie)                              &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2
-!            write(*,*)sqrt(sqrt((myemitx0/tbetax(ie)                    &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))
-!            write(*,*) -talphax(ie)*x_pencil(icoll)/tbetax(ie)
-!            write(*,*) sqrt(myemitx0/tbetax(ie))*talphax(ie)            &
-!     &                   * x_pencil(icoll) / sqrt(myemitx0*tbetax(ie))
-!            write(*,*)  sqrt(sqrt((myemitx0/tbetax(ie)                  &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
-!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
-!            write(*,*) xp_pencil(icoll)
-!            write(*,*) " ************************************ "
-!
-!            yp_pencil(icoll) =                                          &
-!     &           sqrt(sqrt((myemity0/tbetay(ie)                         &
-!     &           -y_pencil(icoll)**2/tbetay(ie)**2)**2))                &
-!     &           -talphay(ie)*y_pencil(icoll)/tbetay(ie)
-!!
-            xp_pencil0 = xp_pencil(icoll)
-            yp_pencil0 = yp_pencil(icoll)
-
-            pencil_dx(icoll)  =                                         &
-+if crlibm
-     &                     sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2 &
-     &                     + ymax_pencil**2 * sin_rn(c_rotation)**2 )   &
-+ei
-+if .not.crlibm
-     &                     sqrt( xmax_pencil**2 * cos(c_rotation)**2    &
-     &                     + ymax_pencil**2 * sin(c_rotation)**2 )      &
-+ei
-     &                     - calc_aperture
-!++ TW -- tilt for of jaw for pencil beam
-!++ as in Ralphs orig routine, but not in collimate subroutine itself
-!            nprim = 3
-!            if ( (icoll.eq.ipencil) &
-!     &           icoll.le.nprim .and. (j.ge.(icoll-1)*nev/nprim)        &
-!     &           .and. (j.le.(icoll)*nev/nprim))) then
-! this is done for every bunch (64 particle bucket)
-! important: Sixtrack calculates in "mm" and collimate2 in "m"
-! therefore 1E-3 is used to  
-            if ((icoll.eq.ipencil).and.(iturn.eq.1).and.
-     &           (pencil_distr.ne.3)) then ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
-
-!!               write(*,*) " ************************************** "
-!!               write(*,*) " * INFO> seting tilt for pencil beam  * "
-!!               write(*,*) " ************************************** "
-!     c_tilt(1) =  (xp_pencil0*cos(c_rotation)                  &
-+if crlibm
-!adriana
-               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos_rn(c_rotation)    &
-     &                     + sin_rn(c_rotation)*yp_pencil0)
-+ei
-+if .not.crlibm
-               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos(c_rotation)       &
-     &                     + sin(c_rotation)*yp_pencil0)
-+ei
-               write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
-     &              icoll, c_tilt(1)
-!
-!! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is 
-!! -systilt + rmstilt otherwise +systilt + rmstilt
-!!               if (systilt_antisymm) then
-!! to align the jaw/pencil to the beam always use the minus regardless which 
-!! orientation of the jaws was used (symmetric/antisymmetric) 
-!                c_tilt(2) =  -1.*(xp_pencil0*cos(c_rotation)             &
-+if crlibm
-!adriana
-                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos_rn(c_rotation)  &
-     &                 + sin_rn(c_rotation)*yp_pencil0)
-+ei
-+if .not.crlibm
-                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos(c_rotation)     &
-     &                 + sin(c_rotation)*yp_pencil0)
-+ei
-!!               else
-!!                  c_tilt(2) = c_tilt(2) + (xp_pencil0*cos(c_rotation)   &
-!!     &                 + sin(c_rotation)*yp_pencil0)
-!!               endif
-               write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",   &
-     &              icoll, c_tilt(2)
-            endif
-
-!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3) 
-
-!JUNE2005   HERE IS THE SPECIAL TREATMENT...
-         elseif(db_name1(icoll)(1:4).eq.'COLM') then
-
-            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0_collgap)
-            ymax = nsig_tcth2*sqrt(by_dist*myemity0_collgap)
-
-            c_rotation = db_rotation(icoll)
-            c_length   = db_length(icoll)
-            c_material = db_material(icoll)
-            c_offset   = db_offset(icoll)
-            c_tilt(1)  = db_tilt(icoll,1)
-            c_tilt(2)  = db_tilt(icoll,2)
-      calc_aperture = xmax
-      nom_aperture = ymax
-         endif
-!-------------------------------------------------------------------
-!++  Further output
-        if(firstrun) then
-          if (iturn.eq.1) then
-            write(outlun,*) xp_pencil(icoll), yp_pencil(icoll),         &
-     &pencil_dx(icoll)
-            write(outlun,'(a,i4)') 'Collimator number:   '              &
-     &,icoll
-            write(outlun,*) 'Beam size x [m]:     '                     &
-     &,sqrt(tbetax(ie)*myemitx0_collgap), "(from collgap emittance)"
-            write(outlun,*) 'Beam size y [m]:     '                     &
-     &,sqrt(tbetay(ie)*myemity0_collgap), "(from collgap emittance)"
-            write(outlun,*) 'Divergence x [urad]:     '                 &
-     &,1d6*xp_pencil(icoll)
-            write(outlun,*) 'Divergence y [urad]:     '                 &
-     &,1d6*yp_pencil(icoll)
-            write(outlun,*) 'Aperture (nom) [m]:  '                     &
-     &,nom_aperture
-            write(outlun,*) 'Aperture (cal) [m]:  '                     &
-     &,calc_aperture
-            write(outlun,*) 'Collimator halfgap [sigma]:  '             &
-     &,nsig
-            write(outlun,*) 'RMS error on halfgap [sigma]:  '           &
-     &,gap_rms_error(icoll)
-            write(outlun,*) ' '
-
-            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')
-     &icoll,db_name1(icoll)(1:12),                                      &
-     &db_rotation(icoll),                                               &
-     &tbetax(ie), tbetay(ie), calc_aperture,                            &
-     &db_material(icoll),                                               &
-     &db_length(icoll),                                                 &
-     &sqrt(tbetax(ie)*myemitx0_collgap),                                &
-     &sqrt(tbetay(ie)*myemity0_collgap),                                &
-     &db_tilt(icoll,1),                                                 &
-     &db_tilt(icoll,2),                                                 &
-     &nsig
-
-! coll settings file
-            if(n_slices.le.1) then
-            write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')                     &
-     &db_name1(icoll)(1:12),                                            &
-     &n_slices,calc_aperture,                                           &
-     &db_offset(icoll),                                                 &
-     &db_tilt(icoll,1),                                                 &
-     &db_tilt(icoll,2),                                                 &
-     &db_length(icoll),                                                 &
-     &db_material(icoll)
-         endif
-          endif
-        endif
-
-!++  Assign aperture which we define as the FULL width (factor 2)!!!
-!JUNE2005 AGAIN, SOME SPECIFIC STUFF FOR RHIC
-         if(db_name1(icoll)(1:4).eq.'COLM') then
-            c_aperture = 2d0*calc_aperture
-            nom_aperture = 2d0*nom_aperture
-         elseif(db_name1(icoll)(1:4).ne.'COLM') then
-            c_aperture = 2d0*calc_aperture
-         endif
-!JUNE2005
-          c_aperture = 2d0*calc_aperture
-!          IF(IPENCIL.GT.zero) THEN
-!          C_APERTURE = 2.*pencil_aperture
-!GRD-------------------------------------------------------------------
-      if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
-      open(unit=99,file='distsec')
-      do j=1,napx
-        write(99,'(4(1X,E15.7))') xv(1,j),yv(1,j),xv(2,j),yv(2,j)
-      enddo
-      close(99)
-      endif
-!GRD-------------------------------------------------------------------
-
-
-! RB: addition matched halo sampled directly on the TCP using pencil beam flag
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          if ((iturn.eq.1).and.(ipencil.eq.icoll).and.
-     &         (pencil_distr.eq.3)) then
-
-!     create distribution where the normalized distance between jaw and beam is the smallest - this is where particles will first impact:
-!     without imperfections, it is:
-!              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and 
-!              -- at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
-
-!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance to each corner separately!
-
-!     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and downstream of present s-position)
-!     Assuming a purely vertical or horizontal halo - need to add more conditions for other cases!
-             
-!     Using standard twiss transfer matrix for a drift : ( new_halo_model_checks.nb )
-!     at start of collimator:
-             ldrift = -c_length / 2.d0 !Assign the drift length over which the optics functions are propagated
-             betax1 = tbetax(ie) - 2*ldrift*talphax(ie) + 
-     &            (ldrift**2 * (1+talphax(ie)**2))/tbetax(ie) 
-             betay1 = tbetay(ie) - 2*ldrift*talphay(ie) + 
-     &            (ldrift**2 * (1+talphay(ie)**2))/tbetay(ie)
-
-             alphax1 = talphax(ie) - 
-     &            (ldrift*(1+talphax(ie)**2))/tbetax(ie)
-             alphay1 = talphay(ie) - 
-     &            (ldrift*(1+talphay(ie)**2))/tbetay(ie)
-
-!     at end of collimator:
-             ldrift = c_length / 2.d0
-             betax2 = tbetax(ie) - 2*ldrift*talphax(ie) + 
-     &            (ldrift**2 * (1+talphax(ie)**2))/tbetax(ie) 
-             betay2 = tbetay(ie) - 2*ldrift*talphay(ie) + 
-     &            (ldrift**2 * (1+talphay(ie)**2))/tbetay(ie)
-
-             alphax2 = talphax(ie) - 
-     &            (ldrift*(1+talphax(ie)**2))/tbetax(ie)
-             alphay2 = talphay(ie) - 
-     &            (ldrift*(1+talphay(ie)**2))/tbetay(ie)
-
-!     calculate beam size at start and end of collimator. account for collimation plane
-             if((mynex.gt.0).and.(myney.eq.0.0)) then  ! horizontal halo 
-                beamsize1 = sqrt(betax1 * myemitx0_collgap)
-                beamsize2 = sqrt(betax2 * myemitx0_collgap)
-             elseif((mynex.eq.0).and.(myney.gt.0.0)) then   ! vertical halo
-                beamsize1 = sqrt(betay1 * myemity0_collgap)
-                beamsize2 = sqrt(betay2 * myemity0_collgap)
-             else
-                write(lout,*)
-     &               "attempting to use a halo not purely in the "//
-     &               "horizontal or vertical plane with pencil_dist=3"//
-     &               " - abort."
-                stop
-             endif
-             
-!     calculate offset from tilt of positive and negative jaws, at start and end
-!     remember: tilt angle is defined such that one corner stays at nominal position, the other corner is more open
-
-!     jaw in positive x (or y):
-             if (c_tilt(1).ge.0) then
-                tiltOffsPos1 = 0.d0
-                tiltOffsPos2 = abs(sin(c_tilt(1))) * c_length
-             else
-                tiltOffsPos1 = abs(sin(c_tilt(1))) * c_length
-                tiltOffsPos2 = 0.d0
-             endif
-
-!     jaw in negative x (or y):
-             if (c_tilt(2).ge.0) then
-                tiltOffsNeg1 = abs(sin(c_tilt(2))) * c_length
-                tiltOffsNeg2 = 0.d0
-             else
-                tiltOffsNeg1 = 0.d0
-                tiltOffsNeg2 = abs(sin(c_tilt(2))) * c_length
-             endif
-
-!     calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator, positive and neg jaws. 
-            Nap1pos=(c_aperture/2d0 + c_offset + tiltOffsPos1)/beamsize1
-            Nap2pos=(c_aperture/2d0 + c_offset + tiltOffsPos2)/beamsize2
-            Nap1neg=(c_aperture/2d0 - c_offset + tiltOffsNeg1)/beamsize1
-            Nap2neg=(c_aperture/2d0 - c_offset + tiltOffsNeg2)/beamsize2
-
-! debugging output - can be removed when not needed
-!            write(7878,*) c_tilt(1),c_tilt(2),c_offset
-!       write(7878,*) tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
-!            write(7878,*) Nap1pos,Nap2pos,Nap1neg,Nap2neg
-!            write(7878,*) min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
-!            write(7878,*) mynex * sqrt(tbetax(ie)/betax1)
-
-!     Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
-            minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg) 
-
-!     Assign amplitudes in x and y for the halo generation function
-            if((mynex.gt.0).and.(myney.eq.0.0)) then ! horizontal halo 
-               mynex2 = minAmpl 
-            elseif((mynex.eq.0).and.(myney.gt.0.0)) then ! vertical halo
-               myney2 = minAmpl
-            endif               ! other cases taken care of above - in these cases, program has already stopped            
-
-!     assign optics parameters to use for the generation of the starting halo - at start or end of collimator
-             if((minAmpl.eq.Nap1pos).or.(minAmpl.eq.Nap1neg)) then ! min normalized distance occurs at start of collimator
-                mybetax=betax1
-                mybetay=betay1
-                myalphax=alphax1
-                myalphay=alphay1
-                ldrift = -c_length / 2.d0
-             else               ! min normalized distance occurs at end of collimator
-                mybetax=betax2
-                mybetay=betay2
-                myalphax=alphax2
-                myalphay=alphay2
-                ldrift = c_length / 2.d0
-             endif
-
-             write(7878,*) napx,myalphax,myalphay, mybetax, mybetay,
-     &            myemitx0_collgap, myemity0_collgap,
-     &            myenom, mynex2, mdex, myney2,mdey
-
-!     create new pencil beam distribution with spread at start or end of collimator at the minAmpl
-!     note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
-!     but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
-!     the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
-!     This could possibly be improved in the future.
-             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay,
-     &            myemitx0_collgap, myemity0_collgap,
-     &            myenom, mynex2, mdex, myney2,mdey,
-     &            myx, myxp, myy, myyp, myp, mys)
-             
-             do j = 1, napx
-                xv(1,j)  = 1d3*myx(j)  + torbx(ie) 
-                yv(1,j)  = 1d3*myxp(j) + torbxp(ie)             
-                xv(2,j)  = 1d3*myy(j)  + torby(ie)              
-                yv(2,j)  = 1d3*myyp(j) + torbyp(ie)             
-                sigmv(j) = mys(j)
-                ejv(j)   = myp(j)
-
-!     as main routine will track particles back half a collimator length (to start of jaw), 
-!     track them now forward (if generated at face) or backward (if generated at end) 
-!     1/2 collimator length to center of collimator (ldrift pos or neg)
-                xv(1,j)  = xv(1,j) - ldrift*yv(1,j)
-                xv(2,j)  = xv(2,j) - ldrift*yv(2,j)
-
-!     write out distribution - generated either at the BEGINNING or END of the collimator
-                write(4997,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), 
-     &               myyp(j), mys(j), myp(j)
-             enddo
-
-             
-          endif
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! end RB addition
-
-!++  Copy particle data to 1-dim array and go back to meters
-            do j = 1, napx
-              rcx(j)  = (xv(1,j)-torbx(ie))/1d3
-              rcxp(j) = (yv(1,j)-torbxp(ie))/1d3
-              rcy(j)  = (xv(2,j)-torby(ie))/1d3
-              rcyp(j) = (yv(2,j)-torbyp(ie))/1d3
-              rcp(j)  = ejv(j)/1d3
-              rcs(j)  = 0d0
-              part_hit_before(j) = part_hit(j)
-              rcx0(j)  = rcx(j)
-              rcxp0(j) = rcxp(j)
-              rcy0(j)  = rcy(j)
-              rcyp0(j) = rcyp(j)
-              rcp0(j)  = rcp(j)
-              ejf0v(j) = ejfv(j)
-
-!++  For zero length element track back half collimator length
-!  DRIFT PART
-              if (stracki.eq.0.) then
-                if(iexact.eq.0) then
-                  rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
-                  rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
-                else
-                  zpj=sqrt(1d0-rcxp(j)**2-rcyp(j)**2)
-                  rcx(j) = rcx(j) - 0.5d0*c_length*(rcxp(j)/zpj)
-                  rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
-                endif
-              else
-                Write(lout,*) "ERROR: Non-zero length collimator!"
-                STOP
-              endif
-
-              flukaname(j) = ipart(j)+100*samplenumber
-            end do
-
-
-!      call collimate_do_collimator()
-!!!!!!!This should go in the do-collimator function
-
-!++  Do the collimation tracking
-             enom_gev = myenom*1d-3
-
-!++  Allow primaries to be one-sided, if requested
-          if ((db_name1(icoll)(1:3).eq.'TCP' .or.                       &
-     &db_name1(icoll)(1:3).eq.'COL')                                    &
-     &.and. do_oneside) then
-            onesided = .true.
-          else
-            onesided = .false.
-          endif
-
-
-
-!GRD HERE IS THE MAJOR CHANGE TO THE CODE: IN ORDER TO TRACK PROPERLY THE
-!GRD SPECIAL RHIC PRIMARY COLLIMATOR, IMPLEMENTATION OF A DEDICATED ROUTINE
           if (found) then
-            if(db_name1(icoll)(1:4).eq.'COLM') then
-               call collimaterhic(c_material,                           &
-     &              c_length, c_rotation,                               &
-     &              c_aperture, nom_aperture,                           &
-     &              c_offset, c_tilt,                                   &
-     &              rcx, rcxp, rcy, rcyp,                               &
-     &              rcp, rcs, napx, enom_gev, part_hit, part_abs,       &
-     &              part_impact, part_indiv, part_linteract,            &
-     &              onesided,                                           &
-!GRD let's also add the FLUKA possibility
-     &              flukaname)
-            else
-
-!GRD-SR, 09-02-2006
-!Force the treatment of the TCDQ equipment as a onsided collimator.
-!Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
-!              if(db_name1(icoll)(1:4).eq.'TCDQ' ) onesided = .true.
-! to treat all collimators onesided 
-! -> only for worst case TCDQ studies
-               if(db_name1(icoll)(1:4).eq.'TCDQ') onesided = .true.
-               if(db_name1(icoll)(1:5).eq.'TCXRP') onesided = .true.
-!GRD-SR
-
-!==> SLICE here is possible
-!
-!     SR, 29-08-2005: Slice the collimator jaws in 'n_slices' pieces
-!     using two 4th-order polynomial fits. For each slices, the new
-!     gaps and centre are calculates
-!     It is assumed that the jaw point closer to the beam defines the
-!     nominal aperture.
-!
-!     SR, 01-09-2005: new official version - input assigned through
-!     the 'fort.3' file.
-!               if (n_slices.gt.1d0 .and.                                &
-!     &              totals.gt.smin_slices .and.                         &
-!     &              totals.lt.smax_slices .and.                         &
-!     &              db_name1(icoll)(1:4).eq.'TCSG' ) then
-!                  if (firstrun) then
-!                  write(*,*) 'INFOslice - Collimator ',
-!     &              db_name1(icoll), ' sliced in ',n_slices,
-!     &              ' pieces!'
-!                  endif
-!CB
-               if (n_slices.gt.1d0 .and.                                &
-     &              totals.gt.smin_slices .and.                         &
-     &              totals.lt.smax_slices .and.                         &
-     &             (db_name1(icoll)(1:4).eq.'TCSG'                      &
-     &             .or. db_name1(icoll)(1:3).eq.'TCP'                   &
-     &             .or. db_name1(icoll)(1:4).eq.'TCLA'                  &
-     &             .or. db_name1(icoll)(1:3).eq.'TCT'                   &
-     &             .or. db_name1(icoll)(1:4).eq.'TCLI'                  &
-     &             .or. db_name1(icoll)(1:4).eq.'TCL.'
-!     RB: added slicing of TCRYO as well    
-     &             .or. db_name1(icoll)(1:5).eq.'TCRYO')) then
-                      
-                  if (firstrun) then
-                     write(lout,*) 'INFO> slice - Collimator ',         &
-     &                    db_name1(icoll), ' sliced in ',n_slices,      &
-     &                    ' pieces !'
-                  endif
-!
-!!     In this preliminary try, all secondary collimators are sliced.
-!!     Slice only collimators with finite length!!
-!               if (db_name1(icoll)(1:4).eq.'TCSG' .and.
-!     &              c_length.gt.0d0 ) then
-!!     Slice the primaries, to have more statistics faster!
-!!               if (db_name1(icoll)(1:3).eq.'TCP' .and.
-!!     +              c_length.gt.0d0 ) then
-!!
-!!
-!!     Calculate longitudinal positions of slices and corresponding heights
-!!     and angles from the fit parameters.
-!!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
-!!     Note: here, take (n_slices+1) points in order to calculate the
-!!           tilt angle of the last slice!!
-!                  do jjj=1,n_slices+1
-!                     x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
-!                     y1_sl(jjj) =  fit1_1 +                             &
-!     &                    fit1_2*x_sl(jjj) +                            &
-!     &                    fit1_3*(x_sl(jjj)**2) +                       &
-!     &                    fit1_4*(x_sl(jjj)**3) +                       &
-!     &                    fit1_5*(x_sl(jjj)**4) +                       &
-!     &                    fit1_6*(x_sl(jjj)**5)
-!
-!                     y2_sl(jjj) = -1d0 * (fit2_1 +                      &
-!     &                    fit2_2*x_sl(jjj) +                            &
-!     &                    fit2_3*(x_sl(jjj)**2) +                       &
-!     &                    fit2_4*(x_sl(jjj)**3) +                       &
-!     &                    fit2_5*(x_sl(jjj)**4) +                       &
-!     &                    fit2_6*(x_sl(jjj)**5))
-!                  enddo
-!     CB:10-2007 deformation of the jaws scaled with length
-               do jjj=1,n_slices+1
-                  x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
-                  y1_sl(jjj) =  fit1_1 +                                &
-     &                 fit1_2*x_sl(jjj) +                               &
-     &                 fit1_3/c_length*(x_sl(jjj)**2) +                 &
-     &                 fit1_4*(x_sl(jjj)**3) +                          &
-     &                 fit1_5*(x_sl(jjj)**4) +                          &
-     &                 fit1_6*(x_sl(jjj)**5)
-!     
-                  y2_sl(jjj) = -1d0 * (fit2_1 +                         &
-     &                 fit2_2*x_sl(jjj) +                               &
-     &                 fit2_3/c_length*(x_sl(jjj)**2) +                 &
-     &                 fit2_4*(x_sl(jjj)**3) +                          &
-     &                 fit2_5*(x_sl(jjj)**4) +                          &
-     &                 fit2_6*(x_sl(jjj)**5))
-               enddo
-!     Apply the slicing scaling factors (ssf's):
-!     
-!                  do jjj=1,n_slices+1
-!                     y1_sl(jjj) = ssf1 * y1_sl(jjj)
-!                     y2_sl(jjj) = ssf2 * y2_sl(jjj)
-!                  enddo
-!
-!     CB:10-2007 coordinates rotated of the tilt 
-                  do jjj=1,n_slices+1
-                     y1_sl(jjj) = ssf1 * y1_sl(jjj)
-                     y2_sl(jjj) = ssf2 * y2_sl(jjj)
-! CB code
-                     x1_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,1))-        &
-     &                    y1_sl(jjj)*sin(db_tilt(icoll,1))
-                     x2_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,2))-        &
-     &                    y2_sl(jjj)*sin(db_tilt(icoll,2))
-                     y1_sl(jjj) = y1_sl(jjj)*cos(db_tilt(icoll,1))+     &
-     &                    x_sl(jjj)*sin(db_tilt(icoll,1))
-                     y2_sl(jjj) = y2_sl(jjj)*cos(db_tilt(icoll,2))+     &
-     &                    x_sl(jjj)*sin(db_tilt(icoll,2))
-                  enddo
-!     Sign of the angle defined differently for the two jaws!
-                  do jjj=1,n_slices
-                     angle1(jjj) = (( y1_sl(jjj+1) - y1_sl(jjj) ) /     &
-     &                    ( x1_sl(jjj+1)-x1_sl(jjj) ))
-                     angle2(jjj) =(( y2_sl(jjj+1) - y2_sl(jjj) ) /      &
-     &                    ( x2_sl(jjj+1)-x2_sl(jjj) ))
-                  enddo
-!
-!     Sign of the angle defined differently for the two jaws!
-!                  do jjj=1,n_slices
-!                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /     &
-!     &                    (c_length / dble(n_slices) )
-!                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /     &
-!     &                    (c_length / dble(n_slices) )
-!                  enddo
-!     For both jaws, look for the 'deepest' point (closest point to beam)
-!     Then, shift the vectors such that this closest point defines
-!     the nominal aperture
-!     Index here must go up to (n_slices+1) in case the last point is the
-!     closest (and also for the later calculation of 'a_tmp1' and 'a_tmp2')
-
-!     SR, 01-09-2005: add the recentring flag, as given in 'fort.3' to
-!     choose whether recentre the deepest point or not
-                  max_tmp = 1e6
-                  do jjj=1, n_slices+1
-                     if ( y1_sl(jjj).lt.max_tmp ) then
-                        max_tmp = y1_sl(jjj)
-                     endif
-                  enddo
-                  do jjj=1, n_slices+1
-                     y1_sl(jjj) = y1_sl(jjj) - max_tmp * recenter1      &
-     &                    + 0.5 *c_aperture
-                  enddo
-                  max_tmp = -1e6
-                  do jjj=1, n_slices+1
-                     if ( y2_sl(jjj).gt.max_tmp ) then
-                        max_tmp = y2_sl(jjj)
-                     endif
-                  enddo
-                  do jjj=1, n_slices+1
-                     y2_sl(jjj) = y2_sl(jjj) - max_tmp * recenter2      &
-     &                    - 0.5 *c_aperture
-                  enddo
-
-!!     Check the collimator jaw surfaces (beam frame, before taking into
-!!     account the azimuthal angle of the collimator)
-                  if (firstrun) then
-                  write(lout,*) 'Slicing collimator ',db_name1(icoll)
-                     do jjj=1,n_slices
-                       write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), &
-     &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
-     &                   db_tilt(icoll,2)
-                     enddo
-                  endif
-!
-!!     Check the calculation of slice gap and centre
-!                  if (firstrun) then
-!                     write(*,*) 'Verify centre and gap!'
-!                     do jjj=1,n_slices
-!                        if ( angle1(jjj).gt.0d0 ) then
-!                           a_tmp1 = y1_sl(jjj)
-!                        else
-!                           a_tmp1 = y1_sl(jjj+1)
-!                        endif
-!                        if ( angle2(jjj).lt.0d0 ) then
-!                           a_tmp2 = y2_sl(jjj)
-!                        else
-!                           a_tmp2 = y2_sl(jjj+1)
-!                        endif
-!                        write(*,*) a_tmp1 - a_tmp2,
-!     +                       0.5 * ( a_tmp1 + a_tmp2 )
-!                     enddo
-!                  endif
-!
-!     Now, loop over the number of slices and call collimate2 each time!
-!     For each slice, the corresponding offset and angle are to be used.
-                  do jjj=1,n_slices
-
-!     First calculate aperture and centre of the slice
-!     Note that:
-!     (1)due to our notation for the angle sign,
-!     the rotation point of the slice (index j or j+1)
-!     DEPENDS on the angle value!!
-!     (2) New version of 'collimate2' is required: one must pass
-!     the slice number in order the calculate correctly the 's'
-!     coordinate in the impact files.
-
-!     Here, 'a_tmp1' and 'a_tmp2' are, for each slice, the closest
-!     corners to the beam
-                        if ( angle1(jjj).gt.0d0 ) then
-                           a_tmp1 = y1_sl(jjj)
-                        else
-                           a_tmp1 = y1_sl(jjj+1)
-                        endif
-                        if ( angle2(jjj).lt.0d0 ) then
-                           a_tmp2 = y2_sl(jjj)
-                        else
-                           a_tmp2 = y2_sl(jjj+1)
-                        endif
-!!     Write down the information on slice centre and offset
-!                     if (firstrun) then
-!                        write(*,*) 'Processing slice number ',jjj,
-!     &                       ' of ',n_slices,' for the collimator ',
-!     &                       db_name1(icoll)
-!                        write(*,*) 'Aperture [m]= ',
-!     &                       a_tmp1 - a_tmp2
-!                        write(*,*) 'Offset [m]  = ',
-!     &                       0.5 * ( a_tmp1 + a_tmp2 )
-!                     endif
-!!
-!     Be careful! the initial tilt must be added!
-!     We leave it like this for the moment (no initial tilt)
-!                     c_tilt(1) = c_tilt(1) + angle1(jjj)
-!                     c_tilt(2) = c_tilt(2) + angle2(jjj)
-                     c_tilt(1) = angle1(jjj)
-                     c_tilt(2) = angle2(jjj)
-!     New version of 'collimate2' is required: one must pass the
-!     slice number in order the calculate correctly the 's'
-!     coordinate in the impact files.
-!     +                    a_tmp1 - a_tmp2,
-!     +                    0.5 * ( a_tmp1 + a_tmp2 ),
-! -- TW SEP07 added compatility for tilt, gap and ofset errors to slicing
-! -- TW gaprms error is already included in the c_aperture used above  
-! -- TW tilt error is added to y1_sl and y2_sl therfore included in 
-! -- TW angle1 and angle2 no additinal changes needed 
-! -- TW offset error directly added to call of collimate2
-
-! --- TW JUNE08 
-                     if (firstrun) then
-                        write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')         &
-     &                       db_name1(icoll)(1:12),                     &
-     &                       jjj,                                       &
-     &                       (a_tmp1 - a_tmp2)/2d0,                     &
-     &                       0.5 * (a_tmp1 + a_tmp2) + c_offset,        &
-     &                       c_tilt(1),                                 &
-     &                       c_tilt(2),                                 &
-     &                       c_length / dble(n_slices),                 & 
-     &                       db_material(icoll)
-                     endif
-! --- TW JUNE08 
-                     call collimate2(c_material,                        &
-     &                    c_length / dble(n_slices),                    &
-     &                    c_rotation,                                   &
-     &                    a_tmp1 - a_tmp2,                              &
-     &                    0.5 * ( a_tmp1 + a_tmp2 ) + c_offset,         &
-     &                    c_tilt,                                       &
-     &                    rcx, rcxp, rcy, rcyp,                         &
-     &                    rcp, rcs, napx, enom_gev,                     &
-     &                    part_hit, part_abs, part_impact, part_indiv,  &
-     &                    part_linteract, onesided, flukaname,          &
-     &                    secondary,                                    &
-     &                    jjj, nabs_type)
-                  enddo
-               else
-!     Treatment of non-sliced collimators
-                  call collimate2(c_material, c_length, c_rotation,     &
-     &                 c_aperture, c_offset, c_tilt,                    &
-     &                 rcx, rcxp, rcy, rcyp,                            &
-     &                 rcp, rcs, napx, enom_gev, part_hit, part_abs,    &
-     &                 part_impact, part_indiv, part_linteract,         &
-     &                 onesided, flukaname, secondary, 1, nabs_type)    &
-               endif
-
-! end of check for RHIC
-               endif
-
-! end of check for 'found'
-          endif
-
-
-
-
-
-
-
-!!!!!!!This should go in the post-collimator function
-!      call collimate_end_collimator()
-
-!++  Output information:
-!++
-!++  PART_HIT(MAX_NPART)     Hit flag for last hit (10000*element# + turn#)
-!++  PART_ABS(MAX_NPART)     Abs flag (10000*element# + turn#)
-!++  PART_IMPACT(MAX_NPART)  Impact parameter (0 for inner face)
-!++  PART_INDIV(MAX_NPART)   Divergence of impacting particles
-!------------------------------------------------------------------------------
-!++  Calculate average impact parameter and save info for all
-!++  collimators. Copy information back and do negative drift.
-          n_impact = 0
-          n_absorbed = 0
-          sum      = 0d0
-          sqsum    = 0d0
-
-!++  Copy particle data back and do path length stuff; check for absorption
-!++  Add orbit offset back.
-          do j = 1, napx
-
-!APRIL2005 IN ORDER TO GET RID OF NUMERICAL ERRORS, JUST DO THE TREATMENT FOR
-!APRIL2005 IMPACTING PARTICLES...
-            if (part_hit(j).eq.(10000*ie+iturn)) then
-!++  For zero length element track back half collimator length
-! DRIFT PART
-              if (stracki.eq.0.) then
-                if(iexact.eq.0) then
-                  rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
-                  rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
-                else
-                  zpj=sqrt(1d0-rcxp(j)**2-rcyp(j)**2)
-                  rcx(j) = rcx(j) - 0.5d0*c_length*(rcxp(j)/zpj)
-                  rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
-                endif
-              endif
-
-!++  Now copy data back to original verctor
-
-              xv(1,j) = rcx(j)*1d3  +torbx(ie)
-              yv(1,j) = rcxp(j)*1d3 +torbxp(ie)
-              xv(2,j) = rcy(j)*1d3  +torby(ie)
-              yv(2,j) = rcyp(j)*1d3 +torbyp(ie)
-              ejv(j) = rcp(j)*1d3
-
-!++  Energy update, as recommended by Frank
-              ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
-              rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-              dpsv(j)=(ejfv(j)-e0f)/e0f
-              oidpsv(j)=one/(one+dpsv(j))
-              dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
-              yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j)
-              yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j)
-
-!APRIL2005 ...OTHERWISE JUST GET BACK FORMER COORDINATES
-            else
-              xv(1,j) = rcx0(j)*1d3+torbx(ie)
-              yv(1,j) = rcxp0(j)*1d3+torbxp(ie)
-              xv(2,j) = rcy0(j)*1d3+torby(ie)
-              yv(2,j) = rcyp0(j)*1d3+torbyp(ie)
-              ejv(j) = rcp0(j)*1d3
-            endif
-!APRIL2005
-! 
-!TW for roman pot checking
-!            if(icoll.eq.73) then
-!               do j = 1,napx 
-!                  write(9998,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
-!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
-!               enddo
-!            elseif(icoll.eq.74) then
-!               do j = 1,napx 
-!                  write(9999,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
-!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
-!               enddo
-!            endif
-!
-!++  Write trajectory for any selected particle
-!
-!!            if (firstrun) then
-!!              if (rselect.gt.0 .and. rselect.lt.65) then
-!            DO j = 1, NAPX
-!
-!!              xj     = (xv(1,j)-torbx(ie))/1d3
-!!              xpj    = (yv(1,j)-torbxp(ie))/1d3
-!!              yj     = (xv(2,j)-torby(ie))/1d3
-!!              ypj    = (yv(2,j)-torbyp(ie))/1d3
-!!              pj     = ejv(j)/1d3
-!GRD
-!07-2006 TEST
-!!              if (iturn.eq.1.and.j.eq.1) then
-!!              sum_ax(ie)=0d0
-!!              sum_ay(ie)=0d0
-!!              endif
-!GRD
-!
-!!              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-!!              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
-!
-!!             if (part_abs(j).eq.0) then
-!!          nspx    = sqrt(                                               &
-!!     &abs( gammax*(xj)**2 +                                             &
-!!     &2d0*talphax(ie)*xj*xpj +                                          &
-!!     &tbetax(ie)*xpj**2 )/myemitx0                                      &
-!!     &)
-!!                nspy    = sqrt(                                         &
-!!     &abs( gammay*(yj)**2 +                                             &
-!!     &2d0*talphay(ie)*yj*ypj +                                          &
-!!     &tbetay(ie)*ypj**2 )/myemity0                                      &
-!!     &)
-
-!++  First check for particle interaction at this collimator and this turn
-            if (part_hit(j).eq. (10000*ie+iturn) ) then
-
-!++  Fill the change in particle angle into histogram
-              if(dowrite_impact) then
-                write(46,'(i8,1x,i4,1x,f8.2)')                          &
-     &               ipart(j)+100*samplenumber,iturn,sampl(ie)
-              endif
-
-              if(part_abs(j).ne.0) then
-                if(dowrite_impact) then
-                  write(47,'(i8,1x,i4,1x,f8.2)')                        &
-     &ipart(j)+100*samplenumber,iturn,sampl(ie)
-                endif
-+if hdf5
-       hdfpid=ipart(j)+100*samplenumber
-       hdfturn=iturn
-       hdfs=sampl(ie)-0.5*c_length
-       hdfx=(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+         &
-     &      torbxp(ie))
-       hdfxp=rcxp0(j)*1d3+torbxp(ie)
-       hdfy=(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+         &
-     &      torbyp(ie))
-       hdfyp=rcyp0(j)*1d3+torbyp(ie)
-       hdfdee=(ejv(j)-myenom)/myenom
-       hdftyp=secondary(j)+tertiary(j)+other(j)
-       CALL APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
-     &                    hdfdee,hdftyp)
-+ei
-+if .not.hdf5
-       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
-     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
-     &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
-     &rcxp0(j)*1d3+torbxp(ie),                                          &
-     &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
-     &rcyp0(j)*1d3+torbyp(ie),                                          &
-     &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
-+ei
-              endif
-
-              if (part_abs(j).eq.0) then
-                xkick = rcxp(j) - rcxp0(j)
-                ykick = rcyp(j) - rcyp0(j)
-
-                  if (db_name1(icoll)(1:3).eq.'TCP'.or.                 &
-     &                db_name1(icoll)(1:4).eq.'COLM'.or.                &
-     &                db_name1(icoll)(1:5).eq.'COLH0'.or.               &
-     &                db_name1(icoll)(1:5).eq.'COLV0') then
-                        secondary(j) = 1
-                  elseif (db_name1(icoll)(1:3).eq.'TCS'.or.             &
-     &                    db_name1(icoll)(1:4).eq.'COLH1'.or.           &
-     &                    db_name1(icoll)(1:4).eq.'COLV1'.or.           &
-     &                    db_name1(icoll)(1:4).eq.'COLH2') then
-                       tertiary(j)  = 2
-                  elseif ((db_name1(icoll)(1:3).eq.'TCL').or.           &
-     &                  (db_name1(icoll)(1:3).eq.'TCT').or.             &
-     &                  (db_name1(icoll)(1:3).eq.'TCD').or.             &
-     &                  (db_name1(icoll)(1:3).eq.'TDI')) then
-                          other(j)     = 4
-                  endif
-              endif
-
-!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
-      if (dowritetracks) then
-        if(part_abs(j).eq.0) then
-          if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)  &
-     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
-!GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-     &(                                                                 &
-     &((                                                                &
-     &(xv(1,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0_collgap)
-     &).ge.dble(sigsecut2)).or.                                         &
-     &((                                                                &
-     &(xv(2,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0_collgap)
-     &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
-     &.ge.sigsecut3)                                                    &
-     &) ) then
-
-          xj     = (xv(1,j)-torbx(ie))/1d3
-          xpj    = (yv(1,j)-torbxp(ie))/1d3
-          yj     = (xv(2,j)-torby(ie))/1d3
-          ypj    = (yv(2,j)-torbyp(ie))/1d3
-
-+if hdf5
-!       We write trajectories before and after element in this case.
-       hdfpid=ipart(j)+100*samplenumber
-       hdfturn=iturn
-       hdfs=sampl(ie)-0.5*c_length
-       hdfx=  ! xv(1,j)-0.5*c_length*yv(1,j)
-     &    (rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie))
-       hdfxp= ! yv(1,j)
-     &    rcxp0(j)*1d3+torbxp(ie)
-       hdfy=  ! xv(2,j)-0.5*c_length*yv(2,j)
-     &    (rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie))
-       hdfyp= ! yv(2,j)
-     &    rcyp0(j)*1d3+torbyp(ie)
-       hdfdee=(ejv(j)-myenom)/myenom
-       hdftyp=secondary(j)+tertiary(j)+other(j)
-       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
-     &                    hdfdee,hdftyp)
-       hdfs=sampl(ie)+0.5*c_length
-       hdfx=xv(1,j)+0.5*c_length*yv(1,j)
-       hdfxp=yv(1,j)
-       hdfy=xv(2,j)+0.5*c_length*yv(2,j)
-       hdfyp=yv(2,j)
-       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
-     &                    hdfdee,hdftyp)
-     
-+ei
-+if .not.hdf5
-       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
-     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
-     &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
-     &rcxp0(j)*1d3+torbxp(ie),                                          &
-     &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
-     &rcyp0(j)*1d3+torbyp(ie),                                          &
-     &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
-       
-       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
-     &ipart(j)+100*samplenumber,iturn,sampl(ie)+0.5*c_length,           &
-     &xv(1,j)+0.5*c_length*yv(1,j),yv(1,j),                             &
-     &xv(2,j)+0.5*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
-     &secondary(j)+tertiary(j)+other(j)
-+ei
-          endif
-        endif
-      endif
-
-!++  Calculate impact observables, fill histograms, save collimator info, ...
-              n_impact = n_impact + 1
-              sum = sum + part_impact(j)
-              sqsum = sqsum + part_impact(j)**2
-              cn_impact(icoll) = cn_impact(icoll) + 1
-              csum(icoll) = csum(icoll) + part_impact(j)
-              csqsum(icoll) = csqsum(icoll) + part_impact(j)**2
-
-!++  If the interacting particle was lost, add-up counters for absorption
-!++  Note: a particle with x/y >= 99. never hits anything any more in
-!++        the logic of this program. Be careful to always fulfill this!
-              if (part_abs(j).ne.0) then
-                n_absorbed = n_absorbed + 1
-                cn_absorbed(icoll) = cn_absorbed(icoll) + 1
-                n_tot_absorbed = n_tot_absorbed + 1
-                iturn_last_hit = part_hit_before(j)-                    &
-     &int(part_hit_before(j)/10000)*10000
-                iturn_absorbed = part_hit(j)-                           &
-     &int(part_hit(j)/10000)*10000
-                if (iturn_last_hit.eq.0) iturn_last_hit =               &
-     &iturn_absorbed
-                iturn_survive  = iturn_absorbed - iturn_last_hit
-              endif
-
-!++  End of check for hit this turn and element
-            endif
-          end do ! end do j = 1, napx
-
-!++  Calculate statistical observables and save into files...
-          if (n_impact.gt.0) then
-            average = sum/n_impact
-
-            if (sqsum/n_impact.ge.average**2) then
-              sigma = sqrt(sqsum/n_impact - average**2)
-            else
-              sigma = 0d0
-            endif
-
-          else
-            average = 0d0
-            sigma   = 0d0
-          endif
-
-          if (cn_impact(icoll).gt.0) then
-            caverage(icoll) = csum(icoll)/cn_impact(icoll)
-
-            if ((caverage(icoll)**2).gt.                                &
-     &(csqsum(icoll)/cn_impact(icoll))) then
-               csigma(icoll) = 0
-            else
-              csigma(icoll) = sqrt(csqsum(icoll)/                       &
-     &cn_impact(icoll) - caverage(icoll)**2)
-            endif
-
-          endif
-
-!-----------------------------------------------------------------
-!++  For a  S E L E C T E D  collimator only consider particles that
-!++  were scattered on this selected collimator at the first turn. All
-!++  other particles are discarded.
-!++  - This is switched on with the DO_SELECT flag in the input file.
-!++  - Note that the part_select(j) flag defaults to 1 for all particles.
-
-! should name_sel(1:11) extended to allow longer names as done for 
-! coll the coll_ellipse.dat file !!!!!!!!
-           if (((db_name1(icoll).eq.name_sel(1:11))                     &
-     &.or.(db_name2(icoll).eq.name_sel(1:11)))                          &
-     &.and. iturn.eq.1  ) then
-            num_selhit = 0
-            num_surhit = 0
-            num_selabs = 0
-
-            do j = 1, napx
-              if ( part_hit(j).eq.(10000*ie+iturn) ) then
-                num_selhit = num_selhit+1
-                if (part_abs(j).eq.0) then
-                  num_surhit = num_surhit+1
-                else
-                  num_selabs = num_selabs + 1
-                endif
-
-!++  If we want to select only partciles interacting at the specified
-!++  collimator then remove all other particles and reset the number
-!++  of the absorbed particles to the selected collimator.
-              elseif (do_select.and.firstrun) then
-                part_select(j) = 0
-                n_tot_absorbed = num_selabs
-              endif
-            end do
-
-!++  Calculate average impact parameter and save distribution into file
-!++  only for selected collimator
-            n_impact = 0
-            sum      = 0d0
-            sqsum    = 0d0
-
-            do j = 1, napx
-              if ( part_hit(j).eq.(10000*ie+iturn) ) then
-                if (part_impact(j).lt.-0.5d0) then
-                  write(lout,*) 'ERR>  Found invalid impact parameter!',&
-     &                  part_impact(j)
-                  write(outlun,*) 'ERR>  Invalid impact parameter!',    &
-     &                  part_impact(j)
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
-                endif
-                n_impact = n_impact + 1
-                sum = sum + part_impact(j)
-                sqsum = sqsum + part_impact(j)**2
-                if (part_hit(j).gt.0 .and. dowrite_impact)              &
-     &write(49,*) part_impact(j), part_indiv(j)
-
-              endif
-            end do
-
-            if (n_impact.gt.0) then
-              average = sum/n_impact
-
-              if(sqsum/n_impact.ge.average**2) then
-                sigma = sqrt(sqsum/n_impact - average**2)
-              else
-                sigma = 0d0
-              endif
-
-            endif
-
-!++  Some information
-            write(lout,*)
-     &'INFO>  Selected collimator had N hits. N: ',                     &
-     &num_selhit
-            write(lout,*)
-     &'INFO>  Number of impacts                : ',                     &
-     &n_impact
-            write(lout,*)
-     &'INFO>  Number of escaped protons        : ',                     &
-     &num_surhit
-            write(lout,*)
-     &'INFO>  Average impact parameter [m]     : ',                     &
-     &average
-            write(lout,*)
-     &'INFO>  Sigma impact parameter [m]       : ',                     &
-     &sigma
-
-            if (dowrite_impact) close(49)
-
-!++  End of    S E L E C T E D   collimator
-          endif
-       endif
+            call collimate_do_collimator(stracki)
+            call collimate_end_collimator()
+          endif ! end of check for 'found'
 !------------------------------------------------------------------
 !++  Here leave the known collimator IF loop...
 !_______________________________________________________________________
@@ -53877,6 +52400,237 @@ c$$$            endif
       c5m4=5.0d-4
 +ei
 
+            if(bez(myix)(1:3).eq.'TCP' .or.                             &
+     &           bez(myix)(1:3).eq.'tcp') then
+
+              if(bez(myix)(7:9).eq.'3.B' .or.                           &
+     &             bez(myix)(7:9).eq.'3.b') then
+                nsig = nsig_tcp3
+              else
+                nsig = nsig_tcp7
+              endif
+
+            elseif(bez(myix)(1:4).eq.'TCSG' .or.                        &
+     &             bez(myix)(1:4).eq.'tcsg') then
+
+              if(bez(myix)(8:10).eq.'3.B' .or.                          &
+     &             bez(myix)(8:10).eq.'3.b' .or.                        &
+     &             bez(myix)(9:11).eq.'3.B' .or.                        &
+     &             bez(myix)(9:11).eq.'3.b') then
+                nsig = nsig_tcsg3
+              else
+                nsig = nsig_tcsg7
+              endif
+
+              if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')    &
+     &             ) then
+                nsig = nsig_tcstcdq
+              endif
+
+            elseif(bez(myix)(1:4).eq.'TCSP' .or.                        &
+     &             bez(myix)(1:4).eq.'tcsp') then
+
+             if(bez(myix)(9:11).eq.'6.B'.or.
+     &          bez(myix)(9:11).eq.'6.b') then
+                nsig = nsig_tcstcdq
+              endif
+
+            elseif(bez(myix)(1:4).eq.'TCSM' .or.                        &
+     &             bez(myix)(1:4).eq.'tcsm') then
+
+              if(bez(myix)(8:10).eq.'3.B' .or.                          &
+     &             bez(myix)(8:10).eq.'3.b' .or.                        &
+     &             bez(myix)(9:11).eq.'3.B' .or.                        &
+     &             bez(myix)(9:11).eq.'3.b') then
+                nsig = nsig_tcsm3
+              else
+                nsig = nsig_tcsm7
+              endif
+
+            elseif(bez(myix)(1:4).eq.'TCLA' .or.                        &
+     &             bez(myix)(1:4).eq.'tcla') then
+
+              if(bez(myix)(9:11).eq.'7.B' .or.                          &
+     &             bez(myix)(9:11).eq.'7.b') then
+                nsig = nsig_tcla7
+              else
+                nsig = nsig_tcla3
+              endif
+
+            elseif(bez(myix)(1:4).eq.'TCDQ' .or.                        &
+     &             bez(myix)(1:4).eq.'tcdq') then
+              nsig = nsig_tcdq
+! YIL11: Checking only the IR value for TCT's..
+            elseif(bez(myix)(1:4).eq.'TCTH' .or.                        &
+     &                bez(myix)(1:4).eq.'tcth' .or.
+     &                bez(myix)(1:5).eq.'TCTPH' .or.                    & 
+     &                bez(myix)(1:5).eq.'tctph') then                   &
+
+                  if(bez(myix)(8:8).eq.'1' .or.                         &
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tcth1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tcth2
+                  elseif(bez(myix)(8:8).eq.'5'.or.                      &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tcth5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tcth8
+                  endif
+
+            elseif(bez(myix)(1:4).eq.'TCTV' .or.                        &
+     &                bez(myix)(1:4).eq.'tctv'.or.
+     &                bez(myix)(1:5).eq.'TCTPV' .or.                    &
+     &                bez(myix)(1:5).eq.'tctpv' ) then
+
+                  if(bez(myix)(8:8).eq.'1' .or.                         &
+     &                 bez(myix)(9:9).eq.'1' ) then
+                     nsig = nsig_tctv1
+                  elseif(bez(myix)(8:8).eq.'2' .or.                     &
+     &                 bez(myix)(9:9).eq.'2' ) then
+                     nsig = nsig_tctv2
+                  elseif(bez(myix)(8:8).eq.'5' .or.                     &
+     &                 bez(myix)(9:9).eq.'5' ) then
+                     nsig = nsig_tctv5
+                  elseif(bez(myix)(8:8).eq.'8' .or.                     &
+     &                 bez(myix)(9:9).eq.'8' ) then
+                     nsig = nsig_tctv8
+                  endif
+
+            elseif(bez(myix)(1:3).eq.'TDI' .or.                         &
+     &             bez(myix)(1:3).eq.'tdi') then
+              nsig = nsig_tdi
+            elseif(bez(myix)(1:4).eq.'TCLP' .or.                        &
+     &             bez(myix)(1:4).eq.'tclp' .or.                        &
+     &             bez(myix)(1:4).eq.'TCL.' .or.                        &
+     &             bez(myix)(1:4).eq.'tcl.'.or.                         &
+     &             bez(myix)(1:4).eq.'TCLX' .or.                        &
+     &             bez(myix)(1:4).eq.'tclx') then
+              nsig = nsig_tclp
+            elseif(bez(myix)(1:4).eq.'TCLI' .or.                        &
+     &             bez(myix)(1:4).eq.'tcli') then
+              nsig = nsig_tcli
+            elseif(bez(myix)(1:4).eq.'TCXR' .or.                        &
+     &             bez(myix)(1:4).eq.'tcxr') then
+              nsig = nsig_tcxrp
+            elseif(bez(myix)(1:5).eq.'TCRYO' .or.                       &
+     &             bez(myix)(1:5).eq.'tcryo'.or.
+     &             bez(myix)(1:5).eq.'TCLD.' .or.                       &
+     &             bez(myix)(1:5).eq.'tcld.') then
+              nsig = nsig_tcryo
+            elseif(bez(myix)(1:3).eq.'COL' .or.                         &
+     &             bez(myix)(1:3).eq.'col') then
+
+              if(bez(myix)(1:4).eq.'COLM' .or.                          &
+     &             bez(myix)(1:4).eq.'colm' .or.                        &
+     &             bez(myix)(1:5).eq.'COLH0' .or.                       &
+     &             bez(myix)(1:5).eq.'colh0') then
+                nsig = nsig_tcth1
+              elseif(bez(myix)(1:5).eq.'COLV0' .or.                     &
+     &               bez(myix)(1:5).eq.'colv0') then
+                nsig = nsig_tcth2
+              elseif(bez(myix)(1:5).eq.'COLH1' .or.                     &
+     &               bez(myix)(1:5).eq.'colh1') then
+!     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
+!     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
+!     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
+                nsig = nsig_tcth5
+              elseif(bez(myix)(1:5).eq.'COLV1' .or.                     &
+     &               bez(myix)(1:5).eq.'colv1') then
+                nsig = nsig_tcth8
+              elseif(bez(myix)(1:5).eq.'COLH2' .or.                     &
+     &               bez(myix)(1:5).eq.'colh2') then
+                nsig = nsig_tctv1
+              endif
+
+            else
+              if(firstrun.and.iturn.eq.1) then
+                 write(lout,*) "WARNING: When setting opening for the"//
+     &                " collimator named '" // bez(myix) //
+     &                "' from fort.3, the name was not recognized."
+                 write(lout,*) " -> Setting nsig=1000.0."
+              endif
+              nsig=1000.0
+!JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+            endif
+
+!++  Write trajectory for any selected particle
+        c_length = 0d0
+
+!     SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
+        if ( firstrun ) then
+          if (rselect.gt.0 .and. rselect.lt.65) then
+            do j = 1, napx
+              xj     = (xv(1,j)-torbx(ie))/1d3
+              xpj    = (yv(1,j)-torbxp(ie))/1d3
+              yj     = (xv(2,j)-torby(ie))/1d3
+              ypj    = (yv(2,j)-torbyp(ie))/1d3
+              pj     = ejv(j)/1d3
+
+              if (iturn.eq.1.and.j.eq.1) then
+                sum_ax(ie)=0d0
+                sum_ay(ie)=0d0
+              endif
+
+!-- DRIFT PART
+              if (stracki.eq.0.) then
+                if(iexact.eq.0) then
+                  xj  = xj + 0.5d0*c_length*xpj
+                  yj  = yj + 0.5d0*c_length*ypj
+                else
+                  zpj=sqrt(1d0-xpj**2-ypj**2)
+                  xj = xj + 0.5d0*c_length*(xpj/zpj)
+                  yj = yj + 0.5d0*c_length*(ypj/zpj)
+                endif
+              endif
+!
+              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+!
+              if (part_abs(j).eq.0) then
+          nspx    = sqrt(                                               &
+     &abs( gammax*(xj)**2 +                                             &
+     &2d0*talphax(ie)*xj*xpj +                                          &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
+     &)
+                nspy    = sqrt(                                         &
+     &abs( gammay*(yj)**2 +                                             &
+     &2d0*talphay(ie)*yj*ypj +                                          &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
+     &)
+                sum_ax(ie)   = sum_ax(ie) + nspx
+                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+                sum_ay(ie)   = sum_ay(ie) + nspy
+                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+                nampl(ie)    = nampl(ie) + 1
+              else
+                nspx = 0d0
+                nspy = 0d0
+              endif
+                sampl(ie)    = totals
+                ename(ie)    = bez(myix)(1:16)
+            end do
+          endif
+      endif
+
+!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
+          found = .false.
+!     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
+          do j = 1, db_ncoll
+            if ((db_name1(j)(1:11).eq.bez(myix)(1:11)) .or.             &
+     &          (db_name2(j)(1:11).eq.bez(myix)(1:11))) then
+               if ( db_length(j) .gt. 0d0 ) then
+                 found = .true.
+                 icoll = j
+               endif
+            endif
+          end do
+          if (.not. found .and. firstrun .and. iturn.eq.1) then
+            write(lout,*)
+     &           'ERR>  Collimator not found in colldb: ', bez(myix)
+      endif
 
       end
 
@@ -53884,17 +52638,1376 @@ c$$$            endif
 !! collimate_do_collimator()
 !! This routine is calls the actual scattering functions
 !<
-      subroutine collimate_do_collimator()
+      subroutine collimate_do_collimator(stracki)
       implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
++ca commonex
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ca dbcolcom
++ca dbthin6d
 
++ei
+
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
+      double precision c5m4,stracki
+
++if fast
+      c5m4=5.0d-4
++ei
+
+
+!-----------------------------------------------------------------------
+!GRD NEW COLLIMATION PARAMETERS
+!-----------------------------------------------------------------------
+!++  Get the aperture from the beta functions and emittance
+!++  A simple estimate of beta beating can be included that
+!++  has twice the betatron phase advance
+         if(.not. do_nsig) nsig = db_nsig(icoll)
++if crlibm
+          scale_bx = (1d0 + xbeat*sin_rn(4*pi*mux(ie)+
++ei
++if .not.crlibm
+          scale_bx = (1d0 + xbeat*sin(4*pi*mux(ie)+                     &
++ei
+     &xbeatphase)  )
++if crlibm
+          scale_by = (1d0 + ybeat*sin_rn(4*pi*muy(ie)+
++ei
++if .not.crlibm
+          scale_by = (1d0 + ybeat*sin(4*pi*muy(ie)+                     &
++ei
+     &ybeatphase)  )
+!
+          if (firstcoll) then
+            scale_bx0 = scale_bx
+            scale_by0 = scale_by
+            firstcoll = .false.
+          endif
+!-------------------------------------------------------------------
+!++  Assign nominal OR design beta functions for later
+          if (do_nominal) then
+            bx_dist = db_bx(icoll) * scale_bx / scale_bx0
+            by_dist = db_by(icoll) * scale_by / scale_by0
+          else
+            bx_dist = tbetax(ie) * scale_bx / scale_bx0
+            by_dist = tbetay(ie) * scale_by / scale_by0
+          endif
+
+!++  Write beam ellipse at selected collimator
+! ---- changed name_sel(1:11) name_sel(1:12) to be checked if feasible!!
+          if (                                                          &
+     &         ((db_name1(icoll).eq.name_sel(1:12))                     &
+     &         .or.(db_name2(icoll).eq.name_sel(1:12)))                 &
+     &         .and. dowrite_dist) then
+!          if (firstrun .and.                                            &
+!     &         ((db_name1(icoll).eq.name_sel(1:11))                     &
+!     &         .or.(db_name2(icoll).eq.name_sel(1:11)))                 &
+!     &         .and. dowrite_dist) then
+! --- get halo on each turn
+!     &.and. iturn.eq.1 .and. dowrite_dist) then
+! --- put open and close at the pso. where it is done for the 
+! --- other files belonging to dowrite_impact flag !(may not a good loc.)
+!            open(unit=45, file='coll_ellipse.dat')
+!            write(45,'(a)')                                             &
+!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
+            do j = 1, napx
+            write(45,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))')              &
+     &ipart(j)+100*samplenumber,xv(1,j), xv(2,j), yv(1,j), yv(2,j),     &
+     &ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j),           &
+     &nabs_type(j)
+            end do
+!            close(45)
+          endif
+
+!-------------------------------------------------------------------
+!++  Output to temporary database and screen
+          if (iturn.eq.1.and.firstrun) then
+            write(40,*) '# '
+            write(40,*) db_name1(icoll)(1:11)
+            write(40,*) db_material(icoll)
+            write(40,*) db_length(icoll)
+            write(40,*) db_rotation(icoll)
+            write(40,*) db_offset(icoll)
+            write(40,*) tbetax(ie)
+            write(40,*) tbetay(ie)
+!
+            write(outlun,*) ' '
+            write(outlun,*)   'Collimator information: '
+            write(outlun,*) ' '
+            write(outlun,*) 'Name:                '                     &
+     &, db_name1(icoll)(1:11)
+            write(outlun,*) 'Material:            '                     &
+     &, db_material(icoll)
+            write(outlun,*) 'Length [m]:          '                     &
+     &, db_length(icoll)
+            write(outlun,*) 'Rotation [rad]:      '                     &
+     &, db_rotation(icoll)
+            write(outlun,*) 'Offset [m]:          '                     &
+     &,db_offset(icoll)
+            write(outlun,*) 'Design beta x [m]:   '                     &
+     &,db_bx(icoll)
+            write(outlun,*) 'Design beta y [m]:   '                     &
+     &,db_by(icoll)
+            write(outlun,*) 'Optics beta x [m]:   '                     &
+     &,tbetax(ie)
+            write(outlun,*) 'Optics beta y [m]:   '                     &
+     &,tbetay(ie)
+!          else
+!            write(lout,*) 'C WRITE', iturn,firstrun
+          endif
+
+
+!-------------------------------------------------------------------
+!++  Calculate aperture of collimator
+!JUNE2005   HERE ONE HAS TO HAVE PARTICULAR TREATMENT OF THE OPENING OF
+!JUNE2005   THE PRIMARY COLLIMATOR OF RHIC
+         if(db_name1(icoll)(1:4).ne.'COLM') then
+          nsig = nsig + gap_rms_error(icoll)
+          xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
+          ymax = nsig*sqrt(by_dist*myemity0_collgap)
+          xmax_pencil = (nsig+pencil_offset)*                           &
+     &sqrt(bx_dist*myemitx0_collgap)
+          ymax_pencil = (nsig+pencil_offset)*                           &
+     &sqrt(by_dist*myemity0_collgap)
+          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0_collgap)
+          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0_collgap)
+          c_rotation = db_rotation(icoll)
+          c_length   = db_length(icoll)
+          c_material = db_material(icoll)
+          c_offset   = db_offset(icoll)
+          c_tilt(1)  = db_tilt(icoll,1)
+          c_tilt(2)  = db_tilt(icoll,2)
+
++if crlibm
+          calc_aperture = sqrt( xmax**2 * cos_rn(c_rotation)**2         &
++ei
++if .not.crlibm
+          calc_aperture = sqrt( xmax**2 * cos(c_rotation)**2            &
++ei
++if crlibm
+     &                    + ymax**2 * sin_rn(c_rotation)**2 )
++ei
++if .not.crlibm
+     &                    + ymax**2 * sin(c_rotation)**2 )
++ei
+
++if crlibm
+          nom_aperture = sqrt( xmax_nom**2 * cos_rn(c_rotation)**2      &
+     &                   + ymax_nom**2 * sin_rn(c_rotation)**2 )
++ei
++if .not.crlibm
+          nom_aperture = sqrt( xmax_nom**2 * cos(c_rotation)**2         &
+     &                   + ymax_nom**2 * sin(c_rotation)**2 )
++ei
+!
+            pencil_aperture =                                           &
++if crlibm
+     &                    sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2  &
+     &                    + ymax_pencil**2 * sin_rn(c_rotation)**2 )
++ei
++if .not.crlibm
+     &                    sqrt( xmax_pencil**2 * cos(c_rotation)**2     &
+     &                    + ymax_pencil**2 * sin(c_rotation)**2 )
++ei
+
+!++  Get x and y offsets at collimator center point
++if crlibm
+            x_pencil(icoll) = xmax_pencil * (cos_rn(c_rotation))
+            y_pencil(icoll) = ymax_pencil * (sin_rn(c_rotation))
++ei
++if .not.crlibm
+            x_pencil(icoll) = xmax_pencil * (cos(c_rotation))
+            y_pencil(icoll) = ymax_pencil * (sin(c_rotation))
++ei
+
+!++  Get corresponding beam angles (uses xp_max)
+          xp_pencil(icoll) =                                            &
+     &              -1d0 * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)
+     &                   * xmax / sqrt(myemitx0_collgap*tbetax(ie))
+     
+          yp_pencil(icoll) =                                            &
+     &              -1d0 * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)
+     &                   * ymax / sqrt(myemity0_collgap*tbetay(ie))
+
+! that the way xp is calculated for makedis subroutines !!!!
+!        if (rndm4().gt.0.5) then
+!          myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
+!     &myalphax*myx(j)/mybetax
+!        else
+!          myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
+!     &myalphax*myx(j)/mybetax
+!        endif
+!            xp_pencil(icoll) =                                          &
+!     &           sqrt(sqrt((myemitx0/tbetax(ie)                         &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
+!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) " ************************************ "
+!            write(*,*) myemitx0/tbetax(ie)                              &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2
+!            write(*,*)sqrt(sqrt((myemitx0/tbetax(ie)                    &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))
+!            write(*,*) -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) sqrt(myemitx0/tbetax(ie))*talphax(ie)            &
+!     &                   * x_pencil(icoll) / sqrt(myemitx0*tbetax(ie))
+!            write(*,*)  sqrt(sqrt((myemitx0/tbetax(ie)                  &
+!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
+!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
+!            write(*,*) xp_pencil(icoll)
+!            write(*,*) " ************************************ "
+!
+!            yp_pencil(icoll) =                                          &
+!     &           sqrt(sqrt((myemity0/tbetay(ie)                         &
+!     &           -y_pencil(icoll)**2/tbetay(ie)**2)**2))                &
+!     &           -talphay(ie)*y_pencil(icoll)/tbetay(ie)
+!!
+            xp_pencil0 = xp_pencil(icoll)
+            yp_pencil0 = yp_pencil(icoll)
+
+            pencil_dx(icoll)  =                                         &
++if crlibm
+     &                     sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2 &
+     &                     + ymax_pencil**2 * sin_rn(c_rotation)**2 )   &
++ei
++if .not.crlibm
+     &                     sqrt( xmax_pencil**2 * cos(c_rotation)**2    &
+     &                     + ymax_pencil**2 * sin(c_rotation)**2 )      &
++ei
+     &                     - calc_aperture
+!++ TW -- tilt for of jaw for pencil beam
+!++ as in Ralphs orig routine, but not in collimate subroutine itself
+!            nprim = 3
+!            if ( (icoll.eq.ipencil) &
+!     &           icoll.le.nprim .and. (j.ge.(icoll-1)*nev/nprim)        &
+!     &           .and. (j.le.(icoll)*nev/nprim))) then
+! this is done for every bunch (64 particle bucket)
+! important: Sixtrack calculates in "mm" and collimate2 in "m"
+! therefore 1E-3 is used to  
+            if ((icoll.eq.ipencil).and.(iturn.eq.1).and.
+     &           (pencil_distr.ne.3)) then ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
+
+!!               write(*,*) " ************************************** "
+!!               write(*,*) " * INFO> seting tilt for pencil beam  * "
+!!               write(*,*) " ************************************** "
+!     c_tilt(1) =  (xp_pencil0*cos(c_rotation)                  &
++if crlibm
+!adriana
+               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos_rn(c_rotation)    &
+     &                     + sin_rn(c_rotation)*yp_pencil0)
++ei
++if .not.crlibm
+               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos(c_rotation)       &
+     &                     + sin(c_rotation)*yp_pencil0)
++ei
+               write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
+     &              icoll, c_tilt(1)
+!
+!! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is 
+!! -systilt + rmstilt otherwise +systilt + rmstilt
+!!               if (systilt_antisymm) then
+!! to align the jaw/pencil to the beam always use the minus regardless which 
+!! orientation of the jaws was used (symmetric/antisymmetric) 
+!                c_tilt(2) =  -1.*(xp_pencil0*cos(c_rotation)             &
++if crlibm
+!adriana
+                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos_rn(c_rotation)  &
+     &                 + sin_rn(c_rotation)*yp_pencil0)
++ei
++if .not.crlibm
+                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos(c_rotation)     &
+     &                 + sin(c_rotation)*yp_pencil0)
++ei
+!!               else
+!!                  c_tilt(2) = c_tilt(2) + (xp_pencil0*cos(c_rotation)   &
+!!     &                 + sin(c_rotation)*yp_pencil0)
+!!               endif
+               write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",   &
+     &              icoll, c_tilt(2)
+            endif
+
+!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3) 
+
+!JUNE2005   HERE IS THE SPECIAL TREATMENT...
+         elseif(db_name1(icoll)(1:4).eq.'COLM') then
+
+            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0_collgap)
+            ymax = nsig_tcth2*sqrt(by_dist*myemity0_collgap)
+
+            c_rotation = db_rotation(icoll)
+            c_length   = db_length(icoll)
+            c_material = db_material(icoll)
+            c_offset   = db_offset(icoll)
+            c_tilt(1)  = db_tilt(icoll,1)
+            c_tilt(2)  = db_tilt(icoll,2)
+            calc_aperture = xmax
+            nom_aperture = ymax
+         endif
+
+
+
+
+
+!-------------------------------------------------------------------
+!++  Further output
+        if(firstrun) then
+          if (iturn.eq.1) then
+            write(outlun,*) xp_pencil(icoll), yp_pencil(icoll),         &
+     &pencil_dx(icoll)
+            write(outlun,'(a,i4)') 'Collimator number:   '              &
+     &,icoll
+            write(outlun,*) 'Beam size x [m]:     '                     &
+     &,sqrt(tbetax(ie)*myemitx0_collgap), "(from collgap emittance)"
+            write(outlun,*) 'Beam size y [m]:     '                     &
+     &,sqrt(tbetay(ie)*myemity0_collgap), "(from collgap emittance)"
+            write(outlun,*) 'Divergence x [urad]:     '                 &
+     &,1d6*xp_pencil(icoll)
+            write(outlun,*) 'Divergence y [urad]:     '                 &
+     &,1d6*yp_pencil(icoll)
+            write(outlun,*) 'Aperture (nom) [m]:  '                     &
+     &,nom_aperture
+            write(outlun,*) 'Aperture (cal) [m]:  '                     &
+     &,calc_aperture
+            write(outlun,*) 'Collimator halfgap [sigma]:  '             &
+     &,nsig
+            write(outlun,*) 'RMS error on halfgap [sigma]:  '           &
+     &,gap_rms_error(icoll)
+            write(outlun,*) ' '
+
+            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')
+     &icoll,db_name1(icoll)(1:12),                                      &
+     &db_rotation(icoll),                                               &
+     &tbetax(ie), tbetay(ie), calc_aperture,                            &
+     &db_material(icoll),                                               &
+     &db_length(icoll),                                                 &
+     &sqrt(tbetax(ie)*myemitx0_collgap),                                &
+     &sqrt(tbetay(ie)*myemity0_collgap),                                &
+     &db_tilt(icoll,1),                                                 &
+     &db_tilt(icoll,2),                                                 &
+     &nsig
+
+! coll settings file
+            if(n_slices.le.1) then
+            write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')                     &
+     &db_name1(icoll)(1:12),                                            &
+     &n_slices,calc_aperture,                                           &
+     &db_offset(icoll),                                                 &
+     &db_tilt(icoll,1),                                                 &
+     &db_tilt(icoll,2),                                                 &
+     &db_length(icoll),                                                 &
+     &db_material(icoll)
+         endif
+          endif
+        endif
+
+!++  Assign aperture which we define as the FULL width (factor 2)!!!
+!JUNE2005 AGAIN, SOME SPECIFIC STUFF FOR RHIC
+         if(db_name1(icoll)(1:4).eq.'COLM') then
+            c_aperture = 2d0*calc_aperture
+            nom_aperture = 2d0*nom_aperture
+         elseif(db_name1(icoll)(1:4).ne.'COLM') then
+            c_aperture = 2d0*calc_aperture
+         endif
+!JUNE2005
+          c_aperture = 2d0*calc_aperture
+!          IF(IPENCIL.GT.zero) THEN
+!          C_APERTURE = 2.*pencil_aperture
+!GRD-------------------------------------------------------------------
+      if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
+        open(unit=99,file='distsec')
+        do j=1,napx
+          write(99,'(4(1X,E15.7))') xv(1,j),yv(1,j),xv(2,j),yv(2,j)
+        enddo
+        close(99)
+      endif
+!GRD-------------------------------------------------------------------
+
+
+! RB: addition matched halo sampled directly on the TCP using pencil beam flag
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          if ((iturn.eq.1).and.(ipencil.eq.icoll).and.
+     &         (pencil_distr.eq.3)) then
+
+!     create distribution where the normalized distance between jaw and beam is the smallest - this is where particles will first impact:
+!     without imperfections, it is:
+!              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and 
+!              -- at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
+
+!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance to each corner separately!
+
+!     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and downstream of present s-position)
+!     Assuming a purely vertical or horizontal halo - need to add more conditions for other cases!
+             
+!     Using standard twiss transfer matrix for a drift : ( new_halo_model_checks.nb )
+!     at start of collimator:
+             ldrift = -c_length / 2.d0 !Assign the drift length over which the optics functions are propagated
+             betax1 = tbetax(ie) - 2*ldrift*talphax(ie) + 
+     &            (ldrift**2 * (1+talphax(ie)**2))/tbetax(ie) 
+             betay1 = tbetay(ie) - 2*ldrift*talphay(ie) + 
+     &            (ldrift**2 * (1+talphay(ie)**2))/tbetay(ie)
+
+             alphax1 = talphax(ie) - 
+     &            (ldrift*(1+talphax(ie)**2))/tbetax(ie)
+             alphay1 = talphay(ie) - 
+     &            (ldrift*(1+talphay(ie)**2))/tbetay(ie)
+
+!     at end of collimator:
+             ldrift = c_length / 2.d0
+             betax2 = tbetax(ie) - 2*ldrift*talphax(ie) + 
+     &            (ldrift**2 * (1+talphax(ie)**2))/tbetax(ie) 
+             betay2 = tbetay(ie) - 2*ldrift*talphay(ie) + 
+     &            (ldrift**2 * (1+talphay(ie)**2))/tbetay(ie)
+
+             alphax2 = talphax(ie) - 
+     &            (ldrift*(1+talphax(ie)**2))/tbetax(ie)
+             alphay2 = talphay(ie) - 
+     &            (ldrift*(1+talphay(ie)**2))/tbetay(ie)
+
+!     calculate beam size at start and end of collimator. account for collimation plane
+             if((mynex.gt.0).and.(myney.eq.0.0)) then  ! horizontal halo 
+                beamsize1 = sqrt(betax1 * myemitx0_collgap)
+                beamsize2 = sqrt(betax2 * myemitx0_collgap)
+             elseif((mynex.eq.0).and.(myney.gt.0.0)) then   ! vertical halo
+                beamsize1 = sqrt(betay1 * myemity0_collgap)
+                beamsize2 = sqrt(betay2 * myemity0_collgap)
+             else
+                write(lout,*)
+     &               "attempting to use a halo not purely in the "//
+     &               "horizontal or vertical plane with pencil_dist=3"//
+     &               " - abort."
+                stop
+             endif
+             
+!     calculate offset from tilt of positive and negative jaws, at start and end
+!     remember: tilt angle is defined such that one corner stays at nominal position, the other corner is more open
+
+!     jaw in positive x (or y):
+             if (c_tilt(1).ge.0) then
+                tiltOffsPos1 = 0.d0
+                tiltOffsPos2 = abs(sin(c_tilt(1))) * c_length
+             else
+                tiltOffsPos1 = abs(sin(c_tilt(1))) * c_length
+                tiltOffsPos2 = 0.d0
+             endif
+
+!     jaw in negative x (or y):
+             if (c_tilt(2).ge.0) then
+                tiltOffsNeg1 = abs(sin(c_tilt(2))) * c_length
+                tiltOffsNeg2 = 0.d0
+             else
+                tiltOffsNeg1 = 0.d0
+                tiltOffsNeg2 = abs(sin(c_tilt(2))) * c_length
+             endif
+
+!     calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator, positive and neg jaws. 
+            Nap1pos=(c_aperture/2d0 + c_offset + tiltOffsPos1)/beamsize1
+            Nap2pos=(c_aperture/2d0 + c_offset + tiltOffsPos2)/beamsize2
+            Nap1neg=(c_aperture/2d0 - c_offset + tiltOffsNeg1)/beamsize1
+            Nap2neg=(c_aperture/2d0 - c_offset + tiltOffsNeg2)/beamsize2
+
+! debugging output - can be removed when not needed
+!            write(7878,*) c_tilt(1),c_tilt(2),c_offset
+!       write(7878,*) tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
+!            write(7878,*) Nap1pos,Nap2pos,Nap1neg,Nap2neg
+!            write(7878,*) min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
+!            write(7878,*) mynex * sqrt(tbetax(ie)/betax1)
+
+!     Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
+            minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg) 
+
+!     Assign amplitudes in x and y for the halo generation function
+            if((mynex.gt.0).and.(myney.eq.0.0)) then ! horizontal halo 
+               mynex2 = minAmpl 
+            elseif((mynex.eq.0).and.(myney.gt.0.0)) then ! vertical halo
+               myney2 = minAmpl
+            endif               ! other cases taken care of above - in these cases, program has already stopped            
+
+!     assign optics parameters to use for the generation of the starting halo - at start or end of collimator
+             if((minAmpl.eq.Nap1pos).or.(minAmpl.eq.Nap1neg)) then ! min normalized distance occurs at start of collimator
+                mybetax=betax1
+                mybetay=betay1
+                myalphax=alphax1
+                myalphay=alphay1
+                ldrift = -c_length / 2.d0
+             else               ! min normalized distance occurs at end of collimator
+                mybetax=betax2
+                mybetay=betay2
+                myalphax=alphax2
+                myalphay=alphay2
+                ldrift = c_length / 2.d0
+             endif
+
+             write(7878,*) napx,myalphax,myalphay, mybetax, mybetay,
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey
+
+!     create new pencil beam distribution with spread at start or end of collimator at the minAmpl
+!     note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
+!     but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
+!     the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
+!     This could possibly be improved in the future.
+             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay,
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey,
+     &            myx, myxp, myy, myyp, myp, mys)
+             
+             do j = 1, napx
+                xv(1,j)  = 1d3*myx(j)  + torbx(ie) 
+                yv(1,j)  = 1d3*myxp(j) + torbxp(ie)             
+                xv(2,j)  = 1d3*myy(j)  + torby(ie)              
+                yv(2,j)  = 1d3*myyp(j) + torbyp(ie)             
+                sigmv(j) = mys(j)
+                ejv(j)   = myp(j)
+
+!     as main routine will track particles back half a collimator length (to start of jaw), 
+!     track them now forward (if generated at face) or backward (if generated at end) 
+!     1/2 collimator length to center of collimator (ldrift pos or neg)
+                xv(1,j)  = xv(1,j) - ldrift*yv(1,j)
+                xv(2,j)  = xv(2,j) - ldrift*yv(2,j)
+
+!     write out distribution - generated either at the BEGINNING or END of the collimator
+                write(4997,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), 
+     &               myyp(j), mys(j), myp(j)
+             enddo
+          endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! end RB addition
+
+!++  Copy particle data to 1-dim array and go back to meters
+            do j = 1, napx
+              rcx(j)  = (xv(1,j)-torbx(ie))/1d3
+              rcxp(j) = (yv(1,j)-torbxp(ie))/1d3
+              rcy(j)  = (xv(2,j)-torby(ie))/1d3
+              rcyp(j) = (yv(2,j)-torbyp(ie))/1d3
+              rcp(j)  = ejv(j)/1d3
+              rcs(j)  = 0d0
+              part_hit_before(j) = part_hit(j)
+              rcx0(j)  = rcx(j)
+              rcxp0(j) = rcxp(j)
+              rcy0(j)  = rcy(j)
+              rcyp0(j) = rcyp(j)
+              rcp0(j)  = rcp(j)
+              ejf0v(j) = ejfv(j)
+
+!++  For zero length element track back half collimator length
+!  DRIFT PART
+              if (stracki.eq.0.) then
+                if(iexact.eq.0) then
+                  rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
+                  rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
+                else
+                  zpj=sqrt(1d0-rcxp(j)**2-rcyp(j)**2)
+                  rcx(j) = rcx(j) - 0.5d0*c_length*(rcxp(j)/zpj)
+                  rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
+                endif
+              else
+                Write(lout,*) "ERROR: Non-zero length collimator!"
+                STOP
+              endif
+
+              flukaname(j) = ipart(j)+100*samplenumber
+            end do
+
+!++  Do the collimation tracking
+             enom_gev = myenom*1d-3
+
+!++  Allow primaries to be one-sided, if requested
+          if ((db_name1(icoll)(1:3).eq.'TCP' .or.                       &
+     &db_name1(icoll)(1:3).eq.'COL')                                    &
+     &.and. do_oneside) then
+            onesided = .true.
+          else
+            onesided = .false.
+          endif
+
+
+!GRD HERE IS THE MAJOR CHANGE TO THE CODE: IN ORDER TO TRACK PROPERLY THE
+!GRD SPECIAL RHIC PRIMARY COLLIMATOR, IMPLEMENTATION OF A DEDICATED ROUTINE
+          if (found) then
+            if(db_name1(icoll)(1:4).eq.'COLM') then
+               call collimaterhic(c_material,                           &
+     &              c_length, c_rotation,                               &
+     &              c_aperture, nom_aperture,                           &
+     &              c_offset, c_tilt,                                   &
+     &              rcx, rcxp, rcy, rcyp,                               &
+     &              rcp, rcs, napx, enom_gev, part_hit, part_abs,       &
+     &              part_impact, part_indiv, part_linteract,            &
+     &              onesided,                                           &
+!GRD let's also add the FLUKA possibility
+     &              flukaname)
+            else
+
+!GRD-SR, 09-02-2006
+!Force the treatment of the TCDQ equipment as a onsided collimator.
+!Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
+!              if(db_name1(icoll)(1:4).eq.'TCDQ' ) onesided = .true.
+! to treat all collimators onesided 
+! -> only for worst case TCDQ studies
+               if(db_name1(icoll)(1:4).eq.'TCDQ') onesided = .true.
+               if(db_name1(icoll)(1:5).eq.'TCXRP') onesided = .true.
+!GRD-SR
+
+!==> SLICE here is possible
+!
+!     SR, 29-08-2005: Slice the collimator jaws in 'n_slices' pieces
+!     using two 4th-order polynomial fits. For each slices, the new
+!     gaps and centre are calculates
+!     It is assumed that the jaw point closer to the beam defines the
+!     nominal aperture.
+!
+!     SR, 01-09-2005: new official version - input assigned through
+!     the 'fort.3' file.
+!               if (n_slices.gt.1d0 .and.                                &
+!     &              totals.gt.smin_slices .and.                         &
+!     &              totals.lt.smax_slices .and.                         &
+!     &              db_name1(icoll)(1:4).eq.'TCSG' ) then
+!                  if (firstrun) then
+!                  write(*,*) 'INFOslice - Collimator ',
+!     &              db_name1(icoll), ' sliced in ',n_slices,
+!     &              ' pieces!'
+!                  endif
+!CB
+               if (n_slices.gt.1d0 .and.                                &
+     &              totals.gt.smin_slices .and.                         &
+     &              totals.lt.smax_slices .and.                         &
+     &             (db_name1(icoll)(1:4).eq.'TCSG'                      &
+     &             .or. db_name1(icoll)(1:3).eq.'TCP'                   &
+     &             .or. db_name1(icoll)(1:4).eq.'TCLA'                  &
+     &             .or. db_name1(icoll)(1:3).eq.'TCT'                   &
+     &             .or. db_name1(icoll)(1:4).eq.'TCLI'                  &
+     &             .or. db_name1(icoll)(1:4).eq.'TCL.'
+!     RB: added slicing of TCRYO as well    
+     &             .or. db_name1(icoll)(1:5).eq.'TCRYO')) then
+                      
+                  if (firstrun) then
+                     write(lout,*) 'INFO> slice - Collimator ',         &
+     &                    db_name1(icoll), ' sliced in ',n_slices,      &
+     &                    ' pieces !'
+                  endif
+!
+!!     In this preliminary try, all secondary collimators are sliced.
+!!     Slice only collimators with finite length!!
+!               if (db_name1(icoll)(1:4).eq.'TCSG' .and.
+!     &              c_length.gt.0d0 ) then
+!!     Slice the primaries, to have more statistics faster!
+!!               if (db_name1(icoll)(1:3).eq.'TCP' .and.
+!!     +              c_length.gt.0d0 ) then
+!!
+!!
+!!     Calculate longitudinal positions of slices and corresponding heights
+!!     and angles from the fit parameters.
+!!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
+!!     Note: here, take (n_slices+1) points in order to calculate the
+!!           tilt angle of the last slice!!
+!                  do jjj=1,n_slices+1
+!                     x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
+!                     y1_sl(jjj) =  fit1_1 +                             &
+!     &                    fit1_2*x_sl(jjj) +                            &
+!     &                    fit1_3*(x_sl(jjj)**2) +                       &
+!     &                    fit1_4*(x_sl(jjj)**3) +                       &
+!     &                    fit1_5*(x_sl(jjj)**4) +                       &
+!     &                    fit1_6*(x_sl(jjj)**5)
+!
+!                     y2_sl(jjj) = -1d0 * (fit2_1 +                      &
+!     &                    fit2_2*x_sl(jjj) +                            &
+!     &                    fit2_3*(x_sl(jjj)**2) +                       &
+!     &                    fit2_4*(x_sl(jjj)**3) +                       &
+!     &                    fit2_5*(x_sl(jjj)**4) +                       &
+!     &                    fit2_6*(x_sl(jjj)**5))
+!                  enddo
+
+!     CB:10-2007 deformation of the jaws scaled with length
+               do jjj=1,n_slices+1
+                  x_sl(jjj) = (jjj-1) * c_length / dble(n_slices)
+                  y1_sl(jjj) =  fit1_1 +                                &
+     &                 fit1_2*x_sl(jjj) +                               &
+     &                 fit1_3/c_length*(x_sl(jjj)**2) +                 &
+     &                 fit1_4*(x_sl(jjj)**3) +                          &
+     &                 fit1_5*(x_sl(jjj)**4) +                          &
+     &                 fit1_6*(x_sl(jjj)**5)
+!     
+                  y2_sl(jjj) = -1d0 * (fit2_1 +                         &
+     &                 fit2_2*x_sl(jjj) +                               &
+     &                 fit2_3/c_length*(x_sl(jjj)**2) +                 &
+     &                 fit2_4*(x_sl(jjj)**3) +                          &
+     &                 fit2_5*(x_sl(jjj)**4) +                          &
+     &                 fit2_6*(x_sl(jjj)**5))
+               enddo
+
+!     Apply the slicing scaling factors (ssf's):
+!     
+!                  do jjj=1,n_slices+1
+!                     y1_sl(jjj) = ssf1 * y1_sl(jjj)
+!                     y2_sl(jjj) = ssf2 * y2_sl(jjj)
+!                  enddo
+
+!     CB:10-2007 coordinates rotated of the tilt 
+                  do jjj=1,n_slices+1
+                     y1_sl(jjj) = ssf1 * y1_sl(jjj)
+                     y2_sl(jjj) = ssf2 * y2_sl(jjj)
+! CB code
+                     x1_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,1))-        &
+     &                    y1_sl(jjj)*sin(db_tilt(icoll,1))
+                     x2_sl(jjj)=x_sl(jjj)*cos(db_tilt(icoll,2))-        &
+     &                    y2_sl(jjj)*sin(db_tilt(icoll,2))
+                     y1_sl(jjj) = y1_sl(jjj)*cos(db_tilt(icoll,1))+     &
+     &                    x_sl(jjj)*sin(db_tilt(icoll,1))
+                     y2_sl(jjj) = y2_sl(jjj)*cos(db_tilt(icoll,2))+     &
+     &                    x_sl(jjj)*sin(db_tilt(icoll,2))
+                  enddo
+
+!     Sign of the angle defined differently for the two jaws!
+                  do jjj=1,n_slices
+                     angle1(jjj) = (( y1_sl(jjj+1) - y1_sl(jjj) ) /     &
+     &                    ( x1_sl(jjj+1)-x1_sl(jjj) ))
+                     angle2(jjj) =(( y2_sl(jjj+1) - y2_sl(jjj) ) /      &
+     &                    ( x2_sl(jjj+1)-x2_sl(jjj) ))
+                  enddo
+!
+!     Sign of the angle defined differently for the two jaws!
+!                  do jjj=1,n_slices
+!                     angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /     &
+!     &                    (c_length / dble(n_slices) )
+!                     angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /     &
+!     &                    (c_length / dble(n_slices) )
+!                  enddo
+!     For both jaws, look for the 'deepest' point (closest point to beam)
+!     Then, shift the vectors such that this closest point defines
+!     the nominal aperture
+!     Index here must go up to (n_slices+1) in case the last point is the
+!     closest (and also for the later calculation of 'a_tmp1' and 'a_tmp2')
+
+!     SR, 01-09-2005: add the recentring flag, as given in 'fort.3' to
+!     choose whether recentre the deepest point or not
+                  max_tmp = 1e6
+                  do jjj=1, n_slices+1
+                     if ( y1_sl(jjj).lt.max_tmp ) then
+                        max_tmp = y1_sl(jjj)
+                     endif
+                  enddo
+
+                  do jjj=1, n_slices+1
+                     y1_sl(jjj) = y1_sl(jjj) - max_tmp * recenter1      &
+     &                    + 0.5 *c_aperture
+                  enddo
+                  max_tmp = -1e6
+
+                  do jjj=1, n_slices+1
+                     if ( y2_sl(jjj).gt.max_tmp ) then
+                        max_tmp = y2_sl(jjj)
+                     endif
+                  enddo
+
+                  do jjj=1, n_slices+1
+                     y2_sl(jjj) = y2_sl(jjj) - max_tmp * recenter2      &
+     &                    - 0.5 *c_aperture
+                  enddo
+
+!!     Check the collimator jaw surfaces (beam frame, before taking into
+!!     account the azimuthal angle of the collimator)
+                  if (firstrun) then
+                    write(lout,*) 'Slicing collimator ',db_name1(icoll)
+                     do jjj=1,n_slices
+                       write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), &
+     &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
+     &                   db_tilt(icoll,2)
+                     enddo
+                  endif
+!
+!!     Check the calculation of slice gap and centre
+!                  if (firstrun) then
+!                     write(*,*) 'Verify centre and gap!'
+!                     do jjj=1,n_slices
+!                        if ( angle1(jjj).gt.0d0 ) then
+!                           a_tmp1 = y1_sl(jjj)
+!                        else
+!                           a_tmp1 = y1_sl(jjj+1)
+!                        endif
+!                        if ( angle2(jjj).lt.0d0 ) then
+!                           a_tmp2 = y2_sl(jjj)
+!                        else
+!                           a_tmp2 = y2_sl(jjj+1)
+!                        endif
+!                        write(*,*) a_tmp1 - a_tmp2,
+!     +                       0.5 * ( a_tmp1 + a_tmp2 )
+!                     enddo
+!                  endif
+!
+!     Now, loop over the number of slices and call collimate2 each time!
+!     For each slice, the corresponding offset and angle are to be used.
+                  do jjj=1,n_slices
+
+!     First calculate aperture and centre of the slice
+!     Note that:
+!     (1)due to our notation for the angle sign,
+!     the rotation point of the slice (index j or j+1)
+!     DEPENDS on the angle value!!
+!     (2) New version of 'collimate2' is required: one must pass
+!     the slice number in order the calculate correctly the 's'
+!     coordinate in the impact files.
+
+!     Here, 'a_tmp1' and 'a_tmp2' are, for each slice, the closest
+!     corners to the beam
+                        if ( angle1(jjj).gt.0d0 ) then
+                           a_tmp1 = y1_sl(jjj)
+                        else
+                           a_tmp1 = y1_sl(jjj+1)
+                        endif
+                        if ( angle2(jjj).lt.0d0 ) then
+                           a_tmp2 = y2_sl(jjj)
+                        else
+                           a_tmp2 = y2_sl(jjj+1)
+                        endif
+!!     Write down the information on slice centre and offset
+!                     if (firstrun) then
+!                        write(*,*) 'Processing slice number ',jjj,
+!     &                       ' of ',n_slices,' for the collimator ',
+!     &                       db_name1(icoll)
+!                        write(*,*) 'Aperture [m]= ',
+!     &                       a_tmp1 - a_tmp2
+!                        write(*,*) 'Offset [m]  = ',
+!     &                       0.5 * ( a_tmp1 + a_tmp2 )
+!                     endif
+!!
+!     Be careful! the initial tilt must be added!
+!     We leave it like this for the moment (no initial tilt)
+!                     c_tilt(1) = c_tilt(1) + angle1(jjj)
+!                     c_tilt(2) = c_tilt(2) + angle2(jjj)
+                     c_tilt(1) = angle1(jjj)
+                     c_tilt(2) = angle2(jjj)
+!     New version of 'collimate2' is required: one must pass the
+!     slice number in order the calculate correctly the 's'
+!     coordinate in the impact files.
+!     +                    a_tmp1 - a_tmp2,
+!     +                    0.5 * ( a_tmp1 + a_tmp2 ),
+! -- TW SEP07 added compatility for tilt, gap and ofset errors to slicing
+! -- TW gaprms error is already included in the c_aperture used above  
+! -- TW tilt error is added to y1_sl and y2_sl therfore included in 
+! -- TW angle1 and angle2 no additinal changes needed 
+! -- TW offset error directly added to call of collimate2
+
+! --- TW JUNE08 
+                     if (firstrun) then
+                        write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')         &
+     &                       db_name1(icoll)(1:12),                     &
+     &                       jjj,                                       &
+     &                       (a_tmp1 - a_tmp2)/2d0,                     &
+     &                       0.5 * (a_tmp1 + a_tmp2) + c_offset,        &
+     &                       c_tilt(1),                                 &
+     &                       c_tilt(2),                                 &
+     &                       c_length / dble(n_slices),                 & 
+     &                       db_material(icoll)
+                     endif
+! --- TW JUNE08 
+                     call collimate2(c_material,                        &
+     &                    c_length / dble(n_slices),                    &
+     &                    c_rotation,                                   &
+     &                    a_tmp1 - a_tmp2,                              &
+     &                    0.5 * ( a_tmp1 + a_tmp2 ) + c_offset,         &
+     &                    c_tilt,                                       &
+     &                    rcx, rcxp, rcy, rcyp,                         &
+     &                    rcp, rcs, napx, enom_gev,                     &
+     &                    part_hit, part_abs, part_impact, part_indiv,  &
+     &                    part_linteract, onesided, flukaname,          &
+     &                    secondary,                                    &
+     &                    jjj, nabs_type)
+                  enddo
+               else
+!     Treatment of non-sliced collimators
+                  call collimate2(c_material, c_length, c_rotation,     &
+     &                 c_aperture, c_offset, c_tilt,                    &
+     &                 rcx, rcxp, rcy, rcyp,                            &
+     &                 rcp, rcs, napx, enom_gev, part_hit, part_abs,    &
+     &                 part_impact, part_indiv, part_linteract,         &
+     &                 onesided, flukaname, secondary, 1, nabs_type)    &
+               endif !if (n_slices.gt.1d0 .and.
+
+               endif !if(db_name1(icoll)(1:4).eq.'COLM') then
+          endif !if (found) then
       end
 
+            
 !>
 !! collimate_end_collimator()
 !! This routine is called at the exit of a collimator
 !<
       subroutine collimate_end_collimator()
       implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
++ca commonex
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ca dbcolcom
++ca dbthin6d
+
++ei
+
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
+      double precision c5m4,stracki
+
++if fast
+      c5m4=5.0d-4
++ei
+
+
+
+!++  Output information:
+!++
+!++  PART_HIT(MAX_NPART)     Hit flag for last hit (10000*element# + turn#)
+!++  PART_ABS(MAX_NPART)     Abs flag (10000*element# + turn#)
+!++  PART_IMPACT(MAX_NPART)  Impact parameter (0 for inner face)
+!++  PART_INDIV(MAX_NPART)   Divergence of impacting particles
+!------------------------------------------------------------------------------
+!++  Calculate average impact parameter and save info for all
+!++  collimators. Copy information back and do negative drift.
+          n_impact = 0
+          n_absorbed = 0
+          sum      = 0d0
+          sqsum    = 0d0
+
+!++  Copy particle data back and do path length stuff; check for absorption
+!++  Add orbit offset back.
+          do j = 1, napx
+
+!APRIL2005 IN ORDER TO GET RID OF NUMERICAL ERRORS, JUST DO THE TREATMENT FOR
+!APRIL2005 IMPACTING PARTICLES...
+            if (part_hit(j).eq.(10000*ie+iturn)) then
+!++  For zero length element track back half collimator length
+! DRIFT PART
+              if (stracki.eq.0.) then
+                if(iexact.eq.0) then
+                  rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
+                  rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
+                else
+                  zpj=sqrt(1d0-rcxp(j)**2-rcyp(j)**2)
+                  rcx(j) = rcx(j) - 0.5d0*c_length*(rcxp(j)/zpj)
+                  rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
+                endif
+              endif
+
+!++  Now copy data back to original verctor
+
+              xv(1,j) = rcx(j)*1d3  +torbx(ie)
+              yv(1,j) = rcxp(j)*1d3 +torbxp(ie)
+              xv(2,j) = rcy(j)*1d3  +torby(ie)
+              yv(2,j) = rcyp(j)*1d3 +torbyp(ie)
+              ejv(j) = rcp(j)*1d3
+
+!++  Energy update, as recommended by Frank
+              ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
+              rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+              dpsv(j)=(ejfv(j)-e0f)/e0f
+              oidpsv(j)=one/(one+dpsv(j))
+              dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
+              yv(1,j)=ejf0v(j)/ejfv(j)*yv(1,j)
+              yv(2,j)=ejf0v(j)/ejfv(j)*yv(2,j)
+
+!APRIL2005 ...OTHERWISE JUST GET BACK FORMER COORDINATES
+            else
+              xv(1,j) = rcx0(j)*1d3+torbx(ie)
+              yv(1,j) = rcxp0(j)*1d3+torbxp(ie)
+              xv(2,j) = rcy0(j)*1d3+torby(ie)
+              yv(2,j) = rcyp0(j)*1d3+torbyp(ie)
+              ejv(j) = rcp0(j)*1d3
+            endif
+!APRIL2005
+! 
+!TW for roman pot checking
+!            if(icoll.eq.73) then
+!               do j = 1,napx 
+!                  write(9998,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
+!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
+!               enddo
+!            elseif(icoll.eq.74) then
+!               do j = 1,napx 
+!                  write(9999,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
+!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
+!               enddo
+!            endif
+!
+!++  Write trajectory for any selected particle
+!
+!!            if (firstrun) then
+!!              if (rselect.gt.0 .and. rselect.lt.65) then
+!            DO j = 1, NAPX
+!
+!!              xj     = (xv(1,j)-torbx(ie))/1d3
+!!              xpj    = (yv(1,j)-torbxp(ie))/1d3
+!!              yj     = (xv(2,j)-torby(ie))/1d3
+!!              ypj    = (yv(2,j)-torbyp(ie))/1d3
+!!              pj     = ejv(j)/1d3
+!GRD
+!07-2006 TEST
+!!              if (iturn.eq.1.and.j.eq.1) then
+!!              sum_ax(ie)=0d0
+!!              sum_ay(ie)=0d0
+!!              endif
+!GRD
+!
+!!              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+!!              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+!
+!!             if (part_abs(j).eq.0) then
+!!          nspx    = sqrt(                                               &
+!!     &abs( gammax*(xj)**2 +                                             &
+!!     &2d0*talphax(ie)*xj*xpj +                                          &
+!!     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+!!     &)
+!!                nspy    = sqrt(                                         &
+!!     &abs( gammay*(yj)**2 +                                             &
+!!     &2d0*talphay(ie)*yj*ypj +                                          &
+!!     &tbetay(ie)*ypj**2 )/myemity0                                      &
+!!     &)
+
+!++  First check for particle interaction at this collimator and this turn
+            if (part_hit(j).eq. (10000*ie+iturn) ) then
+
+!++  Fill the change in particle angle into histogram
+              if(dowrite_impact) then
+                write(46,'(i8,1x,i4,1x,f8.2)')                          &
+     &               ipart(j)+100*samplenumber,iturn,sampl(ie)
+              endif
+
+              if(part_abs(j).ne.0) then
+                if(dowrite_impact) then
+                  write(47,'(i8,1x,i4,1x,f8.2)')                        &
+     &ipart(j)+100*samplenumber,iturn,sampl(ie)
+                endif
++if hdf5
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)-0.5*c_length
+       hdfx=(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+         &
+     &      torbxp(ie))
+       hdfxp=rcxp0(j)*1d3+torbxp(ie)
+       hdfy=(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+         &
+     &      torbyp(ie))
+       hdfyp=rcyp0(j)*1d3+torbyp(ie)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       CALL APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
++ei
++if .not.hdf5
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
+     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
+     &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
+     &rcxp0(j)*1d3+torbxp(ie),                                          &
+     &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
+     &rcyp0(j)*1d3+torbyp(ie),                                          &
+     &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
++ei
+              endif
+
+              if (part_abs(j).eq.0) then
+                xkick = rcxp(j) - rcxp0(j)
+                ykick = rcyp(j) - rcyp0(j)
+
+                  if (db_name1(icoll)(1:3).eq.'TCP'.or.                 &
+     &                db_name1(icoll)(1:4).eq.'COLM'.or.                &
+     &                db_name1(icoll)(1:5).eq.'COLH0'.or.               &
+     &                db_name1(icoll)(1:5).eq.'COLV0') then
+                        secondary(j) = 1
+                  elseif (db_name1(icoll)(1:3).eq.'TCS'.or.             &
+     &                    db_name1(icoll)(1:4).eq.'COLH1'.or.           &
+     &                    db_name1(icoll)(1:4).eq.'COLV1'.or.           &
+     &                    db_name1(icoll)(1:4).eq.'COLH2') then
+                       tertiary(j)  = 2
+                  elseif ((db_name1(icoll)(1:3).eq.'TCL').or.           &
+     &                  (db_name1(icoll)(1:3).eq.'TCT').or.             &
+     &                  (db_name1(icoll)(1:3).eq.'TCD').or.             &
+     &                  (db_name1(icoll)(1:3).eq.'TDI')) then
+                          other(j)     = 4
+                  endif
+              endif
+
+!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
+      if (dowritetracks) then
+        if(part_abs(j).eq.0) then
+          if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)  &
+     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
+!GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
+     &(                                                                 &
+     &((                                                                &
+     &(xv(1,j)*1d-3)**2                                                 &
+     &/                                                                 &
+     &(tbetax(ie)*myemitx0_collgap)
+     &).ge.dble(sigsecut2)).or.                                         &
+     &((                                                                &
+     &(xv(2,j)*1d-3)**2                                                 &
+     &/                                                                 &
+     &(tbetay(ie)*myemity0_collgap)
+     &).ge.dble(sigsecut2)).or.                                         &
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)                                                    &
+     &) ) then
+
+          xj     = (xv(1,j)-torbx(ie))/1d3
+          xpj    = (yv(1,j)-torbxp(ie))/1d3
+          yj     = (xv(2,j)-torby(ie))/1d3
+          ypj    = (yv(2,j)-torbyp(ie))/1d3
+
++if hdf5
+!       We write trajectories before and after element in this case.
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)-0.5*c_length
+       hdfx=  ! xv(1,j)-0.5*c_length*yv(1,j)
+     &    (rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie))
+       hdfxp= ! yv(1,j)
+     &    rcxp0(j)*1d3+torbxp(ie)
+       hdfy=  ! xv(2,j)-0.5*c_length*yv(2,j)
+     &    (rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie))
+       hdfyp= ! yv(2,j)
+     &    rcyp0(j)*1d3+torbyp(ie)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
+       hdfs=sampl(ie)+0.5*c_length
+       hdfx=xv(1,j)+0.5*c_length*yv(1,j)
+       hdfxp=yv(1,j)
+       hdfy=xv(2,j)+0.5*c_length*yv(2,j)
+       hdfyp=yv(2,j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
+     
++ei
++if .not.hdf5
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
+     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
+     &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
+     &rcxp0(j)*1d3+torbxp(ie),                                          &
+     &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
+     &rcyp0(j)*1d3+torbyp(ie),                                          &
+     &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
+       
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
+     &ipart(j)+100*samplenumber,iturn,sampl(ie)+0.5*c_length,           &
+     &xv(1,j)+0.5*c_length*yv(1,j),yv(1,j),                             &
+     &xv(2,j)+0.5*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
+     &secondary(j)+tertiary(j)+other(j)
++ei
+          endif
+        endif
+      endif
+
+!++  Calculate impact observables, fill histograms, save collimator info, ...
+              n_impact = n_impact + 1
+              sum = sum + part_impact(j)
+              sqsum = sqsum + part_impact(j)**2
+              cn_impact(icoll) = cn_impact(icoll) + 1
+              csum(icoll) = csum(icoll) + part_impact(j)
+              csqsum(icoll) = csqsum(icoll) + part_impact(j)**2
+
+!++  If the interacting particle was lost, add-up counters for absorption
+!++  Note: a particle with x/y >= 99. never hits anything any more in
+!++        the logic of this program. Be careful to always fulfill this!
+              if (part_abs(j).ne.0) then
+                n_absorbed = n_absorbed + 1
+                cn_absorbed(icoll) = cn_absorbed(icoll) + 1
+                n_tot_absorbed = n_tot_absorbed + 1
+                iturn_last_hit = part_hit_before(j)-                    &
+     &int(part_hit_before(j)/10000)*10000
+                iturn_absorbed = part_hit(j)-                           &
+     &int(part_hit(j)/10000)*10000
+                if (iturn_last_hit.eq.0) iturn_last_hit =               &
+     &iturn_absorbed
+                iturn_survive  = iturn_absorbed - iturn_last_hit
+              endif
+
+!++  End of check for hit this turn and element
+            endif
+          end do ! end do j = 1, napx
+
+!++  Calculate statistical observables and save into files...
+          if (n_impact.gt.0) then
+            average = sum/n_impact
+
+            if (sqsum/n_impact.ge.average**2) then
+              sigma = sqrt(sqsum/n_impact - average**2)
+            else
+              sigma = 0d0
+            endif
+
+          else
+            average = 0d0
+            sigma   = 0d0
+          endif
+
+          if (cn_impact(icoll).gt.0) then
+            caverage(icoll) = csum(icoll)/cn_impact(icoll)
+
+            if ((caverage(icoll)**2).gt.                                &
+     &(csqsum(icoll)/cn_impact(icoll))) then
+               csigma(icoll) = 0
+            else
+              csigma(icoll) = sqrt(csqsum(icoll)/                       &
+     &cn_impact(icoll) - caverage(icoll)**2)
+            endif
+
+          endif
+
+!-----------------------------------------------------------------
+!++  For a  S E L E C T E D  collimator only consider particles that
+!++  were scattered on this selected collimator at the first turn. All
+!++  other particles are discarded.
+!++  - This is switched on with the DO_SELECT flag in the input file.
+!++  - Note that the part_select(j) flag defaults to 1 for all particles.
+
+! should name_sel(1:11) extended to allow longer names as done for 
+! coll the coll_ellipse.dat file !!!!!!!!
+           if (((db_name1(icoll).eq.name_sel(1:11))                     &
+     &.or.(db_name2(icoll).eq.name_sel(1:11)))                          &
+     &.and. iturn.eq.1  ) then
+            num_selhit = 0
+            num_surhit = 0
+            num_selabs = 0
+
+            do j = 1, napx
+              if ( part_hit(j).eq.(10000*ie+iturn) ) then
+                num_selhit = num_selhit+1
+                if (part_abs(j).eq.0) then
+                  num_surhit = num_surhit+1
+                else
+                  num_selabs = num_selabs + 1
+                endif
+
+!++  If we want to select only partciles interacting at the specified
+!++  collimator then remove all other particles and reset the number
+!++  of the absorbed particles to the selected collimator.
+              elseif (do_select.and.firstrun) then
+                part_select(j) = 0
+                n_tot_absorbed = num_selabs
+              endif
+            end do
+
+!++  Calculate average impact parameter and save distribution into file
+!++  only for selected collimator
+            n_impact = 0
+            sum      = 0d0
+            sqsum    = 0d0
+
+            do j = 1, napx
+              if ( part_hit(j).eq.(10000*ie+iturn) ) then
+                if (part_impact(j).lt.-0.5d0) then
+                  write(lout,*) 'ERR>  Found invalid impact parameter!',&
+     &                  part_impact(j)
+                  write(outlun,*) 'ERR>  Invalid impact parameter!',    &
+     &                  part_impact(j)
++if cr
+      call abend('                                                  ')
++ei
++if .not.cr
+      stop
++ei
+                endif
+                n_impact = n_impact + 1
+                sum = sum + part_impact(j)
+                sqsum = sqsum + part_impact(j)**2
+                if (part_hit(j).gt.0 .and. dowrite_impact)              &
+     &write(49,*) part_impact(j), part_indiv(j)
+
+              endif
+            end do
+
+            if (n_impact.gt.0) then
+              average = sum/n_impact
+
+              if(sqsum/n_impact.ge.average**2) then
+                sigma = sqrt(sqsum/n_impact - average**2)
+              else
+                sigma = 0d0
+              endif
+
+            endif
+
+!++  Some information
+            write(lout,*)
+     &'INFO>  Selected collimator had N hits. N: ',                     &
+     &num_selhit
+            write(lout,*)
+     &'INFO>  Number of impacts                : ',                     &
+     &n_impact
+            write(lout,*)
+     &'INFO>  Number of escaped protons        : ',                     &
+     &num_surhit
+            write(lout,*)
+     &'INFO>  Average impact parameter [m]     : ',                     &
+     &average
+            write(lout,*)
+     &'INFO>  Sigma impact parameter [m]       : ',                     &
+     &sigma
+
+            if (dowrite_impact) close(49)
+
+!++  End of    S E L E C T E D   collimator
+          endif
 
       end
 
