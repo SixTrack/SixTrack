@@ -921,11 +921,17 @@
 !
       double precision neffx(numeff),neffy(numeff)
       common /efficiency/ neffx,neffy
-!
-      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed   &
+
+
+      integer secondary(npart),tertiary(npart),other(npart),            &
+     &part_hit_before(npart)
+      double precision part_indiv(npart),part_linteract(npart)
+
+      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed &
      &,part_select(npart),nabs_type(npart)
       double precision part_impact(npart)
-      common /stats/ part_impact,part_hit,part_abs,nabs_type
+      common /stats/ part_impact,part_hit,part_abs,nabs_type,part_indiv,&
+     &part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
@@ -979,14 +985,7 @@
       integer counted_r(npart,numeff),counted_x(npart,numeff),          &
      &counted_y(npart,numeff)
       common /counting/ counted_r,counted_x,counted_y
-!
-!APRIL2005
-!      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
-      integer secondary(npart),tertiary(npart),other(npart),            &
-     &part_hit_before(npart)
-!APRIL2005
-      double precision part_indiv(npart),part_linteract(npart)
-!
+
       integer   samplenumber
       character*4 smpl
       character*80 pfile
@@ -25390,7 +25389,7 @@ C Should get me a NaN
           call thin6dua(nthinerr)
         else
 +if collimat
-          call collimate_init
+          call collimate_init()
 !================================================================================
 !Ralph make loop over 1e6/napx, a read xv(1,j) etc
 !Du solltest zur Sicherheit dies resetten bevor Du in thin6d gehst
@@ -25410,7 +25409,7 @@ C Should get me a NaN
             write(lout,*) ''
             call thin6d(nthinerr)
 
-            call collimate_end_sample
+            call collimate_end_sample(j)
 
           end do
 +ei ! endif collimat
@@ -25423,7 +25422,7 @@ C Should get me a NaN
         endif !end if(abs(phas).ge.pieni) then
       endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
 +if collimat
-      call collimate_exit
+      call collimate_exit()
 +ei
       return
       end
@@ -26030,6 +26029,7 @@ C Should get me a NaN
 +ca rhicelens
 +ca bnlio
 +ei
+
 +ca comgetfields
 +ca dbdump
 +ca stringzerotrim
@@ -26181,14 +26181,15 @@ C Should get me a NaN
 
    10     stracki=strack(i)
 +if collimat
+!          call collimate_start_collimator(stracki)
 
-!!!!!!!This should go in the pre-collimator function
 
 !==========================================
 !Ralph drift length is stracki
 !bez(ix) is name of drift
           totals=totals+stracki
 !          write(*,*) 'ralph> Drift, total length: ', stracki,totals
+
 !________________________________________________________________________
 !++  If we have a collimator then...
 !
@@ -26976,18 +26977,6 @@ C Should get me a NaN
             end do
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 !      call collimate_do_collimator()
 !!!!!!!This should go in the do-collimator function
 
@@ -27305,11 +27294,6 @@ C Should get me a NaN
 
 ! end of check for 'found'
           endif
-
-
-
-
-
 
 
 
@@ -27780,7 +27764,6 @@ C Should get me a NaN
 
           endif
           goto 650
-
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 +ei
 
@@ -28229,150 +28212,7 @@ C Should get me a NaN
   640     continue
 !GRD UPGRADE JANUARY 2005
 +if collimat
-      if (firstrun) then
-        if (rselect.gt.0 .and. rselect.lt.65) then
-          do j = 1, napx
-            xj     = (xv(1,j)-torbx(ie))/1d3
-            xpj    = (yv(1,j)-torbxp(ie))/1d3
-            yj     = (xv(2,j)-torby(ie))/1d3
-            ypj    = (yv(2,j)-torbyp(ie))/1d3
-            pj     = ejv(j)/1d3
-
-            if (iturn.eq.1.and.j.eq.1) then
-              sum_ax(ie)=0d0
-              sum_ay(ie)=0d0
-            endif
-
-            if (tbetax(ie).gt.0.) then
-              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
-            else
-              gammax = (1d0 + talphax(ie-1)**2)/tbetax(ie-1)
-              gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
-            endif
-
-            if (part_abs(j).eq.0) then
-              if(tbetax(ie).gt.0.) then
-                nspx    = sqrt(                                         &
-     &               abs( gammax*(xj)**2 +                              &
-     &               2d0*talphax(ie)*xj*xpj +                           &
-     &               tbetax(ie)*xpj**2 )/myemitx0_collgap
-     &               )
-                nspy    = sqrt(                                         &
-     &               abs( gammay*(yj)**2 +                              &
-     &               2d0*talphay(ie)*yj*ypj +                           &
-     &               tbetay(ie)*ypj**2 )/myemity0_collgap
-     &               )
-              else
-                nspx    = sqrt(                                         &
-     &               abs( gammax*(xj)**2 +                              &
-     &               2d0*talphax(ie-1)*xj*xpj +                         &
-     &               tbetax(ie-1)*xpj**2 )/myemitx0_collgap
-     &               )
-                nspy    = sqrt(                                         &
-     &               abs( gammay*(yj)**2 +                              &
-     &               2d0*talphay(ie-1)*yj*ypj +                         &
-     &               tbetay(ie-1)*ypj**2 )/myemity0_collgap
-     &               )
-              endif
-
-              sum_ax(ie)   = sum_ax(ie) + nspx
-              sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-              sum_ay(ie)   = sum_ay(ie) + nspy
-              sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-              nampl(ie)    = nampl(ie) + 1
-            else
-              nspx = 0d0
-              nspy = 0d0
-            endif
-              sampl(ie)    = totals
-              ename(ie)    = bez(myix)(1:16)
-          end do
-        endif
-      endif
-
-!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
-          if (dowritetracks) then
-            do j = 1, napx
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-
-              arcdx = 2.5d0
-              arcbetax = 180d0
-
-                if (xj.le.0.) then
-                  xdisp = xj + (pj-myenom)/myenom * arcdx               &
-     &* sqrt(tbetax(ie)/arcbetax)
-                else
-                  xdisp = xj - (pj-myenom)/myenom * arcdx               &
-     &* sqrt(tbetax(ie)/arcbetax)
-                endif
-                xndisp = xj
-                nspxd   = sqrt(                                         &
-     &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
-     &)
-                nspx    = sqrt(                                         &
-     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
-     &)
-
-         if(part_abs(j).eq.0) then
-         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
-     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
-!GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-     &(
-     &((
-     &(xv(1,j)*1d-3)**2
-     &/
-     &(tbetax(ie)*myemitx0_collgap)
-     &).ge.dble(sigsecut2)).or.
-     &((
-     &(xv(2,j)*1d-3)**2
-     &/
-     &(tbetay(ie)*myemity0_collgap)
-     &).ge.dble(sigsecut2)).or.
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
-     &.ge.sigsecut3)
-     &) ) then
-                xj     = (xv(1,j)-torbx(ie))/1d3
-                xpj    = (yv(1,j)-torbxp(ie))/1d3
-                yj     = (xv(2,j)-torby(ie))/1d3
-                ypj    = (yv(2,j)-torbyp(ie))/1d3
-+if hdf5
-       hdfpid=ipart(j)+100*samplenumber
-       hdfturn=iturn
-       hdfs=sampl(ie)
-       hdfx=xv(1,j)
-       hdfxp=yv(1,j)
-       hdfy=xv(2,j)
-       hdfyp=yv(2,j)
-       hdfdee=(ejv(j)-myenom)/myenom
-       hdftyp=secondary(j)+tertiary(j)+other(j)
-       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
-     &                    hdfdee,hdftyp)
-+ei
-+if .not.hdf5
-       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
-     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
-     &xv(1,j),yv(1,j),                                                  &
-     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
-     &secondary(j)+tertiary(j)+other(j)
-+ei
-              endif
-         endif
-            end do
-
-!!JUNE2005 here I close the "if(dowritetracks)" outside of the firstrun flag
-      endif
-!JUNE2005
+      call collimate_end_element(i)
 +ei
 !GRD END OF UPGRADE
 
@@ -28387,498 +28227,9 @@ C Should get me a NaN
  650  continue !END loop over structure elements
 
 
-!!! END TURN COLLIMAT - please stuff this into a new function or at least a +cd!
-
-!UPGRADE JANUARY 2005
 +if collimat
-!__________________________________________________________________
-!++  Now do analysis at selected elements...
-
-!++  Save twiss functions of present element
-        ax0  = talphax(ie)
-        bx0  = tbetax(ie)
-        mux0 = mux(ie)
-        ay0  = talphay(ie)
-        by0  = tbetay(ie)
-        muy0 = muy(ie)
-
-!GRD GET THE COORDINATES OF THE PARTICLES AT THE IEth ELEMENT:
-        do j = 1,napx
-              xgrd(j)  = xv(1,j)
-              xpgrd(j) = yv(1,j)
-              ygrd(j)  = xv(2,j)
-              ypgrd(j) = yv(2,j)
-
-              xineff(j)  = xv(1,j)                                      &
-     &- torbx(ie)
-              xpineff(j) = yv(1,j)                                      &
-     &- torbxp(ie)
-              yineff(j)  = xv(2,j)                                      &
-     &- torby(ie)
-              ypineff(j) = yv(2,j)                                      &
-     &- torbyp(ie)
-
-              pgrd(j)  = ejv(j)
-!APRIL2005
-              ejfvgrd(j) = ejfv(j)
-              sigmvgrd(j) = sigmv(j)
-              rvvgrd(j) = rvv(j)
-              dpsvgrd(j) = dpsv(j)
-              oidpsvgrd(j) = oidpsv(j)
-              dpsv1grd(j) = dpsv1(j)
-!APRIL2005
-!GRD IMPORTANT: ALL PARTICLES ABSORBED ARE CONSIDERED TO BE LOST,
-!GRD SO WE GIVE THEM A LARGE OFFSET
-           if (part_abs(j).ne.0) then
-              xgrd(j)  = 99.5d0
-              ygrd(j)  = 99.5d0
-           endif
-        end do
-
-!++  For LAST ELEMENT in the ring calculate the number of surviving
-!++  particles and save into file versus turn number
-        if (ie.eq.iu) then
-          nsurvive = 0
-          do j = 1, napx
-            if (xgrd(j).lt.99d0 .and. ygrd(j).lt.99d0) then
-              nsurvive = nsurvive + 1
-            endif
-          end do
-
-          write(44,'(2i7)') iturn, nsurvive
-          if (iturn.eq.numl) then
-            nsurvive_end = nsurvive_end + nsurvive
-          endif
-        endif
-
-!=======================================================================
-!++  Do collimation analysis at element 20 ("zero" turn) or LAST
-!++  ring element.
-
-!++  If selecting, look at number of scattered particles at selected
-!++  collimator. For the "zero" turn consider the information at element
-!++  20 (before collimation), otherwise take information at last ring
-!++  element.
-        if (do_coll .and.                                               &
-     &(  (iturn.eq.1 .and. ie.eq.20) .or.                               &
-     &(ie.eq.iu)  )    ) then
-
-!++  Calculate gammas
-!------------------------------------------------------------------------
-          gammax = (1 + talphax(ie)**2)/tbetax(ie)
-          gammay = (1 + talphay(ie)**2)/tbetay(ie)
-
-!________________________________________________________________________
-!++  Loop over all particles.
-          do j = 1, napx
-!
-!------------------------------------------------------------------------
-!++  Save initial distribution of particles that were scattered on
-!++  the first turn at the selected primary collimator
-!
-!            IF (DOWRITE_DIST .AND. DO_SELECT .AND. ITURN.EQ.1 .AND.
-!     &          PART_SELECT(j).EQ.1) THEN
-!              WRITE(987,'(4(1X,E15.7))') X00(J), XP00(J),
-!     &                                        Y00(J), YP00(J)
-!            ENDIF
-!------------------------------------------------------------------------
-!++  Do the binning in amplitude, only considering particles that were
-!++  not absorbed before.
-
-            if (xgrd(j).lt.99d0 .and. ygrd(j) .lt.99d0 .and.            &
-     &(part_select(j).eq.1 .or. ie.eq.20)) then
-
-!++  Normalized amplitudes are calculated
-
-!++  Allow to apply some dispersive offset. Take arc dispersion (2m) and
-!++  normalize with arc beta_x function (180m).
-              arcdx    = 2.5d0
-              arcbetax = 180d0
-              xdisp = abs(xgrd(j)*1d-3) +                               &
-     &abs((pgrd(j)-myenom)/myenom)*arcdx                                &
-     &* sqrt(tbetax(ie)/arcbetax)
-              nspx    = sqrt(                                           &
-     &abs(gammax*xdisp**2 +                                             &
-     &2d0*talphax(ie)*xdisp*(xpgrd(j)*1d-3)+                            &
-     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0_collgap
-     &)
-              nspy    = sqrt(                                           &
-     &abs( gammay*(ygrd(j)*1d-3)**2 +                                   &
-     &2d0*talphay(ie)*(ygrd(j)*1d-3*ypgrd(j)*1d-3)                      &
-     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0_collgap
-     &)
-
-!++  Populate the efficiency arrays at the end of each turn...
-! Modified by M.Fiascaris, July 2016
-              if (ie.eq.iu) then
-                do ieff = 1, numeff
-                  if (counted_r(j,ieff).eq.0 .and.                      &
-     &sqrt(                                                             &
-     &((xineff(j)*1d-3)**2 +                                            &
-     & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0_collgap)                                     &
-     &+                                                                 &
-     &((yineff(j)*1d-3)**2 +                                            &
-     & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0_collgap)                                     &
-     &).ge.rsig(ieff)) then
-                    neff(ieff) = neff(ieff)+1d0
-                    counted_r(j,ieff)=1
-                  endif
-
-!++ 2D eff
-        do ieffdpop =1, numeffdpop
-          if (counted2d(j,ieff,ieffdpop).eq.0 .and.
-     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then     
-            neff2d(ieff,ieffdpop) = neff2d(ieff,ieffdpop)+1d0
-            counted2d(j,ieff,ieffdpop)=1
-          endif
-        end do
-
-        if (counted_x(j,ieff).eq.0 .and.                                &
-     &sqrt(                                                             &
-     &((xineff(j)*1d-3)**2 +                                            &
-     & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0_collgap)                                     &
-     &).ge.rsig(ieff)) then
-                    neffx(ieff) = neffx(ieff) + 1d0
-                    counted_x(j,ieff)=1
-        endif
-
-        if (counted_y(j,ieff).eq.0 .and.
-     &sqrt(                                                             &
-     &((yineff(j)*1d-3)**2 +                                            &
-     & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0_collgap)                                     &
-     &).ge.rsig(ieff)) then
-          neffy(ieff) = neffy(ieff) + 1d0
-          counted_y(j,ieff)=1
-        endif
-      end do !do ieff = 1, numeff
-
-            do ieffdpop = 1, numeffdpop
-              if (counteddpop(j,ieffdpop).eq.0) then
-                dpopmin = 0d0
-                mydpop = abs((ejv(j)-myenom)/myenom)
-                if (ieffdpop.gt.1) dpopmin = dpopbins(ieffdpop-1)
-                  dpopmax = dpopbins(ieffdpop)
-                if (mydpop.ge.dpopmin .and. mydpop.lt.mydpop) then
-                   npartdpop(ieffdpop)=npartdpop(ieffdpop)+1
-                endif
-              endif
-
-             if (counteddpop(j,ieffdpop).eq.0 .and.
-     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then
-               neffdpop(ieffdpop) = neffdpop(ieffdpop)+1d0
-               counteddpop(j,ieffdpop)=1
-             endif
-            end do
-          endif
-
-!++  Do an emittance drift
-              driftx = driftsx*sqrt(tbetax(ie)*myemitx0_collgap)
-              drifty = driftsy*sqrt(tbetay(ie)*myemity0_collgap)
-              if (ie.eq.iu) then
-                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0_collgap)
-                dnormy  = drifty / sqrt(tbetay(ie)*myemity0_collgap)
-                xnorm  = (xgrd(j)*1d-3) /
-     &                   sqrt(tbetax(ie)*myemitx0_collgap)
-                xpnorm = (talphax(ie)*(xgrd(j)*1d-3)+                   &
-     &tbetax(ie)*(xpgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetax(ie)*myemitx0_collgap)
-+if crlibm
-                xangle = atan2_rn(xnorm,xpnorm)
+      call collimate_end_turn(n)
 +ei
-+if .not.crlibm
-                xangle = atan2(xnorm,xpnorm)
-+ei
-+if crlibm
-                xnorm  = xnorm  + dnormx*sin_rn(xangle)
-+ei
-+if .not.crlibm
-                xnorm  = xnorm  + dnormx*sin(xangle)
-+ei
-+if crlibm
-                xpnorm = xpnorm + dnormx*cos_rn(xangle)
-+ei
-+if .not.crlibm
-                xpnorm = xpnorm + dnormx*cos(xangle)
-+ei
-                xgrd(j)   = 1000d0 *
-     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
-                xpgrd(j)  = 1000d0 *
-     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
-     &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
-
-                ynorm  = (ygrd(j)*1d-3)
-     &               / sqrt(tbetay(ie)*myemity0_collgap)
-                ypnorm = (talphay(ie)*(ygrd(j)*1d-3)+                   &
-     &tbetay(ie)*(ypgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetay(ie)*myemity0_collgap)
-+if crlibm
-                yangle = atan2_rn(ynorm,ypnorm)
-+ei
-+if .not.crlibm
-                yangle = atan2(ynorm,ypnorm)
-+ei
-+if crlibm
-                ynorm  = ynorm  + dnormy*sin_rn(yangle)
-+ei
-+if .not.crlibm
-                ynorm  = ynorm  + dnormy*sin(yangle)
-+ei
-+if crlibm
-                ypnorm = ypnorm + dnormy*cos_rn(yangle)
-+ei
-+if .not.crlibm
-                ypnorm = ypnorm + dnormy*cos(yangle)
-+ei
-                ygrd(j)   = 1000d0 *
-     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
-                ypgrd(j)  = 1000d0 * 
-     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
-     &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
-
-                endif
-
-!------------------------------------------------------------------------
-!++  End of check for selection flag and absorption
-            endif
-
-!++  End of do loop over particles
-          end do
-
-!_________________________________________________________________
-!
-!++  End of collimation efficiency analysis for selected particles
-        end if
-!------------------------------------------------------------------
-!++  For LAST ELEMENT in the ring compact the arrays by moving all
-!++  lost particles to the end of the array.
-        if (ie.eq.iu) then
-          imov = 0
-          do j = 1, napx
-            if (xgrd(j).lt.99d0 .and. ygrd(j).lt.99d0) then
-              imov = imov + 1
-              xgrd(imov)           = xgrd(j)
-              ygrd(imov)           = ygrd(j)
-              xpgrd(imov)          = xpgrd(j)
-              ypgrd(imov)          = ypgrd(j)
-              pgrd(imov)           = pgrd(j)
-              ejfvgrd(imov)        = ejfvgrd(j)
-              sigmvgrd(imov)       = sigmvgrd(j)
-              rvvgrd(imov)         = rvvgrd(j)
-              dpsvgrd(imov)        = dpsvgrd(j)
-              oidpsvgrd(imov)      = oidpsvgrd(j)
-              dpsv1grd(imov)       = dpsv1grd(j)
-              part_hit(imov)    = part_hit(j)
-              part_abs(imov)    = part_abs(j)
-              part_select(imov) = part_select(j)
-              part_impact(imov) = part_impact(j)
-              part_indiv(imov)  = part_indiv(j)
-              part_linteract(imov)  = part_linteract(j)
-              part_hit_before(imov) = part_hit_before(j)
-              secondary(imov) = secondary(j)
-              tertiary(imov) = tertiary(j)
-              other(imov) = other(j)
-              nabs_type(imov) = nabs_type(j)
-!GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-              ipart(imov) = ipart(j)
-              flukaname(imov) = flukaname(j)
-!KNS: Also compact nlostp (used for standard LOST calculations + output)
-              nlostp(imov) = nlostp(j)
-              do ieff = 1, numeff
-                counted_r(imov,ieff) = counted_r(j,ieff)
-                counted_x(imov,ieff) = counted_x(j,ieff)
-                counted_y(imov,ieff) = counted_y(j,ieff)
-              end do
-            endif
-          end do
-          write(lout,*) 'INFO>  Compacted the particle distributions: ',
-     &napx, ' -->  ', imov, ", turn =",iturn
-          napx = imov
-        endif
-
-!------------------------------------------------------------------------
-!++  Write final distribution
-      if (dowrite_dist.and.(ie.eq.iu).and.(n.eq.numl)) then
-        open(unit=9998, file='distn.dat')
-        write(9998,*)
-     &'# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
-
-        do j = 1, napx
-          write(9998,'(6(1X,E15.7))') (xgrd(j)-torbx(1))/1d3,           &
-     &(xpgrd(j)-torbxp(1))/1d3, (ygrd(j)-torby(1))/1d3,                 &
-     &(ypgrd(j)-torbyp(1))/1d3,sigmvgrd(j),ejfvgrd(j)
-        end do
-
-        close(9998)
-      endif
-
-!GRD NOW ONE HAS TO COPY BACK THE NEW DISTRIBUTION TO ITS "ORIGINAL NAME"
-!GRD AT THE END OF EACH TURN
-      if (ie.eq.iu) then
-         do j = 1,napx
-            xv(1,j) = xgrd(j)
-            yv(1,j) = xpgrd(j)
-            xv(2,j) = ygrd(j)
-            yv(2,j) = ypgrd(j)
-            ejv(j)  = pgrd(j)
-            ejfv(j)   = ejfvgrd(j)
-            sigmv(j)  = sigmvgrd(j)
-            rvv(j)    = rvvgrd(j)
-            dpsv(j)   = dpsvgrd(j)
-            oidpsv(j) = oidpsvgrd(j)
-            dpsv1(j)  = dpsv1grd(j)
-         end do
-      endif
-
-         if (firstrun) then
-       if (rselect.gt.0 .and. rselect.lt.65) then
-            do j = 1, napx
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-              pj     = ejv(j)/1d3
-              if (iturn.eq.1.and.j.eq.1) then
-                sum_ax(ie)=0d0
-                sum_ay(ie)=0d0
-              endif
-
-              if (tbetax(ie).gt.0.) then
-          gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-                gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
-              else
-          gammax = (1d0 + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
-              endif
-!
-              if (part_abs(j).eq.0) then
-                if(tbetax(ie).gt.0.) then
-          nspx    = sqrt(                                               &
-     &abs( gammax*(xj)**2 +                                             &
-     &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0_collgap
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*(yj)**2 +                                             &
-     &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0_collgap
-     &)
-                else
-          nspx    = sqrt(                                               &
-     &abs( gammax*(xj)**2 +                                             &
-     &2d0*talphax(ie-1)*xj*xpj +                                        &
-     &tbetax(ie-1)*xpj**2 )/myemitx0_collgap
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*(yj)**2 +                                             &
-     &2d0*talphay(ie-1)*yj*ypj +                                        &
-     &tbetay(ie-1)*ypj**2 )/myemity0_collgap
-     &)
-                endif
-                sum_ax(ie)   = sum_ax(ie) + nspx
-                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-                sum_ay(ie)   = sum_ay(ie) + nspy
-                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-                nampl(ie)    = nampl(ie) + 1
-                sampl(ie)    = totals
-                ename(ie)    = bez(myix)(1:16)
-              else
-                nspx = 0d0
-                nspy = 0d0
-              endif
-            end do
-          endif
-         endif
-
-!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
-          if (dowritetracks) then
-            do j = 1, napx
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-              arcdx = 2.5d0
-              arcbetax = 180d0
-
-                if (xj.le.0.) then
-                  xdisp = xj + (pj-myenom)/myenom * arcdx               &
-     &* sqrt(tbetax(ie)/arcbetax)
-                else
-                  xdisp = xj - (pj-myenom)/myenom * arcdx               &
-     &* sqrt(tbetax(ie)/arcbetax)
-                endif
-
-                xndisp = xj
-                nspxd   = sqrt(                                         &
-     &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
-     &)
-                nspx    = sqrt(                                         &
-     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
-     &)
-                nspy    = sqrt(                                         &
-     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
-     &)
-
-         if(part_abs(j).eq.0) then
-        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
-     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
-!GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-     &(
-     &((
-     &(xv(1,j)*1d-3)**2
-     &/
-     &(tbetax(ie)*myemitx0_collgap)
-     &).ge.dble(sigsecut2)).or.
-     &((
-     &(xv(2,j)*1d-3)**2
-     &/
-     &(tbetay(ie)*myemity0_collgap)
-     &).ge.dble(sigsecut2)).or.
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
-     &.ge.sigsecut3)
-     &) ) then
-                xj     = (xv(1,j)-torbx(ie))/1d3
-                xpj    = (yv(1,j)-torbxp(ie))/1d3
-                yj     = (xv(2,j)-torby(ie))/1d3
-                ypj    = (yv(2,j)-torbyp(ie))/1d3
-+if hdf5
-       hdfpid=ipart(j)+100*samplenumber
-       hdfturn=iturn
-       hdfs=sampl(ie)
-       hdfx=xv(1,j)
-       hdfxp=yv(1,j)
-       hdfy=xv(2,j)
-       hdfyp=yv(2,j)
-       hdfdee=(ejv(j)-myenom)/myenom
-       hdftyp=secondary(j)+tertiary(j)+other(j)
-       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
-     &                    hdfdee,hdftyp)
-+ei
-+if .not.hdf5
-       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
-     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
-     &xv(1,j),yv(1,j),                                                  &
-     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
-     &secondary(j)+tertiary(j)+other(j)
-+ei
-                endif
-              endif
-            end do
-          endif
-!=======================================================================
-+ei
-!GRD END OF UPGRADE
 
 +if .not.collimat
         call lostpart(nthinerr)
@@ -53981,6 +53332,7 @@ c$$$            endif
 
 !++  Copy new particles to tracking arrays. Also add the orbit offset at
 !++  start of ring!
+
             do i = 1, napx00
               xv(1,i)  = 1d3*myx(i+(j-1)*napx00)  +torbx(1)              !hr08
               yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
@@ -54015,7 +53367,8 @@ c$$$            endif
 
             end do
 
-!!START THIN6D CUT
+!!!!!!!!!!!!!!!!!!!!!!START THIN6D CUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !++  Some initialization
       do i = 1, numeff
         rsig(i) = (dble(i)/2d0 - 0.5d0) + 5d0                           !hr08
@@ -54028,6 +53381,7 @@ c$$$            endif
       enddo
 
       firstcoll = .true.
+
 
 !GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
       napx = napx00
@@ -54049,8 +53403,9 @@ c$$$            endif
         ipart(j) = j
         flukaname(j) = 0
       end do
-
 !GRD
+
+
 
 !++  This we only do once, for the first call to this routine. Numbers
 !++  are saved in memory to use exactly the same info for each sample.
@@ -54472,8 +53827,56 @@ c$$$            endif
 !! collimate_start_collimator()
 !! This routine is called each time we hit a collimator
 !<
-      subroutine collimate_start_collimator()
+      subroutine collimate_start_collimator(stracki)
       implicit none
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
++ca commonex
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ca dbcolcom
++ca dbthin6d
+
++ei
+
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
+      double precision c5m4,stracki
+
++if fast
+      c5m4=5.0d-4
++ei
+
 
       end
 
@@ -54500,13 +53903,13 @@ c$$$            endif
 !! This routine is called from trauthin after each sample
 !! has been tracked by thin6d
 !<
-      subroutine collimate_end_sample()
+      subroutine collimate_end_sample(j)
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
-      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
@@ -54924,7 +54327,7 @@ c$$$            endif
 +if crlibm
 +ca crlibco
 +ei
-      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
@@ -54950,6 +54353,7 @@ c$$$            endif
 +ca dbpencil
 +ca info
 +ca dbcolcom
++ca dbthin6d
 +ei
 +if bnlelens
 +ca rhicelens
@@ -55032,10 +54436,731 @@ c$$$            endif
 !! collimate_end_element()
 !! This routine is called at the end of every element
 !<
-      subroutine collimate_end_element()
+      subroutine collimate_end_element(i)
       implicit none
 
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ca dbcolcom
++ca dbthin6d
++ei
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
+
+      if (firstrun) then
+        if (rselect.gt.0 .and. rselect.lt.65) then
+          do j = 1, napx
+            xj     = (xv(1,j)-torbx(ie))/1d3
+            xpj    = (yv(1,j)-torbxp(ie))/1d3
+            yj     = (xv(2,j)-torby(ie))/1d3
+            ypj    = (yv(2,j)-torbyp(ie))/1d3
+            pj     = ejv(j)/1d3
+
+            if (iturn.eq.1.and.j.eq.1) then
+              sum_ax(ie)=0d0
+              sum_ay(ie)=0d0
+            endif
+
+            if (tbetax(ie).gt.0.) then
+              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+            else
+              gammax = (1d0 + talphax(ie-1)**2)/tbetax(ie-1)
+              gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
+            endif
+
+            if (part_abs(j).eq.0) then
+              if(tbetax(ie).gt.0.) then
+                nspx    = sqrt(                                         &
+     &               abs( gammax*(xj)**2 +                              &
+     &               2d0*talphax(ie)*xj*xpj +                           &
+     &               tbetax(ie)*xpj**2 )/myemitx0_collgap
+     &               )
+                nspy    = sqrt(                                         &
+     &               abs( gammay*(yj)**2 +                              &
+     &               2d0*talphay(ie)*yj*ypj +                           &
+     &               tbetay(ie)*ypj**2 )/myemity0_collgap
+     &               )
+              else
+                nspx    = sqrt(                                         &
+     &               abs( gammax*(xj)**2 +                              &
+     &               2d0*talphax(ie-1)*xj*xpj +                         &
+     &               tbetax(ie-1)*xpj**2 )/myemitx0_collgap
+     &               )
+                nspy    = sqrt(                                         &
+     &               abs( gammay*(yj)**2 +                              &
+     &               2d0*talphay(ie-1)*yj*ypj +                         &
+     &               tbetay(ie-1)*ypj**2 )/myemity0_collgap
+     &               )
+              endif
+
+              sum_ax(ie)   = sum_ax(ie) + nspx
+              sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+              sum_ay(ie)   = sum_ay(ie) + nspy
+              sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+              nampl(ie)    = nampl(ie) + 1
+            else
+              nspx = 0d0
+              nspy = 0d0
+            endif
+              sampl(ie)    = totals
+              ename(ie)    = bez(myix)(1:16)
+          end do
+        endif
+      endif
+
+!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
+          if (dowritetracks) then
+            do j = 1, napx
+              xj     = (xv(1,j)-torbx(ie))/1d3
+              xpj    = (yv(1,j)-torbxp(ie))/1d3
+              yj     = (xv(2,j)-torby(ie))/1d3
+              ypj    = (yv(2,j)-torbyp(ie))/1d3
+
+              arcdx = 2.5d0
+              arcbetax = 180d0
+
+                if (xj.le.0.) then
+                  xdisp = xj + (pj-myenom)/myenom * arcdx               &
+     &* sqrt(tbetax(ie)/arcbetax)
+                else
+                  xdisp = xj - (pj-myenom)/myenom * arcdx               &
+     &* sqrt(tbetax(ie)/arcbetax)
+                endif
+                xndisp = xj
+                nspxd   = sqrt(                                         &
+     &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
+     &)
+                nspx    = sqrt(                                         &
+     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
+     &)
+                nspy    = sqrt(                                         &
+     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
+     &)
+
+         if(part_abs(j).eq.0) then
+         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
+!GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
+     &) ) then
+                xj     = (xv(1,j)-torbx(ie))/1d3
+                xpj    = (yv(1,j)-torbxp(ie))/1d3
+                yj     = (xv(2,j)-torby(ie))/1d3
+                ypj    = (yv(2,j)-torbyp(ie))/1d3
++if hdf5
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)
+       hdfx=xv(1,j)
+       hdfxp=yv(1,j)
+       hdfy=xv(2,j)
+       hdfyp=yv(2,j)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
++ei
++if .not.hdf5
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
+     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
+     &xv(1,j),yv(1,j),                                                  &
+     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
+     &secondary(j)+tertiary(j)+other(j)
++ei
+              endif
+         endif
+            end do
+
+!!JUNE2005 here I close the "if(dowritetracks)" outside of the firstrun flag
+      endif
+!JUNE2005
       end
+
+
+!>
+!! collimate_end_turn()
+!! This routine is called at the end of every turn
+!<
+      subroutine collimate_end_turn(n)
+      implicit none
+
++ca crcoall
++if crlibm
++ca crlibco
++ei
+      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
++ca parpro
++ca parnum
++ca common
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonmn
++ca commonm1
++ca commontr
++ca beamdim
+      dimension nbeaux(nbb)
++if collimat
++ca collpara
++ca dbtrthin
++ca database
++ca dbcommon
++ca dblinopt
++ca dbpencil
++ca info
++ca dbcolcom
++ca dbthin6d
++ei
++if bnlelens
++ca rhicelens
++ei
++ca stringzerotrim
++ca comdynk
+      logical dynk_isused
+
+      integer n
+!__________________________________________________________________
+!++  Now do analysis at selected elements...
+
+!++  Save twiss functions of present element
+        ax0  = talphax(ie)
+        bx0  = tbetax(ie)
+        mux0 = mux(ie)
+        ay0  = talphay(ie)
+        by0  = tbetay(ie)
+        muy0 = muy(ie)
+
+!GRD GET THE COORDINATES OF THE PARTICLES AT THE IEth ELEMENT:
+        do j = 1,napx
+              xgrd(j)  = xv(1,j)
+              xpgrd(j) = yv(1,j)
+              ygrd(j)  = xv(2,j)
+              ypgrd(j) = yv(2,j)
+
+              xineff(j)  = xv(1,j)                                      &
+     &- torbx(ie)
+              xpineff(j) = yv(1,j)                                      &
+     &- torbxp(ie)
+              yineff(j)  = xv(2,j)                                      &
+     &- torby(ie)
+              ypineff(j) = yv(2,j)                                      &
+     &- torbyp(ie)
+
+              pgrd(j)  = ejv(j)
+!APRIL2005
+              ejfvgrd(j) = ejfv(j)
+              sigmvgrd(j) = sigmv(j)
+              rvvgrd(j) = rvv(j)
+              dpsvgrd(j) = dpsv(j)
+              oidpsvgrd(j) = oidpsv(j)
+              dpsv1grd(j) = dpsv1(j)
+!APRIL2005
+!GRD IMPORTANT: ALL PARTICLES ABSORBED ARE CONSIDERED TO BE LOST,
+!GRD SO WE GIVE THEM A LARGE OFFSET
+           if (part_abs(j).ne.0) then
+              xgrd(j)  = 99.5d0
+              ygrd(j)  = 99.5d0
+           endif
+        end do
+
+!++  For LAST ELEMENT in the ring calculate the number of surviving
+!++  particles and save into file versus turn number
+        if (ie.eq.iu) then
+          nsurvive = 0
+          do j = 1, napx
+            if (xgrd(j).lt.99d0 .and. ygrd(j).lt.99d0) then
+              nsurvive = nsurvive + 1
+            endif
+          end do
+
+          write(44,'(2i7)') iturn, nsurvive
+          if (iturn.eq.numl) then
+            nsurvive_end = nsurvive_end + nsurvive
+          endif
+        endif
+
+!=======================================================================
+!++  Do collimation analysis at element 20 ("zero" turn) or LAST
+!++  ring element.
+
+!++  If selecting, look at number of scattered particles at selected
+!++  collimator. For the "zero" turn consider the information at element
+!++  20 (before collimation), otherwise take information at last ring
+!++  element.
+        if (do_coll .and.                                               &
+     &(  (iturn.eq.1 .and. ie.eq.20) .or.                               &
+     &(ie.eq.iu)  )    ) then
+
+!++  Calculate gammas
+!------------------------------------------------------------------------
+          gammax = (1 + talphax(ie)**2)/tbetax(ie)
+          gammay = (1 + talphay(ie)**2)/tbetay(ie)
+
+!________________________________________________________________________
+!++  Loop over all particles.
+          do j = 1, napx
+!
+!------------------------------------------------------------------------
+!++  Save initial distribution of particles that were scattered on
+!++  the first turn at the selected primary collimator
+!
+!            IF (DOWRITE_DIST .AND. DO_SELECT .AND. ITURN.EQ.1 .AND.
+!     &          PART_SELECT(j).EQ.1) THEN
+!              WRITE(987,'(4(1X,E15.7))') X00(J), XP00(J),
+!     &                                        Y00(J), YP00(J)
+!            ENDIF
+!------------------------------------------------------------------------
+!++  Do the binning in amplitude, only considering particles that were
+!++  not absorbed before.
+
+            if (xgrd(j).lt.99d0 .and. ygrd(j) .lt.99d0 .and.            &
+     &(part_select(j).eq.1 .or. ie.eq.20)) then
+
+!++  Normalized amplitudes are calculated
+
+!++  Allow to apply some dispersive offset. Take arc dispersion (2m) and
+!++  normalize with arc beta_x function (180m).
+              arcdx    = 2.5d0
+              arcbetax = 180d0
+              xdisp = abs(xgrd(j)*1d-3) +                               &
+     &abs((pgrd(j)-myenom)/myenom)*arcdx                                &
+     &* sqrt(tbetax(ie)/arcbetax)
+              nspx    = sqrt(                                           &
+     &abs(gammax*xdisp**2 +                                             &
+     &2d0*talphax(ie)*xdisp*(xpgrd(j)*1d-3)+                            &
+     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0_collgap
+     &)
+              nspy    = sqrt(                                           &
+     &abs( gammay*(ygrd(j)*1d-3)**2 +                                   &
+     &2d0*talphay(ie)*(ygrd(j)*1d-3*ypgrd(j)*1d-3)                      &
+     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0_collgap
+     &)
+
+!++  Populate the efficiency arrays at the end of each turn...
+! Modified by M.Fiascaris, July 2016
+              if (ie.eq.iu) then
+                do ieff = 1, numeff
+                  if (counted_r(j,ieff).eq.0 .and.                      &
+     &sqrt(                                                             &
+     &((xineff(j)*1d-3)**2 +                                            &
+     & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
+     &/                                                                 &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
+     &+                                                                 &
+     &((yineff(j)*1d-3)**2 +                                            &
+     & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
+     &/                                                                 &
+     &(tbetay(ie)*myemity0_collgap)                                     &
+     &).ge.rsig(ieff)) then
+                    neff(ieff) = neff(ieff)+1d0
+                    counted_r(j,ieff)=1
+                  endif
+
+!++ 2D eff
+        do ieffdpop =1, numeffdpop
+          if (counted2d(j,ieff,ieffdpop).eq.0 .and.
+     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then     
+            neff2d(ieff,ieffdpop) = neff2d(ieff,ieffdpop)+1d0
+            counted2d(j,ieff,ieffdpop)=1
+          endif
+        end do
+
+        if (counted_x(j,ieff).eq.0 .and.                                &
+     &sqrt(                                                             &
+     &((xineff(j)*1d-3)**2 +                                            &
+     & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
+     &/                                                                 &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
+     &).ge.rsig(ieff)) then
+                    neffx(ieff) = neffx(ieff) + 1d0
+                    counted_x(j,ieff)=1
+        endif
+
+        if (counted_y(j,ieff).eq.0 .and.
+     &sqrt(                                                             &
+     &((yineff(j)*1d-3)**2 +                                            &
+     & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
+     &/                                                                 &
+     &(tbetay(ie)*myemity0_collgap)                                     &
+     &).ge.rsig(ieff)) then
+          neffy(ieff) = neffy(ieff) + 1d0
+          counted_y(j,ieff)=1
+        endif
+      end do !do ieff = 1, numeff
+
+            do ieffdpop = 1, numeffdpop
+              if (counteddpop(j,ieffdpop).eq.0) then
+                dpopmin = 0d0
+                mydpop = abs((ejv(j)-myenom)/myenom)
+                if (ieffdpop.gt.1) dpopmin = dpopbins(ieffdpop-1)
+                  dpopmax = dpopbins(ieffdpop)
+                if (mydpop.ge.dpopmin .and. mydpop.lt.mydpop) then
+                   npartdpop(ieffdpop)=npartdpop(ieffdpop)+1
+                endif
+              endif
+
+             if (counteddpop(j,ieffdpop).eq.0 .and.
+     &abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then
+               neffdpop(ieffdpop) = neffdpop(ieffdpop)+1d0
+               counteddpop(j,ieffdpop)=1
+             endif
+            end do
+          endif
+
+!++  Do an emittance drift
+              driftx = driftsx*sqrt(tbetax(ie)*myemitx0_collgap)
+              drifty = driftsy*sqrt(tbetay(ie)*myemity0_collgap)
+              if (ie.eq.iu) then
+                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0_collgap)
+                dnormy  = drifty / sqrt(tbetay(ie)*myemity0_collgap)
+                xnorm  = (xgrd(j)*1d-3) /
+     &                   sqrt(tbetax(ie)*myemitx0_collgap)
+                xpnorm = (talphax(ie)*(xgrd(j)*1d-3)+                   &
+     &tbetax(ie)*(xpgrd(j)*1d-3)) /                                     &
+     &sqrt(tbetax(ie)*myemitx0_collgap)
++if crlibm
+                xangle = atan2_rn(xnorm,xpnorm)
++ei
++if .not.crlibm
+                xangle = atan2(xnorm,xpnorm)
++ei
++if crlibm
+                xnorm  = xnorm  + dnormx*sin_rn(xangle)
++ei
++if .not.crlibm
+                xnorm  = xnorm  + dnormx*sin(xangle)
++ei
++if crlibm
+                xpnorm = xpnorm + dnormx*cos_rn(xangle)
++ei
++if .not.crlibm
+                xpnorm = xpnorm + dnormx*cos(xangle)
++ei
+                xgrd(j)   = 1000d0 *
+     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
+                xpgrd(j)  = 1000d0 *
+     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
+     &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
+
+                ynorm  = (ygrd(j)*1d-3)
+     &               / sqrt(tbetay(ie)*myemity0_collgap)
+                ypnorm = (talphay(ie)*(ygrd(j)*1d-3)+                   &
+     &tbetay(ie)*(ypgrd(j)*1d-3)) /                                     &
+     &sqrt(tbetay(ie)*myemity0_collgap)
++if crlibm
+                yangle = atan2_rn(ynorm,ypnorm)
++ei
++if .not.crlibm
+                yangle = atan2(ynorm,ypnorm)
++ei
++if crlibm
+                ynorm  = ynorm  + dnormy*sin_rn(yangle)
++ei
++if .not.crlibm
+                ynorm  = ynorm  + dnormy*sin(yangle)
++ei
++if crlibm
+                ypnorm = ypnorm + dnormy*cos_rn(yangle)
++ei
++if .not.crlibm
+                ypnorm = ypnorm + dnormy*cos(yangle)
++ei
+                ygrd(j)   = 1000d0 *
+     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
+                ypgrd(j)  = 1000d0 * 
+     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
+     &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
+
+                endif
+
+!------------------------------------------------------------------------
+!++  End of check for selection flag and absorption
+            endif
+
+!++  End of do loop over particles
+          end do
+
+!_________________________________________________________________
+!
+!++  End of collimation efficiency analysis for selected particles
+        end if
+!------------------------------------------------------------------
+!++  For LAST ELEMENT in the ring compact the arrays by moving all
+!++  lost particles to the end of the array.
+        if (ie.eq.iu) then
+          imov = 0
+          do j = 1, napx
+            if (xgrd(j).lt.99d0 .and. ygrd(j).lt.99d0) then
+              imov = imov + 1
+              xgrd(imov)           = xgrd(j)
+              ygrd(imov)           = ygrd(j)
+              xpgrd(imov)          = xpgrd(j)
+              ypgrd(imov)          = ypgrd(j)
+              pgrd(imov)           = pgrd(j)
+              ejfvgrd(imov)        = ejfvgrd(j)
+              sigmvgrd(imov)       = sigmvgrd(j)
+              rvvgrd(imov)         = rvvgrd(j)
+              dpsvgrd(imov)        = dpsvgrd(j)
+              oidpsvgrd(imov)      = oidpsvgrd(j)
+              dpsv1grd(imov)       = dpsv1grd(j)
+              part_hit(imov)    = part_hit(j)
+              part_abs(imov)    = part_abs(j)
+              part_select(imov) = part_select(j)
+              part_impact(imov) = part_impact(j)
+              part_indiv(imov)  = part_indiv(j)
+              part_linteract(imov)  = part_linteract(j)
+              part_hit_before(imov) = part_hit_before(j)
+              secondary(imov) = secondary(j)
+              tertiary(imov) = tertiary(j)
+              other(imov) = other(j)
+              nabs_type(imov) = nabs_type(j)
+!GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
+              ipart(imov) = ipart(j)
+              flukaname(imov) = flukaname(j)
+!KNS: Also compact nlostp (used for standard LOST calculations + output)
+              nlostp(imov) = nlostp(j)
+              do ieff = 1, numeff
+                counted_r(imov,ieff) = counted_r(j,ieff)
+                counted_x(imov,ieff) = counted_x(j,ieff)
+                counted_y(imov,ieff) = counted_y(j,ieff)
+              end do
+            endif
+          end do
+          write(lout,*) 'INFO>  Compacted the particle distributions: ',
+     &napx, ' -->  ', imov, ", turn =",iturn
+          napx = imov
+        endif
+
+!------------------------------------------------------------------------
+!++  Write final distribution
+      if (dowrite_dist.and.(ie.eq.iu).and.(n.eq.numl)) then
+        open(unit=9998, file='distn.dat')
+        write(9998,*)
+     &'# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
+
+        do j = 1, napx
+          write(9998,'(6(1X,E15.7))') (xgrd(j)-torbx(1))/1d3,           &
+     &(xpgrd(j)-torbxp(1))/1d3, (ygrd(j)-torby(1))/1d3,                 &
+     &(ypgrd(j)-torbyp(1))/1d3,sigmvgrd(j),ejfvgrd(j)
+        end do
+
+        close(9998)
+      endif
+
+!GRD NOW ONE HAS TO COPY BACK THE NEW DISTRIBUTION TO ITS "ORIGINAL NAME"
+!GRD AT THE END OF EACH TURN
+      if (ie.eq.iu) then
+         do j = 1,napx
+            xv(1,j) = xgrd(j)
+            yv(1,j) = xpgrd(j)
+            xv(2,j) = ygrd(j)
+            yv(2,j) = ypgrd(j)
+            ejv(j)  = pgrd(j)
+            ejfv(j)   = ejfvgrd(j)
+            sigmv(j)  = sigmvgrd(j)
+            rvv(j)    = rvvgrd(j)
+            dpsv(j)   = dpsvgrd(j)
+            oidpsv(j) = oidpsvgrd(j)
+            dpsv1(j)  = dpsv1grd(j)
+         end do
+      endif
+
+         if (firstrun) then
+       if (rselect.gt.0 .and. rselect.lt.65) then
+            do j = 1, napx
+              xj     = (xv(1,j)-torbx(ie))/1d3
+              xpj    = (yv(1,j)-torbxp(ie))/1d3
+              yj     = (xv(2,j)-torby(ie))/1d3
+              ypj    = (yv(2,j)-torbyp(ie))/1d3
+              pj     = ejv(j)/1d3
+              if (iturn.eq.1.and.j.eq.1) then
+                sum_ax(ie)=0d0
+                sum_ay(ie)=0d0
+              endif
+
+              if (tbetax(ie).gt.0.) then
+          gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
+                gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
+              else
+          gammax = (1d0 + talphax(ie-1)**2)/tbetax(ie-1)
+          gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
+              endif
+!
+              if (part_abs(j).eq.0) then
+                if(tbetax(ie).gt.0.) then
+          nspx    = sqrt(                                               &
+     &abs( gammax*(xj)**2 +                                             &
+     &2d0*talphax(ie)*xj*xpj +                                          &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
+     &)
+                nspy    = sqrt(                                         &
+     &abs( gammay*(yj)**2 +                                             &
+     &2d0*talphay(ie)*yj*ypj +                                          &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
+     &)
+                else
+          nspx    = sqrt(                                               &
+     &abs( gammax*(xj)**2 +                                             &
+     &2d0*talphax(ie-1)*xj*xpj +                                        &
+     &tbetax(ie-1)*xpj**2 )/myemitx0_collgap
+     &)
+                nspy    = sqrt(                                         &
+     &abs( gammay*(yj)**2 +                                             &
+     &2d0*talphay(ie-1)*yj*ypj +                                        &
+     &tbetay(ie-1)*ypj**2 )/myemity0_collgap
+     &)
+                endif
+                sum_ax(ie)   = sum_ax(ie) + nspx
+                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+                sum_ay(ie)   = sum_ay(ie) + nspy
+                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+                nampl(ie)    = nampl(ie) + 1
+                sampl(ie)    = totals
+                ename(ie)    = bez(myix)(1:16)
+              else
+                nspx = 0d0
+                nspy = 0d0
+              endif
+            end do
+          endif
+         endif
+
+!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
+          if (dowritetracks) then
+            do j = 1, napx
+              xj     = (xv(1,j)-torbx(ie))/1d3
+              xpj    = (yv(1,j)-torbxp(ie))/1d3
+              yj     = (xv(2,j)-torby(ie))/1d3
+              ypj    = (yv(2,j)-torbyp(ie))/1d3
+              arcdx = 2.5d0
+              arcbetax = 180d0
+
+                if (xj.le.0.) then
+                  xdisp = xj + (pj-myenom)/myenom * arcdx               &
+     &* sqrt(tbetax(ie)/arcbetax)
+                else
+                  xdisp = xj - (pj-myenom)/myenom * arcdx               &
+     &* sqrt(tbetax(ie)/arcbetax)
+                endif
+
+                xndisp = xj
+                nspxd   = sqrt(                                         &
+     &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
+     &)
+                nspx    = sqrt(                                         &
+     &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
+     &)
+                nspy    = sqrt(                                         &
+     &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
+     &)
+
+         if(part_abs(j).eq.0) then
+        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
+!GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
+     &) ) then
+                xj     = (xv(1,j)-torbx(ie))/1d3
+                xpj    = (yv(1,j)-torbxp(ie))/1d3
+                yj     = (xv(2,j)-torby(ie))/1d3
+                ypj    = (yv(2,j)-torbyp(ie))/1d3
++if hdf5
+       hdfpid=ipart(j)+100*samplenumber
+       hdfturn=iturn
+       hdfs=sampl(ie)
+       hdfx=xv(1,j)
+       hdfxp=yv(1,j)
+       hdfy=xv(2,j)
+       hdfyp=yv(2,j)
+       hdfdee=(ejv(j)-myenom)/myenom
+       hdftyp=secondary(j)+tertiary(j)+other(j)
+       call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,    &
+     &                    hdfdee,hdftyp)
++ei
++if .not.hdf5
+       write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
+     &ipart(j)+100*samplenumber,iturn,sampl(ie),                        &
+     &xv(1,j),yv(1,j),                                                  &
+     &xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,                           &
+     &secondary(j)+tertiary(j)+other(j)
++ei
+                endif
+              endif
+            end do
+          endif
+!=======================================================================
+      end
+
 
 
 
@@ -55060,6 +55185,7 @@ c$$$            endif
 !! K2 scattering collimation configuration
 !<
       subroutine collimate_init_k2()
+!nothing currently
       end
 
 !>
