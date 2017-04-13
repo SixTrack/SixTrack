@@ -7133,46 +7133,49 @@ cc2008
 +ei
               endif
             enddo
-            if(parbe(ix,2).gt.0d0) then                                  !hr12
-              do ii=4,10
-                call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-                call averaged(angno,aa2r,.false.,angno)
-                do j=1,ndimf
-                  j1=2*j
-                  jj(j1-1)=1
-                  jj(j1)=1
-                  call dapek(angno,jj,angnoe(j))
-                  jj(j1-1)=0
-                  jj(j1)=0
+            if (beam_expflag .eq. 0) then !Old-style input
+              if(parbe(ix,2).gt.0d0) then
+                do ii=4,10
+                  call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
+                  call averaged(angno,aa2r,.false.,angno)
+                  do j=1,ndimf
+                    j1=2*j
+                    jj(j1-1)=1
+                    jj(j1)=1
+                    call dapek(angno,jj,angnoe(j))
+                    jj(j1-1)=0
+                    jj(j1)=0
+                  enddo
+                  if(ndimf.eq.3) then
+                    bbcu(ibb,ii) = two *
+     &               ((emitx*angnoe(1)+emity*angnoe(2))+emitz*angnoe(3))
+                  else
+                    bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
+                  endif
                 enddo
-                if(ndimf.eq.3) then
-                bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
-     &emitz*angnoe(3))
-                else
-                  bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
-                endif
-              enddo
-            endif
-          if(lhc.eq.1) then
-            dummy=bbcu(ibb,1)
-            bbcu(ibb,1)=bbcu(ibb,2)
-            bbcu(ibb,2)=dummy
-            dummy=bbcu(ibb,4)
-            bbcu(ibb,4)=bbcu(ibb,9)
-            bbcu(ibb,9)=dummy
-            dummy=bbcu(ibb,5)
-            bbcu(ibb,5)=bbcu(ibb,7)
-            bbcu(ibb,7)=dummy
-            dummy=bbcu(ibb,6)
-            bbcu(ibb,6)=bbcu(ibb,10)
-            bbcu(ibb,10)=dummy
-          endif
-          if(lhc.eq.2) then
-            bbcu(ibb,1)=bbbx(ix)
-            bbcu(ibb,2)=bbby(ix)
-            bbcu(ibb,3)=bbbs(ix)
-          endif
-          if (beam_expflag.eq.0) then
+              endif
+              if(lhc.eq.1) then
+                dummy=bbcu(ibb,1)
+                bbcu(ibb,1)=bbcu(ibb,2)
+                bbcu(ibb,2)=dummy
+                dummy=bbcu(ibb,4)
+                bbcu(ibb,4)=bbcu(ibb,9)
+                bbcu(ibb,9)=dummy
+                dummy=bbcu(ibb,5)
+                bbcu(ibb,5)=bbcu(ibb,7)
+                bbcu(ibb,7)=dummy
+                dummy=bbcu(ibb,6)
+                bbcu(ibb,6)=bbcu(ibb,10)
+                bbcu(ibb,10)=dummy
+              endif
+              if(lhc.eq.2) then
+                bbcu(ibb,1)=bbbx(ix)
+                bbcu(ibb,2)=bbby(ix)
+                bbcu(ibb,3)=bbbs(ix)
+              endif
+
+            !Indentation break, sorry :(
+
             write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
             write(lout,'(a)') "EXPERT"
             if(parbe(ix,2).eq.0.0) then !4D
@@ -7192,7 +7195,30 @@ cc2008
      &             bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
             endif
             write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
-          endif
+
+          else if (beam_expflag .eq. 1) then !New style input
+            if(parbe(ix,2).gt.0d0) then
+               bbcu(ibb,1)=parbe(ix,7)
+               bbcu(ibb,4)=parbe(ix,8)
+               bbcu(ibb,6)=parbe(ix,9)
+               bbcu(ibb,2)=parbe(ix,10)
+               bbcu(ibb,9)=parbe(ix,11)
+               bbcu(ibb,10)=parbe(ix,12)
+               bbcu(ibb,3)=parbe(ix,13)
+               bbcu(ibb,5)=parbe(ix,14)
+               bbcu(ibb,7)=parbe(ix,15)
+               bbcu(ibb,8)=parbe(ix,16)
+            endif
+            if(parbe(ix,2).eq.0d0) then
+               bbcu(ibb,1)=parbe(ix,1)
+               bbcu(ibb,2)=parbe(ix,3)
+            endif
+          else
+             write(lout,'(a)') "ERROR in +cd umlalid1"
+             write(lout,'(a)') "beam_expflag was", beam_expflag
+             write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+             call prror(-1)
+          end if
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
@@ -7217,7 +7243,7 @@ cc2008
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
-          if(parbe(ix,2).gt.0d0) then                                    !hr08
+          if(beam_expflag.eq.0 .and. parbe(ix,2).gt.0d0) then !Old BEAM and 6D
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
