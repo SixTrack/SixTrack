@@ -344,7 +344,7 @@
       common/co6d/clo6(3),clop6(3)
       common/dkic/dki(nele,3)
       common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
-     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,5),track6d(6,npart),     &
+     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,17),track6d(6,npart),    &
      &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
@@ -11684,6 +11684,10 @@ cc2008
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,rv,tilt,u0,              &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
+      !For BEAM-EXP
+      double precision separx,separy
+      double precision mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+      
       character*16 sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character*16 fluc,chro,tune,iter,limi,orbi,deco
       character*16 beze,bez0,go,rect,elli,comb,sear,subr
@@ -15808,6 +15812,250 @@ cc2008
 
       if (ch(:6) .eq."EXPERT") then
          beam_expflag = 1
+         
++if fio
++if crlibm
+         call enable_xp()
++ei
+         read(ch1,*,round='nearest')                                       &
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
++if crlibm
+         call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
+         read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
++ei
++if crlibm
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.gt.0) then
+            partnum=fround(errno,fields,1)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitnx=fround(errno,fields,2)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitny=fround(errno,fields,3)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sigz=fround(errno,fields,4)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sige=fround(errno,fields,5)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(6),*) ibeco
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(7),*) ibtyp
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(8),*) lhc
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(9),*) ibbc
+            nf=nf-1
+         endif
++ei
++ei
+         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
+         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
+         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
+!GRD-2007
++if bnlelens
+!GRDRHIC
+!GRD-042008
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
+!GRDRHIC
+!GRD-042008
++ei
++if .not.bnlelens
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
++ei
+!GRD-2007
+         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
+         nbeam=1
+         if(ibtyp.eq.1) call wzset
+ 1660    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1660
+         if(ch(:4).eq.next) goto 110
+         call intepr(1,1,ch,ch1)
++if fio
++if crlibm
+         call enable_xp()
++ei
+         read(ch1,*,round='nearest')                                       &
+     &      idat,i,xang,xplane,separx,separy,
+     &      mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
+     &      mm9,mm10,mm11
++if crlibm
+         call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
+         read(ch1,*) idat,i,xang,xplane,separx,separy,
+     &     mm1,mm2,mm3,mm4,mm5,
+     &     mm6,mm7,mm8,mm9,mm10,mm11 
++ei
++if crlibm
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.gt.0) then
+            read(fields(2),*) i
+         endif
+         if (i.gt.0)then
+            if (nf.gt.0) then
+               read(fields(1),*) idat
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               read(fields(2),*) i
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               xang=fround(errno,fields,3)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               xplane=fround(errno,fields,4)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               separx=fround(errno,fields,5)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               separy=fround(errno,fields,6)
+               nf=nf-1
+            endif
+            
+            read(3,10020,end=1530,iostat=ierro) ch
+            lineno3=lineno3+1
+            ch1(:nchars+3)=ch(:nchars)//' / '
+            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+            if (nf.gt.0) then
+               mm1=fround(errno,fields,1)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm2=fround(errno,fields,2)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm3=fround(errno,fields,3)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm4=fround(errno,fields,4)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm5=fround(errno,fields,5)
+               nf=nf-1
+            endif
+            
+            read(3,10020,end=1530,iostat=ierro) ch
+            ch1(:nchars+3)=ch(:nchars)//' / '
+            lineno3=lineno3+1
+            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields) 
+            if (nf.gt.0) then
+               mm6=fround(errno,fields,1)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm7=fround(errno,fields,2)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm8=fround(errno,fields,3)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm9=fround(errno,fields,4)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm10=fround(errno,fields,5)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm11=fround(errno,fields,6)
+               nf=nf-1
+            endif            
+         else
+            if (nf.gt.0) then
+               read(fields(1),*) idat
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               xang=fround(errno,fields,3)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               xplane=fround(errno,fields,4)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               separx=fround(errno,fields,5)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               separy=fround(errno,fields,6)
+               nf=nf-1
+            endif
+            if (nf.gt.0) then
+               mm1=fround(errno,fields,7)
+               nf=nf-1
+            endif
+         endif
++ei
++ei
+         if(i.lt.0) i=0
+         do 1670 j=1,il
+            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.gt.0) then
+               parbe(j,17)=1
+               parbe(j,2)=dble(i)                                               
+               parbe(j,1)=xang
+               parbe(j,3)=xplane
+               parbe(j,5)=separx
+               parbe(j,6)=separy
+               parbe(j,7)=mm1
+               parbe(j,8)=mm2
+               parbe(j,9)=mm3
+               parbe(j,10)=mm4
+               parbe(j,11)=mm5
+               parbe(j,12)=mm6
+               parbe(j,13)=mm7
+               parbe(j,14)=mm8
+               parbe(j,15)=mm9
+               parbe(j,16)=mm10
+               ptnfac(j)=mm11
+               goto 1660
+            endif
+            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.eq.0) then
+               parbe(j,17)=0
+               parbe(j,2)=dble(i)                                               
+               parbe(j,1)=xang
+               parbe(j,3)=xplane
+               parbe(j,5)=separx
+               parbe(j,6)=separy
+               ptnfac(j)=mm1
+               goto 1660
+            endif      
+ 1670    continue
+         goto 1660
+         
       else
 !     Old-style BEAM block -- this reads all the lines then returns when it finds NEXT
          write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
