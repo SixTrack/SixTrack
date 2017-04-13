@@ -246,6 +246,10 @@ if(NOT DA AND DATAMODS)
 	SET(FORS datamods ${FORS})
 endif()
 
+if(COLLIMAT)
+	SET(FORS collimation ${FORS})
+endif()
+
 foreach(loop IN ITEMS ${FORS})
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()

@@ -1,8 +1,5 @@
-sixtrack.s
-trackn.f
+sixtrack.s collimation.s
+collimationn.f
 df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,beamgas,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,merlinscatter
-e tra_thck
-e tra_thin
-e nwrtbnl
-e dynktrack
+e nwrtcoll
 ex
