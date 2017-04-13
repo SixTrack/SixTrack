@@ -7162,8 +7162,28 @@ cc2008
             bbcu(ibb,1)=bbbx(ix)
             bbcu(ibb,2)=bbby(ix)
             bbcu(ibb,3)=bbbs(ix)
-          endif  
-          if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
+          endif
+          write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+          write(lout,'(a)') "EXPERT"
+             if(parbe(ix,2).eq.0.0) then !4D
+                write(lout,"(a16,1x,a1,1x,5g30.20)") 
+     &bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
+     &ed(ix), ek(ix), ptnfac(ix)
+             else !6D
+                write(lout,"(a16,1x,i4,1x,4g30.20)") 
+     &               bez(ix), int(parbe(ix,2)),
+     &               parbe(ix,1), parbe(ix,3),
+     &               ed(ix), ek(ix)
+                write(lout,"(5g30.20)")
+     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
+     &               bbcu(ibb,2), bbcu(ibb,9)
+                write(lout,"(6g30.20)")
+     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
+     &               bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
+             endif
+             write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
+             
+        if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
           if(ibbc.eq.1) then
