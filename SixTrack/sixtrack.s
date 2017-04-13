@@ -247,6 +247,9 @@
       parameter ( half = 0.5d0, one = 1.d0 )
       common /wzcom1/ hrecip, kstep
       common /wzcom2/ wtreal(idim), wtimag(idim)
++cd parbeam_exp
+      integer beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
+      common /beam_exp/ beam_expflag
 +cd beamdim
       double precision cc,xlim,ylim
       parameter(cc = 1.12837916709551d0)
@@ -7163,26 +7166,27 @@ cc2008
             bbcu(ibb,2)=bbby(ix)
             bbcu(ibb,3)=bbbs(ix)
           endif
-          write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
-          write(lout,'(a)') "EXPERT"
-             if(parbe(ix,2).eq.0.0) then !4D
-                write(lout,"(a16,1x,a1,1x,5g30.20)") 
-     &bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
-     &ed(ix), ek(ix), ptnfac(ix)
-             else !6D
-                write(lout,"(a16,1x,i4,1x,4g30.20)") 
-     &               bez(ix), int(parbe(ix,2)),
-     &               parbe(ix,1), parbe(ix,3),
-     &               ed(ix), ek(ix)
-                write(lout,"(5g30.20)")
-     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
-     &               bbcu(ibb,2), bbcu(ibb,9)
-                write(lout,"(6g30.20)")
-     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
-     &               bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
-             endif
-             write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
-             
+          if (beam_expflag.eq.0) then
+            write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+            write(lout,'(a)') "EXPERT"
+            if(parbe(ix,2).eq.0.0) then !4D
+              write(lout,"(a16,1x,a1,1x,5g30.20)")
+     &              bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
+     &              ed(ix), ek(ix), ptnfac(ix)
+            else               !6D
+              write(lout,"(a16,1x,i4,1x,4g30.20)")
+     &              bez(ix), int(parbe(ix,2)),
+     &              parbe(ix,1), parbe(ix,3),
+     &              ed(ix), ek(ix)
+              write(lout,"(5g30.20)")
+     &             bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
+     &             bbcu(ibb,2), bbcu(ibb,9)
+              write(lout,"(6g30.20)")
+     &             bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
+     &             bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
+            endif
+            write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
+          endif
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
@@ -11742,6 +11746,7 @@ cc2008
 +ca elensparam
 +ca wireparam
 +ca zipf
++ca parbeam_exp
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -15800,159 +15805,169 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1600
       if(ch(:4).eq.next) goto 110
-      ch1(:nchars+3)=ch(:nchars)//' / '
+
+      if (ch(:6) .eq."EXPERT") then
+         beam_expflag = 1
+      else
+!     Old-style BEAM block -- this reads all the lines then returns when it finds NEXT
+         write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
+         write (lout,'(a)') " Look for 'NEW BEAM BLOCK' later in output"
+         write (lout,'(a)') " for conversion to the new format."
+         
+         ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
 +if crlibm
-      call enable_xp()
+         call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*,round='nearest')                                       &
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +if crlibm
-      call disable_xp()
+         call disable_xp()
 +ei
 +ei
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        partnum=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        emitnx=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        emitny=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sigz=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sige=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(6),*) ibeco
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(7),*) ibtyp
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(8),*) lhc
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(9),*) ibbc
-        nf=nf-1
-      endif
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.gt.0) then
+            partnum=fround(errno,fields,1)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitnx=fround(errno,fields,2)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitny=fround(errno,fields,3)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sigz=fround(errno,fields,4)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sige=fround(errno,fields,5)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(6),*) ibeco
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(7),*) ibtyp
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(8),*) lhc
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(9),*) ibbc
+            nf=nf-1
+         endif
 +ei
 +ei
-      if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
-      if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
-      if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
+         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
+         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
+         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
 !GRD-2007
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
 !GRDRHIC
 !GRD-042008
 +ei
 +if .not.bnlelens
-      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
 +ei
 !GRD-2007
-      if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
-      nbeam=1
-      if(ibtyp.eq.1) call wzset
-
-      ! ! ! Read other lines of BEAM block ! ! !
+         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
+         nbeam=1
+         if(ibtyp.eq.1) call wzset
+         
+         ! ! ! Read other lines of BEAM block ! ! !
  1610 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1610
-      if(ch(:4).eq.next) goto 110
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1610
+         if(ch(:4).eq.next) goto 110  ! Done yet?
 
-      !Check number of arguments gotten
-      call getfields_split( ch, getfields_fields, getfields_lfields,
-     &     getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(-1)
-      beam_xstr = .false.
-      if (getfields_nfields .eq. 5) then
-         beam_xstr=.true.
-      elseif (getfields_nfields .eq. 4) then
-         beam_xstr=.false.
-      else
-         write(lout,*) "ERROR in parsing BEAM block"
-         write(lout,*) "Number of arguments in data line 2,..."
-         write(lout,*) " is expected to be 4 or 5"
-         call prror(-1)
-      end if
-      call intepr(1,1,ch,ch1)
+         !Check number of arguments gotten
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) call prror(-1)
+         beam_xstr = .false.
+         if (getfields_nfields .eq. 5) then
+            beam_xstr=.true.
+         elseif (getfields_nfields .eq. 4) then
+            beam_xstr=.false.
+         else
+            write(lout,*) "ERROR in parsing BEAM block"
+            write(lout,*) "Number of arguments in data line 2,..."
+            write(lout,*) " is expected to be 4 or 5"
+            call prror(-1)
+         end if
+         call intepr(1,1,ch,ch1)
 +if fio
 +if crlibm
-      call enable_xp()
+         call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,i,xang,xplane,xstr
+         read(ch1,*,round='nearest')                                       &
+     &      idat,i,xang,xplane,xstr
 +if crlibm
-      call disable_xp()
+         call disable_xp()
 +ei
 +ei
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) idat,i,xang,xplane,xstr
+         read(ch1,*) idat,i,xang,xplane,xstr
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) i
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xang=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xplane=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xstr=fround(errno,fields,5)
-        nf=nf-1
-      endif
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.gt.0) then
+            read(fields(1),*) idat
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(2),*) i
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xang=fround(errno,fields,3)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xplane=fround(errno,fields,4)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xstr=fround(errno,fields,5)
+            nf=nf-1
+         endif
 +ei
 +ei
-      if ( .not. beam_xstr ) then
-         write(lout,*) "WARNING in parsing BEAM block"
-         write(lout,*) "No xstr present, assuming xstr=xang"
-         xstr = xang
-      endif
+         if ( .not. beam_xstr ) then
+            write(lout,*) "WARNING in parsing BEAM block"
+            write(lout,*) "No xstr present, assuming xstr=xang"
+            xstr = xang
+         endif
       
-      if(i.lt.0) i=0
-      do 1620 j=1,il
-      if(idat.eq.bez(j).and.kz(j).eq.20) then
-        ibb6d=1
-        parbe(j,2)=dble(i)                                               !hr12
-        parbe(j,1)=xang
-        parbe(j,3)=xplane
-        parbe(j,5)=xstr
-        goto 1610
+         if(i.lt.0) i=0
+         do 1620 j=1,il
+            if(idat.eq.bez(j).and.kz(j).eq.20) then
+               ibb6d=1
+               parbe(j,2)=dble(i) !hr12
+               parbe(j,1)=xang
+               parbe(j,3)=xplane
+               parbe(j,5)=xstr
+               goto 1610
+            endif
+ 1620    continue
+         goto 1610
       endif
- 1620 continue
-      goto 1610
 !-----------------------------------------------------------------------
 !  TROMBONE ELEMENT KZ=22
 !-----------------------------------------------------------------------
@@ -20400,6 +20415,7 @@ C Should get me a NaN
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 +ca daini
@@ -25041,7 +25057,7 @@ C Should get me a NaN
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-! +ca elensparam
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
@@ -32672,11 +32688,10 @@ C Should get me a NaN
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-!+ca elensparam
 +if collimat
 +ca database
 +ei
-
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 +if collimat
@@ -36588,6 +36603,7 @@ C Should get me a NaN
 +ca database
 +ca dbcommon
 +ei
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 !
@@ -37017,7 +37033,10 @@ C Should get me a NaN
           enddo
         enddo
   190 continue
-!--RANDOM NUMBERS-------------------------------------------------------
+!-- BEAM-EXP------------------------------------------------------------
+      beam_expflag = 0
+
+!-- RANDOM NUMBERS-------------------------------------------------------
       do 200 i=1,nzfz
         zfz(i)=zero
 +if time
