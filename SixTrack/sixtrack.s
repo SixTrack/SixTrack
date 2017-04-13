@@ -344,7 +344,7 @@
       common/co6d/clo6(3),clop6(3)
       common/dkic/dki(nele,3)
       common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
-     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,17),track6d(6,npart),    &
+     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
      &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
@@ -1513,7 +1513,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V RE INT DPS1 ; D V RE INT RKBF ; D V RE INT RBF ;
 *FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ;
 *FOX  D V RE INT SIGMAN 2 NBB ; D V RE INT PTNFAC NELE ;
-*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ;
+*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 18 ;
 *FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 *FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
 *FOX  D V RE INT PARBE14 ; D V RE INT PI ;
@@ -4804,9 +4804,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           ktrack(i)=44
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr03
           if(ibeco.eq.1) then
-            track6d(1,1)=ed(ix)*c1m3
+            track6d(1,1)=parbe(ix,5)*c1m3
             track6d(2,1)=zero
-            track6d(3,1)=ek(ix)*c1m3
+            track6d(3,1)=parbe(ix,6)*c1m3
             track6d(4,1)=zero
             track6d(5,1)=zero
             track6d(6,1)=zero
@@ -4877,14 +4877,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beamcof
 *FOX  CRKVEBF=X(1) ;
 *FOX  CIKVEBF=X(2) ;
-            startco=(dare(x(1))-clobeam(1,imbb(i)))+ed(ix)               !hr03
+            startco=(dare(x(1))-clobeam(1,imbb(i)))+parbe(ix,5)
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,1,0,0,0)
 !     endif
 +ei
             call dapok(crkvebf,jj,startco)
-            startco=(dare(x(2))-clobeam(2,imbb(i)))+ek(ix)
+            startco=(dare(x(2))-clobeam(2,imbb(i)))+parbe(ix,6)
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,2,0,0,0)
@@ -4900,11 +4900,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
 +cd beamr1of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+              crk=parbe(ix,5)
+              cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+     &             parbe(ix,6)*bbcu(imbb(i),12)
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+     &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             rho2b=crk**2+cik**2                                          !hr03
             if(rho2b.gt.pieni)
@@ -5043,11 +5045,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             zrbf=abs(cikvebf/rbf)
 +cd beama2of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+               crk=parbe(ix,5)
+               cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+     &             parbe(ix,6)*bbcu(imbb(i),12)
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+     &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             xrb=abs(crk)/rb
             zrb=abs(cik)/rb
@@ -5258,25 +5262,25 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd beamco
               if(ibbc.eq.0) then
-                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+ed(ix)            !hr03
-                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+ek(ix)            !hr03
+                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
+                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6)
               else
-                crkveb(j)=                                              &!hr03
-     &((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),11)+           &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),12)             !hr03
-                cikveb(j)=                                              &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),11)            &!hr03
-     &-((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),12)            !hr03
+                crkveb(j)=                                              &
+     &((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),11) +     &
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),12)
+                cikveb(j)=                                              &
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),11) -     &
+     &((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),12)
               endif
 +cd beamcoo
               if(ibbc.eq.0) then
-                crkveb(j)=ed(ix)
-                cikveb(j)=ek(ix)
+                crkveb(j)=parbe(ix,5)
+                cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=ed(ix)*bbcu(imbb(i),11)+                      &
-     &ek(ix)*bbcu(imbb(i),12)
-                cikveb(j)=ek(ix)*bbcu(imbb(i),11)-                      &!hr03
-     &ed(ix)*bbcu(imbb(i),12)                                            !hr03
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +
+     &                parbe(ix,6)*bbcu(imbb(i),12)
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-
+     &               parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
             rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
@@ -5473,9 +5477,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-              track6d(1,j)=((xv(1,j)+ed(ix))-clobeam(1,imbb(i)))*c1m3    !hr03
+               track6d(1,j)=((xv(1,j)+parbe(ix,5)) -
+     &              clobeam(1,imbb(i)))*c1m3
               track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-              track6d(3,j)=((xv(2,j)+ek(ix))-clobeam(2,imbb(i)))*c1m3    !hr03
+              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -
+     &             clobeam(2,imbb(i)))*c1m3
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
@@ -5503,12 +5509,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr08
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
-*FOX      TRACKI(1)=(X(1)+ED(IX)-DUMMY)*C1M3 ;
+*FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
 *FOX      YP(1)=Y(1)*(ONE+DPDA) ;
           dummy=dare(yp(1))
 *FOX      TRACKI(2)=(YP(1)-DUMMY)*C1M3 ;
           dummy=dare(x(2))
-*FOX      TRACKI(3)=(X(2)+EK(IX)-DUMMY)*C1M3 ;
+*FOX      TRACKI(3)=(X(2)+PARBE(IX,6)-DUMMY)*C1M3 ;
 *FOX      YP(2)=Y(2)*(ONE+DPDA) ;
           dummy=dare(yp(2))
 *FOX      TRACKI(4)=(YP(2)-DUMMY)*C1M3 ;
@@ -12173,11 +12179,6 @@ cc2008
            el(i)=0d0                                                     !hr05
         endif
       endif
-!--BEAM-BEAM
-      if(kz(i).eq.20) then
-        ptnfac(i)=el(i)
-        el(i)=zero
-      endif
 !--General
       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
       if(i.gt.nele-1) call prror(16)
@@ -16021,11 +16022,11 @@ cc2008
          endif
 +ei
 +ei
-         if(i.lt.0) i=0
+         if(i.lt.0) i=0 ! i is number of slices
          do 1670 j=1,il
-            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.gt.0) then
-               parbe(j,17)=1
-               parbe(j,2)=dble(i)                                               
+            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.gt.0) then ! 6D, allow 1 single slice
+               parbe(j,17)=1      ! Is 6D
+               parbe(j,2)=dble(i) ! Number of slices
                parbe(j,1)=xang
                parbe(j,3)=xplane
                parbe(j,5)=separx
@@ -16043,9 +16044,9 @@ cc2008
                ptnfac(j)=mm11
                goto 1660
             endif
-            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.eq.0) then
-               parbe(j,17)=0
-               parbe(j,2)=dble(i)                                               
+            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.eq.0) then ! 4D
+               parbe(j,17)=0      ! Is 4D
+               parbe(j,2)=dble(i) ! Always 0.0
                parbe(j,1)=xang
                parbe(j,3)=xplane
                parbe(j,5)=separx
@@ -16210,7 +16211,7 @@ cc2008
                parbe(j,2)=dble(i) !hr12
                parbe(j,1)=xang
                parbe(j,3)=xplane
-               parbe(j,5)=xstr
+               parbe(j,18)=xstr
                goto 1610
             endif
  1620    continue
@@ -17927,6 +17928,18 @@ c$$$         endif
             
             hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
             hsyc(ix)=(c1m3*hsyc(ix))*dble(itionc(ix)) ! trauthin/trauthck
+         endif
+!--BEAM-BEAM
+      elseif(kz(ix).eq.20) then
+         if (lfirst) then
+            ! Only for old-style CCs
+            ptnfac(ix)=el(ix)
+            el(ix)=zero
+
+            parbe(ix,5) = ed(ix)
+            ed(ix)=zero
+            parbe(ix,6) = ek(ix)
+            ek(ix)=zero
          endif
 !--Crab Cavities
 !   Note: If setting something else than el(),
@@ -22516,8 +22529,7 @@ C Should get me a NaN
 +ca parpro
 +ca parnum
 +ca commondl
-      ! JBG Increaseing param to dimension 5 for xstr
-      dimension param(nele,5),bcu(nbb,12),star(3,mbea)
+      dimension param(nele,18),bcu(nbb,12),star(3,mbea)
 +if bnlelens
 +ca rhicelens
 +ei
@@ -22531,7 +22543,7 @@ C Should get me a NaN
       phi=param(ne,1)
       nsli=param(ne,2)
       alpha=param(ne,3)
-      phi2=param(ne,5)
+      phi2=param(ne,18)
       f=param(ne,4)/dble(nsli)                                           !hr05
 +if crlibm
       sphi=sin_rn(phi)
@@ -37224,8 +37236,7 @@ C Should get me a NaN
         do 140 i1=1,3
           bezr(i1,i)=' '
   140   continue
-        ! JBG increasing parbe to dimension 5
-        do i1=1,5
+        do i1=1,17
           parbe(i,i1)=zero
         enddo
   150 continue
@@ -54264,15 +54275,14 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-      !JBG increased the dimension of param to 5 to include xstr
-      dimension param(nele,5),bcu(nbb,12)
+      dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
       save
 !-----------------------------------------------------------------------
       phi=param(ne,1)
       nsli=param(ne,2)
       alpha=param(ne,3)
-      phi2=param(ne,5)
+      phi2=param(ne,18)
       f=param(ne,4)/dble(nsli)                                           !hr06
 +if crlibm
       sphi=sin_rn(phi)
