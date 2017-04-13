@@ -17295,16 +17295,105 @@ cc2008
  1480 continue
       write(lout,10130)
  1490 if(idp.eq.0) goto 1500
-      if(nbeam.ge.1) then
-        if(partnum.gt.zero) then
-          write(lout,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,    &
-     &ibeco,                                                            &
-     &ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
-        else
-          write(lout,10141)ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,&
-     &ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
-        endif
-      else
+      if(nbeam.ge.1) then !Write out with BB parameters
+         if(beam_expflag .eq. 0) then  !The old BEAM format
+            if(partnum.gt.zero) then !Beams have same charge
+               write(lout,
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &              ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
+            else !Beams have opposite charge
+               write(lout,
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &              ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
+            endif
+            
+         elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
+            if(partnum.gt.zero) then !Beams have same charge
+               write(lout, ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &              ibeco,ibtyp,sigz,sige,emitnx,emitny,e0
+            else !Beams have opposite charge
+               write(lout,  ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &              ibeco,ibtyp,sigz,sige,emitnx,emitny,e0
+            endif
+         else
+            write(lout,'(a)') "ERROR in subroutine daten"
+            write(lout,'(a)') "beam_expflag was", beam_expflag
+            write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+            call prror(-1)
+         endif
+      else !No beam beam
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
       if(ncy2.eq.0) then
@@ -17312,13 +17401,57 @@ cc2008
       else
         write(lout,*)
       endif
-        if(ibb6d.eq.1) then
-          write(lout,10144)
-          do j=1,il
-            if(parbe(j,2).gt.0d0) write(lout,10145) bez(j),             &!hr12
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3)
-          enddo
-        endif
+      if(beam_expflag .eq. 0) then
+         if(ibb6d.eq.1) then
+            write(lout,
+     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
+     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
+     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)")
+            do j=1,il
+               if(parbe(j,2).gt.0d0)
+     &              write(lout,"(t10,a16,5x,i4,7x,d16.10,2x,d16.10)")
+     &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
+            enddo
+         endif
+         
+      elseif(beam_expflag .eq. 1) then
+         write(lout,
+     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
+     &t10,'ELEMENT           #_OF_SLICES    XING_ANGLE',                &
+     &'  XING_PLANE   HOR_SEP     VER_SEP        S11        S12      ', &
+     &'  S22         S33         S34         S44         S13         ', &
+     &'S14         S23         S24'/t10,200('-')/)")
+         do j=1,il
+            if(kz(j).eq.20.and.parbe(j,17).eq.1)then
+               write(lout,
+     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,      &
+     &2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,        &
+     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")
+     &bez(j),                                                           &
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),      &
+     &parbe(j,7),parbe(j,8),parbe(j,9),parbe(j,10),parbe(j,11),         &
+     &parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+            endif
+         enddo
+         write(lout,
+     &"(//,t30,'4D BEAM-BEAM ELEMENTS'/t30,24('-')//                    &
+     &t10,'ELEMENT           #_OF_SLICES        S11   ',                &
+     &'     S22       HOR_SEP     VER_SEP'/t10,80('-')/)")
+         do j=1,il
+            if (kz(j).eq.20.and.parbe(j,17).eq.0) then
+               write(lout,                                              &
+     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")    &
+     &bez(j),                                                           &
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
+            endif
+         enddo
+         
+      else
+         write(lout,'(a)') "ERROR in subroutine daten"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
       write(lout,10130)
  1500 continue
       write(lout,10150)
@@ -17367,42 +17500,6 @@ cc2008
 !10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
-10140 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
-10141 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
 10142 format(t30,'SYNCHROTRON OSCILLATIONS'//                           &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17417,10 +17514,6 @@ cc2008
      &t10,'FREQUENCY (IN UNITS OF REVOLUTION-FREQ.) QS-LINEAR',         &
      &t66 ,f14.9/                                                       &
      &t10,'MOMENTUM COMPACTION',t66,f14.9/)
-10144 format(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//        &
-     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)
-10145 format(t10,a16,5x,i4,7x,d16.10,2x,d16.10)
 10150 format(//t43,'*** TRACKING PARAMETERS ***'/)
 10160 format(t10,'NUMBER OF REVOLUTIONS  ',t48,i8/ t10,                 &
      &'NUMBER OF REVERSE-REVOLUTIONS',t48,i8/ t10,                      &
