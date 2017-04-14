@@ -15849,7 +15849,8 @@ cc2008
 +ei
 +if .not.fio
 +if .not.crlibm
-         read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*)
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
@@ -15898,7 +15899,8 @@ cc2008
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
+     &      lhc=1
 !GRDRHIC
 !GRD-042008
 +ei
@@ -16099,7 +16101,8 @@ cc2008
 +ei
 +if .not.fio
 +if .not.crlibm
-         read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*)
+            partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
@@ -16148,7 +16151,8 @@ cc2008
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
+     &      lhc=1
 !GRDRHIC
 !GRD-042008
 +ei
