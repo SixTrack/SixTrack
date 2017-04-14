@@ -15831,6 +15831,12 @@ cc2008
       if (ch(:6) .eq."EXPERT") then
          beam_expflag = 1
          
+ 1601    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1600
+         if(ch(:4).eq.next) goto 110
+         call intepr(1,1,ch,ch1)
 +if fio
 +if crlibm
          call enable_xp()
