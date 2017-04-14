@@ -22639,6 +22639,7 @@ C Should get me a NaN
 !
 !-----------------------------------------------------------------------
       implicit none
++ca crcoall
 +if crlibm
 +ca crlibco
 +ei
@@ -22652,6 +22653,7 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -22659,11 +22661,26 @@ C Should get me a NaN
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
-      nsli=param(ne,2)
-      alpha=param(ne,3)
-      phi2=param(ne,18)
-      f=param(ne,4)/dble(nsli)                                           !hr05
+      if (beam_expflag .eq. 0) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         phi2=param(ne,18)
+      else if(beam_expflag .eq. 1) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         !sepax=param(ne,5)     !Not actually used anywhere?
+         !sepay=param(ne,6)     !Not actually used anywhere?
+         phi2=phi               !Note - phi2 is not a free parameter anymore
+      else
+         write(lout,'(a)') "ERROR in subroutine beaminf"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
 +if crlibm
       sphi=sin_rn(phi)
       sphi2=sin_rn(phi2)
@@ -54382,9 +54399,7 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54396,13 +54411,30 @@ c$$$            endif
       dimension track(6,npart)
       dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
-      nsli=param(ne,2)
-      alpha=param(ne,3)
-      phi2=param(ne,18)
-      f=param(ne,4)/dble(nsli)                                           !hr06
+      if (beam_expflag .eq. 0) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         phi2=param(ne,18)
+      else if(beam_expflag .eq. 1) then
+         alpha=param(ne,3)
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         !sepax=param(ne,4)     !Not actually used anywhere?
+         !sepay=param(ne,5)     !Not actually used anywhere?
+         f=param(ne,4)/dble(nsli)
+         phi2=phi               !Note - phi2 is not a free parameter anymore
+      else
+         write(lout,'(a)') "ERROR in subroutine beamint"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
+
 +if crlibm
       sphi=sin_rn(phi)
       sphi2=sin_rn(phi2)
