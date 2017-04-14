@@ -15834,9 +15834,9 @@ cc2008
  1601    read(3,10020,end=1530,iostat=ierro) ch
          if(ierro.gt.0) call prror(58)
          lineno3=lineno3+1
-         if(ch(1:1).eq.'/') goto 1600
+         if(ch(1:1).eq.'/') goto 1601
          if(ch(:4).eq.next) goto 110
-         call intepr(1,1,ch,ch1)
+         ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
 +if crlibm
          call enable_xp()
@@ -15911,6 +15911,8 @@ cc2008
          if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
          nbeam=1
          if(ibtyp.eq.1) call wzset
+
+         ! ! ! Read other lines of BEAM block ! ! !
  1660    read(3,10020,end=1530,iostat=ierro) ch
          if(ierro.gt.0) call prror(58)
          lineno3=lineno3+1
@@ -15966,8 +15968,10 @@ cc2008
                nf=nf-1
             endif
             
-            read(3,10020,end=1530,iostat=ierro) ch
+ 1661       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
             lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1661
             ch1(:nchars+3)=ch(:nchars)//' / '
             call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
             if (nf.gt.0) then
@@ -15991,9 +15995,11 @@ cc2008
                nf=nf-1
             endif
             
-            read(3,10020,end=1530,iostat=ierro) ch
+ 1662       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
             ch1(:nchars+3)=ch(:nchars)//' / '
             lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1662
             call splitfld(errno,3,lineno3,nofields,nf,ch1,fields) 
             if (nf.gt.0) then
                mm6=fround(errno,fields,1)
@@ -16165,7 +16171,7 @@ cc2008
          if(ibtyp.eq.1) call wzset
          
          ! ! ! Read other lines of BEAM block ! ! !
- 1610 read(3,10020,end=1530,iostat=ierro) ch
+ 1610    read(3,10020,end=1530,iostat=ierro) ch
          if(ierro.gt.0) call prror(58)
          lineno3=lineno3+1
          if(ch(1:1).eq.'/') goto 1610
