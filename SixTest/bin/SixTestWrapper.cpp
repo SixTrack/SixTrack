@@ -372,7 +372,7 @@ int main(int argc, char* argv[])
 
 			// Redirect STDOUT to fort.6
 			// Solution from http://stackoverflow.com/questions/20488574/output-redirection-using-fork-and-execl
-			int fd_6 = open("fort.6",O_WRONLY|O_CREAT, S_IRUSR | S_IWUSR);
+			int fd_6 = open("fort.6",O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR | S_IWUSR);
 			if(fd_6 < 0)
 			{
 				perror("ERROR: Could not open file 'fort.6' for output");
