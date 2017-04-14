@@ -10,6 +10,8 @@
 #include <signal.h>
 
 #ifndef WIN32
+//open()
+#include<fcntl.h>
 //waitpid()
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -366,7 +368,19 @@ int main(int argc, char* argv[])
 		//Check fork() status
 		if(SixTrackpid == 0)
 		{
-			//child, run sixtrack
+			//In child process, run sixtrack
+
+			// Redirect STDOUT to fort.6
+			// Solution from http://stackoverflow.com/questions/20488574/output-redirection-using-fork-and-execl
+			int fd_6 = open("fort.6",O_WRONLY|O_CREAT, S_IRUSR | S_IWUSR);
+			if(fd_6 < 0)
+			{
+				perror("ERROR: Could not open file 'fort.6' for output");
+				exit(EXIT_FAILURE);
+			}
+			dup2(fd_6,1);
+
+			//Execute!
 			int execStatus = execl(argv[1], argv[1], (char*) 0);
 			if(execStatus == -1)
 			{
@@ -375,11 +389,57 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			//main thread, wait()
+			//In main thread, wait()
 			std::cout << "Waiting for SixTrack to finish running - pid: " << SixTrackpid << std::endl;
 			int waitpidStatus;
 			waitpid(SixTrackpid, &waitpidStatus, WUNTRACED);
 			std::cout << "SixTrack finished running: " << waitpidStatus << std::endl;
+
+			//Print the last NLINES lines
+			size_t NLINES = 20;
+			std::cout << "Last "<<NLINES<<" lines of output:"<<std::endl;
+			// Adapted from http://stackoverflow.com/questions/11876290/c-fastest-way-to-read-only-last-line-of-text-file
+			std::ifstream fort6("fort.6");
+			if (not fort6.is_open())
+			{
+				perror("ERROR: Could not open file 'fort.6' after SixTrack has finished");
+			}
+			else
+			{
+				// go to one spot before the EOF
+				fort6.seekg(-1,fort6.end);
+				char ch;
+				size_t haslines = 0;
+				while (haslines<=NLINES)
+				{
+					fort6.get(ch);
+					// In case the file contained only a single line
+					if((int)fort6.tellg() <= 1)
+					{
+						fort6.seekg(0);
+						break;
+					}
+					// If the data was a newline
+					else if(ch == '\n') {
+						haslines += 1;
+						fort6.seekg(-2,fort6.cur);
+					}
+					// If the data was neither a newline nor at the 0 byte
+					else
+					{
+						// Move to the front of that data,
+					        //  then to the front of the data before it
+						fort6.seekg(-2,fort6.cur);
+					}
+				}
+				//OK, now we have moved NLINES up ahead; time to read and print again
+				std::string fort6_line;
+				while (std::getline(fort6,fort6_line)){
+				  std::cout << fort6_line<<std::endl;
+				}
+
+				fort6.close();
+			}
 		}
 #else
 	int execStatus = _spawnl(_P_WAIT, argv[1], argv[1], (char*) 0);
