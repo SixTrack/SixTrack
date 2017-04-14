@@ -9683,9 +9683,6 @@ cc2008
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -9827,9 +9824,6 @@ cc2008
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10631,9 +10625,6 @@ cc2008
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18562,7 +18553,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !
       implicit none
-+ca   comgetfields
++ca comgetfields
 +ca crcoall
       
       character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
@@ -39260,9 +39251,6 @@ C Should get me a NaN
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39329,9 +39317,6 @@ C Should get me a NaN
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39378,9 +39363,6 @@ C Should get me a NaN
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39681,9 +39663,6 @@ C Should get me a NaN
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -49860,9 +49839,6 @@ c$$$            endif
 !  USED FOR SEARCH
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53897,9 +53873,6 @@ c$$$            endif
 !
 !---------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53972,9 +53945,6 @@ c$$$            endif
       end
       subroutine caconv(a,b,c)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53996,9 +53966,6 @@ c$$$            endif
       end
       subroutine cphase(k,a,b,c,d,i,j,ie)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54033,9 +54000,6 @@ c$$$            endif
       end
       subroutine cinvar(a,b,c,d,j,e,xinv,invx)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54489,9 +54453,6 @@ c$$$            endif
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54537,9 +54498,6 @@ c$$$            endif
 !****************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54664,9 +54622,6 @@ c$$$            endif
 ! BOOSTI **************inverse boost *****************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54720,9 +54675,6 @@ c$$$            endif
 ! SIGXX is \Sigma
 !**********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54810,9 +54762,6 @@ c$$$            endif
 !*********************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59366,9 +59315,6 @@ c$$$     &           myalphay * cos(phiy))
 
       subroutine iterat(a,b,dh,s)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63036,9 +62982,6 @@ c$$$         backspace (93,iostat=ierro)
 !      logical function isnan(arg1,arg2)
       logical function myisnan(arg1,arg2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63054,9 +62997,6 @@ c$$$         backspace (93,iostat=ierro)
       common /slate/ isl(40)                                             !hr08
 
       integer isl                                                        !hr08
-+if cr
-+ca crcoall
-+ei
 !
 !-    call datime (nd,nt)   returns integer date   nd = yymmdd
 !-                                  integer time   nt =   hhmm
@@ -63086,9 +63026,6 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine timest(r1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +ca commtim
       logical start
       data start /.false./
@@ -63101,9 +63038,6 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine timex(r1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +ca commtim
       save
       call timest(0.0)
