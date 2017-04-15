@@ -12,6 +12,7 @@
 #ifndef WIN32
 //open()
 #include<fcntl.h>
+#include <sys/stat.h>
 //waitpid()
 #include <sys/types.h>
 #include <sys/wait.h>
