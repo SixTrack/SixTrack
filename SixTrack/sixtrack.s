@@ -7202,12 +7202,13 @@ cc2008
 
           write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
           if(parbe(ix,2).eq.0.0) then !4D
-             !Non-CRMLIB version
+             !Note: One should always use the CRLIBM version when converting,
+             ! in order to guarantee the exact same results from the converted input file.
++if .not.crlibm
              write(lout,"(a16,1x,a1,1x,5g30.20)")
      &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
-     &            ed(ix), ek(ix), ptnfac(ix)
-               
-             !CRLIBM version (should be more correct...)
+     &            parbe(ix,5), parbe(ix,6), ptnfac(ix)
++ei
 +if crlibm
              l1 = 1
              write(ch,'(a16,1x,a1)') bez(ix), "0"
@@ -7236,17 +7237,18 @@ cc2008
              write(lout,*) trim(ch)
 +ei
           else                      ! 6D
-             !Non-CRMLIB version
++if .not.crlibm
              write(lout,"(a16,1x,i4,1x,4g30.20)")
      &            bez(ix), int(parbe(ix,2)),
      &            parbe(ix,1), parbe(ix,3),
-     &            ed(ix), ek(ix)
+     &            parbe(ix,5), parbe(ix,6)
              write(lout,"(5g30.20)")
      &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
      &            bbcu(ibb,2), bbcu(ibb,9)
              write(lout,"(6g30.20)")
      &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
      &            bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
++ei
 +if crlibm
              l1 = 1
              write(ch,'(a16,1x,i4)') bez(ix), int(parbe(ix,2))
@@ -7326,7 +7328,6 @@ cc2008
 +ei
             endif
           write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
-          
           
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
