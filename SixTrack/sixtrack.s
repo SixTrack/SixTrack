@@ -7176,26 +7176,6 @@ cc2008
 
             !Indentation break, sorry :(
 
-            write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
-            write(lout,'(a)') "EXPERT"
-            if(parbe(ix,2).eq.0.0) then !4D
-              write(lout,"(a16,1x,a1,1x,5g30.20)")
-     &              bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
-     &              ed(ix), ek(ix), ptnfac(ix)
-            else               !6D
-              write(lout,"(a16,1x,i4,1x,4g30.20)")
-     &              bez(ix), int(parbe(ix,2)),
-     &              parbe(ix,1), parbe(ix,3),
-     &              ed(ix), ek(ix)
-              write(lout,"(5g30.20)")
-     &             bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
-     &             bbcu(ibb,2), bbcu(ibb,9)
-              write(lout,"(6g30.20)")
-     &             bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
-     &             bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
-            endif
-            write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
-
           else if (beam_expflag .eq. 1) then !New style input
             if(parbe(ix,2).gt.0d0) then
                bbcu(ibb,1)=parbe(ix,7)
@@ -7219,6 +7199,135 @@ cc2008
              write(lout,'(a)') " expected 0 or 1. This is a BUG!"
              call prror(-1)
           end if
+
+          write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+          if(parbe(ix,2).eq.0.0) then !4D
+             !Non-CRMLIB version
+             write(lout,"(a16,1x,a1,1x,5g30.20)")
+     &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
+     &            ed(ix), ek(ix), ptnfac(ix)
+               
+             !CRLIBM version (should be more correct...)
++if crlibm
+             l1 = 1
+             write(ch,'(a16,1x,a1)') bez(ix), "0"
+             l1 = len(trim(ch))+1
+             
+             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,2),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(ed(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(ek(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(ptnfac(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
++ei
+          else                      ! 6D
+             !Non-CRMLIB version
+             write(lout,"(a16,1x,i4,1x,4g30.20)")
+     &            bez(ix), int(parbe(ix,2)),
+     &            parbe(ix,1), parbe(ix,3),
+     &            ed(ix), ek(ix)
+             write(lout,"(5g30.20)")
+     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
+     &            bbcu(ibb,2), bbcu(ibb,9)
+             write(lout,"(6g30.20)")
+     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
+     &            bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
++if crlibm
+             l1 = 1
+             write(ch,'(a16,1x,i4)') bez(ix), int(parbe(ix,2))
+             l1 = len(trim(ch))+1
+
+             errno=dtostr(parbe(ix,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,3),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(ed(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(ek(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+                          
+             write(lout,*) trim(ch)
+
+             l1 = 1
+             ch = ' '
+
+             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,4),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,6),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,2),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(bbcu(ibb,9),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
+
+             l1 = 1
+             ch = ' '
+
+             errno=dtostr(bbcu(ibb,10),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,3),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,5),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,7),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(bbcu(ibb,8),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(ptnfac(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
++ei
+            endif
+          write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
+          
+          
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
@@ -9443,6 +9552,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=20)
@@ -11726,6 +11836,7 @@ cc2008
       character*(nchars+nchars) ch1
       logical beam_xstr
 +if crlibm
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -15854,42 +15965,22 @@ cc2008
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.gt.0) then
-            partnum=fround(errno,fields,1)
-            nf=nf-1
+         if (nf.ne.9) then
+            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+            write(lout,'(a,I3)')
+     &           "First line should have 9 fields, got", nf
+            call prror(-1)
          endif
-         if (nf.gt.0) then
-            emitnx=fround(errno,fields,2)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            emitny=fround(errno,fields,3)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            sigz=fround(errno,fields,4)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            sige=fround(errno,fields,5)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(6),*) ibeco
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(7),*) ibtyp
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(8),*) lhc
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(9),*) ibbc
-            nf=nf-1
-         endif
+         
+         partnum = fround(errno,fields,1)
+         emitnx  = fround(errno,fields,2)
+         emitny  = fround(errno,fields,3)
+         sigz    = fround(errno,fields,4)
+         sige    = fround(errno,fields,5)
+         read(fields(6),*) ibeco
+         read(fields(7),*) ibtyp
+         read(fields(8),*) lhc
+         read(fields(9),*) ibbc
 +ei
 +ei
          if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
@@ -16112,6 +16203,12 @@ cc2008
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.ne.9) then
+            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+            write(lout,'(a)') "First line should have 9 fields"
+            call prror(-1)
+         endif
+         
          if (nf.gt.0) then
             partnum=fround(errno,fields,1)
             nf=nf-1
@@ -18113,6 +18210,7 @@ c$$$         endif
       end subroutine
 
 +if crlibm
+      
       subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
       implicit none
 +ca crcoall
@@ -18120,33 +18218,43 @@ c$$$         endif
       character*(*) chars
       character*(*) fields(*)
       character*999 localstr
-! This routine splits the chars input into space separated
-! fields, up to nfields maximum. It returns the no of
-! fields in nf. All spaces are ignored but treated as separators.
-! A / is a line terminator as provided in ch1 typically.
-! This corresponds to Fortran treatment with an * format spec.
+!     This routine splits the chars input into space separated
+!     fields, up to nfields maximum. It returns the no of
+!     fields in nf. All spaces are ignored but treated as separators.
+!     A / is a line terminator as provided in ch1 typically.
+!     This corresponds to Fortran treatment with an * format spec.
+            
       j=0
       nf=0
       do i=1,nfields
         fields(i)=' '
+         
+        ! Get the length we can use to store a field,
+        ! should be equal to maxf in the calling function
         lf=len(fields(i))
- 8889   k=0
- 8888   j=j+1
+
+ 8889   k=0   !Index into the current field; goto label for new field or no field yet
+ 8888   j=j+1 !Index into the input array; goto label for reading another character
+        ! Check that we stay within the given length of chars
         if (j.gt.len(chars)) then
           errno=1
           go to 8887
         endif
+
+        !Don't start a new field before we hit a non-space
         if (k.eq.0.and.chars(j:j).eq.' ') go to 8888
+
         if (chars(j:j).ne.' '.and.chars(j:j).ne.'/') then
+          !We have a field
           k=k+1
           if (k.ge.lf) then
-! We reserve the last position for a null for C 
-! Field length exceeded
-! Eric for debug
+            !Field is too long;
+            ! remember that the last position (#lf in FORTRAN, lf-1 in C)
+            ! is reseved for a \0, to be used in the C code.
             do j=1,nf
               l=len(fields(j))
               localstr=fields(j)(1:l)
-              write(lout,*) 'splitfld:'//localstr(1:30)//':'
+              write(lout,*) 'splitfld:'//localstr(1:lf)//':'
             enddo
             errno=2
             call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
@@ -18170,6 +18278,7 @@ c$$$         endif
           endif
         endif
       enddo
+      
  8890 continue
 ! If we get here we have a problem unless there
 ! is nothing left but ' '*/
@@ -18187,9 +18296,12 @@ c$$$         endif
       enddo
       call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       end
+      
       double precision function fround(errno,fields,f)
       implicit none
       integer maxf
+      ! MAXF be kept in sync with maxf in various routines
+      ! We maybe should use len(field(f)) here, like is done in splitfld...
       parameter (maxf=30)
       integer errno,f
       character*(*) fields(*)
@@ -18343,6 +18455,7 @@ c$$$         endif
       dtostr=24
       return
       end
+      
       double precision function acos_rn(x)
       implicit none
       double precision atan_rn,x,pi,pi2
@@ -18363,6 +18476,7 @@ c$$$         endif
         endif
       endif
       end
+      
       double precision function asin_rn(x)
       implicit none
       double precision atan_rn,x,pi2
@@ -18381,6 +18495,7 @@ c$$$         endif
         asin_rn=atan_rn(x/sqrt((1.0d0-x)*(1.0d0+x)))
       endif
       end
+      
       double precision function atan2_rn(y,x)
       implicit none
       double precision atan_rn,x,y,pi,pi2
@@ -18409,7 +18524,8 @@ C Should get me a NaN
         endif
       endif
       end
-+ei
++ei ! END of crlibm-specific functions
+      
       subroutine wzset
 !  *********************************************************************
 !
@@ -20803,6 +20919,13 @@ C Should get me a NaN
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
 +ca parbeam_exp
++if crlibm
+      !For conversion of BEAM parameters to the new format
+      character*1000 ch
+      character*25 ch1
+      integer errno,l1
+      integer dtostr
++ei
       save
 !-----------------------------------------------------------------------
 +ca daini
@@ -23247,6 +23370,7 @@ C Should get me a NaN
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -36455,6 +36579,7 @@ C Should get me a NaN
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -54250,6 +54375,7 @@ c$$$            endif
 !     integer nchars
 !     parameter (nchars=160)
       character*(1601) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=60)
@@ -60729,7 +60855,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       character*(nchars+nchars) ch1
       integer errno,l1,l2
       integer dtostr
-
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
