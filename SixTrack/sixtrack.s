@@ -7353,7 +7353,7 @@ cc2008
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
-          if(beam_expflag.eq.0 .and. parbe(ix,2).gt.0d0) then !Old BEAM and 6D
+          if(parbe(ix,2).gt.0d0) then !6D -> convert units
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
@@ -30649,15 +30649,18 @@ C Should get me a NaN
 +ca kickvxxv
   630     continue
           goto 640
+
+!--4D BB kick
   680     continue
           do 690 j=1,napx
-+ca beamco
-+ca beamr1
-     &goto 690
++ca beamco     !Get x-y offset
++ca beamr1     !Get r**2
+     &goto 690 !The radius was too small -> Skip
 +ca beamr2
-+ca beamr3
++ca beamr3     !Kick the particles
   690     continue
           goto 640
+
   700     continue
           if(ibtyp.eq.0) then
 +ca beam11
@@ -30668,7 +30671,7 @@ C Should get me a NaN
 +ca beama3
 +ca beam13
 +ca beama4
-          else if(ibtyp.eq.1) then
+          else if(ibtyp.eq.1) then ! fast kick
 +ca beam11
 +ca beama1
 +ca beamco
