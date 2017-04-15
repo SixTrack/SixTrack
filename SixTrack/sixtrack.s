@@ -7221,11 +7221,11 @@ cc2008
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
-             errno=dtostr(ed(ix),ch1)
+             errno=dtostr(parbe(ix,5),ch1)
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
-             errno=dtostr(ek(ix),ch1)
+             errno=dtostr(parbe(ix,6),ch1)
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
@@ -7260,11 +7260,11 @@ cc2008
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
-             errno=dtostr(ed(ix),ch1)
+             errno=dtostr(parbe(ix,5),ch1)
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
-             errno=dtostr(ek(ix),ch1)
+             errno=dtostr(parbe(ix,6),ch1)
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
                           
@@ -16030,34 +16030,31 @@ cc2008
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.gt.0) then
-            read(fields(2),*) i
+         if (.not.(nf.eq.6 .or. nf.eq.7)) then
+            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+            write(lout,'(a,I3)')
+     &           "First line of an element definition should "//
+     &           "have 6 or 7 fields, got", nf
+            call prror(-1)
          endif
-         if (i.gt.0)then
-            if (nf.gt.0) then
-               read(fields(1),*) idat
-               nf=nf-1
+         
+         read(fields(2),*) i !read number of slices
+         
+         if (i.gt.0) then  !6D
+            if (nf.ne.6) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "First line of a 6D element definition should "//
+     &              "have 6 fields, got", nf
+               call prror(-1)
             endif
-            if (nf.gt.0) then
-               read(fields(2),*) i
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               xang=fround(errno,fields,3)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               xplane=fround(errno,fields,4)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               separx=fround(errno,fields,5)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               separy=fround(errno,fields,6)
-               nf=nf-1
-            endif
+            
+            read(fields(1),*) idat !Name
+            read(fields(2),*) i    !slices (ibsix)
+            xang=fround(errno,fields,3)
+            xplane=fround(errno,fields,4)
+            separx=fround(errno,fields,5)
+            separy=fround(errno,fields,6)
             
  1661       read(3,10020,end=1530,iostat=ierro) ch
             if(ierro.gt.0) call prror(58)
@@ -16065,82 +16062,58 @@ cc2008
             if(ch(1:1).eq.'/') goto 1661
             ch1(:nchars+3)=ch(:nchars)//' / '
             call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-            if (nf.gt.0) then
-               mm1=fround(errno,fields,1)
-               nf=nf-1
+
+            if (nf.ne.5) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "Second line of a 6D element definition should "//
+     &              "have 5 fields, got", nf
+               call prror(-1)
             endif
-            if (nf.gt.0) then
-               mm2=fround(errno,fields,2)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               mm3=fround(errno,fields,3)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               mm4=fround(errno,fields,4)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               mm5=fround(errno,fields,5)
-               nf=nf-1
-            endif
+            
+            mm1=fround(errno,fields,1)
+            mm2=fround(errno,fields,2)
+            mm3=fround(errno,fields,3)
+            mm4=fround(errno,fields,4)
+            mm5=fround(errno,fields,5)
             
  1662       read(3,10020,end=1530,iostat=ierro) ch
             if(ierro.gt.0) call prror(58)
             ch1(:nchars+3)=ch(:nchars)//' / '
             lineno3=lineno3+1
             if(ch(1:1).eq.'/') goto 1662
-            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields) 
-            if (nf.gt.0) then
-               mm6=fround(errno,fields,1)
-               nf=nf-1
+            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+
+            if (nf.ne.6) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "Third line of a 6D element definition should "//
+     &              "have 5 fields, got", nf
+               call prror(-1)
             endif
-            if (nf.gt.0) then
-               mm7=fround(errno,fields,2)
-               nf=nf-1
+            
+            mm6=fround(errno,fields,1)
+            mm7=fround(errno,fields,2)
+            mm8=fround(errno,fields,3)
+            mm9=fround(errno,fields,4)
+            mm10=fround(errno,fields,5)
+            mm11=fround(errno,fields,6)
+            
+         else ! 4D
+            if (nf.ne.7) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "First line of a 6D element definition should "//
+     &              "have 7 fields, got", nf
+               call prror(-1)
             endif
-            if (nf.gt.0) then
-               mm8=fround(errno,fields,3)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               mm9=fround(errno,fields,4)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               mm10=fround(errno,fields,5)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               mm11=fround(errno,fields,6)
-               nf=nf-1
-            endif            
-         else
-            if (nf.gt.0) then
-               read(fields(1),*) idat
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               xang=fround(errno,fields,3)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               xplane=fround(errno,fields,4)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               separx=fround(errno,fields,5)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               separy=fround(errno,fields,6)
-               nf=nf-1
-            endif
-            if (nf.gt.0) then
-               mm1=fround(errno,fields,7)
-               nf=nf-1
-            endif
+            
+            read(fields(1),*) idat
+            xang=fround(errno,fields,3)
+            xplane=fround(errno,fields,4)
+            separx=fround(errno,fields,5)
+            separy=fround(errno,fields,6)
+            mm1=fround(errno,fields,7)
          endif
 +ei
 +ei
@@ -22010,7 +21983,8 @@ C Should get me a NaN
 +ca umlalid
         if(i.eq.nt) goto 470
       endif
- 430  continue
+ 430  continue ! END LOOP OVER SINGLE ELEMENTS IN UMLAUDA
+
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
 +if debug
