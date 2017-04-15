@@ -17390,13 +17390,14 @@ cc2008
      &t79,i1/                                                           &
      &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
      &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
-     &              ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
             else !Beams have opposite charge
                write(lout,
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
@@ -17412,13 +17413,14 @@ cc2008
      &t79,i1/                                                           &
      &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
      &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
-     &              ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
             endif
             
          elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
@@ -17436,13 +17438,14 @@ cc2008
      &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
      &t79,i1/                                                           &
      &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
-     &              ibeco,ibtyp,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
             else !Beams have opposite charge
                write(lout,  ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
@@ -17457,13 +17460,14 @@ cc2008
      &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
      &t79,i1/                                                           &
      &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
-     &              ibeco,ibtyp,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
             endif
          else
             write(lout,'(a)') "ERROR in subroutine daten"
