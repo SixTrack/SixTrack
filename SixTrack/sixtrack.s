@@ -18231,7 +18231,7 @@ c$$$         endif
 !--BEAM-BEAM
       elseif(kz(ix).eq.20) then
          if (lfirst) then
-            ! Only for old-style CCs
+            ! Only for old-style BEAM-BEAM lenses
             ! if DYNK-ified, there needs to be checks for parbeam_exp as well,
             ! as in this case modifying ed/ek/el and then calling initialize_element
             ! would be neccessary...
