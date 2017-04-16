@@ -16207,9 +16207,13 @@ cc2008
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
          if (nf.ne.9) then
-            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-            write(lout,'(a)') "First line should have 9 fields"
-            call prror(-1)
+            write(lout,'(a)')
+     &           "WARNING in DATEN reading BEAM (not EXPERT)"
+            write(lout,'(a,i4)') "First line should have 9 fields,"//
+     &           " got ", nf
+            !Treating this as a warning, or else we would invalidate
+            !lots of working inpuit files
+            !call prror(-1)
          endif
          
          if (nf.gt.0) then
