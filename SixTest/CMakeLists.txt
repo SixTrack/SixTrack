@@ -176,7 +176,7 @@ endforeach()
 
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
-SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK elensidealthin6d_DYNK_ZIPF wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 fcc elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF beam-HO_4D-newstyle beam-HO_4D-newstyle-loadParticles beam-HO_4D-oldstyle beam-HO_6D-newstyle beam-HO_6D-oldstyle beam-HO_LR-newstyle beam-HO_LR-oldstyle)
+SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK elensidealthin6d_DYNK_ZIPF wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 fcc elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF beam-HO_4D-newstyle beam-HO_4D-newstyle-loadParticles beam-HO_4D-oldstyle beam-HO_6D-newstyle beam-HO_6D-oldstyle beam-HO_LR-newstyle beam-HO_LR-oldstyle beam-HO_LR-ibbc-oldstyle beam-HO_LR-ibbc-newstyle)
 
 #Medium tests take < 30 mins to run
 SET(MEDIUM_TESTS bbe571ib0 tilt lostevery fma frs frs60 eric distance bbe51 bbe52 javier_bignpart)
