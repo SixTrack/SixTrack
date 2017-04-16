@@ -18169,6 +18169,13 @@ c$$$         endif
       elseif(kz(ix).eq.20) then
          if (lfirst) then
             ! Only for old-style CCs
+            ! if DYNK-ified, there needs to be checks for parbeam_exp as well,
+            ! as in this case modifying ed/ek/el and then calling initialize_element
+            ! would be neccessary...
+            ! Note that the BEAM::EXPERT block input checker relies on the data from
+            ! ed/ek/el has been moved to parbe/ptnfac.
+            ! For DYNKification of BEAM, I think lots of the code from
+            ! trauthin/trauthck needs to be copied here?
             ptnfac(ix)=el(ix)
             el(ix)=zero
 
