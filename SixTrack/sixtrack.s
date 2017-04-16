@@ -7200,6 +7200,7 @@ cc2008
              call prror(-1)
           end if
 
+          if (beam_expflag .eq. 0) then
           write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
           if(parbe(ix,2).eq.0.0) then !4D
              !Note: One should always use the CRLIBM version when converting,
@@ -7328,6 +7329,7 @@ cc2008
 +ei
             endif
           write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
+          endif
           
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
@@ -16182,11 +16184,35 @@ cc2008
          end do
          goto 1660
          
-      else
-!     Old-style BEAM block -- this reads all the lines then returns when it finds NEXT
+      else ! Old-style BEAM block
          write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
-         write (lout,'(a)') " Look for 'NEW BEAM BLOCK' later in output"
-         write (lout,'(a)') " for conversion to the new format."
+         write (lout,'(a)') " Look for 'NEW BEAM BLOCK' later"//
+     &        " in the output for conversion"//
+     &        " to the new 'EXPERT' format."
+         write (lout,'(a)') " To convert to the new format,"//
+     &        " copy-paste these lines (removing the *** lines"//
+     &        " above and below each data line) into the BEAM"//
+     &        " block in fort.3, replacing line 2 onwards."
+         write (lout,'(a)') " Then write EXPERT on the first line"//
+     &        " of the BEAM block, above the current first line."
+         write(lout,'(a)') " Finally, in the SINGLE ELEMENTS list"//
+     &        " (normally in fort.2) set the parameters of all"//
+     &        " beam-beam lenses (type 20) to 0.0."
+         write(lout,'(a)') " "
+         write(lout,'(a)') " This procedure produces a new"//
+     &        " set of input files that should have bit-for-bit"//
+     &        " identical results to this one."
+         write(lout,'(a)') " The easiest way to check this is"//
+     &        " to run both simulations side-by-side and compare"//
+     &        " the standard output in a text diff tool like meld."
+         write(lout,'(a)') " If the results are not identical,"//
+     &        " this is a bug; please report it to the developers!"
++if .not.crlibm
+         write(lout,'(a)') " "
+         write(lout,'(a)') "NOTE: THIS SIXTRACK BINARY WAS"//
+     &        " NOT COMPILED WITH CRLIBM, CONVERSION WILL NOT BE EXACT."
++ei
+         write(lout,'(a)') " "
          
          ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
@@ -16202,7 +16228,7 @@ cc2008
 +if .not.fio
 +if .not.crlibm
          read(ch1,*)
-            partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
