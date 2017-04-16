@@ -16012,26 +16012,57 @@ cc2008
          lineno3=lineno3+1
          if(ch(1:1).eq.'/') goto 1660
          if(ch(:4).eq.next) goto 110
-         call intepr(1,1,ch,ch1)
+
 +if fio
-+if crlibm
-         call enable_xp()
-+ei
-         read(ch1,*,round='nearest')                                       &
-     &      idat,i,xang,xplane,separx,separy,
-     &      mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
-     &      mm9,mm10,mm11
-+if crlibm
-         call disable_xp()
-+ei
+!+if crlibm
+!         call enable_xp()
+!+ei
+!         read(ch1,*,round='nearest')                                       &
+!     &      idat,i,xang,xplane,separx,separy,
+!     &      mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
+!     &      mm9,mm10,mm11
+!+if crlibm
+!         call disable_xp()
+!+ei
+        write(lout,*)
+     &       'ERROR in BEAM block (EXPERT mode): '//
+     &       'fortran IO currently not supported.'
+        call prror(-1)
 +ei
 +if .not.fio
 +if .not.crlibm
-         read(ch1,*) idat,i,xang,xplane,separx,separy,
-     &     mm1,mm2,mm3,mm4,mm5,
-     &     mm6,mm7,mm8,mm9,mm10,mm11 
+         call intepr(1,1,ch,ch1)
+         read(ch1,*) idat,i
+
+         if (i.gt.0) then !6D
+            call intepr(1,1,ch,ch1)
+            read(ch1,*) idat,i,xang,xplane,separx,separy
+            
+ 1661       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1661
+            read(ch,*) mm1,mm2,mm3,mm4,mm5
+            
+ 1662       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1662
+            read(ch,*) mm6,mm7,mm8,mm9,mm10,mm11
+            
+         else if (i.eq.0) then  !4D
+            call intepr(1,1,ch,ch1)
+            read(ch1,*) idat,i,xang,xplane,separx,separy
+         else
+            write(lout,'(a)') "ERROR when reading BEAM block:"
+            write(lout,'(a,i5,a,a16)')
+     &           "Expected number of slices >= 0; but got",
+     &           i, " in element ",idat
+            call prror(-1)
+         endif
 +ei
-+if crlibm !The CRLIBM version has much more error checking...
++if crlibm  !The CRLIBM version has much more robust error checking...
+         call intepr(1,1,ch,ch1)
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
          if (.not.(nf.eq.6 .or. nf.eq.7)) then
             write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
