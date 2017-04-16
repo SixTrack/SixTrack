@@ -16002,7 +16002,7 @@ cc2008
 !GRD-2007
          if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
          nbeam=1
-         if(ibtyp.eq.1) call wzset
+         if(ibtyp.eq.1) call wzset !Initialize complex error function for FAST BB kick
 
          ! ! ! Read other lines of BEAM block ! ! !
  1660    read(3,10020,end=1530,iostat=ierro) ch
@@ -16119,7 +16119,7 @@ cc2008
 +ei
 +ei
          if(i.lt.0) i=0 ! i is number of slices
-         do 1670 j=1,il
+         do j=1,il !loop over single lements
             if(idat.eq.bez(j).and.kz(j).eq.20.and.i.gt.0) then ! 6D, allow 1 single slice
                parbe(j,17)=1      ! Is 6D
                parbe(j,2)=dble(i) ! Number of slices
@@ -16150,7 +16150,7 @@ cc2008
                ptnfac(j)=mm1
                goto 1660
             endif      
- 1670    continue
+         end do
          goto 1660
          
       else
@@ -17308,7 +17308,8 @@ cc2008
      &'slices set to maximum : ',mbea,' for 6D beam-beam element'//     &!hr12
      &' #: ',j
             parbe(j,2)=dble(mbea)                                        !hr05
-          endif
+            call prror(-1) !Treat this warning as an error
+         endif
         enddo
       endif
       if(iout.eq.0) return
@@ -25576,6 +25577,7 @@ C Should get me a NaN
         stracks(i)=zero
    10 continue
 +ca beams1
+
       do 290 i=1,iu
         if(mout2.eq.1.and.i.eq.1) call write4
         ix=ic(i)
@@ -25646,6 +25648,7 @@ C Should get me a NaN
 +ca beamwzf2
 +ca beama4o
 +ca beams24
+
 +ca wire
 +ca acdip1
 +ca crab1
@@ -37486,7 +37489,7 @@ C Should get me a NaN
         do 140 i1=1,3
           bezr(i1,i)=' '
   140   continue
-        do i1=1,17
+        do i1=1,18
           parbe(i,i1)=zero
         enddo
   150 continue
@@ -37521,7 +37524,9 @@ C Should get me a NaN
         tiltc(i)=one
         tilts(i)=zero
 !--Beam-Beam------------------------------------------------------------
-        imbb(i)=0
+        imbb(i)=0               !Mapping from a STRUCTURE ELEMENT (here: index i)
+                                ! to the beam-beam tables (arrays with size nbb)
+!--Other stuff (not beam-beam)...
         do 190 j=1,40
           exterr(i,j)=zero
 +if time
