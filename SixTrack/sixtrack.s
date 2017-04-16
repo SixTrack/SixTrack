@@ -15942,6 +15942,12 @@ cc2008
       if(ch(1:1).eq.'/') goto 1600
       if(ch(:4).eq.next) goto 110
 
+      if (nbeam.ge.1) then
+         write(lout,*)
+     &        "ERROR: There can only be one BEAM block in fort.3"
+         call prror(-1)
+      endif
+      
       if (ch(:6) .eq."EXPERT") then
          beam_expflag = 1
          
