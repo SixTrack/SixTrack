@@ -1572,6 +1572,10 @@ Some parameters are new or defined in a different way:
   For example $\Sigma_{xxp}$ in [mm\ mrad]
 \end{description}
 
+\subparagraph{Conversion from traditional to EXPERT format}
+An automatic converter from the ``traditional'' input block to the new ``expert'' format is built into SixTrack; every time a non-EXPERT input block is encountered, a conversion is printed to the standard output.
+Therefore, all the user needs to do is to run SixTrack (number of turns does not matter) on an input file that should be converted, and follow the instructions which are printed at the beginning of the program output.
+
 \paragraph{Remark} These beam--beam elements have to appear in the single element list (~\ref{NonEle}) (type 20).
 If the ``traditional'' option is used in the BEAM block, the listing in the single element list must contain their horizontal and vertical beam--beam separations (see~\ref{BBS}).
 
