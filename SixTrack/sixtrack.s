@@ -16029,7 +16029,7 @@ cc2008
      &     mm1,mm2,mm3,mm4,mm5,
      &     mm6,mm7,mm8,mm9,mm10,mm11 
 +ei
-+if crlibm
++if crlibm !The CRLIBM version has much more error checking...
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
          if (.not.(nf.eq.6 .or. nf.eq.7)) then
             write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
@@ -16100,7 +16100,7 @@ cc2008
             mm10=fround(errno,fields,5)
             mm11=fround(errno,fields,6)
             
-         else ! 4D
+         else if(i.eq.0) then ! 4D
             if (nf.ne.7) then
                write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
                write(lout,'(a,I3)')
@@ -16115,41 +16115,70 @@ cc2008
             separx=fround(errno,fields,5)
             separy=fround(errno,fields,6)
             mm1=fround(errno,fields,7)
+         else
+            read(fields(1),*) idat
+            write(lout,'(a)') "ERROR when reading BEAM block:"
+            write(lout,'(a,i5,a,a16)')
+     &           "Expected number of slices >= 0; but got",
+     &           i, " in element ",idat
+            call prror(-1)
          endif
 +ei
 +ei
-         if(i.lt.0) i=0 ! i is number of slices
+         
          do j=1,il !loop over single lements
-            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.gt.0) then ! 6D, allow 1 single slice
-               parbe(j,17)=1      ! Is 6D
-               parbe(j,2)=dble(i) ! Number of slices
-               parbe(j,1)=xang
-               parbe(j,3)=xplane
-               parbe(j,5)=separx
-               parbe(j,6)=separy
-               parbe(j,7)=mm1
-               parbe(j,8)=mm2
-               parbe(j,9)=mm3
-               parbe(j,10)=mm4
-               parbe(j,11)=mm5
-               parbe(j,12)=mm6
-               parbe(j,13)=mm7
-               parbe(j,14)=mm8
-               parbe(j,15)=mm9
-               parbe(j,16)=mm10
-               ptnfac(j)=mm11
-               goto 1660
+            if(idat.eq.bez(j)) then
+               if(kz(j).ne.20) then
+                  write(lout,'(a)') "ERROR when reading BEAM block:"
+                  write(lout,'(a,a16,a,i5,a)')
+     &                 "Found element named ",bez(j),
+     &                 " but type is",kz(j), ", expected type 20!"
+                  call prror(-1)
+               else
+                  
+                  if(parbe(j,5).ne.0d0 .or. parbe(j,6).ne.0d0
+     &                 .or. ptnfac(j).ne.0d0
+     &                 .or. bbbx(j).ne.0d0 .or. bbby(j).ne.0d0
+     &                 .or. bbbs(j).ne.0d0 ) then
+                     !Note: Data moved from ed/ek/el to parbe/ptnfac in initialize_element
+                     write(lout,'(a)') "ERROR when reading BEAM block:"
+                     write(lout,'(a,a16,a)')
+     &                    "Using EXPERT mode, but element ", bez(j),
+     &                    " does not have ed=ek=el=bbbx=bbby=bbbs=0.0"//
+     &                    " in the SINGLE ELEMENTS list."
+                     call prror(-1)
+                  endif
+                  if (i.gt.0) then ! 6D, allow 1 or more slices
+                     parbe(j,17)=1      ! Is 6D
+                     parbe(j,2)=dble(i) ! Number of slices
+                     parbe(j,1)=xang
+                     parbe(j,3)=xplane
+                     parbe(j,5)=separx
+                     parbe(j,6)=separy
+                     parbe(j,7)=mm1
+                     parbe(j,8)=mm2
+                     parbe(j,9)=mm3
+                     parbe(j,10)=mm4
+                     parbe(j,11)=mm5
+                     parbe(j,12)=mm6
+                     parbe(j,13)=mm7
+                     parbe(j,14)=mm8
+                     parbe(j,15)=mm9
+                     parbe(j,16)=mm10
+                     ptnfac(j)=mm11
+                     goto 1660
+                  else if(i.eq.0) then ! 4D, single slice only
+                     parbe(j,17)=0      ! Type is 4D
+                     parbe(j,2)=dble(i) ! Number of slices is always 0
+                     parbe(j,1)=xang
+                     parbe(j,3)=xplane
+                     parbe(j,5)=separx
+                     parbe(j,6)=separy
+                     ptnfac(j)=mm1
+                     goto 1660
+                  endif
+               endif
             endif
-            if(idat.eq.bez(j).and.kz(j).eq.20.and.i.eq.0) then ! 4D
-               parbe(j,17)=0      ! Is 4D
-               parbe(j,2)=dble(i) ! Always 0.0
-               parbe(j,1)=xang
-               parbe(j,3)=xplane
-               parbe(j,5)=separx
-               parbe(j,6)=separy
-               ptnfac(j)=mm1
-               goto 1660
-            endif      
          end do
          goto 1660
          
@@ -17299,15 +17328,16 @@ cc2008
 +ei
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il
-          parbe(j,2)=0d0                                                 !hr05
+          parbe(j,2)=0d0
         enddo
       else
         do j=1,il
-          if(parbe(j,2).gt.dble(mbea)) then                              !hr05
-            write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of '//  &!hr12
-     &'slices set to maximum : ',mbea,' for 6D beam-beam element'//     &!hr12
-     &' #: ',j
-            parbe(j,2)=dble(mbea)                                        !hr05
+          if(parbe(j,2).gt.dble(mbea)) then
+             write(lout,'(a,i5,a,i5,a,a16,a,i5)')
+     &            'ERROR: Requested ',
+     &            int(parbe(j,2)), " slices for 6D beam-beam element"//
+     &            ' #',j, " named ", bez(j), ", maximum is mbea =",mbea
+            parbe(j,2)=dble(mbea)
             call prror(-1) !Treat this warning as an error
          endif
         enddo
