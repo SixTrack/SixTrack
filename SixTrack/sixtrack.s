@@ -40704,6 +40704,41 @@ C Should get me a NaN
          iexpr_dynk(niexpr_dynk+3) = 0 ! seed2 (current)
 
          niexpr_dynk = niexpr_dynk+3
+
+      case("RANDON")
+         ! RANDON: Turn by turn On for one turn with the probability P, else OFF
+         call dynk_checkargs(getfields_nfields,6,
+     &        "FUN funname RANDON seed1 seed2 P" )
+         call dynk_checkspace(4,1,1)
+	          
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         niexpr_dynk = niexpr_dynk+1
+         nfexpr_dynk = nfexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 8           !TYPE (RANDON)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), seed1(current), seed2(current)
+         funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !ARG1 (P)
+         funcs_dynk(nfuncs_dynk,5) = -1          !ARG2 (unused)
+         
+         ! Store data
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        iexpr_dynk(niexpr_dynk)   ! seed1 (initial)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+     &        iexpr_dynk(niexpr_dynk+1) ! seed2 (initial)
+         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+     &        fexpr_dynk(nfexpr_dynk)   ! P
+
+         iexpr_dynk(niexpr_dynk+2) = 0 ! seed1 (current)
+         iexpr_dynk(niexpr_dynk+3) = 0 ! seed2 (current)
+
+         niexpr_dynk = niexpr_dynk+3         
          
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
@@ -41554,7 +41589,7 @@ C Should get me a NaN
 
          ! Store pointers
          funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
-         funcs_dynk(nfuncs_dynk,2) = 81          !TYPE (PELP)
+         funcs_dynk(nfuncs_dynk,2) = 81          !TYPE (ONOFF)
          funcs_dynk(nfuncs_dynk,3) = -1          !ARG1 (p1)
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2 (p2)
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3 (unused)
@@ -41577,7 +41612,7 @@ C Should get me a NaN
      &      "DYNK> Error in ONOFF: Expected p1 >= 0, p2 > 1, p1 <= p2"
             call prror(-1)
          end if
-         
+
       case default
          ! UNKNOWN function
          write (lout,*) "*************************************"
@@ -42296,6 +42331,18 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                iexpr_dynk(funcs_dynk(ii,3)+3) =
      &              iexpr_dynk(funcs_dynk(ii,3)+1)
 
+            else if (funcs_dynk(ii,2) .eq. 8) then !RANDON
+               if (ldynkdebug) then
+                  write (lout,*) 
+     &               "DYNKDEBUG> Resetting RANDON for FUN named '",
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+
+               iexpr_dynk(funcs_dynk(ii,3)+2) =
+     &              iexpr_dynk(funcs_dynk(ii,3) )
+               iexpr_dynk(funcs_dynk(ii,3)+3) =
+     &              iexpr_dynk(funcs_dynk(ii,3)+1)
+
             else if (funcs_dynk(ii,2) .eq. 10) then !FIR
                if (ldynkdebug) then
                   write (lout,*)
@@ -42624,8 +42671,35 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),
      &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
          call recuin(tmpseed1,tmpseed2)
+
          retval = ranecu_rvec(1)
+         write(lout,*)
+     &      "Your ranceuvalue from RANDU is =", retval
+
+      case (8)                                                         ! RANDON
+        ! Save old seeds and load our current seeds
+         call recuut(tmpseed1,tmpseed2)
+         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2),
+     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
+         ! Run generator for 1 value with mcut=-1
+         call ranecu( ranecu_rvec, 1, -1 )
+         ! Save our current seeds and load old seeds
+         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),
+     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
+         call recuin(tmpseed1,tmpseed2)
+	! routine for switching element (orginially the electron lens) ON or OFF
+        ! when random value is less than P, set ON, else OFF 
+         write(lout,*)
+     &      "Your ranceuvalue is =", ranecu_rvec(1)
+         write(lout,*)
+     &      "Your weighting is =", fexpr_dynk(funcs_dynk(funNum,4))
          
+         if (ranecu_rvec(1) .lt. fexpr_dynk(funcs_dynk(funNum,4))) then 
+            retval = 1.0
+         else 
+            retval = 0.0
+         endif
+
       case(10)                                                          ! FIR
          foff = funcs_dynk(funNum,3)
          !Shift storage 1 back
@@ -65495,7 +65569,7 @@ c$$$         backspace (93,iostat=ierro)
       do j=2,4 
        lorentzmatrix(1,j)=g /g
         lorentzmatrix(1,j)=-b(j-1)*g /g
-        lorentzmatrix(j,1)=-b(j-1)*g /g
+        lorentzmatrix(j,1)=-b(j-1)*g r/g
         
         lorentzmatrix(j,j) = (1.0 + (g-1.0)* b(j-1)**2*b2inv) /g
       enddo
