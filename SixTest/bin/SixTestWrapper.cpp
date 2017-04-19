@@ -10,6 +10,9 @@
 #include <signal.h>
 
 #ifndef WIN32
+//open()
+#include<fcntl.h>
+#include <sys/stat.h>
 //waitpid()
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -29,6 +32,12 @@
 #include <windows.h>
 #endif
 
+#ifdef LIBARCHIVE
+#include <sys/stat.h>
+#include <dirent.h>
+#include "libArchive_wrapper.h"
+#endif
+
 #ifndef WIN32
 void *pthread_kill_sixtrack(void*);
 void *pthread_wait_sixtrack(void*);
@@ -44,7 +53,7 @@ size_t StripCR(std::string);
 bool CheckFort10(char**);
 bool CheckFort90(char**);
 bool CheckSTF(char**);
-bool PerformExtraChecks();
+bool PerformExtraChecks(bool&, char* convert_dump_bin, char* dump_bin_file);
 std::vector<int> ParseKillTimes(char*);
 
 void UnlinkCRFiles();
@@ -77,8 +86,11 @@ struct KillInfo
 * 4: bool to check fort.10
 * 5: bool to check fort.90
 * 6: bool for STF enabled
-* 7: CR enabled
-* 8: CR kill time
+* 7: Number of files to expect in Sixout.zip (0 means no Sixout.zip)
+* 8: CR enabled
+* 9: CR kill time
+* 10: Path to readDump3 binary to run
+* 11: Name of file in extra_checks that is a dump format 3 (binary)
 *
 * For running the tools:
 * On "Unix" we call fork() and exec()
@@ -90,9 +102,9 @@ struct KillInfo
 int main(int argc, char* argv[])
 {
 	//First check we have the correct number of arguments
-	if(argc != 9)
+	if(argc != 12)
 	{
-		std::cout << argv[0] << " called with the incorrect number of arguments, should be 8, but was called with " << argc - 1 << " arguments" << std::endl;
+		std::cout << argv[0] << " called with the incorrect number of arguments, should be 11, but was called with " << argc - 1 << " arguments" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -115,11 +127,18 @@ int main(int argc, char* argv[])
 	bool fort10 = false;
 	bool fort90 = false;
 	bool STF = false;
-
+	bool extrachecks = false; //Returned from PerformExtraChecks
+	int sixoutzip = 0;
+	
 	bool fort10fail = false;
 	bool fort90fail = false;
 	bool STFfail = false;
 	bool ExtraChecksfail = false;
+	bool sixoutzipfail = false;
+#ifdef LIBARCHIVE
+	const char* const tmpdir = "sixoutzip_tmpdir";
+	const char* const sixoutzip_fname = "Sixout.zip";
+#endif
 
 	if(atof(argv[4]) != 0)
 	{
@@ -135,13 +154,17 @@ int main(int argc, char* argv[])
 	{
 		STF = true;
 	}
-
 	if(atof(argv[7]) != 0)
 	{
-		CR = true;
-		KillTimes = ParseKillTimes(argv[8]);
+		sixoutzip = atof(argv[7]);
 	}
 
+	if(atof(argv[8]) != 0)
+	{
+		CR = true;
+		KillTimes = ParseKillTimes(argv[9]);
+	}
+	
 	/**
 	* First step is to handle all the running of sixtrack.
 	* This include Checkpoint/resume builds where the run will be killed after a set period of time and then restarted.
@@ -346,7 +369,19 @@ int main(int argc, char* argv[])
 		//Check fork() status
 		if(SixTrackpid == 0)
 		{
-			//child, run sixtrack
+			//In child process, run sixtrack
+
+			// Redirect STDOUT to fort.6
+			// Solution from http://stackoverflow.com/questions/20488574/output-redirection-using-fork-and-execl
+			int fd_6 = open("fort.6",O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR | S_IWUSR);
+			if(fd_6 < 0)
+			{
+				perror("ERROR: Could not open file 'fort.6' for output");
+				exit(EXIT_FAILURE);
+			}
+			dup2(fd_6,1);
+
+			//Execute!
 			int execStatus = execl(argv[1], argv[1], (char*) 0);
 			if(execStatus == -1)
 			{
@@ -355,11 +390,57 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			//main thread, wait()
+			//In main thread, wait()
 			std::cout << "Waiting for SixTrack to finish running - pid: " << SixTrackpid << std::endl;
 			int waitpidStatus;
 			waitpid(SixTrackpid, &waitpidStatus, WUNTRACED);
 			std::cout << "SixTrack finished running: " << waitpidStatus << std::endl;
+
+			//Print the last NLINES lines
+			size_t NLINES = 20;
+			std::cout << "Last "<<NLINES<<" lines of output:"<<std::endl;
+			// Adapted from http://stackoverflow.com/questions/11876290/c-fastest-way-to-read-only-last-line-of-text-file
+			std::ifstream fort6("fort.6");
+			if (not fort6.is_open())
+			{
+				perror("ERROR: Could not open file 'fort.6' after SixTrack has finished");
+			}
+			else
+			{
+				// go to one spot before the EOF
+				fort6.seekg(-1,fort6.end);
+				char ch;
+				size_t haslines = 0;
+				while (haslines<=NLINES)
+				{
+					fort6.get(ch);
+					// In case the file contained only a single line
+					if((int)fort6.tellg() <= 1)
+					{
+						fort6.seekg(0);
+						break;
+					}
+					// If the data was a newline
+					else if(ch == '\n') {
+						haslines += 1;
+						fort6.seekg(-2,fort6.cur);
+					}
+					// If the data was neither a newline nor at the 0 byte
+					else
+					{
+						// Move to the front of that data,
+					        //  then to the front of the data before it
+						fort6.seekg(-2,fort6.cur);
+					}
+				}
+				//OK, now we have moved NLINES up ahead; time to read and print again
+				std::string fort6_line;
+				while (std::getline(fort6,fort6_line)){
+				  std::cout << fort6_line<<std::endl;
+				}
+
+				fort6.close();
+			}
 		}
 #else
 	int execStatus = _spawnl(_P_WAIT, argv[1], argv[1], (char*) 0);
@@ -423,9 +504,143 @@ int main(int argc, char* argv[])
 			std::cout << "STF: PASS" << std::endl;
 		}
 	}
+	
 	//Look at extra_checks.txt
-	ExtraChecksfail = PerformExtraChecks();
+	ExtraChecksfail = PerformExtraChecks(extrachecks, argv[10],argv[11]);
 
+	//Look at sixout.zip
+#ifdef LIBARCHIVE
+	if (sixoutzip)
+	{
+		std::cout <<  "------------------------ Checking sixout.zip ---------------------------------" << std::endl;
+	  	
+		//(Re-)create tmpdir folder
+		struct stat st;
+		int status;
+		if (stat(tmpdir, &st) == 0)
+		{
+			if ( ! S_ISDIR(st.st_mode) )
+			{
+				std::cout << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "Folder '" << tmpdir << "' exits, deleting contents." << std::endl;
+
+			// From http://stackoverflow.com/questions/11007494/how-to-delete-all-files-in-a-folder-but-not-delete-the-folder-using-nix-standar
+			
+			// These are data types defined in the "dirent" header
+			DIR *theFolder = opendir(tmpdir);
+			struct dirent *next_file;
+			char filepath[256];
+			
+			while ( (next_file = readdir(theFolder)) != NULL )
+			{
+				// build the path for each file in the folder
+				int snprintf_err = snprintf(filepath, 256, "%s/%s", tmpdir, next_file->d_name);
+				if (snprintf_err >= 256 || snprintf_err < 0)
+				{
+					std::cout << "Error in snprintf while building the path for deleting a file" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				remove(filepath);
+			}
+			closedir(theFolder);
+			std::cout << "done." << std::endl;
+		}
+		else
+		{
+			std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
+#if defined(_WIN32)
+			status = not CreateDirectory(tmpdir,NULL);
+#else
+			status = mkdir(tmpdir,S_IRWXU);
+#endif
+			if (status)
+			{
+				std::cout << "Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "done." << std::endl;
+		}
+		
+		//List content
+		//list_archive(sixoutzip_fname);
+		const int archive_nfiles_max = 256;
+		int archive_nfiles = archive_nfiles_max;
+		const int archive_buffsize = 100;
+		char** archive_buff = new char*[archive_nfiles];
+		for (int i = 0; i< archive_nfiles_max; i++)
+		{
+			archive_buff[i] = new char[archive_buffsize];
+		}
+		std::cout << "Calling list_archive_get..." << std::endl;
+		list_archive_get(sixoutzip_fname,archive_buff,&archive_nfiles,archive_buffsize);
+
+		std::cout << "Got " << archive_nfiles << " files:" << std::endl;
+		for (int i = 0; i< archive_nfiles; i++)
+		{
+			std::cout << "File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
+		}
+		if (archive_nfiles != sixoutzip)
+		{
+			std::cout << "WARNING: Expected " << sixoutzip << " files in '" << sixoutzip_fname << "', got " << archive_nfiles << std::endl;
+			sixoutzipfail = true;
+		}
+		else
+		{
+			std::cout << "The number of files in the archive '" << sixoutzip_fname << "' MATCHES the expected number " << archive_nfiles << std::endl;
+		}
+		
+		//Unzip!
+		std::cout << "Calling read_archive..." << std::endl;
+		read_archive(sixoutzip_fname,tmpdir);
+
+		for (int i = 0; i< archive_nfiles; i++)
+		{
+			char* FileNameZip = new char[strlen(tmpdir)+1+archive_buffsize];
+			
+			// Insert the right path separator
+			int snprintf_err = 0;
+#ifdef WIN32
+			snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\\%s",tmpdir,archive_buff[i]);
+#else
+			snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
+#endif
+			if (snprintf_err >= (archive_buffsize+1+strlen(tmpdir)) || snprintf_err < 0)
+			{
+				std::cout << "Error in snprintf while building the path for unzipped file." << std::endl;
+				std::cout << "snprintf_err = " << snprintf_err << ", buffsize=" << (archive_buffsize+1+strlen(tmpdir)) << std::endl;
+				exit(EXIT_FAILURE);
+			}
+
+#ifdef WIN32
+			//Strip out \r characters from windows new lines
+			size_t CRcount = StripCR(FileNameZip);
+			std::cout << "Removed " << CRcount << " windows \\r entries from '" << FileNameZip << "'." << std::endl;
+#endif
+			
+			bool ThisTest = !FileComparison(FileNameZip, std::string(archive_buff[i]) + ".canonical");
+			if(ThisTest)
+			{
+				std::cerr << "WARNING: Test of zipped file '" << FileNameZip << "' failed!" << std::endl;
+				sixoutzipfail = true;
+			}
+			else
+			{
+				std::cout << "Test of zipped file '" << FileNameZip << "' MATCHES" << std::endl;
+			}
+		}
+		
+		//Cleanup memory
+		for (int i = 0; i< archive_nfiles_max; i++)
+		{
+			delete[] archive_buff[i];
+		}
+		delete[] archive_buff;
+		
+		std::cout <<  "----------------------- End checking sixout.zip ------------------------------" << std::endl;
+	}
+#endif
 	std::cout << "---------------------------------- SUMMARY -----------------------------------" << std::endl;
 	if(fort10)
 	{
@@ -462,12 +677,36 @@ int main(int argc, char* argv[])
 			std::cout << "singletrackfile.dat MATCHES" << std::endl;
 		}
 	}
+	if(extrachecks)
+	{
+		if(ExtraChecksfail)
+		{
+			std::cout << "Extra checks DOES NOT MATCH" << std::endl;
+		}
+		else
+		{
+			std::cout << "Extra checks MATCHES" << std::endl;
+		}
+	}
+#ifdef LIBARCHIVE
+	if(sixoutzip)
+	{
+		if(sixoutzipfail)
+		{
+			std::cout << sixoutzip_fname << " DOES NOT MATCH" << std::endl;
+		}
+		else
+		{
+			std::cout << sixoutzip_fname << " MATCHES" << std::endl;
+		}
+	}
+#endif
 	std::cout << "------------------------------------ EXIT ------------------------------------" << std::endl;
 
 	//or together any fail bits.
 	//If all tests pass this will return 0 (good)
 	//if not we get something else out (bad)
-	return (fort10fail || fort90fail || STFfail || ExtraChecksfail);
+	return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail);
 }
 
 /**
@@ -816,14 +1055,14 @@ bool FileComparison(std::string FileName1, std::string FileName2)
 	return true;
 }
 
-bool PerformExtraChecks()
+bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bin_file)
 {
 	std::cout << "--------------------------- Performing extra checks ---------------------------" << std::endl;
 	bool AllTests = false;
 	std::ifstream extra_checks_in("extra_checks.txt");
 	if(extra_checks_in.good())
 	{
-
+		extrachecks=true;
 		std::cout << "Opened extra_checks.txt" << std::endl;
 		//Format should be some file to check followed by a command
 		while(extra_checks_in.good())
@@ -835,11 +1074,109 @@ bool PerformExtraChecks()
 			getline(extra_checks_in, StringBuffer);
 			if(FileName != "")
 			{
-				std::cout << "Performing extra checks on " << FileName << std::endl;
+				std::cout << "Performing extra checks on '" << FileName << "'" << std::endl;
+				bool convertThis = false;
+				if(FileName == std::string(dump_bin_file))
+				{
+					convertThis = true;
+					std::cout << "This is a binary format 3 DUMP, must convert!" << std::endl;
+					std::cout << "Calling '"<<convert_dump_bin<<"'"<<std::endl;
+#ifndef WIN32
+					//Now again we fork() and exec()
+					//Do this for the first file
+					pid_t ReadDump3pid = fork();
+					if(ReadDump3pid == -1)
+					{
+						perror("ERROR: Could not fork to start readDump3");
+						exit(EXIT_FAILURE);
+					}
+					
+					//Check fork() status
+					if(ReadDump3pid == 0)
+					{
+						//child, run readDump3
+						int status = execl(convert_dump_bin, "readDump3", FileName.c_str(), (FileName+std::string(".converted")).c_str(), (char*) 0);
+						if(status == -1)
+						{
+							perror("ERROR: Could not execute readDump3");
+							exit(EXIT_FAILURE);
+						}
+					}
+					else
+					{
+						//main thread, wait()
+						int waitpidStatus;
+						waitpid(ReadDump3pid, &waitpidStatus, WUNTRACED);
+						std::cout << "readDump3 finished running on '"<< FileName << "': " << waitpidStatus << std::endl;
+						if(waitpidStatus != 0)
+						{
+							std::cerr << "ERROR: Problem running readDump3" << std::endl;
+							exit(EXIT_FAILURE);
+						}
+					}
+					
+					//Do this for the second file
+					ReadDump3pid = fork();
+					if(ReadDump3pid == -1)
+					{
+						perror("ERROR: Could not fork to start readDump3");
+						exit(EXIT_FAILURE);
+					}
+					
+					//Check fork() status
+					if(ReadDump3pid == 0)
+					{
+						//child, run readDump3
+						int status = execl(convert_dump_bin, "readDump3", (FileName.c_str()+std::string(".canonical")).c_str(), (FileName+std::string(".converted")+std::string(".canonical")).c_str(), (char*) 0);
+						if(status == -1)
+						{
+							perror("ERROR: Could not execute readDump3");
+							exit(EXIT_FAILURE);
+						}
+					}
+					else
+					{
+						//main thread, wait()
+						int waitpidStatus;
+						waitpid(ReadDump3pid, &waitpidStatus, WUNTRACED);
+						std::cout << "readDump3 finished running on '" << FileName.c_str()+std::string(".canonical") << "': " << waitpidStatus << std::endl;
+						if(waitpidStatus != 0)
+						{
+							std::cerr << "ERROR: Problem running readDump3" << std::endl;
+							exit(EXIT_FAILURE);
+						}
+					}
+#else
+					//Windows
+					//First file
+					int status1 = _spawnl(_P_WAIT, convert_dump_bin, "readDump3", FileName.c_str(), (FileName+std::string(".converted")).c_str(), (char*) 0);
+					if(status1 == -1)
+					{
+						perror("ERROR - could not execute readDump3");
+						exit(EXIT_FAILURE);
+					}
+					std::cout << "readDump3 finished running on '" << FileName << "': " << status1 << std::endl;
+					
+					//Second file (canonical)
+					int status2 = _spawnl(_P_WAIT, convert_dump_bin, "read90", (FileName.c_str()+std::string(".canonical")).c_str(), (FileName+std::string(".converted")+std::string(".canonical")).c_str(), (char*) 0);
+					if(status2 == -1)
+					{
+						perror("ERROR - could not execute readDump3");
+					}
+					std::cout << "readDump3 finished running on '" << FileName.c_str()+std::string(".canonical") << "': " << status2 << std::endl;
+#endif
+					// Update the filename
+					FileName = FileName+std::string(".converted");
+				} // Done converting to ASCII...
 #ifdef WIN32
 				//Strip out \r characters from windows new lines
 				size_t CRcount = StripCR(FileName);
 				std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+				if (convertThis)
+				{
+					size_t CRcount = StripCR(FileName + std::string(".canonical"));
+					std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+				}
 #endif
 				bool ThisTest = !FileComparison(FileName, FileName + ".canonical");
 				if(ThisTest)
@@ -857,6 +1194,7 @@ bool PerformExtraChecks()
 	else
 	{
 		std::cout << "Could not open extra_checks.txt" << std::endl;
+		extrachecks=false;
 	}
 
 	std::cout << "------------------------------- End extra checks ------------------------------" << std::endl;

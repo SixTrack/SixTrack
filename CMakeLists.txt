@@ -430,9 +430,6 @@ if(HUGENPART)
 	if(BIGNPART)
 		message(FATAL_ERROR "Cannot combine BIGNPART with HUGENPART.")
 	endif()
-	if(COLLIMAT)
-		message(FATAL_ERROR "Cannot build HUGENPART with COLLIMAT enabled.")
-	endif()
 	if(BNLELENS)
 		message(FATAL_ERROR "Cannot build HUGENPART with BNLELENS enabled.")
 	endif()
@@ -537,28 +534,37 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -mfpmath=sse -msse2")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops")
+
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
+		set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
+	endif()
+
 	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
 	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 
-	if(32BIT)
-		set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
-	endif(32BIT)
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+		SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
 
-	if(64BIT)
-		set(CMAKE_Fortran_FLAGS "-m64 ${CMAKE_Fortran_FLAGS}")
-	endif(64BIT)
+		if(32BIT)
+			set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
+		endif(32BIT)
 
-	if(AVX)
-		set(CMAKE_Fortran_FLAGS "-mavx ${CMAKE_Fortran_FLAGS}")
-	endif(AVX)
-	if(AVX2)
-		set(CMAKE_Fortran_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
-	endif(AVX2)
+		if(64BIT)
+			set(CMAKE_Fortran_FLAGS "-m64 ${CMAKE_Fortran_FLAGS}")
+		endif(64BIT)
 
-	if(NATIVE)
-	  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
-	endif(NATIVE)
+		if(AVX)
+			set(CMAKE_Fortran_FLAGS "-mavx ${CMAKE_Fortran_FLAGS}")
+		endif(AVX)
+		if(AVX2)
+			set(CMAKE_Fortran_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+		endif(AVX2)
+
+		if(NATIVE)
+		  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+		endif(NATIVE)
+	endif()
 
 	if(STATIC)
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -660,27 +666,32 @@ endif ()
 #${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 
-	if(32BIT)
-		set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
-	endif(32BIT)
-
-	if(64BIT)
-		set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
-	endif(64BIT)
-
-	if(AVX)
-		set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
-	endif(AVX)
-	if(AVX2)
-		set(CMAKE_C_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
-	endif(AVX2)
-
-	if(NATIVE)
-		set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
-	endif(NATIVE)
-
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
+		set (CMAKE_C_FLAGS "-ffp-contract=off ${CMAKE_C_FLAGS}")
+	endif()
 	set (CMAKE_C_FLAGS_RELEASE "-O2")
 	set (CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
+
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+		if(32BIT)
+			set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
+		endif(32BIT)
+
+		if(64BIT)
+			set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
+		endif(64BIT)
+
+		if(AVX)
+			set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
+		endif(AVX)
+		if(AVX2)
+			set(CMAKE_C_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+		endif(AVX2)
+
+		if(NATIVE)
+			set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
+		endif(NATIVE)
+	endif()
 
 	if(STATIC)
 		SET(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
@@ -725,30 +736,35 @@ endif()
 #${CMAKE_CXX_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
-	if(32BIT)
-		set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
-	endif(32BIT)
-
-	if(64BIT)
-		set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
-	endif(64BIT)
-
-	if(AVX)
-		set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
-	endif(AVX)
-	if(AVX2)
-		set(CMAKE_CXX_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
-	endif(AVX2)
-
-	if(NATIVE)
-		set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
-	endif(NATIVE)
-
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
+		set (CMAKE_CXX_FLAGS "-ffp-contract=off ${CMAKE_CXX_FLAGS}")
+	endif()
 	set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 	set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+		if(32BIT)
+			set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+		endif(32BIT)
+
+		if(64BIT)
+			set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
+		endif(64BIT)
+
+		if(AVX)
+			set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
+		endif(AVX)
+		if(AVX2)
+			set(CMAKE_CXX_FLAGS "-mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+		endif(AVX2)
+
+		if(NATIVE)
+			set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
+		endif(NATIVE)
+	endif()
+
 	if(STATIC)
-		SET(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
+		SET(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
 	endif(STATIC)
 
 endif()
@@ -830,15 +846,20 @@ endif()
 add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
-#build astuce
-add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/astuce.f)
-SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+##build astuce
+add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
+SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
 if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	target_link_libraries(astuce ${g2cLink})
+	target_link_libraries(astuce_old ${g2cLink})
 endif()
 
+add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
+add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
+SET_TARGET_PROPERTIES(astuce PROPERTIES OUTPUT_NAME "astuce++")
+target_link_libraries(astuce astuce++)
+
 #build dafor
-add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
+add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/tools/dafor/dafor.f)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
@@ -927,30 +948,29 @@ if(LIBARCHIVE)
 	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
 	
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+	#A very small but convenient test code for debugging libArchive.
+	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/SixTrack/libArchiveTester.cpp)
+	target_link_libraries(libArchiveTester libArchive_wrapper)
+
+	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrack libArchive_wrapper)
+	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
-		#Windows needs a trampoline between __imp__FUNNAME -> FUNNAME, which is provided by the .dll.a
-		# Therefore, must link as -L${LIBARCHIVE_BUILD_DIR}/libarchive/ -larchive
-		# Not just include the .a
-		find_library(archive STATIC PATH ${LIBARCHIVE_BUILD_DIR}/libarchive/ archive)
-
-		find_library(zlib STATIC z)
-		find_library(pthread STATIC pthread)
-		find_library(bz2 STATIC bz2)
-		find_library(Bcrypt STATIC Bcrypt)
-		find_library(iconv STATIC iconv)
-		target_link_libraries(SixTrack archive z bz2 Bcrypt pthread iconv)
+		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
+		add_definitions( -DLIBARCHIVE_STATIC )
 	else()
-		add_library(libarchive STATIC IMPORTED)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
-
-		find_library(pthread STATIC pthread)
-		find_library(bz2 STATIC bz2)
-		find_library(z STATIC z)
-
-		target_link_libraries(SixTrack libarchive z bz2 pthread)
 	endif()
+	
+	find_library(pthread STATIC pthread)
+	find_library(z STATIC z)
+	
+	target_link_libraries(SixTrack libarchive z pthread)
+	target_link_libraries(libArchiveTester libarchive z pthread)
+	
+	add_definitions( -DLIBARCHIVE )
 endif()
 
 #make a folder for the astuce masks and copy the input files to this folder
@@ -970,7 +990,7 @@ add_dependencies(SixTrack copy_input_files generate_input)
 add_custom_target(run_astuce)
 
 #make running astuce depend on astuce being built and the input files being in place
-add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
+add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks astuce_old)
 
 #This target cleans the define flags
 add_custom_target(astuce_clean_define_flags)
@@ -992,9 +1012,9 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-#First clean up the astuce decks for only what is enabled
-#set(OPT crlibm tilt fast bpm beamgas collimat bnlelens cr boinc nagfor bignblz debug hdf5 fio lf95 hugenblz stf bignpart datamods hugenpart)
+
 foreach(loop IN ITEMS ${FORS})
+	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
 	endif()
@@ -1058,7 +1078,11 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT MERLINSCATTER)
 		ast_masks_flag(merlinscatter ${loop})
 	endif()
+	if(NOT LIBARCHIVE)
+		ast_masks_flag(libarchive ${loop})
+	endif()
 
+	#Clean up the astuce decks for only what is enabled
 	if(NOT COLLIMAT)
 		ast_masks_deck(nwrtcoll ${loop})
 	endif()
@@ -1093,11 +1117,12 @@ add_dependencies(generate_input run_astuce dafor rename_beamgas)
 #we rename beamgas.f to beamgas.f90 since it should be in free format fortran
 add_custom_target(rename_beamgas)
 add_dependencies(rename_beamgas run_astuce)
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E rename beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E copy beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+#	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
 
 	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
 		message(STATUS "Will run dafor on ${loop}.f")
@@ -1113,7 +1138,7 @@ endforeach()
 set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/5.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
-	target_link_libraries(astuce ${MSYS_QUADMATH})
+	target_link_libraries(astuce_old ${MSYS_QUADMATH})
 	target_link_libraries(dafor ${MSYS_QUADMATH})
 	target_link_libraries(SixTrack ${MSYS_QUADMATH})
 endif()
@@ -1238,6 +1263,8 @@ IF(BUILD_TESTING)
 	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
 	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
 	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
+	add_executable(readDump3 ${CMAKE_SOURCE_DIR}/SixTest/readDump3/readDump3.f90)
+
 	target_link_libraries(read90 roundctl)
 
 	SET_TARGET_PROPERTIES(verify10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
@@ -1246,6 +1273,7 @@ IF(BUILD_TESTING)
 	SET_TARGET_PROPERTIES(checkf110 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(checkf1014 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+	SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 	if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
 		target_link_libraries(verify10 ${g2cLink})
@@ -1255,6 +1283,9 @@ IF(BUILD_TESTING)
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+	if (LIBARCHIVE)
+		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z pthread)
+	endif()
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
 	find_library(pthread STATIC pthread)
@@ -1280,6 +1311,7 @@ IF(BUILD_TESTING)
 		target_link_libraries(compf10 ${MSYS_QUADMATH})
 		target_link_libraries(read90 ${MSYS_QUADMATH})
 		target_link_libraries(SixTestWrapper ${MSYS_QUADMATH})
+		target_link_libraries(readDump3 ${MSYS_QUADMATH})
 	endif()
 ENDIF()
 
