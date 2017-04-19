@@ -33,9 +33,18 @@
 *   decks will be extracted.                                           *
 *                                                                      *
 *   Author: H. Grote, CERN/DD     Feb. 25, 1988                        *
-*   Copyright CERN                                                     *
+*   Copyright CERN 2014                                                *
+*   This software is distributed under the terms of the GNU            *
+*   Lesser General Public License version 2.1, copied verbatim in the  *
+*   file ``COPYING''.                                                  *
+*
+*  In applying this licence, CERN does not waive the privileges and    *
+*  immunities granted to it by virtue of its status as an              *
+*  Intergovernmental Organization or submit itself to any jurisdiction.*
+*                                                                      *
+*                                                                      *
 ************************************************************************
- 
+
       call astdef
       call astini
       call inisum
