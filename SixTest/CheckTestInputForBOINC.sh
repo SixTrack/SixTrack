@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 for i in $(ls -d */); do
-#echo ${i%%/};
+echo ${i%%/};
 if [ -f ${i}Sixin.zip ]; then
 	mkdir ${i}/zip
 	cp ${i}/Sixin.zip ${i}/zip
