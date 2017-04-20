@@ -1088,6 +1088,11 @@ The functions are always evaluated as a function of the current turn number $t$,
   The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
   Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
   
+  RANDON      & \emph{seed1[int] seed2[int] P[float]} &
+  Returns the value of 1.0 or 0.0 resulting of the weighting with the probability \emph{P} of a pseudorandom number generated from a uniform distribution .
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
+  Note that every RANDON function defined in DYNK uses its own separate random number stream.\\
+
   \hline
   \rowcolor{blue!15}
   Filters & & \\*
