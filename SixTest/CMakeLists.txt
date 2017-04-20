@@ -20,10 +20,8 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
-if(BOINC)
-	ADD_TEST(NAME CheckTestInputForBOINC.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForBOINC.sh)
-	set_tests_properties(CheckTestInputForBOINC.sh PROPERTIES FAIL_REGULAR_EXPRESSION "[^-.*$]|[^diff]")
-endif(BOINC)
+ADD_TEST(NAME CheckTestInput_BOINC WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForBOINC.sh)
+set_tests_properties(CheckTestInput_BOINC PROPERTIES FAIL_REGULAR_EXPRESSION "[^-.*$]|[^diff]")
 
 ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
@@ -193,13 +191,14 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	endif()
 endforeach()
 
-#tools
+#Tools
 SET(SELFTEST_TOOLS SelfTest_verify10 SelfTest_compf10 SelfTest_checkf1014 SelfTest_checkf10 SelfTest_checkf110 SelfTest_read90 SelfTest_readDump3)
-if(BOINC)
-	SET(SELFTEST_TOOLS ${SELFTEST_TOOLS} CheckTestInputForBOINC.sh)
-endif(BOINC)
-
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
 	set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
 
+#Inputs
+SET(SELFTEST_INPUT CheckTestInput_BOINC CheckTestInput_STF)
+foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
+	set_property(TEST ${TOOL} PROPERTY LABELS input fast)
+endforeach()
