@@ -62,7 +62,7 @@ def parse_astuce(filenames):
       else:
         code.append(line)
       if line.startswith('+ca'):
-        blockname=line.split()[1]
+        blockname=line.split()[1].lower()
         block.block_used.add(blockname)
       elif line.startswith('+if'):
         statement=line.split()[1]
@@ -266,7 +266,7 @@ assembling code <em>blocks</em> according to <em>flags</em>. </p>
       fh.close()
   def get_definitions(self):
       rsub=re.compile('subroutine +([A-z0-9_]+) *\(',re.IGNORECASE)
-      rscall=re.compile('call +([A-z0-9_]+) *\(',re.IGNORECASE)
+      rscall=re.compile('call +([A-z0-9_]+)',re.IGNORECASE)
       rfun=re.compile('function +([A-z0-9_]+) *\(',re.IGNORECASE)
       rfcall=re.compile('([A-z0-9_]+)\(',re.IGNORECASE)
       sdef={}
