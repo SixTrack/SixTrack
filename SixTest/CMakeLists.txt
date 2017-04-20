@@ -75,7 +75,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	#Check fort.10 by default
 	SET(FORT10 1)
 	#.. But some tests are missing this file:
-	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6 OR TST MATCHES rfMultipoles_2ndOrder)
+	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6 OR TST MATCHES rfMultipoles_2ndOrder OR TST MATCHES rfMultipoles_3rdOrder OR TST MATCHES rfMultipoles_4thOrder)
 		SET(FORT10 0)
 	endif()
 
