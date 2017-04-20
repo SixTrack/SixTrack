@@ -2135,27 +2135,27 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             yv(2,j)=yv(2,j)+xv(1,j)*strackx(i)
 !	
 !
-      crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
-      cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
+      crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i)))*oidpsv(j)
+      cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i)))*oidpsv(j)
 +if crlibm
-            yv(1,j)=crkve*cos_rn((strackz(i)*oidpsv(j))+        &!hr02
-     &cikve*sin_rn((strackz(i)*oidpsv(j))                        !hr02
-            yv(2,j)=cikve*cos_rn((strackz(i)*oidpsv(j))-        &!hr02
-     &crkve*sin_rn((strackz(i)*oidpsv(j))                        !hr02
-            crkve=xv(1,j)*cos_rn((strackz(i)*oidpsv(j))+        &!hr02
-     &xv(2,j)*sin_rn((strackz(i)*oidpv(j))                      !hr02
-            cikve=xv(2,j)*cos_rn((strackz(i)*oidpsv(j))-        &!hr02
-     &xv(1,j)*sin_rn((strackz(i)*oidpsv(j))                      !hr02
+            yv(1,j)=crkve*cos_rn(strackz(i)*oidpsv(j))+
+     &cikve*sin_rn(strackz(i)*oidpsv(j))
+            yv(2,j)=cikve*cos_rn(strackz(i)*oidpsv(j))-
+     &crkve*sin_rn(strackz(i)*oidpsv(j))
+            crkve=xv(1,j)*cos_rn(strackz(i)*oidpsv(j))+
+     &xv(2,j)*sin_rn(strackz(i)*oidpsv(j))
+            cikve=xv(2,j)*cos_rn(strackz(i)*oidpsv(j))-
+     &xv(1,j)*sin_rn(strackz(i)*oidpsv(j))
 +ei
 +if .not.crlibm
-            yv(1,j)=crkve*cos((strackz(i)*oidpsv(j))+           &!hr02
-     &cikve*sin((strackz(i)*oidpsv(j))                           !hr02
-            yv(2,j)=cikve*cos((strackz(i)*oidpsv(j))-           &!hr02
-     &crkve*sin((strackz(i)*oidpsv(j))                           !hr02
-            crkve=xv(1,j)*cos((strackz(i)*oidpsv(j))+           &!hr02
-     &xv(2,j)*sin((strackz(i)*oidpsv(j))                         !hr02
-            cikve=xv(2,j)*cos((strackz(i)*oidpsv(j))-           &!hr02
-     &xv(1,j)*sin((strackz(i)*oidpsv(j))                         !hr02
+            yv(1,j)=crkve*cos(strackz(i)*oidpsv(j))+
+     &cikve*sin(strackz(i)*oidpsv(j))
+            yv(2,j)=cikve*cos(strackz(i)*oidpsv(j))-
+     &crkve*sin(strackz(i)*oidpsv(j))
+            crkve=xv(1,j)*cos(strackz(i)*oidpsv(j))+
+     &xv(2,j)*sin(strackz(i)*oidpsv(j))
+            cikve=xv(2,j)*cos(strackz(i)*oidpsv(j))-
+     &xv(1,j)*sin(strackz(i)*oidpsv(j))
 +ei
             xv(1,j)=crkve
             xv(2,j)=cikve
@@ -2172,19 +2172,17 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         strackx(i)=strack(i)/2
         strackz(i)=strackz(i)/2
 	
-        crkve=sigmv(j)-0.5d0*(((((((xv(1,j)**2+xv(2,j)**2)*strackx(i))* &!hr02
-     &strackz(i))*rvv(j))*oidpsv(j)*oidpsv(j)           !hr02
+        crkve=sigmv(j)-0.5d0*(((((xv(1,j)**2+xv(2,j)**2)*strackx(i))*
+     &strackz(i))*rvv(j))*oidpsv(j))*oidpsv(j)
             sigmv(j)=crkve
-      crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
-      cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*oidpsv(j) !hr02
-      sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
-     &rvv(j))*oidpsv(j)*oidpsv(j)                       !hr02
+      crkve=yv(1,j)-((xv(1,j)*strackx(i))*strackz(i))*oidpsv(j)
+      cikve=yv(2,j)-((xv(2,j)*strackx(i))*strackz(i))*oidpsv(j)
+      sigmv(j)=sigmv(j)+((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))*
+     &rvv(j))*oidpsv(j))*oidpsv(j)
 !  	 revert back strackx and strackz at end of kickvso2
 	        strackx(i)=strack(i)*2
 	        strackz(i)=strackz(i)*2
-
-	
-
+                
 +cd kickelens
             select case (elens_type(ix))
               case (1)
