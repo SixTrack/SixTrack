@@ -25,16 +25,16 @@ if(BOINC)
 	set_tests_properties(CheckTestInputForBOINC.sh PROPERTIES FAIL_REGULAR_EXPRESSION "[^-.*$]|[^diff]")
 endif(BOINC)
 
+ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
+set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
 #SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
-## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90.
+## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
 ## "Totally untested": bnl
 ##
-
-#List of tests which are STF compatible
-SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d elensidealthck6d elensidealthin6d_DYNK wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
 
 if(NOT COLLIMAT)
 	if(LIBARCHIVE)
@@ -79,24 +79,15 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 		SET(FORT10 0)
 	endif()
 
-	#check fort.90 by default
-	SET(FORT90 1)
-	# if(TST MATCHES lostnumxv )
-	# 	SET(FORT90 0)
-	# endif()
-
 	#if STF, we need to use the STF flag on read90
 	if(STF)
-		LIST(FIND STF_TESTS ${TST} IS_STF)
-		if(NOT ${IS_STF} MATCHES -1)
-			SET(STF_ENABLE 1)
-		else()
-			SET(STF_ENABLE 0)
-		endif()
+		SET(STF_ENABLE 1)
 		##Disable checking fort.90
 		SET(FORT90 0)
 	else()
 		SET(STF_ENABLE 0)
+		#check fort.90 by default
+		SET(FORT90 1)
 	endif(STF)
 
 	if(LIBARCHIVE)
