@@ -26,13 +26,14 @@ set_tests_properties(CheckTestInput_BOINC PROPERTIES FAIL_REGULAR_EXPRESSION "[^
 ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
-#SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
-
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
 ## "Totally untested": bnl
 ##
+
+#List of tests that does not produce a valid fort.10
+SET(TESTS_NOFORT10 exact thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk dump_binary dump4 dump5 dump6 rfMultipoles_2ndOrder rfMultipoles_3rdOrder rfMultipoles_4thOrder)
 
 if(NOT COLLIMAT)
 	if(LIBARCHIVE)
@@ -70,21 +71,22 @@ endif(CR)
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
 	#determine what we need to do:
+
 	#Check fort.10 by default
 	SET(FORT10 1)
-	#.. But some tests are missing this file:
-	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6 OR TST MATCHES rfMultipoles_2ndOrder OR TST MATCHES rfMultipoles_3rdOrder OR TST MATCHES rfMultipoles_4thOrder)
+	LIST(FIND TESTS_NOFORT10 ${TST} NO_FORT10)
+	if(NOT ${NO_FORT10} MATCHES -1)
 		SET(FORT10 0)
+	else()
+		SET(FORT10 1)
 	endif()
 
-	#if STF, we need to use the STF flag on read90
+	#if STF, we need to use the STF flag on read90, and disable checking fort.90
 	if(STF)
 		SET(STF_ENABLE 1)
-		##Disable checking fort.90
 		SET(FORT90 0)
 	else()
 		SET(STF_ENABLE 0)
-		#check fort.90 by default
 		SET(FORT90 1)
 	endif(STF)
 
