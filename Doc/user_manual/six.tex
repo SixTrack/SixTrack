@@ -728,7 +728,99 @@ deflection angle.
 \item [Phase] Phase of the excitation in radians.
 \end{description}
 
-%\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
+\paragraph{Remark}
+
+How to use the crab cavity from MadX (using rfmultipole) to SixTrack:
+
+In the mad-x script write:
+MULT.1, FREQ=<freq in MHz>., KNL={V [MV]/E0[MeV]}, PNL={phase}, TILT=<H: 0; V:PI/2.>; where phase is 0.25 (phase for multipoles in SixTrack).
+
+E.g. to have the effect of a vertical Crab Cavity (see \ref{CrabCav}) of f=400MHz, V=6MV, beam energy [MeV]: BEAM->PC/1e3: 
+MULT.1, FREQ=400., KNL={6./BEAM->PC/1e3}, PNL={0.25}, TILT=PI/2.; 
+
+(if you don’t want to have a vertical Crab Cavity then just remove the TILT, 
+and if you don’t want to have CC but a simple dipole field then remove the FREQ parameter)
+
+This creates the following line in fort.2: 
+mult.1d          -23   6.000000000e+00   4.000000000e+02    0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+
+\subsubsection{RF multipoles}
+
+Provide a kick in the form of 
+
+$$
+\Delta x'+i\Delta y'= \frac{k}{1+\delta} (x+iy)^n \cos (\phi - 2 \pi f t)
+$$
+$$
+\Delta \delta= P_0 \frac{k}{1+\delta} \frac{(x+iy)^{n+1}}{(n+1)!} \cos (\phi - 2 \pi f t)
+$$
+
+
+
+\paragraph{Format} {\em RFmultipole type name kick frequency phase}
+\begin{description}
+\item [RFmultipole] Limited to sixteen characters.
+\item [type] 26: normal quadrupole , -26 skew quadrupole,
+             27: normal sextupole, -27 skew sextupole,
+	     28: normal octupole, -28 skew octupole;
+\item [kick] maximum normalized kick $k$
+\item [frequency] frequency $f$ in [MHz]
+
+\end{description}
+
+
+\paragraph{Remark}
+
+How to use the RF multipoles (from MadX to SixTrack):
+
+\begin{itemize}
+  \item 2nd order multipole (quadrupole)
+In the mad-x script write: 
+MULT.1, KNL={0,-0.06*1e-3}, PNL={0,0.25};
+where -0.06*1e-3 is the b2 value in units of 
+$$
+Tm/m^{n-1}.
+$$
+
+This gives the following fc.2 line at the location of the multipole: 
+mult.1q           26   6.000000000e-05   400.000000000e+00   -1.570796327e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+\item 3rd order multipole (sextupole)
+
+In the mad-x script write:
+MULT.1, FREQ=400., KNL={0,0,1159.*1e-3}, PNL={0,0,0.25};
+where 1159.*1e-3 is the b3 value in units of
+$$
+Tm/m^{n-1}.
+$$
+This gives the following fc.2 line at the location of the multipole:
+mult.1s           27  -5.795000000e-01   4.000000000e+02   -1.570796327e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+\item 4th order multipole (octupole)
+In  the mad-x script write:
+MULT.1, FREQ=400., KNL={0,0,0,-4.*1e-3}, PNL={0,0,0,0.25};
+where -4.*1e-3 is the b4 value in units of
+$$
+Tm/m^{n-1}.
+$$
+This gives the following fc.2 line at the location of the multipole:
+mult.1o           28   6.666666667e-04   4.000000000e+02   -1.570796327e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+
+\end{itemize}
+
+\paragraph{Remark}
+The b2, b3, b4 values used in the above examples were taken from Table II of paper~\cite{RFmultsPaper}.
+
+The effect of these multipoles was checked on a beam of particles with x=xp=yp=0, and y=1, 2 and 3 mm, with different z positions.
+The effect on yp was linear, quadratic and cubic with y when using b2, b3, or b4, respectively, as expected. 
+Furthermore, the amplitude of the yp agrees with the analytical formulas found in the appendix of this paper~\cite{RFmultsPaper} under "Normal quadrupole/sextupole/octupole". 
+
+Important note: $B\rho$ and the factorial (n-1)! are already included in K2, K3 etc of madx,
+i.e. b3=1159e-3 in madx results in a kick as if b3 is 1159e-3/(n-1)!
+So in order for this paper's~\cite{RFmultsPaper} analytical equations to be compatible with madx, the equations for normal quadrupole should read: 
+$\Delta x'=-\frac{b2}{(2-1)!B\rho}...$
+
 
 \subsubsection{Electron Lens} \label{ELEN}
 \paragraph{Format} {\em name type}
@@ -752,6 +844,9 @@ This element dumps the coordinates of the 1st particle to the file with name {\e
 The file contains 7 columns: $x$,$x'$, $y$,$y'$, $ct$,$\delta p/p$ and $E$.
 Usual SixTrack units are used. Any number of BPM elements can be used but
 the names must differ. 
+
+
+
 
 \subsubsection{Other element types}
 
@@ -4596,6 +4691,9 @@ summary of the post--processing is given.
 %\bibitem{PATRAC} A.~Hilaire and A.~Warman, ``A
 %  program for single particle tracking'', CERN SPS/88--8 (AMS).
 %
+\bibitem{RFmultsPaper} J.~B.~Garcia et al., 
+``Long term dynamics of the high luminosity Large Hadron Collider with crab cavities'',
+2016, PHYSICAL REVIEW ACCELERATORS AND BEAMS 19, 101003 (2016).
 \bibitem{DYNKpaper} K.~Sjobak, H.~Burkhardt, R.D.~Maria, A.~Mereghetti and A.~Santamaria,
   ``General functionality for turn-dependent element properties in SixTrack''
   2015, Procedings of IPAC'13, Richmond, VA, USA, May 2015.
