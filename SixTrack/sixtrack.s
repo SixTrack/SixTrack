@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.16'/
-      data moddate /'18.04.2017'/
+      data version /'4.6.17'/
+      data moddate /'20.04.2017'/
 +cd license
 !!SixTrack
 !!
@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fiascaris, J.F.Wagner, J. Wretborn, CERN
+!!M. Fiascaris, J.F. Wagner, J. Wretborn, CERN
 !!M. Fitterer, FNAL, CERN
 !!A. Patapenka,  NIU, CERN
 !!G. Robert-Demolaize, BNL
