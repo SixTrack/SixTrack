@@ -366,7 +366,7 @@ $ K=b_y(x +\frac{h_x}{2}x^2) $. This map is not used in SixTrack.
 
 \subsubsection{Dipole Edge effects}
 The dipole edge effects from a dipole of length $L$ and bending
-angle $\theta$, can be approximated by the map:
+angle $\theta$ can be approximated by the map:
 \begin{align}
     p_x &\to p_x + \frac{1+\delta}{\rho} \tan(\alpha) \cdot x \\
     p_y &\to p_y - \frac{1+\delta}{\rho} \tan(\alpha) \cdot y,
@@ -419,8 +419,8 @@ we have the following two cases
          \right. &
     \hat{S} &= \left\{
          \begin{array}{l l}
-             \sinh(\sqrt{g}L)  & g > 0 \\
-             \sin(\sqrt{-g}L) & g < 0
+             \sinh(\sqrt{-g}L)  & g > 0 \\
+             \sin(\sqrt{g}L) & g < 0
          \end{array}
          \right.
 \end{align}
@@ -1017,7 +1017,7 @@ and
 \begin{equation}
 \theta_{\rm max} = \theta(R_2) = \frac{2LI_T(1\pm\beta_e\beta_p)}{4\pi\epsilon_0  \left(B\rho\right)_p\beta_e\beta_p c^2}\cdot\frac{1}{R_2}
 \end{equation}
-where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{p}$ the relativistic $\beta$ of electron and proton beam, $B\rho$ the magnetic rigidity, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam traveling in the direction of the proton beam ($+$) or in the opposite direction ($-$). For hollow electron beam collimation, electron and proton beam travel in the same direction.
+where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{p}$ the relativistic $\beta$ of electron and proton beam, $B\rho$ the magnetic rigidity, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam traveling in the direction of the proton beam ($v_e v_p>0$) leading to ``$-$" or in the opposite direction ($v_e v_p<0$) leading to ``$+$". For hollow electron beam collimation, electron and proton beam travel in opposite directions.
 
 The kick in $(x',y')$ can then be expressed as (note $\frac{x}{r}=\cos(\phi),\frac{y}{r}=\sin(\phi)$):
 \begin{align}
@@ -1441,64 +1441,64 @@ which simplifies in the 2D case to:
 
 %\section{Code naming conventions}
 
-\section{Notes on tracking programs}
+%\section{Notes on tracking programs}
 
-A particle tracking program for accelerators like Sixtrack is based on the
-concepts of beamline elements representing real devices (dipoles, quadrupole,
-cavities) and symplectic integrators using predefined maps (i.e.  solution of
-equations of motion).
+%A particle tracking program for accelerators like Sixtrack is based on the
+%concepts of beamline elements representing real devices (dipoles, quadrupole,
+%cavities) and symplectic integrators using predefined maps (i.e.  solution of
+%equations of motion).
 
-A map is a transformation of particle coordinates formulated is such a way
-that coordinates can be either floating point numbers or truncated
-polynomials. A map may reflect the effects of a field on a particle or a
-change of the reference frame or other even non physical transformations.
+%A map is a transformation of particle coordinates formulated is such a way
+%that coordinates can be either floating point numbers or truncated
+%polynomials. A map may reflect the effects of a field on a particle or a
+%change of the reference frame or other even non physical transformations.
 
-An integrator solves the equations of motion of a particle under the influence
-of a specific force often generate by electromagnetic fields using some
-approximations. It is often coded as an explicit map or sequence of them.
+%An integrator solves the equations of motion of a particle under the influence
+%of a specific force often generate by electromagnetic fields using some
+%approximations. It is often coded as an explicit map or sequence of them.
 
-A particle trajectory in beam line element can equally well computed using
-different type of integrators depending on the initial coordinates and the
-application.
+%A particle trajectory in beam line element can equally well computed using
+%different type of integrators depending on the initial coordinates and the
+%application.
 
-For relativistic particles an integrator can be qualified in terms of:
-\begin{itemize}
-\item the longitudinal coordinate definition:
-  $(\Delta t,p_t)$,
-  $(\sigma,p_\sigma)$,
-  $(\Delta s, \delta)$.
-\item the approximation of the Hamiltonian: exact or expanded.
-\item the type of Hamiltonian splitting:
-\begin{itemize}
-  \item kick-drift,
-  \item matrix-kick: keep the linear motion of the original Hamiltonian exact,
-  \item no splitting: solving the motion exactly.
-\end{itemize}
-\item the order of the approximation in $s$.
-\item the integrations step inside an element.
-\end{itemize}
+%For relativistic particles an integrator can be qualified in terms of:
+%\begin{itemize}
+%\item the longitudinal coordinate definition:
+%  $(\Delta t,p_t)$,
+%  $(\sigma,p_\sigma)$,
+%  $(\Delta s, \delta)$.
+%\item the approximation of the Hamiltonian: exact or expanded.
+%\item the type of Hamiltonian splitting:
+%\begin{itemize}
+%  \item kick-drift,
+%  \item matrix-kick: keep the linear motion of the original Hamiltonian exact,
+%  \item no splitting: solving the motion exactly.
+%\end{itemize}
+%\item the order of the approximation in $s$.
+%\item the integrations step inside an element.
+%\end{itemize}
 
-Tracking codes can be used:
-\begin{itemize}
-  \item for tracking studies: compute the evolution of one or more particle
-    trajectories along beam-line elements for one or more turns and perform
-    post processing analysis (particle loss, frequency maps, invariant
-    reconstruction,...)
-  \item optics studies: compute the sensitivity of the particle trajectories
-    with respect to the initial conditions around a reference trajectories. It
-    can be implemented using TPSA algebraic operations  as substitute of
-    floating point ones or by explicit equations. Finite differences on real
-trajectories may be used as well at the cost of loosing precision on
-simplistic invariants.
+%Tracking codes can be used:
+%\begin{itemize}
+%  \item for tracking studies: compute the evolution of one or more particle
+%    trajectories along beam-line elements for one or more turns and perform
+%    post processing analysis (particle loss, frequency maps, invariant
+%    reconstruction,...)
+%  \item optics studies: compute the sensitivity of the particle trajectories
+%    with respect to the initial conditions around a reference trajectories. It
+%    can be implemented using TPSA algebraic operations  as substitute of
+%    floating point ones or by explicit equations. Finite differences on real
+%trajectories may be used as well at the cost of loosing precision on
+%simplistic invariants.
 
-\end{itemize}
+%\end{itemize}
 
-In Sixtrack the build up of an integrator is left to the user when defining
-the lattice. An exact correspondence between beam line element is not necessarily needed. Sixtrack uses only one particular choice for the longitudinal Sixtrack uses only one particular choice for the longitudinal
-coordinates. It can be used for periodic structures only around one closed
-orbit. Sixtrack has the tools to compute linear and non-linear optics using
-matrix manipulation and TPSA, however it is not meant to be used as an
-interactive design tool like MAD-X.
+%In Sixtrack the build up of an integrator is left to the user when defining
+%the lattice. An exact correspondence between beam line element is not necessarily needed. Sixtrack uses only one particular choice for the longitudinal Sixtrack uses only one particular choice for the longitudinal
+%coordinates. It can be used for periodic structures only around one closed
+%orbit. Sixtrack has the tools to compute linear and non-linear optics using
+%matrix manipulation and TPSA, however it is not meant to be used as an
+%interactive design tool like MAD-X.
 
 
 \section{Table of symbols}
