@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.15'/
-      data moddate /'07.04.2017'/
+      data version /'4.6.16'/
+      data moddate /'18.04.2017'/
 +cd license
 !!SixTrack
 !!
@@ -247,6 +247,9 @@
       parameter ( half = 0.5d0, one = 1.d0 )
       common /wzcom1/ hrecip, kstep
       common /wzcom2/ wtreal(idim), wtimag(idim)
++cd parbeam_exp
+      integer beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
+      common /beam_exp/ beam_expflag
 +cd beamdim
       double precision cc,xlim,ylim
       parameter(cc = 1.12837916709551d0)
@@ -341,7 +344,7 @@
       common/co6d/clo6(3),clop6(3)
       common/dkic/dki(nele,3)
       common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
-     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,5),track6d(6,npart),     &
+     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
      &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
@@ -1567,7 +1570,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V RE INT DPS1 ; D V RE INT RKBF ; D V RE INT RBF ;
 *FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ;
 *FOX  D V RE INT SIGMAN 2 NBB ; D V RE INT PTNFAC NELE ;
-*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ;
+*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 18 ;
 *FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 *FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
 *FOX  D V RE INT PARBE14 ; D V RE INT PI ;
@@ -4858,9 +4861,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           ktrack(i)=44
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr03
           if(ibeco.eq.1) then
-            track6d(1,1)=ed(ix)*c1m3
+            track6d(1,1)=parbe(ix,5)*c1m3
             track6d(2,1)=zero
-            track6d(3,1)=ek(ix)*c1m3
+            track6d(3,1)=parbe(ix,6)*c1m3
             track6d(4,1)=zero
             track6d(5,1)=zero
             track6d(6,1)=zero
@@ -4931,14 +4934,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beamcof
 *FOX  CRKVEBF=X(1) ;
 *FOX  CIKVEBF=X(2) ;
-            startco=(dare(x(1))-clobeam(1,imbb(i)))+ed(ix)               !hr03
+            startco=(dare(x(1))-clobeam(1,imbb(i)))+parbe(ix,5)
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,1,0,0,0)
 !     endif
 +ei
             call dapok(crkvebf,jj,startco)
-            startco=(dare(x(2))-clobeam(2,imbb(i)))+ek(ix)
+            startco=(dare(x(2))-clobeam(2,imbb(i)))+parbe(ix,6)
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,2,0,0,0)
@@ -4954,11 +4957,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
 +cd beamr1of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+              crk=parbe(ix,5)
+              cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+     &             parbe(ix,6)*bbcu(imbb(i),12)
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+     &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             rho2b=crk**2+cik**2                                          !hr03
             if(rho2b.gt.pieni)
@@ -5097,11 +5102,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             zrbf=abs(cikvebf/rbf)
 +cd beama2of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+               crk=parbe(ix,5)
+               cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+     &             parbe(ix,6)*bbcu(imbb(i),12)
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+     &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             xrb=abs(crk)/rb
             zrb=abs(cik)/rb
@@ -5312,25 +5319,25 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd beamco
               if(ibbc.eq.0) then
-                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+ed(ix)            !hr03
-                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+ek(ix)            !hr03
+                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
+                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6)
               else
-                crkveb(j)=                                              &!hr03
-     &((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),11)+           &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),12)             !hr03
-                cikveb(j)=                                              &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),11)            &!hr03
-     &-((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),12)            !hr03
+                crkveb(j)=                                              &
+     &((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),11) +     &
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),12)
+                cikveb(j)=                                              &
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),11) -     &
+     &((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),12)
               endif
 +cd beamcoo
               if(ibbc.eq.0) then
-                crkveb(j)=ed(ix)
-                cikveb(j)=ek(ix)
+                crkveb(j)=parbe(ix,5)
+                cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=ed(ix)*bbcu(imbb(i),11)+                      &
-     &ek(ix)*bbcu(imbb(i),12)
-                cikveb(j)=ek(ix)*bbcu(imbb(i),11)-                      &!hr03
-     &ed(ix)*bbcu(imbb(i),12)                                            !hr03
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +
+     &                parbe(ix,6)*bbcu(imbb(i),12)
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-
+     &               parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
             rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
@@ -5527,9 +5534,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-              track6d(1,j)=((xv(1,j)+ed(ix))-clobeam(1,imbb(i)))*c1m3    !hr03
+               track6d(1,j)=((xv(1,j)+parbe(ix,5)) -
+     &              clobeam(1,imbb(i)))*c1m3
               track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-              track6d(3,j)=((xv(2,j)+ek(ix))-clobeam(2,imbb(i)))*c1m3    !hr03
+              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -
+     &             clobeam(2,imbb(i)))*c1m3
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
@@ -5557,12 +5566,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr08
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
-*FOX      TRACKI(1)=(X(1)+ED(IX)-DUMMY)*C1M3 ;
+*FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
 *FOX      YP(1)=Y(1)*(ONE+DPDA) ;
           dummy=dare(yp(1))
 *FOX      TRACKI(2)=(YP(1)-DUMMY)*C1M3 ;
           dummy=dare(x(2))
-*FOX      TRACKI(3)=(X(2)+EK(IX)-DUMMY)*C1M3 ;
+*FOX      TRACKI(3)=(X(2)+PARBE(IX,6)-DUMMY)*C1M3 ;
 *FOX      YP(2)=Y(2)*(ONE+DPDA) ;
           dummy=dare(yp(2))
 *FOX      TRACKI(4)=(YP(2)-DUMMY)*C1M3 ;
@@ -7181,46 +7190,205 @@ cc2008
 +ei
               endif
             enddo
-            if(parbe(ix,2).gt.0d0) then                                  !hr12
-              do ii=4,10
-                call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-                call averaged(angno,aa2r,.false.,angno)
-                do j=1,ndimf
-                  j1=2*j
-                  jj(j1-1)=1
-                  jj(j1)=1
-                  call dapek(angno,jj,angnoe(j))
-                  jj(j1-1)=0
-                  jj(j1)=0
+            if (beam_expflag .eq. 0) then !Old-style input
+              if(parbe(ix,2).gt.0d0) then
+                do ii=4,10
+                  call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
+                  call averaged(angno,aa2r,.false.,angno)
+                  do j=1,ndimf
+                    j1=2*j
+                    jj(j1-1)=1
+                    jj(j1)=1
+                    call dapek(angno,jj,angnoe(j))
+                    jj(j1-1)=0
+                    jj(j1)=0
+                  enddo
+                  if(ndimf.eq.3) then
+                    bbcu(ibb,ii) = two *
+     &               ((emitx*angnoe(1)+emity*angnoe(2))+emitz*angnoe(3))
+                  else
+                    bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
+                  endif
                 enddo
-                if(ndimf.eq.3) then
-                bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
-     &emitz*angnoe(3))
-                else
-                  bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
-                endif
-              enddo
+              endif
+              if(lhc.eq.1) then
+                dummy=bbcu(ibb,1)
+                bbcu(ibb,1)=bbcu(ibb,2)
+                bbcu(ibb,2)=dummy
+                dummy=bbcu(ibb,4)
+                bbcu(ibb,4)=bbcu(ibb,9)
+                bbcu(ibb,9)=dummy
+                dummy=bbcu(ibb,5)
+                bbcu(ibb,5)=bbcu(ibb,7)
+                bbcu(ibb,7)=dummy
+                dummy=bbcu(ibb,6)
+                bbcu(ibb,6)=bbcu(ibb,10)
+                bbcu(ibb,10)=dummy
+              endif
+              if(lhc.eq.2) then
+                bbcu(ibb,1)=bbbx(ix)
+                bbcu(ibb,2)=bbby(ix)
+                bbcu(ibb,3)=bbbs(ix)
+              endif
+
+            !Indentation break, sorry :(
+
+          else if (beam_expflag .eq. 1) then !New style input
+            if(parbe(ix,2).gt.0d0) then
+               bbcu(ibb,1)=parbe(ix,7)
+               bbcu(ibb,4)=parbe(ix,8)
+               bbcu(ibb,6)=parbe(ix,9)
+               bbcu(ibb,2)=parbe(ix,10)
+               bbcu(ibb,9)=parbe(ix,11)
+               bbcu(ibb,10)=parbe(ix,12)
+               bbcu(ibb,3)=parbe(ix,13)
+               bbcu(ibb,5)=parbe(ix,14)
+               bbcu(ibb,7)=parbe(ix,15)
+               bbcu(ibb,8)=parbe(ix,16)
             endif
-          if(lhc.eq.1) then
-            dummy=bbcu(ibb,1)
-            bbcu(ibb,1)=bbcu(ibb,2)
-            bbcu(ibb,2)=dummy
-            dummy=bbcu(ibb,4)
-            bbcu(ibb,4)=bbcu(ibb,9)
-            bbcu(ibb,9)=dummy
-            dummy=bbcu(ibb,5)
-            bbcu(ibb,5)=bbcu(ibb,7)
-            bbcu(ibb,7)=dummy
-            dummy=bbcu(ibb,6)
-            bbcu(ibb,6)=bbcu(ibb,10)
-            bbcu(ibb,10)=dummy
+            if(parbe(ix,2).eq.0d0) then
+               bbcu(ibb,1)=parbe(ix,1)
+               bbcu(ibb,2)=parbe(ix,3)
+            endif
+          else
+             write(lout,'(a)') "ERROR in +cd umlalid1"
+             write(lout,'(a)') "beam_expflag was", beam_expflag
+             write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+             call prror(-1)
+          end if
+
+          if (beam_expflag .eq. 0) then
+          write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+          if(parbe(ix,2).eq.0.0) then !4D
+             !Note: One should always use the CRLIBM version when converting,
+             ! in order to guarantee the exact same results from the converted input file.
++if .not.crlibm
+             write(lout,"(a16,1x,a1,1x,5g30.20)")
+     &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
+     &            parbe(ix,5), parbe(ix,6), ptnfac(ix)
++ei
++if crlibm
+             l1 = 1
+             write(ch,'(a16,1x,a1)') bez(ix), "0"
+             l1 = len(trim(ch))+1
+             
+             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,2),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,5),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,6),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(ptnfac(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
++ei
+          else                      ! 6D
++if .not.crlibm
+             write(lout,"(a16,1x,i4,1x,4g30.20)")
+     &            bez(ix), int(parbe(ix,2)),
+     &            parbe(ix,1), parbe(ix,3),
+     &            parbe(ix,5), parbe(ix,6)
+             write(lout,"(5g30.20)")
+     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
+     &            bbcu(ibb,2), bbcu(ibb,9)
+             write(lout,"(6g30.20)")
+     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
+     &            bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
++ei
++if crlibm
+             l1 = 1
+             write(ch,'(a16,1x,i4)') bez(ix), int(parbe(ix,2))
+             l1 = len(trim(ch))+1
+
+             errno=dtostr(parbe(ix,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,3),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,5),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,6),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+                          
+             write(lout,*) trim(ch)
+
+             l1 = 1
+             ch = ' '
+
+             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,4),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,6),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,2),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(bbcu(ibb,9),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
+
+             l1 = 1
+             ch = ' '
+
+             errno=dtostr(bbcu(ibb,10),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,3),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,5),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,7),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(bbcu(ibb,8),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(ptnfac(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
++ei
+            endif
+          write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
           endif
-          if(lhc.eq.2) then
-            bbcu(ibb,1)=bbbx(ix)
-            bbcu(ibb,2)=bbby(ix)
-            bbcu(ibb,3)=bbbs(ix)
-          endif  
-          if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
+          
+        if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
           if(ibbc.eq.1) then
@@ -7244,7 +7412,7 @@ cc2008
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
-          if(parbe(ix,2).gt.0d0) then                                    !hr08
+          if(parbe(ix,2).gt.0d0) then !6D -> convert units
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
@@ -9455,6 +9623,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=20)
@@ -9695,9 +9864,6 @@ cc2008
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -9839,9 +10005,6 @@ cc2008
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10643,9 +10806,6 @@ cc2008
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11728,6 +11888,10 @@ cc2008
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,rv,tilt,u0,              &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
+      !For BEAM-EXP
+      double precision separx,separy
+      double precision mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+      
       character*16 sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character*16 fluc,chro,tune,iter,limi,orbi,deco
       character*16 beze,bez0,go,rect,elli,comb,sear,subr
@@ -11743,6 +11907,7 @@ cc2008
       character*(nchars+nchars) ch1
       logical beam_xstr
 +if crlibm
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -11791,7 +11956,7 @@ cc2008
 +ca elensparam
 +ca wireparam
 +ca zipf
-
++ca parbeam_exp
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -12228,11 +12393,6 @@ cc2008
            acdipph(i)=el(i)
            el(i)=0d0                                                     !hr05
         endif
-      endif
-!--BEAM-BEAM
-      if(kz(i).eq.20) then
-        ptnfac(i)=el(i)
-        el(i)=zero
       endif
 !--General
       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
@@ -15865,159 +16025,482 @@ cc2008
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1600
       if(ch(:4).eq.next) goto 110
-      ch1(:nchars+3)=ch(:nchars)//' / '
+
+      if (nbeam.ge.1) then
+         write(lout,*)
+     &        "ERROR: There can only be one BEAM block in fort.3"
+         call prror(-1)
+      endif
+      
+      if (ch(:6) .eq."EXPERT") then
+         beam_expflag = 1
+         
+ 1601    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1601
+         if(ch(:4).eq.next) goto 110
+         ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
 +if crlibm
-      call enable_xp()
+         call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*,round='nearest')                                       &
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +if crlibm
-      call disable_xp()
+         call disable_xp()
 +ei
 +ei
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*)
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        partnum=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        emitnx=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        emitny=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sigz=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sige=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(6),*) ibeco
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(7),*) ibtyp
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(8),*) lhc
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(9),*) ibbc
-        nf=nf-1
-      endif
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.ne.9) then
+            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+            write(lout,'(a,I3)')
+     &           "First line should have 9 fields, got", nf
+            call prror(-1)
+         endif
+         
+         partnum = fround(errno,fields,1)
+         emitnx  = fround(errno,fields,2)
+         emitny  = fround(errno,fields,3)
+         sigz    = fround(errno,fields,4)
+         sige    = fround(errno,fields,5)
+         read(fields(6),*) ibeco
+         read(fields(7),*) ibtyp
+         read(fields(8),*) lhc
+         read(fields(9),*) ibbc
 +ei
 +ei
-      if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
-      if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
-      if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
+         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
+         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
+         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
 !GRD-2007
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
+     &      lhc=1
 !GRDRHIC
 !GRD-042008
 +ei
 +if .not.bnlelens
-      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
 +ei
 !GRD-2007
-      if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
-      nbeam=1
-      if(ibtyp.eq.1) call wzset
+         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
+         nbeam=1
+         if(ibtyp.eq.1) call wzset !Initialize complex error function for FAST BB kick
 
-      ! ! ! Read other lines of BEAM block ! ! !
- 1610 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1610
-      if(ch(:4).eq.next) goto 110
+         ! ! ! Read other lines of BEAM block ! ! !
+ 1660    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1660
+         if(ch(:4).eq.next) goto 110
 
-      !Check number of arguments gotten
-      call getfields_split( ch, getfields_fields, getfields_lfields,
-     &     getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(-1)
-      beam_xstr = .false.
-      if (getfields_nfields .eq. 5) then
-         beam_xstr=.true.
-      elseif (getfields_nfields .eq. 4) then
-         beam_xstr=.false.
-      else
-         write(lout,*) "ERROR in parsing BEAM block"
-         write(lout,*) "Number of arguments in data line 2,..."
-         write(lout,*) " is expected to be 4 or 5"
-         call prror(-1)
-      end if
-      call intepr(1,1,ch,ch1)
++if fio
+!+if crlibm
+!         call enable_xp()
+!+ei
+!         read(ch1,*,round='nearest')                                       &
+!     &      idat,i,xang,xplane,separx,separy,
+!     &      mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
+!     &      mm9,mm10,mm11
+!+if crlibm
+!         call disable_xp()
+!+ei
+        write(lout,*)
+     &       'ERROR in BEAM block (EXPERT mode): '//
+     &       'fortran IO currently not supported.'
+        call prror(-1)
++ei
++if .not.fio
++if .not.crlibm
+         call intepr(1,1,ch,ch1)
+         read(ch1,*) idat,i
+
+         if (i.gt.0) then !6D
+            call intepr(1,1,ch,ch1)
+            read(ch1,*) idat,i,xang,xplane,separx,separy
+            
+ 1661       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1661
+            read(ch,*) mm1,mm2,mm3,mm4,mm5
+            
+ 1662       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1662
+            read(ch,*) mm6,mm7,mm8,mm9,mm10,mm11
+            
+         else if (i.eq.0) then  !4D
+            call intepr(1,1,ch,ch1)
+            read(ch1,*) idat,i,xang,xplane,separx,separy
+         else
+            write(lout,'(a)') "ERROR when reading BEAM block:"
+            write(lout,'(a,i5,a,a16)')
+     &           "Expected number of slices >= 0; but got",
+     &           i, " in element ",idat
+            call prror(-1)
+         endif
++ei
++if crlibm  !The CRLIBM version has much more robust error checking...
+         call intepr(1,1,ch,ch1)
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (.not.(nf.eq.6 .or. nf.eq.7)) then
+            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+            write(lout,'(a,I3)')
+     &           "First line of an element definition should "//
+     &           "have 6 or 7 fields, got", nf
+            call prror(-1)
+         endif
+         
+         read(fields(2),*) i !read number of slices
+         
+         if (i.gt.0) then  !6D
+            if (nf.ne.6) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "First line of a 6D element definition should "//
+     &              "have 6 fields, got", nf
+               call prror(-1)
+            endif
+            
+            read(fields(1),*) idat !Name
+            read(fields(2),*) i    !slices (ibsix)
+            xang=fround(errno,fields,3)
+            xplane=fround(errno,fields,4)
+            separx=fround(errno,fields,5)
+            separy=fround(errno,fields,6)
+            
+ 1661       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1661
+            ch1(:nchars+3)=ch(:nchars)//' / '
+            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+
+            if (nf.ne.5) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "Second line of a 6D element definition should "//
+     &              "have 5 fields, got", nf
+               call prror(-1)
+            endif
+            
+            mm1=fround(errno,fields,1)
+            mm2=fround(errno,fields,2)
+            mm3=fround(errno,fields,3)
+            mm4=fround(errno,fields,4)
+            mm5=fround(errno,fields,5)
+            
+ 1662       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            ch1(:nchars+3)=ch(:nchars)//' / '
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1662
+            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+
+            if (nf.ne.6) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "Third line of a 6D element definition should "//
+     &              "have 5 fields, got", nf
+               call prror(-1)
+            endif
+            
+            mm6=fround(errno,fields,1)
+            mm7=fround(errno,fields,2)
+            mm8=fround(errno,fields,3)
+            mm9=fround(errno,fields,4)
+            mm10=fround(errno,fields,5)
+            mm11=fround(errno,fields,6)
+            
+         else if(i.eq.0) then ! 4D
+            if (nf.ne.7) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "First line of a 6D element definition should "//
+     &              "have 7 fields, got", nf
+               call prror(-1)
+            endif
+            
+            read(fields(1),*) idat
+            xang=fround(errno,fields,3)
+            xplane=fround(errno,fields,4)
+            separx=fround(errno,fields,5)
+            separy=fround(errno,fields,6)
+            mm1=fround(errno,fields,7)
+         else
+            read(fields(1),*) idat
+            write(lout,'(a)') "ERROR when reading BEAM block:"
+            write(lout,'(a,i5,a,a16)')
+     &           "Expected number of slices >= 0; but got",
+     &           i, " in element ",idat
+            call prror(-1)
+         endif
++ei
++ei
+         
+         do j=1,il !loop over single lements
+            if(idat.eq.bez(j)) then
+               if(kz(j).ne.20) then
+                  write(lout,'(a)') "ERROR when reading BEAM block:"
+                  write(lout,'(a,a16,a,i5,a)')
+     &                 "Found element named ",bez(j),
+     &                 " but type is",kz(j), ", expected type 20!"
+                  call prror(-1)
+               else
+                  
+                  if(parbe(j,5).ne.0d0 .or. parbe(j,6).ne.0d0
+     &                 .or. ptnfac(j).ne.0d0
+     &                 .or. bbbx(j).ne.0d0 .or. bbby(j).ne.0d0
+     &                 .or. bbbs(j).ne.0d0 ) then
+                     !Note: Data moved from ed/ek/el to parbe/ptnfac in initialize_element
+                     write(lout,'(a)') "ERROR when reading BEAM block:"
+                     write(lout,'(a,a16,a)')
+     &                    "Using EXPERT mode, but element ", bez(j),
+     &                    " does not have ed=ek=el=bbbx=bbby=bbbs=0.0"//
+     &                    " in the SINGLE ELEMENTS list."
+                     call prror(-1)
+                  endif
+                  if (i.gt.0) then ! 6D, allow 1 or more slices
+                     parbe(j,17)=1      ! Is 6D
+                     parbe(j,2)=dble(i) ! Number of slices
+                     parbe(j,1)=xang
+                     parbe(j,3)=xplane
+                     parbe(j,5)=separx
+                     parbe(j,6)=separy
+                     parbe(j,7)=mm1
+                     parbe(j,8)=mm2
+                     parbe(j,9)=mm3
+                     parbe(j,10)=mm4
+                     parbe(j,11)=mm5
+                     parbe(j,12)=mm6
+                     parbe(j,13)=mm7
+                     parbe(j,14)=mm8
+                     parbe(j,15)=mm9
+                     parbe(j,16)=mm10
+                     ptnfac(j)=mm11
+                     goto 1660
+                  else if(i.eq.0) then ! 4D, single slice only
+                     parbe(j,17)=0      ! Type is 4D
+                     parbe(j,2)=dble(i) ! Number of slices is always 0
+                     parbe(j,1)=xang
+                     parbe(j,3)=xplane
+                     parbe(j,5)=separx
+                     parbe(j,6)=separy
+                     ptnfac(j)=mm1
+                     goto 1660
+                  endif
+               endif
+            endif
+         end do
+         goto 1660
+         
+      else ! Old-style BEAM block
+         write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
+         write (lout,'(a)') " Look for 'NEW BEAM BLOCK' later"//
+     &        " in the output for conversion"//
+     &        " to the new 'EXPERT' format."
+         write (lout,'(a)') " To convert to the new format,"//
+     &        " copy-paste these lines (removing the *** lines"//
+     &        " above and below each data line) into the BEAM"//
+     &        " block in fort.3, replacing line 2 onwards."
+         write (lout,'(a)') " Then write EXPERT on the first line"//
+     &        " of the BEAM block, above the current first line."
+         write(lout,'(a)') " Finally, in the SINGLE ELEMENTS list"//
+     &        " (normally in fort.2) set the parameters of all"//
+     &        " beam-beam lenses (type 20) to 0.0."
+         write(lout,'(a)') " "
+         write(lout,'(a)') " This procedure produces a new"//
+     &        " set of input files that should have bit-for-bit"//
+     &        " identical results to this one."
+         write(lout,'(a)') " The easiest way to check this is"//
+     &        " to run both simulations side-by-side and compare"//
+     &        " the standard output in a text diff tool like meld."
+         write(lout,'(a)') " If the results are not identical,"//
+     &        " this is a bug; please report it to the developers!"
++if .not.crlibm
+         write(lout,'(a)') " "
+         write(lout,'(a)') "NOTE: THIS SIXTRACK BINARY WAS"//
+     &        " NOT COMPILED WITH CRLIBM, CONVERSION WILL NOT BE EXACT."
++ei
+         write(lout,'(a)') " "
+         
+         ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
 +if crlibm
-      call enable_xp()
+         call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,i,xang,xplane,xstr
+         read(ch1,*,round='nearest')                                       &
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +if crlibm
-      call disable_xp()
+         call disable_xp()
 +ei
 +ei
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) idat,i,xang,xplane,xstr
+         read(ch1,*)
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) i
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xang=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xplane=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xstr=fround(errno,fields,5)
-        nf=nf-1
-      endif
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.ne.9) then
+            write(lout,'(a)')
+     &           "WARNING in DATEN reading BEAM (not EXPERT)"
+            write(lout,'(a,i4)') "First line should have 9 fields,"//
+     &           " got ", nf
+            !Treating this as a warning, or else we would invalidate
+            !lots of working inpuit files
+            !call prror(-1)
+         endif
+         
+         if (nf.gt.0) then
+            partnum=fround(errno,fields,1)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitnx=fround(errno,fields,2)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitny=fround(errno,fields,3)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sigz=fround(errno,fields,4)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sige=fround(errno,fields,5)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(6),*) ibeco
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(7),*) ibtyp
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(8),*) lhc
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(9),*) ibbc
+            nf=nf-1
+         endif
 +ei
 +ei
-      if ( .not. beam_xstr ) then
-         write(lout,*) "WARNING in parsing BEAM block"
-         write(lout,*) "No xstr present, assuming xstr=xang"
-         xstr = xang
-      endif
+         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
+         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
+         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
+!GRD-2007
++if bnlelens
+!GRDRHIC
+!GRD-042008
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
+     &      lhc=1
+!GRDRHIC
+!GRD-042008
++ei
++if .not.bnlelens
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
++ei
+!GRD-2007
+         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
+         nbeam=1
+         if(ibtyp.eq.1) call wzset
+         
+         ! ! ! Read other lines of BEAM block ! ! !
+ 1610    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1610
+         if(ch(:4).eq.next) goto 110  ! Done yet?
+
+         !Check number of arguments gotten
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) call prror(-1)
+         beam_xstr = .false.
+         if (getfields_nfields .eq. 5) then
+            beam_xstr=.true.
+         elseif (getfields_nfields .eq. 4) then
+            beam_xstr=.false.
+         else
+            write(lout,*) "ERROR in parsing BEAM block"
+            write(lout,*) "Number of arguments in data line 2,..."
+            write(lout,*) " is expected to be 4 or 5"
+            call prror(-1)
+         end if
+         call intepr(1,1,ch,ch1)
++if fio
++if crlibm
+         call enable_xp()
++ei
+         read(ch1,*,round='nearest')                                       &
+     &      idat,i,xang,xplane,xstr
++if crlibm
+         call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
+         read(ch1,*) idat,i,xang,xplane,xstr
++ei
++if crlibm
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.gt.0) then
+            read(fields(1),*) idat
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(2),*) i
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xang=fround(errno,fields,3)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xplane=fround(errno,fields,4)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xstr=fround(errno,fields,5)
+            nf=nf-1
+         endif
++ei
++ei
+         if ( .not. beam_xstr ) then
+            write(lout,*) "WARNING in parsing BEAM block"
+            write(lout,*) "No xstr present, assuming xstr=xang"
+            xstr = xang
+         endif
       
-      if(i.lt.0) i=0
-      do 1620 j=1,il
-      if(idat.eq.bez(j).and.kz(j).eq.20) then
-        ibb6d=1
-        parbe(j,2)=dble(i)                                               !hr12
-        parbe(j,1)=xang
-        parbe(j,3)=xplane
-        parbe(j,5)=xstr
-        goto 1610
+         if(i.lt.0) i=0
+         do 1620 j=1,il
+            if(idat.eq.bez(j).and.kz(j).eq.20) then
+               ibb6d=1
+               parbe(j,2)=dble(i) !hr12
+               parbe(j,1)=xang
+               parbe(j,3)=xplane
+               parbe(j,18)=xstr
+               goto 1610
+            endif
+ 1620    continue
+         goto 1610
       endif
- 1620 continue
-      goto 1610
 !-----------------------------------------------------------------------
 !  TROMBONE ELEMENT KZ=22
 !-----------------------------------------------------------------------
@@ -17198,16 +17681,18 @@ cc2008
 +ei
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il
-          parbe(j,2)=0d0                                                 !hr05
+          parbe(j,2)=0d0
         enddo
       else
         do j=1,il
-          if(parbe(j,2).gt.dble(mbea)) then                              !hr05
-            write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of '//  &!hr12
-     &'slices set to maximum : ',mbea,' for 6D beam-beam element'//     &!hr12
-     &' #: ',j
-            parbe(j,2)=dble(mbea)                                        !hr05
-          endif
+          if(parbe(j,2).gt.dble(mbea)) then
+             write(lout,'(a,i5,a,i5,a,a16,a,i5)')
+     &            'ERROR: Requested ',
+     &            int(parbe(j,2)), " slices for 6D beam-beam element"//
+     &            ' #',j, " named ", bez(j), ", maximum is mbea =",mbea
+            parbe(j,2)=dble(mbea)
+            call prror(-1) !Treat this warning as an error
+         endif
         enddo
       endif
       if(iout.eq.0) return
@@ -17272,16 +17757,109 @@ cc2008
  1480 continue
       write(lout,10130)
  1490 if(idp.eq.0) goto 1500
-      if(nbeam.ge.1) then
-        if(partnum.gt.zero) then
-          write(lout,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,    &
-     &ibeco,                                                            &
-     &ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
-        else
-          write(lout,10141)ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,&
-     &ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
-        endif
-      else
+      if(nbeam.ge.1) then !Write out with BB parameters
+         if(beam_expflag .eq. 0) then  !The old BEAM format
+            if(partnum.gt.zero) then !Beams have same charge
+               write(lout,
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+            else !Beams have opposite charge
+               write(lout,
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+            endif
+            
+         elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
+            if(partnum.gt.zero) then !Beams have same charge
+               write(lout, ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+            else !Beams have opposite charge
+               write(lout,  ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+            endif
+         else
+            write(lout,'(a)') "ERROR in subroutine daten"
+            write(lout,'(a)') "beam_expflag was", beam_expflag
+            write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+            call prror(-1)
+         endif
+      else !No beam beam
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
       if(ncy2.eq.0) then
@@ -17289,13 +17867,57 @@ cc2008
       else
         write(lout,*)
       endif
-        if(ibb6d.eq.1) then
-          write(lout,10144)
-          do j=1,il
-            if(parbe(j,2).gt.0d0) write(lout,10145) bez(j),             &!hr12
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3)
-          enddo
-        endif
+      if(beam_expflag .eq. 0) then
+         if(ibb6d.eq.1) then
+            write(lout,
+     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
+     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
+     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)")
+            do j=1,il
+               if(parbe(j,2).gt.0d0)
+     &              write(lout,"(t10,a16,5x,i4,7x,d16.10,2x,d16.10)")
+     &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
+            enddo
+         endif
+         
+      elseif(beam_expflag .eq. 1) then
+         write(lout,
+     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
+     &t10,'ELEMENT           #_OF_SLICES    XING_ANGLE',                &
+     &'  XING_PLANE   HOR_SEP     VER_SEP        S11        S12      ', &
+     &'  S22         S33         S34         S44         S13         ', &
+     &'S14         S23         S24'/t10,200('-')/)")
+         do j=1,il
+            if(kz(j).eq.20.and.parbe(j,17).eq.1)then
+               write(lout,
+     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,      &
+     &2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,        &
+     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")
+     &bez(j),                                                           &
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),      &
+     &parbe(j,7),parbe(j,8),parbe(j,9),parbe(j,10),parbe(j,11),         &
+     &parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+            endif
+         enddo
+         write(lout,
+     &"(//,t30,'4D BEAM-BEAM ELEMENTS'/t30,24('-')//                    &
+     &t10,'ELEMENT           #_OF_SLICES        S11   ',                &
+     &'     S22       HOR_SEP     VER_SEP'/t10,80('-')/)")
+         do j=1,il
+            if (kz(j).eq.20.and.parbe(j,17).eq.0) then
+               write(lout,                                              &
+     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")    &
+     &bez(j),                                                           &
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
+            endif
+         enddo
+         
+      else
+         write(lout,'(a)') "ERROR in subroutine daten"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
       write(lout,10130)
  1500 continue
       write(lout,10150)
@@ -17344,42 +17966,6 @@ cc2008
 !10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
-10140 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
-10141 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
 10142 format(t30,'SYNCHROTRON OSCILLATIONS'//                           &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17394,10 +17980,6 @@ cc2008
      &t10,'FREQUENCY (IN UNITS OF REVOLUTION-FREQ.) QS-LINEAR',         &
      &t66 ,f14.9/                                                       &
      &t10,'MOMENTUM COMPACTION',t66,f14.9/)
-10144 format(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//        &
-     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)
-10145 format(t10,a16,5x,i4,7x,d16.10,2x,d16.10)
 10150 format(//t43,'*** TRACKING PARAMETERS ***'/)
 10160 format(t10,'NUMBER OF REVOLUTIONS  ',t48,i8/ t10,                 &
      &'NUMBER OF REVERSE-REVOLUTIONS',t48,i8/ t10,                      &
@@ -17932,6 +18514,25 @@ c$$$         endif
             hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
             hsyc(ix)=(c1m3*hsyc(ix))*dble(itionc(ix)) ! trauthin/trauthck
          endif
+!--BEAM-BEAM
+      elseif(kz(ix).eq.20) then
+         if (lfirst) then
+            ! Only for old-style BEAM-BEAM lenses
+            ! if DYNK-ified, there needs to be checks for parbeam_exp as well,
+            ! as in this case modifying ed/ek/el and then calling initialize_element
+            ! would be neccessary...
+            ! Note that the BEAM::EXPERT block input checker relies on the data from
+            ! ed/ek/el has been moved to parbe/ptnfac.
+            ! For DYNKification of BEAM, I think lots of the code from
+            ! trauthin/trauthck needs to be copied here?
+            ptnfac(ix)=el(ix)
+            el(ix)=zero
+
+            parbe(ix,5) = ed(ix)
+            ed(ix)=zero
+            parbe(ix,6) = ek(ix)
+            ek(ix)=zero
+         endif
 !--Crab Cavities
 !   Note: If setting something else than el(),
 !   DON'T call initialize_element on a crab, it will reset the phase to 0.
@@ -17978,6 +18579,7 @@ c$$$         endif
       end subroutine
 
 +if crlibm
+      
       subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
       implicit none
 +ca crcoall
@@ -17985,33 +18587,43 @@ c$$$         endif
       character*(*) chars
       character*(*) fields(*)
       character*999 localstr
-! This routine splits the chars input into space separated
-! fields, up to nfields maximum. It returns the no of
-! fields in nf. All spaces are ignored but treated as separators.
-! A / is a line terminator as provided in ch1 typically.
-! This corresponds to Fortran treatment with an * format spec.
+!     This routine splits the chars input into space separated
+!     fields, up to nfields maximum. It returns the no of
+!     fields in nf. All spaces are ignored but treated as separators.
+!     A / is a line terminator as provided in ch1 typically.
+!     This corresponds to Fortran treatment with an * format spec.
+            
       j=0
       nf=0
       do i=1,nfields
         fields(i)=' '
+         
+        ! Get the length we can use to store a field,
+        ! should be equal to maxf in the calling function
         lf=len(fields(i))
- 8889   k=0
- 8888   j=j+1
+
+ 8889   k=0   !Index into the current field; goto label for new field or no field yet
+ 8888   j=j+1 !Index into the input array; goto label for reading another character
+        ! Check that we stay within the given length of chars
         if (j.gt.len(chars)) then
           errno=1
           go to 8887
         endif
+
+        !Don't start a new field before we hit a non-space
         if (k.eq.0.and.chars(j:j).eq.' ') go to 8888
+
         if (chars(j:j).ne.' '.and.chars(j:j).ne.'/') then
+          !We have a field
           k=k+1
           if (k.ge.lf) then
-! We reserve the last position for a null for C 
-! Field length exceeded
-! Eric for debug
+            !Field is too long;
+            ! remember that the last position (#lf in FORTRAN, lf-1 in C)
+            ! is reseved for a \0, to be used in the C code.
             do j=1,nf
               l=len(fields(j))
               localstr=fields(j)(1:l)
-              write(lout,*) 'splitfld:'//localstr(1:30)//':'
+              write(lout,*) 'splitfld:'//localstr(1:lf)//':'
             enddo
             errno=2
             call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
@@ -18035,6 +18647,7 @@ c$$$         endif
           endif
         endif
       enddo
+      
  8890 continue
 ! If we get here we have a problem unless there
 ! is nothing left but ' '*/
@@ -18052,9 +18665,12 @@ c$$$         endif
       enddo
       call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       end
+      
       double precision function fround(errno,fields,f)
       implicit none
       integer maxf
+      ! MAXF be kept in sync with maxf in various routines
+      ! We maybe should use len(field(f)) here, like is done in splitfld...
       parameter (maxf=30)
       integer errno,f
       character*(*) fields(*)
@@ -18208,6 +18824,7 @@ c$$$         endif
       dtostr=24
       return
       end
+      
       double precision function acos_rn(x)
       implicit none
       double precision atan_rn,x,pi,pi2
@@ -18228,6 +18845,7 @@ c$$$         endif
         endif
       endif
       end
+      
       double precision function asin_rn(x)
       implicit none
       double precision atan_rn,x,pi2
@@ -18246,6 +18864,7 @@ c$$$         endif
         asin_rn=atan_rn(x/sqrt((1.0d0-x)*(1.0d0+x)))
       endif
       end
+      
       double precision function atan2_rn(y,x)
       implicit none
       double precision atan_rn,x,y,pi,pi2
@@ -18274,7 +18893,8 @@ C Should get me a NaN
         endif
       endif
       end
-+ei
++ei ! END of crlibm-specific functions
+      
       subroutine wzset
 !  *********************************************************************
 !
@@ -18434,7 +19054,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !
       implicit none
-+ca   comgetfields
++ca comgetfields
 +ca crcoall
       
       character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
@@ -20667,6 +21287,14 @@ C Should get me a NaN
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
++ca parbeam_exp
++if crlibm
+      !For conversion of BEAM parameters to the new format
+      character*1000 ch
+      character*25 ch1
+      integer errno,l1
+      integer dtostr
++ei
       save
 !-----------------------------------------------------------------------
 +ca daini
@@ -21751,7 +22379,8 @@ C Should get me a NaN
 +ca umlalid
         if(i.eq.nt) goto 470
       endif
- 430  continue
+ 430  continue ! END LOOP OVER SINGLE ELEMENTS IN UMLAUDA
+
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
 +if debug
@@ -22510,6 +23139,7 @@ C Should get me a NaN
 !
 !-----------------------------------------------------------------------
       implicit none
++ca crcoall
 +if crlibm
 +ca crlibco
 +ei
@@ -22519,11 +23149,11 @@ C Should get me a NaN
 +ca parpro
 +ca parnum
 +ca commondl
-      ! JBG Increaseing param to dimension 5 for xstr
-      dimension param(nele,5),bcu(nbb,12),star(3,mbea)
+      dimension param(nele,18),bcu(nbb,12),star(3,mbea)
 +if bnlelens
 +ca rhicelens
 +ei
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -22531,11 +23161,26 @@ C Should get me a NaN
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
-      nsli=param(ne,2)
-      alpha=param(ne,3)
-      phi2=param(ne,5)
-      f=param(ne,4)/dble(nsli)                                           !hr05
+      if (beam_expflag .eq. 0) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         phi2=param(ne,18)
+      else if(beam_expflag .eq. 1) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         !sepax=param(ne,5)     !Not actually used anywhere?
+         !sepay=param(ne,6)     !Not actually used anywhere?
+         phi2=phi               !Note - phi2 is not a free parameter anymore
+      else
+         write(lout,'(a)') "ERROR in subroutine beaminf"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
 +if crlibm
       sphi=sin_rn(phi)
       sphi2=sin_rn(phi2)
@@ -23095,6 +23740,7 @@ C Should get me a NaN
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -25308,7 +25954,7 @@ C Should get me a NaN
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-! +ca elensparam
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
@@ -25321,6 +25967,7 @@ C Should get me a NaN
         stracks(i)=zero
    10 continue
 +ca beams1
+
       do 290 i=1,iu
         if(mout2.eq.1.and.i.eq.1) call write4
         ix=ic(i)
@@ -25391,6 +26038,7 @@ C Should get me a NaN
 +ca beamwzf2
 +ca beama4o
 +ca beams24
+
 +ca wire
 +ca acdip1
 +ca crab1
@@ -30417,15 +31065,18 @@ C Should get me a NaN
 +ca kickvxxv
   630     continue
           goto 640
+
+!--4D BB kick
   680     continue
           do 690 j=1,napx
-+ca beamco
-+ca beamr1
-     &goto 690
++ca beamco     !Get x-y offset
++ca beamr1     !Get r**2
+     &goto 690 !The radius was too small -> Skip
 +ca beamr2
-+ca beamr3
++ca beamr3     !Kick the particles
   690     continue
           goto 640
+
   700     continue
           if(ibtyp.eq.0) then
 +ca beam11
@@ -30436,7 +31087,7 @@ C Should get me a NaN
 +ca beama3
 +ca beam13
 +ca beama4
-          else if(ibtyp.eq.1) then
+          else if(ibtyp.eq.1) then ! fast kick
 +ca beam11
 +ca beama1
 +ca beamco
@@ -32967,11 +33618,10 @@ C Should get me a NaN
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-!+ca elensparam
 +if collimat
 +ca database
 +ei
-
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 +if collimat
@@ -36355,6 +37005,7 @@ C Should get me a NaN
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -36908,6 +37559,7 @@ C Should get me a NaN
 +ca database
 +ca dbcommon
 +ei
++ca parbeam_exp
       save
 
 !-----------------------------------------------------------------------
@@ -37281,8 +37933,7 @@ C Should get me a NaN
         do 140 i1=1,3
           bezr(i1,i)=' '
   140   continue
-        ! JBG increasing parbe to dimension 5
-        do i1=1,5
+        do i1=1,18
           parbe(i,i1)=zero
         enddo
   150 continue
@@ -37317,7 +37968,9 @@ C Should get me a NaN
         tiltc(i)=one
         tilts(i)=zero
 !--Beam-Beam------------------------------------------------------------
-        imbb(i)=0
+        imbb(i)=0               !Mapping from a STRUCTURE ELEMENT (here: index i)
+                                ! to the beam-beam tables (arrays with size nbb)
+!--Other stuff (not beam-beam)...
         do 190 j=1,40
           exterr(i,j)=zero
 +if time
@@ -37338,7 +37991,10 @@ C Should get me a NaN
           enddo
         enddo
   190 continue
-!--RANDOM NUMBERS-------------------------------------------------------
+!-- BEAM-EXP------------------------------------------------------------
+      beam_expflag = 0
+
+!-- RANDOM NUMBERS-------------------------------------------------------
       do 200 i=1,nzfz
         zfz(i)=zero
 +if time
@@ -39193,9 +39849,6 @@ C Should get me a NaN
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39262,9 +39915,6 @@ C Should get me a NaN
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39311,9 +39961,6 @@ C Should get me a NaN
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39614,9 +40261,6 @@ C Should get me a NaN
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -50047,9 +50691,6 @@ c$$$            endif
 !  USED FOR SEARCH
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54084,9 +54725,6 @@ c$$$            endif
 !
 !---------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54159,9 +54797,6 @@ c$$$            endif
       end
       subroutine caconv(a,b,c)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54183,9 +54818,6 @@ c$$$            endif
       end
       subroutine cphase(k,a,b,c,d,i,j,ie)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54220,9 +54852,6 @@ c$$$            endif
       end
       subroutine cinvar(a,b,c,d,j,e,xinv,invx)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54457,6 +55086,7 @@ c$$$            endif
 !     integer nchars
 !     parameter (nchars=160)
       character*(1601) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=60)
@@ -54586,9 +55216,7 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54598,16 +55226,32 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-      !JBG increased the dimension of param to 5 to include xstr
-      dimension param(nele,5),bcu(nbb,12)
+      dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
-      nsli=param(ne,2)
-      alpha=param(ne,3)
-      phi2=param(ne,5)
-      f=param(ne,4)/dble(nsli)                                           !hr06
+      if (beam_expflag .eq. 0) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         phi2=param(ne,18)
+      else if(beam_expflag .eq. 1) then
+         alpha=param(ne,3)
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         !sepax=param(ne,4)     !Not actually used anywhere?
+         !sepay=param(ne,5)     !Not actually used anywhere?
+         f=param(ne,4)/dble(nsli)
+         phi2=phi               !Note - phi2 is not a free parameter anymore
+      else
+         write(lout,'(a)') "ERROR in subroutine beamint"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
+
 +if crlibm
       sphi=sin_rn(phi)
       sphi2=sin_rn(phi2)
@@ -54662,9 +55306,6 @@ c$$$            endif
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54710,9 +55351,6 @@ c$$$            endif
 !****************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54837,9 +55475,6 @@ c$$$            endif
 ! BOOSTI **************inverse boost *****************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54893,9 +55528,6 @@ c$$$            endif
 ! SIGXX is \Sigma
 !**********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54983,9 +55615,6 @@ c$$$            endif
 !*********************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59541,9 +60170,6 @@ c$$$     &           myalphay * cos(phiy))
 
       subroutine iterat(a,b,dh,s)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60942,7 +61568,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       character*(nchars+nchars) ch1
       integer errno,l1,l2
       integer dtostr
-
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -63211,9 +63837,6 @@ c$$$         backspace (93,iostat=ierro)
 !      logical function isnan(arg1,arg2)
       logical function myisnan(arg1,arg2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63229,9 +63852,6 @@ c$$$         backspace (93,iostat=ierro)
       common /slate/ isl(40)                                             !hr08
 
       integer isl                                                        !hr08
-+if cr
-+ca crcoall
-+ei
 !
 !-    call datime (nd,nt)   returns integer date   nd = yymmdd
 !-                                  integer time   nt =   hhmm
@@ -63261,9 +63881,6 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine timest(r1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +ca commtim
       logical start
       data start /.false./
@@ -63276,9 +63893,6 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine timex(r1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +ca commtim
       save
       call timest(0.0)
