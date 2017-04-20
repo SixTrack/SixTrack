@@ -54,7 +54,7 @@ if(NOT COLLIMAT)
 		SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
 	endif()
 	
-	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF beam-HO_4D-newstyle beam-HO_4D-newstyle-loadParticles beam-HO_4D-oldstyle beam-HO_6D-newstyle beam-HO_6D-oldstyle beam-HO_LR-newstyle beam-HO_LR-oldstyle beam-HO_LR-ibbc-oldstyle beam-HO_LR-ibbc-newstyle ${SIXTRACK_TESTS})
+	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF beam-HO_4D-newstyle beam-HO_4D-newstyle-loadParticles beam-HO_4D-oldstyle beam-HO_6D-newstyle beam-HO_6D-oldstyle beam-HO_LR-newstyle beam-HO_LR-oldstyle beam-HO_LR-ibbc-oldstyle beam-HO_LR-ibbc-newstyle  rfMultipoles_2ndOrder rfMultipoles_3rdOrder rfMultipoles_4thOrder ${SIXTRACK_TESTS})
 	
 endif(NOT COLLIMAT)
 
@@ -75,7 +75,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	#Check fort.10 by default
 	SET(FORT10 1)
 	#.. But some tests are missing this file:
-	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6)
+	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6 OR TST MATCHES rfMultipoles_2ndOrder OR TST MATCHES rfMultipoles_3rdOrder OR TST MATCHES rfMultipoles_4thOrder)
 		SET(FORT10 0)
 	endif()
 
