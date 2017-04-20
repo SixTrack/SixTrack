@@ -40706,7 +40706,7 @@ C Should get me a NaN
          niexpr_dynk = niexpr_dynk+3
 
       case("RANDON")
-         ! RANDON: Turn by turn On for one turn with the probability P, else OFF
+         ! RANDON: Turn by turn ON for one turn with the probability P, else OFF
          call dynk_checkargs(getfields_nfields,6,
      &        "FUN funname RANDON seed1 seed2 P" )
          call dynk_checkspace(4,1,1)
@@ -40721,7 +40721,7 @@ C Should get me a NaN
          funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
          funcs_dynk(nfuncs_dynk,2) = 8           !TYPE (RANDON)
          funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), seed1(current), seed2(current)
-         funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !ARG1 (P)
+         funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !P (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG2 (unused)
          
          ! Store data
@@ -42671,10 +42671,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),
      &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
          call recuin(tmpseed1,tmpseed2)
-
          retval = ranecu_rvec(1)
-         write(lout,*)
-     &      "Your ranceuvalue from RANDU is =", retval
 
       case (8)                                                         ! RANDON
         ! Save old seeds and load our current seeds
@@ -42689,11 +42686,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          call recuin(tmpseed1,tmpseed2)
 	! routine for switching element (orginially the electron lens) ON or OFF
         ! when random value is less than P, set ON, else OFF 
-         write(lout,*)
-     &      "Your ranceuvalue is =", ranecu_rvec(1)
-         write(lout,*)
-     &      "Your weighting is =", fexpr_dynk(funcs_dynk(funNum,4))
-         
          if (ranecu_rvec(1) .lt. fexpr_dynk(funcs_dynk(funNum,4))) then 
             retval = 1.0
          else 
@@ -65569,7 +65561,7 @@ c$$$         backspace (93,iostat=ierro)
       do j=2,4 
        lorentzmatrix(1,j)=g /g
         lorentzmatrix(1,j)=-b(j-1)*g /g
-        lorentzmatrix(j,1)=-b(j-1)*g r/g
+        lorentzmatrix(j,1)=-b(j-1)*g /g
         
         lorentzmatrix(j,j) = (1.0 + (g-1.0)* b(j-1)**2*b2inv) /g
       enddo
