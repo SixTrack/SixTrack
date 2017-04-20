@@ -24,15 +24,13 @@ if [ -d tmp ]; then
 fi
 mkdir tmp
 
-#TODO Check that $read90 exists and is executable
-
 for i in $(ls -d */); do
     if [ ! -f ${i}fort.3 ]; then
 	#echo "Folder '"$i"' contains no tests; skipping."
 	continue
     fi
     
-    echo "Checking folder '"${i%%/}"'";
+    #echo "Checking folder '"${i%%/}"'";
 
     if [ ! -f ${i}fort.90.canonical ]; then
 	echo "WARNING: No fort.90.canonical found in '"${i%%/}"'"
