@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.5.40'/
-      data moddate /'29.11.2016'/
+      data version /'4.6.16'/
+      data moddate /'18.04.2017'/
 +cd license
 !!SixTrack
 !!
@@ -16,7 +16,9 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fitterer, M. Fiascaris, J.F.Wagner, J. Wretborn CERN
+!!M. Fiascaris, J.F.Wagner, J. Wretborn, CERN
+!!M. Fitterer, FNAL, CERN
+!!A. Patapenka,  NIU, CERN
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
 !!J. Molson (LAL)
@@ -73,6 +75,9 @@
       double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
      &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
 +cd crcoall
+!     Standard output unit
+!     For CR version, this is the "buffer file" fort.92;
+!     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
       integer lout
       common /crflags/lout
 +cd commtim
@@ -81,7 +86,7 @@
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
       logical rerun,start,restart,checkp,fort95,fort96,read95,read96
-      character*255 arecord
+      character*1024 arecord
       character*20 stxt
       character*80 runtim
 ! Note order of placement in COMMON crdata is important
@@ -242,6 +247,9 @@
       parameter ( half = 0.5d0, one = 1.d0 )
       common /wzcom1/ hrecip, kstep
       common /wzcom2/ wtreal(idim), wtimag(idim)
++cd parbeam_exp
+      integer beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
+      common /beam_exp/ beam_expflag
 +cd beamdim
       double precision cc,xlim,ylim
       parameter(cc = 1.12837916709551d0)
@@ -274,7 +282,7 @@
      &phas,phas0,phasc,pi,pi2,pisqrt,pma,ptnfac,qs,qw0,qwsk,qx0,qxt,qz0,&
      &qzt,r00,rad,rat,ratio,ratioe,rrtr,rtc,rts,rvf,                    &
      &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
-     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,wirel,   &
+     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,         &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4
 +if time
@@ -336,16 +344,23 @@
       common/co6d/clo6(3),clop6(3)
       common/dkic/dki(nele,3)
       common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
-     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,5),track6d(6,npart),     &
+     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
      &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
      &nbeam,ibbc,ibeco,ibtyp,lhc
       common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
       common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
-      common/wireco/ wirel(nele)
       common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
      &nturn3(nele), nturn4(nele)
       common/crabco/ crabph(nele),crabph2(nele),                        &
      &crabph3(nele),crabph4(nele)
+! wire parameters for closed orbit calculation (FOX part)
+! for FOX length of variable names must be smaller 8
+      integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
+      double precision wire_clo            ! closed orbit at wire
+      double precision wireclo0         ! initial coordinates for closed orbit
+      integer wire_num_aux              ! auxiliary variable to count number of wires
+      integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
+      common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
 +cd commons
       integer idz,itra
 +if vvector
@@ -652,7 +667,8 @@
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !SEPT2005,OCT2006 added offset
-     &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
+     &xbeat,xbeatphase,ybeat,ybeatphase,
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
@@ -696,7 +712,8 @@
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !
-     &emitx0,emity0,xbeat,xbeatphase,ybeat,ybeatphase,                  &
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
+     &xbeat,xbeatphase,ybeat,ybeatphase,
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,                                &
@@ -721,19 +738,23 @@
       integer   mynp
       common /mynp/ mynp
 !
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
       logical cut_input
       common /cut/ cut_input
 !
 !++ Vectors of coordinates
 !
-      double precision myemitx,mygammax,myemity,mygammay,xsigmax,ysigmay
+      double precision mygammax,mygammay
 !
       real rndm4
 !
       character*80 dummy
 !
-      double precision remitxn,remityn,remitx,remity
-      common  /remit/ remitxn, remityn, remitx, remity
+      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+      double precision remitx_dist,remity_dist,
+     &     remitx_collgap,remity_collgap
+      common  /remit/ remitx_dist, remity_dist,
+     &     remitx_collgap,remity_collgap
 !
       double precision mux(nblz),muy(nblz)
       common /mu/ mux,muy
@@ -765,11 +786,16 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbdaten
+
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
       logical cut_input
       common /cut/ cut_input
 !
-      double precision rselect,remitxn,remityn,remitx,remity
-      common  /remit/ remitxn,remityn,remitx,remity
+      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+      double precision remitx_dist,remity_dist,
+     &     remitx_collgap,remity_collgap
+      common  /remit/ remitx_dist, remity_dist,
+     &     remitx_collgap,remity_collgap
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -795,22 +821,10 @@
       integer coll_mingap_id
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbmaincr
-      double precision myemitx0,myemity0,myalphax,myalphay,mybetax,     &
-     &mybetay,rselect
-      common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
-     &mybetay,rselect
-!
-      logical cut_input
-      common /cut/ cut_input
-!
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dbthin6d
 !
 !
-      logical cut_input,firstcoll,found,onesided
+      logical firstcoll,found,onesided
 !
       integer myktrack,n_gt72,n_gt80,n_gt90,nx_gt72,nx_gt80,            &
      &ny_gt72,ny_gt80,rnd_lux,rnd_k1,rnd_k2,ios,num_surhit,numbin,ibin, &
@@ -870,7 +884,10 @@
 !
       character*4 c_material     !material
 !
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+      logical cut_input
       common /cut/ cut_input
+      
       common /mu/ mux, muy
       common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
      &ypineff
@@ -883,10 +900,15 @@
 !
       integer ieff,ieffdpop
 !
-      double precision myemitx0,myemity0,myalphay,mybetay,myalphax,     &
-     &mybetax,rselect
-      common /ralph/ myemitx0,myemity0,myalphax,myalphay,mybetax,       &
-     &mybetay,rselect
+      double precision myemitx0_dist,myemity0_dist,                     &
+     &     myemitx0_collgap,myemity0_collgap,                           &
+     &     myemitx,myalphay,mybetay,myalphax,                           &
+     &     mybetax,rselect
+      common /ralph/ myemitx0_dist,myemity0_dist,                       &
+     &     myemitx0_collgap,myemity0_collgap,                           &
+     &     myalphax,myalphay,mybetax,                                   &
+     &     mybetay,rselect
+
 !
 ! M. Fiascaris for the collimation team
 ! variables for global inefficiencies studies
@@ -898,7 +920,7 @@
 ! 
       integer counteddpop(npart,numeffdpop)                            
       integer counted2d(npart,numeff,numeffdpop)
-      double precision neffdpop(numeffdpop),dpopbins(numeffdpop)        &
+      double precision neffdpop(numeffdpop),dpopbins(numeffdpop)
       integer npartdpop(numeffdpop)
       common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
       double precision dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
@@ -918,15 +940,15 @@
       double precision neffx(numeff),neffy(numeff)
       common /efficiency/ neffx,neffy
 !
-      integer part_hit(maxn),part_abs(maxn),n_tot_absorbed,n_absorbed   &
-     &,part_select(maxn),nabs_type(maxn)
-      double precision part_impact(maxn)
+      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed   &
+     &,part_select(npart),nabs_type(npart)
+      double precision part_impact(npart)
       common /stats/ part_impact,part_hit,part_abs,nabs_type
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
-      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
-      common   /beam00/ x00,xp00,y00,yp00
+!      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
+!      common   /beam00/ x00,xp00,y00,yp00
 !
       logical firstrun
       common /firstrun/ firstrun
@@ -972,16 +994,16 @@
      &myp(maxn),mys(maxn)
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
-      integer counted_r(maxn,numeff),counted_x(maxn,numeff),            &
-     &counted_y(maxn,numeff)
+      integer counted_r(npart,numeff),counted_x(npart,numeff),          &
+     &counted_y(npart,numeff)
       common /counting/ counted_r,counted_x,counted_y
 !
 !APRIL2005
 !      integer secondary(maxn),tertiary(maxn),part_hit_before(maxn)
-      integer secondary(maxn),tertiary(maxn),other(maxn),               &
-     &part_hit_before(maxn)
+      integer secondary(npart),tertiary(npart),other(npart),            &
+     &part_hit_before(npart)
 !APRIL2005
-      double precision part_indiv(maxn),part_linteract(maxn)
+      double precision part_indiv(npart),part_linteract(npart)
 !
       integer   samplenumber
       character*4 smpl
@@ -1003,11 +1025,16 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcollim
+!     BLOCK DBCOLLIM
+!     This block is common to collimaterhic and collimate2
+!     It is NOT compatible with block DBCOMMON, as some variable names overlap...
+      
+
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
 !MAY2005
 !      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart),nabs_type(maxn)
+      integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -1045,6 +1072,7 @@
 !
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
+!     END BLOCK DBCOLLIM
 +cd collMatNum
 !     EQ 2016 added variables for collimator material numbers
       integer nmat, nrmat
@@ -1065,7 +1093,6 @@
 !
 !++ Vectors of coordinates
 !
-      logical cut_input
       integer i,j,mynp,nloop
       double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
      &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
@@ -1078,7 +1105,8 @@
 !
       character*80   dummy
 !
-!
+      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
+      logical cut_input
       common /cut/ cut_input
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1093,6 +1121,8 @@
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
      &pptco,ppeco,sdcoe,freeco,fnavo,zatom,exenergy
+!electron density and plasma energy
+      double precision edens, pleng
       parameter(fnavo=6.02214129d23)                                          
       real cgen
       character * 4 mname(nmat)
@@ -1111,6 +1141,7 @@
       common/materia/mat
       common/sindif/xpsd,zpsd,psd
       common/cdpodx/dpodx
+      common/cions/edens(nmat),pleng(nmat)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1217,6 +1248,38 @@
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
       double precision :: rrelens,frrelens,r1elens,xelens,yelens
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd wireparam
+!     A. Patapenka (NIU), M. Fitterer (FNAL)
+!     Common block for wire definition
+      ! variables to save wire parameters for tracking etc.
+      double precision :: wire_current(nele)    ! wire current [A]
+      double precision :: wire_lint(nele)       ! integrated length of the wire [m]
+      double precision :: wire_lphys(nele)      ! physical length of the wire [m]
+      ! integer to include or not closed orbit in the separation between beam and wire
+      ! 0  : Un-initialized if wire element not found
+      ! +1 : dispx is the distance between x0=y0=0 and the wire
+      ! -1 : dispx is the distance between the closed orbit and the wire 
+      !
+      !    x=y=0    <->   xco     <->    xwire
+      !               closed orbit    wire position
+      ! wire_flagco = +1: dispx = xwire -> rx = x + xsep
+      ! wire_flagco = -1: dispx = xwire - xco -> rx = x - xco + xsep
+      ! -> rx = x + xwire
+      integer          :: wire_flagco(nele)     
+      double precision :: wire_dispx(nele),
+     &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
+      double precision :: wire_tiltx(nele),
+     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
+      common /wireparamco/ wire_current,wire_lint,wire_lphys,
+     &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
++cd wiretracktmp
+! temporary variables
+      double precision RTWO !RTWO=x^2+y^2
+      double precision NNORM_, NNORM
+      double precision l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1371,6 +1434,16 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
++cd zipf
+      integer zipf_maxfiles,zipf_numfiles
+      parameter (zipf_maxfiles=256)
+      character(stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
+      character(stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
+      
+      common /zipfCom/ zipf_numfiles, zipf_outfile, zipf_filenames
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
 +cd timefct
 +if crlibm
           expt =  exp_rn(-dble(n)/tcnst35(i))
@@ -1440,12 +1513,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V RE INT DPS1 ; D V RE INT RKBF ; D V RE INT RBF ;
 *FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ;
 *FOX  D V RE INT SIGMAN 2 NBB ; D V RE INT PTNFAC NELE ;
-*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ;
+*FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 18 ;
 *FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 *FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
 *FOX  D V RE INT PARBE14 ; D V RE INT PI ;
 *FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ;
 *FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
+*FOX  D V RE INT WIRECLO0 ;
 +if .not.fast
 *FOX  D V RE INT C2E3 ; D V RE INT C1E6 ;
 +ei
@@ -1465,6 +1539,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
 *FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
 *FOX  D V IN INT IMBB NBLZ ;
+*FOX  D V IN INT WIRE_NUM NBLZ ;
 *FOX  D F RE DARE 1 ;
 *FOX  D V DA INT PZ NORD NVAR ;
 *FOX  E D ;
@@ -1503,7 +1578,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,                   &
+     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
 +if vvector
      &as,al,sigm,dps,idz,dp1,itra,                                      &
 +ei
@@ -2156,12 +2231,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                 endif
 ! include bends at entrance and exit of elens
               case default
-+if cr
                write(lout,*) 'ERROR in deck kickelens: elens_type='
-+ei
-+if .not.cr
-               write(*,*) 'ERROR in deck kickelens: elens_type='
-+ei
      &,elens_type(ix),' not recognized. Possible values for type are: ',
      &'1.'
                 call prror(-1) 
@@ -2262,7 +2332,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
         y(1,1)=y(1,1)+ekk*tiltc(k)
         y(1,2)=y(1,2)+ekk*tilts(k)
 +ei
-+cd kickuxxh                                                            
++cd kickuxxh
 +if .not.tilt
         dyy1=ekk*crkve
         dyy2=(-1d0*ekk)*cikve                                            !hr08
@@ -4756,9 +4826,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           ktrack(i)=44
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr03
           if(ibeco.eq.1) then
-            track6d(1,1)=ed(ix)*c1m3
+            track6d(1,1)=parbe(ix,5)*c1m3
             track6d(2,1)=zero
-            track6d(3,1)=ek(ix)*c1m3
+            track6d(3,1)=parbe(ix,6)*c1m3
             track6d(4,1)=zero
             track6d(5,1)=zero
             track6d(6,1)=zero
@@ -4775,7 +4845,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           endif
           goto 290
         endif
-+cd wirektrack
++cd wire
+! wire
         if(kzz.eq.15) then
           ktrack(i)=45
           goto 290
@@ -4828,14 +4899,14 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beamcof
 *FOX  CRKVEBF=X(1) ;
 *FOX  CIKVEBF=X(2) ;
-            startco=(dare(x(1))-clobeam(1,imbb(i)))+ed(ix)               !hr03
+            startco=(dare(x(1))-clobeam(1,imbb(i)))+parbe(ix,5)
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,1,0,0,0)
 !     endif
 +ei
             call dapok(crkvebf,jj,startco)
-            startco=(dare(x(2))-clobeam(2,imbb(i)))+ek(ix)
+            startco=(dare(x(2))-clobeam(2,imbb(i)))+parbe(ix,6)
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('startco',startco,2,0,0,0)
@@ -4851,11 +4922,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 *FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
 +cd beamr1of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+              crk=parbe(ix,5)
+              cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+     &             parbe(ix,6)*bbcu(imbb(i),12)
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+     &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             rho2b=crk**2+cik**2                                          !hr03
             if(rho2b.gt.pieni)
@@ -4994,11 +5067,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
             zrbf=abs(cikvebf/rbf)
 +cd beama2of
             if(ibbc.eq.0) then
-              crk=ed(ix)
-              cik=ek(ix)
+               crk=parbe(ix,5)
+               cik=parbe(ix,6)
             else
-              crk=ed(ix)*bbcu(imbb(i),11)+ek(ix)*bbcu(imbb(i),12)
-              cik=ek(ix)*bbcu(imbb(i),11)-ed(ix)*bbcu(imbb(i),12)        !hr03
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+     &             parbe(ix,6)*bbcu(imbb(i),12)
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+     &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             xrb=abs(crk)/rb
             zrb=abs(cik)/rb
@@ -5209,25 +5284,25 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +ei
 +cd beamco
               if(ibbc.eq.0) then
-                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+ed(ix)            !hr03
-                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+ek(ix)            !hr03
+                crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
+                cikveb(j)=(xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6)
               else
-                crkveb(j)=                                              &!hr03
-     &((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),11)+           &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),12)             !hr03
-                cikveb(j)=                                              &!hr03
-     &((xv(2,j)-clobeam(2,imbb(i)))+ek(ix))*bbcu(imbb(i),11)            &!hr03
-     &-((xv(1,j)-clobeam(1,imbb(i)))+ed(ix))*bbcu(imbb(i),12)            !hr03
+                crkveb(j)=                                              &
+     &((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),11) +     &
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),12)
+                cikveb(j)=                                              &
+     &((xv(2,j)-clobeam(2,imbb(i)))+parbe(ix,6))*bbcu(imbb(i),11) -     &
+     &((xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5))*bbcu(imbb(i),12)
               endif
 +cd beamcoo
               if(ibbc.eq.0) then
-                crkveb(j)=ed(ix)
-                cikveb(j)=ek(ix)
+                crkveb(j)=parbe(ix,5)
+                cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=ed(ix)*bbcu(imbb(i),11)+                      &
-     &ek(ix)*bbcu(imbb(i),12)
-                cikveb(j)=ek(ix)*bbcu(imbb(i),11)-                      &!hr03
-     &ed(ix)*bbcu(imbb(i),12)                                            !hr03
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +
+     &                parbe(ix,6)*bbcu(imbb(i),12)
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-
+     &               parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
             rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
@@ -5424,9 +5499,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-              track6d(1,j)=((xv(1,j)+ed(ix))-clobeam(1,imbb(i)))*c1m3    !hr03
+               track6d(1,j)=((xv(1,j)+parbe(ix,5)) -
+     &              clobeam(1,imbb(i)))*c1m3
               track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-              track6d(3,j)=((xv(2,j)+ek(ix))-clobeam(2,imbb(i)))*c1m3    !hr03
+              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -
+     &             clobeam(2,imbb(i)))*c1m3
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
@@ -5454,12 +5531,12 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
           parbe(ix,4)=(((-1d0*crad)*ptnfac(ix))*half)*c1m6               !hr08
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
-*FOX      TRACKI(1)=(X(1)+ED(IX)-DUMMY)*C1M3 ;
+*FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
 *FOX      YP(1)=Y(1)*(ONE+DPDA) ;
           dummy=dare(yp(1))
 *FOX      TRACKI(2)=(YP(1)-DUMMY)*C1M3 ;
           dummy=dare(x(2))
-*FOX      TRACKI(3)=(X(2)+EK(IX)-DUMMY)*C1M3 ;
+*FOX      TRACKI(3)=(X(2)+PARBE(IX,6)-DUMMY)*C1M3 ;
 *FOX      YP(2)=Y(2)*(ONE+DPDA) ;
           dummy=dare(yp(2))
 *FOX      TRACKI(4)=(YP(2)-DUMMY)*C1M3 ;
@@ -6243,12 +6320,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
              backspace (10,iostat=ierro)
 +ei
              call bnlrdis(20000)
-+if cr
                write(lout,*) 'Sample number 1'
-+ei
-+if .not.cr
-               write(*,*) 'Sample number 1'
-+ei
 !TEST
 !ERIC              napx=napx00
                do j = 1, napx
@@ -6358,12 +6430,7 @@ cc2008
 +ei
 !GRD-042008
           if(mod(n,nwr(3)).eq.0) then
-+if cr
             write(lout,*) 'dumping stats at turn number ',n
-+ei
-+if .not.cr
-            write(*,*) 'dumping stats at turn number ',n
-+ei
 +if crlibm
 ! Use dtostr for correct binary decimal conversion
            l1=1
@@ -6606,8 +6673,8 @@ cc2008
           if ( ldump(0) ) then
 !           dump at all SINGLE ELEMENTs
             if ( ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1 ) then
-               if (   (n.ge.dumpfirst(ix)) .and. 
-     &              ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+               if (   (n.ge.dumpfirst(0)) .and.
+     &              ( (n.le.dumplast(0)) .or. (dumplast(0).eq.-1) )
      &              ) then
                   call dump_beam_population( n, i, ix, dumpunit(0),
      &                 dumpfmt(0), ldumphighprec )
@@ -6706,45 +6773,25 @@ cc2008
           nnumxv(nlostp(j))=numx
 +cd lost3a
           if(mod(nlostp(j),2).eq.one) then
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j))*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j))*izu0,               &
-+ei
      &dp0v(nlostp(j)),numxv(nlostp(j)),abs(xvl(1,nlostp(j))),           &
      &aperv(nlostp(j),1),abs(xvl(2,nlostp(j))),                         &
      &aperv(nlostp(j),2)
           else
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j)-1)*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j)-1)*izu0,             &
-+ei
      &dp0v(nlostp(j)-1),numxv(nlostp(j)),abs(xvl(1,nlostp(j))),         &
      &aperv(nlostp(j),1),abs(xvl(2,nlostp(j))),                         &
      &aperv(nlostp(j),2)
           endif
 +cd lost3b
           if(mod(nlostp(j),2).eq.one) then
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j))*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j))*izu0,               &
-+ei
      &dp0v(nlostp(j)),numxv(nlostp(j)),iv(nlostp(j)),                   &
      &abs(xvl(1,nlostp(j))),aperv(nlostp(j),1),                         &
      &abs(xvl(2,nlostp(j))),aperv(nlostp(j),2),                         &
      &ixv(nlostp(j)),kz(ixv(nlostp(j))),bez(ixv(nlostp(j)))
           else
-+if cr
             write(lout,10000) nlostp(j),nms(nlostp(j)-1)*izu0,
-+ei
-+if .not.cr
-            write(*,10000) nlostp(j),nms(nlostp(j)-1)*izu0,             &
-+ei
      &dp0v(nlostp(j)-1),numxv(nlostp(j)),iv(nlostp(j)),                 &
      &abs(xvl(1,nlostp(j))),aperv(nlostp(j),1),                         &
      &abs(xvl(2,nlostp(j))),aperv(nlostp(j),2),                         &
@@ -6802,54 +6849,14 @@ cc2008
         endif
    30 continue
       if(lnapx.eq.0) then
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
-+if cr
         write(lout,*) '***********************'
-+ei
-+if .not.cr
-        write(*,*) '***********************'
-+ei
-+if cr
         write(lout,*) '** ALL PARTICLE LOST **'
-+ei
-+if .not.cr
-        write(*,*) '** ALL PARTICLE LOST **'
-+ei
-+if cr
         write(lout,*) '**   PROGRAM STOPS   **'
-+ei
-+if .not.cr
-        write(*,*) '**   PROGRAM STOPS   **'
-+ei
-+if cr
         write(lout,*) '***********************'
-+ei
-+if .not.cr
-        write(*,*) '***********************'
-+ei
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
-+if cr
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*) ''
-+ei
         nthinerr=3001
         nnuml=numl
         return
@@ -6867,14 +6874,14 @@ cc2008
       napx=lnapx
       return
 +cd lost5a
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/)
       end
 +cd lost5b
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
@@ -6882,7 +6889,7 @@ cc2008
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd lost5c
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,       &
+10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
      &'HORIZ:  AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
@@ -7060,93 +7067,28 @@ cc2008
           if(iwrite.eq.1) then
             iii=i
             if(typ(:8).eq.'START   ') iii=0
-+if cr
             write(lout,10030) iii,typ(:8),tl,phi(1),b1(1),al1(1),g1(1),
-+ei
-+if .not.cr
-            write(*,10030) iii,typ(:8),tl,phi(1),b1(1),al1(1),g1(1),    &
-+ei
      &d(1),dp(1),c(1),cp(1)
             if(ndimf.eq.3) then
-+if cr
               write(lout,10040) b2(1),al2(1),g2(1)
-+ei
-+if .not.cr
-              write(*,10040) b2(1),al2(1),g2(1)
-+ei
-+if cr
               write(lout,10050) typ(9:16),b3(1),al3(1),g3(1)
-+ei
-+if .not.cr
-              write(*,10050) typ(9:16),b3(1),al3(1),g3(1)
-+ei
             else
-+if cr
               write(lout,10055) typ(9:16),b2(1),al2(1),g2(1)
-+ei
-+if .not.cr
-              write(*,10055) typ(9:16),b2(1),al2(1),g2(1)
-+ei
             endif
-+if cr
             write(lout,10060)
-+ei
-+if .not.cr
-            write(*,10060)
-+ei
-+if cr
             write(lout,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),&
-+ei
-+if .not.cr
-            write(*,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),   &
-+ei
      &cp(2)
-+if cr
             write(lout,10080) b2(2),al2(2),g2(2)
-+ei
-+if .not.cr
-            write(*,10080) b2(2),al2(2),g2(2)
-+ei
             if(ndimf.eq.3) then
-+if cr
               write(lout,10090) b3(2),al3(2),g3(2)
-+ei
-+if .not.cr
-              write(*,10090) b3(2),al3(2),g3(2)
-+ei
-+if cr
               write(lout,10060)
-+ei
-+if .not.cr
-              write(*,10060)
-+ei
-+if cr
               write(lout,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),  &
      &c(3),
-+ei
-+if .not.cr
-              write(*,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),c(3),&
-+ei
      &cp(3)
-+if cr
               write(lout,10080) b2(3),al2(3),g2(3)
-+ei
-+if .not.cr
-              write(*,10080) b2(3),al2(3),g2(3)
-+ei
-+if cr
               write(lout,10040) b3(3),al3(3),g3(3)
-+ei
-+if .not.cr
-              write(*,10040) b3(3),al3(3),g3(3)
-+ei
             endif
-+if cr
             write(lout,10010)
-+ei
-+if .not.cr
-            write(*,10010)
-+ei
           endif
 +cd umlalid1
           ibb=ibb+1
@@ -7213,46 +7155,205 @@ cc2008
 +ei
               endif
             enddo
-            if(parbe(ix,2).gt.0d0) then                                  !hr12
-              do ii=4,10
-                call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-                call averaged(angno,aa2r,.false.,angno)
-                do j=1,ndimf
-                  j1=2*j
-                  jj(j1-1)=1
-                  jj(j1)=1
-                  call dapek(angno,jj,angnoe(j))
-                  jj(j1-1)=0
-                  jj(j1)=0
+            if (beam_expflag .eq. 0) then !Old-style input
+              if(parbe(ix,2).gt.0d0) then
+                do ii=4,10
+                  call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
+                  call averaged(angno,aa2r,.false.,angno)
+                  do j=1,ndimf
+                    j1=2*j
+                    jj(j1-1)=1
+                    jj(j1)=1
+                    call dapek(angno,jj,angnoe(j))
+                    jj(j1-1)=0
+                    jj(j1)=0
+                  enddo
+                  if(ndimf.eq.3) then
+                    bbcu(ibb,ii) = two *
+     &               ((emitx*angnoe(1)+emity*angnoe(2))+emitz*angnoe(3))
+                  else
+                    bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
+                  endif
                 enddo
-                if(ndimf.eq.3) then
-                bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
-     &emitz*angnoe(3))
-                else
-                  bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
-                endif
-              enddo
+              endif
+              if(lhc.eq.1) then
+                dummy=bbcu(ibb,1)
+                bbcu(ibb,1)=bbcu(ibb,2)
+                bbcu(ibb,2)=dummy
+                dummy=bbcu(ibb,4)
+                bbcu(ibb,4)=bbcu(ibb,9)
+                bbcu(ibb,9)=dummy
+                dummy=bbcu(ibb,5)
+                bbcu(ibb,5)=bbcu(ibb,7)
+                bbcu(ibb,7)=dummy
+                dummy=bbcu(ibb,6)
+                bbcu(ibb,6)=bbcu(ibb,10)
+                bbcu(ibb,10)=dummy
+              endif
+              if(lhc.eq.2) then
+                bbcu(ibb,1)=bbbx(ix)
+                bbcu(ibb,2)=bbby(ix)
+                bbcu(ibb,3)=bbbs(ix)
+              endif
+
+            !Indentation break, sorry :(
+
+          else if (beam_expflag .eq. 1) then !New style input
+            if(parbe(ix,2).gt.0d0) then
+               bbcu(ibb,1)=parbe(ix,7)
+               bbcu(ibb,4)=parbe(ix,8)
+               bbcu(ibb,6)=parbe(ix,9)
+               bbcu(ibb,2)=parbe(ix,10)
+               bbcu(ibb,9)=parbe(ix,11)
+               bbcu(ibb,10)=parbe(ix,12)
+               bbcu(ibb,3)=parbe(ix,13)
+               bbcu(ibb,5)=parbe(ix,14)
+               bbcu(ibb,7)=parbe(ix,15)
+               bbcu(ibb,8)=parbe(ix,16)
             endif
-          if(lhc.eq.1) then
-            dummy=bbcu(ibb,1)
-            bbcu(ibb,1)=bbcu(ibb,2)
-            bbcu(ibb,2)=dummy
-            dummy=bbcu(ibb,4)
-            bbcu(ibb,4)=bbcu(ibb,9)
-            bbcu(ibb,9)=dummy
-            dummy=bbcu(ibb,5)
-            bbcu(ibb,5)=bbcu(ibb,7)
-            bbcu(ibb,7)=dummy
-            dummy=bbcu(ibb,6)
-            bbcu(ibb,6)=bbcu(ibb,10)
-            bbcu(ibb,10)=dummy
+            if(parbe(ix,2).eq.0d0) then
+               bbcu(ibb,1)=parbe(ix,1)
+               bbcu(ibb,2)=parbe(ix,3)
+            endif
+          else
+             write(lout,'(a)') "ERROR in +cd umlalid1"
+             write(lout,'(a)') "beam_expflag was", beam_expflag
+             write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+             call prror(-1)
+          end if
+
+          if (beam_expflag .eq. 0) then
+          write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+          if(parbe(ix,2).eq.0.0) then !4D
+             !Note: One should always use the CRLIBM version when converting,
+             ! in order to guarantee the exact same results from the converted input file.
++if .not.crlibm
+             write(lout,"(a16,1x,a1,1x,5g30.20)")
+     &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
+     &            parbe(ix,5), parbe(ix,6), ptnfac(ix)
++ei
++if crlibm
+             l1 = 1
+             write(ch,'(a16,1x,a1)') bez(ix), "0"
+             l1 = len(trim(ch))+1
+             
+             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,2),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,5),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,6),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(ptnfac(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
++ei
+          else                      ! 6D
++if .not.crlibm
+             write(lout,"(a16,1x,i4,1x,4g30.20)")
+     &            bez(ix), int(parbe(ix,2)),
+     &            parbe(ix,1), parbe(ix,3),
+     &            parbe(ix,5), parbe(ix,6)
+             write(lout,"(5g30.20)")
+     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
+     &            bbcu(ibb,2), bbcu(ibb,9)
+             write(lout,"(6g30.20)")
+     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
+     &            bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
++ei
++if crlibm
+             l1 = 1
+             write(ch,'(a16,1x,i4)') bez(ix), int(parbe(ix,2))
+             l1 = len(trim(ch))+1
+
+             errno=dtostr(parbe(ix,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,3),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,5),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(parbe(ix,6),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+                          
+             write(lout,*) trim(ch)
+
+             l1 = 1
+             ch = ' '
+
+             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,4),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,6),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,2),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(bbcu(ibb,9),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
+
+             l1 = 1
+             ch = ' '
+
+             errno=dtostr(bbcu(ibb,10),ch1) ! Return value is the string length (always 24)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,3),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,5),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             errno=dtostr(bbcu(ibb,7),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(bbcu(ibb,8),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+
+             errno=dtostr(ptnfac(ix),ch1)
+             ch(l1:l1+errno) = ch1(1:errno)
+             l1 = l1+errno+1
+             
+             write(lout,*) trim(ch)
++ei
+            endif
+          write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
           endif
-          if(lhc.eq.2) then
-            bbcu(ibb,1)=bbbx(ix)
-            bbcu(ibb,2)=bbby(ix)
-            bbcu(ibb,3)=bbbs(ix)
-          endif  
-          if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
+          
+        if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
           endif
           if(ibbc.eq.1) then
@@ -7276,7 +7377,7 @@ cc2008
             sigman(1,ibb)=sqrt(bbcu(ibb,1))
             sigman(2,ibb)=sqrt(bbcu(ibb,2))
           endif
-          if(parbe(ix,2).gt.0d0) then                                    !hr08
+          if(parbe(ix,2).gt.0d0) then !6D -> convert units
             do ii=1,10
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
@@ -7408,269 +7509,297 @@ cc2008
           enddo
 
 !----------------------------------------------------------------------
+! Wire element.
 
-! Wire.
++cd wirekick
+! MODEL OF STRAIGHT CURRENT WIRE
+!
+!     The model provides a transfer map of a straight current wire. 
+!     Description:
+!     1. Infinitly thin wire with arbitrary orientation.
+!     2. Thin element in SixTrack (L)=0
+!     3. Parameters: 
+!     dx, dy: horizontal and vertical distances between wire midpoint
+!     and closed orbit [mm] 
+!     (parameters are given by dx and dy in WIRE block)
+!     tx, ty: tilt of the wire w.r.t the closed orbit in the
+!     horizontal and vertical planes (in degrees) 
+!     (parameters are given by tiltx and tilty in WIRE block)
+!     L - physical length of the wire element [m]
+!     cur - current of the wire [Amperes]
+!     embl - embedding drift (integrated length or integration interval) [m] 
+!     4. The transport map is given for canonical variables (x,px...)
+!
+! The MAP is constructed out of the following steps:
+!     1. Declaration of shifted canonical variables: 
+!          rx = x+dx; ry = y+dy  in the same way as for the BEAM-BEAM element
+!     2. Symplectic Rotation by the tilt angles tx, ty (in 4D space: px, rx, py, ry)
+!     3. Wire kick for a longitudinally aligned wire (= kick for tx=ty=0)
+!     4. Symplectic Rotation back by the tilt angles -ty, -yx (in 4D space: ...taking only PX, PY)
+!--------------------------------------------------------------
+!     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
+!     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
-+cd wire
 !     magnetic rigidity
-      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            !hr03
+      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            
 
-      ix = ixcav
-      tx = xrms(ix)
-      ty = zrms(ix)
-      dx = xpl(ix)
-      dy = zpl(ix)
-      embl = ek(ix)
-      l = wirel(ix)
-      cur = ed(ix)
+      tx = wire_tiltx(ix) !tilt x [degrees] 
+      ty = wire_tilty(ix) !tilt y [degrees]
+      tx = tx*(pi/180.0d0) ![rad]
+      ty = ty*(pi/180.0d0) ![rad]
+      dx = wire_dispx(ix) !displacement x [mm]
+      dy = wire_dispy(ix) !displacement y [mm]
+      embl = wire_lint(ix) !integrated length [m]
+      l = wire_lphys(ix) !physical length [m]
+      cur = wire_current(ix)
 
-+if crlibm
-      leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr03
-+ei
+      if (abs(wire_flagco(ix)).ne.1) then
+        write(lout,
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
+     &'be either 1 or -1! Did you define all wires in the WIRE block?',
+     &'bez(',ix,') = ',bez(ix),
+     &'wire_flagco(',ix,') = ',wire_flagco(ix)
+        call prror(-1)
+      endif
+      NNORM=c1m7/chi
+
+      IF (wire_flagco(ix).eq.1) THEN
+         dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
+         dyi = (dy+wire_clo(2,wire_num(i)) )*c1m3 
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+         dxi = (dx)*c1m3
+         dyi = (dy)*c1m3
+      END IF 
+      
+      do j=1, napx
+
+      yv(1,j) = yv(1,j) * c1m3 !SI
+      yv(2,j) = yv(2,j) * c1m3 !SI
+    
+! 1 shift
+      IF (wire_flagco(ix).eq.1) THEN
+         xi = (xv(1,j)+dx)*c1m3 !SI
+         yi = (xv(2,j)+dy)*c1m3 !SI
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+         xi = (xv(1,j)+( dx-wire_clo(1,wire_num(i)) ))*c1m3 !SI
+         yi = (xv(2,j)+( dy-wire_clo(2,wire_num(i)) ))*c1m3 !SI
+      END IF 
+
+! x'-> px; y'->py
+      yv(1,j) = yv(1,j)*(1d0 + dpsv(j))
+      yv(2,j) = yv(2,j)*(1d0 + dpsv(j))
+
+! start not crlibm wire
 +if .not.crlibm
-      leff = (embl/cos(tx))/cos(ty)                                      !hr03
+
+! ibeco = 0
+      if(ibeco.eq.0) then
+! 2 symplectic rotation of coordinate system (tx, ty)
+          yi = yi-(((xi*sin(tx))*yv(2,j))/                              &
+     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos(atan(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &
+     &yv(2,j)**2))-tx)                                                  
+          xi = xi*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/                    &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))              
+          yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                  &
+     &sin(atan(yv(1,j)/                                                 &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+
+          xi = xi-(((yi*sin(ty))*yv(1,j))/                              &
+     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &
+     &yv(2,j)**2))-ty)                                                  
+          yi = yi*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/                    &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))              
+          yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                  &
+     &sin(atan(yv(2,j)/                                                 &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty) 
+
+! 3 apply wire kick
+          RTWO = xi**2+yi**2
+          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+
+! ibeco = 1:
+      elseif(ibeco.eq.1) then
+! 2 symplectic rotation of coordinate system (tx, ty) + closed orbit
+          yi = yi-(((xi*sin(tx))*yv(2,j))/                              &
+     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos(atan(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &
+     &yv(2,j)**2))-tx)                                                  
+          xi = xi*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/                    &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+
+          dyi = dyi-(((dxi*sin(tx))*yv(2,j))/                           &
+     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos(atan(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &
+     &yv(2,j)**2))-tx)                                                  
+          dxi = dxi*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+  
+          yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                  &
+     &sin(atan(yv(1,j)/                                                 &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+
+          xi = xi-(((yi*sin(ty))*yv(1,j))/                              &
+     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &
+     &yv(2,j)**2))-ty)                                                  
+          yi = yi*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/                    &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)) 
+      
+          dxi = dxi-(((dyi*sin(ty))*yv(1,j))/                           &
+     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &
+     &yv(2,j)**2))-ty)                                                  
+          dyi = dyi*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/                  &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))  
+     
+          yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                  &
+     &sin(atan(yv(2,j)/                                                 &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)             
+ 
+! 3 apply wire kick
+          RTWO = xi**2+yi**2
+          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+! subtract closed orbit kick
+! wire kick is negative px -> px - wirekick - (-closed orbit kick)
+          RTWO = dxi**2+dyi**2
+          yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*                         &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+          yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*                         &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+
+      endif
+
+
+! 4 symplectic rotation of coordinate system (-ty, -tx)
+      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin(atan(yv(2,j)/                                                 &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
+      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin(atan(yv(1,j)/                                                 &
+     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
+
 +ei
+!-----------------------------------------------------------------------
+! end not crlibm wire
+! start crlibm wire
 +if crlibm
-      rx = dx *cos_rn(tx)-(embl*sin_rn(tx))*0.5d0                        !hr03
-+ei
-+if .not.crlibm
-      rx = dx *cos(tx)-(embl*sin(tx))*0.5d0                              !hr03
-+ei
-+if crlibm
-      lin= dx *sin_rn(tx)+(embl*cos_rn(tx))*0.5d0                        !hr03
-+ei
-+if .not.crlibm
-      lin= dx *sin(tx)+(embl*cos(tx))*0.5d0                              !hr03
-+ei
-+if crlibm
-      ry = dy *cos_rn(ty)-lin *sin_rn(ty)
-+ei
-+if .not.crlibm
-      ry = dy *cos(ty)-lin *sin(ty)
-+ei
-+if crlibm
-      lin= lin*cos_rn(ty)+dy  *sin_rn(ty)
-+ei
-+if .not.crlibm
-      lin= lin*cos(ty)+dy  *sin(ty)
-+ei
+!ibeco = 0
+      if(ibeco.eq.0) then
+! 2 symplectic rotation of coordinate system (tx, ty)
+          yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                           &
+     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-tx)
+          xi = xi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/        &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
+     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx) 
+      
+          xi = xi-(((yi*sin_rn(ty))*yv(1,j))/                           &
+     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-ty)
+          yi = yi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/        &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))  
+          yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                  &
+     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)  
+      
+! 3 apply wire kick
+          RTWO = xi**2+yi**2
+          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
 
-      do 750 j=1, napx
+! ibeco = 1
+      elseif(ibeco.eq.1) then
+! 2 symplectic rotation of coordinate system (tx, ty)
 
-      xv(1,j) = xv(1,j) * c1m3
-      xv(2,j) = xv(2,j) * c1m3
-      yv(1,j) = yv(1,j) * c1m3
-      yv(2,j) = yv(2,j) * c1m3
+          dyi = dyi-(((dxi*sin_rn(tx))*yv(2,j))/                        &
+     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-tx) 
+          dxi = dxi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/      &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+ 
+          yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                           &
+     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
+     &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-tx)
+          xi = xi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/        &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
 
-!      write(*,*) 'Start: ',j,xv(1,j),xv(2,j),yv(1,j),
-!     &yv(2,j)
+          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
+     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+              
+          dxi = dxi-(((dyi*sin_rn(ty))*yv(1,j))/                        &
+     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-ty)       
+          dyi = dyi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/      &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)) 
+      
+          xi = xi-(((yi*sin_rn(ty))*yv(1,j))/                           &
+     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
+     &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &yv(2,j)**2))-ty)                                                   
+          yi = yi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/        &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))  
 
-!     call drift(-embl/2)
+         yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                   &
+     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)              
 
-      xv(1,j) = xv(1,j) -                                               &!hr03
-     &((embl*0.5d0)*yv(1,j))/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2)                                                        !hr03
-      xv(2,j) = xv(2,j) -                                               &!hr03
-     &((embl*0.5d0)*yv(2,j))/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2)                                                        !hr03
+! 3 apply wire kick
+          RTWO = xi**2+yi**2
+          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+! subtract closed orbit kick
+! wire kick is negative px -> px - wirekick - (-closed orbit kick)
+          RTWO = dxi**2+dyi**2
+          yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*                         &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+          yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*                         &
+     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO 
+      
+      endif
 
-!     call tilt(tx,ty)
+! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
+      yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
+     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
+      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 
-+if crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin_rn(tx))*yv(2,j))/                &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &!hr03
-     &cos_rn(atan_rn(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2))-tx)                                                   !hr03
 +ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin(tx))*yv(2,j))/                   &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/                               &!hr03
-     &cos(atan(yv(1,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
-     &yv(2,j)**2))-tx)                                                   !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(1,j) = xv(1,j)*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/  &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               !hr03
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/              &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))               !hr03
-+ei
-+if crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                      &!hr03
-     &sin_rn(atan_rn(yv(1,j)/                                           &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)                !hr03
-+ei
-+if .not.crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)                !hr03
-+ei
-+if crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin_rn(ty))*yv(1,j))/                &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos_rn(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2))-ty)                                                   !hr03
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin(ty))*yv(1,j))/                   &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
-     &yv(2,j)**2))-ty)                                                   !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(2,j) = xv(2,j)*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/  &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/              &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))               !hr03
-+ei
-+if crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &!hr03
-     &sin_rn(atan_rn(yv(2,j)/                                           &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)                !hr03
-+ei
-+if .not.crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)                !hr03
-+ei
+! end crlibm wire
 
-!     call drift(lin)
-
-      xv(1,j) = xv(1,j) + (lin*yv(1,j))/                                &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-      xv(2,j) = xv(2,j) + (lin*yv(2,j))/                                &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-
-!      call kick(l,cur,lin,rx,ry,chi)
-
-      xi = xv(1,j)-rx
-      yi = xv(2,j)-ry
-      yv(1,j) = yv(1,j)-((((c1m7*cur)/chi)*xi)/(xi**2+yi**2))*          &!hr03
-     &(sqrt(((lin+l)**2+xi**2)+yi**2)-sqrt(((lin-l)**2+                 &!hr03
-     &xi**2)+yi**2))                                                     !hr03
-!GRD FOR CONSISTENSY
-      yv(2,j) = yv(2,j)-((((c1m7*cur)/chi)*yi)/(xi**2+yi**2))*          &!hr03
-     &(sqrt(((lin+l)**2+xi**2)+yi**2)-sqrt(((lin-l)**2+                 &!hr03
-     &xi**2)+yi**2))                                                     !hr03
-
-!     call drift(leff-lin)
-
-      xv(1,j) = xv(1,j) + ((leff-lin)*yv(1,j))/sqrt(((1d0+dpsv(j))**2-  &!hr03
-     &yv(1,j)**2)-yv(2,j)**2)                                            !hr03
-      xv(2,j) = xv(2,j) + ((leff-lin)*yv(2,j))/sqrt(((1d0+dpsv(j))**2-  &!hr03
-     &yv(1,j)**2)-yv(2,j)**2)                                            !hr03
-
-!     call invtilt(tx,ty)
-
-+if crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin_rn(-ty))*yv(1,j))/               &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos_rn(atan_rn(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-        &!hr03
-     &yv(2,j)**2))+ty)                                                   !hr03
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)-(((xv(2,j)*sin(-ty))*yv(1,j))/                  &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(1,j)**2))/                               &!hr03
-     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &!hr03
-     &yv(2,j)**2))+ty)                                                   !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(2,j) = xv(2,j)*                                                &!hr03
-     &(cos_rn(-1d0*ty)-sin_rn(-1d0*ty)*tan_rn(atan_rn(yv(2,j)/          &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty))               !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)*(cos(-1d0*ty)-sin(-1d0*ty)*tan(atan(yv(2,j)/    &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty))               !hr03
-+ei
-+if crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*                      &!hr03
-     &sin_rn(atan_rn(yv(2,j)/                                           &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)                !hr03
-+ei
-+if .not.crlibm
-      yv(2,j) = sqrt((1d0+dpsv(j))**2-yv(1,j)**2)*sin(atan(yv(2,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)                !hr03
-+ei
-
-+if crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin_rn(-1d0*tx))*yv(2,j))/           &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/cos_rn(atan_rn(yv(1,j)/        &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j)-(((xv(1,j)*sin(-1d0*tx))*yv(2,j))/              &!hr03
-     &sqrt((1d0+dpsv(j))**2-yv(2,j)**2))/cos(atan(yv(1,j)/              &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
-+if crlibm
-      xv(1,j) = xv(1,j)*                                                &!hr03
-     &(cos_rn(-1d0*tx)-sin_rn(-1d0*tx)*tan_rn(atan_rn(yv(1,j)/          &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx))               !hr03
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j)*(cos(-1d0*tx)-sin(-1d0*tx)*tan(atan(yv(1,j)/    &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx))               !hr03
-+ei
-+if crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*                       !hr03
-     &sin_rn(atan_rn(yv(1,j)/                                            !hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-+if .not.crlibm
-      yv(1,j) = sqrt((1d0+dpsv(j))**2-yv(2,j)**2)*sin(atan(yv(1,j)/     &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)                !hr03
-+ei
-
-!     call shift(-embl*tan(tx),-embl*tan(ty)/cos(tx))
-
-+if crlibm
-      xv(1,j) = xv(1,j) + embl*tan_rn(tx)
-+ei
-+if .not.crlibm
-      xv(1,j) = xv(1,j) + embl*tan(tx)
-+ei
-+if crlibm
-      xv(2,j) = xv(2,j) + (embl*tan_rn(ty))/cos_rn(tx)                   !hr03
-+ei
-+if .not.crlibm
-      xv(2,j) = xv(2,j) + (embl*tan(ty))/cos(tx)                         !hr03
-+ei
-
-!     call drift(-embl/2)
-
-      xv(1,j) = xv(1,j) - ((embl*0.5d0)*yv(1,j))/                       &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-      xv(2,j) = xv(2,j) - ((embl*0.5d0)*yv(2,j))/                       &!hr03
-     &sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2)                     !hr03
-
-      xv(1,j) = xv(1,j) * c1e3
-      xv(2,j) = xv(2,j) * c1e3
+! px -> x'; py -> y'
+      yv(1,j) = yv(1,j)/(1d0 + dpsv(j))
+      yv(2,j) = yv(2,j)/(1d0 + dpsv(j))
+!-----------------------------------------------------------------------
+! END OF WIRE MAP
+!-----------------------------------------------------------------------
       yv(1,j) = yv(1,j) * c1e3
       yv(2,j) = yv(2,j) * c1e3
-
-!      write(*,*) 'End: ',j,xv(1,j),xv(2,j),yv(1,j),                       &
-!     &yv(2,j)
-
 !-----------------------------------------------------------------------
-
+      enddo
+!-----------------------------------------------------------------------
 +cd open
 !--OPENING DATA FILES
 +if boinc
@@ -8839,6 +8968,14 @@ cc2008
 
 +dk nocode
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
++if .not.datamods
+      subroutine nodatamods
++ca crcoall
+      write(lout,*)
+     &"Dummy routine in bigmats.f if beamgas module is off."
+      end subroutine
++ei
+
 +dk datamods
       module bigmats
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
@@ -8857,34 +8994,22 @@ cc2008
       integer, intent(in) :: npart,nele,nblo
       integer stat
       integer i1,i2,i3,i4,i
-+if cr
 +ca crcoall
-+ei
 +ca parnum
 
 +if .not.vvector
-+if cr
       write(lout,*) "ERROR: DATAMODS requires VVECTOR!"
-+ei
-+if .not.cr
-      write(*,*)    "ERROR: DATAMODS requires VVECTOR!"
-+ei
       call prror(-1)
 +ei      
       
-      write(*,*) "ALLOCATE_THICKARRAYS: npart/nele/nblo=",
+      write(lout,*) "ALLOCATE_THICKARRAYS: npart/nele/nblo=",
      &npart,nele,nblo
       
       allocate(al(6,2,npart,nele), as(6,2,npart,nele),
      &     ekv(npart,nele),
      &     hv(6,2,npart,nblo), bl1v(6,2,npart,nblo), STAT = stat)
       if (stat.ne.0) then
-+if cr
          write(lout,*) "ERROR in allocate_thickarrays(); stat=",stat
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in allocate_thickarrays(): stat=",stat
-+ei
          call prror(-1)
       endif
 
@@ -9152,9 +9277,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -9252,30 +9375,10 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES ON THE EXIT FILE
 !-----------------------------------------------------------------------
-+if cr
   130 write(lout,10000)
-+ei
-+if .not.cr
-  130 write(*,10000)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10020) jeltot,jaord,jpord
-+ei
-+if .not.cr
-      write(*,10020) jeltot,jaord,jpord
-+ei
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
 !-----------------------------------------------------------------------
       nrel=2
       nconf=jeltot-2
@@ -9348,12 +9451,7 @@ cc2008
 !-----------------------------------------------------------------------
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10040) ifail
-+ei
-+if .not.cr
-          write(*,10040) ifail
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -9365,12 +9463,7 @@ cc2008
 !-----------------------------------------------------------------------
         do 200 jsex=1,jeltot
           sex(jsex)=x(jsex)
-+if cr
           write(lout,10050) coel(jsex),sex(jsex)
-+ei
-+if .not.cr
-          write(*,10050) coel(jsex),sex(jsex)
-+ei
   200   continue
 !-----------------------------------------------------------------------
 !---- COMPUTES THE NEW HAMILTONIAN IN DP/P AFTER THE CORRECTIONS
@@ -9380,42 +9473,12 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUES OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10060) jord
-+ei
-+if .not.cr
-          write(*,10060) jord
-+ei
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
-+if cr
           write(lout,10080) hda(1,1,jord,0),hda(0,1,jord,0)
-+ei
-+if .not.cr
-          write(*,10080) hda(1,1,jord,0),hda(0,1,jord,0)
-+ei
-+if cr
           write(lout,10090)
-+ei
-+if .not.cr
-          write(*,10090)
-+ei
-+if cr
           write(lout,10080) ham(1),ham(0)
-+ei
-+if .not.cr
-          write(*,10080) ham(1),ham(0)
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   210   continue
 !-----------------------------------------------------------------------
@@ -9451,42 +9514,17 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUE OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10110) jord
-+ei
-+if .not.cr
-          write(*,10110) jord
-+ei
-+if cr
           write(lout,10120)
-+ei
-+if .not.cr
-          write(*,10120)
-+ei
 !-----------------------------------------------------------------------
           do 220 jcomp=0,jord
 !-----------------------------------------------------------------------
-+if cr
             write(lout,10130)jcomp,jord-jcomp,hda(jcomp,jord,0,0),jcomp,
-+ei
-+if .not.cr
-            write(*,10130) jcomp,jord-jcomp,hda(jcomp,jord,0,0),jcomp,  &
-+ei
      &jord-jcomp,ham(jcomp)
 !-----------------------------------------------------------------------
   220     continue
-+if cr
           write(lout,10140) jord-1,chib,jord-1,chia
-+ei
-+if .not.cr
-          write(*,10140) jord-1,chib,jord-1,chia
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   230   continue
 !-----------------------------------------------------------------------
@@ -9523,9 +9561,7 @@ cc2008
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -9541,6 +9577,7 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=20)
@@ -9633,12 +9670,7 @@ cc2008
           point=point+ind(j)*3**(j-1)
    20   continue
         if(point.gt.4000) then
-+if cr
           write(lout,10000)
-+ei
-+if .not.cr
-          write(*,10000)
-+ei
           call closeUnits
 +if cr
       call abend('Problem with data in fort.23')
@@ -9786,9 +9818,6 @@ cc2008
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -9930,9 +9959,6 @@ cc2008
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10178,9 +10204,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10279,30 +10303,10 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES ON THE EXIT FILE
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10020) jeltot,nordm,nordp,delta,weig1,weig2,value
-+ei
-+if .not.cr
-      write(*,10020) jeltot,nordm,nordp,delta,weig1,weig2,value
-+ei
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
 !-----------------------------------------------------------------------
       do 210 jconf=1,jeltot-2
 !-----------------------------------------------------------------------
@@ -10362,12 +10366,7 @@ cc2008
 !-----------------------------------------------------------------------
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10040) ifail
-+ei
-+if .not.cr
-          write(*,10040) ifail
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -10379,12 +10378,7 @@ cc2008
 !-----------------------------------------------------------------------
         do 170 jsex=1,jeltot
           sex(jsex)=x(jsex)
-+if cr
           write(lout,10050) coel(jsex),sex(jsex)
-+ei
-+if .not.cr
-          write(*,10050) coel(jsex),sex(jsex)
-+ei
   170   continue
 !-----------------------------------------------------------------------
 !---- COMPUTES THE NEW HAMILTONIAN IN DP/P AFTER THE CORRECTIONS
@@ -10397,42 +10391,12 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUES OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10060) jord
-+ei
-+if .not.cr
-          write(*,10060) jord
-+ei
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
-+if cr
           write(lout,10080) hdp(1,jord,0),hdp(0,jord,0)
-+ei
-+if .not.cr
-          write(*,10080) hdp(1,jord,0),hdp(0,jord,0)
-+ei
-+if cr
           write(lout,10090)
-+ei
-+if .not.cr
-          write(*,10090)
-+ei
-+if cr
           write(lout,10080) hamp(1),hamp(0)
-+ei
-+if .not.cr
-          write(*,10080) hamp(1),hamp(0)
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   180   continue
 !-----------------------------------------------------------------------
@@ -10472,42 +10436,17 @@ cc2008
 !-----------------------------------------------------------------------
 !---- WRITES THE VALUE OF THE HAMILTONIAN
 !-----------------------------------------------------------------------
-+if cr
           write(lout,10110) jord
-+ei
-+if .not.cr
-          write(*,10110) jord
-+ei
-+if cr
           write(lout,10120)
-+ei
-+if .not.cr
-          write(*,10120)
-+ei
 !-----------------------------------------------------------------------
           do 190 jcomp=0,jord
 !-----------------------------------------------------------------------
-+if cr
             write(lout,10130) jcomp,jord-jcomp,hda(jcomp,jord,0), jcomp,
-+ei
-+if .not.cr
-            write(*,10130) jcomp,jord-jcomp,hda(jcomp,jord,0), jcomp,   &
-+ei
      &jord-jcomp,hama(jcomp)
 !-----------------------------------------------------------------------
   190     continue
-+if cr
           write(lout,10140) jord-1,chib,jord-1,chia
-+ei
-+if .not.cr
-          write(*,10140) jord-1,chib,jord-1,chia
-+ei
-+if cr
           write(lout,10100)
-+ei
-+if .not.cr
-          write(*,10100)
-+ei
 !-----------------------------------------------------------------------
   200   continue
 !-----------------------------------------------------------------------
@@ -10547,9 +10486,7 @@ cc2008
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -10645,12 +10582,7 @@ cc2008
           point=point+ind(j)*(nordp+1)**(j-1)
    20   continue
         if(point.gt.8000) then
-+if cr
           write(lout,10000)
-+ei
-+if .not.cr
-          write(*,10000)
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -10672,12 +10604,7 @@ cc2008
           point=point+ind(j)*(nordp+1)**(j-1)
    30   continue
         if(point.gt.8000) then
-+if cr
           write(lout,10000)
-+ei
-+if .not.cr
-          write(*,10000)
-+ei
           call closeUnits
 +if cr
       call abend('                                                  ')
@@ -10833,9 +10760,6 @@ cc2008
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11102,9 +11026,6 @@ cc2008
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11362,9 +11283,6 @@ cc2008
 !----------------------------------------------------------------------*
 !---- double precision version.
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11743,9 +11661,6 @@ cc2008
 !
 !  *********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11842,9 +11757,6 @@ cc2008
 !  ADIABATIC ENERGY-INCREASE
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11882,9 +11794,6 @@ cc2008
 !  ADIABATIC ENERGY-DECREASE
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11916,9 +11825,7 @@ cc2008
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -11935,6 +11842,10 @@ cc2008
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,rv,tilt,u0,              &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
+      !For BEAM-EXP
+      double precision separx,separy
+      double precision mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+      
       character*16 sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character*16 fluc,chro,tune,iter,limi,orbi,deco
       character*16 beze,bez0,go,rect,elli,comb,sear,subr
@@ -11948,7 +11859,9 @@ cc2008
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      logical beam_xstr
 +if crlibm
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -11979,6 +11892,10 @@ cc2008
 +ca dbdaten
 +ca dbpencil
 +ca database
+      logical has_coll
++ei
++if .not.collimat
+      logical do_coll
 +ei
 !
 +if bnlelens
@@ -11990,6 +11907,9 @@ cc2008
 +ca comdynk
 +ca fma
 +ca elensparam
++ca wireparam
++ca zipf
++ca parbeam_exp
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -12016,7 +11936,13 @@ cc2008
 !     - elens
       character*16 elens
       data elens /'ELEN'/
-
+!     - wire
+      character*16 wire
+      data wire /'WIRE'/
+!     - zipf
+      character*16 zipf
+      data zipf /'ZIPF'/
+      
       double precision round_near
       
       save
@@ -12159,7 +12085,12 @@ cc2008
       ise=0
       iskew=0
       preda=c1m38
-      
++if .not.collimat
+      do_coll = .false.
++ei
++if collimat
+      has_coll = .false.
++ei
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -12169,43 +12100,13 @@ cc2008
 ! imod=1: free, definition of elements in fort.3
 ! imod=2: geom, definition of elements in fort.2
       if(idat.eq.geom) imod=2
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
-+if cr
       write(lout,10180) ihead
-+ei
-+if .not.cr
-      write(*,10180) ihead
-+ei
       sixtit(1:60)=ihead
-+if cr
       if(imod.eq.1) write(lout,10190)
-+ei
-+if .not.cr
-      if(imod.eq.1) write(*,10190)
-+ei
-+if cr
       if(imod.eq.2) write(lout,10200)
-+ei
-+if .not.cr
-      if(imod.eq.2) write(*,10200)
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       if(imod.eq.2) then
   100   read(2,10000,end=1520,iostat=ierro) idat
         if(ierro.gt.0) call prror(57)
@@ -12214,12 +12115,7 @@ cc2008
         if(idat(1:1).eq.'/') goto 100
 ! single elements
         if(idat.eq.sing) goto 120
-+if cr
           write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-          write(*,*)    "idat = '"//idat//""
-+ei
           call prror(15)
         endif
   110 read(3,10000,end=1530,iostat=ierro) idat
@@ -12271,15 +12167,15 @@ cc2008
       if(idat.eq.dynk)  goto 2200
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
-
+      if(idat.eq.wire)  goto 2500
+      !Reserved:
+      !DIST = 2600
+      !HION = 2700
+      if(idat.eq.zipf) goto 2800
+      
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
-+if cr
       write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-      write(*,*)    "idat = '"//idat//"'"
-+ei
       call prror(15)
 !-----------------------------------------------------------------------
 !  DATENBLOCK SINGLE ELEMENTS
@@ -12307,12 +12203,7 @@ cc2008
           lineno2=lineno2+1
           if(idat(1:1).eq.'/') goto 160
           if(idat.ne.bloc) then
-+if cr
             write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-            write(*,*)    "idat = '"//idat//""
-+ei
             call prror(15)
           endif
           goto 190
@@ -12350,7 +12241,6 @@ cc2008
 +if .not.crlibm
 !     write (*,*) 'ERIC'
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)!read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
-!     write (*,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
@@ -12398,14 +12288,8 @@ cc2008
       !Check that the name is unique
       do j=1,i-1! i = index of current line
          if ( bez(j).eq.idat ) then
-+if cr
             write(lout,*) "ERROR in DATEN:"
             write(lout,*) "Got multiple copies of element ", bez(j)
-+ei
-+if .not.cr
-            write(*,*)    "ERROR in DATEN:"
-            write(*,*)    "Got multiple copies of element ", bez(j)
-+ei
             call prror(-1)
          endif
       enddo
@@ -12423,19 +12307,6 @@ cc2008
           ncy2=ncy2+1
           itionc(i)=kz(i)/abs(kz(i))
           kp(i)=6
-        endif
-      endif
-!--WIRE
-      if(abs(kz(i)).eq.15) then
-        if(abs(ed(i)*el(i)).le.pieni.or.el(i).le.pieni                  &
-     &.or.ek(i).le.pieni) then
-           kz(i)=0
-           ed(i)=0d0                                                     !hr05
-           ek(i)=0d0                                                     !hr05
-           el(i)=0d0                                                     !hr05
-        else
-           wirel(i)=el(i)
-           el(i)=0d0                                                     !hr05
         endif
       endif
 !----------------------------------------
@@ -12460,11 +12331,6 @@ cc2008
            acdipph(i)=el(i)
            el(i)=0d0                                                     !hr05
         endif
-      endif
-!--BEAM-BEAM
-      if(kz(i).eq.20) then
-        ptnfac(i)=el(i)
-        el(i)=zero
       endif
 !--General
       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
@@ -12558,12 +12424,7 @@ cc2008
           zpl(j)=0d0
           zrms(j)=0d0
           if(xrms0.eq.0d0.and.zpl0.eq.0d0.and.zrms0.eq.0d0) then         !hr05
-+if cr
             write(lout,*) "ac dipole disregarded (0 length)"
-+ei
-+if .not.cr
-            write(*,*) "ac dipole disregarded (0 length)"
-+ei
             kz(j)=0
             ed(j)=0d0                                                    !hr05
             ek(j)=0d0                                                    !hr05
@@ -12615,12 +12476,7 @@ cc2008
           lineno2=lineno2+1
           if(idat(1:1).eq.'/') goto 260
           if(idat.ne.stru) then
-+if cr
             write(lout,*) "idat = '"//idat//"'"
-+ei
-+if .not.cr
-            write(*,*)    "idat = '"//idat//""
-+ei
             call prror(15)
           endif
           goto 320
@@ -13370,24 +13226,9 @@ cc2008
   540   continue
       else
         ncor=0
-+if cr
         write(lout,*)' '
-+ei
-+if .not.cr
-        write(*,*)' '
-+ei
-+if cr
         write(lout,*)'NO EXTRA PARAMETERS FOR THE MAP SPECIFIED'
-+ei
-+if .not.cr
-        write(*,*)'NO EXTRA PARAMETERS FOR THE MAP SPECIFIED'
-+ei
-+if cr
         write(lout,*)' '
-+ei
-+if .not.cr
-        write(*,*)' '
-+ei
       endif
       ndum=0
       nvar=nvar2+ncor
@@ -13491,12 +13332,7 @@ cc2008
   620     if(iqq(2).eq.bez(j)) iq(2)=j
           goto 110
         else
-+if cr
           write(lout,10370)
-+ei
-+if .not.cr
-          write(*,10370)
-+ei
           iqmod=0
           iqmod6=0
           goto 110
@@ -13629,15 +13465,10 @@ cc2008
  650    continue
         goto 110
       else
-+if cr
         write(lout,10370)
-+ei
-+if .not.cr
-        write(*,10370)
-+ei
         iqmod=0
         iqmod6=0
-        write(*,*) 'TUNE ADJUSTED'
+        write(lout,*) 'TUNE ADJUSTED'
         goto 110
       endif
 !-----------------------------------------------------------------------
@@ -13816,24 +13647,9 @@ cc2008
       if(abs(pma-pmap).le.c1m1) pmat=pmap
       if(abs(pma-pmae).le.c1m1) pmat=pmae
       if(pmat.ne.pmap.and.pmat.ne.pmae) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) 'Warning: Particle is neither proton nor electron'
-+ei
-+if .not.cr
-        write(*,*) 'Warning: Particle is neither proton nor electron'
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
       if(pma.lt.pieni) call prror(27)
       crad=(crade*pmae)/pma                                              !hr05
@@ -13843,18 +13659,8 @@ cc2008
         idp=1
         if(ncy.ne.0) goto 720
         idp=0
-+if cr
         write(lout,10130)
-+ei
-+if .not.cr
-        write(*,10130)
-+ei
-+if cr
         write(lout,10340)
-+ei
-+if .not.cr
-        write(*,10340)
-+ei
   720   phas=phag*rad
         if(ncy.ne.0) then
           hsy(1)=u0/dble(ncy)
@@ -13955,18 +13761,8 @@ cc2008
         goto 760
       endif
   750 continue
-+if cr
   760 write(lout,10130)
-+ei
-+if .not.cr
-  760 write(*,10130)
-+ei
-+if cr
       write(lout,10210) imn,r0,benki
-+ei
-+if .not.cr
-      write(*,10210) imn,r0,benki
-+ei
       ! Read data lines: B_n rms-B_n A_n rms-A_n
   770 bk0d=zero
       bkad=zero
@@ -14016,12 +13812,7 @@ cc2008
       ! to the currently highest multipole seen (i)
       if(abs(bk0d).gt.pieni.or.abs(bkad).gt.pieni                       &
      &.or.abs(ak0d).gt.pieni.or.abs(akad).gt.pieni) nmu(j)=i
-+if cr
       write(lout,10220) i,bk0d,bkad,ak0d,akad
-+ei
-+if .not.cr
-      write(*,10220) i,bk0d,bkad,ak0d,akad
-+ei
       bk0(im,i)=(benki*bk0d)/r0a                                         !hr05
       ak0(im,i)=(benki*ak0d)/r0a                                         !hr05
       bka(im,i)=(benki*bkad)/r0a                                         !hr05
@@ -14030,13 +13821,8 @@ cc2008
       r0a=r0a*r0
       if(i.gt.mmul+1) call prror(105)
       if(ch(:4).ne.next) goto 770 ! loop
-+if cr
       write(lout,10380)
-+ei
-+if .not.cr
-      write(*,10380)
-+ei
-      write (*,*) 'BENKI done'
+      write (lout,*) 'BENKI done'
       goto 770
 !-----------------------------------------------------------------------
 !  FLUCTUATION RANDOM STARTING NUMBER
@@ -14075,30 +13861,10 @@ cc2008
       do 810 i=1,nzfz
   810 rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
       rdev=sqrt(rsqsum/dble(nzfz))                                       !hr05
-+if cr
       write(lout,10410) izu0,nzfz,rmean,rdev
-+ei
-+if .not.cr
-      write(*,10410) izu0,nzfz,rmean,rdev
-+ei
-+if cr
       if(mcut.eq.0) write(lout,10430)
-+ei
-+if .not.cr
-      if(mcut.eq.0) write(*,10430)
-+ei
-+if cr
       if(mcut.gt.0) write(lout,10440) mcut
-+ei
-+if .not.cr
-      if(mcut.gt.0) write(*,10440) mcut
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       ! Set flags mout1, mout2, mount3, mout4 depending on mout
       ! Enables/disables different functionality
       if(mout.ge.8) mout4=1
@@ -14125,25 +13891,10 @@ cc2008
       
       ! Reads from fort.16 IF mout1==1
       if(mout1.eq.1) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '          Multipole errors read in ' ,           &
-+ei
-+if .not.cr
-        write(*,*) '          Multipole errors read in ' ,              &
-+ei
      &'from external file'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         iexread=0 ! Reading regular multipoles(1) or skew components (2)
         ifiend16=0
         iexnum=0
@@ -14354,41 +14105,16 @@ cc2008
           endif
   860   continue
   861   continue
-+if cr
         write(lout,*) '        From file fort.16 :',iexnum,             &
-+ei
-+if .not.cr
-        write(*,*) '        From file fort.16 :',iexnum,                &
-+ei
      &' values read in.'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 +if time
       if(mout1.eq.1) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '  Time-d  Multipole errors read in ' ,           &
-+ei
-+if .not.cr
-        write(*,*) '  Time-d  Multipole errors read in ' ,              &
-+ei
      &'from external file'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         iexread=0
         ifiend35=0
         iexnum=0
@@ -14629,41 +14355,16 @@ cc2008
           endif
  1860  continue
  1861  continue
-+if cr
         write(lout,*) '        From file fort.35 :',iexnum,             &
-+ei
-+if .not.cr
-        write(*,*) '        From file fort.35 :',iexnum,                &
-+ei
      &' values read in.'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 +ei
       if(mout3.eq.1) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '          Alignment errors read in ' ,           &
-+ei
-+if .not.cr
-        write(*,*) '          Alignment errors read in ' ,              &
-+ei
      &'from external file'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         iexread=0
         ifiend8=0
         iexnum=0
@@ -14754,19 +14455,9 @@ cc2008
           endif
  1580   continue
  1581   continue
-+if cr
         write(lout,*) '        From file fort.8 :',iexnum,              &
-+ei
-+if .not.cr
-        write(*,*) '        From file fort.8 :',iexnum,                 &
-+ei
      &' values read in.'
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
       izu=0
       iexnum=0
@@ -14780,6 +14471,7 @@ cc2008
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 1590
+            if(kzz.eq.15) goto 1590
             izu=izu+3
             read(30,10020,end=1591,iostat=ierro) ch
             if(ierro.gt.0) call prror(87)
@@ -14803,38 +14495,13 @@ cc2008
           endif
  1590   continue
         if(iexnum.gt.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*)'          Single (random) kick errors read in ',&
-+ei
-+if .not.cr
-          write(*,*) '          Single (random) kick errors read in ' , &
-+ei
      &'from external file'
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*) '        From file fort.30 :',iexnum,           &
-+ei
-+if .not.cr
-          write(*,*) '        From file fort.30 :',iexnum,              &
-+ei
      &' values read in.'
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
         endif
         iexread=0
         ifiend8=0
@@ -14897,18 +14564,8 @@ cc2008
 !-----------------------------------------------------------------------
 !  ORGANISATION OF RANDOM NUMBERS
 !-----------------------------------------------------------------------
-+if cr
   880 write(lout,10130)
-+ei
-+if .not.cr
-  880 write(*,10130)
-+ei
-+if cr
       write(lout,10350)
-+ei
-+if .not.cr
-      write(*,10350)
-+ei
       do 890 i=1,3
       do 890 j=1,nele
   890 bezr(i,j)=idum !Initialize all bezr to idum=' '
@@ -14924,29 +14581,14 @@ cc2008
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
       if(idat.ne.next) then !Isn't this already checked for above?
          if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)
-+if cr
      &        write(lout,10360) idat
-+ei
-+if .not.cr
-     &        write(*,10360)    idat
-+ei
          if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)
-+if cr
      &        write(lout,10390) idat,bezr(2,iorg)
-+ei
-+if .not.cr
-     &        write(*,10390)    idat,bezr(2,iorg)
-+ei
          if(idat.ne.mult)
      &        bezr(1,iorg)=idat
          if(idat.eq.mult.and.
      &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
-+if cr
             write(lout,10400) bezr(2,iorg),bezr(3,iorg)
-+ei
-+if .not.cr
-            write(*,10400)    bezr(2,iorg),bezr(3,iorg)
-+ei
             im=im+1
             j0=0
             j1=0
@@ -14970,12 +14612,7 @@ cc2008
          endif
          goto 900
       endif
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       goto 110
 !-----------------------------------------------------------------------
 !  ITERATION ERRORS FOR CLOSED ORBIT ,TUNE ADJUSTMENT AND CHROMATICITY
@@ -15128,12 +14765,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  APERTURE LIMITATIONS
 !-----------------------------------------------------------------------
-+if cr
   950 write(lout,10320)
-+ei
-+if .not.cr
-  950 write(*,10320)
-+ei
   960 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -15188,12 +14820,7 @@ cc2008
         ape(2,j)=apxx**2                                                 !hr05
         ape(3,j)=apxx**2*apzz**2                                         !hr05
       endif
-+if cr
       write(lout,10330) bez(j),irel,apxx,apzz
-+ei
-+if .not.cr
-      write(*,10330) bez(j),irel,apxx,apzz
-+ei
   970 continue
 ! Eric temporary fix for BUG??? Uncommnted for Riccardo 14/2/2015
       if(idat.ne.next) goto 960
@@ -15286,18 +14913,8 @@ cc2008
       do 1040 jj=1,ncom
       do 1040 ll=1,20
  1040 icel(jj,ll)=idum
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10300)
-+ei
-+if .not.cr
-      write(*,10300)
-+ei
  1050 ii=ii+1
       if(ii.gt.ncom) goto 1100
  1060 read(3,10020,end=1530,iostat=ierro) ch
@@ -15356,12 +14973,7 @@ cc2008
         ico=icomb(ii,m)
         if(ico.eq.jj) call prror(92)
         if(ico.eq.0) goto 1090
-+if cr
         write(lout,10310) bez(jj),bez(ico),ratio(ii,m)
-+ei
-+if .not.cr
-        write(*,10310) bez(jj),bez(ico),ratio(ii,m)
-+ei
         iratioe(ico)=jj
         if(el(jj).le.pieni) then
           if(el(ico).le.pieni) then
@@ -15378,12 +14990,7 @@ cc2008
         endif
  1090 continue
       goto 1050
-+if cr
  1100 write(lout,10290) ncom
-+ei
-+if .not.cr
- 1100 write(*,10290) ncom
-+ei
       goto 110
 !-----------------------------------------------------------------------
 !  SUBRESONANCE CALCULATION
@@ -15846,14 +15453,8 @@ cc2008
 
 +if stf
       if (imad.eq.1) then
-+if cr
          write(lout,*) "ERROR in daten::POST:"
          write(lout,*) "imad not supported for STF version."
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in daten::POST:"
-         write(*,*)    "imad not supported for STF version."
-+ei
          call prror(-1)
       endif
 +ei !END +if stf
@@ -15880,29 +15481,20 @@ cc2008
 !  POWER SUPPLY RIPPLE
 !-----------------------------------------------------------------------
  1290 continue
-+if cr
       write(lout,*)
-      write(lout,*) "     old RIPP module is not supported anymore"
-      write(lout,*) "     ignoring all concerned lines"
+      write(lout,*) "ERROR: old RIPP module is no longer supported"
+      write(lout,*) "Please convert your RIPP block (in fort.3) to DYNK"
+      write(lout,*) "The script rippconvert.py (in the pytools folder)"
+      write(lout,*) " can be used to automatically convert the fort.3!"
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) "     old RIPP module is not supported anymore"
-      write(*,*) "     ignoring all concerned lines"
-      write(*,*)
-+ei
+      call prror(-1)
+
+!Code for just skipping over the RIPP block, which runs the simulation without RIPP:
  1300 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
 
-+if cr
       write(lout,*) 'ignoring line:'
       write(lout,*) ch
-+ei
-+if .not.cr
-      write(*,*) 'ignoring line:'
-      write(*,*) ch
-+ei
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1300
       if(ch(:4).eq.next) goto 110
@@ -15984,36 +15576,37 @@ cc2008
  1285 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-+if .not.collimat
-+if cr
-      write(lout,*)
-      write(lout,*) "     collimation not forseen in this version"
-      write(lout,*) "     please use proper version"
-      write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*)    "     collimation not forseen in this version"
-      write(*,*)    "     please use proper version"
-      write(*,*)
-+ei
- 1287 continue
-      if(ch(:4).eq.next) goto 110
-      read(3,10020,end=1530,iostat=ierro) ch
-      lineno3=lineno3+1
-      goto 1287
-+ei
+
 +if collimat
+      has_coll = .true. !We have a collimation block.
++ei
+
       if(ch(1:1).ne.'/') then
          iclr=iclr+1
       else
          goto 1285
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
+      
++if .not.collimat
+      if (iclr.eq.1) then
+         read(ch1,*) do_coll
+         if (do_coll) then
+           write(lout,*)
+           write(lout,*) "ERR> Collimation not forseen in this version;"
+           write(lout,*) "ERR> Please use proper version"
+           write(lout,*) "ERR> or set do_coll to .FALSE."
+           write(lout,*)
+           call prror(-1)
+         endif
+      endif
++ei ! END +if .not.collimat
+
++if collimat
 !APRIL2005
 +if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & do_coll
+     & do_coll !Does not make sense with round=nearest: do_coll is a logical...
 +ei
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
@@ -16029,7 +15622,6 @@ cc2008
       !Does not work for bnlelens, but collimat+bnlelens doesn't work anyway...
       !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
       if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
-+if cr
          write(lout,*) ""
          write(lout,*) "Error in parsing COLL block in fort.3"
          write(lout,*) "nloop =", nloop
@@ -16039,18 +15631,6 @@ cc2008
          write(lout,*) "Please reduce the number of particles or loops"
          write(lout,*) ""
         call abend('                                                  ')
-+ei
-+if .not.cr
-         write(*,*)    ""
-         write(*,*)    "Error in parsing COLL block in fort.3"
-         write(*,*)    "nloop =", nloop
-         write(*,*)    "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
-         write(*,*)    "maxn  =", maxn
-         write(*,*)    "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
-         write(*,*)    "Please reduce the number of particles or loops"
-         write(*,*)    ""
-         stop
-+ei
       endif
 
 +if fio
@@ -16123,10 +15703,11 @@ cc2008
 !
 +if fio
       if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-     & emitx0,emity0
+     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if .not.fio
-      if(iclr.eq.9) read(ch1,*) emitx0,emity0
+      if(iclr.eq.9) read(ch1,*)
+     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if fio
       if(iclr.eq.10) read(ch1,*,round='nearest')                        &
@@ -16199,11 +15780,13 @@ cc2008
 +ei
      &jobnumber, sigsecut2, sigsecut3
 !
++ei ! END +if collimat
+
+!     Use this code for both collimat and non-collimat
       if(iclr.ne.17) goto 1285
  1287 continue
       iclr=0
       goto 110
-+ei
 !-----------------------------------------------------------------------
 !  COMMENT LINE
 !-----------------------------------------------------------------------
@@ -16226,18 +15809,8 @@ cc2008
       goto 110
       else
       if(idial.eq.0.and.numl.ne.0) then
-+if cr
         write(lout,10130)
-+ei
-+if .not.cr
-        write(*,10130)
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         call prror(78)
       endif
       inorm=1
@@ -16384,140 +15957,488 @@ cc2008
 !-----------------------------------------------------------------------
 !  Beam-Beam Element
 !-----------------------------------------------------------------------
+      ! ! ! Read 1st line of BEAM block ! ! !
  1600 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
       if(ch(1:1).eq.'/') goto 1600
       if(ch(:4).eq.next) goto 110
-      ch1(:nchars+3)=ch(:nchars)//' / '
+
+      if (nbeam.ge.1) then
+         write(lout,*)
+     &        "ERROR: There can only be one BEAM block in fort.3"
+         call prror(-1)
+      endif
+      
+      if (ch(:6) .eq."EXPERT") then
+         beam_expflag = 1
+         
+ 1601    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1601
+         if(ch(:4).eq.next) goto 110
+         ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
 +if crlibm
-      call enable_xp()
+         call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*,round='nearest')                                       &
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +if crlibm
-      call disable_xp()
+         call disable_xp()
 +ei
 +ei
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+         read(ch1,*)
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        partnum=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        emitnx=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        emitny=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sigz=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sige=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(6),*) ibeco
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(7),*) ibtyp
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(8),*) lhc
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(9),*) ibbc
-        nf=nf-1
-      endif
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.ne.9) then
+            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+            write(lout,'(a,I3)')
+     &           "First line should have 9 fields, got", nf
+            call prror(-1)
+         endif
+         
+         partnum = fround(errno,fields,1)
+         emitnx  = fround(errno,fields,2)
+         emitny  = fround(errno,fields,3)
+         sigz    = fround(errno,fields,4)
+         sige    = fround(errno,fields,5)
+         read(fields(6),*) ibeco
+         read(fields(7),*) ibtyp
+         read(fields(8),*) lhc
+         read(fields(9),*) ibbc
 +ei
 +ei
-      if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
-      if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
-      if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
+         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
+         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
+         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
 !GRD-2007
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
+     &      lhc=1
 !GRDRHIC
 !GRD-042008
 +ei
 +if .not.bnlelens
-      if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
 +ei
 !GRD-2007
-      if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
-      nbeam=1
-      if(ibtyp.eq.1) call wzset
- 1610 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1610
-      if(ch(:4).eq.next) goto 110
-      call intepr(1,1,ch,ch1)
+         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
+         nbeam=1
+         if(ibtyp.eq.1) call wzset !Initialize complex error function for FAST BB kick
+
+         ! ! ! Read other lines of BEAM block ! ! !
+ 1660    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1660
+         if(ch(:4).eq.next) goto 110
+
++if fio
+!+if crlibm
+!         call enable_xp()
+!+ei
+!         read(ch1,*,round='nearest')                                       &
+!     &      idat,i,xang,xplane,separx,separy,
+!     &      mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
+!     &      mm9,mm10,mm11
+!+if crlibm
+!         call disable_xp()
+!+ei
+        write(lout,*)
+     &       'ERROR in BEAM block (EXPERT mode): '//
+     &       'fortran IO currently not supported.'
+        call prror(-1)
++ei
++if .not.fio
++if .not.crlibm
+         call intepr(1,1,ch,ch1)
+         read(ch1,*) idat,i
+
+         if (i.gt.0) then !6D
+            call intepr(1,1,ch,ch1)
+            read(ch1,*) idat,i,xang,xplane,separx,separy
+            
+ 1661       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1661
+            read(ch,*) mm1,mm2,mm3,mm4,mm5
+            
+ 1662       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1662
+            read(ch,*) mm6,mm7,mm8,mm9,mm10,mm11
+            
+         else if (i.eq.0) then  !4D
+            call intepr(1,1,ch,ch1)
+            read(ch1,*) idat,i,xang,xplane,separx,separy
+         else
+            write(lout,'(a)') "ERROR when reading BEAM block:"
+            write(lout,'(a,i5,a,a16)')
+     &           "Expected number of slices >= 0; but got",
+     &           i, " in element ",idat
+            call prror(-1)
+         endif
++ei
++if crlibm  !The CRLIBM version has much more robust error checking...
+         call intepr(1,1,ch,ch1)
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (.not.(nf.eq.6 .or. nf.eq.7)) then
+            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+            write(lout,'(a,I3)')
+     &           "First line of an element definition should "//
+     &           "have 6 or 7 fields, got", nf
+            call prror(-1)
+         endif
+         
+         read(fields(2),*) i !read number of slices
+         
+         if (i.gt.0) then  !6D
+            if (nf.ne.6) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "First line of a 6D element definition should "//
+     &              "have 6 fields, got", nf
+               call prror(-1)
+            endif
+            
+            read(fields(1),*) idat !Name
+            read(fields(2),*) i    !slices (ibsix)
+            xang=fround(errno,fields,3)
+            xplane=fround(errno,fields,4)
+            separx=fround(errno,fields,5)
+            separy=fround(errno,fields,6)
+            
+ 1661       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1661
+            ch1(:nchars+3)=ch(:nchars)//' / '
+            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+
+            if (nf.ne.5) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "Second line of a 6D element definition should "//
+     &              "have 5 fields, got", nf
+               call prror(-1)
+            endif
+            
+            mm1=fround(errno,fields,1)
+            mm2=fround(errno,fields,2)
+            mm3=fround(errno,fields,3)
+            mm4=fround(errno,fields,4)
+            mm5=fround(errno,fields,5)
+            
+ 1662       read(3,10020,end=1530,iostat=ierro) ch
+            if(ierro.gt.0) call prror(58)
+            ch1(:nchars+3)=ch(:nchars)//' / '
+            lineno3=lineno3+1
+            if(ch(1:1).eq.'/') goto 1662
+            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+
+            if (nf.ne.6) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "Third line of a 6D element definition should "//
+     &              "have 5 fields, got", nf
+               call prror(-1)
+            endif
+            
+            mm6=fround(errno,fields,1)
+            mm7=fround(errno,fields,2)
+            mm8=fround(errno,fields,3)
+            mm9=fround(errno,fields,4)
+            mm10=fround(errno,fields,5)
+            mm11=fround(errno,fields,6)
+            
+         else if(i.eq.0) then ! 4D
+            if (nf.ne.7) then
+               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
+               write(lout,'(a,I3)')
+     &              "First line of a 6D element definition should "//
+     &              "have 7 fields, got", nf
+               call prror(-1)
+            endif
+            
+            read(fields(1),*) idat
+            xang=fround(errno,fields,3)
+            xplane=fround(errno,fields,4)
+            separx=fround(errno,fields,5)
+            separy=fround(errno,fields,6)
+            mm1=fround(errno,fields,7)
+         else
+            read(fields(1),*) idat
+            write(lout,'(a)') "ERROR when reading BEAM block:"
+            write(lout,'(a,i5,a,a16)')
+     &           "Expected number of slices >= 0; but got",
+     &           i, " in element ",idat
+            call prror(-1)
+         endif
++ei
++ei
+         
+         do j=1,il !loop over single lements
+            if(idat.eq.bez(j)) then
+               if(kz(j).ne.20) then
+                  write(lout,'(a)') "ERROR when reading BEAM block:"
+                  write(lout,'(a,a16,a,i5,a)')
+     &                 "Found element named ",bez(j),
+     &                 " but type is",kz(j), ", expected type 20!"
+                  call prror(-1)
+               else
+                  
+                  if(parbe(j,5).ne.0d0 .or. parbe(j,6).ne.0d0
+     &                 .or. ptnfac(j).ne.0d0
+     &                 .or. bbbx(j).ne.0d0 .or. bbby(j).ne.0d0
+     &                 .or. bbbs(j).ne.0d0 ) then
+                     !Note: Data moved from ed/ek/el to parbe/ptnfac in initialize_element
+                     write(lout,'(a)') "ERROR when reading BEAM block:"
+                     write(lout,'(a,a16,a)')
+     &                    "Using EXPERT mode, but element ", bez(j),
+     &                    " does not have ed=ek=el=bbbx=bbby=bbbs=0.0"//
+     &                    " in the SINGLE ELEMENTS list."
+                     call prror(-1)
+                  endif
+                  if (i.gt.0) then ! 6D, allow 1 or more slices
+                     parbe(j,17)=1      ! Is 6D
+                     parbe(j,2)=dble(i) ! Number of slices
+                     parbe(j,1)=xang
+                     parbe(j,3)=xplane
+                     parbe(j,5)=separx
+                     parbe(j,6)=separy
+                     parbe(j,7)=mm1
+                     parbe(j,8)=mm2
+                     parbe(j,9)=mm3
+                     parbe(j,10)=mm4
+                     parbe(j,11)=mm5
+                     parbe(j,12)=mm6
+                     parbe(j,13)=mm7
+                     parbe(j,14)=mm8
+                     parbe(j,15)=mm9
+                     parbe(j,16)=mm10
+                     ptnfac(j)=mm11
+                     goto 1660
+                  else if(i.eq.0) then ! 4D, single slice only
+                     parbe(j,17)=0      ! Type is 4D
+                     parbe(j,2)=dble(i) ! Number of slices is always 0
+                     parbe(j,1)=xang
+                     parbe(j,3)=xplane
+                     parbe(j,5)=separx
+                     parbe(j,6)=separy
+                     ptnfac(j)=mm1
+                     goto 1660
+                  endif
+               endif
+            endif
+         end do
+         goto 1660
+         
+      else ! Old-style BEAM block
+         write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
+         write (lout,'(a)') " Look for 'NEW BEAM BLOCK' later"//
+     &        " in the output for conversion"//
+     &        " to the new 'EXPERT' format."
+         write (lout,'(a)') " To convert to the new format,"//
+     &        " copy-paste these lines (removing the *** lines"//
+     &        " above and below each data line) into the BEAM"//
+     &        " block in fort.3, replacing line 2 onwards."
+         write (lout,'(a)') " Then write EXPERT on the first line"//
+     &        " of the BEAM block, above the current first line."
+         write(lout,'(a)') " Finally, in the SINGLE ELEMENTS list"//
+     &        " (normally in fort.2) set the parameters of all"//
+     &        " beam-beam lenses (type 20) to 0.0."
+         write(lout,'(a)') " "
+         write(lout,'(a)') " This procedure produces a new"//
+     &        " set of input files that should have bit-for-bit"//
+     &        " identical results to this one."
+         write(lout,'(a)') " The easiest way to check this is"//
+     &        " to run both simulations side-by-side and compare"//
+     &        " the standard output in a text diff tool like meld."
+         write(lout,'(a)') " If the results are not identical,"//
+     &        " this is a bug; please report it to the developers!"
++if .not.crlibm
+         write(lout,'(a)') " "
+         write(lout,'(a)') "NOTE: THIS SIXTRACK BINARY WAS"//
+     &        " NOT COMPILED WITH CRLIBM, CONVERSION WILL NOT BE EXACT."
++ei
+         write(lout,'(a)') " "
+         
+         ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
 +if crlibm
-      call enable_xp()
+         call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,i,xang,xplane,xstr
+         read(ch1,*,round='nearest')                                       &
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +if crlibm
-      call disable_xp()
+         call disable_xp()
 +ei
 +ei
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) idat,i,xang,xplane,xstr
+         read(ch1,*)
+     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) i
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xang=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xplane=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xstr=fround(errno,fields,5)
-        nf=nf-1
-      endif
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.ne.9) then
+            write(lout,'(a)')
+     &           "WARNING in DATEN reading BEAM (not EXPERT)"
+            write(lout,'(a,i4)') "First line should have 9 fields,"//
+     &           " got ", nf
+            !Treating this as a warning, or else we would invalidate
+            !lots of working inpuit files
+            !call prror(-1)
+         endif
+         
+         if (nf.gt.0) then
+            partnum=fround(errno,fields,1)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitnx=fround(errno,fields,2)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            emitny=fround(errno,fields,3)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sigz=fround(errno,fields,4)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            sige=fround(errno,fields,5)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(6),*) ibeco
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(7),*) ibtyp
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(8),*) lhc
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(9),*) ibbc
+            nf=nf-1
+         endif
 +ei
 +ei
-      if(i.lt.0) i=0
-      do 1620 j=1,il
-      if(idat.eq.bez(j).and.kz(j).eq.20) then
-        ibb6d=1
-        parbe(j,2)=dble(i)                                               !hr12
-        parbe(j,1)=xang
-        parbe(j,3)=xplane
-        parbe(j,5)=xstr
-        goto 1610
+         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
+         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
+         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
+!GRD-2007
++if bnlelens
+!GRDRHIC
+!GRD-042008
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
+     &      lhc=1
+!GRDRHIC
+!GRD-042008
++ei
++if .not.bnlelens
+         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
++ei
+!GRD-2007
+         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
+         nbeam=1
+         if(ibtyp.eq.1) call wzset
+         
+         ! ! ! Read other lines of BEAM block ! ! !
+ 1610    read(3,10020,end=1530,iostat=ierro) ch
+         if(ierro.gt.0) call prror(58)
+         lineno3=lineno3+1
+         if(ch(1:1).eq.'/') goto 1610
+         if(ch(:4).eq.next) goto 110  ! Done yet?
+
+         !Check number of arguments gotten
+         call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+         if ( getfields_lerr ) call prror(-1)
+         beam_xstr = .false.
+         if (getfields_nfields .eq. 5) then
+            beam_xstr=.true.
+         elseif (getfields_nfields .eq. 4) then
+            beam_xstr=.false.
+         else
+            write(lout,*) "ERROR in parsing BEAM block"
+            write(lout,*) "Number of arguments in data line 2,..."
+            write(lout,*) " is expected to be 4 or 5"
+            call prror(-1)
+         end if
+         call intepr(1,1,ch,ch1)
++if fio
++if crlibm
+         call enable_xp()
++ei
+         read(ch1,*,round='nearest')                                       &
+     &      idat,i,xang,xplane,xstr
++if crlibm
+         call disable_xp()
++ei
++ei
++if .not.fio
++if .not.crlibm
+         read(ch1,*) idat,i,xang,xplane,xstr
++ei
++if crlibm
+         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+         if (nf.gt.0) then
+            read(fields(1),*) idat
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            read(fields(2),*) i
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xang=fround(errno,fields,3)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xplane=fround(errno,fields,4)
+            nf=nf-1
+         endif
+         if (nf.gt.0) then
+            xstr=fround(errno,fields,5)
+            nf=nf-1
+         endif
++ei
++ei
+         if ( .not. beam_xstr ) then
+            write(lout,*) "WARNING in parsing BEAM block"
+            write(lout,*) "No xstr present, assuming xstr=xang"
+            xstr = xang
+         endif
+      
+         if(i.lt.0) i=0
+         do 1620 j=1,il
+            if(idat.eq.bez(j).and.kz(j).eq.20) then
+               ibb6d=1
+               parbe(j,2)=dble(i) !hr12
+               parbe(j,1)=xang
+               parbe(j,3)=xplane
+               parbe(j,18)=xstr
+               goto 1610
+            endif
+ 1620    continue
+         goto 1610
       endif
- 1620 continue
-      goto 1610
 !-----------------------------------------------------------------------
 !  TROMBONE ELEMENT KZ=22
 !-----------------------------------------------------------------------
@@ -16544,24 +16465,9 @@ cc2008
  1710 continue
       call prror(98)
  1720 j1=0
-+if cr
       if(imtr0.eq.1) write(lout,10130)
-+ei
-+if .not.cr
-      if(imtr0.eq.1) write(*,10130)
-+ei
-+if cr
       if(imtr0.eq.1) write(lout,10700)
-+ei
-+if .not.cr
-      if(imtr0.eq.1) write(*,10700)
-+ei
-+if cr
       write(lout,10710) imtr0,imn
-+ei
-+if .not.cr
-      write(*,10710) imtr0,imn
-+ei
  1730 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -16660,54 +16566,20 @@ cc2008
       !Done with DUMP, write out!
       if(ch(:4).eq.next) then
         ! HEADER
-+if cr
         write(lout,10460) dump
         write(lout,*) ''
         write(lout,*) '       The last column states the format'
-        write(lout,*) '            of the output file (see Twiki page):'
-        write(lout,*) '       ==0 -> regular output (default)'
-        write(lout,*) '       ==1 -> special one, for post-processing'
-        write(lout,*) '              with LHC Coll Team tools'
-        write(lout,*) '       ==2 -> as 1, but add z as column 8'
-+ei
-+if .not.cr
-        write(*,10460) dump
-        write(*,*)    ''
-        write(*,*)    '       The last column states the format'
-        write(*,*)    '            of the output file (see Twiki page):'
-        write(*,*)    '       ==0 -> regular output (default)'
-        write(*,*)    '       ==1 -> special one, for post-processing'
-        write(*,*)    '              with LHC Coll Team tools'
-        write(*,*)    '       ==2 -> as 1, but add z as column 8'
-+ei
-         
+        write(lout,*) '            of the output file (see manual):'
+        
         ! ldump(0)=.true. : DUMP all elements found
-+if cr
         if ( ldump(0) ) then
-!           write(lout,'(t10,a50)')
-!     &          ' required dump at ALL SINGLE ELEMENTs'
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
      &          dumpunit(0), dump_fname(0), dumpfmt(0),
      &          dumpfirst(0), dumplast(0)
         endif
-+ei
-+if .not.cr
-        if ( ldump(0) ) then
-!           write(*,'(t10,a50)')
-!     &          ' required dump at ALL SINGLE ELEMENTs'
-           write(*,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0),
-     &          dumpfirst(0), dumplast(0)
-        endif
-+ei
         do ii=1,il
           if(ldump(ii)) then
-+if cr
             write(lout,10470)
-+ei
-+if .not.cr
-            write(*,10470)
-+ei
      &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
      &     dumpfirst(ii), dumplast(ii)
       
@@ -16716,19 +16588,13 @@ cc2008
             do jj=1,mper*mbloz      ! Loop over all structure elements
               if ( ic(jj)-nblo .eq. ii ) then
                 write (ch1,*) jj    ! internal write for left-adjusting
-+if cr
                 write (lout,10472)
-+ei
-+if .not.cr
-                write (*,10472)
-+ei
      &               " -> Found as structure element no. "
      &               // trim(adjustl(ch1))
                 kk = kk + 1
               end if
             end do
             if (kk .eq. 0) then
-+if cr
                write (lout,10472) " !! Warning: No structure elements "
      &              // "found for '" // bez(ii) // "'!"
                write (lout,10472)
@@ -16737,41 +16603,18 @@ cc2008
                write (lout,10472) " !! Please fix your DUMP block"
      &              // " in fort.3"
 
-+ei
-+if .not.cr
-               write (*,10472)    " !! Warning: No structure elements "
-     &              // "found for '" // bez(ii) // "'!"
-               write (*,10472)
-     &              " !! This element is probably only found"
-     &              // " in a BLOC, or it is not used at all."
-               write (*,10472)    " !! Please fix your DUMP block"
-     &              // " in fort.3"
-+ei
                call prror(-1)
             endif
           endif
         enddo
 
         if ( ldumphighprec ) then
-+if cr
           write(lout,*) ''
           write(lout,*) '        --> requested high precision dumping!'
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    '        --> requested high precision dumping!'
-+ei
         endif
         if ( ldumpfront ) then
-+if cr
           write(lout,*) ''
           write(lout,*) '        --> requested FRONT dumping!'
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    '        --> requested FRONT dumping!'
-+ei
-           
         endif
         goto 110
       endif
@@ -16800,31 +16643,17 @@ cc2008
       if ( (getfields_nfields .lt. 4) .or. 
      &     (getfields_nfields .gt. 7) .or.
      &     (getfields_nfields .eq. 6)      ) then
-+if cr
          write(lout,*) "ERROR in DUMP:"
          write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",
      &        getfields_nfields
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in DUMP:"
-         write(*,*)    "Expected 4 to 7 (but not 6)arguments, got",
-     &        getfields_nfields
-         write(*,*)
-+ei
      &        ("'"//getfields_fields(kk)(1:getfields_lfields(kk))//"' ",
      &        kk=1,getfields_nfields)
          call prror(-1)
       endif
       if (getfields_lfields(1) > 16) then
-+if cr
          write(lout,*) "ERROR in DUMP:"
          write(lout,*) "element names are max. 16 characters"
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in DUMP:"
-         write(*,*)    "element names are max. 16 characters"
-+ei
          call prror(-1)
 
       endif
@@ -16851,24 +16680,14 @@ cc2008
 !Check that first/last turn is sane
       if ( i5.ne.-1 ) then
          if ( i5 .lt. i4 ) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
      &           "Error in DUMP: Expect last turn >= first turn, ",
      &           "unless last turn = -1 (infinity), got", i4,i5
            call prror(-1)
          endif
       endif
       if ( i4 .lt. 1 ) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "Error in DUMP: Expect first turn >= 1, got", i4
          call prror(-1)
       endif
@@ -16877,16 +16696,9 @@ cc2008
       do j=1,il
          if(bez(j).eq.idat) then
             if (ldump(j)) then !Only enable once/element!
-+if cr
                write(lout,*) "Error in parsing DUMP block:"
                write(lout,*) "Element '",idat, "' was specified",
      &              " more than once"
-+ei
-+if .not.cr
-               write(*,*)    "Error in parsing DUMP block:"
-               write(*,*)    "Element '",idat, "' was specified",
-     &              " more than once"
-+ei
                call prror(-1)
             endif
             goto 2001
@@ -16894,25 +16706,21 @@ cc2008
       enddo
       if ( idat(:3).eq.'ALL' ) then
          j=0
+         if (ldump(j)) then
+            write(lout,*) "ERROR in parsing DUMP block:"
+            write(lout,*) "'Element' ALL was specified "//
+     &           "(at least) twice"
+            call prror(-1)
+         endif
          goto 2001
       endif
 !     search failed:
-+if cr
       write(lout,*) ''
       write(lout,*) " Un-identified SINGLE ELEMENT '", idat, "'"
       write(lout,*) '   in block ',dump, '(fort.3)'
       write(lout,*) '   parsed line:'
       write(lout,*) ch(:80)
       write(lout,*) ''
-+ei
-+if .not.cr
-      write(*,*)    ''
-      write(*,*)    " Un-identified SINGLE ELEMENT '", idat, "'"
-      write(*,*)    '   in block ',dump, '(fort.3)'
-      write(*,*)    '   parsed line:'
-      write(*,*)    ch(:80)
-      write(*,*)    ''
-+ei
       call prror(-1)
 
 !     element found:
@@ -16944,23 +16752,13 @@ cc2008
 
       if (ch(:4).eq."DEBU") then
          ldynkdebug = .true.
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "DYNK> DYNK block debugging is ON"
          goto 2200 !loop DYNK
          
       else if (ch(:6).eq."NOFILE") then
          ldynkfiledisable = .true.
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "DYNK> Disabled writing dynksets.dat"
          goto 2200 !loop DYNK
          
@@ -16969,21 +16767,11 @@ cc2008
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(51)
          if (ldynkdebug) then
-+if cr
             write (lout,'(1x,A,I4,A)')
-+ei
-+if .not.cr
-            write    (*,'(1x,A,I4,A)')
-+ei
      &           "DYNKDEBUG> Got a FUN block, len=",
      &           len(ch), ": '"// trim(ch)// "'"
             do ii=1,getfields_nfields
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "DYNKDEBUG> Field(",ii,") ='",
      &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
             enddo
@@ -16997,21 +16785,11 @@ cc2008
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(51)
          if (ldynkdebug) then
-+if cr
             write (lout,'(1x,A,I4,A)')
-+ei
-+if .not.cr
-            write    (*,'(1x,A,I4,A)')
-+ei
      &           "DYNKDEBUG> Got a SET block, len=",
      &           len(ch), ": '"//trim(ch)//"'"
             do ii=1,getfields_nfields
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "DYNKDEBUG> Field(",ii,") ='",
      &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
             enddo
@@ -17022,37 +16800,23 @@ cc2008
 
       else if (ch(:4).eq.next) then
          if (ldynkdebug) then
-+if cr
             write (lout,*)
-+ei
-+if .not.cr
-            write (*,*)
-+ei
      &           "DYNKDEBUG> Finished parsing DYNK block"
             call dynk_dumpdata
          endif
          if (ldynk) then
-+if cr
             write (lout,*)
             write (lout,*) "******************************************"
             write (lout,*) "** More than one DYNK block encountered **"
             write (lout,*) "******************************************"
-+ei
-+if .not.cr
-            write (*,*)
-            write (*,*) "******************************************"
-            write (*,*) "** More than one DYNK block encountered **"
-            write (*,*) "******************************************"
-+ei
             call prror(51)
          else
             ldynk = .true.
          endif
          call dynk_inputsanitycheck
-         goto 110 ! loop BLOCK
+         goto 110 ! Read next block or ENDE
 
       else
-+if cr
          write (lout,*)
          write (lout,*) "*******************************************"
          write (lout,*) "ERROR while parsing DYNK block in fort.3"
@@ -17061,29 +16825,12 @@ cc2008
          write (lout,*) "Got ch:"
          write (lout,*) "'"//ch//"'"
          write (lout,*) "*******************************************"
-+ei
-+if .not.cr
-         write (*,*)
-         write (*,*) "*******************************************"
-         write (*,*) "ERROR while parsing DYNK block in fort.3"
-         write (*,*) "Expected keywords FUN, SET, DEBU, NOFILE or NEXT"
-         write (*,*) "Got ch:"
-         write (*,*) "'"//ch//"'"
-         write (*,*) "*******************************************"
-+ei
          call prror(51)
       endif
       ! Should never arrive here
-+if .not.cr
-      write (*,*) "*****************************"
-      write (*,*) "*LOGIC ERROR IN PARSING DYNK*"
-      write (*,*) "*****************************"
-+ei
-+if cr
       write (lout,*) "*****************************"
       write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
       write (lout,*) "*****************************"
-+ei
       call prror(51)
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -17103,12 +16850,7 @@ cc2008
       endif
  
       if(fma_numfiles.ge.fma_max) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR: you can only do ',fma_max,' number of FMAs'
         call prror(-1) 
       endif
@@ -17118,22 +16860,12 @@ cc2008
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in FMA block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
       if(getfields_nfields.eq.1 .or. getfields_nfields.ge.4) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in FMA block: wrong number of input ',
      &       'parameters: ninput = ', getfields_nfields, ' != 2 (or 3)'
         call prror(-1)
@@ -17163,21 +16895,11 @@ cc2008
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1")
      &   ) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "ERROR in DATEN::FMA: The FMA method '"//
      &        trim(stringzerotrim(fma_method(fma_numfiles)))
      &        //"' is unknown. FMA index = ", fma_numfiles
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &       "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//
      &       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT2, TUNEABT2. "//
      &       "Note that it is case-sensitive, so use uppercase only."
@@ -17186,12 +16908,7 @@ cc2008
 
       if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or.
      &           fma_norm_flag(fma_numfiles).eq.1      )) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0."//
      &        "Got:", fma_norm_flag(fma_numfiles),
      &        "FMA index =",fma_numfiles
@@ -17215,12 +16932,7 @@ cc2008
         do j=1,nele
           if(kz(j).eq.29) then
             if(elens_type(j).eq.0) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
      &'not defined in fort.3. You must define every elens in the '//
      &'ELEN block in fort.3!'
@@ -17233,12 +16945,7 @@ cc2008
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in ELEN block: fortran IO format currently not ',
      &       'supported!'
         call prror(-1)
@@ -17248,12 +16955,7 @@ cc2008
       call getfields_split( ch, getfields_fields, getfields_lfields,
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in ELEN block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
@@ -17261,12 +16963,7 @@ cc2008
 !     Check number of arguments
 !     If a new type of elens is implemented, may need to modify this!
       if(getfields_nfields.ne.9) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
      &       'ERROR in ELEN block: wrong number of input ',
      &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
@@ -17274,12 +16971,7 @@ cc2008
 
 !     Find the element, and check that we're not double-defining
       if (getfields_lfields(1) .gt. 16) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "ERROR in ELEN block: Element name max 16 characters;"//
      &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
      &        //"' is too long."
@@ -17290,38 +16982,23 @@ cc2008
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_elens=29)
             if(kz(j).ne.29) then
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write(*,*)
-+ei
      &              'ERROR: element type mismatch for ELEN!'//
      &              'Element type is kz(',j,') = ',kz(j),'!= 29'
                call prror(-1)
             endif
             if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write(*,*)
-+ei
      &'ERROR: length el(j) (elens is treated as thin element), '//
      &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
      &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
-     &')=',ek(j),'. Please check you input in the single element '//
+     &')=',ek(j),'. Please check your input in the single element '//
      &'definition of your ELEN. All values except for the type need '//
      &'to be zero.'
                call prror(-1)
             endif
             if (elens_type(j).ne.0) then
-+if cr
                write(lout,*) "ERROR in ELEN block:"//
-+ei
-+if .not.cr
-               write(*,*)    "ERROR in ELEN block:"//
-+ei
      &              "The element '"//bez(j)//"' was defined twice!"
                call prror(-1)
             endif
@@ -17372,12 +17049,7 @@ cc2008
                
                ! Make checks for this case
                if(elens_r2ovr1(j).le.1) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
      &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',
      &elens_r2ovr1(j),'<1'
                  call prror(-1)
@@ -17385,12 +17057,7 @@ cc2008
               if(elens_bend_entrance(j).ne. 1 .and.
      &           elens_bend_entrance(j).ne.-1 .and.
      &           elens_bend_entrance(j).ne. 0      ) then
-+if cr
                  write(lout,*)
-+ei
-+if .not.cr
-                 write(*,*)
-+ei
      &'ERROR: ELEN flag for taking bends at entrance into account must'
      &//' be -1,0,1, but elens_bend_entrance =',
      &elens_bend_entrance(j)
@@ -17399,12 +17066,7 @@ cc2008
               if(elens_bend_exit(j).ne. 1 .and.
      &           elens_bend_exit(j).ne.-1 .and.
      &           elens_bend_exit(j).ne.0       ) then
-+if cr
                  write(lout,*)
-+ei
-+if .not.cr
-                 write(*,*)
-+ei
      &'ERROR: ELEN flag for taking bends at exit into account must'
      &//' be -1,0,1, but elens_bend_exit =',
      &elens_bend_exit(j)
@@ -17412,12 +17074,7 @@ cc2008
               end if
 
               ! print a summary of elens parameters
-+if cr
               write(lout,
-+ei
-+if .not.cr
-              write(*,
-+ei
      &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),'
      &//'2(A,I4,/))')
      &'ELENS found in list of single elements with: ',
@@ -17434,12 +17091,7 @@ cc2008
      &'  exit     = ',elens_bend_exit(j)
       
             case default
-+if cr
                write(lout,*) "ERROR in ELEN: "//
-+ei
-+if .not.cr
-               write(*,*)    "ERROR in ELEN: "//
-+ei
      &              "Elens type '"//
      &              getfields_fields(2)(1:getfields_lfields(2))//
      &              "' not recognized. Remember to use all UPPER CASE!"
@@ -17452,12 +17104,7 @@ cc2008
       enddo
 
 !     Search for element failed!
-+if cr
       write(lout,*) "ERROR in ELEN: "//
-+ei
-+if .not.cr
-      write(*,*)    "ERROR in ELEN: "//
-+ei
      &     "Un-identified SINGLE ELEMENT '",
      &     getfields_fields(1)(1:getfields_lfields(1)), "'"
       call prror(-1)
@@ -17466,7 +17113,281 @@ cc2008
  2401 continue
       
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
+
 !-----------------------------------------------------------------------
+!  Wire, kz=+/-15,ktrack=45
+!  A. Patapenka (NIU), M. Fitterer,  FNAL
+!  last modified: 22-12-2016
+!-----------------------------------------------------------------------
+ 2500 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
+     
+      if (ch(:4).eq.next) then
+!       4) loop over single elements to check that they have been defined in the fort.3 block
+        do j=1,nele
+          if(kz(j).eq.15) then
+            if(wire_flagco(j).eq.0) then
+              write(lout,*)
+     &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
+     &'not defined in fort.3. You must define every wire in the '//
+     &'WIRE block in fort.3!'
+               call prror(-1)
+            endif
+          endif
+        enddo
+        goto 110 ! go to next BLOCK in fort.3 - we're done here!
+      endif
+
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
+        write(lout,*)
+     &       'ERROR in WIRE block: fortran IO format currently not ',
+     &       'supported!'
+        call prror(-1)
++ei
+
+!     1) read in wire parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
+        write(lout,*)
+     &       'ERROR in WIRE block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+
+!     Check number of arguments
+      if(getfields_nfields.ne.9) then
+        write(lout,*)
+     &       'ERROR in WIRE block: wrong number of input ',
+     &       'parameters: ninput = ', getfields_nfields, ' != 9'
+        call prror(-1)
+      endif
+
+!     Find the element, and check that we're not double-defining
+      if (getfields_lfields(1) .gt. 16) then
+         write(lout,*)
+     &        "ERROR in WIRE block: Element name max 16 characters;"//
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
+     &        //"' is too long."
+         call prror(-1)
+      endif
+      
+      do j=1,nele               !loop over single elements and set parameters of wire
+         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
+            ! check the element type (kz(j)_wire=15)
+            if(kz(j).ne.15) then
+               write(lout,*)
+     &              'ERROR: element type mismatch for WIRE! '//
+     &'Element type is kz(',j,') = ',kz(j),'!= +15'
+               call prror(-1)
+            endif
+            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
+               write(lout,*)
+     &'ERROR: length el(j) (wire is treated as thin element), '//
+     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
+     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
+     &')=',ek(j),'. Please check your input in the single element '//
+     &'definition of your WIRE. All values except for the type need '//
+     &'to be zero.'
+               call prror(-1)
+            endif
+            if (wire_flagco(j).ne.0) then
+               write(lout,*) "ERROR in WIRE block:"//
+     &              "The element '"//bez(j)//"' was defined twice!"
+               call prror(-1)
+            endif
+
+            ! Parse the element
+            read(getfields_fields(2)(1:getfields_lfields(2)),'(I10)')
+     &           wire_flagco(j)
++if .not.crlibm
+            read (getfields_fields(3)(1:getfields_lfields(3)),*)
+     &           wire_current(j)
+            read (getfields_fields(4)(1:getfields_lfields(4)),*)
+     &           wire_lint(j)
+            read (getfields_fields(5)(1:getfields_lfields(5)),*)
+     &           wire_lphys(j)
+            read (getfields_fields(6)(1:getfields_lfields(6)),*)
+     &           wire_dispx(j)
+            read (getfields_fields(7)(1:getfields_lfields(7)),*)
+     &           wire_dispy(j)
+            read (getfields_fields(8)(1:getfields_lfields(8)),*)
+     &           wire_tiltx(j)
+            read (getfields_fields(9)(1:getfields_lfields(9)),*)
+     &           wire_tilty(j)
++ei
++if crlibm
+            wire_current(j)= round_near (
+     &           errno,getfields_lfields(3)+1, getfields_fields(3) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,3,wire_current(j) )
+            wire_lint(j)       = round_near (
+     &           errno,getfields_lfields(4)+1, getfields_fields(4) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,4,wire_lint(j) )
+            wire_lphys(j)   = round_near (
+     &           errno,getfields_lfields(5)+1, getfields_fields(5) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,5,wire_lphys(j) )
+            wire_dispx(j) = round_near (
+     &           errno,getfields_lfields(6)+1, getfields_fields(6) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,6,wire_dispx(j) )
+            wire_dispy(j) = round_near (
+     &           errno,getfields_lfields(7)+1, getfields_fields(7) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,7,wire_dispy(j) )
+            wire_tiltx(j) = round_near (
+     &           errno,getfields_lfields(8)+1, getfields_fields(8) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,8,wire_tiltx(j) )
+            wire_tilty(j) = round_near (
+     &           errno,getfields_lfields(9)+1, getfields_fields(9) )
+            if (errno.ne.0) call rounderr (
+     &           errno,getfields_fields,9,wire_tilty(j) )
++ei
+            
+            ! Make checks for the wire parameters
+            if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
+               write(lout,*)
+     &"ERROR: WIRE flag for defining the wire separation "//
+     &"must be -1 (disp* = distance closed orbit and beam)"//
+     &"or 1 (disp* = distance from x=y=0 <-> beam), but "//
+     &"wire_flagco = ",wire_flagco(j)
+               call prror(-1)
+            end if
+            if((wire_lint(j).lt.0) .or. (wire_lphys(j).lt.0)) then
+              write(lout,*)
+     &'ERROR: WIRE integrated and physical length must larger than 0! '
+     &// 'wire_lint = ',wire_lint(j),', wire_lphys = ',wire_lphys(j)
+              call prror(-1)
+            end if
+            if((abs(wire_tiltx(j)) .ge. 90) .or. 
+     &         (abs(wire_tilty(j)) .ge. 90)) then
+              write(lout,*)
+     &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '
+     &//'wire_tiltx = ',wire_tiltx(j),', wire_tilty = ',wire_tilty(j)
+              call prror(-1)
+            end if
+
+! print a summary of the wire parameters
+            write(lout,
+     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D9.3,A,/))')
+     &'WIRE found in list of single elements with: ',
+     &'name               = ',bez(j),
+     &'flagco             = ',wire_flagco(j),
+     &'current            = ',wire_current(j),' A',
+     &'integrated length  = ',wire_lint(j),' m',
+     &'physical length    = ',wire_lphys(j),' m',
+     &'hor. displacement  = ',wire_dispx(j),' mm',
+     &'vert. displacement = ',wire_dispy(j),' mm',
+     &'hor. tilt          = ',wire_tiltx(j),' degrees',
+     &'vert. tilt         = ',wire_tilty(j),' degrees'
+! ignore wire if current, length or displacment are 0 or
+! wire_flagco not set (case wire_flagco = 0)
+! for displacement only ignore if wire_dispx = wire_dispy = 0
+            if( abs(wire_flagco(j)*(wire_current(j)*(wire_lint(j)
+     &*(wire_lphys(j)*(wire_dispx(j)+wire_dispy(j)))))).le.pieni ) then
+              kz(j) = 0 ! treat element as marker
+
+              write(lout,
+     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D9.3,/))')
+     &'WARNING: WIRE element ',bez(j),'ignored!',
+     &'Elements are ignored if current, displacment, integrated ',
+     &'or physical length are 0! ',
+     &'wire_dispx(',j,') = ',wire_dispx(j),
+     &'wire_dispy(',j,') = ',wire_dispy(j),
+     &'wire_lint(',j,') = ',wire_lint(j),
+     &'wire_lphys(',j,') = ',wire_lphys(j)
+            end if
+
+            goto 2501           !Search success :)
+            
+         endif
+      enddo
+
+!     Search for element failed!
+      write(lout,*) "ERROR in WIRE: "//
+     &     "Un-identified SINGLE ELEMENT '",
+     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
+      call prror(-1)
+      
+!     element search was a success :)
+ 2501 continue
+      
+      goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
+
+!-----------------------------------------------------------------------
+!  ZIPF
+!  K. Sjobak, BE-ABP/HSS
+!  Last modified: 7/2 2017
+!-----------------------------------------------------------------------
+ 2800 read(3,10020, end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2800 ! skip comment line
+      
+      if (ch(:4).eq.next) then
+         zipf_outfile(1:10) = "Sixout.zip" ! Output name fixed for now
+            write(lout,'(a)')       "**** ZIPF ****"
+            write(lout,'(a,a,a)')   " Output file name = '",
+     &           trim(stringzerotrim(zipf_outfile)),"'"
+            write(lout,'(a,1x,i5)') " Number of files to pack=",
+     &           zipf_numfiles
+            write(lout,'(a)')       " Files:"
+         do ii=1,zipf_numfiles
+            write(lout,'(1x,i5,a,1x,a)') ii,":",
+     &            trim(stringzerotrim(zipf_filenames(ii)))
+         end do
+
+         if (.not.(zipf_numfiles.gt.0)) then
+            write(lout,'(a)') "ERROR in ZIPF:"
+            write(lout,'(a)') " ZIPF block was empty;"
+            write(lout,'(a)') " no files specified!"
+            call prror(-1)
+         endif
+
++if .not.libarchive
+         write(lout,'(a)') "ERROR in ZIPF:"
+         write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
+         write(lout,'(a)') " but this SixTrack was "//
+     &        "compiled without it."
+         call prror(-1)
++ei
+         goto 110                  !Read next block or ENDE
+      endif
+
+      !Read filenames
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) call prror(-1)
+
+      if (getfields_nfields .ne. 1) then
+         write(lout,'(a)')         "ERROR in ZIPF:"
+         write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got",
+     &                              getfields_nfields, ", line=",ch
+         call prror(-1)
+      end if
+
+      zipf_numfiles = zipf_numfiles + 1
+      if (zipf_numfiles .ge. zipf_maxfiles) then
+         write(lout,'(a)')       "ERROR in ZIPF:"
+         write(lout,'(a,1x,i5)') " Too many files, max=",
+     &         zipf_maxfiles
+         call prror(-1)
+      endif
+      
+      zipf_filenames(zipf_numfiles)(1:getfields_lfields(1)) =
+     &     getfields_fields(1)(1:getfields_lfields(1))
+      
+      goto 2800                 !Read the next line of the ZIPF block
+!----------------------------------------------------------------------------
+!     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
+!-----------------------------------------------------------------------------
   771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
         if(nbeam.ge.1) parbe14=                                         &!hr05
@@ -17476,108 +17397,62 @@ cc2008
         emitx=emitnx*gammar
         emity=emitny*gammar
 +if collimat
-        remitxn=emitnx
-        remityn=emitny
-        remitx=emitx
-        remity=emity
+        remitx_dist=emitnx0_dist*gammar
+        remity_dist=emitny0_dist*gammar
+        remitx_collgap=emitnx0_collgap*gammar
+        remity_collgap=emitny0_collgap*gammar
 +ei
       endif
++if collimat
+      if (.not.has_coll) then
+         !Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
+         write(lout,*) ""
+         write(lout,*) "ERROR in parsing fort.3:"
+         write(lout,*) "This is the collimation version of SixTrack,"
+         write(lout,*) " but no COLL block was found,"
+         write(lout,*) " not even one with do_coll = .false."
+         write(lout,*) "Please use the non-collimation version!"
+         call prror(-1)
+      endif
++ei
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il
-          parbe(j,2)=0d0                                                 !hr05
+          parbe(j,2)=0d0
         enddo
       else
         do j=1,il
-          if(parbe(j,2).gt.dble(mbea)) then                              !hr05
-+if cr
-            write(lout,'(a48,i4,a29,i4)') '     WARNING: Number of '//  &!hr12
-+ei
-+if .not.cr
-            write(*,'(a48,i4,a29,i4)') '     WARNING: Number of '//     &!hr12
-+ei
-     &'slices set to maximum : ',mbea,' for 6D beam-beam element'//     &!hr12
-     &' #: ',j
-            parbe(j,2)=dble(mbea)                                        !hr05
-          endif
+          if(parbe(j,2).gt.dble(mbea)) then
+             write(lout,'(a,i5,a,i5,a,a16,a,i5)')
+     &            'ERROR: Requested ',
+     &            int(parbe(j,2)), " slices for 6D beam-beam element"//
+     &            ' #',j, " named ", bez(j), ", maximum is mbea =",mbea
+            parbe(j,2)=dble(mbea)
+            call prror(-1) !Treat this warning as an error
+         endif
         enddo
       endif
-      do j=1,il
-         if(kz(j).eq.15) then
-            if(abs(xpl(j)).lt.pieni.and.abs(zpl(j)).lt.pieni) then
-               kz(j)=0
-               ed(j)=0d0                                                 !hr05
-               ek(j)=0d0                                                 !hr05
-               el(j)=0d0                                                 !hr05
-            endif
-         endif
-      enddo
       if(iout.eq.0) return
-+if cr
       write(lout,10050)
-+ei
-+if .not.cr
-      write(*,10050)
-+ei
-+if cr
       write(lout,10060)
-+ei
-+if .not.cr
-      write(*,10060)
-+ei
       il1=il
       if(ncy2.eq.0) il1=il-1
       do 1435 k=1,il1
       if(abs(kz(k)).eq.12) then
-+if cr
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
-+ei
-+if .not.cr
-        write(*,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),      &
-+ei
      &xrms(k),zpl(k),zrms(k)
         kz(k)=abs(kz(k))
         phasc(k)=phasc(k)*rad
       else
-+if cr
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),      &
      &xrms(k),                                                          &
-+ei
-+if .not.cr
-        write(*,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k), &
-+ei
      &zpl(k),zrms(k)
       endif
  1435 continue
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10080)
-+ei
-+if .not.cr
-      write(*,10080)
-+ei
-+if cr
       write(lout,10090) mper,(msym(k),k=1,mper)
-+ei
-+if .not.cr
-      write(*,10090) mper,(msym(k),k=1,mper)
-+ei
-+if cr
       write(lout,10250) mblo,mbloz
-+ei
-+if .not.cr
-      write(*,10250) mblo,mbloz
-+ei
-+if cr
       write(lout,10100)
-+ei
-+if .not.cr
-      write(*,10100)
-+ei
       do 1450 l=1,mblo
       kk=mel(l)
       ll=kk/6
@@ -17586,45 +17461,20 @@ cc2008
           l2=(l1-1)*6+1
           l3=l2+5
           if(l2.eq.1) then
-+if cr
             write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,6)
-+ei
-+if .not.cr
-            write(*,10260) l,bezb(l),kk,(beze(l,k),k=1,6)
-+ei
           else
-+if cr
             write(lout,10270) (beze(l,k),k=l2,l3)
-+ei
-+if .not.cr
-            write(*,10270) (beze(l,k),k=l2,l3)
-+ei
           endif
  1440   continue
         if(mod(kk,6).ne.0) then
           l4=ll*6+1
-+if cr
           write(lout,10270) (beze(l,k),k=l4,kk)
-+ei
-+if .not.cr
-          write(*,10270) (beze(l,k),k=l4,kk)
-+ei
         endif
       else
-+if cr
         write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,kk)
-+ei
-+if .not.cr
-        write(*,10260) l,bezb(l),kk,(beze(l,k),k=1,kk)
-+ei
       endif
  1450 continue
-+if cr
       write(lout,10120)
-+ei
-+if .not.cr
-      write(*,10120)
-+ei
       mblozz=mbloz/5+1
       do 1480 k=1,mblozz
       k10=(k-1)*5
@@ -17639,92 +17489,174 @@ cc2008
  1460   ic0(l)=bez0(icc-nblo)
  1470 continue
       k11=k10+1
-+if cr
       write(lout,10280) k11,(ic0(l),l=1,5)
-+ei
-+if .not.cr
-      write(*,10280) k11,(ic0(l),l=1,5)
-+ei
  1480 continue
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
  1490 if(idp.eq.0) goto 1500
-      if(nbeam.ge.1) then
-        if(partnum.gt.zero) then
-+if cr
-          write(lout,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,    &
-+ei
-+if .not.cr
-          write(*,10140) ncy,dp1,dppoff,tlen,pma,partnum,parbe14,       &
-+ei
-     &ibeco,                                                            &
-     &ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
-        else
-+if cr
-          write(lout,10141)ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,&
-+ei
-+if .not.cr
-          write(*,10141) ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,  &
-+ei
-     &ibeco,ibtyp,ibb6d,sigz,sige,emitnx,emitny,e0
-        endif
-      else
-+if cr
+      if(nbeam.ge.1) then !Write out with BB parameters
+         if(beam_expflag .eq. 0) then  !The old BEAM format
+            if(partnum.gt.zero) then !Beams have same charge
+               write(lout,
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+            else !Beams have opposite charge
+               write(lout,
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+            endif
+            
+         elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
+            if(partnum.gt.zero) then !Beams have same charge
+               write(lout, ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+            else !Beams have opposite charge
+               write(lout,  ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
+     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
+     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
+     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
+     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
+     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
+     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
+     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
+     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
+     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
+     &t79,i1/                                                           &
+     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
+     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
+     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
+     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+            endif
+         else
+            write(lout,'(a)') "ERROR in subroutine daten"
+            write(lout,'(a)') "beam_expflag was", beam_expflag
+            write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+            call prror(-1)
+         endif
+      else !No beam beam
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
-+ei
-+if .not.cr
-        write(*,10142) ncy,dp1,dppoff,tlen,pma,e0
-+ei
       endif
       if(ncy2.eq.0) then
-+if cr
         write(lout,10143) harm,u0,phag,qs,alc
-+ei
-+if .not.cr
-        write(*,10143) harm,u0,phag,qs,alc
-+ei
       else
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
-        if(ibb6d.eq.1) then
-+if cr
-          write(lout,10144)
-+ei
-+if .not.cr
-          write(*,10144)
-+ei
-          do j=1,il
-+if cr
-            if(parbe(j,2).gt.0d0) write(lout,10145) bez(j),             &!hr12
-+ei
-+if .not.cr
-            if(parbe(j,2).gt.0d0) write(*,10145) bez(j),                &!hr12
-+ei
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3)
-          enddo
-        endif
-+if cr
+      if(beam_expflag .eq. 0) then
+         if(ibb6d.eq.1) then
+            write(lout,
+     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
+     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
+     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)")
+            do j=1,il
+               if(parbe(j,2).gt.0d0)
+     &              write(lout,"(t10,a16,5x,i4,7x,d16.10,2x,d16.10)")
+     &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
+            enddo
+         endif
+         
+      elseif(beam_expflag .eq. 1) then
+         write(lout,
+     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
+     &t10,'ELEMENT           #_OF_SLICES    XING_ANGLE',                &
+     &'  XING_PLANE   HOR_SEP     VER_SEP        S11        S12      ', &
+     &'  S22         S33         S34         S44         S13         ', &
+     &'S14         S23         S24'/t10,200('-')/)")
+         do j=1,il
+            if(kz(j).eq.20.and.parbe(j,17).eq.1)then
+               write(lout,
+     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,      &
+     &2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,        &
+     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")
+     &bez(j),                                                           &
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),      &
+     &parbe(j,7),parbe(j,8),parbe(j,9),parbe(j,10),parbe(j,11),         &
+     &parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+            endif
+         enddo
+         write(lout,
+     &"(//,t30,'4D BEAM-BEAM ELEMENTS'/t30,24('-')//                    &
+     &t10,'ELEMENT           #_OF_SLICES        S11   ',                &
+     &'     S22       HOR_SEP     VER_SEP'/t10,80('-')/)")
+         do j=1,il
+            if (kz(j).eq.20.and.parbe(j,17).eq.0) then
+               write(lout,                                              &
+     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")    &
+     &bez(j),                                                           &
+     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
+            endif
+         enddo
+         
+      else
+         write(lout,'(a)') "ERROR in subroutine daten"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
  1500 continue
-+if cr
       write(lout,10150)
-+ei
-+if .not.cr
-      write(*,10150)
-+ei
       nfb=nde(1)
       nac=nde(2)
       nft=numl-nde(2)
@@ -17732,38 +17664,13 @@ cc2008
       if(numl.le.nde(2)) nac=numl
       if(numl.le.nde(1)) nac=0
       if(numl.le.nde(1)) nfb=numl
-+if cr
       write(lout,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,    &
      &nwr(3),                                                           &
-+ei
-+if .not.cr
-      write(*,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,nwr(3),&
-+ei
      &kanf,amp(1),rat,itco,dma,dmap,itqv,dkq,dqq
-+if cr
       write(lout,10170) itcro,dsm0,dech,de0,ded,dsi
-+ei
-+if .not.cr
-      write(*,10170) itcro,dsm0,dech,de0,ded,dsi
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
-+if cr
       write(lout,10040)
-+ei
-+if .not.cr
-      write(*,10040)
-+ei
-+if cr
       write(lout,10130)
-+ei
-+if .not.cr
-      write(*,10130)
-+ei
       goto 1540
  1520 call prror(41)
  1530 call prror(42)
@@ -17792,45 +17699,9 @@ cc2008
      &'   ')
 10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
      &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-10110 format(t10,i3,' ---',i3,' --- ',30i3)
+!10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
-10140 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
-10141 format(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//             &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
 10142 format(t30,'SYNCHROTRON OSCILLATIONS'//                           &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17845,10 +17716,6 @@ cc2008
      &t10,'FREQUENCY (IN UNITS OF REVOLUTION-FREQ.) QS-LINEAR',         &
      &t66 ,f14.9/                                                       &
      &t10,'MOMENTUM COMPACTION',t66,f14.9/)
-10144 format(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//        &
-     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)
-10145 format(t10,a16,5x,i4,7x,d16.10,2x,d16.10)
 10150 format(//t43,'*** TRACKING PARAMETERS ***'/)
 10160 format(t10,'NUMBER OF REVOLUTIONS  ',t48,i8/ t10,                 &
      &'NUMBER OF REVERSE-REVOLUTIONS',t48,i8/ t10,                      &
@@ -17897,8 +17764,8 @@ cc2008
      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
      &'  -   DEVIATION=',f15.7)
-10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
+!10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
+!     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10430 format(/5x,'No cut on random distribution'//)
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
@@ -17912,7 +17779,7 @@ cc2008
      &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
      &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
      &'       MEAN            RMS-VALUE'/)
-10240 format(t10,a16,3(2x,d16.10),2x,i10)
+!10240 format(t10,a16,3(2x,d16.10),2x,i10)
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
@@ -17936,9 +17803,6 @@ cc2008
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18036,9 +17900,6 @@ cc2008
 !   CH1 ... OUTPUT CHARACTERSTRING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18110,7 +17971,7 @@ cc2008
 !
 !-----------------------------------------------------------------------
 !     K.Sjobak & A.Santamaria, BE-ABP/HSS
-!     last modified: 16-12-2014
+!     last modified: 23-12-2016
 !     Initialize a lattice element with index elIdx,
 !     such as done when reading fort.2 (GEOM) and in DYNK.
 !     
@@ -18136,9 +17997,8 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-+if cr
++ca wireparam
 +ca crcoall
-+ei
 
       !Temp variables
       integer i
@@ -18390,6 +18250,25 @@ c$$$         endif
             hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
             hsyc(ix)=(c1m3*hsyc(ix))*dble(itionc(ix)) ! trauthin/trauthck
          endif
+!--BEAM-BEAM
+      elseif(kz(ix).eq.20) then
+         if (lfirst) then
+            ! Only for old-style BEAM-BEAM lenses
+            ! if DYNK-ified, there needs to be checks for parbeam_exp as well,
+            ! as in this case modifying ed/ek/el and then calling initialize_element
+            ! would be neccessary...
+            ! Note that the BEAM::EXPERT block input checker relies on the data from
+            ! ed/ek/el has been moved to parbe/ptnfac.
+            ! For DYNKification of BEAM, I think lots of the code from
+            ! trauthin/trauthck needs to be copied here?
+            ptnfac(ix)=el(ix)
+            el(ix)=zero
+
+            parbe(ix,5) = ed(ix)
+            ed(ix)=zero
+            parbe(ix,6) = ek(ix)
+            ek(ix)=zero
+         endif
 !--Crab Cavities
 !   Note: If setting something else than el(),
 !   DON'T call initialize_element on a crab, it will reset the phase to 0.
@@ -18412,60 +18291,75 @@ c$$$         endif
          !Moved from daten()
          crabph4(ix)=el(ix)
          el(ix)=0d0
+!--Wire
+      else if(kz(ix).eq.15) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
+!--e-lens
+      else if(kz(ix).eq.29) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
       endif
 
       return
 
       !Error handlers
  100  continue
-+if cr
       write (lout,*) "ERROR in initialize_element, tried to set"
       write (lout,*) "the strength of an element which is disabled."
       write (lout,*) "bez = ", bez(ix)
-+ei
-+if .not.cr
-      write (*,*)    "ERROR in initialize_element, tried to set"
-      write (*,*)    "the strength of an element which is disabled."
-      write (*,*)    "bez = ", bez(ix)
-+ei
       call prror(-1)
 
       end subroutine
 
 +if crlibm
+      
       subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
       implicit none
++ca crcoall
       integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
       character*(*) chars
       character*(*) fields(*)
       character*999 localstr
-! This routine splits the chars input into space separated
-! fields, up to nfields maximum. It returns the no of
-! fields in nf. All spaces are ignored but treated as separators.
-! A / is a line terminator as provided in ch1 typically.
-! This corresponds to Fortran treatment with an * format spec.
+!     This routine splits the chars input into space separated
+!     fields, up to nfields maximum. It returns the no of
+!     fields in nf. All spaces are ignored but treated as separators.
+!     A / is a line terminator as provided in ch1 typically.
+!     This corresponds to Fortran treatment with an * format spec.
+            
       j=0
       nf=0
       do i=1,nfields
         fields(i)=' '
+         
+        ! Get the length we can use to store a field,
+        ! should be equal to maxf in the calling function
         lf=len(fields(i))
- 8889   k=0
- 8888   j=j+1
+
+ 8889   k=0   !Index into the current field; goto label for new field or no field yet
+ 8888   j=j+1 !Index into the input array; goto label for reading another character
+        ! Check that we stay within the given length of chars
         if (j.gt.len(chars)) then
           errno=1
           go to 8887
         endif
+
+        !Don't start a new field before we hit a non-space
         if (k.eq.0.and.chars(j:j).eq.' ') go to 8888
+
         if (chars(j:j).ne.' '.and.chars(j:j).ne.'/') then
+          !We have a field
           k=k+1
           if (k.ge.lf) then
-! We reserve the last position for a null for C 
-! Field length exceeded
-! Eric for debug
+            !Field is too long;
+            ! remember that the last position (#lf in FORTRAN, lf-1 in C)
+            ! is reseved for a \0, to be used in the C code.
             do j=1,nf
               l=len(fields(j))
               localstr=fields(j)(1:l)
-              write(*,*) 'splitfld:'//localstr(1:30)//':'
+              write(lout,*) 'splitfld:'//localstr(1:lf)//':'
             enddo
             errno=2
             call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
@@ -18489,6 +18383,7 @@ c$$$         endif
           endif
         endif
       enddo
+      
  8890 continue
 ! If we get here we have a problem unless there
 ! is nothing left but ' '*/
@@ -18502,13 +18397,16 @@ c$$$         endif
       do j=1,nf
         l=len(fields(j)) 
         localstr=fields(j)(1:l)
-        write(*,*) 'splitfld:'//localstr//':'
+        write(lout,*) 'splitfld:'//localstr//':'
       enddo
       call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       end
+      
       double precision function fround(errno,fields,f)
       implicit none
       integer maxf
+      ! MAXF be kept in sync with maxf in various routines
+      ! We maybe should use len(field(f)) here, like is done in splitfld...
       parameter (maxf=30)
       integer errno,f
       character*(*) fields(*)
@@ -18520,27 +18418,16 @@ c$$$         endif
       endif
       return
       end
+      
       subroutine rounderr(errno,fields,f,value)
       implicit none
-+if cr
 +ca crcoall
-+ei
       integer nchars,nofields
       integer errno,nfields,f,l
       character*(*) fields(*)
       character*999 localstr
       double precision value
-+if .not.cr
-      write (*,10000)
-      write (*,*) 'Data Input Error (probably in subroutine daten)'
-      write (*,*) 'Overfow/Underflow in strtod()'
-      write (*,*) 'Errno: ',errno
-      l=len(fields(f))
-      localstr=fields(f)(1:l)
-      write (*,*) 'f:fieldf:',f,':'//localstr
-      write (*,*) 'Function fround (rounderr) returning:',value
-+ei
-+if cr
+
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
       write (lout,*) 'Overfow/Underflow in strtod()'
@@ -18549,41 +18436,19 @@ c$$$         endif
       localstr=fields(f)(1:l)
       write (lout,*) 'f:fieldf:',f,':'//localstr
       write (lout,*) 'Function fround (rounderr) returning:',value
-+ei
+      
       call abend('Treating this as FATAL!!!                         ')
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
       return
       end
+      
       subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       implicit none
-+if cr
 +ca crcoall
-+ei
       integer errno,nunit,lineno,nfields,nf,lf,l
       character* (*) chars
       character*999 localstr
-+if .not.cr
-      write (*,10000)
-      write (*,*) 'Data Input Error (probably in subroutine daten)'
-      write (*,*) 'Reading unit no (fort.)',nunit,' Line',lineno
-      l=len(chars)
-      localstr=chars(1:l)
-      write (*,*) 'Input line:'//localstr//':'
-      if (errno.eq.1) then
-        write (*,*)                                                     &
-     &  'Input string too long, exceeds',len(chars),' characters'
-      endif
-      if (errno.eq.2) then
-        write (*,*)                                                     &
-     &  'Field too long, exceeds',lf-1,' characters'
-      endif
-      if (errno.eq.3) then
-        write (*,*)                                                     &
-     &  'Too many input fields, maximum of',nfields,' exceeded'
-      endif
-+ei
-+if cr
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
       write (lout,*) 'Reading unit no (fort.)',nunit,' Line',lineno
@@ -18602,19 +18467,18 @@ c$$$         endif
         write (lout,*)                                                     &
      &  'Too many input fields, maximum of',nfields,' exceeded'
       endif
-+ei
+      
       call abend('Treating this error as FATAL!!!                   ')
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
       end
+      
       integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
       implicit none
-+if cr
 +ca crcoall
-+ei
       double precision x
       character*(24) results
       integer dtoaf 
@@ -18623,19 +18487,14 @@ c$$$         endif
       character*1 str(17)
       character*24 lstr
       character*3 e3
+      
       mode=2
       ndigits=17
       ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1),1)
       if (ilen.le.0.or.ilen.gt.17) then
 ! Always returns 17 or less characters as requested
-+if cr
       write (lout,10000)
       write (lout,*) 'Routine dtoa[f] returned string length ',ilen
-+ei
-+if .not.cr
-      write (*,10000)
-      write (*,*) 'Routine dtoa[f] returned string length ',ilen
-+ei
       call abend('Error from dtostr, string length not 17           ')
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
@@ -18701,6 +18560,7 @@ c$$$         endif
       dtostr=24
       return
       end
+      
       double precision function acos_rn(x)
       implicit none
       double precision atan_rn,x,pi,pi2
@@ -18721,6 +18581,7 @@ c$$$         endif
         endif
       endif
       end
+      
       double precision function asin_rn(x)
       implicit none
       double precision atan_rn,x,pi2
@@ -18739,6 +18600,7 @@ c$$$         endif
         asin_rn=atan_rn(x/sqrt((1.0d0-x)*(1.0d0+x)))
       endif
       end
+      
       double precision function atan2_rn(y,x)
       implicit none
       double precision atan_rn,x,y,pi,pi2
@@ -18767,7 +18629,8 @@ C Should get me a NaN
         endif
       endif
       end
-+ei
++ei ! END of crlibm-specific functions
+      
       subroutine wzset
 !  *********************************************************************
 !
@@ -18789,9 +18652,6 @@ C Should get me a NaN
 !
 !  *********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18817,9 +18677,6 @@ C Should get me a NaN
       end
       subroutine mywwerf(x,y,wr,wi)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -18933,10 +18790,8 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !
       implicit none
-+ca   comgetfields
-+if cr
++ca comgetfields
 +ca crcoall
-+ei
       
       character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
 
@@ -18979,16 +18834,9 @@ C Should get me a NaN
 *              a new what starts
                getfields_nfields = getfields_nfields +1
                if ( getfields_nfields.gt.getfields_n_max_fields ) then
-+if cr
                   write (lout,*)'error! too many fields in line:'
                   write (lout,*) tmpline
                   write (lout,*)'please increase getfields_n_max_fields'
-+ei
-+if .not.cr
-                  write (*,*)   'error! too many fields in line:'
-                  write (*,*)   tmpline
-                  write (*,*)   'please increase getfields_n_max_fields'
-+ei
                   getfields_lerr = .true.
                   exit !Break do
                endif
@@ -19035,9 +18883,6 @@ C Should get me a NaN
 +dk ranecu
       subroutine ranecu(rvec,len,mcut)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -19068,15 +18913,19 @@ C Should get me a NaN
         r(j) = dble(iz)*4.656613d-10                                     !hr05
    20 continue
 
-C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
+      if (mcut.ge.0) then !mcut = -1 => Generate uniform numbers!
+!     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
 +if crlibm
-!     rvec0 = (((-1d0*two)*log_rn(r(1)))**half)*cos_rn((two*pi)*r(2))    !hr05
-      rvec0 = sqrt(((-1d0*two)*log_rn(r(1))))*cos_rn((two*pi)*r(2))      !hr05
+         rvec0 = sqrt(((-1d0*two)*log_rn(r(1))))*cos_rn((two*pi)*r(2))      !hr05
 +ei
 +if .not.crlibm
-      rvec0 = (sqrt((-1d0*two)*log(r(1))))*cos((two*pi)*r(2))            !hr05
+         rvec0 = (sqrt((-1d0*two)*log(r(1))))*cos((two*pi)*r(2))            !hr05
 +ei
-      if(abs(rvec0).le.dble(mcut).or.mcut.eq.0) then
+      else if (mcut.eq.-1) then
+         rvec0 = r(1)
+      end if
+      
+      if(abs(rvec0).le.dble(mcut) .or. mcut.eq.0 .or. mcut.eq.-1) then
         rvec(i) = rvec0
         i=i+1
       endif
@@ -19103,9 +18952,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -19536,9 +19382,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -19916,9 +19759,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -20018,9 +19858,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !        5 --> 6  AND  ASD6 / ALD6
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -20139,36 +19977,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 *FOX  Y(2)=YP(2)/(ONE+DPDA) ;
-+if cr
       write(lout,*) ' ENTERING MAP '
-+ei
-+if .not.cr
-      write(*,*) ' ENTERING MAP '
-+ei
-+if cr
       write(lout,*) 'INITIAL COORDINATES'
-+ei
-+if .not.cr
-      write(*,*) 'INITIAL COORDINATES'
-+ei
-+if cr
       write(lout,*) dare(x(1)),dare(y(1))
-+ei
-+if .not.cr
-      write(*,*) dare(x(1)),dare(y(1))
-+ei
-+if cr
       write(lout,*) dare(x(2)),dare(y(2))
-+ei
-+if .not.cr
-      write(*,*) dare(x(2)),dare(y(2))
-+ei
-+if cr
       write(lout,*) dare(sigmda),dare(dpda)
-+ei
-+if .not.cr
-      write(*,*) dare(sigmda),dare(dpda)
-+ei
       if(ncor.gt.0) then
         do 20 i=1,ncor
           do 20 ii=1,iu
@@ -20375,12 +20188,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
    70     ix=ix-nblo
           if(abs(dare(x(1))).gt.aint(aper(1)).or.                       &
      &abs(dare(x(2))).gt.aint(aper(2))) then
-+if cr
             write(lout,10000) j,numx,i,dare(x(1)),aper(1),dare(x(2)),
-+ei
-+if .not.cr
-            write(*,10000) j,numx,i,dare(x(1)),aper(1),dare(x(2)),      &
-+ei
      &aper(2),ix, kz(ix),bez(ix)
             goto 520
           endif
@@ -20401,12 +20209,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             call dapri(sigmda,19)
             call dapri(dpda1,19)
             if(ncor.gt.0) then
-+if cr
               write(lout,*) ' WARNING: in the 5*6 mode no extra ',
-+ei
-+if .not.cr
-              write(*,*) ' WARNING: in the 5*6 mode no extra ',         &
-+ei
      &'parameters allowed'
             endif
             rewind 19
@@ -20511,14 +20314,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
           endif
           if(kzz.eq.15) then
-             ixcav=ix
 *FOX  XX(1)=X(1) ;
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-             call wireda
-*FOX  X(1)=XX(1) ;
-*FOX  X(2)=XX(2) ;
+          call wireda(ix,i)
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
              goto 480
@@ -20586,7 +20386,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             goto 480
           endif
 +ca trom20
-          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
+          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
             if(bez(ix).eq.'DAMAP') then
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
@@ -21129,63 +20929,31 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         do 510 i11=1,ncor
   510   call dapri(smida(i11),18)
       endif
-+if cr
       write(lout,*) 'END COORDINATES'
-+ei
-+if .not.cr
-      write(*,*) 'END COORDINATES'
-+ei
-+if cr
       write(lout,*) dare(x(1)),dare(y(1))
-+ei
-+if .not.cr
-      write(*,*) dare(x(1)),dare(y(1))
-+ei
-+if cr
       write(lout,*) dare(x(2)),dare(y(2))
-+ei
-+if .not.cr
-      write(*,*) dare(x(2)),dare(y(2))
-+ei
-+if cr
       write(lout,*) dare(sigmda),dare(dpda)
-+ei
-+if .not.cr
-      write(*,*) dare(sigmda),dare(dpda)
-+ei
+      
       write(12,*) dare(x(1))
       write(12,*) dare(y(1))
       write(12,*) dare(x(2))
       write(12,*) dare(y(2))
       write(12,*) dare(sigmda)
       write(12,*) dare(dpda)
-+if cr
+
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
+      
   520 continue
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
       call timex(time2)
 !     time=time2-time1
-+if cr
       write(lout,10020) time1-time0
-+ei
-+if .not.cr
-      write(*,10020) time1-time0
-+ei
-+if cr
       write(lout,10030) nord,time2-time1
-+ei
-+if .not.cr
-      write(*,10030) nord,time2-time1
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -21202,9 +20970,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -21252,9 +21018,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdumpcr
 +ca fma
 !     for FMA analysis
++ca wireparam
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
++ei
++ca parbeam_exp
++if crlibm
+      !For conversion of BEAM parameters to the new format
+      character*1000 ch
+      character*25 ch1
+      integer errno,l1
+      integer dtostr
 +ei
       save
 !-----------------------------------------------------------------------
@@ -21472,6 +21247,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       phi(2)=zero
       phi(3)=zero
       ibb=0
+      wire_num_aux=0
 +if debug
 !     call wda('biu',0d0,2,0,0,0)
 !     if (umcalls.eq.8) then
@@ -21500,36 +21276,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     endif
 +ei
         if(ilinc.eq.1.and.i.eq.1) then
-+if cr
           write(lout,10000) nd2
-+ei
-+if .not.cr
-          write(*,10000) nd2
-+ei
-+if cr
           if(iprint.eq.1) write(lout,10130)
-+ei
-+if .not.cr
-          if(iprint.eq.1) write(*,10130)
-+ei
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
-+if cr
           write(lout,10020)
-+ei
-+if .not.cr
-          write(*,10020)
-+ei
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
           tl=zero
 +ca umlalid
         endif
@@ -21734,12 +21485,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
         if(abs(dare(x(1))).gt.aint(aper(1)).or.                         &
      &abs(dare(x(2))).gt.aint(aper(2))) then
-+if cr
           write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,
-+ei
-+if .not.cr
-          write(*,10120) j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,  &
-+ei
      &kz(ix),bez(ix)
           call prror(97)
         endif
@@ -21769,14 +21515,64 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         goto 440
    80   kzz=kz(ix)
         if(kzz.eq.15) then
-          ixcav=ix
+! the same as in umlalid1
+          wire_num_aux = wire_num_aux+1
+! is the error number correct?
+          if(wire_num_aux.gt.wire_max) then
+               write(lout,
+     &*) 'ERROR: maximum number of wires exceeded! Number of wires ='//
+     &'wire_num_aux = ',wire_num_aux,' > ',wire_max,' = wire_max'
+            call prror(-1)
+          endif
+          wire_num(i) = wire_num_aux
+*FOX  YP(1)=Y(1)*(ONE+DPDA) ;
+*FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+*FOX  DPDA1=DPDA*C1E3 ;
+          call dacop(x(1),damap(1))
+          call dacop(yp(1),damap(2))
+          call dacop(x(2),damap(3))
+          call dacop(yp(2),damap(4))
+          do j=1,2
+            ii=2*j
+            call dapek(damap(ii-1),jj,c(j))
+            call dapek(damap(ii),jj,cp(j))
+          enddo
+          call dacsu(damap(1),c(1),damap(1))
+          call dacsu(damap(2),cp(1),damap(2))
+          call dacsu(damap(3),c(2),damap(3))
+          call dacsu(damap(4),cp(2),damap(4))
+          if(ndimf.eq.3) then
+            call dacop(sigmda,damap(5))
+            call dacop(dpda1,damap(6))
+            call dapek(damap(5),jj,c(3))
+            call dapek(damap(6),jj,cp(3))
+            call dacsu(damap(5),c(3),damap(5))
+            call dacsu(damap(6),cp(3),damap(6))
+            if(iflag2.eq.1.and.ithick.eq.1) then
+              call dacct(damap,nvar,corrnew,nvar,damap,nvar)
+            endif
+          endif
+          call dainv(damap,nvar,damapi,nvar)
+          call dacct(damap,nvar,aa2,nvar,aa2r,nvar)
+          call dacct(damap,nvar,damap1,nvar,damap,nvar)
+          call dacct(damap,nvar,damapi,nvar,damap,nvar)
+! the same as in umlalid1
+      
 *FOX  XX(1)=X(1) ;
 *FOX  XX(2)=X(2) ;
 *FOX  YY(1)=Y(1) ;
 *FOX  YY(2)=Y(2) ;
-          call wireda
-*FOX  X(1)=XX(1) ;
-*FOX  X(2)=XX(2) ;
+      wire_clo(1,wire_num(i))=dare(x(1))
+      wire_clo(2,wire_num(i))=dare(x(2))
+      wire_clo(4,wire_num(i))=dare(y(1))*(one+dare(DPDA))
+      wire_clo(5,wire_num(i))=dare(y(2))*(one+dare(DPDA))
+      if(ndimf.eq.3) then
+         wire_clo(3,wire_num(i))=dare(SIGMDA)
+         wire_clo(6,wire_num(i))=dare(DPDA)
+      endif
+
+      call wireda(ix,i)
+
 *FOX  Y(1)=YY(1) ;
 *FOX  Y(2)=YY(2) ;
           goto 440
@@ -22083,6 +21879,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           endif
 +ca trom20
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
+        if(kzz.eq.15) goto 440
         ipch=0
         if(iqmodc.eq.1) then
           if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
@@ -22318,7 +22115,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca umlalid
         if(i.eq.nt) goto 470
       endif
- 430  continue
+ 430  continue ! END LOOP OVER SINGLE ELEMENTS IN UMLAUDA
+
 *FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 *FOX  YP(2)=Y(2)*(ONE+DPDA) ;
 +if debug
@@ -22452,12 +22250,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(iqmodc.eq.1.or.iqmodc.eq.3) then
         call gettura(wxys,rrad)
         wxys(3)=abs(wxys(3))
-+if cr
         write(lout,*) (wxys(i),i=1,ndimf)
-+ei
-+if .not.cr
-        write(*,*) (wxys(i),i=1,ndimf)
-+ei
         do i=1,nd2
           jj(i)=1
           do ii=1,nd2
@@ -22560,12 +22353,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',f12.6,'|', f13.&
      &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10110 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10120 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i3,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
@@ -22574,37 +22367,47 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &'   A T T E N T I O N : BETATRON PHASE CALCULATION MIGHT BE WRONG'&
      &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
       end
+!
+!-----------------------------------------------------------------------
+! WIRE DIFFERENTIAL ALGEBRA
 +dk wireda
-      subroutine wireda
-!     This program sends a particle with coordinates (x,a,y,b,d)
-!       through
-!     the map of a straight current wire.
-!     a=p_x/p_0, b=p_y/p_0; p_0 is the reference particle's momentum;
-!     d - relative momentum deviation.
-!     The wire may have arbitrary orientation (tilt), and the map is
-!       computed
-!     in the thin lens approximation (<=>second order symplectic
-!       integration).
-!     The current wire is specified by the following parameters:
-!       l -length
-!       cur - current (positive if it flows in the +z direction)
-!       (dx,dy) - horizontal and vertical distance between wire midpoint
-!       and closed orbit
-!       (tx,ty) - tilt of the wire w.r.t the closed orbit in the
-!       horizontal and vertical planes (in degrees)
-!       embl - length of the embedding drift. Without loss of generality
-!       it is assumed that the wire midpoint and the embedding
-!       drift midpoint coincide.
-!     Current is in Amperes and all distances are in meters.
+      subroutine wireda(ix,i)
+! MODEL OF STRAIGHT CURRENT WIRE
+!
+!     The model provides a transfer map of a straight current wire. 
+!     Description:
+!     1. Infinitly thin wire with arbitrary orientation.
+!     2. Thin element in SixTrack (L)=0
+!     3. Parameters: 
+!     dx, dy: horizontal and vertical distances between wire midpoint
+!     and closed orbit [mm] 
+!     (parameters are given by dx and dy in WIRE block)
+!     tx, ty: tilt of the wire w.r.t the closed orbit in the
+!     horizontal and vertical planes (in degrees) 
+!     (parameters are given by tiltx and tilty in WIRE block)
+!     L - physical length of the wire element [m]
+!     cur - current of the wire [Amperes]
+!     embl - embedding drift (integrated length or integration interval) [m] 
+!     4. The transport map is given for canonical variables (x,px...)
+!
+! The MAP is constructed out of the following steps:
+!     1. Declaration of shifted canonical variables: 
+!          rx = x+dx; ry = y+dy  in the same way as for the BEAM-BEAM element
+!     2. Symplectic Rotation by the tilt angles tx, ty (in 4D space: px, rx, py, ry)
+!     3. Wire kick for a longitudinally aligned wire (= kick for tx=ty=0)
+!     4. Symplectic Rotation back by the tilt angles -ty, -yx (in 4D space: ...taking only PX, PY)
+!--------------------------------------------------------------
+!     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
+!     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
+
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
-      integer ix,idaa
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi
+      integer ix,idaa,i
+      double precision NNORM_, XCLO, YCLO
+      double precision l,cur,dx,dy,tx,ty,embl,chi
 +ca parpro
 +ca parnum
 +ca common
@@ -22614,6 +22417,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commondl
 +ca commonl
 +ca commonxz
++ca wireparam
 +if bnlelens
 +ca rhicelens
 +ei
@@ -22622,137 +22426,164 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  B D ;
 +ca dainicom
 *FOX  D V DA INT XI NORD NVAR ; D V DA INT YI NORD NVAR ;
+*FOX  D V DA INT DXI NORD NVAR ; D V DA INT DYI NORD NVAR ;
 *FOX  D V RE INT EMBL ; D V RE INT TX ; D V RE INT TY ;
-*FOX  D V RE INT DX ; D V RE INT DY ; D V RE INT CHI ;
-*FOX  D V RE INT LEFF ; D V RE INT LIN ; D V RE INT RX ;
-*FOX  D V RE INT RY ; D V RE INT CUR ;
+*FOX  D V RE INT DX ; D V RE INT DY ;
+*FOX  D V RE INT XCLO ; D V RE INT YCLO ;
+*FOX  D V RE INT CHI ;
+*FOX  D V RE INT CUR ;
 *FOX  D V RE INT L ; D V RE INT ONE ; D V RE INT TWO ;
 *FOX  D V RE INT C1M7 ;
 *FOX  D V RE INT C1E3 ; D V RE INT C1M3 ;
+*FOX  D V DA INT RTWO_ NORD NVAR ; 
+*FOX  D V RE INT NNORM_ ;
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
-
+!-- WIRE
+!     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
+!     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
-      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            !hr05
 
-!     The wire map consists of the following sequence of elements:
-!     drift, tilt, drift, kick, drift, tilt, shift, and drift.
-!     This way it is a zero length insertion. For details see upcoming paper.
+      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight
+      TX = wire_tiltx(ix) !tilt x [degrees] 
+      TY = wire_tilty(ix) !tilt y [degrees]
+      TX = TX*(pi/180.0d0) ![rad]
+      TY = TY*(pi/180.0d0) ![rad]
+      DX = wire_dispx(ix) !displacement x [mm]
+      DY = wire_dispy(ix) !displacement y [mm]
+      EMBL = wire_lint(ix) !integrated length [m]
+      L = wire_lphys(ix) !physical length [m]
+      CUR = wire_current(ix)
+      XCLO = wire_clo(1,wire_num(i))
+      YCLO = wire_clo(2,wire_num(i))
+      NNORM_=c1m7/chi
 
-      ix = ixcav
-      tx = xrms(ix)
-      ty = zrms(ix)
-      dx = xpl(ix)
-      dy = zpl(ix)
-      embl = ek(ix)
-      l = wirel(ix)
-      cur = ed(ix)
+      if (abs(wire_flagco(ix)).ne.1) then
+        write(lout,
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
+     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
+     &'wire_flagco(',ix,') = ',wire_flagco(ix)
+        call prror(-1)
+      endif
 
-+if crlibm
-      leff = (embl/cos_rn(tx))/cos_rn(ty)                                !hr05
-+ei
-+if .not.crlibm
-      leff = (embl/cos(tx))/cos(ty)                                      !hr05
-+ei
-+if crlibm
-      rx = dx *cos_rn(tx)-(embl*sin_rn(tx))/two                          !hr05
-+ei
-+if .not.crlibm
-      rx = dx *cos(tx)-(embl*sin(tx))/two                                !hr05
-+ei
-+if crlibm
-      lin= dx *sin_rn(tx)+(embl*cos_rn(tx))/two                          !hr05
-+ei
-+if .not.crlibm
-      lin= dx *sin(tx)+(embl*cos(tx))/two                                !hr05
-+ei
-+if crlibm
-      ry = dy *cos_rn(ty)-lin *sin_rn(ty)
-+ei
-+if .not.crlibm
-      ry = dy *cos(ty)-lin *sin(ty)
-+ei
-+if crlibm
-      lin= lin*cos_rn(ty)+dy  *sin_rn(ty)
-+ei
-+if .not.crlibm
-      lin= lin*cos(ty)+dy  *sin(ty)
-+ei
-
-
-*FOX  XX(1)=XX(1)*C1M3;
-*FOX  XX(2)=XX(2)*C1M3;
 *FOX  YY(1)=YY(1)*C1M3;
 *FOX  YY(2)=YY(2)*C1M3;
 
-!      CALL DRIFT(-EMBL/2)
-*FOX  XX(1)=XX(1)-EMBL/TWO*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)-EMBL/TWO*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-!      CALL TILT(TX,TY)
-*FOX  XX(2)=XX(2)-XX(1)*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+!*FOX  DXI=DX*C1M3;
+!*FOX  DYI=DY*C1M3;
+      IF (wire_flagco(ix).eq.1) THEN
+*FOX  DXI=(DX+XCLO)*C1M3;
+*FOX  DYI=(DY+YCLO)*C1M3;
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+*FOX  DXI=DX*C1M3;
+*FOX  DYI=DY*C1M3;
+      END IF
+
+
+
+!-----------------------------------------------------------------------
+! X' -> PX'; Y' -> PY
+*FOX  YY(1)=YY(1)*(ONE+DPDA) ;
+*FOX  YY(2)=YY(2)*(ONE+DPDA) ;
+
+! 1 SHIFT - see the part of the code were wireda is called ....
+
+      IF (wire_flagco(ix).eq.1) THEN
+*FOX  XI=(XX(1)+DX)*C1M3;
+*FOX  YI=(XX(2)+DY)*C1M3;
+      ELSE IF (wire_flagco(ix).eq.-1) THEN
+*FOX  XI=(XX(1)+(DX-XCLO))*C1M3;
+*FOX  YI=(XX(2)+(DY-YCLO))*C1M3;
+      END IF
+
+! ibeco = 0
+      if(ibeco.eq.0) then
+! 2 symplectic rotation of coordinate system (tx, ty)
+*FOX  YI=YI-((XI*SIN(TX))*YY(2))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
-*FOX  XX(1)=XX(1)*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
+*FOX  XI=XI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
 *FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
 *FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
-*FOX  XX(1)=XX(1)-XX(2)*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+
+*FOX  XI=XI-((YI*SIN(TY))*YY(1))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
-*FOX  XX(2)=XX(2)*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
+*FOX  YI=YI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
 *FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
 *FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
-!      CALL DRIFT(LIN)
-*FOX  XX(1)=XX(1)+LIN*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-
-*FOX  YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)+LIN*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-
-*FOX  YY(2)*YY(2)) ;
-!      CALL KICK(L,CUR,LIN,RX,RY)
-*FOX  XI=XX(1)-RX ;
-*FOX  YI=XX(2)-RY ;
-*FOX  YY(1)=YY(1)-C1M7*CUR/CHI*XI/(XI*XI+YI*YI)*(SQRT((LIN+L)*(LIN+L)+
-*FOX  XI*XI+YI*YI)-SQRT((LIN-L)*(LIN-L)+XI*XI+YI*YI)) ;
-*FOX  YY(2)=YY(2)-C1M7*CUR/CHI*YI/(XI*XI+YI*YI)*(SQRT((LIN+L)*(LIN+L)+
-*FOX  XI*XI+YI*YI)-SQRT((LIN-L)*(LIN-L)+XI*XI+YI*YI)) ;
-!     A = A-1E-7*2*L*CUR/CHI*XI/(XI*XI+YI*YI)
-!     B = B-1E-7*2*L*CUR/CHI*YI/(XI*XI+YI*YI)
-!
-!     THIS HAPPENS WHEN THE EMBEDDING DRIFT LENGTH IS PRACTICALLY INFINITE.
-!     CALL DRIFT(LEFF-LIN)
-*FOX  XX(1)=XX(1)+(LEFF-LIN)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)+(LEFF-LIN)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-!      CALL INVTILT(TX,TY)
-*FOX  XX(1)=XX(1)+XX(2)*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+
+! 3 apply wire kick
+*FOX  RTWO_=XI*XI+YI*YI;
+*FOX  YY(1)=YY(1)-(((CUR*NNORM_)*XI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+*FOX  YY(2)=YY(2)-(((CUR*NNORM_)*YI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+
+! ibeco =1
+      elseif(ibeco.eq.1) then
+
+*FOX  DYI=DYI-((DXI*SIN(TX))*YY(2))/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
+*FOX  DXI=DXI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
+*FOX  YI=YI-XI*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
+*FOX  XI=XI*(COS(TX)-SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX)) ;
+*FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
+*FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TX) ;
+
+*FOX  DXI=DXI-((DYI*SIN(TY))*YY(1))/SQRT((ONE+DPDA)*(ONE+DPDA)-
 *FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)))+TY) ;
-*FOX  XX(2)=XX(2)*(COS(TY)+SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
-*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TY)) ;
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+*FOX  DYI=DYI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
+*FOX  XI=XI-YI*SIN(TY)*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1))/COS(ATAN(YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
+*FOX  YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+*FOX  YI=YI*(COS(TY)-SIN(TY)*TAN(ATAN(YY(2)/SQRT((ONE+DPDA)*
+*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY)) ;
+*FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
+*FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))-TY) ;
+
+! 3 apply wire kick
+*FOX  RTWO_=XI*XI+YI*YI;
+*FOX  YY(1)=YY(1)-(((CUR*NNORM_)*XI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+*FOX  YY(2)=YY(2)-(((CUR*NNORM_)*YI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+! subtract closed orbit kick
+! wire kick is negative px -> px - wirekick - (-closed orbit kick)
+*FOX  RTWO_=DXI*DXI+DYI*DYI;
+*FOX  YY(1)=YY(1)+(((CUR*NNORM_)*DXI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+*FOX  YY(2)=YY(2)+(((CUR*NNORM_)*DYI)
+*FOX  *(SQRT((EMBL+L)*(EMBL+L)+TWO*TWO*RTWO_)
+*FOX  -SQRT((EMBL-L)*(EMBL-L)+TWO*TWO*RTWO_)) )/RTWO_;
+      endif
+
+! 4 symplectic backward rotation of coordinate system (-ty, -tx)
 *FOX  YY(2)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1))*SIN(ATAN(YY(2)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TY) ;
-*FOX  XX(2)=XX(2)+XX(1)*SIN(TX)*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(2)*YY(2))/COS(ATAN(YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)))+TX) ;
-*FOX  XX(1)=XX(1)*(COS(TX)+SIN(TX)*TAN(ATAN(YY(1)/SQRT((ONE+DPDA)*
-*FOX  (ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TX)) ;
 *FOX  YY(1)=SQRT((ONE+DPDA)*(ONE+DPDA)-YY(2)*YY(2))*SIN(ATAN(YY(1)/
 *FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TX) ;
-!     CALL SHIFT(-EMBL*TAN(TX),-EMBL*TAN(TY)/COS(TX))
-*FOX  XX(1)=XX(1)+EMBL*TAN(TX) ;
-*FOX  XX(2)=XX(2)+EMBL*TAN(TY)/COS(TX) ;
-!     CALL DRIFT(-EMBL/2)
-*FOX  XX(1)=XX(1)-EMBL/TWO*YY(1)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
-*FOX  XX(2)=XX(2)-EMBL/TWO*YY(2)/SQRT((ONE+DPDA)*(ONE+DPDA)-
-*FOX  YY(1)*YY(1)-YY(2)*YY(2)) ;
 
-*FOX  XX(1)=XX(1)*C1E3;
-*FOX  XX(2)=XX(2)*C1E3;
+! PX -> X'; PY -> Y'
+*FOX  YY(1)=YY(1)/(ONE+DPDA) ;
+*FOX  YY(2)=YY(2)/(ONE+DPDA) ;
+
 *FOX  YY(1)=YY(1)*C1E3;
 *FOX  YY(2)=YY(2)*C1E3;
 
@@ -22765,9 +22596,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22788,12 +22617,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       betr0=sqrt(one-(pma/e0)**2)
-+if cr
       write(lout,*) ' REENTERING MAP '
-+ei
-+if .not.cr
-      write(*,*) ' REENTERING MAP '
-+ei
       call davar(x(1),zero,1)
       call davar(yp(1),zero,2)
       call davar(x(2),zero,3)
@@ -22831,62 +22655,30 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(nvar2.eq.5) call dapri(dpda1,18)
       if(nvar2.eq.6) call dapri(sigmda,18)
       if(nvar2.eq.6) call dapri(dpda1,18)
-+if cr
+      
       write(lout,*) 'END COORDINATES'
-+ei
-+if .not.cr
-      write(*,*) 'END COORDINATES'
-+ei
-+if cr
       write(lout,*) dare(x(1)),dare(y(1))
-+ei
-+if .not.cr
-      write(*,*) dare(x(1)),dare(y(1))
-+ei
-+if cr
       write(lout,*) dare(x(2)),dare(y(2))
-+ei
-+if .not.cr
-      write(*,*) dare(x(2)),dare(y(2))
-+ei
-+if cr
       write(lout,*) dare(sigmda),dare(dpda)
-+ei
-+if .not.cr
-      write(*,*) dare(sigmda),dare(dpda)
-+ei
+      
       write(12,*) dare(x(1))
       write(12,*) dare(y(1))
       write(12,*) dare(x(2))
       write(12,*) dare(y(2))
       write(12,*) dare(sigmda)
       write(12,*) dare(dpda)
-+if cr
+      
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
       call timex(time2)
 !     time=time2-time1
-+if cr
       write(lout,10020) time1-time0
-+ei
-+if .not.cr
-      write(*,10020) time1-time0
-+ei
-+if cr
       write(lout,10030) nord,time2-time1
-+ei
-+if .not.cr
-      write(*,10030) nord,time2-time1
-+ei
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i3,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
+     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
      &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
@@ -22904,9 +22696,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !        SPECIALLY PREPARED FOR NEW D.A.
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -22960,9 +22749,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !   WX, WY    (REAL)    FUNCTION RESULT.                               *
 !----------------------------------------------------------------------*
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -23007,23 +22794,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  X=XX ;
 *FOX  Y=YY ;
       if(dare(x).lt.zero) then
-+if cr
         write(lout,*)                                                   &
      &' Problem in DA complex error function: dare(x) < 0'
-+ei
-+if .not.cr
-        write(*,*) ' Problem in DA complex error function: dare(x) < 0'
-+ei
 *FOX    X=-X ;
       endif
       if(dare(y).lt.zero) then
-+if cr
         write(lout,*)                                                   &
      &' Problem in DA complex error function: dare(y) < 0'
-+ei
-+if .not.cr
-        write(*,*) ' Problem in DA complex error function: dare(y) < 0'
-+ei
 *FOX    Y=-Y ;
       endif
       if(dare(y).lt.ylim.and.dare(x).lt.xlim) then
@@ -23098,9 +22875,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -23110,11 +22885,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca parpro
 +ca parnum
 +ca commondl
-      ! JBG Increaseing param to dimension 5 for xstr
-      dimension param(nele,5),bcu(nbb,12),star(3,mbea)
+      dimension param(nele,18),bcu(nbb,12),star(3,mbea)
 +if bnlelens
 +ca rhicelens
 +ei
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 *FOX  B D ;
@@ -23122,11 +22897,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 *FOX  E D ;
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
-      nsli=param(ne,2)
-      alpha=param(ne,3)
-      phi2=param(ne,5)
-      f=param(ne,4)/dble(nsli)                                           !hr05
+      if (beam_expflag .eq. 0) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         phi2=param(ne,18)
+      else if(beam_expflag .eq. 1) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         !sepax=param(ne,5)     !Not actually used anywhere?
+         !sepay=param(ne,6)     !Not actually used anywhere?
+         phi2=phi               !Note - phi2 is not a free parameter anymore
+      else
+         write(lout,'(a)') "ERROR in subroutine beaminf"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
 +if crlibm
       sphi=sin_rn(phi)
       sphi2=sin_rn(phi2)
@@ -23182,9 +22972,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -23246,9 +23033,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !**SBCF ***Synchro-Beam for headon collision*********************
 !****************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -23395,9 +23179,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !-----------------------------------------------------------------------
 ! BOOSTIF **************inverse boost ****************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -23468,9 +23249,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! SIGXX is \Sigma
 !**********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -23588,10 +23366,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if datamods
       use bigmats
 +ei
+      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -23658,13 +23435,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca rhicelens
 +ei
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if cr
 +ca crco
 +ei
@@ -23676,6 +23446,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca fma
++ca zipf
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -23705,6 +23476,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -23826,7 +23598,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       open(93,file='fort.93',form='formatted',status='unknown')
 +ei
 +ei
-  606 read(93,'(a255)',end=607) arecord
+  606 read(93,'(a1024)',end=607) arecord
       goto 606
   607 backspace (93,iostat=ierro)
 ! and if BOINC issue an informatory message
@@ -23844,22 +23616,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if boinc
       call boincrf('fort.6',filename)
 +if fio
-      open(6,file=filename,form='formatted',status='old',err=602,       &
+      open(output_unit,
+     &file=filename,form='formatted',status='old',err=602,
      &round='nearest')
 +ei
 +if .not.fio
-      open(6,file=filename,form='formatted',status='old',err=602)
+      open(output_unit,
+     &file=filename,form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
 +ei
 +if .not.boinc
 +if fio
-      open(6,file='fort.6',form='formatted',status='old',err=602,       &
+      open(output_unit,
+     &file='fort.6',form='formatted',status='old',err=602,
      &round='nearest')
 +ei
 +if .not.fio
-      open(6,file='fort.6',form='formatted',status='old',err=602)
+      open(output_unit,
+     &file='fort.6',form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
@@ -23880,27 +23656,32 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Either it is only the fort.* input data or it is a restart.
 ! Removed temporarily??? because of problems.
 ! Re-instated and REQUIRED version 4516
-        call boinc_unzip()
+        !call boinc_unzip()
         !call system('unzip Sixin.zip')
+        call f_read_archive("Sixin.zip",".")
         go to 611
       endif
 +if fio
-      open(6,file=filename,form='formatted',status='unknown',           &
+      open(output_unit,
+     &file=filename,form='formatted',status='unknown',
      &round='nearest')
 +ei
 +if .not.fio
-      open(6,file=filename,form='formatted',status='unknown')
+      open(output_unit,
+     &file=filename,form='formatted',status='unknown')
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
 +ei
 +if .not.boinc
 +if fio
-  602 open(6,file='fort.6',form='formatted',status='new',               &
+ 602  open(output_unit,
+     &file='fort.6',form='formatted',status='new',
      &round='nearest')
 +ei
 +if .not.fio
-  602 open(6,file='fort.6',form='formatted',status='new')
+ 602  open(output_unit,
+     &file='fort.6',form='formatted',status='new')
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
@@ -23959,17 +23740,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 +ei ! END +if cr -- END of Main start for Checkpoint/Restart
 
++if .not.cr
+      lout=output_unit
++ei
+      
 +if debug
                    !call system('../crmain  >> crlog')
 +ei
 !-----------------------------------------------------------------------
 +ca open
-+if cr
       write(lout,10010) version,moddate
-+ei
-+if .not.cr
-      write(*,10010) version,moddate
-+ei
       tlim=1e7
       call timest(tlim)
       call datime(idate,itime)
@@ -24027,12 +23807,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
         endif
       endif
-+if cr
       write(lout,'(a80)') runtim
-+ei
-+if .not.cr
-      write(*,'(a80)') runtim
-+ei
 +if cr
 !     Log start messages
       write(93,*)
@@ -24174,6 +23949,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call comnul
       commen=' '
       progrm='SIXTRACK'
++if collimat
+      !do some collimation variable set up
+      call collimat_init
++ei
 +if crlibm
       pi=four*atan_rn(one)
 +ei
@@ -24203,25 +23982,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       call crcheck
 +ei
-+if cr
       if(ithick.eq.1) write(lout,10030)
-+ei
-+if .not.cr
-      if(ithick.eq.1) write(*,10030)
-+ei
-+if cr
       if(ithick.eq.0) write(lout,10040)
-+ei
-+if .not.cr
-      if(ithick.eq.0) write(*,10040)
-+ei
       if(ibidu.eq.2) then
-+if cr
         write(lout,10025)
-+ei
-+if .not.cr
-        write(*,10025)
-+ei
         goto 550
       endif
 !--SETTING UP THE PLOTTING
@@ -24351,18 +24115,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do 110 i=1,nzfz
   110     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
           rdev=sqrt(rsqsum/dble(nzfz))                                   !hr05
-+if cr
           write(lout,10320) m*izu0,nzfz,rmean,rdev
-+ei
-+if .not.cr
-          write(*,10320) m*izu0,nzfz,rmean,rdev
-+ei
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
         endif
         if(m.eq.1) call ord
         call clorb(ded)
@@ -24426,6 +24180,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 150
+          if(kzz.eq.15) goto 150
           if(iorg.lt.0) mzu(i)=izu
           izu=mzu(i)+1
           smizf(i)=zfz(izu)*ek(ix)
@@ -24720,51 +24475,26 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
   220     continue
           if(ierro.ne.0) then
-+if cr
             write(lout,10230) dp1
-+ei
-+if .not.cr
-            write(*,10230) dp1
-+ei
             goto 520
           endif
-+if cr
           write(lout,10070)
-+ei
-+if .not.cr
-          write(*,10070)
-+ei
           phag=(phas*180d0)/pi                                           !hr05
           if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))         &
-+if cr
      &write(lout,10170)                                                 &
-+ei
-+if .not.cr
-     &write(*,10170)                                                    &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
           if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
             if(iclo6.eq.0) then
-+if cr
               write(lout,10150) phag,                                   &
-+ei
-+if .not.cr
-              write(*,10150) phag,                                      &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
             else
-+if cr
               write(lout,10160) phag,                                   &
-+ei
-+if .not.cr
-              write(*,10160) phag,                                      &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -24777,35 +24507,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
           endif
           if(idp.eq.1.and.ition.eq.0.and.abs(phas).gt.pieni)            &
-+if cr
      &write(lout,10190) phag,                                           &
-+ei
-+if .not.cr
-     &write(*,10190) phag,                                              &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
           if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
             if(iclo6.eq.0) then
-+if cr
               write(lout,10210)                                         &
-+ei
-+if .not.cr
-              write(*,10210)                                            &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
             else
-+if cr
               write(lout,10220)                                         &
-+ei
-+if .not.cr
-              write(*,10220)                                            &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -24817,29 +24532,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &bet0s3,alf0s3,gam0s3
             endif
           endif
-+if cr
           write(lout,10080) dp1
-+ei
-+if .not.cr
-          write(*,10080) dp1
-+ei
           e0f=sqrt(e0**2-pma**2)                                         !hr05
           if(iclo6.eq.0) then
-+if cr
             write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),     &
-+ei
-+if .not.cr
-            write(*,10110) clo(1),clop(1),clo(2),clop(2),idz(1),        &
-+ei
      &idz(2),                                                           &
      &iver, idfor,iclo6,ition
           else
-+if cr
             write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
-+ei
-+if .not.cr
-            write(*,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),   &
-+ei
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
           endif
           do 240 ib1=1,napx
@@ -24896,12 +24596,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-+if cr
           write(lout,10050)
-+ei
-+if .not.cr
-          write(*,10050)
-+ei
           tasia56=tas(ia,5,6)*c1m3
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
@@ -24967,20 +24662,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             endif
             chi=chi+dchi
   320     continue
-+if cr
           write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-+ei
-+if .not.cr
-          write(*,10260) ia,nms(ia)*izu0,dpsv(ia)
-+ei
-+if cr
           write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),        &
      &sigmv(ia),                                                        &
-+ei
-+if .not.cr
-          write(*,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),           &
-     &sigmv(ia),                                                        &
-+ei
      &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
      &(ia+1),dpsv(ia+1)
 !---------------------------------------  END OF 'ANFB'
@@ -25016,12 +24700,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
-+if cr
           write(lout,10020) ampv(ia),amp(2),epsa
-+ei
-+if .not.cr
-          write(*,10020) ampv(ia),amp(2),epsa
-+ei
         else
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
@@ -25033,12 +24712,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
         endif
-+if cr
         write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
-+ei
-+if .not.cr
-        write(*,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),   &
-+ei
      &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
      &(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
         idam=3
@@ -25096,20 +24770,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-+if cr
           if (lhc.eq.9) then
             write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
-+ei
-+if .not.cr
-          if (lhc.eq.9) then
-            write(*,*)                                                  &
-     & 'SKIPPING Binary File Initialisation for BNLELENS'
-            go to 340
-          endif
-+ei
 !GRDRHIC
 !GRD-042008
 +ei !END +if bnlelens
@@ -25175,20 +24840,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-+if cr
           if (lhc.eq.9) then
             write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
-+ei
-+if .not.cr
-          if (lhc.eq.9) then
-            write(*,*)                                                  &
-     & 'SKIPPING Binary File Initialisation for BNLELENS'
-              go to 340
-          endif
-+ei
 !GRDRHIC
 !GRD-042008
 +ei !END +if bnlelens
@@ -25253,31 +24909,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei ! END +if stf
         endif
         if(ierro.ne.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91&
-+ei
-+if .not.cr
-          write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91   &
-+ei
      &-ia2
-+if cr
           write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-          write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           goto 520
         endif
   340 continue
@@ -25353,8 +24989,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call cadcum
 
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 01-09-2014
-!     open units for dumping particle population or statistics or beam matrix
+!     K. Sjobak, for BE/ABP-HSS
+!     last modified: 21/02-2016
+!     open units for dumping particle population or statistics
 !     always in main code
       do i=0,il
 +if cr
@@ -25374,38 +25011,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
-             open(dumpunit(i),file=dump_fname(i),
-     &            status='replace',form='formatted')
+             if ( dumpfmt(i).eq.3 ) then
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='unformatted')
+             else
+                 open(dumpunit(i),file=dump_fname(i),
+     &                status='replace',form='formatted')
+             endif
 +if cr
              dumpfilepos(i) = 0
 +ei
-             if ( dumpfmt(i).eq.1 ) then
-                write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-             else if ( dumpfmt(i).eq.2 ) then
-                if (i.eq.0) then
-                   write(dumpunit(i),*)
-     &  '# DUMP format #2, ALL ELEMENTS, number of particles=', napx
-                   write(dumpunit(i),fmt=*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
-                else
-                   write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', number of particles=', napx
-                   write(dumpunit(i),fmt=*)
-     &  '# dump period=', ndumpt(i), ', first turn=', dumpfirst(i),
-     &  ', last turn=', dumplast(i)
-                endif
-                write(dumpunit(i),*)
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
-     &  'ktrack'
-+if cr
-                dumpfilepos(i) = dumpfilepos(i) + 3
-+ei
-             end if
           else
              !Sanity check: If already open, it should be by another DUMP
              ! (can't guarantee for files after this one)
@@ -25417,32 +25032,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              do j=0,i-1
                 if (dumpunit(j).eq.dumpunit(i)) then
                    if (dumpfmt(j).ne.dumpfmt(i)) then
-+if cr
                       write(lout,*)
-+ei
-+if .not.cr
-                      write(*,*)
-+ei
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " formats are not the same."
                       call prror(-1)
                    else if (j.eq.0) then
-+if cr
                       write(lout,*)
-+ei
-+if .not.cr
-                      write(*,*)
-+ei
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " one of which is ALL"
                       call prror(-1)
                    else if (dump_fname(j).ne.dump_fname(i)) then
-+if cr
                       write(lout,*)
-+ei
-+if .not.cr
-                      write(*,*)
-+ei
      & "ERROR in DUMP: Output unit",dumpunit(i),"is used by to DUMPS,"//
      & " but filenames differ:", dump_fname(i), " vs ", dump_fname(j)
                       call prror(-1)
@@ -25450,27 +25050,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                       ! Everything is fine
                       lopen = .true.
 +if cr
+                      !Dumpfilepos is separate for every element, even if they share files.
                       dumpfilepos(i) = 0
 +ei
-                      if (dumpfmt(i).eq.2) then !More header
-                         write(dumpunit(i),*)
-     &  '# DUMP format #2, bez=', bez(i), ', dump period=', ndumpt(i),
-     &  ' HIGH=', ldumphighprec, ', FRONT=', ldumpfront
-+if cr
-                         dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-                      endif
                    endif
                 endif
              end do
-             !File was already open, but not by DUMP
+             ! LOPEN not set to true by sanity check in loop above
+             ! => File was already open, but not by DUMP.
              if ( .not.lopen ) then
-+if cr
                 write (lout,*)
-+ei
-+if .not.cr
-                write (*,*)
-+ei
      & "ERROR in DUMP: unit", dumpunit(i), " is already open, ",
      & " but not by DUMP. Please pick another unit! ",
      & " Note: This test is not watertight, as other parts of",
@@ -25478,15 +25067,90 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 call prror(-1)
              endif
           endif
-        endif
-      enddo
 
+          ! Write format-specific headers
+          if ( dumpfmt(i).eq.1 ) then ! Format 1 is special
+             write(dumpunit(i),'(a)')
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
+                
+             !Flush file
+             endfile   (dumpunit(i))
+             backspace (dumpunit(i))
 +if cr
+             dumpfilepos(i) = dumpfilepos(i) + 1
++ei
+          else if ( dumpfmt(i).eq.2 .or.
+     &              dumpfmt(i).eq.4 .or.
+     &              dumpfmt(i).eq.5 .or.
+     &              dumpfmt(i).eq.6      ) then
+
+             ! Write the general header
+             if (i.eq.0) then
+                write(dumpunit(i),
+     &               '(a,i0,a,4(a,i12),2(a,L1))')
+     & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',
+     & ' number of particles=',napx, ', dump period=',ndumpt(i),
+     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
+     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
+             else
+                write(dumpunit(i),
+     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')
+     & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),
+     & ', number of particles=',napx,', dump period=',ndumpt(i),
+     & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),
+     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
+             endif
+             
+             !Write the format-specific headers:
+             if ( dumpfmt(i).eq.2 ) then ! FORMAT 2
+                write(dumpunit(i),'(a,a)')
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
+     &  'ktrack'
+
+             else if ( dumpfmt(i).eq.4 ) then ! FORMAT 4
+                write(dumpunit(i),'(a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
+                
+             else if ( dumpfmt(i).eq.5 ) then ! FORMAT 5
+                write(dumpunit(i),'(a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
+     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//
+     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//
+     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//
+     &   '<yp^2> <yp*z> <yp*(dE/E)> '//
+     &   '<z^2> <z*(dE/E)> '//
+     &   '<(dE/E)^2>'
+                
+             else if ( dumpfmt(i).eq.6 ) then ! FORMAT 6
+                write(dumpunit(i),'(a)')
+     &               '# napx turn s[m] ' //
+     &   '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//
+     &   '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//
+     &   '<px^2> <px*y> <px*py> <px*sigma> <px*psigma> '//
+     &   '<y^2> <y*py> <y*sigma> <y*psigma> '//
+     &   '<py^2> <py*sigma> <py*psigma> '//
+     &   '<sigma^2> <sigma*psigma> '//
+     &   '<psigma^2>'
+                
+             end if  !Format-specific headers
+
+             ! Flush file
+             endfile   (dumpunit(i))
+             backspace (dumpunit(i))
++if cr
+             dumpfilepos(i) = dumpfilepos(i) + 2
++ei
+             
+          end if !If format 2/4/5/6 -> General header
+        endif !If ldump(i) -> Dump on this element
+      enddo !Loop over elements with index i
+
+!                                !
+!     ****** TRACKING ******     !
+!                                !
       write(lout,10200)
-+ei
-+if .not.cr
-      write(*,10200)
-+ei
 +if debug
 !     call dumpbin('btrack',1,1)
 !     call abend('btrack                                            ')
@@ -25576,26 +25240,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
         if(pstop(ia).and.pstop(ie)) then
 !-- BOTH PARTICLES LOST
-+if cr
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-+ei
-+if .not.cr
-          write(*,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),            &
-+ei
      &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-+if cr
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-+ei
-+if .not.cr
-          write(*,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),            &
-+ei
      &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejvl(ia),ejvl(ie)
@@ -25603,32 +25252,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejvl(ia),ejvl(ie)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
+          if(ierro.ne.0) write(lout,*)
+     &'Warning from maincr: fort.12 has ',                              &
      &'corrupted output probably due to lost particle: ',ia,            &
      &' or: ',ie
         endif
         if(.not.pstop(ia).and.pstop(ie)) then
 !-- SECOND PARTICLE LOST
           id=id+1
-+if cr
           write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if .not.cr
-          write(*,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if cr
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-+ei
-+if .not.cr
-          write(*,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),            &
-+ei
      &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
@@ -25636,31 +25271,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
-     &'corrupted output probably due to lost particle: ',ie
+          if(ierro.ne.0)
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+     &         'corrupted output probably due to lost particle: ',ie
         endif
         if(pstop(ia).and..not.pstop(ie)) then
 !-- FIRST PARTICLE LOST
           id=id+1
-+if cr
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-+ei
-+if .not.cr
-          write(*,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),            &
-+ei
      &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-+if cr
           write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-+ei
-+if .not.cr
-          write(*,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-+ei
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
@@ -25668,25 +25289,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
-     &'corrupted output probably due to lost particle: ',ia
+          if(ierro.ne.0)
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+     &         'corrupted output probably due to lost particle: ',ia
         endif
         if(.not.pstop(ia).and..not.pstop(ie)) then
 !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-+if cr
           write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if .not.cr
-          write(*,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-+ei
-+if cr
           write(lout,10280)                                             &
-+ei
-+if .not.cr
-          write(*,10280)                                                &
-+ei
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
      &e0,ejv(id),ejv(ig)
@@ -25694,8 +25306,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
      &e0,ejv(id),ejv(ig)
-          if(ierro.ne.0) write(*,*) 'Warning from maincr: fort.12 has ',&
-     &'corrupted output although particles stable'
+          if(ierro.ne.0)
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+     &         'corrupted output although particles stable'
           id=ig
         endif
   470 continue
@@ -25834,12 +25447,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
 !     start fma
       if(fma_flag) then
-+if cr
         write(lout,*)'Calling FMA_POSTPR'
-+ei
-+if .not.cr
-        write(*,*)   'Calling FMA_POSTPR'
-+ei
         call fma_postpr
       endif
 !--HPLOTTING END
@@ -25853,22 +25461,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Note that crpoint no longer destroys time2
       posttime=time3-time2
 +if debug
-+if cr
       write(lout,*) 'BUG:',time3,time2,pretime,trtime,posttime
-      write(93,*) 'BUG:',time3,time2,pretime,trtime,posttime
-+ei
-+if .not.cr
-      write(*,*) 'BUG:',time3,time2,pretime,trtime,posttime
++if cr
+      write(93,*)   'BUG:',time3,time2,pretime,trtime,posttime
 +ei
 +ei
 ! and now get grand total including post-processing
       tottime=(pretime+trtime)+posttime
-+if cr
       write(lout,10290) pretime
-+ei
-+if .not.cr
-      write(*,10290) pretime
-+ei
 +if cr
 ! and TRY a FIX for napxto
 !     if (nnuml.ne.numl) then
@@ -25887,17 +25487,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !         endif
 !       enddo 
 !     endif
++ei
       write(lout,10300) napxto,trtime
-+ei
-+if .not.cr
-      write(*,10300) napxto,trtime
-+ei
-+if cr
       write(lout,10310) tottime
-+ei
-+if .not.cr
-      write(*,10310) tottime
-+ei
 +if debug
 !     call wda('THE END',0d0,9,9,9,9)
 !     call dumpum('THE END',999,9999)
@@ -25905,13 +25497,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call dumpzfz('THE END',9,9)
 +ei
       call closeUnits
+
+      if (zipf_numfiles.gt.0) then
+         call zipf
+      endif
+      
 +if cr
       call abend('                                                  ')
 +ei
 +if .not.cr
       stop
 +ei
-10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i3,      &
+10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
      &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
      &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
@@ -26024,13 +25621,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
-10240 format(1x/5x,'PARTICLE ',i3,' STABLE - RANDOM SEED ', i8,         &
+10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10250 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
-     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10260 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
+!     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5/)
-10270 format(1x/5x,'PARTICLE ',i3,' AND ',i3,' STABLE - RANDOM SEED ',  &
+10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',  &
      &i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10280 format(10x,f47.33)
 10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
@@ -26057,9 +25654,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CHANGES FOR COLLIMATION MADE BY G. ROBERT-DEMOLAIZE, October 29th, 2004
 !--------------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -26095,7 +25690,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-! +ca elensparam
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
       do 5 i=1,npart
@@ -26108,6 +25703,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         stracks(i)=zero
    10 continue
 +ca beams1
+
       do 290 i=1,iu
         if(mout2.eq.1.and.i.eq.1) call write4
         ix=ic(i)
@@ -26178,7 +25774,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beamwzf2
 +ca beama4o
 +ca beams24
-+ca wirektrack
+
++ca wire
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -26279,12 +25876,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(abs(r0).le.pieni.or.nmz.eq.0) then
           if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
             if ( dynk_isused(i) ) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &        "ERROR: Element of type 11 (bez=",bez(ix),
      &        ") is off in fort.2, but on in DYNK. Not implemented."
               call prror(-1)
@@ -26456,34 +26048,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.collimat
       if(idp.eq.0.or.ition.eq.0) then
 +ei
-+if cr
         write(lout,*) ''
         write(lout,*) 'Calling thin4d subroutine'
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*)    ''
-        write(*,*)    'Calling thin4d subroutine'
-        write(*,*)    ''
-+ei
         call thin4d(nthinerr)
       else
 +if collimat
         if (idp.eq.0.or.ition.eq.0) then
-+if cr
            write(lout,*) ""
            write(lout,*) "******* WARNING *******"
            write(lout,*) "Calling 6D tracking due to collimation!"
            write(lout,*) "Would normally have called thin4d"
            write(lout,*) ""
-+ei
-+if .not.cr
-           write(*,*)    ""
-           write(*,*)    "******* WARNING *******"
-           write(*,*)    "Calling 6D tracking due to collimation!"
-           write(*,*)    "Would normally have called thin4d"
-           write(*,*)    ""
-+ei
         endif
 +ei
 
@@ -26492,29 +26068,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
   310   continue
         if(abs(phas).ge.pieni) then
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thin6dua subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thin6dua subroutine'
-          write(*,*)    ''
-+ei
 
 +if collimat
           if (do_coll) then
-+if cr
             write(lout,*)
             write(lout,*) "ERROR"
             write(lout,*) "thin6dua not supported by collimation"
-+ei
-+if .not.cr
-            write(*,*)
-            write(*,*)    "ERROR"
-            write(*,*)    "thin6dua not supported by collimation"
-+ei
             STOP
           endif
 +ei
@@ -26523,42 +26085,22 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if collimat
       open(unit=outlun, file='colltrack.out')
 !
-+if cr
       write(lout,*) '         -------------------------------'
       write(lout,*)
-      write(lout,*) '         Program      C O L L T R A C K '
+      write(lout,*) '          Program      C O L L T R A C K '
       write(lout,*)
       write(lout,*) '            R. Assmann           -    AB/ABP'
       write(lout,*) '            C. Bracco            -    AB/ABP'
       write(lout,*) '            V. Previtali         -    AB/ABP'
       write(lout,*) '            S. Redaelli          -    AB/OP'
-      write(lout,*) '            G. Robert-Demolaize  -    SLAC'
+      write(lout,*) '            G. Robert-Demolaize  -    BNL'
       write(lout,*) '            A. Rossi             -    AB/ABP'
-      write(lout,*) '            T. Weiler            -    AB/ABP'
+      write(lout,*) '            T. Weiler            -    IEKP'
       write(lout,*) '                 CERN 2001 - 2009'
       write(lout,*)
       write(lout,*) '         -------------------------------'
       write(lout,*) 'Collimation version of Sixtrack running... 08/2009'
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) '         -------------------------------'
-      write(*,*)
-      write(*,*) '          Program      C O L L T R A C K '
-      write(*,*)
-      write(*,*) '            R. Assmann           -    AB/ABP'
-      write(*,*) '            C. Bracco            -    AB/ABP'
-      write(*,*) '            V. Previtali         -    AB/ABP'
-      write(*,*) '            S. Redaelli          -    AB/OP'
-      write(*,*) '            G. Robert-Demolaize  -    BNL'
-      write(*,*) '            A. Rossi             -    AB/ABP'
-      write(*,*) '            T. Weiler            -    IEKP'
-      write(*,*) '                 CERN 2001 - 2009'
-      write(*,*)
-      write(*,*) '         -------------------------------'
-      write(*,*)
-      write(*,*)
-+ei
+
       write(outlun,*)
       write(outlun,*)
       write(outlun,*) '         -------------------------------'
@@ -26579,7 +26121,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(outlun,*)
       write(outlun,*)
 !
-+if cr
       write(lout,*) '                     R. Assmann, F. Schmidt, CERN'
       write(lout,*) '                           C. Bracco,        CERN'
       write(lout,*) '                           V. Previtali,     CERN'
@@ -26587,36 +26128,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) '                       G. Robert-Demolaize,  BNL'
       write(lout,*) '                           A. Rossi,         CERN'
       write(lout,*) '                           T. Weiler         IEKP'
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) 'Collimation version of Sixtrack running... 08/2009'
-      write(*,*)
-      write(*,*) '                     R. Assmann, F. Schmidt, CERN'
-      write(*,*) '                           C. Bracco,        CERN'
-      write(*,*) '                           V. Previtali,     CERN'
-      write(*,*) '                           S. Redaelli,      CERN'
-      write(*,*) '                       G. Robert-Demolaize,  BNL'
-      write(*,*) '                           A. Rossi,         CERN'
-      write(*,*) '                           T. Weiler         IEKP'
-+ei
-+if cr
+
       write(lout,*)
       write(lout,*) 'Generating particle distribution at FIRST element!'
       write(lout,*) 'Optical functions obtained from Sixtrack internal!'
       write(lout,*) 'Emittance and energy obtained from Sixtrack input!'
       write(lout,*)
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-      write(*,*) 'Generating particle distribution at FIRST element!'
-      write(*,*) 'Optical functions obtained from Sixtrack internal!'
-      write(*,*) 'Emittance and energy obtained from Sixtrack input!'
-      write(*,*)
-      write(*,*)
-+ei
-+if cr
+      
       write(lout,*) 'Info: Betax0   [m]    ', tbetax(1)
       write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
       write(lout,*) 'Info: Alphax0         ', talphax(1)
@@ -26625,30 +26144,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
       write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
       write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(lout,*) 'Info: Emitx0   [um]   ', remitx
-      write(lout,*) 'Info: Emity0   [um]   ', remity
+      write(lout,*) 'Info: Emitx0_dist [um]', remitx_dist
+      write(lout,*) 'Info: Emity0_dist [um]', remity_dist
+      write(lout,*) 'Info: Emitx0_collgap [um]', remitx_collgap
+      write(lout,*) 'Info: Emity0_collgap [um]', remity_collgap
       write(lout,*) 'Info: E0       [MeV]  ', e0
       write(lout,*)
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*) 'Info: Betax0   [m]    ', tbetax(1)
-      write(*,*) 'Info: Betay0   [m]    ', tbetay(1)
-      write(*,*) 'Info: Alphax0         ', talphax(1)
-      write(*,*) 'Info: Alphay0         ', talphay(1)
-      write(*,*) 'Info: Orbitx0  [mm]   ', torbx(1)
-      write(*,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
-      write(*,*) 'Info: Orbity0  [mm]   ', torby(1)
-      write(*,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-      write(*,*) 'Info: Emitx0   [um]   ', remitx
-      write(*,*) 'Info: Emity0   [um]   ', remity
-      write(*,*) 'Info: E0       [MeV]  ', e0
-      write(*,*)
-      write(*,*)
-+ei
 !
-      myemitx0 = remitx*1d-6
-      myemity0 = remity*1d-6
+      myemitx0_dist = remitx_dist*1d-6
+      myemity0_dist = remity_dist*1d-6
+      myemitx0_collgap = remitx_collgap*1d-6
+      myemity0_collgap = remity_collgap*1d-6
+
       myalphax = talphax(1)
       myalphay = talphay(1)
       mybetax  = tbetax(1)
@@ -26656,20 +26164,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !07-2006      myenom   = e0
 !      MYENOM   = 1.001*E0
 !
-      if (myemitx0.le.0.d0 .or. myemity0.le.0.d0) then                   !hr01
-+if cr
+      if (myemitx0_dist.le.0.d0 .or. myemity0_dist.le.0.d0
+     &.or. myemitx0_collgap.le.0.d0 .or. myemity0_collgap.le.0.d0) then
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)                                                      &
-+ei
-     &'ERR> Please use BEAM command to define emittances!'
-+if cr
-        call abend('                                                  ')
-+ei
-+if .not.cr
-        stop
-+ei
+     &       'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
+        write(lout,*)"ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
+        write(lout,*)
+     & "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
+
+        write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.",
+     & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, ",
+     & "THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
+        write(lout,*) "ERR> EXAMPLE:"
+        write(lout,*) "2.5 2.5 3.5 3.5"
+        call prror(-1)
       endif
 !
 !++  Calculate the gammas
@@ -26690,7 +26198,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !      NSIG_SEC=6.
       rselect=64
 !
-+if cr
       write(lout,*) 'INFO>  NLOOP     = ', nloop
       write(lout,*) 'INFO>  DO_THISDIS     = ', do_thisdis
       write(lout,*) 'INFO>  MYNEX     = ', mynex
@@ -26702,20 +26209,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
       write(lout,*) 'INFO>  RSELECT   = ', int(rselect)
       write(lout,*) 'INFO>  DO_COLL   = ', do_coll
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NLOOP     = ', nloop
-      write(*,*) 'INFO>  DO_THISDIS     = ', do_thisdis
-      write(*,*) 'INFO>  MYNEX     = ', mynex
-      write(*,*) 'INFO>  MYDEX     = ', mdex
-      write(*,*) 'INFO>  MYNEY     = ', myney
-      write(*,*) 'INFO>  MYDEY     = ', mdey
-      write(*,*) 'INFO>  FILENAME_DIS     = ', filename_dis
-      write(*,*) 'INFO>  ENERROR     = ', enerror
-      write(*,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
-      write(*,*) 'INFO>  RSELECT   = ', int(rselect)
-      write(*,*) 'INFO>  DO_COLL   = ', do_coll
-+ei
 !APRIL2005
 !+if cr
 !      write(lout,*) 'INFO>  NSIG_PRIM = ', nsig_prim
@@ -26729,13 +26222,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !+if .not.cr
 !      write(*,*) 'INFO>  NSIG_SEC  = ', nsig_sec
 !+ei
-+if cr
       write(lout,*) 'INFO>  DO_NSIG   = ', do_nsig
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  DO_NSIG   = ', do_nsig
-+ei
-+if cr
       write(lout,*) 'INFO>  NSIG_TCP3    = ', nsig_tcp3
       write(lout,*) 'INFO>  NSIG_TCSG3   = ', nsig_tcsg3
       write(lout,*) 'INFO>  NSIG_TCSM3   = ', nsig_tcsm3
@@ -26760,38 +26247,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
       write(lout,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
       write(lout,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NSIG_TCP3    = ', nsig_tcp3
-      write(*,*) 'INFO>  NSIG_TCSG3   = ', nsig_tcsg3
-      write(*,*) 'INFO>  NSIG_TCSM3   = ', nsig_tcsm3
-      write(*,*) 'INFO>  NSIG_TCLA3   = ', nsig_tcla3
-      write(*,*) 'INFO>  NSIG_TCP7    = ', nsig_tcp7
-      write(*,*) 'INFO>  NSIG_TCSG7   = ', nsig_tcsg7
-      write(*,*) 'INFO>  NSIG_TCSM7   = ', nsig_tcsm7
-      write(*,*) 'INFO>  NSIG_TCLA7   = ', nsig_tcla7
-      write(*,*) 'INFO>  NSIG_TCLP    = ', nsig_tclp
-      write(*,*) 'INFO>  NSIG_TCLI    = ', nsig_tcli
-!      write(*,*) 'INFO>  NSIG_TCTH    = ', nsig_tcth
-!      write(*,*) 'INFO>  NSIG_TCTV    = ', nsig_tctv
-      write(*,*) 'INFO>  NSIG_TCTH1   = ', nsig_tcth1
-      write(*,*) 'INFO>  NSIG_TCTV1   = ', nsig_tctv1
-      write(*,*) 'INFO>  NSIG_TCTH2   = ', nsig_tcth2
-      write(*,*) 'INFO>  NSIG_TCTV2   = ', nsig_tctv2
-      write(*,*) 'INFO>  NSIG_TCTH5   = ', nsig_tcth5
-      write(*,*) 'INFO>  NSIG_TCTV5   = ', nsig_tctv5
-      write(*,*) 'INFO>  NSIG_TCTH8   = ', nsig_tcth8
-      write(*,*) 'INFO>  NSIG_TCTV8   = ', nsig_tctv8
-!
-      write(*,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
-      write(*,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
-      write(*,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
-      write(*,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
-      write(*,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
-+ei
+      write(lout,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
+      write(lout,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
 !APRIL2005
 !SEPT2005
-+if cr
       write(lout,*)
       write(lout,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
       write(lout,*)
@@ -26817,42 +26276,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  FIT2_6   = ',fit2_6
       write(lout,*) 'INFO>  SCALING2 = ',ssf2
       write(lout,*)
-+ei
-!
-+if .not.cr
-      write(*,*)
-      write(*,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
-      write(*,*)
-      write(*,*) 'INFO>  N_SLICES    = ', n_slices
-      write(*,*) 'INFO>  SMIN_SLICES = ',smin_slices
-      write(*,*) 'INFO>  SMAX_SLICES = ',smax_slices
-      write(*,*) 'INFO>  RECENTER1   = ',recenter1
-      write(*,*) 'INFO>  RECENTER2   = ',recenter2
-      write(*,*)
-      write(*,*) 'INFO>  FIT1_1   = ',fit1_1
-      write(*,*) 'INFO>  FIT1_2   = ',fit1_2
-      write(*,*) 'INFO>  FIT1_3   = ',fit1_3
-      write(*,*) 'INFO>  FIT1_4   = ',fit1_4
-      write(*,*) 'INFO>  FIT1_5   = ',fit1_5
-      write(*,*) 'INFO>  FIT1_6   = ',fit1_6
-      write(*,*) 'INFO>  SCALING1 = ',ssf1
-      write(*,*)
-      write(*,*) 'INFO>  FIT2_1   = ',fit2_1
-      write(*,*) 'INFO>  FIT2_2   = ',fit2_2
-      write(*,*) 'INFO>  FIT2_3   = ',fit2_3
-      write(*,*) 'INFO>  FIT2_4   = ',fit2_4
-      write(*,*) 'INFO>  FIT2_5   = ',fit2_5
-      write(*,*) 'INFO>  FIT2_6   = ',fit2_6
-      write(*,*) 'INFO>  SCALING2 = ',ssf2
-      write(*,*)
-+ei
+
 !SEPT2005
 !
 ! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
 !
-+if cr
-      write(lout,*) 'INFO>  EMITX0            = ', emitx0
-      write(lout,*) 'INFO>  EMITY0            = ', emity0
+      write(lout,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
+      write(lout,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
+      write(lout,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
+      write(lout,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
       write(lout,*)
       write(lout,*) 'INFO>  DO_SELECT         = ', do_select
       write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
@@ -26869,10 +26301,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*) 'INFO>  YBEAT             = ', ybeat
       write(lout,*) 'INFO>  YBEATPHASE        = ', ybeatphase
       write(lout,*)
-      write(lout,*) 'INFO>  C_RMSTILT_PRIM    = ', c_rmstilt_prim
-      write(lout,*) 'INFO>  C_RMSTILT_SEC     = ', c_rmstilt_sec
-      write(lout,*) 'INFO>  C_SYSTILT_PRIM    = ', c_systilt_prim
-      write(lout,*) 'INFO>  C_SYSTILT_SEC     = ', c_systilt_sec
+      write(lout,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
+      write(lout,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
+      write(lout,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
+      write(lout,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
+      write(lout,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
+      write(lout,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
+      write(lout,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
+      write(lout,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
+      write(lout,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
+      write(lout,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
+      write(lout,*) 'INFO>  DO_MINGAP          = ', do_mingap
       write(lout,*)
       write(lout,*) 'INFO>  RADIAL            = ', radial
       write(lout,*) 'INFO>  NR                = ', nr
@@ -26885,6 +26324,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*)
       write(lout,*) 'INFO>  IPENCIL           = ', ipencil
       write(lout,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
+      write(lout,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
+      write(lout,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
+      write(lout,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
       write(lout,*)
       write(lout,*) 'INFO>  COLL_DB           = ', coll_db
       write(lout,*) 'INFO>  IBEAM             = ', ibeam
@@ -26899,82 +26341,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(lout,*)
       write(lout,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  EMITX0            = ', emitx0
-      write(*,*) 'INFO>  EMITY0            = ', emity0
-      write(*,*)
-      write(*,*) 'INFO>  DO_SELECT         = ', do_select
-      write(*,*) 'INFO>  DO_NOMINAL        = ', do_nominal
-      write(*,*) 'INFO>  RND_SEED          = ', rnd_seed
-      write(*,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
-      write(*,*) 'INFO>  NAME_SEL          = ', name_sel
-      write(*,*) 'INFO>  DO_ONESIDE        = ', do_oneside
-      write(*,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
-      write(*,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
-      write(*,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
-      write(*,*)
-      write(*,*) 'INFO>  XBEAT             = ', xbeat
-      write(*,*) 'INFO>  XBEATPHASE        = ', xbeatphase
-      write(*,*) 'INFO>  YBEAT             = ', ybeat
-      write(*,*) 'INFO>  YBEATPHASE        = ', ybeatphase
-      write(*,*)
-      write(*,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
-      write(*,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
-      write(*,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
-      write(*,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
-      write(*,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
-      write(*,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
-      write(*,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
-      write(*,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
-      write(*,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
-      write(*,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
-      write(*,*) 'INFO>  DO_MINGAP          = ', do_mingap
-      write(*,*)
-      write(*,*) 'INFO>  RADIAL            = ', radial
-      write(*,*) 'INFO>  NR                = ', nr
-      write(*,*) 'INFO>  NDR               = ', ndr
-      write(*,*)
-      write(*,*) 'INFO>  DRIFTSX           = ', driftsx
-      write(*,*) 'INFO>  DRIFTSY           = ', driftsy
-      write(*,*) 'INFO>  CUT_INPUT         = ', cut_input
-      write(*,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
-      write(*,*)
-      write(*,*) 'INFO>  IPENCIL           = ', ipencil
-      write(*,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
-      write(*,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
-      write(*,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
-      write(*,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
-      write(*,*)
-      write(*,*) 'INFO>  COLL_DB           = ', coll_db
-      write(*,*) 'INFO>  IBEAM             = ', ibeam
-      write(*,*)
-      write(*,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
-      write(*,*)
-      write(*,*) 'INFO>  CERN              = ', cern
-      write(*,*)
-      write(*,*) 'INFO>  CASTORDIR     = ', castordir
-      write(*,*)
-      write(*,*) 'INFO>  JOBNUMBER     = ', jobnumber
-      write(*,*)
-      write(*,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
-      write(*,*)
-+ei
 !
       mynp = nloop*napx
 !
       napx00 = napx
 !
-+if cr
       write(lout,*) 'INFO>  NAPX     = ', napx, mynp
-      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  NAPX     = ', napx, mynp
-      write(*,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-      write(*,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
-+ei
+      write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
+      write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
 !
 ! HERE WE SET THE MARKER FOR INITIALIZATION:
 !
@@ -26992,13 +26366,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         rnd_k1  = 0
         rnd_k2  = 0
         call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
         write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
-+ei
 !      ENDIF
 !GRD-SR, 09-02-2006
 !Call distribution routines only if collimation block is in fort.3, otherwise
@@ -27006,37 +26375,40 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if(do_coll) then
 !GRD-SR
       if (radial) then
-         call   makedis_radial(mynp, myalphax, myalphay, mybetax,       &
-     &        mybetay, myemitx0, myemity0, myenom, nr, ndr,             &
+         call    makedis_radial(mynp, myalphax, myalphay, mybetax,
+     &        mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr,
      &        myx, myxp, myy, myyp, myp, mys)
       else
          if (do_thisdis.eq.1) then
-            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.2) then
-            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.3) then
-            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
-     &           myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+            call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
          elseif(do_thisdis.eq.4) then
-            call  readdis(filename_dis,                                 &
+            call readdis(filename_dis,
      &           mynp, myx, myxp, myy, myyp, myp, mys)
          elseif(do_thisdis.eq.5) then
-            call  makedis_ga(mynp, myalphax, myalphay, mybetax,         &
-     & mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,   &
-     &     myx, myxp, myy, myyp, myp, mys,                              &
-     &     enerror, bunchlength )
+            call makedis_ga(mynp, myalphax, myalphay, mybetax,
+     &           mybetay, myemitx0_dist, myemity0_dist,
+     &           myenom, mynex, mdex, myney, mdey,
+     &           myx, myxp, myy, myyp, myp, mys,
+     &           enerror, bunchlength )
          else
+            write(lout,*) 'INFO> review your distribution parameters !!'
 +if cr
-      write(lout,*) 'INFO> review your distribution parameters !!'
       call abend('                                                  ')
 +ei
 +if .not.cr
-            write(*,*) 'INFO> review your distribution parameters !!'
             stop
 +ei
          endif
@@ -27049,14 +26421,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !++  Reset distribution for pencil beam
 !
        if (ipencil.gt.0) then
-+if cr
          write(lout,*) 'WARN>  Distributions reset to pencil beam!'
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*) 'WARN>  Distributions reset to pencil beam!'
-         write(*,*)
-+ei
          write(outlun,*) 'WARN>  Distributions reset to pencil beam!'
          do j = 1, mynp
             myx(j)  = 0d0
@@ -27079,27 +26445,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       close(52)
 !
 !++  Initialize efficiency array
-!
-      do i = 1, mynp
-        part_hit(i)           = 0
-        part_abs(i)           = 0
-        part_select(i)        = 1
-        part_indiv(i)         = -1d-6
-        part_linteract(i)     = 0d0
-        part_hit_before(i)    = 0
-        tertiary(i)           = 0
-        secondary(i)          = 0
-!APRIL2005
-        other(i)              = 0
-!APRIL2005
-!DEC 2008
-        nabs_type(i)          = 0
-!DEC2008
-        x00(i)      = myx(i)
-        xp00(i)     = myxp(i)
-        y00(i)      = myy(i)
-        yp00(i)     = myyp(i)
-      end do
 !
       do i=1,iu
       sum_ax(i)   = 0d0
@@ -27126,7 +26471,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       n_tot_absorbed = 0
       
       if (int(mynp/napx00) .eq. 0) then
-+if cr
          write (lout,*) ""
          write (lout,*) "********************************************"
          write (lout,*) "Error in setting up collimation tracking:"
@@ -27138,20 +26482,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "Value of mynp    = ", mynp
          write (lout,*) "Value of napx00  = ", napx00
          write (lout,*) "********************************************"
-+ei
-+if .not.cr
-         write (*,*)    ""
-         write (*,*)    "********************************************"
-         write (*,*)    "Error in setting up collimation tracking:"
-         write (*,*)    "Number of samples is zero!"
-         write (*,*)    "Did you forget the COLL block in fort.3?"
-         write (*,*)    "If you want to do standard (not collimation)"//
-     &                  " tracking, please use the standard SixTrack."
-         write (*,*)    "Value of do_coll = ", do_coll
-         write (*,*)    "Value of mynp    = ", mynp
-         write (*,*)    "Value of napx00  = ", napx00
-         write (*,*)    "********************************************"
-+ei
          call prror(-1)
       endif
       
@@ -27167,12 +26497,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !================================================================================
           do j = 1, int(mynp/napx00)
 !
-+if cr
             write(lout,*) 'Sample number ', j, int(mynp/napx00)
-+ei
-+if .not.cr
-            write(*,*) 'Sample number ', j, int(mynp/napx00)
-+ei
 !GRD
             samplenumber=j
 !
@@ -27336,7 +26661,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         open(unit=4801, file='FLUKA_impacts_all.dat')
         open(unit=3998, file='Coll_Scatter.dat')
         open(unit=39, file='FirstImpacts.dat')
-        open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
+        !open(unit=9996, file='FirstImpacts_AcceleratorFrame.dat')
         if (firstrun) then
 !          write(45,'(a)')                                               &
 !     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
@@ -27387,10 +26712,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               yv(1,i)  = 1d3*myxp(i+(j-1)*napx00) +torbxp(1)             !hr08
               xv(2,i)  = 1d3*myy(i+(j-1)*napx00)  +torby(1)              !hr08
               yv(2,i)  = 1d3*myyp(i+(j-1)*napx00) +torbyp(1)             !hr08
-              x00(i)  = xv(1,i)
-              xp00(i) = yv(1,i)
-              y00(i)  = xv(2,i)
-              yp00(i) = yv(2,i)
 !JULY2005
 !JULY2005 assignation of the proper bunch length
 !              sigmv(i) = 0d0
@@ -27442,17 +26763,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !FOR FAST TRACKING CHECKS
 !       open(unit=999,file='checkturns.dat')
 !
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thin6d subroutine'
           write(lout,*) ''
-
-+ei
-+if .not.cr
-          write(*,*) ''
-          write(*,*) 'Calling thin6d subroutine'
-          write(*,*) ''
-+ei
           call thin6d(nthinerr)
 !
 !++  Save particle offsets to a file
@@ -27515,98 +26828,38 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !UPGRADE JANUARY 2005
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !
 !----
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'INFO>  Number of impacts             : ',          &
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of impacts             : ',             &
-+ei
 !     &N_TOT_ABSORBED+NSURVIVE
      &n_tot_absorbed+nsurvive_end
-+if cr
       write(lout,*) 'INFO>  Number of impacts at selected : ',
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of impacts at selected : ',             &
-+ei
      &num_selhit
-+if cr
       write(lout,*) 'INFO>  Number of surviving particles : ',          &
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of surviving particles : ',             &
-+ei
 !     &NSURVIVE
      &nsurvive_end
-+if cr
       write(lout,*) 'INFO>  Number of absorbed particles  : ',
-+ei
-+if .not.cr
-      write(*,*) 'INFO>  Number of absorbed particles  : ',             &
-+ei
      &n_tot_absorbed
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !GRD UPGRADE JANUARY 2005
       if(n_tot_absorbed.ne.0) then                                       !hr08
 !     if(n_tot_absorbed.ne.0) then
 !
-+if cr
       write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',
-+ei
-+if .not.cr
-      write(*,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ',                &
-+ei
      &(neff(5)/dble(n_tot_absorbed))/1d-4                               !hr08
-+if cr
       write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',
-+ei
-+if .not.cr
-      write(*,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ',                &
-+ei
      &(neff(9)/dble(n_tot_absorbed))/1d-4                                !hr08
-+if cr
       write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',
-+ei
-+if .not.cr
-      write(*,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ',                &
-+ei
      &((neff(9)-neff(19))/dble(n_tot_absorbed))/1d-4                     !hr08
 !
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !
 !UPGRADE JANUARY 2005
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !
 !------------------------------------------------------------------------
@@ -27614,7 +26867,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       inquire( unit=1991, opened=lopen)
       if (lopen) then
-	  write(*,*) "ERROR in efficiency.dat: FILE 1991 already taken"
+         write(lout,*)
+     &        "ERROR in efficiency.dat: FILE 1991 already taken"
 	  call prror(-1)
       endif
       open(unit=1991, file='efficiency.dat')
@@ -27632,12 +26886,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &neff(k), n_tot_absorbed
       end do
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !END OF UPGRADE
       close(1991)
@@ -27646,7 +26895,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 	inquire( unit=1992, opened=lopen )
 	if (lopen) then
-	  write(*,*)"ERROR in efficiency_dpop.dat:FILE 1992 already taken"
+           write(lout,*)
+     &          "ERROR in efficiency_dpop.dat: FILE 1992 already taken"
 	  call prror(-1)
 	endif
       open(unit=1992, file='efficiency_dpop.dat')
@@ -27660,12 +26910,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &neffdpop(k), n_tot_absorbed, npartdpop(k)
       end do
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !END OF UPGRADE
       close(1992)
@@ -27674,7 +26919,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
       inquire( unit=1993, opened=lopen )
       if (lopen) then
-	  write(*,*)"ERROR in efficiency_2d.dat:FILE 1993 already taken"
+         write(lout,*)
+     &        "ERROR in efficiency_2d.dat:FILE 1993 already taken"
 	  call prror(-1)
       endif
       open(unit=1993, file='efficiency_2d.dat')
@@ -27689,12 +26935,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 	end do
       end do
       else
-+if cr
           write(lout,*) 'NO PARTICLE ABSORBED'
-+ei
-+if .not.cr
-          write(*,*) 'NO PARTICLE ABSORBED'
-+ei
       endif
 !END OF UPGRADE
       close(1993)
@@ -27862,16 +27103,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +ei ! endif collimat
 +if .not.collimat
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thin6d subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thin6d subroutine'
-          write(*,*)    ''
-+ei
           call thin6d(nthinerr)
         endif
       endif
@@ -27892,9 +27126,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       implicit none
 +ca exactvars
 +ca commonex
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -27907,7 +27139,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -27938,6 +27170,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -28027,7 +27260,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
    10     stracki=strack(i) 
-          if(iexact.eq.0) then ! exact drift
+          if(iexact.eq.0) then ! exact drift?
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
               xv(2,j)=xv(2,j)+stracki*yv(2,j)
@@ -28378,7 +27611,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !--Wire
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 620
 
@@ -28429,9 +27662,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       implicit none
 +ca exactvars
 +ca commonex
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -28451,7 +27682,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision acdipamp, qd, acphase,acdipamp2,acdipamp1,       &
      &crabamp,crabfreq,                                                 &
      &crabamp2,crabamp3,crabamp4
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -28491,6 +27722,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -28531,6 +27763,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       do j = 1, napx
          part_hit(j)    = 0
          part_abs(j)    = 0
+         part_select(j) = 1
+         part_indiv(j)  = -1e-6
+         part_linteract(j) = 0d0
          part_impact(j) = 0
       enddo
 !GRD
@@ -28551,46 +27786,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !YIL call beam gas initiation routine
       call beamGasInit(myenom)
 +ei
-+if .not.cr
-        write(*,*) 'number of collimators', db_ncoll
-        do icoll = 1, db_ncoll
-            write(*,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
-            write(*,*) 'collimator', icoll, ' ', db_name2(icoll)
-        end do
-!******write settings for alignment error in colltrack.out file
-!
-      write(outlun,*) ' '
-      write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
-      write(outlun,*) ' '
-      write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
-      write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
-      write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
-      write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
-      write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
-      write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
-      write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
-      write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
-      write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
-      write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
-      write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
-      write(outlun,*) ' '
-!     TW - 01/2007
-!     added offset and random_seed for tilt and offset
-!     APRIL2005
-!*****intialize random generator with offset_seed
-      c_offsettilt_seed = abs(c_offsettilt_seed)
-      rnd_lux = 3
-      rnd_k1  = 0
-      rnd_k2  = 0
-      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)         
-!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
-!
-! reset counter to assure starting at the same position in case of
-! using rndm5 somewhere else in the code before
-! 
-      zbv = rndm5(1)
-+ei
-+if cr
+      write(lout,*) 'number of collimators', db_ncoll
+      do icoll = 1, db_ncoll
+         write(lout,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
+         write(lout,*) 'collimator', icoll, ' ', db_name2(icoll)
+      end do
 !******write settings for alignment error in colltrack.out file
 !
       write(outlun,*) ' '
@@ -28610,7 +27810,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       write(outlun,*) ' '
 !        write(lout,*) db_name1(icoll)
 !        write(lout,*) db_name2(icoll)
-+ei
+!     TW - 01/2007
+!     added offset and random_seed for tilt and offset
+!     APRIL2005
+!*****intialize random generator with offset_seed
+      c_offsettilt_seed = abs(c_offsettilt_seed)
+      rnd_lux = 3
+      rnd_k1  = 0
+      rnd_k2  = 0
+      call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)         
+!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
+!
+! reset counter to assure starting at the same position in case of
+! using rndm5 somewhere else in the code before
+! 
+      zbv = rndm5(1)
 !APRIL2005
 !
 !++  Generate random tilts (Gaussian distribution plus systematic)
@@ -28844,11 +28058,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   endif
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
                else
-                  write(*,*) "WARNING: Problem detected while "//
+                  write(lout,*) "WARNING: Problem detected while "//
      &                 "writing twisslike.out' and " //
      &                 "'sigmasettings.out': Collimator name '" //
      &                 bez(myix) // "' was not recognized!"
-                  write(*,*) " ->Setting nsig=1000.0."
+                  write(lout,*) " ->Setting nsig=1000.0."
                   nsig = 1000.0
                endif
 !     FEBRUAR2007
@@ -29262,7 +28476,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !41-50
      &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !51-60
      &        757, 760, 761 ),myktrack
-          write (*,*) "WARNING: Non-handled element in thin6d()!",
+          write (lout,*) "WARNING: Non-handled element in thin6d()!",
      &                " i=", i, "ix=", ix, "myktrack=",  myktrack,
      &                " bez(ix)='", bez(ix),"' SKIPPED"
 +ei
@@ -29430,10 +28644,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               endif
            else
               if(firstrun.and.iturn.eq.1) then
-                 write(*,*) "WARNING: When setting opening for the "//
+                 write(lout,*) "WARNING: When setting opening for the"//
      &                " collimator named '" // bez(myix) //
      &                "' from fort.3, the name was not recognized."
-                 write(*,*) " -> Setting nsig=1000.0."
+                 write(lout,*) " -> Setting nsig=1000.0."
               endif
               nsig=1000.0
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
@@ -29479,12 +28693,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -29524,14 +28738,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                endif
             endif
           end do
-          if (.not. found .and. firstrun) then
-+if cr
-            write(lout,*) 'ERR>  Collimator not found: ', bez(myix)
-+ei
-+if .not.cr
-            write(*,*) 'ERR>  Collimator not found: ', bez(myix)
-+ei
-          endif
+          if (.not. found .and. firstrun .and. iturn.eq.1) then
+            write(lout,*)
+     &           'ERR>  Collimator not found in colldb: ', bez(myix)
+      endif
 !
 !++ For known collimators
 !
@@ -29664,17 +28874,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !FEBRUAR2007 added gap error to nsig      --------------- TW
           nsig = nsig + gap_rms_error(icoll)
 !FEBRUAR2007                              --------------- TW
-          xmax = nsig*sqrt(bx_dist*myemitx0)
-          ymax = nsig*sqrt(by_dist*myemity0)
+          xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
+          ymax = nsig*sqrt(by_dist*myemity0_collgap)
           xmax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(bx_dist*myemitx0)
+     &sqrt(bx_dist*myemitx0_collgap)
           ymax_pencil = (nsig+pencil_offset)*                           &
-     &sqrt(by_dist*myemity0)
+     &sqrt(by_dist*myemity0_collgap)
 !APRIL2005
 !          xmax_nom = nsig*sqrt(db_bx(icoll)*myemitx0)
 !          ymax_nom = nsig*sqrt(db_by(icoll)*myemity0)
-          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0)
-          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0)
+          xmax_nom = db_nsig(icoll)*sqrt(db_bx(icoll)*myemitx0_collgap)
+          ymax_nom = db_nsig(icoll)*sqrt(db_by(icoll)*myemity0_collgap)
 !APRIL2005
 !
           c_rotation = db_rotation(icoll)
@@ -29742,12 +28952,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     &                   * y_pencil(icoll) / sqrt(myemity0*tbetay(ie))
 !
           xp_pencil(icoll) =                                            &
-     &                   -1d0 * sqrt(myemitx0/tbetax(ie))*talphax(ie)   &
-     &                   * xmax / sqrt(myemitx0*tbetax(ie))
+     &              -1d0 * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)
+     &                   * xmax / sqrt(myemitx0_collgap*tbetax(ie))
 !     
           yp_pencil(icoll) =                                            &
-     &                    -1d0 * sqrt(myemity0/tbetay(ie))*talphay(ie)  &
-     &                   * ymax / sqrt(myemity0*tbetay(ie))
+     &              -1d0 * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)
+     &                   * ymax / sqrt(myemity0_collgap*tbetay(ie))
 !
 ! that the way xp is calculated for makedis subroutines !!!!
 !        if (rndm4().gt.0.5) then
@@ -29818,7 +29028,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                c_tilt(1) = c_tilt(1) + (xp_pencil0*cos(c_rotation)       &
      &                     + sin(c_rotation)*yp_pencil0)
 +ei
-               write(*,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",     &
+               write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
      &              icoll, c_tilt(1)
 !
 !! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is 
@@ -29840,7 +29050,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !!                  c_tilt(2) = c_tilt(2) + (xp_pencil0*cos(c_rotation)   &
 !!     &                 + sin(c_rotation)*yp_pencil0)
 !!               endif
-               write(*,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",      &
+               write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",   &
      &              icoll, c_tilt(2)
             endif
 !++ TW -- tilt angle changed (added to genetated on if spec. in fort.3) 
@@ -29850,8 +29060,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !JUNE2005
          elseif(db_name1(icoll)(1:4).eq.'COLM') then
 !
-            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0)
-            ymax = nsig_tcth2*sqrt(by_dist*myemity0)
+            xmax = nsig_tcth1*sqrt(bx_dist*myemitx0_collgap)
+            ymax = nsig_tcth2*sqrt(by_dist*myemity0_collgap)
 !
             c_rotation = db_rotation(icoll)
             c_length   = db_length(icoll)
@@ -29892,9 +29102,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write(outlun,'(a,i4)') 'Collimator number:   '              &
      &,icoll
             write(outlun,*) 'Beam size x [m]:     '                     &
-     &,sqrt(tbetax(ie)*myemitx0)
+     &,sqrt(tbetax(ie)*myemitx0_collgap), "(from collgap emittance)"
             write(outlun,*) 'Beam size y [m]:     '                     &
-     &,sqrt(tbetay(ie)*myemity0)
+     &,sqrt(tbetay(ie)*myemity0_collgap), "(from collgap emittance)"
             write(outlun,*) 'Divergence x [urad]:     '                 &
      &,1d6*xp_pencil(icoll)
             write(outlun,*) 'Divergence y [urad]:     '                 &
@@ -29909,14 +29119,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &,gap_rms_error(icoll)
             write(outlun,*) ' '
 !
-            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')         &
+            write(43,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')
      &icoll,db_name1(icoll)(1:12),                                      &
      &db_rotation(icoll),                                               &
      &tbetax(ie), tbetay(ie), calc_aperture,                            &
      &db_material(icoll),                                               &
      &db_length(icoll),                                                 &
-     &sqrt(tbetax(ie)*myemitx0),                                        &
-     &sqrt(tbetay(ie)*myemity0),                                        &
+     &sqrt(tbetax(ie)*myemitx0_collgap),                                &
+     &sqrt(tbetay(ie)*myemity0_collgap),                                &
 !JUNE2005
      &db_tilt(icoll,1),                                                 &
      &db_tilt(icoll,2),                                                 &
@@ -30005,14 +29215,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 !     calculate beam size at start and end of collimator. account for collimation plane
              if((mynex.gt.0).and.(myney.eq.0.0)) then  ! horizontal halo 
-                beamsize1 = sqrt(betax1 * myemitx0)
-                beamsize2 = sqrt(betax2 * myemitx0)
+                beamsize1 = sqrt(betax1 * myemitx0_collgap)
+                beamsize2 = sqrt(betax2 * myemitx0_collgap)
              elseif((mynex.eq.0).and.(myney.gt.0.0)) then   ! vertical halo
-                beamsize1 = sqrt(betay1 * myemity0)
-                beamsize2 = sqrt(betay2 * myemity0)
+                beamsize1 = sqrt(betay1 * myemity0_collgap)
+                beamsize2 = sqrt(betay2 * myemity0_collgap)
              else
-                write(*,*) "attempting to use a halo not purely in the 
-     &horizontal or vertical plane with pencil_dist=3 - abort."
+                write(lout,*)
+     &               "attempting to use a halo not purely in the "//
+     &               "horizontal or vertical plane with pencil_dist=3"//
+     &               " - abort."
                 stop
              endif
              
@@ -30076,15 +29288,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
              endif
 
              write(7878,*) napx,myalphax,myalphay, mybetax, mybetay,
-     &            myemitx0, myemity0, myenom, mynex2, mdex, myney2,mdey
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey
 
 !     create new pencil beam distribution with spread at start or end of collimator at the minAmpl
 !     note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
 !     but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
 !     the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
 !     This could possibly be improved in the future.
-             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay, &
-     &            myemitx0, myemity0, myenom, mynex2, mdex, myney2,mdey,  &
+             call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay,
+     &            myemitx0_collgap, myemity0_collgap,
+     &            myenom, mynex2, mdex, myney2,mdey,
      &            myx, myxp, myy, myyp, myp, mys)
              
              do j = 1, napx
@@ -30142,7 +29356,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                   rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
                 endif
               else
-                Write(*,*) "ERROR: Non-zero length collimator!"
+                Write(lout,*) "ERROR: Non-zero length collimator!"
                 STOP
               endif
 !
@@ -30251,16 +29465,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &             .or. db_name1(icoll)(1:5).eq.'TCRYO')) then
                       
                   if (firstrun) then
-+if cr
-                  write(lout,*) 'INFO> slice - Collimator ',            &
-     &              db_name1(icoll), ' sliced in ',n_slices,            &
-     &              ' pieces!'
-+ei
-+if .not.cr
-                  write(*,*) 'INFO> slice - Collimator ',               &
-     &              db_name1(icoll), ' sliced in ',n_slices,            &
-     &              ' pieces!'
-+ei
+                     write(lout,*) 'INFO> slice - Collimator ',         &
+     &                    db_name1(icoll), ' sliced in ',n_slices,      &
+     &                    ' pieces !'
                   endif
 !
 !!     In this preliminary try, all secondary collimators are sliced.
@@ -30378,23 +29585,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !!     Check the collimator jaw surfaces (beam frame, before taking into
 !!     account the azimuthal angle of the collimator)
                   if (firstrun) then
-+if cr
                   write(lout,*) 'Slicing collimator ',db_name1(icoll)
-+ei
-+if .not.cr
-                  write(*,*) 'Slicing collimator ',db_name1(icoll)
-+ei
                      do jjj=1,n_slices
-+if cr
                        write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), &
      &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
      &                   db_tilt(icoll,2)
-+ei
-+if .not.cr
-                       write(*,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj),    &
-     &                   angle1(jjj), angle2(jjj), db_tilt(icoll,1),    &
-     &                   db_tilt(icoll,2)
-+ei
                      enddo
                   endif
 !
@@ -30782,17 +29977,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((                                                                &
      &(xv(1,j)*1d-3)**2                                                 &
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.                                         &
      &((                                                                &
      &(xv(2,j)*1d-3)**2                                                 &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
      &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
      &.ge.sigsecut3)                                                    &
      &) ) then
           xj     = (xv(1,j)-torbx(ie))/1d3
@@ -30985,16 +30180,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             do j = 1, napx
               if ( part_hit(j).eq.(10000*ie+iturn) ) then
                 if (part_impact(j).lt.-0.5d0) then
-+if cr
                   write(lout,*) 'ERR>  Found invalid impact parameter!',&
-     &                  part_impact(j)
-+ei
-+if .not.cr
-                  write(*,*) 'ERR>  Found invalid impact parameter!',   &
      &                  part_impact(j)
                   write(outlun,*) 'ERR>  Invalid impact parameter!',    &
      &                  part_impact(j)
-+ei
 +if cr
       call abend('                                                  ')
 +ei
@@ -31020,44 +30209,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !++  Some information
 !
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Selected collimator had N hits. N: ',                     &
      &num_selhit
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Number of impacts                : ',                     &
      &n_impact
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Number of escaped protons        : ',                     &
      &num_surhit
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Average impact parameter [m]     : ',                     &
      &average
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)                                                  &
-+ei
      &'INFO>  Sigma impact parameter [m]       : ',                     &
      &sigma
 !
@@ -31217,12 +30381,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -31618,15 +30782,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca kickvxxv
   630     continue
           goto 640
+
+!--4D BB kick
   680     continue
           do 690 j=1,napx
-+ca beamco
-+ca beamr1
-     &goto 690
++ca beamco     !Get x-y offset
++ca beamr1     !Get r**2
+     &goto 690 !The radius was too small -> Skip
 +ca beamr2
-+ca beamr3
++ca beamr3     !Kick the particles
   690     continue
           goto 640
+
   700     continue
           if(ibtyp.eq.0) then
 +ca beam11
@@ -31637,7 +30804,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beama3
 +ca beam13
 +ca beama4
-          else if(ibtyp.eq.1) then
+          else if(ibtyp.eq.1) then ! fast kick
 +ca beam11
 +ca beama1
 +ca beamco
@@ -31716,7 +30883,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 640
 
@@ -31759,23 +30926,23 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 nspx    = sqrt(                                         &
      &               abs( gammax*(xj)**2 +                              &
      &               2d0*talphax(ie)*xj*xpj +                           &
-     &               tbetax(ie)*xpj**2 )/myemitx0                       &
+     &               tbetax(ie)*xpj**2 )/myemitx0_collgap
      &               )
                 nspy    = sqrt(                                         &
      &               abs( gammay*(yj)**2 +                              &
      &               2d0*talphay(ie)*yj*ypj +                           &
-     &               tbetay(ie)*ypj**2 )/myemity0                       &
+     &               tbetay(ie)*ypj**2 )/myemity0_collgap
      &               )
               else
                 nspx    = sqrt(                                         &
      &               abs( gammax*(xj)**2 +                              &
      &               2d0*talphax(ie-1)*xj*xpj +                         &
-     &               tbetax(ie-1)*xpj**2 )/myemitx0                     &
+     &               tbetax(ie-1)*xpj**2 )/myemitx0_collgap
      &               )
                 nspy    = sqrt(                                         &
      &               abs( gammay*(yj)**2 +                              &
      &               2d0*talphay(ie-1)*yj*ypj +                         &
-     &               tbetay(ie-1)*ypj**2 )/myemity0                     &
+     &               tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &               )
               endif
 !
@@ -31818,15 +30985,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 xndisp = xj
                 nspxd   = sqrt(                                         &
      &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0                                     &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
      &)
                 nspx    = sqrt(                                         &
      &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !
 !
@@ -31834,27 +31001,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !MAY2005
          if(part_abs(j).eq.0) then
 !MAY2005
-         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)   &
-     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
+         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
 !GRD                                                                    &
-     &(                                                                 &
-     &((                                                                &
-     &(xv(1,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &((                                                                &
-     &(xv(2,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
-     &.ge.sigsecut3)                                                    &
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
      &) ) then
                 xj     = (xv(1,j)-torbx(ie))/1d3
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
@@ -32022,7 +31189,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               nsurvive = nsurvive + 1
             endif
           end do
-          write(44,'(2i4)') iturn, nsurvive
+          write(44,'(2i7)') iturn, nsurvive
 !GRD
           if (iturn.eq.numl) then
             nsurvive_end = nsurvive_end + nsurvive
@@ -32089,12 +31256,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               nspx    = sqrt(                                           &
      &abs(gammax*xdisp**2 +                                             &
      &2d0*talphax(ie)*xdisp*(xpgrd(j)*1d-3)+                            &
-     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0                          &
+     &tbetax(ie)*(xpgrd(j)*1d-3)**2 )/myemitx0_collgap
      &)
               nspy    = sqrt(                                           &
      &abs( gammay*(ygrd(j)*1d-3)**2 +                                   &
      &2d0*talphay(ie)*(ygrd(j)*1d-3*ypgrd(j)*1d-3)                      &
-     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0                        &
+     &+ tbetay(ie)*(ypgrd(j)*1d-3)**2 )/myemity0_collgap
      &)
 !
 !++  Populate the efficiency arrays at the end of each turn...
@@ -32108,12 +31275,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
      &+                                                                 &
      &((yineff(j)*1d-3)**2 +                                            &
      & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neff(ieff) = neff(ieff)+1d0
                     counted_r(j,ieff)=1
@@ -32135,7 +31302,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((xineff(j)*1d-3)**2 +                                            &
      & (talphax(ie)*xineff(j)*1d-3 + tbetax(ie)*xpineff(j)*1d-3)**2)    &	
      &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(tbetax(ie)*myemitx0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neffx(ieff) = neffx(ieff) + 1d0
                     counted_x(j,ieff)=1
@@ -32147,7 +31314,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &((yineff(j)*1d-3)**2 +                                            &
      & (talphay(ie)*yineff(j)*1d-3 + tbetay(ie)*ypineff(j)*1d-3)**2)    &
      &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &(tbetay(ie)*myemity0_collgap)                                     &
      &).ge.rsig(ieff)) then
                     neffy(ieff) = neffy(ieff) + 1d0
                     counted_y(j,ieff)=1
@@ -32175,17 +31342,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !
 !++  Do an emittance drift
 !
-              driftx = driftsx*sqrt(tbetax(ie)*myemitx0)
-              drifty = driftsy*sqrt(tbetay(ie)*myemity0)
+              driftx = driftsx*sqrt(tbetax(ie)*myemitx0_collgap)
+              drifty = driftsy*sqrt(tbetay(ie)*myemity0_collgap)
 !              DRIFTX = 0e-6
 !              DRIFTY = 1e-6
               if (ie.eq.iu) then
-                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0)
-                dnormy  = drifty / sqrt(tbetay(ie)*myemity0)
-                xnorm  = (xgrd(j)*1d-3) / sqrt(tbetax(ie)*myemitx0)
+                dnormx  = driftx / sqrt(tbetax(ie)*myemitx0_collgap)
+                dnormy  = drifty / sqrt(tbetay(ie)*myemity0_collgap)
+                xnorm  = (xgrd(j)*1d-3) /
+     &                   sqrt(tbetax(ie)*myemitx0_collgap)
                 xpnorm = (talphax(ie)*(xgrd(j)*1d-3)+                   &
      &tbetax(ie)*(xpgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetax(ie)*myemitx0)
+     &sqrt(tbetax(ie)*myemitx0_collgap)
 +if crlibm
                 xangle = atan2_rn(xnorm,xpnorm)
 +ei
@@ -32204,16 +31372,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
                 xpnorm = xpnorm + dnormx*cos(xangle)
 +ei
-                xgrd(j)   = 1000d0*(xnorm * sqrt(tbetax(ie)*myemitx0))
-                xpgrd(j)  = 1000d0*((xpnorm*sqrt(tbetax(ie)*myemitx0)   &
-!    &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
+                xgrd(j)   = 1000d0 *
+     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
+                xpgrd(j)  = 1000d0 *
+     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
+!     &-TALPHAX(ie)*Xgrd(j))/TBETAX(ie))
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
 !
 
-                ynorm  = (ygrd(j)*1d-3)  / sqrt(tbetay(ie)*myemity0)
+                ynorm  = (ygrd(j)*1d-3)
+     &               / sqrt(tbetay(ie)*myemity0_collgap)
                 ypnorm = (talphay(ie)*(ygrd(j)*1d-3)+                   &
      &tbetay(ie)*(ypgrd(j)*1d-3)) /                                     &
-     &sqrt(tbetay(ie)*myemity0)
+     &sqrt(tbetay(ie)*myemity0_collgap)
 +if crlibm
                 yangle = atan2_rn(ynorm,ypnorm)
 +ei
@@ -32232,9 +31403,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if .not.crlibm
                 ypnorm = ypnorm + dnormy*cos(yangle)
 +ei
-                ygrd(j)   = 1000d0*(ynorm * sqrt(tbetay(ie)*myemity0))
-                ypgrd(j)  = 1000d0*((ypnorm*sqrt(tbetay(ie)*myemity0)   &
-!    &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
+                ygrd(j)   = 1000d0 *
+     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
+                ypgrd(j)  = 1000d0 * 
+     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
+!     &-TALPHAY(ie)*Ygrd(j))/TBETAY(ie))
      &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
 !
                 endif
@@ -32287,6 +31460,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !GRD
               secondary(imov) = secondary(j)
               tertiary(imov) = tertiary(j)
+              other(imov) = other(j)
               nabs_type(imov) = nabs_type(j)
 !GRD
 !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
@@ -32305,13 +31479,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               end do
             endif
           end do
-+if cr
           write(lout,*) 'INFO>  Compacted the particle distributions: ',
-+ei
-+if .not.cr
-          write(*,*) 'INFO>  Compacted the particle distributions: ',   &
-+ei
-     &napx, ' -->  ', imov
+     &napx, ' -->  ', imov, ", turn =",iturn
           napx = imov
         endif
 !GRD
@@ -32386,12 +31555,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0                                      &
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0                                      &
+     &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !                NSPX    = SQRT( XJ**2 / (TBETAX(ie)*MYEMITX0) )
 !                NSPY    = SQRT( YJ**2 / (TBETAY(ie)*MYEMITY0) )
@@ -32399,12 +31568,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie-1)*xj*xpj +                                        &
-     &tbetax(ie-1)*xpj**2 )/myemitx0                                    &
+     &tbetax(ie-1)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &2d0*talphay(ie-1)*yj*ypj +                                        &
-     &tbetay(ie-1)*ypj**2 )/myemity0                                    &
+     &tbetay(ie-1)*ypj**2 )/myemity0_collgap
      &)
                 endif
 !
@@ -32445,15 +31614,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                 xndisp = xj
                 nspxd   = sqrt(                                         &
      &abs(gammax*xdisp**2 + 2d0*talphax(ie)*xdisp*xpj                   &
-     &+ tbetax(ie)*xpj**2)/myemitx0                                     &
+     &+ tbetax(ie)*xpj**2)/myemitx0_collgap
      &)
                 nspx    = sqrt(                                         &
      &abs( gammax*xndisp**2 + 2d0*talphax(ie)*xndisp*                   &
-     &xpj + tbetax(ie)*xpj**2 )/myemitx0                                &
+     &xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*yj**2 + 2d0*talphay(ie)*yj                            &
-     &*ypj + tbetay(ie)*ypj**2 )/myemity0                               &
+     &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 !
 !
@@ -32461,27 +31630,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !MAY2005
          if(part_abs(j).eq.0) then
 !MAY2005
-        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)    &
-     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.                &
+        if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+     &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
 !GRD                                                                    &
-     &(                                                                 &
-     &((                                                                &
-     &(xv(1,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetax(ie)*myemitx0)                                             &
+     &(
+     &((
+     &(xv(1,j)*1d-3)**2
+     &/
+     &(tbetax(ie)*myemitx0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &((                                                                &
-     &(xv(2,j)*1d-3)**2                                                 &
-     &/                                                                 &
-     &(tbetay(ie)*myemity0)                                             &
+     &).ge.dble(sigsecut2)).or.
+     &((
+     &(xv(2,j)*1d-3)**2
+     &/
+     &(tbetay(ie)*myemity0_collgap)
 !     &).ge.sigsecut2).and.                                              &
-     &).ge.dble(sigsecut2)).or.                                         &
-     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0))+                       &
-     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0))                         &
-     &.ge.sigsecut3)                                                    &
+     &).ge.dble(sigsecut2)).or.
+     &(((xv(1,j)*1d-3)**2/(tbetax(ie)*myemitx0_collgap))+
+     &((xv(2,j)*1d-3)**2/(tbetay(ie)*myemity0_collgap))
+     &.ge.sigsecut3)
      &) ) then
                 xj     = (xv(1,j)-torbx(ie))/1d3
                 xpj    = (yv(1,j)-torbxp(ie))/1d3
@@ -32582,9 +31751,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       implicit none
 +ca exactvars
 +ca commonex
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -32597,7 +31764,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -32628,6 +31795,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca dbdcum
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -33132,7 +32300,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 640
 
@@ -33172,9 +32340,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33316,31 +32482,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
             endif
             if(ierro.ne.0) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
-+if cr
               write(lout,*) '*** ERROR ***,PROBLEM WRITING TO FILE# : ',&
-+ei
-+if .not.cr
-              write(*,*) '*** ERROR ***,PROBLEMS WRITING TO FILE# : ',  &
-+ei
      &91-ia2
-+if cr
               write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-              write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
 +if cr
               endfile (lout,iostat=ierro)
               backspace (lout,iostat=ierro)
@@ -33407,9 +32553,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33493,9 +32637,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33532,9 +32674,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33572,9 +32712,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33612,9 +32750,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33653,9 +32789,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33724,9 +32857,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  3 February 1999
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -33760,20 +32891,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 !-- PARTICLES STABLE
         if(.not.pstop(ia).and..not.pstop(ig)) then
-+if cr
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
-+ei
-+if .not.cr
-          write(*,10000) ia,nms(ia)*izu0,dp0v(ia),n
-+ei
           id=id+1
           ie=id+1
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)                                                &
-+ei
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
      &e0,ejv(id),ejv(ie)
@@ -33805,7 +32926,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
    10 continue
 +if .not.cr
-      if(ierro.ne.0) write(*,*) 'Warning from write6: fort.12 has ',    &
+      if(ierro.ne.0) write(lout,*) 'Warning from write6: fort.12 has ', &
      &'corrupted output probably due to lost particles'
       if(ierro.ne.0) then                                                !hr09
 +if debug
@@ -33821,7 +32942,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       backspace (lout,iostat=ierro)
 +ei
       return
-10000 format(1x/5x,'PARTICLE ',i3,' RANDOM SEED ',i8,                   &
+10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
       end
@@ -33849,9 +32970,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       integer nturn, i, ix, unit, fmt
       logical lhighprec
       intent (in) nturn, i, ix, unit, fmt, lhighprec
-+if cr
-+ca crcoall
-+ei
 +ca parpro
 +ca parnum
 +ca common
@@ -33866,6 +32984,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca dbdumpcr
 +ei
 
++ca crcoall
+
 +if collimat
 +ca collpara
 +ca dbcommon
@@ -33876,9 +32996,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 
 !     temporary variables
-      integer j
+      integer j,k,l
       character*16 localBez
 
+      double precision xyz_particle(6)
+      double precision xyz(6)
+      double precision xyz2(6,6)
+      
 +if cr      
       !For accessing dumpfilepos
       integer dumpIdx
@@ -33922,7 +33046,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Format for aperture check
       else if (fmt .eq. 1) then
-        if ( lhighprec ) then
+         if ( lhighprec ) then
             do j=1,napx
                write(unit,1983) nlostp(j)+(samplenumber-1)*npart,
      &              nturn, dcum(i), xv(1,j),
@@ -33960,7 +33084,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &              (ejv(j)-e0)/e0, ktrack(i)
             enddo
          endif
-         
+
          !Flush
          endfile (unit,iostat=ierro)
          backspace (unit,iostat=ierro)
@@ -33968,14 +33092,185 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
       
+      else if (fmt .eq. 3) then
+         do j=1,napx
+            write(unit) nlostp(j)+(samplenumber-1)*npart,
+     &           nturn, dcum(i), xv(1,j),
+     &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+     &           (ejv(j)-e0)/e0, ktrack(i)
+         enddo
+         
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+      else if (fmt .eq. 4) then
+         do l=1,6
+            xyz(l) = 0.0
+         end do
+         
+         do j=1,napx
+            xyz(1) = xyz(1) + xv(1,j)
+            xyz(2) = xyz(2) + yv(1,j)
+            xyz(3) = xyz(3) + xv(2,j)
+            xyz(4) = xyz(4) + yv(2,j)
+            xyz(5) = xyz(5) + sigmv(j)
+            xyz(6) = xyz(6) + (ejv(j)-e0)/e0
+         enddo
+
+         xyz = xyz/napx
+         if ( lhighprec ) then
+            write(unit,1989) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+         else
+            write(unit,1990) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+         endif
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
++ei
+      
+      else if (fmt.eq.5 .or. fmt.eq.6) then !Matrix
+         do l=1,6
+            xyz(l) = 0.0
+            do k=1,6
+               xyz2(l,k) = 0.0
+            end do
+         end do
+         
+         if(fmt.eq.5) then !Raw
+            do j=1,napx
+               xyz_particle(6)=(ejv(j)-e0)/e0
+
+               !Average beam position
+               xyz(1) = xyz(1) + xv(1,j)
+               xyz(2) = xyz(2) + yv(1,j)
+               xyz(3) = xyz(3) + xv(2,j)
+               xyz(4) = xyz(4) + yv(2,j)
+               xyz(5) = xyz(5) + sigmv(j)
+               xyz(6) = xyz(6) + xyz_particle(6)
+               
+               !Beam matrix (don't calulate identical elements twice (symmetry))
+               xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
+               xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
+               xyz2(3,1) = xyz2(3,1) + xv(1,j)*xv(2,j)
+               xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
+               xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
+               xyz2(6,1) = xyz2(6,1) + xv(1,j)*xyz_particle(6)
+               
+               xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
+               xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
+               xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
+               xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
+               xyz2(6,2) = xyz2(6,2) + yv(1,j)*xyz_particle(6)
+               
+               xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
+               xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
+               xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
+               xyz2(6,3) = xyz2(6,3) + xv(2,j)*xyz_particle(6)
+               
+               xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
+               xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
+               xyz2(6,4) = xyz2(6,4) + yv(2,j)*xyz_particle(6)
+               
+               xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
+               xyz2(6,5) = xyz2(6,5) + sigmv(j)*xyz_particle(6)
+               
+               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
+            enddo
+         else if (fmt.eq.6) then !Canonical
+            do j=1,napx
+               xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
+               xyz_particle(2) = (yv(1,j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
+               xyz_particle(3) = xv(2,j)*c1m3                 !y:      [mm]   -> [m]
+               xyz_particle(4) = (yv(2,j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
+               xyz_particle(5) = sigmv(j)*c1m3                !sigma:  [mm]   -> [m]
+               xyz_particle(6) = (((ejv(j)-e0)*e0)/e0f)/e0f   !psigma: [MeV]  -> [1]
+               
+               !Average beam position
+               xyz(1) = xyz(1) + xyz_particle(1)
+               xyz(2) = xyz(2) + xyz_particle(2)
+               xyz(3) = xyz(3) + xyz_particle(3)
+               xyz(4) = xyz(4) + xyz_particle(4)
+               xyz(5) = xyz(5) + xyz_particle(5)
+               xyz(6) = xyz(6) + xyz_particle(6)
+               
+               !Beam matrix (don't calulate identical elements twice (symmetry))
+               xyz2(1,1) = xyz2(1,1) + xyz_particle(1)*xyz_particle(1)
+               xyz2(2,1) = xyz2(2,1) + xyz_particle(1)*xyz_particle(2)
+               xyz2(3,1) = xyz2(3,1) + xyz_particle(1)*xyz_particle(3)
+               xyz2(4,1) = xyz2(4,1) + xyz_particle(1)*xyz_particle(4)
+               xyz2(5,1) = xyz2(5,1) + xyz_particle(1)*xyz_particle(5)
+               xyz2(6,1) = xyz2(6,1) + xyz_particle(1)*xyz_particle(6)
+               
+               xyz2(2,2) = xyz2(2,2) + xyz_particle(2)*xyz_particle(2)
+               xyz2(3,2) = xyz2(3,2) + xyz_particle(2)*xyz_particle(3)
+               xyz2(4,2) = xyz2(4,2) + xyz_particle(2)*xyz_particle(4)
+               xyz2(5,2) = xyz2(5,2) + xyz_particle(2)*xyz_particle(5)
+               xyz2(6,2) = xyz2(6,2) + xyz_particle(2)*xyz_particle(6)
+               
+               xyz2(3,3) = xyz2(3,3) + xyz_particle(3)*xyz_particle(3)
+               xyz2(4,3) = xyz2(4,3) + xyz_particle(3)*xyz_particle(4)
+               xyz2(5,3) = xyz2(5,3) + xyz_particle(3)*xyz_particle(5)
+               xyz2(6,3) = xyz2(6,3) + xyz_particle(3)*xyz_particle(6)
+               
+               xyz2(4,4) = xyz2(4,4) + xyz_particle(4)*xyz_particle(4)
+               xyz2(5,4) = xyz2(5,4) + xyz_particle(4)*xyz_particle(5)
+               xyz2(6,4) = xyz2(6,4) + xyz_particle(4)*xyz_particle(6)
+               
+               xyz2(5,5) = xyz2(5,5) + xyz_particle(5)*xyz_particle(5)
+               xyz2(6,5) = xyz2(6,5) + xyz_particle(5)*xyz_particle(6)
+               
+               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
+            enddo
+         end if
+         
+         !Normalize
+         xyz = xyz/napx
+         
+         xyz2(:,1)  = xyz2(:,1) /napx
+         xyz2(2:,2) = xyz2(2:,2)/napx
+         xyz2(3:,3) = xyz2(3:,3)/napx
+         xyz2(4:,4) = xyz2(4:,4)/napx
+         xyz2(5:,5) = xyz2(5:,5)/napx
+         xyz2(6,6)  = xyz2(6,6) /napx
+         
+         if ( lhighprec ) then
+            write(unit,1991) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
+         else
+            write(unit,1992) napx, nturn, dcum(i),
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
+         endif
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
++ei
+
       !Unrecognized format fmt
       else
-+if cr
-         write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*) 
-+ei
+         write (lout,*)
      & "DUMP> Format",fmt, "not understood for unit", unit
          call prror(-1)
       endif
@@ -33989,6 +33284,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
  1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec
+
+ 1989 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18))        !fmt 4 / hiprec
+ 1990 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9))         !fmt 4 / not hiprec
+      
+ 1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5&6 / hiprec
+ 1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5&6 / not hiprec
+      
       end subroutine
 
 +dk tra_thck
@@ -34001,9 +33303,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -34026,23 +33326,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-!+ca elensparam
 +if collimat
 +ca database
 +ei
-
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 +if collimat
       if (do_coll) then
-+if cr
          write(lout,*) "Error: in trauthck and do_coll is TRUE"
          write(lout,*) "Collimation is not supported for thick tracking"
-+ei
-+if .not.cr
-         write(*,*)    "Error: in trauthck and do_coll is TRUE"
-         write(*,*)    "Collimation is not supported for thick tracking"
-+ei
          STOP
       endif
 +ei
@@ -34127,7 +33420,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca beamwzf2
 +ca beama4o
 +ca beams24
-+ca wirektrack
++ca wire
 +ca elens
 +ca acdip1
 +ca crab1
@@ -34228,12 +33521,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         if(abs(r0).le.pieni.or.nmz.eq.0) then
           if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
             if ( dynk_isused(i) ) then
-+if cr
               write(lout,*)
-+ei
-+if .not.cr
-              write(*,*)
-+ei
      &        "ERROR: Element of type 11 (bez=",bez(ix),
      &        ") is off in fort.2, but on in DYNK. Not implemented."
               call prror(-1)
@@ -34399,16 +33687,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       if (ldynk) call dynk_pretrack
 
       if(idp.eq.0.or.ition.eq.0) then
-+if cr
         write(lout,*) ''
         write(lout,*) 'Calling thck4d subroutine'
         write(lout,*) ''
-+ei
-+if .not.cr
-        write(*,*)    ''
-        write(*,*)    'Calling thck4d subroutine'
-        write(*,*)    ''
-+ei
         call thck4d(nthinerr)
       else
         hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
@@ -34416,28 +33697,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
   310   continue
         if(abs(phas).ge.pieni) then
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thck6dua subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thck6dua subroutine'
-          write(*,*)    ''
-+ei
           call thck6dua(nthinerr)
         else
-+if cr
           write(lout,*) ''
           write(lout,*) 'Calling thck6d subroutine'
           write(lout,*) ''
-+ei
-+if .not.cr
-          write(*,*)    ''
-          write(*,*)    'Calling thck6d subroutine'
-          write(*,*)    ''
-+ei
           call thck6d(nthinerr)
         endif
       endif
@@ -34455,9 +33722,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -34470,7 +33735,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1,crabamp,crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -34500,6 +33765,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -34575,12 +33841,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei bpm
       
       if (ldumpfront) then
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
       stop
@@ -34961,7 +34222,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 470
 
@@ -35004,9 +34265,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -35019,7 +34278,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision e0fo,e0o,xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -35053,6 +34312,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 +if debug
@@ -35149,12 +34409,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei bpm
 
       if (ldumpfront) then
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
       stop
@@ -35640,7 +34895,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue
           goto 490
 
@@ -35712,9 +34967,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -35727,7 +34980,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       double precision xv1j,xv2j
       double precision acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
-      double precision l,cur,dx,dy,tx,ty,embl,leff,rx,ry,lin,chi,xi,yi
++ca wiretracktmp
       logical llost
 +if time
       double precision expt
@@ -35757,6 +35010,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
++ca wireparam
 +ca elenstracktmp
       save
 !-----------------------------------------------------------------------
@@ -35836,12 +35090,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei bpm
 
       if (ldumpfront) then
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
       stop
@@ -36274,7 +35523,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 ! Wire.
 
   748     continue
-+ca wire
++ca wirekick
   750     continue                                                      `
           goto 490
 
@@ -36319,9 +35568,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -36862,9 +36108,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
 
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -37378,10 +36621,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       end
 +dk mainda
       program mainda
+      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -37448,6 +36690,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       parameter (nchars=160)
       character*(nchars) ch
       character*(nchars+nchars) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -37457,13 +36700,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       data lineno /0/
 +ei
 +ca version
-+ca open
-+if cr
-      write(lout,10000) version,moddate
-+ei
+
 +if .not.cr
-      write(*,10000) version,moddate
+      lout=output_unit
 +ei
+
++ca open
+      write(lout,10000) version,moddate
       tlim=1e7
       call timest(tlim)
       time0=0.
@@ -37505,12 +36748,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
         endif
       endif
-+if cr
       write(lout,'(a80)') runtim
-+ei
-+if .not.cr
-      write(*,'(a80)') runtim
-+ei
       do 10 i=1,2
         eps(i)=zero
         epsa(i)=zero
@@ -37530,25 +36768,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       rad=pi/180d0                                                       !hr08
       call daten
       if(nord.le.0.or.nvar.le.0) call prror(91)
-+if cr
       if(ithick.eq.1) write(lout,10020)
-+ei
-+if .not.cr
-      if(ithick.eq.1) write(*,10020)
-+ei
-+if cr
       if(ithick.eq.0) write(lout,10030)
-+ei
-+if .not.cr
-      if(ithick.eq.0) write(*,10030)
-+ei
       if(ibidu.eq.2) then
-+if cr
         write(lout,10025)
-+ei
-+if .not.cr
-        write(*,10025)
-+ei
         goto 550
       endif
       call ord
@@ -37584,7 +36807,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       nlin=0
       if(nbeam.ge.1) then
         do 135 i=1,nele
-          if(kz(i).eq.20) then
+          if((kz(i).eq.20).or.(kz(i).eq.15)) then
             nlin=nlin+1
             if(nlin.gt.nele) call prror(81)
             bezl(nlin)=bez(i)
@@ -37600,6 +36823,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
+        if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         smizf(i)=zfz(izu)*ek(ix)
@@ -37729,50 +36953,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       alf0s2 =-1d0*(tas(5,1)*tas61+tas(5,2)*tas62)                       !hr08
       alf0s3 =-1d0*(tas(5,3)*tas63+tas(5,4)*tas64)                       !hr08
       if(ierro.eq.0) goto 90
-+if cr
       write(lout,10200) dp1
-+ei
-+if .not.cr
-      write(*,10200) dp1
-+ei
       goto 160
-+if cr
    90 write(lout,10040)
-+ei
-+if .not.cr
-   90 write(*,10040)
-+ei
       phag=(phas*180d0)/pi                                               !hr08
       if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))             &
-+if cr
      &write(lout,10140)                                                 &
-+ei
-+if .not.cr
-     &write(*,10140)                                                    &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
       if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
         if(iclo6.eq.0) then
-+if cr
           write(lout,10120) phag,
-+ei
-+if .not.cr
-          write(*,10120) phag,                                          &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
         else
-+if cr
           write(lout,10130) phag,
-+ei
-+if .not.cr
-          write(*,10130) phag,                                          &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -37785,35 +36984,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
       endif
       if(idp.eq.1.and.ition.eq.0.and.abs(phas).gt.pieni)                &
-+if cr
      &write(lout,10160) phag,                                           &
-+ei
-+if .not.cr
-     &write(*,10160) phag,                                              &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
       if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
         if(iclo6.eq.0) then
-+if cr
           write(lout,10180)
-+ei
-+if .not.cr
-          write(*,10180)                                                &
-+ei
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
         else
-+if cr
           write(lout,10190)
-+ei
-+if .not.cr
-          write(*,10190)                                                &
-+ei
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -37825,12 +37009,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &bet0s3,alf0s3,gam0s3
         endif
       endif
-+if cr
       write(lout,10050) dp1
-+ei
-+if .not.cr
-      write(*,10050) dp1
-+ei
       call anfb(tas)
       if(iclo6.eq.2) then
         x(1,1) = x(1,1) + clo6(1)
@@ -37854,20 +37033,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
   100 continue
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       if(iclo6.eq.0) then
-+if cr
         write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),
-+ei
-+if .not.cr
-        write(*,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),     &
-+ei
      &iver, idfor,iclo6,ition
       else
-+if cr
         write(lout,10090) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),
-+ei
-+if .not.cr
-        write(*,10090) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),       &
-+ei
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
       endif
       if(idfor.eq.1.and.iclo6.ne.2) goto 110
@@ -37878,25 +37047,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       goto 120
   110 ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
       ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
-+if cr
   120 write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x
-+ei
-+if .not.cr
-  120 write(*,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x      &
-+ei
      &(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
-+if cr
       write(lout,10010) amp,epsa
-+ei
-+if .not.cr
-      write(*,10010) amp,epsa
-+ei
-+if cr
       write(lout,10170)
-+ei
-+if .not.cr
-      write(*,10170)
-+ei
       if(e0.gt.pieni) then
 +ca rvet2
 +if rvet
@@ -37909,12 +37063,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         call prror(79)
       endif
       if(numl.eq.0.or.numlr.ne.0) then
-+if cr
         write(lout,10070)
-+ei
-+if .not.cr
-        write(*,10070)
-+ei
         goto 160
       endif
       if(nsix.eq.1.and.nvar2.eq.6) then
@@ -38045,9 +37194,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       use bigmats
 +ei
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38063,22 +37209,40 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca commonc
 +ca commonxz
 +ca commonmn
+
 +if bnlelens
 +ca rhicelens
 +ei
+
 +ca dbdcum
-+ca comgetfields
-+ca dbdump
+
++ca comgetfields !Contains parameters used in comdump and fma
+
 +ca fma
+
++ca dbdump
 +if cr
 +ca dbdumpcr
 +ei
+
 +ca stringzerotrim
 +ca comdynk
+
 +if cr
 +ca comdynkcr
 +ei
+
 +ca elensparam
++ca wireparam
+
++ca zipf
+
++if collimat
++ca collpara
++ca database
++ca dbcommon
++ei
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 !
@@ -38417,7 +37581,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         hsyc(i)=zero
         phasc(i)=zero
         ptnfac(i)=zero
-        wirel(i)=zero
         acdipph(i)=zero
         crabph(i)=zero
         crabph2(i)=zero
@@ -38452,8 +37615,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         do 140 i1=1,3
           bezr(i1,i)=' '
   140   continue
-        ! JBG increasing parbe to dimension 5
-        do i1=1,5
+        do i1=1,18
           parbe(i,i1)=zero
         enddo
   150 continue
@@ -38488,7 +37650,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         tiltc(i)=one
         tilts(i)=zero
 !--Beam-Beam------------------------------------------------------------
-        imbb(i)=0
+        imbb(i)=0               !Mapping from a STRUCTURE ELEMENT (here: index i)
+                                ! to the beam-beam tables (arrays with size nbb)
+!--Other stuff (not beam-beam)...
         do 190 j=1,40
           exterr(i,j)=zero
 +if time
@@ -38509,7 +37673,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
         enddo
   190 continue
-!--RANDOM NUMBERS-------------------------------------------------------
+!-- BEAM-EXP------------------------------------------------------------
+      beam_expflag = 0
+
+!-- RANDOM NUMBERS-------------------------------------------------------
       do 200 i=1,nzfz
         zfz(i)=zero
 +if time
@@ -38633,11 +37800,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           fma_method(i)(j:j) = char(0)
         enddo
       enddo
-!--ELEN - ELECTRON LENS---------------------------------------------------------
-!     M. Fitterer, FNAL
-!     last modified: 2016
-!     elensparam - used for tracking (parameters of single element)
+!combine multiple elments in one loope
+!1) --ELEN - ELECTRON LENS---------------------------------------------------------
+!2) --WIRE - WIRE ELEMENT---------------------------------------------------------
+!     M. Fitterer (FNAL), A. Patapenka (NIU)
+!     last modified: 22-12-2016
+! 1) single elements
       do i=1,nele
+!     elensparam - used for tracking (parameters of single element)
         elens_type(i)          = 0
         elens_theta_max(i)     = 0
         elens_r2(i)            = 0
@@ -38646,6 +37816,25 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         elens_offset_y(i)      = 0
         elens_bend_entrance(i) = 0
         elens_bend_exit(i)     = 0
+!     wireparam - used for tracking (parameters of single element)
+        wire_flagco(i)  = 0
+        wire_current(i) = 0
+        wire_lint(i)    = 0
+        wire_lphys(i)   = 0
+        wire_dispx(i)   = 0
+        wire_dispy(i)   = 0
+        wire_tiltx(i)   = 0
+        wire_tilty(i)   = 0
+      enddo
+! 2) loop over structure elements
+      do i=1,nblz
+        wire_num(i)=0
+      enddo
+! 3) loop over number of wires
+      do i=1,wire_max
+        do j=1,6
+          wire_clo(j,i)=zero
+        enddo
       enddo
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
@@ -38704,6 +37893,34 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if cr
       dynkfilepos = -1
 +ei
+!--ZIPF----------------------------------------------------------------
+      zipf_numfiles = 0
+      
+      do j=1, stringzerotrim_maxlen
+         zipf_outfile(j:j)=char(0)
+      enddo
+      
+      do i=1, zipf_maxfiles
+         do j=1, stringzerotrim_maxlen
+            zipf_filenames(i)(j:j)=char(0)
+         enddo
+      enddo
+      
+!--COLLIMATION----------------------------------------------------------
++if collimat
+      do_coll = .false.
+      
+      ! From common /grd/
+      emitnx0_dist = 0.0
+      emitny0_dist = 0.0
+      emitnx0_collgap = 0.0
+      emitny0_collgap = 0.0
+      ! From common /ralph/
+      myemitx0_dist = 0.0
+      myemity0_dist = 0.0
+      myemitx0_collgap = 0.0
+      myemity0_collgap = 0.0
++ei
 !
 !-----------------------------------------------------------------------
       return
@@ -38715,9 +37932,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38758,12 +37973,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           read(iu1,'(6X,2X,G20.14,I5)') c,ii
           write(iu2,'(6X,2X,G20.14,I5)') c,ii+1
           read(iu1,'(6X,2X,G20.14,I5)') c,ii
-+if cr
           if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
-+ei
-+if .not.cr
-          if(ii.ne.0) write(*,*) ' ERROR IN UMSCHR'
-+ei
         else
    20     read(iu1,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i  &
      &=1,5)
@@ -38798,9 +38008,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +dk daliesix
       subroutine daliesix
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -38901,61 +38109,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call daprimax(hc,mf3)
       call daprid(df,ndim+1,nd2,mf4)
       call daprid(df,1,ndim,mf5)
-+if cr
       write(lout,10060)
-+ei
-+if .not.cr
-      write(*,10060)
-+ei
       if(imod1.eq.0) then
-+if cr
         write(lout,10020) nordf
-+ei
-+if .not.cr
-        write(*,10020) nordf
-+ei
       else
-+if cr
         write(lout,10010) nordf
-+ei
-+if .not.cr
-        write(*,10010) nordf
-+ei
       endif
-+if cr
       write(lout,10025) nord1
-+ei
-+if .not.cr
-      write(*,10025) nord1
-+ei
       if(imod2.eq.0) then
-+if cr
         write(lout,10040) nvarf
-+ei
-+if .not.cr
-        write(*,10040) nvarf
-+ei
       else
-+if cr
         write(lout,10030) nvarf
-+ei
-+if .not.cr
-        write(*,10030) nvarf
-+ei
       endif
-+if cr
       write(lout,10050)
-+ei
-+if .not.cr
-      write(*,10050)
-+ei
       angle(3)=angle(3)*(-one)
-+if cr
       write(lout,*) (angle(i),i=1,ndim)
-+ei
-+if .not.cr
-      write(*,*) (angle(i),i=1,ndim)
-+ei
 !--Clean-Up
       call dadal(damap,nd2)
       call dadal(a1,nd2)
@@ -38978,12 +38146,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       time1=0.
       call timex(time1)
       time = time1-time0
-+if cr
       write(lout,10000) no,time
-+ei
-+if .not.cr
-      write(*,10000) no,time
-+ei
       return
 !-----------------------------------------------------------------------
 10000 format(/10x,'DA-CALCULATION OF ORDER : ',i7,' TAKES ', f12.3,     &
@@ -39008,9 +38171,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39081,9 +38241,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF INITIAL COORDINATES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39098,12 +38256,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       dimension tas(6,6),x1(6),x2(6)
       save
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10030)
-+ei
-+if .not.cr
-      write(*,10030)
-+ei
       if(itra.eq.0) goto 60
       tas56=tas(5,6)*c1m3
       bet0x2=tas(1,3)**2+tas(1,4)**2                                     !hr08
@@ -39172,19 +38325,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         endif
         chi=chi+dchi
    50 continue
-+if cr
       write(lout,10000) itra,amp,chi0,chid
-+ei
-+if .not.cr
-      write(*,10000) itra,amp,chi0,chid
-+ei
-+if cr
       write(lout,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),     &
      &x(2,1),
-+ei
-+if .not.cr
-      write(*,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),x(2,1), &
-+ei
      &y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
       return
    60 itra=2
@@ -39197,19 +38340,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           y(i,l)=exz(i,2+ll)
    70   continue
    80 continue
-+if cr
       write(lout,10020)
-+ei
-+if .not.cr
-      write(*,10020)
-+ei
-+if cr
       write(lout,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),     &
      &x(2,1),
-+ei
-+if .not.cr
-      write(*,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),x(2,1), &
-+ei
      &y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
 !-----------------------------------------------------------------------
       return
@@ -39232,9 +38365,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !                   BETA-, ALFA-FUNCTIONS, Q-VALUES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39427,9 +38557,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39486,9 +38613,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX, USED FOR DISPERSION
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39550,9 +38674,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF CHROMATICITY FROM 5 ENERGIE-VALUES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39588,12 +38710,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
         cro0(i)=zero
    20 continue
       qwc(3)=zero
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
       dsm(1,2)=dsm0
       dsm(2,3)=dsm0
       de2=de0*half
@@ -39646,51 +38763,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
               if(kp(isl).eq.5) call combel(isl)
  70         continue
           else
-+if cr
             write(lout,10035)
-+ei
-+if .not.cr
-            write(*,10035)
-+ei
             return
           endif
    80   continue
-+if cr
         write(lout,10020) sens(1,1),sens(1,4),sens(2,1),sens(2,4)
-+ei
-+if .not.cr
-        write(*,10020) sens(1,1),sens(1,4),sens(2,1),sens(2,4)
-+ei
         chromc(1)=sens(1,4)*c1m3
         chromc(2)=sens(2,4)*c1m3
-+if cr
         write(lout,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),&
-+ei
-+if .not.cr
-        write(*,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),   &
-+ei
      &bez(is(2))
-+if cr
         write(lout,10040) xi,zi
-+ei
-+if .not.cr
-        write(*,10040) xi,zi
-+ei
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
         if(abs(sens(1,4)-cro(1)).lt.dech.and.abs(sens(2,4)-cro(2))      &
      &.lt.dech) return
    90 continue
-+if cr
       write(lout,10000) itcro
-+ei
-+if .not.cr
-      write(*,10000) itcro
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(/131('-')//t10,'CHROMATICITY CORRECTION'/t10,              &
@@ -39712,9 +38799,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39735,12 +38820,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       save
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       nd=2
       nd2=4
       dps(1)=dp1+dppoff
@@ -39794,87 +38874,37 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             edcor(1)=ed(iq1)
             edcor(2)=ed(iq2)
             if(ncorr.eq.1) then
-+if cr
               write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),           &
-+ei
-+if .not.cr
-              write(*,10010) cro(1),corr(1,1)*c1e3,cro(2),              &
-+ei
      &corr(1,2)*c1e3,ncorr-1,cor
-+if cr
               write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-+ei
-+if .not.cr
-              write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),    &
-+ei
      &bez(iq2)
             else
-+if cr
               write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),           &
-+ei
-+if .not.cr
-              write(*,10020) cro(1),corr(1,1)*c1e3,cro(2),              &
-+ei
      &corr(1,2)*c1e3,ncorr-1,cor
-+if cr
               write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-+ei
-+if .not.cr
-              write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),    &
-+ei
      &bez(iq2)
             endif
           else
-+if cr
             write(lout,10040) ncorr-1
-+ei
-+if .not.cr
-            write(*,10040) ncorr-1
-+ei
             goto 1
           endif
         else
-+if cr
           write(lout,10050) ncorr-1
-+ei
-+if .not.cr
-          write(*,10050) ncorr-1
-+ei
           goto 1
         endif
       enddo
  1    continue
       chromc(1)=corr(1,1)
       chromc(2)=corr(1,2)
-+if cr
       if(ncorr.eq.itcro+1) write(lout,10060) itcro
-+ei
-+if .not.cr
-      if(ncorr.eq.itcro+1) write(*,10060) itcro
-+ei
       if(ncorr.eq.1) then
-+if cr
         write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),                 &
-+ei
-+if .not.cr
-        write(*,10010) cro(1),corr(1,1)*c1e3,cro(2),                    &
-+ei
      &corr(1,2)*c1e3,ncorr-1,cor
       else
-+if cr
         write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,  &
-+ei
-+if .not.cr
-        write(*,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,     &
-+ei
      &ncorr-1,cor
       endif
-+if cr
       write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
-+ei
-+if .not.cr
-      write(*,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
-+ei
 !-----------------------------------------------------------------------
 10000 format(/131('-')/t10,'ENTERING DA CHROMATICITY CORRECTION'/)
 10010 format(/131('-')/t10,                                             &
@@ -39906,9 +38936,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -39966,20 +38994,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           clop(l)=clop(l)+dclop(l)
    30   continue
    40 continue
-+if cr
       if(ncorru.ne.1) write(lout,10000) itco
-+ei
-+if .not.cr
-      if(ncorru.ne.1) write(*,10000) itco
-+ei
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
       if(iout.eq.1.and.ncorru.ne.1) then
-+if cr
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
-+ei
-+if .not.cr
-        write(*,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
-+ei
 +if debug
 !     call warr('dpp',dpp,0,0,0,0)
 !     call warr('dpp',dpp,0,0,0,0)
@@ -40005,9 +39023,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE SIX-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -40030,12 +39046,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
-+if cr
       write(lout,10010) nd2
-+ei
-+if .not.cr
-      write(*,10010) nd2
-+ei
       do l=1,nd2
         xx(l)=zero
         cloc(l)=zero
@@ -40100,12 +39111,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
         enddo
         call dinv(nd2,am,nd2,idummy,nerror)
-+if cr
         if(nerror.ne.0) write(lout,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
-+if .not.cr
-        if(nerror.ne.0) write(*,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
 +if debug
 !       do i4=1,nd2
 !         do j4=1,nd2
@@ -40156,21 +39162,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
           if(abs(dppoff).gt.pieni) dlo(6)=zero
         enddo
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
         cor=zero
         do l=1,ndimf
           ll=2*l
-+if cr
           write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-          write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
 +if debug
 !     call warr('corl ll',cor,l,ll,1,0)
 !     call warr('dcll*2',dc(ll-1)**2,l,ll,1,0)
@@ -40196,44 +39192,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             cloc(l)=cloc(l)+dlo(l)
           enddo
           if(ii.ne.itco) then
-+if cr
             write(lout,10030)
-+ei
-+if .not.cr
-            write(*,10030)
-+ei
             do l=1,ndimf
               ll=2*l
-+if cr
               write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-              write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
             enddo
-+if cr
             write(lout,10080) ii,cor
-+ei
-+if .not.cr
-            write(*,10080) ii,cor
-+ei
           endif
         else
-+if cr
           write(lout,10040) nd2,ii
-+ei
-+if .not.cr
-          write(*,10040) nd2,ii
-+ei
           goto 91
         endif
  80   continue
-+if cr
       write(lout,10000) itco
-+ei
-+if .not.cr
-      write(*,10000) itco
-+ei
       ii=itco
  90   continue
       if(ii.ne.itco) then
@@ -40244,21 +39215,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
           if(abs(dppoff).gt.pieni) dlo(6)=zero
         enddo
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
         cor=zero
         do l=1,ndimf
           ll=2*l
-+if cr
           write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-          write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
 +if debug
 !     call warr('corl ll',cor,l,ll,2,0)
 !     call warr('dcll*2',dc(ll-1)**2,l,ll,2,0)
@@ -40278,34 +39239,14 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           do l=1,nd2
             cloc(l)=cloc(l)+dlo(l)
           enddo
-+if cr
           write(lout,10030)
-+ei
-+if .not.cr
-          write(*,10030)
-+ei
           do l=1,ndimf
             ll=2*l
-+if cr
             write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
-+if .not.cr
-            write(*,10060) chp(l),cloc(ll-1),cloc(ll)
-+ei
           enddo
-+if cr
           write(lout,10080) ii,cor
-+ei
-+if .not.cr
-          write(*,10080) ii,cor
-+ei
         else
-+if cr
           write(lout,10040) nd2,ii
-+ei
-+if .not.cr
-          write(*,10040) nd2,ii
-+ei
           goto 91
         endif
         do l=1,2
@@ -40322,12 +39263,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           enddo
         enddo
         call dinv(nd2,am,nd2,idummy,nerror)
-+if cr
         if(nerror.ne.0) write(lout,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
-+if .not.cr
-        if(nerror.ne.0) write(*,*) ' ATTENTION, MATRIX SINGULAR '
-+ei
         if(ndimf.eq.3) then
           do l=1,2
             ll=2*l
@@ -40353,31 +39289,16 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
           if(l.eq.5) dc(5)=dc(5)*c1m2
         enddo
       endif
-+if cr
       write(lout,10050) nd2,ii
-+ei
-+if .not.cr
-      write(*,10050) nd2,ii
-+ei
       cor=zero
       do l=1,ndimf
         ll=2*l
-+if cr
         write(lout,10070) chp(l),cloc(ll-1),cloc(ll),
-+ei
-+if .not.cr
-        write(*,10070) chp(l),cloc(ll-1),cloc(ll),                      &
-+ei
      &chd(l),dc(ll-1),dc(ll)
         cor=cor+dc(ll-1)**2                                              !hr06
       enddo
       cor=sqrt(cor)
-+if cr
       write(lout,10080) ii,cor
-+ei
-+if .not.cr
-      write(*,10080) ii,cor
-+ei
  91   continue
       if(ndimf.eq.3) then
         do l=1,2
@@ -40435,9 +39356,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -40475,12 +39394,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !     call dumpbin('alieinit',1,11)
 !     call abend('alieinit in mydaini                               ')
 +ei
-+if cr
       write(lout,10000) nord,nvar,ndimf
-+ei
-+if .not.cr
-      write(*,10000) nord,nvar,ndimf
-+ei
       call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
 +if debug
@@ -40523,9 +39437,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -40559,12 +39471,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       call daeps(preda)
       call idprset(-102)
       call lieinit(nord,nvar,ndimf,ndpt,0,nis)
-+if cr
       write(lout,10000) nord,nvar,nndim
-+ei
-+if .not.cr
-      write(*,10000) nord,nvar,nndim
-+ei
       call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
       if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
@@ -40598,9 +39505,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -40667,9 +39571,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -40716,9 +39617,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -41019,9 +39917,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -41322,9 +40217,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -41339,12 +40232,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ei
       save
 !-----------------------------------------------------------------------
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !1-10  
      &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !11-20 
      &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !21-30 
@@ -41357,740 +40245,216 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !91-100
      &     1010,1020,1030,1040,1050),ier
       goto 1870
-+if cr
    10 write(lout,10010)
-+ei
-+if .not.cr
-   10 write(*,10010)
-+ei
       goto 1870
-+if cr
    20 write(lout,10020) nele
-+ei
-+if .not.cr
-   20 write(*,10020) nele
-+ei
       goto 1870
-+if cr
    30 write(lout,10030)
-+ei
-+if .not.cr
-   30 write(*,10030)
-+ei
       goto 1870
-+if cr
    40 write(lout,10040)
-+ei
-+if .not.cr
-   40 write(*,10040)
-+ei
       goto 1870
-+if cr
    50 write(lout,10050)
-+ei
-+if .not.cr
-   50 write(*,10050)
-+ei
       goto 1870
-+if cr
    60 write(lout,10060)
-+ei
-+if .not.cr
-   60 write(*,10060)
-+ei
       goto 1870
-+if cr
    70 write(lout,10070)
-+ei
-+if .not.cr
-   70 write(*,10070)
-+ei
       goto 1870
-+if cr
    80 write(lout,10080)
-+ei
-+if .not.cr
-   80 write(*,10080)
-+ei
       goto 1870
-+if cr
    90 write(lout,10090)
-+ei
-+if .not.cr
-   90 write(*,10090)
-+ei
       goto 1870
-+if cr
   100 write(lout,10100)
-+ei
-+if .not.cr
-  100 write(*,10100)
-+ei
       goto 1870
-+if cr
   110 write(lout,10110)
-+ei
-+if .not.cr
-  110 write(*,10110)
-+ei
       goto 1870
-+if cr
   120 write(lout,10120)
-+ei
-+if .not.cr
-  120 write(*,10120)
-+ei
       goto 1870
-+if cr
   130 write(lout,10130)
-+ei
-+if .not.cr
-  130 write(*,10130)
-+ei
       goto 1870
-+if cr
   140 write(lout,10140)
-+ei
-+if .not.cr
-  140 write(*,10140)
-+ei
       goto 1870
-+if cr
   150 write(lout,10150)
-+ei
-+if .not.cr
-  150 write(*,10150)
-+ei
       goto 1870
-+if cr
   160 write(lout,10160) nele
-+ei
-+if .not.cr
-  160 write(*,10160) nele
-+ei
       goto 1870
-+if cr
   170 write(lout,10170) nper
-+ei
-+if .not.cr
-  170 write(*,10170) nper
-+ei
       goto 1870
-+if cr
   180 write(lout,10180) nblo
-+ei
-+if .not.cr
-  180 write(*,10180) nblo
-+ei
       goto 1870
-+if cr
   190 write(lout,10190) erbez
-+ei
-+if .not.cr
-  190 write(*,10190) erbez
-+ei
       goto 1870
-+if cr
   200 write(lout,10200) erbez
-+ei
-+if .not.cr
-  200 write(*,10200) erbez
-+ei
       goto 1870
-+if cr
   210 write(lout,10210)
-+ei
-+if .not.cr
-  210 write(*,10210)
-+ei
       goto 1870
-+if cr
   220 write(lout,10220)
-+ei
-+if .not.cr
-  220 write(*,10220)
-+ei
       goto 1870
-+if cr
   230 write(lout,10230)
-+ei
-+if .not.cr
-  230 write(*,10230)
-+ei
       goto 1870
-+if cr
   240 write(lout,10240)
-+ei
-+if .not.cr
-  240 write(*,10240)
-+ei
       goto 1870
-+if cr
   250 write(lout,10250)
-+ei
-+if .not.cr
-  250 write(*,10250)
-+ei
       goto 1870
-+if cr
   260 write(lout,10260) nelb
-+ei
-+if .not.cr
-  260 write(*,10260) nelb
-+ei
       goto 1870
-+if cr
   270 write(lout,10270)
-+ei
-+if .not.cr
-  270 write(*,10270)
-+ei
       goto 1870
-+if cr
   280 write(lout,10280)
-+ei
-+if .not.cr
-  280 write(*,10280)
-+ei
       goto 1870
-+if cr
   290 write(lout,10290)
-+ei
-+if .not.cr
-  290 write(*,10290)
-+ei
       goto 1870
-+if cr
   300 write(lout,10300) nran
-+ei
-+if .not.cr
-  300 write(*,10300) nran
-+ei
       goto 1870
-+if cr
   310 write(lout,10310)
-+ei
-+if .not.cr
-  310 write(*,10310)
-+ei
       goto 1870
-+if cr
   320 write(lout,10320)
-+ei
-+if .not.cr
-  320 write(*,10320)
-+ei
       goto 1870
-+if cr
   330 write(lout,10330)
-+ei
-+if .not.cr
-  330 write(*,10330)
-+ei
       goto 1870
-+if cr
   340 write(lout,10340) mran
-+ei
-+if .not.cr
-  340 write(*,10340) mran
-+ei
       goto 1870
-+if cr
   350 write(lout,10350)
-+ei
-+if .not.cr
-  350 write(*,10350)
-+ei
       goto 1870
-+if cr
   360 write(lout,10360)
-+ei
-+if .not.cr
-  360 write(*,10360)
-+ei
       goto 1870
-+if cr
   370 write(lout,10370)
-+ei
-+if .not.cr
-  370 write(*,10370)
-+ei
       goto 1870
-+if cr
   380 write(lout,10380)
-+ei
-+if .not.cr
-  380 write(*,10380)
-+ei
       goto 1870
-+if cr
   390 write(lout,10390)
-+ei
-+if .not.cr
-  390 write(*,10390)
-+ei
       goto 1870
-+if cr
   400 write(lout,10400)
-+ei
-+if .not.cr
-  400 write(*,10400)
-+ei
       goto 1870
-+if cr
   410 write(lout,10410)
-+ei
-+if .not.cr
-  410 write(*,10410)
-+ei
       goto 1870
-+if cr
   420 write(lout,10420)
-+ei
-+if .not.cr
-  420 write(*,10420)
-+ei
       goto 1870
-+if cr
   430 write(lout,10430) nzfz
-+ei
-+if .not.cr
-  430 write(*,10430) nzfz
-+ei
       goto 1870
-+if cr
   440 write(lout,10440)
-+ei
-+if .not.cr
-  440 write(*,10440)
-+ei
       goto 1870
-+if cr
   450 write(lout,10450)
-+ei
-+if .not.cr
-  450 write(*,10450)
-+ei
       goto 1870
-+if cr
   460 write(lout,10460) nrco
-+ei
-+if .not.cr
-  460 write(*,10460) nrco
-+ei
       goto 1870
-+if cr
   470 write(lout,10470)
-+ei
-+if .not.cr
-  470 write(*,10470)
-+ei
       goto 1870
-+if cr
   480 write(lout,10480)
-+ei
-+if .not.cr
-  480 write(*,10480)
-+ei
       goto 1870
-+if cr
   490 write(lout,10490)
-+ei
-+if .not.cr
-  490 write(*,10490)
-+ei
       goto 1870
-+if cr
   500 write(lout,10500)
-+ei
-+if .not.cr
-  500 write(*,10500)
-+ei
       goto 1870
-+if cr
   510 write(lout,10510)
-+ei
-+if .not.cr
-  510 write(*,10510)
-+ei
       goto 1870
-+if cr
   520 write(lout,10520) nema
-+ei
-+if .not.cr
-  520 write(*,10520) nema
-+ei
       goto 1870
-+if cr
   530 write(lout,10530)
-+ei
-+if .not.cr
-  530 write(*,10530)
-+ei
       goto 1870
-+if cr
   540 write(lout,10540) npart
-+ei
-+if .not.cr
-  540 write(*,10540) npart
-+ei
       goto 1870
-+if cr
   550 write(lout,10550) nmac
-+ei
-+if .not.cr
-  550 write(*,10550) nmac
-+ei
       goto 1870
-+if cr
   560 write(lout,10560) ierro
-+ei
-+if .not.cr
-  560 write(*,10560) ierro
-+ei
       goto 1870
-+if cr
   570 write(lout,10570) ierro
-+ei
-+if .not.cr
-  570 write(*,10570) ierro
-+ei
       goto 1870
-+if cr
   580 write(lout,10580) ierro
-+ei
-+if .not.cr
-  580 write(*,10580) ierro
-+ei
       goto 1870
-+if cr
   590 write(lout,10590) ierro
-+ei
-+if .not.cr
-  590 write(*,10590) ierro
-+ei
       goto 1870
-+if cr
   600 write(lout,10600) ierro
-+ei
-+if .not.cr
-  600 write(*,10600) ierro
-+ei
       goto 1870
-+if cr
   610 write(lout,10610) ierro
-+ei
-+if .not.cr
-  610 write(*,10610) ierro
-+ei
       goto 1870
-+if cr
   620 write(lout,10620)
-+ei
-+if .not.cr
-  620 write(*,10620)
-+ei
       goto 1870
-+if cr
   630 write(lout,10630)
-+ei
-+if .not.cr
-  630 write(*,10630)
-+ei
       goto 1870
-+if cr
   640 write(lout,10640)
-+ei
-+if .not.cr
-  640 write(*,10640)
-+ei
       goto 1870
-+if cr
   650 write(lout,10650) mcor
-+ei
-+if .not.cr
-  650 write(*,10650) mcor
-+ei
       goto 1870
-+if cr
   660 write(lout,10660)
-+ei
-+if .not.cr
-  660 write(*,10660)
-+ei
       goto 1870
-+if cr
   670 write(lout,10670)
-+ei
-+if .not.cr
-  670 write(*,10670)
-+ei
       goto 1870
-+if cr
   680 write(lout,10680)
-+ei
-+if .not.cr
-  680 write(*,10680)
-+ei
       goto 1870
-+if cr
   690 write(lout,10690)
-+ei
-+if .not.cr
-  690 write(*,10690)
-+ei
       goto 1870
-+if cr
   700 write(lout,10700)
-+ei
-+if .not.cr
-  700 write(*,10700)
-+ei
       goto 1870
-+if cr
   710 write(lout,10710)
-+ei
-+if .not.cr
-  710 write(*,10710)
-+ei
       goto 1870
-+if cr
   720 write(lout,10720)
-+ei
-+if .not.cr
-  720 write(*,10720)
-+ei
       goto 1870
-+if cr
   730 write(lout,10730)
-+ei
-+if .not.cr
-  730 write(*,10730)
-+ei
       goto 1870
-+if cr
   740 write(lout,10740)
-+ei
-+if .not.cr
-  740 write(*,10740)
-+ei
       goto 1870
-+if cr
   750 write(lout,10750)
-+ei
-+if .not.cr
-  750 write(*,10750)
-+ei
       goto 1870
-+if cr
   760 write(lout,10760)
-+ei
-+if .not.cr
-  760 write(*,10760)
-+ei
       goto 1870
-+if cr
   770 write(lout,10770)
-+ei
-+if .not.cr
-  770 write(*,10770)
-+ei
       goto 1870
-+if cr
   780 write(lout,10780)
-+ei
-+if .not.cr
-  780 write(*,10780)
-+ei
       goto 1870
-+if cr
   790 write(lout,10790)
-+ei
-+if .not.cr
-  790 write(*,10790)
-+ei
       goto 1870
-+if cr
   800 write(lout,10800)
-+ei
-+if .not.cr
-  800 write(*,10800)
-+ei
       goto 1870
-+if cr
   810 write(lout,10810)
-+ei
-+if .not.cr
-  810 write(*,10810)
-+ei
       goto 1870
-+if cr
   820 write(lout,10820)
-+ei
-+if .not.cr
-  820 write(*,10820)
-+ei
       goto 1870
-+if cr
   830 write(lout,10830)
-+ei
-+if .not.cr
-  830 write(*,10830)
-+ei
       goto 1870
-+if cr
   840 write(lout,10840)
-+ei
-+if .not.cr
-  840 write(*,10840)
-+ei
       goto 1870
-+if cr
   850 write(lout,10850) mmul
-+ei
-+if .not.cr
-  850 write(*,10850) mmul
-+ei
       goto 1870
-+if cr
   860 write(lout,10860)
-+ei
-+if .not.cr
-  860 write(*,10860)
-+ei
       goto 1870
-+if cr
   870 write(lout,10870)
-+ei
-+if .not.cr
-  870 write(*,10870)
-+ei
       goto 1870
-+if cr
   880 write(lout,10880)
-+ei
-+if .not.cr
-  880 write(*,10880)
-+ei
       goto 1870
-+if cr
   890 write(lout,10890)
-+ei
-+if .not.cr
-  890 write(*,10890)
-+ei
       goto 1870
-+if cr
   900 write(lout,10900)
-+ei
-+if .not.cr
-  900 write(*,10900)
-+ei
       goto 1870
-+if cr
   910 write(lout,10910)
-+ei
-+if .not.cr
-  910 write(*,10910)
-+ei
       goto 1870
-+if cr
   920 write(lout,10920)
-+ei
-+if .not.cr
-  920 write(*,10920)
-+ei
       goto 1870
-+if cr
   930 write(lout,10930)
-+ei
-+if .not.cr
-  930 write(*,10930)
-+ei
       goto 1870
-+if cr
   940 write(lout,10940)
-+ei
-+if .not.cr
-  940 write(*,10940)
-+ei
       goto 1870
-+if cr
   950 write(lout,10950)
-+ei
-+if .not.cr
-  950 write(*,10950)
-+ei
       goto 1870
-+if cr
   960 write(lout,10960)
-+ei
-+if .not.cr
-  960 write(*,10960)
-+ei
       goto 1870
-+if cr
   970 write(lout,10970)
-+ei
-+if .not.cr
-  970 write(*,10970)
-+ei
       goto 1870
-+if cr
   980 write(lout,10980)
-+ei
-+if .not.cr
-  980 write(*,10980)
-+ei
       goto 1870
-+if cr
   990 write(lout,10990)
-+ei
-+if .not.cr
-  990 write(*,10990)
-+ei
       goto 1870
-+if cr
  1000 write(lout,11000) ntr
-+ei
-+if .not.cr
- 1000 write(*,11000) ntr
-+ei
       goto 1870
-+if cr
  1010 write(lout,11010)
-+ei
-+if .not.cr
- 1010 write(*,11010)
-+ei
       goto 1870
-+if cr
  1020 write(lout,11020) nbb
-+ei
-+if .not.cr
- 1020 write(*,11020) nbb
-+ei
       goto 1870
-+if cr
  1030 write(lout,11030)
-+ei
-+if .not.cr
- 1030 write(*,11030)
-+ei
       goto 1870
-+if cr
  1040 write(lout,11040)
-+ei
-+if .not.cr
- 1040 write(*,11040)
-+ei
       goto 1870
-+if cr
  1050 write(lout,11050) mmul
-+ei
-+if .not.cr
- 1050 write(*,11050) mmul
-+ei
+
  1870 continue
 !-----------------------------------------------------------------------
       call closeUnits
@@ -42194,7 +40558,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT',      &
      &' IN THE ALLOWED RANGE [2 <= NV <= 5]')
 10540 format(t10,'MAXIMUM NUMBER OF PARTICLES FOR VECTORIZATION', ' IS '&
-     &,i4)
+     &,i7)
 10550 format(t10,'MAXIMUM NUMBER OF DIFFERENT SEEDS FOR VECTORIZATION', &
      &' IS ',i4)
 10560 format(t10,'PROBLEMS WITH FILE 13 WITH INITIAL COORDINATES ',     &
@@ -42289,9 +40653,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk
 +ca comgetfields
-+if cr
 +ca crcoall
-+ei
 
       intent(in) getfields_fields, getfields_lfields, getfields_nfields
       
@@ -42326,46 +40688,24 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
-+if cr
       write (lout,*) "FIO not supported in DYNK!"
-+ei
-+if .not.cr
-      write (*,*)    "FIO not supported in DYNK!"
-+ei
       call prror(-1)
 +ei
       
       if (nfuncs_dynk+1 .gt. maxfuncs_dynk) then
-+if cr
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Maximum number of FUN exceeded, please" //
      &        "parameter maxfuncs_dynk."
          write (lout,*) "Current value of maxfuncs_dynk:",maxfuncs_dynk
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Maximum number of FUN exceeded, please" //
-     &        "parameter maxfuncs_dynk."
-         write (*,*)    "Current value of maxfuncs_dynk:",maxfuncs_dynk
-+ei
          call prror(51)
       endif
       
       if (getfields_lfields(2).gt.maxstrlen_dynk-1) then
-+if cr
          write(lout,*) "ERROR in DYNK block parsing (fort.3):"
          write(lout,*) "Max length of a FUN name is", maxstrlen_dynk-1
          write(lout,*) "Offending FUN: '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "length:", getfields_lfields(2)
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write(*,*)    "Max length of a FUN name is", maxstrlen_dynk-1
-         write(*,*)    "Offending FUN: '"//
-     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
-         write(*,*) "length:", getfields_lfields(2)
-+ei
          call prror(51)
       endif
       
@@ -42396,7 +40736,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          !Sanity checks
          if (getfields_lfields(4) .gt. 16 .or.   ! length of BEZ elements
      &       getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN GET got an element name with     "
@@ -42405,21 +40744,9 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write (lout,*) "The name was: '",getfields_fields(4)
      &                                    (1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN GET got an element name with     "
-            write (*,*)    "length =", getfields_lfields(4), "> 16."
-            write (*,*)    "or > ",maxstrlen_dynk-1
-            write (*,*)    "The name was: '",getfields_fields(4)
-     &                                    (1:getfields_lfields(4)),"'"
-            write (*,*)    "*************************************"
-+ei
             call prror(51)
          end if
          if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN GET got an attribute name with   "
@@ -42428,17 +40755,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write (lout,*) "The name was: '",getfields_fields(5)
      &                                    (1:getfields_lfields(5)),"'"
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN GET got an attribute name with   "
-            write (*,*)    "length =", getfields_lfields(5)
-            write (*,*)    "> ",maxstrlen_dynk-1
-            write (*,*)    "The name was: '",getfields_fields(5)
-     &                                    (1:getfields_lfields(5)),"'"
-            write (*,*)    "*************************************"
-+ei
             call prror(51)
          endif
 
@@ -42475,7 +40791,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
          !Sanity checks
          if (getfields_lfields(4) .gt. maxstrlen_dynk-1) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN FILE got a filename name with   "
@@ -42484,17 +40799,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write (lout,*) "The name was: '",getfields_fields(4)
      &                                    (1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN FILE got a filenname with   "
-            write (*,*)    "length =", getfields_lfields(4)
-            write (*,*)    "> ",maxstrlen_dynk-1
-            write (*,*)    "The name was: '",getfields_fields(4)
-     &                                    (1:getfields_lfields(4)),"'"
-            write (*,*)    "*************************************"
-+ei
             call prror(51)
          endif
 
@@ -42508,32 +40812,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          !Open the file
          inquire( unit=664, opened=lopen )
          if (lopen) then
-+if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
-+ei
+            write(lout,*)"DYNK> unit 664 for file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
             call prror(-1)
          end if
          
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
-+if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
-+ei
-+if .not.cr
-            write(*,*)    "DYNK> dynk_parseFUN():FILE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
-+ei
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
             call prror(51)
          endif
 
@@ -42550,36 +40841,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           filefields_fields, filefields_lfields,
      &           filefields_nfields, filefields_lerr )
             if ( filefields_lerr ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Error in getfields_split"
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Error in getfields_split"
-+ei
                call prror(-1)
             end if
 
             if ( filefields_nfields  .ne. 2 ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> expected 2 fields, got",
-     &              filefields_nfields, "ch =",ch
-+ei
                call prror(-1)
             end if
 
@@ -42598,39 +40872,20 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
             ii = ii+1
             if (t .ne. ii) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Missing turn number", ii,
      &              ", got turn", t
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Missing turn number", ii,
-     &              ", got turn", t
-+ei
                call prror(51)
             endif
             if (nfexpr_dynk+1 .gt. maxdata_dynk) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Ran out of memory in fexpr_dynk ",
      &              "in turn", t
                write(lout,*) "DYNK> Please increase maxdata_dynk."
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILE"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Ran out of memory in fexpr_dynk ",
-     &              "in turn", t
-               write(*,*)    "DYNK> Please increase maxdata_dynk."
-+ei
                call prror(51)
             endif
             
@@ -42662,7 +40917,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          funcs_dynk(nfuncs_dynk,5) = -1            !Below: Length of file (number of x,y sets)
          !Sanity checks
          if (getfields_lfields(4) .gt. maxstrlen_dynk-1) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN FILELIN got a filename name with   "
@@ -42671,17 +40925,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write (lout,*) "The name was: '",getfields_fields(4)
      &                                    (1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN FILELIN got a filenname with   "
-            write (*,*)    "length =", getfields_lfields(4)
-            write (*,*)    "> ",maxstrlen_dynk-1
-            write (*,*)    "The name was: '",getfields_fields(4)
-     &                                    (1:getfields_lfields(4)),"'"
-            write (*,*)    "*************************************"
-+ei
             call prror(51)
          endif
          ! Store data
@@ -42694,33 +40937,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          !Open the file
          inquire( unit=664, opened=lopen )
          if (lopen) then
-+if cr
             write(lout,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
             write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
-+ei
-+if .not.cr
-            write(*,*)
-     &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
-            write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
-+ei
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
             call prror(-1)
          end if
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status='OLD')
          if (stat .ne. 0) then
-+if cr
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
-+ei
-+if .not.cr
-            write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
-+ei
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //  "'"
             call prror(51)
          endif
          ! Find the size of the file
@@ -42737,36 +40966,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           filefields_fields, filefields_lfields,
      &           filefields_nfields, filefields_lerr )
             if ( filefields_lerr ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //"'"
                write(lout,*) "DYNK> Error in getfields_split"
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Error in getfields_split"
-+ei
                call prror(-1)
             end if
             
             if ( filefields_nfields  .ne. 2 ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> expected 2 fields, got",
-     &              filefields_nfields, "ch =",ch
-+ei
                call prror(-1)
             end if
 
@@ -42788,20 +41000,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 !            write(*,*) "DBGDBG: x,y = ",x,y
             
             if (ii.gt.0 .and. x.le. x2) then !Insane: Decreasing x
-+if cr
                write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write (lout,*) "DYNK> Error while reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write (lout,*) "DYNK> Error while reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write (lout,*) "DYNK> x values must "//
      &              "be in increasing order"
-+ei
-+if .not.cr
-               write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write (*,*)    "DYNK> Error while reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write (*,*)    "DYNK> x values must "//
-     &              "be in increasing order"
-+ei
                call prror(-1)
             endif
             x2 = x
@@ -42812,22 +41015,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          rewind(664)
          
          if (nfexpr_dynk+2*t .gt. maxdata_dynk) then
-+if cr
             write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write (lout,*) "DYNK> Error reading file '",
-     &           cexpr_dynk(ncexpr_dynk),"'"
+            write (lout,*) "DYNK> Error reading file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             write (lout,*) "DYNK> Not enough space in fexpr_dynk,"//
      &           " need", 2*t
             write (lout,*) "DYNK> Please increase maxdata_dynk"
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-            write (*,*)    "DYNK> Error reading file '",
-     &           cexpr_dynk(ncexpr_dynk),"'"
-            write (*,*)    "DYNK> Not enough space in fexpr_dynk,"//
-     &           " need", 2*t
-            write (*,*)    "DYNK> Please increase maxdata_dynk"
-+ei
             call prror(51)
          endif
 
@@ -42838,19 +41031,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             read(664,*, iostat=stat) x,y
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
-+if cr
-                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*) "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (lout,*) "DYNK> ii=",ii,"t=",t
-
-+ei
-+if .not.cr
-                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-                  write (*,*)    "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (*,*)    "DYNK> ii=",ii,"t=",t
-+ei
+                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*)"DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                  write (lout,*)"DYNK> ii=",ii,"t=",t
                   call prror(51)
                endif
                exit
@@ -42860,19 +41044,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             read(664,'(a)', iostat=stat) ch
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
-+if cr
-                  write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*) "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
+                  write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
+                  write (lout,*)"DYNK> Unexpected when reading file '"//
+     &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                   write (lout,*) "DYNK> ii=",ii,"t=",t
-
-+ei
-+if .not.cr
-                  write (*,*)    "DYNK> dynk_parseFUN():FILELIN"
-                  write (*,*)    "DYNK> Unexpected when reading file '",
-     &                 cexpr_dynk(ncexpr_dynk),"'"
-                  write (*,*)    "DYNK> ii=",ii,"t=",t
-+ei
                   call prror(51)
                endif
                exit
@@ -42882,36 +41057,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           filefields_fields, filefields_lfields,
      &           filefields_nfields, filefields_lerr )
             if ( filefields_lerr ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split"
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Error in getfields_split"
-+ei
                call prror(-1)
             end if
             
             if ( filefields_nfields  .ne. 2 ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> expected 2 fields, got",
      &              filefields_nfields, "ch =",ch
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FILELIN"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> expected 2 fields, got",
-     &              filefields_nfields, "ch =",ch
-+ei
               call prror(-1)
             end if
 
@@ -42973,7 +41131,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          if (getfields_lfields(4) .gt. maxstrlen_dynk-1 .or.
      &       getfields_lfields(5) .gt. maxstrlen_dynk-1 .or.
      &       getfields_lfields(6) .gt. maxstrlen_dynk-1      ) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN PIPE got one or more strings which "
@@ -42987,22 +41144,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           getfields_lfields(5)," and ",
      &           getfields_lfields(6)
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN PIPE got one or more strings which "
-            write (*,*)    "was too long (>",maxstrlen_dynk-1,")"
-            write (*,*)    "Strings: '",
-     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
-     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
-     &           getfields_fields(6)(1:getfields_lfields(6)),"'."
-            write (*,*)    "lengths =",
-     &           getfields_lfields(4),", ",
-     &           getfields_lfields(5)," and ",
-     &           getfields_lfields(6)
-            write (*,*)    "*************************************"
-+ei
             call prror(51)
          endif
 
@@ -43039,42 +41180,27 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &                 cexpr_dynk(funcs_dynk(ii,1)+2).eq. !OutPipe filename
      &                 cexpr_dynk(ncexpr_dynk-1)         ) then
                      t=ii
-+if cr
                      write(lout,*) "DYNK> "//
-+ei
-+if .not.cr
-                     write(*,*)    "DYNK> "//
-+ei
-     & "PIPE FUN '"//cexpr_dynk(funcs_dynk(nfuncs_dynk,1))//
+     &                    "PIPE FUN '" //
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1)))) //
      & "' using same settings as previously defined FUN '"   //
-     & cexpr_dynk(funcs_dynk(ii,1))//"' -> reusing files!"
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) //
+     & "' -> reusing files !"
                      if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
      &                   cexpr_dynk(ncexpr_dynk)           ) then
-+if cr
                         write(lout,*) "DYNK> "//
-+ei
-+if .not.cr
-                        write(*,*)    "DYNK> "//
-+ei
      &               "ERROR: IDs must be different when sharing PIPEs."
                         call prror(-1)
                      endif
                      exit !break loop
                   else !Partial match
-+if cr !Nested too deep, sorry about crappy alignment...
+      ! Nested too deep, sorry about crappy alignment...
       write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
       write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
       write(lout,*) "DYNK> between PIPE FUN '"               //
-     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
-     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
-+ei
-+if .not.cr
-      write(*,*)    "DYNK> *** Error in dynk_parseFUN():PIPE ***"
-      write(*,*)    "DYNK> Partial match of inPipe/outPipe/unit number"
-      write(*,*)    "DYNK> between PIPE FUN '"               //
-     &     cexpr_dynk(funcs_dynk(nfuncs_dynk,1))// "' and '" //
-     &     cexpr_dynk(funcs_dynk(ii,1))                      //"'"
-+ei
+     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1))))//
+     &     "' and '" //
+     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) // "'"
                      call prror(-1)
                   endif
                endif
@@ -43085,22 +41211,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Open the inPipe
          inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
          if (lopen) then
-+if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
+     &           "for file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2)))
      &           //"' was already taken"
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
-            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk),
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-2)
-     &           //"' was already taken"
-+ei
+
             call prror(-1)
          end if
          
-+if cr
          write(lout,*) "DYNK> Opening input pipe '"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
@@ -43108,35 +41227,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> Opening input pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
+
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
      &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
-+if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
-+ei
-+if .not.cr
-            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-2), "' stat=",stat
-+ei
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) //
+     &           "' stat=",stat
             call prror(51)
          endif
 
          ! Open the outPipe
-+if cr
          write(lout,*) "DYNK> Opening output pipe '"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
@@ -43144,30 +41247,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> Opening output pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk)))//"'"
-+ei
+
          inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
          if (lopen) then
-+if cr
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
             write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
+     &           "for file '"//
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1)))
      &           //"' was already taken"
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
-            write(*,*)   "DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
-     &           "for file '"//cexpr_dynk(ncexpr_dynk-1)
-     &           //"' was already taken"
-+ei
+
             call prror(-1)
          end if
          
@@ -43175,16 +41263,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
      &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
-+if cr
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
-+ei
-+if .not.cr
-            write(*,*)    "DYNK> dynk_parseFUN():PIPE"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk-1), "' stat=",stat
-+ei
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) //
+     &           "' stat=",stat
             call prror(51)
          endif
          write(iexpr_dynk(niexpr_dynk)+1,'(a)')
@@ -43212,7 +41294,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Store pointers
          funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
          funcs_dynk(nfuncs_dynk,2) = 6           !TYPE (RANDG)
-         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1, seed2, mcut (in iexpr_dynk)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), mcut, seed1(current), seed2(current) (in iexpr_dynk)
          funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !mu, sigma (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
@@ -43251,20 +41333,44 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          niexpr_dynk = niexpr_dynk+4
          nfexpr_dynk = nfexpr_dynk+1
 
-         if (iexpr_dynk(niexpr_dynk) .lt. 0) then
+         if (iexpr_dynk(funcs_dynk(nfuncs_dynk,3)+2) .lt. 0) then
             !mcut < 0
-+if cr
             write (lout,*) "DYNK> dynk_parseFUN():RANDG"
             write (lout,*) "DYNK> ERROR in DYNK block parsing (fort.3)"
             write (lout,*) "DYNK> mcut must be >= 0"
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> dynk_parseFUN():RANDG"
-            write (*,*)    "DYNK> ERROR in DYNK block parsing (fort.3)"
-            write (*,*)    "DYNK> mcut must be >= 0"
-+ei
             call prror(51)
          endif
+         
+      case ("RANDU")
+         ! RANDU: Uniform random number
+         
+         call dynk_checkargs(getfields_nfields,5,
+     &        "FUN funname RANDU seed1 seed2" )
+         call dynk_checkspace(4,0,1)
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         niexpr_dynk = niexpr_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 7           !TYPE (RANDU)
+         funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), seed1(current), seed2(current)
+         funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
+         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
+         ! Store data
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+         
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        iexpr_dynk(niexpr_dynk) ! seed1 (initial)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+     &        iexpr_dynk(niexpr_dynk+1) ! seed2 (initial)
+
+         iexpr_dynk(niexpr_dynk+2) = 0 ! seed1 (current)
+         iexpr_dynk(niexpr_dynk+3) = 0 ! seed2 (current)
+
+         niexpr_dynk = niexpr_dynk+3
          
       case("FIR","IIR")
          ! FIR: Finite Impulse Response filter
@@ -43323,18 +41429,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          case("IIR")
             isFIR = .false.
          case default
-+if cr
             write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
             write (lout,*) "DYNK> non-recognized type in inner switch?"
             write (lout,*) "DYNK> Got: '" //
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-            write (*,*)    "DYNK> non-recognized type in inner switch?"
-            write (*,*)    "DYNK> Got: '" //
-     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
             call prror(-1)
          end select
          
@@ -43369,26 +41467,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Sanity check
          if (funcs_dynk(nfuncs_dynk,5).eq.-1) then
             call dynk_dumpdata
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FIR/IIR function wanting function '",
      &            getfields_fields(6)(1:getfields_lfields(6)), "'"
             write (lout,*) "This FUN is unknown!"
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FIR/IIR function wanting function '",
-     &            getfields_fields(6)(1:getfields_lfields(6)), "'"
-            write (*,*)    "This FUN is unknown!"
-            write (*,*) "*************************************"
-+ei
             call prror(51)
          endif
         if (getfields_lfields(5) .gt. maxstrlen_dynk-1) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN FIR/IIR got a filename name with "
@@ -43397,32 +41484,13 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write (lout,*) "The name was: '",getfields_fields(5)
      &                                    (1:getfields_lfields(5)),"'"
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN FIR/IIR got a filenname with "
-            write (*,*)    "length =", getfields_lfields(5)
-            write (*,*)    "> ",maxstrlen_dynk-1
-            write (*,*)    "The name was: '",getfields_fields(5)
-     &                                    (1:getfields_lfields(5)),"'"
-            write (*,*)    "*************************************"
-+ei
             call prror(51)
          endif
          if ( iexpr_dynk(niexpr_dynk) .le. 0 ) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN FIR/IIR got N <= 0, this is not valid"
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "FUN FIR/IIR got N <= 0, this is not valid"
-            write (*,*)    "*************************************"
-+ei
             call prror(51)
          endif
          
@@ -43434,33 +41502,19 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          !Read the file
          inquire( unit=664, opened=lopen )
          if (lopen) then
-+if cr
             write(lout,*)
      &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
             write(lout,*)"DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
-+ei
-+if .not.cr
-            write(*,*)
-     &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
-            write(*,*)   "DYNK> unit 664 for file '"//
-     &           cexpr_dynk(ncexpr_dynk), "' was already taken"
-+ei
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &           "' was already taken"
             call prror(-1)
          end if
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat, status="OLD")
          if (stat .ne. 0) then
-+if cr
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write(lout,*) "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
-+ei
-+if .not.cr
-            write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-            write(*,*)    "DYNK> Error opening file '",
-     &           cexpr_dynk(ncexpr_dynk), "'"
-+ei
+            write(lout,*) "DYNK> Error opening file '" //
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
             call prror(51)
          endif
          
@@ -43473,18 +41527,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
                read(664,*,iostat=stat) t, x, y, z, u
             endif
             if (stat.ne.0) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '" //
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
-+ei
                call prror(-1)
             endif
 +ei ! END + if .not.crlibm
@@ -43493,18 +41539,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +if crlibm
             read(664,'(a)', iostat=stat) ch
             if (stat.ne.0) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> File ended unexpectedly at ii =",ii
-+ei
                call prror(-1)
             endif
             
@@ -43514,38 +41552,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             
             !Sanity checks
             if ( filefields_lerr ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
                write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split()"
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Error in getfields_split()"
-+ei
                call prror(-1)
             end if
             if ( (      isFIR .and.filefields_nfields .ne. 3) .or.
      &           ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+     &              "', line =", ii
                write(lout,*) "DYNK> Expected 3[5] fields ",
      &              "(idx, fac, init, selfFac, selfInit), ",
      &              "got ",filefields_nfields
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"', line =", ii
-               write(*,*)    "DYNK> Expected 3[5] fields ",
-     &              "(idx, fac, init, selfFac, selfInit), ",
-     &              "got ",filefields_nfields
-+ei
                call prror(-1)
             endif
             
@@ -43578,18 +41599,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
             ! More sanity checks
             if (t .ne. ii) then
-+if cr
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
+               write(lout,*) "DYNK> Error reading file '"//
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
-+ei
-+if .not.cr
-               write(*,*)    "DYNK> dynk_parseFUN():FIR/IIR"
-               write(*,*)    "DYNK> Error reading file '",
-     &              cexpr_dynk(ncexpr_dynk),"'"
-               write(*,*)    "DYNK> Got line t =",t, ", expected ", ii
-+ei
                call prror(-1)
             endif
             !Save data to arrays
@@ -43636,18 +41649,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          case ("POW")
             funcs_dynk(nfuncs_dynk,2) = 24 !TYPE (POW)
          case default
-+if cr
             write (lout,*) "DYNK> dynk_parseFUN() : 2-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch"
             write (lout,*) "DYNK> Got: '" //
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> dynk_parseFUN() : 2-arg function"
-            write (*,*)    "DYNK> non-recognized type in inner switch"
-            write (*,*)    "DYNK> Got: '" //
-     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
             call prror(51)
          end select
          funcs_dynk(nfuncs_dynk,3) = 
@@ -43663,7 +41668,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          ! Sanity check (string lengths are done inside dynk_findFUNindex)
          if (funcs_dynk(nfuncs_dynk,3) .eq. -1 .or. 
      &       funcs_dynk(nfuncs_dynk,4) .eq. -1) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "TWO ARG OPERATOR wanting functions '",
@@ -43673,18 +41677,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           funcs_dynk(nfuncs_dynk,3), funcs_dynk(nfuncs_dynk,4)
             write (lout,*) "One or both of these are not known (-1)."
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "TWO ARG OPERATOR wanting functions '",
-     &           getfields_fields(4)(1:getfields_lfields(4)), "' and '",
-     &           getfields_fields(5)(1:getfields_lfields(5)), "'"
-            write (*,*)    "Calculated indices:",
-     &           funcs_dynk(nfuncs_dynk,3), funcs_dynk(nfuncs_dynk,4)
-            write (*,*)    "One or both of these are not known (-1)."
-            write (*,*)    "*************************************"
-+ei
             call dynk_dumpdata
             call prror(51)
          end if
@@ -43717,18 +41709,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          case ("EXP")
             funcs_dynk(nfuncs_dynk,2) = 36 !TYPE (EXP)
          case default
-+if cr
             write (lout,*) "DYNK> dynk_parseFUN() : 1-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch?"
             write (lout,*) "DYNK> Got: '" //
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> dynk_parseFUN() : 1-arg function"
-            write (*,*)    "DYNK> non-recognized type in inner switch?"
-            write (*,*)    "DYNK> Got: '" //
-     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
             call prror(51)
          end select
          funcs_dynk(nfuncs_dynk,3) = 
@@ -43740,7 +41724,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        getfields_fields(2)(1:getfields_lfields(2))
          ! Sanity check (string lengths are done inside dynk_findFUNindex)
          if (funcs_dynk(nfuncs_dynk,3) .eq. -1) then
-+if cr
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "SINGLE OPERATOR FUNC wanting function '",
@@ -43749,17 +41732,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           funcs_dynk(nfuncs_dynk,3)
             write (lout,*) "One or both of these are not known (-1)."
             write (lout,*) "*************************************"
-+ei
-+if .not.cr
-            write (*,*)    "*************************************"
-            write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-            write (*,*)    "SINGLE OPERATOR FUNC wanting function '",
-     &           getfields_fields(4)(1:getfields_lfields(4)), "'"
-            write (*,*)    "Calculated index:",
-     &           funcs_dynk(nfuncs_dynk,3)
-            write (*,*)    "One or both of these are not known (-1)."
-            write (*,*)    "*************************************"
-+ei
             call dynk_dumpdata
             call prror(51)
          end if
@@ -43915,14 +41887,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          nfexpr_dynk = nfexpr_dynk + 3
          
          if (fexpr_dynk(nfexpr_dynk-3).eq.fexpr_dynk(nfexpr_dynk-2))then
-+if cr
             write (lout,*) "ERROR in DYNK block parsing (fort.3)"
             write (lout,*) "LINSEG: x1 and x2 must be different."
-+ei
-+if .not.cr
-            write (*,*)    "ERROR in DYNK block parsing (fort.3)"
-            write (*,*)    "LINSEG: x1 and x2 must be different."
-+ei
             call prror(51)
          endif
          
@@ -44025,14 +41991,8 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &        call rounderr( errno,getfields_fields,8, deriv )
 +ei
          if (x1 .eq. x2) then
-+if cr
             write (lout,*) "ERROR in DYNK block parsing (fort.3)"
             write (lout,*) "QUADSEG: x1 and x2 must be different."
-+ei
-+if .not.cr
-            write (*,*)    "ERROR in DYNK block parsing (fort.3)"
-            write (*,*)    "QUADSEG: x1 and x2 must be different."
-+ei
             call prror(51)
          endif
          
@@ -44081,18 +42041,10 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          case ("COSF_RIPP")
             funcs_dynk(nfuncs_dynk,2) = 62       !TYPE (COSF_RIPP)
          case default
-+if cr
             write (lout,*) "DYNK> dynk_parseFUN() : SINF/COSF"
             write (lout,*) "DYNK> non-recognized type in inner switch"
             write (lout,*) "DYNK> Got: '" //
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> dynk_parseFUN() : SINF/COSF"
-            write (*,*)    "DYNK> non-recognized type in inner switch"
-            write (*,*)    "DYNK> Got: '" //
-     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-+ei
             call prror(51)
          end select
          funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk !ARG1
@@ -44204,7 +42156,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          tnom      = td + R/D
          
          if (ldynkdebug) then
-+if cr
          write (lout,*) "DYNKDEBUG> *** PELP SETTINGS: ***"
          write (lout,*) "DYNKDEBUG> tinj =", tinj
          write (lout,*) "DYNKDEBUG> Iinj =", Iinj
@@ -44223,45 +42174,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "DYNKDEBUG> td        =", td
          write (lout,*) "DYNKDEBUG> tnom      =", tnom
          write (lout,*) "DYNKDEBUG> **********************"
-+ei
-+if .not.cr
-         write (*,*)    "DYNKDEBUG> *** PELP SETTINGS: ***"
-         write (*,*)    "DYNKDEBUG> tinj =", tinj
-         write (*,*)    "DYNKDEBUG> Iinj =", Iinj
-         write (*,*)    "DYNKDEBUG> Inom =", Inom
-         write (*,*)    "DYNKDEBUG> A    =", A
-         write (*,*)    "DYNKDEBUG> D    =", D
-         write (*,*)    "DYNKDEBUG> R    =", R
-         write (*,*)    "DYNKDEBUG> te   =", te
-         write (*,*)    "DYNKDEBUG> "
-         write (*,*)    "DYNKDEBUG> derivI_te =", derivI_te
-         write (*,*)    "DYNKDEBUG> I_te      =", I_te
-         write (*,*)    "DYNKDEBUG> bexp      =", bexp
-         write (*,*)    "DYNKDEBUG> aexp      =", aexp
-         write (*,*)    "DYNKDEBUG> t1        =", t1
-         write (*,*)    "DYNKDEBUG> I1        =", I1
-         write (*,*)    "DYNKDEBUG> td        =", td
-         write (*,*)    "DYNKDEBUG> tnom      =", tnom
-         write (*,*)    "DYNKDEBUG> **********************"
-+ei
+         
          endif
          
          if (.not. (tinj .lt. te .and.
      &                te .lt. t1 .and.
      &                t1 .lt. td .and.
      &                td .lt. tnom ) ) then
-+if cr
             WRITE(lout,*) "DYNK> ********************************"
             WRITE(lout,*) "DYNK> ERROR***************************"
             write(lout,*) "DYNK> PELP: Order of times not correct"
             WRITE(lout,*) "DYNK> ********************************"
-+ei
-+if .not.cr
-            WRITE(*,*)    "DYNK> ********************************"
-            WRITE(*,*)    "DYNK> ERROR***************************"
-            write(*,*)    "DYNK> PELP: Order of times not correct"
-            WRITE(*,*)    "DYNK> ********************************"
-+ei
             call prror(51)
          endif
          
@@ -44285,10 +42208,45 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          fexpr_dynk(nfexpr_dynk+12) = Inom
          
          nfexpr_dynk = nfexpr_dynk + 12
+
+      case("ONOFF")
+         ! ONOFF: On for p1 turns, then off for the rest of the period p2
+         call dynk_checkargs(getfields_nfields,5,
+     &        "FUN funname ONOFF p1 p2" )
+         call dynk_checkspace(0,0,1)
+         
+         ! Set pointers to start of funs data blocks
+         nfuncs_dynk = nfuncs_dynk+1
+         ncexpr_dynk = ncexpr_dynk+1
+
+         ! Store pointers
+         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
+         funcs_dynk(nfuncs_dynk,2) = 81          !TYPE (PELP)
+         funcs_dynk(nfuncs_dynk,3) = -1          !ARG1 (p1)
+         funcs_dynk(nfuncs_dynk,4) = -1          !ARG2 (p2)
+         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3 (unused)
+         
+         ! Store data
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+     &        getfields_fields(2)(1:getfields_lfields(2))
+
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+     &        funcs_dynk(nfuncs_dynk,3) ! p1
+         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+     &        funcs_dynk(nfuncs_dynk,4) ! p2
+
+         !Check for bad input
+         if ( funcs_dynk(nfuncs_dynk,3) .lt. 0 .or.                    ! p1 <  1 ?
+     &        funcs_dynk(nfuncs_dynk,4) .le. 1 .or.                    ! p2 <= 1 ?
+     &        funcs_dynk(nfuncs_dynk,4) .lt. funcs_dynk(nfuncs_dynk,3) ! p2 < p1 ?
+     &        ) then
+            write(lout,*)
+     &      "DYNK> Error in ONOFF: Expected p1 >= 0, p2 > 1, p1 <= p2"
+            call prror(-1)
+         end if
          
       case default
          ! UNKNOWN function
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Unkown function to dynk_parseFUN()   "
@@ -44298,18 +42256,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
      &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
          enddo
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Unkown function to dynk_parseFUN()   "
-         write (*,*)    "Got fields:"
-         do ii=1,getfields_nfields
-            write (*,*)    "Field(",ii,") ='",
-     &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
-         enddo
-         write (*,*)    "*************************************"
-+ei
 
          call dynk_dumpdata
          call prror(51)
@@ -44319,16 +42265,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 
       subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
       implicit none
++ca crcoall
       integer nfields, nfields_expected
       character(*) funsyntax
       intent(in) nfields, nfields_expected, funsyntax
       
       if (nfields .ne. nfields_expected) then
-         write (*,*) "ERROR in DYNK block parsing (fort.3)"
-         write (*,*) "The function expected",nfields_expected,
+         write (lout,*) "ERROR in DYNK block parsing (fort.3)"
+         write (lout,*) "The function expected",nfields_expected,
      &               "arguments, got",nfields
-         write (*,*) "Expected syntax:"
-         write (*,*) funsyntax(:)
+         write (lout,*) "Expected syntax:"
+         write (lout,*) funsyntax(:)
          call prror(51)
       endif
       end subroutine
@@ -44341,27 +42288,18 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca stringzerotrim
 +ca comdynk      
 
-+if cr
 +ca crcoall
-+ei
 
       if ( (niexpr_dynk+iblocks .gt. maxdata_dynk) .or.
      &     (nfexpr_dynk+fblocks .gt. maxdata_dynk) .or.
      &     (ncexpr_dynk+cblocks .gt. maxdata_dynk) ) then
-+if cr
+         
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Max number of maxdata_dynk to be exceeded"
          write (lout,*) "niexpr_dynk:", niexpr_dynk
          write (lout,*) "nfexpr_dynk:", nfexpr_dynk
          write (lout,*) "ncexpr_dynk:", ncexpr_dynk
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Max number of maxdata_dynk to be exceeded"
-         write (*,*)    "niexpr_dynk:", niexpr_dynk
-         write (*,*)    "nfexpr_dynk:", nfexpr_dynk
-         write (*,*)    "ncexpr_dynk:", ncexpr_dynk
-+ei
+         
          call prror(51)
       endif
       end subroutine
@@ -44380,32 +42318,21 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca comdynk
 +ca comgetfields
 
-+if cr
 +ca crcoall
-+ei
 
       integer ii
       
       integer dynk_findFUNindex
 
       if (nsets_dynk+1 .gt. maxsets_dynk) then
-+if cr
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Maximum number of SET exceeded, ",
      &               "please increase parameter maxsets_dynk."
          write (lout,*) "Current value of maxsets_dynk:", maxsets_dynk
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Maximum number of SET exceeded, ",
-     &                  "please increase parameter maxsets_dynk."
-         write (*,*)    "Current value of maxsets_dynk:", maxsets_dynk
-+ei
          call prror(51)
       endif
 
       if (getfields_nfields .ne. 7) then
-+if cr
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Expected 6 fields on line while parsing SET."
          write (lout,*) "Correct syntax:"
@@ -44416,19 +42343,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
             write (lout,*) "Field(",ii,") ='",
      &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
          enddo
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "Expected 6 fields on line while parsing SET."
-         write (*,*)    "Correct syntax:"
-         write (*,*)    "SET element_name attribute_name function_name",
-     &                  " startTurn endTurn turnShift"
-         write (*,*)    "got field:"
-         do ii=1,getfields_nfields
-            write (*,*)    "Field(",ii,") ='",
-     &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
-         enddo
-+ei
          call prror(51)
       endif
 
@@ -44447,7 +42361,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       !Sanity check on string lengths
       if (getfields_lfields(2).gt.16 .or.
      &    getfields_lfields(2).gt.maxstrlen_dynk-1) then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET got an element name with length =",
@@ -44455,34 +42368,15 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "The name was: '",
      &        getfields_fields(2)(1:getfields_lfields(2)),"'"
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got an element name with length =",
-     &        getfields_lfields(2), "> 16 or > maxstrlen_dynk-1."
-         write (*,*)    "The name was: '",
-     &        getfields_fields(2)(1:getfields_lfields(2)),"'"
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       endif
       
       if (getfields_lfields(3).gt.maxstrlen_dynk-1) then
-+if cr
          write(lout,*) "ERROR in DYNK block parsing (fort.3) (SET):"
          write(lout,*) "The attribute name '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "is too long! Max length is",
      &        maxstrlen_dynk-1
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in DYNK block parsing (fort.3) (SET):"
-         write(*,*)    "The attribute name '"//
-     &        getfields_fields(2)(1:getfields_lfields(2))//"'"
-         write(*,*)    "is too long! Max length is",
-     &        maxstrlen_dynk-1
-+ei
          call prror(51)         
       endif
       
@@ -44494,7 +42388,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
       
       ! Sanity check
       if (sets_dynk(nsets_dynk,1).eq.-1) then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET wanting function '",
@@ -44502,22 +42395,11 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "Calculated index:", sets_dynk(nsets_dynk,1)
          write (lout,*) "This function is not known."
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET wanting function '",
-     &        getfields_fields(4)(1:getfields_lfields(4)), "'"
-         write (*,*)    "Calculated index:", sets_dynk(nsets_dynk,1)
-         write (*,*)    "This function is not known."
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       endif
       
       if (  (sets_dynk(nsets_dynk,3) .ne. -1) .and. !Not the special case
      &      (sets_dynk(nsets_dynk,2) .gt. sets_dynk(nsets_dynk,3)) )then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET got first turn num > last turn num"
@@ -44525,23 +42407,12 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "last =",sets_dynk(nsets_dynk,3)
          write (lout,*) "SET #", nsets_dynk
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got first turn num > last turn num"
-         write (*,*)    "first=",sets_dynk(nsets_dynk,2)
-         write (*,*)    "last =",sets_dynk(nsets_dynk,3)
-         write (*,*)    "SET #", nsets_dynk
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       end if
       
       if ( (sets_dynk(nsets_dynk,2) .le. 0 ) .or.
      &     (sets_dynk(nsets_dynk,3) .lt. -1) .or. 
      &     (sets_dynk(nsets_dynk,3) .eq. 0 )     ) then
-+if cr
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "SET got turn number <= 0 "
@@ -44550,17 +42421,6 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
          write (lout,*) "last =",sets_dynk(nsets_dynk,3)
          write (lout,*) "SET #", nsets_dynk
          write (lout,*) "*************************************"
-+ei
-+if .not.cr
-         write (*,*)    "*************************************"
-         write (*,*)    "ERROR in DYNK block parsing (fort.3):"
-         write (*,*)    "SET got turn number <= 0 "
-         write (*,*)    "(not last = -1 meaning infinity)"
-         write (*,*)    "first=",sets_dynk(nsets_dynk,2)
-         write (*,*)    "last =",sets_dynk(nsets_dynk,3)
-         write (*,*)    "SET #", nsets_dynk
-         write (*,*)    "*************************************"
-+ei
          call prror(51)
       end if
 
@@ -44582,9 +42442,7 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 +ca parpro
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
       character(*) funName_input
       character(maxstrlen_dynk) funName
       integer startfrom
@@ -44596,30 +42454,17 @@ C     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sig
 C      write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)      
 
       if (len(funName_input).gt.maxstrlen_dynk) then
-+if cr
          write (lout,*) "ERROR in dynk_findFUNindex"
          write (lout,*) "len(funName_input) = ",len(funName_input),
      &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1
-+ei
-+if .not.cr
-         write (*,*)    "ERROR in dynk_findFUNindex"
-         write (*,*)    "len(funName_input) = ",len(funName_input),
-     &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1      
-+ei
          call prror(-1)
       endif
       ! If the length is exactly maxstrlen_dynk, it should be zero-terminated.
       if (( len(funName_input).eq.maxstrlen_dynk ) .and.
      &    ( funName_input(len(funName_input):len(funName_input))
      &     .ne.char(0)) ) then
-+if cr
          write (lout,*) "ERROR in dynk_findFUNindex"
          write (lout,*) "Expected funName_input[-1]=NULL"
-+ei
-+if .not.cr
-         write (*,*) "ERROR in dynk_findFUNindex"
-         write (*,*) "Expected funName_input[-1]=NULL"
-+ei
          call prror(-1)
       endif
       
@@ -44689,9 +42534,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca parpro
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
       ! functions
       integer dynk_findFUNindex , dynk_findSETindex
 
@@ -44705,12 +42548,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          jj = dynk_findFUNindex(cexpr_dynk(funcs_dynk(ii,1)),ii+1)
          if ( jj.ne. -1) then
             sane = .false.
-+if cr
             write (lout,*)
-+ei
-+if .not.cr
-            write (*,*) 
-+ei
      &           "DYNK> Insane: function ", 
      &           ii, "has the same name as", jj
          end if
@@ -44726,12 +42564,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       biggestTurn = biggestTurn+1 !Make sure it is unique
       if (biggestTurn .le. 0) then
          !In case of integer overflow
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &        "FATAL ERROR: Integer overflow in dynk_inputsanitycheck!"
          call prror(-1)
       endif
@@ -44760,12 +42593,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             if ( sets_dynk(jj,2) .le. sets_dynk(ii,2) .and.
      &           sets_dynk(jj,3) .ge. sets_dynk(ii,2) ) then
                sane = .false.
-+if cr
                write (lout,"(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
-+if .not.cr
-               write (*,   "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
      &              " DYNK> Insane: Lower edge of SET #", jj,
      &        " =", sets_dynk(jj,2)," <= lower edge of SET #",ii,
      &        " =", sets_dynk(ii,2),"; and also higer edge of SET #",jj,
@@ -44774,12 +42602,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             else if (sets_dynk(jj,3) .ge. sets_dynk(ii,3) .and.
      &               sets_dynk(jj,2) .le. sets_dynk(ii,3) ) then
                sane = .false.
-+if cr
                write(lout, "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
-+if .not.cr
-               write (*,   "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-+ei
      &              " DYNK> Insane: Upper edge of SET #", jj,
      &        " =", sets_dynk(jj,3)," >= upper edge of SET #",ii,
      &        " =", sets_dynk(ii,3),"; and also lower edge of SET #",jj,
@@ -44789,12 +42612,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &               sets_dynk(jj,3) .le. sets_dynk(ii,3) ) then
                ! (other way round gets caugth by the first "if")
                sane = .false.
-+if cr
                write(lout, "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)")
-+ei
-+if .not.cr
-               write (*,   "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)")
-+ei
      &              " DYNK> Insane: SET #", jj,
      &        " = (", sets_dynk(jj,2),", ", sets_dynk(jj,3), ")",
      &        " is inside SET #", ii, " = (", 
@@ -44806,25 +42624,13 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       enddo
 
       if (.not. sane) then
-+if cr
          write (lout,*) "****************************************"
          write (lout,*) "*******DYNK input was insane************"
          write (lout,*) "****************************************"
-+ei
-+if .not.cr
-         write (*,*)    "****************************************"
-         write (*,*)    "*******DYNK input was insane************"
-         write (*,*)    "****************************************"
-+ei
          call dynk_dumpdata
          call prror(-11)
       else if (sane .and. ldynkdebug) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "DYNK> DYNK input was sane"
       end if
       end subroutine
@@ -44839,143 +42645,58 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca parpro
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
 
       integer ii
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei      
      &     "**************** DYNK parser knows: ****************"
 
-+if cr
       write (lout,*) "OPTIONS:"
       write (lout,*) " ldynk            =", ldynk
       write (lout,*) " ldynkdebug       =", ldynkdebug
       write (lout,*) " ldynkfiledisable =", ldynkfiledisable
-+ei
-+if .not.cr
-      write (*,*)    "OPTIONS:"
-      write (*,*)    " ldynk            =", ldynk
-      write (*,*)    " ldynkdebug       =", ldynkdebug
-      write (*,*)    " ldynkfiledisable =", ldynkfiledisable
-+ei
 
-+if cr
       write (lout,*) "FUN:"
       write (lout,*) "ifuncs: (",nfuncs_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "FUN:"
-      write (*,*)    "ifuncs: (",nfuncs_dynk,")"
-+ei
       do ii=1,nfuncs_dynk
-+if cr
          write (lout,*) 
-+ei
-+if .not.cr
-         write (*,*) 
-+ei
      &        ii, ":", funcs_dynk(ii,:)
-
       end do
-+if cr
       write (lout,*) "iexpr_dynk: (",niexpr_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "iexpr_dynk: (",niexpr_dynk,")"
-+ei
       do ii=1,niexpr_dynk
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &     ii, ":", iexpr_dynk(ii)
       end do
-+if cr
       write (lout,*) "fexpr_dynk: (",nfexpr_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "fexpr_dynk: (",nfexpr_dynk,")"
-+ei
       do ii=1,nfexpr_dynk
-+if cr
          write (lout, '(1x,I8,1x,A,1x,E16.9)')
-+ei
-+if .not.cr
-         write (*,    '(1x,I8,1x,A,1x,E16.9)')
-+ei
      &   ii, ":", fexpr_dynk(ii)
       end do
-+if cr
       write (lout,*) "cexpr_dynk: (",ncexpr_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "cexpr_dynk: (",ncexpr_dynk,")"
-+ei
       do ii=1,ncexpr_dynk
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &   ii, ":", "'"//trim(stringzerotrim(cexpr_dynk(ii)))//"'"
       end do
 
-+if cr
       write (lout,*) "SET:"      
       write (lout,*) "sets(,:) csets(,1) csets(,2): (",
      &     nsets_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "SET:"      
-      write (*,*)    "sets(,:) csets(,1) csets(,2): (",
-     &     nsets_dynk,")"
-+ei
       do ii=1,nsets_dynk
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*) 
-+ei
      &        ii, ":", sets_dynk(ii,:),
      &        "'"//trim(stringzerotrim(csets_dynk(ii,1)))//
      &  "' ", "'"//trim(stringzerotrim(csets_dynk(ii,2)))//"'"
       end do
-      
-+if cr
       write (lout,*) "csets_unique_dynk: (",nsets_unique_dynk,")"
-+ei
-+if .not.cr
-      write (*,*)    "csets_unique_dynk: (",nsets_unique_dynk,")"
-+ei
       do ii=1,nsets_unique_dynk
-+if cr
          write(lout, '(1x,I8,1x,A,1x,E16.9)')
-+ei
-+if .not.cr
-         write (*,   '(1x,I8,1x,A,1x,E16.9)')
-+ei
      &       ii, ": '"//
      &       trim(stringzerotrim(csets_unique_dynk(ii,1)))//"' '"//
      &       trim(stringzerotrim(csets_unique_dynk(ii,2)))//"' = ",
      &        fsets_origvalue_dynk(ii)
       end do
 
-+if cr
       write (lout,*) "*************************************************"
-+ei
-+if .not.cr
-      write (*,*)    "*************************************************"
-+ei
       
       end subroutine
       
@@ -44992,9 +42713,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca common
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
 +ca commondl
 
       !Functions
@@ -45007,12 +42726,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       logical found, badelem
       integer ix
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &    "DYNKDEBUG> In dynk_pretrack()"
       end if
       
@@ -45044,12 +42758,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                
                if (att_name_s .eq. "E0") then
                   if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
-+if cr
                      write(lout,*) "DYNK> Insane - attribute '",
-+ei
-+if .not.cr
-                     write(*,*)    "DYNK> Insane - attribute '",
-+ei
      &                  att_name_s, "' is not valid for 'GLOBAL-VARS' ",
      &                  "when doing 4d tracking"
                      call prror(-1)
@@ -45059,12 +42768,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                endif
 
                if (badelem) then
-+if cr
                   write(lout,*) "DYNK> Insane - attribute '",
-+ei
-+if .not.cr
-                  write(*,*)    "DYNK> Insane - attribute '",
-+ei
      &                att_name_s, "' is not valid for 'GLOBAL-VARS'"
                   call prror(-1)
                endif
@@ -45089,12 +42793,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         badelem = .true.
                      endif
                      if (kp(jj).ne.6) then
-+if cr
                         write(lout,*) "DYNK> Insane - want to modify ",
-+ei
-+if .not.cr
-                        write(*,*)    "DYNK> Insane - want to modify ",
-+ei
 
      &                      "DISABLED RF cavity named '",element_name_s,
      &                      ". Please make sure that the voltage and ",
@@ -45103,12 +42802,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         call prror(-1)
                      endif
                      if (nvar .eq. 5) then
-+if cr
                         write(lout,*) "DYNK> Insane - want to modify ",
-+ei
-+if .not.cr
-                        write(*,*)    "DYNK> Insane - want to modify ",
-+ei
      &                       "RF cavity named '", element_name_s, "', ",
      &                       "but nvars=5 (from DIFF block)."
                      endif
@@ -45127,24 +42821,14 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   ! Special case:
                   ! Should the error only occur if we actually have a GLOBAL-VARS element?
                   if (bez(jj) .eq. "GLOBAL-VARS") then
-+if cr
                      write(lout,*) "DYNK> Insane - element found '",
-+ei
-+if .not.cr
-                     write(*,*)    "DYNK> Insane - element found '",
-+ei
      &                    "GLOBAL-VARS' is not a valid element name, ",
      &                    "it is reserved"
                      call prror(-1) 
                   endif
                   
                   if (badelem) then
-+if cr
                      write(lout,*) "DYNK> Insane - attribute '",
-+ei
-+if .not.cr
-                     write(*,*)    "DYNK> Insane - attribute '",
-+ei
      &                    att_name_s, "' is not valid for element '",
      &                    element_name_s, "' which is of type",kz(jj)
                      call prror(-1) 
@@ -45153,14 +42837,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                endif
             enddo
             if (.not. found) then
-+if cr
                write (lout,*) "DYNK> Insane: Element '", element_name_s,
      &                        "' was not found"
-+ei
-+if .not.cr
-               write (*,*)    "DYNK> Insane: Element '", element_name_s,
-     &                        "' was not found"
-+ei
                call prror(-1)
             endif
 
@@ -45205,9 +42883,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 
-+if cr
 +ca crcoall
-+ei
 +ca parpro
 +ca parnum
 +ca common
@@ -45241,12 +42917,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       integer whichSET(maxsets_dynk) !Which SET was used for a given elem/attr?
 
       if ( ldynkdebug ) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &   'DYNKDEBUG> In dynk_apply(), turn = ',
 +if collimat
      & turn, "samplenumber =", samplenumber
@@ -45270,28 +42941,31 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          do ii=1, nfuncs_dynk
             if (funcs_dynk(ii,2) .eq. 6) then !RANDG
                if (ldynkdebug) then
-+if cr
                   write (lout,*) 
-+ei
-+if .not.cr
-                  write (*,*) 
-+ei
-     &               "DYNKDEBUG> Resetting RNG for FUN named '",
+     &               "DYNKDEBUG> Resetting RANDG for FUN named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
                iexpr_dynk(funcs_dynk(ii,3)+3) =
-     &         iexpr_dynk(funcs_dynk(ii,3) )
+     &              iexpr_dynk(funcs_dynk(ii,3) )
                iexpr_dynk(funcs_dynk(ii,3)+4) =
-     &         iexpr_dynk(funcs_dynk(ii,3)+1)
+     &              iexpr_dynk(funcs_dynk(ii,3)+1)
+               
+            else if (funcs_dynk(ii,2) .eq. 7) then !RANDU
+               if (ldynkdebug) then
+                  write (lout,*) 
+     &               "DYNKDEBUG> Resetting RANDU for FUN named '",
+     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
+               endif
+
+               iexpr_dynk(funcs_dynk(ii,3)+2) =
+     &              iexpr_dynk(funcs_dynk(ii,3) )
+               iexpr_dynk(funcs_dynk(ii,3)+3) =
+     &              iexpr_dynk(funcs_dynk(ii,3)+1)
+
             else if (funcs_dynk(ii,2) .eq. 10) then !FIR
                if (ldynkdebug) then
-+if cr
                   write (lout,*)
-+ei
-+if .not.cr
-                  write (*,*)
-+ei
      &               "DYNKDEBUG> Resetting FIR named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
@@ -45301,12 +42975,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                enddo
             else if (funcs_dynk(ii,2) .eq. 11) then !IIR
                if (ldynkdebug) then
-+if cr
                   write (lout,*)
-+ei
-+if .not.cr
-                  write (*,*)
-+ei
      &               "DYNKDEBUG> Resetting IIR named '",
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
@@ -45330,16 +42999,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
             inquire( unit=665, opened=lopen )
             if (lopen) then
-+if cr
                write(lout,*) "DYNK> **** ERROR in dynk_apply() ****"
                write(lout,*) "DYNK> unit 665 for dynksets.dat"//
      &                       " was already taken"
-+ei
-+if .not.cr
-              write(*,*)    "DYNK> **** ERROR in dynk_apply() ****"
-              write(*,*)    "DYNK> unit 665 for dynksets.dat"//
-     &                      " was already taken"
-+ei
               call prror(-1)
             end if
             open(unit=665, file="dynksets.dat",
@@ -45371,14 +43033,14 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! Reset values to original settings in turn 1 
          if (samplenumber.gt.1) then
             if (ldynkdebug) then
-               write (*,*) "DYNKDEBUG> New collimat sample, ",
+               write (lout,*) "DYNKDEBUG> New collimat sample, ",
      &            "samplenumber = ", samplenumber,
      &                     "resetting the SET'ed values."
             endif
             do ii=1, nsets_unique_dynk
                newValue = fsets_origvalue_dynk(ii)
                if (ldynkdebug) then
-                  write (*,*) "DYNKDEBUG> Resetting: '",
+                  write (lout,*) "DYNKDEBUG> Resetting: '",
      &         trim(stringzerotrim(csets_unique_dynk(ii,1))),
      &         "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))),
      &         "', newValue=", newValue
@@ -45408,12 +43070,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             !Set the value
             newValue = dynk_computeFUN(sets_dynk(ii,1),shiftedTurn)
             if (ldynkdebug) then
-+if cr
                write (lout, '(1x,A,I5,A,I8,A,E16.9)')
-+ei
-+if .not.cr
-               write     (*,'(1x,A,I5,A,I8,A,E16.9)')
-+ei
      &              "DYNKDEBUG> Applying set #", ii, " on '"//
      &           trim(stringzerotrim(csets_dynk(ii,1)))//
      &           "':'"// trim(stringzerotrim(csets_dynk(ii,2)))//
@@ -45427,21 +43084,11 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             if (ldynkdebug) then
                getvaldata = dynk_getvalue( csets_dynk(ii,1), 
      &                                     csets_dynk(ii,2) )
-+if cr
                write (lout, '(1x,A,E16.9)')
-+ei
-+if .not.cr
-               write (*,    '(1x,A,E16.9)')
-+ei
      &              "DYNKDEBUG> Read back value = ", getvaldata
 
                if (getvaldata .ne. newValue) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
      &            "DYNKDEBUG> WARNING Read back value differs from set!"
                end if
             endif
@@ -45517,9 +43164,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if crlibm
 +ca crlibco
 +ei
-+if cr
 +ca crcoall
-+ei
       
       ! Temporaries for FILELIN
       integer filelin_start, filelin_xypoints
@@ -45553,16 +43198,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ei
       
       if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
          write(lout,*) "DYNK> funNum =", funNum
          write(lout,*) "DYNK> Invalid funNum, nfuncs_dynk=", nfuncs_dynk
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_computeFUN() ****"
-         write(*,*)    "DYNK> funNum =", funNum
-         write(*,*)    "DYNK> Invalid funNum, nfuncs_dynk=", nfuncs_dynk
-+ei
          call dynk_dumpdata
          call prror(-1)
       endif
@@ -45572,31 +43210,16 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          retval = fexpr_dynk(funcs_dynk(funNum,3))
       case (1)                                                          ! FILE
          if (turn .gt. funcs_dynk(funNum,5) ) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
             write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
             write(lout,*)"DYNK> Turn > length of file = ", 
      &           funcs_dynk(funNum,5)
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():FILE****"
-            write(*,*)   "DYNK> funNum =", funNum, "turn=", turn
-            write(*,*)   "DYNK> Turn > length of file = ", 
-     &           funcs_dynk(funNum,5)
-+ei
             call dynk_dumpdata
             call prror(-1)
          elseif (turn .lt. 1) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
             write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
             write(lout,*)"DYNK> Turn < 1, check your turn-shift!"
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():FILE****"
-            write(*,*)   "DYNK> funNum =", funNum, "turn=", turn
-            write(*,*)   "DYNK> Turn < 1, check your turn-shift!"
-+ei
             call dynk_dumpdata
             call prror(-1)
          endif
@@ -45625,27 +43248,14 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          call getfields_split( ch, getfields_fields, getfields_lfields,
      &                             getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
             write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
-            write(*,*)   "DYNK> getfields_lerr=", getfields_lerr
-+ei
             call prror(-1)
          endif
          if (getfields_nfields .ne. 1) then
-+if cr
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
             write(lout,*)"DYNK> getfields_nfields=", getfields_nfields
             write(lout,*)"DYNK> Expected a single number."
-+ei
-+if .not.cr
-            write(*,*)   "DYNK> ****ERROR in dynk_computeFUN():PIPE****"
-            write(*,*)   "DYNK> getfields_nfields=", getfields_nfields
-            write(*,*)   "DYNK> Expected a single number."
-+ei
             call prror(-1)
          endif
          retval = round_near(errno,
@@ -45669,6 +43279,19 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! Change to mu, sigma
          retval = fexpr_dynk(funcs_dynk(funNum,4))
      &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
+
+      case (7)                                                          ! RANDU
+         ! Save old seeds and load our current seeds
+         call recuut(tmpseed1,tmpseed2)
+         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2),
+     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
+         ! Run generator for 1 value with mcut=-1
+         call ranecu( ranecu_rvec, 1, -1 )
+         ! Save our current seeds and load old seeds
+         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),
+     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
+         call recuin(tmpseed1,tmpseed2)
+         retval = ranecu_rvec(1)
          
       case(10)                                                          ! FIR
          foff = funcs_dynk(funNum,3)
@@ -45853,19 +43476,20 @@ C+ei
             ! Constant Inom
             retval = fexpr_dynk(foff+12)
          endif
+
+      case (81)                                                         ! ONOFF
+         ii=mod(turn-1,funcs_dynk(funNum,4))
+         if (ii .lt. funcs_dynk(funNum,3)) then
+            retval = 1.0
+         else
+            retval = 0.0
+         endif
+         
       case default
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_computeFUN(): ****"
          write(lout,*) "DYNK> funNum =", funNum, "turn=", turn
          write(lout,*) "DYNK> Unknown function type ",
      &        funcs_dynk(funNum,2)
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_computeFUN(): ****"
-         write(*,*)    "DYNK> funNum =", funNum, "turn=", turn
-         write(*,*)    "DYNK> Unknown function type ",
-     &        funcs_dynk(funNum,2)
-+ei
          call dynk_dumpdata
          call prror(-1)
       end select
@@ -45889,9 +43513,7 @@ C+ei
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-+if cr
 +ca crcoall
-+ei
 
       character(maxstrlen_dynk) element_name, att_name
       double precision newValue
@@ -45909,12 +43531,7 @@ C+ei
       att_name_stripped = trim(stringzerotrim(att_name))
 
       if ( ldynkdebug ) then
-+if cr
          write (lout, '(1x,A,E16.9)')
-+ei
-+if .not.cr
-         write (*,    '(1x,A,E16.9)')
-+ei
      &        "DYNKDEBUG> In dynk_setvalue(), element_name = '"//
      &        trim(element_name_stripped)//"', att_name = '"//
      &        trim(att_name_stripped)//"', newValue =", newValue
@@ -45950,12 +43567,7 @@ C     Here comes the logic for setting the value of the attribute for all instan
             el_type=kz(ii)      ! type found
             
             if (ldoubleElement) then ! Sanity check
-+if cr
                write(lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &            "DYNK> ERROR: two elements with the same BEZ?"
                call prror(-1)
             end if
@@ -46055,18 +43667,10 @@ c$$$            endif
                endif
                
             else
-+if cr
                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
                write (lout,*) "DYNK> Unsupported element type", el_type
                write (lout,*) "DYNK> element name = '",
      &              element_name_stripped,"'"
-+ei
-+if .not.cr
-               WRITE (*,*) "DYNK> *** ERROR in dynk_setvalue() ***"
-               write (*,*) "DYNK> Unsupported element type", el_type
-               write (*,*) "DYNK> element name = '",
-     &              element_name_stripped,"'"
-+ei
                call prror(-1)
             endif
          endif
@@ -46081,29 +43685,15 @@ c$$$            endif
       
       !Error handlers
  100  continue
-+if cr
       WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
       WRITE (lout,*)"DYNK> Attribute'", att_name_stripped,
      &     "' does not exist for type =", el_type
-+ei
-+if .not.cr
-      WRITE (*,*)   "DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (*,*)   "DYNK> Attribute '", att_name_stripped,
-     &     "' does not exist for type =", el_type
-+ei
       call prror(-1)
 
  101  continue
-+if cr
       WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
       WRITE (lout,*)"DYNK> The element named '",element_name_stripped,
      &     "' was not found."
-+ei
-+if .not.cr
-      WRITE (*,*)   "DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (*,*)   "DYNK> The element named '",element_name_stripped,
-     &     "' was not found."
-+ei
       call prror(-1)
       
       end subroutine
@@ -46127,10 +43717,7 @@ c$$$            endif
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
-
-+if cr
 +ca crcoall
-+ei
 
       character(maxstrlen_dynk) element_name, att_name
       intent(in) element_name, att_name
@@ -46145,12 +43732,7 @@ c$$$            endif
       att_name_s = trim(stringzerotrim(att_name))
       
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &   "DYNKDEBUG> In dynk_getvalue(), element_name = '"//
      &    trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
       end if
@@ -46171,12 +43753,7 @@ c$$$            endif
          if (element_name_s.eq.bez(ii)) then ! name found
             el_type=kz(ii)
             if (ldoubleElement) then
-+if cr
                write (lout,*)
-+ei
-+if .not.cr
-               write (*,*)
-+ei
      &              "DYNK> ERROR: two elements with the same BEZ"
                call prror(-1)
             end if
@@ -46285,12 +43862,7 @@ c$$$               endif
       enddo
       
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)
-+ei
      &   "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
       end if
 
@@ -46298,17 +43870,10 @@ c$$$               endif
       
       !Error handlers
  100  continue
-+if cr
       write(lout,*) "DYNK> *** ERROR in dynk_getvalue() ***"
       write(lout,*) "DYNK> Unknown attribute '", trim(att_name_s),"'",
      &     " for type",el_type," name '", trim(bez(ii)), "'"
 
-+ei
-+if .not.cr
-      write(*,*)    "DYNK> *** ERROR in dynk_getvalue() ***"
-      write(*,*)    "DYNK> Unknown attribute '", trim(att_name_s),"'",
-     &     " for type",el_type," name '", trim(bez(ii)), "'"
-+ei
       call prror(-1)
   
       end function
@@ -46330,9 +43895,7 @@ c$$$               endif
 !     
 !-----------------------------------------------------------------------
 
-+if cr
 +ca crcoall
-+ei
 
       double precision x, xvals(*),yvals(*)
       integer datalen
@@ -46343,26 +43906,14 @@ c$$$               endif
       
       !Sanity checks
       if (datalen .le. 0) then
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
          write(lout,*) "DYNK> datalen was 0!"
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_lininterp() ****"
-         write(*,*)    "DYNK> datalen was 0!"
-+ei
 
          call prror(-1)
       endif
       if ( x .lt. xvals(1) .or. x .gt. xvals(datalen) ) then
-+if cr
          write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
          write(lout,*) "x =",x, "outside range", xvals(1),xvals(datalen)
-+ei
-+if .not.cr
-         write(*,*)    "DYNK> **** ERROR in dynk_lininterp() ****"
-         write(*,*)    "x =",x, "outside range", xvals(1),xvals(datalen)
-+ei
          call prror(-1)
       endif
 
@@ -46375,16 +43926,9 @@ c$$$               endif
       
       do ii=1, datalen-1
          if (xvals(ii) .ge. xvals(ii+1)) then
-+if cr
             write (lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
             write (lout,*) "DYNK> xvals should be in increasing order"
             write (lout,*) "DYNK> xvals =", xvals(:datalen)
-+ei
-+if .not.cr
-            write (*,*)    "DYNK> **** ERROR in dynk_lininterp() ****"
-            write (*,*)    "DYNK> xvals should be in increasing order"
-            write (*,*)    "DYNK> xvals =", xvals(:datalen)
-+ei
             call prror(-1)
          endif
          
@@ -46398,18 +43942,10 @@ c$$$               endif
       enddo
       
       !We didn't return yet: Something wrong
-+if cr
       write (lout,*) "DYNK> ****ERROR in dynk_lininterp() ****"
       write (lout,*) "DYNK> Reached the end of the function"
       write (lout,*) "DYNK> This should not happen, "//
      &               "please contact developers"
-+ei
-+if .not.cr
-      write (*,*)    "DYNK> ****ERROR in dynk_lininterp() ****"
-      write (*,*)    "DYNK> Reached the end of the function"
-      write (*,*)    "DYNK> This should not happen, "//
-     &               "please contact developers"
-+ei
       call prror(-1)
 
       end function
@@ -46427,9 +43963,7 @@ c$$$               endif
 +ca common
 +ca stringzerotrim
 +ca comdynk
-+if cr
 +ca crcoall
-+ei
 
       integer, intent(in) :: i
       integer ix,k
@@ -46437,23 +43971,13 @@ c$$$               endif
 
       !Sanity check
       if (i .gt. iu .or. i .le. 0) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "Error in dynk_isused(): i=",i,"out of range"
          call prror(-1)
       endif
       ix = ic(i)-nblo
       if (i .le. 0) then
-+if cr
          write (lout,*)
-+ei
-+if .not.cr
-         write (*,*)
-+ei
      &        "Error in dynk_isused(): ix-nblo=",ix,"is a block?"
          call prror(-1)
       endif
@@ -46464,12 +43988,7 @@ c$$$               endif
          if (bez(ix) .eq. element_name_stripped) then
             dynk_isused = .true.
             if (ldynkdebug)
-+if cr
      &         write(lout,*)
-+ei
-+if .not.cr
-     &         write(*,*)
-+ei
      &         "DYNKDEBUG> dynk_isused = TRUE, bez='"//bez(ix)//
      &         "', element_name_stripped='"//element_name_stripped//"'"
             return
@@ -46477,12 +43996,7 @@ c$$$               endif
       end do
       
       if (ldynkdebug) then
-+if cr
          write(lout,*)
-+ei
-+if .not.cr
-         write(*,*)   
-+ei
      &      "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
       endif
 
@@ -46512,29 +44026,18 @@ c$$$               endif
 +ca parnum
 +ca common
 +ca dbdcum
-+if cr
 +ca crcoall
-+ei
       save
 
 !     temporary variables
       double precision tmpdcum, ds
       integer ientry, jentry, kentry, ix
 
-+if cr
       write(lout,*)''
       write(lout,10010)
       write(lout,*)''
       write(lout,*)' CALL TO CADCUM'
       write(lout,*)''
-+ei
-+if .not.cr
-      write(*,*)   ''
-      write(*,10010)
-      write(*,*)   ''
-      write(*,*)   ' CALL TO CADCUM'
-      write(*,*)   ''
-+ei
 
 !     initialise cumulative length
       tmpdcum=zero
@@ -46563,43 +44066,21 @@ c$$$               endif
 
       if ( print_dcum ) then
 !       a useful printout
-+if cr
         write(lout,10030)'ientry','ix','name            ','dcum [m]'
         write(lout,10020) 0,-1,'START           ',dcum(0)
-+ei
-+if .not.cr
-        write(*,10030)   'ientry','ix','name            ','dcum [m]'
-        write(*,10020)    0,-1,'START           ',dcum(0)
-+ei
         do ientry=1,iu
           ix=ic(ientry)
           if(ix.gt.nblo) then
 !            SINGLE ELEMENT
              ix=ix-nblo
-+if cr
              write(lout,10020) ientry,ix,bez(ix),dcum(ientry)
-+ei
-+if .not.cr
-             write(*,10020)    ientry,ix,bez(ix),dcum(ientry)
-+ei
           else
 !            BLOC
-+if cr
              write(lout,10020) ientry,ix,bezb(ix),dcum(ientry)
-+ei
-+if .not.cr
-             write(*,10020)    ientry,ix,bezb(ix),dcum(ientry)
-+ei
           endif
         enddo
-+if cr
         write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
         write(lout,*)     ''
-+ei
-+if .not.cr
-        write(*,10020)    iu+1,-1,'END            ',dcum(iu+1)
-        write(*,*)        ''
-+ei
       endif
 
 !     au revoir:
@@ -46616,9 +44097,7 @@ c$$$               endif
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -46662,18 +44141,8 @@ c$$$               endif
       ium=6
       pie=two*pi
       if(ncorru.eq.0) then
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         write(lout,10000)
-+ei
-+if .not.cr
-        write(*,10000)
-+ei
       endif
       do 10 i=1,ium
         dpr(i)=zero
@@ -46717,28 +44186,13 @@ c$$$               endif
         t(6,ll-1)=di0(l)
    60 t(6,ll)=dip0(l)
       if(ncorru.eq.0) then
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         write(lout,10050) (di0(l),dip0(l),l=1,2)
-+ei
-+if .not.cr
-        write(*,10050) (di0(l),dip0(l),l=1,2)
-+ei
       endif
       call betalf(dpp,qw)
       call phasad(dpp,qwc)
       if(ierro.ne.0) call prror(22+ierro)
-+if cr
       if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
-+ei
-+if .not.cr
-      if(ncorru.eq.0) write(*,10040) dpp,qwc(1),qwc(2)
-+ei
       call envar(dpp)
       if(ithick.eq.1) call envardis(dpp1,aeg,bl1eg,bl2eg)
 !--STARTVALUES OF THE TRAJECTORIES
@@ -46751,30 +44205,10 @@ c$$$               endif
           t(i+1,j)=ta(j,i)
    80 t(i+1,j)=ta(j,i)
       if(ncorru.eq.0) then
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         if(iprint.eq.1) write(lout,10030)
-+ei
-+if .not.cr
-        if(iprint.eq.1) write(*,10030)
-+ei
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
       endif
 
 !--START OF THE MACHINE
@@ -46838,18 +44272,10 @@ c$$$            if(ntco.ne.0) then
 c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 c$$$            endif
             
-+if cr
             write(lout,*) "ERROR in LINOPT:"
             write(lout,*) "In block ", bezb(ix),
      &           "found a thick non-drift element",
      &           bez(jk), "while ithick=1. This should not be possible!"
-+ei            
-+if .not.cr
-            write(*,*)    "ERROR in LINOPT:"
-            write(*,*)    "In block ", bezb(ix),
-     &           "found a thick non-drift element",
-     &           bez(jk), "while ithick=1. This should not be possible!"
-+ei
             call prror(-1)
             goto 500
           endif
@@ -47134,10 +44560,12 @@ c$$$            endif
 +ca trom06 !endif, ends the do over l; increase nr, writelin and cpltwis
 
 +if collimat.or.bnlelens
-        ! Marker, beam-beam, phase-trombone, or crab cavity (incl. multipole)
+
+        ! Marker, beam-beam, phase-trombone, crab cavity (incl. multipole), or wire
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
-     &     .or. abs(kzz).eq.23.or.abs(kzz).eq.26.or.
-     &          abs(kzz).eq.27.or.abs(kzz).eq.28) then
+     &     .or.abs(kzz).eq.23.or.abs(kzz).eq.26
+     &     .or.abs(kzz).eq.27.or.abs(kzz).eq.28
+     &     .or.abs(kzz).eq.15) then
           
           nr=nr+1
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -47150,6 +44578,8 @@ c$$$            endif
 +if .not.collimat.and..not.bnlelens
         ! Marker, beam-beam or phase-trombone -> next element
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
+        ! Wire -> next element
+        if(abs(kzz).eq.15) goto 500
         ! RF CC Multipoles -> next element
         if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.
      &      abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
@@ -47515,12 +44945,7 @@ c$$$            endif
       bezii=t(4,3)**2+t(5,3)**2                                          !hr06
       if(ncorru.eq.0) write(34,10070) etl,idum,iiii,zero,bexi,bezii,phi
       if(ncorru.eq.0)                                                   &
-+if cr
      &write(lout,10060)
-+ei
-+if .not.cr
-     &write(*,10060)
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(t5 ,'---- ENTRY LINOPT ----')
@@ -47552,9 +44977,7 @@ c$$$            endif
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47623,44 +45046,14 @@ c$$$            endif
 +ei
 
       if(ncorru.eq.0) then
-+if cr
           write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),&
-+ei
-+if .not.cr
-          write(*,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),   &
-+ei
      &dp(1),c(1),cp(1)
-+if cr
           write(lout,10010) b2(1),al2(1),g2(1)
-+ei
-+if .not.cr
-          write(*,10010) b2(1),al2(1),g2(1)
-+ei
-+if cr
           write(lout,10030) typ(9:16)
-+ei
-+if .not.cr
-          write(*,10030) typ(9:16)
-+ei
-+if cr
           write(lout,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),        &
-+ei
-+if .not.cr
-          write(*,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),           &
-+ei
      &c(2),cp(2)
-+if cr
           write(lout,10010) b2(2),al2(2),g2(2)
-+ei
-+if .not.cr
-          write(*,10010) b2(2),al2(2),g2(2)
-+ei
-+if cr
           write(lout,10040)
-+ei
-+if .not.cr
-          write(*,10040)
-+ei
         else
            if(.not.isBLOC) then
               if(kp(ixwl).eq.3) then
@@ -47709,9 +45102,6 @@ c$$$            endif
 !  COUUANGL
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47854,9 +45244,7 @@ c$$$            endif
 !  VEC1 = VEC2 * RMAT , WITH VEC2 AS RESULT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47877,12 +45265,7 @@ c$$$            endif
           indi=ik
    10   continue
         if(abs(emax).lt.eps) then
-+if cr
           write(lout,*) '  ****   ERROR IN LOESD   **** '
-+ei
-+if .not.cr
-          write(*,*) '  ****   ERROR IN LOESD   **** '
-+ei
           return
         endif
    20   do 30 l=j,dimakt
@@ -47915,9 +45298,6 @@ c$$$            endif
 +dk matrix
       subroutine matrix(dpp,am)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -47963,9 +45343,7 @@ c$$$            endif
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48014,43 +45392,18 @@ c$$$            endif
       ivflag=0
       icflag=0
 
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       if(ncorru.eq.0) then
         call prror(84)
       else
         if(ncorrep.le.0) then
-+if cr
           write(lout,10010) ncorru,sigma0(1),sigma0(2)
-+ei
-+if .not.cr
-          write(*,10010) ncorru,sigma0(1),sigma0(2)
-+ei
         else
-+if cr
           write(lout,10020) ncorru,ncorrep
-+ei
-+if .not.cr
-          write(*,10020) ncorru,ncorrep
-+ei
         endif
       endif
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 
 !-- SAVE OLD 'LINOPT' SETTINGS
       iprinto=iprint
@@ -48074,61 +45427,26 @@ c$$$            endif
       call phasad(zero,qwc1)
 
 !-- CHECK SOME CONDITIONS
-+if cr
       write(lout,10100) nhmoni,nhcorr,nvmoni,nvcorr
-+ei
-+if .not.cr
-      write(*,10100) nhmoni,nhcorr,nvmoni,nvcorr
-+ei
       if(nhmoni.gt.nmon1) then
-+if cr
         write(lout,10070) nhmoni,nmon1
-+ei
-+if .not.cr
-        write(*,10070) nhmoni,nmon1
-+ei
         return
       endif
       if(nvmoni.gt.nmon1) then
-+if cr
         write(lout,10070) nvmoni,nmon1
-+ei
-+if .not.cr
-        write(*,10070) nvmoni,nmon1
-+ei
         return
       endif
       if(nhcorr.gt.ncor1) then
-+if cr
         write(lout,10080) nhcorr,ncor1
-+ei
-+if .not.cr
-        write(*,10080) nhcorr,ncor1
-+ei
         return
       endif
       if(nvcorr.gt.ncor1) then
-+if cr
         write(lout,10080) nvcorr,ncor1
-+ei
-+if .not.cr
-        write(*,10080) nvcorr,ncor1
-+ei
         return
       endif
-+if cr
       if(nhmoni.lt.nhcorr.or.nvmoni.lt.nvcorr) write(lout,10090)
-+ei
-+if .not.cr
-      if(nhmoni.lt.nhcorr.or.nvmoni.lt.nvcorr) write(*,10090)
-+ei
 
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
       call orbinit
 !-- CORRECT BOTH PLANES
       if(ncorrep.eq.0) then
@@ -48167,59 +45485,24 @@ c$$$            endif
 +ei
    80   continue
         call calrms(b,nvmoni,rmsz,ptpz)
-+if cr
         write(lout,10030) ii-1,rmsx,rmsz
-+ei
-+if .not.cr
-        write(*,10030) ii-1,rmsx,rmsz
-+ei
-+if cr
         write(lout,10040) ii-1,ptpx,ptpz
-+ei
-+if .not.cr
-        write(*,10040) ii-1,ptpx,ptpz
-+ei
         if(icflag.eq.1.and.sigma0(1).gt.rmsx.and.ihflag.eq.0) then
-+if cr
           write(lout,10110)
-+ei
-+if .not.cr
-          write(*,10110)
-+ei
           ihflag=1
         endif
         if(icflag.eq.1.and.sigma0(2).gt.rmsz.and.ivflag.eq.0) then
-+if cr
           write(lout,10120)
-+ei
-+if .not.cr
-          write(*,10120)
-+ei
           ivflag=1
         endif
 
         if(ihflag.eq.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           do 90 ij=1,ncorru/10
-+if cr
             write(lout,10050) (nx(10*(ij-1)+k), k=1,10)
-+ei
-+if .not.cr
-            write(*,10050) (nx(10*(ij-1)+k), k=1,10)
-+ei
    90     continue
           if(mod(ncorru,10).gt.0) then
-+if cr
             write(lout,10050) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
-+if .not.cr
-            write(*,10050) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
           endif
           call putorb(xinc,nx,1)
         endif
@@ -48227,27 +45510,12 @@ c$$$            endif
         call htls(ar,b,nvmoni,nvcorr,xinc,nx,orbr,ncorru,rzero,rzero1)
 
         if(ivflag.eq.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           do 100 ij=1,ncorru/10
-+if cr
             write(lout,10060) (nx(10*(ij-1)+k), k=1,10)
-+ei
-+if .not.cr
-            write(*,10060) (nx(10*(ij-1)+k), k=1,10)
-+ei
   100     continue
           if(mod(ncorru,10).gt.0) then
-+if cr
             write(lout,10060) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
-+if .not.cr
-            write(*,10060) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
-+ei
           endif
           call putorb(xinc,nx,2)
         endif
@@ -48266,42 +45534,17 @@ c$$$            endif
         b(i)=real(bclorb(i,2))                                           !hr06
   130 continue
       call calrms(b,nvmoni,rmsz,ptpz)
-+if cr
       write(lout,10030) ncorrep,rmsx,rmsz
-+ei
-+if .not.cr
-      write(*,10030) ncorrep,rmsx,rmsz
-+ei
-+if cr
       write(lout,10040) ncorrep,ptpx,ptpz
-+ei
-+if .not.cr
-      write(*,10040) ncorrep,ptpx,ptpz
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 
   140 continue
-+if cr
       if((ii-1).eq.itco) write(lout,10130) itco
-+ei
-+if .not.cr
-      if((ii-1).eq.itco) write(*,10130) itco
-+ei
 
 !-- SCALE TO DESIRED RMS VALUE IF IT IS GREATER THAN ZERO
       if(sigma0(1).gt.pieni.or.sigma0(2).gt.pieni) then
         do 180 ii=1,itco
-+if cr
           write(lout,10140)
-+ei
-+if .not.cr
-          write(*,10140)
-+ei
           hfac=sigma0(1)/dble(rmsx)                                      !hr06
           vfac=sigma0(2)/dble(rmsz)                                      !hr06
           do 150 i=1,il
@@ -48332,35 +45575,15 @@ c$$$            endif
             b(i)=real(bclorb(i,2))                                       !hr06
   170     continue
           call calrms(b,nvmoni,rmsz,ptpz)
-+if cr
           write(lout,10150) ii,rmsx,rmsz
-+ei
-+if .not.cr
-          write(*,10150) ii,rmsx,rmsz
-+ei
-+if cr
           write(lout,10160) ii,ptpx,ptpz
-+ei
-+if .not.cr
-          write(*,10160) ii,ptpx,ptpz
-+ei
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
           if(abs(dble(rmsx)-sigma0(1)).lt.dsi.and.                      &!hr06
      &       abs(dble(rmsz)-sigma0(2)).lt.dsi)                          &!hr06
      &goto 190                                                         
   180   continue
       endif
-+if cr
       if((ii-1).eq.itco) write(lout,10130) itco
-+ei
-+if .not.cr
-      if((ii-1).eq.itco) write(*,10130) itco
-+ei
   190 continue
 
 !-- WRITE OUT ADJUSTED CLOSED ORBIT
@@ -48426,9 +45649,7 @@ c$$$            endif
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48457,6 +45678,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 60
+        if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.                    &
@@ -48468,12 +45690,7 @@ c$$$            endif
               ckickold=sm(ix)+zfz(izu)*ek(ix)
               zfz(izu)=zfz(izu)+dble(xinc(j))/ek(ix)                     !hr06
               ckicknew=sm(ix)+zfz(izu)*ek(ix)
-+if cr
               write(lout,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,    &
-+ei
-+if .not.cr
-              write(*,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,       &
-+ei
      &ckicknew*c1e3
             endif
    10     continue
@@ -48501,13 +45718,8 @@ c$$$            endif
            zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-ak0     &!hr06
      &(im,k)))/aka(im,k)                                                 !hr06
                   ckicknew=(ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k)))/r0a  !hr06
-+if cr
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
      &ckicknew
-+ei
-+if .not.cr
-                  write(*,10000) kcorru,kcorr,bez(ix), ckickold,ckicknew
-+ei
                 endif
    30         continue
             endif
@@ -48521,13 +45733,8 @@ c$$$            endif
            zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-bk0     &!hr06
      &(im,k)))/bka(im,k)                                                 !hr06
                   ckicknew=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
-+if cr
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
      &ckicknew
-+ei
-+if .not.cr
-                  write(*,10000) kcorru,kcorr,bez(ix), ckickold,ckicknew
-+ei
                 endif
    40         continue
             endif
@@ -48545,9 +45752,6 @@ c$$$            endif
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48571,6 +45775,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 10
+        if(kzz.eq.15) goto 10
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
         if((kpz.eq.4.and.kzz.eq.1).or.(kpz.eq.-4.and.kzz.eq.-1)) then
@@ -48619,9 +45824,7 @@ c$$$            endif
 !     PTP  - PEAK TO PEAK VALUE TO CORRECT FOR                       *
 !*********************************************************************
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48718,36 +45921,11 @@ c$$$            endif
           h=rho(j)-(a(k,j))*(a(k,j))
 
           if(h.lt.0.0000001) then
-+if cr
             write(lout,*)
-+ei
-+if .not.cr
-            write(*,*)
-+ei
-+if cr
             write(lout,*) 'CORRECTION PROCESS ABORTED.'
-+ei
-+if .not.cr
-            write(*,*) 'CORRECTION PROCESS ABORTED.'
-+ei
-+if cr
             write(lout,*) 'DIVISION BY ZERO EXPECTED.'
-+ei
-+if .not.cr
-            write(*,*) 'DIVISION BY ZERO EXPECTED.'
-+ei
-+if cr
             write(lout,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
-+ei
-+if .not.cr
-            write(*,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
-+ei
-+if cr
             write(lout,10000) ' SUSPECTED CORRECTOR: ',j
-+ei
-+if .not.cr
-            write(*,10000) ' SUSPECTED CORRECTOR: ',j
-+ei
             call closeUnits
 +if cr
       call abend('777                                               ')
@@ -48816,9 +45994,6 @@ c$$$            endif
 !     Householder transform of matrix A
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48852,9 +46027,6 @@ c$$$            endif
 !     Householder transform of vector B
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48886,9 +46058,6 @@ c$$$            endif
 !     calculate residual orbit vector
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48923,9 +46092,6 @@ c$$$            endif
 !     calculate vector U
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48959,9 +46125,6 @@ c$$$            endif
 !     calculates rms and p.to.p value of R(1) .... R(M)
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -48994,9 +46157,6 @@ c$$$            endif
 !     if N<1, MAXMIN=1
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -49022,9 +46182,7 @@ c$$$            endif
 !  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -49086,17 +46244,13 @@ c$$$            endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 50
+            if(kzz.eq.15) goto 50
             mzu(i)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
             if(izu.gt.nzfz) then
-+if cr
               write(lout,*) "ERROR in ORD: nzfz was too small"
-+ei
-+if .not.cr
-              write(*,*)    "ERROR in ORD: nzfz was too small"
-+ei
               call prror(-1)
             endif
    50     continue
@@ -49134,6 +46288,7 @@ c$$$            endif
             kpz=kp(ix)
             kzz=kz(ix)
             if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 110
+            if(kzz.eq.15) goto 110
             do 80 j=1,iorg
               if(bez(ix).eq.bezr(1,j)) goto 90
    80       continue
@@ -49166,16 +46321,12 @@ c$$$            endif
           kpz=kp(ix)
           kzz=kz(ix)
           if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 115
+          if(kzz.eq.15) goto 115
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
           if(izu.gt.nran) call prror(30)
           if(izu.gt.nzfz) then
-+if cr
             write(lout,*) "ERROR in ORD: nzfz was too small"
-+ei
-+if .not.cr
-            write(*,*)    "ERROR in ORD: nzfz was too small"
-+ei
             call prror(-1)
           endif
   115   continue
@@ -49249,6 +46400,7 @@ c$$$            endif
         kpz=kp(ix)
         kzz=kz(ix)
         if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 190
+        if(kzz.eq.15) goto 190
         if(icextal(i).ne.0) then
           izu=izu+2
           xrms(ix)=one
@@ -49297,9 +46449,7 @@ c$$$            endif
 !  ADDITIONAL ADJUSTMENT OF THE X-PHASEADVANCE BETWEEN 2 POSITIONS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -49490,6 +46640,7 @@ c$$$            endif
 +ca trom03
 +ca trom04
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
+        if(kzz.eq.15) goto 450
 ! JBG RF CC Multipoles to 450
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
@@ -49793,9 +46944,7 @@ c$$$            endif
 !  X-PHASEADVANCE BETWEEN 2 POSITIONS IN THE MACHINE
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -49831,12 +46980,7 @@ c$$$            endif
         do 30 j=1,2
           aa1(i,j)=zero
    30 continue
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
       sqx=zero
       sqz=zero
       sqxh=zero
@@ -49876,31 +47020,11 @@ c$$$            endif
       if(nite.eq.3) then
         sens(3,1)=qw0(3)
         sens(3,5)=qwc(3)
-+if cr
         write(lout,10100)
-+ei
-+if .not.cr
-        write(*,10100)
-+ei
-+if cr
         write(lout,10120) qwc,qw0
-+ei
-+if .not.cr
-        write(*,10120) qwc,qw0
-+ei
       else
-+if cr
         write(lout,10110)
-+ei
-+if .not.cr
-        write(*,10110)
-+ei
-+if cr
         write(lout,10130) qwc(1),qwc(2),qw0(1),qw0(2)
-+ei
-+if .not.cr
-        write(*,10130) qwc(1),qwc(2),qw0(1),qw0(2)
-+ei
       endif
       do 60 ii=1,itqv
         do 40 n=1,nite
@@ -49918,19 +47042,9 @@ c$$$            endif
           sens(2,n+1)=qwc(2)
           if(nite.eq.3) then
             sens(3,n+1)=qwc(3)
-+if cr
             write(lout,10140) ii,n,qwc
-+ei
-+if .not.cr
-            write(*,10140) ii,n,qwc
-+ei
           else
-+if cr
             write(lout,10150) ii,n,qwc(1),qwc(2)
-+ei
-+if .not.cr
-            write(*,10150) ii,n,qwc(1),qwc(2)
-+ei
           endif
           if (abs(el(iql)).le.pieni) then
             ed(iql)=ed(iql)-dkq
@@ -49990,77 +47104,27 @@ c$$$            endif
         sens(2,5)=qwc(2)
         if(nite.eq.3) then
           sens(3,5)=qwc(3)
-+if cr
           write(lout,10020) qw0(1),qwc(1),qw0(2),qwc(2),qw0(3),qwc(3)
-+ei
-+if .not.cr
-          write(*,10020) qw0(1),qwc(1),qw0(2),qwc(2),qw0(3),qwc(3)
-+ei
           if (abs(el(iq1)).le.pieni) then
-+if cr
             write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez   &
-+ei
      &(iq2),sm0(3),ed(iq3),bez(iq3)
           else
-+if cr
             write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez   &
-+ei
      &(iq2),sm0(3),ek(iq3),bez(iq3)
           endif
-+if cr
           write(lout,10080) sqx,sqz,sqxh
-+ei
-+if .not.cr
-          write(*,10080) sqx,sqz,sqxh
-+ei
-+if cr
           write(lout,10060) a11,a12,a13,a21,a22,a23,a31,a32,a33
-+ei
-+if .not.cr
-          write(*,10060) a11,a12,a13,a21,a22,a23,a31,a32,a33
-+ei
         else
-+if cr
           write(lout,10030) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
-+if .not.cr
-          write(*,10030) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
           if (abs(el(iq1)).le.pieni) then
-+if cr
             write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez   &
-+ei
      &(iq2)
           else
-+if cr
             write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-+ei
-+if .not.cr
-            write(*,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez   &
-+ei
      &(iq2)
           endif
-+if cr
           write(lout,10090) sqx,sqz
-+ei
-+if .not.cr
-          write(*,10090) sqx,sqz
-+ei
-+if cr
           write(lout,10070) a11,a12,a21,a22
-+ei
-+if .not.cr
-          write(*,10070) a11,a12,a21,a22
-+ei
         endif
         if (abs(el(iq(1))).le.pieni) then
           sm0(1)=ed(iq(1))
@@ -50083,12 +47147,7 @@ c$$$            endif
           if(dq1.lt.dqq.and.dq2.lt.dqq) return
         endif
    60 continue
-+if cr
       write(lout,10000) itqv
-+ei
-+if .not.cr
-      write(*,10000) itqv
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(t5/t10,'TUNE ADJUSTMENT'/ t10,                             &
@@ -50132,9 +47191,7 @@ c$$$            endif
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -50210,50 +47267,15 @@ c$$$            endif
           nd=mm
 +ca beamcou
         endif
-+if cr
         if(iqmod6.eq.1) write(lout,10080) nd2
-+ei
-+if .not.cr
-        if(iqmod6.eq.1) write(*,10080) nd2
-+ei
-+if cr
         if(iqmod6.ne.1) write(lout,10090) nd2
-+ei
-+if .not.cr
-        if(iqmod6.ne.1) write(*,10090) nd2
-+ei
         if(mm.eq.2) then
-+if cr
           write(lout,10010) clo(1),clop(1)
-+ei
-+if .not.cr
-          write(*,10010) clo(1),clop(1)
-+ei
-+if cr
           write(lout,10010) clo(2),clop(2)
-+ei
-+if .not.cr
-          write(*,10010) clo(2),clop(2)
-+ei
         elseif(mm.eq.3) then
-+if cr
           write(lout,10010) clo6(1),clop6(1)
-+ei
-+if .not.cr
-          write(*,10010) clo6(1),clop6(1)
-+ei
-+if cr
           write(lout,10010) clo6(2),clop6(2)
-+ei
-+if .not.cr
-          write(*,10010) clo6(2),clop6(2)
-+ei
-+if cr
           write(lout,10010) clo6(3),clop6(3)
-+ei
-+if .not.cr
-          write(*,10010) clo6(3),clop6(3)
-+ei
         endif
         iqmodc=2
 +if debug 
@@ -50290,12 +47312,7 @@ c$$$            endif
 !     call abend('after  daini                                      ')
 +ei
         if(iqmod6.eq.1) then
-+if cr
           write(lout,10000) nd2
-+ei
-+if .not.cr
-          write(*,10000) nd2
-+ei
           iqmodc=1
           call mydaini(2,3,ndh,mm,nd2,1)
 +if debug 
@@ -50350,73 +47367,33 @@ c$$$            endif
                 edcor(2)=ek(iq(2))
               endif
               if(ncorr.eq.1) then
-+if cr
                 write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
      &ncorr-1,                                                          &
-+ei
-+if .not.cr
-                write(*,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1, &
-+ei
      &cor
               else
-+if cr
                 write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
      &ncorr-1,                                                          &
-+ei
-+if .not.cr
-                write(*,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1, &
-+ei
      &cor
               endif
               if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-+if cr
                 write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ed(iq(2)),bez(iq(2))
               elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-+if cr
                 write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ek(iq(2)),bez(iq(2))
               elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-+if cr
                 write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ed(iq(2)),bez(iq(2))
               else
-+if cr
                 write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-+ei
-+if .not.cr
-                write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,      &
-+ei
      &ek(iq(2)),bez(iq(2))
               endif
             else
-+if cr
               write(lout,10050) nd2,ncorr-1
-+ei
-+if .not.cr
-              write(*,10050) nd2,ncorr-1
-+ei
               goto 1
             endif
           else
-+if cr
             write(lout,10060) nd2,ncorr-1
-+ei
-+if .not.cr
-            write(*,10060) nd2,ncorr-1
-+ei
             goto 1
           endif
         else
@@ -50452,58 +47429,23 @@ c$$$            endif
         do i=1,mm
           qwc(i)=dble(intwq(i))+wxys(i)                                  !hr06
         enddo
-+if cr
         if(ncorr.eq.itqv+1) write(lout,10070) nd2,itqv
-+ei
-+if .not.cr
-        if(ncorr.eq.itqv+1) write(*,10070) nd2,itqv
-+ei
         if(ncorr.eq.1) then
-+if cr
           write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
-+if .not.cr
-          write(*,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
         else
-+if cr
           write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
-+if .not.cr
-          write(*,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
-+ei
         endif
         if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-+if cr
           write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),  &
-+ei
      &bez(iq(2))
         elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-+if cr
           write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),  &
-+ei
      &bez(iq(2))
         elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-+if cr
           write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),  &
-+ei
      &bez(iq(2))
         else
-+if cr
           write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-+ei
-+if .not.cr
-          write(*,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),  &
-+ei
      &bez(iq(2))
         endif
       endif
@@ -50547,9 +47489,6 @@ c$$$            endif
 !     ONE TURN-TRANSFORMATION (INCLUDING QUADRUPOLE CONTRIBUTIONS)
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -50629,6 +47568,7 @@ c$$$            endif
  70     continue
 +ca trom10
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
+        if(kzz.eq.15) goto 350
 ! JBG RF CC Multipoles to 350
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
 !        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 350
@@ -50967,9 +47907,6 @@ c$$$            endif
 !  USED FOR RMOD
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -51185,6 +48122,7 @@ c$$$            endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 770
+        if(kzz.eq.15) goto 770
 ! JBG RF CC Multipoles to 770
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 770
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 770
@@ -51716,9 +48654,7 @@ c$$$            endif
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -51765,18 +48701,8 @@ c$$$            endif
       jjr=2*nre
       de2=de0*half
       if(nre.eq.0) goto 50
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
-+if cr
       write(lout,10010) npp,totl,qxt,qzt,tam1
-+ei
-+if .not.cr
-      write(*,10010) npp,totl,qxt,qzt,tam1
-+ei
       call resex(dpp)
       do 40 i=1,nre
         i2=2*i
@@ -51787,12 +48713,7 @@ c$$$            endif
         sn(i2)=ed(irr(i2))
         dsm(i1)=dsm0
         dsm(i2)=dsm0
-+if cr
         write(lout,10020) i,nrr(i),ipr(i)
-+ei
-+if .not.cr
-        write(*,10020) i,nrr(i),ipr(i)
-+ei
         sen(i1)=dtr(i1)
         bb(i1)=sen(i1)
         sen(i2)=dtr(i2)
@@ -51802,27 +48723,12 @@ c$$$            endif
    40 continue
       j2=jjr
    50 if(nur.eq.0) goto 70
-+if cr
       write(lout,10030) nur
-+ei
-+if .not.cr
-      write(*,10030) nur
-+ei
       do 60 i=1,nur
-+if cr
         write(lout,10040) nu(i),i
-+ei
-+if .not.cr
-        write(*,10040) nu(i),i
-+ei
    60 continue
    70 if(nch.eq.0) goto 90
-+if cr
       write(lout,10050)
-+ei
-+if .not.cr
-      write(*,10050)
-+ei
       j1=j2+1
       j2=j2+2
       irr(j1)=ire(7)
@@ -51851,12 +48757,7 @@ c$$$            endif
       ss(j1)=sen(j1)
       ss(j2)=sen(j2)
    90 if(nqc.eq.0) goto 100
-+if cr
       write(lout,10060)
-+ei
-+if .not.cr
-      write(*,10060)
-+ei
       j1=j2+1
       j2=j2+2
       jj1=j1
@@ -51980,103 +48881,38 @@ c$$$            endif
         ss(j2)=qwc(2)
         d1(j1)=abs(qwc(1)-qw0(1))
         d1(j2)=abs(qwc(2)-qw0(2))
-+if cr
   220   write(lout,10070)
-+ei
-+if .not.cr
-  220   write(*,10070)
-+ei
         if(nre.eq.0) goto 270
-+if cr
         write(lout,10080) no,nrr(1),sen(1),ss(1),sen(2),ss(2)
-+ei
-+if .not.cr
-        write(*,10080) no,nrr(1),sen(1),ss(1),sen(2),ss(2)
-+ei
         if(nre.eq.1) goto 240
         do 230 i=2,nre
           i2=2*i
           i1=i2-1
-+if cr
   230   write(lout,10090) nrr(i),sen(i1),ss(i1),sen(i2),ss(i2)
-+ei
-+if .not.cr
-  230   write(*,10090) nrr(i),sen(i1),ss(i1),sen(i2),ss(i2)
-+ei
-+if cr
   240   write(lout,10100)
-+ei
-+if .not.cr
-  240   write(*,10100)
-+ei
-+if cr
         write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),&
-+ei
-+if .not.cr
-        write(*,10110) bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),  &
-+ei
      &ed(irr(2))
         if(nre.eq.1) goto 260
         do 250 i=2,nre
           i2=2*i
           i1=i2-1
-+if cr
   250   write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn&
-+ei
-+if .not.cr
-  250   write(*,10110) bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn  &
-+ei
      &(i2), ed(irr(i2))
-+if cr
   260   write(lout,10070)
-+ei
-+if .not.cr
-  260   write(*,10070)
-+ei
   270   if(nch.eq.0) goto 280
-+if cr
         write(lout,10120) sen(j3),ss(j3),sen(j4),ss(j4)
-+ei
-+if .not.cr
-        write(*,10120) sen(j3),ss(j3),sen(j4),ss(j4)
-+ei
-+if cr
         write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn&
-+ei
-+if .not.cr
-        write(*,10110) bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn  &
-+ei
      &(j4), ed(irr(j4))
-+if cr
         write(lout,10070)
-+ei
-+if .not.cr
-        write(*,10070)
-+ei
   280   if(nqc.eq.0) goto 290
-+if cr
         write(lout,10130) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
-+if .not.cr
-        write(*,10130) qw0(1),qwc(1),qw0(2),qwc(2)
-+ei
         if (abs(el(irr(j1))).le.pieni) then
-+if cr
           write(lout,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),          &
-     &ed(irr(j2)),                                                      &                                     
-+ei
-+if .not.cr
-          write(*,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),ed(irr(j2)), &
-+ei
+     &ed(irr(j2)),                                                      &
      &irr(j2)
         else
-+if cr
           write(lout,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),          &
      &ek(irr(j2)),                                                      &
-+ei
-+if .not.cr
-          write(*,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),ek(irr(j2)), &
-+ei
      &irr(j2)
         endif
   290   do 300 i=1,j2
@@ -52127,9 +48963,7 @@ c$$$            endif
 !  FINDING THE BEST POSITIONS FOR CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -52152,60 +48986,15 @@ c$$$            endif
       nte=mp
       ref='REFERENCE       '
       id=0
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10020) mp
-+ei
-+if .not.cr
-      write(*,10020) mp
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10030) m21,ise1,m22,ise2,m23,ise3
-+ei
-+if .not.cr
-      write(*,10030) m21,ise1,m22,ise2,m23,ise3
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
-+if cr
       write(lout,10040)
-+ei
-+if .not.cr
-      write(*,10040)
-+ei
-+if cr
       write(lout,10010)
-+ei
-+if .not.cr
-      write(*,10010)
-+ei
       n21=m21+mp
       n22=m22+mp
       n23=m23+mp
@@ -52221,12 +49010,7 @@ c$$$            endif
       call subsea(dpp)
       c3=rtc(mp,n23,mp,1)
       s3=rts(mp,n23,mp,1)
-+if cr
       write(lout,10050) ref,id,c1,s1,c2,s2,c3,s3
-+ei
-+if .not.cr
-      write(*,10050) ref,id,c1,s1,c2,s2,c3,s3
-+ei
       do 10 i=1,mesa
         ed(isea(i))=ed(isea(i))+dsm0
         if(kp(isea(i)).eq.5) call combel(isea(i))
@@ -52242,12 +49026,7 @@ c$$$            endif
         call subsea(dpp)
         f=rtc(mp,n23,mp,1)-c3
         g=rts(mp,n23,mp,1)-s3
-+if cr
         write(lout,10050) bez(isea(i)),i,b,c,d,e,f,g
-+ei
-+if .not.cr
-        write(*,10050) bez(isea(i)),i,b,c,d,e,f,g
-+ei
         ed(isea(i))=ed(isea(i))-dsm0
         if(kp(isea(i)).eq.5) call combel(isea(i))
    10 continue
@@ -52271,9 +49050,7 @@ c$$$            endif
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -52396,18 +49173,8 @@ c$$$            endif
   100       continue
   110     continue
   120   continue
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10020)
-+ei
-+if .not.cr
-        write(*,10020)
-+ei
         pie=two*pi
         etl=zero
         radi=totl/pie
@@ -52423,27 +49190,12 @@ c$$$            endif
         do 140 l=1,2
           di0(l)=(clo0(l)-clo(l))/ded
   140   dip0(l)=(clop0(l)-clop(l))/ded
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10120) (di0(l),dip0(l),l=1,2)
-+ei
-+if .not.cr
-        write(*,10120) (di0(l),dip0(l),l=1,2)
-+ei
         call betalf(dpp,qw)
         call phasad(dpp,qwc)
         if(ierro.ne.0) call prror(22+ierro)
-+if cr
         write(lout,10070) dpp,qwc(1),qwc(2)
-+ei
-+if .not.cr
-        write(*,10070) dpp,qwc(1),qwc(2)
-+ei
         call envar(dpp)
 !--STARTVALUES OF THE TRAJECTORIES
         do 150 l=1,2
@@ -52458,47 +49210,17 @@ c$$$            endif
           do 160 j=1,4
             t(i+1,j)=ta(j,i)
   160   t(i+1,j)=ta(j,i)
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10040)
-+ei
-+if .not.cr
-        write(*,10040)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),     &
      &phi(l),                                                           &
-+ei
-+if .not.cr
-        write(*,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l), &
-+ei
      &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
 !--EP=EMITTANCE IN PI*MM*MRAD
         ep(1)=tam1**2/beta(1)                                            !hr06
         ep(2)=tam2**2/beta(2)                                            !hr06
-+if cr
         write(lout,10050) tam1,ep(1),tam2,ep(2)
-+ei
-+if .not.cr
-        write(*,10050) tam1,ep(1),tam2,ep(2)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
 !--SINGLE TURN BLOCKLOOP
         izu=0
         do 790 k=1,iu
@@ -52616,6 +49338,7 @@ c$$$            endif
           clo0(2)=t(2,3)
           clop0(2)=t(2,4)
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 790
+          if(kzz.eq.15) goto 790
 ! JBG RF CC Multipoles to 790
           if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 790
           if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 790
@@ -53117,112 +49840,39 @@ c$$$            endif
         e(4,7)=e(4,6)*seb
         e(6,5)=e(5,5)*sea
         e(5,6)=e(5,5)*seb
-+if cr
         write(lout,10000)
-+ei
-+if .not.cr
-        write(*,10000)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10010)nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),&
-+ei
-+if .not.cr
-        write(*,10010) nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),  &
-+ei
      &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
-+if cr
         write(lout,10110) etl,qwc(1),qwc(2)
-+ei
-+if .not.cr
-        write(*,10110) etl,qwc(1),qwc(2)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
         do 800 iv=2,5
           gtu1=gtu1+dtu(1,iv)
           gtu2=gtu2+dtu(2,iv)
   800   continue
-+if cr
         write(lout,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu &
-+ei
-+if .not.cr
-        write(*,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu    &
-+ei
      &(2,2),dtu(2,3),dtu(2,4),dtu(2,5),gtu2
         do 810 i=1,2
           do 810 j=1,5
             do 810 l=0,4
               do 810 k=0,4
-+if cr
                 if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
      &(lout,10160)
                 if(abs(dtup(i,j,k,l)).gt.pieni) write(lout,             &
      &'(10X,G16.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
-+ei
-+if .not.cr
-                if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
-     &(*,10160)
-                if(abs(dtup(i,j,k,l)).gt.pieni) write(*,                &
-     &'(10X,G16.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
-+ei
   810   continue
-+if cr
         write(lout,10060)
-+ei
-+if .not.cr
-        write(*,10060)
-+ei
-+if cr
         write(lout,10030)
-+ei
-+if .not.cr
-        write(*,10030)
-+ei
         do 880 np=nta,nte
-+if cr
           write(lout,10080) np
-+ei
-+if .not.cr
-          write(*,10080) np
-+ei
-+if cr
           write(lout,10030)
-+ei
-+if .not.cr
-          write(*,10030)
-+ei
           vdt1=dble(nnf(np))/(dble(nz2(np))*pi)                          !hr06
           np2=np
           nkk=0
-+if cr
           write(lout,10090) np
-+ei
-+if .not.cr
-          write(*,10090) np
-+ei
           goto 830
-+if cr
   820     write(lout,10100) np,np2
-+ei
-+if .not.cr
-  820     write(*,10100) np,np2
-+ei
   830     nkk=nkk+1
           n2e=2*np2
           do 850 i=1,nkk
@@ -53256,30 +49906,15 @@ c$$$            endif
   860       continue
             sdel2=sqrt(rc**2+rs**2)                                      !hr06
             n22=nv-np2
-+if cr
             write(lout,10140) n22,ip(np2,nv),ipc,rc,rs,re(np2,nv),sdel2
-+ei
-+if .not.cr
-            write(*,10140) n22,ip(np2,nv),ipc,rc,rs,re(np2,nv),sdel2
-+ei
   870     continue
           np2=np2-2
           if(np2.ge.1) goto 820
   880   continue
         ntx=nte-2
-+if cr
         write(lout,10130)
-+ei
-+if .not.cr
-        write(*,10130)
-+ei
         do 930 np=1,nte
-+if cr
           write(lout,10090) np
-+ei
-+if .not.cr
-          write(*,10090) np
-+ei
           n2e=2*np
           do 920 nv=1,n2e
             n2=nv-np
@@ -53300,12 +49935,7 @@ c$$$            endif
   910       cc=rtc(np,nv,np,1)
             ss=rts(np,nv,np,1)
             sdel=sqrt(cc**2+ss**2)                                       !hr06
-+if cr
             write(lout,10140) n2,ip(np,nv),ipc,cc,ss,re(np,nv),sdel
-+ei
-+if .not.cr
-            write(*,10140) n2,ip(np,nv),ipc,cc,ss,re(np,nv),sdel
-+ei
   920     continue
   930   continue
   940 continue
@@ -53374,9 +50004,7 @@ c$$$            endif
 !  USED FOR SUBRE - CALCULATES DETUNING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53389,36 +50017,11 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
       if(iv.lt.2) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '       ***** ERROR IN DETUNE *****'
-+ei
-+if .not.cr
-        write(*,*) '       ***** ERROR IN DETUNE *****'
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*) '       IV LESS THAN 2, NO DETUNING POSSIBLE'
-+ei
-+if .not.cr
-        write(*,*) '       IV LESS THAN 2, NO DETUNING POSSIBLE'
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
         return
       endif
 +if crlibm
@@ -53490,9 +50093,6 @@ c$$$            endif
 !  USED FOR SEARCH
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -53707,6 +50307,7 @@ c$$$            endif
 +ca trom03
 +ca trom05
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 740
+        if(kzz.eq.15) goto 740
 ! JBG RF CC Multipoles to 740
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 740
         if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 740 
@@ -54212,9 +50813,7 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54246,12 +50845,7 @@ c$$$            endif
         qwc(i)=zero
    20 continue
       dpp=zero
-+if cr
       write(lout,10000)
-+ei
-+if .not.cr
-      write(*,10000)
-+ei
       call betalf(dpp,qw)
       call phasad(dpp,qwc)
       sen(1)=ta(3,1)
@@ -54342,71 +50936,26 @@ c$$$            endif
           ss(5)=qwc(1)
           ss(6)=qwc(2)
         endif
-+if cr
         write(lout,10010)
-+ei
-+if .not.cr
-        write(*,10010)
-+ei
-+if cr
         write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen&
-+ei
-+if .not.cr
-        write(*,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen   &
-+ei
      &(4),ss(4)
-+if cr
         write(lout,10030) bez(nskew(1)),sn(1),ed(nskew(1)),             &
      &bez(nskew(2)),sn                                                  &
-+ei
-+if .not.cr
-        write(*,10030) bez(nskew(1)),sn(1),ed(nskew(1)),bez(nskew(2)),sn&
-+ei
      &(2),ed(nskew(2)),bez(nskew(3)),sn(3),ed(nskew(3)), bez            &
      &(nskew(4)),sn(4),ed(nskew(4))
         if(iskew.eq.1) then
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
-+if cr
           write(lout,10040) qwsk(1),qwc(1),qwsk(2),qwc(2)
-+ei
-+if .not.cr
-          write(*,10040) qwsk(1),qwc(1),qwsk(2),qwc(2)
-+ei
           if (abs(el(nskew(5))).le.pieni) then
-+if cr
             write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed      &
-+ei
-+if .not.cr
-            write(*,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed         &
-+ei
      &(nskew(6)), nskew(6)
           else
-+if cr
             write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek      &
-+ei
-+if .not.cr
-            write(*,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek         &
-+ei
      &(nskew(6)), nskew(6)
           endif
         else if(iskew.eq.2) then
-+if cr
           write(lout,10010)
-+ei
-+if .not.cr
-          write(*,10010)
-+ei
-+if cr
           write(lout,10050) qwc(1),qwc(2)
-+ei
-+if .not.cr
-          write(*,10050) qwc(1),qwc(2)
-+ei
         endif
         do 60 i=1,6
           if(iskew.eq.2.and.i.gt.4) goto 60
@@ -54474,9 +51023,7 @@ c$$$            endif
 !  NNUML   :  ??
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -54670,12 +51217,11 @@ c$$$            endif
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
      &dnumlr,sigcor,dpscor
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
++if cr
         goto 551
 +ei
 +if .not.cr
-        write(*,10320) nfile
         goto 550
 +ei
       endif
@@ -54714,12 +51260,11 @@ c$$$            endif
         ta(6,4)=ta(6,4)*c1m3
         ta(6,5)=ta(6,5)*c1m3
         if(ierro.gt.0) then
-+if cr
           write(lout,10320) nfile
++if cr
           goto 551
 +ei
 +if .not.cr
-          write(*,10320) nfile
           goto 550
 +ei
         endif
@@ -54742,12 +51287,11 @@ c$$$            endif
       ! TODO: Protect against no valid headers found,
       ! i.e. posi > itopa.
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
++if cr
         goto 551
 +ei
 +if .not.cr
-        write(*,10320) nfile
         goto 550
 +ei
       endif
@@ -54773,22 +51317,12 @@ c$$$            endif
 !--PREVENT FAULTY POST-PROCESSING
       read(nfile,end=530,iostat=ierro) iaa
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       read(nfile,end=535,iostat=ierro) iab
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +ei !END +if .not.stf
@@ -54805,12 +51339,7 @@ c$$$            endif
          if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       !--bypass records till 2nd run of same particle is reached
@@ -54819,12 +51348,7 @@ c$$$            endif
          if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +ei !END +if stf
@@ -54930,12 +51454,7 @@ c$$$            endif
       alf04(1)=alf0(1)
       alf04(2)=alf0(2)
       if(bet0(1).le.pieni.or.bet0(2).le.pieni) then
-+if cr
         write(lout,*) 'WARNING: BETA VALUES ARE ZERO'
-+ei
-+if .not.cr
-        write(*,*) 'WARNING: BETA VALUES ARE ZERO'
-+ei
         bet0(1)=zero
         bet0(2)=zero
       endif
@@ -54958,7 +51477,7 @@ c$$$            endif
       if(icode.eq.6) hvs(1:11)='    Ver Syn'
       if(icode.eq.7) hvs(1:11)='Hor Ver Syn'
       toptit(2)(1:13)='Particle no. '
-      write(toptit(2)(14:16),'(I3)') ifipa
+      write(toptit(2)(14:16),'(I3)') ifipa !WARNING: Does not work for > 999 particles
       toptit(2)(17:30)=', Phase Space '
       write(toptit(2)(31:41),'(A11)') hvs
       toptit(2)(42:50)=', Dp/p = '
@@ -55024,55 +51543,20 @@ c$$$            endif
       endif
       if(iav.lt.1) iav=1
       if(nprint.eq.1) then
-+if cr
         write(lout,10040) sixtit,commen
-+ei
-+if .not.cr
-        write(*,10040) sixtit,commen
-+ei
-+if cr
         write(lout,10050) progrm,ifipa,itopa,hvs,numl,                  &
-+ei
-+if .not.cr
-        write(*,10050) progrm,ifipa,itopa,hvs,numl,                     &
-+ei
      &bet0(1),bet0x2,bet0x3,                                            &
      &bet0(2),bet0z2,bet0z3,bet0(3),bet0s2,bet0s3,                      &
      &alf0(1),alf0x2,alf0x3
-+if cr
         write(lout,10060) alf0(2),alf0z2,alf0z3,alf0(3),alf0s2,alf0s3,  &
-+ei
-+if .not.cr
-        write(*,10060) alf0(2),alf0z2,alf0z3,alf0(3),alf0s2,alf0s3,     &
-+ei
      &gam0x1,gam0x2,gam0x3,                                             &
      &gam0z1,gam0z2,gam0z3,gam0s1,gam0s2,gam0s3,                        &
      &clo(1),clo(2),clo(3),clop(1),clop(2),clop(3),                     &
      &di0(1),di0(2),dip0(1),dip0(2),qwc(1),qwc(2),qwc(3)
-+if cr
         write(lout,10070) iav,nstart,nstop,dphix,dphiz,iwg, qx0,qz0
-+ei
-+if .not.cr
-        write(*,10070) iav,nstart,nstop,dphix,dphiz,iwg, qx0,qz0
-+ei
-+if cr
         write(lout,10080) ivox,ivoz,ires,dres,ifh,dfft
-+ei
-+if .not.cr
-        write(*,10080) ivox,ivoz,ires,dres,ifh,dfft
-+ei
-+if cr
         write(lout,10090) idis,icow,istw,iffw
-+ei
-+if .not.cr
-        write(*,10090) idis,icow,istw,iffw
-+ei
-+if cr
         write(lout,10100) iskip,iconv,imad,cma1,cma2,nprint,ndafi
-+ei
-+if .not.cr
-        write(*,10100) iskip,iconv,imad,cma1,cma2,nprint,ndafi
-+ei
       endif ! END if(nprint.eq.1)
       
 !--INITIALISATION
@@ -55177,12 +51661,7 @@ c$$$            endif
       if(abs(tasum).ge.pieni) its6d=1
       call dinv(6,t,6,idummy,nerror)
       if(nerror.eq.-1) then  !TODO: Using the file number makes no sense in STF case (seen in multiple places)
-+if cr
         write(lout,10290) nfile
-+ei
-+if .not.cr
-        write(*,10290)    nfile
-+ei
         goto 550
       endif
 !----------------------------------------------------------------------
@@ -55228,12 +51707,7 @@ c$$$            endif
       endif
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       if(ifipa.lt.1) goto 190
@@ -55256,12 +51730,7 @@ c$$$            endif
         endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
       endif ! END if(program.eq.'MAD')
@@ -55301,12 +51770,11 @@ c$$$            endif
       enddo
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
++if cr
         goto 551
 +ei
 +if .not.cr
-        write(*,10320)    nfile
         goto 550
 +ei
       endif
@@ -55361,12 +51829,7 @@ c$$$            endif
       endif
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +if cr
@@ -55398,12 +51861,7 @@ c$$$            endif
         endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
       endif
@@ -55411,54 +51869,14 @@ c$$$            endif
       dp1=h
       write(toptit(2)(51:60),10000) dp1-clop(3)
       if(nprint.eq.1.and.ia.eq.0) then
-+if cr
         write(lout,*) 'INITIAL COORDINATES'
-+ei
-+if .not.cr
-        write(*,*)    'INITIAL COORDINATES'
-+ei
-+if cr
         write(lout,*) '       X = ',c
-+ei
-+if .not.cr
-        write(*,*)    '       X = ',c
-+ei
-+if cr
         write(lout,*) '      XP = ',d
-+ei
-+if .not.cr
-        write(*,*)    '      XP = ',d
-+ei
-+if cr
         write(lout,*) '       Z = ',e
-+ei
-+if .not.cr
-        write(*,*)    '       Z = ',e
-+ei
-+if cr
         write(lout,*) '      ZP = ',f
-+ei
-+if .not.cr
-        write(*,*)    '      ZP = ',f
-+ei
-+if cr
         write(lout,*) '   SIGMA = ',g
-+ei
-+if .not.cr
-        write(*,*)    '   SIGMA = ',g
-+ei
-+if cr
         write(lout,*) '    DP/P = ',h
-+ei
-+if .not.cr
-        write(*,*)    '    DP/P = ',h
-+ei
-+if cr
         write(lout,*) '  ENERGY = ',p
-+ei
-+if .not.cr
-        write(*,*)    '  ENERGY = ',p
-+ei
       endif
       
       if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 540
@@ -55556,12 +51974,7 @@ c$$$            endif
   220 continue
 !--INITIAL COORDINATES
       if(nprint.eq.1.and.ia.eq.0) then
-+if cr
         write(lout,*) 'DISTANCE = ',b
-+ei
-+if .not.cr
-        write(*,*)    'DISTANCE = ',b
-+ei
       endif
 !--EMITTANCES WITH LINEAR COUPLING
       evx=txyz(1)**2+txyz(2)**2                                          !hr06
@@ -55705,12 +52118,7 @@ c$$$            endif
       endif
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
 +if cr
@@ -55741,12 +52149,7 @@ c$$$            endif
         endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
       endif
@@ -55944,12 +52347,7 @@ c$$$            endif
 !           call warr('wgh(i2)',wgh(i2),i2,0,0,0)
 +ei
             else
-+if cr
               write(lout,10310) nfile
-+ei
-+if .not.cr
-              write(*,10310)    nfile
-+ei
               wgh(i2)=zero
             endif
           else
@@ -56063,21 +52461,11 @@ c$$$            endif
 +ei
   280 continue
       if(iapx.eq.0) then
-+if cr
         write(lout,*) 'WARNING: IAPX IS ZERO'
-+ei
-+if .not.cr
-        write(*,*) 'WARNING: IAPX IS ZERO'
-+ei
         iapx=1
       endif
       if(iapz.eq.0) then
-+if cr
         write(lout,*) 'WARNING: IAPZ IS ZERO'
-+ei
-+if .not.cr
-        write(*,*) 'WARNING: IAPZ IS ZERO'
-+ei
         iapz=1
       endif
       tphx=dphx/dble(iapx)                                               !hr06
@@ -56096,12 +52484,7 @@ c$$$            endif
 !--AVERAGED EMITTANCES
       di11=i11
       if(i11.eq.0) then
-+if cr
         write(lout,*) '** ERROR ** - I11 IS ZERO'
-+ei
-+if .not.cr
-        write(*,*)    '** ERROR ** - I11 IS ZERO'
-+ei
         goto 550
       endif
       emxa=emxa/di11
@@ -56123,12 +52506,7 @@ c$$$            endif
       enddo
 +ei
       if(ierro.gt.0) then
-+if cr
         write(lout,10320) nfile
-+ei
-+if .not.cr
-        write(*,10320)    nfile
-+ei
         goto 550
       endif
       iskc=-1
@@ -56158,12 +52536,7 @@ c$$$            endif
         p=p_stf
 +ei
         if(ierro.gt.0) then
-+if cr
           write(lout,10320) nfile
-+ei
-+if .not.cr
-          write(*,10320)    nfile
-+ei
           goto 550
         endif
         if(ifipa.lt.1) goto 340
@@ -56177,12 +52550,7 @@ c$$$            endif
           p=p*c1e3
 +ei
 +if stf
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
      &         "ERROR in postpr: program=MAD not valid for STF."
           call prror(-1)
 +ei
@@ -56294,32 +52662,17 @@ c$$$            endif
 !--NOW CONSIDERING ONLY TURNS LARGER THAN NSTART
       tidnt=dble(((ia-nstart)+idnt)/i11)                                 !hr06
       if(i2.ge.2) then
-+if cr
         if(nprint.eq.1) write(lout,10110)
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10110)
-+ei
         ilyap=0
         slopem=zero
         do 360 i=1,i2-1
           iturn=nint(dble((i+1)*iav)*tidnt)                              !hr06
-+if cr
           if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),     &
-+ei
-+if .not.cr
-          if(nprint.eq.1) write(*,10120) iturn,biav(i),slope(i),        &
-+ei
      &varlea(i)
           if(biav(i).gt.0.1d0) ilyap=1
           slopem=max(slopem,slope(i))
   360   continue
-+if cr
         if(nprint.eq.1) write(lout,10130)
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10130)
-+ei
         sumda(10)=biav(i2-1)
         if(ilyap.eq.0) then
          sumda(11)=slope(i2-1)                                           !hr06
@@ -56329,12 +52682,7 @@ c$$$            endif
       endif
 !--CALCULATION OF AVERAGED PHASEADVANCES
       tph6=abs(tph6)
-+if cr
       if(nprint.eq.1) write(lout,10140)tphx,sdpx,tphz,sdpz,tph6,sdp6,qwc&
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10140)tphx,sdpx,tphz,sdpz,tph6,sdp6,qwc   &
-+ei
      &(1),tphx-qwc(1) ,qwc(2),tphz-qwc(2),qwc(3),tph6-qwc(3),dres,ires
       sumda(3)=qwc(1)
       sumda(4)=qwc(2)
@@ -56374,39 +52722,19 @@ c$$$            endif
             im1s=im1
             jm1s=-jm1
           endif
-+if cr
           if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,  &
      &jm1,                                                              &
-+ei
-+if .not.cr
-          if(abs(ares).lt.dres.and.nprint.eq.1) write(*,10170) im1,jm1, &
-+ei
      &dares,ares
           if(abs(ared).lt.dres.and.jm1.ne.0.and.im1.ne.0.and.nprint.eq. &
-+if cr
      &1) write(lout,10170) im1,-jm1,dared,ared
-+ei
-+if .not.cr
-     &1) write(*,10170) im1,-jm1,dared,ared
-+ei
   370 continue
       if(armin.lt.armin0) then
         sumda(16)=dble(im1s)                                             !hr06
         sumda(17)=dble(jm1s)                                             !hr06
         sumda(18)=sumda(16)+abs(sumda(17))
       endif
-+if cr
       if(iwarx.eq.1.and.nprint.eq.1) write(lout,10150)
-+ei
-+if .not.cr
-      if(iwarx.eq.1.and.nprint.eq.1) write(*,10150)
-+ei
-+if cr
       if(iwarz.eq.1.and.nprint.eq.1) write(lout,10160)
-+ei
-+if .not.cr
-      if(iwarz.eq.1.and.nprint.eq.1) write(*,10160)
-+ei
 !--Q-VALUES BY AN FFT-ROUTINE
   380 ifp=ifp+1
       ife=2**ifp
@@ -56417,22 +52745,12 @@ c$$$            endif
         ife=ife/2
       endif
       if(ife.eq.0) then
-+if cr
         write(lout,*) '** ERROR ** - IFE IS ZERO'
-+ei
-+if .not.cr
-        write(*,*) '** ERROR ** - IFE IS ZERO'
-+ei
         goto 550
       endif
       dife=ife
       if(ifp.gt.1) then
-+if cr
         if(nprint.eq.1) write(lout,10180) ife,dfft*100
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10180) ife,dfft*100
-+ei
         call fft(xxr,xxi,ifp,ife)
         call fft(zzr,zzi,ifp,ife)
         xxmax=zero
@@ -56473,21 +52791,11 @@ c$$$            endif
         if(abs(xxmax).gt.pieni) xxmin=xxmin/xxmax
         if(abs(zzmax).gt.pieni) zzmin=zzmin/zzmax
         if(xxmax.le.pieni) then
-+if cr
           write(lout,*) 'WARNING: XXMAX IS SET TO : ',pieni
-+ei
-+if .not.cr
-          write(*,*) 'WARNING: XXMAX IS SET TO : ',pieni
-+ei
           xxmax=pieni
         endif
         if(zzmax.le.pieni) then
-+if cr
           write(lout,*) 'WARNING: ZZMAX IS SET TO : ',pieni
-+ei
-+if .not.cr
-          write(*,*) 'WARNING: ZZMAX IS SET TO : ',pieni
-+ei
           zzmax=pieni
         endif
         do 400 i=if1,if2
@@ -56497,30 +52805,13 @@ c$$$            endif
           if(abs(zzaux-zzmax).le.pieni) ffz=(dble(i-1)/dife)+qz0         !hr06
           xxaux=xxaux/xxmax
           zzaux=zzaux/zzmax
-+if cr
           if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190)           &!hr06
      &dble(i-1)/dife+qx0,xxaux*100d0                                     !hr06
-+ei
-+if .not.cr
-          if(xxaux.gt.dfft.and.nprint.eq.1) write(*,10190)              &!hr06
-     &dble(i-1)/dife+qx0,xxaux*100d0                                     !hr06
-+ei
-+if cr
       if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) dble(i-1)/dife&!hr06
      &+qz0,zzaux*100d0                                                   !hr06
-+ei
-+if .not.cr
-      if(zzaux.gt.dfft.and.nprint.eq.1) write(*,10200) dble(i-1)/dife   &!hr06
-     &+qz0,zzaux*100d0                                                   !hr06
-+ei
   400   continue
-+if cr
         if(nprint.eq.1) write(lout,10210) ffx,ffz,qwc(1),ffx-qwc(1),    &
      &qwc(2),                                                           &
-+ei
-+if .not.cr
-        if(nprint.eq.1) write(*,10210) ffx,ffz,qwc(1),ffx-qwc(1),qwc(2),&
-+ei
      &ffz-qwc(2),dres,ires
 !--DISTANCE OF Q-VALUES (FFT) TO RESONANCES
         do 410 i=1,21
@@ -56535,40 +52826,20 @@ c$$$            endif
             ared=dble(im1)*ffx-dble(jm1)*ffz                             !hr06
             dared=anint(ared)
             ared=ared-dared
-+if cr
             if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,&
-+ei
-+if .not.cr
-            if(abs(ares).lt.dres.and.nprint.eq.1) write(*,10170) im1,   &
-+ei
      &jm1,dares,ares
             if(abs(ared).lt.dres.and.jm1.ne.0.and.im1.ne.0.and.nprint.eq&
-+if cr
      &.1) write(lout,10170) im1,-jm1,dared,ared
-+ei
-+if .not.cr
-     &.1) write(*,10170) im1,-jm1,dared,ared
-+ei
   410   continue
       endif
 !--PRINT 4-D INVARIANTS WITH LINEAR COUPLING
-+if cr
       if(nprint.eq.1) write(lout,10270) emi,emii,emiii,angi,angii,      &
      &angiii,                                                           &
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10270) emi,emii,emiii,angi,angii,angiii,  &
-+ei
      &evxm,sevx,evxma,evxmi,evzm,sevz,evzma,evzmi,evtm,sevt,evtma,evtmi
 !--PRINT EMITTANCES AND SMEAR
       ampx0=sqrt(bet0(1)*emx0)
       ampz0=sqrt(bet0(2)*emz0)
-+if cr
       if(nprint.eq.1) write(lout,10220) emx0,ampx0,emz0,ampz0,emxa,emxs,&
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10220) emx0,ampx0,emz0,ampz0,emxa,emxs,   &
-+ei
      &emax,emix,emza, emzs,emaz,emiz,emta,emts,emat,emit
       sumda(46)=emi
       sumda(47)=emii
@@ -56657,30 +52928,10 @@ c$$$            endif
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 +ei
       if(ierro.ne.0) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
-+ei
-+if .not.cr
-        write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
-+ei
-+if cr
         write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-        write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 !--CALCULATION THE INVARIANCES OF THE 4D TRANSVERSAL MOTION
       do 420 i=1,ninv
@@ -56705,30 +52956,10 @@ c$$$            endif
       endif
       pinx=(pinx/dble(ninv))*100d0                                       !hr06
       pinz=(pinz/dble(ninv))*100d0                                       !hr06
-+if cr
       if(nprint.eq.1) write(lout,10230)
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10230)
-+ei
-+if cr
       if(nuez.lt.ninv.and.nprint.eq.1) write(lout,10240) nuez,ninv
-+ei
-+if .not.cr
-      if(nuez.lt.ninv.and.nprint.eq.1) write(*,10240) nuez,ninv
-+ei
-+if cr
       if(nuex.lt.ninv.and.nprint.eq.1) write(lout,10250) nuex,ninv
-+ei
-+if .not.cr
-      if(nuex.lt.ninv.and.nprint.eq.1) write(*,10250) nuex,ninv
-+ei
-+if cr
       if(nprint.eq.1) write(lout,10260) nuez,nuix,nuex,nuiz, ninv,pinx, &
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10260) nuez,nuix,nuex,nuiz, ninv,pinx,    &
-+ei
      &pixr,pinz,pizr,xing,zing
 !----------------------------------------------------------------------
 !--PLOTTING
@@ -56803,12 +53034,11 @@ c$$$            endif
           enddo
 +ei
           if(ierro.gt.0) then
-+if cr
             write(lout,10320) nfile
++if cr
             goto 551
 +ei
 +if .not.cr
-            write(*,10320) nfile
             goto 550
 +ei
           endif
@@ -56854,12 +53084,7 @@ c$$$            endif
       endif
 +ei
             if(ierro.gt.0) then
-+if cr
               write(lout,10320) nfile
-+ei
-+if .not.cr
-              write(*,10320)    nfile
-+ei
               goto 550
             endif
             if(ifipa.lt.1) goto 460
@@ -56884,12 +53109,7 @@ c$$$            endif
               endif
 +ei
 +if stf
-+if cr
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-+ei
-+if .not.cr
-        write(*,*)    "ERROR in postpr: program=MAD not valid for STF."
-+ei
         call prror(-1)
 +ei
 
@@ -56990,18 +53210,8 @@ c$$$            endif
               fxs(k1)=real(dble(k-1)/dife+qx0)                           !hr06
               if(iffw.eq.2) then
                 if(abs(xxaux).lt.pieni) then
-+if cr
                   write(lout,*) '* * * ERROR * * *'
-+ei
-+if .not.cr
-                  write(*,*) '* * * ERROR * * *'
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'Apparently horizontal FFT data are corrupted'
                   xxaux=one
                 endif
@@ -57017,31 +53227,11 @@ c$$$            endif
               if(nprint.eq.1) then
                 write(14,10030,iostat=ierro) fxs(k1),fzs(k1)
                 if(ierro.ne.0) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'*** ERROR ***,PROBLEMS WRITING TO FILE # : ',14
-+if cr
                   write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-                  write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
                 endif
               endif
   480       continue
@@ -57054,18 +53244,8 @@ c$$$            endif
               fxs(k1)=real(dble(k-1)/dife+qz0)                           !hr06
               if(iffw.eq.2) then
                 if(abs(zzaux).lt.pieni) then
-+if cr
                   write(lout,*) '* * * ERROR * * *'
-+ei
-+if .not.cr
-                  write(*,*) '* * * ERROR * * *'
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'Apparently vertical FFT data are corrupted'
                   zzaux=one
                 endif
@@ -57081,31 +53261,11 @@ c$$$            endif
               if(nprint.eq.1) then
                 write(15,10030,iostat=ierro) fxs(k1),fzs(k1)
                 if(ierro.ne.0) then
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
-+if cr
                   write(lout,*)                                         &
-+ei
-+if .not.cr
-                  write(*,*)                                            &
-+ei
      &'*** ERROR ***,PROBLEMS WRITING TO FILE # : ',14
-+if cr
                   write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-                  write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
                   write(lout,*)
-+ei
-+if .not.cr
-                  write(*,*)
-+ei
                 endif
               endif
   490       continue
@@ -57118,44 +53278,19 @@ c$$$            endif
      &call hdelet(0)
       goto 560
   510 continue
-+if cr
       write(lout,10300) nfile,'HEADER CORRUPTED'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'HEADER CORRUPTED'
-+ei
       goto 550
   520 continue
-+if cr
       write(lout,10300) nfile,'HEADER OF MADFILE CORRUPTED'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'HEADER OF MADFILE CORRUPTED'
-+ei
       goto 550
   530 continue
-+if cr
       write(lout,10300) nfile,'NO DATA'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'NO DATA'
-+ei
       goto 550
   535 continue
-+if cr
       write(lout,10300) nfile,'ONLY START VALUES'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'ONLY START VALUES'
-+ei
       goto 550
   540 continue
-+if cr
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
-+ei
-+if .not.cr
-      write(*,10300)    nfile,'WRONG RANGE OF DATA FOR PROCESSING'
-+ei
       goto 550
 +if cr
   551 write(93,*)'SIXTRACR POSTPR  *** ERROR *** (see fort.6)'
@@ -57204,30 +53339,10 @@ c$$$            endif
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 +ei
       if(ierro.ne.0) then
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
-+if cr
         write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
-+ei
-+if .not.cr
-        write(*,*)   '*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
-+ei
-+if cr
         write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-        write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
         write(lout,*)
-+ei
-+if .not.cr
-        write(*,*)
-+ei
       endif
 !--REWIND USED FILES
   560 rewind nfile
@@ -57236,12 +53351,7 @@ c$$$            endif
 !--TIME COUNT
       tim2=0.
       call timex(tim2)
-+if cr
       if(nprint.eq.1) write(lout,10280) tim2-tim1
-+ei
-+if .not.cr
-      if(nprint.eq.1) write(*,10280)    tim2-tim1
-+ei
 !----------------------------------------------------------------------
       return
       
@@ -57255,8 +53365,8 @@ c$$$            endif
      &'TITLE AND COMMENT :'//a80//a80// )
 10050 format(10x,'THE FOLLOWING PARAMETERS ARE USED:'//                 &
      &10x,'PROGRAM NAME',t102,a8/                                       &
-     &10x,'PARTICLE NUMBER',t102,i3/                                    &
-     &10x,'TOTAL NUMBER OF PARTICLES',t102,i3/                          &
+     &10x,'PARTICLE NUMBER',t102,i7/                                    &
+     &10x,'TOTAL NUMBER OF PARTICLES',t102,i7/                          &
      &10x,'PHASE SPACE',t102,a11/                                       &
      &10x,'MAXIMUM NUMBER OF TURNS',t102,i8/                            &
      &10x,'HORIZONTAL BETA',t102,f16.10/                                &
@@ -57433,21 +53543,13 @@ c$$$            endif
 !  purpose: error messages for fma analysis                             *
 !-----------------------------------------------------------------------*
       implicit none
-+if cr
 +ca crcoall
-+ei
       integer,       intent(in)  :: ierro
       character (*), intent (in) :: subroutine_name
       character (*), intent (in) :: str             !error message
       if(ierro.ne.0) then
-+if .not.cr
-        write(*,*) 'ERROR in ',subroutine_name,': ',
-     & str,', iostat=',ierro
-+ei
-+if cr
         write(lout,*) 'ERROR in ',subroutine_name,': ',
      & str,', iostat=',ierro
-+ei
         call prror(-1)
       endif
       end subroutine
@@ -57533,14 +53635,13 @@ c$$$            endif
 +if crlibm
 +ca crlibco
 +ei
-+if cr
 +ca crcoall
-+ei
-      integer :: i,j,k,l,m,n !for do loops
-      integer :: fma_npart,fma_tfirst,fma_tlast !local variables to check input files
-      logical :: lopen              !flag to check if file is already open
-      logical :: lexist             !flag to check if file fma_fname exists
-      logical :: lread              !flag for file reading
+      integer :: i,j,k,l,m,n                    ! for do loops
+      integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
+      integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
+      logical :: lopen                          ! flag to check if file is already open
+      logical :: lexist                         ! flag to check if file fma_fname exists
+      logical :: lread                          ! flag for file reading
       character(len=getfields_l_max_string) :: ch,ch1
       character filefields_fields
      &     ( getfields_n_max_fields )*( getfields_l_max_string )
@@ -57569,12 +53670,7 @@ c$$$            endif
 
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
-+if cr
       write (lout,*) "FIO not supported in FMA!"
-+ei
-+if .not.cr
-      write (*,*)    "FIO not supported in FMA!"
-+ei
       call prror(-1)
 +ei
 
@@ -57591,12 +53687,7 @@ c$$$            endif
      &     epsnxyzv(napx,fma_nturn_max,3),
      &     STAT=i)
       if (i.ne.0) then
-+if cr
-         write(lout,*) "Error in fma_postpr: Cannon ALLOCATE"//
-+ei
-+if .not.cr
-         write(*,*)    "Error in fma_postpr: Cannon ALLOCATE"//
-+ei
+         write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
      &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
      &        " proportional to napx*fma_nturn_max."
          call prror(-1)
@@ -57605,12 +53696,7 @@ c$$$            endif
 !     fma_six = data file for storing the results of the FMA analysis
       inquire(unit=2001001,opened=lopen)
       if(lopen) then
-+if cr
          write(lout,*) "ERROR in FMA: Tried to open unit 2001001",
-+ei
-+if .not.cr
-         write(*,*)    "ERROR in FMA: Tried to open unit 2001001",
-+ei
      &        "for file 'fma_sixtrack', but it was already taken?"
          call prror(-1)
       endif
@@ -57618,6 +53704,20 @@ c$$$            endif
      &action='write',form='formatted')
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
+
+      if (idp.eq.0 .or. ition.eq.0) then
+         num_modes = 2          !4D tracking
+         write(lout,*)
+     &        "'ERROR: FMA analysis currently only implemented "//
+     &        "for thin 6D tracking and 6D optics!'"
+         call prror(-1)
+         ! Note: It is possible that it works for 4D and thick tracking also,
+         ! as long as you have calculated 6D optics; however it has not been checked.
+         ! If you want to try, comment out the "call prror",
+         ! and if you were not eaten by a grue then please let us know...
+      else
+         num_modes = 3          !6D tracking
+      endif
       
 !     write the header
       write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
@@ -57633,16 +53733,9 @@ c$$$            endif
           if(trim(stringzerotrim(fma_fname(i))).eq.
      &trim(stringzerotrim(dump_fname(j)))) then 
             lexist=.true.     !set lexist = true if the file fma_fname(j) exists
-+if .not.cr
-            write(*,*) 'start FMA analysis using file ',                &
-     &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
-     &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
-+ei
-+if cr
             write(lout,*) 'start FMA analysis using file ',             &
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
      &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
-+ei
 
 !    check the format, if dumpfmt != 2 abort
             if(dumpfmt(j).ne.2) then
@@ -57680,20 +53773,16 @@ c$$$            endif
             enddo
             backspace(dumpunit(j),iostat=ierro)
 !   read in particle amplitudes
-            fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            if (dumplast(j) .eq. -1) then
+               fma_nturn(i) = numl-dumpfirst(j)+1        !Tricky if the particle is lost...
+            else
+               fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
+            endif
             if(fma_nturn(i).gt.fma_nturn_max) then
-+if .not.cr
-              write(*,*) 'ERROR in fma_postpr: only ',                  &
-     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
-              write(*,*) '->reset fma_nturn_max > ', fma_nturn_max
-              call prror(-1)
-+ei
-+if cr
               write(lout,*) 'ERROR in fma_postpr: only ',               &
      &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
               write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
               call prror(-1)
-+ei
             endif
 
 !    - now we have done all checks, we only need the normalisation matrix
@@ -57715,12 +53804,7 @@ c$$$            endif
 !     dump normalized particle amplitudes for debugging (200101+i*10)
             inquire(unit=200101+i*10,opened=lopen)
             if(lopen) then
-+if cr
                write(lout,*) "ERROR in FMA: Tried to open unit",
-+ei
-+if .not.cr
-               write(*,*)    "ERROR in FMA: Tried to open unit",
-+ei
      &            200101+i*10, "for file 'NORM_"//dump_fname(j)//
      &            "', but it was already taken?!?"
                call prror(-1)
@@ -57774,18 +53858,10 @@ c$$$            endif
      &ds_split','fma_postpr') !error in getfields_split while reading
 !    check if number of fields is correct
                 if( filefields_nfields  .ne. 10 ) then 
-+if cr
                   write(lout,*) 'ERROR in fma_postpr while reading parti&
      &cles from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields &
      &expected from getfields_split, got ',filefields_nfields, ' and ch &
      &=',ch
-+ei
-+if .not.cr
-                  write(*,*) 'ERROR in fma_postpr while reading particle&
-     &s from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields exp&
-     &ected from getfields_split, got ',filefields_nfields, ' and ch =',&
-     &ch
-+ei
                   call prror(-1)
                 endif
                 read(filefields_fields(1)(1:filefields_lfields(1)),*) id
@@ -57868,7 +53944,7 @@ c$$$            endif
 !     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
 !         fma_norm_flag > 0 use normalized coordinates
             do l=1,napx ! loop over particles
-              do m=1,3 ! loop over modes (hor.,vert.,long.)
+              do m=1,num_modes ! loop over modes (hor.,vert.,long.)
                  select case( trim(stringzerotrim(fma_method(i))) )
                  case('TUNELASK')
                  if(fma_norm_flag(i) .eq. 0) then
@@ -57958,21 +54034,26 @@ c$$$            endif
      &                   ' capital letters!','fma_postpr')
                  end select
                  
-                if(m.eq.3) q123(m)=one-q123(m)                       ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
-                eps123_0(m)=epsnxyzv(l,1,m)                          ! initial amplitude 
+                if(m.eq.3) q123(m)=one-q123(m)                          ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
+                eps123_0(m)=epsnxyzv(l,1,m)                             ! initial amplitude 
 +if crlibm
                 phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
 +if .not.crlibm
-                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
+                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))   ! inital phase
 +ei
-                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! minimum emittance
-                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m),      &
-     &fma_nturn(i))      ! maximum emittance
+                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
+                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
      &fma_nturn(i) ! average emittance
               enddo
+              if ( num_modes .eq. 2 ) then
+                 q123(3)=0.0
+                 phi123_0(3)=0.0
+                 eps123_min(3)=0.0
+                 eps123_max(3)=0.0
+                 eps123_avg(3)=0.0
+              endif
               write(2001001,1988) trim(stringzerotrim(fma_fname(i))),   &
      &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
      &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
@@ -58009,6 +54090,30 @@ c$$$            endif
  1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
       end subroutine fma_postpr
       
+      subroutine zipf
+!-----------------------------------------------------------------------*
+!     ZIPF                                                              *
+!     COMPRESS SELECTED OUTPUT FILES INTO .ZIP FILE                     *
+!     AT THE END OF THE SIMULATION                                      *
+!     K.SJOBAK, 7/02/2016                                               *
+!-----------------------------------------------------------------------*
+      implicit none
++ca stringzerotrim
++ca zipf
++ca crcoall
+
+      write(lout,'(a,a,a)')
+     &     "ZIPF: Compressing file '",
+     &     trim(stringzerotrim(zipf_outfile)),"'..."
+
++if libarchive !If not, the zipf subroutine shall just be a stub.
+      call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
++ei
+
+      write(lout,'(a)') "Done!"
+
+      end subroutine
+      
       subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
 !      A(N) IS A COMPLEX ARRAY. THE INPUT IS A(N)=(X(N),0.0), WHERE
@@ -58022,9 +54127,6 @@ c$$$            endif
 !
 !---------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58097,9 +54199,6 @@ c$$$            endif
       end
       subroutine caconv(a,b,c)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58121,9 +54220,6 @@ c$$$            endif
       end
       subroutine cphase(k,a,b,c,d,i,j,ie)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58158,9 +54254,6 @@ c$$$            endif
       end
       subroutine cinvar(a,b,c,d,j,e,xinv,invx)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58191,9 +54284,6 @@ c$$$            endif
       end
       subroutine sinpro(a,b,c,d,e)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58219,9 +54309,7 @@ c$$$            endif
 +dk join
       subroutine join
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58256,12 +54344,7 @@ c$$$            endif
      &(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), ta&
      &(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6)
       if(ierro.gt.0) then
-+if cr
         write(lout,10010) 90,ierro
-+ei
-+if .not.cr
-        write(*,10010) 90,ierro
-+ei
         goto 70
       endif
 !-----------------------------------------------------------------------
@@ -58279,33 +54362,18 @@ c$$$            endif
       do 50 i=1,ihalf
         read(91-i,end=50,iostat=ierro)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 50
         endif
         read(91-i-ihalf,end=50,iostat=ierro)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i-ihalf,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i-ihalf,ierro
-+ei
           goto 50
         endif
    10   read(91-i,end=20,iostat=ierro) ia,ipa,dummy, x(1,1),y(1,1),x    &
      &(1,2),y(1,2),sigm(1),dps(1),e0
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 20
         endif
         x(1,1)=x(1,1)*c1e3
@@ -58317,12 +54385,7 @@ c$$$            endif
         read(91-i-ihalf,end=20,iostat=ierro) idummy,idummy,dummy, x     &
      &(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i-ihalf,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i-ihalf,ierro
-+ei
           goto 20
         endif
         x(2,1)=x(2,1)*c1e3
@@ -58334,12 +54397,7 @@ c$$$            endif
      &(1,2),sigm(1),dps(1),e0, ipa+1,dam,x(2,1),y(2,1),x(2,2),y(2,2),   &
      &sigm(2),dps(2),e0
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 90,ierro
-+ei
-+if .not.cr
-          write(*,10010) 90,ierro
-+ei
           goto 20
         endif
         goto 10
@@ -58347,12 +54405,7 @@ c$$$            endif
         rewind 91-i-ihalf
         write(91-i-ihalf,iostat=ierro)
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 91-i-ihalf,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i-ihalf,ierro
-+ei
         endif
         rewind 90
         read(91-i,iostat=ierro) sixtit,commen,cdate,ctime, progrm,ifipa,&
@@ -58364,12 +54417,7 @@ c$$$            endif
      &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta       &
      &(5,6), ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6)
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 40
         endif
         rewind 91-i
@@ -58388,36 +54436,21 @@ c$$$            endif
      &zero,zero,zero,zero, zero,zero,zero,zero,zero,zero,zero,zero,     &
      &zero,zero
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 40
         endif
    30   read(90,end=40,iostat=ierro) ia,ipa,dam, x(1,1),y(1,1),x(1,2),y &
      &(1,2),sigm(1),dps(1),e0, ipa1,dam,x(2,1),y(2,1),x(2,2),y(2,2),    &
      &sigm(2),dps(2),e0
         if(ierro.gt.0) then
-+if cr
           write(lout,10010) 90,ierro
-+ei
-+if .not.cr
-          write(*,10010) 90,ierro
-+ei
           goto 40
         endif
         write(91-i,iostat=ierro) ia,ipa,dam, x(1,1),y(1,1),x(1,2),y     &
      &(1,2),sigm(1),dps(1),e0, ipa1,dam,x(2,1),y(2,1),x(2,2),y(2,2),    &
      &sigm(2),dps(2),e0
         if(ierro.ne.0) then
-+if cr
           write(lout,10010) 91-i,ierro
-+ei
-+if .not.cr
-          write(*,10010) 91-i,ierro
-+ei
           goto 40
         endif
         goto 30
@@ -58426,12 +54459,7 @@ c$$$            endif
    50 continue
       goto 70
    60 continue
-+if cr
       write(lout,10000) 90
-+ei
-+if .not.cr
-      write(*,10000) 90
-+ei
    70 continue
 !-----------------------------------------------------------------------
       return
@@ -58446,9 +54474,7 @@ c$$$            endif
 !  SUBROUTINE TO SUMMARIZE THE RESULTS OF THE POSTPROCESSING
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58462,6 +54488,7 @@ c$$$            endif
 !     integer nchars
 !     parameter (nchars=160)
       character*(1601) ch1
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=60)
@@ -58496,39 +54523,19 @@ c$$$            endif
         enddo
 +ei
         if(ierro.gt.0) then
-+if cr
           write(lout,*) '**ERROR**'
-+ei
-+if .not.cr
-          write(*,*) '**ERROR**'
-+ei
-+if cr
           write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
-+ei
-+if .not.cr
-          write(*,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',         &
-+ei
      &' POSTPROCESSING ERROR # : ',ierro
           return
         endif
-+if cr
         if(i.eq.1) write(lout,10000)
-+ei
-+if .not.cr
-        if(i.eq.1) write(*,10000)
-+ei
         if(abs(d(2)).gt.pieni) ch='LOST'
         if(d(22).ge.d(23)) then
           dlost=d(23)
         else
           dlost=d(22)
         endif
-+if cr
         write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),  &
-+ei
-+if .not.cr
-        write(*,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),     &
-+ei
      &d(12),nint(d(16)),nint(d(18)),d(19),d(21),ch,d(4),d(6),d(8),      &
      &d(13),nint(d(17)),d(20),d(25),d(14),d(15)
    10 continue
@@ -58536,12 +54543,7 @@ c$$$            endif
 +if crlibm
       lineno=0
 +ei
-+if cr
       write(lout,10020)
-+ei
-+if .not.cr
-      write(*,10020)
-+ei
       do 30 i=1,1000
 +if .not.crlibm
         read(10,*,end=40,iostat=ierro) (d(j),j=1,60)
@@ -58560,18 +54562,8 @@ c$$$            endif
         enddo
 +ei
         if(ierro.gt.0) then
-+if cr
           write(lout,*) '**ERROR**'
-+ei
-+if .not.cr
-          write(*,*) '**ERROR**'
-+ei
-+if cr
           write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
-+ei
-+if .not.cr
-          write(*,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',         &
-+ei
      &' POSTPROCESSING ERROR # : ',ierro
           return
         endif
@@ -58582,22 +54574,11 @@ c$$$            endif
 ! N.B. If particle is lost nms is 0, so we set mmac to zero too 
       d(60)=dble(nmac)
       if (nint(d(59)).eq.0) d(60)=zero
-+if cr
       write(lout,10030) i,nint(d(59)),nint(d(60)),                      &
      &nint(d(59))*nint(d(24))
-+ei
-+if .not.cr
-      write(*,10030) i,nint(d(59)),nint(d(60)),                         &
-     &nint(d(59))*nint(d(24))
-+ei
    30 continue
    40 continue
-+if cr
       write(lout,10040)
-+ei
-+if .not.cr
-      write(*,10040)
-+ei
 !-----------------------------------------------------------------------
       return
 10000 format(/131('-')/t10,'SUMMARY OF THE POSTPROCESSING' //t1,125(    &
@@ -58637,9 +54618,7 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58649,16 +54628,32 @@ c$$$            endif
 +ca parpro
 +ca parnum
       dimension track(6,npart)
-      !JBG increased the dimension of param to 5 to include xstr
-      dimension param(nele,5),bcu(nbb,12)
+      dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
++ca parbeam_exp
       save
 !-----------------------------------------------------------------------
-      phi=param(ne,1)
-      nsli=param(ne,2)
-      alpha=param(ne,3)
-      phi2=param(ne,5)
-      f=param(ne,4)/dble(nsli)                                           !hr06
+      if (beam_expflag .eq. 0) then
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         alpha=param(ne,3)
+         f=param(ne,4)/dble(nsli)
+         phi2=param(ne,18)
+      else if(beam_expflag .eq. 1) then
+         alpha=param(ne,3)
+         phi=param(ne,1)
+         nsli=param(ne,2)
+         !sepax=param(ne,4)     !Not actually used anywhere?
+         !sepay=param(ne,5)     !Not actually used anywhere?
+         f=param(ne,4)/dble(nsli)
+         phi2=phi               !Note - phi2 is not a free parameter anymore
+      else
+         write(lout,'(a)') "ERROR in subroutine beamint"
+         write(lout,'(a)') "beam_expflag was", beam_expflag
+         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+         call prror(-1)
+      endif
+
 +if crlibm
       sphi=sin_rn(phi)
       sphi2=sin_rn(phi2)
@@ -58713,9 +54708,6 @@ c$$$            endif
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58761,9 +54753,6 @@ c$$$            endif
 !****************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58888,9 +54877,6 @@ c$$$            endif
 ! BOOSTI **************inverse boost *****************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -58944,9 +54930,6 @@ c$$$            endif
 ! SIGXX is \Sigma
 !**********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59034,9 +55017,6 @@ c$$$            endif
 !*********************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59098,9 +55078,7 @@ c$$$            endif
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59153,12 +55131,7 @@ c$$$            endif
       gauinv=(t+f0)+f1/(f2+t)                                            !hr06
  200  if(p.lt.0d0) gauinv=-1d0*gauinv                                    !hr06
       return
-+if cr
  900  write(lout,910) p0
-+ei
-+if .not.cr
- 900  write(*,910) p0
-+ei
  910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
       call closeUnits
 +if cr
@@ -59171,9 +55144,7 @@ c$$$            endif
 +dk myrinv
       subroutine kerset(ercode,lgfile,limitm,limitr)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59233,12 +55204,7 @@ c$$$            endif
       do 20     i  =  1, kounte
          if(ercode .eq. code(i))  goto 21
   20     continue
-+if cr
       write(lout,1000)  ercode
-+ei
-+if .not.cr
-      write(*,1000)  ercode
-+ei
       call abend('KERNLIB Library Error                             ')
       return
   21  rflag  =  kntr(i) .ge. 1
@@ -59247,24 +55213,14 @@ c$$$            endif
       if(mflag  .and.  (kntm(i) .lt. 255))  kntm(i)  =  kntm(i) - 1
       if(.not. rflag)  then
          if(logf .lt. 1)  then
-+if cr
             write(lout,1001)  code(i)
-+ei
-+if .not.cr
-            write(*,1001)  code(i)
-+ei
          else
             write(logf,1001)  code(i)
          endif
       endif
       if(mflag .and. rflag)  then
          if(logf .lt. 1)  then
-+if cr
             write(lout,1002)  code(i)
-+ei
-+if .not.cr
-            write(*,1002)  code(i)
-+ei
          else
             write(logf,1002)  code(i)
          endif
@@ -59291,9 +55247,6 @@ c$$$            endif
 !     ******************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59412,9 +55365,6 @@ c$$$            endif
 !     ******************************************************************
 !-----------------------------------------------------------------------
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59536,9 +55486,7 @@ c$$$            endif
 !
 !     ******************************************************************
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59550,18 +55498,8 @@ c$$$            endif
       call kermtr('F010.1',lgfile,mflag,rflag)
       if(mflag) then
          if(lgfile.eq.0)  then
-+if cr
             if(kprnt.eq.0) write(lout,2000) name,n,idim
-+ei
-+if .not.cr
-            if(kprnt.eq.0) write(*,2000) name,n,idim
-+ei
-+if cr
             if(kprnt.ne.0) write(lout,2001) name,n,idim,k
-+ei
-+if .not.cr
-            if(kprnt.ne.0) write(*,2001) name,n,idim,k
-+ei
          else
             if(kprnt.eq.0) write(lgfile,2000) name,n,idim
             if(kprnt.ne.0) write(lgfile,2001) name,n,idim,k
@@ -59581,9 +55519,6 @@ c$$$            endif
       end
       subroutine rfact(n,a,idim,ir,ifail,det,jfail)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59668,9 +55603,6 @@ c$$$            endif
       end
       subroutine dfact(n,a,idim,ir,ifail,det,jfail)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59755,9 +55687,6 @@ c$$$            endif
       end
       subroutine rfeqn(n,a,idim,ir,k,b)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59814,9 +55743,6 @@ c$$$            endif
       end
       subroutine dfeqn(n,a,idim,ir,k,b)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59873,9 +55799,6 @@ c$$$            endif
       end
       subroutine rfinv(n,a,idim,ir)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -59946,9 +55869,6 @@ c$$$            endif
       end
       subroutine dfinv(n,a,idim,ir)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60018,9 +55938,7 @@ c$$$            endif
       end
       subroutine tmprnt(name,n,idim,k)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60037,19 +55955,9 @@ c$$$            endif
       if(mflag) then
          if(lgfile .eq. 0) then
             if(name(3:6) .eq. 'FEQN') then
-+if cr
                write(lout,1002) name, n, idim, k
-+ei
-+if .not.cr
-               write(*,1002) name, n, idim, k
-+ei
             else
-+if cr
                write(lout,1001) name, n, idim
-+ei
-+if .not.cr
-               write(*,1001) name, n, idim
-+ei
             endif
          else
             if(name(3:6) .eq. 'FEQN') then
@@ -60081,9 +55989,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60151,9 +56056,6 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60205,6 +56107,20 @@ c$$$            endif
     4 return
       end
 +dk nwrtcoll
+      !This routine pre-calcuates some varibles for
+      !the nuclear properties
+      subroutine collimat_init()
+      implicit none
+      integer i
+      double precision CalcElectronDensity,CalcPlasmaEnergy
++ca interac
+      ! compute the electron densnity and plasma energy for each material
+      do i=1, nmat
+         edens(i) = CalcElectronDensity(zatom(i),rho(i),anuc(i))
+         pleng(i) = CalcPlasmaEnergy(edens(i))
+      end do
+      end
+
       subroutine collimate2(c_material, c_length, c_rotation,           &
      &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
 !MAY2005
@@ -60248,9 +56164,7 @@ c$$$            endif
 !++  - Put real dp/dx
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -60269,7 +56183,7 @@ c$$$            endif
       double precision x_flk,xp_flk,y_flk,yp_flk,zpj
 !
       double precision s_impact
-      integer flagsec(maxn)
+      integer flagsec(npart)
 !
 !     SR, 18-08-2005: add temporary variable to write in FirstImpacts
 !     the initial distribution of the impacting particles in the
@@ -60319,18 +56233,10 @@ c$$$            endif
       elseif (c_material.eq.'BL') then
          mat = nmat
       else
-+if cr
          write(lout,*)
          write(lout,*) 'ERR>  In subroutine collimate2:'
          write(lout,*) 'ERR>  Material "', c_material, '" not found.'
          write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-+ei
-+if .not.cr
-         write(*,*)
-         write(*,*)    'ERR>  In subroutine collimate2:'
-         write(*,*)    'ERR>  Material "', c_material, '" not found.'
-         write(*,*)    'ERR>  Check your CollDB! Stopping now.'
-+ei
          STOP
       endif
 !
@@ -60635,12 +56541,7 @@ c$$$            endif
 !
             s = (-1d0*x) / xp
             if (s.le.0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen'
-+ei
               stop
             endif
 !
@@ -61000,14 +56901,14 @@ c$$$            endif
 !
 ! output for comparing the particle in accelerator frame 
 !
-          if(dowrite_impact) then
-             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
-     &            name(j),iturn,icoll,nabs,                             &
-     &            s_in(j),                                              &
-     &            s+sp + (dble(j_slices)-1d0) * c_length,               &!hr09
-     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
-     &            x,xp,z,zp
-          endif
+c$$$          if(dowrite_impact) then
+c$$$             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
+c$$$     &            name(j),iturn,icoll,nabs,                             &
+c$$$     &            s_in(j),                                              &
+c$$$     &            s+sp + (dble(j_slices)-1d0) * c_length,               &!hr09
+c$$$     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
+c$$$     &            x,xp,z,zp
+c$$$          endif
 !
 !++  End of check for particles not being lost before
 !
@@ -61063,9 +56964,7 @@ c$$$            endif
 !++  - Put real dp/dx
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -61119,12 +57018,7 @@ c$$$            endif
       elseif (c_material.eq.'Iner') then
          mat = 12
       else
-+if cr
          write(lout,*) 'ERR>  Material not found. STOP', c_material
-+ei
-+if .not.cr
-         write(*,*) 'ERR>  Material not found. STOP', c_material
-+ei
 !        STOP
       endif
 !
@@ -61385,12 +57279,7 @@ c$$$            endif
 !
             s = (-1.0d0*x) / xp
             if (s.le.0d0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen (1)'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (1)'
-+ei
               stop
             endif
 !
@@ -61411,12 +57300,7 @@ c$$$            endif
 !
             s = (-1.0d0*z) / zp
             if (s.le.0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen (2)'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (2)'
-+ei
               stop
             endif
 !
@@ -61445,12 +57329,7 @@ c$$$            endif
             if(sx.ge.sz) s=sz
 !
             if (s.le.0d0) then
-+if cr
               write(lout,*) 'S.LE.0 -> This should not happen (3)'
-+ei
-+if .not.cr
-              write(*,*) 'S.LE.0 -> This should not happen (3)'
-+ei
               stop
             endif
 !
@@ -61783,9 +57662,7 @@ c$$$            endif
 !  Generate distribution
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -61820,54 +57697,14 @@ c$$$            endif
 !
 !++  Number of points and generate distribution
 !
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'Generation of particle distribution Version 1'
-+ei
-+if .not.cr
-      write(*,*) 'Generation of particle distribution Version 1'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'This routine generates particles in phase space'
-+ei
-+if .not.cr
-      write(*,*) 'This routine generates particles in phase space'
-+ei
-+if cr
       write(lout,*) 'X/XP and Y/YP ellipses, as defined in the input'
-+ei
-+if .not.cr
-      write(*,*) 'X/XP and Y/YP ellipses, as defined in the input'
-+ei
-+if cr
       write(lout,*) 'parameters. Distribution is flat in the band.'
-+ei
-+if .not.cr
-      write(*,*) 'parameters. Distribution is flat in the band.'
-+ei
-+if cr
       write(lout,*) 'X and Y are fully uncorrelated.'
-+ei
-+if .not.cr
-      write(*,*) 'X and Y are fully uncorrelated.'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !
       write(outlun,*)
       write(outlun,*) 'Generation of particle distribution Version 1'
@@ -61967,9 +57804,7 @@ c$$$            endif
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -61990,14 +57825,8 @@ c$$$            endif
 !
 !++  Calculate the gammas
 !
-+if cr
       write(lout,*) '  New routine to add the finite beam size in the'
       write(lout,*) '  other dimension (SR, 08-06-2005).'
-+ei
-+if .not.cr
-      write(*,*) '  New routine to add the finite beam size in the'
-      write(*,*) '  other dimension (SR, 08-06-2005).'
-+ei
 
       pi=4d0*atan(1d0)
 !
@@ -62101,7 +57930,7 @@ c$$$            endif
      &           myalphay * cos(phiy))                                   !hr09
 +ei
          else
-            write(*,*) "Error - beam parameters not correctly set!"
+            write(lout,*) "Error - beam parameters not correctly set!"
          endif
 !
          myp(j)   = myenom
@@ -62129,21 +57958,12 @@ c$$$            endif
      &     myx, myxp, myy, myyp, myp, mys)
  
       implicit none
-
++ca crcoall
 +ca collpara
++ca dbmkdist
 
-      ! Don't load the common blocks for these variables
-      logical cut_input
-      integer i,j,mynp,nloop
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-     &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-     &xsigmax,ysigmay,myenom,nr,ndr,pi, iix, iiy, phix,phiy,cutoff
-!
-      real      rndm4
-      character*80   dummy
-      common /cut/ cut_input
-
+      double precision pi, iix, iiy, phix,phiy,cutoff
+      
       save
 !
 !-----------------------------------------------------------------------
@@ -62151,7 +57971,7 @@ c$$$            endif
 !
 !++  Calculate the gammas
 !
-      write(*,*) '  RB 2013: new pencil beam routine'
+      write(lout,*) '  RB 2013: new pencil beam routine'
       pi=4d0*atan(1d0)
 !
       mygammax = (1d0+myalphax**2)/mybetax
@@ -62206,7 +58026,7 @@ c$$$            endif
      &           myalphax * cos(phix))                             
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then  ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
-            write(*,*) "Stop in makedis_coll. attempting to use halo type 
+            write(lout,*) "Stop in makedis_coll. attempting to use halo type 
      &3 with Gaussian dist. "
             stop
 c$$$            phix = (2d0*pi)*dble(rndm4())                                 
@@ -62223,7 +58043,7 @@ c$$$            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin(phiy) +     &
 c$$$     &           myalphay * cos(phiy))                                    
 
          else
-            write(*,*) "Error - beam parameters not correctly set!"
+            write(lout,*) "Error - beam parameters not correctly set!"
          endif
 !
          myp(j)   = myenom
@@ -62252,9 +58072,7 @@ c$$$     &           myalphay * cos(phiy))
 !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62295,7 +58113,7 @@ c$$$     &           myalphay * cos(phiy))
 !GRD      else
       en_error = enerror
       bunch_length = bunchlength
-+if cr
+      
 !GRD         write(lout,*)"Warning-Energy different from LHC inj or top!"
 !GRD         write(lout,*)"  => 7TeV values of dp/p and bunch length used!"
 !GRD      endif
@@ -62303,16 +58121,7 @@ c$$$     &           myalphay * cos(phiy))
       write(lout,*) "Generation of bunch with dp/p and length:"
       write(lout,*) "  RMS bunch length  = ", bunch_length
       write(lout,*) "  RMS energy spread = ", en_error
-+ei
-+if .not.cr
-!GRD         write(*,*)"Warning-Energy different from LHC inj or top!"
-!GRD         write(*,*)"     => 7TeV values of dp/p and bunch length used!"
-!GRD      endif
-!GRD
-      write(*,*) "Generation of bunch with dp/p and length:"
-      write(*,*) "  RMS bunch length  = ", bunch_length
-      write(*,*) "  RMS energy spread = ", en_error
-+ei
+
       do j=1, mynp
          if ((mynex.gt.0d0).and.(myney.eq.0d0)) then
             myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
@@ -62410,7 +58219,7 @@ c$$$     &           myalphay * cos(phiy))
      &           myalphay * cos(phiy))                                   !hr09
 +ei
          else
-            write(*,*) "Error - beam parameters not correctly set!"
+            write(lout,*) "Error - beam parameters not correctly set!"
          endif
 !
       end do
@@ -62451,9 +58260,7 @@ c$$$     &           myalphay * cos(phiy))
 !
       implicit none
 
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62467,20 +58274,20 @@ c$$$     &           myalphay * cos(phiy))
       
       save
 
-      write(*,*) "Reading input bunch from file ", filename_dis
+      write(lout,*) "Reading input bunch from file ", filename_dis
 
       inquire( unit=53, opened=lopen )
       if (lopen) then
-         write(*,*) "ERROR in subroutine readdis: "//
+         write(lout,*) "ERROR in subroutine readdis: "//
      &        "FORTRAN Unit 53 was already open!"
          goto 20
       endif
       open(unit=53, file=filename_dis, iostat=stat,
      &     status="OLD",action="read")
       if (stat.ne.0)then
-         write(*,*) "Error in subroutine readdis: "//
+         write(lout,*) "Error in subroutine readdis: "//
      &        "Could not open the file."
-         write(*,*) "Got iostat=",stat
+         write(lout,*) "Got iostat=",stat
          goto 20
       endif
 
@@ -62490,7 +58297,7 @@ c$$$     &           myalphay * cos(phiy))
       enddo
       
  10   mynp = j - 1
-      write(*,*) "Number of particles read from the file = ",mynp
+      write(lout,*) "Number of particles read from the file = ",mynp
 
       close(53)
 
@@ -62498,7 +58305,7 @@ c$$$     &           myalphay * cos(phiy))
       
  20   continue
 !      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
-      write(*,*) "I/O Error on Unit 53 in subroutine readdis"
+      write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
       call prror(-1)
       
       end
@@ -62510,9 +58317,7 @@ c$$$     &           myalphay * cos(phiy))
      &myyp, myp, mys)
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62546,42 +58351,12 @@ c$$$     &           myalphay * cos(phiy))
       myney = nr/sqrt(2d0)
       mdey = ndr/sqrt(2d0)
 !
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'Generation of particle distribution Version 2'
-+ei
-+if .not.cr
-      write(*,*) 'Generation of particle distribution Version 2'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
-+if cr
       write(lout,*) 'This routine generates particles in that are fully'
-+ei
-+if .not.cr
-      write(*,*) 'This routine generates particles in that are fully'
-+ei
-+if cr
       write(lout,*) 'correlated between X and Y.'
-+ei
-+if .not.cr
-      write(*,*) 'correlated between X and Y.'
-+ei
-+if cr
       write(lout,*)
-+ei
-+if .not.cr
-      write(*,*)
-+ei
 !
       write(outlun,*)
       write(outlun,*) 'Generation of particle distribution Version 2'
@@ -62704,9 +58479,7 @@ c$$$     &           myalphay * cos(phiy))
      &     enerror, bunchlength )
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62747,21 +58520,21 @@ c$$$     &           myalphay * cos(phiy))
       en_error = enerror
       bunch_length = bunchlength
 
-      write (*,*) "Generation of bunch with dp/p and length:"
-      write (*,*) "  RMS bunch length  = ", bunch_length
-      write (*,*) "  RMS energy spread = ", en_error
+      write (lout,*) "Generation of bunch with dp/p and length:"
+      write (lout,*) "  RMS bunch length  = ", bunch_length
+      write (lout,*) "  RMS energy spread = ", en_error
 ! JBG August 2007
-      write (*,*)
-      write (*,*) "   ***STEP 1 for Gaussian Beam***"
-      write (*,*)
-      write (*,*) "   Beam generated with 5 sigma cut"
-      write (*,*)
-      write (*,*) "  Parameters used for Distribution Generation"
-      write (*,*) "  BetaX =", mybetax    
-      write (*,*) "  BetaY =", mybetay
-      write (*,*) "  EmittanceX =", myemitx0
-      write (*,*) "  EmittanceY =", myemity0
-      write (*,*)
+      write (lout,*)
+      write (lout,*) "   ***STEP 1 for Gaussian Beam***"
+      write (lout,*)
+      write (lout,*) "   Beam generated with 5 sigma cut"
+      write (lout,*)
+      write (lout,*) "  Parameters used for Distribution Generation"
+      write (lout,*) "  BetaX =", mybetax    
+      write (lout,*) "  BetaY =", mybetay
+      write (lout,*) "  EmittanceX =", myemitx0
+      write (lout,*) "  EmittanceY =", myemity0
+      write (lout,*)
       
       startpar=1
 +if beamgas
@@ -62847,9 +58620,6 @@ c$$$     &           myalphay * cos(phiy))
 !
       function ichoix(ma)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62876,9 +58646,6 @@ c$$$     &           myalphay * cos(phiy))
 !++        is modified (energy loss is applied)
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62889,6 +58656,7 @@ c$$$     &           myalphay * cos(phiy))
 !
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractif, 5:Coulomb
 !
++if .not.merlinscatter
       if        ( inter.eq.2 ) then
 +if crlibm
            gettran = (-1d0*log_rn(dble(rndm4())))/bn(xmat)               !hr09
@@ -62934,15 +58702,35 @@ c$$$     &           myalphay * cos(phiy))
            t=dble(truth)                                                 !hr09
            gettran = t
       endif
++ei
++if merlinscatter
+
+      if ( inter.eq.2 ) then
+           gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
+
+      elseif ( inter .eq. 3 ) then
+           call merlinscatter_get_elastic_t(gettran)
+
+      elseif ( inter .eq. 4 ) then
+           call merlinscatter_get_sd_xi(xm2)
+           call merlinscatter_get_sd_t(gettran)
+           p = p  * (1.d0 - (xm2/ecmsq))
+
+      elseif ( inter.eq.5 ) then
+           length=1
+           call funlux( cgen(1,mat) , xran, length)
+           truth=xran(1)
+           t=dble(truth)                                                 !hr09
+           gettran = t
+      endif
+
++ei
       return
       end
 !---------------------------------------------------------------
 !
       subroutine tetat(t,p,tx,tz)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62964,9 +58752,6 @@ c$$$     &           myalphay * cos(phiy))
 !
       function ruth(t)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -62991,9 +58776,6 @@ c$$$     &           myalphay * cos(phiy))
 !GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
 !GRD
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63115,8 +58897,8 @@ c$$$     &           myalphay * cos(phiy))
 !
       subroutine scatin(plab)
       implicit none
-+if cr
-+ca crcoall
++if merlinscatter
++ca database
 +ei
 +if crlibm
 +ca crlibco
@@ -63128,6 +58910,7 @@ c$$$     &           myalphay * cos(phiy))
       external ruth
 !
       ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
++if .not.merlinscatter
 +if crlibm
       xln15s=log_rn(0.15d0*ecmsq)                                        !hr09
 +ei
@@ -63153,10 +58936,14 @@ c$$$     &           myalphay * cos(phiy))
       ppel=(11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000 !Claudia used the fit from TOTEM for ppel (in barn)
 !      ppsd = sdcoe * log(0.15d0 * ecmsq)
       ppsd=(4.3d0+0.3d0*log(ecmsq))/1000 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))      !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-
 +ei
-
++ei
++if merlinscatter !No crlibm...
+      call merlinscatter_setup(plab,rnd_seed)
+      call merlinscatter_setdata(pptot,ppel,ppsd)
++ei
+      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))      !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
+      
 ! unmeasured tungsten data,computed with lead data and power laws
       bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(2d0/3d0)
       emr(4) = emr(5) * (anuc(4)/anuc(5))**(1d0/3d0)
@@ -63244,9 +59031,6 @@ c$$$     &           myalphay * cos(phiy))
 !     nabs=1....absorption
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63332,8 +59116,16 @@ c$$$     &           myalphay * cos(phiy))
        call mcs(s)
        s=(zlm-rlen)+s                                                    !hr09
 !       m_dpodx=get_dpodx(p,mat) ! Claudia 2013
++if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
        p=p-m_dpodx*s
++ei
++if merlinscatter
+!void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
+      call merlinscatter_calc_ion_loss(p,edens(mat),                     &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
++ei
 
 !       dpop=1.d0-p0/p
        dpop=(p-p0)/p0
@@ -63358,8 +59150,15 @@ c$$$     &           myalphay * cos(phiy))
       if(x.le.0d0) then
        s=(zlm-rlen)+s                                                    !hr09
 !       m_dpodx=get_dpodx(p,mat)
++if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)
        p=p-m_dpodx*s
++ei
++if merlinscatter
+       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
++ei
        dpop=(p-p0)/p0
        if(dowrite_impact) then
 ! write Coll_Scatter.dat for complete scattering histories
@@ -63389,8 +59188,15 @@ c$$$     &           myalphay * cos(phiy))
        s=(zlm-rlen)+zlm1                                                 !hr09
 !       p=p-dpodx(mat)*s  ! Why calculate ionization energy loss if particle is absorbed? This is used nowhere....?
 !       m_dpodx=get_dpodx(p,mat)
++if .not.merlinscatter
        call calc_ion_loss(mat,p,rlen,m_dpodx)
        p=p-m_dpodx*s
++ei
++if merlinscatter
+       call merlinscatter_calc_ion_loss(p,edens(mat),                    &
+     & pleng(mat),exenergy(mat),s,m_dpodx)
+       p=p-m_dpodx
++ei
        dpop=(p-p0)/p0
 ! write Coll_Scatter.dat for complete scattering histories
            write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')           &  
@@ -63477,9 +59283,6 @@ c$$$     &           myalphay * cos(phiy))
 !     nabs=1....absorption
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63632,9 +59435,6 @@ c$$$     &           myalphay * cos(phiy))
 !     collimator: x>0 and y<zlm1
 !
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63685,9 +59485,6 @@ c$$$     &           myalphay * cos(phiy))
 
       subroutine scamcs(xx,xxp,s,radl_mat)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63726,9 +59523,6 @@ c$$$     &           myalphay * cos(phiy))
 
       subroutine soln3(a,b,dh,smax,s)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63776,9 +59570,6 @@ c$$$     &           myalphay * cos(phiy))
 
       subroutine iterat(a,b,dh,s)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -63846,6 +59637,55 @@ c$$$     &           myalphay * cos(phiy))
       end
 !
 !cccccccccccccccccccccccccccccccccc
+
+! Function to calculate the electron density in a material
+! Should give the number per cubic meter
+      function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+      implicit none
+      double precision AtomicNumber, Density, AtomicMass
+      double precision Avogadro
+      double precision CalcElectronDensity
+      double precision PartA, PartB
+      parameter (Avogadro = 6.022140857e23)
+      PartA = AtomicNumber * Avogadro * Density
+      !1e-6 factor converts to n/m^-3
+      PartB = AtomicMass * 1e-6
+      CalcElectronDensity = PartA/PartB
+      return
+      end
+
+! Function to calculate the plasma energy in a material
+! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
+      function CalcPlasmaEnergy(ElectronDensity)
+      implicit none
+      double precision ElectronDensity
+      double precision CalcPlasmaEnergy
+      double precision sqrtAB,PartA,PartB,FSPC2
+
+      !Values from the 2016 PDG
+      double precision PlanckConstantBar,ElectronCharge,ElectronMass
+      double precision ElectronCharge2
+      double precision FreeSpacePermittivity,FreeSpacePermeability
+      double precision SpeedOfLight,SpeedOfLight2
+
+      parameter (PlanckConstantBar = 1.054571800e-34)
+      parameter (ElectronCharge = 1.6021766208e-19)
+      parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
+      parameter (ElectronMass = 9.10938356e-31)
+      parameter (SpeedOfLight = 299792458)
+      parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
+
+      parameter (FreeSpacePermeability = 16.0e-7*atan(1.0)) ! Henry per meter
+      parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
+      parameter (FreeSpacePermittivity = 1.0/FSPC2)
+      parameter (PartB = ElectronMass * FreeSpacePermittivity)
+
+      PartA = ElectronDensity * ElectronCharge2
+
+      sqrtAB = sqrt(PartA/PartB)
+      CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*1e-9
+      return
+      end
 
 C.**************************************************************************
 C     subroutine for the calculazion of the energy loss by ionization
@@ -63988,9 +59828,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 
       function rndm4()
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -64159,15 +59996,13 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !!!      ISVEC must be dimensioned 25 in the calling program        ++
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
       integer lenv,isdext,iseeds,maxlev,ndskip,itwo24,next,j24,i24,     &
      &inseed,mkount,kount,in24,nskip,lxdflt,jsdflt,jseed,lp,i,k,icons,  &
-     &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout,ins,lux,ilx, &
+     &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout2,ins,lux,ilx,&
      &iouter
       real rvec,seeds,twop12,twom12,twom24,carry,uni
       dimension rvec(lenv)
@@ -64196,12 +60031,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          notyet = .false.
          jseed = jsdflt
          inseed = jseed
-+if cr
          write(lout,'(A,I12)') ' RANLUX DEFAULT INITIALIZATION: ',jseed
-+ei
-+if .not.cr
-         write(*,'(A,I12)') ' RANLUX DEFAULT INITIALIZATION: ',jseed
-+ei
          luxlev = lxdflt
          nskip = ndskip(luxlev)
          lp = nskip + 24
@@ -64287,18 +60117,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
   195    twom24 = twom24 * 0.5
          next(1) = 24
          twom12 = twom24 * 4096.
-+if cr
       write(lout,*) ' FULL INITIALIZATION OF RANLUX WITH 25 INTEGERS:'
-+ei
-+if .not.cr
-      write(*,*) ' FULL INITIALIZATION OF RANLUX WITH 25 INTEGERS:'
-+ei
-+if cr
       write(lout,'(5X,5I12)') isdext
-+ei
-+if .not.cr
-      write(*,'(5X,5I12)') isdext
-+ei
       do 200 i= 1, 24
       seeds(i) = real(isdext(i))*twom24
   200 continue
@@ -64314,29 +60134,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       luxlev = isd
         if (luxlev .le. maxlev) then
           nskip = ndskip(luxlev)
-+if cr
           write(lout,'(A,I2)')' RANLUX LUXURY LEVEL SET BY RLUXIN TO: ',
-+ei
-+if .not.cr
-          write(*,'(A,I2)') ' RANLUX LUXURY LEVEL SET BY RLUXIN TO: ',  &
-+ei
      &luxlev
         else  if (luxlev .ge. 24) then
           nskip = luxlev - 24
-+if cr
           write(lout,'(A,I5)')' RANLUX P-VALUE SET BY RLUXIN TO:',luxlev
-+ei
-+if .not.cr
-          write(*,'(A,I5)') ' RANLUX P-VALUE SET BY RLUXIN TO:',luxlev
-+ei
         else
           nskip = ndskip(maxlev)
-+if cr
           write(lout,'(A,I5)') ' RANLUX ILLEGAL LUXURY RLUXIN: ',luxlev
-+ei
-+if .not.cr
-          write(*,'(A,I5)') ' RANLUX ILLEGAL LUXURY RLUXIN: ',luxlev
-+ei
           luxlev = maxlev
         endif
       inseed = -1
@@ -64351,12 +60156,12 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       if (carry .gt. 0.)  isdext(25) = -isdext(25)
       return
 !
-!                    Entry to output the "convenient" restart point
-!STRANGENESS: Entry point 'rluxat' not used,
-!             strange first argument "lout" (should be luxury level)
-!             This is not compatible with CR!
-      entry rluxat(lout,inout,k1,k2)
-      lout = luxlev
+!     Entry to output the "convenient" restart point
+!     Note: The first argument was originall called "lout";
+!     however this conflicts with the variable name used for selecting output unit.
+!     It was therefore renamed to "lout2".
+      entry rluxat(lout2,inout,k1,k2)
+      lout2 = luxlev
       inout = inseed
       k1 = kount
       k2 = mkount
@@ -64370,12 +60175,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
             luxlev = lux
          else if (lux .lt. 24 .or. lux .gt. 2000) then
             luxlev = maxlev
-+if cr
             write(lout,'(A,I7)') ' RANLUX ILLEGAL LUXURY RLUXGO: ',lux
-+ei
-+if .not.cr
-            write(*,'(A,I7)') ' RANLUX ILLEGAL LUXURY RLUXGO: ',lux
-+ei
          else
             luxlev = lux
             do 310 ilx= 0, maxlev
@@ -64384,50 +60184,25 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          endif
       if (luxlev .le. maxlev)  then
          nskip = ndskip(luxlev)
-+if cr
          write(lout,'(A,I2,A,I4)')                                      &
      &' RANLUX LUXURY LEVEL SET BY RLUXGO :',
-+ei
-+if .not.cr
-         write(*,'(A,I2,A,I4)') ' RANLUX LUXURY LEVEL SET BY RLUXGO :', &
-+ei
      &luxlev,'     P=', nskip+24
       else
           nskip = luxlev - 24
-+if cr
           write(lout,'(A,I5)')                                          &
      &' RANLUX P-VALUE SET BY RLUXGO TO:',luxlev
-+ei
-+if .not.cr
-          write(*,'(A,I5)') ' RANLUX P-VALUE SET BY RLUXGO TO:',luxlev
-+ei
       endif
       in24 = 0
-+if cr
       if (ins .lt. 0)  write(lout,*)
-+ei
-+if .not.cr
-      if (ins .lt. 0)  write(*,*)                                       &
-+ei
      &' Illegal initialization by RLUXGO, negative input seed'
       if (ins .gt. 0)  then
         jseed = ins
-+if cr
         write(lout,'(A,3I12)')                                          &
      &' RANLUX INITIALIZED BY RLUXGO FROM SEEDS',
-+ei
-+if .not.cr
-        write(*,'(A,3I12)') ' RANLUX INITIALIZED BY RLUXGO FROM SEEDS', &
-+ei
      &jseed, k1,k2
       else
         jseed = jsdflt
-+if cr
         write(lout,*)' RANLUX INITIALIZED BY RLUXGO FROM DEFAULT SEED'
-+ei
-+if .not.cr
-        write(*,*)' RANLUX INITIALIZED BY RLUXGO FROM DEFAULT SEED'
-+ei
       endif
       inseed = jseed
       notyet = .false.
@@ -64480,12 +60255,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         endif
 !       Now IN24 had better be between zero and 23 inclusive
         if (in24 .gt. 23) then
-+if cr
            write(lout,'(A/A,3I11,A,I5)')
-+ei
-+if .not.cr
-           write(*,'(A/A,3I11,A,I5)')                                   &
-+ei
      &'  Error in RESTARTING with RLUXGO:','  The values', ins,         &
      &k1, k2, ' cannot occur at luxury level', luxlev
            in24 = 0
@@ -64508,9 +60278,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !    4. both FUNLXP and FUNPCT use RADAPT for Gaussian integration.
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -64528,12 +60296,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       call funlz(func,x2low,x2high,xlow,xhigh)
       xrange = xhigh-xlow
       if(xrange .le. 0.)  then
-+if cr
         write(lout,'(A,2G15.5)') ' FUNLXP finds function range .LE.0',
-+ei
-+if .not.cr
-        write(*,'(A,2G15.5)') ' FUNLXP finds function range .LE.0',     &
-+ei
      &xlow,xhigh
         go to 900
       endif
@@ -64559,12 +60322,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
      &' between',g12.3,' and',g12.3,' for FUNLUX')
       return
   900 continue
-+if cr
       write(lout,*) ' Fatal error in FUNLXP. FUNLUX will not work.'
-+ei
-+if .not.cr
-      write(*,*) ' Fatal error in FUNLXP. FUNLUX will not work.'
-+ei
       end
 !
       subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,    &
@@ -64572,9 +60330,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !        Array XFCUM is filled from NLO to NLO+NBINS, which makes
 !        the number of values NBINS+1, or the number of bins NBINS
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -64623,12 +60379,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       f1 = f
       x1 = x
   500 continue
-+if cr
       write(lout,*) ' FUNLUX:  WARNING. FUNPCT fails trapezoid.'
-+ei
-+if .not.cr
-      write(*,*) ' FUNLUX:  WARNING. FUNPCT fails trapezoid.'
-+ei
 !         END OF TRAPEZOID LOOP
 !         Adjust interval using Gaussian integration with
 !             Newton corrections since F is the derivative
@@ -64643,12 +60394,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       x = xbest + xincr
       x2 = x
         if (ihome .gt. 1 .and. x2 .eq. xbest) then
-+if cr
         write(lout,'(A,G12.3)')
-+ei
-+if .not.cr
-        write(*,'(A,G12.3)')                                            &
-+ei
      &' FUNLUX: WARNING from FUNPCT: insufficient precision at X=',x
         go to 580
         endif
@@ -64667,12 +60413,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       if(f .lt. 0.) goto 900
       if(dtabs .lt. rteps*tpctil) goto 580
   550 continue
-+if cr
       write(lout,'(A,I4)')
-+ei
-+if .not.cr
-      write(*,'(A,I4)')                                                 &
-+ei
      &' FUNLUX: WARNING from FUNPCT: cannot converge, bin',ibin
 !
   580 continue
@@ -64688,19 +60429,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       call radapt(func,x1,x2,1,rteps,0.,tpart ,uncert)
       aberr = abs(tpart-tpctil)/tftot
 !      WRITE(6,1001) IFUNC,XLOW,XHIGH
-+if cr
       if(aberr .gt. rteps)  write(lout,1002) aberr
-+ei
-+if .not.cr
-      if(aberr .gt. rteps)  write(*,1002) aberr
-+ei
       return
-+if cr
   900 write(lout,1000) x,f
-+ei
-+if .not.cr
-  900 write(*,1000) x,f
-+ei
       ierr = 1
       return
  1000 format(/' FUNLUX fatal error in FUNPCT: function negative:'/      &
@@ -64718,9 +60449,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -64791,9 +60519,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !         OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
 !         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -64817,18 +60543,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
    20 continue
    30 continue
 !         FALLING THROUGH LOOP MEANS CANNOT FIND NON-ZERO VALUE
-+if cr
       write(lout,554)
-+ei
-+if .not.cr
-      write(*,554)
-+ei
-+if cr
       write(lout,555) xlow, xhigh
-+ei
-+if .not.cr
-      write(*,555) xlow, xhigh
-+ei
       xlow = 0.
       xhigh = 0.
       go to 220
@@ -64845,12 +60561,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
    68 xl = xnew
    70 continue
       xlow = xl
-+if cr
       write(lout,555) x2low,xlow
-+ei
-+if .not.cr
-      write(*,555) x2low,xlow
-+ei
   120 continue
       if (func(xhigh) .gt. 0.) go to 220
 !         DELETE 'TRAILING' RANGE OF ZEROES
@@ -64864,12 +60575,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
   168 xh = xnew
   170 continue
       xhigh = xh
-+if cr
       write(lout,555) xhigh, x2high
-+ei
-+if .not.cr
-      write(*,555) xhigh, x2high
-+ei
 !
   220 continue
       return
@@ -64893,9 +60599,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !        can be set to zero, in which case only the other is used.
 
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -64978,9 +60681,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine rgs56p(f,a,b,res,err)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -65029,9 +60729,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       integer function mclock_liar( )
 !
       implicit none
-+if cr
 +ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -65050,19 +60748,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          call system_clock( mclock, count_rate, count_max )
          if ( count_max .eq. 0 ) then
             clock_ok = .false.
-+if cr
             write(lout,*)'INFO>  System Clock not present or not',
-+ei
-+if .not.cr
-            write(*,*)'INFO>  System Clock not present or not',         &
-+ei
      &' Responding'
-+if cr
             write(lout,*)'INFO>  R.N.G. Reseed operation disabled.'
-+ei
-+if .not.cr
-            write(*,*)'INFO>  R.N.G. Reseed operation disabled.'
-+ei
          endif
 !
       endif
@@ -65083,9 +60771,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !
 !*********************************************************************
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -65139,6 +60824,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         subroutine readcollimator
 !
         integer I,J,K
++ca crcoall
 +ca parpro
 +ca collpara
 +ca database
@@ -65155,7 +60841,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !      write(*,*) 'reading collimator database'
       inquire( unit=53, opened=lopen )
       if (lopen) then
-         write(*,*) "ERROR in subroutine readcollimator: "//
+         write(lout,*) "ERROR in subroutine readcollimator: "//
      &        "FORTRAN Unit 53 was already open!"
          call prror(-1)
       endif
@@ -65163,9 +60849,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       open(unit=53,file=coll_db, iostat=ios,
      &     status="OLD",action="read")
       if (ios.ne.0)then
-         write(*,*) "Error in subroutine readcollimator: "//
+         write(lout,*) "Error in subroutine readcollimator: "//
      &        "Could not open the file ",coll_db
-         write(*,*) "Got iostat=",ios
+         write(lout,*) "Got iostat=",ios
          call prror(-1)
       endif
 !
@@ -65173,14 +60859,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !      I = 0
       read(53,*)
       read(53,*,iostat=ios) db_ncoll
-      write(*,*) 'number of collimators = ',db_ncoll
+      write(lout,*) 'number of collimators = ',db_ncoll
 !     write(*,*) 'ios = ',ios
       if (ios.ne.0) then
         write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
         call prror(-1)
       endif
       if (db_ncoll.gt.max_ncoll) then
-         write(*,*) 'ERR> db_ncoll > max_ncoll '
+         write(lout,*) 'ERR> db_ncoll > max_ncoll '
          call prror(-1)
       endif
 !
@@ -65282,7 +60968,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       character*(nchars+nchars) ch1
       integer errno,l1,l2
       integer dtostr
-
+      ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
@@ -65292,12 +60978,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       double precision fround
 +ei
       save
-+if cr
       write(lout,*) "Reading input bunch from beambeamdist.dat"
-+ei
-+if .not.cr
-      write(*,*) 'Reading input bunch from beambeamdist.dat'
-+ei
       mynp=0
 !ERIC napx00???
       do j=1,napx
@@ -65350,24 +61031,18 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       mynp=1
  10   continue
       if(mynp.eq.0) then
-+if cr
         write(lout,*)
         write(lout,*) '!!!!! WARNING !!!!!'
         write(lout,*)'beambeamdist.dat is either missing or too small'
         write(lout,*)
++if cr
         call abend('bnlelens input file error                         ')
++ei      
++if .not.cr
+        stop
++ei
       else
         write(lout,*) "Number of samples in the bunch = ",mynp
-+ei
-+if .not.cr
-        write(*,*)
-        write(*,*) '!!!!! WARNING !!!!!'
-        write(*,*) 'beambeamdist.dat, is either missing or too small'
-        write(*,*)
-        stop
-      else
-         write(*,*) "Number of samples in the bunch = ",mynp
-+ei
       endif
 !ERIC napx00???
       do j=1,napx
@@ -65436,6 +61111,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +if datamods
       use bigmats
 +ei
+!      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
 +ca parpro
@@ -65452,13 +61128,6 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -65473,6 +61142,12 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
       dimension hbuff(253),tbuff(35)
       logical lopen
+
+      !For skipping through binary DUMP files (format 3)
+      integer tmp_ID, tmp_nturn, tmp_ktrack
+      double precision tmp_dcum, tmp_x,tmp_xp,
+     &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
+
 +if boinc
       character*256 filename
 +ei
@@ -65872,7 +61547,7 @@ c$$$         backspace (93,iostat=ierro)
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
 !--   First we position fort.6 to last checkpoint
-  603   read(6,'(a255)',end=604,err=106,iostat=ierro) arecord
+  603   read(6,'(a1024)',end=604,err=106,iostat=ierro) arecord
         sixrecs=sixrecs+1
         if (sixrecs.lt.crsixrecs) goto 603
         endfile (6,iostat=ierro)
@@ -65891,7 +61566,7 @@ c$$$         backspace (93,iostat=ierro)
 !--   Now re-position beambeam-output.dat and lostID.dat
 !--   or only fort.10 if boinc
 +if .not.boinc
-  610     read(52,'(a255)',end=608,err=108,iostat=ierro) arecord
+  610     read(52,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
           endfile (52,iostat=ierro)
@@ -65900,7 +61575,7 @@ c$$$         backspace (93,iostat=ierro)
      &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-  611     read(53,'(a255)',end=609,err=109,iostat=ierro) arecord
+  611     read(53,'(a1024)',end=609,err=109,iostat=ierro) arecord
           bllrec=bllrec+1
           if (bllrec.lt.crbllrec) goto 611
           endfile (53,iostat=ierro)
@@ -65911,7 +61586,7 @@ c$$$         backspace (93,iostat=ierro)
           backspace (93,iostat=ierro)
 +ei
 +if boinc
-  610     read(10,'(a255)',end=608,err=108,iostat=ierro) arecord
+  610     read(10,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
           endfile (10,iostat=ierro)
@@ -66165,7 +61840,7 @@ c$$$         backspace (93,iostat=ierro)
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
          
- 701     read(665,'(a255)',end=110,err=110,iostat=ierro) arecord
+ 701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
          dynkfilepos=dynkfilepos+1
          if (dynkfilepos.lt.dynkfilepos_cr) goto 701
 
@@ -66191,24 +61866,41 @@ c$$$         backspace (93,iostat=ierro)
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
             if (i .ne. 0) then
                write(93,*) "element=",bez(i), "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             else
                write(93,*) "element=","ALL" , "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i)
+     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
             endif
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
             
             inquire( unit=dumpunit(i), opened=lopen )
-            if ( .not. lopen )
-     &           open(dumpunit(i),file=dump_fname(i), status='old',
-     &                form='formatted',action='readwrite')
-            
-            dumpfilepos(i) = 0
- 702        read(dumpunit(i),'(a255)',end=111,err=111,iostat=ierro)
-     &           arecord
-            dumpfilepos(i) = dumpfilepos(i) + 1
-            if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+            if (dumpfmt(i) .ne. 3 ) then ! ASCII
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i), status='old',
+     &                 form='formatted',action='readwrite')
+               endif
+
+               dumpfilepos(i) = 0
+ 702           read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro)
+     &              arecord
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 702
+
+            else                         ! BINARY (format = 3)
+               if ( .not. lopen ) then
+                  open(dumpunit(i),file=dump_fname(i),status='old',
+     &                 form='unformatted',action='readwrite')
+               endif
+               dumpfilepos(i) = 0
+ 703           read(dumpunit(i),end=111,err=111,iostat=ierro)
+     &              tmp_ID,tmp_nturn,tmp_dcum,
+     &              tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,
+     &              tmp_ktrack
+               dumpfilepos(i) = dumpfilepos(i) + 1
+               if (dumpfilepos(i).lt.dumpfilepos_cr(i)) goto 703
+            endif
+
          endif
       end do
       !Crop DUMP files (if used by multiple DUMPs,
@@ -66219,8 +61911,13 @@ c$$$         backspace (93,iostat=ierro)
 C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
-            open(dumpunit(i),file=dump_fname(i), status='old',
-     &           position='append', form='formatted',action='write')
+            if (dumpfmt(i).ne.3) then ! ASCII
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='formatted',action='write')
+            else                      ! Binary (format = 3)
+               open(dumpunit(i),file=dump_fname(i), status='old',
+     &             position='append', form='unformatted',action='write')
+            endif
          endif
       end do
       
@@ -66307,11 +62004,13 @@ C            backspace (dumpunit(i),iostat=ierro)
 +if debug
                    !call system('../crcheck >> crlog')
 +ei
-!--   Copy the lout to fort.6
+!--   Copy the lout to fort.6 (the file, not output_unit)
+!     It seems that FORTRAN will open the file automatically?
+!     There are no open(unit=6) etc. calls anywhere...
         rewind lout
-    3   read(lout,'(a255)',end=1,err=107,iostat=ierro) arecord
-        lstring=255
-        do i=255,2,-1
+    3   read(lout,'(a1024)',end=1,err=107,iostat=ierro) arecord
+        lstring=1024
+        do i=1024,2,-1
           lstring=i
           if (arecord(i:i).ne.' ')goto 2
           lstring=lstring-1
@@ -66383,6 +62082,9 @@ C            backspace (dumpunit(i),iostat=ierro)
       end
 
       subroutine crpoint
++if datamods
+      use bigmats, only : as, al !Only take the variables from common, not from commonmn
++ei
       implicit none
 +ca crcoall
 +ca parpro
@@ -66404,13 +62106,6 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ca comdynkcr
       double precision dynk_getvalue
 +ca dbdumpcr
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -66449,9 +62144,9 @@ C            backspace (dumpunit(i),iostat=ierro)
 +ei
       osixrecs=sixrecs
       rewind lout
-    3 read(lout,'(a255)',end=1,err=101,iostat=ierro) arecord
-      lstring=255
-      do i=255,2,-1
+    3 read(lout,'(a1024)',end=1,err=101,iostat=ierro) arecord
+      lstring=1024
+      do i=1024,2,-1
         lstring=i
         if (arecord(i:i).ne.' ') goto 2
         lstring=lstring-1
@@ -66647,6 +62342,7 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
++if .not.datamods
         write(95,err=100,iostat=ierro)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -66683,6 +62379,61 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if datamods
+        if(ithick.eq.1) then
++if .not.debug
+          if (ncalls.le.20.or.numx.ge.numl-20) then
++ei
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//
+     & ' for DATAMODS to fort.95'
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
++if .not.debug
+          endif
++ei
+          write(95,err=100,iostat=ierro)                                &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endfile (95,iostat=ierro)
+          backspace (95,iostat=ierro)
+        endif
+        
+        write(95,err=100,iostat=ierro)                                  &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
         endfile (95,iostat=ierro)
         backspace (95,iostat=ierro)
       endif
@@ -66835,6 +62586,7 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
++if .not.datamods
         write(96,err=100,iostat=ierro)                                  &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -66871,6 +62623,61 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if datamods
+        if (ithick.eq.1) then
++if .not.debug
+          if (ncalls.le.20.or.numx.ge.numl-20) then
++ei
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//
+     & ' for DATAMODS to fort.96'
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
++if .not.debug
+          endif
++ei
+          write(96,err=100,iostat=ierro)                                &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endfile   (96,iostat=ierro)
+          backspace (96,iostat=ierro)
+        endif
+        
+        write(96,err=100,iostat=ierro)                                  &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
       endif
       endfile (96,iostat=ierro)
       backspace (96,iostat=ierro)
@@ -66919,13 +62726,6 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -67207,6 +63007,7 @@ c$$$         backspace (93,iostat=ierro)
 !       endif
 +ei
         if (read95) then
++if .not.datamods
           read(95,end=100,err=100,iostat=ierro)                         &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -67243,12 +63044,56 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if .not.datamods
+          if (ithick.eq.1) then
+            read(95,end=100,err=100,iostat=ierro)                       &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endif
+          
+          read(95,end=100,err=100,iostat=ierro)                         &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
           write(93,*) 'CRSTART read fort.95 EXTENDED OK'
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
           go to 102
         endif
         if (read96) then
++if .not.datamods
           read(96,end=101,err=101,iostat=ierro)                         &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -67285,6 +63130,48 @@ c$$$         backspace (93,iostat=ierro)
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
++ei
++if datamods
+          if (ithick.eq.1) then
+            read(96,end=101,err=101,iostat=ierro)                       &
+     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
+     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+          endif
+          read(96,end=101,err=101,iostat=ierro)                         &
+     &(aek(j),j=1,napxo),                                               &
+     &(afok(j),j=1,napxo),                                              &
+     &(as3(j),j=1,napxo),                                               &
+     &(as4(j),j=1,napxo),                                               &
+     &(as6(j),j=1,napxo),                                               &
+     &(co(j),j=1,napxo),                                                &
+     &(dpd(j),j=1,napxo),                                               &
+     &(dpsq(j),j=1,napxo),                                              &
+     &(fi(j),j=1,napxo),                                                &
+     &(fok(j),j=1,napxo),                                               &
+     &(fok1(j),j=1,napxo),                                              &
+     &(fokqv(j),j=1,napxo),                                             &
+     &(g(j),j=1,napxo),                                                 &
+     &(gl(j),j=1,napxo),                                                &
+     &(hc(j),j=1,napxo),                                                &
+     &(hi(j),j=1,napxo),                                                &
+     &(hi1(j),j=1,napxo),                                               &
+     &(hm(j),j=1,napxo),                                                &
+     &(hp(j),j=1,napxo),                                                &
+     &(hs(j),j=1,napxo),                                                &
+     &(rho(j),j=1,napxo),                                               &
+     &(rhoc(j),j=1,napxo),                                              &
+     &(rhoi(j),j=1,napxo),                                              &
+     &(si(j),j=1,napxo),                                                &
+     &(siq(j),j=1,napxo),                                               &
+     &(sm1(j),j=1,napxo),                                               &
+     &(sm12(j),j=1,napxo),                                              &
+     &(sm2(j),j=1,napxo),                                               &
+     &(sm23(j),j=1,napxo),                                              &
+     &(sm3(j),j=1,napxo),                                               &
+     &(wf(j),j=1,napxo),                                                &
+     &(wfa(j),j=1,napxo),                                               &
+     &(wfhi(j),j=1,napxo)
++ei
       write(93,*) 'CRSTART read fort.96 EXTENDED OK'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
@@ -67350,9 +63237,6 @@ c$$$         backspace (93,iostat=ierro)
 !      logical function isnan(arg1,arg2)
       logical function myisnan(arg1,arg2)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -67368,9 +63252,6 @@ c$$$         backspace (93,iostat=ierro)
       common /slate/ isl(40)                                             !hr08
 
       integer isl                                                        !hr08
-+if cr
-+ca crcoall
-+ei
 !
 !-    call datime (nd,nt)   returns integer date   nd = yymmdd
 !-                                  integer time   nt =   hhmm
@@ -67400,9 +63281,6 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine timest(r1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +ca commtim
       logical start
       data start /.false./
@@ -67415,9 +63293,6 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine timex(r1)
       implicit none
-+if cr
-+ca crcoall
-+ei
 +ca commtim
       save
       call timest(0.0)
@@ -67499,7 +63374,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
 
 ! Now we try and read fort.10 i.e. is it empty?
-      read(10,'(a255)',end=11,err=11,iostat=ierro) arecord
+      read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
 ! Seems to be OK
       goto 12    
  11   continue
@@ -67563,31 +63438,11 @@ c$$$         backspace (93,iostat=ierro)
         write(10,'(a)',iostat=ierro) ch(1:l1-1)
 +ei
         if(ierro.ne.0) then
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
-+if cr
           write(lout,*)                                                 &
      &'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110' 
-+ei
-+if .not.cr
-          write(*,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10 or 110'
-+ei
-+if cr
           write(lout,*) 'ERROR CODE : ',ierro
-+ei
-+if .not.cr
-          write(*,*) 'ERROR CODE : ',ierro
-+ei
-+if cr
           write(lout,*)
-+ei
-+if .not.cr
-          write(*,*)
-+ei
         endif
       enddo
  12   continue
@@ -67610,9 +63465,9 @@ c$$$         backspace (93,iostat=ierro)
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         rewind 92
-    3   read(92,'(a255)',end=1,err=8,iostat=ierro) arecord
-        lstring=255
-        do i=255,2,-1
+    3   read(92,'(a1024)',end=1,err=8,iostat=ierro) arecord
+        lstring=1024
+        do i=1024,2,-1
           lstring=i
           if (arecord(i:i).ne.' ')goto 2
           lstring=lstring-1
@@ -67667,6 +63522,7 @@ c$$$         backspace (93,iostat=ierro)
       stop
 +ei
 +if .not.cr
+      !This one should probably remain as write(*,*) or use output_unit
       write(*,*)                                                        &
      &'SIXTRACK STOP/ABEND '//cstring
 +if debug
@@ -67863,6 +63719,7 @@ c$$$         backspace (93,iostat=ierro)
       character*(*) vname
       double precision value
       integer i,j,k,l
+      integer ierro
       character*(16) myname
       myname=vname
       write(100) myname,value,i,j,k,l
@@ -67872,32 +63729,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbl1(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -67910,32 +63743,8 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpzfz(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       integer j
       character*(*) dumpname
@@ -67953,32 +63762,10 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpxy(dumpname,n,i,k)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,k
       character*(*) dumpname
       save
@@ -68003,29 +63790,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRD-042008
       subroutine dumpbnl(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
-+ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
 +if bnlelens
 +ca rhicelens
 +ei
@@ -68051,32 +63816,10 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       subroutine dumpsynu(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
-+ca common2
 +ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
 +ca commonmn
-+ca commonm1
-+ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
-+ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i,j,l,m,k
       character*(*) dumpname
       save
@@ -68123,9 +63866,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dump(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -68133,22 +63874,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -68602,6 +64331,7 @@ c$$$         backspace (93,iostat=ierro)
       write(99,*) 'x1 ',x1
       write(99,*) 'x2 ',x2
       write(99,*) 'fake ',fake
+      
       write(99,*) 'e0f ',e0f
       write(99,*) 'numx ',numx
       write(99,*) 'cotr ',cotr
@@ -68624,9 +64354,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumpbin(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -68634,22 +64362,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       character*10 mydump
@@ -69129,9 +64845,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       subroutine dumphex(dumpname,n,i)
       implicit none
-+ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -69139,22 +64853,10 @@ c$$$         backspace (93,iostat=ierro)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonl
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca commonc
-+if collimat
-+ca collpara
-+ca dbmaincr
-+ca dblinopt
-+ca dbpencil
-+ca database
-+ei
 +ca crco
-+if bnlelens
-+ca rhicelens
-+ei
       integer n,i
       character*(*) dumpname
       save
@@ -69631,7 +65333,7 @@ c$$$         backspace (93,iostat=ierro)
       end
 !DUMPS
 +ei
-+dk hdf5K 
++dk hdf5K
 +if hdf5
 !>
 !! @brief module that contains the code necessary for hdf5 support
@@ -69658,6 +65360,9 @@ c$$$         backspace (93,iostat=ierro)
       CONTAINS
       
       SUBROUTINE WRITETOFILE
++if debug
++ca crcoall
++ei
           CALL h5dextend_f(h5set_id, h5dims, h5error)
           CALL h5dget_space_f(h5set_id, h5space_id, h5error)
           
@@ -69675,7 +65380,7 @@ c$$$         backspace (93,iostat=ierro)
      &                               offset, data_dims , h5error)
           CALL h5screate_simple_f(h5rank, data_dims, memspace, h5error) 
 +if debug
-      write (*,*) "DBG HDFw",h5dims,"off",offset,"ddims",data_dims
+      write (lout,*) "DBG HDFw",h5dims,"off",offset,"ddims",data_dims
 +ei
           CALL H5dwrite_f(h5set_id, H5T_NATIVE_REAL, data_in2,          &
             data_dims, h5error,file_space_id = h5space_id, mem_space_id &
@@ -69688,7 +65393,6 @@ c$$$         backspace (93,iostat=ierro)
       !< 
       SUBROUTINE INITHDF5
         USE SIXTRACKHDF5
-        
 
         CHARACTER(LEN=9), PARAMETER :: aname = "header"   ! Attribute name
 
@@ -69749,10 +65453,12 @@ c$$$         backspace (93,iostat=ierro)
        USE SIXTRACKHDF5
        INTEGER turn,pid,typ
        DOUBLE PRECISION x,xp,y,yp,dee,s
-
++if debug
++ca crcoall
++ei
 
 +if debug
-      write (*,*) "DBG HDF app: using position mod(h5dims(2),incr)",    &
+      write (lout,*) "DBG HDF app: using position mod(h5dims(2),incr)", &
       & mod(h5dims(2),incr)
 +ei
        data_in2(1,mod(h5dims(2),incr) + 1)=pid
@@ -69767,12 +65473,12 @@ c$$$         backspace (93,iostat=ierro)
 
        h5dims(2)=h5dims(2)+1
 +if debug
-       write (*,*) "DBG HDF app: h5dims(2) now,", h5dims(2)
+       write (lout,*) "DBG HDF app: h5dims(2) now,", h5dims(2)
 +ei
 
 +if debug
 !rkwee
-       write (*,*) "DBG HDF app: data_in2[-1]", pid, turn, &
+       write (lout,*) "DBG HDF app: data_in2[-1]", pid, turn, &
        & s, x, xp, y, yp, dee, typ
 +ei
           !
@@ -69814,7 +65520,9 @@ c$$$         backspace (93,iostat=ierro)
 +dk beamGasK
 +if .not.beamgas
       subroutine nobeamgasactive
-        write(*,*) "Dummy routine in beamgas.f if beamgas module off"
++ca crcoall
+      write(lout,*) &
+      "Dummy routine in beamgas.f if beamgas module off"
       end subroutine
 +ei
 +if beamgas
@@ -69907,6 +65615,7 @@ c$$$         backspace (93,iostat=ierro)
 !YIL: commontr
 +ca commontr
 
++ca crcoall
 
 !YIL: This is leftovers that does not have a cd-block
 
@@ -69938,7 +65647,7 @@ c$$$         backspace (93,iostat=ierro)
         j=j+1
       enddo
       if (pressID.eq.0) then
-       write(*,*) 'Couldnt find pressure marker at',totals
+       write(lout,*) 'Couldnt find pressure marker at',totals
        stop
       endif
       
@@ -69956,7 +65665,7 @@ c$$$         backspace (93,iostat=ierro)
       if ((secondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
      &      (bgParameters(1).le.totals)) then   
 +if debug
-      write(*,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
+      write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
      & pressARRAY(2,pressID)*njobs*dpmjetevents
 +ei
   668 continue
@@ -70028,7 +65737,7 @@ c$$$         backspace (93,iostat=ierro)
 !          rotating the vector into the orbit reference system:
          z = matmul(rotm,z)
           if (z(3).eq.0) then
-           write(*,*) "ERROR> there is something wrong",                &
+           write(lout,*) "ERROR> there is something wrong",             &
      &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
      &      new4MomCoord
            stop
@@ -70124,6 +65833,8 @@ c$$$         backspace (93,iostat=ierro)
       
       use beamgascommon
       IMPLICIT NONE
+
++ca crcoall
       
       integer check,j,i
       double precision myenom,minenergy
@@ -70135,12 +65846,12 @@ c$$$         backspace (93,iostat=ierro)
       integer filereaderror, previousEvent,numberOfEvents
       real bg_val,ecutoff,pPOS,pVAL
 
-      write(*,*) '************************'
-      write(*,*) '****                 ***'
-      write(*,*) '***Beam gas initiation**'
-      write(*,*) '****      YIL        ***'
-      write(*,*) '************************'
-      write(*,*) ''
+      write(lout,*) '************************'
+      write(lout,*) '****                 ***'
+      write(lout,*) '***Beam gas initiation**'
+      write(lout,*) '****      YIL        ***'
+      write(lout,*) '************************'
+      write(lout,*) ''
       
 ! DEBUG: open debug file...      
 !      open(684,file='debugfile.txt')
@@ -70184,7 +65895,7 @@ c$$$         backspace (93,iostat=ierro)
       pressARRAY(2,j)=pVAL
       j=j+1
        if (j>bgmaxx) then
-         write(*,*) 'ERROR> Too many pressure markers!'
+         write(lout,*) 'ERROR> Too many pressure markers!'
          stop
        endif
       else if (filereaderror.lt.0) then
@@ -70227,25 +65938,25 @@ c$$$         backspace (93,iostat=ierro)
 !        what we are supposed to simulate, we stop here...
          if (previousEvent.gt.dpmjetevents) exit
          if (numberOfEvents.gt.(bgmaxx-1)) then
-         write(*,*) 'ERROR> Too many dpmjet events!'
+         write(lout,*) 'ERROR> Too many dpmjet events!'
          stop
       endif
       enddo
 !       number of lines in dpmjet - 1
       bgmax=j
       close(666)
-      write(*,*) 'INFO> Trackable events in dpmjet.eve: ', bgmax-1
+      write(lout,*) 'INFO> Trackable events in dpmjet.eve: ', bgmax-1
       if (numberOfEvents.gt.mynp) then 
-         write(*,*) 'ERROR> You need to generate less dpmjet events!'
-         write(*,*) 'ERROR> There were too many trackable events...'
-         write(*,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
-         write(*,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
+         write(lout,*) 'ERROR> You need to generate less dpmjet events!'
+         write(lout,*) 'ERROR> There were too many trackable events...'
+         write(lout,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
+         write(lout,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
      &events'
          stop
       endif
-      write(*,*) 'INFO> This is job number: ', njobthis
-      write(*,*) 'INFO> Total number of jobs is: ', njobs
-      write(*,*) 'INFO> Total number of particles in simulation: ',     &
+      write(lout,*) 'INFO> This is job number: ', njobthis
+      write(lout,*) 'INFO> Total number of jobs is: ', njobs
+      write(lout,*) 'INFO> Total number of particles in simulation: ',     &
      &   njobs*dpmjetevents
       close(778)
       open(777,file='localLOSSES.txt')

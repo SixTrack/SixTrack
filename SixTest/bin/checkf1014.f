@@ -3,11 +3,37 @@
       double precision prob(60),prob1(60),lprob(60),lprob1(60)
       integer line,word,i
       logical diff,diffs
+      logical hasInputFile
       character*80 buffer
 ! Now compare the closed orbit in 53-60 as well
+      do i=1,60
+        prob(i) = 0
+        prob1(i) = 0
+        lprob(i) = 0
+        lprob1(i) = 0
+      enddo
       line=0
       diff=.false.
       diffs=.false.
+      
+      hasInputFile = .false.
+      INQUIRE(file="fort.20",EXIST=hasInputFile)
+      if (.not. hasInputFile) then
+         write(*,'(a,a)') "Error in checkf1014 - file 'fort.20'"//
+     &        " was not found"
+         stop 1
+      endif
+      hasInputFile = .false.
+      INQUIRE(file="fort.21",EXIST=hasInputFile)
+      if (.not. hasInputFile) then
+         write(*,'(a,a)') "Error in checkf1014 - file 'fort.21'"//
+     &        " was not found"
+         stop 2
+      endif
+      
+      open(20,status='OLD', file="fort.20")
+      open(21,status='OLD', file="fort.21")
+      
     1 read (20,*,end=100,err=98) lprob
       do i=1,60
         write (buffer,'(E19.12)') lprob

@@ -46,11 +46,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update November 2016
+  Update March 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.5.40 \\
+  Version 4.6.16 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -623,7 +623,20 @@ The definition of the multipole strength in a block will be given in
 \item [lag] Lag angle [degrees] in the cavity (zero is default)
 \end{description}
 
-\subsubsection{Beam--Beam Separation} \label{BBS}
+\subsubsection{Beam--Beam Lens}
+\label{BBS}
+Depending on the setting in the \texttt{BEAM} block of \texttt{fort.3} (Section~\ref{BeamBeam}), there are two ways to define a beam beam lens in the SINGLE ELEMENTS list.
+
+\paragraph{When the \texttt{EXPERT} flag is set in the \texttt{BEAM} block,} the parameters of the beam--beam lens is defined there.
+In this case, only the element name and type and the location within the lattice remian in the \texttt{fort.2} element definition.
+\paragraph{Format} {\em name type}
+\begin{description}
+\item [name] May contain up to sixteen characters
+\item [type] 20
+\end{description}
+The rest of the parameters are ignored and should be set to zero.
+
+\paragraph{When the \texttt{EXPERT} flag is not set,} the ``traditional'' format is used:
 \paragraph{Format} {\em name type h-sep v-sep strength-ratio ${\sigma\_\rm{hor}}^2$ ${\sigma\_\rm{ver}}^2$ ${\sigma\_\rm{lon}}^2$}
 \begin{description}
 \item [name] May contain up to sixteen characters
@@ -637,12 +650,21 @@ The definition of the multipole strength in a block will be given in
 \item [${\sigma\_\rm{hor}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$
 \item [${\sigma\_\rm{ver}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the vertical $\sigma$ for the strong beam $\rm{[mm^2]}$
 \item [${\sigma\_\rm{lon}}^2$] this variable is for future purposes, at the present it is always equal to zero.
-
 \end{description}
 
 \paragraph{Remark}
-These beam--beam elements become active when the ``Beam--Beam'' input
-block~\ref{BeamBeam} is used.
+These beam--beam elements become active when the ``Beam--Beam'' input block~\ref{BeamBeam} is used.
+
+\subsubsection{Wire} \label{WIRE}
+\paragraph{Format} {\em name type}
+\begin{description}
+	\item [name] May contain up to sixteen characters
+	\item [type] 15
+\end{description}
+
+\paragraph{Remark}
+The ``wire'' elements become active when the
+WIRE input block~\ref{sec:WIRE} is used. All parameters except name and type have to be set to zero, otherwise SixTrack aborts. The parameters for the wire are defined in the WIRE input block.
 
 \subsubsection{``Phase--trombone'' or matrix element} \label{PT}
 \paragraph{Format} {\em name type}
@@ -707,6 +729,17 @@ deflection angle.
 \end{description}
 
 %\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
+
+\subsubsection{Electron Lens} \label{ELEN}
+\paragraph{Format} {\em name type}
+\begin{description}
+	\item [name] May contain up to sixteen characters
+	\item [type] 29
+\end{description}
+
+\paragraph{Remark}
+The ``e-lens'' elements become active when the
+ELEN input block~\ref{sec:elen} is used. All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts. The parameters for the e-lens are defined in the ELEN input block.
 
 \subsubsection{Beam Position Monitor} \label{BPM}
 \paragraph{Format} {\em BPMname 0 0 0 0}
@@ -857,6 +890,7 @@ they must be given in the separate {\em Displacement of Elements}
 One advantage of SixTrack, that has been adopted from RACETRACK, is
 that it easily allows to define elements for a specific purpose. The
 special elements implemented till now are found in this section.
+All Special Elements should be written in the fort.3 file.
 
 \subsection{Multipole Coefficients} \label{MulCoe}
 
@@ -1036,8 +1070,8 @@ The functions are always evaluated as a function of the current turn number $t$,
   \rowcolor{blue!15}
   ``System'' functions & & \\*
 
-  GET        & \emph{element-name[string] function-name[string]} & 
-  Extracts the original value of a setting, i.e. as specified in the SINGLE ELEMENT section. \\*
+  GET        & \emph{element-name[string] attribute-name[string]} & 
+  Extracts the original value of a setting, i.e. as specified in the SINGLE ELEMENT section (Sec.~\ref{SinEle}). Attributes as used for SET, see Table~\ref{tab:DYNK_SET}. \\*
 
   FILE       & \emph{filename[string]} &
   Loads the settings from file; the file is expected to be an ascii file with two columns where the first column is the turn number (should start at 1 and include all turns up to as long as is wanted), and the second column is the value for that turn number.\\*
@@ -1056,16 +1090,14 @@ The functions are always evaluated as a function of the current turn number $t$,
   
   RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
   Returns a pseudorandom number generated from a Gaussian distribution.
-  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbersup to, set to 0 to disable this cut. 
-  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
+  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
   Note that every RANDG function defined in DYNK uses its own separate random number stream.\\
 
-%   RANDU      & \emph{seed1[int] seed2[int] rangemin[real] rangemax[real] } &
-%   Returns a pseudorandom number generated from a uniform distribution.
-%   The values \emph{rangemin} and \emph{rangemax} define the interval of the uniform distribution.
-%   The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator. 
-%   Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
-
+  RANDU      & \emph{seed1[int] seed2[int]} &
+  Returns a pseudorandom number generated from a uniform distribution.
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
+  Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
   
   \hline
   \rowcolor{blue!15}
@@ -1188,6 +1220,13 @@ The functions are always evaluated as a function of the current turn number $t$,
   \item The start time of the ramp \emph{te}, which describes at what time it switches from the parabolic (first) to the exponential (second) segment.
   \end{itemize}
   \\*
+  ONOFF       & \emph{p1[int] p2[int]} &
+  This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
+  It may be described as
+  $y(t) =  \left\{1.0 \; \mathrm{if} \; \mathrm{mod}(t-1,p2) < p1 \right\}; \; \left\{ 0.0 \; \mathrm{otherwise} \right\}$.
+  The reason for using $t-1$ is that the modulus is naturally zero-based, while SixTrack counts turns starting from 1.
+  Note that it is expected that $p1 >= 0$, $p2 > 1$, and $p1 <= p2$.
+  Also note that for negative $t$, the function will always return 1.0.
 \end{longtable}
 \end{center}
 %\end{tabular}
@@ -1450,21 +1489,23 @@ During tracking, when one of the PIPE FUNs are called SixTrack writes a line sim
 Note that the turn number is the one passed to the FUN from SET, i.e. including any turn-shift.
 It then waits for a single floating point number to be written (in ascii) to the input pipe, which is then read and returned from the FUN.
 
-\subsection{Beam--Beam Element} \label{BeamBeam}
+\subsection{Beam--Beam Element}
+\label{BeamBeam}
 
-\subparagraph{Description} The beam--beam kick, including a separation
-of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs}
-and implemented as in MAD~\cite{MAD}. However, a much faster but
-nevertheless precise calculation using interpolation can be
-used~\cite{ERIC}. For SixTrack version 3 the beam--beam is also
-available in the 6D form \`{a} la Hirata~\cite{Hirata}. Lastly, the
-linear coupling has been considered in 4 and 6 dimensional phase
-space~\cite{ripbeam}. 
+\paragraph{Description} The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD~\cite{MAD}.
+However, a much faster but nevertheless precise calculation using interpolation can be used~\cite{ERIC}.
+For SixTrack version 3 the beam--beam is also available in the 6D form \`{a} la Hirata~\cite{Hirata}.
+Lastly, the linear coupling has been considered in 4 and 6 dimensional phase space~\cite{ripbeam}. 
 
-\subparagraph{Keyword} BEAM 
-\subparagraph{Number of data lines} variable but at least one
+\paragraph{Keyword} BEAM
+\paragraph{Number of data lines} variable but at least one
 
-\subparagraph{Format} 
+\paragraph{Format}
+Two different input formats are available, ``traditional'' and ``EXPERT''.
+If ``EXPERT'' mode is wanted, this is triggered by adding the flag \texttt{EXPERT} on the first line of the block.
+
+\subparagraph{Traditional format}
+
 \begin{itemize}
 \item first data line: {\em partnum emitnx emitny sigz sige ibeco
     ibtyp lhc ibbc} 
@@ -1480,9 +1521,9 @@ space~\cite{ripbeam}.
 \item [ibeco] (integer) Switch (0 = off; 1 = on) to subtract the
   closed orbit introduced by the separation of the beams. It is
   recommended to always subtract it as it is not yet calculated in a
-  selfconsistent manner.
+  selfconsistent manner. The \emph{ibeco} switch also acts on the ``wire'' elements \ref{sec:WIRE} in the same way as on the beam-beam elements. It subtracts the closed orbit introduced by the wire if \emph{ibeco}=1 and applies it if \emph{ibeco}=0.
 \item [ibtyp] (integer) Switch (0 = off; 1 = on) to use the fast
-  beam--beam algorithms developped in collaboration with G.A.~Erskine
+  beam--beam algorithms developed in collaboration with G.A.~Erskine
   and E.~McIntosh.  The linear optics are calculated with ``exact''
   beam--beam kicks.
 \item [lhc] For the LHC with its anti--symmetric IR the separation of
@@ -1492,17 +1533,191 @@ space~\cite{ripbeam}.
 \item [ibbc] Linear coupling considered in 4D and 6D (0 = off; 1 = on).
 \item [name] Name of 6D beam--beam element. Beam--beam elements that
   do not appear will be treated as 4D kicks.
-\item [ibsix] (integer) Number of slices of the 6D beam--beam kick.
+\item [ibsix] (integer) Number of slices of the 6D beam--beam element.
   If {\it ibsix} is set to 0 this element is treated as a 4D element.
 \item [xang] (float) Half crossing angle (angle the between the trajectories of the two beams) at this particular element [rad].
 \item [xplane] (float) Crossing plane angle [rad].
-\item [xstr] (float) Angle of the position of the slices in the boosted frame [rad] (i.e. $X=Z \sin({\rm xstr}) \cos({\rm xplane})$, $Y= \sin({\rm xstr}) \cos({\rm xplane})$ ). In absence of crabbing user should make sure xstr=xang.
+\item [xstr] (float) Angle of the position of the slices in the boosted frame [rad] (i.e. $X = Z \sin(\mathit{xstr}) \cos(\mathit{xplane})$, $Y =Z \sin(\mathit{xstr}) \cos(\mathit{xplane})$ ).
+  In absence of crabbing user should make sure \textit{xstr=xang}; in case the \textit{xstr} flag is not set then \textit{xstr=xang} is assumed and a warning is printed (since version 4.5.45).
 \end{description}
 
-\subparagraph{Remark} These beam--beam elements have beam--beam have
-to appear in the single element list (~\ref{NonEle}) (type 20) together
-with their horizontal and vertical beam--beam separations
-(see~\ref{BBS}).
+\subparagraph{EXPERT format}
+
+\begin{itemize}
+\item first data line: {\em EXPERT}
+\item second data line: {\em partnum emitnx emitny sigz sige ibeco
+    ibtyp lhc ibbc} 
+\item other data lines -- 4D BB lens (1 line per element): \\
+{\em name ibsix $\Sigma_{xx}$ $\Sigma_{yy}$ h-sep v-sep strength-ratio}
+\item other data lines -- 6D BB lens (3 lines per element): \\
+{\em name ibsix xang xplane h-sep v-sep} \\
+{\em $\Sigma_{xx}$ $\Sigma_{xxp}$ $\Sigma_{xpxp}$ $\Sigma_{yy}$ $\Sigma_{yyp}$} \\
+{\em $\Sigma_{ypyp}$ $\Sigma_{xy}$ $\Sigma_{xpy}$ $\Sigma_{xpyp}$ $\Sigma_{yyp}$ strength-ratio} \\
+\end{itemize}
+
+Some parameters are new or defined in a different way:
+\begin{description}
+\item [lhc] This parameter is kept for now only for RHIC studies when equal to 9.
+\item [name] Name of the beam--beam element.
+\item [ibsix] (integer) Number of slices of the 6D beam--beam element.\\
+  If {\it ibsix} is set to 0 this element is treated as a 4D element.\\
+  If {\it ibsix} is larger or equal 1 this element is treated as a 6D element.
+\item [$\Sigma_{xx}$] Horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$.
+\item [$\Sigma_{yy}$] Vorizontal $\sigma$ for the strong beam $\rm{[mm^2]}$.
+\item [h-sep] Horizontal beam--beam separation [mm]
+\item [v-sep] Vertical beam--beam separation [mm]
+\item [strength-ratio] Strength ratio with respect to the nominal beam--beam kick strength.
+  This is useful to allow for splitting one beam--beam kick into several (longitudinally close by) kicks.
+\item [$\Sigma_{i,j}$] Second order momenta matrix for the strong beam, in units of mm and mrad.
+  For example $\Sigma_{xxp}$ in [mm\ mrad]
+\end{description}
+
+\subparagraph{Conversion from traditional to EXPERT format}
+An automatic converter from the ``traditional'' input block to the new ``expert'' format is built into SixTrack; every time a non-EXPERT input block is encountered, a conversion is printed to the standard output.
+Therefore, all the user needs to do is to run SixTrack (number of turns does not matter) on an input file that should be converted, and follow the instructions which are printed at the beginning of the program output.
+
+\paragraph{Remark} These beam--beam elements have to appear in the single element list (~\ref{NonEle}) (type 20).
+If the ``traditional'' option is used in the BEAM block, the listing in the single element list must contain their horizontal and vertical beam--beam separations (see~\ref{BBS}).
+
+\paragraph{Sign Convention} Some clarifications regarding the sign convention used
+for the separation and crossing angle variables.
+%\todo[inline]{Check if applies to both ``traditional'' and ``EXPERT'' format.}
+\begin{itemize}
+ \item Separations:
+ \begin{enumerate}
+  \item The separation is added to the transverse coordinates of each particles just before the beam-beam subroutines (see Fig.~\ref{fig:BB_sep}).
+  \begin{eqnarray*}
+   \tilde x_i=x_i+sep_x-CO_x \\
+   \tilde y_i=y_i+sep_y-CO_y 
+  \end{eqnarray*}
+  \item Lorentz boost applied to the updated coordinates.
+  \item The separation used for the actual beam-beam kick (sep$_{x,y,kick}$) is the difference between the centroid of the strong slice (X$^{\dag}$,Y$^{\dag}$) and the each particle (x$_i$,y$_i$).
+  \item Antiboost to return to accelerator frame.
+  \item The separation is removed and the closed orbit is added back. Tracking continues.
+  \begin{eqnarray*}
+   \tilde x_i=x_i-sep_x+CO_x \\
+   \tilde y_i=y_i-sep_y+CO_y
+   \end{eqnarray*}
+ \end{enumerate}
+ \begin{figure}[h]
+ \begin{center}
+ \includegraphics[width=0.8\textwidth]{BB_sep}
+ \caption{Coordinate manipulation taking into consideration the beam-beam lens separation as stated in point 1 of the separation sign convention.}
+ \label{fig:BB_sep}
+ \end{center}
+\end{figure}
+ \item Crossing angles:
+ \begin{enumerate}
+  \item The closed orbit is removed just before the beam-beam subroutines.
+  \begin{eqnarray*}
+   \tilde x'_i=x'_i-CO_{x'} \\
+   \tilde y'_i=y'_i-CO_{y'}
+  \end{eqnarray*}
+  \item Lorentz boost applied to the updated coordinates.
+  \item Apply Synchro-Betatron Mapping.
+  \item Antiboost to return to accelerator frame.
+  \item The closed orbit is added back. Tracking continues.
+  \begin{eqnarray*}
+   \tilde x'_i=x'_i+CO_{x'} \\
+   \tilde y'_i=y'_i+CO_{y'}
+  \end{eqnarray*}
+ \end{enumerate}
+ \begin{figure}[h]
+ \begin{center}
+ \includegraphics[width=0.8\textwidth]{BB_xsing}
+ \caption{Coordinate manipulation to move from the accelerator frame to a head-on collision frame (Figures left and center). A positve crossing angle is considered as shown in the left figure.
+ Then Lorentz boost and Synchro-Betatron Mapping are applied (right).}
+ \label{fig:BB_xsing}
+ \end{center}
+\end{figure}
+\end{itemize}
+
+\subsection{Wire} \label{sec:WIRE}
+
+\paragraph{Description} The wire block serves for reading in the input parameters for the wire. Each wire also needs to be added as single element in the list of single elements.
+
+\paragraph{Keyword} WIRE
+
+\paragraph{Number of data lines} variable
+
+\paragraph{Format} \emph{name flag\_co current int\_length phys\_length disp\_x disp\_y tilt\_x tilt\_y}
+A description of the input parameters for the wire is given in Table~\ref{tab:wire}.
+\begin{center}
+	\begin{longtable}{|p{2.0cm} p{1.0cm} p{9.2cm}|}
+		%Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+		\caption{Input parameters for WIRE block.}
+		\label{tab:wire} \\*
+		\hline
+		\rowcolor{blue!30}
+		Arguments & unit & Description \\*
+		\hline
+		\endfirsthead
+		
+		\hline
+		\rowcolor{blue!30}
+		Arguments & unit & Description \\*
+		%\hline
+		\endhead
+		
+		\rowcolor{gray!15}
+		\multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+		\hline
+		\endfoot
+		
+		\hline
+		\endlastfoot
+		
+		\hline
+		
+		\emph{name} & - &
+		Name of wire. Must be the same as in list of single elements.\\*
+		
+		\emph{flag\_co} & - &
+		flag to define the displacement of the wire in respect to the closed orbit or x=y=0. For \emph{flag\_co}=+1 \emph{disp\_*} is the distance between x=y=0 and the wire. For \emph{flag\_co}=-1 \emph{disp\_*} is the distance between the closed orbit and the wire.\\*
+		\emph{current} & A &
+		wire current \\*
+		\emph{int\_length} & m &
+		integrated length of the wire\\*
+		\emph{phys\_length} & m &
+		physical length of the wire\\*
+		\emph{disp\_x} & mm &
+		hor. displacement of the wire\\*
+		\emph{disp\_y} & mm &
+		vert. displacement of the wire\\*
+		\emph{tilt\_x} & degrees &
+		hor. tilt of the wire $-90 < tilt\_x < 90$ (uses same defintion as DISP block) \\*
+		\emph{tilt\_y} & degrees &
+		vert. tilt of the wire $-90 < tilt\_y < 90$ (uses same defintion as DISP block) \\*
+		\hline		
+	\end{longtable}
+\end{center}
+
+\paragraph{Remark} The user has to check that the wires defined in the WIRE block are also defined in the list of single elements and vice versa. All parameters except for the type (type 15) are ignored in the single element definition and the execution is aborted if the parameters are non-zero. In addition to the parameters defined in the WIRE block, the \emph{ibeco} parameter in the BEAM block (see Sec.~\ref{BeamBeam}) imposes the same behavior on the wire as for beam-beam. Explicitly, the closed orbit introduced by the wire is subtracted if \emph{ibeco}=1 and not subtracted if \emph{ibeco}=0.
+
+\paragraph{Example} In the following we give some examples for wire definitions. This example defines two wires wire\_1 and wire\_2.
+
+The input block in \verb|fort.3| is given by:
+\begin{verbatim}
+WIRE
+wire_1   -1  +98.9   2.0  1.0   10.0   10.0     1.1     1.1
+wire_2   -1  +98.9   2.0  1.0   10.0   10.0     0.0     0.0
+NEXT
+\end{verbatim}
+The single and structure element definition in \verb|fort.2| is given by:
+\begin{verbatim}
+SINGLE ELEMENTS---------------------------------------------------------
+...
+wire_1           15   0.000000000e+00   0.000000000e+00 
+0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+wire_2           15   0.000000000e+00   0.000000000e+00 
+0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+...
+STRUCTURE INPUT---------------------------------------------------------
+...
+BLOC56            wire_1              wire_2
+...
+\end{verbatim}
+Note that all parameters except for the type have to be set to 0 in the single element definition.
 
 \subsection{``Phase Trombone'' Element} \label{Trombone}
 
@@ -1629,6 +1844,7 @@ BLOC56            hel1              hel2
 ...
 \end{verbatim}
 Note that all parameters except for the type are set to 0 in the single element definition.
+
 
 \section{Organising Tasks}
 
@@ -2532,9 +2748,9 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
   \/block (~\ref{IniCoo}).  The variation will be between \mbox{$ \pm
     \frac{\Delta p}{p_o} (\mathrm{max}) $} in steps of \mbox{$
     \frac{\Delta p}{p_o} (\mathrm{max}) $ / ({\em imc--1}\/).}
-\item[niu(1), niu(2)]
-\item[numlcp]
-\item[numlmax] 
+\item[niu(1), niu(2)] Unknown; default values are 0.
+\item[numlcp] Checkpoint/restart version: How often to write checkpointing files.
+\item[numlmax] Checkpoint/restart version: Maximum ammount of turns; default is $10^6$.
 \item [idy(1), idy(2)] A tracking where one of the transversal motion
   planes shall be ignored is only possible when all coupling terms are
   switched off.  The part of the coupling that is due to closed orbit
@@ -2624,10 +2840,10 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
 \item [iexact] Switch to enable exact solution of the equation of motion into
   tracking and 6D (no 4D) optics calculations.
   \begin{itemize}
-    \item {\em ibidu} \/= 0 : approximated equation
+    \item {\em iexact} \/= 0 : approximated equation
               (e.g. $x'\simeq \frac{P_x}{P_0(1+\delta)}$,
                     $y'\simeq \frac{P_y}{P_0(1+\delta)}$);
-    \item {\em ibidu} \/= 1 : exact equation (e.g
+    \item {\em iexact} \/= 1 : exact equation (e.g
       $x'\simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}$,
       $y'\simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}$ ).
  \end{itemize}
@@ -2840,7 +3056,7 @@ How to do this is described below.
 The DUMP block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.
 This can be done in any SINGLE ELEMENTS which are directly mentioned in the STRUCTURE INPUT part of fort.2 (BLOCs cannot be used).
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
-Please note that each single element can only be selected once; it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence.
+Please note that each single element can only be selected once; however it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence (by editing fort.2).
 
 \paragraph{Keyword}
 DUMP
@@ -2861,18 +3077,49 @@ how often the beam population should be dumped in number of turns.
 fortran unit number to use, should not be used in other parts of SixTrack.
 The unit number and filename may be shared between different DUMP outputs, as long as they have the same format and \texttt{element\_name} is not \texttt{ALL}.
 \subparagraph{format}
-an integer specifying the output format. The following is accepted:
+an integer specifying the output format.
+The following formats are accepted:
 \begin{enumerate}
-	\item[0] -- General format:\\
+	\item[0] -- \textbf{General format:}\\
 	No header\\
 	Lines: \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]}
-	\item[1] -- Format for aperture check:\\
+	\item[1] -- \textbf{Format for aperture check:}\\
 	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}\\
 	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack}
-	\item[2] -- Modified format for aperture check:\\  
-	Header: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+	\item[2] -- \textbf{Modified format for aperture check:}\\
+	Header line 1 (single element): \texttt{\# DUMP format \#2, bez=\textit{bez(i)}, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
+	Header line 1 (all elements): \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textit{napx}, dump period=\textit{ndumpt(i)}, first turn=\textit{dumpfirst(i)}, last turn=\textit{dumplast(i)}, HIGH=\textit{T/F}, FRONT=\textit{T/F}}\\
+        Here \textit{bez} is the name of the SINGLE ELEMENT, and \textit{napx} the number of particles being tracked (per pack in case of collimation), \textit{ndumpt(i)} the dump frequency as described above, and \textit{dumpfirst(i)} and \textit{dumplast(i)} the first and last turn as descirbed below.
+        HIGH and FRONT is normally false, unless this (global) option is active, as described below.\\
+	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+	Data lines: as described in the header, one per particle and per turn.
+        \item[3] -- \textbf{Modified format for aperture check (Binary):}\\
+        No header\\
+        A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+        Records: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
+        The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers).
+	\item[4] -- \textbf{Beam means:}\\
+        Header line 1 is the same as for format 2.\\
+        Header line 2: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+        Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+	\item[5] -- \textbf{Beam mean and sigma:}\\
+        Header line 1 is the same as for format 2.\\
+	Header: \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
 	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
-	Lines: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+        For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
+	\item[6] -- \textbf{Beam mean and sigma (canonical):}\\
+        Header line 1 is the same as for format 2.\\
+	Header: \texttt{\# napx turn s[m] <x>[m] <px>[1] <y>[m] <py>[m] <sigma>[m] <psigma>[1] <x\^{}2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> <px\^{}2> <px*y> <px*py> <px*sigma> <px*psigma> <y\^{}2> <y*py> <y*sigma> <y*psigma> <py\^{}2> <py*sigma> <py*psigma> <sigma\^{}2> <sigma*psigma> <psigma\^{}2>}\\
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+        For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
+        Note that the $\sigma=s -\beta_0 c t$ is the same as the $z$ used in the formats above, except for the unit of m instead of mm; and that $p_\sigma = \Delta E / \left(\beta_0 P_0 c\right)$.
+        For more details, see the physics manual~\cite{sixphys}.
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
@@ -3013,6 +3260,30 @@ where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using
 
 Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
 
+\subsection{ZIPFile combined and compressed output}
+\label{sec:ZIPF}
+
+\paragraph{Description}
+In order to retrieve extra simulation output such as DUMP or FMA from BOINC, it is neccessary to pack the output files into a single file with a special name that will be retrieved.
+This can be achieved with the ZIPF block, which packs the listed files into the compressed archive \texttt{Sixout.zip} at the end of the simulation.
+
+Note that if one of the files do not exist at the end of the simulation, it will be silently skipped and not included in the archive.
+
+\paragraph{Keyword}
+ZIPF
+
+\paragraph{Number of data lines}
+variable, one for each file that is to be packed.
+
+\paragraph{Example}
+\begin{verbatim}
+ZIPF
+fma_sixtrack
+IP3_DUMP_1
+fort.90
+NEXT
+\end{verbatim}
+
 \chapter*{Conclusions}
 
 Programs with large input structures like SixTrack tend to be far from
@@ -3058,9 +3329,7 @@ code of Hirata~\cite{Hirata}.
   \endhead
 
 
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BEAM &
-  BEAM--BEAM Element & 1 & 4-6D including Beam
-  Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\*
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BEAM &  BEAM--BEAM Element & variable & 4-6D including Beam Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & &\& Linear Coupling   & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BLOC &
@@ -3124,6 +3393,10 @@ code of Hirata~\cite{Hirata}.
   \pageref{LinOpt} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & & Element & & \\
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ELEN & 
+  & variable &
+  Electron lens &~\ref{sec:elen} &
+  \pageref{sec:elen} \\ 
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm}
   \thekwc & ENDE & & & End of SixTrack Input Structure & & \\
   \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & FLUC &
@@ -3259,6 +3532,10 @@ code of Hirata~\cite{Hirata}.
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``VMON= ''
   & & & Specifies an Vertical Orbit Monitor
   &~\ref{OrbCorr} & \pageref{OrbCorr} \\
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & WIRE & WIRE element
+  & variable &
+  Wire element &~\ref{sec:WIRE} &
+  \pageref{sec:WIRE} \\ 
   \hline
 \end{longtable}
 \normalsize
@@ -3426,12 +3703,8 @@ version uses 50 Mb and the DA version 400 Mb.
   \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
   Number of Correctors for Micado Closed Orbit Correction & 600 & NCOR1
   &~\ref{OrbCorr} & \pageref{OrbCorr} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Beam--Beam Elements & 160 & NBB
-  &~\ref{BeamBeam} & \pageref{BeamBeam} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Slices for 6D Beam--Beam Kick & 15 & MBEA
-  &~\ref{BeamBeam} & \pageref{BeamBeam} \\
+  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum Number of Beam--Beam Elements & 350 & NBB &~\ref{BeamBeam} & \pageref{BeamBeam} \\
+  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum Number of Slices for 6D Beam--Beam Kick & 99 & MBEA &~\ref{BeamBeam} & \pageref{BeamBeam} \\
   \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
   Number of ``Phase Trombone'' Elements & 20 & NTR
   &~\ref{PT} & \pageref{PT} \\

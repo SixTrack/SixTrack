@@ -1,4 +1,4 @@
 #!/bin/sh
 gcc -m32 -std=c99 -W -Wall -pedantic -c dtoaf.c
 gcc -m32 -std=c99 -W -Wall -pedantic -c dtoa_c.c
-gfortran -O4 -m32 -o read90 read90.f90 dtoa*.o
+gfortran -O4 -m32 -o read90 read90.f90 dtoa*.o -static

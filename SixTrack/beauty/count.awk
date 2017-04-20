@@ -53,6 +53,7 @@ BEGIN {
   }
   if (count != 0) {
     print ("Error!!! Count=" count)
+    print ("Run beauty/supercount.py for more details.")
     exit 1
   }
   print ("Maximum nesting level=" mcount)
