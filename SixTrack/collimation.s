@@ -66,6 +66,10 @@
 +ca comdynk
       logical dynk_isused
 
++if g4collimat
+      double precision g4_ecut
++ei
+
       open(unit=outlun, file='colltrack.out')
 
       write(lout,*) '         -------------------------------'
@@ -474,11 +478,16 @@
 +if collimate_k2
       call collimate_init_k2
 +ei
-+if collimate_merlin
++if merlinscatter
       call collimate_init_merlin
 +ei
-+if collimate_geant4
-!      call collimate_init_geant4
++if g4collimat
+!! This function lives in the G4Interface.cpp file in the g4collimat folder
+!! Accessed by linking libg4collimat.a
+!! Set the energy cut at 70% - i.e. 30% energy loss
+
+      g4_ecut = 0.7
+      call g4_collimation_init(e0, rnd_seed, g4_ecut)
 +ei
       end
 
@@ -1505,10 +1514,13 @@
 
       double precision c5m4,stracki
 
++if g4collimat
+      integer g4_lostc
++ei
+
 +if fast
       c5m4=5.0d-4
 +ei
-
 
 !-----------------------------------------------------------------------
 !GRD NEW COLLIMATION PARAMETERS
@@ -2367,12 +2379,80 @@
                   enddo
                else
 !     Treatment of non-sliced collimators
+
++if g4collimat
+!! Add the geant4 geometry
+        if(firstrun.and.iturn.eq.1) then
+          call g4_add_collimator(db_name1(icoll), c_material, c_length,
+     & c_aperture, c_rotation, c_offset)
+        endif
+
+!! Here we do the real collimation
+!! First set the correct collimator
+        call g4_set_collimator(db_name1(icoll))
+        call FLUSH()
+
+!! Loop over all our particles
+        g4_lostc = 0
+        do j = 1, napx
+          if (part_abs(j) .eq. 0) then
+!! Rotate particles in the frame of the collimator
+!! There is more precision if we do it here rather
+!! than in the g4 geometry
+          rcx(j) = rcx(j)*cos(c_rotation) +sin(c_rotation)*rcy(j)
+          rcy(j) = rcy(j)*cos(c_rotation) -sin(c_rotation)*rcx(j)
+          rcxp(j) = rcxp(j)*cos(c_rotation)+sin(c_rotation)*rcyp(j)
+          rcyp(j) = rcyp(j)*cos(c_rotation)-sin(c_rotation)*rcxp(j)
+
+!! Call the geant4 collimation function
+          call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
+
+!! Get the particle back + information
+          call g4_collimate_return(rcx(j), rcy(j), rcxp(j), rcyp(j),
+     & rcp(j),part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
+     & part_linteract(j))
+
+!! Rotate back into the accelerator frame
+      rcx(j)=rcx(j)*cos(-1d0*c_rotation)+sin(-1d0*c_rotation)*rcy(j)
+      rcy(j)=rcy(j)*cos(-1d0*c_rotation)-sin(-1d0*c_rotation)*rcx(j)
+      rcxp(j)=rcxp(j)*cos(-1d0*c_rotation)+sin(-1d0*c_rotation)*rcyp(j)
+      rcyp(j)=rcyp(j)*cos(-1d0*c_rotation)-sin(-1d0*c_rotation)*rcxp(j)
+
+
+          if(part_hit(j) .ne. 0) then
+            part_hit(j) = (10000*ie+iturn)
+          endif
+
+          if(part_abs(j) .ne. 0) then
+            if(dowrite_impact) then
+!! FLUKA_impacts.dat
+      write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))')     &
+     &icoll,c_rotation,                                                 &
+     &0.0,                                                              &!hr09
+     &0.0,0.0,0.0,0.0,                                                  &
+     &part_abs(j),flukaname(j),iturn
+              endif
+
+            part_abs(j) = (10000*ie+iturn)
+            rcx(j) = 99.99d-3
+            rcy(j) = 99.99d-3
+            g4_lostc = g4_lostc + 1
+          endif
+
+          call FLUSH()
+
+          endif !part_abs(j) .eq. 0
+        enddo
+!!      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
++ei
++if .not.g4collimat
                   call collimate2(c_material, c_length, c_rotation,     &
      &                 c_aperture, c_offset, c_tilt,                    &
      &                 rcx, rcxp, rcy, rcyp,                            &
      &                 rcp, rcs, napx, enom_gev, part_hit, part_abs,    &
      &                 part_impact, part_indiv, part_linteract,         &
      &                 onesided, flukaname, secondary, 1, nabs_type)    &
++ei
                endif !if (n_slices.gt.1d0 .and.
 
                endif !if(db_name1(icoll)(1:4).eq.'COLM') then
@@ -2471,7 +2551,6 @@
               endif
 
 !++  Now copy data back to original verctor
-
               xv(1,j) = rcx(j)*1d3  +torbx(ie)
               yv(1,j) = rcxp(j)*1d3 +torbxp(ie)
               xv(2,j) = rcy(j)*1d3  +torby(ie)
@@ -3207,6 +3286,10 @@
      &j, sampl(j),torbx(j), torby(j)
       end do
       close(99)
+
++if g4collimat
+      call g4_terminate()
++ei
       end
 
 !>
