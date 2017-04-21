@@ -20,21 +20,33 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
-if(BOINC)
-	ADD_TEST(NAME CheckTestInputForBOINC.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForBOINC.sh)
-	set_tests_properties(CheckTestInputForBOINC.sh PROPERTIES FAIL_REGULAR_EXPRESSION "[^-.*$]|[^diff]")
-endif(BOINC)
+ADD_TEST(NAME CheckTestInput_BOINC WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForBOINC.sh)
+set_tests_properties(CheckTestInput_BOINC PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
-#SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthck4d elensidealthck6d elensidealthin4d elensidealthin6d_DYNK elensidealthin6d eric exact fma frs60 frs javier lostevery lost lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks thick6ddynk tilt ${SIXTRACK_TESTS})
+ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
+set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
-## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90.
+## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
 ## "Totally untested": bnl
 ##
 
-#List of tests which are STF compatible
-SET(STF_TESTS bbe51 bbe52 bbe571ib0 bb_ntwin1 bb crabamp dipedge distance elensidealthck4d elensidealthin4d elensidealthin6d elensidealthck6d elensidealthin6d_DYNK wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 eric exact fma frs60 frs javier_bignpart javier lostevery lostnotilt lost notilt prob1 prob3 s316 thick4 tilt)
+#List of tests that does not produce a valid fort.10
+SET(TESTS_NOFORT10
+  exact
+  thick6dblocks
+  elensidealthck6d
+  dynk_globalvars
+  thick6ddynk
+  dump_binary
+  dump4
+  dump5
+  dump6
+  rfMultipoles_2ndOrder
+  rfMultipoles_3rdOrder
+  rfMultipoles_4thOrder
+  )
 
 if(NOT COLLIMAT)
 	if(LIBARCHIVE)
@@ -54,7 +66,62 @@ if(NOT COLLIMAT)
 		SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
 	endif()
 	
-	SET(SIXTRACK_TESTS bbe51 bbe52 bbe571ib0 bb bb_ntwin1 crabamp dipedge distance dynk_globalvars elensidealthin4d elensidealthin6d elensidealthin6d_DYNK eric exact frs60 frs javier lostevery lost lostnumxv lostnotilt notilt prob1 prob3 s316 thick4 thick6dblocks tilt elensidealthck4d elensidealthck6d fma thick6ddynk wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF ${SIXTRACK_TESTS})
+	SET(SIXTRACK_TESTS
+	  bbe51
+	  bbe52
+	  bbe571ib0
+	  bb bb_ntwin1
+	  crabamp dipedge
+	  distance
+	  dynk_globalvars
+	  elensidealthin4d
+	  elensidealthin6d
+	  elensidealthin6d_DYNK
+	  eric
+	  exact
+	  frs60
+	  frs
+	  javier
+	  lostevery
+	  lost
+	  lostnumxv
+	  lostnotilt
+	  notilt
+	  prob1
+	  prob3
+	  s316
+	  thick4
+	  thick6dblocks
+	  tilt
+	  elensidealthck4d
+	  elensidealthck6d
+	  fma
+	  thick6ddynk
+	  wire_thck4d
+	  wire_thck6d
+	  wire_thin4d
+	  wire_thin6d
+	  wire_thin6d_ibeco0
+	  dump_binary
+	  dump4
+	  dump5
+	  dump6
+	  elensidealthin6d_DYNK_RANDU
+	  elensidealthin6d_DYNK_RANDON
+	  elensidealthin6d_DYNK_ONOFF
+	  beam-HO_4D-newstyle
+	  beam-HO_4D-newstyle-loadParticles
+	  beam-HO_4D-oldstyle
+	  beam-HO_6D-newstyle
+	  beam-HO_6D-oldstyle
+	  beam-HO_LR-newstyle
+	  beam-HO_LR-oldstyle
+	  beam-HO_LR-ibbc-oldstyle
+	  beam-HO_LR-ibbc-newstyle
+	  rfMultipoles_2ndOrder
+	  rfMultipoles_3rdOrder
+	  rfMultipoles_4thOrder
+	  ${SIXTRACK_TESTS})
 	
 endif(NOT COLLIMAT)
 
@@ -72,31 +139,23 @@ endif(CR)
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
 	#determine what we need to do:
+
 	#Check fort.10 by default
 	SET(FORT10 1)
-	#.. But some tests are missing this file:
-	if(TST MATCHES exact OR TST MATCHES thick6dblocks OR TST MATCHES elensidealthck6d OR TST MATCHES dynk_globalvars OR TST MATCHES thick6ddynk OR TST MATCHES dump_binary OR TST MATCHES dump4 OR TST MATCHES dump5 OR TST MATCHES dump6)
+	LIST(FIND TESTS_NOFORT10 ${TST} NO_FORT10)
+	if(NOT ${NO_FORT10} MATCHES -1)
 		SET(FORT10 0)
+	else()
+		SET(FORT10 1)
 	endif()
 
-	#check fort.90 by default
-	SET(FORT90 1)
-	# if(TST MATCHES lostnumxv )
-	# 	SET(FORT90 0)
-	# endif()
-
-	#if STF, we need to use the STF flag on read90
+	#if STF, we need to use the STF flag on read90, and disable checking fort.90
 	if(STF)
-		LIST(FIND STF_TESTS ${TST} IS_STF)
-		if(NOT ${IS_STF} MATCHES -1)
-			SET(STF_ENABLE 1)
-		else()
-			SET(STF_ENABLE 0)
-		endif()
-		##Disable checking fort.90
+		SET(STF_ENABLE 1)
 		SET(FORT90 0)
 	else()
 		SET(STF_ENABLE 0)
+		SET(FORT90 1)
 	endif(STF)
 
 	if(LIBARCHIVE)
@@ -176,13 +235,75 @@ endforeach()
 
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
-SET(FAST_TESTS crabamp thick4 thick6dblocks thick6ddynk exact javier bb bb_ntwin1 notilt lost lostnotilt lostnumxv s316 dipedge dynk_globalvars elensidealthin4d elensidealthck4d elensidealthck6d elensidealthin6d elensidealthin6d_DYNK elensidealthin6d_DYNK_ZIPF wire_thck4d wire_thck6d wire_thin4d wire_thin6d wire_thin6d_ibeco0 dump_binary dump4 dump5 dump6 fcc elensidealthin6d_DYNK_RANDU elensidealthin6d_DYNK_ONOFF)
+SET(FAST_TESTS
+  crabamp
+  thick4
+  thick6dblocks
+  thick6ddynk
+  exact
+  javier
+  bb
+  bb_ntwin1
+  notilt
+  lost
+  lostnotilt
+  lostnumxv
+  s316
+  dipedge
+  dynk_globalvars
+  elensidealthin4d
+  elensidealthck4d
+  elensidealthck6d
+  elensidealthin6d
+  elensidealthin6d_DYNK
+  elensidealthin6d_DYNK_ZIPF
+  wire_thck4d
+  wire_thck6d
+  wire_thin4d
+  wire_thin6d
+  wire_thin6d_ibeco0
+  dump_binary
+  dump4
+  dump5
+  dump6
+  fcc
+  elensidealthin6d_DYNK_RANDU
+  elensidealthin6d_DYNK_RANDON
+  elensidealthin6d_DYNK_ONOFF
+  beam-HO_4D-newstyle
+  beam-HO_4D-newstyle-loadParticles
+  beam-HO_4D-oldstyle
+  beam-HO_6D-newstyle
+  beam-HO_6D-oldstyle
+  beam-HO_LR-newstyle
+  beam-HO_LR-oldstyle
+  beam-HO_LR-ibbc-oldstyle
+  beam-HO_LR-ibbc-newstyle
+  rfMultipoles_2ndOrder
+  rfMultipoles_3rdOrder
+  rfMultipoles_4thOrder
+  )
 
 #Medium tests take < 30 mins to run
-SET(MEDIUM_TESTS bbe571ib0 tilt lostevery fma frs frs60 eric distance bbe51 bbe52 javier_bignpart)
+SET(MEDIUM_TESTS
+  bbe571ib0
+  tilt
+  lostevery
+  fma
+  frs
+  frs60
+  eric
+  distance
+  bbe51
+  bbe52
+  javier_bignpart
+  )
 
 #Slow is everything longer
-SET(SLOW_TESTS prob1 prob3)
+SET(SLOW_TESTS
+  prob1
+  prob3
+  )
 
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	
@@ -202,13 +323,25 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 	endif()
 endforeach()
 
-#tools
-SET(SELFTEST_TOOLS SelfTest_verify10 SelfTest_compf10 SelfTest_checkf1014 SelfTest_checkf10 SelfTest_checkf110 SelfTest_read90 SelfTest_readDump3)
-if(BOINC)
-	SET(SELFTEST_TOOLS ${SELFTEST_TOOLS} CheckTestInputForBOINC.sh)
-endif(BOINC)
-
+#Tools
+SET(SELFTEST_TOOLS
+  SelfTest_verify10
+  SelfTest_compf10
+  SelfTest_checkf1014
+  SelfTest_checkf10
+  SelfTest_checkf110
+  SelfTest_read90
+  SelfTest_readDump3
+  )
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
 	set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
 
+#Inputs
+SET(SELFTEST_INPUT
+  CheckTestInput_BOINC
+  CheckTestInput_STF
+  )
+foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
+	set_property(TEST ${TOOL} PROPERTY LABELS input fast)
+endforeach()
