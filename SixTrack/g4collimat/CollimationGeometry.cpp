@@ -5,6 +5,11 @@
 #include "G4Transform3D.hh"
 #include "G4RotationMatrix.hh"
 
+#include "G4GeometryManager.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include "G4LogicalVolumeStore.hh"
+#include "G4SolidStore.hh"
+
 #include "CollimationGeometry.h"
 
 //This has the G4 collimator geometry construction
@@ -17,12 +22,35 @@ void BuildCollimator(double material, double length, double gap)
 */
 G4VPhysicalVolume* CollimationGeometry::Construct()
 {
+	if(Assembled == true)
+	{
+
+//	runManager->DefineWorldVolume(CollimatorKey_itr->second->Construct());
+//	runManager->PhysicsHasBeenModified();
+
+/*
+		std::cout << "DELETING GEOMETRY" << std::endl;
+		delete jaw1_phys;
+		delete jaw2_phys;
+		delete world_log;
+		delete Jaw1_log;
+		delete Jaw2_log;
+
+		delete world_box;
+		delete Jaw1;
+		delete Jaw2;
+
+		delete world_phys;
+*/
+		Assembled = false;
+	}
 	//Change this to true if there are future geometry issues
 	bool DoDebug = false;
 	bool OverlapCheck = false;
 	if(DoDebug)
 	{
 		OverlapCheck = true;
+		std::cout << "GAP :" << ThisCollimatorJawHalfGap << std::endl;
 	}
 
 	//Make materials
@@ -38,8 +66,8 @@ G4VPhysicalVolume* CollimationGeometry::Construct()
 	const G4double jaw_y = 50*CLHEP::m / 2.0;
 
 	//The number from SixTrack is the full gap size
-	G4double HalfGap = CollimatorJawHalfGap;
-	G4double Length = CollimatorJawLength;
+	G4double HalfGap = ThisCollimatorJawHalfGap;
+	G4double Length = ThisCollimatorJawLength;
 
 	//We are going to place the gun at zero to keep things simple
 	//The box spans from -Jaw length to +Jaw length
@@ -56,8 +84,8 @@ G4VPhysicalVolume* CollimationGeometry::Construct()
 
 	//Make the logical volumes, and attach materials
 	world_log = new G4LogicalVolume(world_box, Vacuum, "world_log");
-	Jaw1_log  = new G4LogicalVolume(Jaw1,CollimatorJawMaterial,"Jaw1_log");
-	Jaw2_log  = new G4LogicalVolume(Jaw2,CollimatorJawMaterial,"Jaw2_log");
+	Jaw1_log  = new G4LogicalVolume(Jaw1,ThisCollimatorJawMaterial,"Jaw1_log");
+	Jaw2_log  = new G4LogicalVolume(Jaw2,ThisCollimatorJawMaterial,"Jaw2_log");
 
 	world_phys = new G4PVPlacement(0,G4ThreeVector(), world_log, "world", 0, false, 0);
 /*
@@ -80,19 +108,21 @@ G4VPhysicalVolume* CollimationGeometry::Construct()
 
 	if(DoDebug)
 	{
-		G4cout << "Adding new collimator with name: " << CollimatorName << " and material " << CollimatorJawMaterial->GetName() << std::endl;
-		G4cout << "Total Jaw Length: " << Length/CLHEP::m <<  "m" << G4endl; 
-		G4cout << "Jaw Rotation: " << CollimatorJawRotation/CLHEP::rad <<  "rad" << G4endl; 
-		G4cout << "+ve Jaw position: " << ((jaw_x)+HalfGap)/CLHEP::m << "m" << G4endl; 
-		G4cout << "-ve Jaw position: " << (-(jaw_x)-HalfGap)/CLHEP::m << "m" << G4endl; 
-		G4cout << "Jaw Gap: " << (HalfGap)/CLHEP::mm << "mm" << G4endl; 
+		G4cout << "Adding new collimator with name: " << ThisCollimatorName << " and material " << ThisCollimatorJawMaterial->GetName() << std::endl;
+		G4cout << "Total Jaw Length: " << Length/CLHEP::m <<  "m" << G4endl;
+		G4cout << "Jaw Rotation: " << ThisCollimatorJawRotation/CLHEP::rad <<  "rad" << G4endl;
+		G4cout << "+ve Jaw position: " << ((jaw_x)+HalfGap)/CLHEP::m << "m" << G4endl;
+		G4cout << "-ve Jaw position: " << (-(jaw_x)-HalfGap)/CLHEP::m << "m" << G4endl;
+		G4cout << "Jaw Gap: " << (HalfGap)/CLHEP::mm << "mm" << G4endl;
 //		G4cout << "t1: " << position1 << G4endl; 
 //		G4cout << "t1: " << rotation << G4endl; 
 //		G4cout << "t2: " << position2 << G4endl; 
 	}
+
+	Assembled = true;
 	return world_phys;
 }
-
+/*
 G4double CollimationGeometry::GetLength()
 {
 	return CollimatorJawLength;
@@ -101,4 +131,50 @@ G4double CollimationGeometry::GetLength()
 G4double CollimationGeometry::GetHalfGap()
 {
 	return CollimatorJawHalfGap;
+}
+G4VPhysicalVolume* CollimationGeometry::GetWorldVolume()
+{
+	return world_phys;
+}
+*/
+
+void CollimationGeometry::AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material)
+{
+	CollimatorSettings NewCollimator;
+	NewCollimator.CollimatorJawLength = length;
+	NewCollimator.CollimatorJawHalfGap = gap * 0.5;
+	NewCollimator.CollimatorJawRotation = rotation;
+	NewCollimator.CollimatorJawOffset = offset;
+	G4Material* JawMaterial = Mmap->GetMaterial(Material);
+	NewCollimator.CollimatorJawMaterial = JawMaterial;
+	NewCollimator.CollimatorName = name;
+
+	std::pair<std::string,CollimatorSettings> CollimatorKey;
+	CollimatorKey = std::make_pair(name,NewCollimator);
+
+	std::pair<std::map< std::string,CollimatorSettings >::const_iterator,bool > check;
+	check = CollimatorKeyMap.insert(CollimatorKey);
+
+	if(check.second == false)
+	{
+		std::cerr << "ERROR: Multiple definitions of collimator: \"" << name << "\"" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+}
+
+void CollimationGeometry::SetCollimator(std::string CollimatorName)
+{
+//	std::cout << "Looking for collimator \"" << CollimatorName << "\"" << std::endl;
+	std::map<std::string,CollimatorSettings>::iterator CollimatorKey_itr = CollimatorKeyMap.find(CollimatorName);
+	if(CollimatorKey_itr == CollimatorKeyMap.end())
+	{
+		std::cerr << "ERROR: Collimator \"" <<  CollimatorName << "\" not found!" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	ThisCollimatorJawLength = CollimatorKey_itr->second.CollimatorJawLength;
+	ThisCollimatorJawHalfGap = CollimatorKey_itr->second.CollimatorJawHalfGap;
+	ThisCollimatorJawRotation = CollimatorKey_itr->second.CollimatorJawRotation;
+	ThisCollimatorJawOffset = CollimatorKey_itr->second.CollimatorJawOffset;
+	ThisCollimatorJawMaterial = CollimatorKey_itr->second.CollimatorJawMaterial;
+	ThisCollimatorName = CollimatorKey_itr->second.CollimatorName;
 }

@@ -66,6 +66,7 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 			double px = Track->GetMomentum().x();
 			double py = Track->GetMomentum().y();
 			double p = Track->GetMomentum().z();
+			//double p = Track->GetKineticEnergy();
 //			std::cout << "KEEPING: ";// << std::endl;
 //			std::cout << x / CLHEP::m << "\t" << px << "\t" << y << "\t" << py << "\t" << p << std::endl;
 			EventAction->SetOutputParticle(x,px,y,py,p);

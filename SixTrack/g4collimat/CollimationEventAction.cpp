@@ -1,6 +1,8 @@
 #include "CollimationEventAction.h"
 #include "G4SystemOfUnits.hh"
 #include "G4Event.hh"
+#include "G4ParticleTable.hh"
+
 #include <cmath>
 #include <iostream>
 
@@ -44,7 +46,9 @@ void CollimationEventAction::SetInputParticle(double x, double px, double y, dou
 	InputParticle->y = y;
 	InputParticle->yp = py;
 	InputParticle->p = p;
-//	std::cout << "IN: " << x << "\t" << px << "\t" << y << "\t" << py << "\t" << p << std::endl;
+	size_t oldprec = std::cout.precision(15);
+	//std::cout << "IN:  " << x << "\t" << px << "\t" << y << "\t" << py << "\t" << p << std::endl;
+	std::cout.precision(oldprec);
 }
 
 void CollimationEventAction::SetOutputParticle(double x, double px, double y, double py, double p)
@@ -53,8 +57,16 @@ void CollimationEventAction::SetOutputParticle(double x, double px, double y, do
 	OutputParticle->xp = px;
 	OutputParticle->y = y;
 	OutputParticle->yp = py;
-	OutputParticle->p = p;
-//	std::cout << "OUT: " << x << "\t" << px << "\t" << y << "\t" << py << "\t" << p << std::endl;
+
+	G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+	G4ParticleDefinition* particle = particleTable->FindParticle("proton");
+	const G4double mp = particle->GetPDGMass();
+	double pp= sqrt(p*p + mp*mp);
+
+	OutputParticle->p = pp;
+	size_t oldprec = std::cout.precision(15);
+	//std::cout << "OUT: " << x << "\t" << px << "\t" << y << "\t" << py << "\t" << pp << std::endl;
+	std::cout.precision(oldprec);
 }
 
 void CollimationEventAction::PostProcessEvent(double* x, double* y, double* xp, double* yp, double* p, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
@@ -93,12 +105,13 @@ void CollimationEventAction::PostProcessEvent(double* x, double* y, double* xp, 
 		*part_linteract = 0.1;
 		*x= OutputParticle->x / CLHEP::m;
 		*y= OutputParticle->y / CLHEP::m;
-		*xp= tan(OutputParticle->xp / OutputParticle->p);
-		*yp= tan(OutputParticle->yp / OutputParticle->p);
-		double pp = OutputParticle->p;
-		//double mp = ThisEvent->GetPrimaryVertex()->GetPrimary()->GetMass();
-		*p= pp / CLHEP::GeV;
+		//*xp= tan(OutputParticle->xp / OutputParticle->p);
+		//*yp= tan(OutputParticle->yp / OutputParticle->p);
+		*xp= (OutputParticle->xp / OutputParticle->p);
+		*yp= (OutputParticle->yp / OutputParticle->p);
+		*p = OutputParticle->p / CLHEP::GeV;
 
+		//std::cout << "SURVIVED: " << OutputParticle->x << "\t" << OutputParticle->y << std::endl;
 		if(OutputParticle->interacted == 1)
 		{
 			*part_hit = 1;
@@ -116,12 +129,23 @@ void CollimationEventAction::PostProcessEvent(double* x, double* y, double* xp, 
 		delete InputParticle;
 	}
 	InputParticle = new TempParticle;
+	InputParticle->x = 0;
+	InputParticle->xp = 0;
+	InputParticle->y = 0;
+	InputParticle->yp = 0;
+	InputParticle->p = 0;
+	InputParticle->interacted = 0;
 
 	if(OutputParticle)
 	{
 		delete OutputParticle;
 	}
 	OutputParticle = new TempParticle;
+	OutputParticle->x = 0;
+	OutputParticle->xp = 0;
+	OutputParticle->y = 0;
+	OutputParticle->yp = 0;
+	OutputParticle->interacted = 0;
 }
 
 unsigned int CollimationEventAction::GetProtonCount() const

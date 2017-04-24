@@ -9,24 +9,25 @@
 //#include "CollimationSteppingAction.h"
 #include "CollimationStackingAction.h"
 #include "CollimationTrackingAction.h"
-#include "CollimationMaterials.h"
 
-#include <map>
 #include <string>
 
 
+#include "G4GeometryManager.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include "G4LogicalVolumeStore.hh"
+#include "G4SolidStore.hh"
 CollimationParticleGun* part;
 G4RunManager* runManager;
-CollimationGeometry* CollimatorJaw;
+//CollimationGeometry* CollimatorJaw;
 FTFP_BERT* physlist;
 //QGSP_BERT* physlist;
 //CollimationSteppingAction* step;
 CollimationStackingAction* stack;
 CollimationEventAction* event;
 CollimationTrackingAction* tracking;
-CollimationMaterials* Mmap;
+CollimationGeometry* geometry;
 
-std::map<std::string,CollimationGeometry*> CollimatorKeyMap;
 
 std::string CleanFortranString(char* str, size_t count);
 
@@ -55,11 +56,9 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut
 	//Add the physics
 	runManager->SetUserInitialization(physlist);
 
-	Mmap = new CollimationMaterials();
-	G4Material* JawMaterial = Mmap->GetMaterial("Iner");
-
 	//Construct our collimator jaw geometry
-	CollimatorJaw = new CollimationGeometry("TempCollimator",10, 0.0,0,0, JawMaterial);
+	//CollimatorJaw = new CollimationGeometry("TempCollimator",10, 0.0,0,0, JawMaterial);
+	geometry = new CollimationGeometry();
 
 	//Make the particle gun
 	part = new CollimationParticleGun();
@@ -76,7 +75,8 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut
 	stack = new CollimationStackingAction();
 
 	//Add our geometry class
-	runManager->SetUserInitialization(CollimatorJaw);
+	//runManager->SetUserInitialization(CollimatorJaw);
+	runManager->SetUserInitialization(geometry);
 
 	//Add our particle source class
 	runManager->SetUserAction(part);
@@ -105,25 +105,14 @@ extern "C" void g4_add_collimator_(char* name, char* material, double* length, d
 	std::string CollimatorMaterialName = CleanFortranString(material, 4);
 	std::cout << "Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\"" << std::endl;
 
-	G4Material* JawMaterial = Mmap->GetMaterial(CollimatorMaterialName);
-
 	G4double length_in = *length *CLHEP::m;
 	G4double aperture_in = *aperture *CLHEP::m;
 	G4double rotation_in = *rotation *CLHEP::rad;
 	G4double offset_in = *offset *CLHEP::m;
-	CollimationGeometry* NewCollimator = new CollimationGeometry(CollimatorName, length_in, aperture_in, rotation_in, offset_in, JawMaterial);
 
-	std::pair<std::string,CollimationGeometry*> CollimatorKey;
-	CollimatorKey = std::make_pair(CollimatorName,NewCollimator);
+//	CollimationGeometry* NewCollimator = new CollimationGeometry(CollimatorName, length_in, aperture_in, rotation_in, offset_in, JawMaterial);
+	geometry->AddCollimator(CollimatorName, length_in, aperture_in, rotation_in, offset_in, CollimatorMaterialName);
 
-	std::pair<std::map< std::string,CollimationGeometry* >::const_iterator,bool > check;
-	check = CollimatorKeyMap.insert(CollimatorKey);
-
-	if(check.second == false)
-	{
-		std::cerr << "ERROR: Multiple definitions of collimator: \"" << CollimatorName << "\"" << std::endl;
-		exit(EXIT_FAILURE);
-	}
 }
 
 extern "C" void g4_terminate_()
@@ -142,15 +131,13 @@ extern "C" void g4_terminate_()
 extern "C" void g4_set_collimator_(char* name)
 {
 	std::string CollimatorName = CleanFortranString(name, 16);
-//	std::cout << "Looking for collimator \"" << CollimatorName << "\"" << std::endl;
-	std::map<std::string,CollimationGeometry*>::iterator CollimatorKey_itr = CollimatorKeyMap.find(CollimatorName);
-	if(CollimatorKey_itr == CollimatorKeyMap.end())
-	{
-		std::cerr << "ERROR: Collimator \"" <<  CollimatorName << "\" not found!" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	geometry->SetCollimator(CollimatorName);
 
-	runManager->SetUserInitialization(CollimatorKey_itr->second);
+	G4GeometryManager::GetInstance()->OpenGeometry();
+    G4PhysicalVolumeStore::GetInstance()->Clean();
+    G4LogicalVolumeStore::GetInstance()->Clean();
+    G4SolidStore::GetInstance()->Clean();
+
 	runManager->ReinitializeGeometry();
 }
 
@@ -158,16 +145,18 @@ extern "C" void g4_collimate_(double* x, double* y, double* xp, double* yp, doub
 {
 //WARNING: at this stage in SixTrack the units have been converted to GeV, m, and rad!
 //The particle energy input is the TOTAL energy
-	double x_in = *x * CLHEP::m;
-	double y_in = *y * CLHEP::m;
+	double x_in = (*x) * CLHEP::m;
+	double y_in = (*y) * CLHEP::m;
 
 //We want px and py, not the angle!
-	double px_in = *p * tan(*xp) * CLHEP::GeV;
-	double py_in = *p * tan(*yp) * CLHEP::GeV;
-	double p_in = *p * CLHEP::GeV;
+	//double px_in = *p * tan(*xp) * CLHEP::GeV;
+	//double py_in = *p * tan(*yp) * CLHEP::GeV;
+	double px_in = (*p) * (*xp) * CLHEP::GeV;
+	double py_in = (*p) * (*yp) * CLHEP::GeV;
+	double p_in = (*p) * CLHEP::GeV;
 
 //Store the input particle for a check vs the output particle!
-	event->SetInputParticle(x_in, y_in, px_in, py_in, p_in);
+	event->SetInputParticle(x_in, px_in, y_in, py_in, p_in);
 
 	//Update the gun with this particle's details
 	part->SetParticleDetails(x_in, y_in, px_in, py_in, p_in);
@@ -192,6 +181,7 @@ part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
 !++  PART_INDIV(MAX_NPART)   Divergence of impacting particles
 */
 event->PostProcessEvent(x, y, xp, yp, p, part_hit, part_abs, part_impact, part_indiv, part_linteract);
+//CollimatorKeyMap.clear();
 }
 
 std::string CleanFortranString(char* str, size_t count)

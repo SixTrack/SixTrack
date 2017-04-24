@@ -2404,6 +2404,10 @@
           rcxp(j) = rcxp(j)*cos(c_rotation)+sin(c_rotation)*rcyp(j)
           rcyp(j) = rcyp(j)*cos(c_rotation)-sin(c_rotation)*rcxp(j)
 
+!          write(lout,*) j, rcx(j), rcxp(j), rcy(j), rcyp(j),rcp(j),     &
+!     & part_abs(k), part_impact(j), part_hit(j)
+          call FLUSH()
+
 !! Call the geant4 collimation function
           call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
 
@@ -2411,6 +2415,11 @@
           call g4_collimate_return(rcx(j), rcy(j), rcxp(j), rcyp(j),
      & rcp(j),part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
      & part_linteract(j))
+
+!          write(lout,*) j, rcx(j), rcxp(j), rcy(j), rcyp(j),rcp(j),     &
+!     & part_abs(k), part_impact(j),part_hit(j)
+!          write(lout,*) '' 
+          call FLUSH()
 
 !! Rotate back into the accelerator frame
       rcx(j)=rcx(j)*cos(-1d0*c_rotation)+sin(-1d0*c_rotation)*rcy(j)
@@ -2443,7 +2452,7 @@
 
           endif !part_abs(j) .eq. 0
         enddo
-!!      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
+!      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
 +ei
 +if .not.g4collimat
                   call collimate2(c_material, c_length, c_rotation,     &
@@ -2539,7 +2548,9 @@
             if (part_hit(j).eq.(10000*ie+iturn)) then
 !++  For zero length element track back half collimator length
 ! DRIFT PART
+!       write(lout,*) j, ' hit ', part_hit(j)
               if (stracki.eq.0.) then
+!       write(lout,*) j, ' backtrack '
                 if(iexact.eq.0) then
                   rcx(j)  = rcx(j) - 0.5d0*c_length*rcxp(j)
                   rcy(j)  = rcy(j) - 0.5d0*c_length*rcyp(j)
