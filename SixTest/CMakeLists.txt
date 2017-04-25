@@ -70,8 +70,10 @@ if(NOT COLLIMAT)
 	  bbe51
 	  bbe52
 	  bbe571ib0
-	  bb bb_ntwin1
-	  crabamp dipedge
+	  bb
+	  bb_ntwin1
+	  crabamp
+	  dipedge
 	  distance
 	  dynk_globalvars
 	  elensidealthin4d
