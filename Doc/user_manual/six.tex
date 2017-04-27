@@ -48,7 +48,7 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update March 2017
+  Update April 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
@@ -767,7 +767,7 @@ How to use the RF multipoles (from MadX to SixTrack):
   \item 2\textsuperscript{nd} order multipole (quadrupole):\\
     In the Mad-X script write:\\
     \texttt{MULT.1, KNL=\{0,-0.06*1e-3\}, PNL=\{0, 0.25\};}\\
-    where \texttt{-0.06*1e-3} is the b2 value in units of $\mathrm{Tm/m^{n-1}}$.\\
+    where \texttt{-0.06*1e-3} is the $b_2$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
     This gives the following single element in \texttt{fort.2}:\\
     \texttt{mult.1q           26   6.000000000e-05   400.000000000e+00   -1.570796327e+00\\
       \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
@@ -775,7 +775,7 @@ How to use the RF multipoles (from MadX to SixTrack):
   \item 3\textsuperscript{rd} order multipole (sextupole):\\
     In the Mad-X script write:\\
     \texttt{MULT.1, FREQ=400., KNL=\{0,0,1159.*1e-3\}, PNL=\{0,0,0.25\};}\\
-    where \texttt{1159.*1e-3} is the b3 value in units of $\mathrm{Tm/m^{n-1}}$.\\
+    where \texttt{1159.*1e-3} is the $b_3$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
     This gives the following single element in fort.2:\\
     \texttt{mult.1s           27  -5.795000000e-01   4.000000000e+02   -1.570796327e+00\\
       \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
@@ -783,7 +783,7 @@ How to use the RF multipoles (from MadX to SixTrack):
   \item 4\textsuperscript{th} order multipole (octupole):\\
     In  the Mad-X script write:\\
     \texttt{MULT.1, FREQ=400., KNL=\{0,0,0,-4.*1e-3\}, PNL=\{0,0,0,0.25\};}\\
-    where \texttt{-4.*1e-3} is the b4 value in units of $\mathrm{Tm/m^{n-1}}$.\\
+    where \texttt{-4.*1e-3} is the $b_4$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
     This gives the following single element in fort.2:\\
     \texttt{mult.1o           28   6.666666667e-04   4.000000000e+02   -1.570796327e+00\\
       \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
@@ -792,12 +792,15 @@ How to use the RF multipoles (from MadX to SixTrack):
 \paragraph{Remark}
 The values of $b_2$, $b_3$, and $b_4$ used in the above examples were taken from Table II of paper~\cite{RFmultsPaper}.
 
-The effect of these multipoles was checked on a beam of particles with x=xp=yp=0, and y=1, 2, and 3~mm, with different z positions.
-The effect on yp was linear, quadratic and cubic with y when using $b_2$, $b_3$, or $b_4$, respectively, as expected.
-Furthermore, the amplitude of the yp agrees with the analytical formulas found in the appendix of this paper~\cite{RFmultsPaper} under ``Normal quadrupole/sextupole/octupole''.
+The effect of these multipoles was checked on a beam of particles with $x = x' = y' = 0$, and $y = 1, 2, \text{ and } 3~\mathrm{mm}$, with different $z$ positions.
+The effect on $y'$ was linear, quadratic and cubic with $y$ when using $b_2$, $b_3$, or $b_4$, respectively, as expected.
+Furthermore, the amplitude of the $y'$ agrees with the analytical formulas found in the appendix of this paper~\cite{RFmultsPaper} under ``Normal quadrupole/sextupole/octupole''.
 
 Important note: $B\rho$ and the factorial $(n-1)!$ are already included in K2, K3 etc of Mad-X, i.e.\ $b_3=1159\cdot10^{-3}$ in Mad-X results in a kick as if $b_3$ is $1159\cdot10^{-3}/(n-1)!$.
-So in order for this paper's~\cite{RFmultsPaper} analytical equations to be compatible with Mad-X, the equations for normal quadrupole should read: $\Delta x'=-\frac{b_2}{(2-1)! ~ B\rho} \ldots$
+So in order for this paper's~\cite{RFmultsPaper} analytical equations to be compatible with Mad-X, the equations for normal quadrupole should read as
+\[
+\Delta x'=-\frac{b_2}{(2-1)! ~ B\rho} \ldots~.
+\]
 
 
 \subsubsection{Electron Lens} \label{ELEN}
