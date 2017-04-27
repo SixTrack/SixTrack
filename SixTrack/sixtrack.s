@@ -3,7 +3,7 @@
       character*10 moddate
       integer itot,ttot
       data version /'4.6.17'/
-      data moddate /'20.04.2017'/
+      data moddate /'27.04.2017'/
 +cd license
 !!SixTrack
 !!
@@ -11818,7 +11818,7 @@ cc2008
 +ei
       double precision ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
-     &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,rv,tilt,u0,              &
+     &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
       !For BEAM-EXP
       double precision separx,separy
@@ -11920,9 +11920,9 @@ cc2008
 !     - zipf
       character*16 zipf
       data zipf /'ZIPF'/
-      
++if crlibm
       double precision round_near
-      
++ei
       save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
@@ -12007,7 +12007,6 @@ cc2008
       chi0=zero
       chid=zero
       rat=zero
-      rv=one
       ipos=0
       iav=1
       iwg=1
