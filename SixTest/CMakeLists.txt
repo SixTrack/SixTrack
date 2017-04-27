@@ -20,10 +20,10 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
-ADD_TEST(NAME CheckTestInput_BOINC WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForBOINC.sh)
+ADD_TEST(NAME CheckTestInput_BOINC WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/ COMMAND ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
 set_tests_properties(CheckTestInput_BOINC PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
-ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SixTest/ COMMAND CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
+ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/ COMMAND ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 ##
