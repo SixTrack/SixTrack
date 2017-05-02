@@ -68,6 +68,7 @@
 
 +if g4collimat
       double precision g4_ecut
+      integer g4_physics
 +ei
 
       open(unit=outlun, file='colltrack.out')
@@ -487,7 +488,8 @@
 !! Set the energy cut at 70% - i.e. 30% energy loss
 
       g4_ecut = 0.7
-      call g4_collimation_init(e0, rnd_seed, g4_ecut)
+      g4_physics = 1
+      call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics)
 +ei
       end
 
@@ -1516,6 +1518,7 @@
 
 +if g4collimat
       integer g4_lostc
+      double precision x_tmp,y_tmp,xp_tmp,yp_tmp
 +ei
 
 +if fast
@@ -2399,14 +2402,14 @@
 !! Rotate particles in the frame of the collimator
 !! There is more precision if we do it here rather
 !! than in the g4 geometry
-          rcx(j) = rcx(j)*cos(c_rotation) +sin(c_rotation)*rcy(j)
-          rcy(j) = rcy(j)*cos(c_rotation) -sin(c_rotation)*rcx(j)
-          rcxp(j) = rcxp(j)*cos(c_rotation)+sin(c_rotation)*rcyp(j)
-          rcyp(j) = rcyp(j)*cos(c_rotation)-sin(c_rotation)*rcxp(j)
-
-!          write(lout,*) j, rcx(j), rcxp(j), rcy(j), rcyp(j),rcp(j),     &
-!     & part_abs(k), part_impact(j), part_hit(j)
-          call FLUSH()
+            x_tmp = rcx(j)
+            y_tmp = rcy(j)
+            xp_tmp = rcxp(j)
+            yp_tmp = rcyp(j)
+          rcx(j) = x_tmp*cos(c_rotation) +sin(c_rotation)*y_tmp
+          rcy(j) = y_tmp*cos(c_rotation) -sin(c_rotation)*x_tmp
+          rcxp(j) = xp_tmp*cos(c_rotation)+sin(c_rotation)*yp_tmp
+          rcyp(j) = yp_tmp*cos(c_rotation)-sin(c_rotation)*xp_tmp
 
 !! Call the geant4 collimation function
           call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
@@ -2416,17 +2419,15 @@
      & rcp(j),part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
      & part_linteract(j))
 
-!          write(lout,*) j, rcx(j), rcxp(j), rcy(j), rcyp(j),rcp(j),     &
-!     & part_abs(k), part_impact(j),part_hit(j)
-!          write(lout,*) '' 
-          call FLUSH()
-
 !! Rotate back into the accelerator frame
-      rcx(j)=rcx(j)*cos(-1d0*c_rotation)+sin(-1d0*c_rotation)*rcy(j)
-      rcy(j)=rcy(j)*cos(-1d0*c_rotation)-sin(-1d0*c_rotation)*rcx(j)
-      rcxp(j)=rcxp(j)*cos(-1d0*c_rotation)+sin(-1d0*c_rotation)*rcyp(j)
-      rcyp(j)=rcyp(j)*cos(-1d0*c_rotation)-sin(-1d0*c_rotation)*rcxp(j)
-
+      x_tmp = rcx(j)
+      y_tmp = rcy(j)
+      xp_tmp = rcxp(j)
+      yp_tmp = rcyp(j)
+      rcx(j)=x_tmp*cos(-1d0*c_rotation) +sin(-1d0*c_rotation)*y_tmp
+      rcy(j)=y_tmp*cos(-1d0*c_rotation) -sin(-1d0*c_rotation)*x_tmp
+      rcxp(j)=xp_tmp*cos(-1d0*c_rotation)+sin(-1d0*c_rotation)*yp_tmp
+      rcyp(j)=yp_tmp*cos(-1d0*c_rotation)-sin(-1d0*c_rotation)*xp_tmp
 
           if(part_hit(j) .ne. 0) then
             part_hit(j) = (10000*ie+iturn)

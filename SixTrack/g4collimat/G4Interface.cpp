@@ -20,8 +20,8 @@
 CollimationParticleGun* part;
 G4RunManager* runManager;
 //CollimationGeometry* CollimatorJaw;
-FTFP_BERT* physlist;
-//QGSP_BERT* physlist;
+FTFP_BERT* physlist_FTFP;
+QGSP_BERT* physlist_QGSP;
 //CollimationSteppingAction* step;
 CollimationStackingAction* stack;
 CollimationEventAction* event;
@@ -39,22 +39,34 @@ These include:
 2: The Physics to use.
 3: A particle source.
 */
-extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut)
+extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut, int* PhysicsSelect)
 {
 	std::cout << "Using seed " << *seed << " in geant4 C++" << std::endl;
 	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the cut will be at "<< (*ReferenceE * *ecut ) / CLHEP::GeV << " GeV!" << std::endl;
 	CLHEP::HepRandom::setTheSeed(*seed);
 
-	//Physics list
-	G4int verbose = 0;
-	physlist = new FTFP_BERT(verbose);
-//	physlist = new QGSP_BERT(verbose);
-
 	//Construct the run manager
 	runManager = new G4RunManager();
 
-	//Add the physics
-	runManager->SetUserInitialization(physlist);
+	//Physics list
+	G4int verbose = 0;
+	if(*PhysicsSelect == 0)
+	{
+		physlist_FTFP = new FTFP_BERT(verbose);
+		//Add the physics
+		runManager->SetUserInitialization(physlist_FTFP);
+	}
+	else if(*PhysicsSelect == 1)
+	{
+		physlist_QGSP = new QGSP_BERT(verbose);
+		//Add the physics
+		runManager->SetUserInitialization(physlist_QGSP);
+	}
+	else
+	{
+		std::cerr << "ERROR: Bad value for Geant4 physics list selection: Exiting" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
 	//Construct our collimator jaw geometry
 	//CollimatorJaw = new CollimationGeometry("TempCollimator",10, 0.0,0,0, JawMaterial);
@@ -103,7 +115,8 @@ extern "C" void g4_add_collimator_(char* name, char* material, double* length, d
 
 	std::string CollimatorName = CleanFortranString(name, 16);
 	std::string CollimatorMaterialName = CleanFortranString(material, 4);
-	std::cout << "Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\"" << std::endl;
+	std::cout << "Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset \"" << *offset << "\" and length \"";
+	std::cout << *length << "\"" << std::endl;
 
 	G4double length_in = *length *CLHEP::m;
 	G4double aperture_in = *aperture *CLHEP::m;
