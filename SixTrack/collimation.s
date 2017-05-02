@@ -488,7 +488,12 @@
 !! Set the energy cut at 70% - i.e. 30% energy loss
 
       g4_ecut = 0.7
-      g4_physics = 1
+
+!! Select the physics engine to use
+!! 0 = FTFP_BERT
+!! 1 = QGSP_BERT
+
+      g4_physics = 0
       call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics)
 +ei
       end
