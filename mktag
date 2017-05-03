@@ -15,3 +15,17 @@ else
   echo "wrong commit hash $COMMIT_HASH"
 fi
 
+vnumber=`echo $tag| sed 's/v//;s/\.//g'`
+
+
+public_dir=/afs/cern.ch/project/sixtrack/build/$vnumber/x86_64-pc-linux-gnu__sse2
+mkdir -p $public_dir
+
+./cmake_six
+cp SixTrack_cmakesix_defaultcompiler_defaultbuildtype/SixTrack_$vnumber* $public_dir
+
+./buildLibraries.sh
+./cmake_six BOINC API LIBARCHIVE CR BIGNBLZ
+cp SixTrack_cmakesix_API_BIGNBLZ_BOINC_CR_LIBARCHIVE_defaultcompiler_defaultbuildtype/SixTrack_$vnumber* $public_dir
+
+ls $public_dir
