@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+tag=$1
+COMMIT_HASH=$2
+
+pull_request=`git log -n1 $COMMIT_HASH | grep "Merge pull request" | grep -o "#[0-9]*"`
+
+if [[ ! -z $pull_request ]]
+then
+  echo "Pull request $pull_request"
+  git tag -a $tag $COMMIT_HASH -m $tag
+  GIT_COMMITTER_DATE="$(git show $COMMIT_HASH --format=%aD | head -1)" git tag -a -f $tag -m"$tag" $COMMIT_HASH
+  git push upstream $tag
+else
+  echo "wrong commit hash $COMMIT_HASH"
+fi
+
