@@ -7134,6 +7134,7 @@ cc2008
               endif
             enddo
             if (beam_expflag .eq. 0) then !Old-style input
+              write(*,*) 'FFFF',emitx,emity,emitz
               if(parbe(ix,2).gt.0d0) then
                 do ii=4,10
                   call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
@@ -23208,8 +23209,8 @@ C Should get me a NaN
 *FOX    TRACK(5)=Z1/DET ;
 *FOX    TRACK(6)=TRACK(6)+CALPHA*SPHI*TRACK(2)
 *FOX            +SALPHA*SPHI*TRACK(4) ;
-*FOX    TRACK(2)=(TRACK(2)+CALPHA*SPHI*H1)*CPHI ;
-*FOX    TRACK(4)=(TRACK(4)+SALPHA*SPHI*H1)*CPHI ;
+*FOX    TRACK(2)=(TRACK(2)*CPHI+CALPHA*TPHI*H1) ;
+*FOX    TRACK(4)=(TRACK(4)*CPHI+SALPHA*TPHI*H1) ;
 !     DADAL AUTOMATIC INCLUSION
       return
       end
@@ -54889,8 +54890,8 @@ c$$$            endif
         track(5,i)=z1/det
         track(6,i)=(track(6,i)+(calpha*sphi)*track(2,i))                &!hr06
      &+(salpha*sphi)*track(4,i)                                          !hr06
-        track(2,i)=(track(2,i)+(calpha*sphi)*h1)*cphi                    !hr06
-        track(4,i)=(track(4,i)+(salpha*sphi)*h1)*cphi                    !hr06
+        track(2,i)=(track(2,i)*cphi+(calpha*tphi)*h1)                    !hr06
+        track(4,i)=(track(4,i)*cphi+(salpha*tphi)*h1)                    !hr06
  1000 continue
       return
       end
