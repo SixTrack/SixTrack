@@ -7134,7 +7134,6 @@ cc2008
               endif
             enddo
             if (beam_expflag .eq. 0) then !Old-style input
-              write(*,*) 'FFFF',emitx,emity,emitz
               if(parbe(ix,2).gt.0d0) then
                 do ii=4,10
                   call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
@@ -7203,6 +7202,10 @@ cc2008
 
           if (beam_expflag .eq. 0) then
           write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+          write(lout,'(a,g13.6,a,g13.6,a,g13.6,a)')
+     &                  " ******* USING emitx=",emitx,
+     &                               ", emity=",emity,
+     &                               ", emitz=",emitz," ******"
           if(parbe(ix,2).eq.0.0) then !4D
              !Note: One should always use the CRLIBM version when converting,
              ! in order to guarantee the exact same results from the converted input file.
