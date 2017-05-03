@@ -1,21 +1,32 @@
 
+manName=sixphys
+diffName=sixphys-diff
 
-all: sixphys.pdf
+all: $(manName).pdf
 
 
-sixphys.pdf: sixphys.tex refframe.tex
-	pdflatex sixphys.tex
-	bibtex sixphys.aux
-	pdflatex sixphys.tex
-	pdflatex sixphys.tex
+clean:
+	rm -f $(diffName).blg $(diffName).bbl $(diffName).toc $(diffName).out $(diffName).aux $(diffName).log $(diffName).tex
+	rm -f sixphys-old.tex
+	rm -f $(manName).blg $(manName).bbl $(manName).toc $(manName).out $(manName).aux $(manName).log 
 
-sixphys-diff.pdf: sixphys.tex
-	git show HEAD^:sixphys.tex > sixphys-old.tex
-	latexdiff sixphys-old.tex sixphys.tex> sixphys-diff.tex
-	pdflatex sixphys-diff.tex
-	bibtex sixphys-diff.aux
-	pdflatex sixphys-diff.tex
-	pdflatex sixphys-diff.tex
+cleanall:
+	make clean
+	rm -f $(diffName).pdf
+
+manual: $(manName).tex refframe.tex
+	pdflatex $(manName).tex
+	bibtex $(manName).aux
+	pdflatex $(manName).tex
+	pdflatex $(manName).tex
+
+diff: sixphys.tex
+	git show HEAD^:Doc/physics_manual/sixphys.tex > sixphys-old.tex
+	latexdiff sixphys-old.tex sixphys.tex> $(diffName).tex
+	pdflatex $(diffName).tex
+	bibtex $(diffName).aux
+	pdflatex $(diffName).tex
+	pdflatex $(diffName).tex
 
 sixphys.html: sixphys.tex refframe.tex
 	htlatex sixphys.tex

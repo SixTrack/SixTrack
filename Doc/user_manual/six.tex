@@ -21,6 +21,8 @@
 %\usepackage{draftwatermark}
 \usepackage{tabularx}
 
+\usepackage{amsmath}
+
 \newenvironment{description_alligned}[1]
 {\begin{list}{}%
     {\renewcommand\makelabel[1]{##1:\hfill}%
@@ -46,16 +48,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update March 2017
+  Update April 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.6.16 \\
+  Version 4.6.17 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
+  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -716,7 +718,8 @@ deflection angle.
 
 % This element needs more documentation and possibly testing -- not currently supported! There are also a few things in the code which looks very strange.
 
-\subsubsection{Crab Cavity} \label{CrabCav}
+\subsubsection{Crab Cavity}
+\label{CrabCav}
 
 \paragraph{Format} {\em name type Voltage Frequency Phase}
 \begin{description}
@@ -728,7 +731,77 @@ deflection angle.
 \item [Phase] Phase of the excitation in radians.
 \end{description}
 
-%\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
+\paragraph{Remark -- How to use the crab cavity from MadX (using rfmultipole) to SixTrack:}~\\
+In the Mad-X script write:\\
+\texttt{MULT.1, FREQ=<freq in MHz>., KNL=\{V [MV]/E0[MeV]\}, PNL=\{phase\}, TILT=<H: 0; V:PI/2.>;}\\
+where phase is 0.25 (phase for multipoles in SixTrack).
+As an example, to have the effect of a vertical Crab Cavity of $f=400~\mathrm{MHz}$, $V=6~\mathrm{MV}$, beam energy [MeV]: \texttt{BEAM -> PC/1e3}, use the following line:\\
+\texttt{MULT.1, FREQ=400., KNL={6./BEAM -> PC/1e3}, PNL={0.25}, TILT=PI/2.;}\\
+This creates the following line in fort.2:\\
+\texttt{mult.1d          -23   6.000000000e+00   4.000000000e+02\\
+  \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00}\\
+If you don’t want to have a vertical Crab Cavity then just remove the TILT, and if you don’t want to have CC but a simple dipole field then remove the FREQ parameter.
+
+\subsubsection{RF multipole}
+
+Provides a kick in the form of
+\begin{align}
+\Delta x'+i\Delta y' =& \frac{k}{1+\delta} (x+iy)^n \cos (\phi - 2 \pi f t)\\
+\Delta \delta =& P_0 \frac{k}{1+\delta} \frac{(x+iy)^{n+1}}{(n+1)!} \cos (\phi - 2 \pi f t)
+\end{align}
+
+\paragraph{Format} {\em name type name kick frequency phase}
+\begin{description}
+\item [name] Limited to sixteen characters.
+\item [type] 26: normal quadrupole , -26 skew quadrupole,
+             27: normal sextupole, -27 skew sextupole,
+	     28: normal octupole, -28 skew octupole;
+\item [kick] maximum normalized kick $k$
+\item [frequency] frequency $f$ in [MHz]
+\end{description}
+
+\paragraph{Remark}
+
+How to use the RF multipoles (from MadX to SixTrack):
+\begin{itemize}
+  \item 2\textsuperscript{nd} order multipole (quadrupole):\\
+    In the Mad-X script write:\\
+    \texttt{MULT.1, KNL=\{0,-0.06*1e-3\}, PNL=\{0, 0.25\};}\\
+    where \texttt{-0.06*1e-3} is the $b_2$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+    This gives the following single element in \texttt{fort.2}:\\
+    \texttt{mult.1q           26   6.000000000e-05   400.000000000e+00   -1.570796327e+00\\
+      \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
+
+  \item 3\textsuperscript{rd} order multipole (sextupole):\\
+    In the Mad-X script write:\\
+    \texttt{MULT.1, FREQ=400., KNL=\{0,0,1159.*1e-3\}, PNL=\{0,0,0.25\};}\\
+    where \texttt{1159.*1e-3} is the $b_3$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+    This gives the following single element in fort.2:\\
+    \texttt{mult.1s           27  -5.795000000e-01   4.000000000e+02   -1.570796327e+00\\
+      \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
+
+  \item 4\textsuperscript{th} order multipole (octupole):\\
+    In  the Mad-X script write:\\
+    \texttt{MULT.1, FREQ=400., KNL=\{0,0,0,-4.*1e-3\}, PNL=\{0,0,0,0.25\};}\\
+    where \texttt{-4.*1e-3} is the $b_4$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+    This gives the following single element in fort.2:\\
+    \texttt{mult.1o           28   6.666666667e-04   4.000000000e+02   -1.570796327e+00\\
+      \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
+\end{itemize}
+
+\paragraph{Remark}
+The values of $b_2$, $b_3$, and $b_4$ used in the above examples were taken from Table II of paper~\cite{RFmultsPaper}.
+
+The effect of these multipoles was checked on a beam of particles with $x = x' = y' = 0$, and $y = 1, 2, \text{ and } 3~\mathrm{mm}$, with different $z$ positions.
+The effect on $y'$ was linear, quadratic and cubic with $y$ when using $b_2$, $b_3$, or $b_4$, respectively, as expected.
+Furthermore, the amplitude of the $y'$ agrees with the analytical formulas found in the appendix of this paper~\cite{RFmultsPaper} under ``Normal quadrupole/sextupole/octupole''.
+
+Important note: $B\rho$ and the factorial $(n-1)!$ are already included in K2, K3 etc of Mad-X, i.e.\ $b_3=1159\cdot10^{-3}$ in Mad-X results in a kick as if $b_3$ is $1159\cdot10^{-3}/(n-1)!$.
+So in order for this paper's~\cite{RFmultsPaper} analytical equations to be compatible with Mad-X, the equations for normal quadrupole should read as
+\[
+\Delta x'=-\frac{b_2}{(2-1)! ~ B\rho} \ldots~.
+\]
+
 
 \subsubsection{Electron Lens} \label{ELEN}
 \paragraph{Format} {\em name type}
@@ -1099,6 +1172,11 @@ The functions are always evaluated as a function of the current turn number $t$,
   The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
   Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
   
+  RANDON      & \emph{seed1[int] seed2[int] P[float]} &
+  Returns the value of 1.0 or 0.0 resulting of the weighting with the probability \emph{P} of a pseudorandom number generated from a uniform distribution .
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
+  Note that every RANDON function defined in DYNK uses its own separate random number stream.\\
+
   \hline
   \rowcolor{blue!15}
   Filters & & \\*
@@ -1548,11 +1626,11 @@ If ``EXPERT'' mode is wanted, this is triggered by adding the flag \texttt{EXPER
 \item second data line: {\em partnum emitnx emitny sigz sige ibeco
     ibtyp lhc ibbc} 
 \item other data lines -- 4D BB lens (1 line per element): \\
-{\em name ibsix $\Sigma_{xx}$ $\Sigma_{yy}$ h-sep v-sep strength-ratio}
+{\em name ibsix $\Sigma_{x,x}$ $\Sigma_{y,y}$ h-sep v-sep strength-ratio}
 \item other data lines -- 6D BB lens (3 lines per element): \\
 {\em name ibsix xang xplane h-sep v-sep} \\
-{\em $\Sigma_{xx}$ $\Sigma_{xxp}$ $\Sigma_{xpxp}$ $\Sigma_{yy}$ $\Sigma_{yyp}$} \\
-{\em $\Sigma_{ypyp}$ $\Sigma_{xy}$ $\Sigma_{xpy}$ $\Sigma_{xpyp}$ $\Sigma_{yyp}$ strength-ratio} \\
+{\em $\Sigma_{x,x}$ $\Sigma_{x,xp}$ $\Sigma_{xp,xp}$ $\Sigma_{y,y}$ $\Sigma_{y,yp}$} \\
+{\em $\Sigma_{yp,yp}$ $\Sigma_{x,y}$ $\Sigma_{x,py}$ $\Sigma_{xp,y}$ $\Sigma_{xp,yp}$ strength-ratio} \\
 \end{itemize}
 
 Some parameters are new or defined in a different way:
@@ -4596,6 +4674,9 @@ summary of the post--processing is given.
 %\bibitem{PATRAC} A.~Hilaire and A.~Warman, ``A
 %  program for single particle tracking'', CERN SPS/88--8 (AMS).
 %
+\bibitem{RFmultsPaper} J.~B.~Garcia et al., 
+``Long term dynamics of the high luminosity Large Hadron Collider with crab cavities'',
+2016, PHYSICAL REVIEW ACCELERATORS AND BEAMS 19, 101003 (2016).
 \bibitem{DYNKpaper} K.~Sjobak, H.~Burkhardt, R.D.~Maria, A.~Mereghetti and A.~Santamaria,
   ``General functionality for turn-dependent element properties in SixTrack''
   2015, Procedings of IPAC'13, Richmond, VA, USA, May 2015.
