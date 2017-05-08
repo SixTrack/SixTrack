@@ -14,7 +14,7 @@ cleanall:
 	make clean
 	rm -f $(diffName).pdf
 
-manual: $(manName).tex refframe.tex
+$(manName).pdf: $(manName).tex refframe.tex
 	pdflatex $(manName).tex
 	bibtex $(manName).aux
 	pdflatex $(manName).tex

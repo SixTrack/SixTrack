@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.17'/
-      data moddate /'27.04.2017'/
+      data version /'4.6.18'/
+      data moddate /'08.05.2017'/
 +cd license
 !!SixTrack
 !!
@@ -7202,6 +7202,10 @@ cc2008
 
           if (beam_expflag .eq. 0) then
           write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+          write(lout,'(a,g13.6,a,g13.6,a,g13.6,a)')
+     &                  " ******* USING emitx=",emitx,
+     &                               ", emity=",emity,
+     &                               ", emitz=",emitz," ******"
           if(parbe(ix,2).eq.0.0) then !4D
              !Note: One should always use the CRLIBM version when converting,
              ! in order to guarantee the exact same results from the converted input file.
@@ -23207,8 +23211,8 @@ C Should get me a NaN
 *FOX    TRACK(5)=Z1/DET ;
 *FOX    TRACK(6)=TRACK(6)+CALPHA*SPHI*TRACK(2)
 *FOX            +SALPHA*SPHI*TRACK(4) ;
-*FOX    TRACK(2)=(TRACK(2)+CALPHA*SPHI*H1)*CPHI ;
-*FOX    TRACK(4)=(TRACK(4)+SALPHA*SPHI*H1)*CPHI ;
+*FOX    TRACK(2)=(TRACK(2)*CPHI+CALPHA*TPHI*H1) ;
+*FOX    TRACK(4)=(TRACK(4)*CPHI+SALPHA*TPHI*H1) ;
 !     DADAL AUTOMATIC INCLUSION
       return
       end
@@ -54954,8 +54958,8 @@ c$$$            endif
         track(5,i)=z1/det
         track(6,i)=(track(6,i)+(calpha*sphi)*track(2,i))                &!hr06
      &+(salpha*sphi)*track(4,i)                                          !hr06
-        track(2,i)=(track(2,i)+(calpha*sphi)*h1)*cphi                    !hr06
-        track(4,i)=(track(4,i)+(salpha*sphi)*h1)*cphi                    !hr06
+        track(2,i)=(track(2,i)*cphi+(calpha*tphi)*h1)                    !hr06
+        track(4,i)=(track(4,i)*cphi+(salpha*tphi)*h1)                    !hr06
  1000 continue
       return
       end
