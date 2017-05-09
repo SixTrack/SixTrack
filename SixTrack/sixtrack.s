@@ -24539,7 +24539,12 @@ C Should get me a NaN
             bet0v(ib2,2)=bet0(2)
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
-            ampv(ib2)=amp(1)-damp*dble(ib1-1)                            !hr05
+            ampv(ib2)=amp(1)-damp*dble(ib1-1) !hr05
+            if (ib1.eq.napx) then
+               !Make sure that last pair EXACTLY corresponds to amp(1)
+               ! This is helpfull when doing DA studies and checking the "overlap"
+               ampv(ib2)=amp(1)
+            endif
             dp0v(ib2)=dp10
             dpsv(ib2)=dp10
             oidpsv(ib2)=one/(one+dp1)
