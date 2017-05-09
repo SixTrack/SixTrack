@@ -215,7 +215,13 @@
       parameter(mcor = 10,mcop = mcor+6, mbea = 99)
       parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
       parameter(nmon1 = 600,ncor1 = 600)
-      parameter(ntr = 20,nbb = 350)
+      parameter(ntr = 20)
++if .not.bignblz.and..not.hugenblz
+      parameter(nbb = 350)
++ei
++if bignblz.or.hugenblz
+      parameter(nbb = 500)
++ei
 +cd parnum
       double precision c180e0,c1e1,c1e12,c1e13,c1e15,c1e16,c1e2,c1e3,   &
      &c1e4,c1e6,c1m1,c1m7,c1m10,c1m12,c1m13,c1m15,c1m18,c1m2,c1m21,     &
