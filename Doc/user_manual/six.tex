@@ -3692,11 +3692,10 @@ the {\em Iteration Errors} \/(~\ref{IteErr}) see table~\ref{T-IteErr}.
 
 \section{Default Size Parameters} \label{DSP}
 
-For large machines the arrays holding the machine parameters might
-have to be increased.  The size of each of the dimensions of the
-arrays is therefore defined as a parameter.  The default values are
-adjusted to allow the treatment of a full LHC lattice: the tracking
-version uses 50 Mb and the DA version 400 Mb.
+For large machines the arrays holding the machine parameters might have to be increased.
+The size of each of the dimensions of the arrays is therefore defined as a parameter.
+This can be done by compiling with the BIGNPART, HUGENPART, BIGNBLZ, and/or HUGENBLZ flags.
+The default values are adjusted to allow the treatment of a full LHC lattice: the tracking version uses 50 Mb and the DA version 400 Mb.
 
 \newcounter{dsp} \setcounter{dsp}{0}
 
