@@ -23082,7 +23082,7 @@ C Should get me a NaN
           endif
 *FOX    SINTH=HALF*(ONE-DUM(6)) ;
           if(abs(dare(sinth)).gt.pieni) then
-*FOX    SINTH=-SFAC*SQRT(SINTH) ;
+*FOX    SINTH=SFAC*SQRT(SINTH) ;
           else
 *FOX    SINTH=ZERO ;
           endif
@@ -54847,7 +54847,7 @@ c$$$            endif
             endif
             sinth=half*(one-dum(6))
             if(abs(sinth).gt.pieni) then
-              sinth=(-1d0*sfac)*sqrt(sinth)                              !hr06
+              sinth=(sfac)*sqrt(sinth)                              !hr06
             else
               sinth=zero
             endif
