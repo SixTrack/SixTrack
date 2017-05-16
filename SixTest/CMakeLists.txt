@@ -46,7 +46,8 @@ SET(TESTS_NOFORT10
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
-  beam-HO_6D-simple
+  beam-HO_6D-simple-oldstyle
+  beam-HO_6D-simple-newstyle
   )
 
 if(NOT COLLIMAT)
@@ -117,7 +118,8 @@ if(NOT COLLIMAT)
           beam-HO_4D-oldstyle
           beam-HO_6D-newstyle
           beam-HO_6D-oldstyle
-          beam-HO_6D-simple
+          beam-HO_6D-simple-oldstyle
+          beam-HO_6D-simple-newstyle
           beam-HO_LR-newstyle
           beam-HO_LR-oldstyle
           beam-HO_LR-ibbc-oldstyle
@@ -125,7 +127,8 @@ if(NOT COLLIMAT)
           rfMultipoles_2ndOrder
           rfMultipoles_3rdOrder
           rfMultipoles_4thOrder
-          ${SIXTRACK_TESTS})
+          ${SIXTRACK_TESTS}
+	  )
 
 endif(NOT COLLIMAT)
 
@@ -281,7 +284,8 @@ SET(FAST_TESTS
   beam-HO_6D-oldstyle
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
-  beam-HO_6D-simple
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-oldstyle
   beam-HO_LR-ibbc-oldstyle
   beam-HO_LR-ibbc-newstyle
   rfMultipoles_2ndOrder
