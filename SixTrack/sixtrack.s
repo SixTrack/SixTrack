@@ -17404,10 +17404,14 @@ cc2008
 +ei
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il   ! converting 6D lenses to 4D
-          parbe(j,2)=0d0
           if (beam_expflag .eq. 1) then
-             parbe(j,1)=parbe(j,7)
-             parbe(j,3)=parbe(j,10)
+             if (parbe(j,2) .gt. 0) then
+               parbe(j,2)=0d0
+               parbe(j,1)=parbe(j,7)
+               parbe(j,3)=parbe(j,10)
+             endif
+          else
+             parbe(j,2)=0d0
           endif
         enddo
       else
