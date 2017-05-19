@@ -16218,8 +16218,8 @@ cc2008
                   else if(i.eq.0) then ! 4D, single slice only
                      parbe(j,17)=0      ! Type is 4D
                      parbe(j,2)=dble(i) ! Number of slices is always 0
-                     parbe(j,1)=xang
-                     parbe(j,3)=xplane
+                     parbe(j,1)=xang    ! not the crossing angle but sigmaxx
+                     parbe(j,3)=xplane  ! not the xplane but sigmayy
                      parbe(j,5)=separx
                      parbe(j,6)=separy
                      ptnfac(j)=mm1
@@ -17403,8 +17403,16 @@ cc2008
       endif
 +ei
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
-        do j=1,il
-          parbe(j,2)=0d0
+        do j=1,il   ! converting 6D lenses to 4D
+          if (beam_expflag .eq. 1) then
+             if (parbe(j,2) .gt. 0) then
+               parbe(j,2)=0d0
+               parbe(j,1)=parbe(j,7)
+               parbe(j,3)=parbe(j,10)
+             endif
+          else
+             parbe(j,2)=0d0
+          endif
         enddo
       else
         do j=1,il
