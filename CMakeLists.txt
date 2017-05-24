@@ -966,7 +966,8 @@ if(LIBARCHIVE)
 	
 	find_library(pthread STATIC pthread)
 	#find_library(z STATIC z)
-	find_library(z libz.a PATHS ${CMAKE_SOURCE_DIR}/SixTrack/zlib/install/lib/ NO_DEFAULT_PATH)
+	add_library(z STATIC IMPORTED)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/zlib/install/lib/libz.a)
 	
 	target_link_libraries(SixTrack libarchive z pthread)
 	target_link_libraries(libArchiveTester libarchive z pthread)
