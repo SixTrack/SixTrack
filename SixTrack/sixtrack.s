@@ -2,8 +2,8 @@
       character*8 version
       character*10 moddate
       integer itot,ttot
-      data version /'4.6.17'/
-      data moddate /'20.04.2017'/
+      data version /'4.6.19'/
+      data moddate /'09.05.2017'/
 +cd license
 !!SixTrack
 !!
@@ -206,7 +206,13 @@
       parameter(mcor = 10,mcop = mcor+6, mbea = 99)
       parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
       parameter(nmon1 = 600,ncor1 = 600)
-      parameter(ntr = 20,nbb = 350)
+      parameter(ntr = 20)
++if .not.bignblz.and..not.hugenblz
+      parameter(nbb = 350)
++ei
++if bignblz.or.hugenblz
+      parameter(nbb = 500)
++ei
 +cd parnum
       double precision c180e0,c1e1,c1e12,c1e13,c1e15,c1e16,c1e2,c1e3,   &
      &c1e4,c1e6,c1m1,c1m7,c1m10,c1m12,c1m13,c1m15,c1m18,c1m2,c1m21,     &
@@ -7177,6 +7183,10 @@ cc2008
 
           if (beam_expflag .eq. 0) then
           write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
+          write(lout,'(a,g13.6,a,g13.6,a,g13.6,a)')
+     &                  " ******* USING emitx=",emitx,
+     &                               ", emity=",emity,
+     &                               ", emitz=",emitz," ******"
           if(parbe(ix,2).eq.0.0) then !4D
              !Note: One should always use the CRLIBM version when converting,
              ! in order to guarantee the exact same results from the converted input file.
@@ -11793,7 +11803,7 @@ cc2008
 +ei
       double precision ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
-     &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,rv,tilt,u0,              &
+     &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
       !For BEAM-EXP
       double precision separx,separy
@@ -11896,9 +11906,9 @@ cc2008
 !     - zipf
       character*16 zipf
       data zipf /'ZIPF'/
-      
++if crlibm
       double precision round_near
-      
++ei
       save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
@@ -11983,7 +11993,6 @@ cc2008
       chi0=zero
       chid=zero
       rat=zero
-      rv=one
       ipos=0
       iav=1
       iwg=1
@@ -16185,8 +16194,8 @@ cc2008
                   else if(i.eq.0) then ! 4D, single slice only
                      parbe(j,17)=0      ! Type is 4D
                      parbe(j,2)=dble(i) ! Number of slices is always 0
-                     parbe(j,1)=xang
-                     parbe(j,3)=xplane
+                     parbe(j,1)=xang    ! not the crossing angle but sigmaxx
+                     parbe(j,3)=xplane  ! not the xplane but sigmayy
                      parbe(j,5)=separx
                      parbe(j,6)=separy
                      ptnfac(j)=mm1
@@ -17370,8 +17379,16 @@ cc2008
       endif
 +ei
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
-        do j=1,il
-          parbe(j,2)=0d0
+        do j=1,il   ! converting 6D lenses to 4D
+          if (beam_expflag .eq. 1) then
+             if (parbe(j,2) .gt. 0) then
+               parbe(j,2)=0d0
+               parbe(j,1)=parbe(j,7)
+               parbe(j,3)=parbe(j,10)
+             endif
+          else
+             parbe(j,2)=0d0
+          endif
         enddo
       else
         do j=1,il
@@ -23184,8 +23201,8 @@ C Should get me a NaN
 *FOX    TRACK(5)=Z1/DET ;
 *FOX    TRACK(6)=TRACK(6)+CALPHA*SPHI*TRACK(2)
 *FOX            +SALPHA*SPHI*TRACK(4) ;
-*FOX    TRACK(2)=(TRACK(2)+CALPHA*SPHI*H1)*CPHI ;
-*FOX    TRACK(4)=(TRACK(4)+SALPHA*SPHI*H1)*CPHI ;
+*FOX    TRACK(2)=(TRACK(2)*CPHI+CALPHA*TPHI*H1) ;
+*FOX    TRACK(4)=(TRACK(4)*CPHI+SALPHA*TPHI*H1) ;
 !     DADAL AUTOMATIC INCLUSION
       return
       end
@@ -50669,8 +50686,8 @@ c$$$            endif
         track(5,i)=z1/det
         track(6,i)=(track(6,i)+(calpha*sphi)*track(2,i))                &!hr06
      &+(salpha*sphi)*track(4,i)                                          !hr06
-        track(2,i)=(track(2,i)+(calpha*sphi)*h1)*cphi                    !hr06
-        track(4,i)=(track(4,i)+(salpha*sphi)*h1)*cphi                    !hr06
+        track(2,i)=(track(2,i)*cphi+(calpha*tphi)*h1)                    !hr06
+        track(4,i)=(track(4,i)*cphi+(salpha*tphi)*h1)                    !hr06
  1000 continue
       return
       end
