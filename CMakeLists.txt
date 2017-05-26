@@ -970,7 +970,9 @@ if(LIBARCHIVE)
 	endif()
 	
 	find_library(pthread STATIC pthread)
-	find_library(z STATIC z)
+	#find_library(z STATIC z)
+	add_library(z STATIC IMPORTED)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/zlib/install/lib/libz.a)
 	
 	target_link_libraries(SixTrack libarchive z pthread)
 	target_link_libraries(libArchiveTester libarchive z pthread)
@@ -1260,10 +1262,13 @@ IF(BUILD_TESTING)
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
-	if(BOINC)
-		add_executable(CheckTestInputForBOINC.sh IMPORTED)
-		SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
-	endif(BOINC)
+	#Checks of specialized input/canoncials
+	# Anyway hardcoded to use them from the SixTest source folder...
+	#add_executable(CheckTestInputForBOINC.sh IMPORTED)
+	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+
+	#add_executable(CheckTestInputForSTF.sh IMPORTED)
+	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
 
 	#need to build the testing tools
 	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f)

@@ -12,6 +12,10 @@ for i in $(ls -d */); do
     #echo "Checking folder '"${i%%/}"'";
     
     if [ -f ${i}Sixin.zip ]; then
+	if [ -e ${i}/zip ]; then
+	    echo "ERROR: '"${i}/zip"' already exists"
+	    continue
+	fi
 	mkdir ${i}/zip
 	cp ${i}/Sixin.zip ${i}/zip
 	cd ${i}/zip
