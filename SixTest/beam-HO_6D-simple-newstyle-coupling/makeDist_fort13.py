@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
 
-npart = 1936
+#npart = 1936 #BIGNPART
+npart = 256**2 # HUGENPART
 assert npart % 2 == 0
 npart_1d = int(np.sqrt(npart))
 assert npart_1d**2 == npart
@@ -9,20 +10,20 @@ assert npart_1d**2 == npart
 ## BEAM PARAMETERS
 
 #Rectangular grid, covering ~5 sigma of the bb beam
-xmax= 5*np.sqrt( 2.1046670129999999e-05 ) #[mm]
-ymax= 5*np.sqrt( 3.165637487e-06        ) #[mm]
-h_x = 2*xmax/(npart_1d-1)
-h_y = 2*ymax/(npart_1d-1)
+xmax= 3*np.sqrt( 2.1046670129999999e-05 ) #[mm]
+ymax= 3*np.sqrt( 3.165637487e-06        ) #[mm]
+
+h_x = 2*xmax/float(npart_1d-1)
+h_y = 2*ymax/float(npart_1d-1)
+print h_x, h_y
 
 E0    = 0.45e12   # Beam energy          [eV]
 epsx_n = 2.5e-6   # Normalized emittance [m*rad]
 epsy_n = 2.5e-6   # Normalized emittance [m*rad]
 
 #Closed orbit
-#x0 = 0.1345193  #[mm]
-x0 =0
+x0 = 0.0
 y0 = 0.0
-#xp0 = 0.0113387 #[mrad]
 xp0 = 0
 yp0 = 0.0
 
@@ -47,9 +48,9 @@ E   = np.zeros(npart)
 i = 0
 for i_x in xrange(npart_1d):
     for i_y in xrange(npart_1d):
-        x[i]  = -xmax+i_x*h_x + x0
+        x[i]  = -xmax + i_x*h_x + x0
         xp[i] = 0.0 + xp0
-        y[i]  = -ymax+i_y*h_y + y0
+        y[i]  = -ymax + i_y*h_y + y0
         xp[i] = 0.0 + yp0
 
         z[i]   = 0.0
@@ -61,19 +62,19 @@ for i_x in xrange(npart_1d):
 #Write to file
 ofile = open("fort.13", 'w')
 for i in xrange(0,npart,2):
-    ofile.write(str(x  [i]  *1e3 )+"\n") #mm
-    ofile.write(str(xp [i]  *1e3 )+"\n") #mrad
-    ofile.write(str(y  [i]  *1e3 )+"\n") #mm
-    ofile.write(str(yp [i]  *1e3 )+"\n") #mrad
-    ofile.write(str(z  [i]  *1e3 )+"\n") #mm
-    ofile.write(str(dPP[i]       )+"\n") #-
+    ofile.write(str(x  [i] )+"\n") #mm
+    ofile.write(str(xp [i] )+"\n") #mrad
+    ofile.write(str(y  [i] )+"\n") #mm
+    ofile.write(str(yp [i] )+"\n") #mrad
+    ofile.write(str(z  [i] )+"\n") #mm
+    ofile.write(str(dPP[i] )+"\n") #-
 
-    ofile.write(str(x  [i+1]*1e3 )+"\n") #mm
-    ofile.write(str(xp [i+1]*1e3 )+"\n") #mrad
-    ofile.write(str(y  [i+1]*1e3 )+"\n") #mm
-    ofile.write(str(yp [i+1]*1e3 )+"\n") #mrad
-    ofile.write(str(z  [i+1]*1e3 )+"\n") #mm
-    ofile.write(str(dPP[i+1]     )+"\n") #-
+    ofile.write(str(x  [i+1] )+"\n") #mm
+    ofile.write(str(xp [i+1] )+"\n") #mrad
+    ofile.write(str(y  [i+1] )+"\n") #mm
+    ofile.write(str(yp [i+1] )+"\n") #mrad
+    ofile.write(str(z  [i+1] )+"\n") #mm
+    ofile.write(str(dPP[i+1] )+"\n") #-
 
     ofile.write(str(E0*1e-6      )+"\n") #MeV
     ofile.write(str(E  [i]  *1e-6)+"\n") #MeV
