@@ -61169,6 +61169,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !GRDRHIC
 +dk checkpt
       subroutine crcheck
+!     Thus subroutine checks if the C/R files fort.95 and fort.96 exists,
+!     and if so tries to load them into the cr* variables.
+!     This routine also repositions the output files for
+!     fort.90..91-napx/2 or STF, DUMP, and DYNK (dynksets.dat).
+!     
+!     The file fort.93 is used as a log file for the checkpoint/restarting.
+!     
+!     See also subroutines crpoint and crstart.
 +if datamods
       use bigmats
 +ei
@@ -62143,6 +62151,12 @@ C            backspace (dumpunit(i),iostat=ierro)
       end
 
       subroutine crpoint
+!     This subroutine writes the checkpoint data to fort.95/96,
+!     and copies the new output from the temporary (lout/fort.92) output file into fort.6.
+!     
+!     The file fort.93 is used as a log file for the checkpoint/restarting.
+!     
+!     See also subroutine crcheck and crstart.
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -62768,6 +62782,14 @@ c$$$         backspace (93,iostat=ierro)
       call abend('SIXTRACR CHECKPOINT I/O Error                     ')
       end
       subroutine crstart
+!     If we are restarting (restart is TRUE), this routine is called
+!     in the beginning of the tracking loops.
+!     It is used to copy the cr* variables to the normal variables,
+!     e.g. crnapx -> napx etc.
+!
+!     The file fort.93 is used as a log file for the checkpoint/restarting.
+!     
+!     See also subroutines crpoint and crcheck.
 +if datamods
       use bigmats
 +ei
