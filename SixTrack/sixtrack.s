@@ -1,6 +1,6 @@
 +cd version
-      character*8 version
-      character*10 moddate
+      character*8 version  !Keep data type in sync with 'cr_version'
+      character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
       data version /'4.6.19'/
       data moddate /'09.05.2017'/
@@ -101,6 +101,9 @@
       real crtime3
       double precision cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
      &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl
+
+      character*8  cr_version !Keep data type in sync with 'version'
+      character*10 cr_moddate !Keep data type in sync with 'moddate'
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -61207,6 +61210,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca comgetfields
 +ca dbdump
 +ca dbdumpcr
++ca version
       integer i,j,k,l,m,ia
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
       dimension hbuff(253),tbuff(35)
@@ -61252,10 +61256,32 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       if (fort95) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1 VERSION'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
+        
         rewind 95
+        
+        read(95,err=100,end=100)
+     &       cr_version,cr_moddate
+        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))
+     &       then
+           write(93,*) "SIXTRACR CRCHECK: fort.95 was written by "//
+     &          "SixTrack version=", cr_version, "moddate=",cr_moddate
+           write(93,*) "This is SixTrack "//
+     &          "version=",version,"moddate=",moddate
+           write(93,*) "Version mismatch; giving up on this file."
+
+           endfile(93,iostat=ierro)
+           backspace(93,iostat=ierro)
+
+           goto 100
+        endif
+        
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
+        
         read(95,err=100,end=100)                                        &
      &crnumlcr,                                                         &
      &crnuml,                                                           &
@@ -61269,7 +61295,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(95,err=100,end=100)                                        &
@@ -61300,7 +61326,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3 BNL'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 4 BNL'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(95,err=100,end=100)                                        &
@@ -61318,14 +61344,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !GRD-042008
 +ei
 
-      write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 4 DUMP'
+      write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(95,err=100,end=100)
      &     (dumpfilepos_cr(j),j=0,nele)
 
       if (ldynk) then
-         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DYNK'
+         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          read(95,err=100,end=100)
@@ -61355,7 +61381,7 @@ c$$$         backspace (93,iostat=ierro)
 ! and make sure we can read the extended vars before leaving fort.95
 ! We will re-read them in crstart to be sure they are restored correctly
           write(93,*)                                                   &
-     &'SIXTRACR CRCHECK verifying Record 6 extended vars fort.95',      &
+     &'SIXTRACR CRCHECK verifying Record 7 extended vars fort.95',      &
      &' crnapxo=',crnapxo
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
@@ -61417,8 +61443,30 @@ c$$$         backspace (93,iostat=ierro)
         write(93,*) 'CRCHECK trying fort.96 instead'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
+        
         rewind 96
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1'
+
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1 VERSION'
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
+
+        read(96,err=101,end=101)
+     &       cr_version,cr_moddate
+        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))
+     &       then
+           write(93,*) "SIXTRACR CRCHECK: fort.96 was written by "//
+     &          "SixTrack version=", cr_version, "moddate=",cr_moddate
+           write(93,*) "This is SixTrack "//
+     &          "version=",version,"moddate=",moddate
+           write(93,*) "Version mismatch; giving up on this file."
+           
+           endfile(93,iostat=ierro)
+           backspace(93,iostat=ierro)
+           
+           goto 101
+        endif
+        
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(96,err=101,end=101,iostat=ierro)                           &
@@ -61434,7 +61482,7 @@ c$$$         backspace (93,iostat=ierro)
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
       read(96,err=101,end=101,iostat=ierro)                             &
@@ -61465,7 +61513,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3 BNL'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 4 BNL'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(96,err=101,end=101)                                        &
@@ -61483,14 +61531,14 @@ c$$$         backspace (93,iostat=ierro)
 !GRD-042008
 +ei
 
-      write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 4 DUMP'
+      write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DUMP'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(96,err=100,end=100)
      &     (dumpfilepos_cr(j),j=0,nele)
 
       if (ldynk) then
-         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DYNK'
+         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          read(96,err=101,end=101)
@@ -61583,6 +61631,7 @@ c$$$         backspace (93,iostat=ierro)
          backspace (93,iostat=ierro)
       endif
   103 continue
+      
 +if debug
 +if bnlelens
 !     write(99,*) 'crcheck ',
@@ -62184,6 +62233,7 @@ C            backspace (dumpunit(i),iostat=ierro)
 +if bnlelens
 +ca rhicelens
 +ei
++ca version
 +ca crco
       integer i,j,l,k,m
       integer lstring,osixrecs,ncalls
@@ -62301,6 +62351,8 @@ c$$$         backspace (93,iostat=ierro)
       endif
 +ei
       rewind 95
+      write(95,err=100,iostat=ierro)                                    &
+     &     version, moddate
       write(95,err=100,iostat=ierro)                                    &
      &crnumlcr,                                                         &
      &numl,                                                             &
@@ -62545,6 +62597,8 @@ c$$$         backspace (93,iostat=ierro)
       endif
 +ei
       rewind 96
+      write(96,err=100,iostat=ierro)                                    &
+     &     version, moddate
       write(96,err=100,iostat=ierro)                                    &
      &crnumlcr,                                                         &
      &numl,                                                             &
