@@ -1,9 +1,9 @@
 +cd version
-      character*8 version
-      character*10 moddate
+      character*8 version  !Keep data type in sync with 'cr_version'
+      character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.20'/
-      data moddate /'19.05.2017'/
+      data version /'4.6.21'/
+      data moddate /'30.05.2017'/
 +cd license
 !!SixTrack
 !!
@@ -101,6 +101,9 @@
       real crtime3
       double precision cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
      &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl
+
+      character*8  cr_version !Keep data type in sync with 'version'
+      character*10 cr_moddate !Keep data type in sync with 'moddate'
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -37886,7 +37889,7 @@ C Should get me a NaN
          dynk_elemdata(i,3) = 0
       end do
 +if cr
-      dynkfilepos = -1
+      dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
 +ei
 !--ZIPF----------------------------------------------------------------
       zipf_numfiles = 0
@@ -43036,7 +43039,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          if (samplenumber.eq.1) then
 +ei
 +if cr
-         ! Could be a CR just before tracking starts 
+         ! Could have loaded a CR just before tracking starts;
+         ! In this case, the dynksets is already open and positioned,
+         ! so don't try to open the file again.
          if (dynkfilepos .eq.-1) then
 +ei
             inquire( unit=665, opened=lopen )
@@ -61169,6 +61174,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !GRDRHIC
 +dk checkpt
       subroutine crcheck
+!     Thus subroutine checks if the C/R files fort.95 and fort.96 exists,
+!     and if so tries to load them into the cr* variables.
+!     This routine also repositions the output files for
+!     fort.90..91-napx/2 or STF, DUMP, and DYNK (dynksets.dat).
+!     
+!     The file fort.93 is used as a log file for the checkpoint/restarting.
+!     
+!     See also subroutines crpoint and crstart.
 +if datamods
       use bigmats
 +ei
@@ -61199,6 +61212,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca comgetfields
 +ca dbdump
 +ca dbdumpcr
++ca version
       integer i,j,k,l,m,ia
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
       dimension hbuff(253),tbuff(35)
@@ -61244,10 +61258,32 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       if (fort95) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1 VERSION'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
+        
         rewind 95
+        
+        read(95,err=100,end=100)
+     &       cr_version,cr_moddate
+        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))
+     &       then
+           write(93,*) "SIXTRACR CRCHECK: fort.95 was written by "//
+     &          "SixTrack version=", cr_version, "moddate=",cr_moddate
+           write(93,*) "This is SixTrack "//
+     &          "version=",version,"moddate=",moddate
+           write(93,*) "Version mismatch; giving up on this file."
+
+           endfile(93,iostat=ierro)
+           backspace(93,iostat=ierro)
+
+           goto 100
+        endif
+        
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
+        
         read(95,err=100,end=100)                                        &
      &crnumlcr,                                                         &
      &crnuml,                                                           &
@@ -61261,7 +61297,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(95,err=100,end=100)                                        &
@@ -61292,7 +61328,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3 BNL'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 4 BNL'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(95,err=100,end=100)                                        &
@@ -61310,14 +61346,14 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !GRD-042008
 +ei
 
-      write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 4 DUMP'
+      write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(95,err=100,end=100)
      &     (dumpfilepos_cr(j),j=0,nele)
 
       if (ldynk) then
-         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DYNK'
+         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          read(95,err=100,end=100)
@@ -61347,7 +61383,7 @@ c$$$         backspace (93,iostat=ierro)
 ! and make sure we can read the extended vars before leaving fort.95
 ! We will re-read them in crstart to be sure they are restored correctly
           write(93,*)                                                   &
-     &'SIXTRACR CRCHECK verifying Record 6 extended vars fort.95',      &
+     &'SIXTRACR CRCHECK verifying Record 7 extended vars fort.95',      &
      &' crnapxo=',crnapxo
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
@@ -61409,8 +61445,30 @@ c$$$         backspace (93,iostat=ierro)
         write(93,*) 'CRCHECK trying fort.96 instead'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
+        
         rewind 96
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1'
+
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1 VERSION'
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
+
+        read(96,err=101,end=101)
+     &       cr_version,cr_moddate
+        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))
+     &       then
+           write(93,*) "SIXTRACR CRCHECK: fort.96 was written by "//
+     &          "SixTrack version=", cr_version, "moddate=",cr_moddate
+           write(93,*) "This is SixTrack "//
+     &          "version=",version,"moddate=",moddate
+           write(93,*) "Version mismatch; giving up on this file."
+           
+           endfile(93,iostat=ierro)
+           backspace(93,iostat=ierro)
+           
+           goto 101
+        endif
+        
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(96,err=101,end=101,iostat=ierro)                           &
@@ -61426,7 +61484,7 @@ c$$$         backspace (93,iostat=ierro)
      &crnapxo,                                                          &
      &crnapx,                                                           &
      &cre0
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
       read(96,err=101,end=101,iostat=ierro)                             &
@@ -61457,7 +61515,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
       if(lhc.eq.9) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3 BNL'
+        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 4 BNL'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         read(96,err=101,end=101)                                        &
@@ -61475,14 +61533,14 @@ c$$$         backspace (93,iostat=ierro)
 !GRD-042008
 +ei
 
-      write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 4 DUMP'
+      write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DUMP'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(96,err=100,end=100)
      &     (dumpfilepos_cr(j),j=0,nele)
 
       if (ldynk) then
-         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DYNK'
+         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          read(96,err=101,end=101)
@@ -61575,6 +61633,7 @@ c$$$         backspace (93,iostat=ierro)
          backspace (93,iostat=ierro)
       endif
   103 continue
+      
 +if debug
 +if bnlelens
 !     write(99,*) 'crcheck ',
@@ -61900,6 +61959,7 @@ c$$$         backspace (93,iostat=ierro)
 
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
+         dynkfilepos = 0 ! Start counting lines at 0, not -1
          
  701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
          dynkfilepos=dynkfilepos+1
@@ -62143,6 +62203,12 @@ C            backspace (dumpunit(i),iostat=ierro)
       end
 
       subroutine crpoint
+!     This subroutine writes the checkpoint data to fort.95/96,
+!     and copies the new output from the temporary (lout/fort.92) output file into fort.6.
+!     
+!     The file fort.93 is used as a log file for the checkpoint/restarting.
+!     
+!     See also subroutine crcheck and crstart.
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -62170,6 +62236,7 @@ C            backspace (dumpunit(i),iostat=ierro)
 +if bnlelens
 +ca rhicelens
 +ei
++ca version
 +ca crco
       integer i,j,l,k,m
       integer lstring,osixrecs,ncalls
@@ -62287,6 +62354,8 @@ c$$$         backspace (93,iostat=ierro)
       endif
 +ei
       rewind 95
+      write(95,err=100,iostat=ierro)                                    &
+     &     version, moddate
       write(95,err=100,iostat=ierro)                                    &
      &crnumlcr,                                                         &
      &numl,                                                             &
@@ -62532,6 +62601,8 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       rewind 96
       write(96,err=100,iostat=ierro)                                    &
+     &     version, moddate
+      write(96,err=100,iostat=ierro)                                    &
      &crnumlcr,                                                         &
      &numl,                                                             &
      &sixrecs,                                                          &
@@ -62768,6 +62839,14 @@ c$$$         backspace (93,iostat=ierro)
       call abend('SIXTRACR CHECKPOINT I/O Error                     ')
       end
       subroutine crstart
+!     If we are restarting (restart is TRUE), this routine is called
+!     in the beginning of the tracking loops.
+!     It is used to copy the cr* variables to the normal variables,
+!     e.g. crnapx -> napx etc.
+!
+!     The file fort.93 is used as a log file for the checkpoint/restarting.
+!     
+!     See also subroutines crpoint and crcheck.
 +if datamods
       use bigmats
 +ei
