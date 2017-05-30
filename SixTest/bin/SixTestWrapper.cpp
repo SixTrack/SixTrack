@@ -1,3 +1,8 @@
+
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#endif
+
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -1267,11 +1272,23 @@ void *pthread_kill_sixtrack(void* InputStruct)
 	{
 		sleep(1);
 		//std::cout << "At " << tt+1 << " of " << KillTime << " Testing pid " << sixpid << ": ";
-		int res = kill(sixpid, 0);
+		
+		int res = kill(sixpid, 0); //Signal 0 means "check if we could kill this if we wanted to".
 		//std::cout << "Child exec() kill 0 check result: " <<  res << std::endl;
 		if(res != 0)
 		{
-			perror("ERROR - kill check on SixTrack - will jump out");
+			//perror("Cannot kill SixTrack, it probably finished; will jump out");
+			std::cout << "Cannot kill SixTrack process, most likely it has finished." << std::endl;
+			char errstr[1024];
+			res=errno;
+			res=strerror_r(res,errstr,1024);
+			if (res != 0)
+			{
+				perror("Error when calling strerror_r() from pthread_kill_sixtrack()");
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "Error message from kill(): '" << errstr << "'" << std::endl;
+			
 			//No longer running, jump out;
 			ArmKill=false;
 			tt=KillTime;
