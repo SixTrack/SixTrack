@@ -37889,7 +37889,7 @@ C Should get me a NaN
          dynk_elemdata(i,3) = 0
       end do
 +if cr
-      dynkfilepos = -1
+      dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
 +ei
 !--ZIPF----------------------------------------------------------------
       zipf_numfiles = 0
@@ -43039,7 +43039,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          if (samplenumber.eq.1) then
 +ei
 +if cr
-         ! Could be a CR just before tracking starts 
+         ! Could have loaded a CR just before tracking starts;
+         ! In this case, the dynksets is already open and positioned,
+         ! so don't try to open the file again.
          if (dynkfilepos .eq.-1) then
 +ei
             inquire( unit=665, opened=lopen )
@@ -61957,6 +61959,7 @@ c$$$         backspace (93,iostat=ierro)
 
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
+         dynkfilepos = 0 ! Start counting lines at 0, not -1
          
  701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
          dynkfilepos=dynkfilepos+1
