@@ -15,7 +15,7 @@ ymax= 3*np.sqrt( 3.165637487e-06        ) #[mm]
 
 h_x = 2*xmax/float(npart_1d-1)
 h_y = 2*ymax/float(npart_1d-1)
-print h_x, h_y
+print "hx,hy=",h_x,h_y,"[mm]"
 
 E0    = 0.45e12   # Beam energy          [eV]
 epsx_n = 2.5e-6   # Normalized emittance [m*rad]
