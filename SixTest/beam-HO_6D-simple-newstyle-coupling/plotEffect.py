@@ -47,11 +47,15 @@ for ix in xrange(1,npart_1d-1):
         DypDy[ix-1,iy-1] = (yp[ix,iy+1]-yp[ix,iy-1])/(2*h_y)
 rho = DxpDx + DypDy
 
+maxKick=np.max(np.sqrt(xp**2+yp**2))
+print "maxKick=",maxKick,"mrad"
+
 #Kicks and charge density
 plt.figure()
 
-plt.contour(x_initial[1:-1,1:-1],y_initial[1:-1,1:-1],rho,20)
-plt.colorbar()
+if maxKick>0.0:
+    plt.contour(x_initial[1:-1,1:-1],y_initial[1:-1,1:-1],rho,20)
+    plt.colorbar()
 
 plt.quiver(x_initial[::quiverSkip,::quiverSkip],y_initial[::quiverSkip,::quiverSkip],xp[::quiverSkip,::quiverSkip],yp[::quiverSkip,::quiverSkip])
 
