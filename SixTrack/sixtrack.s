@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.21'/
-      data moddate /'30.05.2017'/
+      data version /'4.6.22'/
+      data moddate /'01.06.2017'/
 +cd license
 !!SixTrack
 !!
@@ -15602,6 +15602,20 @@ cc2008
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
 
+      if(do_coll .and. numl.ge.10000) then
+         write(lout,*) ""
+         write(lout,*) "Error when parsing COLL block in fort.3"
+         write(lout,*) "Collimation supports a maximum of 10000 turns;"
+         write(lout,*) " trying to use more than this "//
+     &        "corrupts the output files."
+         write(lout,*) "Sorry!"
+         write(lout,*) ""
+         
+         call prror(-1)
+      endif
+      
+
+      
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & nloop,myenom
@@ -15613,16 +15627,17 @@ cc2008
       !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
       if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
          write(lout,*) ""
-         write(lout,*) "Error in parsing COLL block in fort.3"
+         write(lout,*) "Error when parsing COLL block in fort.3"
          write(lout,*) "nloop =", nloop
          write(lout,*) "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
          write(lout,*) "maxn  =", maxn
          write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
          write(lout,*) "Please reduce the number of particles or loops"
          write(lout,*) ""
-        call abend('                                                  ')
+         
+         call prror(-1)
       endif
-
+      
 +if fio
       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & do_thisdis,mynex,mdex,myney,mdey,       &
