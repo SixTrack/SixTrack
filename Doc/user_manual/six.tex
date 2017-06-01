@@ -21,6 +21,8 @@
 %\usepackage{draftwatermark}
 \usepackage{tabularx}
 
+\usepackage{amsmath}
+
 \newenvironment{description_alligned}[1]
 {\begin{list}{}%
     {\renewcommand\makelabel[1]{##1:\hfill}%
@@ -46,16 +48,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update March 2017
+  Update April 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.6.13 \\
+  Version 4.6.17 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
+  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -623,7 +625,20 @@ The definition of the multipole strength in a block will be given in
 \item [lag] Lag angle [degrees] in the cavity (zero is default)
 \end{description}
 
-\subsubsection{Beam--Beam Separation} \label{BBS}
+\subsubsection{Beam--Beam Lens}
+\label{BBS}
+Depending on the setting in the \texttt{BEAM} block of \texttt{fort.3} (Section~\ref{BeamBeam}), there are two ways to define a beam beam lens in the SINGLE ELEMENTS list.
+
+\paragraph{When the \texttt{EXPERT} flag is set in the \texttt{BEAM} block,} the parameters of the beam--beam lens is defined there.
+In this case, only the element name and type and the location within the lattice remian in the \texttt{fort.2} element definition.
+\paragraph{Format} {\em name type}
+\begin{description}
+\item [name] May contain up to sixteen characters
+\item [type] 20
+\end{description}
+The rest of the parameters are ignored and should be set to zero.
+
+\paragraph{When the \texttt{EXPERT} flag is not set,} the ``traditional'' format is used:
 \paragraph{Format} {\em name type h-sep v-sep strength-ratio ${\sigma\_\rm{hor}}^2$ ${\sigma\_\rm{ver}}^2$ ${\sigma\_\rm{lon}}^2$}
 \begin{description}
 \item [name] May contain up to sixteen characters
@@ -637,12 +652,10 @@ The definition of the multipole strength in a block will be given in
 \item [${\sigma\_\rm{hor}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$
 \item [${\sigma\_\rm{ver}}^2$] when the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the vertical $\sigma$ for the strong beam $\rm{[mm^2]}$
 \item [${\sigma\_\rm{lon}}^2$] this variable is for future purposes, at the present it is always equal to zero.
-
 \end{description}
 
 \paragraph{Remark}
-These beam--beam elements become active when the ``Beam--Beam'' input
-block~\ref{BeamBeam} is used.
+These beam--beam elements become active when the ``Beam--Beam'' input block~\ref{BeamBeam} is used.
 
 \subsubsection{Wire} \label{WIRE}
 \paragraph{Format} {\em name type}
@@ -705,7 +718,8 @@ deflection angle.
 
 % This element needs more documentation and possibly testing -- not currently supported! There are also a few things in the code which looks very strange.
 
-\subsubsection{Crab Cavity} \label{CrabCav}
+\subsubsection{Crab Cavity}
+\label{CrabCav}
 
 \paragraph{Format} {\em name type Voltage Frequency Phase}
 \begin{description}
@@ -717,7 +731,77 @@ deflection angle.
 \item [Phase] Phase of the excitation in radians.
 \end{description}
 
-%\todo[inline]{Multipole RF kicks -- $\pm$26, $\pm$27, $\pm$28}
+\paragraph{Remark -- How to use the crab cavity from MadX (using rfmultipole) to SixTrack:}~\\
+In the Mad-X script write:\\
+\texttt{MULT.1, FREQ=<freq in MHz>., KNL=\{V [MV]/E0[MeV]\}, PNL=\{phase\}, TILT=<H: 0; V:PI/2.>;}\\
+where phase is 0.25 (phase for multipoles in SixTrack).
+As an example, to have the effect of a vertical Crab Cavity of $f=400~\mathrm{MHz}$, $V=6~\mathrm{MV}$, beam energy [MeV]: \texttt{BEAM -> PC/1e3}, use the following line:\\
+\texttt{MULT.1, FREQ=400., KNL={6./BEAM -> PC/1e3}, PNL={0.25}, TILT=PI/2.;}\\
+This creates the following line in fort.2:\\
+\texttt{mult.1d          -23   6.000000000e+00   4.000000000e+02\\
+  \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00}\\
+If you don’t want to have a vertical Crab Cavity then just remove the TILT, and if you don’t want to have CC but a simple dipole field then remove the FREQ parameter.
+
+\subsubsection{RF multipole}
+
+Provides a kick in the form of
+\begin{align}
+\Delta x'+i\Delta y' =& \frac{k}{1+\delta} (x+iy)^n \cos (\phi - 2 \pi f t)\\
+\Delta \delta =& P_0 \frac{k}{1+\delta} \frac{(x+iy)^{n+1}}{(n+1)!} \cos (\phi - 2 \pi f t)
+\end{align}
+
+\paragraph{Format} {\em name type name kick frequency phase}
+\begin{description}
+\item [name] Limited to sixteen characters.
+\item [type] 26: normal quadrupole , -26 skew quadrupole,
+             27: normal sextupole, -27 skew sextupole,
+	     28: normal octupole, -28 skew octupole;
+\item [kick] maximum normalized kick $k$
+\item [frequency] frequency $f$ in [MHz]
+\end{description}
+
+\paragraph{Remark}
+
+How to use the RF multipoles (from MadX to SixTrack):
+\begin{itemize}
+  \item 2\textsuperscript{nd} order multipole (quadrupole):\\
+    In the Mad-X script write:\\
+    \texttt{MULT.1, KNL=\{0,-0.06*1e-3\}, PNL=\{0, 0.25\};}\\
+    where \texttt{-0.06*1e-3} is the $b_2$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+    This gives the following single element in \texttt{fort.2}:\\
+    \texttt{mult.1q           26   6.000000000e-05   400.000000000e+00   -1.570796327e+00\\
+      \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
+
+  \item 3\textsuperscript{rd} order multipole (sextupole):\\
+    In the Mad-X script write:\\
+    \texttt{MULT.1, FREQ=400., KNL=\{0,0,1159.*1e-3\}, PNL=\{0,0,0.25\};}\\
+    where \texttt{1159.*1e-3} is the $b_3$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+    This gives the following single element in fort.2:\\
+    \texttt{mult.1s           27  -5.795000000e-01   4.000000000e+02   -1.570796327e+00\\
+      \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
+
+  \item 4\textsuperscript{th} order multipole (octupole):\\
+    In  the Mad-X script write:\\
+    \texttt{MULT.1, FREQ=400., KNL=\{0,0,0,-4.*1e-3\}, PNL=\{0,0,0,0.25\};}\\
+    where \texttt{-4.*1e-3} is the $b_4$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+    This gives the following single element in fort.2:\\
+    \texttt{mult.1o           28   6.666666667e-04   4.000000000e+02   -1.570796327e+00\\
+      \textit{(cont.)} 0.000000000e+00    0.000000000e+00    0.000000000e+00}
+\end{itemize}
+
+\paragraph{Remark}
+The values of $b_2$, $b_3$, and $b_4$ used in the above examples were taken from Table II of paper~\cite{RFmultsPaper}.
+
+The effect of these multipoles was checked on a beam of particles with $x = x' = y' = 0$, and $y = 1, 2, \text{ and } 3~\mathrm{mm}$, with different $z$ positions.
+The effect on $y'$ was linear, quadratic and cubic with $y$ when using $b_2$, $b_3$, or $b_4$, respectively, as expected.
+Furthermore, the amplitude of the $y'$ agrees with the analytical formulas found in the appendix of this paper~\cite{RFmultsPaper} under ``Normal quadrupole/sextupole/octupole''.
+
+Important note: $B\rho$ and the factorial $(n-1)!$ are already included in K2, K3 etc of Mad-X, i.e.\ $b_3=1159\cdot10^{-3}$ in Mad-X results in a kick as if $b_3$ is $1159\cdot10^{-3}/(n-1)!$.
+So in order for this paper's~\cite{RFmultsPaper} analytical equations to be compatible with Mad-X, the equations for normal quadrupole should read as
+\[
+\Delta x'=-\frac{b_2}{(2-1)! ~ B\rho} \ldots~.
+\]
+
 
 \subsubsection{Electron Lens} \label{ELEN}
 \paragraph{Format} {\em name type}
@@ -1088,6 +1172,11 @@ The functions are always evaluated as a function of the current turn number $t$,
   The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
   Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
   
+  RANDON      & \emph{seed1[int] seed2[int] P[float]} &
+  Returns the value of 1.0 or 0.0 resulting of the weighting with the probability \emph{P} of a pseudorandom number generated from a uniform distribution .
+  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
+  Note that every RANDON function defined in DYNK uses its own separate random number stream.\\
+
   \hline
   \rowcolor{blue!15}
   Filters & & \\*
@@ -1478,21 +1567,23 @@ During tracking, when one of the PIPE FUNs are called SixTrack writes a line sim
 Note that the turn number is the one passed to the FUN from SET, i.e. including any turn-shift.
 It then waits for a single floating point number to be written (in ascii) to the input pipe, which is then read and returned from the FUN.
 
-\subsection{Beam--Beam Element} \label{BeamBeam}
+\subsection{Beam--Beam Element}
+\label{BeamBeam}
 
-\subparagraph{Description} The beam--beam kick, including a separation
-of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs}
-and implemented as in MAD~\cite{MAD}. However, a much faster but
-nevertheless precise calculation using interpolation can be
-used~\cite{ERIC}. For SixTrack version 3 the beam--beam is also
-available in the 6D form \`{a} la Hirata~\cite{Hirata}. Lastly, the
-linear coupling has been considered in 4 and 6 dimensional phase
-space~\cite{ripbeam}. 
+\paragraph{Description} The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD~\cite{MAD}.
+However, a much faster but nevertheless precise calculation using interpolation can be used~\cite{ERIC}.
+For SixTrack version 3 the beam--beam is also available in the 6D form \`{a} la Hirata~\cite{Hirata}.
+Lastly, the linear coupling has been considered in 4 and 6 dimensional phase space~\cite{ripbeam}. 
 
-\subparagraph{Keyword} BEAM 
-\subparagraph{Number of data lines} variable but at least one
+\paragraph{Keyword} BEAM
+\paragraph{Number of data lines} variable but at least one
 
-\subparagraph{Format} 
+\paragraph{Format}
+Two different input formats are available, ``traditional'' and ``EXPERT''.
+If ``EXPERT'' mode is wanted, this is triggered by adding the flag \texttt{EXPERT} on the first line of the block.
+
+\subparagraph{Traditional format}
+
 \begin{itemize}
 \item first data line: {\em partnum emitnx emitny sigz sige ibeco
     ibtyp lhc ibbc} 
@@ -1520,7 +1611,7 @@ space~\cite{ripbeam}.
 \item [ibbc] Linear coupling considered in 4D and 6D (0 = off; 1 = on).
 \item [name] Name of 6D beam--beam element. Beam--beam elements that
   do not appear will be treated as 4D kicks.
-\item [ibsix] (integer) Number of slices of the 6D beam--beam kick.
+\item [ibsix] (integer) Number of slices of the 6D beam--beam element.
   If {\it ibsix} is set to 0 this element is treated as a 4D element.
 \item [xang] (float) Half crossing angle (angle the between the trajectories of the two beams) at this particular element [rad].
 \item [xplane] (float) Crossing plane angle [rad].
@@ -1528,9 +1619,96 @@ space~\cite{ripbeam}.
   In absence of crabbing user should make sure \textit{xstr=xang}; in case the \textit{xstr} flag is not set then \textit{xstr=xang} is assumed and a warning is printed (since version 4.5.45).
 \end{description}
 
-\subparagraph{Remark} These beam--beam elements have to appear in the single element list (~\ref{NonEle}) (type 20) together
-with their horizontal and vertical beam--beam separations.
-(see~\ref{BBS}).
+\subparagraph{EXPERT format}
+
+\begin{itemize}
+\item first data line: {\em EXPERT}
+\item second data line: {\em partnum emitnx emitny sigz sige ibeco
+    ibtyp lhc ibbc} 
+\item other data lines -- 4D BB lens (1 line per element): \\
+{\em name ibsix $\Sigma_{x,x}$ $\Sigma_{y,y}$ h-sep v-sep strength-ratio}
+\item other data lines -- 6D BB lens (3 lines per element): \\
+{\em name ibsix xang xplane h-sep v-sep} \\
+{\em $\Sigma_{x,x}$ $\Sigma_{x,xp}$ $\Sigma_{xp,xp}$ $\Sigma_{y,y}$ $\Sigma_{y,yp}$} \\
+{\em $\Sigma_{yp,yp}$ $\Sigma_{x,y}$ $\Sigma_{x,py}$ $\Sigma_{xp,y}$ $\Sigma_{xp,yp}$ strength-ratio} \\
+\end{itemize}
+
+Some parameters are new or defined in a different way:
+\begin{description}
+\item [lhc] This parameter is kept for now only for RHIC studies when equal to 9.
+\item [name] Name of the beam--beam element.
+\item [ibsix] (integer) Number of slices of the 6D beam--beam element.\\
+  If {\it ibsix} is set to 0 this element is treated as a 4D element.\\
+  If {\it ibsix} is larger or equal 1 this element is treated as a 6D element.
+\item [$\Sigma_{xx}$] Horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$.
+\item [$\Sigma_{yy}$] Vorizontal $\sigma$ for the strong beam $\rm{[mm^2]}$.
+\item [h-sep] Horizontal beam--beam separation [mm]
+\item [v-sep] Vertical beam--beam separation [mm]
+\item [strength-ratio] Strength ratio with respect to the nominal beam--beam kick strength.
+  This is useful to allow for splitting one beam--beam kick into several (longitudinally close by) kicks.
+\item [$\Sigma_{i,j}$] Second order momenta matrix for the strong beam, in units of mm and mrad.
+  For example $\Sigma_{xxp}$ in [mm\ mrad]
+\end{description}
+
+\subparagraph{Conversion from traditional to EXPERT format}
+An automatic converter from the ``traditional'' input block to the new ``expert'' format is built into SixTrack; every time a non-EXPERT input block is encountered, a conversion is printed to the standard output.
+Therefore, all the user needs to do is to run SixTrack (number of turns does not matter) on an input file that should be converted, and follow the instructions which are printed at the beginning of the program output.
+
+\paragraph{Remark} These beam--beam elements have to appear in the single element list (~\ref{NonEle}) (type 20).
+If the ``traditional'' option is used in the BEAM block, the listing in the single element list must contain their horizontal and vertical beam--beam separations (see~\ref{BBS}).
+
+\paragraph{Sign Convention} Some clarifications regarding the sign convention used
+for the separation and crossing angle variables.
+%\todo[inline]{Check if applies to both ``traditional'' and ``EXPERT'' format.}
+\begin{itemize}
+ \item Separations:
+ \begin{enumerate}
+  \item The separation is added to the transverse coordinates of each particles just before the beam-beam subroutines (see Fig.~\ref{fig:BB_sep}).
+  \begin{eqnarray*}
+   \tilde x_i=x_i+sep_x-CO_x \\
+   \tilde y_i=y_i+sep_y-CO_y 
+  \end{eqnarray*}
+  \item Lorentz boost applied to the updated coordinates.
+  \item The separation used for the actual beam-beam kick (sep$_{x,y,kick}$) is the difference between the centroid of the strong slice (X$^{\dag}$,Y$^{\dag}$) and the each particle (x$_i$,y$_i$).
+  \item Antiboost to return to accelerator frame.
+  \item The separation is removed and the closed orbit is added back. Tracking continues.
+  \begin{eqnarray*}
+   \tilde x_i=x_i-sep_x+CO_x \\
+   \tilde y_i=y_i-sep_y+CO_y
+   \end{eqnarray*}
+ \end{enumerate}
+ \begin{figure}[h]
+ \begin{center}
+ \includegraphics[width=0.8\textwidth]{BB_sep}
+ \caption{Coordinate manipulation taking into consideration the beam-beam lens separation as stated in point 1 of the separation sign convention.}
+ \label{fig:BB_sep}
+ \end{center}
+\end{figure}
+ \item Crossing angles:
+ \begin{enumerate}
+  \item The closed orbit is removed just before the beam-beam subroutines.
+  \begin{eqnarray*}
+   \tilde x'_i=x'_i-CO_{x'} \\
+   \tilde y'_i=y'_i-CO_{y'}
+  \end{eqnarray*}
+  \item Lorentz boost applied to the updated coordinates.
+  \item Apply Synchro-Betatron Mapping.
+  \item Antiboost to return to accelerator frame.
+  \item The closed orbit is added back. Tracking continues.
+  \begin{eqnarray*}
+   \tilde x'_i=x'_i+CO_{x'} \\
+   \tilde y'_i=y'_i+CO_{y'}
+  \end{eqnarray*}
+ \end{enumerate}
+ \begin{figure}[h]
+ \begin{center}
+ \includegraphics[width=0.8\textwidth]{BB_xsing}
+ \caption{Coordinate manipulation to move from the accelerator frame to a head-on collision frame (Figures left and center). A positve crossing angle is considered as shown in the left figure.
+ Then Lorentz boost and Synchro-Betatron Mapping are applied (right).}
+ \label{fig:BB_xsing}
+ \end{center}
+\end{figure}
+\end{itemize}
 
 \subsection{Wire} \label{sec:WIRE}
 
@@ -3229,9 +3407,7 @@ code of Hirata~\cite{Hirata}.
   \endhead
 
 
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BEAM &
-  BEAM--BEAM Element & 1 & 4-6D including Beam
-  Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\*
+  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BEAM &  BEAM--BEAM Element & variable & 4-6D including Beam Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\*
   \rule[-2mm]{0mm}{5mm}
   & & & &\& Linear Coupling   & & \\
   \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BLOC &
@@ -3516,11 +3692,10 @@ the {\em Iteration Errors} \/(~\ref{IteErr}) see table~\ref{T-IteErr}.
 
 \section{Default Size Parameters} \label{DSP}
 
-For large machines the arrays holding the machine parameters might
-have to be increased.  The size of each of the dimensions of the
-arrays is therefore defined as a parameter.  The default values are
-adjusted to allow the treatment of a full LHC lattice: the tracking
-version uses 50 Mb and the DA version 400 Mb.
+For large machines the arrays holding the machine parameters might have to be increased.
+The size of each of the dimensions of the arrays is therefore defined as a parameter.
+This can be done by compiling with the BIGNPART, HUGENPART, BIGNBLZ, and/or HUGENBLZ flags.
+The default values are adjusted to allow the treatment of a full LHC lattice: the tracking version uses 50 Mb and the DA version 400 Mb.
 
 \newcounter{dsp} \setcounter{dsp}{0}
 
@@ -3605,12 +3780,8 @@ version uses 50 Mb and the DA version 400 Mb.
   \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
   Number of Correctors for Micado Closed Orbit Correction & 600 & NCOR1
   &~\ref{OrbCorr} & \pageref{OrbCorr} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Beam--Beam Elements & 160 & NBB
-  &~\ref{BeamBeam} & \pageref{BeamBeam} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Slices for 6D Beam--Beam Kick & 15 & MBEA
-  &~\ref{BeamBeam} & \pageref{BeamBeam} \\
+  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum Number of Beam--Beam Elements & 350 & NBB &~\ref{BeamBeam} & \pageref{BeamBeam} \\
+  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum Number of Slices for 6D Beam--Beam Kick & 99 & MBEA &~\ref{BeamBeam} & \pageref{BeamBeam} \\
   \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
   Number of ``Phase Trombone'' Elements & 20 & NTR
   &~\ref{PT} & \pageref{PT} \\
@@ -4502,6 +4673,9 @@ summary of the post--processing is given.
 %\bibitem{PATRAC} A.~Hilaire and A.~Warman, ``A
 %  program for single particle tracking'', CERN SPS/88--8 (AMS).
 %
+\bibitem{RFmultsPaper} J.~B.~Garcia et al., 
+``Long term dynamics of the high luminosity Large Hadron Collider with crab cavities'',
+2016, PHYSICAL REVIEW ACCELERATORS AND BEAMS 19, 101003 (2016).
 \bibitem{DYNKpaper} K.~Sjobak, H.~Burkhardt, R.D.~Maria, A.~Mereghetti and A.~Santamaria,
   ``General functionality for turn-dependent element properties in SixTrack''
   2015, Procedings of IPAC'13, Richmond, VA, USA, May 2015.

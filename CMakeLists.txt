@@ -764,7 +764,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 	endif()
 
 	if(STATIC)
-		SET(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
+		SET(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
 	endif(STATIC)
 
 endif()
@@ -846,15 +846,20 @@ endif()
 add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
-#build astuce
-add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/astuce.f)
-SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+##build astuce
+add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
+SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
 if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	target_link_libraries(astuce ${g2cLink})
+	target_link_libraries(astuce_old ${g2cLink})
 endif()
 
+add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
+add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
+SET_TARGET_PROPERTIES(astuce PROPERTIES OUTPUT_NAME "astuce++")
+target_link_libraries(astuce astuce++)
+
 #build dafor
-add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/dafor.f)
+add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/tools/dafor/dafor.f)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
@@ -960,7 +965,9 @@ if(LIBARCHIVE)
 	endif()
 	
 	find_library(pthread STATIC pthread)
-	find_library(z STATIC z)
+	#find_library(z STATIC z)
+	add_library(z STATIC IMPORTED)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/zlib/install/lib/libz.a)
 	
 	target_link_libraries(SixTrack libarchive z pthread)
 	target_link_libraries(libArchiveTester libarchive z pthread)
@@ -985,7 +992,7 @@ add_dependencies(SixTrack copy_input_files generate_input)
 add_custom_target(run_astuce)
 
 #make running astuce depend on astuce being built and the input files being in place
-add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
+add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks astuce_old)
 
 #This target cleans the define flags
 add_custom_target(astuce_clean_define_flags)
@@ -1112,11 +1119,12 @@ add_dependencies(generate_input run_astuce dafor rename_beamgas)
 #we rename beamgas.f to beamgas.f90 since it should be in free format fortran
 add_custom_target(rename_beamgas)
 add_dependencies(rename_beamgas run_astuce)
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E rename beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E copy beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+#	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
 
 	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
 		message(STATUS "Will run dafor on ${loop}.f")
@@ -1132,7 +1140,7 @@ endforeach()
 set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/5.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
-	target_link_libraries(astuce ${MSYS_QUADMATH})
+	target_link_libraries(astuce_old ${MSYS_QUADMATH})
 	target_link_libraries(dafor ${MSYS_QUADMATH})
 	target_link_libraries(SixTrack ${MSYS_QUADMATH})
 endif()
@@ -1245,10 +1253,13 @@ IF(BUILD_TESTING)
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
-	if(BOINC)
-		add_executable(CheckTestInputForBOINC.sh IMPORTED)
-		SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
-	endif(BOINC)
+	#Checks of specialized input/canoncials
+	# Anyway hardcoded to use them from the SixTest source folder...
+	#add_executable(CheckTestInputForBOINC.sh IMPORTED)
+	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+
+	#add_executable(CheckTestInputForSTF.sh IMPORTED)
+	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
 
 	#need to build the testing tools
 	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f)
