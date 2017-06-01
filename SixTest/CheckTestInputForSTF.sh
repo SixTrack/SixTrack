@@ -19,7 +19,7 @@ if [ ! -x $read90 ]; then
 fi
 
 if [ -d tmp ]; then
-    echo "ERROR: Folder 'tmp' already exists"
+    echo "ERROR: Folder 'tmp' already exists in" $(pwd)
     exit 1
 fi
 mkdir tmp

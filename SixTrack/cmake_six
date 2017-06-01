@@ -310,6 +310,9 @@ if [ $? != 0 ]; then
     echo ".. or maybe you need to install some libraries (or the compiler)?"
     echo "The output from MAKE should tell you more, so please look above this error message."
     echo ""
+    echo "You may also look at the unfinished compilation in the folder "$NAME
+    echo "try running 'make VERBOSE=1' in that folder for more information."
+    echo ""
 
     exit 1
 fi
