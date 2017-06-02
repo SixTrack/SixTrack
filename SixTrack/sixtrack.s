@@ -63699,6 +63699,7 @@ c$$$         backspace (93,iostat=ierro)
       character(1024) fileBuff (nlines)
       integer fileBuff_idx
       integer i,j
+      integer printLines
 
       logical lopen
       integer ierro
@@ -63726,17 +63727,16 @@ c$$$         backspace (93,iostat=ierro)
          return
       endif
       
-      write(error_unit,'(a,1x,i5,1x,a,a,a)')
-     &     "******* Last",nlines,"lines of file '",file_name,"' *******"
-      
 !     Read into fileBuff as a ring buffer.
       fileBuff_idx = 1
+      j = 0
       
  1    read(file_unit,'(a1024)',end=3,err=2,iostat=ierro)
      &     fileBuff(fileBuff_idx)
     ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
       fileBuff_idx = fileBuff_idx+1
       if (fileBuff_idx.ge.nlines) fileBuff_idx = 1
+      j = j+1
       goto 1
       
  2    continue                  !An error occured
@@ -63748,6 +63748,16 @@ c$$$         backspace (93,iostat=ierro)
       close(file_unit)
 
 !     Print stuff back out from the buffer
+      if (j .lt. nlines) then
+         printLines = j
+         fileBuff_idx=1
+      else
+         printLines = nlines
+      endif
+      write(error_unit,'(a,1x,i5,1x,a,a,a)')
+     &     "******* Last",printLines,"lines of file '",
+     &     file_name,"': *******"
+      
       i = fileBuff_idx          !Position in buffer (we have already incremented i)
       j = 0                     !How many have we printed
       
@@ -63755,13 +63765,13 @@ c$$$         backspace (93,iostat=ierro)
       write(error_unit,'(a)') trim(fileBuff(i))
       i = i+1
       j = j+1                   ! j just counts
-      if (j.lt.nlines) goto 10
+      if (j.lt.printLines) goto 10
 
       write(error_unit,'(a,a,a)')
      &     "******* Done writing tail of file '",file_name,
      &     "' to stderr *******"
       
-      end subroutine
+      end subroutine print_lastlines_to_stderr
       
 +dk plotdumy
       subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
