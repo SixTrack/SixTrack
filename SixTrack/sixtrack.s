@@ -80,6 +80,11 @@
 !     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
       integer lout
       common /crflags/lout
++cd errout
+!     Set the exit status in case of an error.
+      integer errout_status
+      common /errout/ errout_status
+      
 +cd commtim
       real r1,timestart,timenow
       common /mytimes/timestart
@@ -23385,6 +23390,7 @@ C Should get me a NaN
 +if crlibm
 +ca crlibco
 +ei
++ca errout
 !-----------------------------------------------------------------------
 !
 !  SIXTRACK
@@ -23509,6 +23515,10 @@ C Should get me a NaN
      &' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
+      
+      errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                                ! If prror is called, it will be set internally.
+      
 +if crlibm
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
@@ -25519,7 +25529,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop 0 ! We're done :)
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -36685,6 +36695,7 @@ C Should get me a NaN
 +ca commonta
 +ca commonl
 +ca commonc
++ca errout      
 !-----------------------------------------------------------------------
       character*10 cmonth
       character*80 day,runtim
@@ -36714,6 +36725,9 @@ C Should get me a NaN
 +ei
 +ca version
 
+      errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                                ! If prror is called, it will be set internally.
+      
 +if .not.cr
       lout=output_unit
 +ei
@@ -40243,8 +40257,12 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
++ca errout
       save
 !-----------------------------------------------------------------------
+
+      errout_status = ier
+      
       write(lout,10000)
       goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !1-10  
      &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !11-20 
@@ -40475,7 +40493,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop errout_status
 +ei
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10,  &
@@ -63464,6 +63482,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonxz
 +ca crco
 +ca version
++ca errout
       integer i,lstring,j
       character*(*) cstring
       character*256 filename
@@ -63616,7 +63635,7 @@ c$$$         backspace (93,iostat=ierro)
     7 continue
       if (lout.eq.92) then
         write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND copying fort.92'
+     &'SIXTRACR STOP/ABEND copying fort.92 to fort.6'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         rewind 92
@@ -63652,9 +63671,10 @@ c$$$         backspace (93,iostat=ierro)
 !+ei
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      call boinc_finish(0)
+      call boinc_finish(errout_status)
 +ei
-      stop
+      stop errout_status
+      
     8 write(93,*)                                                       &
      &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
       close(93)
@@ -63672,9 +63692,9 @@ c$$$         backspace (93,iostat=ierro)
  31   continue
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      call boinc_finish(0)
+      call boinc_finish(errout_status)
 +ei
-      stop
+      stop errout_status
 +ei
 +if .not.cr
       !This one should probably remain as write(*,*) or use output_unit
@@ -63683,9 +63703,10 @@ c$$$         backspace (93,iostat=ierro)
 +if debug
                    !call system('../crend   >> crlog')
 +ei
-      stop
+      stop errout_status
 +ei
       end
+      
 +dk plotdumy
       subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
       implicit none
