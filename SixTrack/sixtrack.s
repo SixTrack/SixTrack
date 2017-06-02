@@ -63419,6 +63419,7 @@ c$$$         backspace (93,iostat=ierro)
       r1=timenow-timestart
       return
       end
+      
       subroutine abend(cstring)
       implicit none
 +ca parpro
@@ -63617,10 +63618,24 @@ c$$$         backspace (93,iostat=ierro)
 !+ei
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      call boinc_finish(errout_status)
-+ei
+      close(93)
+      if(errout_status.ne.0) then
+         call boincrf('fort.93',filename)
+         call print_lastlines_to_stderr(93,filename)
+         
+         call boincrf('fort.6',filename)
+         call print_lastlines_to_stderr(6,filename)
+      endif
+      call boinc_finish(errout_status) !This call does not return
++ei !END +if boinc
+      if(errout_status.ne.0) then
+         close(93)
+         call print_lastlines_to_stderr(93,"fort.93")
+         call print_lastlines_to_stderr(6,"fort.6")
+      endif
       stop errout_status
-      
+
+!     In case of errors when copying fort.92 (lout) -> fort.6
     8 write(93,*)                                                       &
      &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
       close(93)
@@ -63638,10 +63653,23 @@ c$$$         backspace (93,iostat=ierro)
  31   continue
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
+      close(93)
+      if(errout_status.ne.0) then
+         call boincrf('fort.93',filename)
+         call print_lastlines_to_stderr(93,filename)
+         
+         call boincrf('fort.6',filename)
+         call print_lastlines_to_stderr(6,filename)
+      endif
       call boinc_finish(errout_status)
-+ei
++ei !END +if boinc
+      if(errout_status.ne.0) then
+         close(93)
+         call print_lastlines_to_stderr(93,"fort.93")
+         call print_lastlines_to_stderr(6,"fort.6")
+      endif
       stop errout_status
-+ei
++ei !END +if cr
 +if .not.cr
       !This one should probably remain as write(*,*) or use output_unit
       write(*,*)                                                        &
@@ -63649,9 +63677,91 @@ c$$$         backspace (93,iostat=ierro)
 +if debug
                    !call system('../crend   >> crlog')
 +ei
+      ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
       stop errout_status
-+ei
-      end
++ei !END +if .not.cr
+      end subroutine abend
+
+      subroutine print_lastlines_to_stderr(file_unit, file_name)
+!     Subroutine to copy the last nlines lines from a file to stderr
+!     It is mainly used just before exiting SixTrack in case there was an error.
+!     This is useful since STDERR is often returned from batch systems and BOINC.
+!     K.Sjobak, June 2017
+      use, intrinsic :: iso_fortran_env, only : error_unit
+      implicit none
+      
+      integer,          intent(in)   :: file_unit
+      character(len=*), intent(in) :: file_name
+
+      integer nlines
+      parameter (nlines=40)
+      
+      character(1024) fileBuff (nlines)
+      integer fileBuff_idx
+      integer i,j
+
+      logical lopen
+      integer ierro
+
+!     Clear the buffer
+      do i=1,nlines
+         fileBuff(i)=''
+      end do
+      
+!     Open the file
+      inquire(unit=file_unit,opened=lopen)
+      if (lopen) then
+         write(error_unit,'(a,1x,i5,1x,a)')
+     &        "Error when opening unit #",
+     &        file_unit, ": The file is already open."
+         return
+      end if
+      
+      open(file_unit,file=file_name,form="formatted",
+     &     status="old",iostat=ierro)
+      if (ierro .ne. 0) then
+         write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')
+     &        "Error when opening file '",file_name, "' on unit #",
+     &        file_unit, ", iostat =",ierro
+         return
+      endif
+      
+      write(error_unit,'(a,1x,i5,1x,a,a,a)')
+     &     "******* Last",nlines,"lines of file '",file_name,"' *******"
+      
+!     Read into fileBuff as a ring buffer.
+      fileBuff_idx = 1
+      
+ 1    read(file_unit,'(a1024)',end=3,err=2,iostat=ierro)
+     &     fileBuff(fileBuff_idx)
+    ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
+      fileBuff_idx = fileBuff_idx+1
+      if (fileBuff_idx.ge.nlines) fileBuff_idx = 1
+      goto 1
+      
+ 2    continue                  !An error occured
+      write(error_unit,'(a,1x,i5)')
+     &     "An error occured while reading the file, iostat=",ierro
+
+      
+ 3    continue                  !EOF or error; anyway we're done.
+      close(file_unit)
+
+!     Print stuff back out from the buffer
+      i = fileBuff_idx          !Position in buffer (we have already incremented i)
+      j = 0                     !How many have we printed
+      
+ 10   if (i.gt.nlines) i=1      ! i is wrapping
+      write(error_unit,'(a)') trim(fileBuff(i))
+      i = i+1
+      j = j+1                   ! j just counts
+      if (j.lt.nlines) goto 10
+
+      write(error_unit,'(a,a,a)')
+     &     "******* Done writing tail of file '",file_name,
+     &     "' to stderr *******"
+      
+      end subroutine
       
 +dk plotdumy
       subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
