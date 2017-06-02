@@ -9448,13 +9448,7 @@ cc2008
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
           write(lout,10040) ifail
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
         do 200 jsex=1,jeltot
@@ -9667,13 +9661,8 @@ cc2008
    20   continue
         if(point.gt.4000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('Problem with data in fort.23')
-+ei
-+if .not.cr
-          stop
-+ei
+          write(lout,'(a)') "Problem with data in fort.23"
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -10363,13 +10352,7 @@ cc2008
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
           write(lout,10040) ifail
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
         do 170 jsex=1,jeltot
@@ -10579,13 +10562,7 @@ cc2008
    20   continue
         if(point.gt.8000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -10601,13 +10578,7 @@ cc2008
    30   continue
         if(point.gt.8000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -25529,7 +25500,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 0 ! We're done :)
+      stop 0 ! We're done in maincr:)
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -26100,7 +26071,7 @@ C Should get me a NaN
             write(lout,*)
             write(lout,*) "ERROR"
             write(lout,*) "thin6dua not supported by collimation"
-            STOP
+            call prror(-1)
           endif
 +ei
           call thin6dua(nthinerr)
@@ -26428,12 +26399,7 @@ C Should get me a NaN
      &           enerror, bunchlength )
          else
             write(lout,*) 'INFO> review your distribution parameters !!'
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-            stop
-+ei
+            call prror(-1)
          endif
 !
        endif
@@ -29248,7 +29214,7 @@ C Should get me a NaN
      &               "attempting to use a halo not purely in the "//
      &               "horizontal or vertical plane with pencil_dist=3"//
      &               " - abort."
-                stop
+               call prror(-1)
              endif
              
 !     calculate offset from tilt of positive and negative jaws, at start and end
@@ -29380,7 +29346,7 @@ C Should get me a NaN
                 endif
               else
                 Write(lout,*) "ERROR: Non-zero length collimator!"
-                STOP
+                call prror(-1)
               endif
 !
               flukaname(j) = ipart(j)+100*samplenumber
@@ -30207,12 +30173,7 @@ C Should get me a NaN
      &                  part_impact(j)
                   write(outlun,*) 'ERR>  Invalid impact parameter!',    &
      &                  part_impact(j)
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
+                  call prror(-1)
                 endif
                 n_impact = n_impact + 1
                 sum = sum + part_impact(j)
@@ -33359,7 +33320,7 @@ C Should get me a NaN
       if (do_coll) then
          write(lout,*) "Error: in trauthck and do_coll is TRUE"
          write(lout,*) "Collimation is not supported for thick tracking"
-         STOP
+         call prror(-1)
       endif
 +ei
 
@@ -33867,7 +33828,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
       
@@ -34435,7 +34396,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
 
@@ -35116,7 +35077,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
 
@@ -37119,7 +37080,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop 0 ! We're done in mainda :)
 +ei
 +if .not.tilt
 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
@@ -46025,13 +45986,8 @@ c$$$            endif
             write(lout,*) 'DIVISION BY ZERO EXPECTED.'
             write(lout,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
             write(lout,10000) ' SUSPECTED CORRECTOR: ',j
-            call closeUnits
-+if cr
-      call abend('777                                               ')
-+ei
-+if .not.cr
-            stop 777
-+ei
+            write(lout,'(a)') "Error '777' in subroutine htls"
+            call prror(-1)
           endif
 
           rho(j)=h
@@ -55232,13 +55188,7 @@ c$$$            endif
       return
  900  write(lout,910) p0
  910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
-      call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
+      call prror(-1)
       end
 +dk myrinv
       subroutine kerset(ercode,lgfile,limitm,limitr)
@@ -56336,7 +56286,7 @@ c$$$            endif
          write(lout,*) 'ERR>  In subroutine collimate2:'
          write(lout,*) 'ERR>  Material "', c_material, '" not found.'
          write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-         STOP
+         call prror(-1)
       endif
 !
         length  = c_length
@@ -56641,7 +56591,7 @@ c$$$            endif
             s = (-1d0*x) / xp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57118,7 +57068,7 @@ c$$$          endif
          mat = 12
       else
          write(lout,*) 'ERR>  Material not found. STOP', c_material
-!        STOP
+         call prror(-1)
       endif
 !
         length  = c_length
@@ -57379,7 +57329,7 @@ c$$$          endif
             s = (-1.0d0*x) / xp
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (1)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57400,7 +57350,7 @@ c$$$          endif
             s = (-1.0d0*z) / zp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen (2)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57429,7 +57379,7 @@ c$$$          endif
 !
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (3)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -58127,7 +58077,7 @@ c$$$          endif
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then  ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
             write(lout,*) "Stop in makedis_coll. attempting to use halo type 
      &3 with Gaussian dist. "
-            stop
+            call prror(-1)
 c$$$            phix = (2d0*pi)*dble(rndm4())                                 
 c$$$            iix = (-1d0*myemitx0) * log( dble(rndm4()) )                  
 c$$$            myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                  
@@ -61134,12 +61084,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         write(lout,*) '!!!!! WARNING !!!!!'
         write(lout,*)'beambeamdist.dat is either missing or too small'
         write(lout,*)
-+if cr
-        call abend('bnlelens input file error                         ')
-+ei      
-+if .not.cr
-        stop
-+ei
+        write(lout,'(a)') 'bnlelens input file error'
+        call prror(-1)
       else
         write(lout,*) "Number of samples in the bunch = ",mynp
       endif
@@ -65824,7 +65770,7 @@ c$$$         backspace (93,iostat=ierro)
       enddo
       if (pressID.eq.0) then
        write(lout,*) 'Couldnt find pressure marker at',totals
-       stop
+       call prror(-1)
       endif
       
       doLorentz=0
@@ -65916,7 +65862,7 @@ c$$$         backspace (93,iostat=ierro)
            write(lout,*) "ERROR> there is something wrong",             &
      &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
      &      new4MomCoord
-           stop
+            call prror(-1)
           else
 !           boosted xp event
            bgxpdb(choice) = z(1)
@@ -66072,7 +66018,7 @@ c$$$         backspace (93,iostat=ierro)
       j=j+1
        if (j>bgmaxx) then
          write(lout,*) 'ERROR> Too many pressure markers!'
-         stop
+         call prror(-1)
        endif
       else if (filereaderror.lt.0) then
 !       means that end of file is reached
@@ -66115,7 +66061,7 @@ c$$$         backspace (93,iostat=ierro)
          if (previousEvent.gt.dpmjetevents) exit
          if (numberOfEvents.gt.(bgmaxx-1)) then
          write(lout,*) 'ERROR> Too many dpmjet events!'
-         stop
+         call prror(-1)
       endif
       enddo
 !       number of lines in dpmjet - 1
@@ -66128,7 +66074,7 @@ c$$$         backspace (93,iostat=ierro)
          write(lout,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
          write(lout,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
      &events'
-         stop
+         call prror(-1)
       endif
       write(lout,*) 'INFO> This is job number: ', njobthis
       write(lout,*) 'INFO> Total number of jobs is: ', njobs
