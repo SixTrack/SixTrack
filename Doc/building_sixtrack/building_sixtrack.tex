@@ -367,7 +367,7 @@ This subsection describes how this is done, including any pitfalls.
 
 It is possible to build some of the ``one time build'' libraries automatically using the shell script \texttt{buildLibraries.sh}, located in the \texttt{SixTrack/SixTrack} folder.
 This script should know about various platform dependent workarounds etc.
-Note that it contains hard-coded paths to \texttt{zlib.a}, to be used when building libarchive on Windows.
+%Note that it contains hard-coded paths to \texttt{zlib.a}, to be used when building libarchive on Windows.
 
 \subsubsection{CRLIBM}
 \label{sec:building:libs:crlibm}
@@ -421,6 +421,16 @@ This procedure has been tested on Linux (Fedora~23), Windows Server 2012 (CYGWIN
 Note that to build in a folder hosted on AFS, you must edit the Makefiles in the \texttt{api} and \texttt{lib} subfolders and change the variable \texttt{LN} from \texttt{/usr/bin/ln} to \texttt{cp}.
 This is neccessary because AFS does not support hard links between different folders, and configure does not check correctly for it.
 
+\subsubsection{zlib}
+\label{sec:building:libs:zlib}
+The zlib library is used by libarchive (Section~\ref{sec:building:libs:libarchive}) to compress/uncompress .zib archives.
+While this library is shipped with many systems, a static version is not always included.
+For this reason, it is distributed along with SixTrack.
+The easiest way to build this library is to use the buildLibraries.sh script.
+Note that a position independent version of the static library should be built, so that it can be included as part of the static libarchive library.
+Also note that by default, the Windows build is called \texttt{libzlibstatic.a}, not \texttt{libz.a}.
+
+
 \subsubsection{libarchive}
 \label{sec:building:libs:libarchive}
 The libarchive libary is used to unpack the \texttt{Sixin.zip} file for the BOINC version, and is needed for the option \texttt{ZIPF} block in \texttt{fort.3}.
@@ -440,12 +450,12 @@ You can then configure it as
 \begin{lstlisting}
 cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF (-DZLIB_LIBRARY=\$ZLIB\_PATH) -G "Unix Makefiles" ../libarchive -LH
 \end{lstlisting}
-where \texttt{\$ZLIB\_PATH} is pointing to the location of \texttt{libz.a}, which is needed on Windows in order to build a static executable.
+where \texttt{\$ZLIB\_PATH} is pointing to the location of \texttt{libz.a}, which is built as described in Section~\ref{sec:building:libs:zlib}.
 Finally, build the library using \texttt{make}~.
 
 Note that libarchive needs several libraries installed; it is the up to the user to install these.
-Especially note that libarchive depends on zlib, for which a static version is not available on LxPlus.
-It is therefore only possible to build a dynamically linked version of SixTrack on LxPlus, by using the flag \texttt{-STATIC} on the \texttt{cmake\_six} command line.
+%Especially note that libarchive depends on zlib, for which a static version is not available on LxPlus.
+%It is therefore only possible to build a dynamically linked version of SixTrack on LxPlus, by using the flag \texttt{-STATIC} on the \texttt{cmake\_six} command line.
 
 Also note that if libarchive was compiled before installing zlib, it will not be able to uncompress compressed .zip files, and attempting to do so will result in a SixTrack runtime error
 \begin{verbatim}
