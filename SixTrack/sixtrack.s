@@ -63618,8 +63618,8 @@ c$$$         backspace (93,iostat=ierro)
 !+ei
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      close(93)
       if(errout_status.ne.0) then
+         close(93)
          call boincrf('fort.93',filename)
          call print_lastlines_to_stderr(93,filename)
          
@@ -63653,8 +63653,8 @@ c$$$         backspace (93,iostat=ierro)
  31   continue
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      close(93)
       if(errout_status.ne.0) then
+         close(93)
          call boincrf('fort.93',filename)
          call print_lastlines_to_stderr(93,filename)
          
