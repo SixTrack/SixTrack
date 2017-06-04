@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.22'/
-      data moddate /'01.06.2017'/
+      data version /'4.6.23'/
+      data moddate /'04.06.2017'/
 +cd license
 !!SixTrack
 !!
@@ -80,6 +80,11 @@
 !     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
       integer lout
       common /crflags/lout
++cd errout
+!     Set the exit status in case of an error.
+      integer errout_status
+      common /errout/ errout_status
+      
 +cd commtim
       real r1,timestart,timenow
       common /mytimes/timestart
@@ -9443,13 +9448,7 @@ cc2008
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
           write(lout,10040) ifail
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
         do 200 jsex=1,jeltot
@@ -9662,13 +9661,8 @@ cc2008
    20   continue
         if(point.gt.4000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('Problem with data in fort.23')
-+ei
-+if .not.cr
-          stop
-+ei
+          write(lout,'(a)') "Problem with data in fort.23"
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -10358,13 +10352,7 @@ cc2008
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
           write(lout,10040) ifail
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
         do 170 jsex=1,jeltot
@@ -10574,13 +10562,7 @@ cc2008
    20   continue
         if(point.gt.8000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -10596,13 +10578,7 @@ cc2008
    30   continue
         if(point.gt.8000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -23385,6 +23361,7 @@ C Should get me a NaN
 +if crlibm
 +ca crlibco
 +ei
++ca errout
 !-----------------------------------------------------------------------
 !
 !  SIXTRACK
@@ -23509,6 +23486,10 @@ C Should get me a NaN
      &' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
+      
+      errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                                ! If prror is called, it will be set internally.
+      
 +if crlibm
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
@@ -25519,7 +25500,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop 0 ! We're done in maincr:)
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -26090,7 +26071,7 @@ C Should get me a NaN
             write(lout,*)
             write(lout,*) "ERROR"
             write(lout,*) "thin6dua not supported by collimation"
-            STOP
+            call prror(-1)
           endif
 +ei
           call thin6dua(nthinerr)
@@ -26418,12 +26399,7 @@ C Should get me a NaN
      &           enerror, bunchlength )
          else
             write(lout,*) 'INFO> review your distribution parameters !!'
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-            stop
-+ei
+            call prror(-1)
          endif
 !
        endif
@@ -29238,7 +29214,7 @@ C Should get me a NaN
      &               "attempting to use a halo not purely in the "//
      &               "horizontal or vertical plane with pencil_dist=3"//
      &               " - abort."
-                stop
+               call prror(-1)
              endif
              
 !     calculate offset from tilt of positive and negative jaws, at start and end
@@ -29370,7 +29346,7 @@ C Should get me a NaN
                 endif
               else
                 Write(lout,*) "ERROR: Non-zero length collimator!"
-                STOP
+                call prror(-1)
               endif
 !
               flukaname(j) = ipart(j)+100*samplenumber
@@ -30197,12 +30173,7 @@ C Should get me a NaN
      &                  part_impact(j)
                   write(outlun,*) 'ERR>  Invalid impact parameter!',    &
      &                  part_impact(j)
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
+                  call prror(-1)
                 endif
                 n_impact = n_impact + 1
                 sum = sum + part_impact(j)
@@ -33349,7 +33320,7 @@ C Should get me a NaN
       if (do_coll) then
          write(lout,*) "Error: in trauthck and do_coll is TRUE"
          write(lout,*) "Collimation is not supported for thick tracking"
-         STOP
+         call prror(-1)
       endif
 +ei
 
@@ -33857,7 +33828,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
       
@@ -34425,7 +34396,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
 
@@ -35106,7 +35077,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
 
@@ -36685,6 +36656,7 @@ C Should get me a NaN
 +ca commonta
 +ca commonl
 +ca commonc
++ca errout      
 !-----------------------------------------------------------------------
       character*10 cmonth
       character*80 day,runtim
@@ -36714,6 +36686,9 @@ C Should get me a NaN
 +ei
 +ca version
 
+      errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                                ! If prror is called, it will be set internally.
+      
 +if .not.cr
       lout=output_unit
 +ei
@@ -37105,7 +37080,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop 0 ! We're done in mainda :)
 +ei
 +if .not.tilt
 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
@@ -40243,8 +40218,12 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
++ca errout
       save
 !-----------------------------------------------------------------------
+
+      errout_status = ier
+      
       write(lout,10000)
       goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !1-10  
      &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !11-20 
@@ -40475,7 +40454,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop errout_status
 +ei
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10,  &
@@ -46007,13 +45986,8 @@ c$$$            endif
             write(lout,*) 'DIVISION BY ZERO EXPECTED.'
             write(lout,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
             write(lout,10000) ' SUSPECTED CORRECTOR: ',j
-            call closeUnits
-+if cr
-      call abend('777                                               ')
-+ei
-+if .not.cr
-            stop 777
-+ei
+            write(lout,'(a)') "Error '777' in subroutine htls"
+            call prror(-1)
           endif
 
           rho(j)=h
@@ -55214,13 +55188,7 @@ c$$$            endif
       return
  900  write(lout,910) p0
  910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
-      call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
+      call prror(-1)
       end
 +dk myrinv
       subroutine kerset(ercode,lgfile,limitm,limitr)
@@ -56318,7 +56286,7 @@ c$$$            endif
          write(lout,*) 'ERR>  In subroutine collimate2:'
          write(lout,*) 'ERR>  Material "', c_material, '" not found.'
          write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-         STOP
+         call prror(-1)
       endif
 !
         length  = c_length
@@ -56623,7 +56591,7 @@ c$$$            endif
             s = (-1d0*x) / xp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57100,7 +57068,7 @@ c$$$          endif
          mat = 12
       else
          write(lout,*) 'ERR>  Material not found. STOP', c_material
-!        STOP
+         call prror(-1)
       endif
 !
         length  = c_length
@@ -57361,7 +57329,7 @@ c$$$          endif
             s = (-1.0d0*x) / xp
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (1)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57382,7 +57350,7 @@ c$$$          endif
             s = (-1.0d0*z) / zp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen (2)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57411,7 +57379,7 @@ c$$$          endif
 !
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (3)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -58109,7 +58077,7 @@ c$$$          endif
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then  ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
             write(lout,*) "Stop in makedis_coll. attempting to use halo type 
      &3 with Gaussian dist. "
-            stop
+            call prror(-1)
 c$$$            phix = (2d0*pi)*dble(rndm4())                                 
 c$$$            iix = (-1d0*myemitx0) * log( dble(rndm4()) )                  
 c$$$            myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                  
@@ -61116,12 +61084,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         write(lout,*) '!!!!! WARNING !!!!!'
         write(lout,*)'beambeamdist.dat is either missing or too small'
         write(lout,*)
-+if cr
-        call abend('bnlelens input file error                         ')
-+ei      
-+if .not.cr
-        stop
-+ei
+        write(lout,'(a)') 'bnlelens input file error'
+        call prror(-1)
       else
         write(lout,*) "Number of samples in the bunch = ",mynp
       endif
@@ -63455,6 +63419,7 @@ c$$$         backspace (93,iostat=ierro)
       r1=timenow-timestart
       return
       end
+      
       subroutine abend(cstring)
       implicit none
 +ca parpro
@@ -63464,6 +63429,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonxz
 +ca crco
 +ca version
++ca errout
       integer i,lstring,j
       character*(*) cstring
       character*256 filename
@@ -63616,7 +63582,7 @@ c$$$         backspace (93,iostat=ierro)
     7 continue
       if (lout.eq.92) then
         write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND copying fort.92'
+     &'SIXTRACR STOP/ABEND copying fort.92 to fort.6'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         rewind 92
@@ -63652,9 +63618,24 @@ c$$$         backspace (93,iostat=ierro)
 !+ei
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      call boinc_finish(0)
-+ei
-      stop
+      if(errout_status.ne.0) then
+         close(93)
+         call boincrf('fort.93',filename)
+         call print_lastlines_to_stderr(93,filename)
+         
+         call boincrf('fort.6',filename)
+         call print_lastlines_to_stderr(6,filename)
+      endif
+      call boinc_finish(errout_status) !This call does not return
++ei !END +if boinc
+      if(errout_status.ne.0) then
+         close(93)
+         call print_lastlines_to_stderr(93,"fort.93")
+         call print_lastlines_to_stderr(6,"fort.6")
+      endif
+      stop errout_status
+
+!     In case of errors when copying fort.92 (lout) -> fort.6
     8 write(93,*)                                                       &
      &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
       close(93)
@@ -63672,10 +63653,23 @@ c$$$         backspace (93,iostat=ierro)
  31   continue
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      call boinc_finish(0)
-+ei
-      stop
-+ei
+      if(errout_status.ne.0) then
+         close(93)
+         call boincrf('fort.93',filename)
+         call print_lastlines_to_stderr(93,filename)
+         
+         call boincrf('fort.6',filename)
+         call print_lastlines_to_stderr(6,filename)
+      endif
+      call boinc_finish(errout_status)
++ei !END +if boinc
+      if(errout_status.ne.0) then
+         close(93)
+         call print_lastlines_to_stderr(93,"fort.93")
+         call print_lastlines_to_stderr(6,"fort.6")
+      endif
+      stop errout_status
++ei !END +if cr
 +if .not.cr
       !This one should probably remain as write(*,*) or use output_unit
       write(*,*)                                                        &
@@ -63683,9 +63677,102 @@ c$$$         backspace (93,iostat=ierro)
 +if debug
                    !call system('../crend   >> crlog')
 +ei
-      stop
-+ei
-      end
+      ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
+      stop errout_status
++ei !END +if .not.cr
+      end subroutine abend
+
+      subroutine print_lastlines_to_stderr(file_unit, file_name)
+!     Subroutine to copy the last nlines lines from a file to stderr
+!     It is mainly used just before exiting SixTrack in case there was an error.
+!     This is useful since STDERR is often returned from batch systems and BOINC.
+!     K.Sjobak, June 2017
+      use, intrinsic :: iso_fortran_env, only : error_unit
+      implicit none
+      
+      integer,          intent(in)   :: file_unit
+      character(len=*), intent(in) :: file_name
+
+      integer nlines
+      parameter (nlines=40)
+      
+      character(1024) fileBuff (nlines)
+      integer fileBuff_idx
+      integer i,j
+      integer printLines
+
+      logical lopen
+      integer ierro
+
+!     Clear the buffer
+      do i=1,nlines
+         fileBuff(i)=''
+      end do
+      
+!     Open the file
+      inquire(unit=file_unit,opened=lopen)
+      if (lopen) then
+         write(error_unit,'(a,1x,i5,1x,a)')
+     &        "Error when opening unit #",
+     &        file_unit, ": The file is already open."
+         return
+      end if
+      
+      open(file_unit,file=file_name,form="formatted",
+     &     status="old",iostat=ierro)
+      if (ierro .ne. 0) then
+         write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')
+     &        "Error when opening file '",file_name, "' on unit #",
+     &        file_unit, ", iostat =",ierro
+         return
+      endif
+      
+!     Read into fileBuff as a ring buffer.
+      fileBuff_idx = 1
+      j = 0
+      
+ 1    read(file_unit,'(a1024)',end=3,err=2,iostat=ierro)
+     &     fileBuff(fileBuff_idx)
+    ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
+      fileBuff_idx = fileBuff_idx+1
+      if (fileBuff_idx.ge.nlines) fileBuff_idx = 1
+      j = j+1
+      goto 1
+      
+ 2    continue                  !An error occured
+      write(error_unit,'(a,1x,i5)')
+     &     "An error occured while reading the file, iostat=",ierro
+
+      
+ 3    continue                  !EOF or error; anyway we're done.
+      close(file_unit)
+
+!     Print stuff back out from the buffer
+      if (j .lt. nlines) then
+         printLines = j
+         fileBuff_idx=1
+      else
+         printLines = nlines
+      endif
+      write(error_unit,'(a,1x,i5,1x,a,a,a)')
+     &     "******* Last",printLines,"lines of file '",
+     &     file_name,"': *******"
+      
+      i = fileBuff_idx          !Position in buffer (we have already incremented i)
+      j = 0                     !How many have we printed
+      
+ 10   if (i.gt.nlines) i=1      ! i is wrapping
+      write(error_unit,'(a)') trim(fileBuff(i))
+      i = i+1
+      j = j+1                   ! j just counts
+      if (j.lt.printLines) goto 10
+
+      write(error_unit,'(a,a,a)')
+     &     "******* Done writing tail of file '",file_name,
+     &     "' to stderr *******"
+      
+      end subroutine print_lastlines_to_stderr
+      
 +dk plotdumy
       subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
       implicit none
@@ -65803,7 +65890,7 @@ c$$$         backspace (93,iostat=ierro)
       enddo
       if (pressID.eq.0) then
        write(lout,*) 'Couldnt find pressure marker at',totals
-       stop
+       call prror(-1)
       endif
       
       doLorentz=0
@@ -65895,7 +65982,7 @@ c$$$         backspace (93,iostat=ierro)
            write(lout,*) "ERROR> there is something wrong",             &
      &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
      &      new4MomCoord
-           stop
+            call prror(-1)
           else
 !           boosted xp event
            bgxpdb(choice) = z(1)
@@ -66051,7 +66138,7 @@ c$$$         backspace (93,iostat=ierro)
       j=j+1
        if (j>bgmaxx) then
          write(lout,*) 'ERROR> Too many pressure markers!'
-         stop
+         call prror(-1)
        endif
       else if (filereaderror.lt.0) then
 !       means that end of file is reached
@@ -66094,7 +66181,7 @@ c$$$         backspace (93,iostat=ierro)
          if (previousEvent.gt.dpmjetevents) exit
          if (numberOfEvents.gt.(bgmaxx-1)) then
          write(lout,*) 'ERROR> Too many dpmjet events!'
-         stop
+         call prror(-1)
       endif
       enddo
 !       number of lines in dpmjet - 1
@@ -66107,7 +66194,7 @@ c$$$         backspace (93,iostat=ierro)
          write(lout,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
          write(lout,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
      &events'
-         stop
+         call prror(-1)
       endif
       write(lout,*) 'INFO> This is job number: ', njobthis
       write(lout,*) 'INFO> Total number of jobs is: ', njobs
