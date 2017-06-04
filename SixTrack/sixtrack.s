@@ -23652,7 +23652,8 @@ C Should get me a NaN
 ! Re-instated and REQUIRED version 4516
         !call boinc_unzip()
         !call system('unzip Sixin.zip')
-        call f_read_archive("Sixin.zip",".")
+        call boincrf("Sixin.zip",filename)
+        call f_read_archive(trim(filename),".")
         go to 611
       endif
 +if fio
