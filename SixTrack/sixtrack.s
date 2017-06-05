@@ -25008,12 +25008,26 @@ C Should get me a NaN
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
-             if ( dumpfmt(i).eq.3 ) then
+             if ( dumpfmt(i).eq.3 ) then !Binary dump
++if boinc
+                 call boincrf(dump_fname(i),filename)
+                 open(dumpunit(i),file=filename,
+     &                status='replace',form='unformatted')
++ei
++if .not.boinc
                  open(dumpunit(i),file=dump_fname(i),
      &                status='replace',form='unformatted')
-             else
++ei
+             else !ASCII dump
++if boinc
+                 call boincrf(dump_fname(i),filename)
+                 open(dumpunit(i),file=filename,
+     &                status='replace',form='formatted')
++ei
++if .not.boinc
                  open(dumpunit(i),file=dump_fname(i),
      &                status='replace',form='formatted')
++ei
              endif
 +if cr
              dumpfilepos(i) = 0
