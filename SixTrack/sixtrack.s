@@ -40695,6 +40695,10 @@ C Should get me a NaN
       integer errno
 +ei
 
++if boinc
+      character*256 filename
++ei
+
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
       write (lout,*) "FIO not supported in DYNK!"
@@ -40827,9 +40831,16 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
-         
+
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat,status="OLD")
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status="OLD")
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
             write(lout,*) "DYNK> Error opening file '" //
@@ -40953,8 +40964,15 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat,status='OLD')
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status='OLD')
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
             write(lout,*) "DYNK> Error opening file '" //
@@ -41237,6 +41255,7 @@ C Should get me a NaN
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 
+         ! DYNK PIPE does not support the CR version, so BOINC support isn't needed
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
      &        iostat=stat,status="OLD")
@@ -41553,8 +41572,15 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat, status="OLD")
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat, status="OLD")
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
             write(lout,*) "DYNK> Error opening file '" //
@@ -42938,6 +42964,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if cr
 +ca comdynkcr
 +ei
++if boinc
+      character*256 filename
++ei
 
 +if collimat
 +ca collpara
@@ -43062,8 +43091,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &                       " was already taken"
               call prror(-1)
             end if
++if boinc
+            call boincrf("dynksets.dat",filename)
+            open(unit=665, file=filename,
+     &           status="replace",action="write")
++ei
++if .not.boinc
             open(unit=665, file="dynksets.dat",
-     &           status="replace",action="write") 
+     &           status="replace",action="write")
++ei
 
             if (ldynkfiledisable) then
                write (665,*) "### DYNK file output was disabled ",
