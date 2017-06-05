@@ -62068,8 +62068,15 @@ c$$$         backspace (93,iostat=ierro)
          endfile (665,iostat=ierro)
 !         backspace (665,iostat=ierro)
          close(665)
++if boinc
+         call boincrf("dynksets.dat",filename)
+         open(unit=665, file=filename, status="old",
+     &        position='append', action="write")
++ei
++if .not.boinc
          open(unit=665, file="dynksets.dat", status="old",
      &        position='append', action="write")
++ei
          
          write(93,*)                                                     &
      &'SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, '//
@@ -62098,8 +62105,15 @@ c$$$         backspace (93,iostat=ierro)
             inquire( unit=dumpunit(i), opened=lopen )
             if (dumpfmt(i) .ne. 3 ) then ! ASCII
                if ( .not. lopen ) then
++if boinc
+                  call boincrf(dump_fname(i),filename)
+                  open(dumpunit(i),file=filename, status='old',
+     &                 form='formatted',action='readwrite')
++ei
++if .not.boinc
                   open(dumpunit(i),file=dump_fname(i), status='old',
      &                 form='formatted',action='readwrite')
++ei
                endif
 
                dumpfilepos(i) = 0
@@ -62110,8 +62124,15 @@ c$$$         backspace (93,iostat=ierro)
 
             else                         ! BINARY (format = 3)
                if ( .not. lopen ) then
++if boinc
+                  call boincrf(dump_fname(i),filename)
+                  open(dumpunit(i),file=filename,status='old',
+     &                 form='unformatted',action='readwrite')
++ei
++if .not.boinc
                   open(dumpunit(i),file=dump_fname(i),status='old',
      &                 form='unformatted',action='readwrite')
++ei
                endif
                dumpfilepos(i) = 0
  703           read(dumpunit(i),end=111,err=111,iostat=ierro)
@@ -62133,11 +62154,25 @@ C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
             if (dumpfmt(i).ne.3) then ! ASCII
++if boinc
+               call boincrf(dump_fname(i),filename)
+               open(dumpunit(i),file=filename, status='old',
+     &             position='append', form='formatted',action='write')
++ei
++if .not.boinc
                open(dumpunit(i),file=dump_fname(i), status='old',
      &             position='append', form='formatted',action='write')
++ei
             else                      ! Binary (format = 3)
++if boinc
+               call boincrf(dump_fname(i),filename)
+               open(dumpunit(i),file=filename, status='old',
+     &             position='append', form='unformatted',action='write')
++ei
++if .not.boinc
                open(dumpunit(i),file=dump_fname(i), status='old',
      &             position='append', form='unformatted',action='write')
++ei
             endif
          endif
       end do
