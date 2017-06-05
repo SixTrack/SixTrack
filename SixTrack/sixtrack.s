@@ -23652,7 +23652,9 @@ C Should get me a NaN
 ! Re-instated and REQUIRED version 4516
         !call boinc_unzip()
         !call system('unzip Sixin.zip')
+        
         call boincrf("Sixin.zip",filename)
+        ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
         call f_read_archive(trim(filename),".")
         go to 611
       endif
@@ -54157,13 +54159,42 @@ c$$$            endif
 +ca stringzerotrim
 +ca zipf
 +ca crcoall
++if boinc
+      character*(stringzerotrim_maxlen) zipf_outfile_boinc
+      character(stringzerotrim_maxlen)
+     &     zipf_filenames_boinc(zipf_maxfiles)
+      integer ii
++ei
 
       write(lout,'(a,a,a)')
      &     "ZIPF: Compressing file '",
      &     trim(stringzerotrim(zipf_outfile)),"'..."
 
-+if libarchive !If not, the zipf subroutine shall just be a stub.
++if libarchive
++if boinc
+      !For BOINC, we may need to translate the filenames.
+      call boincrf(trim(stringzerotrim(zipf_outfile)),
+     &zipf_outfile_boinc )
+      
+      do ii=1,zipf_numfiles
+         call boincrf(trim(stringzerotrim(zipf_filenames(ii))),
+     &        zipf_filenames_boinc(ii) )
+         zipf_filenames_boinc(ii) = trim(zipf_filenames_boinc(ii))
+      end do
+
+      !The f_write_archive function will handle the conversion from Fortran to C-style strings
+      call f_write_archive
+     &     (trim(zipf_outfile_boinc),zipf_filenames_boinc,zipf_numfiles)
++ei
+
++if .not.boinc
       call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
++ei
++ei
+
++if .not.libarchive
+!     If not libarchive, the zipf subroutine shall just be a stub. And anyway daten should not accept the block, so this is somewhat redundant...
+      write(lout,'(a)') " *** No libArchive in this SixTrack *** "
 +ei
 
       write(lout,'(a)') "Done!"
@@ -63691,7 +63722,7 @@ c$$$         backspace (93,iostat=ierro)
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
       
-      integer,          intent(in)   :: file_unit
+      integer,          intent(in) :: file_unit
       character(len=*), intent(in) :: file_name
 
       integer nlines
