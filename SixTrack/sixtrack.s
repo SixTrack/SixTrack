@@ -62050,9 +62050,15 @@ c$$$         backspace (93,iostat=ierro)
             call abend
      &('SIXTRACR CRCHECK failure positioning dynksets.dat ')
          end if
-
++if boinc
+         call boincrf("dynksets.dat",filename)
+         open(unit=665,file=filename,status="old",
+     &        action="readwrite", err=110)
++ei
++if .not.boinc
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
++ei
          dynkfilepos = 0 ! Start counting lines at 0, not -1
          
  701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
