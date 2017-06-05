@@ -53776,6 +53776,10 @@ c$$$            endif
      &eps123_avg !initial,minimum,maximum,average emittance
       double precision, dimension(3) :: phi123_0  !initial phase
 
++if boinc
+      character*256 filename
++ei
+
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
       write (lout,*) "FIO not supported in FMA!"
@@ -53808,8 +53812,15 @@ c$$$            endif
      &        "for file 'fma_sixtrack', but it was already taken?"
          call prror(-1)
       endif
++if boinc
+      call boincrf("fma_sixtrack",filename)
+      open(2001001,file=filename,status='replace',iostat=ierro,         &
+     &     action='write',form='formatted')
++ei
++if .not.boinc
       open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,   &
      &action='write',form='formatted')
++ei
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
 
