@@ -41255,7 +41255,7 @@ C Should get me a NaN
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 
-         ! DYNK PIPE does not support the CR version, so BOINC support isn't needed
+         ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
      &        iostat=stat,status="OLD")
@@ -41287,6 +41287,7 @@ C Should get me a NaN
             call prror(-1)
          end if
          
+         ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
          open(unit=iexpr_dynk(niexpr_dynk)+1,
      &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
      &        iostat=stat,status="OLD")
