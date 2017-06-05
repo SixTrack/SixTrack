@@ -53869,8 +53869,15 @@ c$$$            endif
               call fma_error(-1,'file '//trim(stringzero                &
      &trim(dump_fname(j)))//' has to be open','fma_postpr')
             endif
++if boinc
+            call boincrf(dump_fname(j),filename)
+            open(dumpunit(j),file=filename,status='old',
+     &iostat=ierro,action='read')
++ei
++if .not.boinc
             open(dumpunit(j),file=dump_fname(j),status='old',
      &iostat=ierro,action='read')
++ei
             call fma_error(ierro,'cannot open file '//trim(stringzero   &
      &trim(dump_fname(j))),'fma_postpr')
 
@@ -53929,8 +53936,15 @@ c$$$            endif
                call prror(-1)
             endif
            
++if boinc
+            call boincrf('NORM_'//dump_fname(j),filename)
+            open(200101+i*10,file=filename,
+     &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
++ei
++if .not.boinc
             open(200101+i*10,file='NORM_'//dump_fname(j),
      &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
++ei
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
             write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
@@ -54183,9 +54197,17 @@ c$$$            endif
             close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
             close(dumpunit(j))
 !    resume initial position of dumpfile = end of file
++if boinc
+            call boincrf(dump_fname(j),filename)
+            open(dumpunit(j),file=filename, status='old',               &
+     &form='formatted',action='readwrite',position='append',            &
+     &iostat=ierro)
++ei
++if .not.boinc
             open(dumpunit(j),file=dump_fname(j), status='old',          &
      &form='formatted',action='readwrite',position='append',            &
      &iostat=ierro)
++ei
             call fma_error(ierro,'while resuming file '//dump_fname(j), &
      &'fma_postpr')
           endif !END: if fma_fname(i) matches dump_fname(j)
