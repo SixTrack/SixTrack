@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.22'/
-      data moddate /'01.06.2017'/
+      data version /'4.6.25'/
+      data moddate /'06.06.2017'/
 +cd license
 !!SixTrack
 !!
@@ -80,6 +80,11 @@
 !     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
       integer lout
       common /crflags/lout
++cd errout
+!     Set the exit status in case of an error.
+      integer errout_status
+      common /errout/ errout_status
+      
 +cd commtim
       real r1,timestart,timenow
       common /mytimes/timestart
@@ -9443,13 +9448,7 @@ cc2008
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
           write(lout,10040) ifail
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
         do 200 jsex=1,jeltot
@@ -9662,13 +9661,8 @@ cc2008
    20   continue
         if(point.gt.4000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('Problem with data in fort.23')
-+ei
-+if .not.cr
-          stop
-+ei
+          write(lout,'(a)') "Problem with data in fort.23"
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -10358,13 +10352,7 @@ cc2008
         if(ifail.ne.0.and.ifail.ne.5) then
 !-----------------------------------------------------------------------
           write(lout,10040) ifail
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
         do 170 jsex=1,jeltot
@@ -10574,13 +10562,7 @@ cc2008
    20   continue
         if(point.gt.8000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -10596,13 +10578,7 @@ cc2008
    30   continue
         if(point.gt.8000) then
           write(lout,10000)
-          call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-          stop
-+ei
+          call prror(-1)
         end if
 !-----------------------------------------------------------------------
 !---- DATA PROCESSING
@@ -23385,6 +23361,7 @@ C Should get me a NaN
 +if crlibm
 +ca crlibco
 +ei
++ca errout
 !-----------------------------------------------------------------------
 !
 !  SIXTRACK
@@ -23509,6 +23486,10 @@ C Should get me a NaN
      &' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
+      
+      errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                                ! If prror is called, it will be set internally.
+      
 +if crlibm
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
@@ -23671,7 +23652,10 @@ C Should get me a NaN
 ! Re-instated and REQUIRED version 4516
         !call boinc_unzip()
         !call system('unzip Sixin.zip')
-        call f_read_archive("Sixin.zip",".")
+        
+        call boincrf("Sixin.zip",filename)
+        ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
+        call f_read_archive(trim(filename),".")
         go to 611
       endif
 +if fio
@@ -25024,12 +25008,26 @@ C Should get me a NaN
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
-             if ( dumpfmt(i).eq.3 ) then
+             if ( dumpfmt(i).eq.3 ) then !Binary dump
++if boinc
+                 call boincrf(dump_fname(i),filename)
+                 open(dumpunit(i),file=filename,
+     &                status='replace',form='unformatted')
++ei
++if .not.boinc
                  open(dumpunit(i),file=dump_fname(i),
      &                status='replace',form='unformatted')
-             else
++ei
+             else !ASCII dump
++if boinc
+                 call boincrf(dump_fname(i),filename)
+                 open(dumpunit(i),file=filename,
+     &                status='replace',form='formatted')
++ei
++if .not.boinc
                  open(dumpunit(i),file=dump_fname(i),
      &                status='replace',form='formatted')
++ei
              endif
 +if cr
              dumpfilepos(i) = 0
@@ -25519,7 +25517,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop ! We're done in maincr, no error :)
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -26090,7 +26088,7 @@ C Should get me a NaN
             write(lout,*)
             write(lout,*) "ERROR"
             write(lout,*) "thin6dua not supported by collimation"
-            STOP
+            call prror(-1)
           endif
 +ei
           call thin6dua(nthinerr)
@@ -26418,12 +26416,7 @@ C Should get me a NaN
      &           enerror, bunchlength )
          else
             write(lout,*) 'INFO> review your distribution parameters !!'
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-            stop
-+ei
+            call prror(-1)
          endif
 !
        endif
@@ -29238,7 +29231,7 @@ C Should get me a NaN
      &               "attempting to use a halo not purely in the "//
      &               "horizontal or vertical plane with pencil_dist=3"//
      &               " - abort."
-                stop
+               call prror(-1)
              endif
              
 !     calculate offset from tilt of positive and negative jaws, at start and end
@@ -29370,7 +29363,7 @@ C Should get me a NaN
                 endif
               else
                 Write(lout,*) "ERROR: Non-zero length collimator!"
-                STOP
+                call prror(-1)
               endif
 !
               flukaname(j) = ipart(j)+100*samplenumber
@@ -30197,12 +30190,7 @@ C Should get me a NaN
      &                  part_impact(j)
                   write(outlun,*) 'ERR>  Invalid impact parameter!',    &
      &                  part_impact(j)
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
+                  call prror(-1)
                 endif
                 n_impact = n_impact + 1
                 sum = sum + part_impact(j)
@@ -33349,7 +33337,7 @@ C Should get me a NaN
       if (do_coll) then
          write(lout,*) "Error: in trauthck and do_coll is TRUE"
          write(lout,*) "Collimation is not supported for thick tracking"
-         STOP
+         call prror(-1)
       endif
 +ei
 
@@ -33857,7 +33845,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
       
@@ -34425,7 +34413,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
 
@@ -35106,7 +35094,7 @@ C Should get me a NaN
          write (lout,*) 
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
-      stop
+         call prror(-1)
 !+ca dumplines
       endif
 
@@ -36685,6 +36673,7 @@ C Should get me a NaN
 +ca commonta
 +ca commonl
 +ca commonc
++ca errout      
 !-----------------------------------------------------------------------
       character*10 cmonth
       character*80 day,runtim
@@ -36714,6 +36703,9 @@ C Should get me a NaN
 +ei
 +ca version
 
+      errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                                ! If prror is called, it will be set internally.
+      
 +if .not.cr
       lout=output_unit
 +ei
@@ -37105,7 +37097,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      stop ! We're done in mainda, no error :)
 +ei
 +if .not.tilt
 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
@@ -40229,6 +40221,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
+      use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca crcoall
 +if crlibm
@@ -40243,8 +40236,12 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
++ca errout
       save
 !-----------------------------------------------------------------------
+
+      errout_status = ier
+      
       write(lout,10000)
       goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !1-10  
      &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !11-20 
@@ -40475,7 +40472,9 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+      write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &     errout_status
+      stop 1
 +ei
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10,  &
@@ -40699,6 +40698,10 @@ C Should get me a NaN
       integer errno
 +ei
 
++if boinc
+      character*256 filename
++ei
+
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
       write (lout,*) "FIO not supported in DYNK!"
@@ -40831,9 +40834,16 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
-         
+
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat,status="OLD")
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status="OLD")
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
             write(lout,*) "DYNK> Error opening file '" //
@@ -40957,8 +40967,15 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat,status='OLD')
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status='OLD')
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
             write(lout,*) "DYNK> Error opening file '" //
@@ -41241,6 +41258,7 @@ C Should get me a NaN
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 
+         ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
      &        iostat=stat,status="OLD")
@@ -41272,6 +41290,7 @@ C Should get me a NaN
             call prror(-1)
          end if
          
+         ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
          open(unit=iexpr_dynk(niexpr_dynk)+1,
      &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
      &        iostat=stat,status="OLD")
@@ -41557,8 +41576,15 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat, status="OLD")
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat, status="OLD")
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
             write(lout,*) "DYNK> Error opening file '" //
@@ -42942,6 +42968,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if cr
 +ca comdynkcr
 +ei
++if boinc
+      character*256 filename
++ei
 
 +if collimat
 +ca collpara
@@ -43066,8 +43095,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &                       " was already taken"
               call prror(-1)
             end if
++if boinc
+            call boincrf("dynksets.dat",filename)
+            open(unit=665, file=filename,
+     &           status="replace",action="write")
++ei
++if .not.boinc
             open(unit=665, file="dynksets.dat",
-     &           status="replace",action="write") 
+     &           status="replace",action="write")
++ei
 
             if (ldynkfiledisable) then
                write (665,*) "### DYNK file output was disabled ",
@@ -46007,13 +46043,8 @@ c$$$            endif
             write(lout,*) 'DIVISION BY ZERO EXPECTED.'
             write(lout,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
             write(lout,10000) ' SUSPECTED CORRECTOR: ',j
-            call closeUnits
-+if cr
-      call abend('777                                               ')
-+ei
-+if .not.cr
-            stop 777
-+ei
+            write(lout,'(a)') "Error '777' in subroutine htls"
+            call prror(-1)
           endif
 
           rho(j)=h
@@ -53749,6 +53780,10 @@ c$$$            endif
      &eps123_avg !initial,minimum,maximum,average emittance
       double precision, dimension(3) :: phi123_0  !initial phase
 
++if boinc
+      character*256 filename
++ei
+
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
       write (lout,*) "FIO not supported in FMA!"
@@ -53781,8 +53816,15 @@ c$$$            endif
      &        "for file 'fma_sixtrack', but it was already taken?"
          call prror(-1)
       endif
++if boinc
+      call boincrf("fma_sixtrack",filename)
+      open(2001001,file=filename,status='replace',iostat=ierro,         &
+     &     action='write',form='formatted')
++ei
++if .not.boinc
       open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,   &
      &action='write',form='formatted')
++ei
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
 
@@ -53831,8 +53873,15 @@ c$$$            endif
               call fma_error(-1,'file '//trim(stringzero                &
      &trim(dump_fname(j)))//' has to be open','fma_postpr')
             endif
++if boinc
+            call boincrf(dump_fname(j),filename)
+            open(dumpunit(j),file=filename,status='old',
+     &iostat=ierro,action='read')
++ei
++if .not.boinc
             open(dumpunit(j),file=dump_fname(j),status='old',
      &iostat=ierro,action='read')
++ei
             call fma_error(ierro,'cannot open file '//trim(stringzero   &
      &trim(dump_fname(j))),'fma_postpr')
 
@@ -53891,8 +53940,15 @@ c$$$            endif
                call prror(-1)
             endif
            
++if boinc
+            call boincrf('NORM_'//dump_fname(j),filename)
+            open(200101+i*10,file=filename,
+     &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
++ei
++if .not.boinc
             open(200101+i*10,file='NORM_'//dump_fname(j),
      &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
++ei
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
             write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
@@ -54145,9 +54201,17 @@ c$$$            endif
             close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
             close(dumpunit(j))
 !    resume initial position of dumpfile = end of file
++if boinc
+            call boincrf(dump_fname(j),filename)
+            open(dumpunit(j),file=filename, status='old',               &
+     &form='formatted',action='readwrite',position='append',            &
+     &iostat=ierro)
++ei
++if .not.boinc
             open(dumpunit(j),file=dump_fname(j), status='old',          &
      &form='formatted',action='readwrite',position='append',            &
      &iostat=ierro)
++ei
             call fma_error(ierro,'while resuming file '//dump_fname(j), &
      &'fma_postpr')
           endif !END: if fma_fname(i) matches dump_fname(j)
@@ -54182,13 +54246,42 @@ c$$$            endif
 +ca stringzerotrim
 +ca zipf
 +ca crcoall
++if boinc
+      character*(stringzerotrim_maxlen) zipf_outfile_boinc
+      character(stringzerotrim_maxlen)
+     &     zipf_filenames_boinc(zipf_maxfiles)
+      integer ii
++ei
 
       write(lout,'(a,a,a)')
      &     "ZIPF: Compressing file '",
      &     trim(stringzerotrim(zipf_outfile)),"'..."
 
-+if libarchive !If not, the zipf subroutine shall just be a stub.
++if libarchive
++if boinc
+      !For BOINC, we may need to translate the filenames.
+      call boincrf(trim(stringzerotrim(zipf_outfile)),
+     &zipf_outfile_boinc )
+      
+      do ii=1,zipf_numfiles
+         call boincrf(trim(stringzerotrim(zipf_filenames(ii))),
+     &        zipf_filenames_boinc(ii) )
+         zipf_filenames_boinc(ii) = trim(zipf_filenames_boinc(ii))
+      end do
+
+      !The f_write_archive function will handle the conversion from Fortran to C-style strings
+      call f_write_archive
+     &     (trim(zipf_outfile_boinc),zipf_filenames_boinc,zipf_numfiles)
++ei
+
++if .not.boinc
       call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
++ei
++ei
+
++if .not.libarchive
+!     If not libarchive, the zipf subroutine shall just be a stub. And anyway daten should not accept the block, so this is somewhat redundant...
+      write(lout,'(a)') " *** No libArchive in this SixTrack *** "
 +ei
 
       write(lout,'(a)') "Done!"
@@ -55214,13 +55307,7 @@ c$$$            endif
       return
  900  write(lout,910) p0
  910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
-      call closeUnits
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
+      call prror(-1)
       end
 +dk myrinv
       subroutine kerset(ercode,lgfile,limitm,limitr)
@@ -56318,7 +56405,7 @@ c$$$            endif
          write(lout,*) 'ERR>  In subroutine collimate2:'
          write(lout,*) 'ERR>  Material "', c_material, '" not found.'
          write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-         STOP
+         call prror(-1)
       endif
 !
         length  = c_length
@@ -56623,7 +56710,7 @@ c$$$            endif
             s = (-1d0*x) / xp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57100,7 +57187,7 @@ c$$$          endif
          mat = 12
       else
          write(lout,*) 'ERR>  Material not found. STOP', c_material
-!        STOP
+         call prror(-1)
       endif
 !
         length  = c_length
@@ -57361,7 +57448,7 @@ c$$$          endif
             s = (-1.0d0*x) / xp
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (1)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57382,7 +57469,7 @@ c$$$          endif
             s = (-1.0d0*z) / zp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen (2)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -57411,7 +57498,7 @@ c$$$          endif
 !
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (3)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -58109,7 +58196,7 @@ c$$$          endif
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then  ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
             write(lout,*) "Stop in makedis_coll. attempting to use halo type 
      &3 with Gaussian dist. "
-            stop
+            call prror(-1)
 c$$$            phix = (2d0*pi)*dble(rndm4())                                 
 c$$$            iix = (-1d0*myemitx0) * log( dble(rndm4()) )                  
 c$$$            myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                  
@@ -61116,12 +61203,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         write(lout,*) '!!!!! WARNING !!!!!'
         write(lout,*)'beambeamdist.dat is either missing or too small'
         write(lout,*)
-+if cr
-        call abend('bnlelens input file error                         ')
-+ei      
-+if .not.cr
-        stop
-+ei
+        write(lout,'(a)') 'bnlelens input file error'
+        call prror(-1)
       else
         write(lout,*) "Number of samples in the bunch = ",mynp
       endif
@@ -61971,9 +62054,15 @@ c$$$         backspace (93,iostat=ierro)
             call abend
      &('SIXTRACR CRCHECK failure positioning dynksets.dat ')
          end if
-
++if boinc
+         call boincrf("dynksets.dat",filename)
+         open(unit=665,file=filename,status="old",
+     &        action="readwrite", err=110)
++ei
++if .not.boinc
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
++ei
          dynkfilepos = 0 ! Start counting lines at 0, not -1
          
  701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
@@ -61983,8 +62072,15 @@ c$$$         backspace (93,iostat=ierro)
          endfile (665,iostat=ierro)
 !         backspace (665,iostat=ierro)
          close(665)
++if boinc
+         call boincrf("dynksets.dat",filename)
+         open(unit=665, file=filename, status="old",
+     &        position='append', action="write")
++ei
++if .not.boinc
          open(unit=665, file="dynksets.dat", status="old",
      &        position='append', action="write")
++ei
          
          write(93,*)                                                     &
      &'SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, '//
@@ -62013,8 +62109,15 @@ c$$$         backspace (93,iostat=ierro)
             inquire( unit=dumpunit(i), opened=lopen )
             if (dumpfmt(i) .ne. 3 ) then ! ASCII
                if ( .not. lopen ) then
++if boinc
+                  call boincrf(dump_fname(i),filename)
+                  open(dumpunit(i),file=filename, status='old',
+     &                 form='formatted',action='readwrite')
++ei
++if .not.boinc
                   open(dumpunit(i),file=dump_fname(i), status='old',
      &                 form='formatted',action='readwrite')
++ei
                endif
 
                dumpfilepos(i) = 0
@@ -62025,8 +62128,15 @@ c$$$         backspace (93,iostat=ierro)
 
             else                         ! BINARY (format = 3)
                if ( .not. lopen ) then
++if boinc
+                  call boincrf(dump_fname(i),filename)
+                  open(dumpunit(i),file=filename,status='old',
+     &                 form='unformatted',action='readwrite')
++ei
++if .not.boinc
                   open(dumpunit(i),file=dump_fname(i),status='old',
      &                 form='unformatted',action='readwrite')
++ei
                endif
                dumpfilepos(i) = 0
  703           read(dumpunit(i),end=111,err=111,iostat=ierro)
@@ -62048,11 +62158,25 @@ C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
             if (dumpfmt(i).ne.3) then ! ASCII
++if boinc
+               call boincrf(dump_fname(i),filename)
+               open(dumpunit(i),file=filename, status='old',
+     &             position='append', form='formatted',action='write')
++ei
++if .not.boinc
                open(dumpunit(i),file=dump_fname(i), status='old',
      &             position='append', form='formatted',action='write')
++ei
             else                      ! Binary (format = 3)
++if boinc
+               call boincrf(dump_fname(i),filename)
+               open(dumpunit(i),file=filename, status='old',
+     &             position='append', form='unformatted',action='write')
++ei
++if .not.boinc
                open(dumpunit(i),file=dump_fname(i), status='old',
      &             position='append', form='unformatted',action='write')
++ei
             endif
          endif
       end do
@@ -63455,7 +63579,9 @@ c$$$         backspace (93,iostat=ierro)
       r1=timenow-timestart
       return
       end
+      
       subroutine abend(cstring)
+      use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca parpro
 +ca parnum
@@ -63464,6 +63590,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonxz
 +ca crco
 +ca version
++ca errout
       integer i,lstring,j
       character*(*) cstring
       character*256 filename
@@ -63615,8 +63742,8 @@ c$$$         backspace (93,iostat=ierro)
       close(96,err=7)
     7 continue
       if (lout.eq.92) then
-        write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND copying fort.92'
+        write(93,*)
+     &'SIXTRACR STOP/ABEND copying fort.92 to fort.6'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         rewind 92
@@ -63624,20 +63751,20 @@ c$$$         backspace (93,iostat=ierro)
         lstring=1024
         do i=1024,2,-1
           lstring=i
-          if (arecord(i:i).ne.' ')goto 2
+          if (arecord(i:i).ne.' ') goto 2
           lstring=lstring-1
         enddo
     2   write(6,'(a)',iostat=ierro) arecord(1:lstring)
         goto 3
       endif
-    1 write(6,*,iostat=ierro)                                                        &
+    1 write(6,*,iostat=ierro)
      &'SIXTRACR stop '//cstring
       close(6,iostat=ierro)
-!     and get rid of fort.92 (DON'T zip it to save some bytes)
+!     and get rid of fort.92
       rewind 92
       endfile (92,iostat=ierro)
       close(92)
-      write(93,*)                                                       &
+      write(93,*)
      &'SIXTRACR stop '//cstring
       write(93,*)
 +if debug
@@ -63652,9 +63779,34 @@ c$$$         backspace (93,iostat=ierro)
 !+ei
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      call boinc_finish(0)
-+ei
-      stop
+      if(errout_status.ne.0) then
+         close(93)
+         call boincrf('fort.93',filename)
+         call print_lastlines_to_stderr(93,filename)
+         
+         call boincrf('fort.6',filename)
+         call print_lastlines_to_stderr(6,filename)
+      endif
+      call boinc_finish(errout_status) !This call does not return
++ei !END +if boinc
++if .not.boinc
+      if(errout_status.ne.0) then
+         close(93)
+         call print_lastlines_to_stderr(93,"fort.93")
+         call print_lastlines_to_stderr(6,"fort.6")
+
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &        errout_status
+         stop 1
+      else
+         !No error
+         stop
+      endif
++ei !END +if .not.boinc
+
+
+!!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
+
     8 write(93,*)                                                       &
      &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
       close(93)
@@ -63672,10 +63824,32 @@ c$$$         backspace (93,iostat=ierro)
  31   continue
 !     call boinc_zipitall()
 !     call boinc_finish_graphics()
-      call boinc_finish(0)
-+ei
-      stop
-+ei
+      if(errout_status.ne.0) then
+         close(93)
+         call boincrf('fort.93',filename)
+         call print_lastlines_to_stderr(93,filename)
+         
+         call boincrf('fort.6',filename)
+         call print_lastlines_to_stderr(6,filename)
+      endif
+      call boinc_finish(errout_status) !This call does not return
++ei !END +if boinc
++if .not.boinc
+      if(errout_status.ne.0) then
+         close(93)
+         call print_lastlines_to_stderr(93,"fort.93")
+         call print_lastlines_to_stderr(6,"fort.6")
+         
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &        errout_status
+         stop 1
+      else
+         !No error
+         stop
+      endif
++ei !END +if .not.boinc
++ei !END +if cr
+
 +if .not.cr
       !This one should probably remain as write(*,*) or use output_unit
       write(*,*)                                                        &
@@ -63683,9 +63857,109 @@ c$$$         backspace (93,iostat=ierro)
 +if debug
                    !call system('../crend   >> crlog')
 +ei
-      stop
-+ei
-      end
+      ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
+      if(errout_status.ne.0) then
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &        errout_status
+         stop 1
+      else
+         !No error
+         stop
+      endif
++ei !END +if .not.cr
+      end subroutine abend
+
+      subroutine print_lastlines_to_stderr(file_unit, file_name)
+!     Subroutine to copy the last nlines lines from a file to stderr
+!     It is mainly used just before exiting SixTrack in case there was an error.
+!     This is useful since STDERR is often returned from batch systems and BOINC.
+!     K.Sjobak, June 2017
+      use, intrinsic :: iso_fortran_env, only : error_unit
+      implicit none
+      
+      integer,          intent(in) :: file_unit
+      character(len=*), intent(in) :: file_name
+
+      integer nlines
+      parameter (nlines=40)
+      
+      character(1024) fileBuff (nlines)
+      integer fileBuff_idx
+      integer i,j
+      integer printLines
+
+      logical lopen
+      integer ierro
+
+!     Clear the buffer
+      do i=1,nlines
+         fileBuff(i)=''
+      end do
+      
+!     Open the file
+      inquire(unit=file_unit,opened=lopen)
+      if (lopen) then
+         write(error_unit,'(a,1x,i5,1x,a)')
+     &        "Error when opening unit #",
+     &        file_unit, ": The file is already open."
+         return
+      end if
+      
+      open(file_unit,file=file_name,form="formatted",
+     &     status="old",iostat=ierro)
+      if (ierro .ne. 0) then
+         write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')
+     &        "Error when opening file '",file_name, "' on unit #",
+     &        file_unit, ", iostat =",ierro
+         return
+      endif
+      
+!     Read into fileBuff as a ring buffer.
+      fileBuff_idx = 1
+      j = 0
+      
+ 1    read(file_unit,'(a1024)',end=3,err=2,iostat=ierro)
+     &     fileBuff(fileBuff_idx)
+    ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
+      fileBuff_idx = fileBuff_idx+1
+      if (fileBuff_idx.ge.nlines) fileBuff_idx = 1
+      j = j+1
+      goto 1
+      
+ 2    continue                  !An error occured
+      write(error_unit,'(a,1x,i5)')
+     &     "An error occured while reading the file, iostat=",ierro
+
+      
+ 3    continue                  !EOF or error; anyway we're done.
+      close(file_unit)
+
+!     Print stuff back out from the buffer
+      if (j .lt. nlines) then
+         printLines = j
+         fileBuff_idx=1
+      else
+         printLines = nlines
+      endif
+      write(error_unit,'(a,1x,i5,1x,a,a,a)')
+     &     "******* Last",printLines,"lines of file '",
+     &     file_name,"': *******"
+      
+      i = fileBuff_idx          !Position in buffer (we have already incremented i)
+      j = 0                     !How many have we printed
+      
+ 10   if (i.gt.nlines) i=1      ! i is wrapping
+      write(error_unit,'(a)') trim(fileBuff(i))
+      i = i+1
+      j = j+1                   ! j just counts
+      if (j.lt.printLines) goto 10
+
+      write(error_unit,'(a,a,a)')
+     &     "******* Done writing tail of file '",file_name,
+     &     "' to stderr *******"
+      
+      end subroutine print_lastlines_to_stderr
+      
 +dk plotdumy
       subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
       implicit none
@@ -65803,7 +66077,7 @@ c$$$         backspace (93,iostat=ierro)
       enddo
       if (pressID.eq.0) then
        write(lout,*) 'Couldnt find pressure marker at',totals
-       stop
+       call prror(-1)
       endif
       
       doLorentz=0
@@ -65895,7 +66169,7 @@ c$$$         backspace (93,iostat=ierro)
            write(lout,*) "ERROR> there is something wrong",             &
      &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
      &      new4MomCoord
-           stop
+            call prror(-1)
           else
 !           boosted xp event
            bgxpdb(choice) = z(1)
@@ -66051,7 +66325,7 @@ c$$$         backspace (93,iostat=ierro)
       j=j+1
        if (j>bgmaxx) then
          write(lout,*) 'ERROR> Too many pressure markers!'
-         stop
+         call prror(-1)
        endif
       else if (filereaderror.lt.0) then
 !       means that end of file is reached
@@ -66094,7 +66368,7 @@ c$$$         backspace (93,iostat=ierro)
          if (previousEvent.gt.dpmjetevents) exit
          if (numberOfEvents.gt.(bgmaxx-1)) then
          write(lout,*) 'ERROR> Too many dpmjet events!'
-         stop
+         call prror(-1)
       endif
       enddo
 !       number of lines in dpmjet - 1
@@ -66107,7 +66381,7 @@ c$$$         backspace (93,iostat=ierro)
          write(lout,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
          write(lout,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
      &events'
-         stop
+         call prror(-1)
       endif
       write(lout,*) 'INFO> This is job number: ', njobthis
       write(lout,*) 'INFO> Total number of jobs is: ', njobs
