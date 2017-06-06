@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.24'/
-      data moddate /'05.06.2017'/
+      data version /'4.6.25'/
+      data moddate /'06.06.2017'/
 +cd license
 !!SixTrack
 !!
@@ -25526,7 +25526,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 0 ! We're done in maincr:)
+      stop ! We're done in maincr, no error :)
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -37106,7 +37106,7 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop 0 ! We're done in mainda :)
+      stop ! We're done in mainda, no error :)
 +ei
 +if .not.tilt
 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
@@ -40230,6 +40230,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
+      use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca crcoall
 +if crlibm
@@ -40480,7 +40481,9 @@ C Should get me a NaN
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop errout_status
+      write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &     errout_status
+      stop 1
 +ei
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10,  &
@@ -63587,6 +63590,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       
       subroutine abend(cstring)
+      use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca parpro
 +ca parnum
@@ -63747,7 +63751,7 @@ c$$$         backspace (93,iostat=ierro)
       close(96,err=7)
     7 continue
       if (lout.eq.92) then
-        write(93,*)                                                     &
+        write(93,*)
      &'SIXTRACR STOP/ABEND copying fort.92 to fort.6'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
@@ -63756,20 +63760,20 @@ c$$$         backspace (93,iostat=ierro)
         lstring=1024
         do i=1024,2,-1
           lstring=i
-          if (arecord(i:i).ne.' ')goto 2
+          if (arecord(i:i).ne.' ') goto 2
           lstring=lstring-1
         enddo
     2   write(6,'(a)',iostat=ierro) arecord(1:lstring)
         goto 3
       endif
-    1 write(6,*,iostat=ierro)                                                        &
+    1 write(6,*,iostat=ierro)
      &'SIXTRACR stop '//cstring
       close(6,iostat=ierro)
-!     and get rid of fort.92 (DON'T zip it to save some bytes)
+!     and get rid of fort.92
       rewind 92
       endfile (92,iostat=ierro)
       close(92)
-      write(93,*)                                                       &
+      write(93,*)
      &'SIXTRACR stop '//cstring
       write(93,*)
 +if debug
@@ -63794,14 +63798,24 @@ c$$$         backspace (93,iostat=ierro)
       endif
       call boinc_finish(errout_status) !This call does not return
 +ei !END +if boinc
++if .not.boinc
       if(errout_status.ne.0) then
          close(93)
          call print_lastlines_to_stderr(93,"fort.93")
          call print_lastlines_to_stderr(6,"fort.6")
-      endif
-      stop errout_status
 
-!     In case of errors when copying fort.92 (lout) -> fort.6
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &        errout_status
+         stop 1
+      else
+         !No error
+         stop
+      endif
++ei !END +if .not.boinc
+
+
+!!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
+
     8 write(93,*)                                                       &
      &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
       close(93)
@@ -63827,15 +63841,24 @@ c$$$         backspace (93,iostat=ierro)
          call boincrf('fort.6',filename)
          call print_lastlines_to_stderr(6,filename)
       endif
-      call boinc_finish(errout_status)
+      call boinc_finish(errout_status) !This call does not return
 +ei !END +if boinc
++if .not.boinc
       if(errout_status.ne.0) then
          close(93)
          call print_lastlines_to_stderr(93,"fort.93")
          call print_lastlines_to_stderr(6,"fort.6")
+         
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &        errout_status
+         stop 1
+      else
+         !No error
+         stop
       endif
-      stop errout_status
++ei !END +if .not.boinc
 +ei !END +if cr
+
 +if .not.cr
       !This one should probably remain as write(*,*) or use output_unit
       write(*,*)                                                        &
@@ -63844,7 +63867,14 @@ c$$$         backspace (93,iostat=ierro)
                    !call system('../crend   >> crlog')
 +ei
       ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
-      stop errout_status
+      if(errout_status.ne.0) then
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+     &        errout_status
+         stop 1
+      else
+         !No error
+         stop
+      endif
 +ei !END +if .not.cr
       end subroutine abend
 
