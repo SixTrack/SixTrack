@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.23'/
-      data moddate /'04.06.2017'/
+      data version /'4.6.24'/
+      data moddate /'05.06.2017'/
 +cd license
 !!SixTrack
 !!
@@ -23652,7 +23652,10 @@ C Should get me a NaN
 ! Re-instated and REQUIRED version 4516
         !call boinc_unzip()
         !call system('unzip Sixin.zip')
-        call f_read_archive("Sixin.zip",".")
+        
+        call boincrf("Sixin.zip",filename)
+        ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
+        call f_read_archive(trim(filename),".")
         go to 611
       endif
 +if fio
@@ -25005,12 +25008,26 @@ C Should get me a NaN
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
-             if ( dumpfmt(i).eq.3 ) then
+             if ( dumpfmt(i).eq.3 ) then !Binary dump
++if boinc
+                 call boincrf(dump_fname(i),filename)
+                 open(dumpunit(i),file=filename,
+     &                status='replace',form='unformatted')
++ei
++if .not.boinc
                  open(dumpunit(i),file=dump_fname(i),
      &                status='replace',form='unformatted')
-             else
++ei
+             else !ASCII dump
++if boinc
+                 call boincrf(dump_fname(i),filename)
+                 open(dumpunit(i),file=filename,
+     &                status='replace',form='formatted')
++ei
++if .not.boinc
                  open(dumpunit(i),file=dump_fname(i),
      &                status='replace',form='formatted')
++ei
              endif
 +if cr
              dumpfilepos(i) = 0
@@ -40678,6 +40695,10 @@ C Should get me a NaN
       integer errno
 +ei
 
++if boinc
+      character*256 filename
++ei
+
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
       write (lout,*) "FIO not supported in DYNK!"
@@ -40810,9 +40831,16 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
-         
+
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat,status="OLD")
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status="OLD")
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
             write(lout,*) "DYNK> Error opening file '" //
@@ -40936,8 +40964,15 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat,status='OLD')
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat,status='OLD')
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
             write(lout,*) "DYNK> Error opening file '" //
@@ -41220,6 +41255,7 @@ C Should get me a NaN
      &trim(stringzerotrim(
      &cexpr_dynk(ncexpr_dynk)))//"'"
 
+         ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
          open(unit=iexpr_dynk(niexpr_dynk),
      &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
      &        iostat=stat,status="OLD")
@@ -41251,6 +41287,7 @@ C Should get me a NaN
             call prror(-1)
          end if
          
+         ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
          open(unit=iexpr_dynk(niexpr_dynk)+1,
      &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
      &        iostat=stat,status="OLD")
@@ -41536,8 +41573,15 @@ C Should get me a NaN
      &           "' was already taken"
             call prror(-1)
          end if
++if boinc
+         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
+         open(unit=664,file=filename,action='read',
+     &        iostat=stat, status="OLD")
++ei
++if .not.boinc
          open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
      &        iostat=stat, status="OLD")
++ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
             write(lout,*) "DYNK> Error opening file '" //
@@ -42921,6 +42965,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if cr
 +ca comdynkcr
 +ei
++if boinc
+      character*256 filename
++ei
 
 +if collimat
 +ca collpara
@@ -43045,8 +43092,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &                       " was already taken"
               call prror(-1)
             end if
++if boinc
+            call boincrf("dynksets.dat",filename)
+            open(unit=665, file=filename,
+     &           status="replace",action="write")
++ei
++if .not.boinc
             open(unit=665, file="dynksets.dat",
-     &           status="replace",action="write") 
+     &           status="replace",action="write")
++ei
 
             if (ldynkfiledisable) then
                write (665,*) "### DYNK file output was disabled ",
@@ -53723,6 +53777,10 @@ c$$$            endif
      &eps123_avg !initial,minimum,maximum,average emittance
       double precision, dimension(3) :: phi123_0  !initial phase
 
++if boinc
+      character*256 filename
++ei
+
 +if fio
 ! Do not support FIO, it is not supported by any compilers.
       write (lout,*) "FIO not supported in FMA!"
@@ -53755,8 +53813,15 @@ c$$$            endif
      &        "for file 'fma_sixtrack', but it was already taken?"
          call prror(-1)
       endif
++if boinc
+      call boincrf("fma_sixtrack",filename)
+      open(2001001,file=filename,status='replace',iostat=ierro,         &
+     &     action='write',form='formatted')
++ei
++if .not.boinc
       open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,   &
      &action='write',form='formatted')
++ei
       call fma_error(ierro,'cannot open file fma_sixtrack for writing!',&
      &'fma_postpr')
 
@@ -53805,8 +53870,15 @@ c$$$            endif
               call fma_error(-1,'file '//trim(stringzero                &
      &trim(dump_fname(j)))//' has to be open','fma_postpr')
             endif
++if boinc
+            call boincrf(dump_fname(j),filename)
+            open(dumpunit(j),file=filename,status='old',
+     &iostat=ierro,action='read')
++ei
++if .not.boinc
             open(dumpunit(j),file=dump_fname(j),status='old',
      &iostat=ierro,action='read')
++ei
             call fma_error(ierro,'cannot open file '//trim(stringzero   &
      &trim(dump_fname(j))),'fma_postpr')
 
@@ -53865,8 +53937,15 @@ c$$$            endif
                call prror(-1)
             endif
            
++if boinc
+            call boincrf('NORM_'//dump_fname(j),filename)
+            open(200101+i*10,file=filename,
+     &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
++ei
++if .not.boinc
             open(200101+i*10,file='NORM_'//dump_fname(j),
      &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
++ei
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
             write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
@@ -54119,9 +54198,17 @@ c$$$            endif
             close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
             close(dumpunit(j))
 !    resume initial position of dumpfile = end of file
++if boinc
+            call boincrf(dump_fname(j),filename)
+            open(dumpunit(j),file=filename, status='old',               &
+     &form='formatted',action='readwrite',position='append',            &
+     &iostat=ierro)
++ei
++if .not.boinc
             open(dumpunit(j),file=dump_fname(j), status='old',          &
      &form='formatted',action='readwrite',position='append',            &
      &iostat=ierro)
++ei
             call fma_error(ierro,'while resuming file '//dump_fname(j), &
      &'fma_postpr')
           endif !END: if fma_fname(i) matches dump_fname(j)
@@ -54156,13 +54243,42 @@ c$$$            endif
 +ca stringzerotrim
 +ca zipf
 +ca crcoall
++if boinc
+      character*(stringzerotrim_maxlen) zipf_outfile_boinc
+      character(stringzerotrim_maxlen)
+     &     zipf_filenames_boinc(zipf_maxfiles)
+      integer ii
++ei
 
       write(lout,'(a,a,a)')
      &     "ZIPF: Compressing file '",
      &     trim(stringzerotrim(zipf_outfile)),"'..."
 
-+if libarchive !If not, the zipf subroutine shall just be a stub.
++if libarchive
++if boinc
+      !For BOINC, we may need to translate the filenames.
+      call boincrf(trim(stringzerotrim(zipf_outfile)),
+     &zipf_outfile_boinc )
+      
+      do ii=1,zipf_numfiles
+         call boincrf(trim(stringzerotrim(zipf_filenames(ii))),
+     &        zipf_filenames_boinc(ii) )
+         zipf_filenames_boinc(ii) = trim(zipf_filenames_boinc(ii))
+      end do
+
+      !The f_write_archive function will handle the conversion from Fortran to C-style strings
+      call f_write_archive
+     &     (trim(zipf_outfile_boinc),zipf_filenames_boinc,zipf_numfiles)
++ei
+
++if .not.boinc
       call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
++ei
++ei
+
++if .not.libarchive
+!     If not libarchive, the zipf subroutine shall just be a stub. And anyway daten should not accept the block, so this is somewhat redundant...
+      write(lout,'(a)') " *** No libArchive in this SixTrack *** "
 +ei
 
       write(lout,'(a)') "Done!"
@@ -61935,9 +62051,15 @@ c$$$         backspace (93,iostat=ierro)
             call abend
      &('SIXTRACR CRCHECK failure positioning dynksets.dat ')
          end if
-
++if boinc
+         call boincrf("dynksets.dat",filename)
+         open(unit=665,file=filename,status="old",
+     &        action="readwrite", err=110)
++ei
++if .not.boinc
          open(unit=665,file='dynksets.dat',status="old",
      &        action="readwrite", err=110)
++ei
          dynkfilepos = 0 ! Start counting lines at 0, not -1
          
  701     read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
@@ -61947,8 +62069,15 @@ c$$$         backspace (93,iostat=ierro)
          endfile (665,iostat=ierro)
 !         backspace (665,iostat=ierro)
          close(665)
++if boinc
+         call boincrf("dynksets.dat",filename)
+         open(unit=665, file=filename, status="old",
+     &        position='append', action="write")
++ei
++if .not.boinc
          open(unit=665, file="dynksets.dat", status="old",
      &        position='append', action="write")
++ei
          
          write(93,*)                                                     &
      &'SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, '//
@@ -61977,8 +62106,15 @@ c$$$         backspace (93,iostat=ierro)
             inquire( unit=dumpunit(i), opened=lopen )
             if (dumpfmt(i) .ne. 3 ) then ! ASCII
                if ( .not. lopen ) then
++if boinc
+                  call boincrf(dump_fname(i),filename)
+                  open(dumpunit(i),file=filename, status='old',
+     &                 form='formatted',action='readwrite')
++ei
++if .not.boinc
                   open(dumpunit(i),file=dump_fname(i), status='old',
      &                 form='formatted',action='readwrite')
++ei
                endif
 
                dumpfilepos(i) = 0
@@ -61989,8 +62125,15 @@ c$$$         backspace (93,iostat=ierro)
 
             else                         ! BINARY (format = 3)
                if ( .not. lopen ) then
++if boinc
+                  call boincrf(dump_fname(i),filename)
+                  open(dumpunit(i),file=filename,status='old',
+     &                 form='unformatted',action='readwrite')
++ei
++if .not.boinc
                   open(dumpunit(i),file=dump_fname(i),status='old',
      &                 form='unformatted',action='readwrite')
++ei
                endif
                dumpfilepos(i) = 0
  703           read(dumpunit(i),end=111,err=111,iostat=ierro)
@@ -62012,11 +62155,25 @@ C            backspace (dumpunit(i),iostat=ierro)
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
             if (dumpfmt(i).ne.3) then ! ASCII
++if boinc
+               call boincrf(dump_fname(i),filename)
+               open(dumpunit(i),file=filename, status='old',
+     &             position='append', form='formatted',action='write')
++ei
++if .not.boinc
                open(dumpunit(i),file=dump_fname(i), status='old',
      &             position='append', form='formatted',action='write')
++ei
             else                      ! Binary (format = 3)
++if boinc
+               call boincrf(dump_fname(i),filename)
+               open(dumpunit(i),file=filename, status='old',
+     &             position='append', form='unformatted',action='write')
++ei
++if .not.boinc
                open(dumpunit(i),file=dump_fname(i), status='old',
      &             position='append', form='unformatted',action='write')
++ei
             endif
          endif
       end do
@@ -63690,7 +63847,7 @@ c$$$         backspace (93,iostat=ierro)
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
       
-      integer,          intent(in)   :: file_unit
+      integer,          intent(in) :: file_unit
       character(len=*), intent(in) :: file_name
 
       integer nlines
