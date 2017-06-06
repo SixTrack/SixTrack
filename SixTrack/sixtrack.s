@@ -7214,7 +7214,7 @@ cc2008
              call prror(-1)
           end if
 
-          if ((beam_expflag .eq. 0) .or. (beam_expflag .eq. 1)) then
+          !if (beam_expflag .eq. 0) then ! Always print this stuff -> commented out
           write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
           write(lout,'(a,g13.6,a,g13.6,a,g13.6,a)')
      &                  " ******* USING emitx=",emitx,
@@ -7345,9 +7345,9 @@ cc2008
              
              write(lout,*) trim(ch)
 +ei
-            endif
+            endif !END if(parbe(ix,2).eq.0.0)
           write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
-          endif
+          !endif !END if (beam_expflag .eq. 0) ! Always print this stuff -> commented out
           
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
