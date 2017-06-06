@@ -7209,7 +7209,7 @@ cc2008
              call prror(-1)
           end if
 
-          if (beam_expflag .eq. 0) then
+          if ((beam_expflag .eq. 0) .or. (beam_expflag .eq. 1)) then
           write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
           write(lout,'(a,g13.6,a,g13.6,a,g13.6,a)')
      &                  " ******* USING emitx=",emitx,
