@@ -24540,7 +24540,11 @@ C Should get me a NaN
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
           endif
           do 240 ib1=1,napx
-            ib2=ib0+ib1
+            !Loop over all particles (not pairs) with the same
+            ! ib (momentum variation, 1..imc ) and
+            !  m (seed,               1..mmac).
+            !It appears that only the odd (1,3,5,..) indices are actually used?
+            ib2=ib0+ib1        ! ib0 is fixed to 0 => ib2 equals ib1
             clov(1,ib2)=clo(1)
             clov(2,ib2)=clo(2)
             clopv(1,ib2)=clop(1)
@@ -24550,10 +24554,10 @@ C Should get me a NaN
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
             ampv(ib2)=amp(1)-damp*dble(ib1-1) !hr05
-            if (ib1.eq.napx) then
-               !Make sure that last pair EXACTLY corresponds to amp(1)
+            if (ib1.eq.napx-1) then
+               !Make sure that last pair EXACTLY corresponds to the end amplitude amp0
                ! This is helpfull when doing DA studies and checking the "overlap"
-               ampv(ib2)=amp(1)
+               ampv(ib2)=amp0
             endif
             dp0v(ib2)=dp10
             dpsv(ib2)=dp10
@@ -24581,13 +24585,13 @@ C Should get me a NaN
 +ei
       napxo=napx
       if(ibidu.eq.1) then
-+ca dump1
-+ca dump3
++ca dump1 !write(32)
++ca dump3 !list of variables
       endif
   550 continue
       if(ibidu.eq.2) then
-+ca dump2
-+ca dump3
++ca dump2 !read(32)
++ca dump3 !list of variables
         damp=((amp(1)-amp0)/dble(napx/2-1))/2d0                          !hr05
       endif
       do 80 i=1,npart
