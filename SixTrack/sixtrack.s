@@ -2,7 +2,7 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.26'/
+      data version /'4.6.27'/
       data moddate /'07.06.2017'/
 +cd license
 !!SixTrack
@@ -263,7 +263,8 @@
       common /wzcom2/ wtreal(idim), wtimag(idim)
 +cd parbeam_exp
       integer beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
-      common /beam_exp/ beam_expflag
+      logical beam_expfile_open ! have we opened the file 'beam_expert.txt'?
+      common /beam_exp/ beam_expflag, beam_expfile_open
 +cd beamdim
       double precision cc,xlim,ylim
       parameter(cc = 1.12837916709551d0)
@@ -7214,17 +7215,35 @@ cc2008
              call prror(-1)
           end if
 
-          if (beam_expflag .eq. 0) then
-          write(lout,'(a)') " ******* NEW BEAM BLOCK ******"
-          write(lout,'(a,g13.6,a,g13.6,a,g13.6,a)')
-     &                  " ******* USING emitx=",emitx,
-     &                               ", emity=",emity,
-     &                               ", emitz=",emitz," ******"
+          if (.not.beam_expfile_open) then
+             inquire(unit=600,opened=lopen)
+             if (lopen) then
+                write(lout,'(a)') "Error when opening beam_expert.txt"
+                write(lout,'(a)') "Unit 600 already taken."
+                call prror(-1)
+             endif
++if boinc
+             call boincrf("beam_expert.txt",filename)
+             open(600,file=filename,
+     &            status='replace',action="write")
++ei
++if .not.boinc
+             open(600,file="beam_expert.txt",
+     &            status='replace',action="write")
++ei
+             beam_expfile_open = .true.
+             !This line will be a comment if copy-pasted into fort.3
+             write(600,'(a,g13.6,a,g13.6,a,g13.6,a)')
+     &            "/ ******* USING emitx=",emitx,
+     &            ", emity=",emity,
+     &            ", emitz=",emitz," ******"
+          endif
+          
           if(parbe(ix,2).eq.0.0) then !4D
              !Note: One should always use the CRLIBM version when converting,
              ! in order to guarantee the exact same results from the converted input file.
 +if .not.crlibm
-             write(lout,"(a16,1x,a1,1x,5g30.20)")
+             write(600,"(a16,1x,a1,1x,5g30.20)")
      &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
      &            parbe(ix,5), parbe(ix,6), ptnfac(ix)
 +ei
@@ -7253,18 +7272,18 @@ cc2008
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
-             write(lout,*) trim(ch)
+             write(600,*) trim(ch)
 +ei
           else                      ! 6D
 +if .not.crlibm
-             write(lout,"(a16,1x,i4,1x,4g30.20)")
+             write(600,"(a16,1x,i4,1x,4g30.20)")
      &            bez(ix), int(parbe(ix,2)),
      &            parbe(ix,1), parbe(ix,3),
      &            parbe(ix,5), parbe(ix,6)
-             write(lout,"(5g30.20)")
+             write(600,"(5g30.20)")
      &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
      &            bbcu(ibb,2), bbcu(ibb,9)
-             write(lout,"(6g30.20)")
+             write(600,"(6g30.20)")
      &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
      &            bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
 +ei
@@ -7289,7 +7308,7 @@ cc2008
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
                           
-             write(lout,*) trim(ch)
+             write(600,*) trim(ch)
 
              l1 = 1
              ch = ' '
@@ -7314,7 +7333,7 @@ cc2008
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
-             write(lout,*) trim(ch)
+             write(600,*) trim(ch)
 
              l1 = 1
              ch = ' '
@@ -7343,11 +7362,9 @@ cc2008
              ch(l1:l1+errno) = ch1(1:errno)
              l1 = l1+errno+1
              
-             write(lout,*) trim(ch)
+             write(600,*) trim(ch)
 +ei
-            endif
-          write(lout,'(a)') " ******* END NEW BEAM BLOCK ******"
-          endif
+            endif !END if(parbe(ix,2).eq.0.0)
           
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
@@ -9050,6 +9067,7 @@ cc2008
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
++ca parbeam_exp
       integer i
       logical lopen
 !-----------------------------------------------------------------------
@@ -9220,6 +9238,11 @@ cc2008
  110    continue
       close(111,err=111)
  111    continue
+
+      if(beam_expfile_open) then
+         close(600,err=600)
+      endif
+ 600  continue
 
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 01-09-2014
@@ -16226,12 +16249,10 @@ cc2008
          
       else ! Old-style BEAM block
          write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
-         write (lout,'(a)') " Look for 'NEW BEAM BLOCK' later"//
-     &        " in the output for conversion"//
-     &        " to the new 'EXPERT' format."
+         write (lout,'(a)') " Check the file 'beam_expert.txt'"//
+     &        " for conversion to the new 'EXPERT' format."
          write (lout,'(a)') " To convert to the new format,"//
-     &        " copy-paste these lines (removing the *** lines"//
-     &        " above and below each data line) into the BEAM"//
+     &        " copy-paste these lines into the BEAM"//
      &        " block in fort.3, replacing line 2 onwards."
          write (lout,'(a)') " Then write EXPERT on the first line"//
      &        " of the BEAM block, above the current first line."
@@ -21019,6 +21040,8 @@ C Should get me a NaN
       character*25 ch1
       integer errno,l1
       integer dtostr
+      logical lopen
+      character*256 filename
 +ei
       save
 !-----------------------------------------------------------------------
@@ -37680,6 +37703,7 @@ C Should get me a NaN
   190 continue
 !-- BEAM-EXP------------------------------------------------------------
       beam_expflag = 0
+      beam_expfile_open = .false.
 
 !-- RANDOM NUMBERS-------------------------------------------------------
       do 200 i=1,nzfz
