@@ -7222,11 +7222,16 @@ cc2008
                 write(lout,'(a)') "Unit 600 already taken."
                 call prror(-1)
              endif
-
++if boinc
+             call boincrf("beam_expert.txt",filename)
+             open(600,file=filename,
+     &            status='replace',action="write")
++ei
++if .not.boinc
              open(600,file="beam_expert.txt",
      &            status='replace',action="write")
++ei
              beam_expfile_open = .true.
-
              !This line will be a comment if copy-pasted into fort.3
              write(600,'(a,g13.6,a,g13.6,a,g13.6,a)')
      &            "/ ******* USING emitx=",emitx,
@@ -21036,6 +21041,7 @@ C Should get me a NaN
       integer errno,l1
       integer dtostr
       logical lopen
+      character*256 filename
 +ei
       save
 !-----------------------------------------------------------------------
