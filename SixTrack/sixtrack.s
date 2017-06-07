@@ -7215,7 +7215,6 @@ cc2008
              call prror(-1)
           end if
 
-          !if (beam_expflag .eq. 0) then ! Always print this stuff -> commented out
           if (.not.beam_expfile_open) then
              inquire(unit=600,opened=lopen)
              if (lopen) then
@@ -7227,14 +7226,14 @@ cc2008
              open(600,file="beam_expert.txt",
      &            status='replace',action="write")
              beam_expfile_open = .true.
-             
+
+             !This line will be a comment if copy-pasted into fort.3
              write(600,'(a,g13.6,a,g13.6,a,g13.6,a)')
-     &            " ******* USING emitx=",emitx,
+     &            "/ ******* USING emitx=",emitx,
      &            ", emity=",emity,
      &            ", emitz=",emitz," ******"
           endif
           
-          !write(600,'(a)') " ******* NEW BEAM BLOCK ******"
           if(parbe(ix,2).eq.0.0) then !4D
              !Note: One should always use the CRLIBM version when converting,
              ! in order to guarantee the exact same results from the converted input file.
@@ -7361,8 +7360,6 @@ cc2008
              write(600,*) trim(ch)
 +ei
             endif !END if(parbe(ix,2).eq.0.0)
-            !write(600,'(a)') " ******* END NEW BEAM BLOCK ******"
-          !endif !END if (beam_expflag .eq. 0) ! Always print this stuff -> commented out
           
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
             call prror(88)
@@ -16247,12 +16244,10 @@ cc2008
          
       else ! Old-style BEAM block
          write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
-         write (lout,'(a)') " Look for 'NEW BEAM BLOCK' later"//
-     &        " in the output for conversion"//
-     &        " to the new 'EXPERT' format."
+         write (lout,'(a)') " Check the file 'beam_expert.txt'"//
+     &        " for conversion to the new 'EXPERT' format."
          write (lout,'(a)') " To convert to the new format,"//
-     &        " copy-paste these lines (removing the *** lines"//
-     &        " above and below each data line) into the BEAM"//
+     &        " copy-paste these lines into the BEAM"//
      &        " block in fort.3, replacing line 2 onwards."
          write (lout,'(a)') " Then write EXPERT on the first line"//
      &        " of the BEAM block, above the current first line."
