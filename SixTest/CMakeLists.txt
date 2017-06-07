@@ -125,6 +125,7 @@ if(NOT COLLIMAT)
           rfMultipoles_2ndOrder
           rfMultipoles_3rdOrder
           rfMultipoles_4thOrder
+          last_amp
           ${SIXTRACK_TESTS})
 
 endif(NOT COLLIMAT)
@@ -287,6 +288,7 @@ SET(FAST_TESTS
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
+  last_amp
   )
 
 #Medium tests take < 30 mins to run
