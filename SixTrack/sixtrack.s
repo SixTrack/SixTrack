@@ -24554,8 +24554,8 @@ C Should get me a NaN
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
             ampv(ib2)=amp(1)-damp*dble(ib1-1) !hr05
-            if (ib1.eq.napx-1) then
-               !Make sure that last pair EXACTLY corresponds to the end amplitude amp0
+            if (ib1.eq.napx-1 .and. ib1.ne.1) then
+               !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
                ! This is helpfull when doing DA studies and checking the "overlap"
                ampv(ib2)=amp0
             endif
