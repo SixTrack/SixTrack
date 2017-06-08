@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.28'/
-      data moddate /'07.06.2017'/
+      data version /'4.6.29'/
+      data moddate /'08.06.2017'/
 +cd license
 !!SixTrack
 !!
@@ -12238,7 +12238,9 @@ cc2008
       elseif (nunit.eq.3) then
         call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields) !fort.3 input
       else
-      call abend('ERIC!!! daten nunit NOT 2 nor 3!!!                ') 
+         write(lout,*) 'ERROR in DATEN: nunit NOT 2 nor 3!'
+         write(lout,*) 'Almost certainly a bug.'
+         call prror(-1)
       endif
       if (nf.gt.0) then
         read(fields(1),*) idat
@@ -18447,7 +18449,8 @@ c$$$         endif
       write (lout,*) 'f:fieldf:',f,':'//localstr
       write (lout,*) 'Function fround (rounderr) returning:',value
       
-      call abend('Treating this as FATAL!!!                         ')
+      call prror(-1)
+      
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
       return
@@ -18478,7 +18481,8 @@ c$$$         endif
      &  'Too many input fields, maximum of',nfields,' exceeded'
       endif
       
-      call abend('Treating this error as FATAL!!!                   ')
+      call prror(-1)
+      
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
@@ -18505,7 +18509,9 @@ c$$$         endif
 ! Always returns 17 or less characters as requested
       write (lout,10000)
       write (lout,*) 'Routine dtoa[f] returned string length ',ilen
-      call abend('Error from dtostr, string length not 17           ')
+      write (lout,*) 'Error from dtostr, string length not 17'
+      call prror(-1)
+      
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
@@ -21033,16 +21039,18 @@ C Should get me a NaN
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
+
+! For treatment and/or conversion of BEAM parameters in/to the new format
 +ca parbeam_exp
 +if crlibm
-      !For conversion of BEAM parameters to the new format
       character*1000 ch
       character*25 ch1
       integer errno,l1
       integer dtostr
++ei
       logical lopen
       character*256 filename
-+ei
+
       save
 !-----------------------------------------------------------------------
 +ca daini
@@ -25544,12 +25552,13 @@ C Should get me a NaN
       if (zipf_numfiles.gt.0) then
          call zipf
       endif
-      
+
+!     We're done in maincr, no error :)
 +if cr
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop ! We're done in maincr, no error :)
+      stop
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -32574,7 +32583,8 @@ C Should get me a NaN
       return
    11 write(lout,*)                                                     &
      &'*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-      call abend('SIXTRACR WRITEBIN IO ERROR on Unit 91             ')
+      write(lout,*) 'SIXTRACR WRITEBIN IO ERROR on Unit 91'
+      call prror(-1)
 +ei
       return
       end
@@ -32658,7 +32668,8 @@ C Should get me a NaN
       return
    11 write(lout,*)                                                     &
      &'*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-      call abend('SIXTRACR WRITEBIN IO ERROR on Unit 91             ')
+      write(lout,*)'SIXTRACR WRITEBIN IO ERROR on Unit 91'
+      call prror(-1)
 +ei
       return
       end
@@ -32959,14 +32970,14 @@ C Should get me a NaN
         endif
    10 continue
 +if .not.cr
-      if(ierro.ne.0) write(lout,*) 'Warning from write6: fort.12 has ', &
-     &'corrupted output probably due to lost particles'
-      if(ierro.ne.0) then                                                !hr09
+      if(ierro.ne.0) then
+         write(lout,*) 'ERROR from write6: fort.12 has ',
+     &        'corrupted output probably due to lost particles'
 +if debug
-!       call dumpbin(' write6',0,0)                                      !hr09
+!        call dumpbin(' write6',0,0)                                     !hr09
 +ei
-        call abend(' abend in write6                                  ') !hr09
-      endif                                                              !hr09
+         call prror(-1)
+      endif
 +ei
       endfile (12,iostat=ierro)
       backspace (12,iostat=ierro)
@@ -37125,11 +37136,13 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
       call closeUnits
+
+!     We're done in mainda, no error :)
 +if cr
       call abend('                                                  ')
 +ei
 +if .not.cr
-      stop ! We're done in mainda, no error :)
+      stop
 +ei
 +if .not.tilt
 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
@@ -53453,7 +53466,8 @@ c$$$            endif
       rewind 10
       endfile (10,iostat=ierro)
       close(10)
-      call abend('SIXTRACR POSTPR  *** ERROR ***                    ')
+      write(lout,*) 'SIXTRACR POSTPR  *** ERROR ***'
+      call prror(-1)
 +ei
 
  550  continue
@@ -55418,8 +55432,10 @@ c$$$            endif
          if(ercode .eq. code(i))  goto 21
   20     continue
       write(lout,1000)  ercode
-      call abend('KERNLIB Library Error                             ')
+      write(lout,*) 'KERNLIB Library Error'
+      call prror(-1)
       return
+      
   21  rflag  =  kntr(i) .ge. 1
       if(rflag  .and.  (kntr(i) .lt. 255))  kntr(i)  =  kntr(i) - 1
       mflag  =  kntm(i) .ge. 1
@@ -55718,9 +55734,10 @@ c$$$            endif
             if(kprnt.ne.0) write(lgfile,2001) name,n,idim,k
          endif
       endif
-      if(.not. rflag)                                                   &
-     &call abend('KERNLIB F010PR: '//name//                             &
-     &'                            ')
+      if(.not. rflag) then
+         write(lout,*) 'KERNLIB F010PR: '//name
+         call prror(-1)
+      end if
       return
 !
  2000 format( 7x, 'subroutine ', a6,' ... parameter',                   &
@@ -56180,9 +56197,10 @@ c$$$            endif
             endif
          endif
       endif
-      if(.not. rflag)                                                   &
-     &call abend('KERNLIB TMPRNT: '//name//                             &
-     &'                            ')
+      if(.not. rflag) then
+         write(lout,*) 'KERNLIB TMPRNT: '//name
+         call prror(-1)
+      endif
       return
 1001  format(7x,' parameter error in subroutine ', a6,                  &
      &' ... (n.lt.1 or idim.lt.n).',                                    &
@@ -58517,7 +58535,7 @@ c$$$     &           myalphay * cos(phiy))
       return
       
  20   continue
-!      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
+      
       write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
       call prror(-1)
       
@@ -61311,7 +61329,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
       enddo
       return
  20   continue
-      call abend('I/O Error on Unit 54                              ')
+      write(lout,*) 'I/O Error on Unit 54'
+      call prror(-1)
       end
 !GRD-042008
 !GRDRHIC
@@ -61392,7 +61411,8 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         write(lout,*)                                                   &
      &'SIXTRACR CRCHECK *** ERROR *** ',                                &
      &'Found fort.95/fort.96 but NO fort.6'
-      call abend('SIXTRACR CRCHECK failure                          ')
+        write(lout,*) 'SIXTRACR CRCHECK failure'
+        call prror(-1)
       endif
 +ei
 !--   Check at least one restart file is readable
@@ -61879,7 +61899,8 @@ c$$$         backspace (93,iostat=ierro)
      &numl,crnumlcr
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRCHECK numl .lt. crnumlcr               ')
+            write(lout,*) 'SIXTRACR CRCHECK numl .lt. crnumlcr'
+            call prror(-1)
           endif
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK re-sets numl in binary file headers from ',     &
@@ -62100,8 +62121,9 @@ c$$$         backspace (93,iostat=ierro)
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 
-            call abend
-     &('SIXTRACR CRCHECK failure positioning dynksets.dat ')
+            write(lout,*)
+     &           'SIXTRACR CRCHECK failure positioning dynksets.dat'
+            call prror(-1)
          end if
          if (dynkfilepos_cr .ne. -1) then
 +if boinc
@@ -62270,7 +62292,8 @@ c$$$         backspace (93,iostat=ierro)
      &myia,' IOSTAT=',ierro
       write(lout,*)'Unit',myia,                                         &
      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia)
-      call abend('SIXTRACR CRCHECK failure positioning binary files ')
+      write(lout,*) 'SIXTRACR CRCHECK failure positioning binary files'
+      call prror(-1)
 +ei
 +if stf
   102 write(lout,*)
@@ -62279,7 +62302,8 @@ c$$$         backspace (93,iostat=ierro)
      &'singletrackfile.dat for ia=',ia,' IOSTAT=',ierro
       write(lout,*)
      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia)
-      call abend('SIXTRACR CRCHECK failure positioning binary files ')
+      write(lout,*)'SIXTRACR CRCHECK failure positioning binary files'
+      call prror(-1)
 +ei
 +if .not.stf
   105 write(lout,*)
@@ -62290,7 +62314,8 @@ c$$$         backspace (93,iostat=ierro)
      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia),      &
      &' binrecs94=',binrecs94
       write(lout,*)
-      call abend('SIXTRACR CRCHECK failure copying binary files     ')
+      write(lout,*)'SIXTRACR CRCHECK failure copying binary files'
+      call prror(-1)
 +ei ! END +if .not.stf
 +if stf
   105 write(lout,*)
@@ -62301,7 +62326,8 @@ c$$$         backspace (93,iostat=ierro)
      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia),      &
      &' binrecs94=',binrecs94
       write(lout,*)
-      call abend('SIXTRACR CRCHECK failure copying binary files     ')
+      write(lout,*)'SIXTRACR CRCHECK failure copying binary files'
+      call prror(-1)
 +ei ! END +if stf
 !--  We are not checkpointing or we have no checkpoints
 !--  or we have no readable checkpoint
@@ -62359,12 +62385,14 @@ c$$$         backspace (93,iostat=ierro)
      &'sixrecs=',sixrecs,' crsixrecs=',crsixrecs
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRCHECK failure positioning fort.6       ')
+      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.6'
+      call prror(-1)
  107  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.92, iostat=',ierro
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRCHECK failure positioning fort.92      ')
+      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.92'
+      call prror(-1)
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -62374,14 +62402,16 @@ c$$$         backspace (93,iostat=ierro)
      &'bnlrec=',bnlrec,' crbnlrec=',crbnlrec
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRCHECK failure positioning fort.52      ')
+      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.52'
+      call prror(-1)
  109  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.53, iostat=',ierro
       write(93,*)                                                       &
      &'bllrec=',bllrec,' crbllrec=',crbllrec
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRCHECK failure positioning fort.53      ')
+      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.53'
+      call prror(-1)
 !GRDRHIC
 !GRD-042008
 +ei
@@ -62392,7 +62422,8 @@ c$$$         backspace (93,iostat=ierro)
      &'dynkfilepos=',dynkfilepos,' dynkfilepos_cr=',dynkfilepos_cr
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRCHECK failure positioning dynksets.dat ')
+      write(lout,*)'SIXTRACR CRCHECK failure positioning dynksets.dat'
+      call prror(-1)
 
  111  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR ***'//
@@ -62401,8 +62432,8 @@ c$$$         backspace (93,iostat=ierro)
      &'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRCHECK failure positioning DUMP file    ')
-
+      write(lout,*)'SIXTRACR CRCHECK failure positioning DUMP file'
+      call prror(-1)
 
       end
 
@@ -63040,7 +63071,8 @@ c$$$         backspace (93,iostat=ierro)
      &ierro
   103 endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      call abend('SIXTRACR CHECKPOINT I/O Error                     ')
+      write(lout,*)'SIXTRACR CHECKPOINT I/O Error'
+      call prror(-1)
       end
       subroutine crstart
 !     If we are restarting (restart is TRUE), this routine is called
@@ -63229,7 +63261,9 @@ c$$$         backspace (93,iostat=ierro)
      &' cril=',cril,' il=',il
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRSTART Problem wih cril/il extended C/R ')
+          write(lout,*)
+     &         'SIXTRACR CRSTART Problem wih cril/il extended C/R'
+          call prror(-1)
         endif
 !ERICVARS now read the extended vars from fort.95/96.
 +if debug
@@ -63536,7 +63570,8 @@ c$$$         backspace (93,iostat=ierro)
      &' iostat=',ierro
   103   endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
-      call abend('SIXTRACR CRSTART Problem with extended checkpoint ')
+        write(lout,*)'SIXTRACR CRSTART Problem with extended checkpoint'
+        call prror(-1)
       endif
   102 write(93,*)                                                       &
      &'SIXTRACR CRSTART six/crsix/bin recs',sixrecs,crsixrecs,binrec
@@ -63575,7 +63610,8 @@ c$$$         backspace (93,iostat=ierro)
       write(lout,*)                                                     &
      &' SIXTRACR CRSTART Problem re-positioning fort.6: sixrecs',       &
      &sixrecs,'crsixrecs',crsixrecs
-      call abend('SIXTRACR CRSTART Problem fort.6                   ')
+      write(lout,*)'SIXTRACR CRSTART Problem fort.6'
+      call prror(-1)
       end
 +dk aux
 !      logical function isnan(arg1,arg2)
