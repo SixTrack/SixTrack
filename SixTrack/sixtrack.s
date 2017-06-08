@@ -21039,16 +21039,18 @@ C Should get me a NaN
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
+
+! For treatment and/or conversion of BEAM parameters in/to the new format
 +ca parbeam_exp
 +if crlibm
-      !For conversion of BEAM parameters to the new format
       character*1000 ch
       character*25 ch1
       integer errno,l1
       integer dtostr
++ei
       logical lopen
       character*256 filename
-+ei
+
       save
 !-----------------------------------------------------------------------
 +ca daini
