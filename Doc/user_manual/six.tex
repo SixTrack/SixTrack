@@ -2983,6 +2983,10 @@ $\frac{\Delta p}{p_{o1}} \times \sqrt{\beta_{sIII}}$
 \end{itemize}
 and are then transformed with the 6D linear transformation into real
 space. Note that results may differ from those of older versions.
+
+\item The amplitude scan is performed from \emph{amp(1)} to \emph{amp0} in steps of \emph{delta}.
+For the intermediate amplitudes, \emph{delta} is added up for each step, however the last amplitude is guaranteed to be fixed to the given value.
+This enables ``control calculations'' by setting the first amplitude of one simulation equal to the last amplitude of another simulation, and unless there are calculation errors, they shall produce exactly the same results.
 \end{enumerate}
 
 \subsection{Initial Coordinates} \label{IniCoo}
