@@ -2,7 +2,8 @@
 import numpy as np
 
 #npart = 1936 #BIGNPART
-npart = 256**2 # HUGENPART
+#npart = 256**2 # HUGENPART, use this to make nice plots
+npart = 64**2 # HUGENPART, reduced for the sake of SixTest
 assert npart % 2 == 0
 npart_1d = int(np.sqrt(npart))
 assert npart_1d**2 == npart

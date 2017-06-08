@@ -61,9 +61,13 @@ if(NOT COLLIMAT)
                 SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
         endif(BNLELENS)
 
-	#Needs at least 2048 particles to run correctly
+        #Needs at least 2048 particles to run correctly
         if(BIGNPART OR HUGENPART)
-                SET(SIXTRACK_TESTS javier_bignpart beam-HO_6D-simple-newstyle-coupling ${SIXTRACK_TESTS})
+                SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
+        endif()
+        #Needs more than 2048 particles to run correctly
+        if(HUGENPART)
+                SET(SIXTRACK_TESTS beam-HO_6D-simple-newstyle-coupling ${SIXTRACK_TESTS})
         endif()
 
         if(BIGNBLZ OR HUGENBLZ)

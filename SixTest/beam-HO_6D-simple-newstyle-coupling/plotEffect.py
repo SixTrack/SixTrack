@@ -18,6 +18,11 @@ dumpfile_initial = np.loadtxt("dump_ip.dat",dtype=fileDType)
 npart = len(dumpfile['x'])
 npart_1d = int(np.sqrt(npart))
 assert npart_1d**2 == npart
+if npart_1d == 64:
+    print
+    print "Tip: To get nice plots, increase the number of particles and particle-pairs in makeDist_fort.13 and fort.3."
+    print "The standard SixTest version is reduced in order to keep the canonicals and fort.13 reasonably small."
+    print
 
 x = dumpfile['x']
 x.shape=(npart_1d,npart_1d)
