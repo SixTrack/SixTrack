@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.6.29'/
-      data moddate /'08.06.2017'/
+      data version /'4.6.30'/
+      data moddate /'09.06.2017'/
 +cd license
 !!SixTrack
 !!
@@ -23121,7 +23121,7 @@ C Should get me a NaN
           endif
 *FOX    SINTH=HALF*(ONE-DUM(6)) ;
           if(abs(dare(sinth)).gt.pieni) then
-*FOX    SINTH=-SFAC*SQRT(SINTH) ;
+*FOX    SINTH=SFAC*SQRT(SINTH) ;
           else
 *FOX    SINTH=ZERO ;
           endif
@@ -55033,7 +55033,7 @@ c$$$            endif
             endif
             sinth=half*(one-dum(6))
             if(abs(sinth).gt.pieni) then
-              sinth=(-1d0*sfac)*sqrt(sinth)                              !hr06
+              sinth=(sfac)*sqrt(sinth)                              !hr06
             else
               sinth=zero
             endif

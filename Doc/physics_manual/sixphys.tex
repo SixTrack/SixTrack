@@ -1021,11 +1021,10 @@ where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\
 
 The kick in $(x',y')$ can then be expressed as (note $\frac{x}{r}=\cos(\phi),\frac{y}{r}=\sin(\phi)$):
 \begin{align}
-x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot x \cdot \frac{1}{1+\delta}\\
-y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot y \cdot \frac{1}{1+\delta}
+x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot x \cdot \frac{1}{1+\delta}\label{elense:eqn:1}\\
+y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot y \cdot \frac{1}{1+\delta}\label{elense:eqn:2}
 \end{align}
-
-If the electron lens is offset by $(x_{\rm offset},y_{\rm offset})$, the coordinates $(x,y)$ are simply transfered to:
+The maximum kick angle $\theta_{\max}$ depends on the magnetic rigidity $(B\rho)_p$ of the proton beam and thus on the particle momentum. For off-momentum particles this results in a factor $(B\rho)(\delta) = (B\rho)(0)\cdot(1+\delta)$ which has been added in Eqn.~\ref{elense:eqn:1}--\ref{elense:eqn:2}. If the electron lens is offset by $(x_{\rm offset},y_{\rm offset})$, the coordinates $(x,y)$ are simply transfered to:
 \begin{align}
 \tilde x&=x+x_{\rm offset}\\
 \tilde y&=y+y_{\rm offset}\\
@@ -1033,8 +1032,8 @@ If the electron lens is offset by $(x_{\rm offset},y_{\rm offset})$, the coordin
 \end{align}
 and the kick is then given by:
 \begin{align}
-x'&=x'-\theta_{\rm max}\cdot\frac{r_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde x\\
-y'&=y'-\theta_{\rm max}\cdot\frac{r_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde y
+x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde x\cdot\frac{1}{1+\delta}\\
+y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde y\cdot\frac{1}{1+\delta}
 \end{align}
 This idealized implementation of the hollow e-lens has no explicit dependence on the particle energy. The particle energy is only taken into account in form of the input parameter $\theta_{\rm max}$ provided by the user. A change of the particle energy could occur if the particle enters with an initial $x'$ or $y'$ and thus sees an accelerating or respectively decelerating field.
 

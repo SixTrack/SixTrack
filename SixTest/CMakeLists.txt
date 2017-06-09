@@ -46,7 +46,9 @@ SET(TESTS_NOFORT10
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
-  beam-HO_6D-simple
+  beam-HO_6D-simple-oldstyle
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
   )
 
 if(NOT COLLIMAT)
@@ -59,14 +61,20 @@ if(NOT COLLIMAT)
                 SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
         endif(BNLELENS)
 
+        #Needs at least 2048 particles to run correctly
         if(BIGNPART OR HUGENPART)
                 SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
+        endif()
+        #Needs more than 2048 particles to run correctly
+        if(HUGENPART)
+                SET(SIXTRACK_TESTS beam-HO_6D-simple-newstyle-coupling ${SIXTRACK_TESTS})
         endif()
 
         if(BIGNBLZ OR HUGENBLZ)
                 SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
         endif()
 
+	#These tests are always included
         SET(SIXTRACK_TESTS
           bbe51
           bbe52
@@ -117,7 +125,8 @@ if(NOT COLLIMAT)
           beam-HO_4D-oldstyle
           beam-HO_6D-newstyle
           beam-HO_6D-oldstyle
-          beam-HO_6D-simple
+          beam-HO_6D-simple-oldstyle
+          beam-HO_6D-simple-newstyle
           beam-HO_LR-newstyle
           beam-HO_LR-oldstyle
           beam-HO_LR-ibbc-oldstyle
@@ -126,7 +135,8 @@ if(NOT COLLIMAT)
           rfMultipoles_3rdOrder
           rfMultipoles_4thOrder
           last_amp
-          ${SIXTRACK_TESTS})
+          ${SIXTRACK_TESTS}
+	  )
 
 endif(NOT COLLIMAT)
 
@@ -282,7 +292,9 @@ SET(FAST_TESTS
   beam-HO_6D-oldstyle
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
-  beam-HO_6D-simple
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-oldstyle
+  beam-HO_6D-simple-newstyle-coupling
   beam-HO_LR-ibbc-oldstyle
   beam-HO_LR-ibbc-newstyle
   rfMultipoles_2ndOrder
