@@ -1,3 +1,0 @@
-madx lattice.madx;
-cp fc.2 fort.2
-sixtrack | tee fort.6
