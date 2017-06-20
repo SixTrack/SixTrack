@@ -79,6 +79,7 @@ OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
+OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 
 #Compiler stuff - not needed any more with cmake
 #OPTION(IFORT "Use the intel fortran compiler" OFF)
@@ -583,6 +584,11 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 		SET(CMAKE_Fortran_LINKER_FLAGS "-fprofile-arcs ${CMAKE_Fortran_LINKER_FLAGS}")
 	endif(COVERAGE)
 
+	if(GPROF)
+		set(CMAKE_Fortran_FLAGS "-pg ${CMAKE_Fortran_FLAGS}")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-pg ${CMAKE_Fortran_LINKER_FLAGS}")
+	endif(GPROF)
+
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
 	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma")
@@ -705,6 +711,11 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 		set(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
 		SET(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
 	endif(COVERAGE)
+
+	if(GPROF)
+		set(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
+		SET(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
+	endif(GPROF)
 endif()
 
 if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
@@ -1240,6 +1251,11 @@ IF(COVERAGE)
 	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 ENDIF(COVERAGE)
 
+IF(GPROF)
+	target_compile_options(SixTrack PRIVATE -pg)
+	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+ENDIF(GPROF)
+
 SET(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
 MARK_AS_ADVANCED(BUILDNAME)
 
@@ -1304,6 +1320,11 @@ IF(BUILD_TESTING)
 		target_compile_options(SixTestWrapper PRIVATE -fprofile-arcs -ftest-coverage)
 		SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
 	ENDIF(COVERAGE)
+
+	IF(GPROF)
+		target_compile_options(SixTestWrapper PRIVATE -pg)
+		SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
+	ENDIF(GPROF)
 
 	if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 		target_link_libraries(SixTestWrapper stdc++)
