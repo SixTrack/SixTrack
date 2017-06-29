@@ -15744,6 +15744,12 @@ cc2008
 +ei
      &ipencil,pencil_offset,pencil_rmsx,pencil_rmsy,pencil_distr
 !APRIL2005
++if g4collimat
+      if(ipencil.gt.0) then
+        write(lout,*) 'pencil distribution not supported with geant4'
+        call prror(-1)
+      endif
++ei
 +if fio
       if(iclr.eq.16) read(ch1,*,round='nearest')                        &
      & coll_db,ibeam
