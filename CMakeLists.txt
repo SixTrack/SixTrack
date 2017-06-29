@@ -548,6 +548,10 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
 	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
 
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
+		SET(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
+	endif()
+
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
 		SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
 

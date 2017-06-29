@@ -393,12 +393,7 @@
      &           enerror, bunchlength )
          else
             write(lout,*) 'INFO> review your distribution parameters !!'
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-            stop
-+ei
+            call prror(-1)
          endif
 !
        endif
@@ -1947,7 +1942,7 @@
      &               "attempting to use a halo not purely in the "//
      &               "horizontal or vertical plane with pencil_dist=3"//
      &               " - abort."
-                stop
+               call prror(-1)
              endif
              
 !     calculate offset from tilt of positive and negative jaws, at start and end
@@ -2074,8 +2069,8 @@
                   rcy(j) = rcy(j) - 0.5d0*c_length*(rcyp(j)/zpj)
                 endif
               else
-                Write(lout,*) "ERROR: Non-zero length collimator!"
-                STOP
+                write(lout,*) "ERROR: Non-zero length collimator!"
+                call prror(-1)
               endif
 
               flukaname(j) = ipart(j)+100*samplenumber
@@ -2877,33 +2872,24 @@
      &                  part_impact(j)
                   write(outlun,*) 'ERR>  Invalid impact parameter!',    &
      &                  part_impact(j)
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-      stop
-+ei
+                  call prror(-1)
                 endif
                 n_impact = n_impact + 1
                 sum = sum + part_impact(j)
                 sqsum = sqsum + part_impact(j)**2
                 if (part_hit(j).gt.0 .and. dowrite_impact)              &
      &write(49,*) part_impact(j), part_indiv(j)
-
               endif
             end do
-
             if (n_impact.gt.0) then
               average = sum/n_impact
-
               if(sqsum/n_impact.ge.average**2) then
-                sigma = sqrt(sqsum/n_impact - average**2)
+           sigma = sqrt(sqsum/n_impact - average**2)
               else
-                sigma = 0d0
+                 sigma = 0d0
               endif
-
             endif
-
+!
 !++  Some information
             write(lout,*)
      &'INFO>  Selected collimator had N hits. N: ',                     &
@@ -4332,9 +4318,9 @@
          write(lout,*) 'ERR>  In subroutine collimate2:'
          write(lout,*) 'ERR>  Material "', c_material, '" not found.'
          write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-         STOP
+         call prror(-1)
       endif
-
+!
         length  = c_length
         nev = np
         p0  = enom
@@ -4635,7 +4621,7 @@
             s = (-1d0*x) / xp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -5111,7 +5097,7 @@ c$$$          endif
          mat = 12
       else
          write(lout,*) 'ERR>  Material not found. STOP', c_material
-!        STOP
+         call prror(-1)
       endif
 !
         length  = c_length
@@ -5372,7 +5358,7 @@ c$$$          endif
             s = (-1.0d0*x) / xp
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (1)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -5393,7 +5379,7 @@ c$$$          endif
             s = (-1.0d0*z) / zp
             if (s.le.0) then
               write(lout,*) 'S.LE.0 -> This should not happen (2)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -5422,7 +5408,7 @@ c$$$          endif
 !
             if (s.le.0d0) then
               write(lout,*) 'S.LE.0 -> This should not happen (3)'
-              stop
+              call prror(-1)
             endif
 !
             if (s .lt. length) then
@@ -7324,7 +7310,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then  ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
             write(lout,*) "Stop in makedis_coll. attempting to use halo type 
      &3 with Gaussian dist. "
-            stop
+            call prror(-1)
 c$$$            phix = (2d0*pi)*dble(rndm4())                                 
 c$$$            iix = (-1d0*myemitx0) * log( dble(rndm4()) )                  
 c$$$            myx(j) = sqrt((2d0*iix)*mybetax) * cos(phix)                  
@@ -7600,7 +7586,7 @@ c$$$     &           myalphay * cos(phiy))
       return
       
  20   continue
-!      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
+
       write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
       call prror(-1)
       

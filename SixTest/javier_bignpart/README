@@ -6,6 +6,6 @@ At the end of tracking, these two sets should give identical results.
 One way to check this is to use read90 to dump the first and last set of particles, then diff these two.
 The only differences should be the particle indices.
 Commands:
-../read90/read90 --STF --PR 1 63 --fname singletrackfile.dat.RUNID > singletrackfile.dat.RUNID.1-63.txt
-../read90/read90 --STF --PR 65 127 --fname singletrackfile.dat.RUNID > singletrackfile.dat.RUNID.65-127.txt
-diff singletrackfile.dat.RUNID.1-63.txt singletrackfile.dat.RUNID.65-127.txt
+../../read90 --STF --PR 1 63 --fname singletrackfile.dat > singletrackfile.dat.1-63.txt
+../../read90 --STF --PR 65 127 --fname singletrackfile.dat > singletrackfile.dat.65-127.txt
+diff singletrackfile.dat.1-63.txt singletrackfile.dat.65-127.txt | less

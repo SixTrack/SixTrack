@@ -94,12 +94,7 @@
               ndt=nd2
               if(ndpt.ne.nd2-1) then
                 write(lout,*) ' LETHAL ERROR IN LIEINIT'
-+if cr
-      call abend('                                                  ')
-+ei
-+if .not.cr
-                stop 
-+ei
+                call prror(-1)
               endif
             endif
        endif
@@ -3497,12 +3492,8 @@
       read(iref,*) nres
       if(nres.ge.nreso) then
        write(lout,*) ' NRESO IN LIELIB TOO SMALL '
-+if cr
-      call abend('999                                               ')
-+ei
-+if .not.cr
-       stop 999
-+ei
+       write(lout,'(a)') "ERROR 999 in initpert"
+       call prror(-1)
       endif
       elseif(iref.eq.0) then
       nres=0
