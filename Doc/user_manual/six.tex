@@ -52,7 +52,7 @@
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.6.17 \\
+  Version 4.6.30 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -2802,23 +2802,7 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
     Coordinates} \/block (~\ref{IniCoo}), where the initial phase in
   phase space are also set. Additional information can be found in the
   {\em Remarks}\/.
-\item [ird] (integer) Switch for the type of amplitude variation. In
-  case {\em napx} \/= 1 the amplitude nstart is used.
- \begin{itemize}
- \item {\em ird} \/= 0 : amplitudes are varied between the amplitudes
-   {\em amp(1)} \/and {\em amp0} \/with equal increments:
-   $$
-   delta = (amp0-amp(1)) / (napx-1)
-   $$
- \item {\em ird} \/= 1 : amplitude variation to find an estimate for
-   the short term dynamic aperture. The amplitude is increased or
-   decremented corresponding to stable motion or particle loss
-   respectively.  The change of amplitude is reduced each iteration
-   \mbox{$i \le (napx-1) $} to:
-   $$
-   delta = (amp0-amp(1)) / 2^{i}
-   $$
- \end{itemize}
+\item [ird] (integer) Ignored.
 \item [imc] (integer) Number of variations of the relative momentum
   deviation \mbox{$ \frac{\Delta p}{p_o} $}.  The maximum value of the
   relative momentum deviation \mbox{$ \frac{\Delta p}{p_o} $} is taken
@@ -2984,7 +2968,7 @@ $\frac{\Delta p}{p_{o1}} \times \sqrt{\beta_{sIII}}$
 and are then transformed with the 6D linear transformation into real
 space. Note that results may differ from those of older versions.
 
-\item The amplitude scan is performed from \emph{amp(1)} to \emph{amp0} in steps of \emph{delta}.
+\item The amplitude scan is performed from \emph{amp(1)} to \emph{amp0} in steps of $\emph{delta} = (\emph{amp0} - \emph{amp(1)}) / (napx-1)$.
 For the intermediate amplitudes, \emph{delta} is added up for each step, however the last amplitude is guaranteed to be fixed to the given value.
 This enables ``control calculations'' by setting the first amplitude of one simulation equal to the last amplitude of another simulation, and unless there are calculation errors, they shall produce exactly the same results.
 \end{enumerate}
