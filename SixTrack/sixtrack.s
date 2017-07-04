@@ -1152,6 +1152,9 @@
       logical print_dcum                     ! flag for printout
       parameter ( print_dcum = .false. )
 
+      double precision eps_dcum              ! Tolerance for machine length mismatch [m]
+      parameter ( eps_dcum = c1m6 )
+
       common /dcumdb/ dcum(0:nblz+1)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -23442,6 +23445,7 @@ C Should get me a NaN
 +ei
 +ca comgetfields
 +ca dbdump
++ca dbdcum
 +if cr
 +ca dbdumpcr
 +ei
@@ -25001,6 +25005,27 @@ C Should get me a NaN
 !        or statistics or beam matrix
 !     always in main code
       call cadcum
+      if(idp.ne.0.and.ition.ne.0) then !6D tracking
+         if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
+            write(lout,'(1x,a)')
+     &           "ERROR: Problem with SYNC block detected"
+            write(lout,'(1x,a,f17.10)')
+     &           "TLEN in sync block =",tlen
+            write(lout,'(1x,a,f17.10)')
+     &           "Length from DCUM   =",dcum(iu+1)
+            write(lout,'(1x,a,f17.10)')
+     &           "Difference         =",dcum(iu+1)-tlen
+            write(lout,'(1x,a,e27.16)')
+     &           "Relative error     =",
+     &           2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen)
+            write(lout,'(1x,a,f17.10)')
+     &           "Tolerance eps_dcum =", eps_dcum
+            write(lout,'(1x,a)')
+     &           "Please fix the TLEN parameter in your SYNC block"//
+     &           " to ensure accurate simulation of synchrotron motion."
+            call prror(-1)
+         endif
+      endif
 
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     K. Sjobak, for BE/ABP-HSS
@@ -39971,7 +39996,7 @@ c$$$               endif
         write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
         write(lout,*)     ''
       else                      ! Anyway print the total machine length
-         write(lout,'(1x,a,1x,f12.5,1x,a)')
+         write(lout,'(1x,a,1x,f17.10,1x,a)')
      &        "Machine length was", dcum(iu+1),"[m]"
       endif
 
