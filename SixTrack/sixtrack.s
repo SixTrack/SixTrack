@@ -26201,7 +26201,6 @@ C Should get me a NaN
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
-+ca dbdcum
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -26755,7 +26754,6 @@ C Should get me a NaN
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
-+ca dbdcum
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -27564,7 +27562,6 @@ C Should get me a NaN
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
-+ca dbdcum
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -39973,6 +39970,9 @@ c$$$               endif
         enddo
         write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
         write(lout,*)     ''
+      else                      ! Anyway print the total machine length
+         write(lout,'(1x,a,1x,f12.5,1x,a)')
+     &        "Machine length was", dcum(iu+1),"[m]"
       endif
 
 !     au revoir:
