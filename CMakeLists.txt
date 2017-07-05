@@ -246,6 +246,10 @@ if(NOT DA AND DATAMODS)
 	SET(FORS datamods ${FORS})
 endif()
 
+if(COLLIMAT)
+	SET(FORS collimation ${FORS})
+endif()
+
 foreach(loop IN ITEMS ${FORS})
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
@@ -305,7 +309,8 @@ if(G4COLLIMAT)
 	message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
 	message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
 	message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
-	include(${Geant4_USE_FILE})
+#	include(${Geant4_USE_FILE})
+	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/g4collimat)
 endif(G4COLLIMAT)
 
 #Check for OpenMP
@@ -1087,6 +1092,9 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT LIBARCHIVE)
 		ast_masks_flag(libarchive ${loop})
 	endif()
+	if(NOT G4COLLIMAT)
+		ast_masks_flag(g4collimat ${loop})
+	endif()
 
 	#Clean up the astuce decks for only what is enabled
 	if(NOT COLLIMAT)
@@ -1211,7 +1219,8 @@ if(HDF5)
 endif(HDF5)
 
 if(G4COLLIMAT)
-	target_link_libraries(SixTrack ${Geant4_LIBRARIES})
+	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTrack g4collimat ${Geant4_LIBRARIES} pthread)
 endif(G4COLLIMAT)
 
 #Again for naglib, I assume we are on lxplus or have CERN afs access.

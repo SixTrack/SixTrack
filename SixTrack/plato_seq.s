@@ -1,10 +1,3 @@
-+cd crlibco
-      double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
-     &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
-+cd crcoall
-      integer lout
-      common /crflags/lout
-
 +dk plato_seq
 *
 * $Id: cfft.F,v 1.1.1.1 1996/02/15 17:48:48 mclareni Exp $
