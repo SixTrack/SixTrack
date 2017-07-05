@@ -6843,24 +6843,24 @@ cc2008
 +cd lost5a
 10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
-     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,   &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/)
       end
 +cd lost5b
 10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   RE-APERTURE = ',f15.3/ t10,    &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   RE-APERTURE = ',f15.3/ t10,    &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd lost5c
 10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   EL-APERTURE = ',f15.3/ t10,    &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   EL-APERTURE = ',f15.3/ t10,    &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd umlalid
@@ -17601,10 +17601,10 @@ cc2008
             write(lout,
      &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
      &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)")
+     &'     CROSSING_PLANE     COUPLING_ANGLE'/t10,85('-')/)")
             do j=1,il
                if(parbe(j,2).gt.0d0)
-     &              write(lout,"(t10,a16,5x,i4,7x,d16.10,2x,d16.10)")
+     &              write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)")
      &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
             enddo
          endif
@@ -20951,8 +20951,8 @@ C Should get me a NaN
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
      &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
 10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30(  &
      &'*')/)
@@ -22351,16 +22351,16 @@ C Should get me a NaN
      &'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
 10090 format('|',6x,'|',8x,'|',12x,'|','S','|',12x,'|',f12.6,'|', f13.7,&
      &'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',f12.6,'|', f13.&
-     &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
+10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',ES12.6,'|',    &
+     &f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10110 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,        &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10120 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,        &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10130 format('  LINEAR OPTICS CALCULATION WITH PRINTOUT ',              &
@@ -22680,8 +22680,8 @@ C Should get me a NaN
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
      &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,        &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,        &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
 10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30(  &
      &'*')/)
@@ -25539,8 +25539,8 @@ C Should get me a NaN
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
-     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,   &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/)
 +if .not.tilt
 +if cr
@@ -25646,7 +25646,7 @@ C Should get me a NaN
      &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  S  ',f14.10,2(1x,g15.8),1x,G15.9,1x,f15.10,f15.9/          &
      &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/)
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
