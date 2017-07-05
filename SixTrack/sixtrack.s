@@ -17506,8 +17506,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
      &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
@@ -17529,8 +17529,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
      &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
@@ -17554,8 +17554,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
      &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
@@ -17576,8 +17576,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
      &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
