@@ -79,6 +79,7 @@ OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
+OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 
 #Compiler stuff - not needed any more with cmake
 #OPTION(IFORT "Use the intel fortran compiler" OFF)
@@ -584,9 +585,14 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(STATIC)
 
 	if(COVERAGE)
-		set(CMAKE_Fortran_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS}")
+		SET(CMAKE_Fortran_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS}")
 		SET(CMAKE_Fortran_LINKER_FLAGS "-fprofile-arcs ${CMAKE_Fortran_LINKER_FLAGS}")
 	endif(COVERAGE)
+
+	if(GPROF)
+		SET(CMAKE_Fortran_FLAGS "-pg ${CMAKE_Fortran_FLAGS}")
+		SET(CMAKE_Fortran_LINKER_FLAGS "-pg ${CMAKE_Fortran_LINKER_FLAGS}")
+	endif(GPROF)
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
@@ -707,9 +713,14 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 	endif(STATIC)
 
 	if(COVERAGE)
-		set(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
+		SET(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
 		SET(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
 	endif(COVERAGE)
+
+	if(GPROF)
+		SET(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
+		SET(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
+	endif(GPROF)
 endif()
 
 if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
@@ -775,6 +786,16 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 	if(STATIC)
 		SET(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
 	endif(STATIC)
+
+	if(COVERAGE)
+		SET(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
+		SET(CMAKE_CXX_LINKER_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
+	endif(COVERAGE)
+
+	IF(GPROF)
+		SET(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
+		SET(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
+	ENDIF(GPROF)
 
 endif()
 
