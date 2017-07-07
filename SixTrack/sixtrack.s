@@ -25594,22 +25594,21 @@ C Should get me a NaN
      &5x,'/ITION/',i4/5x/)
 10150 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10))
 10160 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10170 format(/t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,     &
      &'------ NO ACCELERATION ------'// t15,                            &
      &'       TUNE         CLO            CLOP           ',             &
@@ -25632,22 +25631,21 @@ C Should get me a NaN
      &)
 10210 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10))
 10220 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g15.8),1x,G15.9,1x,f15.10,f15.9/          &
-     &t62,f15.9,1x,f15.10,f15.9/t62,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
 10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
@@ -32906,61 +32904,61 @@ C Should get me a NaN
      &5x,'/ITION/',i4/5x/)
 10120 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10025 format(/t10,'Run started from binary dump file # 32')
 10130 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10140 format(/t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,     &
      &'------ NO ACCELERATION ------'// t15,                            &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/)
 10150 format(t5//t5,'BACK-TRACKING'/ t5, '============='//)
 10160 format(t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,      &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/)
 10170 format(//131('-')//t10,16('O')/t10,2('O'),12x,2('O')/t10,         &
      &'OO  TRACKING  OO', /t10,2('O'),12x,2('O')/t10,16('O')//131('-')//&
      &)
 10180 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10190 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
       end
