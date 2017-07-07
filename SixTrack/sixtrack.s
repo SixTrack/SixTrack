@@ -49297,19 +49297,19 @@ c$$$            endif
      &10x,'LONGITUDINAL GAMMA',t102,f16.10/                             &
      &10x,'LONGITUDINAL GAMMA-II',t102,f16.10/                          &
      &10x,'LONGITUDINAL GAMMA-III',t102,f16.10/                         &
-     &10x,'HORIZONTAL CLOSED ORBIT',t102,d17.10/                        &
-     &10x,'VERTICAL CLOSED ORBIT',t102,d17.10/                          &
-     &10x,'LONGITUDINAL CLOSED ORBIT',t102,d17.10/                      &
-     &10x,'SLOPE OF HORIZONTAL CLOSED ORBIT',t102,d17.10/               &
-     &10x,'SLOPE OF VERTICAL CLOSED ORBIT',t102,d17.10/                 &
-     &10x,'SLOPE OF LONGITUDINAL CLOSED ORBIT',t102,d17.10/             &
-     &10x,'HORIZONTAL DISPERSION',t102,f16.10/                          &
-     &10x,'VERTICAL DISPERSION',t102,f16.10/                            &
-     &10x,'SLOPE OF HORIZONTAL DISPERSION',t102,f16.10/                 &
-     &10x,'SLOPE OF VERTICAL DISPERSION',t102,f16.10/                   &
-     &10x,'LINEAR HORIZONTAL TUNE',t102,f16.10/                         &
-     &10x,'LINEAR VERTICAL TUNE',t102,f16.10/                           &
-     &10x,'LINEAR LONGITUDINAL TUNE',t102,f16.10)
+     &10x,'HORIZONTAL CLOSED ORBIT',t105,ES17.10/                       &
+     &10x,'VERTICAL CLOSED ORBIT',t105,ES17.10/                         &
+     &10x,'LONGITUDINAL CLOSED ORBIT',t105,ES17.10/                     &
+     &10x,'SLOPE OF HORIZONTAL CLOSED ORBIT',t105,ES17.10/              &
+     &10x,'SLOPE OF VERTICAL CLOSED ORBIT',t105,ES17.10/                &
+     &10x,'SLOPE OF LONGITUDINAL CLOSED ORBIT',t105,ES17.10/            &
+     &10x,'HORIZONTAL DISPERSION',t105,ES17.10/                         &
+     &10x,'VERTICAL DISPERSION',t105,ES17.10/                           &
+     &10x,'SLOPE OF HORIZONTAL DISPERSION',t105,ES17.10/                &
+     &10x,'SLOPE OF VERTICAL DISPERSION',t105,ES17.10/                  &
+     &10x,'LINEAR HORIZONTAL TUNE',t105,ES17.10/                        &
+     &10x,'LINEAR VERTICAL TUNE',t105,ES17.10/                          &
+     &10x,'LINEAR LONGITUDINAL TUNE',t105,ES17.10)
 10070 format( 10x,'DATA IS AVERAGED IN SAMPLES OF IAV TURNS',t96,       &
      &'IAV =    ',i7 /10x,'START TURN NUMBER FOR THE ANALYSIS ',t93,    &
      &'NSTART =  ',i9 /10x,'THE ANALYSIS STOPS AFTER TURN NUMBER ',t94, &
