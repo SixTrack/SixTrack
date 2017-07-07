@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.0'/
-      data moddate /'03.07.2017'/
+      data version /'4.7.1'/
+      data moddate /'07.07.2017'/
 +cd license
 !!SixTrack
 !!
@@ -6843,24 +6843,24 @@ cc2008
 +cd lost5a
 10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
-     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,   &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/)
       end
 +cd lost5b
 10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'RE-APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   RE-APERTURE = ',f15.3/ t10,    &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   RE-APERTURE = ',f15.3/ t10,    &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd lost5c
 10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
      &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
      &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'EL-APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   EL-APERTURE = ',f15.3/ t10,    &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   EL-APERTURE = ',f15.3/ t10,    &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
       end
 +cd umlalid
@@ -17060,7 +17060,7 @@ cc2008
 
               ! print a summary of elens parameters
               write(lout,
-     &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D9.3,A,/),(A,/),'
+     &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D10.3,A,/),(A,/),'
      &//'2(A,I4,/))')
      &'ELENS found in list of single elements with: ',
      &'name     = ',bez(j),
@@ -17260,7 +17260,7 @@ cc2008
 
 ! print a summary of the wire parameters
             write(lout,
-     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D9.3,A,/))')
+     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D10.3,A,/))')
      &'WIRE found in list of single elements with: ',
      &'name               = ',bez(j),
      &'flagco             = ',wire_flagco(j),
@@ -17279,7 +17279,7 @@ cc2008
               kz(j) = 0 ! treat element as marker
 
               write(lout,
-     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D9.3,/))')
+     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D10.3,/))')
      &'WARNING: WIRE element ',bez(j),'ignored!',
      &'Elements are ignored if current, displacment, integrated ',
      &'or physical length are 0! ',
@@ -17506,8 +17506,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
      &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
@@ -17529,8 +17529,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
      &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
@@ -17554,8 +17554,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
      &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
@@ -17576,8 +17576,8 @@ cc2008
      &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
      &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t71,f9.4/   &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t71,f9.4/     &
+     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
+     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
      &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
@@ -17601,10 +17601,10 @@ cc2008
             write(lout,
      &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
      &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'    CROSSING_PLANE    COUPLING_ANGLE'/t10,85('-')/)")
+     &'     CROSSING_PLANE     COUPLING_ANGLE'/t10,85('-')/)")
             do j=1,il
                if(parbe(j,2).gt.0d0)
-     &              write(lout,"(t10,a16,5x,i4,7x,d16.10,2x,d16.10)")
+     &              write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)")
      &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
             enddo
          endif
@@ -17721,17 +17721,17 @@ cc2008
      &'INITIAL AMPLITUDE-H IN (MM)',t49,f7.3/ t10,                      &
      &'COUPLING  EPS-Y/EPS-X',t49,f7.3/ t10,                            &
      &'NUMBER OF C.-O. ITERATIONS ',t48,i8/ t10,                        &
-     &'PRECISION OF C.-O. DEVIATION',t47,d9.3/ t10,                     &
-     &'PRECISION OF C.-O. SLOPE   ',t47,d9.3/ t10,                      &
+     &'PRECISION OF C.-O. DEVIATION',t47,d10.3/ t10,                    &
+     &'PRECISION OF C.-O. SLOPE   ',t47,d10.3/ t10,                     &
      &'NUMBER OF Q-ADJ. ITERATIONS',t48,i8/ t10,                        &
-     &'CHANGE IN K-STRENGTH BY',t47,d9.3/ t10,                          &
-     &'PRECISION OF Q-ADJUSTEMENT',t47,d9.3)
+     &'CHANGE IN K-STRENGTH BY',t47,d10.3/ t10,                         &
+     &'PRECISION OF Q-ADJUSTEMENT',t47,d10.3)
 10170 format(t10,'NUMBER OF CHROMAT.-ADJ. ITER.',t48,i8/ t10,           &
-     &'CHANGE IN SEX.-STRENGTH BY',t47,d9.3/ t10,                       &
-     &'PRECISION OF CHROMAT.-ADJ.',t47,d9.3/ t10,                       &
-     &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d9.3/ t10,                      &
-     &'DP-INTERVAL FOR DISPERSION',t47,d9.3/ t10,                       &
-     &'PRECISION FOR C.-O. RMS',t47,d9.3/)
+     &'CHANGE IN SEX.-STRENGTH BY',t47,d10.3/ t10,                      &
+     &'PRECISION OF CHROMAT.-ADJ.',t47,d10.3/ t10,                      &
+     &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
+     &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
+     &'PRECISION FOR C.-O. RMS',t47,d10.3/)
 10180 format(t5/t10,a60)
 10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
@@ -17765,8 +17765,8 @@ cc2008
      &'ELEMENT NAME',8x,'EVERY # TURNs',2x,
      &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,
      &"FirstTurn",6x,"LastTurn") !DUMP/STAT/BMAT
-10070 format(1x,i3,1x,a16,1x,i3,1x,d16.10,1x,d16.10,1x,d16.10,1x,d13.7, &
-     &1x,d12.6,1x,d13.7,1x,d12.6)
+10070 format(1x,i3,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
+     &1x,d13.6,1x,d14.7,1x,d13.6)
 10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
      &'MULTIPOLE                    ',a16/t10,'RADIUS IN MM            '&
      &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
@@ -17870,7 +17870,7 @@ cc2008
       write(4,*) ch
       goto 3
  90   continue
-10000 format(a16,1x,i2,1x,d21.15,1x,d21.15,1x,d16.10)
+10000 format(a16,1x,i2,1x,d22.15,1x,d22.15,1x,d17.10)
       end
       subroutine intepr(i,j,ch,ch1)
 !-----------------------------------------------------------------------
@@ -20951,8 +20951,8 @@ C Should get me a NaN
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
      &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
 10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30(  &
      &'*')/)
@@ -22329,38 +22329,38 @@ C Should get me a NaN
       return
 !-----------------------------------------------------------------------
 10000 format(/t5 ,'---- ENTRY ',i1,'D LINOPT ----')
-10010 format(132('-'))
+10010 format(133('-'))
 10020 format('  NR     TYP      L-TOTAL    P     PHI          ',        &
      &'BETA         ALFA         GAMMA        DIS        DISP         ',&
      &'CLO        CLOP'/ 1x,                                            &
      &'                    (M)           (2*PI)        ',               &
      &'(M)          (RAD)         (M)         (M)        (RAD)        ',&
      &'(MM)       (MRAD)')
-10030 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',   &
+10030 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f13.6,'|',   &
      &f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
-10040 format('|',6x,'|',8x,'|',12x,'|','Y','|',12x,'|',f12.6,'|', f13.7,&
+10040 format('|',6x,'|',8x,'|',12x,'|','Y','|',12x,'|',f13.6,'|', f13.7,&
      &'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10050 format('|',6x,'|',a8,'|',12x,'|','S','|',12x,'|',f12.6,'|', f13.  &
+10050 format('|',6x,'|',a8,'|',12x,'|','S','|',12x,'|',f13.6,'|', f13.  &
      &7,'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10055 format('|',6x,'|',a8,'|',12x,'|','Y','|',12x,'|',f12.6,'|', f13.  &
+10055 format('|',6x,'|',a8,'|',12x,'|','Y','|',12x,'|',f13.6,'|', f13.  &
      &7,'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10060 format('|',6x,'|',8x,'|',12x,'|',102('-'))
-10070 format('|',6x,'|',8x,'|',12x,'|','Y','|',f12.7,'|',f12.6,'|', f13.&
+10060 format('|',6x,'|',8x,'|',12x,'|',103('-'))
+10070 format('|',6x,'|',8x,'|',12x,'|','Y','|',f12.7,'|',f13.6,'|', f13.&
      &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
-10080 format('|',6x,'|',8x,'|',12x,'|','X','|',12x,'|',f12.6,'|', f13.7,&
+10080 format('|',6x,'|',8x,'|',12x,'|','X','|',12x,'|',f13.6,'|', f13.7,&
      &'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10090 format('|',6x,'|',8x,'|',12x,'|','S','|',12x,'|',f12.6,'|', f13.7,&
+10090 format('|',6x,'|',8x,'|',12x,'|','S','|',12x,'|',f13.6,'|', f13.7,&
      &'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',f12.6,'|', f13.&
-     &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
+10100 format('|',6x,'|',8x,'|',12x,'|','S','|',f12.7,'|',ES13.6,'|',    &
+     &f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10110 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,        &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10120 format(/t10,'CO-TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. '   &
-     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',f15.3,          &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &,i7,' AT ELEMENT ',i4/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,        &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/ t10,'ELEMENT - LIST NUMBER ',i4,          &
      &' TYP NUMBER ',i4,' NAME ',a16/)
 10130 format('  LINEAR OPTICS CALCULATION WITH PRINTOUT ',              &
@@ -22680,8 +22680,8 @@ C Should get me a NaN
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
      &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
-     &'HORIZ:  AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
-     &'VERT:   AMPLITUDE = ',f15.3,'   APERTURE = ',f15.3/ t10,         &
+     &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,        &
+     &'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,        &
      &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
 10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30(  &
      &'*')/)
@@ -25539,8 +25539,8 @@ C Should get me a NaN
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
-     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',f15.3,     &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',f15.3,         &
+     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,   &
+     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
      &'   APERTURE = ',f15.3/)
 +if .not.tilt
 +if cr
@@ -25594,60 +25594,58 @@ C Should get me a NaN
      &5x,'/ITION/',i4/5x/)
 10150 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10))
 10160 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10170 format(/t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,     &
      &'------ NO ACCELERATION ------'// t15,                            &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t62,f15.9,1x,f15.10,f15.9/                                        &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t62,f15.9,1x,f15.10,f15.9/)
 10180 format(t5//t5,'BACK-TRACKING'/ t5, '============='//)
 10190 format(t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,      &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t62,f15.9,1x,f15.10,f15.9/                                        &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t62,f15.9,1x,f15.10,f15.9/)
 10200 format(//131('-')//t10,16('O')/t10,2('O'),12x,2('O')/t10,         &
      &'OO  TRACKING  OO', /t10,2('O'),12x,2('O')/t10,16('O')//131('-')//&
      &)
 10210 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10))
 10220 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'/ 15x,        &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
 10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
@@ -32906,61 +32904,61 @@ C Should get me a NaN
      &5x,'/ITION/',i4/5x/)
 10120 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10025 format(/t10,'Run started from binary dump file # 32')
 10130 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10140 format(/t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,     &
      &'------ NO ACCELERATION ------'// t15,                            &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/)
 10150 format(t5//t5,'BACK-TRACKING'/ t5, '============='//)
 10160 format(t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,      &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
      &'       TUNE         CLO            CLOP           ',             &
      &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t60,f15.9,1x,f15.10,f15.9/)
 10170 format(//131('-')//t10,16('O')/t10,2('O'),12x,2('O')/t10,         &
      &'OO  TRACKING  OO', /t10,2('O'),12x,2('O')/t10,16('O')//131('-')//&
      &)
 10180 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/                                        &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10190 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
      &'------ NO ACCELERATION ------'// t15,                            &
-     &'       TUNE         CLO            CLOP           ',             &
-     &'   BET0           ALF0           GAMMA      '//                  &
-     &t10,'  X  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  Y  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/              &
-     &t10,'  S  ',f14.10,2(1x,g14.8),1x,f15.9,1x,f15.10,f15.9/          &
-     &t60,f15.9,1x,f15.10,f15.9/t60,f15.9,1x,f15.10,f15.9/)
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
       end
@@ -34566,12 +34564,12 @@ C Should get me a NaN
 10010 format(/131('-'))
 10020 format(/131('-')//t10,'DATA BLOCK CHROMATICITY CORRECTION'/t10,   &
      &'CHROMATICITIES         BEFORE           AFTER CORRECTION'/t10,   &
-     &'HORIZONTAL       ',d16.10,7x,d16.10/ t10,'VERTICAL         ',d16.&
-     &10,7x,d16.10/)
+     &'HORIZONTAL       ',d17.10,7x,d17.10/ t10,'VERTICAL         ',d17.&
+     &10,7x,d17.10/)
 10040 format(t10,'SEXTUPOLE SENSITIVITIES    XI/M1 XI/M2 YI/M1 YI/M2  ',&
      &4d15.8)
-10030 format(t10,'SEXTUP.STRENGTHS ',g16.10,7x,g16.10,'   INDEX   ',a16/&
-     &t10,'                 ',g16.10,7x,g16.10,'           ',a16)
+10030 format(t10,'SEXTUP.STRENGTHS ',g17.10,7x,g17.10,'   INDEX   ',a16/&
+     &t10,'                 ',g17.10,7x,g17.10,'           ',a16)
 10035 format(/t5,'---- NO Improvement in last Step ----'/)
       end
       subroutine chromda
@@ -34689,18 +34687,18 @@ C Should get me a NaN
 10000 format(/131('-')/t10,'ENTERING DA CHROMATICITY CORRECTION'/)
 10010 format(/131('-')/t10,                                             &
      &'CHROMATICITY'   ,18x,'THEORET.        BEFORE CORRECTION'/ t10,   &
-     &'HORIZONTAL'     ,15x,G20.14,1x,G20.14/ t10,                      &
-     &'VERTICAL'       ,17x,G20.14,1x,G20.14// t10,                     &
+     &'HORIZONTAL'     ,15x,G21.14,1x,G21.14/ t10,                      &
+     &'VERTICAL'       ,17x,G21.14,1x,G21.14// t10,                     &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
-     &'ACCURACY:'      ,17x,g16.10/)
+     &'ACCURACY:'      ,17x,g17.10/)
 10020 format(/131('-')/t10,                                             &
      &'CHROMATICITY'   ,18x,'THEORET.        AFTER CORRECTION'/ t10,    &
-     &'HORIZONTAL'     ,15x,G20.14,1x,G20.14/ t10,                      &
-     &'VERTICAL'       ,17x,G20.14,1x,G20.14// t10,                     &
+     &'HORIZONTAL'     ,15x,G21.14,1x,G21.14/ t10,                      &
+     &'VERTICAL'       ,17x,G21.14,1x,G21.14// t10,                     &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
-     &'ACCURACY:'      ,17x,g16.10/)
-10030 format(t10,'SEXTUPOLE STRENGTH',5x,g16.10,2x,g16.10,'   TYP     ',&
-     &a16/t10,                  23x,g16.10,2x,g16.10,'           ',     &
+     &'ACCURACY:'      ,17x,g17.10/)
+10030 format(t10,'SEXTUPOLE STRENGTH',5x,g17.10,2x,g17.10,'   TYP     ',&
+     &a16/t10,                  23x,g17.10,2x,g17.10,'           ',     &
      &a16)
 10040 format(/t5,'---- NO IMPROVEMENT OF DA CHROMATICITY CORRECTION ',  &
      &'IN ITERATION: ',i4/)
@@ -41636,7 +41634,7 @@ c$$$            endif
    60 continue
 !-----------------------------------------------------------------------
       return
-10000 format(t5,i4,i4,' ',a16,'  OLD: ',d13.7,' MRAD   NEW: ' ,d13.7,   &
+10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,   &
      &' MRAD')
       end
       subroutine orbinit
@@ -43043,13 +43041,13 @@ c$$$            endif
 10010 format(/131('-'))
 10020 format(//131('-')//t10,'DATA BLOCK TUNE-VARIATION' / /t10,        &
      &'TUNE'           ,26x,'THEORET.     AFTER CORRECTION'/ t10,       &
-     &'HORIZONTAL'     ,17x,g16.10,2x,g16.10/ t10,                      &
-     &'VERTICAL'       ,19x,g16.10,2x,g16.10/ t10,                      &
-     &'PART-HORIZONTAL',12x,g16.10,2x,g16.10/)
+     &'HORIZONTAL'     ,17x,g17.10,2x,g17.10/ t10,                      &
+     &'VERTICAL'       ,19x,g17.10,2x,g17.10/ t10,                      &
+     &'PART-HORIZONTAL',12x,g17.10,2x,g17.10/)
 10030 format(//131('-')//t10,'DATA BLOCK TUNE-VARIATION' / /t10,        &
      &'TUNE'           ,26x,'THEORET.      AFTER CORRECTION'/ t10,      &
-     &'HORIZONTAL'     ,17x,g16.10,2x,g16.10/ t10,                      &
-     &'VERTICAL'       ,19x,g16.10,2x,g16.10/)
+     &'HORIZONTAL'     ,17x,g17.10,2x,g17.10/ t10,                      &
+     &'VERTICAL'       ,19x,g17.10,2x,g17.10/)
 10060 format(t10,'QUADRUPOLE SENSITIVITIES',6x,'D-QX',14x,'D-QY',14x,   &
      &'D-QXH'/29x,'QF   ',d15.8,3x,d15.8,3x,d15.8/29x,                  &
      &'QD   ',d15.8,3x,d15.8,3x,d15.8/29x,                              &
@@ -43066,11 +43064,11 @@ c$$$            endif
 10130 format(t10,'START-QX-QY',2f12.7,' END-QX-QY',2f12.7)
 10140 format(t10,'ITER=',i3,'/QUAD=',i3,'/QX-QY-QXH',3f12.7)
 10150 format(t10,'ITER=',i3,'/QUAD=',i3,'/QX-QY',2f12.7)
-10040 format(t10,'QUADRU.STRENGTHS',7x,g16.10,2x,g16.10,'   TYP     ',  &
-     &a16/t10,                  23x,g16.10,2x,g16.10,'           ',     &
+10040 format(t10,'QUADRU.STRENGTHS',7x,g17.10,2x,g17.10,'   TYP     ',  &
+     &a16/t10,                  23x,g17.10,2x,g17.10,'           ',     &
      &a16)
-10050 format(t10,'QUADRU.STRENGTHS',7x,g16.10,2x,g16.10,'   TYP     ',  &
-     &a16/t10,                  23x,g16.10,2x,g16.10,'           ',     &
+10050 format(t10,'QUADRU.STRENGTHS',7x,g17.10,2x,g17.10,'   TYP     ',  &
+     &a16/t10,                  23x,g17.10,2x,g17.10,'           ',     &
      &a16)
       end
       subroutine qmodda(mm,qwc)
@@ -43346,18 +43344,18 @@ c$$$            endif
 10010 format(1x,f47.33/1x,f47.33)
 10020 format(/131('-')/t10,i1,'D DA TUNE-VARIATION'/t10,                &
      &'TUNE'           ,26x,'THEORET.       BEFORE CORRECTION'/ t10,    &
-     &'HORIZONTAL'     ,15x,G20.14,G20.14/ t10,                         &
-     &'VERTICAL'       ,17x,G20.14,G20.14// t10,                        &
+     &'HORIZONTAL'     ,15x,G21.14,G21.14/ t10,                         &
+     &'VERTICAL'       ,17x,G21.14,G21.14// t10,                        &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
-     &'ACCURACY:'      ,17x,g16.10/)
+     &'ACCURACY:'      ,17x,g17.10/)
 10030 format(/131('-')/t10,i1,'D DA TUNE-VARIATION'/t10,                &
      &'TUNE'           ,26x,'THEORET.       AFTER CORRECTION'/ t10,     &
-     &'HORIZONTAL'     ,15x,G20.14,G20.14/ t10,                         &
-     &'VERTICAL'       ,17x,G20.14,G20.14// t10,                        &
+     &'HORIZONTAL'     ,15x,G21.14,G21.14/ t10,                         &
+     &'VERTICAL'       ,17x,G21.14,G21.14// t10,                        &
      &'ITERATION:'     ,21x,i3/ t10,                                    &
-     &'ACCURACY:'      ,17x,g16.10/)
-10040 format(t10,'QUADRUPOLE STRENGTH',6x,g16.10,4x,g16.10,'   TYP     '&
-     &,a16/t10,                  25x,g16.10,4x,g16.10,'           ',    &
+     &'ACCURACY:'      ,17x,g17.10/)
+10040 format(t10,'QUADRUPOLE STRENGTH',6x,g17.10,4x,g17.10,'   TYP     '&
+     &,a16/t10,                  25x,g17.10,4x,g17.10,'           ',    &
      &a16)
 10050 format(/t5,'---- NO IMPROVEMENT OF ',i1,'D DA TUNE-VARIATION ',   &
      &'IN ITERATION: ',i4/)
@@ -44842,7 +44840,7 @@ c$$$            endif
 10120 format(10x,'CHROMATICITY-CORRECTION'/ 15x,'CHROMATICITY',13x,     &
      &'BEFORE         AFTER     COMPENSATION'// 19x,'HORIZONTAL   ',2g15&
      &.5/ 19x,'VERTICAL     ',2g15.5/ 10x,'   SEXTUPOLE'/)
-10110 format(14x,a16,2x,g16.10,1x,g16.10/14x,a16,2x,g16.10,1x,g16.10)
+10110 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
       end
 +dk search
       subroutine search(dpp)
@@ -45747,7 +45745,7 @@ c$$$            endif
                 if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
      &(lout,10160)
                 if(abs(dtup(i,j,k,l)).gt.pieni) write(lout,             &
-     &'(10X,G16.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
+     &'(10X,G17.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
   810   continue
         write(lout,10060)
         write(lout,10030)
@@ -46881,8 +46879,8 @@ c$$$            endif
      &g15.7/ 10x,'VERTICAL       ',g15.7/)
 10060 format(10x,'QUADRU.STRENGTH',2g15.8,'   INDEX ',i3/ 10x,          &
      &'               ',2g15.8,'         ',i3)
-10030 format(14x,a16,2x,g16.10,1x,g16.10/14x,a16,2x,g16.10,1x,          &
-     &g16.10/14x,a16,2x,g16.10,1x,g16.10/14x,a16,2x,g16.10,1x,g16.10)
+10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
+     &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
       end
 +dk postpr
 +if .not.stf
@@ -47368,7 +47366,7 @@ c$$$            endif
       toptit(2)(17:30)=', Phase Space '
       write(toptit(2)(31:41),'(A11)') hvs
       toptit(2)(42:50)=', Dp/p = '
-      toptit(2)(61:80)=' '
+      toptit(2)(62:80)=' '
       toptit(3)(1:5)='Ax = '
       toptit(3)(16:22)=', Ay = '
       toptit(3)(33:80)=' '
@@ -47754,7 +47752,7 @@ c$$$            endif
       endif
       
       dp1=h
-      write(toptit(2)(51:60),10000) dp1-clop(3)
+      write(toptit(2)(51:61),10000) dp1-clop(3)
       if(nprint.eq.1.and.ia.eq.0) then
         write(lout,*) 'INITIAL COORDINATES'
         write(lout,*) '       X = ',c
@@ -49255,7 +49253,7 @@ c$$$            endif
 !----------------------------------------------------------------------
       return
       
-10000 format(d10.4)
+10000 format(d11.4)
 10010 format(f10.6)
 10020 format(a80)
 10030 format(2f10.6)
@@ -49297,27 +49295,27 @@ c$$$            endif
      &10x,'LONGITUDINAL GAMMA',t102,f16.10/                             &
      &10x,'LONGITUDINAL GAMMA-II',t102,f16.10/                          &
      &10x,'LONGITUDINAL GAMMA-III',t102,f16.10/                         &
-     &10x,'HORIZONTAL CLOSED ORBIT',t102,d16.10/                        &
-     &10x,'VERTICAL CLOSED ORBIT',t102,d16.10/                          &
-     &10x,'LONGITUDINAL CLOSED ORBIT',t102,d16.10/                      &
-     &10x,'SLOPE OF HORIZONTAL CLOSED ORBIT',t102,d16.10/               &
-     &10x,'SLOPE OF VERTICAL CLOSED ORBIT',t102,d16.10/                 &
-     &10x,'SLOPE OF LONGITUDINAL CLOSED ORBIT',t102,d16.10/             &
-     &10x,'HORIZONTAL DISPERSION',t102,f16.10/                          &
-     &10x,'VERTICAL DISPERSION',t102,f16.10/                            &
-     &10x,'SLOPE OF HORIZONTAL DISPERSION',t102,f16.10/                 &
-     &10x,'SLOPE OF VERTICAL DISPERSION',t102,f16.10/                   &
-     &10x,'LINEAR HORIZONTAL TUNE',t102,f16.10/                         &
-     &10x,'LINEAR VERTICAL TUNE',t102,f16.10/                           &
-     &10x,'LINEAR LONGITUDINAL TUNE',t102,f16.10)
+     &10x,'HORIZONTAL CLOSED ORBIT',t105,ES17.10/                       &
+     &10x,'VERTICAL CLOSED ORBIT',t105,ES17.10/                         &
+     &10x,'LONGITUDINAL CLOSED ORBIT',t105,ES17.10/                     &
+     &10x,'SLOPE OF HORIZONTAL CLOSED ORBIT',t105,ES17.10/              &
+     &10x,'SLOPE OF VERTICAL CLOSED ORBIT',t105,ES17.10/                &
+     &10x,'SLOPE OF LONGITUDINAL CLOSED ORBIT',t105,ES17.10/            &
+     &10x,'HORIZONTAL DISPERSION',t105,ES17.10/                         &
+     &10x,'VERTICAL DISPERSION',t105,ES17.10/                           &
+     &10x,'SLOPE OF HORIZONTAL DISPERSION',t105,ES17.10/                &
+     &10x,'SLOPE OF VERTICAL DISPERSION',t105,ES17.10/                  &
+     &10x,'LINEAR HORIZONTAL TUNE',t105,ES17.10/                        &
+     &10x,'LINEAR VERTICAL TUNE',t105,ES17.10/                          &
+     &10x,'LINEAR LONGITUDINAL TUNE',t105,ES17.10)
 10070 format( 10x,'DATA IS AVERAGED IN SAMPLES OF IAV TURNS',t96,       &
      &'IAV =    ',i7 /10x,'START TURN NUMBER FOR THE ANALYSIS ',t93,    &
      &'NSTART =  ',i9 /10x,'THE ANALYSIS STOPS AFTER TURN NUMBER ',t94, &
      &'NSTOP =  ',i9, /10x,                                             &
      &'HORIZONTAL ANGLE-INTERVAL FOR STROBOSCOPING THE VERTICAL',       &
-     &' PHASESPACE PROJECTION',t94,'DPHIX = ',d16.10 /10x,              &
+     &' PHASESPACE PROJECTION',t94,'DPHIX = ',d17.10 /10x,              &
      &'VERTICAL ANGLE-INTERVAL FOR STROBOSCOPING THE HORIZONTAL',       &
-     &' PHASESPACE PROJECTION',t94,'DPHIY = ',d16.10 /10x,              &
+     &' PHASESPACE PROJECTION',t94,'DPHIY = ',d17.10 /10x,              &
      &'SWITCH FOR THE WEIGHTING OF THE LINEAR FIT FOR THE ' ,           &
      &'DISTANCE IN PHASESPACE ',t96,'IWG = ',i4 /10x,                   &
      &'INTEGER PART FOR THE HORIZONTAL TUNE ',t96,'QX0 = ' ,f16.10 /10x,&
@@ -49328,11 +49326,11 @@ c$$$            endif
      &' ( INT => 1 ; HALF-INT => 0 )',t95,'IVOY = ',i4 /10x,            &
      &'Q-VALUES ARE CHECKED FOR RESONANCES UP TO ORDER',t95, 'IRES = ', &
      &i4 /10x,'A RESONANCE IS CONSIDERED TO BE STRONG WHEN THE Q-VALUES'&
-     &, ' ARE CLOSER TO IT THAN',t95,'DRES = ',d16.10 /10x,             &
+     &, ' ARE CLOSER TO IT THAN',t95,'DRES = ',d17.10 /10x,             &
      &'SWITCH FOR FFT-RANGE ( IFH=0 => 0-1 ; IFH=1 => 0-.5 ' ,          &
      &'; IFH=2 => .5-1 )',t96,'IFH = ',i4 /10x,                         &
      &'Q-PEAKS OF THE FFT ARE CONSIDERED IF THEY ARE LARGER THAN' ,t95, &
-     &'DFFT = ',d16.10 )
+     &'DFFT = ',d17.10 )
 10090 format( 10x,                                                      &
      &'SWITCH FOR PRINTING THE DISTANCE IN PHASE SPACE' ,t95,'IDIS = ', &
      &i4 /10x,'SWITCH FOR PRINTING THE COORDINATES',t95,'ICOW = ',i4 /10&
@@ -49353,22 +49351,22 @@ c$$$            endif
      &'NUMBER OF BINARY FILES TO BE PROCESSED', ' ( 90 - [90-NDAFI+1] )'&
      &,t94,'NDAFI = ',i4 //)
 10110 format(/10x,'ANALYSING THE INCREASE OF THE DISTANCE IN PHASE-' ,  &
-     &'SPACE'/10x,53('-')/ //12x,'TURNS',10x,'DISTANCE',13x,            &
-     &'SLOPE          RESIDUAL' /10x,63('-'))
-10120 format(10x,i7,6x,d16.10,2(2x,f15.10))
-10130 format(10x,63('-')//)
+     &'SPACE'/10x,53('-')/ //12x,'TURNS',10x,'DISTANCE',20x,            &
+     &'SLOPE          RESIDUAL' /10x,70('-'))
+10120 format(10x,i7,6x,d17.10,2(2x,f18.11))
+10130 format(10x,70('-')//)
 10140 format(//10x,'AVERAGED PHASE-ADVANCE' /10x,22('-')/ /10x,         &
      &'X-PHASE :  ',f14.10,'   +/_ ',f14.10 /10x,'Y-PHASE :  ',f14.10,  &
      &'   +/_ ',f14.10/ /10x,'S-PHASE :  ',f14.10,'   +/_ ',f14.10/ /10 &
-     &x,'START-QX : ',f14.10,'   CHANGE IN X : ',d16.10 /10x,           &
-     &'START-QY : ',f14.10,'   CHANGE IN Y : ',d16.10 /10x,'START-QS : '&
-     &,f14.10,'   CHANGE IN S : ',d16.10// /10x,                        &
-     &'THE AVERAGED PHASE-ADVANCES ARE CLOSER THEN ',d10.4,' TO ' ,     &
+     &x,'START-QX : ',f14.10,'   CHANGE IN X : ',d17.10 /10x,           &
+     &'START-QY : ',f14.10,'   CHANGE IN Y : ',d17.10 /10x,'START-QS : '&
+     &,f14.10,'   CHANGE IN S : ',d17.10// /10x,                        &
+     &'THE AVERAGED PHASE-ADVANCES ARE CLOSER THEN ',d11.4,' TO ' ,     &
      &'THE FOLLOWING RESONANCES UP TO ',i3,' ORDER'/10x,98('-')/ /10x,  &
      &'NX * QX   +   NY * QY   -      P      =      DELTA'/10x, 52('-'))
 10150 format(/10x,'WARNING ! X-PHASE MIGHT NOT BE PRECISE'/)
 10160 format(/10x,'WARNING ! Y-PHASE MIGHT NOT BE PRECISE'//)
-10170 format(12x,i2,11x,i3,7x,f8.1,9x,d10.4)
+10170 format(12x,i2,11x,i3,7x,f8.1,9x,d11.4)
 10180 format(//10x,'Q-VALUES FROM FFT-ROUTINE' /10x,25('-')/ /10x,      &
      &'THE ANALYSIS WAS DONE WITH ',i7,' ENTRIES.'/ /10x,               &
      &'THE FOLLOWING Q-PEAKS ARE LARGER THEN ',f8.4,' PERCENT.'/ /10x,  &
@@ -49377,9 +49375,9 @@ c$$$            endif
 10200 format(12x,'Y',7x,f14.10,5x,f14.10)
 10210 format(//10x,'MAXIMUM PEAK'/ /10x,'HORIZONTAL PLANE :  ',f14.10   &
      &/10x,'VERTICAL PLANE   :  ',f14.10/ /10x,'START-QX : ',f14.10,    &
-     &'   CHANGE IN X : ',d16.10 /10x,'START-QY : ',f14.10,             &
-     &'   CHANGE IN Y : ',d16.10// /10x,                                &
-     &'THE MAXIMUM Q-PEAKS ARE CLOSER THEN ',d10.4,' TO ' ,             &
+     &'   CHANGE IN X : ',d17.10 /10x,'START-QY : ',f14.10,             &
+     &'   CHANGE IN Y : ',d17.10// /10x,                                &
+     &'THE MAXIMUM Q-PEAKS ARE CLOSER THEN ',d11.4,' TO ' ,             &
      &'THE FOLLOWING RESONANCES UP TO ',i3,' ORDER'/10x,96('-')/ /10x,  &
      &'NX * QX   +   NY * QY   -      P      =      DELTA'/10x, 52('-'))
 10220 format(////10x,'CALCULATION OF THE AVERAGED EMITTANCES' /10x,38(  &
@@ -50543,26 +50541,26 @@ c$$$            endif
       write(lout,10040)
 !-----------------------------------------------------------------------
       return
-10000 format(/131('-')/t10,'SUMMARY OF THE POSTPROCESSING' //t1,125(    &
-     &'-'), /t1,'|',8x,'|',11x,'|',11x,'|',12x,'|',10x,                 &
-     &'|NORMALIZED| SLOPE  |',13x,'|',10x,'|',21x,'|', /t1,             &
-     &'|  TURN  |   LINEAR  |   BETA-   | AMPLITUDES | MOMENTUM |',     &
-     &'PHASESPACE| OF THE |  NONLINEAR  |  NEAREST |',7x,'SMEAR OF',6x, &
-     &'|', /t1,                                                         &
-     &'| NUMBER |   TUNES   | FUNCTIONS |            | DEVIATION|',     &
-     &' DISTANCE |DISTANCE|  DETUNING   | RESONANCE|    THE EMITTANCES' &
-     &,3x,'|',/t1,125('-'), /t1,                                        &
-     &'|        |           |     [M]   |     [MM]   |          |',     &
-     &'          |        |             |     |ORD.|',                  &
-     &'    [%]  |      [%]  |'/t1,125('-'))
-10010 format(t1,'|',i8,'|X ',f9.5,'|X ',f9.4,'|X ',f10.6,'|',d10.4, '|',&
-     &d10.4,'|',f8.4,'|X ',d11.5,'|X ',i3,'| ',i2,' |X ', f7.3,'|X+Y ', &
-     &f7.3,'|' /t1,'|  ',a4,'  |Y ',f9.5,'|Y ',f9.4,'|Y ',f10.6,'|',10x,&
-     &'|',10x,'|',8x,'|+/- ',d9.3,'|Y ',i3,'|    |Y ', f7.3,'|    ',7x, &
-     &'|' /t1,'|',8x,'|QS ',f8.6,'|  ',9x,'|  ',10x,'|',10x, '|',10x,'|'&
-     &,8x,'|Y ',d11.5,'|  ',3x,'|    |  ', 7x,'|    ',7x,'|' /t1,'|',8x,&
-     &'|  ',9x,'|  ',9x,'|  ',10x,'|',10x, '|',10x,'|',8x,'|+/- ',d9.3, &
-     &'|  ',3x,'|    |  ', 7x,'|    ',7x,'|'/t1,125('-'))
+10000 format(/131('-')/t10,'SUMMARY OF THE POSTPROCESSING' //t1,128(    &
+     &'-'), /t1,'|',8x,'|',11x,'|',11x,'|',12x,'|',11x,                 &
+     &'|NORMALIZED | SLOPE  |',14x,'|',10x,'|',21x,'|', /t1,            &
+     &'|  TURN  |   LINEAR  |   BETA-   | AMPLITUDES | MOMENTUM  |',    &
+     &'PHASESPACE | OF THE |  NONLINEAR   |  NEAREST |',7x,'SMEAR OF',6x&
+     &,'|', /t1,                                                        &
+     &'| NUMBER |   TUNES   | FUNCTIONS |            | DEVIATION |',    &
+     &' DISTANCE  |DISTANCE|  DETUNING    | RESONANCE|   THE EMITTANCES'&
+     &  ,4x,'|',/t1,128('-'), /t1,                                      &
+     &'|        |           |     [M]   |     [MM]   |           |',    &
+     &'           |        |              |     |ORD.|',                &
+     &'    [%]  |      [%]  |'/t1,128('-'))
+10010 format(t1,'|',i8,'|X ',f9.5,'|X ',f9.4,'|X ',f10.6,'|',d11.4, '|',&
+     &d11.4,'|',f8.4,'|X ',d12.5,'|X ',i3,'| ',i2,' |X ', f7.3,'|X+Y ', &
+     &f7.3,'|' /t1,'|  ',a4,'  |Y ',f9.5,'|Y ',f9.4,'|Y ',f10.6,'|',11x,&
+     &'|',11x,'|',8x,'|+/- ',d10.3,'|Y ',i3,'|    |Y ', f7.3,'|    ',7x,&
+     &'|' /t1,'|',8x,'|QS ',f8.6,'|  ',9x,'|  ',10x,'|',11x, '|',11x,'|'&
+     &,8x,'|Y ',d12.5,'|  ',3x,'|    |  ', 7x,'|    ',7x,'|' /t1,'|',8x,&
+     &'|  ',9x,'|  ',9x,'|  ',10x,'|',11x, '|',11x,'|',8x,'|+/- ',d10.3,&
+     &'|  ',3x,'|    |  ', 7x,'|    ',7x,'|'/t1,128('-'))
 10020 format(/131('-')/t10,'RANDOM SETS USED' //                        &
      &'  CASE  |  # OF RANDOM SET  |  MAX. POSSIBLE SETS   |    ',      &
      &' SEED'/65('-'))
