@@ -25008,22 +25008,30 @@ C Should get me a NaN
       if(idp.ne.0.and.ition.ne.0) then !6D tracking
          if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
             write(lout,'(1x,a)')
-     &           "ERROR: Problem with SYNC block detected"
+     &           "WARNING: Problem with SYNC block detected"
             write(lout,'(1x,a,f17.10)')
      &           "TLEN in sync block =",tlen
             write(lout,'(1x,a,f17.10)')
      &           "Length from DCUM   =",dcum(iu+1)
             write(lout,'(1x,a,f17.10)')
      &           "Difference         =",dcum(iu+1)-tlen
-            write(lout,'(1x,a,e27.16)')
+            write(lout,'(1x,a,e27.16,a)')
      &           "Relative error     =",
-     &           2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen)
-            write(lout,'(1x,a,f17.10)')
-     &           "Tolerance eps_dcum =", eps_dcum
+     &           2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
+            write(lout,'(1x,a,f17.10,a)')
+     &           "Tolerance eps_dcum =", eps_dcum, " [m]"
             write(lout,'(1x,a)')
-     &           "Please fix the TLEN parameter in your SYNC block"//
-     &           " to ensure accurate simulation of synchrotron motion."
-            call prror(-1)
+     &           "Please fix the TLEN parameter in your SYNC block"
+            write(lout,'(1x,a)')
+     &           "so that it matches the "//
+     &           " calculated machine length from DCUM."
+            write(lout,'(1x,a)')
+     &           "If incorrect, the RF frequency"//
+     &           " may be (slightly) wrong."
+
+            !It's a warning not an error, and the consequences seem relatively small.
+            !Ideally, tlen should be calculated automatically based on the sequence.
+            !call prror(-1)
          endif
       endif
 
