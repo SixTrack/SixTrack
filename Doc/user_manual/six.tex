@@ -48,11 +48,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update April 2017
+  Update July 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.6.30 \\
+  Version 4.7.2 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -3111,6 +3111,7 @@ synchrotron oscillation in a symplectic manner are given in the {\em
   block~(\ref{TraPar}). Please set to 1 when the 6D closed is
   calculated.
 \end{description}
+Note that the value of \emph{tlen} is also calculated internally by SixTrack (in ``dcum''), and a warning is issued if the given value is different from the calculated value.
 
 \section{Extra output files}
 For some studies, extra output from the simulation is desired.

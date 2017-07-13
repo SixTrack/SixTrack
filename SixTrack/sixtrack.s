@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.1'/
-      data moddate /'07.07.2017'/
+      data version /'4.7.2'/
+      data moddate /'13.07.2017'/
 +cd license
 !!SixTrack
 !!
@@ -1151,6 +1151,9 @@
       double precision dcum                  ! actual values [m]
       logical print_dcum                     ! flag for printout
       parameter ( print_dcum = .false. )
+
+      double precision eps_dcum              ! Tolerance for machine length mismatch [m]
+      parameter ( eps_dcum = c1m6 )
 
       common /dcumdb/ dcum(0:nblz+1)
 !
@@ -23442,6 +23445,7 @@ C Should get me a NaN
 +ei
 +ca comgetfields
 +ca dbdump
++ca dbdcum
 +if cr
 +ca dbdumpcr
 +ei
@@ -25001,6 +25005,35 @@ C Should get me a NaN
 !        or statistics or beam matrix
 !     always in main code
       call cadcum
+      if(idp.ne.0.and.ition.ne.0) then !6D tracking
+         if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
+            write(lout,'(1x,a)')
+     &           "WARNING: Problem with SYNC block detected"
+            write(lout,'(1x,a,f17.10)')
+     &           "TLEN in sync block =",tlen
+            write(lout,'(1x,a,f17.10)')
+     &           "Length from DCUM   =",dcum(iu+1)
+            write(lout,'(1x,a,f17.10)')
+     &           "Difference         =",dcum(iu+1)-tlen
+            write(lout,'(1x,a,e27.16,a)')
+     &           "Relative error     =",
+     &           2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
+            write(lout,'(1x,a,f17.10,a)')
+     &           "Tolerance eps_dcum =", eps_dcum, " [m]"
+            write(lout,'(1x,a)')
+     &           "Please fix the TLEN parameter in your SYNC block"
+            write(lout,'(1x,a)')
+     &           "so that it matches the "//
+     &           " calculated machine length from DCUM."
+            write(lout,'(1x,a)')
+     &           "If incorrect, the RF frequency"//
+     &           " may be (slightly) wrong."
+
+            !It's a warning not an error, and the consequences seem relatively small.
+            !Ideally, tlen should be calculated automatically based on the sequence.
+            !call prror(-1)
+         endif
+      endif
 
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     K. Sjobak, for BE/ABP-HSS
@@ -26199,7 +26232,6 @@ C Should get me a NaN
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
-+ca dbdcum
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -26753,7 +26785,6 @@ C Should get me a NaN
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
-+ca dbdcum
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -27562,7 +27593,6 @@ C Should get me a NaN
 +ca dbdump
 +ca stringzerotrim
 +ca comdynk
-+ca dbdcum
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -39971,6 +40001,9 @@ c$$$               endif
         enddo
         write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
         write(lout,*)     ''
+      else                      ! Anyway print the total machine length
+         write(lout,'(1x,a,1x,f17.10,1x,a)')
+     &        "Machine length was", dcum(iu+1),"[m]"
       endif
 
 !     au revoir:
