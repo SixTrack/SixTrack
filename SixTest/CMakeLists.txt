@@ -56,6 +56,10 @@ if(NOT COLLIMAT)
                 SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
         endif()
 
+	if(NAFF)
+                SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
+        endif()
+	
         #only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
         if(BNLELENS)
                 SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
