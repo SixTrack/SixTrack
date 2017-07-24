@@ -16881,8 +16881,11 @@ cc2008
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1")
-     &   ) then
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1"
++if naff
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"
++ei
+     &)) then
          write(lout,*)
      &        "ERROR in DATEN::FMA: The FMA method '"//
      &        trim(stringzerotrim(fma_method(fma_numfiles)))
@@ -49589,7 +49592,17 @@ c$$$            endif
       double precision, dimension(:,:,:),allocatable ::
      &epsnxyzv ! normalized emittances
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
-     &tunenewt,tuneabt2,tuneabt,tunenewt1
+     &tunenewt,tuneabt2,tuneabt,tunenewt1 !Define the functions to be called from PLATO
++if naff
+!      interface
+!         function tunenaff(x,xp,maxn) BIND(C)
+!         use, intrinsic :: ISO_C_BINDING
+!         IMPLICIT NONE
+!         REAL(C_DOUBLE) :: x,xp
+!         INTEGER(C_INT) :: maxn
+!      end interface
+      double precision :: tunenaff !And from NAFF (IIF available)
++ei
 !     dummy variables for readin + normalisation + loops
       integer :: id,kt,counter
       double precision :: pos
@@ -49982,6 +49995,22 @@ c$$$            endif
                     q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
                  endif
++if naff
+                 case("NAFF")
+!                 write(lout,*) "DBG", fma_nturn(i),l
+!                 write(lout,*) "DBG",
+!     &                   nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
+                 flush(lout) ! F2003 does specify a FLUSH statement.
+                             ! However NAFF should NOT be chatty...
+                 if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=tunenaff(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 else
+                    q123(m)=tunenaff(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                 endif
+                 flush(lout)
++ei
                  
                  case default
                     call fma_error(-1,'FMA method '//
