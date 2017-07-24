@@ -939,7 +939,7 @@ if(NAFF)
 	
 	include_directories( ${FFTW3_INCLUDES} )
 	
-	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp)
+	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
 
 	#Enable c++11
