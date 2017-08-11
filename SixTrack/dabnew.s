@@ -1,9 +1,3 @@
-+cd crlibco
-      double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
-     &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
-+cd crcoall
-      integer lout
-      common /crflags/lout
 +cd dascr
       integer idao,is,iscrri
       double precision rs
@@ -5115,7 +5109,7 @@
 +ei
 +ei
          do 80 i = ipoa,ipoa+illa-1
-         write(iunit,'(I6,2X,G20.14)') i-ipoa, cc(i)
+         write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
 !Eric
  80      write(111) cc(i)
 +if crlibm
@@ -5141,12 +5135,12 @@
              j(i-1)=1
              ioa=1
            endif
-         write(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                 &
+         write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                 &
      &iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(111) cc(ipoa+i-1)
 !Eric
 !        write(iunit,*) cc(ipoa+i-1)
-         write(iunit,'(G20.14)') cc(ipoa+i-1)
+         write(iunit,'(G21.14)') cc(ipoa+i-1)
          write(111) cc(ipoa+i-1)
  90     continue
 +if crlibm
@@ -5171,14 +5165,14 @@
                                                   call enable_xp()
 +ei
 +ei
-          write(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                &
+          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                &
      &iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !Eric
          write(111) cc(ii)
 !ETIENNE
 !Eric
 !         write(iunit,* ) cc(ii)
-          write(iunit,'(G20.14)') cc(ii)
+          write(iunit,'(G21.14)') cc(ii)
           write(111) cc(ii)
           endif
 !ETIENNE
@@ -5537,7 +5531,7 @@
                                                   call enable_xp()
 +ei
 +ei
-      read(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                     &
+      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                     &
      &ii,c,io,(j(i),i=1,inva)
 +if crlibm
 +if .not.lf95
@@ -5561,7 +5555,7 @@
 +ei
 +ei
 !Eric
-      read(iunit,'(G20.14)') c
+      read(iunit,'(G21.14)') c
 !Eric
       read(111) c
 +if crlibm
@@ -6828,7 +6822,7 @@
 +ei
 +ei
          do 80 i = ipoa,ipoa+illa-1
- 80      write(iunit,'(I6,2X,G20.14)') i-ipoa, cc(i)
+ 80      write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
 +if crlibm
 +if .not.lf95
                                                   call disable_xp()
@@ -6846,7 +6840,7 @@
                                                   call enable_xp()
 +ei
 +ei
-         write(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                 &
+         write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                 &
      &iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(iunit,*) cc(ipoa+i-1)
 +if crlibm
@@ -6870,7 +6864,7 @@
                                                   call enable_xp()
 +ei
 +ei
-          write(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                &
+          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                &
      &iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !ETIENNE
           write(iunit,*) cc(ii)
@@ -7080,7 +7074,7 @@
                                                   call enable_xp()
 +ei
 +ei
-      read(iunit,'(I6,2X,G20.14,I5,4X,18(2I2,1X))')                     &
+      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                     &
      &ii,c,io,(jt(i),i=1,invo)
 +if crlibm
 +if .not.lf95
@@ -7098,7 +7092,7 @@
                                                   call enable_xp()
 +ei
 +ei
-      read(iunit,'(G20.14)') c
+      read(iunit,'(G21.14)') c
 +if crlibm
 +if .not.lf95
                                                   call disable_xp()
