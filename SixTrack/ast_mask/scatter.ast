@@ -1,4 +1,4 @@
-sixtrack.s
+sixtrack.s common_headers.s
 scattern.f
 e scatter
 ex
