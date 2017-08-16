@@ -6670,7 +6670,19 @@ cc2008
                 endif
              endif
           endif
-
++cd dumplines_first
+!     StartDUMP - dump on the first element
+      if (ldump(-1)) then
+         if ( ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1 ) then
+            if (   (n.ge.dumpfirst(-1)) .and.
+     &           ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )
+     &           ) then
+               call dump_beam_population( n, 0, 0, dumpunit(-1),
+     &              dumpfmt(-1), ldumphighprec )
+            endif
+         endif
+      endif
+      
 +cd lostpart
           llost=.false.
           do j=1,napx
@@ -26341,7 +26353,7 @@ C Should get me a NaN
         if ( ldynk ) then
            call dynk_apply(n)
         endif
-
++ca dumplines_first
 
         do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements/blocks
 +if bnlelens
@@ -26902,18 +26914,8 @@ C Should get me a NaN
            call dynk_apply(n)
         endif
 
-        if (ldump(-1)) then !StartDUMP - dump on the first element
-           if ( ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1 ) then
-              if (   (n.ge.dumpfirst(-1)) .and.
-     &             ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )
-     &             ) then
-                 call dump_beam_population( n, 0, 0, dumpunit(-1),
-     &                dumpfmt(-1), ldumphighprec )
-              endif
-           endif
-           
-        endif
-        
++ca dumplines_first
+
 !! This is the loop over each element: label 650
         do 650 i=1,iu !Loop over elements
 +if collimat
@@ -27721,6 +27723,8 @@ C Should get me a NaN
         if ( ldynk ) then
            call dynk_apply(n)
         endif
+
++ca dumplines_first
 
         do 650 i=1,iu
 +if bnlelens
@@ -29733,9 +29737,11 @@ C Should get me a NaN
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-        if ( ldynk ) then
-           call dynk_apply(n)
-        endif
+          if ( ldynk ) then
+             call dynk_apply(n)
+          endif
+
++ca dumplines_first
 
           do 480 i=1,iu
 +if bnlelens
@@ -30287,9 +30293,11 @@ C Should get me a NaN
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-        if ( ldynk ) then
-           call dynk_apply(n)
-        endif
+          if ( ldynk ) then
+             call dynk_apply(n)
+          endif
+
++ca dumplines_first
 
 +if debug
 ! Now comes the loop over elements do 500/501
@@ -30982,9 +30990,11 @@ C Should get me a NaN
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-        if ( ldynk ) then
-           call dynk_apply(n)
-        endif
+          if ( ldynk ) then
+             call dynk_apply(n)
+          endif
+
++ca dumplines_first
 
           do 500 i=1,iu
 +if bnlelens
