@@ -147,8 +147,6 @@ int main(int argc, char* argv[])
 	const char* const sixoutzip_fname = "Sixout.zip";
 #endif
 
-	//WTF: Why are we converting to a float and not an int?
-	// Fix or comment.
 	if(atoi(argv[4]) != 0)
 	{
 		fort10 = true;
