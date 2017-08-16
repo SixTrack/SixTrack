@@ -1218,7 +1218,7 @@
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
-      common /dumpdbCR/ dumpfilepos(0:nele), dumpfilepos_cr(0:nele)
+      common /dumpdbCR/ dumpfilepos(-1:nele), dumpfilepos_cr(-1:nele)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -52555,7 +52555,7 @@ c$$$            endif
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(95,err=100,end=100)
-     &     (dumpfilepos_cr(j),j=0,nele)
+     &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
@@ -52742,7 +52742,7 @@ c$$$         backspace (93,iostat=ierro)
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(96,err=100,end=100)
-     &     (dumpfilepos_cr(j),j=0,nele)
+     &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
@@ -53216,7 +53216,7 @@ c$$$         backspace (93,iostat=ierro)
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP files"
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      do i=0, il
+      do i=-1, il
          if (ldump(i)) then
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
             if (i .ne. 0) then
@@ -53712,7 +53712,7 @@ c$$$         backspace (93,iostat=ierro)
       endif
 +ei
       write(95,err=100,iostat=ierro)                                    &
-     &     (dumpfilepos(j),j=0,nele)
+     &     (dumpfilepos(j),j=-1,nele)
       
       if (ldynk) then
 +if .not.debug
@@ -53958,7 +53958,7 @@ c$$$         backspace (93,iostat=ierro)
       endif
 +ei
       write(96,err=100,iostat=ierro)                                    &
-     &     (dumpfilepos(j),j=0,nele)
+     &     (dumpfilepos(j),j=-1,nele)
 
       if (ldynk) then
 +if .not.debug
