@@ -10,6 +10,8 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <list>
+#include <algorithm>
 
 #include <unistd.h>
 #include <signal.h>
@@ -58,7 +60,7 @@ size_t StripCR(std::string);
 bool CheckFort10(char**);
 bool CheckFort90(char**);
 bool CheckSTF(char**);
-bool PerformExtraChecks(bool&, char* convert_dump_bin, char* dump_bin_file);
+bool PerformExtraChecks(bool&, char* convert_dump_bin, char* dump_bin_files);
 std::vector<int> ParseKillTimes(char*);
 
 void UnlinkCRFiles();
@@ -95,7 +97,7 @@ struct KillInfo
 * 8: CR enabled
 * 9: CR kill time
 * 10: Path to readDump3 binary to run
-* 11: Name of file in extra_checks that is a dump format 3 (binary)
+* 11: Name of files (comma-separated list) in extra_checks that is a dump format 3 (binary) or NONE
 *
 * For running the tools:
 * On "Unix" we call fork() and exec()
@@ -145,26 +147,28 @@ int main(int argc, char* argv[])
 	const char* const sixoutzip_fname = "Sixout.zip";
 #endif
 
-	if(atof(argv[4]) != 0)
+	//WTF: Why are we converting to a float and not an int?
+	// Fix or comment.
+	if(atoi(argv[4]) != 0)
 	{
 		fort10 = true;
 	}
 
-	if(atof(argv[5]) != 0)
+	if(atoi(argv[5]) != 0)
 	{
 		fort90 = true;
 	}
 
-	if(atof(argv[6]) != 0)
+	if(atoi(argv[6]) != 0)
 	{
 		STF = true;
 	}
-	if(atof(argv[7]) != 0)
+	if(atoi(argv[7]) != 0)
 	{
-		sixoutzip = atof(argv[7]);
+		sixoutzip = atoi(argv[7]);
 	}
 
-	if(atof(argv[8]) != 0)
+	if(atoi(argv[8]) != 0)
 	{
 		CR = true;
 		KillTimes = ParseKillTimes(argv[9]);
@@ -1060,9 +1064,27 @@ bool FileComparison(std::string FileName1, std::string FileName2)
 	return true;
 }
 
-bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bin_file)
+bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bin_files)
 {
 	std::cout << "--------------------------- Performing extra checks ---------------------------" << std::endl;
+
+	//Split the dump_bin_files
+	std::list<std::string> dump_bin_files_list;
+	std::string dump_bin_files_input = dump_bin_files;
+	size_t dump_bin_files_pos = 0;
+	size_t dump_bin_files_oldpos = 0;
+	while(dump_bin_files_pos != std::string::npos)
+	{
+		dump_bin_files_pos = dump_bin_files_input.find(",", dump_bin_files_oldpos);
+		dump_bin_files_list.push_back(dump_bin_files_input.substr(dump_bin_files_oldpos,dump_bin_files_pos-dump_bin_files_oldpos));
+		dump_bin_files_oldpos=dump_bin_files_pos+1;
+		std::cout << "Found binary dump file = '" << dump_bin_files_list.back() << "'" << std::endl;
+	}
+	if (dump_bin_files_list.size()==1 and dump_bin_files_list.front()=="NONE")
+	{
+		dump_bin_files_list.clear();
+	}
+	
 	bool AllTests = false;
 	std::ifstream extra_checks_in("extra_checks.txt");
 	if(extra_checks_in.good())
@@ -1081,7 +1103,8 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
 			{
 				std::cout << "Performing extra checks on '" << FileName << "'" << std::endl;
 				bool convertThis = false;
-				if(FileName == std::string(dump_bin_file))
+				auto dump_bin_files_iterator = std::find(dump_bin_files_list.begin(),dump_bin_files_list.end(),FileName);
+				if(dump_bin_files_iterator != dump_bin_files_list.end())
 				{
 					convertThis = true;
 					std::cout << "This is a binary format 3 DUMP, must convert!" << std::endl;
