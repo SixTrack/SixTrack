@@ -1190,12 +1190,13 @@
       logical :: ldump (-1:nele)              ! flag the SINGLE ELEMENT for
                                               !   dumping
 
-      double precision :: dump_tas (nblz,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
-      double precision :: dump_clo (nblz,6)   ! closed orbit used for FMA (normalisation of phase space)  -> check units used in dump_clo (is x' or px used?)
-
-      !For dumping at the 1st element
-      double precision :: dump_tasStart (6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
-      double precision :: dump_cloStart (6)   ! closed orbit used for FMA (normalisation of phase space)  -> check units used in dump_clo (is x' or px used?)
+      double precision :: dump_tas (-1:nblz,6,6) ! tas matrix used for FMA analysis
+                                                 !  (nomalisation of phase space)
+                                                 !  First index = -1 -> StartDUMP, filled differently;
+                                                 !  First index = 0  -> Unused.
+      double precision :: dump_clo (-1:nblz,6)   ! closed orbit used for FMA
+                                                 !  (normalisation of phase space)
+                                                 !  TODO: check units used in dump_clo (is x' or px used?)
       
       integer :: ndumpt (-1:nele)             ! dump every n turns at a flagged
                                               !   SINGLE ELEMENT (dump frequency)
@@ -1211,7 +1212,7 @@
      &                dumpfirst, dumplast,
      &                dumpfmt, ldumphighprec, ldumpfront,
      &                dump_fname
-      common /dumpOptics/ dump_tas,dump_tasStart,dump_clo,dump_cloStart
+      common /dumpOptics/ dump_tas,dump_clo
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -16570,7 +16571,7 @@ cc2008
      &           dumpfmt(0), dumpfirst(0), dumplast(0)
         endif
         if ( ldump(-1) ) then
-           write(lout,10470) 'StartDUMP specia', ndumpt(0),
+           write(lout,10470) 'StartDUMP speci.', ndumpt(0),
      &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),
      &          dumpfmt(0), dumpfirst(0), dumplast(0)
         endif
@@ -33680,19 +33681,13 @@ C Should get me a NaN
 !     always in main code
       ldumphighprec = .false.
       ldumpfront    = .false.
-      do i1=1,nblz
+      do i1=-1,nblz
         do i2=1,6
           dump_clo(i1,i2)=0
           do i3=1,6
             dump_tas(i1,i2,i3)=0
           enddo
         enddo
-      enddo
-      do i2=1,6
-         dump_cloStart(i2)=0
-         do i3=1,6
-            dump_tasStart(i2,i3)=0
-         enddo
       enddo
       do i=-1,nele
         ldump(i)    = .false.
