@@ -26868,10 +26868,10 @@ C Should get me a NaN
           if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
         enddo
       endif
-      do 660 n=numlcr,nnuml
+      do 660 n=numlcr,nnuml ! Loop over turns, CR version
 +ei
 +if .not.cr
-      do 660 n=1,numl
+      do 660 n=1,numl       ! Loop over turns
 +ei
 +if boinc
 !       call boinc_sixtrack_progress(n,numl)
@@ -26901,8 +26901,20 @@ C Should get me a NaN
            call dynk_apply(n)
         endif
 
+        if (ldump(-1)) then !StartDUMP - dump on the first element
+           if ( ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1 ) then
+              if (   (n.ge.dumpfirst(-1)) .and.
+     &             ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )
+     &             ) then
+                 call dump_beam_population( n, 0, 0, dumpunit(-1),
+     &                dumpfmt(-1), ldumphighprec )
+              endif
+           endif
+           
+        endif
+        
 !! This is the loop over each element: label 650
-        do 650 i=1,iu
+        do 650 i=1,iu !Loop over elements
 +if collimat
       call collimate_start_element(i)
 +ei
@@ -27569,7 +27581,7 @@ C Should get me a NaN
 !GRD-042008
 +ei
 
-  660 continue
+  660 continue !END loop over turns
 
 +if collimat
       close(99)
@@ -28805,10 +28817,10 @@ C Should get me a NaN
 !     always in main code
 !
 !     nturn     : Current turn number
-!     i         : Current structure element
-!     ix        : Corresponding single element (<0 for BLOC, only for ALL)
+!     i         : Current structure element (0 for StartDUMP)
+!     ix        : Corresponding single element (<0 for BLOC, only for ALL; 0 for StartDUMP)
 !     unit      : Unit to dump from
-!     fmt       : Dump output format (0/1/2)
+!     fmt       : Dump output format (0/1/2/...)
 !     lhighprec : High precission output y/n
 !-----------------------------------------------------------------------
 
@@ -28847,6 +28859,9 @@ C Should get me a NaN
       integer j,k,l
       character*16 localBez
 
+      double precision localDcum
+      integer localKtrack
+
       double precision xyz_particle(6)
       double precision xyz(6)
       double precision xyz2(6,6)
@@ -28857,27 +28872,35 @@ C Should get me a NaN
       if( unit .eq. dumpunit(0) ) then
          ! ALL output must be on separate unit
          dumpIdx = 0
+      elseif ( unit .eq. dumpunit(-1) ) then
+         ! ALL output must be on separate unit
+         dumpIdx = -1
       else
          dumpIdx = ix
       endif
 +ei
-      if ( ktrack(i) .ne. 1 ) then
-         localBez = bez(ix)
-      else
-         localBez = bezb(ic(i))
-      endif
-      
       ! General format
       if ( fmt .eq. 0 ) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localBez = "StartDUMP"
+         else
+            localDcum = dcum(i)
+            if ( ktrack(i) .ne. 1 ) then
+               localBez = bez(ix)
+            else                !BLOCs
+               localBez = bezb(ic(i))
+            endif
+         endif
          if ( lhighprec ) then
             do j=1,napx
-               write(unit,1981) nturn, i, ix, localBez, dcum(i),        &
+               write(unit,1981) nturn, i, ix, localBez, localDcum,      &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
          else
             do j=1,napx
-               write(unit,1982) nturn, i, ix, localBez, dcum(i),        &
+               write(unit,1982) nturn, i, ix, localBez, localDcum,      &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
@@ -28894,17 +28917,26 @@ C Should get me a NaN
       
       ! Format for aperture check
       else if (fmt .eq. 1) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localKtrack = 0
+         else
+            localDcum = dcum(i)
+            localKtrack = ktrack(i)
+         endif
          if ( lhighprec ) then
             do j=1,napx
                write(unit,1983) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0, ktrack(i)
+     &              nturn, localDcum, xv(1,j),
+     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,
+     &              localKtrack
             enddo
          else
             do j=1,napx
                write(unit,1984) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0, ktrack(i)
+     &              nturn, localDcum, xv(1,j),
+     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,
+     &              localKtrack
             enddo
          endif
          
@@ -28917,19 +28949,26 @@ C Should get me a NaN
 
       ! Same as fmt 1, but also include z (for crab cavities etc.)
       else if (fmt .eq. 2) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localKtrack = 0
+         else
+            localDcum = dcum(i)
+            localKtrack = ktrack(i)
+         endif
          if ( lhighprec ) then
             do j=1,napx
                write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
+     &              nturn, localDcum, xv(1,j),
      &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &              (ejv(j)-e0)/e0, ktrack(i)
+     &              (ejv(j)-e0)/e0, localKtrack
             enddo
          else
             do j=1,napx
                write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
+     &              nturn, localDcum, xv(1,j),
      &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &              (ejv(j)-e0)/e0, ktrack(i)
+     &              (ejv(j)-e0)/e0, localKtrack
             enddo
          endif
 
@@ -28939,13 +28978,20 @@ C Should get me a NaN
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
-      
+      !Same as fmt 2, but in Fortran binary
       else if (fmt .eq. 3) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localKtrack = 0
+         else
+            localDcum = dcum(i)
+            localKtrack = ktrack(i)
+         endif
          do j=1,napx
             write(unit) nlostp(j)+(samplenumber-1)*npart,
-     &           nturn, dcum(i), xv(1,j),
+     &           nturn, localDcum, xv(1,j),
      &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &           (ejv(j)-e0)/e0, ktrack(i)
+     &           (ejv(j)-e0)/e0, localKtrack
          enddo
          
          !Flush
@@ -28954,7 +29000,15 @@ C Should get me a NaN
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
+
+      !Average bunch position
       else if (fmt .eq. 4) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+         else
+            localDcum = dcum(i)
+         endif
+         
          do l=1,6
             xyz(l) = 0.0
          end do
@@ -28970,10 +29024,10 @@ C Should get me a NaN
 
          xyz = xyz/napx
          if ( lhighprec ) then
-            write(unit,1989) napx, nturn, dcum(i),
+            write(unit,1989) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
          else
-            write(unit,1990) napx, nturn, dcum(i),
+            write(unit,1990) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
          endif
 
@@ -28983,8 +29037,14 @@ C Should get me a NaN
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 +ei
-      
-      else if (fmt.eq.5 .or. fmt.eq.6) then !Matrix
+      !Average beam positon + beam matrix
+      else if (fmt.eq.5 .or. fmt.eq.6) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+         else
+            localDcum = dcum(i)
+         endif
+         
          do l=1,6
             xyz(l) = 0.0
             do k=1,6
@@ -29079,7 +29139,7 @@ C Should get me a NaN
             enddo
          end if
          
-         !Normalize
+         !Normalize to get averages
          xyz = xyz/napx
          
          xyz2(:,1)  = xyz2(:,1) /napx
@@ -29090,7 +29150,7 @@ C Should get me a NaN
          xyz2(6,6)  = xyz2(6,6) /napx
          
          if ( lhighprec ) then
-            write(unit,1991) napx, nturn, dcum(i),
+            write(unit,1991) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
      &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
      &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
@@ -29099,7 +29159,7 @@ C Should get me a NaN
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
          else
-            write(unit,1992) napx, nturn, dcum(i),
+            write(unit,1992) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
      &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
      &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
