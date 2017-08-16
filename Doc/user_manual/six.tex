@@ -48,11 +48,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update July 2017
+  Update August 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.7.2 \\
+  Version 4.7.3 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -3137,7 +3137,8 @@ or \texttt{HIGH}\\
 or \texttt{FRONT}
 
 \subparagraph{element\_name}
-one of the SINGLE ELEMENTS or ALL to dump at the exit of all single elements.
+one of the SINGLE ELEMENTS, or ALL to dump at the exit of all single elements, or StartDUMP to dump at the injection point.
+Note that if ALL or StartDUMP is in use, these cannot be used as SINGLE ELEMENT names.
 \subparagraph{frequency}
 how often the beam population should be dumped in number of turns.
 \subparagraph{unit}

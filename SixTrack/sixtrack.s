@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.2'/
-      data moddate /'13.07.2017'/
+      data version /'4.7.3'/
+      data moddate /'16.08.2017'/
 +cd license
 !!SixTrack
 !!
@@ -1183,29 +1183,34 @@
 !       by the user are used in other places of the code...
 !     - the dump format can be changed to the one required by the LHC aperture check
 !       post-processing tools, activating the dumpfmt flag (0=off, by default);
-      logical ldumphighprec                  ! high precision printout required
-                                             !   at all flagged SINGLE ELEMENTs
-      logical ldumpfront                     ! dump at the beginning of each element,
-                                             !  not at the end.
-      logical ldump                          ! flag the SINGLE ELEMENT for
-                                             !   dumping
+      logical ldumphighprec                   ! high precision printout required
+                                              !   at all flagged SINGLE ELEMENTs
+      logical ldumpfront                      ! dump at the beginning of each element,
+                                              !  not at the end.
+      logical :: ldump (-1:nele)              ! flag the SINGLE ELEMENT for
+                                              !   dumping
 
-      double precision :: dump_tas (nblz,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
-      double precision :: dump_clo (nblz,6)   ! closed orbit used for FMA (normalisation of phase space)  -> check units used in dump_clo (is x' or px used?)
-
-      integer ndumpt                         ! dump every n turns at a flagged
-                                             !   SINGLE ELEMENT (dump frequency)
-      integer dumpfirst                      ! First turn for DUMP to be active
-      integer dumplast                       ! Last turn for this DUMP to be active (-1=all)
-      integer dumpunit                       ! fortran unit for dump at a
-                                             !   flagged SINGLE ELEMENT
-      integer dumpfmt                        ! flag the format of the dump
-
-      character dump_fname (0:nele)*(getfields_l_max_string)
+      double precision :: dump_tas (-1:nblz,6,6) ! tas matrix used for FMA analysis
+                                                 !  (nomalisation of phase space)
+                                                 !  First index = -1 -> StartDUMP, filled differently;
+                                                 !  First index = 0  -> Unused.
+      double precision :: dump_clo (-1:nblz,6)   ! closed orbit used for FMA
+                                                 !  (normalisation of phase space)
+                                                 !  TODO: check units used in dump_clo (is x' or px used?)
       
-      common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
-     &                dumpfirst(0:nele), dumplast(0:nele),
-     &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
+      integer :: ndumpt (-1:nele)             ! dump every n turns at a flagged
+                                              !   SINGLE ELEMENT (dump frequency)
+      integer :: dumpfirst (-1:nele)          ! First turn for DUMP to be active
+      integer :: dumplast (-1:nele)           ! Last turn for this DUMP to be active (-1=all)
+      integer :: dumpunit (-1:nele)           ! fortran unit for dump at a
+                                              !   flagged SINGLE ELEMENT
+      integer :: dumpfmt (-1:nele)            ! flag the format of the dump
+
+      character dump_fname (-1:nele)*(getfields_l_max_string)
+      
+      common /dumpdb/ ldump, ndumpt, dumpunit,
+     &                dumpfirst, dumplast,
+     &                dumpfmt, ldumphighprec, ldumpfront,
      &                dump_fname
       common /dumpOptics/ dump_tas,dump_clo
 !
@@ -1214,7 +1219,7 @@
 +cd dbdumpcr
       !For resetting file positions
       integer dumpfilepos, dumpfilepos_cr
-      common /dumpdbCR/ dumpfilepos(0:nele), dumpfilepos_cr(0:nele)
+      common /dumpdbCR/ dumpfilepos(-1:nele), dumpfilepos_cr(-1:nele)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -6665,7 +6670,19 @@ cc2008
                 endif
              endif
           endif
-
++cd dumplines_first
+!     StartDUMP - dump on the first element
+      if (ldump(-1)) then
+         if ( ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1 ) then
+            if (   (n.ge.dumpfirst(-1)) .and.
+     &           ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )
+     &           ) then
+               call dump_beam_population( n, 0, 0, dumpunit(-1),
+     &              dumpfmt(-1), ldumphighprec )
+            endif
+         endif
+      endif
+      
 +cd lostpart
           llost=.false.
           do j=1,napx
@@ -16548,7 +16565,6 @@ cc2008
  2000 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1 ! Line number used for some crash output
-
       if(ch(1:1).eq.'/') goto 2000 !Skip comment line
 
       !Done with DUMP, write out!
@@ -16562,14 +16578,21 @@ cc2008
         ! ldump(0)=.true. : DUMP all elements found
         if ( ldump(0) ) then
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0),
-     &          dumpfirst(0), dumplast(0)
+     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),
+     &           dumpfmt(0), dumpfirst(0), dumplast(0)
         endif
+        if ( ldump(-1) ) then
+           write(lout,10470) 'StartDUMP speci.', ndumpt(0),
+     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),
+     &          dumpfmt(0), dumpfirst(0), dumplast(0)
+        endif
+
         do ii=1,il
           if(ldump(ii)) then
             write(lout,10470)
-     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
-     &     dumpfirst(ii), dumplast(ii)
+     &            bez(ii), ndumpt(ii), dumpunit(ii),
+     &            trim(stringzerotrim(dump_fname(ii))),
+     &            dumpfmt(ii), dumpfirst(ii), dumplast(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
             kk = 0
@@ -16605,15 +16628,15 @@ cc2008
           write(lout,*) '        --> requested FRONT dumping!'
         endif
         goto 110
-      endif
+      endif !END writeout when finished reading
 
 !     initialise reading variables, to avoid storing non sense values
-      idat = ' '
-      i1 = 0  ! frequency
-      i2 = 0  ! unit
-      i3 = 0  ! format
-      i4 = 1  ! first turn
-      i5 = -1 ! last turn
+      idat = ' ' ! Name
+      i1 = 0     ! frequency
+      i2 = 0     ! unit
+      i3 = 0     ! format
+      i4 = 1     ! first turn
+      i5 = -1    ! last turn
 
       if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
@@ -16665,7 +16688,7 @@ cc2008
          read(getfields_fields(7)(1:getfields_lfields(7)),*) i5
       endif
       
-!Check that first/last turn is sane
+!     Check that first/last turn is sane
       if ( i5.ne.-1 ) then
          if ( i5 .lt. i4 ) then
             write(lout,*)
@@ -16689,7 +16712,24 @@ cc2008
      &              " more than once"
                call prror(-1)
             endif
-            goto 2001
+            
+            !Element was found in SINGLE ELEMENTS list, now do some sanity checks
+            if(trim(bez(j)).eq."ALL") then
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "The element name 'ALL'"//
+     &                       " cannot be used in the SINGLE ELEMENTS"//
+     &                       " list when an 'ALL'"//
+     &                       " special DUMP is active."
+               call prror(-1)
+            elseif(trim(bez(j)).eq."StartDUMP") then
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "The element name 'StartDUMP'"//
+     &                       " cannot be used in the SINGLE ELEMENTS"//
+     &                       " list when an 'StartDUMP'"//
+     &                       " special DUMP is active."
+               call prror(-1)
+            endif
+            goto 2001 !Element found, store the data
          endif
       enddo
       if ( idat(:3).eq.'ALL' ) then
@@ -16700,24 +16740,35 @@ cc2008
      &           "(at least) twice"
             call prror(-1)
          endif
-         goto 2001
+         goto 2001 !Element found, store the data
       endif
-!     search failed:
+      if ( idat(:9).eq.'StartDUMP' ) then
+         j=-1
+         if (ldump(j)) then
+            write(lout,*) "ERROR in parsing DUMP block:"
+            write(lout,*) "'Element' StartDUMP was specified "//
+     &           "(at least) twice"
+            call prror(-1)
+         endif
+         goto 2001 !Element found, store the data
+      endif
+      
+!     search failed, fall-through to here:
       write(lout,*) ''
       write(lout,*) " Un-identified SINGLE ELEMENT '", idat, "'"
       write(lout,*) '   in block ',dump, '(fort.3)'
       write(lout,*) '   parsed line:'
-      write(lout,*) ch(:80)
+      write(lout,*) trim(ch)
       write(lout,*) ''
       call prror(-1)
 
-!     element found:
+!     element found, store the data:
  2001 ldump(j) = .true.
       ndumpt(j) = i1
       if (ndumpt(j).le.0) ndumpt(j)=1
       dumpunit(j) = i2
       dumpfmt(j)  = i3
-      dump_fname(j) = ch1
+      dump_fname(j)(1:getfields_lfields(5))=ch1(1:getfields_lfields(5))
       dumpfirst(j) = i4
       dumplast(j) = i5
 !     go to next line
@@ -25040,7 +25091,7 @@ C Should get me a NaN
 !     last modified: 21/02-2016
 !     open units for dumping particle population or statistics
 !     always in main code
-      do i=0,il
+      do i=-1,il
 +if cr
         if (dumpfilepos(i).ge.0) then
            ! Expect the file to be opened already, in crcheck
@@ -25058,6 +25109,18 @@ C Should get me a NaN
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
+             !Check that the filename is not already taken
+             do j=-1,i-1
+                if (ldump(j) .and.
+     &               (dump_fname(j).eq.dump_fname(i))) then
+                   write(lout,*)
+     &"ERROR in DUMP: Output filename unit",
+     &trim(stringzerotrim(dump_fname(i))),
+     &"is used by to DUMPS, but output units differ:",
+     & dumpunit(i), " vs ", dumpunit(j)
+                   call prror(-1)
+                endif
+             end do
              if ( dumpfmt(i).eq.3 ) then !Binary dump
 +if boinc
                  call boincrf(dump_fname(i),filename)
@@ -25065,7 +25128,8 @@ C Should get me a NaN
      &                status='replace',form='unformatted')
 +ei
 +if .not.boinc
-                 open(dumpunit(i),file=dump_fname(i),
+                 open(dumpunit(i),
+     &                file=trim(stringzerotrim(dump_fname(i))),
      &                status='replace',form='unformatted')
 +ei
              else !ASCII dump
@@ -25075,48 +25139,61 @@ C Should get me a NaN
      &                status='replace',form='formatted')
 +ei
 +if .not.boinc
-                 open(dumpunit(i),file=dump_fname(i),
+                 open(dumpunit(i),
+     &                file=trim(stringzerotrim(dump_fname(i))),
      &                status='replace',form='formatted')
 +ei
              endif
 +if cr
              dumpfilepos(i) = 0
 +ei
-          else
-             !Sanity check: If already open, it should be by another DUMP
-             ! (can't guarantee for files after this one)
-             ! Also should not be shared with element 0 (all)
-             ! Also should be same format -- if so, add to the header.
+          else ! lopen was .TRUE.
+
+             !Sanity check: If file number i is already open,
+             ! it should be by another DUMP
+             ! (but we can't guarantee that files opened later are handled correctly)
+             ! Also, a file should not be shared with element 0 (all) or -1 (StartDUMP)
+             ! All dumps writing to the same file (unit) must have the same format and filename.
+             ! If everything is OK, add to the header.
              
              !reuse the lopen flag as a temp variable
              lopen = .false.
-             do j=0,i-1
-                if (dumpunit(j).eq.dumpunit(i)) then
-                   if (dumpfmt(j).ne.dumpfmt(i)) then
-                      write(lout,*)
+             do j=-1,i-1        !Search all possible DUMPs
+                                ! up to but not including the one we're looking at (number i)
+                if (ldump(j)) then
+                   if (dumpunit(j).eq.dumpunit(i)) then
+                      if (dumpfmt(j).ne.dumpfmt(i)) then
+                         write(lout,*)
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " formats are not the same."
-                      call prror(-1)
-                   else if (j.eq.0) then
-                      write(lout,*)
+                         call prror(-1)
+                      else if (j.eq.0) then
+                         write(lout,*)
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " one of which is ALL"
-                      call prror(-1)
-                   else if (dump_fname(j).ne.dump_fname(i)) then
-                      write(lout,*)
+                         call prror(-1)
+                      else if (j.eq.-1) then
+                         write(lout,*)
+     & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
+     & " one of which is StartDUMP"
+                         call prror(-1)
+                      else if (dump_fname(j).ne.dump_fname(i)) then
+                         write(lout,*)
      & "ERROR in DUMP: Output unit",dumpunit(i),"is used by to DUMPS,"//
-     & " but filenames differ:", dump_fname(i), " vs ", dump_fname(j)
-                      call prror(-1)
-                   else
-                      ! Everything is fine
-                      lopen = .true.
+     & " but filenames differ:", trim(stringzerotrim(dump_fname(i))),
+     & " vs ", trim(stringzerotrim(dump_fname(j)))
+                         call prror(-1)
+                      else
+                         ! Everything is fine
+                         lopen = .true.
 +if cr
-                      !Dumpfilepos is separate for every element, even if they share files.
-                      dumpfilepos(i) = 0
+                         !Dumpfilepos is separate for every element, even if they share files.
+                         dumpfilepos(i) = 0
 +ei
-                   endif
-                endif
-             end do
+                      endif
+                   endif !IF file unit matches
+                endif !IF ldump(j)
+             end do !DO loop over j
              ! LOPEN not set to true by sanity check in loop above
              ! => File was already open, but not by DUMP.
              if ( .not.lopen ) then
@@ -26293,7 +26370,7 @@ C Should get me a NaN
         if ( ldynk ) then
            call dynk_apply(n)
         endif
-
++ca dumplines_first
 
         do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements/blocks
 +if bnlelens
@@ -26821,10 +26898,10 @@ C Should get me a NaN
           if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
         enddo
       endif
-      do 660 n=numlcr,nnuml
+      do 660 n=numlcr,nnuml ! Loop over turns, CR version
 +ei
 +if .not.cr
-      do 660 n=1,numl
+      do 660 n=1,numl       ! Loop over turns
 +ei
 +if boinc
 !       call boinc_sixtrack_progress(n,numl)
@@ -26854,8 +26931,10 @@ C Should get me a NaN
            call dynk_apply(n)
         endif
 
++ca dumplines_first
+
 !! This is the loop over each element: label 650
-        do 650 i=1,iu
+        do 650 i=1,iu !Loop over elements
 +if collimat
       call collimate_start_element(i)
 +ei
@@ -27522,7 +27601,7 @@ C Should get me a NaN
 !GRD-042008
 +ei
 
-  660 continue
+  660 continue !END loop over turns
 
 +if collimat
       close(99)
@@ -27661,6 +27740,8 @@ C Should get me a NaN
         if ( ldynk ) then
            call dynk_apply(n)
         endif
+
++ca dumplines_first
 
         do 650 i=1,iu
 +if bnlelens
@@ -28758,10 +28839,10 @@ C Should get me a NaN
 !     always in main code
 !
 !     nturn     : Current turn number
-!     i         : Current structure element
-!     ix        : Corresponding single element (<0 for BLOC, only for ALL)
+!     i         : Current structure element (0 for StartDUMP)
+!     ix        : Corresponding single element (<0 for BLOC, only for ALL; 0 for StartDUMP)
 !     unit      : Unit to dump from
-!     fmt       : Dump output format (0/1/2)
+!     fmt       : Dump output format (0/1/2/...)
 !     lhighprec : High precission output y/n
 !-----------------------------------------------------------------------
 
@@ -28800,6 +28881,9 @@ C Should get me a NaN
       integer j,k,l
       character*16 localBez
 
+      double precision localDcum
+      integer localKtrack
+
       double precision xyz_particle(6)
       double precision xyz(6)
       double precision xyz2(6,6)
@@ -28810,27 +28894,35 @@ C Should get me a NaN
       if( unit .eq. dumpunit(0) ) then
          ! ALL output must be on separate unit
          dumpIdx = 0
+      elseif ( unit .eq. dumpunit(-1) ) then
+         ! ALL output must be on separate unit
+         dumpIdx = -1
       else
          dumpIdx = ix
       endif
 +ei
-      if ( ktrack(i) .ne. 1 ) then
-         localBez = bez(ix)
-      else
-         localBez = bezb(ic(i))
-      endif
-      
       ! General format
       if ( fmt .eq. 0 ) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localBez = "StartDUMP"
+         else
+            localDcum = dcum(i)
+            if ( ktrack(i) .ne. 1 ) then
+               localBez = bez(ix)
+            else                !BLOCs
+               localBez = bezb(ic(i))
+            endif
+         endif
          if ( lhighprec ) then
             do j=1,napx
-               write(unit,1981) nturn, i, ix, localBez, dcum(i),        &
+               write(unit,1981) nturn, i, ix, localBez, localDcum,      &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
          else
             do j=1,napx
-               write(unit,1982) nturn, i, ix, localBez, dcum(i),        &
+               write(unit,1982) nturn, i, ix, localBez, localDcum,      &
      &xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3, yv(2,j)*1d-3,           &
      &ejfv(j)*1d-3, (ejv(j)-e0)*1d6, -1.0d-03*(sigmv(j)/clight)*(e0/e0f)
             enddo
@@ -28847,17 +28939,26 @@ C Should get me a NaN
       
       ! Format for aperture check
       else if (fmt .eq. 1) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localKtrack = 0
+         else
+            localDcum = dcum(i)
+            localKtrack = ktrack(i)
+         endif
          if ( lhighprec ) then
             do j=1,napx
                write(unit,1983) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0, ktrack(i)
+     &              nturn, localDcum, xv(1,j),
+     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,
+     &              localKtrack
             enddo
          else
             do j=1,napx
                write(unit,1984) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0, ktrack(i)
+     &              nturn, localDcum, xv(1,j),
+     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,
+     &              localKtrack
             enddo
          endif
          
@@ -28870,19 +28971,26 @@ C Should get me a NaN
 
       ! Same as fmt 1, but also include z (for crab cavities etc.)
       else if (fmt .eq. 2) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localKtrack = 0
+         else
+            localDcum = dcum(i)
+            localKtrack = ktrack(i)
+         endif
          if ( lhighprec ) then
             do j=1,napx
                write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
+     &              nturn, localDcum, xv(1,j),
      &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &              (ejv(j)-e0)/e0, ktrack(i)
+     &              (ejv(j)-e0)/e0, localKtrack
             enddo
          else
             do j=1,napx
                write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, dcum(i), xv(1,j),
+     &              nturn, localDcum, xv(1,j),
      &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &              (ejv(j)-e0)/e0, ktrack(i)
+     &              (ejv(j)-e0)/e0, localKtrack
             enddo
          endif
 
@@ -28892,13 +29000,20 @@ C Should get me a NaN
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
-      
+      !Same as fmt 2, but in Fortran binary
       else if (fmt .eq. 3) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localKtrack = 0
+         else
+            localDcum = dcum(i)
+            localKtrack = ktrack(i)
+         endif
          do j=1,napx
             write(unit) nlostp(j)+(samplenumber-1)*npart,
-     &           nturn, dcum(i), xv(1,j),
+     &           nturn, localDcum, xv(1,j),
      &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),
-     &           (ejv(j)-e0)/e0, ktrack(i)
+     &           (ejv(j)-e0)/e0, localKtrack
          enddo
          
          !Flush
@@ -28907,7 +29022,15 @@ C Should get me a NaN
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
+
+      !Average bunch position
       else if (fmt .eq. 4) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+         else
+            localDcum = dcum(i)
+         endif
+         
          do l=1,6
             xyz(l) = 0.0
          end do
@@ -28923,10 +29046,10 @@ C Should get me a NaN
 
          xyz = xyz/napx
          if ( lhighprec ) then
-            write(unit,1989) napx, nturn, dcum(i),
+            write(unit,1989) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
          else
-            write(unit,1990) napx, nturn, dcum(i),
+            write(unit,1990) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
          endif
 
@@ -28936,8 +29059,14 @@ C Should get me a NaN
 +if cr
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 +ei
-      
-      else if (fmt.eq.5 .or. fmt.eq.6) then !Matrix
+      !Average beam positon + beam matrix
+      else if (fmt.eq.5 .or. fmt.eq.6) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+         else
+            localDcum = dcum(i)
+         endif
+         
          do l=1,6
             xyz(l) = 0.0
             do k=1,6
@@ -29032,7 +29161,7 @@ C Should get me a NaN
             enddo
          end if
          
-         !Normalize
+         !Normalize to get averages
          xyz = xyz/napx
          
          xyz2(:,1)  = xyz2(:,1) /napx
@@ -29043,7 +29172,7 @@ C Should get me a NaN
          xyz2(6,6)  = xyz2(6,6) /napx
          
          if ( lhighprec ) then
-            write(unit,1991) napx, nturn, dcum(i),
+            write(unit,1991) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
      &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
      &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
@@ -29052,7 +29181,7 @@ C Should get me a NaN
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
          else
-            write(unit,1992) napx, nturn, dcum(i),
+            write(unit,1992) napx, nturn, localDcum,
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
      &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
      &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
@@ -29625,9 +29754,11 @@ C Should get me a NaN
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-        if ( ldynk ) then
-           call dynk_apply(n)
-        endif
+          if ( ldynk ) then
+             call dynk_apply(n)
+          endif
+
++ca dumplines_first
 
           do 480 i=1,iu
 +if bnlelens
@@ -30179,9 +30310,11 @@ C Should get me a NaN
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-        if ( ldynk ) then
-           call dynk_apply(n)
-        endif
+          if ( ldynk ) then
+             call dynk_apply(n)
+          endif
+
++ca dumplines_first
 
 +if debug
 ! Now comes the loop over elements do 500/501
@@ -30874,9 +31007,11 @@ C Should get me a NaN
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-        if ( ldynk ) then
-           call dynk_apply(n)
-        endif
+          if ( ldynk ) then
+             call dynk_apply(n)
+          endif
+
++ca dumplines_first
 
           do 500 i=1,iu
 +if bnlelens
@@ -33573,7 +33708,7 @@ C Should get me a NaN
 !     always in main code
       ldumphighprec = .false.
       ldumpfront    = .false.
-      do i1=1,nblz
+      do i1=-1,nblz
         do i2=1,6
           dump_clo(i1,i2)=0
           do i3=1,6
@@ -33581,7 +33716,7 @@ C Should get me a NaN
           enddo
         enddo
       enddo
-      do i=0,nele
+      do i=-1,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
         dumpfirst(i) = 0
@@ -52442,7 +52577,7 @@ c$$$            endif
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(95,err=100,end=100)
-     &     (dumpfilepos_cr(j),j=0,nele)
+     &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
@@ -52629,7 +52764,7 @@ c$$$         backspace (93,iostat=ierro)
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       read(96,err=100,end=100)
-     &     (dumpfilepos_cr(j),j=0,nele)
+     &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
@@ -53103,7 +53238,7 @@ c$$$         backspace (93,iostat=ierro)
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP files"
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      do i=0, il
+      do i=-1, il
          if (ldump(i)) then
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
             if (i .ne. 0) then
@@ -53599,7 +53734,7 @@ c$$$         backspace (93,iostat=ierro)
       endif
 +ei
       write(95,err=100,iostat=ierro)                                    &
-     &     (dumpfilepos(j),j=0,nele)
+     &     (dumpfilepos(j),j=-1,nele)
       
       if (ldynk) then
 +if .not.debug
@@ -53845,7 +53980,7 @@ c$$$         backspace (93,iostat=ierro)
       endif
 +ei
       write(96,err=100,iostat=ierro)                                    &
-     &     (dumpfilepos(j),j=0,nele)
+     &     (dumpfilepos(j),j=-1,nele)
 
       if (ldynk) then
 +if .not.debug
