@@ -1183,31 +1183,35 @@
 !       by the user are used in other places of the code...
 !     - the dump format can be changed to the one required by the LHC aperture check
 !       post-processing tools, activating the dumpfmt flag (0=off, by default);
-      logical ldumphighprec                  ! high precision printout required
-                                             !   at all flagged SINGLE ELEMENTs
-      logical ldumpfront                     ! dump at the beginning of each element,
-                                             !  not at the end.
-      logical ldump                          ! flag the SINGLE ELEMENT for
-                                             !   dumping
+      logical ldumphighprec                   ! high precision printout required
+                                              !   at all flagged SINGLE ELEMENTs
+      logical ldumpfront                      ! dump at the beginning of each element,
+                                              !  not at the end.
+      logical :: ldump (-1:nele)              ! flag the SINGLE ELEMENT for
+                                              !   dumping
 
       double precision :: dump_tas (nblz,6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
       double precision :: dump_clo (nblz,6)   ! closed orbit used for FMA (normalisation of phase space)  -> check units used in dump_clo (is x' or px used?)
 
-      integer ndumpt                         ! dump every n turns at a flagged
-                                             !   SINGLE ELEMENT (dump frequency)
-      integer dumpfirst                      ! First turn for DUMP to be active
-      integer dumplast                       ! Last turn for this DUMP to be active (-1=all)
-      integer dumpunit                       ! fortran unit for dump at a
-                                             !   flagged SINGLE ELEMENT
-      integer dumpfmt                        ! flag the format of the dump
-
-      character dump_fname (0:nele)*(getfields_l_max_string)
+      !For dumping at the 1st element
+      double precision :: dump_tasStart (6,6) ! tas matrix used for FMA analysis (nomalisation of phase space)
+      double precision :: dump_cloStart (6)   ! closed orbit used for FMA (normalisation of phase space)  -> check units used in dump_clo (is x' or px used?)
       
-      common /dumpdb/ ldump(0:nele), ndumpt(0:nele), dumpunit(0:nele),
-     &                dumpfirst(0:nele), dumplast(0:nele),
-     &                dumpfmt(0:nele), ldumphighprec, ldumpfront,
+      integer :: ndumpt (-1:nele)             ! dump every n turns at a flagged
+                                              !   SINGLE ELEMENT (dump frequency)
+      integer :: dumpfirst (-1:nele)          ! First turn for DUMP to be active
+      integer :: dumplast (-1:nele)           ! Last turn for this DUMP to be active (-1=all)
+      integer :: dumpunit (-1:nele)           ! fortran unit for dump at a
+                                              !   flagged SINGLE ELEMENT
+      integer :: dumpfmt (-1:nele)            ! flag the format of the dump
+
+      character dump_fname (-1:nele)*(getfields_l_max_string)
+      
+      common /dumpdb/ ldump, ndumpt, dumpunit,
+     &                dumpfirst, dumplast,
+     &                dumpfmt, ldumphighprec, ldumpfront,
      &                dump_fname
-      common /dumpOptics/ dump_tas,dump_clo
+      common /dumpOptics/ dump_tas,dump_tasStart,dump_clo,dump_cloStart
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -33581,7 +33585,13 @@ C Should get me a NaN
           enddo
         enddo
       enddo
-      do i=0,nele
+      do i2=1,6
+         dump_cloStart(i2)=0
+         do i3=1,6
+            dump_tasStart(i2,i3)=0
+         enddo
+      enddo
+      do i=-1,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
         dumpfirst(i) = 0
