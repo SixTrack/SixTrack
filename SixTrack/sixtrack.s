@@ -16566,14 +16566,21 @@ cc2008
         ! ldump(0)=.true. : DUMP all elements found
         if ( ldump(0) ) then
            write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), dump_fname(0), dumpfmt(0),
-     &          dumpfirst(0), dumplast(0)
+     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),
+     &           dumpfmt(0), dumpfirst(0), dumplast(0)
         endif
+        if ( ldump(-1) ) then
+           write(lout,10470) 'StartDUMP specia', ndumpt(0),
+     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),
+     &          dumpfmt(0), dumpfirst(0), dumplast(0)
+        endif
+
         do ii=1,il
           if(ldump(ii)) then
             write(lout,10470)
-     &     bez(ii), ndumpt(ii), dumpunit(ii),dump_fname(ii),dumpfmt(ii),
-     &     dumpfirst(ii), dumplast(ii)
+     &            bez(ii), ndumpt(ii), dumpunit(ii),
+     &            trim(stringzerotrim(dump_fname(ii))),
+     &            dumpfmt(ii), dumpfirst(ii), dumplast(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
             kk = 0
@@ -16609,15 +16616,15 @@ cc2008
           write(lout,*) '        --> requested FRONT dumping!'
         endif
         goto 110
-      endif
+      endif !END writeout when finished reading
 
 !     initialise reading variables, to avoid storing non sense values
-      idat = ' '
-      i1 = 0  ! frequency
-      i2 = 0  ! unit
-      i3 = 0  ! format
-      i4 = 1  ! first turn
-      i5 = -1 ! last turn
+      idat = ' ' ! Name
+      i1 = 0     ! frequency
+      i2 = 0     ! unit
+      i3 = 0     ! format
+      i4 = 1     ! first turn
+      i5 = -1    ! last turn
 
       if(ch(:4).eq.'HIGH') then
         ldumphighprec = .true.
@@ -16669,7 +16676,7 @@ cc2008
          read(getfields_fields(7)(1:getfields_lfields(7)),*) i5
       endif
       
-!Check that first/last turn is sane
+!     Check that first/last turn is sane
       if ( i5.ne.-1 ) then
          if ( i5 .lt. i4 ) then
             write(lout,*)
@@ -16693,7 +16700,7 @@ cc2008
      &              " more than once"
                call prror(-1)
             endif
-            goto 2001
+            goto 2001 !Element found
          endif
       enddo
       if ( idat(:3).eq.'ALL' ) then
@@ -16704,14 +16711,24 @@ cc2008
      &           "(at least) twice"
             call prror(-1)
          endif
-         goto 2001
+         goto 2001 !Element found
+      endif
+      if ( idat(:9).eq.'StartDUMP' ) then
+         j=-1
+         if (ldump(j)) then
+            write(lout,*) "ERROR in parsing DUMP block:"
+            write(lout,*) "'Element' StartDUMP was specified "//
+     &           "(at least) twice"
+            call prror(-1)
+         endif
+         goto 2001 !Element found
       endif
 !     search failed:
       write(lout,*) ''
       write(lout,*) " Un-identified SINGLE ELEMENT '", idat, "'"
       write(lout,*) '   in block ',dump, '(fort.3)'
       write(lout,*) '   parsed line:'
-      write(lout,*) ch(:80)
+      write(lout,*) trim(ch)
       write(lout,*) ''
       call prror(-1)
 
@@ -16721,7 +16738,7 @@ cc2008
       if (ndumpt(j).le.0) ndumpt(j)=1
       dumpunit(j) = i2
       dumpfmt(j)  = i3
-      dump_fname(j) = ch1
+      dump_fname(j)(1:getfields_lfields(5))=ch1(1:getfields_lfields(5))
       dumpfirst(j) = i4
       dumplast(j) = i5
 !     go to next line
@@ -25044,7 +25061,7 @@ C Should get me a NaN
 !     last modified: 21/02-2016
 !     open units for dumping particle population or statistics
 !     always in main code
-      do i=0,il
+      do i=-1,il
 +if cr
         if (dumpfilepos(i).ge.0) then
            ! Expect the file to be opened already, in crcheck
@@ -25062,6 +25079,18 @@ C Should get me a NaN
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
           if ( .not.lopen ) then
+             !Check that the filename is not already taken
+             do j=-1,i-1
+                if (ldump(j) .and.
+     &               (dump_fname(j).eq.dump_fname(i))) then
+                   write(lout,*)
+     &"ERROR in DUMP: Output filename unit",
+     &trim(stringzerotrim(dump_fname(i))),
+     &"is used by to DUMPS, but output units differ:",
+     & dumpunit(i), " vs ", dumpunit(j)
+                   call prror(-1)
+                endif
+             end do
              if ( dumpfmt(i).eq.3 ) then !Binary dump
 +if boinc
                  call boincrf(dump_fname(i),filename)
@@ -25069,7 +25098,8 @@ C Should get me a NaN
      &                status='replace',form='unformatted')
 +ei
 +if .not.boinc
-                 open(dumpunit(i),file=dump_fname(i),
+                 open(dumpunit(i),
+     &                file=trim(stringzerotrim(dump_fname(i))),
      &                status='replace',form='unformatted')
 +ei
              else !ASCII dump
@@ -25079,48 +25109,61 @@ C Should get me a NaN
      &                status='replace',form='formatted')
 +ei
 +if .not.boinc
-                 open(dumpunit(i),file=dump_fname(i),
+                 open(dumpunit(i),
+     &                file=trim(stringzerotrim(dump_fname(i))),
      &                status='replace',form='formatted')
 +ei
              endif
 +if cr
              dumpfilepos(i) = 0
 +ei
-          else
-             !Sanity check: If already open, it should be by another DUMP
-             ! (can't guarantee for files after this one)
-             ! Also should not be shared with element 0 (all)
-             ! Also should be same format -- if so, add to the header.
+          else ! lopen was .TRUE.
+
+             !Sanity check: If file number i is already open,
+             ! it should be by another DUMP
+             ! (but we can't guarantee that files opened later are handled correctly)
+             ! Also, a file should not be shared with element 0 (all) or -1 (StartDUMP)
+             ! All dumps writing to the same file (unit) must have the same format and filename.
+             ! If everything is OK, add to the header.
              
              !reuse the lopen flag as a temp variable
              lopen = .false.
-             do j=0,i-1
-                if (dumpunit(j).eq.dumpunit(i)) then
-                   if (dumpfmt(j).ne.dumpfmt(i)) then
-                      write(lout,*)
+             do j=-1,i-1        !Search all possible DUMPs
+                                ! up to but not including the one we're looking at (number i)
+                if (ldump(j)) then
+                   if (dumpunit(j).eq.dumpunit(i)) then
+                      if (dumpfmt(j).ne.dumpfmt(i)) then
+                         write(lout,*)
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " formats are not the same."
-                      call prror(-1)
-                   else if (j.eq.0) then
-                      write(lout,*)
+                         call prror(-1)
+                      else if (j.eq.0) then
+                         write(lout,*)
      & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
      & " one of which is ALL"
-                      call prror(-1)
-                   else if (dump_fname(j).ne.dump_fname(i)) then
-                      write(lout,*)
+                         call prror(-1)
+                      else if (j.eq.-1) then
+                         write(lout,*)
+     & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
+     & " one of which is StartDUMP"
+                         call prror(-1)
+                      else if (dump_fname(j).ne.dump_fname(i)) then
+                         write(lout,*)
      & "ERROR in DUMP: Output unit",dumpunit(i),"is used by to DUMPS,"//
-     & " but filenames differ:", dump_fname(i), " vs ", dump_fname(j)
-                      call prror(-1)
-                   else
-                      ! Everything is fine
-                      lopen = .true.
+     & " but filenames differ:", trim(stringzerotrim(dump_fname(i))),
+     & " vs ", trim(stringzerotrim(dump_fname(j)))
+                         call prror(-1)
+                      else
+                         ! Everything is fine
+                         lopen = .true.
 +if cr
-                      !Dumpfilepos is separate for every element, even if they share files.
-                      dumpfilepos(i) = 0
+                         !Dumpfilepos is separate for every element, even if they share files.
+                         dumpfilepos(i) = 0
 +ei
-                   endif
-                endif
-             end do
+                      endif
+                   endif !IF file unit matches
+                endif !IF ldump(j)
+             end do !DO loop over j
              ! LOPEN not set to true by sanity check in loop above
              ! => File was already open, but not by DUMP.
              if ( .not.lopen ) then
