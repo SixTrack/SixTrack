@@ -16565,7 +16565,6 @@ cc2008
  2000 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1 ! Line number used for some crash output
-
       if(ch(1:1).eq.'/') goto 2000 !Skip comment line
 
       !Done with DUMP, write out!
@@ -16713,7 +16712,24 @@ cc2008
      &              " more than once"
                call prror(-1)
             endif
-            goto 2001 !Element found
+            
+            !Element was found in SINGLE ELEMENTS list, now do some sanity checks
+            if(trim(bez(j)).eq."ALL") then
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "The element name 'ALL'"//
+     &                       " cannot be used in the SINGLE ELEMENTS"//
+     &                       " list when an 'ALL'"//
+     &                       " special DUMP is active."
+               call prror(-1)
+            elseif(trim(bez(j)).eq."StartDUMP") then
+               write(lout,*) "Error in parsing DUMP block:"
+               write(lout,*) "The element name 'StartDUMP'"//
+     &                       " cannot be used in the SINGLE ELEMENTS"//
+     &                       " list when an 'StartDUMP'"//
+     &                       " special DUMP is active."
+               call prror(-1)
+            endif
+            goto 2001 !Element found, store the data
          endif
       enddo
       if ( idat(:3).eq.'ALL' ) then
@@ -16724,7 +16740,7 @@ cc2008
      &           "(at least) twice"
             call prror(-1)
          endif
-         goto 2001 !Element found
+         goto 2001 !Element found, store the data
       endif
       if ( idat(:9).eq.'StartDUMP' ) then
          j=-1
@@ -16734,9 +16750,10 @@ cc2008
      &           "(at least) twice"
             call prror(-1)
          endif
-         goto 2001 !Element found
+         goto 2001 !Element found, store the data
       endif
-!     search failed:
+      
+!     search failed, fall-through to here:
       write(lout,*) ''
       write(lout,*) " Un-identified SINGLE ELEMENT '", idat, "'"
       write(lout,*) '   in block ',dump, '(fort.3)'
@@ -16745,7 +16762,7 @@ cc2008
       write(lout,*) ''
       call prror(-1)
 
-!     element found:
+!     element found, store the data:
  2001 ldump(j) = .true.
       ndumpt(j) = i1
       if (ndumpt(j).le.0) ndumpt(j)=1
