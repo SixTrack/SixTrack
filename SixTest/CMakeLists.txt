@@ -107,6 +107,7 @@ if(NOT COLLIMAT)
           elensidealthck4d
           elensidealthck6d
           fma
+          fma_binary
           thick6ddynk
           wire_thck4d
           wire_thck6d
@@ -309,6 +310,7 @@ SET(MEDIUM_TESTS
   tilt
   lostevery
   fma
+  fma_binary
   frs
   frs60
   eric
