@@ -49852,6 +49852,10 @@ c$$$            endif
                open(dumpunit(j),file=dump_fname(j),status='old',
      &              iostat=ierro,action='read',form='unformatted')
 +ei
+            else
+               write(lout,*) "Error in fma_postpr, got"//
+     &              " dumpfmt=",dumpfmt(j),"expected 2 or 3."
+               call prror(-1)
             endif
 
 !     now we can start reading in the file
@@ -50227,29 +50231,66 @@ c$$$            endif
                  eps123_max(3)=0.0
                  eps123_avg(3)=0.0
               endif
+
+              ! Write the FMA output file "fma_sixtrack"
               write(2001001,1988) trim(stringzerotrim(fma_fname(i))),   &
      &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
      &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
      &eps123_max(2),eps123_max(3),eps123_avg(1),eps123_avg(2),          &
      &eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3),                &
      &phi123_0(1),phi123_0(2),phi123_0(3)
-            enddo
+              
+            enddo ! END loop over particles l
+            
             close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
-            close(dumpunit(j))
+
 !    resume initial position of dumpfile = end of file
+            close(dumpunit(j))
+            if (dumpfmt(j) .eq. 2) then
 +if boinc
-            call boincrf(dump_fname(j),filename)
-            open(dumpunit(j),file=filename, status='old',               &
-     &form='formatted',action='readwrite',position='append',            &
-     &iostat=ierro)
+               call boincrf(dump_fname(j),filename)
+               open(dumpunit(j),file=filename,
+     &              status='old',
+     &              form='formatted',
+     &              action='readwrite',
+     &              position='append',
+     &              iostat=ierro)
 +ei
 +if .not.boinc
-            open(dumpunit(j),file=dump_fname(j), status='old',          &
-     &form='formatted',action='readwrite',position='append',            &
-     &iostat=ierro)
+               open(dumpunit(j),file=dump_fname(j),
+     &              status='old',
+     &              form='formatted',
+     &              action='readwrite',
+     &              position='append',
+     &              iostat=ierro)
 +ei
-            call fma_error(ierro,'while resuming file '//dump_fname(j), &
-     &'fma_postpr')
+               call fma_error(ierro,
+     &              "while resuming file '"//
+     &              trim(stringzerotrim(dump_fname(j))) //
+     &              "' (dumpfmt=2)", 'fma_postpr')
+            elseif (dumpfmt(j) .eq. 3) then
++if boinc
+               call boincrf(dump_fname(j),filename)
+               open(dumpunit(j),file=filename,
+     &              status='old',
+     &              form='unformatted',
+     &              action='readwrite',
+     &              position='append',
+     &              iostat=ierro)
++ei
++if .not.boinc
+               open(dumpunit(j),file=dump_fname(j),
+     &              status='old',
+     &              form='unformatted',
+     &              action='readwrite',
+     &              position='append',
+     &              iostat=ierro)
++ei
+               call fma_error(ierro,
+     &              "while resuming file '"//
+     &              trim(stringzerotrim(dump_fname(j))) //
+     &              "' (dumpfmt=3)", 'fma_postpr')
+            endif
           endif !END: if fma_fname(i) matches dump_fname(j)
 !    if file has been already found, jump to next file fma_fname(i)
           if( lexist ) then
