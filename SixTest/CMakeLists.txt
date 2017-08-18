@@ -187,6 +187,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
         SET( DUMP_BIN_FILE NONE )
         if(TST MATCHES dump_binary)
                 SET( DUMP_BIN_FILE dump.dat,dumpStart.dat )
+        elseif(TST MATCHES fma_binary)
+		SET( DUMP_BIN_FILE IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
         endif()
 
         ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE})
