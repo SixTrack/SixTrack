@@ -1287,12 +1287,15 @@
       integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
       integer fma_numfiles                                   !number of FMAs
       logical fma_flag                                       !FMA input block exists
+      logical fma_writeNormDUMP                              !Writing out the normalized DUMP files
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
       integer fma_nturn    (fma_max)                         !number of turns used for fft
       integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,fma_flag,
-     &fma_norm_flag,fma_nturn
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,
+     &     fma_norm_flag,fma_nturn,
+     &     fma_flag,fma_writeNormDUMP
+
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -16887,13 +16890,18 @@ cc2008
       if (ch(:4).eq.next) then
          goto 110 ! loop to next BLOCK in fort.3
       endif
- 
+
+      if (ch(:10).eq."NoNormDUMP") then
+         fma_writeNormDUMP = .false.
+         goto 2300
+      endif
+      
       if(fma_numfiles.ge.fma_max) then
         write(lout,*)
      &       'ERROR: you can only do ',fma_max,' number of FMAs'
         call prror(-1) 
       endif
-
+      
       fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
 !     read in input parameters
       call getfields_split( ch, getfields_fields, getfields_lfields,
@@ -33734,6 +33742,7 @@ C Should get me a NaN
 !     M. Fitterer, FNAL
 !     last modified: 2016
       fma_flag = .false.
+      fma_writeNormDUMP = .true.
       fma_numfiles = 0
       do i=1,fma_max
         fma_nturn(i) = 0
@@ -49796,7 +49805,7 @@ c$$$            endif
          num_modes = 3          !6D tracking
       endif
       
-!     write the header
+!     write the header of fma_sixtrack
       write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, '//
      &'phi* [rad]'
       write(2001001,'(a)') '# inputfile method id q1 q2 q3 eps1_min '//
@@ -49908,49 +49917,55 @@ c$$$            endif
             call fma_norm_phase_space_matrix(fma_tas_inv, 
      &                                       fma_tas(1:6,1:6) )
 
-!     dump normalized particle amplitudes for debugging (200101+i*10)
-            inquire(unit=200101+i*10,opened=lopen)
-            if(lopen) then
-               write(lout,*) "ERROR in FMA: Tried to open unit",
-     &            200101+i*10, "for file 'NORM_"//dump_fname(j)//
-     &            "', but it was already taken?!?"
-               call prror(-1)
-            endif
+            if (fma_writeNormDUMP) then
+               write(lout,*) "FMA: Writing normalized DUMP for '"//
+     &              trim(stringzerotrim(dump_fname(j)))// "'..."
+               ! Dump normalized particle amplitudes for debugging (200101+i*10)
+               inquire(unit=200101+i*10,opened=lopen)
+               if(lopen) then
+                  write(lout,*) "ERROR in FMA: Tried to open unit",
+     &                 200101+i*10, "for file 'NORM_"//dump_fname(j)//
+     &                 "', but it was already taken?!?"
+                  call prror(-1)
+               endif
            
 +if boinc
-            call boincrf('NORM_'//dump_fname(j),filename)
-            open(200101+i*10,file=filename,
-     &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
+               call boincrf('NORM_'//dump_fname(j),filename)
+               open(200101+i*10,file=filename,
+     &              status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
 +ei
 +if .not.boinc
-            open(200101+i*10,file='NORM_'//dump_fname(j),
-     &           status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
+               open(200101+i*10,file='NORM_'//dump_fname(j),
+     &              status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
 +ei
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
-            write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
-     &           dump_clo(j,1),dump_clo(j,2),dump_clo(j,3),
-     &           dump_clo(j,4),dump_clo(j,5),dump_clo(j,6)
+               write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
+     &               dump_clo(j,1),dump_clo(j,2),dump_clo(j,3),
+     &               dump_clo(j,4),dump_clo(j,5),dump_clo(j,6)
 !    - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
-            write(200101+i*10,'(a)') '# tamatrix'
-            do m=1,6
-              do n=1,6
-                write(200101+i*10,'(a,1x,1PE16.9)') '# ',
-     &                fma_tas(m,n)
-            enddo
-            enddo
-            write(200101+i*10,'(a)') '# inv(tamatrix)'
-            do m=1,6
-              do n=1,6
-                write(200101+i*10,'(a,1x,1PE16.9)') '# ',
-     &                fma_tas_inv(m,n)
-              enddo
-            enddo
-            write(200101+i*10,'(a)') '# id turn pos[m] nx[1.e-3'//
-     &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3'//
-     &' sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt'
-
+               write(200101+i*10,'(a)') '# tamatrix'
+               do m=1,6
+                  do n=1,6
+                     write(200101+i*10,'(a,1x,1PE16.9)') '# ',
+     &                    fma_tas(m,n)
+                  enddo
+               enddo
+               write(200101+i*10,'(a)') '# inv(tamatrix)'
+               do m=1,6
+                  do n=1,6
+                     write(200101+i*10,'(a,1x,1PE16.9)') '# ',
+     &                    fma_tas_inv(m,n)
+                  enddo
+               enddo
+               write(200101+i*10,'(a)')
+     &              '# id turn pos[m] nx[1.e-3 sqrt(m)]'//
+     &              ' npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)]'//
+     &              ' npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)]'//
+     &              ' ndp/p[1.e-3 sqrt(m)] kt'
+            endif !END IF fma_writeNormDUMP
+            
 !     - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             do k=1,fma_nturn(i) !loop over turns
               do l=1,napx !loop over particles
@@ -50091,10 +50106,12 @@ c$$$            endif
                     endif
                  enddo
 !     write normalized particle amplitudes
-                 write(200101+i*10,1986) id,turn(l,k),pos,
-     &                nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),
-     &                nxyzv(l,k,4),nxyzv(l,k,5),
-     &                nxyzv(l,k,6),kt
+                 if (fma_writeNormDUMP) then
+                    write(200101+i*10,1986) id,turn(l,k),pos,
+     &                   nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),
+     &                   nxyzv(l,k,4),nxyzv(l,k,5),
+     &                   nxyzv(l,k,6),kt
+                 endif
               enddo
            enddo
            
@@ -50241,8 +50258,11 @@ c$$$            endif
      &phi123_0(1),phi123_0(2),phi123_0(3)
               
             enddo ! END loop over particles l
-            
-            close(200101+i*10)! filename NORM_* (normalized particle amplitudes)
+
+            if (fma_writeNormDUMP) then
+               ! filename NORM_* (normalized particle amplitudes)
+               close(200101+i*10)
+            endif
 
 !    resume initial position of dumpfile = end of file
             close(dumpunit(j))
