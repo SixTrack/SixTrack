@@ -49733,7 +49733,7 @@ c$$$            endif
       double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
      &eps123_avg !initial,minimum,maximum,average emittance
       double precision, dimension(3) :: phi123_0  !initial phase
-
+      
 +if boinc
       character*256 filename
 +ei
@@ -49808,54 +49808,73 @@ c$$$            endif
         lexist=.false.
         do j=1,nele !START: loop over dump files
           if(trim(stringzerotrim(fma_fname(i))).eq.
-     &trim(stringzerotrim(dump_fname(j)))) then 
+     &trim(stringzerotrim(dump_fname(j)))) then
             lexist=.true.     !set lexist = true if the file fma_fname(j) exists
             write(lout,*) 'start FMA analysis using file ',             &
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
      &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
 
-!    check the format, if dumpfmt != 2 abort
-            if(dumpfmt(j).ne.2) then
+!    check the format, if dumpfmt != 2 or 3 then abort
+            if(.not. (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.3)) then
               call fma_error(-1,'input file has wrong format! Choose for&
-     &mat=2 in DUMP block.','fma_postpr')
+     &mat=2 or 3 in DUMP block.','fma_postpr')
             endif
 !    open dump file for reading, resume to original position before exiting the subroutine
             inquire(unit=dumpunit(j),opened=lopen)
             if(lopen) then
               close(dumpunit(j))
             else ! file has to be open if nothing went wrong
-              call fma_error(-1,'file '//trim(stringzero                &
-     &trim(dump_fname(j)))//' has to be open','fma_postpr')
+               call fma_error(-1,'Expected file '//
+     &              trim(stringzerotrim(dump_fname(j)))//
+     &              ' to be open','fma_postpr')
             endif
+
+            if (dumpfmt(j).eq.2) then
 +if boinc
-            call boincrf(dump_fname(j),filename)
-            open(dumpunit(j),file=filename,status='old',
-     &iostat=ierro,action='read')
+               call boincrf(dump_fname(j),filename)
+               open(dumpunit(j),file=filename,status='old',
+     &              iostat=ierro,action='read')
 +ei
 +if .not.boinc
-            open(dumpunit(j),file=dump_fname(j),status='old',
-     &iostat=ierro,action='read')
+               open(dumpunit(j),file=dump_fname(j),status='old',
+     &              iostat=ierro,action='read')
 +ei
-            call fma_error(ierro,'cannot open file '//trim(stringzero   &
-     &trim(dump_fname(j))),'fma_postpr')
+               call fma_error(ierro,'cannot open file '//
+     &              trim(stringzerotrim(dump_fname(j)))//
+     &              " dumpformat=2", 'fma_postpr')
+            else if (dumpfmt(j).eq.3) then
++if boinc
+               call boincrf(dump_fname(j),filename)
+               open(dumpunit(j),file=filename,status='old',
+     &              iostat=ierro,action='read',form='unformatted')
++ei
++if .not.boinc
+               open(dumpunit(j),file=dump_fname(j),status='old',
+     &              iostat=ierro,action='read',form='unformatted')
++ei
+            endif
 
-!    now we can start reading in the file
-!    - skip header
-            counter=1
-            do
-              read(dumpunit(j),'(A)',iostat=ierro) ch
-              call fma_error(ierro,'while reading file ' //             &
-     &dump_fname(j),'fma_postpr')
-              ch1=adjustl(trim(ch))
-              if(ch1(1:1).ne.'#')  exit
-              if(counter>500) then
-                call fma_error(ierro,'Something is wrong with your '//  &
-     &'inputfile '//trim(stringzerotrim(dump_fname(j)))//'! We found '//&
-     &'more than 500 header lines','fma_postpr')
-              endif
-              counter=counter+1
-            enddo
-            backspace(dumpunit(j),iostat=ierro)
+!     now we can start reading in the file
+            if ( dumpfmt(j).eq.2 ) then
+!     - skip header
+               counter=1
+               do
+                  read(dumpunit(j),'(A)',iostat=ierro) ch
+                  call fma_error(ierro,'while reading file ' //             &
+     &                 dump_fname(j),'fma_postpr')
+                  ch1=adjustl(trim(ch))
+                  if(ch1(1:1).ne.'#')  exit
+                  if(counter>500) then
+                     call fma_error(ierro,
+     &                    "Something is wrong with your dumpfile '"//
+     &                    trim(stringzerotrim(dump_fname(j))) //
+     &                    "'; found more than 500 header lines",
+     &                    'fma_postpr')
+                  endif
+                  counter=counter+1
+               enddo
+               backspace(dumpunit(j),iostat=ierro)
+            endif
 !   read in particle amplitudes
             if (dumplast(j) .eq. -1) then
                fma_nturn(i) = numl-dumpfirst(j)+1        !Tricky if the particle is lost...
@@ -49927,110 +49946,139 @@ c$$$            endif
             write(200101+i*10,'(a)') '# id turn pos[m] nx[1.e-3'//
      &' sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3'//
      &' sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt'
-!    - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
+
+!     - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             do k=1,fma_nturn(i) !loop over turns
               do l=1,napx !loop over particles
+                 if (dumpfmt(j).eq.2) then
 +if .not.crlibm
-                read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,      &
+                    read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
-                if(ierro.gt.0) call fma_error(ierro,'while reading '    &
-     &//' particles from file ' // dump_fname(j),'fma_postpr') !read error
+                    if(ierro.gt.0)
+     &                   call fma_error(ierro,'while reading '//
+     &            ' particles from file ' // dump_fname(j),'fma_postpr') !read error
 +ei
 +if crlibm
-                read(dumpunit(j),'(a)', iostat=ierro) ch
-                if(ierro.gt.0) call fma_error(ierro,'while reading '    &
+                    read(dumpunit(j),'(a)', iostat=ierro) ch
+                    if(ierro.gt.0)
+     &                   call fma_error(ierro,'while reading '
      &//' particles from file' // dump_fname(j) // '. Check that tracked
      & turns is larger than number of turns used for FFT!','fma_postpr')!read error
-                call getfields_split(ch,filefields_fields,
-     &filefields_lfields,filefields_nfields, filefields_lerr)
-                if( filefields_lerr ) call fma_error(-1,'while reading '&
-     &//' particles from file ' // dump_fname(j) // 'in function getfiel&
-     &ds_split','fma_postpr') !error in getfields_split while reading
-!    check if number of fields is correct
-                if( filefields_nfields  .ne. 10 ) then 
-                  write(lout,*) 'ERROR in fma_postpr while reading parti&
-     &cles from file ',trim(stringzerotrim(dump_fname(j))),'. 10 fields &
-     &expected from getfields_split, got ',filefields_nfields, ' and ch &
-     &=',ch
-                  call prror(-1)
-                endif
-                read(filefields_fields(1)(1:filefields_lfields(1)),*) id
-                read(filefields_fields(2)(1:filefields_lfields(2)),*) 
-     &turn(l,k)
-                pos = round_near(ierro, filefields_lfields(3)+1,
-     &filefields_fields(3) )
-                if (ierro.ne.0)
-     &            call rounderr(ierro,filefields_fields,3,pos)
-                xyzvdummy(1) = round_near(ierro, filefields_lfields(4)+1
-     &,filefields_fields(4) )
-                if (ierro.ne.0)
-     &            call rounderr(ierro,filefields_fields,4,xyzvdummy(1))
-                xyzvdummy(2) = round_near(ierro, filefields_lfields(5)+1
-     &,filefields_fields(5) )
-                if (ierro.ne.0)
-     &            call rounderr(ierro,filefields_fields,5,xyzvdummy(2))
-                xyzvdummy(3) = round_near(ierro, filefields_lfields(6)+1
-     &,filefields_fields(6) )
-                if (ierro.ne.0)
-     &            call rounderr(ierro,filefields_fields,6,xyzvdummy(3))
-                xyzvdummy(4) = round_near(ierro, filefields_lfields(7)+1
-     &,filefields_fields(7) )
-                if (ierro.ne.0)
-     &            call rounderr(ierro,filefields_fields,7,xyzvdummy(4))
-                xyzvdummy(5) = round_near(ierro, filefields_lfields(8)+1
-     &,filefields_fields(8) )
-                if (ierro.ne.0)
-     &            call rounderr(ierro,filefields_fields,8,xyzvdummy(5))
-                xyzvdummy(6) = round_near(ierro, filefields_lfields(9)+1
-     &,filefields_fields(9) )
-                if (ierro.ne.0)
-     &            call rounderr(ierro,filefields_fields,9,xyzvdummy(6))
-                read(filefields_fields(10)(1:filefields_lfields(10)),*) 
-     &kt
-+ei !end crlibm
-!    - remove closed orbit -> check units used in dump_clo (is x' or px used?)
-                do m=1,6
-                  xyzvdummy(m)=xyzvdummy(m)-dump_clo(j,m)
-                enddo
-!    - for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
-                do m=1,6
-                  if(m.eq.6) then
-                    xyzv(l,k,m)=xyzvdummy(m)*c1e3
-                  else 
-                    xyzv(l,k,m)=xyzvdummy(m)
-                  endif
-                enddo
-!    - convert to canonical variables
-                xyzvdummy(2)=xyzvdummy(2)*((one+xyzvdummy(6))+
-     &dump_clo(j,6)) 
-                xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
-     &dump_clo(j,6))
-!    - normalize nxyz=fma_tas_inv*xyz
-                do m=1,6
-                  nxyzvdummy(m)=zero
-                  do n=1,6
-                    nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*       &
-     &xyzvdummy(n)
-                  enddo
-!      a) convert nxyzv(6) to 1.e-3 sqrt(m)
-!         unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
-                  if(m.eq.6) then
-                    nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
-                  else 
-                    nxyzv(l,k,m)=nxyzvdummy(m)
-                  endif
-!      b) calculate emittance of mode 1,2,3
-                  if(mod(m,2).eq.0) then
-                    epsnxyzv(l,k,m/2)=nxyzvdummy((m-1))**2+             &
-     &nxyzvdummy(m)**2
-                  endif
-                enddo
-                write(200101+i*10,1986) id,turn(l,k),pos,               &
-     &nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),nxyzv(l,k,4),nxyzv(l,k,5), &
-     &nxyzv(l,k,6),kt! write normalized particle amplitudes
+                    call getfields_split(ch,filefields_fields,
+     &                   filefields_lfields,filefields_nfields,
+     &                   filefields_lerr)
+                    ! error in getfields_split while reading
+                    if( filefields_lerr )
+     &                   call fma_error(-1,'while reading '
+     &                   //' particles from file ' // dump_fname(j) //
+     &                   'in function getfields_split','fma_postpr')
+                    ! check if number of fields is correct
+                    if( filefields_nfields  .ne. 10 ) then
+                       write(lout,*)
+     &                      "ERROR in fma_postpr while reading "//
+     &                      "particles from file '"//
+     &                      trim(stringzerotrim(dump_fname(j)))//
+     &                      "'. 10 fields expected from "//
+     &                      "getfields_split, got ",
+     &                      filefields_nfields, ' and ch=',ch
+                       call prror(-1)
+                    endif
+                    read(filefields_fields(1)
+     &                   (1:filefields_lfields(1)),*) id
+                    read(filefields_fields(2)
+     &                   (1:filefields_lfields(2)),*) turn(l,k)
+                    pos = round_near(ierro, filefields_lfields(3)+1,
+     &                   filefields_fields(3) )
+                    if (ierro.ne.0)
+     &                   call rounderr(ierro,filefields_fields,3,pos)
+                    xyzvdummy(1) = round_near(ierro,
+     &                   filefields_lfields(4)+1,
+     &                   filefields_fields(4) )
+                    if (ierro.ne.0)
+     &                   call rounderr(ierro,filefields_fields,4,
+     &                   xyzvdummy(1))
+                    xyzvdummy(2) = round_near(ierro,
+     &                   filefields_lfields(5)+1,
+     &                   filefields_fields(5) )
+                    if (ierro.ne.0)
+     &                   call rounderr(ierro,filefields_fields,5,
+     &                   xyzvdummy(2))
+                    xyzvdummy(3) = round_near(ierro,
+     &                   filefields_lfields(6)+1,
+     &                   filefields_fields(6) )
+                    if (ierro.ne.0)
+     &                   call rounderr(ierro,filefields_fields,6,
+     &                   xyzvdummy(3))
+                    xyzvdummy(4) = round_near(ierro,
+     &                   filefields_lfields(7)+1,
+     &                   filefields_fields(7) )
+                    if (ierro.ne.0)
+     &                   call rounderr(ierro,filefields_fields,7,
+     &                   xyzvdummy(4))
+                    xyzvdummy(5) = round_near(ierro,
+     &                   filefields_lfields(8)+1,
+     &                   filefields_fields(8) )
+                    if (ierro.ne.0)
+     &                   call rounderr(ierro,filefields_fields,8,
+     &                   xyzvdummy(5))
+                    xyzvdummy(6) = round_near(ierro,
+     &                   filefields_lfields(9)+1,
+     &                   filefields_fields(9) )
+                    if (ierro.ne.0)
+     &                   call rounderr(ierro,filefields_fields,9,
+     &                   xyzvdummy(6))
+                    read(filefields_fields(10)
+     &                   (1:filefields_lfields(10)),*) kt
++ei !END IF crlibm
+                 else if (dumpfmt(j).eq.3) then
+                    ! TODO
+                 endif
+!     - remove closed orbit -> check units used in dump_clo (is x' or px used?)
+                 do m=1,6
+                    xyzvdummy(m)=xyzvdummy(m)-dump_clo(j,m)
+                 enddo
+!     - for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
+                 do m=1,6
+                    if(m.eq.6) then
+                       xyzv(l,k,m)=xyzvdummy(m)*c1e3
+                    else
+                       xyzv(l,k,m)=xyzvdummy(m)
+                    endif
+                 enddo
+!     - convert to canonical variables
+                 xyzvdummy(2)=xyzvdummy(2)*((one+xyzvdummy(6))+
+     &                dump_clo(j,6))
+                 xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
+     &                dump_clo(j,6))
+!     - normalize nxyz=fma_tas_inv*xyz
+                 do m=1,6
+                    nxyzvdummy(m)=zero
+                    do n=1,6
+                       nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*
+     &                      xyzvdummy(n)
+                    enddo
+!     a) convert nxyzv(6) to 1.e-3 sqrt(m)
+!     unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
+                    if(m.eq.6) then
+                       nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
+                    else
+                       nxyzv(l,k,m)=nxyzvdummy(m)
+                    endif
+!     b) calculate emittance of mode 1,2,3
+                    if(mod(m,2).eq.0) then
+                       epsnxyzv(l,k,m/2)=nxyzvdummy((m-1))**2+
+     &                      nxyzvdummy(m)**2
+                    endif
+                 enddo
+!     write normalized particle amplitudes
+                 write(200101+i*10,1986) id,turn(l,k),pos,
+     &                nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),
+     &                nxyzv(l,k,4),nxyzv(l,k,5),
+     &                nxyzv(l,k,6),kt
               enddo
-            enddo
+           enddo
+           
 !     calculate tunes of particles using the methods in plato_seq.f
 !     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
 !         fma_norm_flag > 0 use normalized coordinates
