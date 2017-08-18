@@ -49950,28 +49950,35 @@ c$$$            endif
 !     - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             do k=1,fma_nturn(i) !loop over turns
               do l=1,napx !loop over particles
-                 if (dumpfmt(j).eq.2) then
+                 if (dumpfmt(j).eq.2) then  ! Read an ASCII dump
 +if .not.crlibm
                     read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
                     if(ierro.gt.0)
      &                   call fma_error(ierro,'while reading '//
-     &            ' particles from file ' // dump_fname(j),'fma_postpr') !read error
+     &                   " particles from file '" //
+     &                   trim(stringzerotrim(dump_fname(j))) //
+     &                   "' (dumpfmt=2)",'fma_postpr') !read error
+
 +ei
 +if crlibm
                     read(dumpunit(j),'(a)', iostat=ierro) ch
                     if(ierro.gt.0)
-     &                   call fma_error(ierro,'while reading '
-     &//' particles from file' // dump_fname(j) // '. Check that tracked
-     & turns is larger than number of turns used for FFT!','fma_postpr')!read error
+     &                   call fma_error(ierro,'while reading ' //
+     &                   ' particles from file' //
+     &                   trim(stringzerotrim(dump_fname(j))) //
+     &                   '. Check that tracked turns is larger than'//
+     &                   " the number of turns used for FFT!",
+     &                   'fma_postpr') !read error
                     call getfields_split(ch,filefields_fields,
      &                   filefields_lfields,filefields_nfields,
      &                   filefields_lerr)
                     ! error in getfields_split while reading
                     if( filefields_lerr )
      &                   call fma_error(-1,'while reading '
-     &                   //' particles from file ' // dump_fname(j) //
+     &                   //' particles from file ' //
+     &                   trim(stringzerotrim(dump_fname(j))) //
      &                   'in function getfields_split','fma_postpr')
                     ! check if number of fields is correct
                     if( filefields_nfields  .ne. 10 ) then
@@ -50031,8 +50038,16 @@ c$$$            endif
                     read(filefields_fields(10)
      &                   (1:filefields_lfields(10)),*) kt
 +ei !END IF crlibm
-                 else if (dumpfmt(j).eq.3) then
-                    ! TODO
+                 else if (dumpfmt(j).eq.3) then ! Read a binary dump
+                    read(dumpunit(j),iostat=ierro) id,turn(l,k),pos,
+     &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
+     &xyzvdummy(6),kt
+                    if(ierro.gt.0)
+     &                   call fma_error(ierro,'while reading '//
+     &                   " particles from file '" //
+     &                   trim(stringzerotrim(dump_fname(j))) //
+     &                   "' (dumpfmt=3)",'fma_postpr') !read error
+
                  endif
 !     - remove closed orbit -> check units used in dump_clo (is x' or px used?)
                  do m=1,6
