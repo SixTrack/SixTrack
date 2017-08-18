@@ -50099,97 +50099,116 @@ c$$$            endif
 !         fma_norm_flag > 0 use normalized coordinates
             do l=1,napx ! loop over particles
               do m=1,num_modes ! loop over modes (hor.,vert.,long.)
-                 select case( trim(stringzerotrim(fma_method(i))) )
-                 case('TUNELASK')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunelask(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1), 
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
+                select case( trim(stringzerotrim(fma_method(i))) )
+                case('TUNELASK')
+                if(fma_norm_flag(i) .eq. 0) then
+                   q123(m)=
+     &                  tunelask(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                  xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                else
+                   q123(m)=
+     &                  tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                  nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                endif
+                
+                case('TUNEFFTI')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tuneffti(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
                  
-                 case('TUNEFFTI')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneffti(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
+                case('TUNEFFT')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tunefft(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   
+                case('TUNEAPA')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tuneapa(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   
+                case('TUNEFIT')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tunefit(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   
+                case('TUNENEWT')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tunenewt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   
+                case('TUNEABT2')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tuneabt2(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   
+                case('TUNEABT')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tuneabt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   
+                case('TUNENEWT1')
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=
+     &                     tunenewt1(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=
+     &                     tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   
+                case default
+                   call fma_error(-1,'FMA method '//
+     &                  trim(stringzerotrim(fma_method(i)))//
+     &                  ' not known! Note method name must be in'//
+     &                  ' capital letters!','fma_postpr')
+                end select
+                
+                if(m.eq.3) q123(m)=one-q123(m) ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
                  
-                 case('TUNEFFT')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunefft(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                 
-                 case('TUNEAPA')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneapa(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                 
-                 case('TUNEFIT')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunefit(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                  
-                 case('TUNENEWT')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunenewt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                 
-                 case('TUNEABT2')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneabt2(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                 
-                 case('TUNEABT')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tuneabt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                 
-                 case('TUNENEWT1')
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunenewt1(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                 
-                 case default
-                    call fma_error(-1,'FMA method '//
-     &                   trim(stringzerotrim(fma_method(i)))//
-     &                   ' not known! Note method name must be in'//
-     &                   ' capital letters!','fma_postpr')
-                 end select
-                 
-                if(m.eq.3) q123(m)=one-q123(m)                          ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
-                eps123_0(m)=epsnxyzv(l,1,m)                             ! initial amplitude 
+                eps123_0(m)=epsnxyzv(l,1,m) ! initial amplitude
 +if crlibm
                 phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
 +ei
