@@ -1442,15 +1442,15 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
                                          ! (0 => not used)
       integer scatter_maxELEM
       parameter (scatter_maxELEM=200)    ! Max of scattering ELEM statements in use.
-      integer scatter_maxProcELEM
-      parameter (scatter_maxProcELEM=5)  ! Number of processes per ELEM
+      integer scatter_maxGenELEM
+      parameter (scatter_maxGenELEM=5)   ! Number of generators per ELEM
                                          ! (2 slots taken by pointers to singleElement and profile).
 
       ! Configuration for an ELEM, columns are:
       ! (1) = pointer to the SingleElement
       ! (2) = pointer to PROFILE
-      ! (3)--(scatter_maxProcElem) = pointer to PROCESSs
-      integer scatter_ELEM(scatter_maxELEM, scatter_maxProcELEM)
+      ! (3)--(scatter_maxGenElem) = pointer to PROCESSs
+      integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
 
       ! Configuration for PROFILE
       integer scatter_maxPROFILE
@@ -17559,10 +17559,10 @@ cc2008
          endif
          
          ! Find the generator(s) refenced
-         if (getfields_nfields-3 .gt. scatter_maxProcELEM-2) then
+         if (getfields_nfields-3 .gt. scatter_maxGenELEM-2) then
             write(lout,*) "SCATTER> ERROR when parsing ELEM,",
      &           getfields_nfields-3, "generators specified, space for",
-     &           scatter_maxProcELEM-2
+     &           scatter_maxGenELEM-2
             call prror(-1)
          endif
          
@@ -34145,7 +34145,7 @@ C Should get me a NaN
       end do
 
       do i=1,scatter_maxELEM
-         do j=1,scatter_maxProcELEM
+         do j=1,scatter_maxGenELEM
             scatter_ELEM(i,j) = 0
          end do
       end do
@@ -58092,7 +58092,7 @@ c$$$         backspace (93,iostat=ierro)
 
       write(lout,'(a)') "Arrays:"
       write(lout,*) "scatter_ELEM: (",
-     &     scatter_nELEM,",",scatter_maxProcELEM,"):"
+     &     scatter_nELEM,",",scatter_maxGenELEM,"):"
       do ii=1, scatter_nELEM
          write(lout,*) ii, ":", scatter_ELEM(ii,:)
       end do
@@ -58139,12 +58139,14 @@ c$$$         backspace (93,iostat=ierro)
 +ca common
 +ca commonmn
 !     Define functions
-      double precision profile_getDensity
+      double precision scatter_profile_getDensity
+      double precision scatter_generator_getCrossSection
+      
 !     Temp variables
-      integer ELEMidx,PROidx
+      integer ELEMidx,PROidx,GENidx
       integer i,j
       double precision s,t,xi
-      double precision N,P
+      double precision crossSection,N,P
 !     Input
       integer, intent(in) :: ix
       
@@ -58155,24 +58157,39 @@ c$$$         backspace (93,iostat=ierro)
       !(ask profile for the p)
       
       !Loop over generators
-      do i=3,scatter_maxProcELEM
+      do i=3,scatter_maxGenELEM
+         GENidx = scatter_ELEM(ELEMidx,i)
          
-         !Compute the cross-section at this s
          
          do j=1, napx
-            !Ask profile for density at x,y
-            N = profile_getDensity(PROidx,xv(j,1),xv(j,2))
+            ! Compute the cross-section at this s
+            ! (in most cases rougly equal for all particles; use mean x,y,xp,yp,E)
+            crossSection = scatter_generator_getCrossSection
+     &           ( PROidx,GENidx, xv(j,1),xv(j,2),
+     &           yv(j,1),yv(j,2),ejv(j) )
             
-            !Compute probability P
-            !If RNG < P -> scatter; else go to next particle
-            ! (Output?)
-            !Ask generator for t and xi
-            !Apply scattering kick to particle
+            ! Ask profile for density at x,y
+            N = scatter_profile_getDensity(PROidx,xv(j,1),xv(j,2))
+            
+            ! Compute probability P
+            P = N*crossSection
+            ! If RNG < P -> scatter; else go to next particle
+            if (RAND(0) .ge. P) then
+               cycle
+            endif
+            
+!     Ask generator for t and xi
+
+!     Use generator t and xi to update particle j;
+!     remember to update ALL the energy arrays
+            
+!     Output to file
          end do
       end do
       end subroutine
 
-      double precision function profile_getDensity(profileIdx, x,y)
+      double precision function scatter_profile_getDensity
+     &     (profileIdx, x,y) result(retval)
       implicit none
 +ca crcoall
 +ca parpro
@@ -58184,7 +58201,7 @@ c$$$         backspace (93,iostat=ierro)
       
       select case (scatter_PROFILE(profileIdx,2))
       case (1)                 ! FLAT
-         profile_getDensity =
+         retval =
      &        scatter_fdata(scatter_PROFILE(profileIdx,3))
       !case (10)                ! GAUSS1
          ! TODO
@@ -58198,3 +58215,72 @@ c$$$         backspace (93,iostat=ierro)
       end select
       
       end function
+
+      subroutine scatter_profile_getParticle
+     &     (profileIdx, x,y, xp,yp,E)
+      implicit none
+      integer, intent(in) :: profileIdx
+      double precision, intent(in) :: x,y
+      double precision, intent(out) :: xp,yp,E
+
+!     Return a particle to collide with
+
+      end subroutine
+      
+      double precision function scatter_generator_getCrossSection
+     &     (profileIDX, generatorIDX, x,y, xp, yp, E)
+      implicit none
++ca crcoall
++ca parpro
++ca stringzerotrim
++ca comscatter
+
+      integer, intent(in) :: profileIDX, generatorIDX
+      double precision, intent(in) :: x,y,xp,yp,E
+!     Temp variables
+      double precision xp_target, yp_target, E_target
+      
+      
+!     Calculate S
+      call scatter_profile_getParticle
+     &     (profileIDX, x,y, xp_target,yp_target,E_target)
+
+!     Calculate the crossection as function of S
+      select case (scatter_PROFILE(profileIdx,2))
+      case (1)                  ! FLAT
+! TODO
+      case default
+         write(lout,*) "SCATTER> "//
+     &        "ERROR in scatter_generator_getCrossSection"
+         write(lout,*) "Type", scatter_PROFILE(profileIdx,2),
+     &        "for profile '"// trim(stringzerotrim(
+     &        scatter_cdata(scatter_PROFILE(profileIdx,1))
+     &        ))//"' not understood."
+         call prror(-1)
+      end select
+
+      end function
+
+      subroutine scatter_generator_getTandXi
+     &     (generatorIDX)
+      implicit none
++ca crcoall
+
+!     Could be affected by S as well?
+
+      integer, intent(in) :: generatorIDX
+      
+      select case(generatorIDX)
+      case (1)                  ! ABSORBER
+!...  
+      case (10)                 ! PPBEAMELASTIC
+!...  
+      case default
+         write(lout,*) "SCATTER> "//
+     &        "ERROR in scatter_generator_getTandXi"
+         write(lout,*) "Type", generatorIDX,
+     &        "not understood"
+         call prror(-1)
+      end select
+         
+      end subroutine
