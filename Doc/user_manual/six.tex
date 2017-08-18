@@ -3223,9 +3223,12 @@ The FMA block generates the basic files needed for frequency map analysis (FMA).
 FMA
 
 \paragraph{Number of data lines}
-variable, one for each file with particle amplitudes and tune calculation method
+variable, one for each file with particle amplitudes and tune calculation method, and one for each flag given.
 
 \paragraph{Format of input block}
+\texttt{filename\_1 method\_1 (fma\_flag\_norm\_1)}\\
+or \texttt{NoNormDUMP}\\
+
 The FMA block has to be proceeded by the LINE block (calculation of the normalization matrix) and the DUMP block (dump particle coordinates).
 \begin{verbatim}
 DUMP
@@ -3247,8 +3250,6 @@ For the linear optics calculation \ref{LinOpt}, the optics needs to be calculate
 one of the outputfiles specified in the FMA block preceding DUMP block.
 \subparagraph{method}
 method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|. A short description of the different methods is given in Table~\ref{fma:tab:1}.
-\subparagraph{fma\_flag\_norm}
-flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|).
 
 \begin{table}[H]
 	\begin{center}
@@ -3270,6 +3271,16 @@ PLATO \cite{plato1,plato2}
 	\end{tabularx}
 \end{center}
 \end{table}
+
+\subparagraph{fma\_flag\_norm}
+optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates. The default is using normalized coordinates (\verb|fma_flag_norm=1|).
+For using physical coordinates explicitly set (\verb|fma_flag_norm=0|).
+
+\subparagraph{NoNormDUMP} is a flag for disabling the \texttt{NORM\_filename*} output files.
+This saves disk space and speeds up the calculation of the FMA.
+If used, the flag should be alone on a one line of the FMA input block in fort.3.
+Note that the capitalization must be correct for the flag to be recognized.
+
 \paragraph{Output file format}
 The FMA block returns the output files \verb|NORM_filename*| containing the normalized phase space coordinates, where \verb|filename| are the filenames specified in the dump block, and the file \verb|fma_sixtrack| containing the initial, average, minimum and maximum amplitudes and the calculated tunes for each specified filename and method. The structure of the \verb|NORM_filename*| is described in Table~\ref{fma:tab:2} and of the \verb|fma_sixtrack| in Table~\ref{fma:tab:3}.
 \begin{table}[H]
