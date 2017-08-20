@@ -937,8 +937,7 @@ if(NAFF)
 	message(STATUS "Include dirs of boost: " ${Boost_INCLUDE_DIRS} )
 	message(STATUS "Libs of boost: " ${Boost_LIBRARIES} )
 	
-	include_directories( ${FFTW3_INCLUDES} ${Boost_INCLUDE_DIRS})
-        LINK_LIBRARIES(${Boost_LIBRARIES} ${FFTW3_LIBRARIES})
+	include_directories( ${FFTW3_INCLUDES} ) 
 	
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
