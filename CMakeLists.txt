@@ -928,7 +928,7 @@ endif()
 
 if(NAFF)
 	find_path(FFTW3_INCLUDE_DIR fftw3.h fftw.h)
-	find_library(FFTW3_LIBRARIES NAMES fftw3 libfftiw3 fftw)
+	find_library(FFTW3_LIBRARIES NAMES libfftw3.a fftw3  fftw)
 	if(NOT FFTW3_INCLUDE_DIR OR NOT FFTW3_LIBRARIES)
 		message(FATAL_ERROR "Could not find fftw3.")
 	endif()
@@ -937,7 +937,8 @@ if(NAFF)
 	message(STATUS "Include dirs of boost: " ${Boost_INCLUDE_DIRS} )
 	message(STATUS "Libs of boost: " ${Boost_LIBRARIES} )
 	
-	include_directories( ${FFTW3_INCLUDES} )
+	include_directories( ${FFTW3_INCLUDES} ${Boost_INCLUDE_DIRS})
+        LINK_LIBRARIES(${Boost_LIBRARIES} ${FFTW3_LIBRARIES})
 	
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
