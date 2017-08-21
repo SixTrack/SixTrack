@@ -58165,16 +58165,16 @@ c$$$         backspace (93,iostat=ierro)
             ! Compute the cross-section at this s
             ! (in most cases rougly equal for all particles; use mean x,y,xp,yp,E)
             crossSection = scatter_generator_getCrossSection
-     &           ( PROidx,GENidx, xv(j,1),xv(j,2),
-     &           yv(j,1),yv(j,2),ejv(j) )
+     &           ( PROidx,GENidx, xv(1,j),xv(2,j),
+     &           yv(1,j),yv(2,j),ejv(j) )
             
             ! Ask profile for density at x,y
-            N = scatter_profile_getDensity(PROidx,xv(j,1),xv(j,2))
+            N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
             
             ! Compute probability P
             P = N*crossSection
             ! If RNG < P -> scatter; else go to next particle
-            if (RAND(0) .ge. P) then
+            if (RAND(0) .le. P) then ! Was .gt., but pseudo code says .lt.
                cycle
             endif
             
