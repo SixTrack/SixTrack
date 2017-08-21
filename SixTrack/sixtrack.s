@@ -50234,20 +50234,20 @@ c$$$            endif
                    endif
                    
 +if naff
-                 case("NAFF")
-!                 write(lout,*) "DBG", fma_nturn(i),l
-!                 write(lout,*) "DBG",
+                case("NAFF")
+!                  write(lout,*) "DBG", fma_nturn(i),l
+!                  write(lout,*) "DBG",
 !     &                   nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
-                 flush(lout) ! F2003 does specify a FLUSH statement.
-                             ! However NAFF should NOT be chatty...
-                 if(fma_norm_flag(i) .eq. 0) then
-                    q123(m)=tunenaff(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 else
-                    q123(m)=tunenaff(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                   nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                 endif
-                 flush(lout)
+                   flush(lout)  ! F2003 does specify a FLUSH statement.
+                                ! However NAFF should NOT be chatty...
+                   if(fma_norm_flag(i) .eq. 0) then
+                      q123(m)=tunenaff(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   else
+                      q123(m)=tunenaff(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                   endif
+                   flush(lout)
 +ei
                    
                 case default
