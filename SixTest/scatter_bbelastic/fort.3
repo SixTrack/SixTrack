@@ -1,0 +1,69 @@
+GEOM
+PRIN
+/
+/ Lifted from test elensidealthin6d'
+TRACKING PARAMETERS-----------------------------------------------------
+100 0 30 0 6.89493 0 1
+1 1 0 1 2
+0 0 1 1 1 50000 2
+NEXT
+INITIAL COORDINATES-----------------------------------------------------
+        2 0. 0. 0.333332 0
+        0.
+        0.
+        0. 
+        0.
+        0.
+        0.0
+        .000001 
+        0.
+        0. 
+        0.
+        0.
+        0.0
+        450000.
+        450000.
+        450000.
+NEXT
+ITERATION-ACCURACY------------------------------------------------------
+       50 1D-12 1D-15
+       10 1D-10 1D-10
+       10 1D-6  1D-6
+          1D-6  1D-9  1D-9
+NEXT
+FLUCTUATION
+100000 1 7 3
+NEXT
+POSTPROCESSING----------------------------------------------------------
+LHC Dynamic Aperture at Injection Version 5 (1998)
+20 0 0 1 .08 .08 1 0 0 1. 1.
+62. 60. 1 1 10 .005 1 .050
+0 1 0 1 1 1 1 1 30
+NEXT
+/
+/ FROM FC.3.AUX
+SYNC
+       35640  0.000317     8.000 0.  26658.883200  938.272046  1
+      1.        1.
+NEXT
+BEAM
+  1.2000e+11       50.5556       50.5556  1.0000e+00  1.0000e-03  1  0
+NEXT
+/TUNE
+/QF    64.31000
+/QD    59.32000
+/NEXT
+/CHRO
+/SXF     3.00000
+/SXD     3.00000
+/NEXT
+/ END FC.3.AUX
+/
+SCATTER
+DEBUG
+GEN  mygen       PPBEAMELASTIC
+/PRO  ipPRO       GAUSS1
+PRO  ipPRO       FLAT 1e14 1.0 6500000
+ELEM ip1_scatter ipPRO mygen
+NEXT
+ENDE

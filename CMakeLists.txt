@@ -240,7 +240,7 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 if(DA)
 	SET(FORS sixda sixsc sixscfox dabnew lielib)
 else()
-	SET(FORS track sixve sixvefox dabnews lielib plato_seq)
+	SET(FORS track sixve sixvefox dabnews lielib plato_seq scatter)
 endif()
 
 if(NOT DA AND DATAMODS)

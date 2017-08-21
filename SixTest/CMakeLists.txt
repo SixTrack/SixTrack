@@ -136,6 +136,7 @@ if(NOT COLLIMAT)
           rfMultipoles_3rdOrder
           rfMultipoles_4thOrder
           last_amp
+	  scatter_bbelastic
           ${SIXTRACK_TESTS}
 	  )
 
@@ -304,6 +305,7 @@ SET(FAST_TESTS
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
   last_amp
+  scatter_bbelastic
   )
 
 #Medium tests take < 30 mins to run
