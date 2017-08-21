@@ -26,7 +26,7 @@ class NAFF {
   double max_index, fft_frequency = -1;
   std::vector<ComponentVector> norm_vectors;
   std::string merit_func, upsampling_type = "spline";
-  bool f_found = true, flag_upsampling =false, flag_interpolation = true;
+  bool f_found = true, flag_upsampling =false, flag_interpolation = false;
   double min_frequency =0;
   double max_frequency=1.0;
   double upsampling_factor = 10.0; 
@@ -91,19 +91,23 @@ class NAFF {
     double_vec amps;
     double_vec all_freqs;
     double max_amplitude = sqrt(fftw_[0].first*fftw_[0].first+fftw_[0].second*fftw_[0].second);
-    amps.push_back(max_amplitude);
     max_index = 0.0;
-    for (size_t i=1; 2*i<fft_size; i++ ) {
+    for (size_t i=0; i<fft_size; i++ ) {
       const double current_amplitude = sqrt(fftw_[i].first*fftw_[i].first+fftw_[i].second*fftw_[i].second);
       amps.push_back(current_amplitude);
-      all_freqs.push_back(((i*1.0)/ (fft_size*1.0-1.0)));
-      if (current_amplitude > max_amplitude && ((i*1.0)/ (fft_size*1.0-1.0))>min_frequency && ((i*1.0)/ (fft_size*1.0-1.0))<max_frequency) {
+      if (i<=fft_size/2)
+        all_freqs.push_back(((i*1.0)/ (fft_size*1.0)));
+      else
+        all_freqs.push_back(1.0-(((i*1.0)/ (fft_size*1.0))));
+      if (current_amplitude > max_amplitude && (abs(all_freqs.back())>min_frequency) && (abs(all_freqs.back()))<max_frequency) {
         max_amplitude = current_amplitude;
 	max_index = i;
       }      
     }
-    fft_frequency = ((max_index*1.0)/ (fft_size*1.0-1.0));
-    amplitudes.push_back(max_amplitude);
+   if (max_index<=fft_size/2)
+      fft_frequency = ((max_index*1.0)/ (fft_size*1.0));
+    else
+      fft_frequency = (((max_index*1.0)/ (fft_size*1.0)-1.0));
   }
   
   //////// Maximization of <f(t),exp(i*2*pi*f*t)> function for refined frequency f
@@ -138,15 +142,18 @@ class NAFF {
   
   ///////////////////// Subtraction of frequency components from signal 
   void subtract_frequency(Signal& signal, double& frequency) {
-    Component v_i(frequency, signal.size());
-    ComponentVector u_i(v_i);
+    Component v_i_pos(frequency, signal.size());
+    Component v_i_neg(-frequency, signal.size());
+    ComponentVector u_i(v_i_pos);
     if (f_counter!= 0) {
       for (size_t i=0; i<f_counter; i++) {
-	u_i -= projection (v_i, norm_vectors[i], window, flag_interpolation);
+	u_i -= projection (v_i_pos, norm_vectors[i], window, flag_interpolation);
+	u_i -= projection (v_i_neg, norm_vectors[i], window, flag_interpolation);
       } 
     }
     signal_projection (signal, u_i, window, flag_interpolation);
     signal -= u_i;
+    amplitudes.push_back(abs(u_i.ampl)*signal.size());
     norm_vectors.push_back(u_i);
   }
 
@@ -287,7 +294,7 @@ class NAFF {
         i*=upsampling_factor;
       }
     }
-      return frequencies.back();
+      return abs(frequencies.back());
   }
   
   double_vec get_f(double_vec &init_data_x, double_vec &init_data_xp) {
@@ -304,10 +311,10 @@ class NAFF {
     }    
     std::string message = "Total number of frequencies found: "+std::to_string(f_counter); 
     Print_opt::Write(Print_opt::Debug, message);
-    if (fft_frequency <0) 
-      throw std::runtime_error("No frequency found!");
-    else 
-      return frequencies;
+    double_vec abs_frequencies;
+    for (auto i:frequencies)
+      abs_frequencies.push_back(std::abs(i));
+    return abs_frequencies;
   }
 };
 
