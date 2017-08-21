@@ -878,7 +878,7 @@ endif()
 ###################################################################################################
 #add the source files that will be used to build sixtrack
 add_executable(SixTrack ${SIXTRACK_SOURCES})
-SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 
 ##build astuce
 add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
@@ -927,21 +927,23 @@ if(MERLINSCATTER)
 endif()
 
 if(NAFF)
-	find_path(FFTW3_INCLUDE_DIR fftw3.h fftw.h)
-	find_library(FFTW3_LIBRARIES NAMES libfftw3.a fftw3  fftw)
-	if(NOT FFTW3_INCLUDE_DIR OR NOT FFTW3_LIBRARIES)
-		message(FATAL_ERROR "Could not find fftw3.")
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/SixTrack/cmake_modules/")
+	if (STATIC)
+		SET(FFTW_USE_STATIC_LIBS 1)
 	endif()
+	find_package(FFTW REQUIRED)
+	include_directories( ${FFTW3_INCLUDES} )
+	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
+	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
 	
 	find_package(Boost REQUIRED)
 	message(STATUS "Include dirs of boost: " ${Boost_INCLUDE_DIRS} )
 	message(STATUS "Libs of boost: " ${Boost_LIBRARIES} )
 	
-	include_directories( ${FFTW3_INCLUDES} ) 
-	
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
-
+	target_link_libraries(naff ${FFTW_LIBRARIES} ${Boost_LIBRARIES})
+	
 	#Enable c++11
 	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
 
@@ -1267,7 +1269,7 @@ if(MERLINSCATTER)
 endif(MERLINSCATTER)
 #if we are using naff, link to the naff library + supports
 if(NAFF)
-	target_link_libraries(SixTrack naff ${FFTW3_LIBRARIES} ${Boost_LIBRARIES} )
+	target_link_libraries(SixTrack naff)
 endif(NAFF)
 
 
