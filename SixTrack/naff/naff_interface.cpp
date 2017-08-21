@@ -1,13 +1,43 @@
 #include "NAFF.h"
 #include <iostream>
 
+// C++ <-> Fortran interface for NAFF
+// K. Sjobak and S. Kostoglou (CERN)
+// August 2017
+
 extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, int* norm_flag) {
-  // Note: Dropped the two last formal arguments "int* x_len, int* xp_len",
-  // which can sometimes be recieved as formal/dummy arguments to the function,
-  // as they cannot be trusted to make any sense at all.
-  // I think they should technically be an Fortran array descriptor;
-  // however their format is not actually standardized.
-  // Therefore let's just ignore them...
+  // NOTE: double** x and double** xp are actually pointers to Fortran array descriptors,
+  //  and the first 4 or 8 bytes (32- or 64-bit) of these contain the base address of the array.
+  //  Therefore, using (*x)[idx] is basically accessing the array as a normal 1D array.
+  //
+  // The complication is that GFORTRAN and IFORT do not use the same types of array descriptors;
+  //  for other compilers I don't know what the situation is.
+  //
+  // More information:
+  //  https://software.intel.com/en-us/node/691959
+  //  https://gcc.gnu.org/wiki/ArrayDescriptorUpdate
+  //
+  // Note that Fortran will pass these for
+  //  (1) Allocatable or assumed-shape array
+  //  (2) Fortran array pointers
+  //  (3) Coarrays
+  //  (4) Class objects
+  // in the case of an explicit INTERFACE block.
+  //
+  // A suitable interface block for this function is:
+  //    interface
+  //       REAL(C_DOUBLE) function tunenaff
+  //   &        (x,xp,maxn,plane_idx,norm_flag) BIND(C)
+  //       use, intrinsic :: ISO_C_BINDING
+  //       IMPLICIT NONE
+  //       REAL(C_DOUBLE), dimension(:) :: x,xp
+  //       INTEGER(C_INT) :: maxn, plane_idx, norm_flag
+  //       end function
+  //    end interface
+  //
+  // It may be more portable to convert the array to a C-style array pointer
+  //  using C_LOC() from ISO_C_BINDING, and then pass that.
+  // See also: https://stackoverflow.com/a/11935949/6603597
   
   // Don't mix buffers with Fortran (make sure to flush before calling this code too)
   std::cout << std::flush;
@@ -22,37 +52,25 @@ extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, 
   //std::cout << "xp_len    = " << *xp_len      << std::endl << std::flush;
   std::cout << "x[0]      = " << **x          << std::endl << std::flush;
   std::cout << "xp[0]     = " << **xp         << std::endl << std::flush;
+  for( int i = 0; i < *maxn; i++ ) {
+    std::cout << "i=" << i << std::endl << std::flush;
+    std::cout << (*x)[i] << " " << (*xp)[i] << std::endl << std::flush;
+  }
   */
   // END debugging of argument passing
-
+  
   // Input sanity checks
   if (maxn <= 0) {
     fprintf(stderr, "CRITICAL ERROR in double tunenaff_(...): maxn = %d <= 0", *maxn);
     exit(EXIT_FAILURE);
   }
-
-  /* Dropped because reasons described above.
-  if ((*x_len > 0 and *xp_len > 0) and (*x_len < *maxn or *xp_len < *maxn)) {
-    //In some cases, no x_len and xp_len is passed (they are set to 0);
-    //then just hope maxn is OK. If not, check the lengths!
-    fprintf(stderr, "CRITICAL ERROR in double tunenaff_(...): maxn is bigger than x_len or xp_len.");
-    exit(EXIT_FAILURE);
-  }
-  if (*x_len != *xp_len) {
-    fprintf(stderr, "CRITICAL ERROR in double tunenaff_(...): x_len is different than xp_len.");
-    exit(EXIT_FAILURE);
-  }
-  */
-
+  
   //Copy the data from the FORTRAN arrays and into the vector that will be passed to NAFF
   std::vector<double> data;
   data.reserve(*maxn);
   std::vector<double> data_prime;
   data_prime.reserve(*maxn);
   for( int i = 0; i < *maxn; i++ ) {
-    //std::cout << "i=" << i << std::endl << std::flush;
-    //std::cout << (*x)[i] << " " << (*xp)[i] << std::endl << std::flush;
-    
     data.push_back((*x)[i]);
     data_prime.push_back((*xp)[i]);
   }
