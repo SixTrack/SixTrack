@@ -1,26 +1,37 @@
 #include "NAFF.h"
 #include <iostream>
 
-extern "C" double tunenaff_(double* x,  double* xp, int* maxn, int* x_len, int* xp_len) {
-
+extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, int* norm_flag) {
+  // Note: Dropped the two last formal arguments "int* x_len, int* xp_len",
+  // which can sometimes be recieved as formal/dummy arguments to the function,
+  // as they cannot be trusted to make any sense at all.
+  // I think they should technically be an Fortran array descriptor;
+  // however their format is not actually standardized.
+  // Therefore let's just ignore them...
+  
   // Don't mix buffers with Fortran (make sure to flush before calling this code too)
   std::cout << std::flush;
   
   // For debugging of argument passing.
-  // std::cout << "**TUNENAFF**" << std::endl << std::flush;
-  // std::cout << "maxn   = " << *maxn   << std::endl << std::flush;
-  // std::cout << "x_len  = " << *x_len  << std::endl;
-  // std::cout << "xp_len = " << *xp_len << std::endl;
-  // Flush before these memory accesses...
-  // std::cout << "x[0]="  << x[0] << std::endl << std::flush;
-  // std::cout << "xp[0]=" << xp[0] << std::endl << std::flush;
-  // END for debugging
+  /*
+  std::cout << "**TUNENAFF**"                 << std::endl << std::flush;
+  std::cout << "maxn      = " << *maxn        << std::endl << std::flush;
+  std::cout << "plane_idx = " << *plane_idx   << std::endl << std::flush;
+  std::cout << "norm_flag = " << *norm_flag   << std::endl << std::flush;
+  //std::cout << "x_len     = " << *x_len       << std::endl << std::flush;
+  //std::cout << "xp_len    = " << *xp_len      << std::endl << std::flush;
+  std::cout << "x[0]      = " << **x          << std::endl << std::flush;
+  std::cout << "xp[0]     = " << **xp         << std::endl << std::flush;
+  */
+  // END debugging of argument passing
 
   // Input sanity checks
   if (maxn <= 0) {
     fprintf(stderr, "CRITICAL ERROR in double tunenaff_(...): maxn = %d <= 0", *maxn);
     exit(EXIT_FAILURE);
   }
+
+  /* Dropped because reasons described above.
   if ((*x_len > 0 and *xp_len > 0) and (*x_len < *maxn or *xp_len < *maxn)) {
     //In some cases, no x_len and xp_len is passed (they are set to 0);
     //then just hope maxn is OK. If not, check the lengths!
@@ -31,6 +42,7 @@ extern "C" double tunenaff_(double* x,  double* xp, int* maxn, int* x_len, int* 
     fprintf(stderr, "CRITICAL ERROR in double tunenaff_(...): x_len is different than xp_len.");
     exit(EXIT_FAILURE);
   }
+  */
 
   //Copy the data from the FORTRAN arrays and into the vector that will be passed to NAFF
   std::vector<double> data;
@@ -38,8 +50,11 @@ extern "C" double tunenaff_(double* x,  double* xp, int* maxn, int* x_len, int* 
   std::vector<double> data_prime;
   data_prime.reserve(*maxn);
   for( int i = 0; i < *maxn; i++ ) {
-    data.push_back(x[i]);
-    data_prime.push_back(xp[i]);
+    //std::cout << "i=" << i << std::endl << std::flush;
+    //std::cout << (*x)[i] << " " << (*xp)[i] << std::endl << std::flush;
+    
+    data.push_back((*x)[i]);
+    data_prime.push_back((*xp)[i]);
   }
 
   //Call NAFF!

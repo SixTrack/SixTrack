@@ -49738,14 +49738,16 @@ c$$$            endif
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
      &tunenewt,tuneabt2,tuneabt,tunenewt1 !Define the functions to be called from PLATO
 +if naff
-!      interface
-!         function tunenaff(x,xp,maxn) BIND(C)
-!         use, intrinsic :: ISO_C_BINDING
-!         IMPLICIT NONE
-!         REAL(C_DOUBLE) :: x,xp
-!         INTEGER(C_INT) :: maxn
-!      end interface
-      double precision :: tunenaff !And from NAFF (IIF available)
+      interface
+         REAL(C_DOUBLE) function tunenaff
+     &        (x,xp,maxn,plane_idx,norm_flag) BIND(C)
+         use, intrinsic :: ISO_C_BINDING
+         IMPLICIT NONE
+         REAL(C_DOUBLE), dimension(:) :: x,xp
+         INTEGER(C_INT) :: maxn, plane_idx, norm_flag
+         end function
+      end interface
+      !double precision :: tunenaff !And from NAFF (IIF available)
 +ei
 !     dummy variables for readin + normalisation + loops
       integer :: id,kt,counter
@@ -50235,17 +50237,27 @@ c$$$            endif
                    
 +if naff
                 case("NAFF")
-!                  write(lout,*) "DBG", fma_nturn(i),l
-!                  write(lout,*) "DBG",
-!     &                   nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
+!                   write(lout,*) "DBG", fma_nturn(i),l
+!                   write(lout,*) "DBG",
+!     &                  nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
+!                   
+!                   write(lout,*) size(xyzv(l,1:fma_nturn(i),2*(m-1)+1))
+!                   write(lout,*) size(xyzv(l,1:fma_nturn(i),2*m))
+                   
                    flush(lout)  ! F2003 does specify a FLUSH statement.
                                 ! However NAFF should NOT be chatty...
+
                    if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=tunenaff(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                      q123(m)=
+     &                     tunenaff(
+     &                     xyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     xyzv(l,1:fma_nturn(i),2*m),
+     &                     fma_nturn(i),m,fma_norm_flag(i))
                    else
-                      q123(m)=tunenaff(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                      q123(m)=
+     &                     tunenaff(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
+     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i),
+     &                     m,fma_norm_flag(i))
                    endif
                    flush(lout)
 +ei
