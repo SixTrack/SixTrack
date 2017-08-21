@@ -1267,7 +1267,7 @@ endif(CRLIBM)
 if(MERLINSCATTER)
 	target_link_libraries(SixTrack merlinscatter)
 endif(MERLINSCATTER)
-#if we are using naff, link to the naff library + supports
+#if we are using naff, link to the naff library
 if(NAFF)
 	target_link_libraries(SixTrack naff)
 endif(NAFF)

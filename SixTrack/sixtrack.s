@@ -50155,7 +50155,7 @@ c$$$            endif
      &                     tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
                    endif
-
+                   
                 case('TUNEFFT')
                    if(fma_norm_flag(i) .eq. 0) then
                       q123(m)=
