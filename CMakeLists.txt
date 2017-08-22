@@ -240,7 +240,7 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 if(DA)
 	SET(FORS sixda sixsc sixscfox dabnew lielib)
 else()
-	SET(FORS track sixve sixvefox dabnews lielib plato_seq scatter)
+	SET(FORS track sixve sixvefox dabnews lielib plato_seq)
 endif()
 
 if(NOT DA AND DATAMODS)
@@ -265,9 +265,9 @@ if(LIBARCHIVE)
 	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif()
 
-#add back in beamgas, which is in free format
-SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90)
-SET(FORS ${FORS} beamgas)
+#add back in beamgas and scatter, which are in free format
+SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90 scatter.f90)
+SET(FORS ${FORS} beamgas scatter)
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -1153,6 +1153,11 @@ add_dependencies(generate_input run_astuce dafor rename_beamgas)
 add_custom_target(rename_beamgas)
 add_dependencies(rename_beamgas run_astuce)
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E copy beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
+
+# We rename scattern.f to scatter.f90 since it should be in free format fortran
+add_custom_target(rename_scatter)
+add_dependencies(rename_scatter run_astuce)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/scatter.f90 COMMAND ${CMAKE_COMMAND} -E copy scattern.f scatter.f90 DEPENDS rename_scatter)
 
 foreach(loop IN ITEMS ${FORS})
 	#This runs astuce
