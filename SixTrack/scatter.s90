@@ -6,7 +6,7 @@ subroutine scatter_dumpdata
     implicit none
 
 +ca crcoall
-+ca parpro      
++ca parpro
 +ca stringzerotrim
 +ca comscatter
 
@@ -49,8 +49,8 @@ subroutine scatter_dumpdata
         write(lout,*) ii, ": '"//trim(stringzerotrim(scatter_cdata(ii)))//"'"
     end do
 
-    write(lout,'(a)') "***** END SCATTER DUMP ***"
-      
+    write(lout,'(a)') "**** END SCATTER DUMP ****"
+
 end subroutine
 
 subroutine scatter_thin(ix)
@@ -126,12 +126,12 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
 
     integer, intent(in) :: profileIdx
     double precision, intent(in) :: x,y
-      
+
     select case (scatter_PROFILE(profileIdx,2))
-    case (1) ! FLAT
+    case (1)  ! FLAT
         retval = scatter_fdata(scatter_PROFILE(profileIdx,3))
-    !case (10)                ! GAUSS1
-         ! TODO
+    case (10) ! GAUSS1
+        ! TODO
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
@@ -154,7 +154,7 @@ subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
 end subroutine
 
-double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp, yp, E)
+double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
 
     implicit none
 
@@ -209,3 +209,25 @@ subroutine scatter_generator_getTandXi(generatorIDX)
     end select
 
 end subroutine
+
+double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin, seed) result(t)
+
+    implicit none
+
+    ! Input
+    double precision, intent(in) :: a, b1, b2, phi, tmin
+    integer, intent(in)          :: seed
+
+    ! Temp Variables
+    double precision g1, g2, g3, ratio, slope
+    integer          i
+    double precision, dimension(2) :: invB
+
+    g1    =        exp(-b1*tmin)/b1
+    g3    = a**2 * exp(-b2*tmin)/b2
+    slope = g3/(g1+g3)
+    invB(1:2) = 1.0/b1, 1.0/b2
+    
+    !...
+
+end function
