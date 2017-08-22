@@ -16,19 +16,19 @@
       write(lout,*)     "scatter_debug =", scatter_debug
 
       write(lout,'(a)') "Arrays:"
-      write(lout,*) "scatter_ELEM: (",
+      write(lout,*) "scatter_ELEM: (",                                  &
      &     scatter_nELEM,",",scatter_maxGenELEM,"):"
       do ii=1, scatter_nELEM
          write(lout,*) ii, ":", scatter_ELEM(ii,:)
       end do
 
-      write(lout,*) "scatter_PROFILE: (",
+      write(lout,*) "scatter_PROFILE: (",                               &
      &     scatter_nPROFILE,",",5,"):"
       do ii=1, scatter_nPROFILE
          write(lout,*) ii, ":", scatter_PROFILE(ii,:)
       end do
 
-      write(lout,*) "scatter_GENERATOR: (",
+      write(lout,*) "scatter_GENERATOR: (",                             &
      &     scatter_nGENERATOR,",",5,"):"
       do ii=1, scatter_nGENERATOR
          write(lout,*) ii, ":", scatter_GENERATOR(ii,:)
@@ -46,7 +46,7 @@
 
       write(lout,*) "scatter_cdata: (",scatter_ncdata,"):"
       do ii=1, scatter_ncdata
-         write(lout,*) ii, ": '"//
+         write(lout,*) ii, ": '"//                                      &
      &        trim(stringzerotrim(scatter_cdata(ii)))//"'"
       end do
 
@@ -89,8 +89,8 @@
          do j=1, napx
             ! Compute the cross-section at this s
             ! (in most cases rougly equal for all particles; use mean x,y,xp,yp,E)
-            crossSection = scatter_generator_getCrossSection
-     &           ( PROidx,GENidx, xv(1,j),xv(2,j),
+            crossSection = scatter_generator_getCrossSection            &
+     &           ( PROidx,GENidx, xv(1,j),xv(2,j),                      &
      &           yv(1,j),yv(2,j),ejv(j) )
             
             ! Ask profile for density at x,y
@@ -113,7 +113,7 @@
       end do
       end subroutine
 
-      double precision function scatter_profile_getDensity
+      double precision function scatter_profile_getDensity              &
      &     (profileIdx, x,y) result(retval)
       implicit none
 +ca crcoall
@@ -126,22 +126,22 @@
       
       select case (scatter_PROFILE(profileIdx,2))
       case (1)                 ! FLAT
-         retval =
+         retval =                                                       &
      &        scatter_fdata(scatter_PROFILE(profileIdx,3))
       !case (10)                ! GAUSS1
          ! TODO
       case default
          write(lout,*) "SCATTER> ERROR in profile_getDensity"
-         write(lout,*) "Type", scatter_PROFILE(profileIdx,2),
-     &        "for profile '"// trim(stringzerotrim(
-     &        scatter_cdata(scatter_PROFILE(profileIdx,1))
+         write(lout,*) "Type", scatter_PROFILE(profileIdx,2),           &
+     &        "for profile '"// trim(stringzerotrim(                    &
+     &        scatter_cdata(scatter_PROFILE(profileIdx,1))              &
      &        ))//"' not understood."
          call prror(-1)
       end select
       
       end function
 
-      subroutine scatter_profile_getParticle
+      subroutine scatter_profile_getParticle                            &
      &     (profileIdx, x,y, xp,yp,E)
       implicit none
       integer, intent(in) :: profileIdx
@@ -152,7 +152,7 @@
 
       end subroutine
       
-      double precision function scatter_generator_getCrossSection
+      double precision function scatter_generator_getCrossSection       &
      &     (profileIDX, generatorIDX, x,y, xp, yp, E)
       implicit none
 +ca crcoall
@@ -167,7 +167,7 @@
       
       
 !     Calculate S
-      call scatter_profile_getParticle
+      call scatter_profile_getParticle                                  &
      &     (profileIDX, x,y, xp_target,yp_target,E_target)
 
 !     Calculate the crossection as function of S
@@ -175,18 +175,18 @@
       case (1)                  ! FLAT
 ! TODO
       case default
-         write(lout,*) "SCATTER> "//
+         write(lout,*) "SCATTER> "//                                    &
      &        "ERROR in scatter_generator_getCrossSection"
-         write(lout,*) "Type", scatter_PROFILE(profileIdx,2),
-     &        "for profile '"// trim(stringzerotrim(
-     &        scatter_cdata(scatter_PROFILE(profileIdx,1))
+         write(lout,*) "Type", scatter_PROFILE(profileIdx,2),           &
+     &        "for profile '"// trim(stringzerotrim(                    &
+     &        scatter_cdata(scatter_PROFILE(profileIdx,1))              &
      &        ))//"' not understood."
          call prror(-1)
       end select
 
       end function
 
-      subroutine scatter_generator_getTandXi
+      subroutine scatter_generator_getTandXi                            &
      &     (generatorIDX)
       implicit none
 +ca crcoall
@@ -201,9 +201,9 @@
       case (10)                 ! PPBEAMELASTIC
 !...  
       case default
-         write(lout,*) "SCATTER> "//
+         write(lout,*) "SCATTER> "//                                    &
      &        "ERROR in scatter_generator_getTandXi"
-         write(lout,*) "Type", generatorIDX,
+         write(lout,*) "Type", generatorIDX,                            &
      &        "not understood"
          call prror(-1)
       end select
