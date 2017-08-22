@@ -170,11 +170,11 @@
 ! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,
+      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,        &
      &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
@@ -1479,7 +1479,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       
       ! General data storage ala DYNK
       integer scatter_maxdata, scatter_maxstrlen
-      parameter (scatter_maxdata   = 5000,
+      parameter (scatter_maxdata   = 5000,                              &
      &           scatter_maxstrlen = stringzerotrim_maxlen )
       
       integer                       scatter_idata (scatter_maxdata)
@@ -1492,11 +1492,11 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 
       logical scatter_debug
       
-      common /scatterCom/ scatter_elemPointer, scatter_ELEM,
-     &     scatter_PROFILE, scatter_GENERATOR,
-     &     scatter_idata, scatter_fdata, scatter_cdata,
-     &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
-     &     scatter_nidata, scatter_nfdata, scatter_ncdata,
+      common /scatterCom/ scatter_elemPointer, scatter_ELEM,            &
+     &     scatter_PROFILE, scatter_GENERATOR,                          &
+     &     scatter_idata, scatter_fdata, scatter_cdata,                 &
+     &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
+     &     scatter_nidata, scatter_nfdata, scatter_ncdata,              &
      &     scatter_debug
 !     
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -9061,7 +9061,7 @@ cc2008
 +if .not.datamods
       subroutine nodatamods
 +ca crcoall
-      write(lout,*)
+      write(lout,*)                                                     &
      &"Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
 +ei
