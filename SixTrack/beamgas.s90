@@ -238,7 +238,7 @@
 !!
 !!
 !! \param myix The block ID number
-!! \param secondary This is the array that tells which of the 64 particles are secondaries
+!! \param mysecondary This is the array that tells which of the 64 particles are secondaries
 !! \param totals This is the position around the ring, calculated from the start flag in fort.2
 !! \param myenom This is an array with the energy of the 64 particles
 !! \param ipart This is an array with the id number of each particle
@@ -247,7 +247,7 @@
 !! \return The subroutine does not return anything
 !! \see thin6d, beamGasInit and rotateMatrix
 !< 
-      subroutine beamGas( myix, secondary, totals, myenom, ipart )      
+      subroutine beamGas( myix, mysecondary, totals, myenom, ipart )
 !BELOW YOU FIND NEW ADDITIONS:
       use beamgascommon
       use lorentzcommon
@@ -294,6 +294,12 @@
       integer   mynp
       common /mynp/ mynp
 
+      ! KNS (22/08/2017): The variable "secondary" is now visible
+      ! from a +cd block as a COMMON variable;
+      ! Renaming it to avoid conflict and to get the BEAMGAS version to compile.
+      ! However, it has not been tested...
+      integer mysecondary(npart)
+      
 !These are local subroutine stuff
       double precision totals,oldCoordinates(5),protonmass,             &
      & totMomentum, doLorentz,tmpPX,tmpPY
@@ -329,7 +335,7 @@
       endif
       do j = 2,napx
       choice=0
-      if ((secondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
+      if ((mysecondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
      &      (bgParameters(1).le.totals)) then   
 +if debug
       write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
@@ -455,7 +461,7 @@
      &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),oldCoordinates(3),            &
      &   bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
      &   oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
-         secondary(j)=1
+         mysecondary(j)=1
          
 !       if bgid.eq.bgiddb(ibgloc) end statement
       endif
