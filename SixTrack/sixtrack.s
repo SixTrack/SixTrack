@@ -49671,7 +49671,7 @@ c$$$            endif
 !      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
         lexist=.false.
-        do j=1,nele !START: loop over dump files
+        do j=1,nele !START: loop over dump files = loop over single elements
           if(trim(stringzerotrim(fma_fname(i))).eq.
      &trim(stringzerotrim(dump_fname(j)))) then 
             lexist=.true.     !set lexist = true if the file fma_fname(j) exists
@@ -49780,7 +49780,14 @@ c$$$            endif
               do n=1,6
                 write(200101+i*10,'(a,1x,1PE16.9)') '# ',
      &                fma_tas(m,n)
+              enddo
             enddo
+            write(200101+i*10,'(a)') '# tamatrix tasm'
+            do m=1,6
+              do n=1,6
+                write(200101+i*10,'(a,1x,1PE16.9)') '# ',
+     &                tasm(m,n)
+              enddo
             enddo
             write(200101+i*10,'(a)') '# inv(tamatrix)'
             do m=1,6
