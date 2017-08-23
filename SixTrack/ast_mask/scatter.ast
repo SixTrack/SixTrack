@@ -1,4 +1,5 @@
 scatter.s90 sixtrack.s common_headers.s
 scattern.f
+df bignpart,hugenpart,collimat,bignblz,hugenblz,beamgas
 e scatter
 ex
