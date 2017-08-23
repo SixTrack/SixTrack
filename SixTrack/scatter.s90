@@ -70,19 +70,22 @@ subroutine scatter_thin(ix)
     double precision scatter_generator_getCrossSection
 
     ! Temp variables
-    integer ELEMidx,PROidx,GENidx
-    integer i,j
-    double precision s,t,xi
-    double precision crossSection,N,P
+    integer          ELEMidx, PROidx, GENidx
+    integer          i, j
+    integer          tmpSeed1, tmpSeed2
+    double precision s, t, xi
+    double precision crossSection, N, P
 
     ! Input
     integer, intent(in) :: ix
 
-      ELEMidx = scatter_elemPointer(ix)
-      PROidx = scatter_ELEM(ELEMidx,2)
+    ELEMidx = scatter_elemPointer(ix)
+    PROidx  = scatter_ELEM(ELEMidx,2)
 
     !Compute the "standard" s (used for cross-sections)
     !(ask profile for the p)
+
+    call recuut(tmpSeed1,tmpSeed2)
 
     !Loop over generators
     do i=3,scatter_maxGenELEM
@@ -113,6 +116,9 @@ subroutine scatter_thin(ix)
             ! Output to file
         end do
     end do
+
+    call recuin(tmpSeed1,tmpSeed2)
+
 end subroutine
 
 double precision function scatter_profile_getDensity(profileIdx, x,y) result(retval)
@@ -219,15 +225,33 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin, s
     integer, intent(in)          :: seed
 
     ! Temp Variables
-    double precision g1, g2, g3, ratio, slope
-    integer          i
-    double precision, dimension(2) :: invB
+    double precision g1, g2, g3, gg, slope, invB1, invB2, rndArr(3)
 
     g1    =        exp(-b1*tmin)/b1
     g3    = a**2 * exp(-b2*tmin)/b2
     slope = g3/(g1+g3)
-    invB(1:2) = 1.0/b1, 1.0/b2
+    invB1 = 1.0/b1
+    invB2 = 1.0/b2
     
-    !...
+    call recuin(seed, seed)
+
+    do
+        call ranecu(rndArr, 3, -1)
+
+        if(rndArr(1) .gt. slope) then
+            t = tmin - invB1*log(rndArr(2))
+        else
+            t = tmin - invB2*log(rndArr(2))
+        end if
+        
+        g1 =        exp(-b1*t)
+        g2 =  2*a * exp(-0.5*(b1+b2)*t) * cos(phi)
+        g3 = a**2 * exp(-b2*t)
+        gg = (g1+g2+g3)/(g1+g3)
+        
+        if(rndArr(3) .gt. gg) exit
+    end do
+
+    call recuut(seed, seed)
 
 end function
