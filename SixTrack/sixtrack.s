@@ -1490,6 +1490,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
       integer scatter_nidata, scatter_nfdata, scatter_ncdata
 
+      integer scatter_seed1, scatter_seed2
+
       logical scatter_debug
       
       common /scatterCom/ scatter_elemPointer, scatter_ELEM,            &
@@ -1497,7 +1499,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &     scatter_idata, scatter_fdata, scatter_cdata,                 &
      &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
      &     scatter_nidata, scatter_nfdata, scatter_ncdata,              &
-     &     scatter_debug
+     &     scatter_debug, scatter_seed1, scatter_seed2
 !     
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -34316,6 +34318,9 @@ C Should get me a NaN
             scatter_cdata(i)(j:j) = char(0)
          end do
       enddo
+      
+      scatter_seed1 = 42
+      scatter_seed2 = 43
       
 !--COLLIMATION----------------------------------------------------------
 +if collimat

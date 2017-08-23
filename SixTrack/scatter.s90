@@ -86,6 +86,7 @@ subroutine scatter_thin(ix)
     !(ask profile for the p)
 
     call recuut(tmpSeed1,tmpSeed2)
+    call recuin(scatter_seed1,scatter_seed2)
 
     !Loop over generators
     do i=3,scatter_maxGenELEM
@@ -117,6 +118,7 @@ subroutine scatter_thin(ix)
         end do
     end do
 
+    call recuut(scatter_seed1,scatter_seed2)
     call recuin(tmpSeed1,tmpSeed2)
 
 end subroutine
@@ -216,13 +218,12 @@ subroutine scatter_generator_getTandXi(generatorIDX)
 
 end subroutine
 
-double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin, seed) result(t)
+double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
     implicit none
 
     ! Input
     double precision, intent(in) :: a, b1, b2, phi, tmin
-    integer, intent(in)          :: seed
 
     ! Temp Variables
     double precision g1, g2, g3, gg, slope, invB1, invB2, rndArr(3)
@@ -233,8 +234,6 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin, s
     invB1 = 1.0/b1
     invB2 = 1.0/b2
     
-    call recuin(seed, seed)
-
     do
         call ranecu(rndArr, 3, -1)
 
@@ -251,7 +250,5 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin, s
         
         if(rndArr(3) .gt. gg) exit
     end do
-
-    call recuut(seed, seed)
 
 end function
