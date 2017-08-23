@@ -149,6 +149,7 @@
       myalphay = talphay(1)
       mybetax  = tbetax(1)
       mybetay  = tbetay(1)
+
 !07-2006      myenom   = e0
 !      MYENOM   = 1.001*E0
 !
@@ -391,6 +392,12 @@
      &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys,
      &           enerror, bunchlength )
+         elseif(do_thisdis.eq.6) then
+            call readdis_norm(filename_dis, 
+     &           mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist, myenom, 
+     &           myx, myxp, myy, myyp, myp, mys, 
+     &           enerror, bunchlength)
          else
             write(lout,*) 'INFO> review your distribution parameters !!'
             call prror(-1)
@@ -7591,6 +7598,84 @@ c$$$     &           myalphay * cos(phiy))
       call prror(-1)
       
       end
+
+!
+!========================================================================
+!
+      subroutine readdis_norm(filename_dis, 
+     &           mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx, myemity, myenom, 
+     &           myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
+
+!     Format for the input file:
+!               x, y   -> [ m ]
+!               xp, yp -> [ rad ]
+!               s      -> [ mm ]
+!               DE     -> [ MeV ]
+!
+      implicit none
+
++ca crcoall
++if crlibm
++ca crlibco
++ei
++ca collpara
++ca dbmkdist
+
+      character*80   filename_dis
+      double precision enerror, bunchlength
+      
+      logical lopen
+      integer stat
+      
+      double precision normx, normy, normxp, normyp, normp, norms
+
+      save
+
+      write(lout,*) "Reading input bunch from file ", filename_dis
+
+      inquire( unit=53, opened=lopen )
+      if (lopen) then
+         write(lout,*) "ERROR in subroutine readdis: "//
+     &        "FORTRAN Unit 53 was already open!"
+         goto 20
+      endif
+      open(unit=53, file=filename_dis, iostat=stat,
+     &     status="OLD",action="read")
+      if (stat.ne.0)then
+         write(lout,*) "Error in subroutine readdis: "//
+     &        "Could not open the file."
+         write(lout,*) "Got iostat=",stat
+         goto 20
+      endif
+
+      do j=1,mynp
+         read(53,*,end=10,err=20) normx, normxp, normy,
+     &     normyp, normp, norms
+         myx(j)  = normx  * sqrt(mybetax*myemitx)
+         myxp(j) = sqrt(myemitx)*(-normx*
+     &     myalphax/sqrt(mybetax) + normxp/sqrt(mybetax))
+         myy(j)  = normy  * sqrt(mybetay*myemity)
+         myyp(j) = sqrt(myemity)*(-normy*
+     &     myalphay/sqrt(mybetay) + normyp/sqrt(mybetay)) 
+        myp(j)  = myenom * (1d0 + normp * enerror)
+        mys(j)  = bunchlength * norms
+      enddo
+      
+ 10   mynp = j - 1
+      write(lout,*) "Number of particles read from the file = ",mynp
+
+      close(53)
+
+      return
+      
+ 20   continue
+!      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
+      write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
+      call prror(-1)
+      
+      end
+
 !
 !========================================================================
 !
