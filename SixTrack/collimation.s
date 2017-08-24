@@ -4242,7 +4242,7 @@
 !<
       subroutine collimate2(c_material, c_length, c_rotation,           &
      &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
-     &np, enom, lhit,part_abs, impact, indiv, lint, onesided, name,     &
+     &np, enom, lhit,part_abs_local, impact, indiv, lint, onesided,name,&
      &flagsec, j_slices, nabs_type)
       implicit none
 +ca crcoall
@@ -4342,7 +4342,7 @@
 !
 ! SR-GRD (04-08-2005):
 !        Don't do scattering process for particles already absorbed
-         if (part_abs(j) .ne. 0) goto 777
+         if (part_abs_local(j) .ne. 0) goto 777
 
         impact(j) = -1d0
         lint(j)   = -1d0
@@ -4818,7 +4818,7 @@
                  fracab = fracab + 1
                  x = 99.99d-3
                  z = 99.99d-3
-                 part_abs(j) = 10000*ie + iturn
+                 part_abs_local(j) = 10000*ie + iturn
                  lint(j) = zlm
               endif
             endif
@@ -5018,7 +5018,7 @@ c$$$          endif
      &c_offset, c_tilt,                                                 &
      &x_in, xp_in, y_in,                                                &
      &yp_in, p_in, s_in, np, enom, lhit,                                &
-     &part_abs, impact, indiv, lint, onesided,                          &
+     &part_abs_local, impact, indiv, lint, onesided,                    &
      &name)
 !
 !++  Based on routines by JBJ. Changed by RA 2001.
@@ -5548,7 +5548,7 @@ c$$$          endif
 !              z = 99.99*1e-3
               x = 99.99*1.0d-3
               z = 99.99*1.0d-3
-              part_abs(j) = 10000*ie + iturn
+              part_abs_local(j) = 10000*ie + iturn
               lint(j) = zlm
             endif
           endif
