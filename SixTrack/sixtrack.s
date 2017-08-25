@@ -2290,7 +2290,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
       endif
       ! It is already checked that scatter_elemPointer != 0
-      call scatter_thin(ix)
+      call scatter_thin(ix,n)
       
 +cd kickv01v
 +if .not.tilt

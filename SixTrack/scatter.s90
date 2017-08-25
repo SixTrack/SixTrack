@@ -54,7 +54,7 @@ subroutine scatter_dumpdata
 
 end subroutine
 
-subroutine scatter_thin(ix)
+subroutine scatter_thin(ix, turn)
 
     implicit none
 
@@ -80,7 +80,7 @@ subroutine scatter_thin(ix)
     double precision rndPhi(npart), rndP(npart)
 
     ! Input
-    integer, intent(in) :: ix
+    integer, intent(in) :: ix, turn
 
     ELEMidx = scatter_elemPointer(ix)
     PROidx  = scatter_ELEM(ELEMidx,2)
@@ -136,6 +136,8 @@ subroutine scatter_thin(ix)
             yv(2,j) = 1d3*theta*sin(rndPhi(j)) + yv(2,j)
 
             ! Output to file
+            write(667,*) turn, j, bez(ix), scatter_cdata(scatter_GENERATOR(GENidx,1)), &
+                 theta, xi, rndPhi(j)
         end do
     end do
 
