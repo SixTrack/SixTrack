@@ -397,7 +397,11 @@
      &           mynp, myalphax, myalphay, mybetax, mybetay,
      &           myemitx0_dist, myemity0_dist, myenom, 
      &           myx, myxp, myy, myyp, myp, mys, 
-     &           enerror, bunchlength)
+     &           enerror, bunchlength,
+     &           clop6v, tas)
+
+
+)
          else
             write(lout,*) 'INFO> review your distribution parameters !!'
             call prror(-1)
@@ -7605,7 +7609,8 @@ c$$$     &           myalphay * cos(phiy))
       subroutine readdis_norm(filename_dis, 
      &           mynp, myalphax, myalphay, mybetax, mybetay,
      &           myemitx, myemity, myenom, 
-     &           myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
+     &           myx, myxp, myy, myyp, myp, mys, enerror, bunchlength,
+     &           clop6v, tas)
 
 !     Format for the input file:
 !               x, y   -> [ m ]
@@ -7629,6 +7634,7 @@ c$$$     &           myalphay * cos(phiy))
       integer stat
       
       double precision normx, normy, normxp, normyp, normp, norms
+      double precision myemitz
 
       save
 
@@ -7651,15 +7657,74 @@ c$$$     &           myalphay * cos(phiy))
 
       do j=1,mynp
          read(53,*,end=10,err=20) normx, normxp, normy,
-     &     normyp, normp, norms
-         myx(j)  = normx  * sqrt(mybetax*myemitx)
-         myxp(j) = sqrt(myemitx)*(-normx*
-     &     myalphax/sqrt(mybetax) + normxp/sqrt(mybetax))
-         myy(j)  = normy  * sqrt(mybetay*myemity)
-         myyp(j) = sqrt(myemity)*(-normy*
-     &     myalphay/sqrt(mybetay) + normyp/sqrt(mybetay)) 
-        myp(j)  = myenom * (1d0 + normp * enerror)
-        mys(j)  = bunchlength * norms
+     &     normyp, norms, normp
+! A normalized distribution with x,xp,y,yp,z,zp is read and 
+! transformed with the TAS matrix T , which is the transformation matrix
+! from normalized to physical coordinates it is scaled with the geomtric
+! emittances in diag matrix S. x = T*S*normx
+! units of TAS matrix # m,rad,m,rad,m,1
+! The collimation coordinates/units are
+! x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
+
+         ! longitudinal emittance=bunchlength*energyspread
+         myemitz  = bunchlength  * enerror
+
+! scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)  ia=the particle for which the tas was written
+
+         myx(j)   = 
+     &     normx  * sqrt(myemitx)*tas(ia,1,1) + 
+     &     normxp * sqrt(myemitx)*tas(ia,1,2) +
+     &     normy  * sqrt(myemity)*tas(ia,1,3) +
+     &     normyp * sqrt(myemity)*tas(ia,1,4) +
+     &     norms  * sqrt(myemitz)*0.001d0*tas(ia,1,5) +
+     &     normp  * sqrt(myemitz)*tas(ia,1,6)
+         myxp(j)  = 
+     &     normx  * sqrt(myemitx)*tas(ia,2,1) + 
+     &     normxp * sqrt(myemitx)*tas(ia,2,2) +
+     &     normy  * sqrt(myemity)*tas(ia,2,3) +
+     &     normyp * sqrt(myemity)*tas(ia,2,4) +
+     &     norms  * sqrt(myemitz)*0.001d0*tas(ia,2,5) +
+     &     normp  * sqrt(myemitz)*tas(ia,2,6)
+         myy(j)   = 
+     &     normx  * sqrt(myemitx)*tas(ia,3,1) + 
+     &     normxp * sqrt(myemitx)*tas(ia,3,2) +
+     &     normy  * sqrt(myemity)*tas(ia,3,3) +
+     &     normyp * sqrt(myemity)*tas(ia,3,4) +
+     &     norms  * sqrt(myemitz)*0.001d0*tas(ia,3,5) +
+     &     normp  * sqrt(myemitz)*tas(ia,3,6)
+         myyp(j)  = 
+     &     normx  * sqrt(myemitx)*tas(ia,4,1) + 
+     &     normxp * sqrt(myemitx)*tas(ia,4,2) +
+     &     normy  * sqrt(myemity)*tas(ia,4,3) +
+     &     normyp * sqrt(myemity)*tas(ia,4,4) +
+     &     norms  * sqrt(myemitz)*0.001d0*tas(ia,4,5) +
+     &     normp  * sqrt(myemitz)*tas(ia,4,6)
+         mys(j)   = 
+     &     normx  * sqrt(myemitx)*1000.d0*tas(ia,5,1) + 
+     &     normxp * sqrt(myemitx)*1000.d0*tas(ia,5,2) +
+     &     normy  * sqrt(myemity)*1000.d0*tas(ia,5,3) +
+     &     normyp * sqrt(myemity)*1000.d0*tas(ia,5,4) +
+     &     norms  * sqrt(myemitz)*tas(ia,5,5) +
+     &     normp  * sqrt(myemitz)*1000.d0*tas(ia,5,6)
+         myp(j)   = 
+     &     normx  * sqrt(myemitx)*tas(ia,6,1) + 
+     &     normxp * sqrt(myemitx)*tas(ia,6,2) +
+     &     normy  * sqrt(myemity)*tas(ia,6,3) +
+     &     normyp * sqrt(myemity)*tas(ia,6,4) +
+     &     norms  * sqrt(myemitz)*tas(ia,6,5) +
+     &     normp  * sqrt(myemitz)*tas(ia,6,6)
+
+! add the momentum
+! convert to canonical variables
+! dE/E with unit [1] 
+! delta0 is coming from the closed orbit. For the 4D coordinates the closed orbit
+! will be added by SixTrack itself later on.
+         myxp(j)  = myxp(j)*(1.d0+myp(j)+clop6v(3,ia))
+         myyp(j)  = myyp(j)*(1.d0+myp(j)+clop6v(3,ia))
+! unit conversion for collimation [m] to [mm]
+         mys(j)   = mys(j)*1000.d0
+!collimation unit here is E [MeV]
+         myp(j)   = Energy*1000.d0*(1.d0+myp(j))
       enddo
       
  10   mynp = j - 1
