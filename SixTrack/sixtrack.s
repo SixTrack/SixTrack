@@ -1309,20 +1309,20 @@
 !     some variables / parameters for a more flexible parsing of input lines
 !     always in main code
 
-*     parameters for the parser
+!     parameters for the parser
       integer getfields_n_max_fields, getfields_l_max_string
       parameter ( getfields_n_max_fields = 10  ) ! max number of returned fields
       parameter ( getfields_l_max_string = 161 ) ! max len of parsed line and its fields
                                                  ! (nchars in daten +1 to always make room for \0)
 
-*     array of fields
-      character getfields_fields
+!     array of fields
+      character getfields_fields                                        &
      &     ( getfields_n_max_fields )*( getfields_l_max_string )
-*     number of identified fields
+!     number of identified fields
       integer getfields_nfields
-*     length of each what:
+!     length of each what:
       integer getfields_lfields( getfields_n_max_fields )
-*     an error flag
+!     an error flag
       logical getfields_lerr
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1331,7 +1331,7 @@
 ! Definitions necessary for using the "stringzerotrim" function,
 ! which is defined in deck "stringhandling".
 ! Requires block comgetfields for getfields_l_max_string.
-! Used in at least DYNK, FMA, ZIPF, and DUMP.
+! Used in at least DYNK, FMA, ZIPF, DUMP, and SCATTER.
 ! K. Sjobak, BE-ABP/HSS
       integer stringzerotrim_maxlen
       parameter (stringzerotrim_maxlen=getfields_l_max_string) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.

@@ -7,6 +7,7 @@ subroutine scatter_dumpdata
 
 +ca crcoall
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comscatter
 
@@ -60,6 +61,7 @@ subroutine scatter_thin(ix, turn)
 
 +ca crcoall
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comscatter
 
@@ -152,6 +154,7 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
 
 +ca crcoall
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comscatter
 
@@ -191,6 +194,7 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
 
 +ca crcoall
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comscatter
 
