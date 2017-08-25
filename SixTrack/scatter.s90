@@ -115,16 +115,16 @@ subroutine scatter_thin(ix, turn)
             ! Compute the cross-section at this s
             ! (in most cases rougly equal for all particles; use mean x,y,xp,yp,E)
             crossSection = scatter_generator_getCrossSection( &
-                & PROidx,GENidx, xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j) &
-            &)
+                PROidx,GENidx, xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j) &
+            )
 
             ! Ask profile for density at x,y
             N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
             
             ! Compute probability P
             P = N*crossSection
-            ! If RNG < P -> scatter; else go to next particle
-            if (rndP(j) .le. P) then ! Was .gt., but pseudo code says .lt.
+            ! If RNG > P -> scatter; else go to next particle
+            if (rndP(j) .gt. P) then
                 cycle
             endif
             
@@ -138,8 +138,9 @@ subroutine scatter_thin(ix, turn)
             yv(2,j) = 1d3*theta*sin(rndPhi(j)) + yv(2,j)
 
             ! Output to file
-            write(667,*) turn, j, bez(ix), scatter_cdata(scatter_GENERATOR(GENidx,1)), &
-                 theta, xi, rndPhi(j)
+            write(667,*) turn, j, bez(ix), &
+                trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
+                t, xi, theta, rndPhi(j), P
         end do
     end do
 
@@ -169,9 +170,9 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
-                    & "for profile '"// trim(stringzerotrim( &
-                    & scatter_cdata(scatter_PROFILE(profileIdx,1)) &
-                    & ))//"' not understood."
+                      "for profile '"// trim(stringzerotrim( &
+                      scatter_cdata(scatter_PROFILE(profileIdx,1)) &
+                      ))//"' not understood."
         call prror(-1)
     end select
 
@@ -216,9 +217,9 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getCrossSection"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
-                    & "for profile '"// trim(stringzerotrim( &
-                    & scatter_cdata(scatter_PROFILE(profileIdx,1)) &
-                    & ))//"' not understood."
+                      "for profile '"// trim(stringzerotrim( &
+                      scatter_cdata(scatter_PROFILE(profileIdx,1)) &
+                      ))//"' not understood."
         call prror(-1)
     end select
 
@@ -229,6 +230,10 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     implicit none
 
 +ca crcoall
++ca parpro
++ca comgetfields
++ca stringzerotrim
++ca comscatter
 
     ! Could be affected by S as well?
     
@@ -237,12 +242,13 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
 
-    select case(generatorIDX)
+    select case (scatter_GENERATOR(generatorIDX,2))
     case (1)  ! ABSORBER
         !...
     case (10) ! PPBEAMELASTIC
         t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
         xi = 0d0
+        t  = t*1d6
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getTandXi"
         write(lout,*) "Type", generatorIDX, "not understood"
@@ -283,5 +289,5 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 
         if(rndArr(3) .lt. gg) exit
     end do
-
+    
 end function
