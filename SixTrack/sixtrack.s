@@ -36667,10 +36667,14 @@ C Should get me a NaN
          write (lout,*) "Current value of maxfuncs_dynk:",maxfuncs_dynk
          call prror(51)
       endif
-      
-      if (getfields_lfields(2).gt.maxstrlen_dynk-1) then
+
+      if (getfields_lfields(2).gt.maxstrlen_dynk-1 .or.
+     &    getfields_lfields(2).gt.20                    ) then
          write(lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write(lout,*) "Max length of a FUN name is", maxstrlen_dynk-1
+         write(lout,*) "Max length of a FUN name is the smallest of",
+     &        maxstrlen_dynk-1, "and", 20, "."
+         write(lout,*) "The limitation of 20 comes from the output "//
+     &        "to dynksets.dat."
          write(lout,*) "Offending FUN: '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "length:", getfields_lfields(2)
@@ -38286,7 +38290,7 @@ C Should get me a NaN
          call dynk_dumpdata
          call prror(51)
       end select
-
+      
       end subroutine
 
       subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
@@ -38952,6 +38956,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       character(maxstrlen_dynk) whichFUN(maxsets_dynk) !Which function was used to set a given elem/attr?
       integer whichSET(maxsets_dynk) !Which SET was used for a given elem/attr?
 
+      !Temp variable for padding the strings for output to dynksets.dat
+      character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
+      
       if ( ldynkdebug ) then
          write (lout,*)
      &   'DYNKDEBUG> In dynk_apply(), turn = ',
@@ -39175,13 +39182,26 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             if (whichSET(jj) .eq. -1) then
                whichFUN(jj) = "N/A"
             endif
+
+            !For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
+            !Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
+            !Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
+            write(outstring_tmp1,'(A20)')
+     &           stringzerotrim(csets_unique_dynk(jj,1))
+            outstring_tmp1(len(outstring_tmp1)+1:) = ' ' !Pad with trailing blanks
+            write(outstring_tmp2,'(A20)')
+     &           stringzerotrim(csets_unique_dynk(jj,2))
+            outstring_tmp2(len(outstring_tmp2)+1:) = ' '
+            write(outstring_tmp3,'(A20)')
+     &           stringzerotrim(whichFUN(jj))
+            outstring_tmp3(len(outstring_tmp3)+1:) = ' '
             
-            write(665,'(I12,1x,A,1x,A,1x,I4,1x,A,E16.9)')
+            write(665,'(I12,1x,A,1x,A,1x,I4,1x,A20,E16.9)')
      &           turn, 
-     &           stringzerotrim(csets_unique_dynk(jj,1)),
-     &           stringzerotrim(csets_unique_dynk(jj,2)),
+     &           outstring_tmp1,
+     &           outstring_tmp2,
      &           whichSET(jj),
-     &           stringzerotrim(whichFUN(jj)),
+     &           outstring_tmp3,
      &           getvaldata
          enddo
          
