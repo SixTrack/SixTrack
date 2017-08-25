@@ -1111,6 +1111,7 @@ The functions are only evaluated when needed, i.e. when used by a SET statement 
 The functions may thus be evaluated multiple times in one turn (if used by multiple SET statements which are active in that turn, or referenced by multiple other FUN statements which are themselves used more than once in that turn), or it may not be evaluated at all.
 %All functions types have an index, which is used internally in place of the function type name.
 The functions are always evaluated as a function of the current turn number $t$, which may be shifted by a turn-shift specified in a SET statement.
+Function names have a maximum length of 20 characters.
 
 \pagebreak
 %\begin{table}
