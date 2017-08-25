@@ -25116,10 +25116,6 @@ C Should get me a NaN
         if (ldump(i)) then
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
-          write (*,*) "DBGDBG - OPENING DUMP", i, ldump(i),
-     &         dumpunit(i), lopen,
-     &         "'"// trim(stringzerotrim(dump_fname(i)))//"' '"//
-     &         dump_fname(i)//"' '"//stringzerotrim(dump_fname(i))//"'"
           if ( .not.lopen ) then
              !Check that the filename is not already taken
              do j=-1,i-1
@@ -39196,7 +39192,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
      &           stringzerotrim(whichFUN(jj))
             outstring_tmp3(len(outstring_tmp3)+1:) = ' '
             
-            write(665,'(I12,1x,A,1x,A,1x,I4,1x,A20,E16.9)')
+            write(665,'(I12,1x,A20,1x,A20,1x,I4,1x,A20,E16.9)')
      &           turn, 
      &           outstring_tmp1,
      &           outstring_tmp2,
