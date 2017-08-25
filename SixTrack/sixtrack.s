@@ -27142,12 +27142,11 @@ C Should get me a NaN
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(kz(ix).eq.12) then
 +if crlibm
-              ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+
+              ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
 +if .not.crlibm
-              ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+               &
+              ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
-     &phasc(ix))
             else
 +if crlibm
               ejv(j)=ejv(j)+hsy(1)*sin_rn(hsy(3)*sigmv(j))
@@ -27800,11 +27799,11 @@ C Should get me a NaN
             if(kz(ix).eq.12) then
 +if crlibm
               ejv(j)=ejv(j)+ed(ix)*sin_rn((hsyc(ix)*sigmv(j)+phas)+     &!hr01
-     &phasc(ix))                                                         !hr01
+     &                                    phasc(ix))                     !hr01
 +ei
 +if .not.crlibm
               ejv(j)=ejv(j)+ed(ix)*sin((hsyc(ix)*sigmv(j)+phas)+        &
-     &phasc(ix))                                                         !hr01
+     &                                 phasc(ix))                        !hr01
 +ei
             else
 +if crlibm
@@ -30402,12 +30401,11 @@ C Should get me a NaN
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
               if(kz(ix).eq.12) then
 +if crlibm
-                ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+
+                ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
 +if .not.crlibm
-                ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+             &
+                ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
-     &phasc(ix))
               else
 +if crlibm
                 ejv(j)=ejv(j)+hsy(1)*sin_rn(hsy(3)*sigmv(j))
@@ -31072,11 +31070,12 @@ C Should get me a NaN
               if(kz(ix).eq.12) then
 +if crlibm
                 ejv(j)=ejv(j)+ed(ix)*sin_rn((hsyc(ix)*sigmv(j)+phas)+   &!hr01
+     &                                      phasc(ix))
 +ei
 +if .not.crlibm
                 ejv(j)=ejv(j)+ed(ix)*sin((hsyc(ix)*sigmv(j)+phas)+      &!hr01
+     &                                   phasc(ix))
 +ei
-     &phasc(ix))
               else
 +if crlibm
                 ejv(j)=ejv(j)+hsy(1)*sin_rn(hsy(3)*sigmv(j)+phas)
