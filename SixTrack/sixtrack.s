@@ -888,7 +888,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
 !
-! THIS BLOCK IS COMMON TO BOTH THIN6D AND TRAUTHIN SUBROUTINES
+! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
 !
       integer ieff,ieffdpop
 !
@@ -937,11 +937,13 @@
      &part_hit_before(npart)
       double precision part_indiv(npart),part_linteract(npart)
 
-      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed &
-     &,part_select(npart),nabs_type(npart)
+      integer part_hit(npart),part_abs_pos(npart),part_abs_turn(npart), &
+     &     n_tot_absorbed,n_absorbed,
+     &     part_select(npart),nabs_type(npart)
       double precision part_impact(npart)
-      common /stats/ part_impact,part_hit,part_abs,nabs_type,part_indiv,&
-     &part_linteract,secondary,tertiary,other
+      common /stats/ part_impact,part_hit,part_abs_pos,part_abs_turn,
+     &     nabs_type,part_indiv,
+     &     part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
@@ -27095,7 +27097,7 @@ C Should get me a NaN
               gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
               gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
 
-              if (part_abs(j).eq.0) then
+              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
@@ -57316,7 +57318,8 @@ c$$$         backspace (93,iostat=ierro)
 !! \return The subroutine does not return anything
 !! \see thin6d, beamGasInit and rotateMatrix
 !< 
-      subroutine beamGas( myix, secondary, totals, myenom, ipart )      
+      subroutine beamGas( myix, secondary, totals, myenom, ipart,       &
+     &     turn, ie )
 !BELOW YOU FIND NEW ADDITIONS:
       use beamgascommon
       use lorentzcommon
@@ -57373,6 +57376,8 @@ c$$$         backspace (93,iostat=ierro)
 !       CHECK: Is ichar('0')=48 and so on for all systems??
       
       integer i,j,k,i_tmp
+
+      integer turn, ie ! KNS: turn and structure element idx
       
       pressID=0
       j=1
@@ -57398,8 +57403,9 @@ c$$$         backspace (93,iostat=ierro)
       endif
       do j = 2,napx
       choice=0
-      if ((secondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
-     &      (bgParameters(1).le.totals)) then   
+      if ((secondary(j).eq.0) .and.
+     &     (part_abs_pos (j).eq.0 .and.part_abs_turn(j).eq.0).and.         &
+     &     (bgParameters(1).le.totals)) then
 +if debug
       write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
      & pressARRAY(2,pressID)*njobs*dpmjetevents
@@ -57432,7 +57438,9 @@ c$$$         backspace (93,iostat=ierro)
      &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),                       &
      &   bgid+njobthis*dpmjetevents,bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),&
      &   yv(2,j)
-         part_abs(j) = 1
+!     part_abs(j) = 1
+      part_abs_pos(j) = ie
+      part_abs_turn(j) = turn
       goto 669
       endif
       if(bgid.eq.bgiddb(ibgloc)) then ! a proton was found for this scattering event

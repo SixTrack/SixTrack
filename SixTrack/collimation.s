@@ -742,7 +742,8 @@
       napx = napx00
       do j = 1, napx
          part_hit(j)    = 0
-         part_abs(j)    = 0
+         part_abs_pos(j)= 0
+         part_abs_turn(j)= 0
          part_select(j) = 1
          part_indiv(j)  = -1e-6
          part_linteract(j) = 0d0
@@ -1421,7 +1422,7 @@
               gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
               gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
 !
-              if (part_abs(j).eq.0) then
+              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
@@ -2398,7 +2399,7 @@
 !! Loop over all our particles
         g4_lostc = 0
         do j = 1, napx
-          if (part_abs(j) .eq. 0) then
+          if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 !! Rotate particles in the frame of the collimator
 !! There is more precision if we do it here rather
 !! than in the g4 geometry
@@ -2433,17 +2434,19 @@
             part_hit(j) = (10000*ie+iturn)
           endif
 
-          if(part_abs(j) .ne. 0) then
+          if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
             if(dowrite_impact) then
 !! FLUKA_impacts.dat
       write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))')     &
      &icoll,c_rotation,                                                 &
      &0.0,                                                              &!hr09
      &0.0,0.0,0.0,0.0,                                                  &
-     &part_abs(j),flukaname(j),iturn
+     &part_abs(j),flukaname(j),iturn  !!! THIS IS JUST WRONG!! It should not be part_abs here.
               endif
 
-            part_abs(j) = (10000*ie+iturn)
+            !part_abs(j) = (10000*ie+iturn)
+            part_abs_pos(j)  = ie
+            part_abs_turn(j) = iturn
             rcx(j) = 99.99d-3
             rcy(j) = 99.99d-3
             g4_lostc = g4_lostc + 1
@@ -2451,7 +2454,7 @@
 
           call FLUSH()
 
-          endif !part_abs(j) .eq. 0
+          endif !part_abs_pos(j) .eq. 0 && part_abs_turn(j) .eq. 0
         enddo
 !      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
 +ei
@@ -2529,7 +2532,7 @@
 !++  Output information:
 !++
 !++  PART_HIT(MAX_NPART)     Hit flag for last hit (10000*element# + turn#)
-!++  PART_ABS(MAX_NPART)     Abs flag (10000*element# + turn#)
+!++  PART_ABS(MAX_NPART)     Abs flag (10000*element# + turn#) !! TODO!!
 !++  PART_IMPACT(MAX_NPART)  Impact parameter (0 for inner face)
 !++  PART_INDIV(MAX_NPART)   Divergence of impacting particles
 !------------------------------------------------------------------------------
@@ -2644,7 +2647,7 @@
      &               ipart(j)+100*samplenumber,iturn,sampl(ie)
               endif
 
-              if(part_abs(j).ne.0) then
+              if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
                 if(dowrite_impact) then
                   write(47,'(i8,1x,i4,1x,f8.2)')                        &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)
@@ -2675,7 +2678,7 @@
 +ei
               endif
 
-              if (part_abs(j).eq.0) then
+              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
                 xkick = rcxp(j) - rcxp0(j)
                 ykick = rcyp(j) - rcyp0(j)
 
@@ -2699,7 +2702,7 @@
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
       if (dowritetracks) then
-        if(part_abs(j).eq.0) then
+        if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)  &
      & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.               &
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
@@ -2780,7 +2783,7 @@
 !++  If the interacting particle was lost, add-up counters for absorption
 !++  Note: a particle with x/y >= 99. never hits anything any more in
 !++        the logic of this program. Be careful to always fulfill this!
-              if (part_abs(j).ne.0) then
+              if (part_abs_pos(j).ne.0 .and. part_abs_turn(j).eq.0) then
                 n_absorbed = n_absorbed + 1
                 cn_absorbed(icoll) = cn_absorbed(icoll) + 1
                 n_tot_absorbed = n_tot_absorbed + 1
@@ -2844,7 +2847,8 @@
             do j = 1, napx
               if ( part_hit(j).eq.(10000*ie+iturn) ) then
                 num_selhit = num_selhit+1
-                if (part_abs(j).eq.0) then
+                if (part_abs_pos(j) .eq.0 .and.
+     &              part_abs_turn(j).eq.0       ) then
                   num_surhit = num_surhit+1
                 else
                   num_selabs = num_selabs + 1
@@ -3387,7 +3391,7 @@
 !++  include very large offsets, let's say above 100mm or
 !++  100mrad.
           do j = 1, napx
-            if (part_abs(j).gt.0 .or.                                   &
+            if ( (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) .or.&
      &xv(1,j).gt.100d0 .or.                                             &
      &yv(1,j).gt.100d0 .or.                                             &
      &xv(2,j).gt.100d0 .or.                                             &
@@ -3398,7 +3402,9 @@
               yv(2,j) = 0d0
               ejv(j)  = myenom
               sigmv(j)= 0d0
-              part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
+              !part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
+              part_abs_pos(j)=ie
+              part_abs_turn=iturn
               secondary(j) = 0
               tertiary(j)  = 0
               other(j) = 0
@@ -3521,7 +3527,7 @@
               gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
             endif
 
-            if (part_abs(j).eq.0) then
+            if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
               if(tbetax(ie).gt.0.) then
                 nspx    = sqrt(                                         &
      &               abs( gammax*(xj)**2 +                              &
@@ -3593,7 +3599,7 @@
      &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 
-         if(part_abs(j).eq.0) then
+         if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
          if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
      & .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
@@ -3731,7 +3737,7 @@
 !APRIL2005
 !GRD IMPORTANT: ALL PARTICLES ABSORBED ARE CONSIDERED TO BE LOST,
 !GRD SO WE GIVE THEM A LARGE OFFSET
-           if (part_abs(j).ne.0) then
+           if (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
               xgrd(j)  = 99.5d0
               ygrd(j)  = 99.5d0
            endif
@@ -3978,7 +3984,9 @@
               oidpsvgrd(imov)      = oidpsvgrd(j)
               dpsv1grd(imov)       = dpsv1grd(j)
               part_hit(imov)    = part_hit(j)
-              part_abs(imov)    = part_abs(j)
+              !part_abs(imov)    = part_abs(j)
+              part_abs_pos(imov)   = part_abs_pos(j)
+              part_abs_turn(imov)  = part_abs_turn(j)
               part_select(imov) = part_select(j)
               part_impact(imov) = part_impact(j)
               part_indiv(imov)  = part_indiv(j)
@@ -4060,7 +4068,7 @@
           gammay = (1d0 + talphay(ie-1)**2)/tbetay(ie-1)
               endif
 !
-              if (part_abs(j).eq.0) then
+              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
                 if(tbetax(ie).gt.0.) then
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
@@ -4131,7 +4139,7 @@
      &*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
 
-         if(part_abs(j).eq.0) then
+         if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
         if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
      &.and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
