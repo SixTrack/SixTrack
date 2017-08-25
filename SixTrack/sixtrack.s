@@ -1297,6 +1297,10 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd   comgetfields
+!
+!     COMGETFIELDS
+!     Definitions needed to use the getfields_split() subroutine
+!     
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 29-08-2014
 !     some variables / parameters for a more flexible parsing of input lines
@@ -1323,10 +1327,11 @@
 +cd stringzerotrim
 ! Definitions necessary for using the "stringzerotrim" function,
 ! which is defined in deck "stringhandling".
-! Used in DYNK and FMA.
+! Requires block comgetfields for getfields_l_max_string.
+! Used in at least DYNK, FMA, ZIPF, and DUMP.
 ! K. Sjobak, BE-ABP/HSS
       integer stringzerotrim_maxlen
-      parameter (stringzerotrim_maxlen=20) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
+      parameter (stringzerotrim_maxlen=getfields_l_max_string) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
       
       character(stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
@@ -1344,6 +1349,7 @@
 !     See TWIKI for documentation
 !
 !     Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
+!     and comgetfields (for getfields_l_max_string)
 
 
 *     general-purpose variables
@@ -18041,6 +18047,7 @@ cc2008
 +ca commonmn
 +ca commontr
 +ca commonxz
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
@@ -18913,6 +18920,7 @@ C Should get me a NaN
 !     the program may deadlock!
 !----------------------------------------------------------------------------
       implicit none
++ca comgetfields
 +ca stringzerotrim
       character(stringzerotrim_maxlen) instring
       intent(in) instring
@@ -25108,6 +25116,10 @@ C Should get me a NaN
         if (ldump(i)) then
 !         the same file could be used by more than one SINGLE ELEMENT
           inquire( unit=dumpunit(i), opened=lopen )
+          write (*,*) "DBGDBG - OPENING DUMP", i, ldump(i),
+     &         dumpunit(i), lopen,
+     &         "'"// trim(stringzerotrim(dump_fname(i)))//"' '"//
+     &         dump_fname(i)//"' '"//stringzerotrim(dump_fname(i))//"'"
           if ( .not.lopen ) then
              !Check that the filename is not already taken
              do j=-1,i-1
@@ -25822,6 +25834,7 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
@@ -29253,6 +29266,7 @@ C Should get me a NaN
 +ca commontr
 +ca beamdim
       dimension nbeaux(nbb)
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
@@ -36600,9 +36614,9 @@ C Should get me a NaN
 !     
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
-+ca comgetfields
 +ca crcoall
 
       intent(in) getfields_fields, getfields_lfields, getfields_nfields
@@ -38297,8 +38311,9 @@ C Should get me a NaN
       integer iblocks,fblocks,cblocks
       intent(in) iblocks,fblocks,cblocks
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
-+ca comdynk      
++ca comdynk
 
 +ca crcoall
 
@@ -38326,9 +38341,9 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
-+ca comgetfields
 
 +ca crcoall
 
@@ -38452,6 +38467,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38516,6 +38532,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       character(maxstrlen_dynk) element_name, att_name
@@ -38544,6 +38561,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38655,6 +38673,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !----------------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38723,6 +38742,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       implicit none
 +ca parpro
 +ca common
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38901,6 +38921,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca common
 +ca commonmn
 +ca commontr
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +if cr
@@ -39186,6 +39207,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       integer funNum, turn
@@ -39219,7 +39241,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       integer nchars
       parameter (nchars=160)
       character*(nchars) ch
-+ca comgetfields
 +ei
 
       ! Other stuff
@@ -39565,6 +39586,7 @@ C+ei
 +ca commonmn
 +ca commonm1
 +ca commontr
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
@@ -39769,6 +39791,7 @@ c$$$            endif
 +ca common
 +ca commonmn
 +ca commontr
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
@@ -40016,6 +40039,7 @@ c$$$               endif
 
 +ca parpro
 +ca common
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -49688,8 +49712,8 @@ c$$$            endif
 !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
 !-----------------------------------------------------------------------*
       implicit none
-+ca stringzerotrim
 +ca comgetfields
++ca stringzerotrim
 +ca parpro
 +ca dbdump
 +ca dbdumpcr
@@ -50197,6 +50221,7 @@ c$$$            endif
 !     K.SJOBAK, 7/02/2016                                               *
 !-----------------------------------------------------------------------*
       implicit none
++ca comgetfields
 +ca stringzerotrim
 +ca zipf
 +ca crcoall
@@ -52432,6 +52457,7 @@ c$$$            endif
 +ca rhicelens
 +ei
 +ca crco
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
@@ -53527,6 +53553,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
@@ -54170,6 +54197,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca rhicelens
 +ei
 +ca crco
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
