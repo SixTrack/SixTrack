@@ -1446,6 +1446,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 +cd comscatter
       !Common block for the SCATTER routine
+      logical scatter_active
+      
       integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
                                          ! (0 => not used)
       integer scatter_maxELEM
@@ -1494,12 +1496,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 
       logical scatter_debug
       
-      common /scatterCom/ scatter_elemPointer, scatter_ELEM,            &
+      common /scatterCom/                                               &
+     &     scatter_elemPointer, scatter_ELEM,                           &
      &     scatter_PROFILE, scatter_GENERATOR,                          &
      &     scatter_idata, scatter_fdata, scatter_cdata,                 &
      &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
      &     scatter_nidata, scatter_nfdata, scatter_ncdata,              &
-     &     scatter_debug, scatter_seed1, scatter_seed2
+     &     scatter_debug, scatter_active, scatter_seed1, scatter_seed2
 !     
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -9147,6 +9150,7 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca parbeam_exp
++ca comscatter
       integer i
       logical lopen
 !-----------------------------------------------------------------------
@@ -9360,7 +9364,12 @@ cc2008
             endif
          end do
       end if
-      
+
+      if (scatter_active) then
+         inquire(unit=667, opened=lopen)
+         if (lopen) close(667,err=667)
+ 667     continue
+      endif
 
       return
       end subroutine
@@ -17533,6 +17542,14 @@ cc2008
       if(ch(1:1).eq.'/') goto 2900 ! skip comment line
       
       if (ch(:4).eq.next) then
+         
+         if (scatter_active) then
+            write(lout,*) "ERROR while parsing SCATTER in fort.3"
+            write(lout,*) "More than one SCATTER block encountered?"
+            call prror(-1)
+         end if
+         scatter_active = .true.
+         
          if (scatter_debug) call scatter_dumpdata
          goto 110               !Read next block or ENDE
       endif
@@ -23911,6 +23928,7 @@ C Should get me a NaN
 +ca comdynk
 +ca fma
 +ca zipf
++ca comscatter
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -25692,6 +25710,24 @@ C Should get me a NaN
         endif !If ldump(i) -> Dump on this element
       enddo !Loop over elements with index i
 
+      ! ! ! Initialize SCATTER ! ! !
+      if (scatter_active) then
+         ! Open scatter_log.dat
+         inquire( unit=667, opened=lopen )
+         if (lopen) then
+            write(lout,*)
+     &           "ERROR in SCATTER when opening scatter_log.dat"
+            write(lout,*)
+     &           "Unit 667 was already taken."
+            call prror(-1)
+         endif
+
+         open(667,file="scatter_log.txt",
+     &        status="replace",form="formatted")
+         
+      endif
+
+      
 !                                !
 !     ****** TRACKING ******     !
 !                                !

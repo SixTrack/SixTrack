@@ -15,7 +15,8 @@ subroutine scatter_dumpdata
     write(lout,'(a)') "*** BEGIN SCATTER DUMP ***"
 
     write(lout,'(a)') "Options:"
-    write(lout,*)     "scatter_debug =", scatter_debug
+    write(lout,*)     "scatter_active =", scatter_active
+    write(lout,*)     "scatter_debug  =", scatter_debug
 
     write(lout,'(a)') "Arrays:"
     write(lout,*) "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
