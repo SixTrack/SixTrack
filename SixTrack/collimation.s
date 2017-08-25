@@ -2099,7 +2099,8 @@
      &              c_aperture, nom_aperture,                           &
      &              c_offset, c_tilt,                                   &
      &              rcx, rcxp, rcy, rcyp,                               &
-     &              rcp, rcs, napx, enom_gev, part_hit, part_abs,       &
+     &              rcp, rcs, napx, enom_gev, part_hit,                 &
+     &              part_abs_pos,part_abs_turn,                         &
      &              part_impact, part_indiv, part_linteract,            &
      &              onesided,                                           &
 !GRD let's also add the FLUKA possibility
@@ -2376,7 +2377,8 @@
      &                    c_tilt,                                       &
      &                    rcx, rcxp, rcy, rcyp,                         &
      &                    rcp, rcs, napx, enom_gev,                     &
-     &                    part_hit, part_abs, part_impact, part_indiv,  &
+     &                    part_hit, part_abs_pos, part_abs_turn,        &
+     &                    part_impact, part_indiv,                      &
      &                    part_linteract, onesided, flukaname,          &
      &                    secondary,                                    &
      &                    jjj, nabs_type)
@@ -2462,7 +2464,8 @@
                   call collimate2(c_material, c_length, c_rotation,     &
      &                 c_aperture, c_offset, c_tilt,                    &
      &                 rcx, rcxp, rcy, rcyp,                            &
-     &                 rcp, rcs, napx, enom_gev, part_hit, part_abs,    &
+     &                 rcp, rcs, napx, enom_gev, part_hit,              &
+     &                 part_abs_pos, part_abs_turn,                     &
      &                 part_impact, part_indiv, part_linteract,         &
      &                 onesided, flukaname, secondary, 1, nabs_type)    &
 +ei
@@ -4250,8 +4253,9 @@
 !<
       subroutine collimate2(c_material, c_length, c_rotation,           &
      &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
-     &np, enom, lhit,part_abs_local, impact, indiv, lint, onesided,name,&
-     &flagsec, j_slices, nabs_type)
+     &     np, enom, lhit,part_abs_pos_local, part_abs_turn_local,      &
+     &     impact, indiv, lint, onesided,name,                          &
+     &     flagsec, j_slices, nabs_type)
       implicit none
 +ca crcoall
 +if crlibm
@@ -4350,7 +4354,9 @@
 !
 ! SR-GRD (04-08-2005):
 !        Don't do scattering process for particles already absorbed
-         if (part_abs_local(j) .ne. 0) goto 777
+         if (       part_abs_pos_local(j)  .ne. 0
+     &        .and. part_abs_turn_local(j) .ne. 0)
+     &        goto 777
 
         impact(j) = -1d0
         lint(j)   = -1d0
@@ -4826,7 +4832,9 @@
                  fracab = fracab + 1
                  x = 99.99d-3
                  z = 99.99d-3
-                 part_abs_local(j) = 10000*ie + iturn
+                 !part_abs_local(j) = 10000*ie + iturn
+                 part_abs_pos_local(j) = ie
+                 part_abs_turn_local(j) = iturn
                  lint(j) = zlm
               endif
             endif
@@ -5022,12 +5030,13 @@ c$$$          endif
 !! ???
 !<
       subroutine collimaterhic(c_material, c_length, c_rotation,        &
-     &c_aperture, n_aperture,                                           &
-     &c_offset, c_tilt,                                                 &
-     &x_in, xp_in, y_in,                                                &
-     &yp_in, p_in, s_in, np, enom, lhit,                                &
-     &part_abs_local, impact, indiv, lint, onesided,                    &
-     &name)
+     &     c_aperture, n_aperture,                                      &
+     &     c_offset, c_tilt,                                            &
+     &     x_in, xp_in, y_in,                                           &
+     &     yp_in, p_in, s_in, np, enom, lhit,                           &
+     &     part_abs_pos_local, part_abs_turn_local,                     &
+     &     impact, indiv, lint, onesided,                               &
+     &     name)
 !
 !++  Based on routines by JBJ. Changed by RA 2001.
 !
@@ -5556,7 +5565,9 @@ c$$$          endif
 !              z = 99.99*1e-3
               x = 99.99*1.0d-3
               z = 99.99*1.0d-3
-              part_abs_local(j) = 10000*ie + iturn
+              !part_abs_local(j) = 10000*ie + iturn
+              part_abs_pos_local(j) = ie
+              part_abs_turn_local(j) = iturn
               lint(j) = zlm
             endif
           endif

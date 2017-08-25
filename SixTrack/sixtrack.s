@@ -1026,7 +1026,8 @@
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
       
-      integer lhit(npart),part_abs_local(npart),
+      integer lhit(npart),                                              &
+     &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
      &     name(npart),nabs_type(npart)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
