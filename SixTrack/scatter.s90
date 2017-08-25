@@ -68,13 +68,15 @@ subroutine scatter_thin(ix)
     ! Define functions
     double precision scatter_profile_getDensity
     double precision scatter_generator_getCrossSection
+    double precision scatter_generator_getPPElastic
 
     ! Temp variables
     integer          ELEMidx, PROidx, GENidx
     integer          i, j
     integer          tmpSeed1, tmpSeed2
-    double precision s, t, xi
+    double precision s, t, xi, theta
     double precision crossSection, N, P
+    double precision rndPhi(npart), rndP(npart)
 
     ! Input
     integer, intent(in) :: ix
@@ -88,9 +90,23 @@ subroutine scatter_thin(ix)
     call recuut(tmpSeed1,tmpSeed2)
     call recuin(scatter_seed1,scatter_seed2)
 
+    ! ! Code to run a test of the distribution
+    ! open(13077,file="t.txt",status="replace",form="formatted")
+    ! do i=1,100000000
+    !     t = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
+    !     write(13077,*) t
+    ! end do
+    ! close(13077)
+    ! stop
+
     !Loop over generators
     do i=3,scatter_maxGenELEM
         GENidx = scatter_ELEM(ELEMidx,i)
+        if(GENidx .eq. 0) exit
+
+        call ranecu(rndPhi, napx, -1)
+        call ranecu(rndP,   napx, -1)
+        rndPhi = rndPhi*2*3.1415926535897932d0
 
         do j=1, napx
             ! Compute the cross-section at this s
@@ -105,14 +121,18 @@ subroutine scatter_thin(ix)
             ! Compute probability P
             P = N*crossSection
             ! If RNG < P -> scatter; else go to next particle
-            if (RAND(0) .le. P) then ! Was .gt., but pseudo code says .lt.
+            if (rndP(j) .le. P) then ! Was .gt., but pseudo code says .lt.
                 cycle
             endif
             
             ! Ask generator for t and xi
-
+            call scatter_generator_getTandXi(GENidx,t,xi)
+            
             ! Use generator t and xi to update particle j;
             ! remember to update ALL the energy arrays
+            theta   = sqrt(t)/ejfv(j)
+            yv(1,j) = 1d3*theta*cos(rndPhi(j)) + yv(1,j)
+            yv(2,j) = 1d3*theta*sin(rndPhi(j)) + yv(2,j)
 
             ! Output to file
         end do
@@ -181,9 +201,11 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
     call scatter_profile_getParticle(profileIDX, x,y, xp_target,yp_target,E_target)
 
     ! Calculate the crossection as function of S
-    select case (scatter_PROFILE(profileIdx,2))
-    case (1) ! FLAT
-        ! TODO
+    select case (scatter_GENERATOR(generatorIDX,2))
+    case (1)  ! ABSORBER
+        !...
+    case (10) ! PPBEAMELASTIC
+        scatter_generator_getCrossSection = 30d-27
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getCrossSection"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
@@ -195,21 +217,25 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
 
 end function
 
-subroutine scatter_generator_getTandXi(generatorIDX)
+subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
     implicit none
 
 +ca crcoall
 
     ! Could be affected by S as well?
+    
+    double precision scatter_generator_getPPElastic
 
     integer, intent(in) :: generatorIDX
+    double precision, intent(out) :: t, xi
 
     select case(generatorIDX)
     case (1)  ! ABSORBER
         !...
     case (10) ! PPBEAMELASTIC
-        !...
+        t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
+        xi = 0d0
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getTandXi"
         write(lout,*) "Type", generatorIDX, "not understood"
@@ -231,9 +257,9 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     g1    =        exp(-b1*tmin)/b1
     g3    = a**2 * exp(-b2*tmin)/b2
     slope = g3/(g1+g3)
-    invB1 = 1.0/b1
-    invB2 = 1.0/b2
-    
+    invB1 = 1.0d0/b1
+    invB2 = 1.0d0/b2
+
     do
         call ranecu(rndArr, 3, -1)
 
@@ -242,13 +268,13 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         else
             t = tmin - invB2*log(rndArr(2))
         end if
-        
+
         g1 =        exp(-b1*t)
-        g2 =  2*a * exp(-0.5*(b1+b2)*t) * cos(phi)
+        g2 =  2*a * exp(-0.5d0*(b1+b2)*t) * cos(phi)
         g3 = a**2 * exp(-b2*t)
         gg = (g1+g2+g3)/(g1+g3)
-        
-        if(rndArr(3) .gt. gg) exit
+
+        if(rndArr(3) .lt. gg) exit
     end do
 
 end function

@@ -1457,7 +1457,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       ! Configuration for an ELEM, columns are:
       ! (1) = pointer to the SingleElement
       ! (2) = pointer to PROFILE
-      ! (3)--(scatter_maxGenElem) = pointer to PROCESSs
+      ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
       integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
 
       ! Configuration for PROFILE
@@ -17706,7 +17706,7 @@ cc2008
             if(getfields_nfields .ne. 6) then
                write(lout,'(a)')
      &           "SCATTER> ERROR, PRO expected at least 6 arguments:"
-               write(lout,'(a)') "PRO name type density[targets/m^2]"//
+               write(lout,'(a)') "PRO name type density[targets/cm^2]"//
      &              " mass[MeV/c^2] momentum[MeV/c]"
             call prror(-1)
          endif
