@@ -62,9 +62,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
 +if g4collimat
       double precision g4_ecut
@@ -535,9 +532,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 +if cr
 +ca crco
 +ei
@@ -1222,9 +1216,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
       double precision c5m4,stracki
 
@@ -1510,9 +1501,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
       double precision c5m4,stracki
 
@@ -2514,9 +2502,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
       double precision c5m4,stracki
 
@@ -2957,9 +2942,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
 !++  Save particle offsets to a file
       close(42)
@@ -3166,9 +3148,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
       close(outlun)
       close(43)
@@ -3378,9 +3357,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
         ie=i
 !++  For absorbed particles set all coordinates to zero. Also
@@ -3494,10 +3470,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
-
 
       if (firstrun) then
         if (rselect.gt.0 .and. rselect.lt.65) then
@@ -3688,9 +3660,6 @@
 +if bnlelens
 +ca rhicelens
 +ei
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 
       integer n
 !__________________________________________________________________

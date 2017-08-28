@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.4'/
-      data moddate /'18.08.2017'/
+      data version /'4.7.5'/
+      data moddate /'25.08.2017'/
 +cd license
 !!SixTrack
 !!
@@ -1300,6 +1300,10 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd   comgetfields
+!
+!     COMGETFIELDS
+!     Definitions needed to use the getfields_split() subroutine
+!     
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 29-08-2014
 !     some variables / parameters for a more flexible parsing of input lines
@@ -1326,10 +1330,11 @@
 +cd stringzerotrim
 ! Definitions necessary for using the "stringzerotrim" function,
 ! which is defined in deck "stringhandling".
-! Used in DYNK and FMA.
+! Requires block comgetfields for getfields_l_max_string.
+! Used in at least DYNK, FMA, ZIPF, and DUMP.
 ! K. Sjobak, BE-ABP/HSS
       integer stringzerotrim_maxlen
-      parameter (stringzerotrim_maxlen=20) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
+      parameter (stringzerotrim_maxlen=getfields_l_max_string) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
       
       character(stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
@@ -1347,6 +1352,7 @@
 !     See TWIKI for documentation
 !
 !     Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
+!     and comgetfields (for getfields_l_max_string)
 
 
 *     general-purpose variables
@@ -18049,6 +18055,7 @@ cc2008
 +ca commonmn
 +ca commontr
 +ca commonxz
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
@@ -18921,6 +18928,7 @@ C Should get me a NaN
 !     the program may deadlock!
 !----------------------------------------------------------------------------
       implicit none
++ca comgetfields
 +ca stringzerotrim
       character(stringzerotrim_maxlen) instring
       intent(in) instring
@@ -25830,6 +25838,7 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
@@ -29260,6 +29269,7 @@ C Should get me a NaN
 +ca commontr
 +ca beamdim
       dimension nbeaux(nbb)
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
@@ -36608,9 +36618,9 @@ C Should get me a NaN
 !     
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
-+ca comgetfields
 +ca crcoall
 
       intent(in) getfields_fields, getfields_lfields, getfields_nfields
@@ -36661,10 +36671,14 @@ C Should get me a NaN
          write (lout,*) "Current value of maxfuncs_dynk:",maxfuncs_dynk
          call prror(51)
       endif
-      
-      if (getfields_lfields(2).gt.maxstrlen_dynk-1) then
+
+      if (getfields_lfields(2).gt.maxstrlen_dynk-1 .or.
+     &    getfields_lfields(2).gt.20                    ) then
          write(lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write(lout,*) "Max length of a FUN name is", maxstrlen_dynk-1
+         write(lout,*) "Max length of a FUN name is the smallest of",
+     &        maxstrlen_dynk-1, "and", 20, "."
+         write(lout,*) "The limitation of 20 comes from the output "//
+     &        "to dynksets.dat."
          write(lout,*) "Offending FUN: '"//
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "length:", getfields_lfields(2)
@@ -38280,7 +38294,7 @@ C Should get me a NaN
          call dynk_dumpdata
          call prror(51)
       end select
-
+      
       end subroutine
 
       subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
@@ -38305,8 +38319,9 @@ C Should get me a NaN
       integer iblocks,fblocks,cblocks
       intent(in) iblocks,fblocks,cblocks
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
-+ca comdynk      
++ca comdynk
 
 +ca crcoall
 
@@ -38334,9 +38349,9 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
-+ca comgetfields
 
 +ca crcoall
 
@@ -38460,6 +38475,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38524,6 +38540,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       character(maxstrlen_dynk) element_name, att_name
@@ -38552,6 +38569,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38663,6 +38681,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !----------------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38731,6 +38750,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       implicit none
 +ca parpro
 +ca common
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -38909,6 +38929,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca common
 +ca commonmn
 +ca commontr
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +if cr
@@ -38939,6 +38960,9 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       character(maxstrlen_dynk) whichFUN(maxsets_dynk) !Which function was used to set a given elem/attr?
       integer whichSET(maxsets_dynk) !Which SET was used for a given elem/attr?
 
+      !Temp variable for padding the strings for output to dynksets.dat
+      character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
+      
       if ( ldynkdebug ) then
          write (lout,*)
      &   'DYNKDEBUG> In dynk_apply(), turn = ',
@@ -39162,13 +39186,26 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             if (whichSET(jj) .eq. -1) then
                whichFUN(jj) = "N/A"
             endif
+
+            !For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
+            !Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
+            !Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
+            write(outstring_tmp1,'(A20)')
+     &           stringzerotrim(csets_unique_dynk(jj,1))
+            outstring_tmp1(len(outstring_tmp1)+1:) = ' ' !Pad with trailing blanks
+            write(outstring_tmp2,'(A20)')
+     &           stringzerotrim(csets_unique_dynk(jj,2))
+            outstring_tmp2(len(outstring_tmp2)+1:) = ' '
+            write(outstring_tmp3,'(A20)')
+     &           stringzerotrim(whichFUN(jj))
+            outstring_tmp3(len(outstring_tmp3)+1:) = ' '
             
-            write(665,'(I12,1x,A,1x,A,1x,I4,1x,A,E16.9)')
+            write(665,'(I12,1x,A20,1x,A20,1x,I4,1x,A20,E16.9)')
      &           turn, 
-     &           stringzerotrim(csets_unique_dynk(jj,1)),
-     &           stringzerotrim(csets_unique_dynk(jj,2)),
+     &           outstring_tmp1,
+     &           outstring_tmp2,
      &           whichSET(jj),
-     &           stringzerotrim(whichFUN(jj)),
+     &           outstring_tmp3,
      &           getvaldata
          enddo
          
@@ -39194,6 +39231,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !-----------------------------------------------------------------------
       implicit none
 +ca parpro
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
       integer funNum, turn
@@ -39227,7 +39265,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       integer nchars
       parameter (nchars=160)
       character*(nchars) ch
-+ca comgetfields
 +ei
 
       ! Other stuff
@@ -39573,6 +39610,7 @@ C+ei
 +ca commonmn
 +ca commonm1
 +ca commontr
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
@@ -39777,6 +39815,7 @@ c$$$            endif
 +ca common
 +ca commonmn
 +ca commontr
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca elensparam
@@ -40024,6 +40063,7 @@ c$$$               endif
 
 +ca parpro
 +ca common
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca crcoall
@@ -49696,8 +49736,8 @@ c$$$            endif
 !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
 !-----------------------------------------------------------------------*
       implicit none
-+ca stringzerotrim
 +ca comgetfields
++ca stringzerotrim
 +ca parpro
 +ca dbdump
 +ca dbdumpcr
@@ -50339,6 +50379,7 @@ c$$$            endif
 !     K.SJOBAK, 7/02/2016                                               *
 !-----------------------------------------------------------------------*
       implicit none
++ca comgetfields
 +ca stringzerotrim
 +ca zipf
 +ca crcoall
@@ -52574,6 +52615,7 @@ c$$$            endif
 +ca rhicelens
 +ei
 +ca crco
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
@@ -53669,6 +53711,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
@@ -54312,6 +54355,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca rhicelens
 +ei
 +ca crco
++ca comgetfields
 +ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
