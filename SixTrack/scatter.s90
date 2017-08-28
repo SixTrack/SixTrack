@@ -102,7 +102,7 @@ subroutine scatter_thin(ix, turn)
     ! close(13077)
     ! stop
 
-    !Loop over generators
+    ! Loop over generators
     do i=3,scatter_maxGenELEM
         GENidx = scatter_ELEM(ELEMidx,i)
         if(GENidx .eq. 0) exit
@@ -127,20 +127,20 @@ subroutine scatter_thin(ix, turn)
             if (rndP(j) .gt. P) then
                 cycle
             endif
-            
+
             ! Ask generator for t and xi
             call scatter_generator_getTandXi(GENidx,t,xi)
-            
+
             ! Use generator t and xi to update particle j;
             ! remember to update ALL the energy arrays
-            theta   = sqrt(t)/ejfv(j)
-            yv(1,j) = 1d3*theta*cos(rndPhi(j)) + yv(1,j)
-            yv(2,j) = 1d3*theta*sin(rndPhi(j)) + yv(2,j)
+            theta   = 1d3*sqrt(t)/ejfv(j)                  ! Unit mrad
+            yv(1,j) = theta*cos(rndPhi(j)) + yv(1,j)
+            yv(2,j) = theta*sin(rndPhi(j)) + yv(2,j)
 
             ! Output to file
             write(667,*) j, turn, bez(ix), &
                 trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
-                t, xi, 1d3*theta, rndPhi(j), P
+                t, xi, theta, rndPhi(j), P
         end do
     end do
 
@@ -159,8 +159,9 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
 +ca stringzerotrim
 +ca comscatter
 
+    ! Input
     integer, intent(in) :: profileIdx
-    double precision, intent(in) :: x,y
+    double precision, intent(in) :: x, y
 
     select case (scatter_PROFILE(profileIdx,2))
     case (1)  ! FLAT
@@ -181,6 +182,8 @@ end function
 subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
     implicit none
+
+    ! Input/Output
     integer, intent(in) :: profileIdx
     double precision, intent(in) :: x,y
     double precision, intent(out) :: xp,yp,E
@@ -199,8 +202,9 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
 +ca stringzerotrim
 +ca comscatter
 
+    ! Input/Output
     integer, intent(in) :: profileIDX, generatorIDX
-    double precision, intent(in) :: x,y,xp,yp,E
+    double precision, intent(in) :: x, y, xp, yp, E
 
     ! Temp variables
     double precision xp_target, yp_target, E_target
@@ -239,6 +243,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     
     double precision scatter_generator_getPPElastic
 
+    ! Input/Output
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
 
@@ -257,6 +262,9 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
 end subroutine
 
+! Based on Helmut Burkhardt's code presented on 05-04-2017
+! "Elastic pp scattering estimates and simulation relevant for burn-off"
+! https://indico.cern.ch/event/625576/
 double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
     implicit none
@@ -265,28 +273,35 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     double precision, intent(in) :: a, b1, b2, phi, tmin
 
     ! Temp Variables
-    double precision g1, g2, g3, gg, slope, invB1, invB2, rndArr(3)
+    double precision g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
 
-    g1    =        exp(-b1*tmin)/b1
-    g3    = a**2 * exp(-b2*tmin)/b2
-    slope = g3/(g1+g3)
+    ! Approximate distribution
+    g1    =        exp(-b1*tmin)/b1 ! Soft scatter term
+    g3    = a**2 * exp(-b2*tmin)/b2 ! Hard scatter term
+    prob3 = g3/(g1+g3)              ! Probability of g3
+
+    ! Precalculate inverses
     invB1 = 1.0d0/b1
     invB2 = 1.0d0/b2
 
     do
         call ranecu(rndArr, 3, -1)
 
-        if(rndArr(1) .gt. slope) then
+        ! Randomly switch between g1 and g3 according to probability
+        if(rndArr(1) .gt. prob3) then
             t = tmin - invB1*log(rndArr(2))
         else
             t = tmin - invB2*log(rndArr(2))
         end if
 
-        g1 =        exp(-b1*t)
-        g2 =  2*a * exp(-0.5d0*(b1+b2)*t) * cos(phi)
-        g3 = a**2 * exp(-b2*t)
+        ! Exact distribution
+        g1 =        exp(-b1*t)                       ! Soft scatter term
+        g2 =  2*a * exp(-0.5d0*(b1+b2)*t) * cos(phi) ! Interference
+        g3 = a**2 * exp(-b2*t)                       ! Hard scatter term
         gg = (g1+g2+g3)/(g1+g3)
 
+        ! Check hit/miss on exact distribution
+        ! if miss, get new t value
         if(rndArr(3) .lt. gg) exit
     end do
     
