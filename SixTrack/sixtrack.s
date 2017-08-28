@@ -25732,7 +25732,7 @@ C Should get me a NaN
 
          open(667,file="scatter_log.txt",                               &
      &        status="replace",form="formatted")
-         write(667,*) "# Scatter"
+         write(667,*) "# scatter_log"
          write(667,*) "# ID turn bez scatter_GENERATOR t[MeV^2] xi "//  &
      &                "theta[mrad] phi[rad] prob"
 
