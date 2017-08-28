@@ -274,6 +274,10 @@ class NAFF {
   //double_vec get_f1 (double_vec &init_data_x,double_vec &init_data_xp) {
   double get_f1 (double_vec &init_data_x,double_vec &init_data_xp) {
     Print_opt::SetLevel(2);
+    if ( init_data_x.size()==0 && init_data_xp.size()==0 ) {
+      fprintf(stderr, "CRITICAL ERROR in NAFF.h: x and xp input arrays are both empty");
+      exit(EXIT_FAILURE);
+    }
     if (frequencies.size() == 0) {
       input(init_data_x, init_data_xp);
     }

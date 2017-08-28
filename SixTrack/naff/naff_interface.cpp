@@ -43,8 +43,8 @@ extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, 
   std::cout << std::flush;
   
   // For debugging of argument passing.
-  /*
-  std::cout << "**TUNENAFF**"                 << std::endl << std::flush;
+  
+  /*std::cout << "**TUNENAFF**"                 << std::endl << std::flush;
   std::cout << "maxn      = " << *maxn        << std::endl << std::flush;
   std::cout << "plane_idx = " << *plane_idx   << std::endl << std::flush;
   std::cout << "norm_flag = " << *norm_flag   << std::endl << std::flush;
@@ -55,8 +55,8 @@ extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, 
   for( int i = 0; i < *maxn; i++ ) {
     std::cout << "i=" << i << std::endl << std::flush;
     std::cout << (*x)[i] << " " << (*xp)[i] << std::endl << std::flush;
-  }
-  */
+  }*/
+  
   // END debugging of argument passing
   
   // Input sanity checks
@@ -70,22 +70,39 @@ extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, 
   data.reserve(*maxn);
   std::vector<double> data_prime;
   data_prime.reserve(*maxn);
-  for( int i = 0; i < *maxn; i++ ) {
-    //std::cout << i << " " << (*x)[i] << " " << (*xp)[i] << std::endl;
-    data.push_back((*x)[i]);
-    data_prime.push_back((*xp)[i]);
+
+  // For physical coordinates only the real x array is used as an input, while for normalized coordinates the complex (x,px) array is passed to the NAFF.
+  if ( (*norm_flag) == 0) {
+    for( int i = 0; i < *maxn; i++ ) {
+      //std::cout << i << " " << (*x)[i] << " " << (*xp)[i] << std::endl;
+      data.push_back((*x)[i]);
+      data_prime.push_back(0.0);
+    }
+  }
+  else {
+    for( int i = 0; i < *maxn; i++ ) {
+      //std::cout << i << " " << (*x)[i] << " " << (*xp)[i] << std::endl;
+      data.push_back((*x)[i]);
+      data_prime.push_back((*xp)[i]);
+    }
   }
 
   //Call NAFF!
   NAFF naff;
+
+  // Set window to Hann 2nd order for transverse planes, by default Hann 1st order for longitudinal motion 
+  if ( (*plane_idx) != 3 )
+    naff.set_window_parameter(2, 'h');
+
   double tune = naff.get_f1(data,data_prime);
 
   // FFTW library returns tune from 0-0.5
-  if (tune<0.1)
+  if ( (*plane_idx) == 3 )
     tune = 1.0-tune;
   
   //More Debugging stuff..
-  // std::cout << "tune = " << tune << std::endl;
+  /*std::cout << "tune = " << tune << std::endl;
+  std::cout << "Window parameter: " << naff.get_window_parameter()<< std::endl;*/
   
   // Don't mix buffers with Fortran (make sure to flush before calling thus function)
   std::cout << std::flush;
