@@ -123,7 +123,7 @@ subroutine scatter_thin(ix, turn)
             
             ! Compute probability P
             P = N*crossSection
-            ! If RNG > P -> scatter; else go to next particle
+            ! If RNG > P -> go to next particle, else scatter
             if (rndP(j) .gt. P) then
                 cycle
             endif
@@ -138,9 +138,9 @@ subroutine scatter_thin(ix, turn)
             yv(2,j) = 1d3*theta*sin(rndPhi(j)) + yv(2,j)
 
             ! Output to file
-            write(667,*) turn, j, bez(ix), &
+            write(667,*) j, turn, bez(ix), &
                 trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
-                t, xi, theta, rndPhi(j), P
+                t, xi, 1d3*theta, rndPhi(j), P
         end do
     end do
 
