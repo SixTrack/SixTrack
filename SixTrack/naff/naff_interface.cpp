@@ -71,6 +71,7 @@ extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, 
   std::vector<double> data_prime;
   data_prime.reserve(*maxn);
   for( int i = 0; i < *maxn; i++ ) {
+    //std::cout << i << " " << (*x)[i] << " " << (*xp)[i] << std::endl;
     data.push_back((*x)[i]);
     data_prime.push_back((*xp)[i]);
   }
