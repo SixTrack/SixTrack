@@ -138,7 +138,7 @@ subroutine scatter_thin(ix, turn)
             yv(2,j) = theta*sin(rndPhi(j)) + yv(2,j)
 
             ! Output to file
-            write(667,*) j, turn, bez(ix), &
+            write(667,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
                 trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
                 t, xi, theta, rndPhi(j), P
         end do
