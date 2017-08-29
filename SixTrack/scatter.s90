@@ -80,7 +80,10 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
 
     ! Temporary Variables
     integer ii, j
-
++if crlibm
+    integer errno
+    double precision round_near
++ei
     if(getfields_nfields .lt. 5) then
         write(lout,'(a)') "SCATTER> ERROR, ELEM expected at least 5 arguments:"
         write(lout,'(a)') "ELEM elemname profile scaling gen1 (gen2...)"
@@ -139,7 +142,13 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
     end if
 
     !Store the scaling
++if crlibm
+    scatter_ELEM_scale(scatter_nELEM) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
+    if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_ELEM_scale(scatter_nELEM))
++ei
++if .not.crlibm
     read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_ELEM_scale(scatter_nELEM)
++ei
     
     ! Find the generator(s) referenced
     if (getfields_nfields-4 .gt. scatter_maxGenELEM-2) then
@@ -196,7 +205,11 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
     ! Temporary Variables
     integer ii, tmpIdx
-
++if crlibm
+    integer errno
+    double precision round_near
++ei
+    
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
         write(lout,'(a)') "SCATTER> ERROR, PRO expected at least 3 arguments:"
@@ -261,7 +274,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
         if(errno .ne. 0) call rounderr(errno,getfields_fields,5,scatter_fdata(tmpIdx+1))
 
         ! Momentum
-        scatter_fdata(tmpIdx+2) = round_near(errno getfields_lfields(6)+1,getfields_fields(6))
+        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
 +ei
 +if .not.crlibm
@@ -305,7 +318,11 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
     ! Temporary Variables
     integer ii
-
++if crlibm
+    integer errno
+    double precision round_near
++ei
+    
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
         write(lout,'(a)') "SCATTER> ERROR, GEN expected at least 3 arguments:"
