@@ -3,8 +3,8 @@ PRIN
 /
 / Lifted from test elensidealthin6d'
 TRACKING PARAMETERS-----------------------------------------------------
-100 0 30 0 6.89493 0 1
-1 1 0 1 2
+100 0 32 0 6.89493 0 1
+1 1 2 1 2
 0 0 1 1 1 50000 2
 NEXT
 INITIAL COORDINATES-----------------------------------------------------
@@ -34,14 +34,17 @@ NEXT
 FLUCTUATION
 100000 1 7 3
 NEXT
-POSTPROCESSING----------------------------------------------------------
-LHC Dynamic Aperture at Injection Version 5 (1998)
-20 0 0 1 .08 .08 1 0 0 1. 1.
-62. 60. 1 1 10 .005 1 .050
-0 1 0 1 1 1 1 1 30
-NEXT
+/POSTPROCESSING----------------------------------------------------------
+/LHC Dynamic Aperture at Injection Version 5 (1998)
+/20 0 0 1 .08 .08 1 0 0 1. 1.
+/62. 60. 1 1 10 .005 1 .050
+/0 1 0 1 1 1 1 1 30
+/NEXT
 /
 / FROM FC.3.AUX
+LINEAR OPTICS
+ELEMENT  0 1 1 2.5 2.5
+NEXT
 SYNC
        35640  0.000317     8.000 0.  26658.883200  938.272046  1
       1.        1.
@@ -61,9 +64,11 @@ NEXT
 /
 SCATTER
 DEBUG
-GEN  mygen       PPBEAMELASTIC
-/PRO  ipPRO       GAUSS1
-PRO  ipPRO       FLAT 1e14 1.0 6500000
-ELEM ip1_scatter ipPRO mygen
+GEN  sc_thin     PPBEAMELASTIC
+PRO  ipPRO       FLAT 1e25 938.0 6500000
+ELEM ip1_scatter ipPRO sc_thin
+NEXT
+DUMP
+ip1 1 650 2 dump.txt 1 -1
 NEXT
 ENDE
