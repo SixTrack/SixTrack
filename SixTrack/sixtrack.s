@@ -9071,7 +9071,7 @@ cc2008
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
 +if .not.datamods
       subroutine nodatamods
-+ca 
++ca crcoall
       write(lout,*)                                                     &
      &"Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
@@ -9095,7 +9095,7 @@ cc2008
       integer, intent(in) :: npart,nele,nblo
       integer stat
       integer i1,i2,i3,i4,i
-+ca 
++ca crcoall
 +ca parnum
 
 +if .not.vvector
@@ -9390,7 +9390,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       implicit none
-+ca 
++ca crcoall
 +if crlibm
 +ca crlibco
 +ei
@@ -9668,7 +9668,7 @@ cc2008
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       implicit none
-+ca 
++ca crcoall
 +if crlibm
 +ca crlibco
 +ei
@@ -17566,187 +17566,32 @@ cc2008
          goto 2900
       endif
       
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
+      call getfields_split( ch, getfields_fields, getfields_lfields,
      &     getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) call prror(51)
       if (scatter_debug) then
-         write (lout,'(A,I4,A)')                                        &
-     &        "SCATTER> Got a block, len=",                             &
+         write (lout,'(A,I4,A)')
+     &        "SCATTER> Got a block, len=",
      &        len(trim(ch)), ": '"// trim(ch)// "'"
          do ii=1,getfields_nfields
-            write (lout,'(a,I4,A)')                                     &
-     &           "SCATTER> Field(",ii,") ='"//                          &
+            write (lout,'(a,I4,A)')
+     &           "SCATTER> Field(",ii,") ='"//
      &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
          enddo
       endif
 
       ! ***** PARSE SCATTER ELEM STATEMENT *****
       if (ch(:4).eq."ELEM") then
-         call scatter_parseElem(getfields_fields, getfields_lfields,    &
+         call scatter_parseElem(getfields_fields,getfields_lfields,     &
      &                          getfields_nfields)
       ! ***** PARSE SCATTER PRO STATEMENT *****
       else if (ch(:3).eq."PRO") then
-         if(getfields_nfields .lt. 3) then
-            write(lout,'(a)')                                           &
-     &           "SCATTER> ERROR, PRO expected at least 3 arguments:"
-            write(lout,'(a)') "PRO name type (arguments...)"
-            call prror(-1)
-         endif
-
-         ! Add a profile to the list
-         scatter_nPROFILE = scatter_nPROFILE + 1
-         if (scatter_nPROFILE .gt. scatter_maxPROFILE ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, max profiles = ",   &
-     &           scatter_maxPROFILE, " exceeded."
-            call prror(-1)
-         endif
-
-         ! Store the profile name
-         scatter_ncdata = scatter_ncdata + 1
-         if (scatter_ncdata .gt. scatter_maxdata ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",&
-     &           scatter_maxdata, " exceeded for scatter_ncdata"
-            call prror(-1)
-         endif
-         scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =        &
-     &        getfields_fields(2)(1:getfields_lfields(2))
-         scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncdata
-         ! Check that the profile name is unique
-         do ii=1,scatter_nPROFILE-1
-            if ( trim(stringzerotrim(                                   &
-     &           scatter_cdata(scatter_PROFILE(ii,1)) )) .eq.           &
-     &           getfields_fields(2)(1:getfields_lfields(2)) ) then
-               write(lout,'(a)') "SCATTER> ERROR, profile name '"//     &
-     &              getfields_fields(2)(1:getfields_lfields(2)) //      &
-     &              "' is not unique."
-               call prror(-1)
-            end if
-         end do
-         
-         ! Profile type dependent code
-         select case ( getfields_fields(3)(1:getfields_lfields(3)) )
-         case ("FLAT")
-            scatter_PROFILE(scatter_nPROFILE,2) = 1 !Integer code for FLAT
-            if(getfields_nfields .ne. 6) then
-               write(lout,'(a)')                                        &
-     &           "SCATTER> ERROR, PRO expected at least 6 arguments:"
-               write(lout,'(a)') "PRO name type density[targets/cm^2]"//&
-     &              " mass[MeV/c^2] momentum[MeV/c]"
-            call prror(-1)
-         endif
-         
-         ! Request space to store the density
-         scatter_PROFILE(scatter_nPROFILE,3) = scatter_nfdata+1
-         scatter_nfdata = scatter_nfdata + 3
-         if (scatter_nfdata .gt. scatter_maxdata ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",        &
-     &           scatter_maxdata, " exceeded for floats."
-            call prror(-1)
-         endif
-+if crlibm
-         ! Density
-         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)) =           &
-     &        round_near( errno,                                        &
-     &           getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)                                                &
-     &        call rounderr( errno,getfields_fields,4,                  &
-     &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)) )
-         ! Mass
-         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1) =         &
-     &        round_near( errno,                                        &
-     &           getfields_lfields(5)+1, getfields_fields(4) )
-         if (errno.ne.0)                                                &
-     &        call rounderr( errno,getfields_fields,5,                  &
-     &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1) )
-
-         ! Momentum
-         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2) =         &
-     &        round_near( errno,                                        &
-     &           getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)                                                &
-     &        call rounderr( errno,getfields_fields,6,                  &
-     &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2) )
-+ei
-+if .not.crlibm
-         ! Density
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)            &
-     &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3))
-         
-         ! Mass
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)            &
-     &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1)
-
-         ! Momentum
-         read(getfields_fields(6)(1:getfields_lfields(6)),*)            &
-     &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2)
-+ei
-
-         case ( "GAUSS1" )
-            scatter_PROFILE(scatter_nPROFILE,2) = 10  !Integer code for BEAM_GAUSS1
-            !TODO: Read sigma x,y, density
-         case default
-            write(lout,'(a)') "SCATTER> ERROR, PRO name '"//
-     &           getfields_fields(3)(1:getfields_lfields(3))//
-     &           "' not recognized."
-            call prror(-1)
-            
-         end select
-
+         call scatter_parseProfile(getfields_fields,getfields_lfields,  &
+     &                             getfields_nfields)
       ! ***** PARSE SCATTER GEN STATEMENT *****
       else if (ch(:3).eq."GEN") then
-         if(getfields_nfields .lt. 3) then
-            write(lout,'(a)')
-     &           "SCATTER> ERROR, GEN expected at least 3 arguments:"
-            write(lout,'(a)') "GEN name type (arguments...)"
-            call prror(-1)
-         endif
-
-         !Add a generator to the list
-         scatter_nGENERATOR = scatter_nGENERATOR + 1
-         if (scatter_nGENERATOR .gt. scatter_maxGENERATOR ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, max generators = ",
-     &           scatter_maxGENERATOR, " exceeded."
-            call prror(-1)
-         endif
-
-         ! Store the generator name
-         scatter_ncdata = scatter_ncdata + 1
-         if (scatter_ncdata .gt. scatter_maxdata ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",
-     &           scatter_maxdata, " exceeded for scatter_ncdata"
-            call prror(-1)
-         endif
-         scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =
-     &        getfields_fields(2)(1:getfields_lfields(2))
-         scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncdata
-         ! Check that the generator name is unique
-         do ii=1,scatter_nGENERATOR-1
-            if ( trim(stringzerotrim(
-     &           scatter_cdata(scatter_GENERATOR(ii,1)) )) .eq.
-     &           getfields_fields(2)(1:getfields_lfields(2)) ) then
-               write(lout,'(a)') "SCATTER> ERROR, generator name '"//
-     &              getfields_fields(2)(1:getfields_lfields(2)) //
-     &              "' is not unique."
-               call prror(-1)
-            end if
-         end do
-         
-         ! Generator type dependent code...
-         select case ( getfields_fields(3)(1:getfields_lfields(3)) )
-         case ( "ABSORBER" )
-            scatter_GENERATOR(scatter_nGENERATOR,2) = 1 ! Code for ABSORBER
-            
-         case ( "PPBEAMELASTIC" )
-            scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
-            
-         case default
-            write(lout,'(a)') "SCATTER> ERROR, GEN name '"//
-     &           getfields_fields(3)(1:getfields_lfields(3))//
-     &           "' not recognized."
-            call prror(-1)
-            
-         end select
-         
+         call scatter_parseGenerator(getfields_fields,getfields_lfields,&
+     &                               getfields_nfields)
       else
          write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
          write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
