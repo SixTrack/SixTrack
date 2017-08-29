@@ -9071,7 +9071,7 @@ cc2008
       !Dummy deck to satisfy astuce in case of no decks in the fortran file...
 +if .not.datamods
       subroutine nodatamods
-+ca crcoall
++ca 
       write(lout,*)                                                     &
      &"Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
@@ -9095,7 +9095,7 @@ cc2008
       integer, intent(in) :: npart,nele,nblo
       integer stat
       integer i1,i2,i3,i4,i
-+ca crcoall
++ca 
 +ca parnum
 
 +if .not.vvector
@@ -9390,7 +9390,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       implicit none
-+ca crcoall
++ca 
 +if crlibm
 +ca crlibco
 +ei
@@ -9668,7 +9668,7 @@ cc2008
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       implicit none
-+ca crcoall
++ca 
 +if crlibm
 +ca crlibco
 +ei
@@ -17538,10 +17538,10 @@ cc2008
 
 !-----------------------------------------------------------------------
 !  SCATTER
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 28/3-2017
+!  K. Sjobak, V. Olsen BE-ABP-HSS
+!  Last modified: 29-08-2017
 !-----------------------------------------------------------------------
- 2900 read(3,10020, end=1530,iostat=ierro) ch
+ 2900 read(3,10020, end=1530, iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
@@ -17566,127 +17566,28 @@ cc2008
          goto 2900
       endif
       
-      call getfields_split( ch, getfields_fields, getfields_lfields,
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
      &     getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) call prror(51)
       if (scatter_debug) then
-         write (lout,'(A,I4,A)')
-     &        "SCATTER> Got a block, len=",
+         write (lout,'(A,I4,A)')                                        &
+     &        "SCATTER> Got a block, len=",                             &
      &        len(trim(ch)), ": '"// trim(ch)// "'"
          do ii=1,getfields_nfields
-            write (lout,'(a,I4,A)')
-     &           "SCATTER> Field(",ii,") ='"//
+            write (lout,'(a,I4,A)')                                     &
+     &           "SCATTER> Field(",ii,") ='"//                          &
      &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
          enddo
       endif
 
       ! ***** PARSE SCATTER ELEM STATEMENT *****
       if (ch(:4).eq."ELEM") then
-         if(getfields_nfields .lt. 4) then
-            write(lout,'(a)')
-     &           "SCATTER> ERROR, ELEM expected at least 4 arguments:"
-            write(lout,'(a)') "ELEM elemname profile gen1 (gen2...)"
-            call prror(-1)
-         endif
-
-         ! Add the element to the list
-         scatter_nELEM = scatter_nELEM + 1
-         if (scatter_nELEM .gt. scatter_maxELEM ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, max elements = ",
-     &           scatter_maxELEM, " exceeded."
-            call prror(-1)
-         endif
-         
-         ! Find the single element referenced
-         ii = -1
-         do j=1,il
-            if (bez(j) .eq. getfields_fields(2)(1:getfields_lfields(2)))
-     &           then
-               if (ii.ne.-1) then
-                  write(lout,'(a)') "SCATTER> ERROR, found element '"//
-     &                 getfields_fields(2)(1:getfields_lfields(2))//
-     &                 "' twice in SINGLE ELEMENTS list."
-                  call prror(-1)
-               endif
-               ii = j
-               
-               if (scatter_elemPointer(j).ne.0) then
-                  write(lout,'(a)')
-     &                 "SCATTER> ERROR, tried to define element '"//
-     &                 getfields_fields(2)(1:getfields_lfields(2))//
-     &                 "' twice."
-                  call prror(-1)
-               endif
-               
-               scatter_elemPointer(j) = scatter_nELEM
-               scatter_ELEM(scatter_nELEM,1) = j
-            endif
-         end do
-         if (scatter_ELEM(scatter_nELEM,1).eq.0) then
-            write(lout,*) "SCATTER> ERROR: Could not find element '" //
-     &           getfields_fields(2)(1:getfields_lfields(2)) // "'"
-            call prror(-1)
-         endif
-         
-         ! Find the profile name referenced
-         do j=1,scatter_nPROFILE
-            if (
-     &         trim(stringzerotrim(scatter_cdata(scatter_PROFILE(j,1))))
-     &         .eq. getfields_fields(3)(1:getfields_lfields(3)) ) then
-               scatter_ELEM(scatter_nELEM,2) = j
-            endif
-         end do
-         if (scatter_ELEM(scatter_nELEM,2).eq.0) then
-            write(lout,*) "SCATTER> ERROR: Could not find profile '" //
-     &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
-            call prror(-1)
-         endif
-         
-         ! Find the generator(s) refenced
-         if (getfields_nfields-3 .gt. scatter_maxGenELEM-2) then
-            write(lout,*) "SCATTER> ERROR when parsing ELEM,",
-     &           getfields_nfields-3, "generators specified, space for",
-     &           scatter_maxGenELEM-2
-            call prror(-1)
-         endif
-         
-         do ii=4,getfields_nfields
-            !Take care of offsets in getfields_field and scatter_ELEM
-            scatter_ELEM(scatter_nELEM,ii-3+2) = -1
-            ! Search for the generator with the right name
-            do j=1, scatter_nGENERATOR
-               if (
-     & trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1))))
-     & .eq. getfields_fields(ii)(1:getfields_lfields(ii)) ) then
-                  ! Found it
-                  scatter_ELEM(scatter_nELEM,ii-3+2) = 
-     &                 scatter_GENERATOR(j,1)
-               end if
-            end do
-
-            if (scatter_ELEM(scatter_nELEM,ii-3+2) .eq. -1) then
-               write(lout,*)
-     &              "SCATTER> ERROR when parsing ELEM, generator '"//
-     &              getfields_fields(ii)(1:getfields_lfields(ii)) //
-     &              "' not found."
-               call prror(-1)
-            end if
-
-            do j=3, ii-3+2-1
-               if (scatter_ELEM(scatter_nELEM,j) .eq.
-     &             scatter_ELEM(scatter_nELEM,ii-3+2) ) then
-                  write(lout,*)
-     &                 "SCATTER> ERROR when parsing ELEM, generator '"//
-     &                 getfields_fields(ii)(1:getfields_lfields(ii)) //
-     &                 "' used twice."
-                  call prror(-1)
-               end if
-            end do
-         end do
+         call scatter_parseElem(getfields_fields, getfields_lfields,    &
+     &                          getfields_nfields)
       ! ***** PARSE SCATTER PRO STATEMENT *****
       else if (ch(:3).eq."PRO") then
          if(getfields_nfields .lt. 3) then
-            write(lout,'(a)')
+            write(lout,'(a)')                                           &
      &           "SCATTER> ERROR, PRO expected at least 3 arguments:"
             write(lout,'(a)') "PRO name type (arguments...)"
             call prror(-1)
@@ -17695,7 +17596,7 @@ cc2008
          ! Add a profile to the list
          scatter_nPROFILE = scatter_nPROFILE + 1
          if (scatter_nPROFILE .gt. scatter_maxPROFILE ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, max profiles = ",
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, max profiles = ",   &
      &           scatter_maxPROFILE, " exceeded."
             call prror(-1)
          endif
@@ -17703,20 +17604,20 @@ cc2008
          ! Store the profile name
          scatter_ncdata = scatter_ncdata + 1
          if (scatter_ncdata .gt. scatter_maxdata ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",&
      &           scatter_maxdata, " exceeded for scatter_ncdata"
             call prror(-1)
          endif
-         scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =
+         scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) =        &
      &        getfields_fields(2)(1:getfields_lfields(2))
          scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncdata
          ! Check that the profile name is unique
          do ii=1,scatter_nPROFILE-1
-            if ( trim(stringzerotrim(
-     &           scatter_cdata(scatter_PROFILE(ii,1)) )) .eq.
+            if ( trim(stringzerotrim(                                   &
+     &           scatter_cdata(scatter_PROFILE(ii,1)) )) .eq.           &
      &           getfields_fields(2)(1:getfields_lfields(2)) ) then
-               write(lout,'(a)') "SCATTER> ERROR, profile name '"//
-     &              getfields_fields(2)(1:getfields_lfields(2)) //
+               write(lout,'(a)') "SCATTER> ERROR, profile name '"//     &
+     &              getfields_fields(2)(1:getfields_lfields(2)) //      &
      &              "' is not unique."
                call prror(-1)
             end if
@@ -17727,9 +17628,9 @@ cc2008
          case ("FLAT")
             scatter_PROFILE(scatter_nPROFILE,2) = 1 !Integer code for FLAT
             if(getfields_nfields .ne. 6) then
-               write(lout,'(a)')
+               write(lout,'(a)')                                        &
      &           "SCATTER> ERROR, PRO expected at least 6 arguments:"
-               write(lout,'(a)') "PRO name type density[targets/cm^2]"//
+               write(lout,'(a)') "PRO name type density[targets/cm^2]"//&
      &              " mass[MeV/c^2] momentum[MeV/c]"
             call prror(-1)
          endif
@@ -17738,45 +17639,45 @@ cc2008
          scatter_PROFILE(scatter_nPROFILE,3) = scatter_nfdata+1
          scatter_nfdata = scatter_nfdata + 3
          if (scatter_nfdata .gt. scatter_maxdata ) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",        &
      &           scatter_maxdata, " exceeded for floats."
             call prror(-1)
          endif
 +if crlibm
          ! Density
-         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)) =
-     &        round_near( errno,
+         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)) =           &
+     &        round_near( errno,                                        &
      &           getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,4,
+         if (errno.ne.0)                                                &
+     &        call rounderr( errno,getfields_fields,4,                  &
      &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)) )
          ! Mass
-         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1) =
-     &        round_near( errno,
+         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1) =         &
+     &        round_near( errno,                                        &
      &           getfields_lfields(5)+1, getfields_fields(4) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,5,
+         if (errno.ne.0)                                                &
+     &        call rounderr( errno,getfields_fields,5,                  &
      &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1) )
 
          ! Momentum
-         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2) =
-     &        round_near( errno,
+         scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2) =         &
+     &        round_near( errno,                                        &
      &           getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,6,
+         if (errno.ne.0)                                                &
+     &        call rounderr( errno,getfields_fields,6,                  &
      &           scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2) )
 +ei
 +if .not.crlibm
          ! Density
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*)            &
      &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3))
          
          ! Mass
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*)            &
      &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+1)
 
          ! Momentum
-         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+         read(getfields_fields(6)(1:getfields_lfields(6)),*)            &
      &      scatter_fdata(scatter_PROFILE(scatter_nPROFILE,3)+2)
 +ei
 

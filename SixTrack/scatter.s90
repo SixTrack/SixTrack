@@ -55,6 +55,121 @@ subroutine scatter_dumpdata
 
 end subroutine
 
+! Input Pareser Functions
+! ***** PARSE SCATTER ELEM STATEMENT *****
+
+subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
+
+    implicit none
+
++ca crcoall
++ca parpro
++ca comgetfields
++ca stringzerotrim
++ca comscatter
+
++ca common
+
+    ! temporary Variables
+    integer ii, j, il
+
+    if(getfields_nfields .lt. 4) then
+        write(lout,'(a)') "SCATTER> ERROR, ELEM expected at least 4 arguments:"
+        write(lout,'(a)') "ELEM elemname profile gen1 (gen2...)"
+        call prror(-1)
+    end if
+
+    ! Add the element to the list
+    scatter_nELEM = scatter_nELEM + 1
+    if (scatter_nELEM .gt. scatter_maxELEM ) then
+        write(lout,'(a,i4,a)') "SCATTER> ERROR, max elements = ",scatter_maxELEM," exceeded."
+        call prror(-1)
+    end if
+
+    ! Find the single element referenced
+    ii = -1
+    do j=1,il
+        if(bez(j) .eq. getfields_fields(2)(1:getfields_lfields(2))) then
+            if (ii.ne.-1) then
+                write(lout,'(a)') "SCATTER> ERROR, found element '"// &
+                                  getfields_fields(2)(1:getfields_lfields(2))// &
+                                  "' twice in SINGLE ELEMENTS list."
+                call prror(-1)
+            end if
+            ii = j
+
+            if (scatter_elemPointer(j).ne.0) then
+                write(lout,'(a)') "SCATTER> ERROR, tried to define element '"// &
+                                  getfields_fields(2)(1:getfields_lfields(2))// &
+                                  "' twice."
+                call prror(-1)
+            end if
+
+            scatter_elemPointer(j) = scatter_nELEM
+            scatter_ELEM(scatter_nELEM,1) = j
+        end if
+    end do
+
+    if (scatter_ELEM(scatter_nELEM,1).eq.0) then
+        write(lout,*) "SCATTER> ERROR: Could not find element '"// &
+                      getfields_fields(2)(1:getfields_lfields(2)) // "'"
+        call prror(-1)
+    end if
+
+    ! Find the profile name referenced
+    do j=1,scatter_nPROFILE
+        if( trim(stringzerotrim(scatter_cdata(scatter_PROFILE(j,1)))) &
+                .eq. getfields_fields(3)(1:getfields_lfields(3)) ) then
+            scatter_ELEM(scatter_nELEM,2) = j
+        end if
+    end do
+
+    if (scatter_ELEM(scatter_nELEM,2).eq.0) then
+        write(lout,*) "SCATTER> ERROR: Could not find profile '"// &
+                      getfields_fields(3)(1:getfields_lfields(3)) // "'"
+        call prror(-1)
+    end if
+
+    ! Find the generator(s) refenced
+    if (getfields_nfields-3 .gt. scatter_maxGenELEM-2) then
+        write(lout,*) "SCATTER> ERROR when parsing ELEM,", &
+                      getfields_nfields-3, "generators specified, space for", &
+                      scatter_maxGenELEM-2
+        call prror(-1)
+    end if
+
+    do ii=4,getfields_nfields
+        
+        !Take care of offsets in getfields_field and scatter_ELEM
+        scatter_ELEM(scatter_nELEM,ii-3+2) = -1
+        ! Search for the generator with the right name
+        do j=1, scatter_nGENERATOR
+            if( trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1)))) &
+                .eq. getfields_fields(ii)(1:getfields_lfields(ii)) ) then
+                ! Found it
+                scatter_ELEM(scatter_nELEM,ii-3+2) = scatter_GENERATOR(j,1)
+            end if
+        end do
+
+        if(scatter_ELEM(scatter_nELEM,ii-3+2) .eq. -1) then
+            write(lout,*) "SCATTER> ERROR when parsing ELEM, generator '"// &
+                          getfields_fields(ii)(1:getfields_lfields(ii))// &
+                          "' not found."
+            call prror(-1)
+        end if
+
+        do j=3, ii-3+2-1
+            if(scatter_ELEM(scatter_nELEM,j) .eq. scatter_ELEM(scatter_nELEM,ii-3+2)) then
+                write(lout,*) "SCATTER> ERROR when parsing ELEM, generator '"// &
+                              getfields_fields(ii)(1:getfields_lfields(ii)) // &
+                              "' used twice."
+                call prror(-1)
+            end if
+        end do
+    end do
+
+end subroutine
+
 subroutine scatter_thin(ix, turn)
 
     implicit none
