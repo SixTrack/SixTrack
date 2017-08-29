@@ -1468,6 +1468,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
       integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
 
+      double precision scatter_ELEM_scale(scatter_maxELEM)
+
       ! Configuration for PROFILE
       integer scatter_maxPROFILE
       parameter (scatter_maxPROFILE=200)  ! Max number of profiles
@@ -1503,7 +1505,7 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       logical scatter_debug
       
       common /scatterCom/                                               &
-     &     scatter_elemPointer, scatter_ELEM,                           &
+     &     scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,       &
      &     scatter_PROFILE, scatter_GENERATOR,                          &
      &     scatter_idata, scatter_fdata, scatter_cdata,                 &
      &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
@@ -34026,7 +34028,7 @@ C Should get me a NaN
       
       do i=1,maxdata_dynk
          iexpr_dynk(i) = 0
-         fexpr_dynk(i) = 0.0
+         fexpr_dynk(i) = zero
          do j=1,maxstrlen_dynk
             cexpr_dynk(i)(j:j) = char(0)
          enddo
@@ -34046,7 +34048,7 @@ C Should get me a NaN
             csets_unique_dynk(i,1)(j:j) = char(0)
             csets_unique_dynk(i,2)(j:j) = char(0)
          enddo
-         fsets_origvalue_dynk(i) = 0.0
+         fsets_origvalue_dynk(i) = zero
       enddo
       
       do i=1,nele
@@ -34088,6 +34090,7 @@ C Should get me a NaN
          do j=1,scatter_maxGenELEM
             scatter_ELEM(i,j) = 0
          end do
+         scatter_ELEM_scale(i) = zero
       end do
       
       do i=1,scatter_maxPROFILE
@@ -34108,7 +34111,7 @@ C Should get me a NaN
 
       do i=1, scatter_maxdata
          scatter_idata(i) = 0
-         scatter_fdata(i) = 0.0
+         scatter_fdata(i) = zero
          do j=1, scatter_maxstrlen
             scatter_cdata(i)(j:j) = char(0)
          end do

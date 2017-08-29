@@ -20,10 +20,15 @@ subroutine scatter_dumpdata
     write(lout,*)     "scatter_debug  =", scatter_debug
 
     write(lout,'(a)') "Arrays:"
+    
     write(lout,*) "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
-
     do ii=1, scatter_nELEM
         write(lout,*) ii, ":", scatter_ELEM(ii,:)
+    end do
+    
+    write(lout,*) "scatter_ELEM_scale: (",scatter_nELEM,"):"
+    do ii=1, scatter_nELEM
+        write(lout,*) ii, ":", scatter_ELEM_scale(ii)
     end do
 
     write(lout,*) "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
@@ -76,9 +81,9 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
     ! Temporary Variables
     integer ii, j
 
-    if(getfields_nfields .lt. 4) then
-        write(lout,'(a)') "SCATTER> ERROR, ELEM expected at least 4 arguments:"
-        write(lout,'(a)') "ELEM elemname profile gen1 (gen2...)"
+    if(getfields_nfields .lt. 5) then
+        write(lout,'(a)') "SCATTER> ERROR, ELEM expected at least 5 arguments:"
+        write(lout,'(a)') "ELEM elemname profile scaling gen1 (gen2...)"
         call prror(-1)
     end if
 
@@ -133,15 +138,18 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
         call prror(-1)
     end if
 
-    ! Find the generator(s) refenced
-    if (getfields_nfields-3 .gt. scatter_maxGenELEM-2) then
+    !Store the scaling
+    read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_ELEM_scale(scatter_nELEM)
+    
+    ! Find the generator(s) referenced
+    if (getfields_nfields-4 .gt. scatter_maxGenELEM-2) then
         write(lout,*) "SCATTER> ERROR when parsing ELEM,", &
-                      getfields_nfields-3, "generators specified, space for", &
+                      getfields_nfields-4, "generators specified, space for", &
                       scatter_maxGenELEM-2
         call prror(-1)
     end if
 
-    do ii=4,getfields_nfields
+    do ii=5,getfields_nfields
         !Take care of offsets in getfields_field and scatter_ELEM
         scatter_ELEM(scatter_nELEM,ii-3+2) = -1
         ! Search for the generator with the right name
@@ -418,7 +426,7 @@ subroutine scatter_thin(ix, turn)
             N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
             
             ! Compute probability P
-            P = N*crossSection
+            P = N*crossSection*scatter_ELEM_scale(ELEMidx)
             ! If RNG > P -> go to next particle, else scatter
             if (rndP(j) .gt. P) then
                 cycle

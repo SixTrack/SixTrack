@@ -66,7 +66,7 @@ SCATTER
 DEBUG
 GEN  sc_thin     PPBEAMELASTIC
 PRO  ipPRO       FLAT 1e25 938.0 6500000
-ELEM ip1_scatter ipPRO sc_thin
+ELEM ip1_scatter ipPRO 1.0 sc_thin
 NEXT
 DUMP
 ip1 1 650 2 dump.txt 1 -1
