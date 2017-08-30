@@ -433,7 +433,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
         if(errno .ne. 0) call rounderr(errno,getfields_fields,7,scatter_fdata(tmpIdx+3))
 
         ! PPBEAMELASTIC b2
-        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
+        scatter_fdata(tmpIdx+4) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
 +ei
 +if .not.crlibm
