@@ -714,14 +714,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
         phi    = scatter_fdata(tmpIdx+3)
         tmin   = scatter_fdata(tmpIdx+4)
 
-        write(*,"(A)") "SCATTER> PPBEAMELASTIC variables are:"
-        write(*,"(A4,F8.3)") "a",   a
-        write(*,"(A4,F8.3)") "b1",  b1
-        write(*,"(A4,F8.3)") "b2",  b2
-        write(*,"(A4,F8.3)") "phi", phi
-        write(*,"(A4,F8.3)") "tmin",tmin
-
-        !t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
+       !t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
         t  = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
         xi = 0d0   ! Dummy value, for now
         t  = t*1d6 ! Scale return variable to MeV^2
@@ -730,6 +723,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
         write(lout,*) "SCATTER> ERROR in scatter_generator_getTandXi"
         write(lout,*) "Type", generatorIDX, "not understood"
         call prror(-1)
+
     end select
 
 end subroutine
