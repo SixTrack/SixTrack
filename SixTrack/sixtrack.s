@@ -17594,6 +17594,10 @@ cc2008
       else if (ch(:3).eq."GEN") then
          call scatter_parseGenerator(getfields_fields,getfields_lfields,&
      &                               getfields_nfields)
+      ! ***** PARSE SCATTER SEED STATEMENT *****
+      else if (ch(:4).eq."SEED") then
+         call scatter_parseSEED(getfields_fields,getfields_lfields,     &
+     &                          getfields_nfields)
       else
          write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
          write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"

@@ -18,7 +18,8 @@ subroutine scatter_dumpdata
     write(lout,'(a)') "Options:"
     write(lout,*)     "scatter_active =", scatter_active
     write(lout,*)     "scatter_debug  =", scatter_debug
-
+    write(lout,*)     "Seeds          = ", scatter_seed1, ";", scatter_seed2
+    
     write(lout,'(a)') "Arrays:"
     
     write(lout,*) "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
@@ -61,7 +62,7 @@ subroutine scatter_dumpdata
 end subroutine
 
 !---------------------------------------------------------------------------------------------------
-! BEGIN Input Pareser Functions
+! BEGIN Input Parser Functions
 !---------------------------------------------------------------------------------------------------
 
 ! ***** PARSE SCATTER ELEM SUBROUTINE *****
@@ -372,8 +373,32 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
 end subroutine
 
+! ***** PARSE SCATTER GEN SUBROUTINE *****
+subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
+
+    implicit none
+
++ca crcoall
++ca parpro
++ca comgetfields
++ca stringzerotrim
++ca comscatter
+
+    ! Check number of arguments
+    if(getfields_nfields .ne. 3) then
+        write(lout,'(a)') "SCATTER> ERROR, SEED expected 2 arguments:"
+        write(lout,'(a)') "GEN seed1 seed2"
+        call prror(-1)
+    end if
+
+    !Read the seeds
+    read(getfields_fields(2)(1:getfields_lfields(2)),*) scatter_seed1
+    read(getfields_fields(3)(1:getfields_lfields(3)),*) scatter_seed2
+    
+end subroutine scatter_parseSeed
+
 !---------------------------------------------------------------------------------------------------
-! END Input Pareser Functions
+! END Input Parser Functions
 !---------------------------------------------------------------------------------------------------
 
 subroutine scatter_thin(ix, turn)
