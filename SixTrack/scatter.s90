@@ -2,8 +2,8 @@
 ! Deck for the scattering routines implemented in the SCATTER block
 
 subroutine scatter_initialize
-  
-  implicit none
+
+    implicit none
 
 +ca crcoall
 +ca parpro
@@ -11,20 +11,20 @@ subroutine scatter_initialize
 +ca stringzerotrim
 +ca comscatter
 
-  logical lopen
+    logical lopen
 
-  ! Open scatter_log.txt
-  inquire( unit=667, opened=lopen )
-  if (lopen) then
-     write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
-     write(lout,*) "Unit 667 was already taken."
-     call prror(-1)
-  endif
-  
-  open(667,file="scatter_log.txt", status="replace", form="formatted")
-  write(667,*) "# scatter_log"
-  write(667,*) "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
-  
+    ! Open scatter_log.txt
+    inquire( unit=667, opened=lopen )
+    if (lopen) then
+        write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
+        write(lout,*) "Unit 667 was already taken."
+        call prror(-1)
+    end if
+
+    open(667,file="scatter_log.txt",status="replace",form="formatted")
+    write(667,"(A)") "# scatter_log"
+    write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
+
 end subroutine scatter_initialize
 
 subroutine scatter_dumpdata
@@ -279,7 +279,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
                               getfields_fields(2)(1:getfields_lfields(2))// &
                               "' is not unique."
             call prror(-1)
-       end if
+        end if
     end do
 
     ! Profile type dependent code
@@ -528,9 +528,9 @@ subroutine scatter_thin(ix, turn)
     scaling = scatter_ELEM_scale(ELEMidx)
 
     if (scatter_debug) then
-       write(lout,*) "SCATTER> In scatter_thin, ix=",ix, &
-            "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",turn,&
-            "scaling=",scaling
+        write(lout,*) "SCATTER> In scatter_thin, ix=",ix, &
+                      "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",turn, &
+                      "scaling=",scaling
     endif
     
     if (scaling.le.pieni) then
@@ -571,17 +571,13 @@ subroutine scatter_thin(ix, turn)
 
             ! Ask profile for density at x,y
             N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
-            
+
             ! Compute probability P
-<<<<<<< HEAD
-            P = N*crossSection !*scatter_ELEM_scale(ELEMidx)
-=======
             P = N*crossSection*scaling
->>>>>>> cc488885c62e44bef3b2eaa0a7ee489f9394c220
             ! If RNG > P -> go to next particle, else scatter
-            ! if (rndP(j) .gt. P) then
-            !     cycle
-            ! endif
+            if (rndP(j) .gt. P) then
+                cycle
+            endif
 
             ! Ask generator for t and xi
             call scatter_generator_getTandXi(GENidx,t,xi)
