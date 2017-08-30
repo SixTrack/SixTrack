@@ -186,26 +186,37 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
     end if
 
     do ii=5,getfields_nfields
-        !Take care of offsets in getfields_field and scatter_ELEM
-        scatter_ELEM(scatter_nELEM,ii-3+2) = -1
+        !In general inside this loop:
+        ! Take care of offsets in getfields_field (-4) and scatter_ELEM (+2)
+        ! such that ii=5 -> column 3 of scatter_ELEM, ii=6 -> column 4, etc.
+        !
+        ! A dummy variable might not be a bad idea here...
+        
+        !In case we won't find the generator name
+        scatter_ELEM(scatter_nELEM,ii-4+2) = -1
+        
         ! Search for the generator with the right name
         do j=1, scatter_nGENERATOR
             if( trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1)))) &
                 .eq. getfields_fields(ii)(1:getfields_lfields(ii)) ) then
                 ! Found it
-                scatter_ELEM(scatter_nELEM,ii-3+2) = scatter_GENERATOR(j,1)
+                scatter_ELEM(scatter_nELEM,ii-4+2) = j
             end if
         end do
 
-        if(scatter_ELEM(scatter_nELEM,ii-3+2) .eq. -1) then
+        !If it is still -1, it wasn't found
+        if(scatter_ELEM(scatter_nELEM,ii-4+2) .eq. -1) then
             write(lout,*) "SCATTER> ERROR when parsing ELEM, generator '"// &
                           getfields_fields(ii)(1:getfields_lfields(ii))// &
                           "' not found."
             call prror(-1)
         end if
 
-        do j=3, ii-3+2-1
-            if(scatter_ELEM(scatter_nELEM,j) .eq. scatter_ELEM(scatter_nELEM,ii-3+2)) then
+        !Loop over those GENerators we've filled before
+        ! (i.e. up to but not including column ii-4+2)
+        ! to check for duplicates
+        do j=3, ii-4+2-1
+            if(scatter_ELEM(scatter_nELEM,j) .eq. scatter_ELEM(scatter_nELEM,ii-4+2)) then
                 write(lout,*) "SCATTER> ERROR when parsing ELEM, generator '"// &
                               getfields_fields(ii)(1:getfields_lfields(ii)) // &
                               "' used twice."
@@ -508,7 +519,7 @@ subroutine scatter_thin(ix, turn)
             N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
             
             ! Compute probability P
-            P = N*crossSection*scatter_ELEM_scale(ELEMidx)
+            P = N*crossSection*scaling
             ! If RNG > P -> go to next particle, else scatter
             if (rndP(j) .gt. P) then
                 cycle
