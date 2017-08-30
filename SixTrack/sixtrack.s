@@ -9144,7 +9144,7 @@ cc2008
       end subroutine
       
       subroutine deallocate_thickarrays
-      
+      !TODO
       end subroutine
       
       end module
@@ -17557,6 +17557,12 @@ cc2008
             call prror(-1)
          end if
          scatter_active = .true.
+
+         if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
+            write(lout,*) "ERROR while parsing SCATTER in fort.3"
+            write(lout,*) "No SEED sets were specified"
+            call prror(-1)
+         endif
          
          if (scatter_debug) call scatter_dumpdata
          goto 110               !Read next block or ENDE
@@ -34106,8 +34112,8 @@ C Should get me a NaN
          end do
       enddo
       
-      scatter_seed1 = 0
-      scatter_seed2 = 0
+      scatter_seed1 = -1
+      scatter_seed2 = -1
       
 !--COLLIMATION----------------------------------------------------------
 +if collimat
