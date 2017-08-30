@@ -25472,22 +25472,7 @@ C Should get me a NaN
 
       ! ! ! Initialize SCATTER ! ! !
       if (scatter_active) then
-         ! Open scatter_log.txt
-         inquire( unit=667, opened=lopen )
-         if (lopen) then
-            write(lout,*)
-     &           "ERROR in SCATTER when opening scatter_log.txt"
-            write(lout,*)
-     &           "Unit 667 was already taken."
-            call prror(-1)
-         endif
-
-         open(667,file="scatter_log.txt",                               &
-     &        status="replace",form="formatted")
-         write(667,*) "# scatter_log"
-         write(667,*) "# ID turn bez scatter_GENERATOR t[MeV^2] xi "//  &
-     &                "theta[mrad] phi[rad] prob"
-
+         call scatter_initialize
       endif
 
       
@@ -34121,8 +34106,8 @@ C Should get me a NaN
          end do
       enddo
       
-      scatter_seed1 = 42
-      scatter_seed2 = 43
+      scatter_seed1 = 0
+      scatter_seed2 = 0
       
 !--COLLIMATION----------------------------------------------------------
 +if collimat

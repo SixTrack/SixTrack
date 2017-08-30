@@ -1,6 +1,32 @@
 +dk scatter
 ! Deck for the scattering routines implemented in the SCATTER block
 
+subroutine scatter_initialize
+  
+  implicit none
+
++ca crcoall
++ca parpro
++ca comgetfields
++ca stringzerotrim
++ca comscatter
+
+  logical lopen
+
+  ! Open scatter_log.txt
+  inquire( unit=667, opened=lopen )
+  if (lopen) then
+     write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
+     write(lout,*) "Unit 667 was already taken."
+     call prror(-1)
+  endif
+  
+  open(667,file="scatter_log.txt", status="replace", form="formatted")
+  write(667,*) "# scatter_log"
+  write(667,*) "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
+  
+end subroutine scatter_initialize
+
 subroutine scatter_dumpdata
 
     implicit none
