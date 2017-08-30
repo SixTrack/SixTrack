@@ -439,6 +439,7 @@ subroutine scatter_thin(ix, turn)
 
 +ca common
 +ca commonmn
++ca parnum
 
     ! Define functions
     double precision scatter_profile_getDensity
@@ -452,13 +453,26 @@ subroutine scatter_thin(ix, turn)
     double precision s, t, xi, theta
     double precision crossSection, N, P
     double precision rndPhi(npart), rndP(npart)
-
+    double precision scaling
+    
     ! Input
     integer, intent(in) :: ix, turn
-
+    
     ELEMidx = scatter_elemPointer(ix)
     PROidx  = scatter_ELEM(ELEMidx,2)
+    scaling = scatter_ELEM_scale(ELEMidx)
 
+    if (scatter_debug) then
+       write(lout,*) "SCATTER> In scatter_thin, ix=",ix, &
+            "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",turn,&
+            "scaling=",scaling
+    endif
+    
+    if (scaling.le.pieni) then
+       !Skip the whole thing if the scaling is zero
+       return
+    endif
+    
     !Compute the "standard" s (used for cross-sections)
     !(ask profile for the p)
 

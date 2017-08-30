@@ -2293,10 +2293,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     TODO
 +cd scat_thi
       !Thin scattering
-      if (scatter_debug) then
-         write(lout,*) "SCATTER> In scat_thi, ix=",
-     &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
-      endif
       ! It is already checked that scatter_elemPointer != 0
       call scatter_thin(ix,n)
       
@@ -38617,7 +38613,7 @@ C Should get me a NaN
 
       if (getfields_nfields .ne. 7) then
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "Expected 6 fields on line while parsing SET."
+         write (lout,*) "Expected 7 fields on line while parsing SET."
          write (lout,*) "Correct syntax:"
          write (lout,*) "SET element_name attribute_name function_name",
      &                  " startTurn endTurn turnShift"
@@ -39863,7 +39859,8 @@ C+ei
 +ca comdynk
 +ca elensparam
 +ca crcoall
-
++ca comscatter
+      
       character(maxstrlen_dynk) element_name, att_name
       double precision newValue
       intent (in) element_name, att_name, newValue
@@ -40014,6 +40011,13 @@ c$$$            endif
                else
                   goto 100 !ERROR
                endif
+
+            elseif (el_type.eq.40) then          ! Scatter
+               if(att_name_stripped.eq."scaling") then
+                  scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
+               else
+                  goto 100 !ERROR
+               endif
                
             else
                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
@@ -40068,7 +40072,8 @@ c$$$            endif
 +ca comdynk
 +ca elensparam
 +ca crcoall
-
++ca comscatter
+      
       character(maxstrlen_dynk) element_name, att_name
       intent(in) element_name, att_name
       
@@ -40203,6 +40208,14 @@ c$$$               endif
             elseif (el_type.eq.29) then     ! Electron lens
                if(att_name_s.eq."thetamax") then ! [mrad]
                   dynk_getvalue = elens_theta_max(ii)
+               else
+                  goto 100 !ERROR
+               endif
+
+            elseif (el_type.eq.40) then ! Scatter
+               if(att_name_s.eq."scaling") then
+                  dynk_getvalue =
+     &                 scatter_ELEM_scale(scatter_elemPointer(ii))
                else
                   goto 100 !ERROR
                endif
