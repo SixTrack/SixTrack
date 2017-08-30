@@ -2293,10 +2293,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     TODO
 +cd scat_thi
       !Thin scattering
-      if (scatter_debug) then
-         write(lout,*) "SCATTER> In scat_thi, ix=",
-     &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
-      endif
       ! It is already checked that scatter_elemPointer != 0
       call scatter_thin(ix,n)
       
@@ -9144,7 +9140,7 @@ cc2008
       end subroutine
       
       subroutine deallocate_thickarrays
-      
+      !TODO
       end subroutine
       
       end module
@@ -17557,6 +17553,12 @@ cc2008
             call prror(-1)
          end if
          scatter_active = .true.
+
+         if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
+            write(lout,*) "ERROR while parsing SCATTER in fort.3"
+            write(lout,*) "No SEED sets were specified"
+            call prror(-1)
+         endif
          
          if (scatter_debug) call scatter_dumpdata
          goto 110               !Read next block or ENDE
@@ -25472,22 +25474,7 @@ C Should get me a NaN
 
       ! ! ! Initialize SCATTER ! ! !
       if (scatter_active) then
-         ! Open scatter_log.txt
-         inquire( unit=667, opened=lopen )
-         if (lopen) then
-            write(lout,*)
-     &           "ERROR in SCATTER when opening scatter_log.txt"
-            write(lout,*)
-     &           "Unit 667 was already taken."
-            call prror(-1)
-         endif
-
-         open(667,file="scatter_log.txt",                               &
-     &        status="replace",form="formatted")
-         write(667,*) "# scatter_log"
-         write(667,*) "# ID turn bez scatter_GENERATOR t[MeV^2] xi "//  &
-     &                "theta[mrad] phi[rad] prob"
-
+         call scatter_initialize
       endif
 
       
@@ -34121,8 +34108,8 @@ C Should get me a NaN
          end do
       enddo
       
-      scatter_seed1 = 42
-      scatter_seed2 = 43
+      scatter_seed1 = -1
+      scatter_seed2 = -1
       
 !--COLLIMATION----------------------------------------------------------
 +if collimat
@@ -38626,7 +38613,7 @@ C Should get me a NaN
 
       if (getfields_nfields .ne. 7) then
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "Expected 6 fields on line while parsing SET."
+         write (lout,*) "Expected 7 fields on line while parsing SET."
          write (lout,*) "Correct syntax:"
          write (lout,*) "SET element_name attribute_name function_name",
      &                  " startTurn endTurn turnShift"
@@ -39872,7 +39859,8 @@ C+ei
 +ca comdynk
 +ca elensparam
 +ca crcoall
-
++ca comscatter
+      
       character(maxstrlen_dynk) element_name, att_name
       double precision newValue
       intent (in) element_name, att_name, newValue
@@ -40023,6 +40011,13 @@ c$$$            endif
                else
                   goto 100 !ERROR
                endif
+
+            elseif (el_type.eq.40) then          ! Scatter
+               if(att_name_stripped.eq."scaling") then
+                  scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
+               else
+                  goto 100 !ERROR
+               endif
                
             else
                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
@@ -40077,7 +40072,8 @@ c$$$            endif
 +ca comdynk
 +ca elensparam
 +ca crcoall
-
++ca comscatter
+      
       character(maxstrlen_dynk) element_name, att_name
       intent(in) element_name, att_name
       
@@ -40212,6 +40208,14 @@ c$$$               endif
             elseif (el_type.eq.29) then     ! Electron lens
                if(att_name_s.eq."thetamax") then ! [mrad]
                   dynk_getvalue = elens_theta_max(ii)
+               else
+                  goto 100 !ERROR
+               endif
+
+            elseif (el_type.eq.40) then ! Scatter
+               if(att_name_s.eq."scaling") then
+                  dynk_getvalue =
+     &                 scatter_ELEM_scale(scatter_elemPointer(ii))
                else
                   goto 100 !ERROR
                endif
