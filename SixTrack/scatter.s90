@@ -85,6 +85,8 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
     integer errno
     double precision round_near
 +ei
+
+    ! Check number of arguments
     if(getfields_nfields .lt. 5) then
         write(lout,'(a)') "SCATTER> ERROR, ELEM expected at least 5 arguments:"
         write(lout,'(a)') "ELEM elemname profile scaling gen1 (gen2...)"
@@ -142,7 +144,7 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
         call prror(-1)
     end if
 
-    !Store the scaling
+    ! Store the scaling
 +if crlibm
     scatter_ELEM_scale(scatter_nELEM) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
     if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_ELEM_scale(scatter_nELEM))
@@ -150,7 +152,7 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
 +if .not.crlibm
     read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_ELEM_scale(scatter_nELEM)
 +ei
-    
+
     ! Find the generator(s) referenced
     if (getfields_nfields-4 .gt. scatter_maxGenELEM-2) then
         write(lout,*) "SCATTER> ERROR when parsing ELEM,", &
@@ -201,16 +203,13 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 +ca stringzerotrim
 +ca comscatter
 
-! +ca common
-! +ca commonmn
-
     ! Temporary Variables
     integer ii, tmpIdx
 +if crlibm
     integer errno
     double precision round_near
 +ei
-    
+
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
         write(lout,'(a)') "SCATTER> ERROR, PRO expected at least 3 arguments:"
@@ -271,7 +270,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
         if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
 
         ! Mass
-        scatter_fdata(tmpIdx+1) = round_near(errno,getfields_lfields(5)+1,getfields_fields(4))
+        scatter_fdata(tmpIdx+1) = round_near(errno,getfields_lfields(5)+1,getfields_fields(5))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,5,scatter_fdata(tmpIdx+1))
 
         ! Momentum
@@ -314,16 +313,13 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 +ca stringzerotrim
 +ca comscatter
 
-! +ca common
-! +ca commonmn
-
     ! Temporary Variables
-    integer ii
+    integer ii, tmpIdx
 +if crlibm
     integer errno
     double precision round_near
 +ei
-    
+
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
         write(lout,'(a)') "SCATTER> ERROR, GEN expected at least 3 arguments:"
@@ -357,23 +353,81 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
             call prror(-1)
        end if
     end do
-    
+
     ! Generator type dependent code...
     select case (getfields_fields(3)(1:getfields_lfields(3)))
     case("ABSORBER")
+
         scatter_GENERATOR(scatter_nGENERATOR,2) = 1  ! Code for ABSORBER
+
     case("PPBEAMELASTIC")
+
         scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
+        if(getfields_nfields .ne. 8) then
+            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC takes 8 arguments:"
+            write(lout,'(a)') "GEN name PPBEAMELASTIC a b1 b2 phi tmin"
+            call prror(-1)
+        end if
+
+        ! Request space to store the arguments
+        tmpIdx = scatter_nfdata + 1
+        scatter_GENERATOR(scatter_nGENERATOR,3) = tmpIdx
+        scatter_nfdata = scatter_nfdata + 5
+        if(scatter_nfdata .gt. scatter_maxdata) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
+            call prror(-1)
+        end if
+
++if crlibm
+        ! PPBEAMELASTIC a
+        scatter_fdata(tmpIdx)   = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
+
+        ! PPBEAMELASTIC b1
+        scatter_fdata(tmpIdx+1) = round_near(errno,getfields_lfields(5)+1,getfields_fields(5))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,5,scatter_fdata(tmpIdx+1))
+
+        ! PPBEAMELASTIC b2
+        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
+
+        ! PPBEAMELASTIC phi
+        scatter_fdata(tmpIdx+3) = round_near(errno,getfields_lfields(7)+1,getfields_fields(7))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,7,scatter_fdata(tmpIdx+3))
+
+        ! PPBEAMELASTIC b2
+        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
++ei
++if .not.crlibm
+        ! PPBEAMELASTIC a
+        read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
+
+        ! PPBEAMELASTIC b1
+        read(getfields_fields(5)(1:getfields_lfields(5)),*) scatter_fdata(tmpIdx+1)
+
+        ! PPBEAMELASTIC b2
+        read(getfields_fields(6)(1:getfields_lfields(6)),*) scatter_fdata(tmpIdx+2)
+
+        ! PPBEAMELASTIC phi
+        read(getfields_fields(7)(1:getfields_lfields(7)),*) scatter_fdata(tmpIdx+3)
+
+        ! PPBEAMELASTIC tmin
+        read(getfields_fields(8)(1:getfields_lfields(8)),*) scatter_fdata(tmpIdx+4)
++ei
+
     case default
+
         write(lout,'(a)') "SCATTER> ERROR, GEN name '"// &
                           getfields_fields(3)(1:getfields_lfields(3))// &
                           "' not recognized."
         call prror(-1)
+
     end select
 
 end subroutine
 
-! ***** PARSE SCATTER GEN SUBROUTINE *****
+! ***** PARSE SCATTER SEED SUBROUTINE *****
 subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
@@ -391,10 +445,10 @@ subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfield
         call prror(-1)
     end if
 
-    !Read the seeds
+    ! Read the seeds
     read(getfields_fields(2)(1:getfields_lfields(2)),*) scatter_seed1
     read(getfields_fields(3)(1:getfields_lfields(3)),*) scatter_seed2
-    
+
 end subroutine scatter_parseSeed
 
 !---------------------------------------------------------------------------------------------------
@@ -468,11 +522,11 @@ subroutine scatter_thin(ix, turn)
             N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
             
             ! Compute probability P
-            P = N*crossSection*scatter_ELEM_scale(ELEMidx)
+            P = N*crossSection !*scatter_ELEM_scale(ELEMidx)
             ! If RNG > P -> go to next particle, else scatter
-            if (rndP(j) .gt. P) then
-                cycle
-            endif
+            ! if (rndP(j) .gt. P) then
+            !     cycle
+            ! endif
 
             ! Ask generator for t and xi
             call scatter_generator_getTandXi(GENidx,t,xi)
@@ -585,21 +639,42 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 +ca stringzerotrim
 +ca comscatter
 
-    ! Could be affected by S as well?
-    
     double precision scatter_generator_getPPElastic
 
     ! Input/Output
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
+    
+    ! Temporary variables
+    integer          tmpIdx
+    double precision a, b1, b2, phi, tmin
+
+    ! Could be affected by S as well?
 
     select case (scatter_GENERATOR(generatorIDX,2))
     case (1)  ! ABSORBER
         !...
     case (10) ! PPBEAMELASTIC
-        t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
-        xi = 0d0
-        t  = t*1d6
+
+        tmpIdx = scatter_GENERATOR(generatorIDX,3)
+        a      = scatter_fdata(tmpIdx)
+        b1     = scatter_fdata(tmpIdx+1)
+        b2     = scatter_fdata(tmpIdx+2)
+        phi    = scatter_fdata(tmpIdx+3)
+        tmin   = scatter_fdata(tmpIdx+4)
+
+        write(*,"(A)") "SCATTER> PPBEAMELASTIC variables are:"
+        write(*,"(A4,F8.3)") "a",   a
+        write(*,"(A4,F8.3)") "b1",  b1
+        write(*,"(A4,F8.3)") "b2",  b2
+        write(*,"(A4,F8.3)") "phi", phi
+        write(*,"(A4,F8.3)") "tmin",tmin
+
+        !t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
+        t  = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
+        xi = 0d0   ! Dummy value, for now
+        t  = t*1d6 ! Scale return variable to MeV^2
+
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getTandXi"
         write(lout,*) "Type", generatorIDX, "not understood"
