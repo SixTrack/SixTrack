@@ -287,7 +287,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
     case("FLAT")
         scatter_PROFILE(scatter_nPROFILE,2) = 1 !Integer code for FLAT
         if(getfields_nfields .ne. 6) then
-            write(lout,'(a)') "SCATTER> ERROR, PRO expected at least 6 arguments:"
+            write(lout,'(a)') "SCATTER> ERROR, PRO expected 6 arguments:"
             write(lout,'(a)') "PRO name type density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
             call prror(-1)
         end if
@@ -400,8 +400,8 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
     case("PPBEAMELASTIC")
 
         scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
-        if(getfields_nfields .lt. 8) then
-            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC takes 8 or 9 arguments:"
+        if(getfields_nfields .lt. 8 .or. getfields_nfields .gt. 9) then
+            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC expected 8 or 9 arguments:"
             write(lout,'(a)') "GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
             call prror(-1)
         end if
