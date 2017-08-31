@@ -350,6 +350,8 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 +ca stringzerotrim
 +ca comscatter
 
++ca parnum
+
     ! Temporary Variables
     integer ii, tmpIdx
 +if crlibm
@@ -467,6 +469,16 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
         end if
 +ei
 
+        ! Check sanity of input values
+        if(scatter_fdata(tmpIdx+1) .lt. pieni) then
+            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
+            call prror(-1)
+        end if
+        if(scatter_fdata(tmpIdx+2) .lt. pieni) then
+            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
+            call prror(-1)
+        end if
+
     case default
 
         write(lout,'(a)') "SCATTER> ERROR, GEN name '"// &
@@ -573,7 +585,7 @@ subroutine scatter_thin(ix, turn)
 
         call ranecu(rndPhi, napx, -1)
         call ranecu(rndP,   napx, -1)
-        rndPhi = rndPhi*2*3.1415926535897932d0
+        rndPhi = rndPhi*2*pi
 
         do j=1, napx
             ! Compute the cross section at this s
@@ -669,11 +681,10 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
 
     ! Temporary variables
     integer          tmpIdx
-    double precision xp_target, yp_target, E_target, crossSection
+    double precision xp_target, yp_target, E_target
 
     ! Calculate S
     call scatter_profile_getParticle(profileIDX, x,y, xp_target,yp_target,E_target)
-    crossSection = 30d-27 ! Dummy value, 30 mbarn
 
     ! Calculate the cross section as function of S
     select case (scatter_GENERATOR(generatorIDX,2))
@@ -683,7 +694,7 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
     case (10) ! PPBEAMELASTIC
         tmpIdx = scatter_GENERATOR(generatorIDX,4)
         if(tmpIdx .eq. 0) then
-            scatter_generator_getCrossSection = crossSection
+            scatter_generator_getCrossSection = 30d-27
         else
             scatter_generator_getCrossSection = scatter_fdata(tmpIdx)
         end if
@@ -754,9 +765,12 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 
     implicit none
 
++ca crcoall
+
     double precision, intent(in) :: a, b1, b2, phi, tmin
 
     ! Temp Variables
+    integer          nItt, maxItt
     double precision g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
 
     ! Approximate distribution
@@ -768,7 +782,10 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     invB1 = 1.0d0/b1
     invB2 = 1.0d0/b2
 
+    nItt   = 0
+    maxItt = 1000000
     do
+        nItt = nItt + 1
         call ranecu(rndArr, 3, -1)
 
         ! Randomly switch between g1 and g3 according to probability
@@ -786,7 +803,14 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 
         ! Check hit/miss on exact distribution
         ! if miss, get new t value
-        if(rndArr(3) .lt. gg) exit
+        ! if too many attempts, exit
+        if(rndArr(3) .lt. gg .or. nItt .gt. maxItt) exit
     end do
+
+    if(nItt .gt. maxItt) then
+        write(lout,*) "SCATTER> ERROR in generator PPBEAMELASTIC"
+        write(lout,*) "Limit of", maxItt, "misses in generator loop reached."
+        call prror(-1)
+    end if
 
 end function
