@@ -44,15 +44,15 @@ subroutine scatter_dumpdata
     write(lout,'(a)') "Options:"
     write(lout,*)     "scatter_active =", scatter_active
     write(lout,*)     "scatter_debug  =", scatter_debug
-    write(lout,*)     "Seeds          = ", scatter_seed1, ";", scatter_seed2
-    
+    write(lout,*)     "Seeds          =", scatter_seed1, ";", scatter_seed2
+
     write(lout,'(a)') "Arrays:"
-    
+
     write(lout,*) "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
     do ii=1, scatter_nELEM
         write(lout,*) ii, ":", scatter_ELEM(ii,:)
     end do
-    
+
     write(lout,*) "scatter_ELEM_scale: (",scatter_nELEM,"):"
     do ii=1, scatter_nELEM
         write(lout,*) ii, ":", scatter_ELEM_scale(ii)
@@ -93,7 +93,7 @@ end subroutine
 
 ! ***** PARSE SCATTER ELEM SUBROUTINE *****
 subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
-! 
+
     implicit none
 
 +ca crcoall
@@ -400,16 +400,17 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
     case("PPBEAMELASTIC")
 
         scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
-        if(getfields_nfields .ne. 8) then
-            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC takes 8 arguments:"
-            write(lout,'(a)') "GEN name PPBEAMELASTIC a b1 b2 phi tmin"
+        if(getfields_nfields .lt. 8) then
+            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC takes 8 or 9 arguments:"
+            write(lout,'(a)') "GEN name PPBEAMELASTIC a b1 b2 phi tmin (cross-section)"
             call prror(-1)
         end if
 
         ! Request space to store the arguments
         tmpIdx = scatter_nfdata + 1
         scatter_GENERATOR(scatter_nGENERATOR,3) = tmpIdx
-        scatter_nfdata = scatter_nfdata + 5
+        scatter_GENERATOR(scatter_nGENERATOR,4) = 0      ! Index of scatter input, if present
+        scatter_nfdata = scatter_nfdata + getfields_nfields - 3
         if(scatter_nfdata .gt. scatter_maxdata) then
             write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
             call prror(-1)
@@ -435,6 +436,13 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
         ! PPBEAMELASTIC b2
         scatter_fdata(tmpIdx+4) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
+
+        if(getfields_nfields .eq. 9) then
+            ! PPBEAMELASTIC corss-section
+            scatter_fdata(tmpIdx+5) = round_near(errno,getfields_lfields(9)+1,getfields_fields(9))
+            if(errno .ne. 0) call rounderr(errno,getfields_fields,9,scatter_fdata(tmpIdx+5))
+            scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
+        end if
 +ei
 +if .not.crlibm
         ! PPBEAMELASTIC a
@@ -451,6 +459,12 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
         ! PPBEAMELASTIC tmin
         read(getfields_fields(8)(1:getfields_lfields(8)),*) scatter_fdata(tmpIdx+4)
+
+        if(getfields_nfields .eq. 9) then
+            ! PPBEAMELASTIC cross-section
+            read(getfields_fields(9)(1:getfields_lfields(9)),*) scatter_fdata(tmpIdx+5)
+            scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
+        end if
 +ei
 
     case default
@@ -657,18 +671,27 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
     integer, intent(in) :: profileIDX, generatorIDX
     double precision, intent(in) :: x, y, xp, yp, E
 
-    ! Temp variables
-    double precision xp_target, yp_target, E_target
+    ! Temporary variables
+    integer          tmpIdx
+    double precision xp_target, yp_target, E_target, crossSection
 
     ! Calculate S
     call scatter_profile_getParticle(profileIDX, x,y, xp_target,yp_target,E_target)
+    crossSection = 30d-27 ! Dummy value, 30 mbarn
 
     ! Calculate the crossection as function of S
     select case (scatter_GENERATOR(generatorIDX,2))
     case (1)  ! ABSORBER
         !...
+
     case (10) ! PPBEAMELASTIC
-        scatter_generator_getCrossSection = 30d-27
+        tmpIdx = scatter_GENERATOR(generatorIDX,4)
+        if(tmpIdx .eq. 0) then
+            scatter_generator_getCrossSection = crossSection
+        else
+            scatter_generator_getCrossSection = scatter_fdata(tmpIdx)
+        end if
+
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getCrossSection"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
@@ -676,6 +699,7 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
                       scatter_cdata(scatter_PROFILE(profileIdx,1)) &
                       ))//"' not understood."
         call prror(-1)
+
     end select
 
 end function
@@ -695,7 +719,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     ! Input/Output
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
-    
+
     ! Temporary variables
     integer          tmpIdx
     double precision a, b1, b2, phi, tmin
