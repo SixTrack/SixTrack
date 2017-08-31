@@ -7609,10 +7609,10 @@ c$$$     &           myalphay * cos(phiy))
      &           myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
 
 !     Format for the input file:
-!               x, y   -> [ m ]
-!               xp, yp -> [ rad ]
-!               s      -> [ mm ]
-!               DE     -> [ MeV ]
+!               x, y   -> [ sigma ]
+!               xp, yp -> [ sigma ]
+!               s      -> [ sigma ]
+!               DE     -> [ sigma ]
 !
       implicit none
 
@@ -7665,8 +7665,17 @@ c$$$     &           myalphay * cos(phiy))
 ! The collimation coordinates/units are
 ! x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
 
-         ! longitudinal emittance=bunchlength*energyspread
-         myemitz  = bunchlength  * enerror
+         write(lout,*) " myenom [MeV]= ",myenom
+         write(lout,*) " myemitx [m]= ",myemitx
+         write(lout,*) " myemity [m]= ",myemity
+         write(lout,*) " bunchlength [mm]= ",bunchlength
+         write(lout,*) " enerror = ",enerror
+
+
+         !convert bunchlength from [mm] to [m]
+         ! enerror is the energy spread
+         myemitz  = bunchlength * 0.001d0 * enerror
+
 
 ! scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)  ia=the particle for which the tas was written
 
@@ -7712,20 +7721,18 @@ c$$$     &           myalphay * cos(phiy))
      &     normyp * sqrt(myemity)*1000.d0*tas(1,6,4) +
      &     norms  * sqrt(myemitz)*1000.d0*tas(1,6,5) +
      &     normp  * sqrt(myemitz)*tas(1,6,6)
-         write(lout,*) " myp(j) = ",myp(j)
-         write(lout,*) " myemitz = ",myemitz
-         write(lout,*) " tas(1,6,6) = ",tas(1,6,6)
+
 ! add the momentum
 ! convert to canonical variables
-! dE/E with unit [1] 
-! delta0 is coming from the closed orbit. For the 4D coordinates the closed orbit
+! dE/E with unit [1] from the closed orbit is added 
+!For the 4D coordinates the closed orbit
 ! will be added by SixTrack itself later on.
-         myxp(j)  = myxp(j)*(1.d0+myp(j)+clop6v(3,1))
-         myyp(j)  = myyp(j)*(1.d0+myp(j)+clop6v(3,1))
+        myxp(j)  = myxp(j)*(1.d0+myp(j)+clop6v(3,1))
+        myyp(j)  = myyp(j)*(1.d0+myp(j)+clop6v(3,1))
 ! unit conversion for collimation [m] to [mm]
          mys(j)   = mys(j)*1000.d0
-!collimation unit here is E [MeV]
-         myp(j)   = myenom*1000.d0*(1.d0+myp(j))
+         myp(j)   = myenom*(1.d0+myp(j))
+
       enddo
       
  10   mynp = j - 1
