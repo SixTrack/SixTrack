@@ -192,11 +192,11 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
         ! Take care of offsets in getfields_field (-4) and scatter_ELEM (+2)
         ! such that ii=5 -> column 3 of scatter_ELEM, ii=6 -> column 4, etc.
         !
-        ! A dummy variable might not be a bad idea here...
-        
+        ! A dummy variable might not be a bad idea here ...
+
         !In case we won't find the generator name
         scatter_ELEM(scatter_nELEM,ii-4+2) = -1
-        
+
         ! Search for the generator with the right name
         do j=1, scatter_nGENERATOR
             if( trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1)))) &
@@ -391,7 +391,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
        end if
     end do
 
-    ! Generator type dependent code...
+    ! Generator type-dependent code
     select case (getfields_fields(3)(1:getfields_lfields(3)))
     case("ABSORBER")
 
@@ -402,7 +402,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
         scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
         if(getfields_nfields .lt. 8) then
             write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC takes 8 or 9 arguments:"
-            write(lout,'(a)') "GEN name PPBEAMELASTIC a b1 b2 phi tmin (cross-section)"
+            write(lout,'(a)') "GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
             call prror(-1)
         end if
 
@@ -438,7 +438,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
         if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
 
         if(getfields_nfields .eq. 9) then
-            ! PPBEAMELASTIC corss-section
+            ! PPBEAMELASTIC crossSection
             scatter_fdata(tmpIdx+5) = round_near(errno,getfields_lfields(9)+1,getfields_fields(9))
             if(errno .ne. 0) call rounderr(errno,getfields_fields,9,scatter_fdata(tmpIdx+5))
             scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
@@ -461,7 +461,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
         read(getfields_fields(8)(1:getfields_lfields(8)),*) scatter_fdata(tmpIdx+4)
 
         if(getfields_nfields .eq. 9) then
-            ! PPBEAMELASTIC cross-section
+            ! PPBEAMELASTIC crossSection
             read(getfields_fields(9)(1:getfields_lfields(9)),*) scatter_fdata(tmpIdx+5)
             scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
         end if
@@ -489,7 +489,7 @@ subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfield
 +ca stringzerotrim
 +ca comscatter
 
-    ! Check number of arguments
+    ! Check the number of arguments
     if(getfields_nfields .ne. 3) then
         write(lout,'(a)') "SCATTER> ERROR, SEED expected 2 arguments:"
         write(lout,'(a)') "GEN seed1 seed2"
@@ -533,10 +533,9 @@ subroutine scatter_thin(ix, turn)
     double precision crossSection, N, P
     double precision rndPhi(npart), rndP(npart)
     double precision scaling
-    
-    ! Input
+
     integer, intent(in) :: ix, turn
-    
+
     ELEMidx = scatter_elemPointer(ix)
     PROidx  = scatter_ELEM(ELEMidx,2)
     scaling = scatter_ELEM_scale(ELEMidx)
@@ -546,13 +545,13 @@ subroutine scatter_thin(ix, turn)
                       "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",turn, &
                       "scaling=",scaling
     endif
-    
+
     if (scaling.le.pieni) then
        !Skip the whole thing if the scaling is zero
        return
     endif
-    
-    !Compute the "standard" s (used for cross-sections)
+
+    !Compute the "standard" s (used for cross sections)
     !(ask profile for the p)
 
     call recuut(tmpSeed1,tmpSeed2)
@@ -577,8 +576,8 @@ subroutine scatter_thin(ix, turn)
         rndPhi = rndPhi*2*3.1415926535897932d0
 
         do j=1, napx
-            ! Compute the cross-section at this s
-            ! (in most cases rougly equal for all particles; use mean x,y,xp,yp,E)
+            ! Compute the cross section at this s
+            ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
             crossSection = scatter_generator_getCrossSection( &
                 PROidx,GENidx, xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j) &
             )
@@ -624,7 +623,6 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
 +ca stringzerotrim
 +ca comscatter
 
-    ! Input
     integer, intent(in) :: profileIdx
     double precision, intent(in) :: x, y
 
@@ -648,7 +646,6 @@ subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
     implicit none
 
-    ! Input/Output
     integer, intent(in) :: profileIdx
     double precision, intent(in) :: x,y
     double precision, intent(out) :: xp,yp,E
@@ -667,7 +664,6 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
 +ca stringzerotrim
 +ca comscatter
 
-    ! Input/Output
     integer, intent(in) :: profileIDX, generatorIDX
     double precision, intent(in) :: x, y, xp, yp, E
 
@@ -679,7 +675,7 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
     call scatter_profile_getParticle(profileIDX, x,y, xp_target,yp_target,E_target)
     crossSection = 30d-27 ! Dummy value, 30 mbarn
 
-    ! Calculate the crossection as function of S
+    ! Calculate the cross section as function of S
     select case (scatter_GENERATOR(generatorIDX,2))
     case (1)  ! ABSORBER
         !...
@@ -716,7 +712,6 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
     double precision scatter_generator_getPPElastic
 
-    ! Input/Output
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
 
@@ -759,7 +754,6 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 
     implicit none
 
-    ! Input
     double precision, intent(in) :: a, b1, b2, phi, tmin
 
     ! Temp Variables
@@ -770,7 +764,7 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     g3    = a**2 * exp(-b2*tmin)/b2 ! Hard scatter term
     prob3 = g3/(g1+g3)              ! Probability of g3
 
-    ! Precalculate inverses
+    ! Pre-calculate inverses
     invB1 = 1.0d0/b1
     invB2 = 1.0d0/b2
 
@@ -794,5 +788,5 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         ! if miss, get new t value
         if(rndArr(3) .lt. gg) exit
     end do
-    
+
 end function
