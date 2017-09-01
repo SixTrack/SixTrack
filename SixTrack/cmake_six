@@ -307,7 +307,7 @@ if [ $? != 0 ]; then
     echo ""
     echo "ERROR in MAKE;"
     echo "Could be a bug..."
-    echo ".. or maybe you need to install some libraries (or the compiler)?"
+    echo ".. or maybe you need to install some libraries (or the compiler, or static versions of the libraries)?"
     echo "The output from MAKE should tell you more, so please look above this error message."
     echo ""
     echo "You may also look at the unfinished compilation in the folder "$NAME
