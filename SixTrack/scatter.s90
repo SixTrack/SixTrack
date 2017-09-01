@@ -2,6 +2,80 @@
 ! Deck for the scattering routines implemented in the SCATTER block
 
 module scatter
+
+  IMPLICIT NONE
+
+  ! We have to declare all this stuff, and we can't set them PRIVATE.
+  ! Therefore, we always need to import the SCATTER module using "only",
+  ! or else it will bring the contents of parpro, comgetfields,
+  ! and stringzerotrim along with it...
++ca parpro !for nele
+
+!For the string length stuff
++ca comgetfields
++ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
+
+!  PUBLIC
+  !Common variables for the SCATTER routines
+  logical scatter_active
+  
+  integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
+                                     ! (0 => not used)
+  integer scatter_maxELEM
+  parameter (scatter_maxELEM=200)    ! Max of scattering ELEM statements in use.
+  integer scatter_maxGenELEM
+  parameter (scatter_maxGenELEM=5)   ! Number of generators per ELEM
+                                     ! (2 slots taken by pointers to singleElement and profile).
+  
+  ! Configuration for an ELEM, columns are:
+  ! (1) = pointer to the SingleElement
+  ! (2) = pointer to PROFILE
+  ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
+  integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
+  
+  double precision scatter_ELEM_scale(scatter_maxELEM)
+  
+  ! Configuration for PROFILE
+  integer scatter_maxPROFILE
+  parameter (scatter_maxPROFILE=200)  ! Max number of profiles
+  integer scatter_PROFILE(scatter_maxPROFILE, 5)
+  ! Columns of scatter_PROFILE:
+  ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
+  ! (2)   : Profile type
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  
+  ! Configuration for GENERATOR
+  integer scatter_maxGENERATOR
+  parameter (scatter_maxGENERATOR=20)
+  integer scatter_GENERATOR(scatter_maxGENERATOR,5)
+  ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
+  ! (2)   : Generator type
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  
+  ! General data storage ala DYNK
+  integer scatter_maxdata, scatter_maxstrlen
+  parameter (scatter_maxdata   = 5000,                              &
+             scatter_maxstrlen = stringzerotrim_maxlen )
+  
+  integer                       scatter_idata (scatter_maxdata)
+  double precision              scatter_fdata (scatter_maxdata)
+  character (scatter_maxstrlen) scatter_cdata (scatter_maxdata)
+  
+  !Number of currently used positions in arrays
+  integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
+  integer scatter_nidata, scatter_nfdata, scatter_ncdata
+  
+  integer scatter_seed1, scatter_seed2
+  
+  logical scatter_debug
+  
+  save scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,       &
+       scatter_PROFILE, scatter_GENERATOR,                          &
+       scatter_idata, scatter_fdata, scatter_cdata,                 &
+       scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
+       scatter_nidata, scatter_nfdata, scatter_ncdata,              &
+       scatter_debug, scatter_active, scatter_seed1, scatter_seed2
+  
   
   contains !Subroutines are defined below this line
   
@@ -11,9 +85,6 @@ module scatter
 
 +ca crcoall
 +ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comscatter
 
     logical lopen
 
@@ -31,15 +102,24 @@ module scatter
 
   end subroutine scatter_initialize
 
+  subroutine scatter_closefiles
+    implicit none
+    logical lopen
+    
+    if (scatter_active) then
+       inquire(unit=667, opened=lopen)
+       if (lopen) close(667,err=667)
+667    continue
+    endif
+
+  end subroutine scatter_closefiles
+  
   subroutine scatter_dumpdata
 
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     integer ii,jj
 
@@ -101,10 +181,8 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
 +ca common
 +ca commonmn
@@ -239,10 +317,8 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     ! Temporary Variables
     integer ii, tmpIdx
@@ -349,10 +425,8 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
 +ca parnum
 
@@ -500,10 +574,7 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
-+ca stringzerotrim
-+ca comscatter
 
     ! Check the number of arguments
     if(getfields_nfields .ne. 3) then
@@ -526,10 +597,7 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
 +ca common
 +ca commonmn
@@ -628,10 +696,7 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     integer, intent(in) :: profileIdx
     double precision, intent(in) :: x, y
@@ -669,10 +734,7 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     integer, intent(in) :: profileIDX, generatorIDX
     double precision, intent(in) :: x, y, xp, yp, E
@@ -713,10 +775,6 @@ module scatter
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comscatter
 
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi

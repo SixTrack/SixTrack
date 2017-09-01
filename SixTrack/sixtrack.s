@@ -1450,70 +1450,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd comscatter
-      !Common block for the SCATTER routine
-      logical scatter_active
-      
-      integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
-                                         ! (0 => not used)
-      integer scatter_maxELEM
-      parameter (scatter_maxELEM=200)    ! Max of scattering ELEM statements in use.
-      integer scatter_maxGenELEM
-      parameter (scatter_maxGenELEM=5)   ! Number of generators per ELEM
-                                         ! (2 slots taken by pointers to singleElement and profile).
-
-      ! Configuration for an ELEM, columns are:
-      ! (1) = pointer to the SingleElement
-      ! (2) = pointer to PROFILE
-      ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
-      integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
-
-      double precision scatter_ELEM_scale(scatter_maxELEM)
-
-      ! Configuration for PROFILE
-      integer scatter_maxPROFILE
-      parameter (scatter_maxPROFILE=200)  ! Max number of profiles
-      integer scatter_PROFILE(scatter_maxPROFILE, 5)
-      ! Columns of scatter_PROFILE:
-      ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
-      ! (2)   : Profile type
-      ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-
-      ! Configuration for GENERATOR
-      integer scatter_maxGENERATOR
-      parameter (scatter_maxGENERATOR=20)
-      integer scatter_GENERATOR(scatter_maxGENERATOR,5)
-      ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
-      ! (2)   : Generator type
-      ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-      
-      ! General data storage ala DYNK
-      integer scatter_maxdata, scatter_maxstrlen
-      parameter (scatter_maxdata   = 5000,                              &
-     &           scatter_maxstrlen = stringzerotrim_maxlen )
-      
-      integer                       scatter_idata (scatter_maxdata)
-      double precision              scatter_fdata (scatter_maxdata)
-      character (scatter_maxstrlen) scatter_cdata (scatter_maxdata)
-
-      !Number of currently used positions in arrays
-      integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
-      integer scatter_nidata, scatter_nfdata, scatter_ncdata
-
-      integer scatter_seed1, scatter_seed2
-
-      logical scatter_debug
-      
-      common /scatterCom/                                               &
-     &     scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,       &
-     &     scatter_PROFILE, scatter_GENERATOR,                          &
-     &     scatter_idata, scatter_fdata, scatter_cdata,                 &
-     &     scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
-     &     scatter_nidata, scatter_nfdata, scatter_ncdata,              &
-     &     scatter_debug, scatter_active, scatter_seed1, scatter_seed2
-!     
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd timefct
 +if crlibm
           expt =  exp_rn(-dble(n)/tcnst35(i))
@@ -9146,6 +9082,7 @@ cc2008
       end module
 +dk close
       subroutine closeUnits
+      use scatter, only : scatter_closefiles
       implicit none
 +ca parpro
 +ca common
@@ -9154,7 +9091,6 @@ cc2008
 +ca stringzerotrim
 +ca comdynk
 +ca parbeam_exp
-+ca comscatter
       integer i
       logical lopen
 !-----------------------------------------------------------------------
@@ -9369,12 +9305,8 @@ cc2008
          end do
       end if
 
-      if (scatter_active) then
-         inquire(unit=667, opened=lopen)
-         if (lopen) close(667,err=667)
- 667     continue
-      endif
-
+      call scatter_closefiles
+      
       return
       end subroutine
 +dk cor_ord
@@ -11906,7 +11838,11 @@ cc2008
 !-----------------------------------------------------------------------
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
-      use scatter
+      use scatter, only : scatter_active, scatter_debug,
+     &     scatter_seed1,scatter_seed2,
+     &     scatter_dumpdata,
+     &     scatter_parseELEM, scatter_parseProfile,
+     &     scatter_parseGenerator, scatter_parseSEED
       implicit none
 +ca crcoall
 +if crlibm
@@ -11993,7 +11929,6 @@ cc2008
 +ca elensparam
 +ca wireparam
 +ca zipf
-+ca comscatter
 +ca parbeam_exp
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
@@ -23608,7 +23543,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
-      use scatter
+      use scatter, only : scatter_active, scatter_initialize
       use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
@@ -23692,7 +23627,6 @@ C Should get me a NaN
 +ca comdynk
 +ca fma
 +ca zipf
-+ca comscatter
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -25982,6 +25916,7 @@ C Should get me a NaN
 !!--------------------------------------------------------------------------
 !<
       subroutine trauthin(nthinerr)
+      use scatter, only : scatter_elemPointer
       implicit none
 +ca crcoall
 +if crlibm
@@ -26021,7 +25956,6 @@ C Should get me a NaN
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
-+ca comscatter
 ! +ca elensparam
 +ca parbeam_exp
       save
@@ -26990,7 +26924,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
-      use scatter
+      use scatter, only : scatter_thin, scatter_debug
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
@@ -27065,7 +26999,6 @@ C Should get me a NaN
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
-+ca comscatter
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -33350,7 +33283,17 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use scatter, only :
+     &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,
+     &scatter_PROFILE, scatter_GENERATOR,
+     &scatter_idata, scatter_fdata, scatter_cdata,
+     &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
+     &scatter_nidata, scatter_nfdata, scatter_ncdata,
+     &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,
+     &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,
+     &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
       implicit none
+      
 +if crlibm
 +ca crlibco
 +ei
@@ -33393,8 +33336,6 @@ C Should get me a NaN
 +ca wireparam
 
 +ca zipf
-
-+ca comscatter
 
 +if collimat
 +ca collpara
@@ -39849,6 +39790,7 @@ C+ei
 !     last modified: 31-10-2014
 !     Set the value of the element's attribute
 !-----------------------------------------------------------------------
+      use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       implicit none
 
 +ca parpro
@@ -39862,7 +39804,6 @@ C+ei
 +ca comdynk
 +ca elensparam
 +ca crcoall
-+ca comscatter
       
       character(maxstrlen_dynk) element_name, att_name
       double precision newValue
@@ -40064,6 +40005,7 @@ c$$$            endif
 !     Note: Expects that arguments element_name and att_name are
 !     zero-terminated strings of length maxstrlen_dynk!
 !-----------------------------------------------------------------------
+      use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       implicit none
 +ca parpro
 +ca parnum
@@ -40075,7 +40017,6 @@ c$$$            endif
 +ca comdynk
 +ca elensparam
 +ca crcoall
-+ca comscatter
       
       character(maxstrlen_dynk) element_name, att_name
       intent(in) element_name, att_name
