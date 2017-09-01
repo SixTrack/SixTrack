@@ -317,6 +317,7 @@ SET(MEDIUM_TESTS
   lostevery
   fma
   fma_binary
+  fma_naff
   frs
   frs60
   eric
