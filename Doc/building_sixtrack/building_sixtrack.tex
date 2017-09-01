@@ -617,6 +617,7 @@ in the folder created by the build command:
 \begin{lstlisting}
 ./cmake_six BUILD_TESTING
 \end{lstlisting}
+containing the new SixTrack executable, e.g.\ \texttt{*/SixTrack/\-SixTrack/\-SixTrack\-\_cmakesix\-\_*BUILD\-\_TEST\-ING*}.
 This will iterate over the tests, running SixTrack for each of them, and check the output for pass/fail.
 
 To run several tests in parallel, use the flag \texttt{-j \textit{numjobs}}.
@@ -629,8 +630,8 @@ The tests are classified as \texttt{fast} ($\lesssim 60~\mathrm{secconds}$), \te
 Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
 
 The tests will be ran in the \texttt{SixTest/\textit{testname}} sub-folder created by \texttt{cmake\_six}.
-It is therefore possible to find the produced files, together with the input- and reference files in this folder.
-The standard output of the simulation and output comparisons are by default stored in the \texttt{Testing/Temporary} subfolder.
+It is therefore possible to find the produced files, together with the input- and reference files in this folder; the simulation standard output is written to the file \texttt{fort.6} in this folder.
+The standard output of the test tool are by default stored in the \texttt{Testing/Temporary} subfolder.
 
 \subsubsection{Submitting to CDASH}
 In order to collect the results of all tests in a organized way, there is a CDash page for SixTrack, which can be found at \url{http://abp-cdash.web.cern.ch/abp-cdash/index.php?project=SixTrack}.
