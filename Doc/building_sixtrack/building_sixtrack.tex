@@ -472,6 +472,19 @@ It is found on AFS, in the folder \texttt{/afs/cern.ch/sw/nag/mark24/lnx/fll6i24
 Note that in order to link with this library (when also using \texttt{DA}) when compiling with gfortran or nagfor, dynamic linking (i.e.\ the flag \texttt{-STATIC} to \texttt{cmake\_six}) is required.
 If compiling with ifort, it is possible to link (mostly) statically.
 
+\subsubsection{NAFF}
+\label{sec:building:libs:naff}
+The NAFF library~\cite{NAFFpaper2} is an optional library for improving the FMA analysis.
+To enable it, add the \texttt{NAFF} flag to the command line of \texttt{cmake\_six}:
+\begin{lstlisting}
+./cmake_six NAFF
+\end{lstlisting}
+The NAFF library links with the FFTW and BOOST libraries; these must therefore be installed on the system in the appropriate (static/dynamic) versions.
+
+Furthermore, while NAFF is supported by SixTest (\texttt{BUILD\_TESTING}, see Section~\ref{sec:testing}), the results are not expected to be exactly reproducible between different compilers, operating systems etc.; for this we would not only need to make NAFF itself exactly reproducible, but also the libraries it depends on.
+Deeply modifying these libraries is not a feasible project; however since this is not part of the tracking but is purely used for preprocessing, it is of little consequence. 
+
+
 \subsection{Building on platforms other than Linux}
 
 \subsubsection{Building on OS X}
@@ -660,6 +673,11 @@ The following tests are currently known to fail:
 \bibitem{CERNgitlab} CERN GitLab \url{https://gitlab.cern.ch/}
 
 \bibitem{CERNgitProviders} KB0003132: When is it appropriate to use CERN GitLab or external services such as Github? \url{https://cern.service-now.com/service-portal/article.do?n=KB0003132}
+
+\bibitem{NAFFpaper2}
+  S.~Kostoglou, N.~Karastathis, Y.~Papaphilippou, D.~Pellegrini and P.~Zisopoulos,
+  ``Development of computational tools for noise studies in the LHC'', 
+  2017, Proceedings of IPAC'17, Copenhagen, Denmark, 2017.
 
 \end{thebibliography}
 
