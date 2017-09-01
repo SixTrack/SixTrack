@@ -57,7 +57,7 @@
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
+  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, S.~Kostoglou and K.~Sjobak
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -3249,7 +3249,7 @@ For the linear optics calculation \ref{LinOpt}, the optics needs to be calculate
 \subparagraph{filename}
 one of the outputfiles specified in the FMA block preceding DUMP block.
 \subparagraph{method}
-method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|. A short description of the different methods is given in Table~\ref{fma:tab:1}.
+method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|, \verb|NAFF|. A short description of the different methods is given in Table~\ref{fma:tab:1}.
 
 \begin{table}[H]
 	\begin{center}
@@ -3268,6 +3268,8 @@ PLATO \cite{plato1,plato2}
 & TUNEFFT &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$, where the maximum number of iterates is fixed in the parameter n.\\\cline{2-3}
 & TUNEFFTI &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$. Then, the FFT is interpolated fitting the three points around the maximum using a Gaussian. The tune is computed as the maximum of the Gaussian.\\\cline{2-3}
 & TUNEAPA &	Computes the tune as the average phase advance on a two dimensional plane, given n iterates of a map. \\\hline
+NAFF \cite{NAFFpaper, NAFFpaper2}
+& NAFF &	Computes the tune using the laskar method. The first estimation of the tune is obtained with an FFT and the precise value is determined by maximizing the fourier integral. A Hann window of first and second order for the transverse and longitudinal motion are used respectively. The NAFF flag must be enabled at build time \cite{sixbuild}. \\\hline
 	\end{tabularx}
 \end{center}
 \end{table}
@@ -4667,6 +4669,14 @@ summary of the post--processing is given.
 \bibitem{plato1} R.~Bartolini, A.~Bazzani, M.~Giovannozzi, W.~Scandale, E.~Todesco,``Tune evaluation in simulations and experiments'',Part. Accel. 52 147
 
 \bibitem{plato2} M.~Giovannozzi, E.~Todesco, A.~Bazzani and R.~Bartolini (1997). ``PLATO: a program library for the analysis of nonlinear betatronic motion'', Nucl. Instrum. and Methods A 388 1
+
+\bibitem{NAFFpaper} J.~Laskar, C.~Froeschle and C.~Celletti,
+  ``The measure of chaos by the numerical analysis of the fundamental frequencies. Application to the standard mapping'', 
+  Physica D, vol. 56, pp 253-269, 1992.
+\bibitem{NAFFpaper2} S.~Kostoglou, N.~Karastathis, Y.~Papaphilippou, D.~Pellegrini and P.~Zisopoulos,
+  ``Development of computational tools for noise studies in the LHC'', 
+  2017, Proceedings of IPAC'17, Copenhagen, Denmark, 2017.
+\bibitem{sixbuild} SixTrack build manual, see SixTrack website, \url{http://sixtrack.web.cern.ch/SixTrack/}
 
 \bibitem{sixdesk1} SixDesk manual, see SixTrack website, \url{http://sixtrack.web.cern.ch/SixTrack/}
 

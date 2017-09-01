@@ -22,6 +22,7 @@
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
 !!J. Molson (LAL)
+!!S. Kostoglou, NTUA, CERN
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
 !!Lesser General Public License version 2.1, copied verbatim in the file
