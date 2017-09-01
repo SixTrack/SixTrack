@@ -1,7 +1,11 @@
 +dk scatter
 ! Deck for the scattering routines implemented in the SCATTER block
 
-subroutine scatter_initialize
+module scatter
+  
+  contains !Subroutines are defined below this line
+  
+  subroutine scatter_initialize
 
     implicit none
 
@@ -25,9 +29,9 @@ subroutine scatter_initialize
     write(667,"(A)") "# scatter_log"
     write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
-end subroutine scatter_initialize
+  end subroutine scatter_initialize
 
-subroutine scatter_dumpdata
+  subroutine scatter_dumpdata
 
     implicit none
 
@@ -85,14 +89,14 @@ subroutine scatter_dumpdata
 
     write(lout,'(a)') "**** END SCATTER DUMP ****"
 
-end subroutine
+  end subroutine scatter_dumpdata
 
 !---------------------------------------------------------------------------------------------------
 ! BEGIN Input Parser Functions
 !---------------------------------------------------------------------------------------------------
 
 ! ***** PARSE SCATTER ELEM SUBROUTINE *****
-subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -227,10 +231,10 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
         end do
     end do
 
-end subroutine
+  end subroutine scatter_parseElem
 
 ! ***** PARSE SCATTER PRO SUBROUTINE *****
-subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -337,10 +341,10 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
     end select
 
-end subroutine
+  end subroutine scatter_parseProfile
 
 ! ***** PARSE SCATTER GEN SUBROUTINE *****
-subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -488,10 +492,10 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
     end select
 
-end subroutine
+  end subroutine scatter_parseGenerator
 
 ! ***** PARSE SCATTER SEED SUBROUTINE *****
-subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -512,14 +516,13 @@ subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfield
     read(getfields_fields(2)(1:getfields_lfields(2)),*) scatter_seed1
     read(getfields_fields(3)(1:getfields_lfields(3)),*) scatter_seed2
 
-end subroutine scatter_parseSeed
+  end subroutine scatter_parseSeed
 
 !---------------------------------------------------------------------------------------------------
 ! END Input Parser Functions
 !---------------------------------------------------------------------------------------------------
 
-subroutine scatter_thin(ix, turn)
-
+  subroutine scatter_thin(ix, turn)
     implicit none
 
 +ca crcoall
@@ -531,11 +534,6 @@ subroutine scatter_thin(ix, turn)
 +ca common
 +ca commonmn
 +ca parnum
-
-    ! Define functions
-    double precision scatter_profile_getDensity
-    double precision scatter_generator_getCrossSection
-    double precision scatter_generator_getPPElastic
 
     ! Temp variables
     integer          ELEMidx, PROidx, GENidx
@@ -623,9 +621,9 @@ subroutine scatter_thin(ix, turn)
     call recuut(scatter_seed1,scatter_seed2)
     call recuin(tmpSeed1,tmpSeed2)
 
-end subroutine
+  end subroutine scatter_thin
 
-double precision function scatter_profile_getDensity(profileIdx, x,y) result(retval)
+  double precision function scatter_profile_getDensity(profileIdx, x,y) result(retval)
 
     implicit none
 
@@ -652,9 +650,9 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
         call prror(-1)
     end select
 
-end function
+  end function scatter_profile_getDensity
 
-subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
+  subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
     implicit none
 
@@ -664,9 +662,9 @@ subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
     ! Return a particle to collide with
 
-end subroutine
-
-double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
+  end subroutine scatter_profile_getParticle
+  
+  double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
 
     implicit none
 
@@ -709,10 +707,9 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
 
     end select
 
-end function
+  end function scatter_generator_getCrossSection
 
-subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
-
+  subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     implicit none
 
 +ca crcoall
@@ -720,8 +717,6 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 +ca comgetfields
 +ca stringzerotrim
 +ca comscatter
-
-    double precision scatter_generator_getPPElastic
 
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
@@ -756,12 +751,12 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
     end select
 
-end subroutine
+  end subroutine scatter_generator_getTandXi
 
-! Based on Helmut Burkhardt's code presented on 05-04-2017
-! "Elastic pp scattering estimates and simulation relevant for burn-off"
-! https://indico.cern.ch/event/625576/
-double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
+  ! Based on Helmut Burkhardt's code presented on 05-04-2017
+  ! "Elastic pp scattering estimates and simulation relevant for burn-off"
+  ! https://indico.cern.ch/event/625576/
+  double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
     implicit none
 
@@ -813,4 +808,6 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         call prror(-1)
     end if
 
-end function
+  end function scatter_generator_getPPElastic
+
+end module scatter

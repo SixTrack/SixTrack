@@ -11906,6 +11906,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
+      use scatter
       implicit none
 +ca crcoall
 +if crlibm
@@ -23607,6 +23608,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use scatter
       use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
@@ -26988,6 +26990,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use scatter
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
