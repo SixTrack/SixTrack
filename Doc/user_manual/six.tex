@@ -3163,7 +3163,7 @@ The following formats are accepted:
 	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
         If there are multiple single elements attached to the file, the headers are repeated.\\
 	Data lines: as described in the header, one per particle and per turn.
-        \item[3] -- \textbf{Modified format for aperture check (Binary):}\\
+    \item[3] -- \textbf{Modified format for aperture check (Binary):}\\
         No header\\
         A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
         Records: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
@@ -3189,6 +3189,43 @@ The following formats are accepted:
         For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
         Note that the $\sigma=s -\beta_0 c t$ is the same as the $z$ used in the formats above, except for the unit of m instead of mm; and that $p_\sigma = \Delta E / \left(\beta_0 P_0 c\right)$.
         For more details, see the physics manual~\cite{sixphys}.
+     \item[7] -- \textbf{Format for normalized coordinates:}\\
+     The format is summarized in Table~\ref{dump:tab:norm}.
+     \begin{table}[H]
+     	\begin{center}
+     		\caption{Format of the NORM files}\label{dump:tab:norm}
+     		\begin{tabularx}{\textwidth}{|c|c|X|}
+     			\hline
+     			{\bf Line Number} & {\bf Type} & {\bf Description} \\
+     			\hline
+     			1 & header & Header line 1 is the same as for format 2.\\\hline
+     			2 & header & closed orbit  $x$,$x'$,$y$,$y'$,$z$,$dE/E$, units are $[\rm mm,mrad,mm,mrad,1]$. \\\hline
+     			3-39 & header & matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$. \\\hline
+     			40-76 & header & inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \hbox{$z_{\rm norm}=\rm{ta}\cdot z$}. Matrix \texttt{inv(tamatrix)} is given in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$.\\\hline
+     			77 & header & header with units of normalized particle coordinates:\\
+     			& & \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack}\\
+     			78 - eof & Data lines & see header in line 77.\\\hline
+     		\end{tabularx}
+     	\end{center}
+     \end{table}
+     If the coordinates are dumped at the start of the sequence (\texttt{StartDUMP}), the normalization matrix as used for the initialization of the particle amplitudes is used. This means, that if 4D optics are chosen, the 4D matrix is used, if 6D optics is chosen, the matrix obtained from the 6D optics calculation is chosen. For every other element except \texttt{StartDUMP}, the 6D optics are used independent of the tracking method chosen. In this case the 6D optics needs to be run and the following lines have to be inserted in \texttt{fort.3}:
+	\begin{verbatim}
+	DUMP
+	element_name_1 1 unit_1 7 filename_1 first_turn_1 last_turn_1
+	...
+	NEXT
+	LINE
+	ELEMENT  0 2 1 emit_1 emit_2
+	NEXT
+	\end{verbatim} 
+     If there are multiple single elements attached to the file, the headers are repeated.\\
+     Data lines: as described in the header, one per particle and per turn.
+    \item[3] -- \textbf{Format for normalized coordinates (Binary):}\\
+	No header\\
+	A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block. Format 8 is format 7 without header and in binary format.\\
+	Records: \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack}\\
+	The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers).
+     
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
