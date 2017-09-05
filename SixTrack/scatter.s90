@@ -632,6 +632,10 @@ module scatter
     implicit none
 
 +ca crcoall
++if crlibm
++ca crlibco
++ei
+
 +ca stringzerotrim
 
 +ca common
@@ -686,7 +690,7 @@ module scatter
 
         call ranecu(rndPhi, napx, -1)
         call ranecu(rndP,   napx, -1)
-        rndPhi = rndPhi*2*pi
+        rndPhi = rndPhi*(2*pi)
 
         do j=1, napx
             ! Compute the cross section at this s
@@ -699,7 +703,7 @@ module scatter
             N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
 
             ! Compute probability P
-            P = N*crossSection*scaling
+            P = (N*crossSection)*scaling
             ! If RNG > P -> go to next particle, else scatter
             if (rndP(j) .gt. P) then
                 cycle
@@ -711,9 +715,15 @@ module scatter
             ! Use generator t and xi to update particle j;
             ! remember to update ALL the energy arrays
             theta   = 1d3*sqrt(t)/ejfv(j)                  ! Unit mrad
++if crlibm
+            yv(1,j) = theta*cos_rn(rndPhi(j)) + yv(1,j)
+            yv(2,j) = theta*sin_rn(rndPhi(j)) + yv(2,j)
++ei
++if .not.crlibm
             yv(1,j) = theta*cos(rndPhi(j)) + yv(1,j)
             yv(2,j) = theta*sin(rndPhi(j)) + yv(2,j)
-
++ei
+            
             ! Output to file
             write(667,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
                 trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
@@ -852,7 +862,9 @@ module scatter
   double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
     implicit none
-
++if crlibm
++ca crlibco
++ei
 +ca crcoall
 
     double precision, intent(in) :: a, b1, b2, phi, tmin
@@ -862,10 +874,16 @@ module scatter
     double precision g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
 
     ! Approximate distribution
++if crlibm
+    g1    =            exp_rn(-b1*tmin)/b1 ! Soft scatter term
+    g3    = (a**2) * ( exp_rn(-b2*tmin)/b2 ) ! Hard scatter term
++ei
++if .not.crlibm
     g1    =        exp(-b1*tmin)/b1 ! Soft scatter term
     g3    = a**2 * exp(-b2*tmin)/b2 ! Hard scatter term
++ei
     prob3 = g3/(g1+g3)              ! Probability of g3
-
+    
     ! Pre-calculate inverses
     invB1 = 1.0d0/b1
     invB2 = 1.0d0/b2
@@ -877,18 +895,35 @@ module scatter
         call ranecu(rndArr, 3, -1)
 
         ! Randomly switch between g1 and g3 according to probability
++if crlibm
+        if(rndArr(1) .gt. prob3) then
+            t = tmin - invB1*log_rn(rndArr(2))
+        else
+            t = tmin - invB2*log_rn(rndArr(2))
+        end if
++ei
++if .not.crlibm
         if(rndArr(1) .gt. prob3) then
             t = tmin - invB1*log(rndArr(2))
         else
             t = tmin - invB2*log(rndArr(2))
         end if
-
++ei
+        
         ! Exact distribution
++if crlibm
+        g1 =            exp_rn(-b1*t)                                    ! Soft scatter term
+        g2 =  ( (2*a) * exp_rn( ( (-0.5d0)*(b1+b2) )*t ) ) * cos_rn(phi) ! Interference
+        g3 =   (a**2) * exp_rn(-b2*t)                                    ! Hard scatter term
+        gg = ((g1+g2)+g3)/(g1+g3)
++ei
++if .not.crlibm
         g1 =        exp(-b1*t)                       ! Soft scatter term
         g2 =  2*a * exp(-0.5d0*(b1+b2)*t) * cos(phi) ! Interference
         g3 = a**2 * exp(-b2*t)                       ! Hard scatter term
         gg = (g1+g2+g3)/(g1+g3)
-
++ei
+        
         ! Check hit/miss on exact distribution
         ! if miss, get new t value
         ! if too many attempts, exit
