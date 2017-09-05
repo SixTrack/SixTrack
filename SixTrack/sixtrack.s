@@ -8984,13 +8984,12 @@ cc2008
 +dk close
       subroutine closeUnits
       use scatter, only : scatter_closefiles
+      use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
       implicit none
 +ca parpro
 +ca common
 +ca comgetfields
 +ca dbdump
-+ca stringzerotrim
-+ca comdynk
 +ca parbeam_exp
       integer i
       logical lopen
@@ -11745,6 +11744,11 @@ cc2008
      &     scatter_parseELEM, scatter_parseProfile,
      &     scatter_parseGenerator, scatter_parseSEED,
      &     scatter_allocate
+
+      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
+     &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,
+     &     dynk_inputsanitycheck
+      
       implicit none
 +ca crcoall
 +if crlibm
@@ -11826,7 +11830,6 @@ cc2008
 +ca comgetfields
 +ca dbdump
 +ca stringzerotrim
-+ca comdynk
 +ca fma
 +ca elensparam
 +ca wireparam
@@ -11849,9 +11852,6 @@ cc2008
 !     - dump beam population:
       character*16 dump
       data dump /'DUMP'/
-!     - dynamic kicks
-      character*16 dynk
-      data dynk /'DYNK'/
 !     - fma
       character*16 fma
       data fma /'FMA'/
@@ -12084,12 +12084,7 @@ cc2008
 
 !     - dump beam population:
       if(idat.eq.dump) goto 2000
-
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 17-07-2013
-!     brand new input block for dynamic kicks
-!     always in main code
-      if(idat.eq.dynk)  goto 2200
+      if(idat.eq."DYNK")  goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
       if(idat.eq.wire)  goto 2500
@@ -18057,6 +18052,7 @@ cc2008
 !     print an error and exit.
 !-----------------------------------------------------------------------
 !
+      use dynk, only : dynk_elemdata
       implicit none
       
       integer, intent(in) :: ix
@@ -18072,7 +18068,6 @@ cc2008
 +ca commonxz
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca wireparam
 +ca crcoall
@@ -23453,7 +23448,11 @@ C Should get me a NaN
       use bigmats
 +ei
       use scatter, only : scatter_active, scatter_initialize
+
+      use dynk, only: dynk_izuIndex
+      
       use, intrinsic :: iso_fortran_env, only : output_unit
+      
       implicit none
 +ca crcoall
 +if crlibm
@@ -23533,7 +23532,6 @@ C Should get me a NaN
 +ca dbdumpcr
 +ei
 +ca stringzerotrim
-+ca comdynk
 +ca fma
 +ca zipf
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
@@ -25826,6 +25824,7 @@ C Should get me a NaN
 !<
       subroutine trauthin(nthinerr)
       use scatter, only : scatter_elemPointer
+      use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
 +if crlibm
@@ -25861,11 +25860,6 @@ C Should get me a NaN
 +if bnlelens
 +ca rhicelens
 +ei
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
-! +ca elensparam
 +ca parbeam_exp
       save
 !-----------------------------------------------------------------------
@@ -26306,6 +26300,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use dynk, only : ldynk, dynk_apply
       implicit none
 +ca exactvars
 +ca commonex
@@ -26349,8 +26344,6 @@ C Should get me a NaN
 +ei
 +ca comgetfields
 +ca dbdump
-+ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -26834,6 +26827,7 @@ C Should get me a NaN
       use bigmats
 +ei
       use scatter, only : scatter_thin, scatter_debug
+      use dynk, only : ldynk, dynk_apply
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
@@ -26903,8 +26897,6 @@ C Should get me a NaN
 
 +ca comgetfields
 +ca dbdump
-+ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -27683,6 +27675,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use dynk, only : ldynk, dynk_apply
       implicit none
 +ca exactvars
 +ca commonex
@@ -27726,8 +27719,6 @@ C Should get me a NaN
 +ei
 +ca comgetfields
 +ca dbdump
-+ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -29288,6 +29279,7 @@ C Should get me a NaN
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
+      use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
 +if crlibm
@@ -29309,10 +29301,6 @@ C Should get me a NaN
 +ca commontr
 +ca beamdim
       dimension nbeaux(nbb)
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
-      logical dynk_isused
 +if collimat
 +ca database
 +ei
@@ -29708,6 +29696,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use dynk, only : ldynk, dynk_apply
       implicit none
 +ca crcoall
 +if crlibm
@@ -29749,8 +29738,6 @@ C Should get me a NaN
 +ei
 +ca comgetfields
 +ca dbdump
-+ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -30253,6 +30240,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use dynk, only : ldynk, dynk_apply
       implicit none
 +ca crcoall
 +if crlibm
@@ -30298,8 +30286,6 @@ C Should get me a NaN
 +ei
 +ca comgetfields
 +ca dbdump
-+ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -30956,6 +30942,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use dynk, only : ldynk, dynk_apply
       implicit none
 +ca crcoall
 +if crlibm
@@ -30997,8 +30984,6 @@ C Should get me a NaN
 +ei
 +ca comgetfields
 +ca dbdump
-+ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -31086,7 +31071,6 @@ C Should get me a NaN
      & "DUMP/FRONT not yet supported on thick elements "//
      & "due to lack of test cases. Please contact developers!"
          call prror(-1)
-!+ca dumplines
       endif
 
 +if time
@@ -33200,6 +33184,19 @@ C Should get me a NaN
      &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,
      &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,
      &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
+
+      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
+     &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
+     &     maxfuncs_dynk,funcs_dynk,
+     &     maxdata_dynk,maxstrlen_dynk,
+     &     iexpr_dynk, fexpr_dynk,cexpr_dynk,
+     &     nsets_dynk,maxsets_dynk,
+     &     sets_dynk,csets_dynk,csets_unique_dynk,fsets_origvalue_dynk,
+     &     dynk_izuIndex,dynk_elemdata
++if cr
+     &     , dynkfilepos
++ei
+
       implicit none
       
 +if crlibm
@@ -33233,16 +33230,10 @@ C Should get me a NaN
 +ca dbdumpcr
 +ei
 
-+ca stringzerotrim
-+ca comdynk
-
-+if cr
-+ca comdynkcr
-+ei
-
 +ca elensparam
 +ca wireparam
 
++ca stringzerotrim
 +ca zipf
 
 +if collimat
@@ -33250,6 +33241,7 @@ C Should get me a NaN
 +ca database
 +ca dbcommon
 +ei
+
 +ca parbeam_exp
       save
 !-----------------------------------------------------------------------
@@ -49247,7 +49239,15 @@ c$$$            endif
 +if datamods
       use bigmats
 +ei
-!      use, intrinsic :: iso_fortran_env, only : output_unit
+      use dynk, only : ldynk,
+     &niexpr_dynk_cr,nfexpr_dynk_cr, ncexpr_dynk_cr,
+     &maxdata_dynk,maxsets_dynk,
+     &iexpr_dynk_cr,fexpr_dynk_cr,cexpr_dynk_cr,
+     &cexpr_dynk_cr,fsets_dynk_cr,
+     &ldynkfiledisable, dynkfilepos_cr,dynkfilepos
+      
+!     use, intrinsic :: iso_fortran_env, only : output_unit
+
       implicit none
 +ca crcoall
 +ca parpro
@@ -49269,10 +49269,7 @@ c$$$            endif
 +ei
 +ca crco
 +ca comgetfields
-+ca stringzerotrim
-+ca comdynk
-+ca comdynkcr
-+ca comgetfields
+
 +ca dbdump
 +ca dbdumpcr
 +ca version
@@ -50348,6 +50345,13 @@ c$$$         backspace (93,iostat=ierro)
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
+
+      use dynk, only : nsets_unique_dynk,fsets_dynk_cr,dynk_getvalue,
+     &csets_unique_dynk, ldynk,
+     &dynkfilepos,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
+     &maxdata_dynk,maxsets_dynk,
+     &iexpr_dynk,fexpr_dynk,cexpr_dynk,fsets_dynk_cr
+
       implicit none
 +ca crcoall
 +ca parpro
@@ -50364,11 +50368,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca commonm1
 +ca commontr
 +ca commonc
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
-+ca comdynkcr
-      double precision dynk_getvalue
+
 +ca dbdumpcr
 +if bnlelens
 +ca rhicelens
@@ -50988,6 +50988,15 @@ c$$$         backspace (93,iostat=ierro)
 +if datamods
       use bigmats
 +ei
+      use dynk, only : ldynk,
+     &niexpr_dynk, niexpr_dynk_cr, nfexpr_dynk, nfexpr_dynk_cr,
+     &ncexpr_dynk, ncexpr_dynk_cr, maxdata_dynk,
+     &iexpr_dynk,iexpr_dynk_cr,fexpr_dynk,fexpr_dynk_cr,
+     &cexpr_dynk,cexpr_dynk_cr,
+     &nsets_unique_dynk,dynk_setvalue,
+     &csets_unique_dynk,fsets_dynk_cr
+      
+      
       implicit none
 +ca crcoall
 +ca parpro
@@ -51008,10 +51017,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca rhicelens
 +ei
 +ca crco
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
-+ca comdynkcr
+
       double precision dynk_newValue
 
       integer j,l,k,m,i

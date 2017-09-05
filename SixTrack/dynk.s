@@ -1,4 +1,22 @@
-+cd   comdynk
++dk dynk
+      module dynk
+
+      IMPLICIT NONE
+
+! We have to declare all this stuff, and we can't set them PRIVATE.
+! Therefore, we always need to import the DYNK module using "only",
+! or else it will bring the contents of parpro, comgetfields,
+! and stringzerotrim along with it...
+
+!For nele
++ca parpro
+
+!For the string length stuff
++ca comgetfields
++ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
+
+
+!+cd   comdynk
 
 !     A.Mereghetti, for the FLUKA Team,
 !     K.Sjobak and A. Santamaria, BE-ABP/HSS
@@ -60,19 +78,20 @@ C     Store the SET statements
       double precision dynk_elemdata(nele,3)
       
 !     fortran COMMON declaration follows padding requirements
-      common /dynkComGen/ ldynk, ldynkdebug, ldynkfiledisable
+c$$$      common /dynkComGen/ ldynk, ldynkdebug, ldynkfiledisable
+c$$$
+c$$$      common /dynkComExpr/ funcs_dynk,
+c$$$     &     iexpr_dynk, fexpr_dynk, cexpr_dynk,
+c$$$     &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
+c$$$
+c$$$      common /dynkComSet/ sets_dynk, csets_dynk, nsets_dynk
+c$$$      common /dynkComUniqueSet/
+c$$$     &     csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
+c$$$     
+c$$$      common /dynkComReinitialize/ dynk_izuIndex, dynk_elemdata
 
-      common /dynkComExpr/ funcs_dynk,
-     &     iexpr_dynk, fexpr_dynk, cexpr_dynk,
-     &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
-
-      common /dynkComSet/ sets_dynk, csets_dynk, nsets_dynk
-      common /dynkComUniqueSet/
-     &     csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-     
-      common /dynkComReinitialize/ dynk_izuIndex, dynk_elemdata
-
-+cd comdynkcr
++if cr
+!+cd comdynkcr
 C     Block with data/fields needed for checkpoint/restart of DYNK
       ! Number of records written to dynkfile (dynksets.dat)
       integer dynkfilepos, dynkfilepos_cr
@@ -87,20 +106,34 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       ! Store current settings from dynk
       double precision fsets_dynk_cr(maxsets_dynk)
 
-      common /dynkComCR/ dynkfilepos,dynkfilepos_cr
-      common /dynkComExprCR/
-     &     iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr,
-     &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
-      
-      common /dynkComUniqueSetCR/
-     &     fsets_dynk_cr
+c$$$      common /dynkComCR/ dynkfilepos,dynkfilepos_cr
+c$$$      common /dynkComExprCR/
+c$$$     &     iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr,
+c$$$     &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
+c$$$      
+c$$$      common /dynkComUniqueSetCR/
+c$$$     &     fsets_dynk_cr
++ei
       
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-
-+dk dynkancil
-
+      save ldynk, ldynkdebug, ldynkfiledisable
+      save funcs_dynk,
+     &     iexpr_dynk, fexpr_dynk, cexpr_dynk,
+     &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
+      save sets_dynk, csets_dynk, nsets_dynk
+      save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
+      save dynk_izuIndex, dynk_elemdata
++if cr
+      save dynkfilepos,dynkfilepos_cr
+      save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr,
+     &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
+      save fsets_dynk_cr
++ei
+      
+      contains
+      
       subroutine dynk_parseFUN( getfields_fields,
      &                          getfields_lfields,getfields_nfields )
 !
@@ -112,10 +145,8 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !-----------------------------------------------------------------------
 !     
       implicit none
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
 +ca crcoall
 
       intent(in) getfields_fields, getfields_lfields, getfields_nfields
@@ -128,9 +159,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &                 derivI_te,I_te,bexp,aexp, t1,I1, td,tnom !PELP (calc)
       
       logical isFIR ! FIR/IIR
-      
-      ! define function return type
-      integer dynk_findFUNindex
       
       logical lopen
 
@@ -1813,10 +1841,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       implicit none
       integer iblocks,fblocks,cblocks
       intent(in) iblocks,fblocks,cblocks
-+ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
 
 +ca crcoall
 
@@ -1843,17 +1867,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !     store it in COMMON block dynkComExpr.
 !-----------------------------------------------------------------------
       implicit none
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
 
 +ca crcoall
 
       integer ii
       
-      integer dynk_findFUNindex
-
       if (nsets_dynk+1 .gt. maxsets_dynk) then
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Maximum number of SET exceeded, ",
@@ -1969,10 +1989,6 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !      that it is a zero-terminated string.
 !-----------------------------------------------------------------------
       implicit none
-+ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
 +ca crcoall
       character(*) funName_input
       character(maxstrlen_dynk) funName
@@ -2034,10 +2050,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !      is exactly maxstrlen_dynk .
 !-----------------------------------------------------------------------
       implicit none
-+ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
       character(maxstrlen_dynk) element_name, att_name
       integer startfrom
       intent(in) element_name, att_name, startfrom
@@ -2063,13 +2075,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     Check that DYNK block input in fort.3 was sane
 !-----------------------------------------------------------------------
       implicit none
-+ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comdynk
 +ca crcoall
-      ! functions
-      integer dynk_findFUNindex , dynk_findSETindex
 
       integer ii, jj
       integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
@@ -2175,10 +2181,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     Dump arrays with DYNK FUN and SET data to the std. output for debugging
 !----------------------------------------------------------------------------
       implicit none
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
 +ca crcoall
 
       integer ii
@@ -2243,17 +2247,11 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     that elements/attributes for SET actually exist.
 !-----------------------------------------------------------------------
       implicit none
-+ca parpro
 +ca common
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
 +ca crcoall
 +ca commondl
-
-      !Functions
-      double precision dynk_getvalue
-      integer dynk_findSETindex
 
       !Temp variables
       integer ii,jj
@@ -2396,8 +2394,6 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       end subroutine
       
-
-+dk dynktrack
       subroutine dynk_apply(turn)
 !-----------------------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
@@ -2419,17 +2415,12 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       implicit none
 
 +ca crcoall
-+ca parpro
 +ca parnum
 +ca common
 +ca commonmn
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
-+if cr
-+ca comdynkcr
-+ei
 +if boinc
       character*256 filename
 +ei
@@ -2446,11 +2437,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     temporary variables
       integer ii, jj, shiftedTurn
       logical lopen
-!     functions
-      double precision dynk_computeFUN
-      integer dynk_findSETindex
-      
-      double precision dynk_getvalue, getvaldata, newValue
+      double precision getvaldata, newValue
       
       character(maxstrlen_dynk) whichFUN(maxsets_dynk) !Which function was used to set a given elem/attr?
       integer whichSET(maxsets_dynk) !Which SET was used for a given elem/attr?
@@ -2725,15 +2712,13 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 !     Compute the value of a given DYNK function (funNum) for the given turn
 !-----------------------------------------------------------------------
       implicit none
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
+
       integer funNum, turn
       intent (in) funNum, turn
       
       !Functions to call
-      double precision dynk_lininterp
 +if crlibm
       double precision round_near
 +ei
@@ -2741,6 +2726,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +if crlibm
 +ca crlibco
 +ei
+
 +ca crcoall
       
       ! Temporaries for FILELIN
@@ -2762,17 +2748,10 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       character*(nchars) ch
 +ei
 
-      ! Other stuff
+! Usefull constants (pi and two)
++ca common
 +ca parnum
-      double precision pi
-      !This is how it is done in the rest of the code...
-+if crlibm
-      pi = 4d0*atan_rn(1d0)
-+ei
-+if .not.crlibm
-      pi = 4d0*atan(1d0)
-+ei
-      
+
       if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
          write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
          write(lout,*) "DYNK> funNum =", funNum
@@ -3100,7 +3079,6 @@ C+ei
       use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       implicit none
 
-+ca parpro
 +ca parnum
 +ca common
 +ca commonmn
@@ -3108,7 +3086,6 @@ C+ei
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
 +ca elensparam
 +ca crcoall
       
@@ -3314,14 +3291,13 @@ c$$$            endif
 !-----------------------------------------------------------------------
       use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       implicit none
-+ca parpro
 +ca parnum
 +ca common
 +ca commonmn
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
+
 +ca elensparam
 +ca crcoall
       
@@ -3573,11 +3549,9 @@ c$$$               endif
       
       implicit none
 
-+ca parpro
 +ca common
 +ca comgetfields
 +ca stringzerotrim
-+ca comdynk
 +ca crcoall
 
       integer, intent(in) :: i
@@ -3620,3 +3594,4 @@ c$$$               endif
       
       end function
 
+      end module dynk
