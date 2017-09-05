@@ -57,9 +57,9 @@ module scatter
   parameter (scatter_maxdata   = 5000,                              &
              scatter_maxstrlen = stringzerotrim_maxlen )
   
-  integer                       scatter_idata (scatter_maxdata)
-  double precision              scatter_fdata (scatter_maxdata)
-  character (scatter_maxstrlen) scatter_cdata (scatter_maxdata)
+  integer,                       allocatable :: scatter_idata (:)
+  double precision,              allocatable :: scatter_fdata (:)
+  character (scatter_maxstrlen), allocatable :: scatter_cdata (:)
   
   !Number of currently used positions in arrays
   integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
@@ -78,9 +78,44 @@ module scatter
   
   
   contains !Subroutines are defined below this line
-  
-  subroutine scatter_initialize
 
+  subroutine scatter_allocate
+    implicit none
+
++ca crcoall
++ca parpro
+
++ca parnum
+
+    integer stat
+    integer i,j
+    
+    write(lout,'(A,I8)') "SCATTER_ALLOCATE : scatter_maxdata=",scatter_maxdata
+    allocate( scatter_idata(scatter_maxdata), &
+              scatter_fdata(scatter_maxdata), &
+              scatter_cdata(scatter_maxdata), &
+              STAT=stat)
+
+    if (stat.ne.0) then
+       write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE(); stat=",stat
+       call prror(-1)
+    endif
+
+    ! Zero the memory, as is done in comnul.
+    ! One disadvantage of doing this is that we force all the memory to be real,
+    ! while in most cases much of it could actually be virtual...
+    do i=1, scatter_maxdata
+       scatter_idata(i) = 0
+       scatter_fdata(i) = zero
+       do j=1, scatter_maxstrlen
+          scatter_cdata(i)(j:j) = char(0)
+       end do
+    enddo
+
+    
+  end subroutine scatter_allocate
+    
+  subroutine scatter_initialize
     implicit none
 
 +ca crcoall

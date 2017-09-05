@@ -11843,7 +11843,8 @@ cc2008
      &     scatter_seed1,scatter_seed2,
      &     scatter_dumpdata,
      &     scatter_parseELEM, scatter_parseProfile,
-     &     scatter_parseGenerator, scatter_parseSEED
+     &     scatter_parseGenerator, scatter_parseSEED,
+     &     scatter_allocate
       implicit none
 +ca crcoall
 +if crlibm
@@ -17479,11 +17480,15 @@ cc2008
 !  K. Sjobak, V. Olsen BE-ABP-HSS
 !  Last modified: 29-08-2017
 !-----------------------------------------------------------------------
- 2900 read(3,10020, end=1530, iostat=ierro) ch
+ 2900 continue
+      !We have a SCATTER block; let's allocate the memory for it!
+      call scatter_allocate
+      
+ 2901 read(3,10020, end=1530, iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
-      if(ch(1:1).eq.'/') goto 2900 ! skip comment line
+      if(ch(1:1).eq.'/') goto 2901 ! skip comment line
       
       if (ch(:4).eq.next) then
          
@@ -17507,7 +17512,7 @@ cc2008
       if (ch(:5).eq."DEBUG") then
          scatter_debug = .true.
          write(lout,'(a)') "SCATTER> Scatter block debugging is ON."
-         goto 2900
+         goto 2901
       endif
       
       call getfields_split( ch, getfields_fields, getfields_lfields,
@@ -17546,7 +17551,7 @@ cc2008
          call prror(-1)
       endif
       
-      goto 2900                 !Read the next line of the SCATTER block
+      goto 2901                 !Read the next line of the SCATTER block
       
 !----------------------------------------------------------------------------
 !     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
@@ -33290,7 +33295,7 @@ C Should get me a NaN
       use scatter, only :
      &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,
      &scatter_PROFILE, scatter_GENERATOR,
-     &scatter_idata, scatter_fdata, scatter_cdata,
+!     &scatter_idata, scatter_fdata, scatter_cdata,
      &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
      &scatter_nidata, scatter_nfdata, scatter_ncdata,
      &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,
@@ -34048,14 +34053,6 @@ C Should get me a NaN
          scatter_GENERATOR(i,5)=0
       end do
 
-      do i=1, scatter_maxdata
-         scatter_idata(i) = 0
-         scatter_fdata(i) = zero
-         do j=1, scatter_maxstrlen
-            scatter_cdata(i)(j:j) = char(0)
-         end do
-      enddo
-      
       scatter_seed1 = -1
       scatter_seed2 = -1
       
