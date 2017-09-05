@@ -45,9 +45,10 @@ C     Store the FUN statements
                                            ! (1) = function name in fort.3 (points within cexpr_dynk),
                                            ! (2) = indicates function type
                                            ! (3,4,5) = arguments (often pointing within other arrays {i|f|c}expr_dynk)
-      integer iexpr_dynk (maxdata_dynk)                  ! Data for DYNK FUNs
-      double precision fexpr_dynk (maxdata_dynk)         ! Data for DYNK FUNs
-      character(maxstrlen_dynk) cexpr_dynk(maxdata_dynk) ! Data for DYNK FUNs (\0 initialized in comnul)
+      ! Data for DYNK FUNs
+      integer,                  allocatable :: iexpr_dynk (:)
+      double precision,         allocatable :: fexpr_dynk (:)
+      character(maxstrlen_dynk),allocatable :: cexpr_dynk (:)
       
       integer nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk !Number of used positions in arrays
             
@@ -97,9 +98,9 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       integer dynkfilepos, dynkfilepos_cr
       
       ! Data for DYNK FUNs
-      integer                  iexpr_dynk_cr (maxdata_dynk)
-      double precision         fexpr_dynk_cr (maxdata_dynk)
-      character(maxstrlen_dynk)cexpr_dynk_cr (maxdata_dynk)
+      integer,                  allocatable :: iexpr_dynk_cr (:)
+      double precision,         allocatable :: fexpr_dynk_cr (:)
+      character(maxstrlen_dynk),allocatable :: cexpr_dynk_cr (:)
       ! Number of used positions in arrays
       integer niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
       
@@ -132,7 +133,57 @@ c$$$     &     fsets_dynk_cr
       save fsets_dynk_cr
 +ei
       
-      contains
+      contains                  !HERE COMES THE SUBROUTINES!
+
+      subroutine dynk_allocate
+      implicit none
+
++ca crcoall
+
++ca parnum
+
+      integer stat
+      integer i,j
+      
+      write(lout,'(A,I8)') "DYNK_ALLOCATE : maxdata_dynk=",
+     &     maxdata_dynk
+      allocate( iexpr_dynk(maxdata_dynk),
+     &          fexpr_dynk(maxdata_dynk),
+     &          cexpr_dynk(maxdata_dynk),
+     &     STAT=stat)
+      
+      if (stat.ne.0) then
+         write(lout,'(A,I8)') "ERROR in DYNK_ALLOCATE; stat=",stat
+         call prror(-1)
+      endif
+      
+! Zero the memory, as is done in comnul.
+! One disadvantage of doing this is that we force all the memory to be real,
+! while in most cases much of it could actually be virtual...
+      do i=1,maxdata_dynk
+         iexpr_dynk(i) = 0
+         fexpr_dynk(i) = zero
+         do j=1,maxstrlen_dynk
+            cexpr_dynk(i)(j:j) = char(0)
+         enddo
+      enddo
+
++if cr
+      write(lout,'(A,I8)') "DYNK_ALLOCATE [CR] : maxdata_dynk=",
+     &     maxdata_dynk
+      allocate( iexpr_dynk_cr(maxdata_dynk),
+     &          fexpr_dynk_cr(maxdata_dynk),
+     &          cexpr_dynk_cr(maxdata_dynk),
+     &     STAT=stat)
+      
+      if (stat.ne.0) then
+         write(lout,'(A,I8)') "ERROR in DYNK_ALLOCATE [CR]; stat=",stat
+         call prror(-1)
+      endif
++ei
+      
+      end subroutine
+      
       
       subroutine dynk_parseFUN( getfields_fields,
      &                          getfields_lfields,getfields_nfields )

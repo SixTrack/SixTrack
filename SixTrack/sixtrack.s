@@ -11747,7 +11747,7 @@ cc2008
 
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
      &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,
-     &     dynk_inputsanitycheck
+     &     dynk_inputsanitycheck, dynk_allocate
       
       implicit none
 +ca crcoall
@@ -16718,11 +16718,22 @@ cc2008
 !  last modified: 21-01-2014
 !  always in main code
 !-----------------------------------------------------------------------
- 2200 read(3,10020,end=1530,iostat=ierro) ch
+ 2200 continue
+      !We have a DYNK block; let's allocate the memory for it!
+      if (ldynk) then
+         write (lout,*)
+         write (lout,*) "******************************************"
+         write (lout,*) "** More than one DYNK block encountered **"
+         write (lout,*) "******************************************"
+         call prror(51)
+      endif
+      call dynk_allocate
+      
+ 2201 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3 = lineno3+1 ! Line number used for some crash output
 
-      if(ch(1:1).eq.'/') goto 2200 ! skip comment line
+      if(ch(1:1).eq.'/') goto 2201 ! skip comment line
 
       ! Which type of block? Look at start of string (no leading blanks allowed)
 
@@ -16730,13 +16741,13 @@ cc2008
          ldynkdebug = .true.
          write (lout,*)
      &        "DYNK> DYNK block debugging is ON"
-         goto 2200 !loop DYNK
+         goto 2201 !loop DYNK
          
       else if (ch(:6).eq."NOFILE") then
          ldynkfiledisable = .true.
          write (lout,*)
      &        "DYNK> Disabled writing dynksets.dat"
-         goto 2200 !loop DYNK
+         goto 2201 !loop DYNK
          
       else if (ch(:3).eq."FUN") then
          call getfields_split( ch, getfields_fields, getfields_lfields,
@@ -16754,7 +16765,7 @@ cc2008
          endif
          call dynk_parseFUN(getfields_fields,
      &        getfields_lfields, getfields_nfields)
-         goto 2200 !loop DYNK
+         goto 2201 !loop DYNK
 
       else if (ch(:3).eq."SET") then
          call getfields_split( ch, getfields_fields, getfields_lfields,
@@ -16772,7 +16783,7 @@ cc2008
          endif
          call dynk_parseSET(getfields_fields,
      &        getfields_lfields, getfields_nfields)
-         goto 2200 !loop DYNK
+         goto 2201 !loop DYNK
 
       else if (ch(:4).eq.next) then
          if (ldynkdebug) then
@@ -16780,15 +16791,9 @@ cc2008
      &           "DYNKDEBUG> Finished parsing DYNK block"
             call dynk_dumpdata
          endif
-         if (ldynk) then
-            write (lout,*)
-            write (lout,*) "******************************************"
-            write (lout,*) "** More than one DYNK block encountered **"
-            write (lout,*) "******************************************"
-            call prror(51)
-         else
-            ldynk = .true.
-         endif
+         
+         ldynk = .true.
+         
          call dynk_inputsanitycheck
          goto 110 ! Read next block or ENDE
 
@@ -33189,7 +33194,6 @@ C Should get me a NaN
      &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
      &     maxfuncs_dynk,funcs_dynk,
      &     maxdata_dynk,maxstrlen_dynk,
-     &     iexpr_dynk, fexpr_dynk,cexpr_dynk,
      &     nsets_dynk,maxsets_dynk,
      &     sets_dynk,csets_dynk,csets_unique_dynk,fsets_origvalue_dynk,
      &     dynk_izuIndex,dynk_elemdata
@@ -33860,15 +33864,7 @@ C Should get me a NaN
          funcs_dynk(i,4)= 0
          funcs_dynk(i,5)= 0
       enddo
-      
-      do i=1,maxdata_dynk
-         iexpr_dynk(i) = 0
-         fexpr_dynk(i) = zero
-         do j=1,maxstrlen_dynk
-            cexpr_dynk(i)(j:j) = char(0)
-         enddo
-      enddo
-      
+            
       nsets_dynk = 0
 
       do i=1, maxsets_dynk
