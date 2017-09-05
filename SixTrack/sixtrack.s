@@ -23556,9 +23556,8 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
-      ! dummy for converting  units for header of dump file
-      double precision :: dumptashd (6,6)   
-      double precision :: dumptasinvhd (6,6)
+      ! dummy for tas matrix for converting  units for header of dump file
+      double precision :: dumptasaux (6,6),dumptasinvaux (6,6)   
       data lineno /0/
 +ei
 +if debug
@@ -25185,22 +25184,22 @@ C Should get me a NaN
                    if (dumpunit(j).eq.dumpunit(i)) then
                       if (dumpfmt(j).ne.dumpfmt(i)) then
                          write(lout,*)
-     & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
+     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,",
      & " formats are not the same."
                          call prror(-1)
                       else if (j.eq.0) then
                          write(lout,*)
-     & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
+     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,",
      & " one of which is ALL"
                          call prror(-1)
                       else if (j.eq.-1) then
                          write(lout,*)
-     & "ERROR in DUMP: ouput unit",dumpunit(i), " used by two DUMPS,",
+     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,",
      & " one of which is StartDUMP"
                          call prror(-1)
                       else if (dump_fname(j).ne.dump_fname(i)) then
                          write(lout,*)
-     & "ERROR in DUMP: Output unit",dumpunit(i),"is used by to DUMPS,"//
+     & "ERROR in DUMP: output unit",dumpunit(i)," used by two DUMPS,"//
      & " but filenames differ:", trim(stringzerotrim(dump_fname(i))),
      & " vs ", trim(stringzerotrim(dump_fname(j)))
                          call prror(-1)
@@ -25300,61 +25299,118 @@ C Should get me a NaN
      &   '<py^2> <py*sigma> <py*psigma> '//
      &   '<sigma^2> <sigma*psigma> '//
      &   '<psigma^2>'
-             else if ( dumpfmt(i).eq.7 ) then ! FORMAT 7
-                write(dumpunit(i),'(a)')
+             else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then
+                 if ( dumpfmt(i).eq.7 ) then ! FORMAT 7
+                     write(dumpunit(i),'(a)')
      &  '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '//
      &  'ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] '//
      &  'ndp/p[1.e-3 sqrt(m)] ktrack'
+                 endif
+                 if (dumpfmt(i).eq.9) then ! FORMAT 9
+                     write(dumpunit(i),'(a)') '# napx turn s[m] ' //
+     &  '<nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] '//
+     &  '<ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] '//
+     &  '<nsig>[1.e-3 sqrt(m)] <ndp/p>[1.e-3 sqrt(m)]'//
+     &  '<nx^2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> '//
+     &  '<npx^2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> '//
+     &  '<ny^2> <ny*npy> <ny*nsigma> <ny*npsigma> '//
+     &  '<npy^2> <npy*nsigma> <npy*npsigma> '//
+     &  '<nsigma^2> <nsigma*npsigma> '//
+     &  '<npsigma^2>'
+                 endif
+        ! if dumping at the start of the sequence (StartDump) use the 
+        ! same matrix and closed orbit as used
+        ! for the initialization of the particles. Only in 5D thick the ta
+        ! matrix is different for each particle.
+        ! -> implement a check for this!
+        ! In 4d,6d thin+thick and 5d thin we have:
+        !   tas(ia,*,*) = tas(1,*,*) for all particles ia
+                if (i.eq.-1) then
+                  do m=1,3
+                    dumpclo(i,m*2-1) = clo6v(m,1)
+                    dumpclo(i,m*2)   = clop6v(m,1)
+                  enddo
+        ! tas matrix is in units [mm,mrad,mm,mrad,1] while
+        ! dumptas is in units [mm,mrad,mm,mrad,1.e-3] to be consistent
+        ! with the original implementation using the 6D optics
+        ! -> convert 6th coordinate
+                  do m=1,6
+                     do n=1,6
+                          dumptas(i,m,n) = tas(1,m,n)
+                     enddo
+                  enddo
+                  do m=1,5
+                    dumptas(i,m,6)=dumptas(i,m,6)*c1m3
+                    dumptas(i,6,m)=dumptas(i,6,m)*c1e3
+                  enddo
+                endif
+        ! tas and tas_inv in canonical variables x,px,y,py,z,dp/p
+        ! convert to standard sixtrack tracking units
+        ! units: dumptas [mm,mrad,mm,mrad,1.e-3] (from linopt)
+        !        dumptasaux [mm,mrad,mm,mrad,1] (local variable for
+        !                                       conversion)
+        !        dumptasinvaux = inv(dumptasaux)
+                do m=1,6
+                  do n=1,6
+                    dumptasaux(m,n)=dumptas(i,m,n)
+                  enddo
+                enddo
+                do m=1,5
+                  dumptasaux(m,6)=dumptasaux(m,6)*c1e3
+                  dumptasaux(6,m)=dumptasaux(6,m)*c1m3
+                enddo
+                call fma_norm_phase_space_matrix(dumptasinvaux,
+     &   dumptasaux(1:6,1:6) )
         ! closed orbit
         ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] 
         ! (note: units are already changed in linopt part)
-               write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') 
+                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') 
      &  '# closed orbit [mm,mrad,mm,mrad,1]',
      &  dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),
      &  dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
-        ! tas and tas_inv
-        ! convert to standard sixtrack tracking units
-        ! units: dumptas [mm,mrad,mm,mrad,1.e-3] (from linopt)
-        !        dumptashd [mm,mrad,mm,mrad,1] (local variable for
-        !                                       conversion)
-        !        dumptasinvhd = inv(dumptashd)
-               do m=1,6
-                 do n=1,6
-                   dumptashd(m,n)=dumptas(i,m,n)
-                 enddo
-               enddo
-               do m=1,5
-                 dumptashd(m,6)=dumptashd(m,6)*1.e3
-                 dumptashd(6,m)=dumptashd(6,m)*1.e-3
-               enddo
-               call fma_norm_phase_space_matrix(dumptasinvhd,
-     &                                       dumptashd(1:6,1:6) )
+! MF: remove, only for debugging
+!                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') 
+!     &  '# closed orbit StartDUMP [mm,mrad,mm,mrad,1]',
+!     &  clo6v(1,1),clop6v(1,1),clo6v(2,1),clop6v(2,1), clo6v(3,1),
+!     &  clop6v(3,1)
 
-               write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
+                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
      #  '# tamatrix [mm,mrad,mm,mrad,1]',
-     &  dumptashd(1,1),dumptashd(1,2),dumptashd(1,3),dumptashd(1,4),
-     &  dumptashd(1,5),dumptashd(1,6),dumptashd(2,1),dumptashd(2,2),
-     &  dumptashd(2,3),dumptashd(2,4),dumptashd(2,5),dumptashd(2,6), 
-     &  dumptashd(3,1),dumptashd(3,2),dumptashd(3,3),dumptashd(3,4),
-     &  dumptashd(3,5),dumptashd(3,6),dumptashd(4,1),dumptashd(4,2),
-     &  dumptashd(4,3),dumptashd(4,4),dumptashd(4,5),dumptashd(4,6), 
-     &  dumptashd(5,1),dumptashd(5,2),dumptashd(5,3),dumptashd(5,4),
-     &  dumptashd(5,5),dumptashd(5,6),dumptashd(6,1),dumptashd(6,2),
-     &  dumptashd(6,3),dumptashd(6,4),dumptashd(6,5),dumptashd(6,6)
-               write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
+     &  dumptasaux(1,1),dumptasaux(1,2),dumptasaux(1,3),dumptasaux(1,4),
+     &  dumptasaux(1,5),dumptasaux(1,6),dumptasaux(2,1),dumptasaux(2,2),
+     &  dumptasaux(2,3),dumptasaux(2,4),dumptasaux(2,5),dumptasaux(2,6),
+     &  dumptasaux(3,1),dumptasaux(3,2),dumptasaux(3,3),dumptasaux(3,4),
+     &  dumptasaux(3,5),dumptasaux(3,6),dumptasaux(4,1),dumptasaux(4,2),
+     &  dumptasaux(4,3),dumptasaux(4,4),dumptasaux(4,5),dumptasaux(4,6),
+     &  dumptasaux(5,1),dumptasaux(5,2),dumptasaux(5,3),dumptasaux(5,4),
+     &  dumptasaux(5,5),dumptasaux(5,6),dumptasaux(6,1),dumptasaux(6,2),
+     &  dumptasaux(6,3),dumptasaux(6,4),dumptasaux(6,5),dumptasaux(6,6)
+! MF: remove, only for debugging
+!               write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
+!     #  '# tamatrix StartDUMP [mm,mrad,mm,mrad,1]',
+!     &  tas(1,1,1),tas(1,1,2),tas(1,1,3),tas(1,1,4),
+!     &  tas(1,1,5),tas(1,1,6),tas(1,2,1),tas(1,2,2),
+!     &  tas(1,2,3),tas(1,2,4),tas(1,2,5),tas(1,2,6), 
+!     &  tas(1,3,1),tas(1,3,2),tas(1,3,3),tas(1,3,4),
+!     &  tas(1,3,5),tas(1,3,6),tas(1,4,1),tas(1,4,2),
+!     &  tas(1,4,3),tas(1,4,4),tas(1,4,5),tas(1,4,6), 
+!     &  tas(1,5,1),tas(1,5,2),tas(1,5,3),tas(1,5,4),
+!     &  tas(1,5,5),tas(1,5,6),tas(1,6,1),tas(1,6,2),
+!     &  tas(1,6,3),tas(1,6,4),tas(1,6,5),tas(1,6,6)
+                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
      &  '# inv(tamatrix)',
-     &  dumptasinvhd(1,1),dumptasinvhd(1,2),dumptasinvhd(1,3),
-     &  dumptasinvhd(1,4),dumptasinvhd(1,5),dumptasinvhd(1,6), 
-     &  dumptasinvhd(2,1),dumptasinvhd(2,2),dumptasinvhd(2,3),
-     &  dumptasinvhd(2,4),dumptasinvhd(2,5),dumptasinvhd(2,6), 
-     &  dumptasinvhd(3,1),dumptasinvhd(3,2),dumptasinvhd(3,3),
-     &  dumptasinvhd(3,4),dumptasinvhd(3,5),dumptasinvhd(3,6),
-     &  dumptasinvhd(4,1),dumptasinvhd(4,2),dumptasinvhd(4,3),
-     &  dumptasinvhd(4,4),dumptasinvhd(4,5),dumptasinvhd(4,6), 
-     &  dumptasinvhd(5,1),dumptasinvhd(5,2),dumptasinvhd(5,3),
-     &  dumptasinvhd(5,4),dumptasinvhd(5,5),dumptasinvhd(5,6),
-     &  dumptasinvhd(6,1),dumptasinvhd(6,2),dumptasinvhd(6,3),
-     &  dumptasinvhd(6,4),dumptasinvhd(6,5),dumptasinvhd(6,6)
+     &  dumptasinvaux(1,1),dumptasinvaux(1,2),dumptasinvaux(1,3),
+     &  dumptasinvaux(1,4),dumptasinvaux(1,5),dumptasinvaux(1,6), 
+     &  dumptasinvaux(2,1),dumptasinvaux(2,2),dumptasinvaux(2,3),
+     &  dumptasinvaux(2,4),dumptasinvaux(2,5),dumptasinvaux(2,6), 
+     &  dumptasinvaux(3,1),dumptasinvaux(3,2),dumptasinvaux(3,3),
+     &  dumptasinvaux(3,4),dumptasinvaux(3,5),dumptasinvaux(3,6),
+     &  dumptasinvaux(4,1),dumptasinvaux(4,2),dumptasinvaux(4,3),
+     &  dumptasinvaux(4,4),dumptasinvaux(4,5),dumptasinvaux(4,6), 
+     &  dumptasinvaux(5,1),dumptasinvaux(5,2),dumptasinvaux(5,3),
+     &  dumptasinvaux(5,4),dumptasinvaux(5,5),dumptasinvaux(5,6),
+     &  dumptasinvaux(6,1),dumptasinvaux(6,2),dumptasinvaux(6,3),
+     &  dumptasinvaux(6,4),dumptasinvaux(6,5),dumptasinvaux(6,6)
              end if  !Format-specific headers
 
              ! Flush file
@@ -25363,12 +25419,12 @@ C Should get me a NaN
 +if cr
              dumpfilepos(i) = dumpfilepos(i) + 2
              ! format 7 also writes clo, tas and tasinv
-             if ( dumpfmt(i).eq.7 ) then 
+             if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then 
                dumpfilepos(i) = dumpfilepos(i) + 3
              endif
 +ei
              
-          end if !If format 2/4/5/6 -> General header
+          end if !If format 2/4/5/6/7/9 -> General header
         endif !If ldump(i) -> Dump on this element
       enddo !Loop over elements with index i
 
@@ -28965,19 +29021,28 @@ C Should get me a NaN
 
 
 !     temporary variables
-      integer j,k,l
+      integer j,k,l,m,n
       character*16 localBez
 
       double precision localDcum
       integer localKtrack
 
-      double precision xyz_particle(6)
+      double precision xyz_particle(6),nxyz_particle(6)
       double precision xyz(6)
       double precision xyz2(6,6)
+      ! dummy for tas matrix for converting  units for header of dump file
+      double precision :: dumptasaux(6,6),dumptasinvaux(6,6)   
       
 +if cr      
       !For accessing dumpfilepos
       integer dumpIdx
+!     initialize dummy tas/tasinv matrices
+      do m=1,6
+        do m=1,6
+          dumptasaux(m,n) = 0
+          dumptasauxinv(m,n) = 0
+        enddo
+      enddo
       if( unit .eq. dumpunit(0) ) then
          ! ALL output must be on separate unit
          dumpIdx = 0
@@ -29285,6 +29350,89 @@ C Should get me a NaN
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 +ei
 
+      ! fmt7 same as fmt 2, but in normalized coordinates
+      ! fmt8 same as fmt 3, but in normalized coordinates
+      else if (fmt .eq. 7 .or. fmt .eq. 8) then
+         if (i.eq.0 .and. ix.eq.0) then
+            localDcum = 0.0
+            localKtrack = 0
+         else
+            localDcum = dcum(i)
+            localKtrack = ktrack(i)
+         endif
+      ! get inverse normalization matrix 
+         do m=1,6
+           do n=1,6
+!             write(*,*) 'MF: ',dumptas(ix,m,n)
+!             dumptasaux(m,n)=dumptas(ix,m,n)
+           enddo
+         enddo
+!         do m=1,5
+!           dumptasaux(m,6)=dumptasaux(m,6)*1.e3
+!           dumptasaux(6,m)=dumptasaux(6,m)*1.e-3
+!         enddo
+!         call fma_norm_phase_space_matrix(dumptasinvaux,
+!     &  dumptasaux(1:6,1:6) )
+!
+!       ! normalize particle coordinates
+!         do j=1,napx
+!             xyz_particle(1) = xv(1,j)
+!             xyz_particle(2) = yv(1,j)
+!             xyz_particle(3) = xv(2,j)
+!             xyz_particle(4) = yv(2,j)
+!             xyz_particle(5) = sigmv(j)
+!             xyz_particle(6) = (ejv(j)-e0)/e0
+!!     - remove closed orbit -> check units used in dumpclo (is x' or px used?)
+!             do m=1,6
+!                xyz_particle(m)=xyz_particle(m)-dumpclo(ix,m)
+!             enddo
+!!     - convert to canonical variables
+!             xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+
+!     &            dumpclo(ix,6))
+!             xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+
+!     &            dumpclo(ix,6))
+!!     - normalize nxyz=fma_tas_inv*xyz
+!             do m=1,6
+!                nxyz_particle(m)=zero
+!                do n=1,6
+!                   nxyz_particle(m)=nxyz_particle(m)+
+!     &  dumptasinvaux(m,n)*xyz_particle(n)
+!                enddo
+!!     a) convert nxyzv(6) to 1.e-3 sqrt(m)
+!!     unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
+!                if(m.eq.6) then
+!                   nxyz_particle(m)=nxyz_particle(m)*c1e3
+!                endif
+!             enddo
+!             if (fmt .eq. 7) then
+!               if ( lhighprec ) then
+!                   write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
+!     &                  nturn, localDcum, nxyz_particle(1),
+!     &                  nxyz_particle(2),nxyz_particle(3),
+!     &                  nxyz_particle(4),nxyz_particle(5),
+!     &                  nxyz_particle(6),localKtrack
+!               else
+!                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
+!     &                  nturn, localDcum, nxyz_particle(1),
+!     &                  nxyz_particle(2),nxyz_particle(3),
+!     &                  nxyz_particle(4),nxyz_particle(5),
+!     &                  nxyz_particle(6),localKtrack
+!               endif
+!             else if (fmt .eq. 8) then
+!                 write(unit) nlostp(j)+(samplenumber-1)*npart,
+!     &                nturn, localDcum, nxyz_particle(1),
+!     &                nxyz_particle(2),nxyz_particle(3),
+!     &                nxyz_particle(4),nxyz_particle(5),
+!     &                nxyz_particle(6),localKtrack
+!             endif
+!         enddo
+
+         !Flush
+         endfile (unit,iostat=ierro)
+         backspace (unit,iostat=ierro)
++if cr
+         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
       !Unrecognized format fmt
       else
          write (lout,*)
@@ -29299,8 +29447,8 @@ C Should get me a NaN
  1983 format (2(1x,I8),1X,F12.5,5(1X,1PE25.18),1X,I8)  !fmt 1 / hiprec
  1984 format (2(1x,I8),1X,F12.5,5(1X,1PE16.9),1X,I8)   !fmt 1 / not hiprec
 
- 1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2 / hiprec
- 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec
+ 1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2&7 / hiprec
+ 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2&7 / not hiprec
 
  1989 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18))        !fmt 4 / hiprec
  1990 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9))         !fmt 4 / not hiprec
