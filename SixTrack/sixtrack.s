@@ -17381,7 +17381,12 @@ cc2008
 !  Last modified: 29-08-2017
 !-----------------------------------------------------------------------
  2900 continue
-      !We have a SCATTER block; let's allocate the memory for it!
+      ! We have a SCATTER block; let's allocate the memory for it!
+      if (scatter_active) then
+         write(lout,*) "ERROR while parsing SCATTER in fort.3"
+         write(lout,*) "More than one SCATTER block encountered?"
+         call prror(-1)
+      end if
       call scatter_allocate
       
  2901 read(3,10020, end=1530, iostat=ierro) ch
@@ -17392,11 +17397,6 @@ cc2008
       
       if (ch(:4).eq.next) then
          
-         if (scatter_active) then
-            write(lout,*) "ERROR while parsing SCATTER in fort.3"
-            write(lout,*) "More than one SCATTER block encountered?"
-            call prror(-1)
-         end if
          scatter_active = .true.
 
          if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
