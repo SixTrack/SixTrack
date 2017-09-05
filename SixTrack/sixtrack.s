@@ -6664,7 +6664,7 @@ cc2008
      &              ( (n.le.dumplast(0)) .or. (dumplast(0).eq.-1) )
      &              ) then
                   call dump_beam_population( n, i, ix, dumpunit(0),
-     &                 dumpfmt(0), ldumphighprec )
+     &                 dumpfmt(0), ldumphighprec, dumptasinv )
                endif
             endif
           endif
@@ -6677,7 +6677,7 @@ cc2008
      &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
      &                ) then
                       call dump_beam_population( n, i, ix, dumpunit(ix),
-     &                     dumpfmt(ix), ldumphighprec )
+     &                     dumpfmt(ix), ldumphighprec, dumptasinv )
                    endif
                 endif
              endif
@@ -6690,7 +6690,7 @@ cc2008
      &           ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )
      &           ) then
                call dump_beam_population( n, 0, 0, dumpunit(-1),
-     &              dumpfmt(-1), ldumphighprec )
+     &              dumpfmt(-1), ldumphighprec, dumptasinv )
             endif
          endif
       endif
@@ -28994,7 +28994,7 @@ C Should get me a NaN
       end
 
       subroutine dump_beam_population( nturn, i, ix, unit, fmt,         &
-     &  lhighprec )
+     &  lhighprec, dumptasinv )
 !-----------------------------------------------------------------------
 !     By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
 !     K.Sjobak and A.Santamaria, BE-ABP-HSS
@@ -29015,7 +29015,7 @@ C Should get me a NaN
 !     interface variables:
       integer nturn, i, ix, unit, fmt
       logical lhighprec
-      intent (in) nturn, i, ix, unit, fmt, lhighprec
+      intent (in) nturn, i, ix, unit, fmt, lhighprec, dumptasinv
 +ca parpro
 +ca parnum
 +ca common
@@ -29051,17 +29051,12 @@ C Should get me a NaN
       double precision xyz_particle(6),nxyz_particle(6)
       double precision xyz(6)
       double precision xyz2(6,6)
+      double precision :: dumptasinv (-1:nblz,6,6)
+      double precision :: dumpclo (-1:nblz,6)
       
 +if cr      
       !For accessing dumpfilepos
       integer dumpIdx
-!     initialize dummy tas/tasinv matrices
-      do m=1,6
-        do m=1,6
-          dumptasaux(m,n) = 0
-          dumptasauxinv(m,n) = 0
-        enddo
-      enddo
       if( unit .eq. dumpunit(0) ) then
          ! ALL output must be on separate unit
          dumpIdx = 0
@@ -29379,72 +29374,58 @@ C Should get me a NaN
             localDcum = dcum(i)
             localKtrack = ktrack(i)
          endif
-      ! get inverse normalization matrix 
-         do m=1,6
-           do n=1,6
-!             write(*,*) 'MF: ',dumptas(ix,m,n)
-!             dumptasaux(m,n)=dumptas(ix,m,n)
-           enddo
+       ! normalize particle coordinates
+         do j=1,napx
+             xyz_particle(1) = xv(1,j)
+             xyz_particle(2) = yv(1,j)
+             xyz_particle(3) = xv(2,j)
+             xyz_particle(4) = yv(2,j)
+             xyz_particle(5) = sigmv(j)
+             xyz_particle(6) = (ejv(j)-e0)/e0
+!     - remove closed orbit -> check units used in dumpclo (is x' or px used?)
+             do m=1,6
+                xyz_particle(m)=xyz_particle(m)-dumpclo(ix,m)
+             enddo
+!     - convert to canonical variables
+             xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+
+     &            dumpclo(ix,6))
+             xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+
+     &            dumpclo(ix,6))
+!     - normalize nxyz=fma_tas_inv*xyz
+             do m=1,6
+                nxyz_particle(m)=zero
+                do n=1,6
+                   nxyz_particle(m)=nxyz_particle(m)+
+     &  dumptasinv(ix,m,n)*xyz_particle(n)
+                enddo
+!     a) convert nxyzv(6) to 1.e-3 sqrt(m)
+!     unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
+                if(m.eq.6) then
+                   nxyz_particle(m)=nxyz_particle(m)*c1e3
+                endif
+             enddo
+             if (fmt .eq. 7) then
+               if ( lhighprec ) then
+                   write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
+     &                  nturn, localDcum, nxyz_particle(1),
+     &                  nxyz_particle(2),nxyz_particle(3),
+     &                  nxyz_particle(4),nxyz_particle(5),
+     &                  nxyz_particle(6),localKtrack
+               else
+                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
+     &                  nturn, localDcum, nxyz_particle(1),
+     &                  nxyz_particle(2),nxyz_particle(3),
+     &                  nxyz_particle(4),nxyz_particle(5),
+     &                  nxyz_particle(6),localKtrack
+               endif
+             else if (fmt .eq. 8) then
+                 write(unit) nlostp(j)+(samplenumber-1)*npart,
+     &                nturn, localDcum, nxyz_particle(1),
+     &                nxyz_particle(2),nxyz_particle(3),
+     &                nxyz_particle(4),nxyz_particle(5),
+     &                nxyz_particle(6),localKtrack
+             endif
          enddo
-!         do m=1,5
-!           dumptasaux(m,6)=dumptasaux(m,6)*1.e3
-!           dumptasaux(6,m)=dumptasaux(6,m)*1.e-3
-!         enddo
-!         call fma_norm_phase_space_matrix(dumptasinvaux,
-!     &  dumptasaux(1:6,1:6) )
-!
-!       ! normalize particle coordinates
-!         do j=1,napx
-!             xyz_particle(1) = xv(1,j)
-!             xyz_particle(2) = yv(1,j)
-!             xyz_particle(3) = xv(2,j)
-!             xyz_particle(4) = yv(2,j)
-!             xyz_particle(5) = sigmv(j)
-!             xyz_particle(6) = (ejv(j)-e0)/e0
-!!     - remove closed orbit -> check units used in dumpclo (is x' or px used?)
-!             do m=1,6
-!                xyz_particle(m)=xyz_particle(m)-dumpclo(ix,m)
-!             enddo
-!!     - convert to canonical variables
-!             xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+
-!     &            dumpclo(ix,6))
-!             xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+
-!     &            dumpclo(ix,6))
-!!     - normalize nxyz=fma_tas_inv*xyz
-!             do m=1,6
-!                nxyz_particle(m)=zero
-!                do n=1,6
-!                   nxyz_particle(m)=nxyz_particle(m)+
-!     &  dumptasinvaux(m,n)*xyz_particle(n)
-!                enddo
-!!     a) convert nxyzv(6) to 1.e-3 sqrt(m)
-!!     unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
-!                if(m.eq.6) then
-!                   nxyz_particle(m)=nxyz_particle(m)*c1e3
-!                endif
-!             enddo
-!             if (fmt .eq. 7) then
-!               if ( lhighprec ) then
-!                   write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
-!     &                  nturn, localDcum, nxyz_particle(1),
-!     &                  nxyz_particle(2),nxyz_particle(3),
-!     &                  nxyz_particle(4),nxyz_particle(5),
-!     &                  nxyz_particle(6),localKtrack
-!               else
-!                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
-!     &                  nturn, localDcum, nxyz_particle(1),
-!     &                  nxyz_particle(2),nxyz_particle(3),
-!     &                  nxyz_particle(4),nxyz_particle(5),
-!     &                  nxyz_particle(6),localKtrack
-!               endif
-!             else if (fmt .eq. 8) then
-!                 write(unit) nlostp(j)+(samplenumber-1)*npart,
-!     &                nturn, localDcum, nxyz_particle(1),
-!     &                nxyz_particle(2),nxyz_particle(3),
-!     &                nxyz_particle(4),nxyz_particle(5),
-!     &                nxyz_particle(6),localKtrack
-!             endif
-!         enddo
 
          !Flush
          endfile (unit,iostat=ierro)
