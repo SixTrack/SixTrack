@@ -6664,7 +6664,8 @@ cc2008
      &              ( (n.le.dumplast(0)) .or. (dumplast(0).eq.-1) )
      &              ) then
                   call dump_beam_population( n, i, ix, dumpunit(0),
-     &                 dumpfmt(0), ldumphighprec, dumptasinv )
+     &                 dumpfmt(0), ldumphighprec, 
+     &                 dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
                endif
             endif
           endif
@@ -6677,7 +6678,8 @@ cc2008
      &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
      &                ) then
                       call dump_beam_population( n, i, ix, dumpunit(ix),
-     &                     dumpfmt(ix), ldumphighprec, dumptasinv )
+     &                     dumpfmt(ix), ldumphighprec, 
+     &                     dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
                    endif
                 endif
              endif
@@ -6690,7 +6692,8 @@ cc2008
      &           ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )
      &           ) then
                call dump_beam_population( n, 0, 0, dumpunit(-1),
-     &              dumpfmt(-1), ldumphighprec, dumptasinv )
+     &              dumpfmt(-1), ldumphighprec, 
+     &              dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
             endif
          endif
       endif
@@ -6992,7 +6995,7 @@ cc2008
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
 !    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
-!    units dumptas: mm,mrad,mm,mrad,mm,1.e-3
+!    units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
             if(fma_flag) then
               if(ic(i)-nblo.gt.0) then !check if structure element is a block
                 if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
@@ -7008,30 +7011,6 @@ cc2008
                   dumptas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
                   dumptas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
                   dumptas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
-!    convert to units [mm,mrad,mm,mrad,1] as needed for normalization
-                  do md=1,5
-                    dumptas(ic(i)-nblo,md,6)=dumptas(ic(i)-nblo,md,6)
-     & *c1e3
-                    dumptas(ic(i)-nblo,6,md)=dumptas(ic(i)-nblo,6,md)
-     & *c1m3
-                  enddo
-                  do md=1,6
-                    do nd=1,6
-                      dumptasaux(md,nd)=dumptas(ic(i)-nblo,md,nd)
-                      dumptasinvaux(md,nd)=0
-                    enddo
-                  enddo
-!    invert the tas matrix
-!    Can we pass directly dumptas and dumptasinv here?
-                  call fma_norm_phase_space_matrix(
-     & dumptasinvaux,dumptasaux(1:6,1:6))
-!    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-                  do md=1,6
-                    do nd=1,6
-                      dumptas(ic(i)-nblo,md,nd)=dumptasaux(md,nd)
-                      dumptasinv(ic(i)-nblo,md,nd)=dumptasinvaux(md,nd)
-                    enddo
-                  enddo
 !    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
 !    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
 !     -> check units used in dumpclo (is x' or px used?) 
@@ -7080,7 +7059,30 @@ cc2008
               dphi(j)=zero
             endif
             phi(j)=phi(j)+dphi(j)
-          enddo !end optics calculation
+          enddo !end of optics calculation
+! do the unit conversion + inversion of dumptas
+! convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
+          do md=1,5
+            dumptas(ic(i)-nblo,md,6)=dumptas(ic(i)-nblo,md,6)*c1e3
+            dumptas(ic(i)-nblo,6,md)=dumptas(ic(i)-nblo,6,md)*c1m3
+          enddo
+          do md=1,6
+            do nd=1,6
+              dumptasaux(md,nd)=dumptas(ic(i)-nblo,md,nd)
+              dumptasinvaux(md,nd)=0
+            enddo
+          enddo
+!    invert the tas matrix
+!    Can we pass directly dumptas and dumptasinv here?
+          call fma_norm_phase_space_matrix(
+     & dumptasinvaux,dumptasaux(1:6,1:6))
+!    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
+          do md=1,6
+            do nd=1,6
+              dumptas(ic(i)-nblo,md,nd)=dumptasaux(md,nd)
+              dumptasinv(ic(i)-nblo,md,nd)=dumptasinvaux(md,nd)
+            enddo
+          enddo
           do j=1,ndimf
             ii=2*j
             angp(2,ii-1)=angp(1,ii-1)
@@ -28994,7 +28996,7 @@ C Should get me a NaN
       end
 
       subroutine dump_beam_population( nturn, i, ix, unit, fmt,         &
-     &  lhighprec, dumptasinv )
+     &  lhighprec, clo, tasinv )
 !-----------------------------------------------------------------------
 !     By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
 !     K.Sjobak and A.Santamaria, BE-ABP-HSS
@@ -29015,7 +29017,9 @@ C Should get me a NaN
 !     interface variables:
       integer nturn, i, ix, unit, fmt
       logical lhighprec
-      intent (in) nturn, i, ix, unit, fmt, lhighprec, dumptasinv
+      double precision :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
+      double precision clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
+      intent (in) nturn, i, ix, unit, fmt, lhighprec, tasinv, clo
 +ca parpro
 +ca parnum
 +ca common
@@ -29051,8 +29055,6 @@ C Should get me a NaN
       double precision xyz_particle(6),nxyz_particle(6)
       double precision xyz(6)
       double precision xyz2(6,6)
-      double precision :: dumptasinv (-1:nblz,6,6)
-      double precision :: dumpclo (-1:nblz,6)
       
 +if cr      
       !For accessing dumpfilepos
@@ -29384,19 +29386,19 @@ C Should get me a NaN
              xyz_particle(6) = (ejv(j)-e0)/e0
 !     - remove closed orbit -> check units used in dumpclo (is x' or px used?)
              do m=1,6
-                xyz_particle(m)=xyz_particle(m)-dumpclo(ix,m)
+                xyz_particle(m)=xyz_particle(m)-clo(m)
              enddo
 !     - convert to canonical variables
              xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+
-     &            dumpclo(ix,6))
+     &            clo(6))
              xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+
-     &            dumpclo(ix,6))
+     &            clo(6))
 !     - normalize nxyz=fma_tas_inv*xyz
              do m=1,6
                 nxyz_particle(m)=zero
                 do n=1,6
                    nxyz_particle(m)=nxyz_particle(m)+
-     &  dumptasinv(ix,m,n)*xyz_particle(n)
+     &  tasinv(m,n)*xyz_particle(n)
                 enddo
 !     a) convert nxyzv(6) to 1.e-3 sqrt(m)
 !     unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
@@ -49984,8 +49986,6 @@ c$$$            endif
       double precision round_near
 
       integer, dimension(:,:),allocatable :: turn ! npart = max. number of particles
-      double precision, dimension(6,6) :: fma_tas ! dumptas in units [mm,mrad,mm,mrad,mm,1]
-      double precision, dimension(6,6) :: fma_tas_inv ! normalisation matrix = inverse of fma_tas (same units) -> x_normalized=fma_tas_inv*x
       double precision, dimension(:,:,:),allocatable ::
      &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
       double precision, dimension(:,:,:),allocatable ::
@@ -50010,13 +50010,6 @@ c$$$            endif
       write (lout,*) "FIO not supported in FMA!"
       call prror(-1)
 +ei
-
-!     initialize variables
-      do i=1,6
-        do j=1,6
-          fma_tas_inv(i,j) = 0
-        enddo
-      enddo
 
       allocate(turn(napx,fma_nturn_max),
      &         xyzv(napx,fma_nturn_max,6),
@@ -50159,21 +50152,7 @@ c$$$            endif
               call prror(-1)
             endif
 
-!    - now we have done all checks, we only need the normalisation matrix
-!         units: dumptas [mm,mrad,mm,mrad,1.e-3]
-!                fma_tas  [mm,mrad,mm,mrad,1]
-!      note: closed orbit dumpclo already converted in linopt part
-            do m=1,6
-              do n=1,6
-                fma_tas(m,n)=dumptas(j,m,n)
-              enddo
-            enddo
-            do m=1,5
-              fma_tas(m,6)=fma_tas(m,6)*1.e3
-              fma_tas(6,m)=fma_tas(6,m)*1.e-3
-            enddo
-            call fma_norm_phase_space_matrix(fma_tas_inv, 
-     &                                       fma_tas(1:6,1:6) )
+!    - now we have done all checks
 
             if (fma_writeNormDUMP) then
                write(lout,*) "FMA: Writing normalized DUMP for '"//
@@ -50196,6 +50175,9 @@ c$$$            endif
                open(200101+i*10,file='NORM_'//dump_fname(j),
      &              status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
 +ei
+!         units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
+!         note: closed orbit dumpclo already converted in linopt part to [mm,mrad,mm,mrad,1]
+!               tas matrix in linopt part in [mm,mrad,mm,mrad,1.e-3]
 !    - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
                write(200101+i*10,'(a,1x,6(1X,1PE16.9))') '# closorb',
@@ -50207,14 +50189,14 @@ c$$$            endif
                do m=1,6
                   do n=1,6
                      write(200101+i*10,'(a,1x,1PE16.9)') '# ',
-     &                    fma_tas(m,n)
+     &                    dumptas(j,m,n)
                   enddo
                enddo
                write(200101+i*10,'(a)') '# inv(tamatrix)'
                do m=1,6
                   do n=1,6
                      write(200101+i*10,'(a,1x,1PE16.9)') '# ',
-     &                    fma_tas_inv(m,n)
+     &                    dumptasinv(j,m,n)
                   enddo
                enddo
                write(200101+i*10,'(a)')
@@ -50326,6 +50308,8 @@ c$$$            endif
      &                   "' (dumpfmt=3)",'fma_postpr') !read error
 
                  endif
+!       start normalization
+!       units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
 !     - remove closed orbit -> check units used in dumpclo (is x' or px used?)
                  do m=1,6
                     xyzvdummy(m)=xyzvdummy(m)-dumpclo(j,m)
@@ -50343,11 +50327,11 @@ c$$$            endif
      &                dumpclo(j,6))
                  xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
      &                dumpclo(j,6))
-!     - normalize nxyz=fma_tas_inv*xyz
+!     - normalize nxyz=dumptasinv*xyz
                  do m=1,6
                     nxyzvdummy(m)=zero
                     do n=1,6
-                       nxyzvdummy(m)=nxyzvdummy(m)+fma_tas_inv(m,n)*
+                       nxyzvdummy(m)=nxyzvdummy(m)+dumptasinv(j,m,n)*
      &                      xyzvdummy(n)
                     enddo
 !     a) convert nxyzv(6) to 1.e-3 sqrt(m)
