@@ -76,6 +76,7 @@ OPTION(DEBUG "Debugging output" OFF)
 OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postprocessing with BeamLossPattern) there instead of writing it to ASCII." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
+OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
@@ -190,6 +191,9 @@ if(FIO)
 endif()
 if(MERLINSCATTER)
 	SET(SIXTRACK_FEATURES "merlinscatter_${SIXTRACK_FEATURES}")
+endif()
+if(NAFF)
+	SET(SIXTRACK_FEATURES "naff_${SIXTRACK_FEATURES}")
 endif()
 if(G4COLLIMAT)
 	SET(SIXTRACK_FEATURES "g4collimat_${SIXTRACK_FEATURES}")
@@ -877,7 +881,7 @@ endif()
 ###################################################################################################
 #add the source files that will be used to build sixtrack
 add_executable(SixTrack ${SIXTRACK_SOURCES})
-SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 
 ##build astuce
 add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
@@ -924,6 +928,36 @@ if(MERLINSCATTER)
 		SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-m64")
 	endif(64BIT)
 endif()
+
+if(NAFF)
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/SixTrack/cmake_modules/")
+	if (STATIC)
+		SET(FFTW_USE_STATIC_LIBS 1)
+	endif()
+	find_package(FFTW REQUIRED)
+	include_directories( ${FFTW3_INCLUDES} )
+	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
+	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
+	
+	find_package(Boost REQUIRED)
+	message(STATUS "Include dirs of boost: " ${Boost_INCLUDE_DIRS} )
+	message(STATUS "Libs of boost: " ${Boost_LIBRARIES} )
+	
+	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
+	add_library(naff STATIC ${NAFF_SOURCES})
+	target_link_libraries(naff ${FFTW_LIBRARIES} ${Boost_LIBRARIES})
+	
+	#Enable c++11
+	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
+
+	if(32BIT)
+		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+	endif(32BIT)
+	if(64BIT)
+		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+	endif(64BIT)
+endif()
+
 
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir)
@@ -1112,6 +1146,10 @@ foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
 	if(NOT MERLINSCATTER)
 		ast_masks_flag(merlinscatter ${loop})
 	endif()
+	if(NOT NAFF)
+		ast_masks_flag(naff ${loop})
+	endif()
+
 	if(NOT LIBARCHIVE)
 		ast_masks_flag(libarchive ${loop})
 	endif()
@@ -1242,6 +1280,11 @@ endif(CRLIBM)
 if(MERLINSCATTER)
 	target_link_libraries(SixTrack merlinscatter)
 endif(MERLINSCATTER)
+#if we are using naff, link to the naff library
+if(NAFF)
+	target_link_libraries(SixTrack naff)
+endif(NAFF)
+
 
 #if we are using root, link to all the root libraries
 #if(ROOT)

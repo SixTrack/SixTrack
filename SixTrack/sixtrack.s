@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.5'/
-      data moddate /'25.08.2017'/
+      data version /'4.7.6'/
+      data moddate /'01.09.2017'/
 +cd license
 !!SixTrack
 !!
@@ -22,6 +22,7 @@
 !!G. Robert-Demolaize, BNL
 !!V. Gupta, Google Summer of Code (GSoC)
 !!J. Molson (LAL)
+!!S. Kostoglou, NTUA, CERN
 !!
 !!Copyright 2014 CERN. This software is distributed under the terms of the GNU
 !!Lesser General Public License version 2.1, copied verbatim in the file
@@ -16977,8 +16978,11 @@ cc2008
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"
      &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1")
-     &   ) then
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1"
++if naff
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"
++ei
+     &)) then
          write(lout,*)
      &        "ERROR in DATEN::FMA: The FMA method '"//
      &        trim(stringzerotrim(fma_method(fma_numfiles)))
@@ -49977,7 +49981,25 @@ c$$$            endif
       double precision, dimension(:,:,:),allocatable ::
      &epsnxyzv ! normalized emittances
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
-     &tunenewt,tuneabt2,tuneabt,tunenewt1
+     &tunenewt,tuneabt2,tuneabt,tunenewt1 !Define the functions to be called from PLATO
++if naff
+      interface
+         REAL(C_DOUBLE) function tunenaff
+     &        (x,xp,maxn,plane_idx,norm_flag) BIND(C)
+         use, intrinsic :: ISO_C_BINDING
+         IMPLICIT NONE
+         REAL(C_DOUBLE), dimension(:) :: x,xp
+         INTEGER(C_INT) :: maxn, plane_idx, norm_flag
+         end function
+      end interface
+
+      ! Need to pass a single dimension array to NAFF,
+      !  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to C++.
+      ! (We can't interpret the struct that Fortran is passing us;
+      !  see the naff_interface.cpp for more info                 )
+      double precision, dimension(:), allocatable ::
+     &     naff_xyzv1,naff_xyzv2
++ei
 !     dummy variables for readin + normalisation + loops
       integer :: id,kt,counter
       double precision :: pos
@@ -50013,6 +50035,18 @@ c$$$            endif
          write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
      &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
      &        " proportional to napx*fma_nturn_max."
+         call prror(-1)
+      endif
+
++if naff
+      allocate(naff_xyzv1(fma_nturn_max),
+     &         naff_xyzv2(fma_nturn_max),
+     &         STAT=i                    )
++ei
+      if (i.ne.0) then
+         write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
+     &        " arrays 'naff_xyzv1,naff_xyzv2' of size "//
+     &        " fma_nturn_max."
          call prror(-1)
       endif
       
@@ -50386,7 +50420,7 @@ c$$$            endif
      &                     tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
      &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
                    endif
-                 
+                   
                 case('TUNEFFT')
                    if(fma_norm_flag(i) .eq. 0) then
                       q123(m)=
@@ -50464,6 +50498,42 @@ c$$$            endif
      &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
                    endif
                    
++if naff
+                case("NAFF")
+!                   write(lout,*) "DBG", fma_nturn(i),l
+!                   write(lout,*) "DBG",
+!     &                  nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
+!                   
+!                   write(lout,*) size(xyzv(l,1:fma_nturn(i),2*(m-1)+1))
+!                   write(lout,*) size(xyzv(l,1:fma_nturn(i),2*m))
+                   
+                   flush(lout)  ! F2003 does specify a FLUSH statement.
+                                ! However NAFF should NOT be chatty...
+
+!                   do n=1,fma_nturn(i)
+!                      write(*,*) n, nxyzv(l,n,2*(m-1)+1),
+!     &                              nxyzv(l,n,2*m)
+!                   enddo
+!                   write(*,*) ""
+
+                   ! Copy the relevant contents of the arrays
+                   ! into a new temporary array with stride=1
+                   ! for passing to C++.
+                   if(fma_norm_flag(i) .eq. 0) then
+                      naff_xyzv1=xyzv (l,1:fma_nturn(i),2*(m-1)+1)
+                      naff_xyzv2=xyzv (l,1:fma_nturn(i),2*m)
+                   else
+                      naff_xyzv1=nxyzv(l,1:fma_nturn(i),2*(m-1)+1)
+                      naff_xyzv2=nxyzv(l,1:fma_nturn(i),2*m)
+                   endif
+
+                   q123(m)=tunenaff(naff_xyzv1,naff_xyzv2,
+     &                     fma_nturn(i),m,fma_norm_flag(i) )
+                   
+                   flush(lout)
+!                   stop
++ei
+
                 case default
                    call fma_error(-1,'FMA method '//
      &                  trim(stringzerotrim(fma_method(i)))//
@@ -50571,7 +50641,9 @@ c$$$            endif
       close(2001001) !filename: fma_sixtrack
 
       deallocate(turn, xyzv, nxyzv, epsnxyzv)
-      
++if naff
+      deallocate(naff_xyzv1, naff_xyzv2)
++ei
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
  1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
       end subroutine fma_postpr
