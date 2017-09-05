@@ -33295,7 +33295,6 @@ C Should get me a NaN
       use scatter, only :
      &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,
      &scatter_PROFILE, scatter_GENERATOR,
-!     &scatter_idata, scatter_fdata, scatter_cdata,
      &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
      &scatter_nidata, scatter_nfdata, scatter_ncdata,
      &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,
