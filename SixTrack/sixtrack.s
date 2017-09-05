@@ -1194,6 +1194,8 @@
                                                 !  (nomalisation of phase space)
                                                 !  First index = -1 -> StartDUMP, filled differently;
                                                 !  First index = 0  -> Unused.
+      double precision :: dumptasinv (-1:nblz,6,6) ! inverse matrix of dumptas
+      double precision :: dumptasaux(6,6),dumptasinvaux(6,6) ! auxiliary variables 
       double precision :: dumpclo (-1:nblz,6)   ! closed orbit used for FMA
                                                  !  (normalisation of phase space)
                                                  !  TODO: check units used in dumpclo (is x' or px used?)
@@ -1212,7 +1214,8 @@
      &                dumpfirst, dumplast,
      &                dumpfmt, ldumphighprec, ldumpfront,
      &                dump_fname
-      common /dumpOptics/ dumptas,dumpclo
+      common /dumpOptics/ dumptas,dumptasinv,dumpclo,dumptasaux,
+     &                    dumptasinvaux
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -7005,6 +7008,30 @@ cc2008
                   dumptas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
                   dumptas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
                   dumptas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
+!    convert to units [mm,mrad,mm,mrad,1] as needed for normalization
+                  do md=1,5
+                    dumptas(ic(i)-nblo,md,6)=dumptas(ic(i)-nblo,md,6)
+     & *c1e3
+                    dumptas(ic(i)-nblo,6,md)=dumptas(ic(i)-nblo,6,md)
+     & *c1m3
+                  enddo
+                  do md=1,6
+                    do nd=1,6
+                      dumptasaux(md,nd)=dumptas(ic(i)-nblo,md,nd)
+                      dumptasinvaux(md,nd)=0
+                    enddo
+                  enddo
+!    invert the tas matrix
+!    Can we pass directly dumptas and dumptasinv here?
+                  call fma_norm_phase_space_matrix(
+     & dumptasinvaux,dumptasaux(1:6,1:6))
+!    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
+                  do md=1,6
+                    do nd=1,6
+                      dumptas(ic(i)-nblo,md,nd)=dumptasaux(md,nd)
+                      dumptasinv(ic(i)-nblo,md,nd)=dumptasinvaux(md,nd)
+                    enddo
+                  enddo
 !    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
 !    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
 !     -> check units used in dumpclo (is x' or px used?) 
@@ -21044,7 +21071,7 @@ C Should get me a NaN
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
-     &aa2r,a1,a1r,xy,h,df
+     &aa2r,a1,a1r,xy,h,df,md,nd
       double precision al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
      &beamoff2,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
      &cik,coefh2,coefv1,coefv2,cp,crk,crxb,crzb,cx,d,dicu,dare,det1,dp, &
@@ -23523,7 +23550,7 @@ C Should get me a NaN
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
-     &nerror,nlino,nlinoo,nmz,nthinerr,n
+     &nerror,nlino,nlinoo,nmz,nthinerr,n,md
       double precision alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
      &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
      &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
@@ -23556,8 +23583,6 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
-      ! dummy for tas matrix for converting  units for header of dump file
-      double precision :: dumptasaux (6,6),dumptasinvaux (6,6)   
       data lineno /0/
 +ei
 +if debug
@@ -24477,6 +24502,45 @@ C Should get me a NaN
   170       continue
           endif
           iar=(m+ib-2)*napx+1
+! save tas matrix and closed orbit for later dumping of the beam 
+! distribution at the first element (i=-1)
+! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
+! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
+! clo6v,clop6v [mm,mrad,mm,mrad,1] canonical variables (x' or px?)
+! for the initialization of the particles. Only in 5D thick the ta
+! matrix is different for each particle.
+! -> implement a check for this!
+! In 4d,6d thin+thick and 5d thin we have:
+!   tas(ia,*,*) = tas(1,*,*) for all particles ia
+          if (iar .eq. 1) then
+            do md=1,3
+              dumpclo(-1,md*2-1) = clo6v(md,1)
+              dumpclo(-1,md*2)   = clop6v(md,1)
+            enddo
+            do md=1,6
+               do nd=1,6
+                 dumptas(-1,md,nd) = tas(1,md,nd)
+               enddo
+            enddo
+! invert the matrix
+            do md=1,6
+              do nd=1,6
+                dumptasaux(md,nd)=dumptas(-1,md,nd)
+                dumptasinvaux(md,nd)=0
+              enddo
+            enddo
+!    invert the tas matrix
+!    Can we pass directly dumptas and dumptasinv here?
+            call fma_norm_phase_space_matrix(
+     & dumptasinvaux,dumptasaux(1:6,1:6))
+!    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
+            do md=1,6
+              do nd=1,6
+                dumptas(-1,md,nd)=dumptasaux(md,nd)
+                dumptasinv(-1,md,nd)=dumptasinvaux(md,nd)
+              enddo
+            enddo
+          endif
 ! tas(iar,*,*) [mm,mrad,mm,mrad,1]
 ! convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
           tasiar16=tas(iar,1,6)*c1m3
@@ -25318,49 +25382,6 @@ C Should get me a NaN
      &  '<nsigma^2> <nsigma*npsigma> '//
      &  '<npsigma^2>'
                  endif
-        ! if dumping at the start of the sequence (StartDump) use the 
-        ! same matrix and closed orbit as used
-        ! for the initialization of the particles. Only in 5D thick the ta
-        ! matrix is different for each particle.
-        ! -> implement a check for this!
-        ! In 4d,6d thin+thick and 5d thin we have:
-        !   tas(ia,*,*) = tas(1,*,*) for all particles ia
-                if (i.eq.-1) then
-                  do m=1,3
-                    dumpclo(i,m*2-1) = clo6v(m,1)
-                    dumpclo(i,m*2)   = clop6v(m,1)
-                  enddo
-        ! tas matrix is in units [mm,mrad,mm,mrad,1] while
-        ! dumptas is in units [mm,mrad,mm,mrad,1.e-3] to be consistent
-        ! with the original implementation using the 6D optics
-        ! -> convert 6th coordinate
-                  do m=1,6
-                     do n=1,6
-                          dumptas(i,m,n) = tas(1,m,n)
-                     enddo
-                  enddo
-                  do m=1,5
-                    dumptas(i,m,6)=dumptas(i,m,6)*c1m3
-                    dumptas(i,6,m)=dumptas(i,6,m)*c1e3
-                  enddo
-                endif
-        ! tas and tas_inv in canonical variables x,px,y,py,z,dp/p
-        ! convert to standard sixtrack tracking units
-        ! units: dumptas [mm,mrad,mm,mrad,1.e-3] (from linopt)
-        !        dumptasaux [mm,mrad,mm,mrad,1] (local variable for
-        !                                       conversion)
-        !        dumptasinvaux = inv(dumptasaux)
-                do m=1,6
-                  do n=1,6
-                    dumptasaux(m,n)=dumptas(i,m,n)
-                  enddo
-                enddo
-                do m=1,5
-                  dumptasaux(m,6)=dumptasaux(m,6)*c1e3
-                  dumptasaux(6,m)=dumptasaux(6,m)*c1m3
-                enddo
-                call fma_norm_phase_space_matrix(dumptasinvaux,
-     &   dumptasaux(1:6,1:6) )
         ! closed orbit
         ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] 
         ! (note: units are already changed in linopt part)
@@ -25369,48 +25390,48 @@ C Should get me a NaN
      &  dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),
      &  dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
 ! MF: remove, only for debugging
-!                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') 
-!     &  '# closed orbit StartDUMP [mm,mrad,mm,mrad,1]',
-!     &  clo6v(1,1),clop6v(1,1),clo6v(2,1),clop6v(2,1), clo6v(3,1),
-!     &  clop6v(3,1)
+                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') 
+     &  '# closed orbit StartDUMP [mm,mrad,mm,mrad,1]',
+     &  clo6v(1,1),clop6v(1,1),clo6v(2,1),clop6v(2,1), clo6v(3,1),
+     &  clop6v(3,1)
 
                 write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
      #  '# tamatrix [mm,mrad,mm,mrad,1]',
-     &  dumptasaux(1,1),dumptasaux(1,2),dumptasaux(1,3),dumptasaux(1,4),
-     &  dumptasaux(1,5),dumptasaux(1,6),dumptasaux(2,1),dumptasaux(2,2),
-     &  dumptasaux(2,3),dumptasaux(2,4),dumptasaux(2,5),dumptasaux(2,6),
-     &  dumptasaux(3,1),dumptasaux(3,2),dumptasaux(3,3),dumptasaux(3,4),
-     &  dumptasaux(3,5),dumptasaux(3,6),dumptasaux(4,1),dumptasaux(4,2),
-     &  dumptasaux(4,3),dumptasaux(4,4),dumptasaux(4,5),dumptasaux(4,6),
-     &  dumptasaux(5,1),dumptasaux(5,2),dumptasaux(5,3),dumptasaux(5,4),
-     &  dumptasaux(5,5),dumptasaux(5,6),dumptasaux(6,1),dumptasaux(6,2),
-     &  dumptasaux(6,3),dumptasaux(6,4),dumptasaux(6,5),dumptasaux(6,6)
+     &  dumptas(i,1,1),dumptas(i,1,2),dumptas(i,1,3),dumptas(i,1,4),
+     &  dumptas(i,1,5),dumptas(i,1,6),dumptas(i,2,1),dumptas(i,2,2),
+     &  dumptas(i,2,3),dumptas(i,2,4),dumptas(i,2,5),dumptas(i,2,6),
+     &  dumptas(i,3,1),dumptas(i,3,2),dumptas(i,3,3),dumptas(i,3,4),
+     &  dumptas(i,3,5),dumptas(i,3,6),dumptas(i,4,1),dumptas(i,4,2),
+     &  dumptas(i,4,3),dumptas(i,4,4),dumptas(i,4,5),dumptas(i,4,6),
+     &  dumptas(i,5,1),dumptas(i,5,2),dumptas(i,5,3),dumptas(i,5,4),
+     &  dumptas(i,5,5),dumptas(i,5,6),dumptas(i,6,1),dumptas(i,6,2),
+     &  dumptas(i,6,3),dumptas(i,6,4),dumptas(i,6,5),dumptas(i,6,6)
 ! MF: remove, only for debugging
-!               write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
-!     #  '# tamatrix StartDUMP [mm,mrad,mm,mrad,1]',
-!     &  tas(1,1,1),tas(1,1,2),tas(1,1,3),tas(1,1,4),
-!     &  tas(1,1,5),tas(1,1,6),tas(1,2,1),tas(1,2,2),
-!     &  tas(1,2,3),tas(1,2,4),tas(1,2,5),tas(1,2,6), 
-!     &  tas(1,3,1),tas(1,3,2),tas(1,3,3),tas(1,3,4),
-!     &  tas(1,3,5),tas(1,3,6),tas(1,4,1),tas(1,4,2),
-!     &  tas(1,4,3),tas(1,4,4),tas(1,4,5),tas(1,4,6), 
-!     &  tas(1,5,1),tas(1,5,2),tas(1,5,3),tas(1,5,4),
-!     &  tas(1,5,5),tas(1,5,6),tas(1,6,1),tas(1,6,2),
-!     &  tas(1,6,3),tas(1,6,4),tas(1,6,5),tas(1,6,6)
+               write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
+     #  '# tamatrix StartDUMP [mm,mrad,mm,mrad,1]',
+     &  tas(1,1,1),tas(1,1,2),tas(1,1,3),tas(1,1,4),
+     &  tas(1,1,5),tas(1,1,6),tas(1,2,1),tas(1,2,2),
+     &  tas(1,2,3),tas(1,2,4),tas(1,2,5),tas(1,2,6), 
+     &  tas(1,3,1),tas(1,3,2),tas(1,3,3),tas(1,3,4),
+     &  tas(1,3,5),tas(1,3,6),tas(1,4,1),tas(1,4,2),
+     &  tas(1,4,3),tas(1,4,4),tas(1,4,5),tas(1,4,6), 
+     &  tas(1,5,1),tas(1,5,2),tas(1,5,3),tas(1,5,4),
+     &  tas(1,5,5),tas(1,5,6),tas(1,6,1),tas(1,6,2),
+     &  tas(1,6,3),tas(1,6,4),tas(1,6,5),tas(1,6,6)
                 write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
      &  '# inv(tamatrix)',
-     &  dumptasinvaux(1,1),dumptasinvaux(1,2),dumptasinvaux(1,3),
-     &  dumptasinvaux(1,4),dumptasinvaux(1,5),dumptasinvaux(1,6), 
-     &  dumptasinvaux(2,1),dumptasinvaux(2,2),dumptasinvaux(2,3),
-     &  dumptasinvaux(2,4),dumptasinvaux(2,5),dumptasinvaux(2,6), 
-     &  dumptasinvaux(3,1),dumptasinvaux(3,2),dumptasinvaux(3,3),
-     &  dumptasinvaux(3,4),dumptasinvaux(3,5),dumptasinvaux(3,6),
-     &  dumptasinvaux(4,1),dumptasinvaux(4,2),dumptasinvaux(4,3),
-     &  dumptasinvaux(4,4),dumptasinvaux(4,5),dumptasinvaux(4,6), 
-     &  dumptasinvaux(5,1),dumptasinvaux(5,2),dumptasinvaux(5,3),
-     &  dumptasinvaux(5,4),dumptasinvaux(5,5),dumptasinvaux(5,6),
-     &  dumptasinvaux(6,1),dumptasinvaux(6,2),dumptasinvaux(6,3),
-     &  dumptasinvaux(6,4),dumptasinvaux(6,5),dumptasinvaux(6,6)
+     &  dumptasinv(i,1,1),dumptasinv(i,1,2),dumptasinv(i,1,3),
+     &  dumptasinv(i,1,4),dumptasinv(i,1,5),dumptasinv(i,1,6), 
+     &  dumptasinv(i,2,1),dumptasinv(i,2,2),dumptasinv(i,2,3),
+     &  dumptasinv(i,2,4),dumptasinv(i,2,5),dumptasinv(i,2,6), 
+     &  dumptasinv(i,3,1),dumptasinv(i,3,2),dumptasinv(i,3,3),
+     &  dumptasinv(i,3,4),dumptasinv(i,3,5),dumptasinv(i,3,6),
+     &  dumptasinv(i,4,1),dumptasinv(i,4,2),dumptasinv(i,4,3),
+     &  dumptasinv(i,4,4),dumptasinv(i,4,5),dumptasinv(i,4,6), 
+     &  dumptasinv(i,5,1),dumptasinv(i,5,2),dumptasinv(i,5,3),
+     &  dumptasinv(i,5,4),dumptasinv(i,5,5),dumptasinv(i,5,6),
+     &  dumptasinv(i,6,1),dumptasinv(i,6,2),dumptasinv(i,6,3),
+     &  dumptasinv(i,6,4),dumptasinv(i,6,5),dumptasinv(i,6,6)
              end if  !Format-specific headers
 
              ! Flush file
@@ -29030,8 +29051,6 @@ C Should get me a NaN
       double precision xyz_particle(6),nxyz_particle(6)
       double precision xyz(6)
       double precision xyz2(6,6)
-      ! dummy for tas matrix for converting  units for header of dump file
-      double precision :: dumptasaux(6,6),dumptasinvaux(6,6)   
       
 +if cr      
       !For accessing dumpfilepos
