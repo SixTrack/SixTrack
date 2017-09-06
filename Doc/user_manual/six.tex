@@ -1929,17 +1929,38 @@ BLOC56            hel1              hel2
 \end{verbatim}
 Note that all parameters except for the type are set to 0 in the single element definition.
 
-\subsection{Scattering}
-\label{sec:scatter}
+\subsection{Scattering} \label{sec:scatter}
+\todo[inline]{This module is experimental!}
 
-\subsubsection{ELEMent}
-\label{sec:scatter:elem}
+
+
+\subsubsection{ELEMent} \label{sec:scatter:elem}
 
 \subsubsection{PROfile}
 %\label{sec:scatter:pro}
 
-\subsubsection{GENerator}
-%\label{sec:scatter:gen}
+\subsubsection{GENerator} \label{sec:scatter:gen}
+
+The generator block takes a name and a generator type input, followed by the parameters for the
+generator type.\\
+\\
+\noindent\textbf{PPBEAMELASTIC}\\
+\\
+Takes five or six input arguments, and generates the probability distribution given by
+\begin{align}
+    g(t) = \frac{1}{a_1^2}\frac{d\sigma}{dt} = e^{-b_1 t}+ 2ae^{-(b_1+b_2)t/2}\cos{\phi} + a^2e^{-b_2 t},
+\end{align}
+where the first expression is a soft scatter data fit, the third expression a hard scatter fit,
+and the second expression is the interference. $a = a_2/a_1$ is the amplitudes of the expressions.
+These are combined into the first four input arguments $a$, $b_1$, $b_2$, and $\phi$, as well as
+$t_{min}$ which provides a cut-off limit.
+
+The optional sixth argument defines a fixed cross section for the scattering probability.\\
+\\
+\noindent Input example with values for a fit to 13 TeV LHC.
+\begin{verbatim}
+    GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30e-27
+\end{verbatim}
 
 \subsubsection{SEED}
 

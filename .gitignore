@@ -24,6 +24,7 @@ SixTrack/libarchive_build
 SixTrack/count.log
 
 #LaTeX temps
+Doc/user_manual/six.pdf
 Doc/*/*.aux
 Doc/*/*.log
 Doc/*/*.lot
