@@ -7074,7 +7074,7 @@ cc2008
           enddo
 !    invert the tas matrix
 !    Can we pass directly dumptas and dumptasinv here?
-          call fma_norm_phase_space_matrix(
+          call invert_tas(
      & dumptasinvaux,dumptasaux(1:6,1:6))
 !    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
           do md=1,6
@@ -24533,7 +24533,7 @@ C Should get me a NaN
             enddo
 !    invert the tas matrix
 !    Can we pass directly dumptas and dumptasinv here?
-            call fma_norm_phase_space_matrix(
+            call invert_tas(
      & dumptasinvaux,dumptasaux(1:6,1:6))
 !    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
             do md=1,6
@@ -29358,8 +29358,6 @@ C Should get me a NaN
             localDcum = dcum(i)
             localKtrack = ktrack(i)
          endif
-         write(*,*) 'MF: tas matrix in dump_beam*',i,ix,tasinv(1,1),
-     & tasinv(1,2),tasinv(2,2),tasinv(1,3),tasinv(2,3)
        ! normalize particle coordinates
          do j=1,napx
              xyz_particle(1) = xv(1,j)
@@ -29401,11 +29399,6 @@ C Should get me a NaN
      &                  nxyz_particle(4),nxyz_particle(5),
      &                  nxyz_particle(6),localKtrack
                else
-!                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
-!     &                  nturn, localDcum, xyz_particle(1),
-!     &                  xyz_particle(2),xyz_particle(3),
-!     &                  xyz_particle(4),xyz_particle(5),
-!     &                  xyz_particle(6),localKtrack
                    write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
      &                  nturn, localDcum, nxyz_particle(1),
      &                  nxyz_particle(2),nxyz_particle(3),
@@ -49881,7 +49874,7 @@ c$$$            endif
       endif
       end subroutine
       
-      subroutine fma_norm_phase_space_matrix(fma_tas_inv,fma_tas)
+      subroutine invert_tas(fma_tas_inv,fma_tas)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
 !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
@@ -49925,7 +49918,7 @@ c$$$            endif
 !     - invert: dinv returns the transposed matrix
       call dinv(6,fma_tas_inv,6,idummy,ierro)
       call fma_error(ierro,'matrix inversion failed!',                  &
-     &'fma_norm_phase_space_matrix')
+     &'invert_tas')
 !     - transpose fma_tas_inv
       tdummy=fma_tas_inv
       do i=1,6
@@ -49933,7 +49926,7 @@ c$$$            endif
           fma_tas_inv(i,j)=tdummy(j,i)
         enddo
       enddo
-      end subroutine fma_norm_phase_space_matrix
+      end subroutine invert_tas
       
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
