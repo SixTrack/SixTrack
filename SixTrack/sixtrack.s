@@ -6693,7 +6693,7 @@ cc2008
      &           ) then
                call dump_beam_population( n, 0, 0, dumpunit(-1),
      &              dumpfmt(-1), ldumphighprec, 
-     &              dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
+     &              dumpclo(-1,1:6),dumptasinv(-1,1:6,1:6) )
             endif
          endif
       endif
@@ -25391,12 +25391,6 @@ C Should get me a NaN
      &  '# closed orbit [mm,mrad,mm,mrad,1]',
      &  dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),
      &  dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
-! MF: remove, only for debugging
-                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') 
-     &  '# closed orbit StartDUMP [mm,mrad,mm,mrad,1]',
-     &  clo6v(1,1),clop6v(1,1),clo6v(2,1),clop6v(2,1), clo6v(3,1),
-     &  clop6v(3,1)
-
                 write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
      #  '# tamatrix [mm,mrad,mm,mrad,1]',
      &  dumptas(i,1,1),dumptas(i,1,2),dumptas(i,1,3),dumptas(i,1,4),
@@ -25408,18 +25402,6 @@ C Should get me a NaN
      &  dumptas(i,5,1),dumptas(i,5,2),dumptas(i,5,3),dumptas(i,5,4),
      &  dumptas(i,5,5),dumptas(i,5,6),dumptas(i,6,1),dumptas(i,6,2),
      &  dumptas(i,6,3),dumptas(i,6,4),dumptas(i,6,5),dumptas(i,6,6)
-! MF: remove, only for debugging
-               write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
-     #  '# tamatrix StartDUMP [mm,mrad,mm,mrad,1]',
-     &  tas(1,1,1),tas(1,1,2),tas(1,1,3),tas(1,1,4),
-     &  tas(1,1,5),tas(1,1,6),tas(1,2,1),tas(1,2,2),
-     &  tas(1,2,3),tas(1,2,4),tas(1,2,5),tas(1,2,6), 
-     &  tas(1,3,1),tas(1,3,2),tas(1,3,3),tas(1,3,4),
-     &  tas(1,3,5),tas(1,3,6),tas(1,4,1),tas(1,4,2),
-     &  tas(1,4,3),tas(1,4,4),tas(1,4,5),tas(1,4,6), 
-     &  tas(1,5,1),tas(1,5,2),tas(1,5,3),tas(1,5,4),
-     &  tas(1,5,5),tas(1,5,6),tas(1,6,1),tas(1,6,2),
-     &  tas(1,6,3),tas(1,6,4),tas(1,6,5),tas(1,6,6)
                 write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
      &  '# inv(tamatrix)',
      &  dumptasinv(i,1,1),dumptasinv(i,1,2),dumptasinv(i,1,3),
@@ -29376,6 +29358,8 @@ C Should get me a NaN
             localDcum = dcum(i)
             localKtrack = ktrack(i)
          endif
+         write(*,*) 'MF: tas matrix in dump_beam*',i,ix,tasinv(1,1),
+     & tasinv(1,2),tasinv(2,2),tasinv(1,3),tasinv(2,3)
        ! normalize particle coordinates
          do j=1,napx
              xyz_particle(1) = xv(1,j)
@@ -29394,8 +29378,11 @@ C Should get me a NaN
              xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+
      &            clo(6))
 !     - normalize nxyz=fma_tas_inv*xyz
+             ! initialize nxyz
              do m=1,6
-                nxyz_particle(m)=zero
+               nxyz_particle(m)=zero
+             enddo
+             do m=1,6
                 do n=1,6
                    nxyz_particle(m)=nxyz_particle(m)+
      &  tasinv(m,n)*xyz_particle(n)
@@ -29414,6 +29401,11 @@ C Should get me a NaN
      &                  nxyz_particle(4),nxyz_particle(5),
      &                  nxyz_particle(6),localKtrack
                else
+!                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
+!     &                  nturn, localDcum, xyz_particle(1),
+!     &                  xyz_particle(2),xyz_particle(3),
+!     &                  xyz_particle(4),xyz_particle(5),
+!     &                  xyz_particle(6),localKtrack
                    write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
      &                  nturn, localDcum, nxyz_particle(1),
      &                  nxyz_particle(2),nxyz_particle(3),
@@ -50327,9 +50319,12 @@ c$$$            endif
      &                dumpclo(j,6))
                  xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
      &                dumpclo(j,6))
-!     - normalize nxyz=dumptasinv*xyz
+!     - intialize nxyzdummy
                  do m=1,6
                     nxyzvdummy(m)=zero
+                 enddo 
+!     - normalize nxyz=dumptasinv*xyz
+                 do m=1,6
                     do n=1,6
                        nxyzvdummy(m)=nxyzvdummy(m)+dumptasinv(j,m,n)*
      &                      xyzvdummy(n)
