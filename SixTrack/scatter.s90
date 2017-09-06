@@ -1,15 +1,125 @@
 +dk scatter
 ! Deck for the scattering routines implemented in the SCATTER block
 
-subroutine scatter_initialize
+module scatter
 
+  IMPLICIT NONE
+
+  ! We have to declare all this stuff, and we can't set them PRIVATE.
+  ! Therefore, we always need to import the SCATTER module using "only",
+  ! or else it will bring the contents of parpro, comgetfields,
+  ! and stringzerotrim along with it...
++ca parpro !for nele
+
+!For the string length stuff
++ca comgetfields
++ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
+
+!  PUBLIC
+  !Common variables for the SCATTER routines
+  logical scatter_active
+  
+  integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
+                                     ! (0 => not used)
+  integer scatter_maxELEM
+  parameter (scatter_maxELEM=200)    ! Max of scattering ELEM statements in use.
+  integer scatter_maxGenELEM
+  parameter (scatter_maxGenELEM=5)   ! Number of generators per ELEM
+                                     ! (2 slots taken by pointers to singleElement and profile).
+  
+  ! Configuration for an ELEM, columns are:
+  ! (1) = pointer to the SingleElement
+  ! (2) = pointer to PROFILE
+  ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
+  integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
+  
+  double precision scatter_ELEM_scale(scatter_maxELEM)
+  
+  ! Configuration for PROFILE
+  integer scatter_maxPROFILE
+  parameter (scatter_maxPROFILE=200)  ! Max number of profiles
+  integer scatter_PROFILE(scatter_maxPROFILE, 5)
+  ! Columns of scatter_PROFILE:
+  ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
+  ! (2)   : Profile type
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  
+  ! Configuration for GENERATOR
+  integer scatter_maxGENERATOR
+  parameter (scatter_maxGENERATOR=20)
+  integer scatter_GENERATOR(scatter_maxGENERATOR,5)
+  ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
+  ! (2)   : Generator type
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  
+  ! General data storage ala DYNK
+  integer scatter_maxdata, scatter_maxstrlen
+  parameter (scatter_maxdata   = 5000,                              &
+             scatter_maxstrlen = stringzerotrim_maxlen )
+  
+  integer,                       allocatable :: scatter_idata (:)
+  double precision,              allocatable :: scatter_fdata (:)
+  character (scatter_maxstrlen), allocatable :: scatter_cdata (:)
+  
+  !Number of currently used positions in arrays
+  integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
+  integer scatter_nidata, scatter_nfdata, scatter_ncdata
+  
+  integer scatter_seed1, scatter_seed2
+  
+  logical scatter_debug
+  
+  save scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,       &
+       scatter_PROFILE, scatter_GENERATOR,                          &
+       scatter_idata, scatter_fdata, scatter_cdata,                 &
+       scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
+       scatter_nidata, scatter_nfdata, scatter_ncdata,              &
+       scatter_debug, scatter_active, scatter_seed1, scatter_seed2
+  
+  
+  contains !Subroutines are defined below this line
+
+  subroutine scatter_allocate
     implicit none
 
 +ca crcoall
 +ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comscatter
+
++ca parnum
+
+    integer stat
+    integer i,j
+    
+    write(lout,'(A,I8)') "SCATTER_ALLOCATE : scatter_maxdata=",scatter_maxdata
+    allocate( scatter_idata(scatter_maxdata), &
+              scatter_fdata(scatter_maxdata), &
+              scatter_cdata(scatter_maxdata), &
+              STAT=stat)
+
+    if (stat.ne.0) then
+       write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE(); stat=",stat
+       call prror(-1)
+    endif
+
+    ! Zero the memory, as is done in comnul.
+    ! One disadvantage of doing this is that we force all the memory to be real,
+    ! while in most cases much of it could actually be virtual...
+    do i=1, scatter_maxdata
+       scatter_idata(i) = 0
+       scatter_fdata(i) = zero
+       do j=1, scatter_maxstrlen
+          scatter_cdata(i)(j:j) = char(0)
+       end do
+    enddo
+
+    
+  end subroutine scatter_allocate
+    
+  subroutine scatter_initialize
+    implicit none
+
++ca crcoall
++ca parpro
 
     logical lopen
 
@@ -25,17 +135,26 @@ subroutine scatter_initialize
     write(667,"(A)") "# scatter_log"
     write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
-end subroutine scatter_initialize
+  end subroutine scatter_initialize
 
-subroutine scatter_dumpdata
+  subroutine scatter_closefiles
+    implicit none
+    logical lopen
+    
+    if (scatter_active) then
+       inquire(unit=667, opened=lopen)
+       if (lopen) close(667,err=667)
+667    continue
+    endif
+
+  end subroutine scatter_closefiles
+  
+  subroutine scatter_dumpdata
 
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     integer ii,jj
 
@@ -85,22 +204,20 @@ subroutine scatter_dumpdata
 
     write(lout,'(a)') "**** END SCATTER DUMP ****"
 
-end subroutine
+  end subroutine scatter_dumpdata
 
 !---------------------------------------------------------------------------------------------------
 ! BEGIN Input Parser Functions
 !---------------------------------------------------------------------------------------------------
 
 ! ***** PARSE SCATTER ELEM SUBROUTINE *****
-subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
 +ca common
 +ca commonmn
@@ -227,18 +344,16 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
         end do
     end do
 
-end subroutine
+  end subroutine scatter_parseElem
 
 ! ***** PARSE SCATTER PRO SUBROUTINE *****
-subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     ! Temporary Variables
     integer ii, tmpIdx
@@ -337,18 +452,16 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
     end select
 
-end subroutine
+  end subroutine scatter_parseProfile
 
 ! ***** PARSE SCATTER GEN SUBROUTINE *****
-subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
 +ca parnum
 
@@ -488,18 +601,15 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
     end select
 
-end subroutine
+  end subroutine scatter_parseGenerator
 
 ! ***** PARSE SCATTER SEED SUBROUTINE *****
-subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
+  subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
 +ca crcoall
-+ca parpro
 +ca comgetfields
-+ca stringzerotrim
-+ca comscatter
 
     ! Check the number of arguments
     if(getfields_nfields .ne. 3) then
@@ -512,30 +622,25 @@ subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfield
     read(getfields_fields(2)(1:getfields_lfields(2)),*) scatter_seed1
     read(getfields_fields(3)(1:getfields_lfields(3)),*) scatter_seed2
 
-end subroutine scatter_parseSeed
+  end subroutine scatter_parseSeed
 
 !---------------------------------------------------------------------------------------------------
 ! END Input Parser Functions
 !---------------------------------------------------------------------------------------------------
 
-subroutine scatter_thin(ix, turn)
-
+  subroutine scatter_thin(ix, turn)
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
++if crlibm
++ca crlibco
++ei
+
 +ca stringzerotrim
-+ca comscatter
 
 +ca common
 +ca commonmn
 +ca parnum
-
-    ! Define functions
-    double precision scatter_profile_getDensity
-    double precision scatter_generator_getCrossSection
-    double precision scatter_generator_getPPElastic
 
     ! Temp variables
     integer          ELEMidx, PROidx, GENidx
@@ -585,7 +690,7 @@ subroutine scatter_thin(ix, turn)
 
         call ranecu(rndPhi, napx, -1)
         call ranecu(rndP,   napx, -1)
-        rndPhi = rndPhi*2*pi
+        rndPhi = rndPhi*(2*pi)
 
         do j=1, napx
             ! Compute the cross section at this s
@@ -598,7 +703,7 @@ subroutine scatter_thin(ix, turn)
             N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
 
             ! Compute probability P
-            P = N*crossSection*scaling
+            P = (N*crossSection)*scaling
             ! If RNG > P -> go to next particle, else scatter
             if (rndP(j) .gt. P) then
                 cycle
@@ -610,9 +715,15 @@ subroutine scatter_thin(ix, turn)
             ! Use generator t and xi to update particle j;
             ! remember to update ALL the energy arrays
             theta   = 1d3*sqrt(t)/ejfv(j)                  ! Unit mrad
++if crlibm
+            yv(1,j) = theta*cos_rn(rndPhi(j)) + yv(1,j)
+            yv(2,j) = theta*sin_rn(rndPhi(j)) + yv(2,j)
++ei
++if .not.crlibm
             yv(1,j) = theta*cos(rndPhi(j)) + yv(1,j)
             yv(2,j) = theta*sin(rndPhi(j)) + yv(2,j)
-
++ei
+            
             ! Output to file
             write(667,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
                 trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
@@ -623,17 +734,14 @@ subroutine scatter_thin(ix, turn)
     call recuut(scatter_seed1,scatter_seed2)
     call recuin(tmpSeed1,tmpSeed2)
 
-end subroutine
+  end subroutine scatter_thin
 
-double precision function scatter_profile_getDensity(profileIdx, x,y) result(retval)
+  double precision function scatter_profile_getDensity(profileIdx, x,y) result(retval)
 
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     integer, intent(in) :: profileIdx
     double precision, intent(in) :: x, y
@@ -652,9 +760,9 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
         call prror(-1)
     end select
 
-end function
+  end function scatter_profile_getDensity
 
-subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
+  subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
     implicit none
 
@@ -664,17 +772,14 @@ subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
     ! Return a particle to collide with
 
-end subroutine
-
-double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
+  end subroutine scatter_profile_getParticle
+  
+  double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
 
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
 +ca stringzerotrim
-+ca comscatter
 
     integer, intent(in) :: profileIDX, generatorIDX
     double precision, intent(in) :: x, y, xp, yp, E
@@ -709,19 +814,12 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
 
     end select
 
-end function
+  end function scatter_generator_getCrossSection
 
-subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
-
+  subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     implicit none
 
 +ca crcoall
-+ca parpro
-+ca comgetfields
-+ca stringzerotrim
-+ca comscatter
-
-    double precision scatter_generator_getPPElastic
 
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
@@ -756,15 +854,17 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
     end select
 
-end subroutine
+  end subroutine scatter_generator_getTandXi
 
-! Based on Helmut Burkhardt's code presented on 05-04-2017
-! "Elastic pp scattering estimates and simulation relevant for burn-off"
-! https://indico.cern.ch/event/625576/
-double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
+  ! Based on Helmut Burkhardt's code presented on 05-04-2017
+  ! "Elastic pp scattering estimates and simulation relevant for burn-off"
+  ! https://indico.cern.ch/event/625576/
+  double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
     implicit none
-
++if crlibm
++ca crlibco
++ei
 +ca crcoall
 
     double precision, intent(in) :: a, b1, b2, phi, tmin
@@ -774,10 +874,16 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     double precision g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
 
     ! Approximate distribution
++if crlibm
+    g1    =            exp_rn(-b1*tmin)/b1 ! Soft scatter term
+    g3    = (a**2) * ( exp_rn(-b2*tmin)/b2 ) ! Hard scatter term
++ei
++if .not.crlibm
     g1    =        exp(-b1*tmin)/b1 ! Soft scatter term
     g3    = a**2 * exp(-b2*tmin)/b2 ! Hard scatter term
++ei
     prob3 = g3/(g1+g3)              ! Probability of g3
-
+    
     ! Pre-calculate inverses
     invB1 = 1.0d0/b1
     invB2 = 1.0d0/b2
@@ -789,18 +895,35 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         call ranecu(rndArr, 3, -1)
 
         ! Randomly switch between g1 and g3 according to probability
++if crlibm
+        if(rndArr(1) .gt. prob3) then
+            t = tmin - invB1*log_rn(rndArr(2))
+        else
+            t = tmin - invB2*log_rn(rndArr(2))
+        end if
++ei
++if .not.crlibm
         if(rndArr(1) .gt. prob3) then
             t = tmin - invB1*log(rndArr(2))
         else
             t = tmin - invB2*log(rndArr(2))
         end if
-
++ei
+        
         ! Exact distribution
++if crlibm
+        g1 =            exp_rn(-b1*t)                                    ! Soft scatter term
+        g2 =  ( (2*a) * exp_rn( ( (-0.5d0)*(b1+b2) )*t ) ) * cos_rn(phi) ! Interference
+        g3 =   (a**2) * exp_rn(-b2*t)                                    ! Hard scatter term
+        gg = ((g1+g2)+g3)/(g1+g3)
++ei
++if .not.crlibm
         g1 =        exp(-b1*t)                       ! Soft scatter term
         g2 =  2*a * exp(-0.5d0*(b1+b2)*t) * cos(phi) ! Interference
         g3 = a**2 * exp(-b2*t)                       ! Hard scatter term
         gg = (g1+g2+g3)/(g1+g3)
-
++ei
+        
         ! Check hit/miss on exact distribution
         ! if miss, get new t value
         ! if too many attempts, exit
@@ -813,4 +936,6 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         call prror(-1)
     end if
 
-end function
+  end function scatter_generator_getPPElastic
+
+end module scatter
