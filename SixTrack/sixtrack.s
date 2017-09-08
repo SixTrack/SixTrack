@@ -7068,11 +7068,10 @@ cc2008
 !     do the unit conversion + inversion of dumptas
 !     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
 
-                   !!!! TODO before merge: Change back to c1e3 / c1m3 as this is more correct; must then update canonicals. !!!!!!!!!!!!!!
                    dumptas(ic(i)-nblo,1:5,6)=
-     &                     dumptas(ic(i)-nblo,1:5,6)*1.e3 !*c1e3
+     &                     dumptas(ic(i)-nblo,1:5,6)*c1e3
                    dumptas(ic(i)-nblo,6,1:5)=
-     &                  dumptas(ic(i)-nblo,6,1:5)*1.e-3  !*c1m3
+     &                  dumptas(ic(i)-nblo,6,1:5)*c1m3
                    
 !     invert the tas matrix
                    call invert_tas(dumptasinv(ic(i)-nblo,:,:),
