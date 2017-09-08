@@ -6994,6 +6994,7 @@ cc2008
             call dapek(damap(ii-1),jj,au(i3-1,i3))
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
+            
 !    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
 !    units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
             if(fma_flag) then
@@ -7023,6 +7024,7 @@ cc2008
                 endif
               endif
             endif
+           
             b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
             b2(j)=au(i2-1,i2-1)**2+au(i2-1,i2)**2                        !hr08
             b3(j)=au(i3-1,i3-1)**2+au(i3-1,i3)**2                        !hr08
@@ -7060,36 +7062,26 @@ cc2008
             endif
             phi(j)=phi(j)+dphi(j)
           enddo !end of optics calculation
+
           if(fma_flag) then
              if(ic(i)-nblo.gt.0) then !check if structure element is a block
                 if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-
+                   
 !     do the unit conversion + inversion of dumptas
-! convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
-          do md=1,5
-            dumptas(ic(i)-nblo,md,6)=dumptas(ic(i)-nblo,md,6)*c1e3
-            dumptas(ic(i)-nblo,6,md)=dumptas(ic(i)-nblo,6,md)*c1m3
-          enddo
-          do md=1,6
-            do nd=1,6
-              dumptasaux(md,nd)=dumptas(ic(i)-nblo,md,nd)
-              dumptasinvaux(md,nd)=0
-            enddo
-          enddo
-!    invert the tas matrix
-!    Can we pass directly dumptas and dumptasinv here?
-          call invert_tas(
-     & dumptasinvaux,dumptasaux(1:6,1:6))
-!    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-          do md=1,6
-            do nd=1,6
-              dumptas(ic(i)-nblo,md,nd)=dumptasaux(md,nd)
-              dumptasinv(ic(i)-nblo,md,nd)=dumptasinvaux(md,nd)
-            enddo
-          enddo
-          
-          endif
-          endif
+!     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
+                   do md=1,5
+                      dumptas(ic(i)-nblo,md,6)=
+     &                     dumptas(ic(i)-nblo,md,6)*c1e3
+                      dumptas(ic(i)-nblo,6,md)=
+     &                     dumptas(ic(i)-nblo,6,md)*c1m3
+                   enddo
+!     invert the tas matrix
+                   call invert_tas(dumptasinv(ic(i)-nblo,:,:),
+     &                  dumptas(ic(i)-nblo,:,:))
+!     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
+                   
+                endif
+             endif
           endif
           
           do j=1,ndimf
