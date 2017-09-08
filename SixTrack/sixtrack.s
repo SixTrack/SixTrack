@@ -1195,7 +1195,6 @@
                                                 !  First index = -1 -> StartDUMP, filled differently;
                                                 !  First index = 0  -> Unused.
       double precision :: dumptasinv (-1:nblz,6,6) ! inverse matrix of dumptas
-      double precision :: dumptasaux(6,6),dumptasinvaux(6,6) ! auxiliary variables 
       double precision :: dumpclo (-1:nblz,6)   ! closed orbit used for FMA
                                                  !  (normalisation of phase space)
                                                  !  TODO: check units used in dumpclo (is x' or px used?)
@@ -1214,8 +1213,7 @@
      &                dumpfirst, dumplast,
      &                dumpfmt, ldumphighprec, ldumpfront,
      &                dump_fname
-      common /dumpOptics/ dumptas,dumptasinv,dumpclo,dumptasaux,
-     &                    dumptasinvaux
+      common /dumpOptics/ dumptas,dumptasinv,dumpclo
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -7070,10 +7068,11 @@ cc2008
 !     do the unit conversion + inversion of dumptas
 !     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
 
+                   !!!! TODO before merge: Change back to c1e3 / c1m3 as this is more correct; must then update canonicals. !!!!!!!!!!!!!!
                    dumptas(ic(i)-nblo,1:5,6)=
-     &                     dumptas(ic(i)-nblo,1:5,6)*c1e3
+     &                     dumptas(ic(i)-nblo,1:5,6)*1.e3 !*c1e3
                    dumptas(ic(i)-nblo,6,1:5)=
-     &                  dumptas(ic(i)-nblo,6,1:5)*c1m3
+     &                  dumptas(ic(i)-nblo,6,1:5)*1.e-3  !*c1m3
                    
 !     invert the tas matrix
                    call invert_tas(dumptasinv(ic(i)-nblo,:,:),
@@ -23553,7 +23552,7 @@ C Should get me a NaN
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
-     &nerror,nlino,nlinoo,nmz,nthinerr,n,md
+     &nerror,nlino,nlinoo,nmz,nthinerr
       double precision alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
      &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
      &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
@@ -24505,6 +24504,7 @@ C Should get me a NaN
   170       continue
           endif
           iar=(m+ib-2)*napx+1
+
 ! save tas matrix and closed orbit for later dumping of the beam 
 ! distribution at the first element (i=-1)
 ! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
@@ -24516,35 +24516,17 @@ C Should get me a NaN
 ! In 4d,6d thin+thick and 5d thin we have:
 !   tas(ia,*,*) = tas(1,*,*) for all particles ia
           if (iar .eq. 1) then
-            do md=1,3
-              dumpclo(-1,md*2-1) = clo6v(md,1)
-              dumpclo(-1,md*2)   = clop6v(md,1)
-            enddo
-            do md=1,6
-               do nd=1,6
-                 dumptas(-1,md,nd) = tas(1,md,nd)
-               enddo
-            enddo
-! invert the matrix
-            do md=1,6
-              do nd=1,6
-                dumptasaux(md,nd)=dumptas(-1,md,nd)
-                dumptasinvaux(md,nd)=0
-              enddo
-            enddo
-!    invert the tas matrix
-!    Can we pass directly dumptas and dumptasinv here?
-            call invert_tas(
-     & dumptasinvaux,dumptasaux(1:6,1:6))
-!    dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-            do md=1,6
-              do nd=1,6
-                dumptas(-1,md,nd)=dumptasaux(md,nd)
-                dumptasinv(-1,md,nd)=dumptasinvaux(md,nd)
-              enddo
-            enddo
+             do i3=1,3
+                dumpclo(-1,i3*2-1) = clo6v(i3,1)
+                dumpclo(-1,i3*2)   = clop6v(i3,1)
+             enddo
+             dumptas(-1,:,:) = tas(1,:,:)
+!     invert the tas matrix
+             call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
+!     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
           endif
-! tas(iar,*,*) [mm,mrad,mm,mrad,1]
+!     tas(iar,*,*) [mm,mrad,mm,mrad,1]
+          
 ! convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
           tasiar16=tas(iar,1,6)*c1m3
           tasiar26=tas(iar,2,6)*c1m3
