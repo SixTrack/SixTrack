@@ -50060,9 +50060,10 @@ c$$$            endif
      &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
 
 !    check the format, if dumpfmt != 2 or 3 then abort
-            if(.not. (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.3)) then
-              call fma_error(-1,'input file has wrong format! Choose for&
-     &mat=2 or 3 in DUMP block.','fma_postpr')
+            if(.not. (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.3 .or.
+     &                dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8)) then
+              call fma_error(-1,'input file has wrong format! Choose '//
+     &'format=2,3,7 or 8 in DUMP block.','fma_postpr')
             endif
 !    open dump file for reading, resume to original position before exiting the subroutine
             inquire(unit=dumpunit(j),opened=lopen)
@@ -50074,7 +50075,7 @@ c$$$            endif
      &              ' to be open','fma_postpr')
             endif
 
-            if (dumpfmt(j).eq.2) then
+            if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then
 +if boinc
                call boincrf(dump_fname(j),filename)
                open(dumpunit(j),file=filename,status='old',
@@ -50086,8 +50087,9 @@ c$$$            endif
 +ei
                call fma_error(ierro,'cannot open file '//
      &              trim(stringzerotrim(dump_fname(j)))//
-     &              " dumpformat=2", 'fma_postpr')
-            else if (dumpfmt(j).eq.3) then
+     &              ' dumpformat='//
+     &              trim(stringzerotrim(dumpfmt(j))), 'fma_postpr')
+            else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then
 +if boinc
                call boincrf(dump_fname(j),filename)
                open(dumpunit(j),file=filename,status='old',
@@ -50098,13 +50100,13 @@ c$$$            endif
      &              iostat=ierro,action='read',form='unformatted')
 +ei
             else
-               write(lout,*) "Error in fma_postpr, got"//
-     &              " dumpfmt=",dumpfmt(j),"expected 2 or 3."
+               write(lout,*) 'Error in fma_postpr, got'//
+     &              ' dumpfmt=',dumpfmt(j),'expected 2,3,7 or 8.'
                call prror(-1)
             endif
 
 !     now we can start reading in the file
-            if ( dumpfmt(j).eq.2 ) then
+            if ( dumpfmt(j).eq.2 .or. dumpfmt(j) .eq. 7) then
 !     - skip header
                counter=1
                do
@@ -50136,9 +50138,19 @@ c$$$            endif
               write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
               call prror(-1)
             endif
-
+!    format 7 and 8 use normalized coordinates -> set fma_norm_flag =1
+            if(dumpfmt(j) .eq. 7 .or. dumpfmt(j) .eq. 8) then
+!    for format 7 and 8 particles are already dumped by DUMP block
+!    -> set fma_writeNormDump = False
+              fma_norm_flag(i) = 1
+              if (fma_writeNormDUMP) then
+                write(lout,*) 'FMA: You are already using '//
+     & 'normalized coordinates! These are saved in '//
+     & trim(stringzerotrim(dump_fname(j)))//'.'
+                fma_writeNormDUMP = .False.
+              endif
+            endif
 !    - now we have done all checks
-
             if (fma_writeNormDUMP) then
                write(lout,*) "FMA: Writing normalized DUMP for '"//
      &              trim(stringzerotrim(dump_fname(j)))// "'..."
@@ -50194,7 +50206,9 @@ c$$$            endif
 !     - read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             do k=1,fma_nturn(i) !loop over turns
               do l=1,napx !loop over particles
-                 if (dumpfmt(j).eq.2) then  ! Read an ASCII dump
+                 ! not for dumpfmt(j) = 7,8 we are reading here already the
+                 ! normalized coordinates into xyzvdummy
+                 if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then  ! Read an ASCII dump
 +if .not.crlibm
                     read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
@@ -50282,7 +50296,7 @@ c$$$            endif
                     read(filefields_fields(10)
      &                   (1:filefields_lfields(10)),*) kt
 +ei !END IF crlibm
-                 else if (dumpfmt(j).eq.3) then ! Read a binary dump
+                 else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then ! Read a binary dump
                     read(dumpunit(j),iostat=ierro) id,turn(l,k),pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
@@ -50290,64 +50304,85 @@ c$$$            endif
      &                   call fma_error(ierro,'while reading '//
      &                   " particles from file '" //
      &                   trim(stringzerotrim(dump_fname(j))) //
-     &                   "' (dumpfmt=3)",'fma_postpr') !read error
+     &                   "' (dumpfmt="//
+     &                   trim(stringzerotrim(dumpfmt(j)))//')',
+     &                   'fma_postpr') !read error
 
                  endif
 !       start normalization
+!       We only normalize if we are using physical coordinates 
+!       (dumpfmt=2 or dumpfmt=3) and fma_norm_flag = 1
+!       case: we want to normalize
+                 if ( fma_norm_flag(i) .eq. 1 .and.
+     & (dumpfmt(j) .eq. 2 .or. dumpfmt(j) .eq. 3) ) then
 !       units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
 !     - remove closed orbit -> check units used in dumpclo (is x' or px used?)
-                 do m=1,6
-                    xyzvdummy(m)=xyzvdummy(m)-dumpclo(j,m)
-                 enddo
+                   do m=1,6
+                      xyzvdummy(m)=xyzvdummy(m)-dumpclo(j,m)
+                   enddo
 !     - for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
-                 do m=1,6
-                    if(m.eq.6) then
-                       xyzv(l,k,m)=xyzvdummy(m)*c1e3
-                    else
-                       xyzv(l,k,m)=xyzvdummy(m)
-                    endif
-                 enddo
+                   do m=1,6
+                      if(m.eq.6) then
+                         xyzv(l,k,m)=xyzvdummy(m)*c1e3
+                      else
+                         xyzv(l,k,m)=xyzvdummy(m)
+                      endif
+                   enddo
 !     - convert to canonical variables
-                 xyzvdummy(2)=xyzvdummy(2)*((one+xyzvdummy(6))+
-     &                dumpclo(j,6))
-                 xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
-     &                dumpclo(j,6))
+                   xyzvdummy(2)=xyzvdummy(2)*((one+xyzvdummy(6))+
+     &                  dumpclo(j,6))
+                   xyzvdummy(4)=xyzvdummy(4)*((one+xyzvdummy(6))+
+     &                  dumpclo(j,6))
 !     - intialize nxyzdummy
-                 do m=1,6
-                    nxyzvdummy(m)=zero
-                 enddo 
+                   do m=1,6
+                      nxyzvdummy(m)=zero
+                   enddo 
 !     - normalize nxyz=dumptasinv*xyz
-                 do m=1,6
-                    do n=1,6
-                       nxyzvdummy(m)=nxyzvdummy(m)+dumptasinv(j,m,n)*
-     &                      xyzvdummy(n)
-                    enddo
+                   do m=1,6
+                      do n=1,6
+                         nxyzvdummy(m)=nxyzvdummy(m)+dumptasinv(j,m,n)*
+     &                        xyzvdummy(n)
+                      enddo
 !     a) convert nxyzv(6) to 1.e-3 sqrt(m)
 !     unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
-                    if(m.eq.6) then
-                       nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
-                    else
-                       nxyzv(l,k,m)=nxyzvdummy(m)
-                    endif
+                      if(m.eq.6) then
+                         nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
+                      else
+                         nxyzv(l,k,m)=nxyzvdummy(m)
+                      endif
+!     end normalization
 !     b) calculate emittance of mode 1,2,3
-                    if(mod(m,2).eq.0) then
-                       epsnxyzv(l,k,m/2)=nxyzvdummy((m-1))**2+
-     &                      nxyzvdummy(m)**2
-                    endif
-                 enddo
+                      if(mod(m,2).eq.0) then
+                         epsnxyzv(l,k,m/2)=nxyzvdummy((m-1))**2+
+     &                        nxyzvdummy(m)**2
+                      endif
+                   enddo
 !     write normalized particle amplitudes
-                 if (fma_writeNormDUMP) then
-                    write(200101+i*10,1986) id,turn(l,k),pos,
-     &                   nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),
-     &                   nxyzv(l,k,4),nxyzv(l,k,5),
-     &                   nxyzv(l,k,6),kt
-                 endif
+                   if (fma_writeNormDUMP) then
+                      write(200101+i*10,1986) id,turn(l,k),pos,
+     &                     nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),
+     &                     nxyzv(l,k,4),nxyzv(l,k,5),
+     &                     nxyzv(l,k,6),kt
+                   endif
+!     case: we are already normalized
+                 else if (dumpfmt(j) .eq. 7 .or. dumpfmt(j) .eq. 8) then
+!     a) here we already have normalized coordinates saved in xyzvdummy,
+!        we only need to copy them
+                   do m=1,6
+                      nxyzv(l,k,m)=xyzvdummy(m)
+!     b) calculate emittance of mode 1,2,3
+                      if(mod(m,2).eq.0) then
+                         epsnxyzv(l,k,m/2)=xyzvdummy((m-1))**2+
+     &                        xyzvdummy(m)**2
+                      endif
+                   enddo
+                 endif ! end if already normalized or not
               enddo
            enddo
            
 !     calculate tunes of particles using the methods in plato_seq.f
 !     for fma_norm_flag = 0 use physical coordinates x,x',y,y',sig,dp/p
-!         fma_norm_flag > 0 use normalized coordinates
+!         fma_norm_flag = 1 use normalized coordinates
             do l=1,napx ! loop over particles
               do m=1,num_modes ! loop over modes (hor.,vert.,long.)
                 select case( trim(stringzerotrim(fma_method(i))) )
