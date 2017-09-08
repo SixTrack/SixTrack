@@ -50085,10 +50085,13 @@ c$$$            endif
                open(dumpunit(j),file=dump_fname(j),status='old',
      &              iostat=ierro,action='read')
 +ei
-               call fma_error(ierro,'cannot open file '//
-     &              trim(stringzerotrim(dump_fname(j)))//
-     &              ' dumpformat='//
-     &              trim(stringzerotrim(dumpfmt(j))), 'fma_postpr')
+               !Create error message to be used in case ierro.ne.0
+               write(ch,'(a,1x,I5,1x,a)')
+     &              "cannot open file '"//
+     &               trim(stringzerotrim(dump_fname(j))) //
+     &               "' (dumpfmt=",dumpfmt(j),')'
+
+               call fma_error(ierro, ch, 'fma_postpr')
             else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then
 +if boinc
                call boincrf(dump_fname(j),filename)
@@ -50300,14 +50303,13 @@ c$$$            endif
                     read(dumpunit(j),iostat=ierro) id,turn(l,k),pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
-                    if(ierro.gt.0)
-     &                   call fma_error(ierro,'while reading '//
-     &                   " particles from file '" //
-     &                   trim(stringzerotrim(dump_fname(j))) //
-     &                   "' (dumpfmt="//
-     &                   trim(stringzerotrim(dumpfmt(j)))//')',
-     &                   'fma_postpr') !read error
-
+                    if(ierro.gt.0) then
+                       write(ch,'(a,1x,I5,1x,a)')
+     &                      "while reading  particles from file '"//
+     &                      trim(stringzerotrim(dump_fname(j))) //
+     &                      "' (dumpfmt=",dumpfmt(j),')'
+                       call fma_error(ierro,ch,'fma_postpr') !read error
+                    endif
                  endif
 !       start normalization
 !       We only normalize if we are using physical coordinates 
