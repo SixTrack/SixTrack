@@ -7069,12 +7069,12 @@ cc2008
                    
 !     do the unit conversion + inversion of dumptas
 !     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
-                   do md=1,5
-                      dumptas(ic(i)-nblo,md,6)=
-     &                     dumptas(ic(i)-nblo,md,6)*c1e3
-                      dumptas(ic(i)-nblo,6,md)=
-     &                     dumptas(ic(i)-nblo,6,md)*c1m3
-                   enddo
+
+                   dumptas(ic(i)-nblo,1:5,6)=
+     &                     dumptas(ic(i)-nblo,1:5,6)*c1e3
+                   dumptas(ic(i)-nblo,6,1:5)=
+     &                  dumptas(ic(i)-nblo,6,1:5)*c1m3
+                   
 !     invert the tas matrix
                    call invert_tas(dumptasinv(ic(i)-nblo,:,:),
      &                  dumptas(ic(i)-nblo,:,:))
@@ -21074,7 +21074,7 @@ C Should get me a NaN
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
-     &aa2r,a1,a1r,xy,h,df,md,nd
+     &aa2r,a1,a1r,xy,h,df
       double precision al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
      &beamoff2,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
      &cik,coefh2,coefv1,coefv2,cp,crk,crxb,crzb,cx,d,dicu,dare,det1,dp, &
