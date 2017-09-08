@@ -7060,7 +7060,11 @@ cc2008
             endif
             phi(j)=phi(j)+dphi(j)
           enddo !end of optics calculation
-! do the unit conversion + inversion of dumptas
+          if(fma_flag) then
+             if(ic(i)-nblo.gt.0) then !check if structure element is a block
+                if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+
+!     do the unit conversion + inversion of dumptas
 ! convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
           do md=1,5
             dumptas(ic(i)-nblo,md,6)=dumptas(ic(i)-nblo,md,6)*c1e3
@@ -7083,6 +7087,11 @@ cc2008
               dumptasinv(ic(i)-nblo,md,nd)=dumptasinvaux(md,nd)
             enddo
           enddo
+          
+          endif
+          endif
+          endif
+          
           do j=1,ndimf
             ii=2*j
             angp(2,ii-1)=angp(1,ii-1)
