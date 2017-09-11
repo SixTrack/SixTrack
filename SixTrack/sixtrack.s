@@ -25373,7 +25373,7 @@ C Should get me a NaN
      &  '# closed orbit [mm,mrad,mm,mrad,1]',
      &  dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),
      &  dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
-                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
+                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')
      #  '# tamatrix [mm,mrad,mm,mrad,1]',
      &  dumptas(i,1,1),dumptas(i,1,2),dumptas(i,1,3),dumptas(i,1,4),
      &  dumptas(i,1,5),dumptas(i,1,6),dumptas(i,2,1),dumptas(i,2,2),
@@ -25384,16 +25384,16 @@ C Should get me a NaN
      &  dumptas(i,5,1),dumptas(i,5,2),dumptas(i,5,3),dumptas(i,5,4),
      &  dumptas(i,5,5),dumptas(i,5,6),dumptas(i,6,1),dumptas(i,6,2),
      &  dumptas(i,6,3),dumptas(i,6,4),dumptas(i,6,5),dumptas(i,6,6)
-                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') 
+                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')
      &  '# inv(tamatrix)',
      &  dumptasinv(i,1,1),dumptasinv(i,1,2),dumptasinv(i,1,3),
-     &  dumptasinv(i,1,4),dumptasinv(i,1,5),dumptasinv(i,1,6), 
+     &  dumptasinv(i,1,4),dumptasinv(i,1,5),dumptasinv(i,1,6),
      &  dumptasinv(i,2,1),dumptasinv(i,2,2),dumptasinv(i,2,3),
-     &  dumptasinv(i,2,4),dumptasinv(i,2,5),dumptasinv(i,2,6), 
+     &  dumptasinv(i,2,4),dumptasinv(i,2,5),dumptasinv(i,2,6),
      &  dumptasinv(i,3,1),dumptasinv(i,3,2),dumptasinv(i,3,3),
      &  dumptasinv(i,3,4),dumptasinv(i,3,5),dumptasinv(i,3,6),
      &  dumptasinv(i,4,1),dumptasinv(i,4,2),dumptasinv(i,4,3),
-     &  dumptasinv(i,4,4),dumptasinv(i,4,5),dumptasinv(i,4,6), 
+     &  dumptasinv(i,4,4),dumptasinv(i,4,5),dumptasinv(i,4,6),
      &  dumptasinv(i,5,1),dumptasinv(i,5,2),dumptasinv(i,5,3),
      &  dumptasinv(i,5,4),dumptasinv(i,5,5),dumptasinv(i,5,6),
      &  dumptasinv(i,6,1),dumptasinv(i,6,2),dumptasinv(i,6,3),
@@ -50166,20 +50166,32 @@ c$$$            endif
      &               dumpclo(j,4),dumpclo(j,5),dumpclo(j,6)
 !    - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
 !      units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
-               write(200101+i*10,'(a)') '# tamatrix'
-               do m=1,6
-                  do n=1,6
-                     write(200101+i*10,'(a,1x,1PE16.9)') '# ',
-     &                    dumptas(j,m,n)
-                  enddo
-               enddo
-               write(200101+i*10,'(a)') '# inv(tamatrix)'
-               do m=1,6
-                  do n=1,6
-                     write(200101+i*10,'(a,1x,1PE16.9)') '# ',
-     &                    dumptasinv(j,m,n)
-                  enddo
-               enddo
+               write(200101+i*10,'(a,1x,36(1X,1PE16.9))')
+     #  '# tamatrix [mm,mrad,mm,mrad,1]',
+     &  dumptas(j,1,1),dumptas(j,1,2),dumptas(j,1,3),dumptas(j,1,4),
+     &  dumptas(j,1,5),dumptas(j,1,6),dumptas(j,2,1),dumptas(j,2,2),
+     &  dumptas(j,2,3),dumptas(j,2,4),dumptas(j,2,5),dumptas(j,2,6),
+     &  dumptas(j,3,1),dumptas(j,3,2),dumptas(j,3,3),dumptas(j,3,4),
+     &  dumptas(j,3,5),dumptas(j,3,6),dumptas(j,4,1),dumptas(j,4,2),
+     &  dumptas(j,4,3),dumptas(j,4,4),dumptas(j,4,5),dumptas(j,4,6),
+     &  dumptas(j,5,1),dumptas(j,5,2),dumptas(j,5,3),dumptas(j,5,4),
+     &  dumptas(j,5,5),dumptas(j,5,6),dumptas(j,6,1),dumptas(j,6,2),
+     &  dumptas(j,6,3),dumptas(j,6,4),dumptas(j,6,5),dumptas(j,6,6)
+               write(200101+i*10,'(a,1x,36(1X,1PE16.9))')
+     &  '# inv(tamatrix)',
+     &  dumptasinv(j,1,1),dumptasinv(j,1,2),dumptasinv(j,1,3),
+     &  dumptasinv(j,1,4),dumptasinv(j,1,5),dumptasinv(j,1,6),
+     &  dumptasinv(j,2,1),dumptasinv(j,2,2),dumptasinv(j,2,3),
+     &  dumptasinv(j,2,4),dumptasinv(j,2,5),dumptasinv(j,2,6),
+     &  dumptasinv(j,3,1),dumptasinv(j,3,2),dumptasinv(j,3,3),
+     &  dumptasinv(j,3,4),dumptasinv(j,3,5),dumptasinv(j,3,6),
+     &  dumptasinv(j,4,1),dumptasinv(j,4,2),dumptasinv(j,4,3),
+     &  dumptasinv(j,4,4),dumptasinv(j,4,5),dumptasinv(j,4,6),
+     &  dumptasinv(j,5,1),dumptasinv(j,5,2),dumptasinv(j,5,3),
+     &  dumptasinv(j,5,4),dumptasinv(j,5,5),dumptasinv(j,5,6),
+     &  dumptasinv(j,6,1),dumptasinv(j,6,2),dumptasinv(j,6,3),
+     &  dumptasinv(j,6,4),dumptasinv(j,6,5),dumptasinv(j,6,6)
+
                write(200101+i*10,'(a)')
      &              '# id turn pos[m] nx[1.e-3 sqrt(m)]'//
      &              ' npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)]'//
