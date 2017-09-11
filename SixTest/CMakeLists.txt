@@ -108,6 +108,8 @@ if(NOT COLLIMAT)
           elensidealthck6d
           fma
           fma_binary
+          dump7_fma
+          dump8_fma
           thick6ddynk
           wire_thck4d
           wire_thck6d
@@ -188,7 +190,11 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
         if(TST MATCHES dump_binary)
                 SET( DUMP_BIN_FILE dump.dat,dumpStart.dat )
         elseif(TST MATCHES fma_binary)
-		SET( DUMP_BIN_FILE IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
+                SET( DUMP_BIN_FILE IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
+        elseif(TST MATCHES dump7_fma)
+                SET( DUMP_BIN_FILE IP3_DUMP_1 )
+        elseif(TST MATCHES dump8_fma)
+                SET( DUMP_BIN_FILE IP3_DUMP_1 )
         endif()
 
         ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE})
@@ -284,6 +290,8 @@ SET(FAST_TESTS
   dump4
   dump5
   dump6
+  dump7_fma
+  dump8_fma
   fcc
   elensidealthin6d_DYNK_RANDU
   elensidealthin6d_DYNK_RANDON
