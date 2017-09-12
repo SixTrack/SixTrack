@@ -6995,30 +6995,28 @@ cc2008
             
 !    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
 !    units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
-            if(fma_flag) then
-              if(ic(i)-nblo.gt.0) then !check if structure element is a block
-                if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-                  dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
-                  dumptas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
-                  dumptas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)
-                  dumptas(ic(i)-nblo,ii  ,ii  )=au(ii,ii  )
-                  dumptas(ic(i)-nblo,ii-1,i2-1)=au(i2-1,i2-1)
-                  dumptas(ic(i)-nblo,ii  ,i2-1)=au(i2  ,i2-1)
-                  dumptas(ic(i)-nblo,ii-1,i2  )=au(i2-1,i2  )
-                  dumptas(ic(i)-nblo,ii  ,i2  )=au(i2  ,i2  )
-                  dumptas(ic(i)-nblo,ii-1,i3-1)=au(i3-1,i3-1)
-                  dumptas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
-                  dumptas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
-                  dumptas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
+            if(ic(i)-nblo.gt.0) then !check if structure element is a block
+              if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+                dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
+                dumptas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
+                dumptas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)
+                dumptas(ic(i)-nblo,ii  ,ii  )=au(ii,ii  )
+                dumptas(ic(i)-nblo,ii-1,i2-1)=au(i2-1,i2-1)
+                dumptas(ic(i)-nblo,ii  ,i2-1)=au(i2  ,i2-1)
+                dumptas(ic(i)-nblo,ii-1,i2  )=au(i2-1,i2  )
+                dumptas(ic(i)-nblo,ii  ,i2  )=au(i2  ,i2  )
+                dumptas(ic(i)-nblo,ii-1,i3-1)=au(i3-1,i3-1)
+                dumptas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
+                dumptas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
+                dumptas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
 !    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
 !    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
 !     -> check units used in dumpclo (is x' or px used?) 
-                  dumpclo(ic(i)-nblo,2*j-1)=c(j)
-                  if (j.eq.3) then !dp/p
-                    dumpclo(ic(i)-nblo,2*j)  =cp(j)*c1m3
-                  else ! xp,yp
-                    dumpclo(ic(i)-nblo,2*j)  =cp(j)/(one+cp(3)*c1m3)
-                  endif
+                dumpclo(ic(i)-nblo,2*j-1)=c(j)
+                if (j.eq.3) then !dp/p
+                  dumpclo(ic(i)-nblo,2*j)  =cp(j)*c1m3
+                else ! xp,yp
+                  dumpclo(ic(i)-nblo,2*j)  =cp(j)/(one+cp(3)*c1m3)
                 endif
               endif
             endif
@@ -7061,24 +7059,22 @@ cc2008
             phi(j)=phi(j)+dphi(j)
           enddo !end of optics calculation
 
-          if(fma_flag) then
-             if(ic(i)-nblo.gt.0) then !check if structure element is a block
-                if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-                   
+          if(ic(i)-nblo.gt.0) then !check if structure element is a block
+             if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+                
 !     do the unit conversion + inversion of dumptas
 !     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
 
-                   dumptas(ic(i)-nblo,1:5,6)=
-     &                     dumptas(ic(i)-nblo,1:5,6)*c1e3
-                   dumptas(ic(i)-nblo,6,1:5)=
-     &                  dumptas(ic(i)-nblo,6,1:5)*c1m3
-                   
+               dumptas(ic(i)-nblo,1:5,6)=
+     &                 dumptas(ic(i)-nblo,1:5,6)*c1e3
+               dumptas(ic(i)-nblo,6,1:5)=
+     &              dumptas(ic(i)-nblo,6,1:5)*c1m3
+               
 !     invert the tas matrix
-                   call invert_tas(dumptasinv(ic(i)-nblo,:,:),
-     &                  dumptas(ic(i)-nblo,:,:))
+                call invert_tas(dumptasinv(ic(i)-nblo,:,:),
+     &               dumptas(ic(i)-nblo,:,:))
 !     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-                   
-                endif
+                
              endif
           endif
           
@@ -25289,7 +25285,8 @@ C Should get me a NaN
      &              dumpfmt(i).eq.4 .or.
      &              dumpfmt(i).eq.5 .or.
      &              dumpfmt(i).eq.6 .or.
-     &              dumpfmt(i).eq.7      ) then
+     &              dumpfmt(i).eq.7 .or.
+     &              dumpfmt(i).eq.9     ) then
 
              ! Write the general header
              if (i.eq.-1) then
@@ -29332,7 +29329,7 @@ C Should get me a NaN
 
       ! fmt7 same as fmt 2, but in normalized coordinates
       ! fmt8 same as fmt 3, but in normalized coordinates
-      else if (fmt .eq. 7 .or. fmt .eq. 8) then
+      else if (fmt .eq. 7 .or. fmt .eq. 8 .or. fmt .eq. 9) then
          if (i.eq.0 .and. ix.eq.0) then
             localDcum = 0.0
             localKtrack = 0
@@ -29340,6 +29337,15 @@ C Should get me a NaN
             localDcum = dcum(i)
             localKtrack = ktrack(i)
          endif
+
+       ! initialize parameters for writing of beam moments
+         do l=1,6
+            xyz(l) = 0.0
+            do k=1,6
+               xyz2(l,k) = 0.0
+            end do
+         end do
+
        ! normalize particle coordinates
          do j=1,napx
              xyz_particle(1) = xv(1,j)
@@ -29393,8 +29399,78 @@ C Should get me a NaN
      &                nxyz_particle(2),nxyz_particle(3),
      &                nxyz_particle(4),nxyz_particle(5),
      &                nxyz_particle(6),localKtrack
+             else if (fmt .eq. 9) then
+               ! Average beam position
+               ! here we recycle xyz used also for fmt 5 and 6. These are
+               ! all normalized coordinates in units
+               ! nx,npx,ny,npy,nsig,ndelta [1.e-3 sqrt(m)]
+               xyz(1) = xyz(1) + nxyz_particle(1)
+               xyz(2) = xyz(2) + nxyz_particle(2)
+               xyz(3) = xyz(3) + nxyz_particle(3)
+               xyz(4) = xyz(4) + nxyz_particle(4)
+               xyz(5) = xyz(5) + nxyz_particle(5)
+               xyz(6) = xyz(6) + nxyz_particle(6)
+
+               !Beam matrix (don't calulate identical elements twice (symmetry))
+               xyz2(1,1) = xyz2(1,1) + nxyz_particle(1)*nxyz_particle(1)
+               xyz2(2,1) = xyz2(2,1) + nxyz_particle(1)*nxyz_particle(2)
+               xyz2(3,1) = xyz2(3,1) + nxyz_particle(1)*nxyz_particle(3)
+               xyz2(4,1) = xyz2(4,1) + nxyz_particle(1)*nxyz_particle(4)
+               xyz2(5,1) = xyz2(5,1) + nxyz_particle(1)*nxyz_particle(5)
+               xyz2(6,1) = xyz2(6,1) + nxyz_particle(1)*nxyz_particle(6)
+
+               xyz2(2,2) = xyz2(2,2) + nxyz_particle(2)*nxyz_particle(2)
+               xyz2(3,2) = xyz2(3,2) + nxyz_particle(2)*nxyz_particle(3)
+               xyz2(4,2) = xyz2(4,2) + nxyz_particle(2)*nxyz_particle(4)
+               xyz2(5,2) = xyz2(5,2) + nxyz_particle(2)*nxyz_particle(5)
+               xyz2(6,2) = xyz2(6,2) + nxyz_particle(2)*nxyz_particle(6)
+
+               xyz2(3,3) = xyz2(3,3) + nxyz_particle(3)*nxyz_particle(3)
+               xyz2(4,3) = xyz2(4,3) + nxyz_particle(3)*nxyz_particle(4)
+               xyz2(5,3) = xyz2(5,3) + nxyz_particle(3)*nxyz_particle(5)
+               xyz2(6,3) = xyz2(6,3) + nxyz_particle(3)*nxyz_particle(6)
+
+               xyz2(4,4) = xyz2(4,4) + nxyz_particle(4)*nxyz_particle(4)
+               xyz2(5,4) = xyz2(5,4) + nxyz_particle(4)*nxyz_particle(5)
+               xyz2(6,4) = xyz2(6,4) + nxyz_particle(4)*nxyz_particle(6)
+
+               xyz2(5,5) = xyz2(5,5) + nxyz_particle(5)*nxyz_particle(5)
+               xyz2(6,5) = xyz2(6,5) + nxyz_particle(5)*nxyz_particle(6)
+
+               xyz2(6,6) = xyz2(6,6) + nxyz_particle(6)*nxyz_particle(6)
              endif
          enddo
+         if (fmt .eq. 9) then
+           !Normalize to get averages
+           xyz = xyz/napx
+
+           xyz2(:,1)  = xyz2(:,1) /napx
+           xyz2(2:,2) = xyz2(2:,2)/napx
+           xyz2(3:,3) = xyz2(3:,3)/napx
+           xyz2(4:,4) = xyz2(4:,4)/napx
+           xyz2(5:,5) = xyz2(5:,5)/napx
+           xyz2(6,6)  = xyz2(6,6) /napx
+
+           if ( lhighprec ) then
+            write(unit,1991) napx, nturn, localDcum,
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
+           else
+            write(unit,1992) napx, nturn, localDcum,
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
+     &                                              xyz2(5,5),xyz2(6,5),
+     &                                                        xyz2(6,6)
+           endif
+         endif
 
          !Flush
          endfile (unit,iostat=ierro)
@@ -50212,11 +50288,11 @@ c$$$            endif
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
                     if(ierro.gt.0)
-     &                   call fma_error(ierro,'while reading '//
-     &                   " particles from file '" //
-     &                   trim(stringzerotrim(dump_fname(j))) //
-     &                   "' (dumpfmt=2)",'fma_postpr') !read error
-
+                       write(ch,'(a,1x,I5,1x,a)')
+     &                      "while reading  particles from file '"//
+     &                      trim(stringzerotrim(dump_fname(j))) //
+     &                      "' (dumpfmt=",dumpfmt(j),')'
+                       call fma_error(ierro,ch,'fma_postpr') !read error
 +ei
 +if crlibm
                     read(dumpunit(j),'(a)', iostat=ierro) ch

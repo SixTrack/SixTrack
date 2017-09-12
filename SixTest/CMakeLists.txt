@@ -110,6 +110,7 @@ if(NOT COLLIMAT)
           fma_binary
           dump7_fma
           dump8_fma
+          dump9
           thick6ddynk
           wire_thck4d
           wire_thck6d

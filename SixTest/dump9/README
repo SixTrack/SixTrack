@@ -1,0 +1,2 @@
+Test to check that
+1) checks writing of dump format 9 at the beginnin of the sequence (Start_DUMP) and at an aribtarry element (IP3 here). As the sequence starts at IP3, START_DUMP_1 and IP3_DUMP_1 should be identical
