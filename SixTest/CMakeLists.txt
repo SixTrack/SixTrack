@@ -49,6 +49,7 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
+  scatter_bbelastic
   )
 
 if(NOT COLLIMAT)
