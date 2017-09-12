@@ -814,6 +814,19 @@ So in order for this paper's~\cite{RFmultsPaper} analytical equations to be comp
 The ``e-lens'' elements become active when the
 ELEN input block~\ref{sec:elen} is used. All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts. The parameters for the e-lens are defined in the ELEN input block.
 
+\subsubsection{Scattering point} \label{SCAT}
+\paragraph{Format} {\em name type}
+\begin{description}
+	\item [name] May contain up to sixteen characters
+	\item [type] 40
+\end{description}
+
+\paragraph{Remark}
+The ``scattering'' elements become active when the SCAT(ter) input block~\ref{sec:scatter} is used.
+All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts.
+The parameters of the scattering are defined in the SCAT(ter) input block.
+
+
 \subsubsection{Beam Position Monitor} \label{BPM}
 \paragraph{Format} {\em BPMname 0 0 0 0}
 \begin{description}
@@ -1085,8 +1098,6 @@ ripple frequency are the input parameters.
 \paragraph{Description}
 The DYNamic Kicks module~\cite{DYNKpaper} allows time-dependent modification of the settings of single elements.
 The supported elements and attributes are listed in Table~\ref{tab:DYNK_SET}.
-%Currently supported are thin ``standard'' elements (type $\pm$1--$\pm$10~\ref{NonEle}) and crab cavities/RF multipoles (type $\pm$23, $\pm$26, $\pm$27 and $\pm$28~\ref{CrabCav}).
-%Different element types support different attributes, where the standard elements support setting the multipole strength $K_n$ while crab cavities support setting of the voltage, frequency, and phase relative to the bunch.
 The settings can be computed on-the fly using several functions, loaded from input files or a combination, as described in Table~\ref{tab:DYNK_FUN}.
 
 Further, unless explicitly switched off using a NOFILE statement, DYNK produces an output file ``dynksets.dat''.
@@ -1376,8 +1387,8 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     &      &       &  \\
     &      &       &  \\
   \hline
-    \multirow{3}{*}{\parbox{4cm}{Scattering \\ (40),\\ Section~\ref{sec:scatter}}}
-    & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter:elem} \\
+    \multirow{3}{*}{\parbox{4cm}{Scattering \\ (40),\\ Section~\ref{sec:scatter}} }
+    & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter}, paragraph about ELEM command.\\
     &      &       &  \\
     &      &       &  \\
   \hline
@@ -1930,22 +1941,41 @@ BLOC56            hel1              hel2
 Note that all parameters except for the type are set to 0 in the single element definition.
 
 \subsection{Scattering} \label{sec:scatter}
-\todo[inline]{This module is experimental!}
+\todo[inline]{This module is experimental! Use at your own risk; both the input format and physics implementation may change.}
 
+\paragraph{Description}
+The SCATTER module is a framework for scattering particles through Monte Carlo processes at various points in the machine.
 
+\paragraph{Keyword} SCAT(TER)
 
-\subsubsection{ELEMent} \label{sec:scatter:elem}
+\paragraph{Number of data lines} variable
 
-\subsubsection{PROfile}
-%\label{sec:scatter:pro}
+\paragraph{Format}
+There are several different main statement classes possible in a SCATTER block, listed below.
+Furthermore, lines starting with ``/'' are treated as a comment and ignored
 
-\subsubsection{GENerator} \label{sec:scatter:gen}
+\subparagraph{DEBUG} \emph{DEBUG}\\
+This statement switches on extra ``debugging'' output from SCATTER.
+This can be useful if debugging the code or if debugging the input.
 
+\subparagraph{ELEMent} \emph{ELEM elemname profile scaling gen1 (gen2, (gen3))}\\
+This statements associates a PROfile and between one and 3\footnote{Controlled by the parameter \texttt{scatter\_maxGenELEM}.} GENerators with a SINGLE ELEMENT which must be of type 40, as described in Section~\ref{SCAT}.
+The \texttt{scaling} argument, which is a floating point number, is used to scale the probability of an interaction.
+This can be controlled through DYNK, for example in order to scale only at one specified turn.
+The PROfile, GENerator(s), and single elements are referenced through their names, and for the GENerators and PROfile they must be defined above the ELEMent in the SCATTER block.
+
+\subparagraph{PROfile} \emph{PRO name type (arguments)} \\
+This statement defines a profile, that is a density profile and general properties of the targets which with the tracked particles are colliding.
+Several different types are available:
+\begin{description}
+\item[PROfile type \texttt{FLAT}:]\emph{PRO name FLAT density[targets/cm$^2$] mass[MeV/c$^2$] momentum[MeV/c]}
+\end{description}
+
+\subparagraph{GENerator} \emph{GEN name type (arguments)} \\
 The generator block takes a name and a generator type input, followed by the parameters for the
-generator type.\\
-\\
-\noindent\textbf{PPBEAMELASTIC}\\
-\\
+generator type.
+\begin{description}
+\item[GENerator type \texttt{PPBEAMELASTIC}:] \emph{GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)}\\
 Takes five or six input arguments, and generates the probability distribution given by
 \begin{align}
     g(t) = \frac{1}{a_1^2}\frac{d\sigma}{dt} = e^{-b_1 t}+ 2ae^{-(b_1+b_2)t/2}\cos{\phi} + a^2e^{-b_2 t},
@@ -1961,10 +1991,13 @@ The optional sixth argument defines a fixed cross section for the scattering pro
 \begin{verbatim}
     GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30e-27
 \end{verbatim}
+\end{description}
 
-\subsubsection{SEED}
-
-\subsubsection{DEBUG}
+\subparagraph{SEED} \emph{SEED seed1 seed2}\\
+This sets the seed of the internal RNG used by the SCATTER block \todo{Cite RANECU}.
+Two integer seeds are required, for this block.
+The \texttt{SEED} block is mandatory for the SCATTER block to work.
+Note that when running several simulations, the seed settings must be varied between each run in order to get uncorrelated results.
 
 \section{Organising Tasks}
 
