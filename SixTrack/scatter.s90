@@ -262,6 +262,25 @@ module scatter
                 call prror(-1)
             end if
 
+            if (kz(j) .ne. 40) then
+                write(lout,'(a,1x,i4)') "SCATTER> ERROR, SCATTER can only work on SINGLE ELEMENTs"//&
+                     "of type 40; the referenced element '"//&
+                     getfields_fields(2)(1:getfields_lfields(2))//&
+                     "'is of type", kz(j)
+                call prror(-1)
+            endif
+            
+            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then
+                write(lout,*) &
+                     'SCATTER> ERROR: length el(j) (SCATTER is treated as thin element), '// &
+                     ' and first and second field have to be zero: el(j)=ed(j)=ek(j)=0;'//&
+                'but el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,')=',ek(j),"."
+                write(lout,*) &
+                     'Please check your input in the single element '//&
+                'definition of your SCATTER. All values except for the type must be zero.'
+                call prror(-1)
+            endif
+            
             scatter_elemPointer(j) = scatter_nELEM
             scatter_ELEM(scatter_nELEM,1) = j
         end if
@@ -402,8 +421,8 @@ module scatter
     case("FLAT")
         scatter_PROFILE(scatter_nPROFILE,2) = 1 !Integer code for FLAT
         if(getfields_nfields .ne. 6) then
-            write(lout,'(a)') "SCATTER> ERROR, PRO expected 6 arguments:"
-            write(lout,'(a)') "PRO name type density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
+            write(lout,'(a)') "SCATTER> ERROR, PROfile type FLAT expected 6 arguments:"
+            write(lout,'(a)') "PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
             call prror(-1)
         end if
 
