@@ -64,10 +64,10 @@ NEXT
 /
 / Set the scattering scaling to 0.0 except in turn 11.
 DYNK
-FUN zero CONST  0.0
-FUN ten  CONST 10.0
+FUN zero CONST 0.0
+FUN one  CONST 1.0
 SET ip1_scatter scaling zero  1 10 0
-SET ip1_scatter scaling ten  11 11 0
+SET ip1_scatter scaling one  11 11 0
 SET ip1_scatter scaling zero 12 -1 0
 NEXT
 SCATTER
