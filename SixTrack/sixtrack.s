@@ -25156,6 +25156,7 @@ C Should get me a NaN
 
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     K. Sjobak, for BE/ABP-HSS
+!     M. Fitterer, for FNAL
 !     last modified: 21/02-2016
 !     open units for dumping particle population or statistics
 !     always in main code
@@ -25414,6 +25415,33 @@ C Should get me a NaN
 +ei
              
           end if !If format 2/4/5/6/7/9 -> General header
+
+          if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9) !Normalized DUMP
+     &         then
+             ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
+             if ( dumptas(i,1,1).eq.zero .and.
+     &            dumptas(i,1,2).eq.zero .and.
+     &            dumptas(i,1,3).eq.zero .and.
+     &            dumptas(i,1,4).eq.zero      ) then
+                write(lout,*) "ERROR in normalized DUMP:"
+                write(lout,*)
+     &               "The normalization matrix appears to not be set?"
+                write(lout,*) "Did you forget to put a 6D LINE block?"
+                call prror(-1)
+             endif
+             if(idp.eq.0 .or. ition.eq.0) then ! We're in the 4D case
+                if(imc.ne.1) then !Energy scan
+                   write(lout,*) "ERROR in normalized DUMP:"
+                   write(lout,*) "Energy scan (imc != 1) not supported!"
+                   call prror(-1)
+                endif
+                if(i.ne.-1) then !Not at StartDUMP
+                   write(lout,*) "ERROR in normalized DUMP:"
+                   write(lout,*) "4D only supported for StartDUMP!"
+                   call prror(-1)
+                endif
+             endif
+          endif ! END if normalized dump
         endif !If ldump(i) -> Dump on this element
       enddo !Loop over elements with index i
 
@@ -50140,14 +50168,6 @@ c$$$            endif
 
       if (idp.eq.0 .or. ition.eq.0) then
          num_modes = 2          !4D tracking
-         write(lout,*)
-     &        "'ERROR: FMA analysis currently only implemented "//
-     &        "for thin 6D tracking and 6D optics!'"
-         call prror(-1)
-         ! Note: It is possible that it works for 4D and thick tracking also,
-         ! as long as you have calculated 6D optics; however it has not been checked.
-         ! If you want to try, comment out the "call prror",
-         ! and if you were not eaten by a grue then please let us know...
       else
          num_modes = 3          !6D tracking
       endif
@@ -50256,10 +50276,42 @@ c$$$            endif
                if ( fma_norm_flag(i) .ne. 1 ) then
                  ! For format 7 and 8, the particles are already normalized by the DUMP block
                  write(lout,*) "ERROR in fma_postpr() for FMA #",i
-                 write(lout,*) "Can only do normalized coordinates"//
-     &                "analysis when dumping in normalized coordinates."
+                 write(lout,*) "Cannot do FMA on physical coordinates"//
+     &                " if normalized DUMP is used "//
+     &                "(dump format = 7 or 8)!"
                  call prror(-1)
-              endif
+               endif
+            else ! Reading physical coordinates
+               if ( fma_norm_flag(i) .eq. 1 ) then
+                  ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
+                  if ( dumptas(j,1,1).eq.zero .and.
+     &                 dumptas(j,1,2).eq.zero .and.
+     &                 dumptas(j,1,3).eq.zero .and.
+     &                 dumptas(j,1,4).eq.zero      ) then
+                     write(lout,*)
+     &                    "ERROR in FMA with normalized coordinates:"
+                     write(lout,*) "The normalization matrix "//
+     &                    "appears to not be set?"
+                     write(lout,*)
+     &                    "Did you forget to put a 6D LINE block?"
+                     call prror(-1)
+                  endif
+                  if(idp.eq.0 .or. ition.eq.0) then ! We're in the 4D case
+                     if(imc.ne.1) then !Energy scan
+                        write(lout,*)
+     &                       "ERROR in FMA with normalized coordinates:"
+                        write(lout,*)
+     &                       "Energy scan (imc != 1) not supported!"
+                        call prror(-1)
+                     endif
+                     if(j.ne.-1) then !Not at StartDUMP
+                        write(lout,*)
+     &                       "ERROR in FMA with normalized coordinates:"
+                        write(lout,*) "4D only supported for StartDUMP!"
+                        call prror(-1)
+                     endif
+                  endif
+               endif
             endif
 !    - now we have done all checks
             if (fma_writeNormDUMP .and..not.
