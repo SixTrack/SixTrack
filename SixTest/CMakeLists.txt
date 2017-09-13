@@ -113,6 +113,7 @@ if(NOT COLLIMAT)
           fma
           fma_binary
           dump7_fma
+          dump7_fma_thin4d
           dump8_fma
           dump9
           thick6ddynk
@@ -200,6 +201,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
                 SET( DUMP_BIN_FILE IP3_DUMP_1 )
         elseif(TST MATCHES dump8_fma)
                 SET( DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1 )
+        elseif(TST MATCHES dump7_fma_thin4d)
+                SET( DUMP_BIN_FILE dump_ip3 )
         endif()
 
         ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE})
@@ -296,6 +299,7 @@ SET(FAST_TESTS
   dump5
   dump6
   dump7_fma
+  dump7_fma_thin4d
   dump8_fma
   dump9
   fcc
