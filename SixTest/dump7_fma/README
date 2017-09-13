@@ -1,6 +1,8 @@
 Test to check that
 1) dump format 7 works
 2) dump format 7 can be read by FMA
-3) dump format 7 matches normalized output from FMA reading dump format 3:
+3) dump format 7 matches normalized output from FMA reading dump format 3):
    The files "IP3_DUMP_2" and "NORM_IP3_DUMP_1" should be identical except for the headers.
-4) The normalisation using the tas matrix for the initialization of the coordinates agrees with the one from the 6D optics. The closed orbit is slightly different, so one should see differences in the last digits between files "START_DUMP_1" and "IP3_DUMP_2"
+4) dump format 7 matches normalized output from FMA reading dump format 3  (in fma_binary, just enable the output of normalized files):
+   The files "START_DUMP_1" and "NORM_START_DUMP_1" should be identical except for the headers.
+5) The normalisation using the tas matrix for the initialization of the coordinates agrees with the one from the 6D optics. The closed orbit is slightly different, so one should see differences in the last digits between files "START_DUMP_1" and "IP3_DUMP_2"
