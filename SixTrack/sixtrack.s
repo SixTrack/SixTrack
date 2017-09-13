@@ -25182,10 +25182,11 @@ C Should get me a NaN
                 if (ldump(j) .and.
      &               (dump_fname(j).eq.dump_fname(i))) then
                    write(lout,*)
-     &"ERROR in DUMP: Output filename unit",
-     &trim(stringzerotrim(dump_fname(i))),
-     &"is used by to DUMPS, but output units differ:",
-     & dumpunit(i), " vs ", dumpunit(j)
+     &                  "ERROR in DUMP: Output filename unit",
+     &                  trim(stringzerotrim(dump_fname(i))),
+     &                  "is used by two DUMPS, "//
+     &                  "but output units differ:",
+     &                  dumpunit(i), " vs ", dumpunit(j)
                    call prror(-1)
                 endif
              end do
@@ -25269,13 +25270,13 @@ C Should get me a NaN
      & "ERROR in DUMP: unit", dumpunit(i), " is already open, ",
      & " but not by DUMP. Please pick another unit! ",
      & " Note: This test is not watertight, as other parts of",
-     & " the program may later open the same file/unit."
+     & " the program may later open the same file/unit..."
                 call prror(-1)
              endif
           endif
 
           ! Write format-specific headers
-          if ( dumpfmt(i).eq.1 ) then ! Format 1 is special
+          if ( dumpfmt(i).eq.1 ) then
              write(dumpunit(i),'(a)')
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
                 
@@ -25293,21 +25294,21 @@ C Should get me a NaN
      &              dumpfmt(i).eq.9     ) then
 
              ! Write the general header
-             if (i.eq.-1) then
+             if (i.eq.-1) then  !STARTdump
                 write(dumpunit(i),
      &               '(a,i0,a,a16,4(a,i12),2(a,L1))')
      & '# DUMP format #',dumpfmt(i),', START=',bez(1),
      & ', number of particles=',napx, ', dump period=',ndumpt(i),
      & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
      & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
-             else if (i.eq.0) then
+             else if (i.eq.0) then !ALL
                 write(dumpunit(i),
      &               '(a,i0,a,4(a,i12),2(a,L1))')
      & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',
      & ' number of particles=',napx, ', dump period=',ndumpt(i),
      & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
      & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
-             else
+             else               !Normal element
                 write(dumpunit(i),
      &               '(a,i0,a,a16,4(a,i12),2(a,L1))')
      & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),
@@ -25348,7 +25349,7 @@ C Should get me a NaN
      &   '<py^2> <py*sigma> <py*psigma> '//
      &   '<sigma^2> <sigma*psigma> '//
      &   '<psigma^2>'
-             else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then
+             else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then !Normalized ASCII dump -> extra headers with matrices and closed orbit
                  if ( dumpfmt(i).eq.7 ) then ! FORMAT 7
                      write(dumpunit(i),'(a)')
      &  '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '//
@@ -29331,8 +29332,9 @@ C Should get me a NaN
          dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 +ei
 
-      ! fmt7 same as fmt 2, but in normalized coordinates
-      ! fmt8 same as fmt 3, but in normalized coordinates
+      ! fmt 7 same as fmt 2,   but in normalized coordinates
+      ! fmt 8 same as fmt 3,   but in normalized coordinates
+      ! fmt 9 same as fmt 5/6, but in normalized coordinates
       else if (fmt .eq. 7 .or. fmt .eq. 8 .or. fmt .eq. 9) then
          if (i.eq.0 .and. ix.eq.0) then
             localDcum = 0.0
@@ -29342,7 +29344,7 @@ C Should get me a NaN
             localKtrack = ktrack(i)
          endif
 
-       ! initialize parameters for writing of beam moments
+         ! initialize parameters for writing of beam moments
          do l=1,6
             xyz(l) = 0.0
             do k=1,6
@@ -29350,7 +29352,7 @@ C Should get me a NaN
             end do
          end do
 
-       ! normalize particle coordinates
+         ! normalize particle coordinates
          do j=1,napx
              xyz_particle(1) = xv(1,j)
              xyz_particle(2) = yv(1,j)
@@ -29358,16 +29360,16 @@ C Should get me a NaN
              xyz_particle(4) = yv(2,j)
              xyz_particle(5) = sigmv(j)
              xyz_particle(6) = (ejv(j)-e0)/e0
-!     - remove closed orbit -> check units used in dumpclo (is x' or px used?)
+             ! remove closed orbit -> check units used in dumpclo (is x' or px used?)
              do m=1,6
                 xyz_particle(m)=xyz_particle(m)-clo(m)
              enddo
-!     - convert to canonical variables
+             ! convert to canonical variables
              xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+
      &            clo(6))
              xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+
      &            clo(6))
-!     - normalize nxyz=fma_tas_inv*xyz
+             ! normalize nxyz=fma_tas_inv*xyz
              ! initialize nxyz
              do m=1,6
                nxyz_particle(m)=zero
@@ -29375,14 +29377,15 @@ C Should get me a NaN
              do m=1,6
                 do n=1,6
                    nxyz_particle(m)=nxyz_particle(m)+
-     &  tasinv(m,n)*xyz_particle(n)
+     &                  tasinv(m,n)*xyz_particle(n)
                 enddo
-!     a) convert nxyzv(6) to 1.e-3 sqrt(m)
-!     unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
+                ! a) convert nxyzv(6) to 1.e-3 sqrt(m)
+                ! unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
                 if(m.eq.6) then
                    nxyz_particle(m)=nxyz_particle(m)*c1e3
                 endif
              enddo
+
              if (fmt .eq. 7) then
                if ( lhighprec ) then
                    write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
@@ -29397,12 +29400,27 @@ C Should get me a NaN
      &                  nxyz_particle(4),nxyz_particle(5),
      &                  nxyz_particle(6),localKtrack
                endif
+
+               !Flush
+               endfile (unit,iostat=ierro)
+               backspace (unit,iostat=ierro)
++if cr
+               dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+               
              else if (fmt .eq. 8) then
                  write(unit) nlostp(j)+(samplenumber-1)*npart,
      &                nturn, localDcum, nxyz_particle(1),
      &                nxyz_particle(2),nxyz_particle(3),
      &                nxyz_particle(4),nxyz_particle(5),
      &                nxyz_particle(6),localKtrack
+                 !Flush
+                 endfile (unit,iostat=ierro)
+                 backspace (unit,iostat=ierro)
++if cr
+                 dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+                 
              else if (fmt .eq. 9) then
                ! Average beam position
                ! here we recycle xyz used also for fmt 5 and 6. These are
@@ -29444,6 +29462,7 @@ C Should get me a NaN
                xyz2(6,6) = xyz2(6,6) + nxyz_particle(6)*nxyz_particle(6)
              endif
          enddo
+
          if (fmt .eq. 9) then
            !Normalize to get averages
            xyz = xyz/napx
@@ -29474,14 +29493,14 @@ C Should get me a NaN
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
            endif
-         endif
-
-         !Flush
-         endfile (unit,iostat=ierro)
-         backspace (unit,iostat=ierro)
+           !Flush
+           endfile (unit,iostat=ierro)
+           backspace (unit,iostat=ierro)
 +if cr
-         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+           dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 +ei
+         endif
+         
       !Unrecognized format fmt
       else
          write (lout,*)
@@ -50151,7 +50170,7 @@ c$$$            endif
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
      &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
 
-!    check the format, if dumpfmt != 2 or 3 then abort
+!    check the format, if dumpfmt != 2,3 (physical) or 7,8 (normalized) then abort
             if(.not. (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.3 .or.
      &                dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8)) then
               call fma_error(-1,'input file has wrong format! Choose '//
@@ -50201,8 +50220,7 @@ c$$$            endif
             endif
 
 !     now we can start reading in the file
-            if ( dumpfmt(j).eq.2 .or. dumpfmt(j) .eq. 7) then
-!     - skip header
+            if ( dumpfmt(j).eq.2 .or. dumpfmt(j) .eq. 7) then ! ASCII -> skip the header
                counter=1
                do
                   read(dumpunit(j),'(A)',iostat=ierro) ch
@@ -50683,7 +50701,7 @@ c$$$            endif
 
 !    resume initial position of dumpfile = end of file
             close(dumpunit(j))
-            if (dumpfmt(j) .eq. 2) then
+            if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq. 7) then !ASCII
 +if boinc
                call boincrf(dump_fname(j),filename)
                open(dumpunit(j),file=filename,
@@ -50705,7 +50723,7 @@ c$$$            endif
      &              "while resuming file '"//
      &              trim(stringzerotrim(dump_fname(j))) //
      &              "' (dumpfmt=2)", 'fma_postpr')
-            elseif (dumpfmt(j) .eq. 3) then
+            elseif (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then !BINARY
 +if boinc
                call boincrf(dump_fname(j),filename)
                open(dumpunit(j),file=filename,
@@ -52999,7 +53017,6 @@ c$$$            endif
 +ca stringzerotrim
 +ca comdynk
 +ca comdynkcr
-+ca comgetfields
 +ca dbdump
 +ca dbdumpcr
 +ca version
@@ -53816,7 +53833,7 @@ c$$$         backspace (93,iostat=ierro)
             backspace (93,iostat=ierro)
             
             inquire( unit=dumpunit(i), opened=lopen )
-            if (dumpfmt(i) .ne. 3 ) then ! ASCII
+            if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
                if ( .not. lopen ) then
 +if boinc
                   call boincrf(dump_fname(i),filename)
@@ -53837,7 +53854,7 @@ c$$$         backspace (93,iostat=ierro)
                   dumpfilepos(i) = dumpfilepos(i) + 1
                end do
 
-            else                         ! BINARY (format = 3)
+            else                         ! BINARY (format = 3 & 8)
                if ( .not. lopen ) then
 +if boinc
                   call boincrf(dump_fname(i),filename)
@@ -53869,7 +53886,7 @@ c$$$         backspace (93,iostat=ierro)
             
             ! Change from 'readwrite' to 'write'
             close(dumpunit(i))
-            if (dumpfmt(i).ne.3) then ! ASCII
+            if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
 +if boinc
                call boincrf(dump_fname(i),filename)
                open(dumpunit(i),file=filename, status='old',
