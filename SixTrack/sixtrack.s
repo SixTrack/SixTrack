@@ -55624,6 +55624,9 @@ c$$$         backspace (93,iostat=ierro)
 !     K.Sjobak, June 2017
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
+
++ca comgetfields
++ca stringzerotrim
       
       integer,          intent(in) :: file_unit
       character(len=*), intent(in) :: file_name
@@ -55657,8 +55660,9 @@ c$$$         backspace (93,iostat=ierro)
      &     status="old",iostat=ierro)
       if (ierro .ne. 0) then
          write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')
-     &        "Error when opening file '",file_name, "' on unit #",
-     &        file_unit, ", iostat =",ierro
+     &        "Error when opening file '",
+     &        trim(stringzerotrim(file_name)),
+     &        "' on unit #", file_unit, ", iostat =",ierro
          return
       endif
       
@@ -55691,7 +55695,7 @@ c$$$         backspace (93,iostat=ierro)
       endif
       write(error_unit,'(a,1x,i5,1x,a,a,a)')
      &     "******* Last",printLines,"lines of file '",
-     &     file_name,"': *******"
+     &     trim(stringzerotrim(file_name)),"': *******"
       
       i = fileBuff_idx          !Position in buffer (we have already incremented i)
       j = 0                     !How many have we printed
@@ -55703,7 +55707,8 @@ c$$$         backspace (93,iostat=ierro)
       if (j.lt.printLines) goto 10
 
       write(error_unit,'(a,a,a)')
-     &     "******* Done writing tail of file '",file_name,
+     &     "******* Done writing tail of file '",
+     &     trim(stringzerotrim(file_name)),
      &     "' to stderr *******"
       
       end subroutine print_lastlines_to_stderr
