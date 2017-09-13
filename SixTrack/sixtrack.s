@@ -50729,11 +50729,12 @@ c$$$            endif
      &fma_nturn(i) ! average emittance
               enddo
               if ( num_modes .eq. 2 ) then
-                 q123(3)=0.0
-                 phi123_0(3)=0.0
-                 eps123_min(3)=0.0
-                 eps123_max(3)=0.0
-                 eps123_avg(3)=0.0
+                 q123(3)=zero
+                 eps123_min(3)=zero
+                 eps123_max(3)=zero
+                 eps123_avg(3)=zero
+                 eps123_0(3)=zero
+                 phi123_0(3)=zero
               endif
 
               ! Write the FMA output file "fma_sixtrack"
