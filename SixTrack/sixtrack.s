@@ -50096,6 +50096,7 @@ c$$$            endif
      &epsnxyzv ! normalized emittances
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
      &tunenewt,tuneabt2,tuneabt,tunenewt1 !Define the functions to be called from PLATO
+      double precision :: dump_last_turn ! auxiliary variable for loop over turns
 +if naff
       interface
          REAL(C_DOUBLE) function tunenaff
@@ -50300,7 +50301,7 @@ c$$$            endif
             ! now we can set the number of turns used for the FMA required for the PLATO routines
             fma_nturn(i) = fma_last(i)-fma_first(i)+1 
             if(fma_nturn(i).gt.fma_nturn_max) then
-              write(lout,*) 'ERROR in fma_postpr: only ',               &
+              write(lout,*) 'ERROR in fma_postpr: only ', 
      &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
               write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
               call prror(-1)
@@ -50436,7 +50437,15 @@ c$$$            endif
             ! Read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             ! TODO: This logic breaks apart if there are particle losses;
             !  it is neither handled or checked for...
-            do k=1,fma_nturn(i) !loop over turns
+            ! If normalization within FMA, we now have to always write the full NORM_* file
+            ! Otherwise  one would overwrite the NORM_* file constantly if different FMAs are done
+            ! on the same DUMP file
+            if (dumplast(j) .eq. -1) then
+              dump_last_turn = numl
+            else
+              dump_last_turn = dumplast(j)
+            endif
+            do k=dumpfirst(j),dump_last_turn !loop over turns, use the dump files
               do l=1,napx !loop over particles
                  ! not for dumpfmt(j) = 7,8 we are reading here already the
                  ! normalized coordinates into xyzvdummy
