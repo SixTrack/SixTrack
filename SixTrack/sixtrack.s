@@ -50826,7 +50826,8 @@ c$$$            endif
      &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),       
      &eps123_max(2),eps123_max(3),eps123_avg(1),eps123_avg(2),       
      &eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3),             
-     &phi123_0(1),phi123_0(2),phi123_0(3)
+     &phi123_0(1),phi123_0(2),phi123_0(3),fma_norm_flag(i),
+     &fma_first(i),fma_last(i)
               
             enddo ! END loop over particles l
 
@@ -50902,7 +50903,7 @@ c$$$            endif
       deallocate(naff_xyzv1, naff_xyzv2)
 +ei
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
- 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9))          !fmt for fma output file
+ 1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9),3(1X,I8)) !fmt for fma output file
       end subroutine fma_postpr
       
       subroutine zipf
