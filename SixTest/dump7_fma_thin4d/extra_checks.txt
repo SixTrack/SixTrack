@@ -1,0 +1,3 @@
+START_DUMP         diff -q --strip-trailing-cr
+dump_ip3           diff -q --strip-trailing-cr
+fma_sixtrack       diff -q --strip-trailing-cr

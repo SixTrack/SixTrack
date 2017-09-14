@@ -1,0 +1,5 @@
+Based on test elensidealthin4d
+
+Tests DUMP and FMA with normalized coordinates and physical coordinates in the case of 4d tracking. Normalization should be only allowed in DUMP and FMA in the following cases:
+- only for StartDUMP (in this case the matrix is taken from the initial optics calculation for the initialization of the particles - tas matrix). For all other elements the tas matrix is taken from the LINE block -> not allowed/checked for 4D.
+- not allowed for momentum scan and 4D. Use 6d in this case.
