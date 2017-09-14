@@ -3252,7 +3252,13 @@ NEXT
 \label{sec:FMA}
 
 \paragraph{Description}
-The FMA block generates the basic files needed for frequency map analysis (FMA). Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the DUMP block, see Sec.~\ref{sec:DUMP}. For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the LINE block (linear optics calculation in 6D, \ref{LinOpt}). In case the particles are dumped at the beginning of the sequence (StartDUMP), the closed orbit and normalization matrix used also for the initialization of the particles is used. In this case, the LINE block is not needed. The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the FMA block either in physical coordinates ($x$,$x'$,$y$,$y'$,$z$,$dE/E$) or normalized phase space coordinates and dumped to the file \verb|fma_sixtrack| together with the minimum, maximum and average normalized particle amplitudes and phases. 
+The FMA block generates the basic files needed for frequency map analysis (FMA). Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the DUMP block, see Sec.~\ref{sec:DUMP}. For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the LINE block (linear optics calculation in 6D, \ref{LinOpt}). In case the particles are dumped at the beginning of the sequence (StartDUMP), the closed orbit and normalization matrix used also for the initialization of the particles is used. In this case, the LINE block is not needed. The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the FMA block either in physical coordinates ($x$,$x'$,$y$,$y'$,$z$,$dE/E$) or normalized phase space coordinates and dumped to the file \verb|fma_sixtrack| together with the minimum, maximum and average normalized particle amplitudes and phases.
+
+To use normalized coordinates for th FMA analysis is always possible in case of 6D tracking (remember to put the LINE block for other elements than the start of the sequence). In case of 4D tracking, the following limitations apply:
+\begin{itemize}
+	\item the FMA analysis is only implemented for the start of the sequence (StartDUMP). For other elements the normalization matrix would need to be obtained from the LINE block, which has not been checked in case of 4D optics.
+	\item 4D tracking with scan in energy is disabled as in this case the normalization matrix would need to be saved for each element and particle, which requires a huge amount of memory breaking other parts of the code.	
+\end{itemize}
 
 \paragraph{Keyword}
 FMA
@@ -3304,14 +3310,15 @@ PLATO \cite{plato1,plato2}
 & TUNEFFTI &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$. Then, the FFT is interpolated fitting the three points around the maximum using a Gaussian. The tune is computed as the maximum of the Gaussian.\\\cline{2-3}
 & TUNEAPA &	Computes the tune as the average phase advance on a two dimensional plane, given n iterates of a map. \\\hline
 NAFF \cite{NAFFpaper, NAFFpaper2}
-& NAFF &	Computes the tune using the laskar method. The first estimation of the tune is obtained with an FFT and the precise value is determined by maximizing the fourier integral. A Hann window of first and second order for the transverse and longitudinal motion are used respectively. The NAFF flag must be enabled at build time \cite{sixbuild}. \\\hline
+& NAFF &	Computes the tune using the laskar method. The first estimation of the tune is obtained with an FFT and the precise value is determined by maximizing the Fourier integral. A Hann window of first and second order for the transverse and longitudinal motion are used respectively. The NAFF flag must be enabled at build time \cite{sixbuild}. \\\hline
 	\end{tabularx}
 \end{center}
 \end{table}
 
 \subparagraph{fma\_flag\_norm}
-optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\verb|fma_flag_norm=1|).
-For using physical coordinates explicitly set (\verb|fma_flag_norm=0|).
+optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|). See \textbf{Description} for the conditions under which normalization is available.
+
+
 
 \subparagraph{NoNormDUMP} is a flag for disabling the \texttt{NORM\_filename*} output files.
 This saves disk space and speeds up the calculation of the FMA.
