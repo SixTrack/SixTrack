@@ -1292,10 +1292,11 @@
       logical fma_writeNormDUMP                              !Writing out the normalized DUMP files
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      integer fma_nturn    (fma_max)                         !number of turns used for fft
+      integer fma_first (fma_max), fma_last (fma_max)        !first and last turn used for FMA
+      integer fma_nturn (fma_max)                            !number of turns used for fft
       integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
       common /fma_var/ fma_fname,fma_method,fma_numfiles,
-     &     fma_norm_flag,fma_nturn,
+     &     fma_norm_flag,fma_nturn,fma_first,fma_last,
      &     fma_flag,fma_writeNormDUMP
 
 !
@@ -16942,10 +16943,11 @@ cc2008
      &       'ERROR in FMA block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
-      if(getfields_nfields.eq.1 .or. getfields_nfields.ge.4) then
+      if(getfields_nfields.eq.1 .or. getfields_nfields.eq.4 .or.
+     &getfields_nfields.ge.6) then
         write(lout,*)
      &       'ERROR in FMA block: wrong number of input ',
-     &       'parameters: ninput = ', getfields_nfields, ' != 2 (or 3)'
+     &       'parameters: ninput = ', getfields_nfields,' != 2 (3 or 5)'
         call prror(-1)
       endif
 
@@ -16955,10 +16957,16 @@ cc2008
      &     getfields_fields(2)(1:getfields_lfields(2))
       if(getfields_nfields.eq.2) then
         fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
-      endif
-      if(getfields_nfields.eq.3) then
+      else if(getfields_nfields.eq.3) then
          read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
      &        fma_norm_flag(fma_numfiles)
+      else if(getfields_nfields.eq.5) then
+         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
+     &        fma_norm_flag(fma_numfiles)
+         read (getfields_fields(4)(1:getfields_lfields(4)),'(I10)')
+     &        fma_first(fma_numfiles)
+         read (getfields_fields(5)(1:getfields_lfields(5)),'(I10)')
+     &        fma_last(fma_numfiles)
       endif
 
       ! Input sanity checks
@@ -34070,6 +34078,8 @@ C Should get me a NaN
       fma_numfiles = 0
       do i=1,fma_max
         fma_nturn(i) = 0
+        fma_first(i) = 0
+        fma_last(i)  = 0
         fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
         do j=1,getfields_l_max_string
           fma_fname(i)(j:j) = char(0)
@@ -50177,7 +50187,8 @@ c$$$            endif
      &'phi* [rad]'
       write(2001001,'(a)') '# inputfile method id q1 q2 q3 eps1_min '//
      &'eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg'//
-     &' eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0'
+     &' eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0 norm_flag'//
+     &' first_turn last_turn'
 
 !      start FMA analysis: loop over all files, calculate tunes, write output file
       do i=1,fma_numfiles
@@ -50238,13 +50249,68 @@ c$$$            endif
      &              ' dumpfmt=',dumpfmt(j),'expected 2,3,7 or 8.'
                call prror(-1)
             endif
-
+! define first/last turn for FMA
+            ! if first and last turn are not defined in FMA block,
+            ! take all turns saved in DUMP file
+            if (fma_first(i) .eq. 0 .and. fma_last(i) .eq. 0) then
+              fma_first(i) = dumpfirst(j)
+              fma_last(i)  = dumplast(j)
+            endif
+            ! if -1 take the last turn of the dump file
+            ! or the maximum number of turns if dumplast = -1
+            if (fma_last(i) .eq. -1) then
+              if (dumplast(j) .eq. -1) then
+                fma_last(i) = numl
+              else
+                fma_last(i) = dumplast(j)
+              endif
+            endif
+            ! now check that first turn are compatible with 
+            ! turns saved in dump file
+            if (fma_first(i) .lt. dumpfirst(j)) then
+              write(lout,*) 'ERROR in fma_postpr: First turn in FMA '//
+     &'block is smaller than first turn in DUMP block '//
+     &'fma_first=',fma_first(i),'< dumpfirst=',dumpfirst(j),
+     &'fma_post_pr! This cannot work!'
+              call prror(-1)
+            endif
+            ! now check last turn
+            ! if fma_last = -1, we already have fma_last = numl
+            ! check if fma_last < 0 and !=-1
+            if (fma_last(i) .le. 0) then
+              write(lout,*) 'ERROR in fma_postpr: Last turn in FMA '//
+     &'block must be -1 or a positive integer, but fma_last=',
+     &fma_last(i),'!'
+              call prror(-1)
+            endif
+            ! if fma_last >0 check that fma_last < dump_last
+            if (dumplast(j) .eq. -1) then
+              if (fma_last(i) .gt. numl) then
+                write(lout,*) 'ERROR in fma_postpr: Last turn in FMA '//
+     &'block is larger than number of turns tracked '//
+     &'fma_last=',fma_last(i),'> turns tracked=',numl,'!'
+              endif
+            else
+              if (fma_last(i) .gt. dumplast(j)) then
+                write(lout,*) 'ERROR in fma_postpr: Last turn in FMA '//
+     &'block is larger than number of turns tracked in DUMP block '//
+     &'fma_last=',fma_last(i),'> dumplast=',dumplast(j),'!'
+              endif
+            endif
+            ! now we can set the number of turns used for the FMA required for the PLATO routines
+            fma_nturn(i) = fma_last(i)-fma_first(i)+1 
+            if(fma_nturn(i).gt.fma_nturn_max) then
+              write(lout,*) 'ERROR in fma_postpr: only ',               &
+     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
+              write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
+              call prror(-1)
+            endif
 !     now we can start reading in the file
             if ( dumpfmt(j).eq.2 .or. dumpfmt(j) .eq. 7) then ! ASCII -> skip the header
                counter=1
                do
                   read(dumpunit(j),'(A)',iostat=ierro) ch
-                  call fma_error(ierro,'while reading file ' //             &
+                  call fma_error(ierro,'while reading file ' //
      &                 dump_fname(j),'fma_postpr')
                   ch1=adjustl(trim(ch))
                   if(ch1(1:1).ne.'#')  exit
@@ -50258,18 +50324,6 @@ c$$$            endif
                   counter=counter+1
                enddo
                backspace(dumpunit(j),iostat=ierro)
-            endif
-!   read in particle amplitudes
-            if (dumplast(j) .eq. -1) then
-               fma_nturn(i) = numl-dumpfirst(j)+1        !Tricky if the particle is lost...
-            else
-               fma_nturn(i) = dumplast(j)-dumpfirst(j)+1 !number of turns used for FFT
-            endif
-            if(fma_nturn(i).gt.fma_nturn_max) then
-              write(lout,*) 'ERROR in fma_postpr: only ',               &
-     &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
-              write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
-              call prror(-1)
             endif
 !    format 7 and 8 use normalized coordinates -> set fma_norm_flag =1
             if(dumpfmt(j) .eq. 7 .or. dumpfmt(j) .eq. 8) then
@@ -50488,7 +50542,6 @@ c$$$            endif
                  endif
                  
                  ! start normalization
-                 
                  if (dumpfmt(j).eq.2 .or.dumpfmt(j).eq.3) then ! The file isn't pre-normalized
                     ! We only need to normalize if we are reading physical coordinates
                     ! (dumpfmt=2 or dumpfmt=3)
