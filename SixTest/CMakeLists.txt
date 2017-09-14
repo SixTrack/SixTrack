@@ -60,7 +60,7 @@ if(NOT COLLIMAT)
 	if(NAFF)
                 SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
         endif()
-	
+
         #only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
         if(BNLELENS)
                 SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
@@ -79,7 +79,7 @@ if(NOT COLLIMAT)
                 SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
         endif()
 
-	#These tests are always included
+        #These tests are always included
         SET(SIXTRACK_TESTS
           bbe51
           bbe52
@@ -145,9 +145,9 @@ if(NOT COLLIMAT)
           rfMultipoles_3rdOrder
           rfMultipoles_4thOrder
           last_amp
-	  scatter_bbelastic
+          scatter_bbelastic
           ${SIXTRACK_TESTS}
-	  )
+        )
 
 endif(NOT COLLIMAT)
 
