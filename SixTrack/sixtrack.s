@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fiascaris, J.F. Wagner, J. Wretborn, CERN
+!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K.B. Olsen, CERN
 !!M. Fitterer, FNAL, CERN
 !!A. Patapenka,  NIU, CERN
 !!G. Robert-Demolaize, BNL
