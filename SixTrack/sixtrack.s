@@ -50200,7 +50200,7 @@ c$$$            endif
             lexist=.true.     !set lexist = true if the file fma_fname(j) exists
             write(lout,*) 'start FMA analysis using file ',             &
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
-     &', first turn=',dumpfirst(j),', last turn=',dumplast(j)
+     &', first turn=',fma_first(i),', last turn=',fma_last(i)
 
 !    check the format, if dumpfmt != 2,3 (physical) or 7,8 (normalized) then abort
             if(.not. (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.3 .or.
