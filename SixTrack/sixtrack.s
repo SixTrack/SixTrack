@@ -50636,102 +50636,119 @@ c$$$            endif
                 select case( trim(stringzerotrim(fma_method(i))) )
                 case('TUNELASK')
                 if(fma_norm_flag(i) .eq. 0) then
-                   q123(m)=
-     &                  tunelask(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                  xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  q123(m)=
+     &              tunelask(xyzv(l,fma_first(i):fma_last(i),2*(m-1)+1),
+     &              xyzv(l,fma_first(i):fma_last(i),2*m),fma_nturn(i))
                 else
-                   q123(m)=
-     &                  tunelask(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                  nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
+                  q123(m)=
+     &              tunelask(nxyzv(l,fma_first(i):fma_last(i),
+     &              2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &              fma_nturn(i))
                 endif
                 
                 case('TUNEFFTI')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tuneffti(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tuneffti(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tuneffti(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tuneffti(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
                    
                 case('TUNEFFT')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tunefft(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tunefft(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tunefft(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tunefft(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
                    
                 case('TUNEAPA')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tuneapa(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tuneapa(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
-                   
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tuneapa(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tuneapa(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
+                  
                 case('TUNEFIT')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tunefit(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tunefit(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tunefit(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tunefit(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
                    
                 case('TUNENEWT')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tunenewt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tunenewt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tunenewt(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tunenewt(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
                    
                 case('TUNEABT2')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tuneabt2(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tuneabt2(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tuneabt2(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tuneabt2(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
                    
                 case('TUNEABT')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tuneabt(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tuneabt(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tuneabt(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tuneabt(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
                    
                 case('TUNENEWT1')
-                   if(fma_norm_flag(i) .eq. 0) then
-                      q123(m)=
-     &                     tunenewt1(xyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     xyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   else
-                      q123(m)=
-     &                     tunenewt1(nxyzv(l,1:fma_nturn(i),2*(m-1)+1),
-     &                     nxyzv(l,1:fma_nturn(i),2*m),fma_nturn(i))
-                   endif
+                  if(fma_norm_flag(i) .eq. 0) then
+                    q123(m)=
+     &                tunenewt1(xyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),xyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  else
+                    q123(m)=
+     &                tunenewt1(nxyzv(l,fma_first(i):fma_last(i),
+     &                2*(m-1)+1),nxyzv(l,fma_first(i):fma_last(i),2*m),
+     &                fma_nturn(i))
+                  endif
                    
 +if naff
                 case("NAFF")
@@ -50739,8 +50756,8 @@ c$$$            endif
 !                   write(lout,*) "DBG",
 !     &                  nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
 !                   
-!                   write(lout,*) size(xyzv(l,1:fma_nturn(i),2*(m-1)+1))
-!                   write(lout,*) size(xyzv(l,1:fma_nturn(i),2*m))
+!                   write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*(m-1)+1))
+!                   write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*m))
                    
                    flush(lout)  ! F2003 does specify a FLUSH statement.
                                 ! However NAFF should NOT be chatty...
@@ -50755,11 +50772,13 @@ c$$$            endif
                    ! into a new temporary array with stride=1
                    ! for passing to C++.
                    if(fma_norm_flag(i) .eq. 0) then
-                      naff_xyzv1=xyzv (l,1:fma_nturn(i),2*(m-1)+1)
-                      naff_xyzv2=xyzv (l,1:fma_nturn(i),2*m)
+                      naff_xyzv1=xyzv (l,fma_first(i):fma_last(i),
+     &                           2*(m-1)+1)
+                      naff_xyzv2=xyzv (l,fma_first(i):fma_last(i),2*m)
                    else
-                      naff_xyzv1=nxyzv(l,1:fma_nturn(i),2*(m-1)+1)
-                      naff_xyzv2=nxyzv(l,1:fma_nturn(i),2*m)
+                      naff_xyzv1=nxyzv(l,fma_first(i):fma_last(i),
+     &                           2*(m-1)+1)
+                      naff_xyzv2=nxyzv(l,fma_first(i):fma_last(i),2*m)
                    endif
 
                    q123(m)=tunenaff(naff_xyzv1,naff_xyzv2,
@@ -50785,10 +50804,12 @@ c$$$            endif
 +if .not.crlibm
                 phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))   ! inital phase
 +ei
-                eps123_min(m)=minval(epsnxyzv(l,1:fma_nturn(i),m))      ! minimum emittance
-                eps123_max(m)=maxval(epsnxyzv(l,1:fma_nturn(i),m))      ! maximum emittance
-                eps123_avg(m)=sum(epsnxyzv(l,1:fma_nturn(i),m))/        &
-     &fma_nturn(i) ! average emittance
+                eps123_min(m)=minval(epsnxyzv(l,
+     &                        fma_first(i):fma_last(i),m))      ! minimum emittance
+                eps123_max(m)=maxval(epsnxyzv(l,
+     &                        fma_first(i):fma_last(i),m))      ! maximum emittance
+                eps123_avg(m)=sum(epsnxyzv(l,
+     &                        fma_first(i):fma_last(i),m))/fma_nturn(i) ! average emittance
               enddo
               if ( num_modes .eq. 2 ) then
                  q123(3)=zero
@@ -50800,11 +50821,11 @@ c$$$            endif
               endif
 
               ! Write the FMA output file "fma_sixtrack"
-              write(2001001,1988) trim(stringzerotrim(fma_fname(i))),   &
-     &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3),    &
-     &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),          &
-     &eps123_max(2),eps123_max(3),eps123_avg(1),eps123_avg(2),          &
-     &eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3),                &
+              write(2001001,1988) trim(stringzerotrim(fma_fname(i))),
+     &trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3), 
+     &eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1),       
+     &eps123_max(2),eps123_max(3),eps123_avg(1),eps123_avg(2),       
+     &eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3),             
      &phi123_0(1),phi123_0(2),phi123_0(3)
               
             enddo ! END loop over particles l
