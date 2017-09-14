@@ -7606,8 +7606,8 @@ c$$$     &           myalphay * cos(phiy))
       subroutine readdis_norm(filename_dis, 
      &           mynp, myalphax, myalphay, mybetax, mybetay,
      &           myemitx, myemity, myenom, 
-     &           myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
-
+     &           myx, myxp, myy, myyp, myp, mys, enerror,
+     &           bunchlength)
 !     Format for the input file:
 !               x, y   -> [ sigma ]
 !               xp, yp -> [ sigma ]
@@ -7625,6 +7625,7 @@ c$$$     &           myalphay * cos(phiy))
 
 +ca parpro
 +ca commonmn
++ca common
 
       character*80   filename_dis
       double precision enerror, bunchlength
@@ -7635,9 +7636,18 @@ c$$$     &           myalphay * cos(phiy))
       double precision normx, normy, normxp, normyp, normp, norms
       double precision myemitz
 
-      save
-
       write(lout,*) "Reading input bunch from file ", filename_dis
+
+      if (iclo6.eq.0) then
+         write(lout,*) "ERROR DETECTED: Incompatible flag           "
+         write(lout,*) "in line 2 of the TRACKING block             "
+         write(lout,*) "of fort.3 for calculating the closed orbit  "
+         write(lout,*) "(iclo6 must not be =0). When using an input "
+         write(lout,*) "distribution in normalized coordinates for  "
+         write(lout,*) "collimation the closed orbit is needed for a"
+         write(lout,*) "correct TAS matrix for coordinate transform."
+         call prror(-1)
+      endif
 
       inquire( unit=53, opened=lopen )
       if (lopen) then
@@ -7659,7 +7669,7 @@ c$$$     &           myalphay * cos(phiy))
      &     normyp, norms, normp
 ! A normalized distribution with x,xp,y,yp,z,zp is read and 
 ! transformed with the TAS matrix T , which is the transformation matrix
-! from normalized to physical coordinates it is scaled with the geomtric
+! from normalized to physical coordinates it is scaled with the geometric
 ! emittances in diag matrix S. x = T*S*normx
 ! units of TAS matrix # m,rad,m,rad,m,1
 ! The collimation coordinates/units are
@@ -7670,8 +7680,7 @@ c$$$     &           myalphay * cos(phiy))
          write(lout,*) " myemity [m]= ",myemity
          write(lout,*) " bunchlength [mm]= ",bunchlength
          write(lout,*) " enerror = ",enerror
-
-
+                  
          !convert bunchlength from [mm] to [m]
          ! enerror is the energy spread
          myemitz  = bunchlength * 0.001d0 * enerror
@@ -7743,7 +7752,6 @@ c$$$     &           myalphay * cos(phiy))
       return
       
  20   continue
-!      call abend('I/O Error on Unit 53                              ') !ABEND is for the CR version
       write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
       call prror(-1)
       
