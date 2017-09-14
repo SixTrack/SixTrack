@@ -75,8 +75,21 @@ module scatter
        scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
        scatter_nidata, scatter_nfdata, scatter_ncdata,              &
        scatter_debug, scatter_active, scatter_seed1, scatter_seed2
+
++if cr
+  integer :: scatter_filepos,scatter_filepos_cr
+  integer,                      allocatable :: scatter_idata_cr (:)
+  double precision,             allocatable :: scatter_fdata_cr (:)
+  character(scatter_maxstrlen), allocatable :: scatter_cdata_cr (:)
+  integer :: scatter_nidata_cr, scatter_nfdata_cr, scatter_ncdata_cr
+  integer :: scatter_seed1_cr, scatter_seed2_cr
   
-  
+  save scatter_filepos,scatter_filepos_cr, &
+       scatter_idata_cr, scatter_fdata_cr, scatter_cdata_cr, &
+       scatter_nidata_cr,scatter_nfdata_cr, scatter_ncdata_cr, &
+       scatter_seed1_cr, scatter_seed2_cr
++ei
+
   contains !Subroutines are defined below this line
 
   subroutine scatter_allocate
@@ -100,7 +113,7 @@ module scatter
        write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE(); stat=",stat
        call prror(-1)
     endif
-
+    
     ! Zero the memory, as is done in comnul.
     ! One disadvantage of doing this is that we force all the memory to be real,
     ! while in most cases much of it could actually be virtual...
@@ -111,30 +124,57 @@ module scatter
           scatter_cdata(i)(j:j) = char(0)
        end do
     enddo
-
     
++if cr
+    write(lout,'(A,I8)') "SCATTER_ALLOCATE [CR] : scatter_maxdata=",scatter_maxdata
+    allocate( scatter_idata_cr(scatter_maxdata), &
+              scatter_fdata_cr(scatter_maxdata), &
+              scatter_cdata_cr(scatter_maxdata), &
+              STAT=stat )
+    
+    if (stat.ne.0) then
+       write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE [CR]; stat=",stat
+       call prror(-1)
+    endif
++ei
   end subroutine scatter_allocate
-    
+  
   subroutine scatter_initialize
     implicit none
-
+    integer ierro
 +ca crcoall
 +ca parpro
 
     logical lopen
 
     ! Open scatter_log.txt
-    inquire( unit=667, opened=lopen )
-    if (lopen) then
-        write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
-        write(lout,*) "Unit 667 was already taken."
-        call prror(-1)
-    end if
++if cr
+    ! Could have loaded a CR just before the start of the tracking;
+    ! in this case the scatter_log.txt is already open and positioned,
+    ! so don't try to open the file again.
+    if(scatter_filepos .eq. -1) then
+       write(93,'(a)') "SCATTER> scatter_initialize opening new file scatter_log.txt"
++ei
+       inquire( unit=667, opened=lopen )
+       if (lopen) then
+          write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
+          write(lout,*) "Unit 667 was already taken."
+          call prror(-1)
+       end if
+       
+       open(667,file="scatter_log.txt",status="replace",form="formatted")
+       write(667,"(A)") "# scatter_log"
+       write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
-    open(667,file="scatter_log.txt",status="replace",form="formatted")
-    write(667,"(A)") "# scatter_log"
-    write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
-
++if cr
+       scatter_filepos = 2
+       endfile(667,iostat=ierro)
+       backspace(667,iostat=ierro)
+    else
+       write(93,'(a)') "SCATTER> scatter_initialize kept already opened file scatter_log.txt"
+    endif !scatter_filepos .eq. -1
++ei
+    
   end subroutine scatter_initialize
 
   subroutine scatter_closefiles
@@ -148,6 +188,163 @@ module scatter
     endif
 
   end subroutine scatter_closefiles
+
++if cr
+  subroutine scatter_crcheck_readdata(fileunit,readerr)
+    !Called from CRCHECK; reads the _cr arrays for scatter from file.
+    !Sets readerr=.true. if something goes wrong while reading.
+    implicit none
+    integer, intent(in) :: fileunit
+    logical,intent(out) :: readerr
+
++ca crcoall
+    
+    integer j
+    
+    read(fileunit,err=1,end=1) &
+         scatter_filepos_cr, &
+         scatter_seed1_cr, scatter_seed2_cr, &
+         scatter_nidata_cr, scatter_nfdata_cr, scatter_ncdata_cr, &
+         (scatter_idata_cr(j), j=1,scatter_maxdata), &
+         (scatter_fdata_cr(j), j=1,scatter_maxdata), &
+         (scatter_cdata_cr(j), j=1,scatter_maxdata)
+    
+    readerr=.false.
+    return
+    
+1   continue
+    write(lout,*) "READERR in scatter_crcheck; fileunit=",fileunit
+    write(93,*)   "READERR in scatter_crcheck; fileunit=",fileunit
+    readerr=.true.
+    
+  end subroutine scatter_crcheck_readdata
+
+  subroutine scatter_crcheck_positionFiles
+    !Called from CRCHECK; resets the position of scatter_log.txt
+    
+    implicit none
+
++ca crcoall
+
+    logical lopen
+    integer ierro
++if boinc
+    character*256 filename
++ei
+    integer j
+    character*1024 arecord
+    
+    inquire( unit=667, opened=lopen )
+    if(lopen) then
+       write(93,'(a)') "SIXTRACR CRCHECK FAILED while repsositioning scatter_log.txt"
+       write(93,'(a)') "UNIT 667 already in use!"
+
+       endfile (93,iostat=ierro)
+       backspace (93,iostat=ierro)
+
+       write(lout,*) 'SIXTRACR CRCHECK failure positioning scatter_log.txt'
+       call prror(-1)
+    endif
+
+    if(scatter_filepos_cr .ne. -1) then
++if boinc
+       call boincrf("scatter_log.txt",filename)
+       open(unit=667,file=filename,status="old",action="readwrite", err=1)
++ei
++if .not.boinc
+       open(unit=667,file='scatter_log.txt',status="old",action="readwrite", err=1)
++ei
+       scatter_filepos=0
+       do j=1, scatter_filepos_cr
+          read(667,'(a1024)',end=1,err=1,iostat=ierro) arecord
+          scatter_filepos = scatter_filepos+1
+       end do
+
+       !Truncate the file after scatter_filepos_cr lines
+       endfile(667,iostat=ierro)
+       close(667)
+
++if boinc
+       call boincrf("scatter_log.txt",filename)
+       open(unit=667,file=filename,status="old",position='append',action="write", err=1)
++ei
++if .not.boinc
+       open(unit=667,file='scatter_log.txt',status="old",position='append',action="write", err=1)
++ei       
+       write(97,*) 'SIXTRACR CRCHECK sucessfully repositioned scatter_log.txt, '// &
+            'scatter_filepos=',scatter_filepos, "scatter_filepos_cr=",scatter_filepos_cr
+       endfile (93,iostat=ierro)
+       backspace (93,iostat=ierro)
+
+    else
+       write(93,*) 'SIXTRACR CRCHECK did not attempt repositioning '// &
+            'of scatter_log.txt, scatter_filepos_cr=',scatter_filepos_cr
+       write(93,*) "If anything has been written to the file, "// &
+            "it will be correctly truncated in scatter_initialize."
+       endfile (93,iostat=ierro)
+       backspace (93,iostat=ierro)
+    end if
+    
+    return ! All was well
+    
+1   continue
+    write(93,*) 'SIXTRACR CRCHECK *** ERROR *** reading scatter_log.txt, iostat=',ierro
+    write(93,*) 'scatter_filepos=',scatter_filepos,' scatter_filepos_cr=',scatter_filepos_cr
+    endfile   (93,iostat=ierro)
+    backspace (93,iostat=ierro)
+    write(lout,*)'SIXTRACR CRCHECK failure positioning scatter_log.txt'
+    
+    call prror(-1)
+    
+  end subroutine scatter_crcheck_positionFiles
+
+  subroutine scatter_crpoint(fileunit,writeerr,ierro)
+    !Called from CRPOINT; write checkpoint data to fort.95/96
+    implicit none
++ca crcoall
+    integer, intent(in)   :: fileunit
+    logical,intent(out)   :: writeerr
+    integer,intent(inout) :: ierro    !Operate dummy in "passthrough" mode if no error -> inout
+
+    integer j
+    
+    write(fileunit,err=1,iostat=ierro) &
+         scatter_filepos, &
+         scatter_seed1, scatter_seed2, &
+         scatter_nidata, scatter_nfdata, scatter_ncdata, &
+         (scatter_idata(j), j=1,scatter_maxdata), &
+         (scatter_fdata(j), j=1,scatter_maxdata), &
+         (scatter_cdata(j), j=1,scatter_maxdata)
+    endfile   (fileunit,iostat=ierro)
+    backspace (fileunit,iostat=ierro)
+    
+    return
+    
+1   continue
+    writeerr=.true.
+    
+  end subroutine scatter_crpoint
+
+  subroutine scatter_crstart
+    !Called from CRSTART; copies the _cr arrays into the normal arrays used during tracking
+    ! in order to recreate the state of the SCATTER block at the time of the checkpoint.
+    implicit none
+
+    integer j
+    
+    scatter_nidata = scatter_nidata_cr
+    scatter_nfdata = scatter_nfdata_cr
+    scatter_ncdata = scatter_ncdata_cr
+
+    do j=1, scatter_maxdata
+       scatter_idata(j) = scatter_idata_cr(j)
+       scatter_fdata(j) = scatter_fdata_cr(j)
+       scatter_cdata(j) = scatter_cdata_cr(j)
+    end do
+    
+  end subroutine scatter_crstart
++ei
+
   
   subroutine scatter_dumpdata
 
@@ -747,8 +944,16 @@ module scatter
             write(667,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
                 trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
                 t, xi, theta, rndPhi(j), P
-        end do
++if cr
+            scatter_filepos = scatter_filepos+1
++ei
+         end do
     end do
+
++if cr
+    endfile(667,iostat=ierro)
+    backspace(667,iostat=ierro)
++ei
 
     call recuut(scatter_seed1,scatter_seed2)
     call recuin(tmpSeed1,tmpSeed2)
