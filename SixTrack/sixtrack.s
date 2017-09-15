@@ -50096,7 +50096,7 @@ c$$$            endif
      &epsnxyzv ! normalized emittances
       double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
      &tunenewt,tuneabt2,tuneabt,tunenewt1 !Define the functions to be called from PLATO
-      double precision :: dump_last_turn ! auxiliary variable for loop over turns
+      integer :: dump_last_turn ! auxiliary variable for loop over turns
 +if naff
       interface
          REAL(C_DOUBLE) function tunenaff
@@ -50436,7 +50436,7 @@ c$$$            endif
             
             ! Read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             ! TODO: This logic breaks apart if there are particle losses;
-            !  it is neither handled or checked for...
+            !  it is checked for, but it only triggers a "call prror(-1)".
             ! If normalization within FMA, we now have to always write the full NORM_* file
             ! Otherwise  one would overwrite the NORM_* file constantly if different FMAs are done
             ! on the same DUMP file
@@ -50548,6 +50548,20 @@ c$$$            endif
      &                      "' (dumpfmt=",dumpfmt(j),')'
                        call fma_error(ierro,ch,'fma_postpr') !read error
                     endif
+                 endif
+                 
+                 if (l.ne.id .or. k.ne.turn(l,k)) then
+                    write(lout,*)
+     &                   "ERROR when reading DUMP file #",j,
+     &                   "for FMA #",i
+                    write(lout,*) "Expected turn and particle ID =",
+     &                   k,l
+                    write(lout,*) "Got turn and particle ID =",
+     &                   turn(l,k),id
+                    write(lout,*) "Reading probably got unsynchronized"
+     &                   //" because of particle losses,"
+     &                   //" which is currently not handled in FMA."
+                    call prror(-1)
                  endif
                  
                  ! start normalization
