@@ -3268,7 +3268,7 @@ FMA
 variable, one for each file with particle amplitudes and tune calculation method, and one for each flag given.
 
 \paragraph{Format of input block}
-\texttt{filename\_1 method\_1 (fma\_flag\_norm\_1 fma\_first\_turn fma\_last\_turn)}\\
+\texttt{filename\_1 method\_1 (fma\_flag\_norm\_1 (fma\_first\_turn fma\_last\_turn))}\\
 or \texttt{NoNormDUMP}\\
 
 The FMA block has to be proceeded by the LINE block (calculation of the normalization matrix) and the DUMP block (dump particle coordinates).
@@ -3320,7 +3320,8 @@ NAFF \cite{NAFFpaper, NAFFpaper2}
 optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|). See \textbf{Description} for the conditions under which normalization is available.
 
 \subparagraph{fma\_first\_turn, fma\_last\_turn}
-Turns used for FMA analysis. As the DUMP files are used as input for the FMA analysis \texttt{fma\_first\_turn} must be larger \texttt{first\_turn} in the DUMP block and  \texttt{fma\_last\_turn} must be smaller than \texttt{last\_turn} in the DUMP block. If \texttt{fma\_last\_turn = -1} the number of turns tracked is used as last turn number.
+Turns used for FMA analysis. As the DUMP files are used as input for the FMA analysis \texttt{fma\_first\_turn} must be larger \texttt{first\_turn} in the DUMP block and  \texttt{fma\_last\_turn} must be smaller than \texttt{last\_turn} in the DUMP block. If \texttt{fma\_last\_turn = -1} the last turn number in the dump file is taken as the last turn number, including the last turn tracked if the \texttt{last} setting of the dump equals -1.
+By default, FMA will use the same turns as for the DUMP.
 
 \subparagraph{NoNormDUMP} is a flag for disabling the \texttt{NORM\_filename*} output files.
 This saves disk space and speeds up the calculation of the FMA.
