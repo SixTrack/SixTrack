@@ -1293,10 +1293,9 @@
       character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
       integer fma_first (fma_max), fma_last (fma_max)        !first and last turn used for FMA
-      integer fma_nturn (fma_max)                            !number of turns used for fft
       integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
       common /fma_var/ fma_fname,fma_method,fma_numfiles,
-     &     fma_norm_flag,fma_nturn,fma_first,fma_last,
+     &     fma_norm_flag,fma_first,fma_last,
      &     fma_flag,fma_writeNormDUMP
 
 !
@@ -34077,7 +34076,6 @@ C Should get me a NaN
       fma_writeNormDUMP = .true.
       fma_numfiles = 0
       do i=1,fma_max
-        fma_nturn(i) = 0
         fma_first(i) = 0
         fma_last(i)  = 0
         fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
@@ -50089,7 +50087,9 @@ c$$$            endif
       logical filefields_lerr
       double precision round_near
 
-      integer, dimension(:,:),allocatable :: turn ! npart = max. number of particles
+      integer, dimension(:,:),allocatable :: turn ! Current turn no (particle, rel. turn no)
+      integer, dimension(:),allocatable :: nturns ! Number of turns to analyze for this particle
+      integer fma_nturn (fma_max)                 ! Number of turns used for fft for this FMA
       double precision, dimension(:,:,:),allocatable ::
      &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
       double precision, dimension(:,:,:),allocatable ::
@@ -50116,7 +50116,7 @@ c$$$            endif
      &     naff_xyzv1,naff_xyzv2
 +ei
 !     dummy variables for readin + normalisation + loops
-      integer :: id,kt,counter
+      integer :: id,kt,counter,thisturn
       double precision :: pos
       double precision, dimension(6) :: xyzvdummy,xyzvdummy2,nxyzvdummy !phase space variables x,x',y,y',sig,delta
       double precision, dimension(3) :: q123 !tune q1,q2,q3
@@ -50141,11 +50141,19 @@ c$$$            endif
      &     STAT=i)
       if (i.ne.0) then
          write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
-     &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size "//
+     &        " arrays 'turn,xyzv,nxyzv,epsnxyzv' of size"//
      &        " proportional to napx*fma_nturn_max."
          call prror(-1)
       endif
 
+      allocate(nturns(napx),STAT=i)
+      if (i.ne.0) then
+         write(lout,*) "Error in fma_postpr: Cannot ALLOCATE"//
+     &        " array 'nturns' of size"//
+     &        " proportional to napx."
+         call prror(-1)
+      endif
+      
 +if naff
       allocate(naff_xyzv1(fma_nturn_max),
      &         naff_xyzv2(fma_nturn_max),
@@ -50299,7 +50307,10 @@ c$$$            endif
               endif
             endif
             ! now we can set the number of turns used for the FMA required for the PLATO routines
-            fma_nturn(i) = fma_last(i)-fma_first(i)+1 
+            fma_nturn(i) = fma_last(i)-fma_first(i)+1
+            do m=1,napx
+               nturns(m)=fma_nturn(i)
+            enddo
             if(fma_nturn(i).gt.fma_nturn_max) then
               write(lout,*) 'ERROR in fma_postpr: only ', 
      &fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
@@ -50447,15 +50458,16 @@ c$$$            endif
             else
               dump_last_turn = dumplast(j)
             endif
+
+            !Loop over all turns in the DUMP file;
+            ! this is neccessary since we're writing normalized DUMP files.
             do k=dumpfirst(j),dump_last_turn !loop over turns, use the dump files
-            
-            !Loop over all turns; this is neccessary since we're writing normalized DUMP files.
-            !do k=1,dump_last_turn
+              
               !loop over particles
               do l=1,napx
                  if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then  ! Read an ASCII dump
 +if .not.crlibm
-                    read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,
+                    read(dumpunit(j),*,iostat=ierro) id,thisturn,pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
                     if(ierro.gt.0) then
@@ -50500,7 +50512,7 @@ c$$$            endif
                     read(filefields_fields(1)
      &                   (1:filefields_lfields(1)),*) id
                     read(filefields_fields(2)
-     &                   (1:filefields_lfields(2)),*) turn(l,k)
+     &                   (1:filefields_lfields(2)),*) thisturn
                     pos = round_near(ierro, filefields_lfields(3)+1,
      &                   filefields_fields(3) )
                     if (ierro.ne.0)
@@ -50547,7 +50559,7 @@ c$$$            endif
 
                  else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then ! Read a binary dump
 
-                    read(dumpunit(j),iostat=ierro) id,turn(l,k),pos,
+                    read(dumpunit(j),iostat=ierro) id,thisturn,pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
                     if(ierro.gt.0) then
@@ -50560,14 +50572,19 @@ c$$$            endif
                  endif
 
                  !Check for losses
-                 if (l.ne.id .or. k.ne.turn(l,k)) then
+                 if (l.ne.id .or. k.ne.thisturn) then
+                    if (k .lt. nturns(l)+fma_first(l)-1) then
+                       nturns(l) = k-fma_first(l)
+                    endif
+                    
+                    !TODO: Actually handle those losses.
                     write(lout,*)
      &                   "ERROR when reading DUMP file #",j,
      &                   "for FMA #",i
                     write(lout,*) "Expected turn and particle ID =",
      &                   k,l
                     write(lout,*) "Got turn and particle ID =",
-     &                   turn(l,k),id
+     &                   thisturn,id
                     write(lout,*) "Reading probably got unsynchronized"
      &                   //" because of particle losses,"
      &                   //" which is currently not handled in FMA."
@@ -50616,7 +50633,7 @@ c$$$            endif
                     ! Write normalized particle amplitudes
                     ! (only when reading physical coordinates)
                     if (fma_writeNormDUMP) then
-                       write(200101+i*10,1986) id,turn(l,k),pos,
+                       write(200101+i*10,1986) id,thisturn,pos,
      &                      nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),
      &                      nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
                     endif
@@ -50630,22 +50647,29 @@ c$$$            endif
                  endif ! END IF already normalized or not
                  
                  ! Copy the data into the final arrays
-                 do m=1,6
-                    ! for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
-                    if(m.eq.6) then
-                       xyzv(l,k,m)=xyzvdummy(m)*c1e3
-                    else
-                       xyzv(l,k,m)=xyzvdummy(m)
-                    endif
-
-                    nxyzv(l,k,m) = nxyzvdummy(m)
-
-                    ! calculate emittance of mode 1,2,3
-                    if(mod(m,2).eq.0) then
-                       epsnxyzv(l,k,m/2)=
-     &                      nxyzvdummy((m-1))**2+nxyzvdummy(m)**2
-                    endif
-                 enddo
+!                 if (thisturn.ge.fma_first(i) .and.
+!     &               thisturn.le.fma_last(i)       ) then
+                    
+                    turn(l,k) = thisturn
+                    
+                    do m=1,6
+                       ! for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
+                       if(m.eq.6) then
+                          xyzv(l,k,m)=xyzvdummy(m)*c1e3
+                       else
+                          xyzv(l,k,m)=xyzvdummy(m)
+                       endif
+                       
+                       nxyzv(l,k,m) = nxyzvdummy(m)
+                       
+                       ! calculate emittance of mode 1,2,3
+                       if(mod(m,2).eq.0) then
+                          epsnxyzv(l,k,m/2)=
+     &                         nxyzvdummy((m-1))**2+nxyzvdummy(m)**2
+                       endif
+                    enddo
+                    
+!                 endif !END if fma_first <= thisturn <= fma_last
                     
               enddo ! END loop over particles l
             enddo ! END loop over turns k
@@ -50818,7 +50842,8 @@ c$$$            endif
                 end select
                 
                 if(m.eq.3) q123(m)=one-q123(m) ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
-                 
+
+                !Some general calculations
                 eps123_0(m)=epsnxyzv(l,1,m) ! initial amplitude
 +if crlibm
                 phi123_0(m)=atan_rn(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
@@ -50920,7 +50945,7 @@ c$$$            endif
       enddo !END: loop over fma files
       close(2001001) !filename: fma_sixtrack
 
-      deallocate(turn, xyzv, nxyzv, epsnxyzv)
+      deallocate(turn, nturns, xyzv, nxyzv, epsnxyzv)
 +if naff
       deallocate(naff_xyzv1, naff_xyzv2)
 +ei
