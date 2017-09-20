@@ -135,56 +135,48 @@ module dynk
 ! =================================================================================================
 contains
 
-      subroutine dynk_allocate
-      implicit none
+subroutine dynk_allocate
+
+    implicit none
 
 +ca crcoall
-
 +ca parnum
 
-      integer stat
-      integer i,j
-      
-      write(lout,'(A,I8)') "DYNK_ALLOCATE : maxdata_dynk=", &
-     &     maxdata_dynk
-      allocate( iexpr_dynk(maxdata_dynk), &
-     &          fexpr_dynk(maxdata_dynk), &
-     &          cexpr_dynk(maxdata_dynk), &
-     &     STAT=stat)
-      
-      if (stat.ne.0) then
-         write(lout,'(A,I8)') "ERROR in DYNK_ALLOCATE; stat=",stat
-         call prror(-1)
-      endif
-      
-! Zero the memory, as is done in comnul.
-! One disadvantage of doing this is that we force all the memory to be real,
-! while in most cases much of it could actually be virtual...
-      do i=1,maxdata_dynk
-         iexpr_dynk(i) = 0
-         fexpr_dynk(i) = zero
-         do j=1,maxstrlen_dynk
+    integer stat
+    integer i,j
+
+    write(lout,'(A,I8)') "DYNK_ALLOCATE : maxdata_dynk=", maxdata_dynk
+    allocate( iexpr_dynk(maxdata_dynk),fexpr_dynk(maxdata_dynk),cexpr_dynk(maxdata_dynk),STAT=stat)
+
+    if (stat.ne.0) then
+        write(lout,'(A,I8)') "ERROR in DYNK_ALLOCATE; stat=",stat
+        call prror(-1)
+    endif
+
+    ! Zero the memory, as is done in comnul.
+    ! One disadvantage of doing this is that we force all the memory to be real,
+    ! while in most cases much of it could actually be virtual...
+    do i=1,maxdata_dynk
+        iexpr_dynk(i) = 0
+        fexpr_dynk(i) = zero
+        do j=1,maxstrlen_dynk
             cexpr_dynk(i)(j:j) = char(0)
-         enddo
-      enddo
+        end do
+    end do
 
 +if cr
-      write(lout,'(A,I8)') "DYNK_ALLOCATE [CR] : maxdata_dynk=", &
-     &     maxdata_dynk
-      allocate( iexpr_dynk_cr(maxdata_dynk), &
-     &          fexpr_dynk_cr(maxdata_dynk), &
-     &          cexpr_dynk_cr(maxdata_dynk), &
-     &     STAT=stat)
-      
-      if (stat.ne.0) then
-         write(lout,'(A,I8)') "ERROR in DYNK_ALLOCATE [CR]; stat=",stat
-         call prror(-1)
-      endif
+    write(lout,'(A,I8)') "DYNK_ALLOCATE [CR] : maxdata_dynk=",maxdata_dynk
+    allocate( iexpr_dynk_cr(maxdata_dynk),fexpr_dynk_cr(maxdata_dynk),cexpr_dynk_cr(maxdata_dynk),STAT=stat)
+
+    if (stat.ne.0) then
+        write(lout,'(A,I8)') "ERROR in DYNK_ALLOCATE [CR]; stat=",stat
+        call prror(-1)
+    endif
 +ei
-      
-      end subroutine
-      
-      
+
+end subroutine dynk_allocate
+
+
       subroutine dynk_parseFUN( getfields_fields, &
      &                          getfields_lfields,getfields_nfields )
 !
