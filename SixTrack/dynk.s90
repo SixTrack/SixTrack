@@ -1,12 +1,12 @@
 +dk dynk
-      module dynk
 
-      IMPLICIT NONE
+module dynk
+    IMPLICIT NONE
 
-! We have to declare all this stuff, and we can't set them PRIVATE.
-! Therefore, we always need to import the DYNK module using "only",
-! or else it will bring the contents of parpro, comgetfields,
-! and stringzerotrim along with it...
+    ! We have to declare all this stuff, and we can't set them PRIVATE.
+    ! Therefore, we always need to import the DYNK module using "only",
+    ! or else it will bring the contents of parpro, comgetfields,
+    ! and stringzerotrim along with it...
 
 !For nele
 +ca parpro
@@ -15,125 +15,125 @@
 +ca comgetfields
 +ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
 
-
 !+cd   comdynk
 
-!     A.Mereghetti, for the FLUKA Team,
-!     K.Sjobak and A. Santamaria, BE-ABP/HSS
-!     last modified: 30/10-2014
-!     
-!     COMMON for dynamic kicks (DYNK)
-!     always in main code
-!     
-!     See TWIKI for documentation
-!
-!     Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
-!     and comgetfields (for getfields_l_max_string)
+    ! A.Mereghetti, for the FLUKA Team,
+    ! K.Sjobak, A. Santamaria, V.K. Berglyd Olsen BE-ABP-HSS
+    ! last modified: 30/10-2014
 
+    ! COMMON for dynamic kicks (DYNK)
+    ! always in main code
 
-!     general-purpose variables
-      logical ldynk            ! dynamic kick requested, i.e. DYNK input bloc issued in the fort.3 file
-      logical ldynkdebug       ! print debug messages in main output
-      logical ldynkfiledisable ! Disable writing dynksets.dat?
+    ! See TWIKI for documentation
 
-!     Store the FUN statements
-      integer maxfuncs_dynk, maxdata_dynk, maxstrlen_dynk
-      parameter (maxfuncs_dynk=100,maxdata_dynk=50000, &
-     &     maxstrlen_dynk=stringzerotrim_maxlen)
+    ! Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
+    ! and comgetfields (for getfields_l_max_string)
 
-      integer funcs_dynk (maxfuncs_dynk,5) ! 1 row/FUN, cols are: 
-                                           ! (1) = function name in fort.3 (points within cexpr_dynk),
-                                           ! (2) = indicates function type
-                                           ! (3,4,5) = arguments (often pointing within other arrays {i|f|c}expr_dynk)
-      ! Data for DYNK FUNs
-      integer,                  allocatable :: iexpr_dynk (:)
-      double precision,         allocatable :: fexpr_dynk (:)
-      character(maxstrlen_dynk),allocatable :: cexpr_dynk (:)
+    ! General-purpose variables
+    logical ldynk            ! dynamic kick requested, i.e. DYNK input bloc issued in the fort.3 file
+    logical ldynkdebug       ! print debug messages in main output
+    logical ldynkfiledisable ! Disable writing dynksets.dat?
+
+    ! Store the FUN statements
+    integer maxfuncs_dynk, maxdata_dynk, maxstrlen_dynk
+    parameter (maxfuncs_dynk=100,maxdata_dynk=50000,maxstrlen_dynk=stringzerotrim_maxlen)
+
+    ! 1 row/FUN, cols are:
+    ! (1) = function name in fort.3 (points within cexpr_dynk),
+    ! (2) = indicates function type
+    ! (3,4,5) = arguments (often pointing within other arrays {i|f|c}expr_dynk)
+    integer funcs_dynk (maxfuncs_dynk,5)
+
+    ! Data for DYNK FUNs
+    integer,                   allocatable :: iexpr_dynk (:)
+    double precision,          allocatable :: fexpr_dynk (:)
+    character(maxstrlen_dynk), allocatable :: cexpr_dynk (:)
+
+    integer nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk !Number of used positions in arrays
+
+    ! Store the SET statements
+    integer maxsets_dynk
+    parameter (maxsets_dynk=200)
+
+    ! 1 row/SET, cols are:
+    ! (1) = function index (points within funcs_dynk)
+    ! (2) = first turn num. where it is active
+    ! (3) =  last turn num. where it is active
+    ! (4) = Turn shift - number added to turn before evaluating the FUN
+    integer sets_dynk(maxsets_dynk, 4)
+
+    ! 1 row/SET (same ordering as sets_dynk), cols are:
+    ! (1) element name
+    ! (2) attribute name
+    character(maxstrlen_dynk) csets_dynk (maxsets_dynk,2)
+
+    integer nsets_dynk ! Number of used positions in arrays
+
+    ! Similar to csets_dynk, but only one entry per elem/attr
+    character(maxstrlen_dynk) csets_unique_dynk (maxsets_dynk,2) 
+
+    ! Store original value from dynk
+    double precision fsets_origvalue_dynk(maxsets_dynk)
+
+    ! Number of used positions in arrays
+    integer nsets_unique_dynk 
+
+    ! Some elements (multipoles) overwrites the general settings info when initialized.
+    ! Store this information on the side.
+    ! Also used by setvalue and getvalue
+    integer dynk_izuIndex
+    dimension dynk_izuIndex(nele)
+    double precision dynk_elemdata(nele,3)
       
-      integer nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk !Number of used positions in arrays
-            
-!     Store the SET statements
-      integer maxsets_dynk
-      parameter (maxsets_dynk=200)
-      integer sets_dynk(maxsets_dynk, 4) ! 1 row/SET, cols are:
-                                         ! (1) = function index (points within funcs_dynk)
-                                         ! (2) = first turn num. where it is active
-                                         ! (3) =  last turn num. where it is active
-                                         ! (4) = Turn shift - number added to turn before evaluating the FUN
-      character(maxstrlen_dynk) csets_dynk (maxsets_dynk,2) ! 1 row/SET (same ordering as sets_dynk), cols are:
-                                                            ! (1) element name
-                                                            ! (2) attribute name
-
-      integer nsets_dynk ! Number of used positions in arrays
-      
-      character(maxstrlen_dynk) csets_unique_dynk (maxsets_dynk,2) !Similar to csets_dynk,
-                                                                   ! but only one entry per elem/attr
-      double precision fsets_origvalue_dynk(maxsets_dynk) ! Store original value from dynk
-      integer nsets_unique_dynk ! Number of used positions in arrays
-
-      ! Some elements (multipoles) overwrites the general settings info when initialized.
-      ! Store this information on the side.
-      ! Also used by setvalue and getvalue
-      integer dynk_izuIndex
-      dimension dynk_izuIndex(nele)
-      double precision dynk_elemdata(nele,3)
-      
-!     fortran COMMON declaration follows padding requirements
-!$$$      common /dynkComGen/ ldynk, ldynkdebug, ldynkfiledisable
-!$$$
-!$$$      common /dynkComExpr/ funcs_dynk,
-!$$$     &     iexpr_dynk, fexpr_dynk, cexpr_dynk,
-!$$$     &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
-!$$$
-!$$$      common /dynkComSet/ sets_dynk, csets_dynk, nsets_dynk
-!$$$      common /dynkComUniqueSet/
-!$$$     &     csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-!$$$     
-!$$$      common /dynkComReinitialize/ dynk_izuIndex, dynk_elemdata
+    ! fortran COMMON declaration follows padding requirements
+    ! common /dynkComGen/ ldynk, ldynkdebug, ldynkfiledisable
+    ! common /dynkComExpr/ funcs_dynk,iexpr_dynk, fexpr_dynk, cexpr_dynk,nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
+    ! common /dynkComSet/ sets_dynk, csets_dynk, nsets_dynk
+    ! common /dynkComUniqueSet/ csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
+    ! common /dynkComReinitialize/ dynk_izuIndex, dynk_elemdata
 
 +if cr
 !+cd comdynkcr
-!     Block with data/fields needed for checkpoint/restart of DYNK
-      ! Number of records written to dynkfile (dynksets.dat)
-      integer dynkfilepos, dynkfilepos_cr
-      
-      ! Data for DYNK FUNs
-      integer,                  allocatable :: iexpr_dynk_cr (:)
-      double precision,         allocatable :: fexpr_dynk_cr (:)
-      character(maxstrlen_dynk),allocatable :: cexpr_dynk_cr (:)
-      ! Number of used positions in arrays
-      integer niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
-      
-      ! Store current settings from dynk
-      double precision fsets_dynk_cr(maxsets_dynk)
+    ! Block with data/fields needed for checkpoint/restart of DYNK
 
-!$$$      common /dynkComCR/ dynkfilepos,dynkfilepos_cr
-!$$$      common /dynkComExprCR/
-!$$$     &     iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr,
-!$$$     &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
-!$$$      
-!$$$      common /dynkComUniqueSetCR/
-!$$$     &     fsets_dynk_cr
+    ! Number of records written to dynkfile (dynksets.dat)
+    integer dynkfilepos, dynkfilepos_cr
+
+    ! Data for DYNK FUNs
+    integer,                   allocatable :: iexpr_dynk_cr (:)
+    double precision,          allocatable :: fexpr_dynk_cr (:)
+    character(maxstrlen_dynk), allocatable :: cexpr_dynk_cr (:)
+
+    ! Number of used positions in arrays
+    integer niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
+
+    ! Store current settings from dynk
+    double precision fsets_dynk_cr(maxsets_dynk)
+
+    ! common /dynkComCR/ dynkfilepos,dynkfilepos_cr
+    ! common /dynkComExprCR/ iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr, niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
+    ! common /dynkComUniqueSetCR/ fsets_dynk_cr
 +ei
-      
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-      save ldynk, ldynkdebug, ldynkfiledisable
-      save funcs_dynk, &
-     &     iexpr_dynk, fexpr_dynk, cexpr_dynk, &
-     &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
-      save sets_dynk, csets_dynk, nsets_dynk
-      save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-      save dynk_izuIndex, dynk_elemdata
+
+    !
+    !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+    !
+
+    save ldynk, ldynkdebug, ldynkfiledisable
+    save funcs_dynk, iexpr_dynk, fexpr_dynk, cexpr_dynk, nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
+    save sets_dynk, csets_dynk, nsets_dynk
+    save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
+    save dynk_izuIndex, dynk_elemdata
 +if cr
-      save dynkfilepos,dynkfilepos_cr
-      save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr, &
-     &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
-      save fsets_dynk_cr
+    save dynkfilepos,dynkfilepos_cr
+    save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr, niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
+    save fsets_dynk_cr
 +ei
-      
-      contains                  !HERE COMES THE SUBROUTINES!
+
+! =================================================================================================
+!  HERE COMES THE SUBROUTINES
+! =================================================================================================
+contains
 
       subroutine dynk_allocate
       implicit none
