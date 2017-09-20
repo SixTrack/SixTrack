@@ -50090,6 +50090,7 @@ c$$$            endif
 
       integer, dimension(:,:),allocatable :: turn ! Current turn no (particle, rel. turn no)
       integer, dimension(:),allocatable :: nturns ! Number of turns to analyze for this particle
+      logical hasNormDumped(-1:nele)              ! Have we written a normDump file for this element before?
       integer fma_nturn (fma_max)                 ! Number of turns used for fft for this FMA
       double precision, dimension(:,:,:),allocatable ::
      &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
@@ -50164,6 +50165,11 @@ c$$$            endif
      &        " fma_nturn_max."
          call prror(-1)
       endif
+
+      ! Initialize the hasNormDumped array
+      do i=-1,nele
+         hasNormDumped(i)=.false.
+      end do
       
 !     fma_six = data file for storing the results of the FMA analysis
       inquire(unit=2001001,opened=lopen)
@@ -50379,8 +50385,9 @@ c$$$            endif
                endif
             endif
 !    - now we have done all checks
-            if (fma_writeNormDUMP .and..not.
-     &           (dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8) ) then
+            if (fma_writeNormDUMP .and.
+     &           .not.(dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8) .and.
+     &           .not.hasNormDumped(j)                            ) then
                write(lout,*) "FMA: Writing normalized DUMP for '"//
      &              trim(stringzerotrim(dump_fname(j)))// "'..."
                ! Dump normalized particle amplitudes for debugging (200101+i*10)
@@ -50627,7 +50634,8 @@ c$$$            endif
 
                     ! Write normalized particle amplitudes
                     ! (only when reading physical coordinates)
-                    if (fma_writeNormDUMP) then
+                    if (fma_writeNormDUMP .and.
+     &                   .not.hasNormDumped(j) ) then
                        write(200101+i*10,1986) id,thisturn,pos,
      &                      nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),
      &                      nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
@@ -50874,9 +50882,10 @@ c$$$            endif
               
             enddo ! END loop over particles l
 
-            if (fma_writeNormDUMP) then
+            if (fma_writeNormDUMP .and. .not.hasNormDumped(j)) then
                ! filename NORM_* (normalized particle amplitudes)
                close(200101+i*10)
+               hasNormDumped(j) = .true.
             endif
 
 !    resume initial position of dumpfile = end of file
