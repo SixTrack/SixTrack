@@ -50601,19 +50601,15 @@ c$$$            endif
                     
                     ! remove closed orbit -> check units used in dumpclo (is x' or px used?)
                     do m=1,6
-                       xyzvdummy(m)=xyzvdummy(m)-dumpclo(j,m)
+                       xyzvdummy2(m)=xyzvdummy(m)-dumpclo(j,m)
                     enddo
                     
                     !For use in with normalized coordinates:
                     ! convert to canonical variables
-                    xyzvdummy2(1)=xyzvdummy(1)
-                    xyzvdummy2(2)=xyzvdummy(2) *
-     &                   ((one+xyzvdummy(6))+dumpclo(j,6))
-                    xyzvdummy2(3)=xyzvdummy(3)
-                    xyzvdummy2(4)=xyzvdummy(4) *
-     &                   ((one+xyzvdummy(6))+dumpclo(j,6))
-                    xyzvdummy2(5)=xyzvdummy(5)
-                    xyzvdummy2(6)=xyzvdummy(6)
+                    xyzvdummy2(2)=xyzvdummy2(2) *
+     &                   ((one+xyzvdummy2(6))+dumpclo(j,6))
+                    xyzvdummy2(4)=xyzvdummy2(4) *
+     &                   ((one+xyzvdummy2(6))+dumpclo(j,6))
                     
                     ! normalize nxyz=dumptasinv*xyz2
                     do m=1,6
