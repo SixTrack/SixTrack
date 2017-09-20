@@ -2511,24 +2511,23 @@ subroutine dynk_apply(turn)
 end subroutine dynk_apply
 
 ! ================================================================================================ !
-      
-      recursive double precision function  &
-     &     dynk_computeFUN( funNum, turn ) result(retval)
-!-----------------------------------------------------------------------
-!     K. Sjobak, BE-ABP/HSS
-!     last modified: 17-10-2014
-!     Compute the value of a given DYNK function (funNum) for the given turn
-!-----------------------------------------------------------------------
-      implicit none
+!  K. Sjobak, BE-ABP/HSS
+!  Last modified: 17-10-2014
+!  - Compute the value of a given DYNK function (funNum) for the given turn
+! ================================================================================================ !
+recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
+
+    implicit none
+
 +ca comgetfields
 +ca stringzerotrim
 
-      integer funNum, turn
-      intent (in) funNum, turn
-      
-      !Functions to call
+    integer funNum, turn
+    intent (in) funNum, turn
+
+    ! Functions to call
 +if crlibm
-      double precision round_near
+    double precision round_near
 +ei
 
 +if crlibm
@@ -2536,347 +2535,348 @@ end subroutine dynk_apply
 +ei
 
 +ca crcoall
-      
-      ! Temporaries for FILELIN
-      integer filelin_start, filelin_xypoints
-      
-      ! Temporaries for random generator functions
-      integer tmpseed1, tmpseed2
-      double precision ranecu_rvec(1)
-      
-      ! General temporaries
-      integer foff !base offset into fexpr array
-      integer ii,jj!Loop variable
+
+    ! Temporaries for FILELIN
+    integer filelin_start, filelin_xypoints
+
+    ! Temporaries for random generator functions
+    integer tmpseed1, tmpseed2
+    double precision ranecu_rvec(1)
+
+    ! General temporaries
+    integer foff  ! Base offset into fexpr array
+    integer ii,jj ! Loop variable
 
 +if crlibm
-      !String handling tempraries for PIPE, preformatting for round_near
-      integer errno !for round_near
-      integer nchars
-      parameter (nchars=160)
-      character*(nchars) ch
+    ! String handling tempraries for PIPE, preformatting for round_near
+    integer errno !for round_near
+    integer nchars
+    parameter (nchars=160)
+    character*(nchars) ch
 +ei
 
 ! Usefull constants (pi and two)
 +ca common
 +ca parnum
 
-      if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
-         write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
-         write(lout,*) "DYNK> funNum =", funNum
-         write(lout,*) "DYNK> Invalid funNum, nfuncs_dynk=", nfuncs_dynk
-         call dynk_dumpdata
-         call prror(-1)
-      endif
-      
-      select case ( funcs_dynk(funNum,2) )                              ! WHICH FUNCTION TYPE?
-      case (0)                                                          ! GET
-         retval = fexpr_dynk(funcs_dynk(funNum,3))
-      case (1)                                                          ! FILE
-         if (turn .gt. funcs_dynk(funNum,5) ) then
+    if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
+        write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
+        write(lout,*) "DYNK> funNum =", funNum
+        write(lout,*) "DYNK> Invalid funNum, nfuncs_dynk=", nfuncs_dynk
+        call dynk_dumpdata
+        call prror(-1)
+    end if
+
+    select case ( funcs_dynk(funNum,2) )                              ! WHICH FUNCTION TYPE?
+
+    case (0)                                                          ! GET
+        retval = fexpr_dynk(funcs_dynk(funNum,3))
+
+    case (1)                                                          ! FILE
+        if (turn .gt. funcs_dynk(funNum,5) ) then
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
             write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
-            write(lout,*)"DYNK> Turn > length of file = ",  &
-     &           funcs_dynk(funNum,5)
+            write(lout,*)"DYNK> Turn > length of file = ", funcs_dynk(funNum,5)
             call dynk_dumpdata
             call prror(-1)
-         elseif (turn .lt. 1) then
+        else if (turn .lt. 1) then
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
             write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
             write(lout,*)"DYNK> Turn < 1, check your turn-shift!"
             call dynk_dumpdata
             call prror(-1)
-         endif
+        end if
 
-         retval = fexpr_dynk(funcs_dynk(funNum,4)+turn-1)
-      case(2)                                                           ! FILELIN
-         filelin_start    = funcs_dynk(funNum,4)
-         filelin_xypoints = funcs_dynk(funNum,5)
-         !Pass the correct array views/sections to dynk_lininterp
-         retval = dynk_lininterp( dble(turn), &
-     &       fexpr_dynk(filelin_start:filelin_start+filelin_xypoints-1), &
-     &       fexpr_dynk(filelin_start +  filelin_xypoints: &
-     &                  filelin_start +2*filelin_xypoints-1), &
-     &        filelin_xypoints )
-      case(3)                                                           ! PIPE
-         write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)")  &
-     &        "GET ID="// &
-     &        trim(stringzerotrim( &
-     &        cexpr_dynk(funcs_dynk(funNum,1)+3) &
-     &        ))//" TURN=",turn
+        retval = fexpr_dynk(funcs_dynk(funNum,4)+turn-1)
+
+    case(2)                                                           ! FILELIN
+        filelin_start    = funcs_dynk(funNum,4)
+        filelin_xypoints = funcs_dynk(funNum,5)
+        ! Pass the correct array views/sections to dynk_lininterp
+        retval = dynk_lininterp( dble(turn), &
+                 fexpr_dynk(filelin_start:filelin_start+filelin_xypoints-1), &
+                 fexpr_dynk(filelin_start +  filelin_xypoints: &
+                            filelin_start +2*filelin_xypoints-1), &
+                            filelin_xypoints )
+
+    case(3)                                                           ! PIPE
+        write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") &
+            "GET ID="//trim(stringzerotrim(cexpr_dynk(funcs_dynk(funNum,1)+3)))//" TURN=",turn
 +if .not.crlibm
-         read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
+        read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
 +ei
 +if crlibm
-         read(iexpr_dynk(funcs_dynk(funNum,3)),"(a)") ch
-         call getfields_split( ch, getfields_fields, getfields_lfields, &
-     &                             getfields_nfields, getfields_lerr )
-         if ( getfields_lerr ) then
+        read(iexpr_dynk(funcs_dynk(funNum,3)),"(a)") ch
+        call getfields_split(ch,getfields_fields,getfields_lfields,getfields_nfields,getfields_lerr)
+        if ( getfields_lerr ) then
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
             write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
             call prror(-1)
-         endif
-         if (getfields_nfields .ne. 1) then
+        end if
+        if (getfields_nfields .ne. 1) then
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
             write(lout,*)"DYNK> getfields_nfields=", getfields_nfields
             write(lout,*)"DYNK> Expected a single number."
             call prror(-1)
-         endif
-         retval = round_near(errno, &
-     &        getfields_lfields(1)+1, getfields_fields(1) )
-         if (errno.ne.0) &
-     &        call rounderr( errno,getfields_fields,1,retval )
+        end if
+        retval = round_near(errno,getfields_lfields(1)+1,getfields_fields(1))
+        if (errno.ne.0) call rounderr(errno,getfields_fields,1,retval)
 +ei
-         
-      case (6)                                                          ! RANDG
-         ! Save old seeds and load our current seeds
-         call recuut(tmpseed1,tmpseed2)
-         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3), &
-     &               iexpr_dynk(funcs_dynk(funNum,3)+4) )
-         ! Run generator for 1 value with current mcut
-         call ranecu( ranecu_rvec, 1, &
-     &                iexpr_dynk(funcs_dynk(funNum,3)+2) )
-         ! Save our current seeds and load old seeds
-         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+3), &
-     &               iexpr_dynk(funcs_dynk(funNum,3)+4) )
-         call recuin(tmpseed1,tmpseed2)
-         ! Change to mu, sigma
-         retval = fexpr_dynk(funcs_dynk(funNum,4)) &
-     &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
 
-      case (7)                                                          ! RANDU
-         ! Save old seeds and load our current seeds
-         call recuut(tmpseed1,tmpseed2)
-         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2), &
-     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
-         ! Run generator for 1 value with mcut=-1
-         call ranecu( ranecu_rvec, 1, -1 )
-         ! Save our current seeds and load old seeds
-         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2), &
-     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
-         call recuin(tmpseed1,tmpseed2)
-         retval = ranecu_rvec(1)
-
-      case (8)                                                         ! RANDON
+    case (6)                                                          ! RANDG
         ! Save old seeds and load our current seeds
-         call recuut(tmpseed1,tmpseed2)
-         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2), &
-     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
-         ! Run generator for 1 value with mcut=-1
-         call ranecu( ranecu_rvec, 1, -1 )
-         ! Save our current seeds and load old seeds
-         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2), &
-     &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
-         call recuin(tmpseed1,tmpseed2)
-	! routine for switching element (orginially the electron lens) ON or OFF
-        ! when random value is less than P, set ON, else OFF 
-         if (ranecu_rvec(1) .lt. fexpr_dynk(funcs_dynk(funNum,4))) then 
-            retval = 1.0
-         else 
-            retval = 0.0
-         endif
+        call recuut(tmpseed1,tmpseed2)
+        call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3),iexpr_dynk(funcs_dynk(funNum,3)+4))
+        ! Run generator for 1 value with current mcut
+        call ranecu(ranecu_rvec,1,iexpr_dynk(funcs_dynk(funNum,3)+2))
+        ! Save our current seeds and load old seeds
+        call recuut(iexpr_dynk(funcs_dynk(funNum,3)+3),iexpr_dynk(funcs_dynk(funNum,3)+4))
+        call recuin(tmpseed1,tmpseed2)
+        ! Change to mu, sigma
+        retval = fexpr_dynk(funcs_dynk(funNum,4)) + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
 
-      case(10)                                                          ! FIR
-         foff = funcs_dynk(funNum,3)
-         !Shift storage 1 back
-         do ii=funcs_dynk(funNum,4)-1,0,-1
+    case (7)                                                          ! RANDU
+        ! Save old seeds and load our current seeds
+        call recuut(tmpseed1,tmpseed2)
+        call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2),iexpr_dynk(funcs_dynk(funNum,3)+3))
+        ! Run generator for 1 value with mcut=-1
+        call ranecu( ranecu_rvec, 1, -1 )
+        ! Save our current seeds and load old seeds
+        call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),iexpr_dynk(funcs_dynk(funNum,3)+3))
+        call recuin(tmpseed1,tmpseed2)
+        retval = ranecu_rvec(1)
+
+    case (8)                                                         ! RANDON
+        ! Save old seeds and load our current seeds
+        call recuut(tmpseed1,tmpseed2)
+        call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2),iexpr_dynk(funcs_dynk(funNum,3)+3))
+        ! Run generator for 1 value with mcut=-1
+        call ranecu( ranecu_rvec, 1, -1 )
+        ! Save our current seeds and load old seeds
+        call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),iexpr_dynk(funcs_dynk(funNum,3)+3))
+        call recuin(tmpseed1,tmpseed2)
+        ! routine for switching element (orginially the electron lens) ON or OFF
+        ! when random value is less than P, set ON, else OFF 
+        if (ranecu_rvec(1) .lt. fexpr_dynk(funcs_dynk(funNum,4))) then 
+            retval = 1.0
+        else 
+            retval = 0.0
+        end if
+
+    case(10)                                                          ! FIR
+        foff = funcs_dynk(funNum,3)
+        ! Shift storage 1 back
+        do ii=funcs_dynk(funNum,4)-1,0,-1
             jj = ii*3
             fexpr_dynk(foff+jj+4) = fexpr_dynk(foff+jj+1)
-         enddo
-         !Evaluate the next input function
-         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
-         !Compute the filtered value
-         retval = 0.0
-         do ii=0,funcs_dynk(funNum,4)
+        end do
+        ! Evaluate the next input function
+        fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+        ! Compute the filtered value
+        retval = 0.0
+        do ii=0,funcs_dynk(funNum,4)
             jj = ii*3
-            retval = retval +  &
-     &           fexpr_dynk(foff+jj)*fexpr_dynk(foff+jj+1)
-         enddo
-      case(11)                                                          ! IIR
-         foff = funcs_dynk(funNum,3)
-         !Shift storage 1 back
-         do ii=funcs_dynk(funNum,4)-1,0,-1
+            retval = retval + fexpr_dynk(foff+jj)*fexpr_dynk(foff+jj+1)
+        end do
+
+    case(11)                                                          ! IIR
+        foff = funcs_dynk(funNum,3)
+        ! Shift storage 1 back
+        do ii=funcs_dynk(funNum,4)-1,0,-1
             jj = ii*6
             fexpr_dynk(foff+jj+7) = fexpr_dynk(foff+jj+1)
             fexpr_dynk(foff+jj+10) = fexpr_dynk(foff+jj+4)
-         enddo
-         !Evaluate the next input function
-         fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
-         fexpr_dynk(foff+4) = 0.0
-         !Compute the filtered value
-         retval = 0.0
-         do ii=0,funcs_dynk(funNum,4)
+        end do
+        ! Evaluate the next input function
+        fexpr_dynk(foff+1) = dynk_computeFUN(funcs_dynk(funNum,5),turn)
+        fexpr_dynk(foff+4) = 0.0
+        ! Compute the filtered value
+        retval = 0.0
+        do ii=0,funcs_dynk(funNum,4)
             jj = ii*6
             retval = retval + &
-     &           fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) + &
-     &           fexpr_dynk(foff+jj+3) * fexpr_dynk(foff+jj+4)
-         enddo
-         !To be shifted at the next evaluation
-         fexpr_dynk(foff+4) = retval
-         
-      case (20)                                                         ! ADD
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
-     &          + dynk_computeFUN(funcs_dynk(funNum,4),turn)
-      case (21)                                                         ! SUB
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
-     &          - dynk_computeFUN(funcs_dynk(funNum,4),turn)
-      case (22)                                                         ! MUL
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
-     &          * dynk_computeFUN(funcs_dynk(funNum,4),turn)
-      case (23)                                                         ! DIV
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
-     &          / dynk_computeFUN(funcs_dynk(funNum,4),turn)
-      case (24)                                                         ! POW
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
-     &         ** dynk_computeFUN(funcs_dynk(funNum,4),turn)
-         
-      case (30)                                                         ! MINUS
-         retval = (-1)*dynk_computeFUN(funcs_dynk(funNum,3),turn)
-      case (31)                                                         ! SQRT
+                     fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) + &
+                     fexpr_dynk(foff+jj+3) * fexpr_dynk(foff+jj+4)
+        end do
+        ! To be shifted at the next evaluation
+        fexpr_dynk(foff+4) = retval
+
+    case (20)                                                         ! ADD
+        retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
+               + dynk_computeFUN(funcs_dynk(funNum,4),turn)
+
+    case (21)                                                         ! SUB
+        retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
+               - dynk_computeFUN(funcs_dynk(funNum,4),turn)
+
+    case (22)                                                         ! MUL
+        retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
+               * dynk_computeFUN(funcs_dynk(funNum,4),turn)
+
+    case (23)                                                         ! DIV
+        retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
+               / dynk_computeFUN(funcs_dynk(funNum,4),turn)
+
+    case (24)                                                         ! POW
+        retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
+              ** dynk_computeFUN(funcs_dynk(funNum,4),turn)
+
+    case (30)                                                         ! MINUS
+        retval = (-1)*dynk_computeFUN(funcs_dynk(funNum,3),turn)
+
+    case (31)                                                         ! SQRT
 !+if crlibm
 !      retval = sqrt_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 !+ei
 !+if .not.crlibm      
-      retval = sqrt(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = sqrt(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 !+ei
-      case (32)                                                         ! SIN
+
+    case (32)                                                         ! SIN
 +if crlibm
-         retval = sin_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = sin_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
-         retval = sin(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = sin(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
-      case (33)                                                         ! COS
+
+    case (33)                                                         ! COS
 +if crlibm
-         retval = cos_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = cos_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
-         retval = cos(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = cos(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
-      case (34)                                                         ! LOG
+
+    case (34)                                                         ! LOG
 +if crlibm
-         retval = log_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = log_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
-         retval = log(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = log(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
-      case (35)                                                         ! LOG10
+
+    case (35)                                                         ! LOG10
 +if crlibm
-         retval = log10_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = log10_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
-         retval = log10(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = log10(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
-      case (36)                                                         ! EXP
+
+    case (36)                                                         ! EXP
 +if crlibm
-         retval = exp_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = exp_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
-         retval = exp(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = exp(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
-      
-      case (40)                                                         ! CONST
-         retval = fexpr_dynk(funcs_dynk(funNum,3))
-      case (41)                                                         ! TURN
-         retval = turn
-      case (42)                                                         ! LIN
-         retval = turn*fexpr_dynk(funcs_dynk(funNum,3)) +  &
-     &                 fexpr_dynk(funcs_dynk(funNum,3)+1)
-      case (43)                                                         ! LINSEG
-         filelin_start    = funcs_dynk(funNum,3)
-         filelin_xypoints = 2
-         !Pass the correct array views/sections to dynk_lininterp
-         retval = dynk_lininterp( dble(turn), &
-     &       fexpr_dynk(filelin_start:filelin_start+1), &
-     &       fexpr_dynk(filelin_start+2:filelin_xypoints+3), &
-     &       filelin_xypoints )
-      case (44,45)                                                      ! QUAD/QUADSEG
-         retval = (turn**2)*fexpr_dynk(funcs_dynk(funNum,3))   + ( &
-     &                 turn*fexpr_dynk(funcs_dynk(funNum,3)+1) + &
-     &                      fexpr_dynk(funcs_dynk(funNum,3)+2) )
+
+    case (40)                                                         ! CONST
+        retval = fexpr_dynk(funcs_dynk(funNum,3))
+
+    case (41)                                                         ! TURN
+        retval = turn
+
+    case (42)                                                         ! LIN
+        retval = turn*fexpr_dynk(funcs_dynk(funNum,3)) +  &
+                      fexpr_dynk(funcs_dynk(funNum,3)+1)
+
+    case (43)                                                         ! LINSEG
+        filelin_start    = funcs_dynk(funNum,3)
+        filelin_xypoints = 2
+        ! Pass the correct array views/sections to dynk_lininterp
+        retval = dynk_lininterp( dble(turn), &
+                 fexpr_dynk(filelin_start:filelin_start+1), &
+                 fexpr_dynk(filelin_start+2:filelin_xypoints+3), &
+                 filelin_xypoints )
+
+    case (44,45)                                                      ! QUAD/QUADSEG
+        retval = (turn**2)*fexpr_dynk(funcs_dynk(funNum,3))   + ( &
+                      turn*fexpr_dynk(funcs_dynk(funNum,3)+1) + &
+                           fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
       case (60)                                                         ! SINF
 +if crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-     &     * SIN_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-     &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
+        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+               * SIN_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+                       + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
 +ei
 +if .not.crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-     &     * SIN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-     &          + fexpr_dynk(funcs_dynk(funNum,3)+2) )
+        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+               * SIN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+                    + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
-      case (61)                                                         ! COSF
+
+    case (61)                                                         ! COSF
 +if crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-     &     * COS_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-     &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
+        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+               * COS_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+                       + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
 +ei
 +if .not.crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-     &     * COS( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-     &          + fexpr_dynk(funcs_dynk(funNum,3)+2) )
+        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+               * COS( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+                    + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
-      case (62)                                                         ! COSF_RIPP
+
+    case (62)                                                         ! COSF_RIPP
 +if crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-     & *COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
-     &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
+        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+               * COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
+                       + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
 +if .not.crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-     & *COS   ( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
-     &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
+        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+               *COS   ( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
+                       + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
-      
-      case (80)                                                         ! PELP
-         foff = funcs_dynk(funNum,3)
-         if (turn .le. fexpr_dynk(foff)) then ! <= tinj
+
+    case (80)                                                         ! PELP
+        foff = funcs_dynk(funNum,3)
+        if (turn .le. fexpr_dynk(foff)) then ! <= tinj
             ! Constant Iinj
             retval = fexpr_dynk(foff+5)
-         elseif (turn .le. fexpr_dynk(foff+1)) then ! <= te
+        else if (turn .le. fexpr_dynk(foff+1)) then ! <= te
             ! Parabola (accelerate)
-            retval = ( fexpr_dynk(foff+6) * &
-     &                 (turn-fexpr_dynk(foff))**2 ) / 2.0 &
-     &             + fexpr_dynk(foff+5)
-         elseif (turn .le. fexpr_dynk(foff+2)) then ! <= t1
+            retval = ( fexpr_dynk(foff+6)*(turn-fexpr_dynk(foff))**2 ) / 2.0 + fexpr_dynk(foff+5)
+        else if (turn .le. fexpr_dynk(foff+2)) then ! <= t1
             ! Exponential
-            retval = fexpr_dynk(foff+7) * &
-     &          exp( fexpr_dynk(foff+8)*turn )
-         elseif (turn .le. fexpr_dynk(foff+3)) then ! <= td
+            retval = fexpr_dynk(foff+7)*exp( fexpr_dynk(foff+8)*turn )
+        else if (turn .le. fexpr_dynk(foff+3)) then ! <= td
             ! Linear (max ramp rate)
-            retval = fexpr_dynk(foff+10) * &
-     &               (turn-fexpr_dynk(foff+2)) &
-     &             + fexpr_dynk(foff+9)
-         elseif (turn .le. fexpr_dynk(foff+4)) then ! <= tnom
+            retval = fexpr_dynk(foff+10)*(turn-fexpr_dynk(foff+2)) + fexpr_dynk(foff+9)
+        else if (turn .le. fexpr_dynk(foff+4)) then ! <= tnom
             ! Parabola (decelerate)
             retval =  - ( (fexpr_dynk(foff+11) * &
-     &                    (fexpr_dynk(foff+4)-turn)**2) ) / 2.0 &
-     &                + fexpr_dynk(foff+12)
-         else ! > tnom
+                          (fexpr_dynk(foff+4)-turn)**2) ) / 2.0 &
+                         + fexpr_dynk(foff+12)
+        else ! > tnom
             ! Constant Inom
             retval = fexpr_dynk(foff+12)
-         endif
+        end if
 
-      case (81)                                                         ! ONOFF
-         ii=mod(turn-1,funcs_dynk(funNum,4))
-         if (ii .lt. funcs_dynk(funNum,3)) then
+    case (81)                                                         ! ONOFF
+        ii=mod(turn-1,funcs_dynk(funNum,4))
+        if (ii .lt. funcs_dynk(funNum,3)) then
             retval = 1.0
-         else
+        else
             retval = 0.0
-         endif
-         
-      case default
-         write(lout,*) "DYNK> **** ERROR in dynk_computeFUN(): ****"
-         write(lout,*) "DYNK> funNum =", funNum, "turn=", turn
-         write(lout,*) "DYNK> Unknown function type ", &
-     &        funcs_dynk(funNum,2)
-         call dynk_dumpdata
-         call prror(-1)
-      end select
+        end if
 
-      end function
+    case default
+        write(lout,*) "DYNK> **** ERROR in dynk_computeFUN(): ****"
+        write(lout,*) "DYNK> funNum =", funNum, "turn=", turn
+        write(lout,*) "DYNK> Unknown function type ", funcs_dynk(funNum,2)
+        call dynk_dumpdata
+        call prror(-1)
+    end select
+
+end function dynk_computeFUN
+
+! ================================================================================================ !
       
       subroutine dynk_setvalue(element_name, att_name, newValue)
 !-----------------------------------------------------------------------
