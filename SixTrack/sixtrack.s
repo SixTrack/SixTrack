@@ -50118,7 +50118,7 @@ c$$$            endif
 !     dummy variables for readin + normalisation + loops
       integer :: id,kt,counter
       double precision :: pos
-      double precision, dimension(6) :: xyzvdummy,nxyzvdummy !phase space variables x,x',y,y',sig,delta
+      double precision, dimension(6) :: xyzvdummy,xyzvdummy2,nxyzvdummy !phase space variables x,x',y,y',sig,delta
       double precision, dimension(3) :: q123 !tune q1,q2,q3
       double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
      &eps123_avg !initial,minimum,maximum,average emittance
@@ -50196,7 +50196,7 @@ c$$$            endif
         lexist=.false.
         do j=-1,nele !START: loop over dump files = loop over single elements
           if(trim(stringzerotrim(fma_fname(i))).eq.
-     &trim(stringzerotrim(dump_fname(j)))) then
+     &       trim(stringzerotrim(dump_fname(j)))) then
             lexist=.true.     !set lexist = true if the file fma_fname(j) exists
             write(lout,*) 'start FMA analysis using file ',             &
      &trim(stringzerotrim(fma_fname(i))),': number of particles=',napx, &
@@ -50437,29 +50437,34 @@ c$$$            endif
             ! Read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
             ! TODO: This logic breaks apart if there are particle losses;
             !  it is checked for, but it only triggers a "call prror(-1)".
+            
             ! If normalization within FMA, we now have to always write the full NORM_* file
             ! Otherwise  one would overwrite the NORM_* file constantly if different FMAs are done
             ! on the same DUMP file
+
             if (dumplast(j) .eq. -1) then
               dump_last_turn = numl
             else
               dump_last_turn = dumplast(j)
             endif
             do k=dumpfirst(j),dump_last_turn !loop over turns, use the dump files
-              do l=1,napx !loop over particles
-                 ! not for dumpfmt(j) = 7,8 we are reading here already the
-                 ! normalized coordinates into xyzvdummy
+            
+            !Loop over all turns; this is neccessary since we're writing normalized DUMP files.
+            !do k=1,dump_last_turn
+              !loop over particles
+              do l=1,napx
                  if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then  ! Read an ASCII dump
 +if .not.crlibm
                     read(dumpunit(j),*,iostat=ierro) id,turn(l,k),pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
-                    if(ierro.gt.0)
+                    if(ierro.gt.0) then
                        write(ch,'(a,1x,I5,1x,a)')
      &                      "while reading  particles from file '"//
      &                      trim(stringzerotrim(dump_fname(j))) //
      &                      "' (dumpfmt=",dumpfmt(j),')'
                        call fma_error(ierro,ch,'fma_postpr') !read error
+                    endif
 +ei
 +if crlibm
                     read(dumpunit(j),'(a)', iostat=ierro) ch
@@ -50470,6 +50475,7 @@ c$$$            endif
      &                   '. Check that tracked turns is larger than'//
      &                   " the number of turns used for FFT!",
      &                   'fma_postpr') !read error
+
                     call getfields_split(ch,filefields_fields,
      &                   filefields_lfields,filefields_nfields,
      &                   filefields_lerr)
@@ -50490,6 +50496,7 @@ c$$$            endif
      &                      filefields_nfields, ' and ch=',ch
                        call prror(-1)
                     endif
+                    
                     read(filefields_fields(1)
      &                   (1:filefields_lfields(1)),*) id
                     read(filefields_fields(2)
@@ -50537,7 +50544,9 @@ c$$$            endif
                     read(filefields_fields(10)
      &                   (1:filefields_lfields(10)),*) kt
 +ei !END IF crlibm
+
                  else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then ! Read a binary dump
+
                     read(dumpunit(j),iostat=ierro) id,turn(l,k),pos,
      &xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),
      &xyzvdummy(6),kt
@@ -50549,7 +50558,8 @@ c$$$            endif
                        call fma_error(ierro,ch,'fma_postpr') !read error
                     endif
                  endif
-                 
+
+                 !Check for losses
                  if (l.ne.id .or. k.ne.turn(l,k)) then
                     write(lout,*)
      &                   "ERROR when reading DUMP file #",j,
@@ -50563,86 +50573,84 @@ c$$$            endif
      &                   //" which is currently not handled in FMA."
                     call prror(-1)
                  endif
-                 
-                 ! start normalization
-                 if (dumpfmt(j).eq.2 .or.dumpfmt(j).eq.3) then ! The file isn't pre-normalized
-                    ! We only need to normalize if we are reading physical coordinates
-                    ! (dumpfmt=2 or dumpfmt=3)
+
+                 !Normalization
+                 if (dumpfmt(j).eq.2 .or.dumpfmt(j).eq.3) then
+                    ! Case: The file isn't pre-normalized -> Compute normalization
+                    !
                     ! At this point fma_norm_flag doesn't matter;
                     ! we anyway compute the normalized coordinates.
-
+                    !
                     ! units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
-
+                    
                     ! remove closed orbit -> check units used in dumpclo (is x' or px used?)
                     do m=1,6
                        xyzvdummy(m)=xyzvdummy(m)-dumpclo(j,m)
                     enddo
-                    ! for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
-                    do m=1,6
-                       if(m.eq.6) then
-                          xyzv(l,k,m)=xyzvdummy(m)*c1e3
-                       else
-                          xyzv(l,k,m)=xyzvdummy(m)
-                       endif
-                    enddo
-                    ! - convert to canonical variables
-                    xyzvdummy(2)=xyzvdummy(2) *
-     &                   ((one+xyzvdummy(6))+dumpclo(j,6))
-                    xyzvdummy(4)=xyzvdummy(4) *
-     &                   ((one+xyzvdummy(6))+dumpclo(j,6))
                     
-                    ! - intialize nxyzdummy
+                    !For use in with normalized coordinates:
+                    ! convert to canonical variables
+                    xyzvdummy2(1)=xyzvdummy(1)
+                    xyzvdummy2(2)=xyzvdummy(2) *
+     &                   ((one+xyzvdummy(6))+dumpclo(j,6))
+                    xyzvdummy2(3)=xyzvdummy(3)
+                    xyzvdummy2(4)=xyzvdummy(4) *
+     &                   ((one+xyzvdummy(6))+dumpclo(j,6))
+                    xyzvdummy2(5)=xyzvdummy(5)
+                    xyzvdummy2(6)=xyzvdummy(6)
+                    
+                    ! normalize nxyz=dumptasinv*xyz2
                     do m=1,6
                        nxyzvdummy(m)=zero
-                    enddo 
-                    ! - normalize nxyz=dumptasinv*xyz
-                    do m=1,6
                        do n=1,6
                           nxyzvdummy(m)=nxyzvdummy(m) +
-     &                         dumptasinv(j,m,n)*xyzvdummy(n)
+     &                         dumptasinv(j,m,n)*xyzvdummy2(n)
                        enddo
-                       ! a) convert nxyzv(6) to 1.e-3 sqrt(m)
-                       !    unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
+                       ! convert nxyzvdummy(6) to 1.e-3 sqrt(m)
+                       ! unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
                        if(m.eq.6) then
-                          nxyzv(l,k,m)=nxyzvdummy(m)*c1e3
-                       else
-                          nxyzv(l,k,m)=nxyzvdummy(m)
-                       endif
-                       ! end normalization
-                       !  b) calculate emittance of mode 1,2,3
-                       if(mod(m,2).eq.0) then
-                          epsnxyzv(l,k,m/2)=
-     &                         nxyzvdummy((m-1))**2+nxyzvdummy(m)**2
-                       endif
-                    enddo
-                    !     write normalized particle amplitudes
-                    if (fma_writeNormDUMP) then
-                       write(200101+i*10,1986) id,turn(l,k),pos,
-     &                      nxyzv(l,k,1),nxyzv(l,k,2),nxyzv(l,k,3),
-     &                      nxyzv(l,k,4),nxyzv(l,k,5),
-     &                      nxyzv(l,k,6),kt
-                    endif
-                 
-                 else if (dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8) then
-                    ! case: we are already normalized
-                    ! a) here we already have normalized coordinates saved in xyzvdummy,
-                    !    we only need to copy them
-                    do m=1,6
-                       nxyzv(l,k,m)=xyzvdummy(m)
-                       ! b) calculate emittance of mode 1,2,3
-                       if(mod(m,2).eq.0) then
-                          epsnxyzv(l,k,m/2)=
-     &                         xyzvdummy((m-1))**2+xyzvdummy(m)**2
+                          nxyzvdummy(m)=nxyzvdummy(m)*c1e3
                        endif
                     enddo
 
-                    !In this case we never write out the normalized particle amplitudes
+                    ! Write normalized particle amplitudes
+                    ! (only when reading physical coordinates)
+                    if (fma_writeNormDUMP) then
+                       write(200101+i*10,1986) id,turn(l,k),pos,
+     &                      nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),
+     &                      nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
+                    endif
                     
-                 endif ! END if already normalized or not
+                 else if (dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8) then
+                    ! Case: we are already normalized;
+                    ! just copy the data into the relevant array
+                    do m=1,6
+                       nxyzvdummy(m) = xyzvdummy(m)
+                    end do
+                 endif ! END IF already normalized or not
+                 
+                 ! Copy the data into the final arrays
+                 do m=1,6
+                    ! for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
+                    if(m.eq.6) then
+                       xyzv(l,k,m)=xyzvdummy(m)*c1e3
+                    else
+                       xyzv(l,k,m)=xyzvdummy(m)
+                    endif
+
+                    nxyzv(l,k,m) = nxyzvdummy(m)
+
+                    ! calculate emittance of mode 1,2,3
+                    if(mod(m,2).eq.0) then
+                       epsnxyzv(l,k,m/2)=
+     &                      nxyzvdummy((m-1))**2+nxyzvdummy(m)**2
+                    endif
+                 enddo
+                    
               enddo ! END loop over particles l
             enddo ! END loop over turns k
            
-            ! Calculate tunes of particles using the methods in plato_seq.f
+            ! Calculate tunes of particles using the methods in plato_seq.f and NAFF
             !  for fma_norm_flag == 0: use physical coordinates x,x',y,y',sig,dp/p
             !  for fma_norm_flag == 1: use normalized coordinates
             do l=1,napx ! loop over particles
