@@ -1,4 +1,9 @@
 +dk plato_seq
+
+	module platoFMA
+	implicit none
+	
+	contains
 *
 * $Id: cfft.F,v 1.1.1.1 1996/02/15 17:48:48 mclareni Exp $
 *
@@ -1218,3 +1223,5 @@ C......................................NORMALIZATION TO [0,1]
       ENDIF
 C............................................................
       END
+	
+      end module platofma
