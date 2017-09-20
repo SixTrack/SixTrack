@@ -31,14 +31,14 @@
 !     and comgetfields (for getfields_l_max_string)
 
 
-*     general-purpose variables
+!     general-purpose variables
       logical ldynk            ! dynamic kick requested, i.e. DYNK input bloc issued in the fort.3 file
       logical ldynkdebug       ! print debug messages in main output
       logical ldynkfiledisable ! Disable writing dynksets.dat?
 
-C     Store the FUN statements
+!     Store the FUN statements
       integer maxfuncs_dynk, maxdata_dynk, maxstrlen_dynk
-      parameter (maxfuncs_dynk=100,maxdata_dynk=50000,
+      parameter (maxfuncs_dynk=100,maxdata_dynk=50000, &
      &     maxstrlen_dynk=stringzerotrim_maxlen)
 
       integer funcs_dynk (maxfuncs_dynk,5) ! 1 row/FUN, cols are: 
@@ -52,7 +52,7 @@ C     Store the FUN statements
       
       integer nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk !Number of used positions in arrays
             
-C     Store the SET statements
+!     Store the SET statements
       integer maxsets_dynk
       parameter (maxsets_dynk=200)
       integer sets_dynk(maxsets_dynk, 4) ! 1 row/SET, cols are:
@@ -79,21 +79,21 @@ C     Store the SET statements
       double precision dynk_elemdata(nele,3)
       
 !     fortran COMMON declaration follows padding requirements
-c$$$      common /dynkComGen/ ldynk, ldynkdebug, ldynkfiledisable
-c$$$
-c$$$      common /dynkComExpr/ funcs_dynk,
-c$$$     &     iexpr_dynk, fexpr_dynk, cexpr_dynk,
-c$$$     &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
-c$$$
-c$$$      common /dynkComSet/ sets_dynk, csets_dynk, nsets_dynk
-c$$$      common /dynkComUniqueSet/
-c$$$     &     csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-c$$$     
-c$$$      common /dynkComReinitialize/ dynk_izuIndex, dynk_elemdata
+!$$$      common /dynkComGen/ ldynk, ldynkdebug, ldynkfiledisable
+!$$$
+!$$$      common /dynkComExpr/ funcs_dynk,
+!$$$     &     iexpr_dynk, fexpr_dynk, cexpr_dynk,
+!$$$     &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
+!$$$
+!$$$      common /dynkComSet/ sets_dynk, csets_dynk, nsets_dynk
+!$$$      common /dynkComUniqueSet/
+!$$$     &     csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
+!$$$     
+!$$$      common /dynkComReinitialize/ dynk_izuIndex, dynk_elemdata
 
 +if cr
 !+cd comdynkcr
-C     Block with data/fields needed for checkpoint/restart of DYNK
+!     Block with data/fields needed for checkpoint/restart of DYNK
       ! Number of records written to dynkfile (dynksets.dat)
       integer dynkfilepos, dynkfilepos_cr
       
@@ -107,28 +107,28 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
       ! Store current settings from dynk
       double precision fsets_dynk_cr(maxsets_dynk)
 
-c$$$      common /dynkComCR/ dynkfilepos,dynkfilepos_cr
-c$$$      common /dynkComExprCR/
-c$$$     &     iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr,
-c$$$     &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
-c$$$      
-c$$$      common /dynkComUniqueSetCR/
-c$$$     &     fsets_dynk_cr
+!$$$      common /dynkComCR/ dynkfilepos,dynkfilepos_cr
+!$$$      common /dynkComExprCR/
+!$$$     &     iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr,
+!$$$     &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
+!$$$      
+!$$$      common /dynkComUniqueSetCR/
+!$$$     &     fsets_dynk_cr
 +ei
       
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
       save ldynk, ldynkdebug, ldynkfiledisable
-      save funcs_dynk,
-     &     iexpr_dynk, fexpr_dynk, cexpr_dynk,
+      save funcs_dynk, &
+     &     iexpr_dynk, fexpr_dynk, cexpr_dynk, &
      &     nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
       save sets_dynk, csets_dynk, nsets_dynk
       save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
       save dynk_izuIndex, dynk_elemdata
 +if cr
       save dynkfilepos,dynkfilepos_cr
-      save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr,
+      save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr, &
      &     niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
       save fsets_dynk_cr
 +ei
@@ -145,11 +145,11 @@ c$$$     &     fsets_dynk_cr
       integer stat
       integer i,j
       
-      write(lout,'(A,I8)') "DYNK_ALLOCATE : maxdata_dynk=",
+      write(lout,'(A,I8)') "DYNK_ALLOCATE : maxdata_dynk=", &
      &     maxdata_dynk
-      allocate( iexpr_dynk(maxdata_dynk),
-     &          fexpr_dynk(maxdata_dynk),
-     &          cexpr_dynk(maxdata_dynk),
+      allocate( iexpr_dynk(maxdata_dynk), &
+     &          fexpr_dynk(maxdata_dynk), &
+     &          cexpr_dynk(maxdata_dynk), &
      &     STAT=stat)
       
       if (stat.ne.0) then
@@ -169,11 +169,11 @@ c$$$     &     fsets_dynk_cr
       enddo
 
 +if cr
-      write(lout,'(A,I8)') "DYNK_ALLOCATE [CR] : maxdata_dynk=",
+      write(lout,'(A,I8)') "DYNK_ALLOCATE [CR] : maxdata_dynk=", &
      &     maxdata_dynk
-      allocate( iexpr_dynk_cr(maxdata_dynk),
-     &          fexpr_dynk_cr(maxdata_dynk),
-     &          cexpr_dynk_cr(maxdata_dynk),
+      allocate( iexpr_dynk_cr(maxdata_dynk), &
+     &          fexpr_dynk_cr(maxdata_dynk), &
+     &          cexpr_dynk_cr(maxdata_dynk), &
      &     STAT=stat)
       
       if (stat.ne.0) then
@@ -185,7 +185,7 @@ c$$$     &     fsets_dynk_cr
       end subroutine
       
       
-      subroutine dynk_parseFUN( getfields_fields,
+      subroutine dynk_parseFUN( getfields_fields, &
      &                          getfields_lfields,getfields_nfields )
 !
 !-----------------------------------------------------------------------
@@ -204,9 +204,9 @@ c$$$     &     fsets_dynk_cr
       
       ! Temp variables
       integer ii, stat, t
-      double precision x,y,z,u,           ! FILE, FILELIN, FIR/IIR
-     &                 x1,x2,y1,y2,deriv, ! LINSEG, QUADSEG,
-     &                 tinj,Iinj,Inom,A,D,R,te,                 !PELP (input)
+      double precision x,y,z,u, &           ! FILE, FILELIN, FIR/IIR
+     &                 x1,x2,y1,y2,deriv, & ! LINSEG, QUADSEG,
+     &                 tinj,Iinj,Inom,A,D,R,te, &                 !PELP (input)
      &                 derivI_te,I_te,bexp,aexp, t1,I1, td,tnom !PELP (calc)
       
       logical isFIR ! FIR/IIR
@@ -218,7 +218,7 @@ c$$$     &     fsets_dynk_cr
       parameter (nchars=160) !Same as in daten
       character*(nchars) ch
       
-      character filefields_fields
+      character filefields_fields &
      &     ( getfields_n_max_fields )*( getfields_l_max_string )
       integer filefields_nfields
       integer filefields_lfields( getfields_n_max_fields )
@@ -240,20 +240,20 @@ c$$$     &     fsets_dynk_cr
       
       if (nfuncs_dynk+1 .gt. maxfuncs_dynk) then
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "Maximum number of FUN exceeded, please" //
+         write (lout,*) "Maximum number of FUN exceeded, please" // &
      &        "parameter maxfuncs_dynk."
          write (lout,*) "Current value of maxfuncs_dynk:",maxfuncs_dynk
          call prror(51)
       endif
 
-      if (getfields_lfields(2).gt.maxstrlen_dynk-1 .or.
+      if (getfields_lfields(2).gt.maxstrlen_dynk-1 .or. &
      &    getfields_lfields(2).gt.20                    ) then
          write(lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write(lout,*) "Max length of a FUN name is the smallest of",
+         write(lout,*) "Max length of a FUN name is the smallest of", &
      &        maxstrlen_dynk-1, "and", 20, "."
-         write(lout,*) "The limitation of 20 comes from the output "//
+         write(lout,*) "The limitation of 20 comes from the output "// &
      &        "to dynksets.dat."
-         write(lout,*) "Offending FUN: '"//
+         write(lout,*) "Offending FUN: '"// &
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
          write(lout,*) "length:", getfields_lfields(2)
          call prror(51)
@@ -268,7 +268,7 @@ c$$$     &     fsets_dynk_cr
       case ("GET")
          ! GET: Store the value of an element/value
 
-         call dynk_checkargs(getfields_nfields,5,
+         call dynk_checkargs(getfields_nfields,5, &
      &        "FUN funname GET elementName attribute" )
          call dynk_checkspace(0,1,3)
          
@@ -284,14 +284,14 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
 
          !Sanity checks
-         if (getfields_lfields(4) .gt. 16 .or.   ! length of BEZ elements
+         if (getfields_lfields(4) .gt. 16 .or. &   ! length of BEZ elements
      &       getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN GET got an element name with     "
             write (lout,*) "length =", getfields_lfields(4), "> 16"
             write (lout,*) "or > ",maxstrlen_dynk-1
-            write (lout,*) "The name was: '",getfields_fields(4)
+            write (lout,*) "The name was: '",getfields_fields(4) &
      &                                    (1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
             call prror(51)
@@ -302,18 +302,18 @@ c$$$     &     fsets_dynk_cr
             write (lout,*) "FUN GET got an attribute name with   "
             write (lout,*) "length =", getfields_lfields(5)
             write (lout,*) "> ",maxstrlen_dynk-1
-            write (lout,*) "The name was: '",getfields_fields(5)
+            write (lout,*) "The name was: '",getfields_fields(5) &
      &                                    (1:getfields_lfields(5)),"'"
             write (lout,*) "*************************************"
             call prror(51)
          endif
 
          ! Store data
-         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !ELEMENT_NAME
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = & !ELEMENT_NAME
      &        getfields_fields(4)(1:getfields_lfields(4))
-         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = !ATTRIBUTE_NAME
+         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = & !ATTRIBUTE_NAME
      &        getfields_fields(5)(1:getfields_lfields(5))
          ncexpr_dynk = ncexpr_dynk+2
          
@@ -325,7 +325,7 @@ c$$$     &     fsets_dynk_cr
          ! first  column = turn number (all turns should be there, starting from 1)
          ! second column = value (as a double)
 
-         call dynk_checkargs(getfields_nfields,4,
+         call dynk_checkargs(getfields_nfields,4, &
      &        "FUN funname FILE filename" )
          call dynk_checkspace(0,0,2)
          
@@ -346,16 +346,16 @@ c$$$     &     fsets_dynk_cr
             write (lout,*) "FUN FILE got a filename name with   "
             write (lout,*) "length =", getfields_lfields(4)
             write (lout,*) "> ",maxstrlen_dynk-1
-            write (lout,*) "The name was: '",getfields_fields(4)
+            write (lout,*) "The name was: '",getfields_fields(4) &
      &                                    (1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
             call prror(51)
          endif
 
          ! Store data
-         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !FILE NAME
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = & !FILE NAME
      &        getfields_fields(4)(1:getfields_lfields(4))
          ncexpr_dynk = ncexpr_dynk+1
          
@@ -363,24 +363,24 @@ c$$$     &     fsets_dynk_cr
          inquire( unit=664, opened=lopen )
          if (lopen) then
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(lout,*)"DYNK> unit 664 for file '" //
-     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+            write(lout,*)"DYNK> unit 664 for file '" // &
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // &
      &           "' was already taken"
             call prror(-1)
          end if
 
 +if boinc
          call boincrf(cexpr_dynk(ncexpr_dynk),filename)
-         open(unit=664,file=filename,action='read',
+         open(unit=664,file=filename,action='read', &
      &        iostat=stat,status="OLD")
 +ei
 +if .not.boinc
-         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
+         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read', &
      &        iostat=stat,status="OLD")
 +ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
-            write(lout,*) "DYNK> Error opening file '" //
+            write(lout,*) "DYNK> Error opening file '" // &
      &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
             call prror(51)
          endif
@@ -394,12 +394,12 @@ c$$$     &     fsets_dynk_cr
 +if crlibm
             read(664,'(a)', iostat=stat) ch
             if (stat .ne. 0) exit !EOF
-            call getfields_split(ch,
-     &           filefields_fields, filefields_lfields,
+            call getfields_split(ch, &
+     &           filefields_fields, filefields_lfields, &
      &           filefields_nfields, filefields_lerr )
             if ( filefields_lerr ) then
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '" //
+               write(lout,*) "DYNK> Error reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> Error in getfields_split"
                call prror(-1)
@@ -407,17 +407,17 @@ c$$$     &     fsets_dynk_cr
 
             if ( filefields_nfields  .ne. 2 ) then
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '" //
+               write(lout,*) "DYNK> Error reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
-               write(lout,*) "DYNK> expected 2 fields, got",
+               write(lout,*) "DYNK> expected 2 fields, got", &
      &              filefields_nfields, "ch =",ch
                call prror(-1)
             end if
 
             read(filefields_fields(1)(1:filefields_lfields(1)),*) t
-            y = round_near(errno, filefields_lfields(2)+1,
+            y = round_near(errno, filefields_lfields(2)+1, &
      &           filefields_fields(2) )
-            if (errno.ne.0)
+            if (errno.ne.0) &
      &           call rounderr(errno,filefields_fields,2,y)
 !            write(*,*) "DBGDBG: ch=",ch
 !            write(*,*) "DBGDBG: filefields_fields(1)=",
@@ -430,17 +430,17 @@ c$$$     &     fsets_dynk_cr
             ii = ii+1
             if (t .ne. ii) then
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '" //
+               write(lout,*) "DYNK> Error reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
-               write(lout,*) "DYNK> Missing turn number", ii,
+               write(lout,*) "DYNK> Missing turn number", ii, &
      &              ", got turn", t
                call prror(51)
             endif
             if (nfexpr_dynk+1 .gt. maxdata_dynk) then
                write(lout,*) "DYNK> dynk_parseFUN():FILE"
-               write(lout,*) "DYNK> Error reading file '" //
+               write(lout,*) "DYNK> Error reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
-               write(lout,*) "DYNK> Ran out of memory in fexpr_dynk ",
+               write(lout,*) "DYNK> Ran out of memory in fexpr_dynk ", &
      &              "in turn", t
                write(lout,*) "DYNK> Please increase maxdata_dynk."
                call prror(51)
@@ -459,7 +459,7 @@ c$$$     &     fsets_dynk_cr
          ! first  column = turn number (as a double)
          ! second column = value (as a double)
 
-         call dynk_checkargs(getfields_nfields,4,
+         call dynk_checkargs(getfields_nfields,4, &
      &        "FUN funname FILELIN filename" )
          call dynk_checkspace(0,0,2)
 
@@ -479,40 +479,40 @@ c$$$     &     fsets_dynk_cr
             write (lout,*) "FUN FILELIN got a filename name with   "
             write (lout,*) "length =", getfields_lfields(4)
             write (lout,*) "> ",maxstrlen_dynk-1
-            write (lout,*) "The name was: '",getfields_fields(4)
+            write (lout,*) "The name was: '",getfields_fields(4) &
      &                                    (1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
             call prror(51)
          endif
          ! Store data
-         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !FILE NAME
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = & !FILE NAME
      &        getfields_fields(4)(1:getfields_lfields(4))
          ncexpr_dynk = ncexpr_dynk+1
          
          !Open the file
          inquire( unit=664, opened=lopen )
          if (lopen) then
-            write(lout,*)
+            write(lout,*) &
      &           "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
-            write(lout,*)"DYNK> unit 664 for file '"//
-     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+            write(lout,*)"DYNK> unit 664 for file '"// &
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // &
      &           "' was already taken"
             call prror(-1)
          end if
 +if boinc
          call boincrf(cexpr_dynk(ncexpr_dynk),filename)
-         open(unit=664,file=filename,action='read',
+         open(unit=664,file=filename,action='read', &
      &        iostat=stat,status='OLD')
 +ei
 +if .not.boinc
-         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
+         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read', &
      &        iostat=stat,status='OLD')
 +ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write(lout,*) "DYNK> Error opening file '" //
+            write(lout,*) "DYNK> Error opening file '" // &
      &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //  "'"
             call prror(51)
          endif
@@ -526,12 +526,12 @@ c$$$     &     fsets_dynk_cr
 +if crlibm
             read(664,'(a)', iostat=stat) ch
             if (stat .ne. 0) exit !EOF
-            call getfields_split(ch,
-     &           filefields_fields, filefields_lfields,
+            call getfields_split(ch, &
+     &           filefields_fields, filefields_lfields, &
      &           filefields_nfields, filefields_lerr )
             if ( filefields_lerr ) then
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '" //
+               write(lout,*) "DYNK> Error reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //"'"
                write(lout,*) "DYNK> Error in getfields_split"
                call prror(-1)
@@ -539,20 +539,20 @@ c$$$     &     fsets_dynk_cr
             
             if ( filefields_nfields  .ne. 2 ) then
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '" //
+               write(lout,*) "DYNK> Error reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
-               write(lout,*) "DYNK> expected 2 fields, got",
+               write(lout,*) "DYNK> expected 2 fields, got", &
      &              filefields_nfields, "ch =",ch
                call prror(-1)
             end if
 
-            x = round_near(errno, filefields_lfields(1)+1,
+            x = round_near(errno, filefields_lfields(1)+1, &
      &           filefields_fields(1) )
-            if (errno.ne.0)
+            if (errno.ne.0) &
      &           call rounderr(errno,filefields_fields,1,x)
-            y = round_near(errno, filefields_lfields(2)+1,
+            y = round_near(errno, filefields_lfields(2)+1, &
      &           filefields_fields(2) )
-            if (errno.ne.0)
+            if (errno.ne.0) &
      &           call rounderr(errno,filefields_fields,2,y)
             
 !            write(*,*) "DBGDBG: ch=",ch
@@ -565,9 +565,9 @@ c$$$     &     fsets_dynk_cr
             
             if (ii.gt.0 .and. x.le. x2) then !Insane: Decreasing x
                write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write (lout,*) "DYNK> Error while reading file '" //
+               write (lout,*) "DYNK> Error while reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
-               write (lout,*) "DYNK> x values must "//
+               write (lout,*) "DYNK> x values must "// &
      &              "be in increasing order"
                call prror(-1)
             endif
@@ -580,9 +580,9 @@ c$$$     &     fsets_dynk_cr
          
          if (nfexpr_dynk+2*t .gt. maxdata_dynk) then
             write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write (lout,*) "DYNK> Error reading file '"//
+            write (lout,*) "DYNK> Error reading file '"// &
      &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
-            write (lout,*) "DYNK> Not enough space in fexpr_dynk,"//
+            write (lout,*) "DYNK> Not enough space in fexpr_dynk,"// &
      &           " need", 2*t
             write (lout,*) "DYNK> Please increase maxdata_dynk"
             call prror(51)
@@ -596,7 +596,7 @@ c$$$     &     fsets_dynk_cr
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
                   write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*)"DYNK> Unexpected when reading file '"//
+                  write (lout,*)"DYNK> Unexpected when reading file '"// &
      &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                   write (lout,*)"DYNK> ii=",ii,"t=",t
                   call prror(51)
@@ -609,7 +609,7 @@ c$$$     &     fsets_dynk_cr
             if (stat .ne. 0) then !EOF
                if (ii .ne. t) then
                   write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
-                  write (lout,*)"DYNK> Unexpected when reading file '"//
+                  write (lout,*)"DYNK> Unexpected when reading file '"// &
      &                trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                   write (lout,*) "DYNK> ii=",ii,"t=",t
                   call prror(51)
@@ -617,12 +617,12 @@ c$$$     &     fsets_dynk_cr
                exit
             endif
             
-            call getfields_split(ch,
-     &           filefields_fields, filefields_lfields,
+            call getfields_split(ch, &
+     &           filefields_fields, filefields_lfields, &
      &           filefields_nfields, filefields_lerr )
             if ( filefields_lerr ) then
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '"//
+               write(lout,*) "DYNK> Error reading file '"// &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split"
                call prror(-1)
@@ -630,20 +630,20 @@ c$$$     &     fsets_dynk_cr
             
             if ( filefields_nfields  .ne. 2 ) then
                write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-               write(lout,*) "DYNK> Error reading file '"//
+               write(lout,*) "DYNK> Error reading file '"// &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
-               write(lout,*) "DYNK> expected 2 fields, got",
+               write(lout,*) "DYNK> expected 2 fields, got", &
      &              filefields_nfields, "ch =",ch
               call prror(-1)
             end if
 
-            x = round_near(errno, filefields_lfields(1)+1,
+            x = round_near(errno, filefields_lfields(1)+1, &
      &           filefields_fields(1) )
-            if (errno.ne.0)
+            if (errno.ne.0) &
      &           call rounderr(errno,filefields_fields,1,x)
-            y = round_near(errno, filefields_lfields(2)+1,
+            y = round_near(errno, filefields_lfields(2)+1, &
      &           filefields_fields(2) )
-            if (errno.ne.0)
+            if (errno.ne.0) &
      &           call rounderr(errno,filefields_fields,2,y)
 !            write(*,*) "DBGDBG: ch=",ch
 !            write(*,*) "DBGDBG: filefields_fields(1)=",
@@ -670,7 +670,7 @@ c$$$     &     fsets_dynk_cr
          ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
          ! That program should then send a value back (in ASCII), which will be the new setting.
          
-         call dynk_checkargs(getfields_nfields,7,
+         call dynk_checkargs(getfields_nfields,7, &
      &        "FUN funname PIPE inPipeName outPipeName ID fileUnit" )
          call dynk_checkspace(1,0,4)
          
@@ -692,37 +692,37 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,5) = -1            !Not used
          
          !Sanity checks
-         if (getfields_lfields(4) .gt. maxstrlen_dynk-1 .or.
-     &       getfields_lfields(5) .gt. maxstrlen_dynk-1 .or.
+         if (getfields_lfields(4) .gt. maxstrlen_dynk-1 .or. &
+     &       getfields_lfields(5) .gt. maxstrlen_dynk-1 .or. &
      &       getfields_lfields(6) .gt. maxstrlen_dynk-1      ) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN PIPE got one or more strings which "
             write (lout,*) "was too long (>",maxstrlen_dynk-1,")"
-            write (lout,*) "Strings: '",
-     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '",
-     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '",
+            write (lout,*) "Strings: '", &
+     &           getfields_fields(4)(1:getfields_lfields(4)),"' and '", &
+     &           getfields_fields(5)(1:getfields_lfields(5)),"' and '", &
      &           getfields_fields(6)(1:getfields_lfields(6)),"'."
-            write (lout,*) "lengths =",
-     &           getfields_lfields(4),", ",
-     &           getfields_lfields(5)," and ",
+            write (lout,*) "lengths =", &
+     &           getfields_lfields(4),", ", &
+     &           getfields_lfields(5)," and ", &
      &           getfields_lfields(6)
             write (lout,*) "*************************************"
             call prror(51)
          endif
 
          ! Store data
-         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk  )(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = !inPipe
+         cexpr_dynk(ncexpr_dynk+1)(1:getfields_lfields(4)) = & !inPipe
      &        getfields_fields(4)(1:getfields_lfields(4))
-         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = !outPipe
+         cexpr_dynk(ncexpr_dynk+2)(1:getfields_lfields(5)) = & !outPipe
      &        getfields_fields(5)(1:getfields_lfields(5))
-         cexpr_dynk(ncexpr_dynk+3)(1:getfields_lfields(6)) = !ID
+         cexpr_dynk(ncexpr_dynk+3)(1:getfields_lfields(6)) = & !ID
      &        getfields_fields(6)(1:getfields_lfields(6))
          ncexpr_dynk = ncexpr_dynk+3
          
-         read(getfields_fields(7)(1:getfields_lfields(7)),*) !fileUnit
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) & !fileUnit
      &        iexpr_dynk(niexpr_dynk)
          
          ! Look if the fileUnit or filenames are used in a different FUN PIPE
@@ -730,29 +730,29 @@ c$$$     &     fsets_dynk_cr
          do ii=1,nfuncs_dynk-1
             if (funcs_dynk(ii,2) .eq. 3) then !It's a PIPE
                !Does any of the settings match?
-               if ( iexpr_dynk(funcs_dynk(ii,3)).eq.      !Unit number
-     &              iexpr_dynk(niexpr_dynk)           .or.
-     &              cexpr_dynk(funcs_dynk(ii,1)+1).eq.    !InPipe filename
-     &              cexpr_dynk(ncexpr_dynk-2)         .or.
-     &              cexpr_dynk(funcs_dynk(ii,1)+2).eq.    !OutPipe filename
+               if ( iexpr_dynk(funcs_dynk(ii,3)).eq. &      !Unit number
+     &              iexpr_dynk(niexpr_dynk)           .or. &
+     &              cexpr_dynk(funcs_dynk(ii,1)+1).eq. &    !InPipe filename
+     &              cexpr_dynk(ncexpr_dynk-2)         .or. &
+     &              cexpr_dynk(funcs_dynk(ii,1)+2).eq. &    !OutPipe filename
      &              cexpr_dynk(ncexpr_dynk-1)         ) then
                   !Does *all* of the settings match?
-                  if ( iexpr_dynk(funcs_dynk(ii,3)).eq.   !Unit number
-     &                 iexpr_dynk(niexpr_dynk)           .and.
-     &                 cexpr_dynk(funcs_dynk(ii,1)+1).eq. !InPipe filename
-     &                 cexpr_dynk(ncexpr_dynk-2)         .and.
-     &                 cexpr_dynk(funcs_dynk(ii,1)+2).eq. !OutPipe filename
+                  if ( iexpr_dynk(funcs_dynk(ii,3)).eq. &   !Unit number
+     &                 iexpr_dynk(niexpr_dynk)           .and. &
+     &                 cexpr_dynk(funcs_dynk(ii,1)+1).eq. & !InPipe filename
+     &                 cexpr_dynk(ncexpr_dynk-2)         .and. &
+     &                 cexpr_dynk(funcs_dynk(ii,1)+2).eq. & !OutPipe filename
      &                 cexpr_dynk(ncexpr_dynk-1)         ) then
                      t=ii
-                     write(lout,*) "DYNK> "//
-     &                    "PIPE FUN '" //
-     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1)))) //
-     & "' using same settings as previously defined FUN '"   //
-     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) //
+                     write(lout,*) "DYNK> "// &
+     &                    "PIPE FUN '" // &
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1)))) // &
+     & "' using same settings as previously defined FUN '"   // &
+     & trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) // &
      & "' -> reusing files !"
-                     if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. !ID
+                     if (cexpr_dynk(funcs_dynk(ii,1)+3).eq. & !ID
      &                   cexpr_dynk(ncexpr_dynk)           ) then
-                        write(lout,*) "DYNK> "//
+                        write(lout,*) "DYNK> "// &
      &               "ERROR: IDs must be different when sharing PIPEs."
                         call prror(-1)
                      endif
@@ -761,9 +761,9 @@ c$$$     &     fsets_dynk_cr
       ! Nested too deep, sorry about crappy alignment...
       write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
       write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
-      write(lout,*) "DYNK> between PIPE FUN '"               //
-     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1))))//
-     &     "' and '" //
+      write(lout,*) "DYNK> between PIPE FUN '"               // &
+     &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(nfuncs_dynk,1))))// &
+     &     "' and '" // &
      &     trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))) // "'"
                      call prror(-1)
                   endif
@@ -776,79 +776,79 @@ c$$$     &     fsets_dynk_cr
          inquire( unit=iexpr_dynk(niexpr_dynk), opened=lopen )
          if (lopen) then
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
-            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk),
-     &           "for file '"//
-     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2)))
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk), &
+     &           "for file '"// &
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) &
      &           //"' was already taken"
 
             call prror(-1)
          end if
          
-         write(lout,*) "DYNK> Opening input pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
+         write(lout,*) "DYNK> Opening input pipe '"// &
+     &trim(stringzerotrim( &
+     &cexpr_dynk(ncexpr_dynk-2)))//"' for FUN '"// &
+     &trim(stringzerotrim( &
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"// &
+     &trim(stringzerotrim( &
      &cexpr_dynk(ncexpr_dynk)))//"'"
 
          ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-         open(unit=iexpr_dynk(niexpr_dynk),
-     &        file=cexpr_dynk(ncexpr_dynk-2),action='read',
+         open(unit=iexpr_dynk(niexpr_dynk), &
+     &        file=cexpr_dynk(ncexpr_dynk-2),action='read', &
      &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '" //
-     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) //
+            write(lout,*) "DYNK> Error opening file '" // &
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-2))) // &
      &           "' stat=",stat
             call prror(51)
          endif
 
          ! Open the outPipe
-         write(lout,*) "DYNK> Opening output pipe '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"//
-     &trim(stringzerotrim(
-     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"//
-     &trim(stringzerotrim(
+         write(lout,*) "DYNK> Opening output pipe '"// &
+     &trim(stringzerotrim( &
+     &cexpr_dynk(ncexpr_dynk-1)))//"' for FUN '"// &
+     &trim(stringzerotrim( &
+     &cexpr_dynk(ncexpr_dynk-3)))//"', ID='"// &
+     &trim(stringzerotrim( &
      &cexpr_dynk(ncexpr_dynk)))//"'"
 
          inquire( unit=iexpr_dynk(niexpr_dynk)+1, opened=lopen )
          if (lopen) then
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
-            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1,
-     &           "for file '"//
-     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1)))
+            write(lout,*)"DYNK> unit",iexpr_dynk(niexpr_dynk)+1, &
+     &           "for file '"// &
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) &
      &           //"' was already taken"
 
             call prror(-1)
          end if
          
          ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-         open(unit=iexpr_dynk(niexpr_dynk)+1,
-     &        file=cexpr_dynk(ncexpr_dynk-1),action='write',
+         open(unit=iexpr_dynk(niexpr_dynk)+1, &
+     &        file=cexpr_dynk(ncexpr_dynk-1),action='write', &
      &        iostat=stat,status="OLD")
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-            write(lout,*) "DYNK> Error opening file '" //
-     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) //
+            write(lout,*) "DYNK> Error opening file '" // &
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-1))) // &
      &           "' stat=",stat
             call prror(51)
          endif
-         write(iexpr_dynk(niexpr_dynk)+1,'(a)')
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)') &
      &        "DYNKPIPE !******************!" !Once per file
          endif !End "if (t.eq.0)"/must open new files
-         write(iexpr_dynk(niexpr_dynk)+1,'(a)') !Once per ID
-     &        "INIT ID="//
-     &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))
-     &        //" for FUN="//
+         write(iexpr_dynk(niexpr_dynk)+1,'(a)') & !Once per ID
+     &        "INIT ID="// &
+     &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) &
+     &        //" for FUN="// &
      &        trim(stringzerotrim(cexpr_dynk(ncexpr_dynk-3)))
          
          
       case ("RANDG")
          ! RANDG: Gausian random number with mu, sigma, and optional cutoff
          
-         call dynk_checkargs(getfields_nfields,8,
+         call dynk_checkargs(getfields_nfields,8, &
      &        "FUN funname RANDG seed1 seed2 mu sigma cut" )
          call dynk_checkspace(5,2,1)
          
@@ -864,33 +864,33 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !mu, sigma (in fexpr_dynk)
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
          
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        iexpr_dynk(niexpr_dynk) ! seed1 (initial)
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        iexpr_dynk(niexpr_dynk+1) ! seed2 (initial)
 +if .not.crlibm
-         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) &
      &        fexpr_dynk(nfexpr_dynk) ! mu
-         read(getfields_fields(7)(1:getfields_lfields(7)),*)
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) &
      &        fexpr_dynk(nfexpr_dynk+1) ! sigma
 +ei
 +if crlibm
-         fexpr_dynk(nfexpr_dynk) = round_near(errno, ! mu
+         fexpr_dynk(nfexpr_dynk) = round_near(errno, & ! mu
      &        getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,6,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,6, &
      &                       fexpr_dynk(nfexpr_dynk)  )
 
-         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, ! sigma
+         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, & ! sigma
      &        getfields_lfields(7)+1, getfields_fields(7) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,7,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,7, &
      &                       fexpr_dynk(nfexpr_dynk+1) )
 +ei
-         read(getfields_fields(8)(1:getfields_lfields(8)),*)
+         read(getfields_fields(8)(1:getfields_lfields(8)),*) &
      &        iexpr_dynk(niexpr_dynk+2) ! mcut
 
          iexpr_dynk(niexpr_dynk+3) = 0 ! seed1 (current)
@@ -910,7 +910,7 @@ c$$$     &     fsets_dynk_cr
       case ("RANDU")
          ! RANDU: Uniform random number
          
-         call dynk_checkargs(getfields_nfields,5,
+         call dynk_checkargs(getfields_nfields,5, &
      &        "FUN funname RANDU seed1 seed2" )
          call dynk_checkspace(4,0,1)
          
@@ -925,12 +925,12 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
          
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        iexpr_dynk(niexpr_dynk) ! seed1 (initial)
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        iexpr_dynk(niexpr_dynk+1) ! seed2 (initial)
 
          iexpr_dynk(niexpr_dynk+2) = 0 ! seed1 (current)
@@ -940,7 +940,7 @@ c$$$     &     fsets_dynk_cr
 
       case("RANDON")
          ! RANDON: Turn by turn ON for one turn with the probability P, else OFF
-         call dynk_checkargs(getfields_nfields,6,
+         call dynk_checkargs(getfields_nfields,6, &
      &        "FUN funname RANDON seed1 seed2 P" )
          call dynk_checkspace(4,1,1)
 	          
@@ -958,14 +958,14 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG2 (unused)
          
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        iexpr_dynk(niexpr_dynk)   ! seed1 (initial)
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        iexpr_dynk(niexpr_dynk+1) ! seed2 (initial)
-         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) &
      &        fexpr_dynk(nfexpr_dynk)   ! P
 
          iexpr_dynk(niexpr_dynk+2) = 0 ! seed1 (current)
@@ -1022,7 +1022,7 @@ c$$$     &     fsets_dynk_cr
          ! (etc., repeat funcs_dynk(<this>,4) times)
 
 
-         call dynk_checkargs(getfields_nfields,6,
+         call dynk_checkargs(getfields_nfields,6, &
      &        "FUN funname {FIR|IIR} N filename baseFUN")
          select case( getfields_fields(3)(1:getfields_lfields(3)) )
          case("FIR")
@@ -1032,7 +1032,7 @@ c$$$     &     fsets_dynk_cr
          case default
             write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
             write (lout,*) "DYNK> non-recognized type in inner switch?"
-            write (lout,*) "DYNK> Got: '" //
+            write (lout,*) "DYNK> Got: '" // &
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
             call prror(-1)
          end select
@@ -1056,13 +1056,13 @@ c$$$     &     fsets_dynk_cr
          endif
          funcs_dynk(nfuncs_dynk,3) = nfexpr_dynk+1 !ARG1 (start of float storage)
          funcs_dynk(nfuncs_dynk,4) = t             !ARG2 (filter order N)
-         funcs_dynk(nfuncs_dynk,5) =               !ARG3 (filtered function)
-     &        dynk_findFUNindex( getfields_fields(6)
+         funcs_dynk(nfuncs_dynk,5) = &               !ARG3 (filtered function)
+     &        dynk_findFUNindex( getfields_fields(6) &
      &                           (1:getfields_lfields(6)), 1)
          !Store metadata
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        iexpr_dynk(niexpr_dynk) ! N
          
          ! Sanity check
@@ -1070,7 +1070,7 @@ c$$$     &     fsets_dynk_cr
             call dynk_dumpdata
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FIR/IIR function wanting function '",
+            write (lout,*) "FIR/IIR function wanting function '", &
      &            getfields_fields(6)(1:getfields_lfields(6)), "'"
             write (lout,*) "This FUN is unknown!"
             write (lout,*) "*************************************"
@@ -1082,7 +1082,7 @@ c$$$     &     fsets_dynk_cr
             write (lout,*) "FUN FIR/IIR got a filename name with "
             write (lout,*) "length =", getfields_lfields(5)
             write (lout,*) "> ",maxstrlen_dynk-1
-            write (lout,*) "The name was: '",getfields_fields(5)
+            write (lout,*) "The name was: '",getfields_fields(5) &
      &                                    (1:getfields_lfields(5)),"'"
             write (lout,*) "*************************************"
             call prror(51)
@@ -1097,31 +1097,31 @@ c$$$     &     fsets_dynk_cr
          
          !More metadata
          ncexpr_dynk = ncexpr_dynk+1
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(5)) = !FILE NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(5)) = & !FILE NAME
      &        getfields_fields(5)(1:getfields_lfields(5))
          
          !Read the file
          inquire( unit=664, opened=lopen )
          if (lopen) then
-            write(lout,*)
+            write(lout,*) &
      &           "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
-            write(lout,*)"DYNK> unit 664 for file '"//
-     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+            write(lout,*)"DYNK> unit 664 for file '"// &
+     &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // &
      &           "' was already taken"
             call prror(-1)
          end if
 +if boinc
          call boincrf(cexpr_dynk(ncexpr_dynk),filename)
-         open(unit=664,file=filename,action='read',
+         open(unit=664,file=filename,action='read', &
      &        iostat=stat, status="OLD")
 +ei
 +if .not.boinc
-         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',
+         open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read', &
      &        iostat=stat, status="OLD")
 +ei
          if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write(lout,*) "DYNK> Error opening file '" //
+            write(lout,*) "DYNK> Error opening file '" // &
      &           trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
             call prror(51)
          endif
@@ -1136,7 +1136,7 @@ c$$$     &     fsets_dynk_cr
             endif
             if (stat.ne.0) then
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '" //
+               write(lout,*) "DYNK> Error reading file '" // &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
                call prror(-1)
@@ -1148,32 +1148,32 @@ c$$$     &     fsets_dynk_cr
             read(664,'(a)', iostat=stat) ch
             if (stat.ne.0) then
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '"//
+               write(lout,*) "DYNK> Error reading file '"// &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
                call prror(-1)
             endif
             
-            call getfields_split(ch,
-     &           filefields_fields, filefields_lfields,
+            call getfields_split(ch, &
+     &           filefields_fields, filefields_lfields, &
      &           filefields_nfields, filefields_lerr )
             
             !Sanity checks
             if ( filefields_lerr ) then
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '",
+               write(lout,*) "DYNK> Error reading file '", &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Error in getfields_split()"
                call prror(-1)
             end if
-            if ( (      isFIR .and.filefields_nfields .ne. 3) .or.
+            if ( (      isFIR .and.filefields_nfields .ne. 3) .or. &
      &           ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '"//
-     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) //
+               write(lout,*) "DYNK> Error reading file '"// &
+     &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // &
      &              "', line =", ii
-               write(lout,*) "DYNK> Expected 3[5] fields ",
-     &              "(idx, fac, init, selfFac, selfInit), ",
+               write(lout,*) "DYNK> Expected 3[5] fields ", &
+     &              "(idx, fac, init, selfFac, selfInit), ", &
      &              "got ",filefields_nfields
                call prror(-1)
             endif
@@ -1181,25 +1181,25 @@ c$$$     &     fsets_dynk_cr
             !Read the data into t,x,y(,z,u):
             read(filefields_fields(1)(1:filefields_lfields(1)),*) t
             
-            x = round_near(errno, filefields_lfields(2)+1,
+            x = round_near(errno, filefields_lfields(2)+1, &
      &           filefields_fields(2) )
-            if (errno.ne.0)
+            if (errno.ne.0) &
      &           call rounderr(errno,filefields_fields,2,x)
             
-            y = round_near(errno, filefields_lfields(3)+1,
+            y = round_near(errno, filefields_lfields(3)+1, &
      &           filefields_fields(3) )
-            if (errno.ne.0)
+            if (errno.ne.0) &
      &           call rounderr(errno,filefields_fields,3,y)
             
             if (.not.isFIR) then
-               z = round_near(errno, filefields_lfields(4)+1,
+               z = round_near(errno, filefields_lfields(4)+1, &
      &              filefields_fields(4) )
-               if (errno.ne.0)
+               if (errno.ne.0) &
      &              call rounderr(errno,filefields_fields,4,z)
                
-               u = round_near(errno, filefields_lfields(5)+1,
+               u = round_near(errno, filefields_lfields(5)+1, &
      &              filefields_fields(5) )
-               if (errno.ne.0)
+               if (errno.ne.0) &
      &              call rounderr(errno,filefields_fields,5,u)
             endif
             
@@ -1208,7 +1208,7 @@ c$$$     &     fsets_dynk_cr
             ! More sanity checks
             if (t .ne. ii) then
                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-               write(lout,*) "DYNK> Error reading file '"//
+               write(lout,*) "DYNK> Error reading file '"// &
      &              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
                call prror(-1)
@@ -1236,7 +1236,7 @@ c$$$     &     fsets_dynk_cr
       case("ADD","SUB","MUL","DIV","POW")
          ! Two-argument operators  y = OP(f1, f2)
 
-         call dynk_checkargs(getfields_nfields,5,
+         call dynk_checkargs(getfields_nfields,5, &
      &        "FUN funname {ADD|SUB|MUL|DIV|POW} funname1 funname2")
          call dynk_checkspace(0,0,1)
          
@@ -1259,29 +1259,29 @@ c$$$     &     fsets_dynk_cr
          case default
             write (lout,*) "DYNK> dynk_parseFUN() : 2-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch"
-            write (lout,*) "DYNK> Got: '" //
+            write (lout,*) "DYNK> Got: '" // &
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
             call prror(51)
          end select
-         funcs_dynk(nfuncs_dynk,3) = 
-     &        dynk_findFUNindex( getfields_fields(4)
+         funcs_dynk(nfuncs_dynk,3) =  &
+     &        dynk_findFUNindex( getfields_fields(4) &
      &                           (1:getfields_lfields(4)), 1) !Index to f1
-         funcs_dynk(nfuncs_dynk,4) = 
-     &        dynk_findFUNindex( getfields_fields(5)
+         funcs_dynk(nfuncs_dynk,4) =  &
+     &        dynk_findFUNindex( getfields_fields(5) &
      &                           (1:getfields_lfields(5)), 1) !Index to f2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
          ! Sanity check (string lengths are done inside dynk_findFUNindex)
-         if (funcs_dynk(nfuncs_dynk,3) .eq. -1 .or. 
+         if (funcs_dynk(nfuncs_dynk,3) .eq. -1 .or.  &
      &       funcs_dynk(nfuncs_dynk,4) .eq. -1) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "TWO ARG OPERATOR wanting functions '",
-     &           getfields_fields(4)(1:getfields_lfields(4)), "' and '", 
+            write (lout,*) "TWO ARG OPERATOR wanting functions '", &
+     &           getfields_fields(4)(1:getfields_lfields(4)), "' and '",  &
      &           getfields_fields(5)(1:getfields_lfields(5)), "'"
-            write (lout,*) "Calculated indices:",
+            write (lout,*) "Calculated indices:", &
      &           funcs_dynk(nfuncs_dynk,3), funcs_dynk(nfuncs_dynk,4)
             write (lout,*) "One or both of these are not known (-1)."
             write (lout,*) "*************************************"
@@ -1292,7 +1292,7 @@ c$$$     &     fsets_dynk_cr
       case ("MINUS","SQRT","SIN","COS","LOG","LOG10","EXP")
          ! One-argument operators  y = OP(f1)
 
-         call dynk_checkargs(getfields_nfields,4,
+         call dynk_checkargs(getfields_nfields,4, &
      &        "FUN funname {MINUS|SQRT|SIN|COS|LOG|LOG10|EXP} funname")
          call dynk_checkspace(0,0,1)
          
@@ -1319,24 +1319,24 @@ c$$$     &     fsets_dynk_cr
          case default
             write (lout,*) "DYNK> dynk_parseFUN() : 1-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch?"
-            write (lout,*) "DYNK> Got: '" //
+            write (lout,*) "DYNK> Got: '" // &
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
             call prror(51)
          end select
-         funcs_dynk(nfuncs_dynk,3) = 
-     &        dynk_findFUNindex(getfields_fields(4)
+         funcs_dynk(nfuncs_dynk,3) =  &
+     &        dynk_findFUNindex(getfields_fields(4) &
      &        (1:getfields_lfields(4)), 1)       !Index to f1
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
          ! Sanity check (string lengths are done inside dynk_findFUNindex)
          if (funcs_dynk(nfuncs_dynk,3) .eq. -1) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "SINGLE OPERATOR FUNC wanting function '",
+            write (lout,*) "SINGLE OPERATOR FUNC wanting function '", &
      &           getfields_fields(4)(1:getfields_lfields(4)), "'"
-            write (lout,*) "Calculated index:",
+            write (lout,*) "Calculated index:", &
      &           funcs_dynk(nfuncs_dynk,3)
             write (lout,*) "One or both of these are not known (-1)."
             write (lout,*) "*************************************"
@@ -1348,7 +1348,7 @@ c$$$     &     fsets_dynk_cr
       case("CONST")   
          ! CONST: Just a constant value
          
-         call dynk_checkargs(getfields_nfields,4,
+         call dynk_checkargs(getfields_nfields,4, &
      &        "FUN funname CONST value" )
          call dynk_checkspace(0,1,1)
          
@@ -1363,25 +1363,25 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 
 +if .not.crlibm
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        fexpr_dynk(nfexpr_dynk) ! value
 +ei
 +if crlibm
-         fexpr_dynk(nfexpr_dynk) = round_near(errno, ! value
+         fexpr_dynk(nfexpr_dynk) = round_near(errno, & ! value
      &        getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,4,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,4, &
      &                       fexpr_dynk(nfexpr_dynk)  )
 +ei
 
       case ("TURN")
          ! TURN: Just the current turn number
          
-         call dynk_checkargs(getfields_nfields,3,
+         call dynk_checkargs(getfields_nfields,3, &
      &        "FUN funname TURN" )
          call dynk_checkspace(0,0,1)
          
@@ -1396,13 +1396,13 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 
       case ("LIN")
          ! LIN: Linear ramp y = dy/dt*T+b
          
-         call dynk_checkargs(getfields_nfields,5,
+         call dynk_checkargs(getfields_nfields,5, &
      &        "FUN funname LIN dy/dt b" )
          call dynk_checkspace(0,2,1)
 
@@ -1417,25 +1417,25 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 
 +if .not.crlibm
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        fexpr_dynk(nfexpr_dynk) ! dy/dt
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        fexpr_dynk(nfexpr_dynk+1) ! b
 +ei
 +if crlibm
-         fexpr_dynk(nfexpr_dynk) = round_near(errno, ! dy/dt
+         fexpr_dynk(nfexpr_dynk) = round_near(errno, & ! dy/dt
      &        getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,4,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,4, &
      &                       fexpr_dynk(nfexpr_dynk)   )
-         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, ! b
+         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, & ! b
      &        getfields_lfields(5)+1, getfields_fields(5) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,5,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,5, &
      &                       fexpr_dynk(nfexpr_dynk+1) )
 +ei
          nfexpr_dynk = nfexpr_dynk + 1
@@ -1443,7 +1443,7 @@ c$$$     &     fsets_dynk_cr
       case ("LINSEG")
          ! LINSEG: Linear ramp between points (x1,y1) and (x2,y2)
          
-         call dynk_checkargs(getfields_nfields,7,
+         call dynk_checkargs(getfields_nfields,7, &
      &        "FUN funname LINSEG x1 x2 y1 y2" )
          call dynk_checkspace(0,4,1)
 
@@ -1458,38 +1458,38 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 +if .not.crlibm
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        fexpr_dynk(nfexpr_dynk)   ! x1
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        fexpr_dynk(nfexpr_dynk+1) ! x2
-         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) &
      &        fexpr_dynk(nfexpr_dynk+2) ! y1
-         read(getfields_fields(7)(1:getfields_lfields(7)),*)
+         read(getfields_fields(7)(1:getfields_lfields(7)),*) &
      &        fexpr_dynk(nfexpr_dynk+3) ! y2
 +ei
 +if crlibm
-         fexpr_dynk(nfexpr_dynk) = round_near(errno, ! x1
+         fexpr_dynk(nfexpr_dynk) = round_near(errno, & ! x1
      &        getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,4,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,4, &
      &                       fexpr_dynk(nfexpr_dynk)   )
-         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, ! x2
+         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, & ! x2
      &        getfields_lfields(5)+1, getfields_fields(5) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,5,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,5, &
      &                       fexpr_dynk(nfexpr_dynk+1)   )
-         fexpr_dynk(nfexpr_dynk+2) = round_near(errno, ! y1
+         fexpr_dynk(nfexpr_dynk+2) = round_near(errno, & ! y1
      &        getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,6,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,6, &
      &                       fexpr_dynk(nfexpr_dynk+2)   )
-         fexpr_dynk(nfexpr_dynk+3) = round_near(errno, ! y2
+         fexpr_dynk(nfexpr_dynk+3) = round_near(errno, & ! y2
      &        getfields_lfields(7)+1, getfields_fields(7) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,7,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,7, &
      &                       fexpr_dynk(nfexpr_dynk+3)   )
 +ei
          nfexpr_dynk = nfexpr_dynk + 3
@@ -1503,7 +1503,7 @@ c$$$     &     fsets_dynk_cr
       case ("QUAD")
          ! QUAD: Quadratic ramp y = a*T^2 + b*T + c
          
-         call dynk_checkargs(getfields_nfields,6,
+         call dynk_checkargs(getfields_nfields,6, &
      &        "FUN funname QUAD a b c" )
          call dynk_checkspace(0,3,1)
 
@@ -1518,32 +1518,32 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 
 +if .not.crlibm
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        fexpr_dynk(nfexpr_dynk)   ! a
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        fexpr_dynk(nfexpr_dynk+1) ! b
-         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) &
      &        fexpr_dynk(nfexpr_dynk+2) ! c
 +ei
 +if crlibm
-         fexpr_dynk(nfexpr_dynk) = round_near(errno, ! a
+         fexpr_dynk(nfexpr_dynk) = round_near(errno, & ! a
      &        getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,4,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,4, &
      &                       fexpr_dynk(nfexpr_dynk)   )
-         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, ! b
+         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, & ! b
      &        getfields_lfields(5)+1, getfields_fields(5) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,5,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,5, &
      &                       fexpr_dynk(nfexpr_dynk+1)   )
-         fexpr_dynk(nfexpr_dynk+2) = round_near(errno, ! c
+         fexpr_dynk(nfexpr_dynk+2) = round_near(errno, & ! c
      &        getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,6,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,6, &
      &                       fexpr_dynk(nfexpr_dynk+2)   )
 +ei
          nfexpr_dynk = nfexpr_dynk + 2
@@ -1552,7 +1552,7 @@ c$$$     &     fsets_dynk_cr
          ! QUADSEG: Quadratic ramp y = a*T^2 + b*T + c,
          ! input as start point (x1,y1), end point (x2,y2), derivative at at x1
          
-         call dynk_checkargs(getfields_nfields,8,
+         call dynk_checkargs(getfields_nfields,8, &
      &        "FUN funname QUADSEG x1 x2 y1 y2 deriv" )
          call dynk_checkspace(0,8,1)
 
@@ -1567,7 +1567,7 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 +if .not.crlibm
          read(getfields_fields(4)(1:getfields_lfields(4)),*) x1
@@ -1577,25 +1577,25 @@ c$$$     &     fsets_dynk_cr
          read(getfields_fields(8)(1:getfields_lfields(8)),*) deriv
 +ei
 +if crlibm
-         x1 = round_near(errno, ! x1
+         x1 = round_near(errno, & ! x1
      &        getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,4, x1 )
-         x2 = round_near(errno, ! x2
+         x2 = round_near(errno, & ! x2
      &        getfields_lfields(5)+1, getfields_fields(5) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,5, x2 )
-         y1 = round_near(errno, ! y1
+         y1 = round_near(errno, & ! y1
      &        getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,6, y1 )
-         y2 = round_near(errno, ! y2
+         y2 = round_near(errno, & ! y2
      &        getfields_lfields(7)+1, getfields_fields(7) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,7, y2 )
-         deriv = round_near(errno, ! deriv
+         deriv = round_near(errno, & ! deriv
      &        getfields_lfields(8)+1, getfields_fields(8) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,8, deriv )
 +ei
          if (x1 .eq. x2) then
@@ -1605,14 +1605,14 @@ c$$$     &     fsets_dynk_cr
          endif
          
          ! Compute a:
-         fexpr_dynk(nfexpr_dynk) = deriv/(x1-x2)
+         fexpr_dynk(nfexpr_dynk) = deriv/(x1-x2) &
      &        + (y2-y1)/((x1-x2)**2)
          ! Compute b:
-         fexpr_dynk(nfexpr_dynk+1) = (y2-y1)/(x2-x1)
+         fexpr_dynk(nfexpr_dynk+1) = (y2-y1)/(x2-x1) &
      &        - (x1+x2)*fexpr_dynk(nfexpr_dynk)
          ! Compute c:
-         fexpr_dynk(nfexpr_dynk+2) = y1 + (
-     &        - x1**2 * fexpr_dynk(nfexpr_dynk)
+         fexpr_dynk(nfexpr_dynk+2) = y1 + ( &
+     &        - x1**2 * fexpr_dynk(nfexpr_dynk) &
      &        - x1    * fexpr_dynk(nfexpr_dynk+1) )
          
          ! Store input data:
@@ -1630,8 +1630,8 @@ c$$$     &     fsets_dynk_cr
          ! COSF     : Cos functions y = A*cos(omega*T+phi)
          ! COSF_RIPP: Cos functions y = A*cos(2*pi*(T-1)/period+phi)
          
-         call dynk_checkargs(getfields_nfields,6,
-     &        "FUN funname {SINF|COSF|COSF_RIPP} "//
+         call dynk_checkargs(getfields_nfields,6, &
+     &        "FUN funname {SINF|COSF|COSF_RIPP} "// &
      &        "amplitude {omega|period} phase" )
          call dynk_checkspace(0,3,1)
 
@@ -1651,7 +1651,7 @@ c$$$     &     fsets_dynk_cr
          case default
             write (lout,*) "DYNK> dynk_parseFUN() : SINF/COSF"
             write (lout,*) "DYNK> non-recognized type in inner switch"
-            write (lout,*) "DYNK> Got: '" //
+            write (lout,*) "DYNK> Got: '" // &
      &           getfields_fields(3)(1:getfields_lfields(3)) // "'"
             call prror(51)
          end select
@@ -1659,32 +1659,32 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
          
 +if .not.crlibm
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        fexpr_dynk(nfexpr_dynk) !A
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        fexpr_dynk(nfexpr_dynk+1) !omega
-         read(getfields_fields(6)(1:getfields_lfields(6)),*)
+         read(getfields_fields(6)(1:getfields_lfields(6)),*) &
      &        fexpr_dynk(nfexpr_dynk+2) !phi
 +ei
 +if crlibm
-         fexpr_dynk(nfexpr_dynk) = round_near(errno, ! A
+         fexpr_dynk(nfexpr_dynk) = round_near(errno, & ! A
      &        getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,4,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,4, &
      &                       fexpr_dynk(nfexpr_dynk)   )
-         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, ! omega
+         fexpr_dynk(nfexpr_dynk+1) = round_near(errno, & ! omega
      &        getfields_lfields(5)+1, getfields_fields(5) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,5,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,5, &
      &                       fexpr_dynk(nfexpr_dynk+1)   )
-         fexpr_dynk(nfexpr_dynk+2) = round_near(errno, ! phi
+         fexpr_dynk(nfexpr_dynk+2) = round_near(errno, & ! phi
      &        getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)
-     &        call rounderr( errno,getfields_fields,6,
+         if (errno.ne.0) &
+     &        call rounderr( errno,getfields_fields,6, &
      &                       fexpr_dynk(nfexpr_dynk+2)   )
 +ei
          nfexpr_dynk = nfexpr_dynk + 2
@@ -1696,7 +1696,7 @@ c$$$     &     fsets_dynk_cr
          ! By Dr.-Ing. Stephan Russenschuck
          ! Appendix C: "Ramping the LHC Dipoles"
          
-         call dynk_checkargs(getfields_nfields,10,
+         call dynk_checkargs(getfields_nfields,10, &
      &        "FUN funname PELP tinj Iinj Inom A D R te" )
          call dynk_checkspace(0,13,1) !!...
 
@@ -1711,7 +1711,7 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,4) = -1          !ARG2
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
          
          !Read and calculate parameters
@@ -1725,33 +1725,33 @@ c$$$     &     fsets_dynk_cr
          read(getfields_fields(10)(1:getfields_lfields(10)),*) te
 +ei
 +if crlibm
-         tinj = round_near(errno,    ! tinj
+         tinj = round_near(errno, &    ! tinj
      &        getfields_lfields(4)+1, getfields_fields(4) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,4, tinj )
-         Iinj = round_near(errno,    ! Iinj
+         Iinj = round_near(errno, &    ! Iinj
      &        getfields_lfields(5)+1, getfields_fields(5) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,5, Iinj )
-         Inom = round_near(errno,    ! Inom
+         Inom = round_near(errno, &    ! Inom
      &        getfields_lfields(6)+1, getfields_fields(6) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,6, Inom )
-         A = round_near(errno,       ! A
+         A = round_near(errno, &       ! A
      &        getfields_lfields(7)+1, getfields_fields(7) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,7, A )
-         D = round_near(errno,       ! D
+         D = round_near(errno, &       ! D
      &        getfields_lfields(8)+1, getfields_fields(8) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,8, D )
-         R = round_near(errno,       ! R
+         R = round_near(errno, &       ! R
      &        getfields_lfields(9)+1, getfields_fields(9) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,9, R )
-         te = round_near(errno,      ! te
+         te = round_near(errno, &      ! te
      &        getfields_lfields(10)+1, getfields_fields(10) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,10, te )
 +ei
          derivI_te = A*(te-tinj)                 ! nostore
@@ -1785,9 +1785,9 @@ c$$$     &     fsets_dynk_cr
          
          endif
          
-         if (.not. (tinj .lt. te .and.
-     &                te .lt. t1 .and.
-     &                t1 .lt. td .and.
+         if (.not. (tinj .lt. te .and. &
+     &                te .lt. t1 .and. &
+     &                t1 .lt. td .and. &
      &                td .lt. tnom ) ) then
             WRITE(lout,*) "DYNK> ********************************"
             WRITE(lout,*) "DYNK> ERROR***************************"
@@ -1819,7 +1819,7 @@ c$$$     &     fsets_dynk_cr
 
       case("ONOFF")
          ! ONOFF: On for p1 turns, then off for the rest of the period p2
-         call dynk_checkargs(getfields_nfields,5,
+         call dynk_checkargs(getfields_nfields,5, &
      &        "FUN funname ONOFF p1 p2" )
          call dynk_checkspace(0,0,1)
          
@@ -1835,20 +1835,20 @@ c$$$     &     fsets_dynk_cr
          funcs_dynk(nfuncs_dynk,5) = -1          !ARG3 (unused)
          
          ! Store data
-         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = !NAME
+         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(2)) = & !NAME
      &        getfields_fields(2)(1:getfields_lfields(2))
 
-         read(getfields_fields(4)(1:getfields_lfields(4)),*)
+         read(getfields_fields(4)(1:getfields_lfields(4)),*) &
      &        funcs_dynk(nfuncs_dynk,3) ! p1
-         read(getfields_fields(5)(1:getfields_lfields(5)),*)
+         read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &        funcs_dynk(nfuncs_dynk,4) ! p2
 
          !Check for bad input
-         if ( funcs_dynk(nfuncs_dynk,3) .lt. 0 .or.                    ! p1 <  1 ?
-     &        funcs_dynk(nfuncs_dynk,4) .le. 1 .or.                    ! p2 <= 1 ?
-     &        funcs_dynk(nfuncs_dynk,4) .lt. funcs_dynk(nfuncs_dynk,3) ! p2 < p1 ?
+         if ( funcs_dynk(nfuncs_dynk,3) .lt. 0 .or. &                    ! p1 <  1 ?
+     &        funcs_dynk(nfuncs_dynk,4) .le. 1 .or. &                    ! p2 <= 1 ?
+     &        funcs_dynk(nfuncs_dynk,4) .lt. funcs_dynk(nfuncs_dynk,3) & ! p2 < p1 ?
      &        ) then
-            write(lout,*)
+            write(lout,*) &
      &      "DYNK> Error in ONOFF: Expected p1 >= 0, p2 > 1, p1 <= p2"
             call prror(-1)
          end if
@@ -1860,7 +1860,7 @@ c$$$     &     fsets_dynk_cr
          write (lout,*) "Unkown function to dynk_parseFUN()   "
          write (lout,*) "Got fields:"
          do ii=1,getfields_nfields
-            write (lout,*) "Field(",ii,") ='",
+            write (lout,*) "Field(",ii,") ='", &
      &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
          enddo
          write (lout,*) "*************************************"
@@ -1880,7 +1880,7 @@ c$$$     &     fsets_dynk_cr
       
       if (nfields .ne. nfields_expected) then
          write (lout,*) "ERROR in DYNK block parsing (fort.3)"
-         write (lout,*) "The function expected",nfields_expected,
+         write (lout,*) "The function expected",nfields_expected, &
      &               "arguments, got",nfields
          write (lout,*) "Expected syntax:"
          write (lout,*) funsyntax(:)
@@ -1895,8 +1895,8 @@ c$$$     &     fsets_dynk_cr
 
 +ca crcoall
 
-      if ( (niexpr_dynk+iblocks .gt. maxdata_dynk) .or.
-     &     (nfexpr_dynk+fblocks .gt. maxdata_dynk) .or.
+      if ( (niexpr_dynk+iblocks .gt. maxdata_dynk) .or. &
+     &     (nfexpr_dynk+fblocks .gt. maxdata_dynk) .or. &
      &     (ncexpr_dynk+cblocks .gt. maxdata_dynk) ) then
          
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
@@ -1909,7 +1909,7 @@ c$$$     &     fsets_dynk_cr
       endif
       end subroutine
       
-      subroutine dynk_parseSET(getfields_fields,
+      subroutine dynk_parseSET(getfields_fields, &
      &     getfields_lfields,getfields_nfields)
 !-----------------------------------------------------------------------
 !     K. Sjobak, BE-ABP/HSS
@@ -1927,7 +1927,7 @@ c$$$     &     fsets_dynk_cr
       
       if (nsets_dynk+1 .gt. maxsets_dynk) then
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "Maximum number of SET exceeded, ",
+         write (lout,*) "Maximum number of SET exceeded, ", &
      &               "please increase parameter maxsets_dynk."
          write (lout,*) "Current value of maxsets_dynk:", maxsets_dynk
          call prror(51)
@@ -1937,11 +1937,11 @@ c$$$     &     fsets_dynk_cr
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
          write (lout,*) "Expected 7 fields on line while parsing SET."
          write (lout,*) "Correct syntax:"
-         write (lout,*) "SET element_name attribute_name function_name",
+         write (lout,*) "SET element_name attribute_name function_name", &
      &                  " startTurn endTurn turnShift"
          write (lout,*) "got field:"
          do ii=1,getfields_nfields
-            write (lout,*) "Field(",ii,") ='",
+            write (lout,*) "Field(",ii,") ='", &
      &           getfields_fields(ii)(1:getfields_lfields(ii)),"'"
          enddo
          call prror(51)
@@ -1949,24 +1949,24 @@ c$$$     &     fsets_dynk_cr
 
       nsets_dynk = nsets_dynk + 1
 
-      sets_dynk(nsets_dynk,1) =
-     &     dynk_findFUNindex( getfields_fields(4)
+      sets_dynk(nsets_dynk,1) = &
+     &     dynk_findFUNindex( getfields_fields(4) &
      &     (1:getfields_lfields(4)), 1 ) ! function_name -> function index
-      read(getfields_fields(5)(1:getfields_lfields(5)),*)
+      read(getfields_fields(5)(1:getfields_lfields(5)),*) &
      &     sets_dynk(nsets_dynk,2) ! startTurn
-      read(getfields_fields(6)(1:getfields_lfields(6)),*)
+      read(getfields_fields(6)(1:getfields_lfields(6)),*) &
      &     sets_dynk(nsets_dynk,3) ! endTurn
-      read(getfields_fields(7)(1:getfields_lfields(7)),*)
+      read(getfields_fields(7)(1:getfields_lfields(7)),*) &
      &     sets_dynk(nsets_dynk,4) ! turnShift
       
       !Sanity check on string lengths
-      if (getfields_lfields(2).gt.16 .or.
+      if (getfields_lfields(2).gt.16 .or. &
      &    getfields_lfields(2).gt.maxstrlen_dynk-1) then
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "SET got an element name with length =",
+         write (lout,*) "SET got an element name with length =", &
      &        getfields_lfields(2), "> 16 or > maxstrlen_dynk-1."
-         write (lout,*) "The name was: '",
+         write (lout,*) "The name was: '", &
      &        getfields_fields(2)(1:getfields_lfields(2)),"'"
          write (lout,*) "*************************************"
          call prror(51)
@@ -1974,24 +1974,24 @@ c$$$     &     fsets_dynk_cr
       
       if (getfields_lfields(3).gt.maxstrlen_dynk-1) then
          write(lout,*) "ERROR in DYNK block parsing (fort.3) (SET):"
-         write(lout,*) "The attribute name '"//
+         write(lout,*) "The attribute name '"// &
      &        getfields_fields(2)(1:getfields_lfields(2))//"'"
-         write(lout,*) "is too long! Max length is",
+         write(lout,*) "is too long! Max length is", &
      &        maxstrlen_dynk-1
          call prror(51)         
       endif
       
       !OK -- save them!
-      csets_dynk(nsets_dynk,1)(1:getfields_lfields(2)) =
+      csets_dynk(nsets_dynk,1)(1:getfields_lfields(2)) = &
      &     getfields_fields(2)(1:getfields_lfields(2)) ! element_name
-      csets_dynk(nsets_dynk,2)(1:getfields_lfields(3)) =
+      csets_dynk(nsets_dynk,2)(1:getfields_lfields(3)) = &
      &     getfields_fields(3)(1:getfields_lfields(3)) ! attribute_name
       
       ! Sanity check
       if (sets_dynk(nsets_dynk,1).eq.-1) then
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "SET wanting function '",
+         write (lout,*) "SET wanting function '", &
      &        getfields_fields(4)(1:getfields_lfields(4)), "'"
          write (lout,*) "Calculated index:", sets_dynk(nsets_dynk,1)
          write (lout,*) "This function is not known."
@@ -1999,7 +1999,7 @@ c$$$     &     fsets_dynk_cr
          call prror(51)
       endif
       
-      if (  (sets_dynk(nsets_dynk,3) .ne. -1) .and. !Not the special case
+      if (  (sets_dynk(nsets_dynk,3) .ne. -1) .and. & !Not the special case
      &      (sets_dynk(nsets_dynk,2) .gt. sets_dynk(nsets_dynk,3)) )then
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
@@ -2011,8 +2011,8 @@ c$$$     &     fsets_dynk_cr
          call prror(51)
       end if
       
-      if ( (sets_dynk(nsets_dynk,2) .le. 0 ) .or.
-     &     (sets_dynk(nsets_dynk,3) .lt. -1) .or. 
+      if ( (sets_dynk(nsets_dynk,2) .le. 0 ) .or. &
+     &     (sets_dynk(nsets_dynk,3) .lt. -1) .or.  &
      &     (sets_dynk(nsets_dynk,3) .eq. 0 )     ) then
          write (lout,*) "*************************************"
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
@@ -2049,17 +2049,17 @@ c$$$     &     fsets_dynk_cr
 
       integer ii
 
-C      write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)      
+!      write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)      
 
       if (len(funName_input).gt.maxstrlen_dynk) then
          write (lout,*) "ERROR in dynk_findFUNindex"
-         write (lout,*) "len(funName_input) = ",len(funName_input),
+         write (lout,*) "len(funName_input) = ",len(funName_input), &
      &        ".gt. maxstrlen_dynk-1 = ", maxstrlen_dynk-1
          call prror(-1)
       endif
       ! If the length is exactly maxstrlen_dynk, it should be zero-terminated.
-      if (( len(funName_input).eq.maxstrlen_dynk ) .and.
-     &    ( funName_input(len(funName_input):len(funName_input))
+      if (( len(funName_input).eq.maxstrlen_dynk ) .and. &
+     &    ( funName_input(len(funName_input):len(funName_input)) &
      &     .ne.char(0)) ) then
          write (lout,*) "ERROR in dynk_findFUNindex"
          write (lout,*) "Expected funName_input[-1]=NULL"
@@ -2067,15 +2067,15 @@ C      write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)
       endif
       
       do ii=1,len(funName_input)
-C         write(*,*) "DBGDBG a:", ii
+!         write(*,*) "DBGDBG a:", ii
          funName(ii:ii) = funName_input(ii:ii)
       enddo
       funName(1:len(funName_input)) = funName_input
       do ii=len(funName_input)+1,maxstrlen_dynk
-C         write(*,*) "DBGDBG b:", ii
+!         write(*,*) "DBGDBG b:", ii
          funName(ii:ii) = char(0)
       enddo
-C      write(*,*) "DBGDBG c:", funName, len(funName)
+!      write(*,*) "DBGDBG c:", funName, len(funName)
 
       dynk_findFUNindex = -1
 
@@ -2088,7 +2088,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       
       end function
 
-      integer function dynk_findSETindex
+      integer function dynk_findSETindex &
      &     (element_name, att_name, startfrom)
 !-----------------------------------------------------------------------
 !     K. Sjobak, BE-ABP/HSS
@@ -2110,7 +2110,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       dynk_findSETindex = -1
       
       do ii=startfrom, nsets_dynk
-         if ( csets_dynk(ii,1) .eq. element_name .and.
+         if ( csets_dynk(ii,1) .eq. element_name .and. &
      &        csets_dynk(ii,2) .eq. att_name ) then
             dynk_findSETindex = ii
             exit                ! break loop
@@ -2138,8 +2138,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          jj = dynk_findFUNindex(cexpr_dynk(funcs_dynk(ii,1)),ii+1)
          if ( jj.ne. -1) then
             sane = .false.
-            write (lout,*)
-     &           "DYNK> Insane: function ", 
+            write (lout,*) &
+     &           "DYNK> Insane: function ",  &
      &           ii, "has the same name as", jj
          end if
       end do
@@ -2154,7 +2154,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       biggestTurn = biggestTurn+1 !Make sure it is unique
       if (biggestTurn .le. 0) then
          !In case of integer overflow
-         write(lout,*)
+         write(lout,*) &
      &        "FATAL ERROR: Integer overflow in dynk_inputsanitycheck!"
          call prror(-1)
       endif
@@ -2168,7 +2168,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          jj = ii
          do while (.true.)
             !Only check SETs affecting the same elem/att
-            jj = dynk_findSETindex(csets_dynk(ii,1),
+            jj = dynk_findSETindex(csets_dynk(ii,1), &
      &                             csets_dynk(ii,2),jj+1)
 
 !            write(*,*)" DBG: jj=",jj, 
@@ -2180,32 +2180,32 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 
 !            write(*,*)" DBG:", sets_dynk(jj,2),sets_dynk(jj,3)
 
-            if ( sets_dynk(jj,2) .le. sets_dynk(ii,2) .and.
+            if ( sets_dynk(jj,2) .le. sets_dynk(ii,2) .and. &
      &           sets_dynk(jj,3) .ge. sets_dynk(ii,2) ) then
                sane = .false.
-               write (lout,"(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-     &              " DYNK> Insane: Lower edge of SET #", jj,
-     &        " =", sets_dynk(jj,2)," <= lower edge of SET #",ii,
-     &        " =", sets_dynk(ii,2),"; and also higer edge of SET #",jj,
+               write (lout,"(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)") &
+     &              " DYNK> Insane: Lower edge of SET #", jj, &
+     &        " =", sets_dynk(jj,2)," <= lower edge of SET #",ii, &
+     &        " =", sets_dynk(ii,2),"; and also higer edge of SET #",jj, &
      &        " =", sets_dynk(jj,3)," >= lower edge of SET #", ii
 
-            else if (sets_dynk(jj,3) .ge. sets_dynk(ii,3) .and.
+            else if (sets_dynk(jj,3) .ge. sets_dynk(ii,3) .and. &
      &               sets_dynk(jj,2) .le. sets_dynk(ii,3) ) then
                sane = .false.
-               write(lout, "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)")
-     &              " DYNK> Insane: Upper edge of SET #", jj,
-     &        " =", sets_dynk(jj,3)," >= upper edge of SET #",ii,
-     &        " =", sets_dynk(ii,3),"; and also lower edge of SET #",jj,
+               write(lout, "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)") &
+     &              " DYNK> Insane: Upper edge of SET #", jj, &
+     &        " =", sets_dynk(jj,3)," >= upper edge of SET #",ii, &
+     &        " =", sets_dynk(ii,3),"; and also lower edge of SET #",jj, &
      &        " =", sets_dynk(jj,2)," <= upper edge of SET #", ii
       
-            else if (sets_dynk(jj,2) .ge. sets_dynk(ii,2) .and.
+            else if (sets_dynk(jj,2) .ge. sets_dynk(ii,2) .and. &
      &               sets_dynk(jj,3) .le. sets_dynk(ii,3) ) then
                ! (other way round gets caugth by the first "if")
                sane = .false.
-               write(lout, "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)")
-     &              " DYNK> Insane: SET #", jj,
-     &        " = (", sets_dynk(jj,2),", ", sets_dynk(jj,3), ")",
-     &        " is inside SET #", ii, " = (", 
+               write(lout, "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)") &
+     &              " DYNK> Insane: SET #", jj, &
+     &        " = (", sets_dynk(jj,2),", ", sets_dynk(jj,3), ")", &
+     &        " is inside SET #", ii, " = (",  &
      &                sets_dynk(ii,2),", ", sets_dynk(ii,3), ")"
             endif
             if (sets_dynk(jj,3).eq.biggestTurn) sets_dynk(jj,3) = -1
@@ -2220,7 +2220,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          call dynk_dumpdata
          call prror(-11)
       else if (sane .and. ldynkdebug) then
-         write (lout,*)
+         write (lout,*) &
      &        "DYNK> DYNK input was sane"
       end if
       end subroutine
@@ -2237,7 +2237,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
 +ca crcoall
 
       integer ii
-      write(lout,*)
+      write(lout,*) &
      &     "**************** DYNK parser knows: ****************"
 
       write (lout,*) "OPTIONS:"
@@ -2248,40 +2248,40 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       write (lout,*) "FUN:"
       write (lout,*) "ifuncs: (",nfuncs_dynk,")"
       do ii=1,nfuncs_dynk
-         write (lout,*) 
+         write (lout,*)  &
      &        ii, ":", funcs_dynk(ii,:)
       end do
       write (lout,*) "iexpr_dynk: (",niexpr_dynk,")"
       do ii=1,niexpr_dynk
-         write (lout,*)
+         write (lout,*) &
      &     ii, ":", iexpr_dynk(ii)
       end do
       write (lout,*) "fexpr_dynk: (",nfexpr_dynk,")"
       do ii=1,nfexpr_dynk
-         write (lout, '(1x,I8,1x,A,1x,E16.9)')
+         write (lout, '(1x,I8,1x,A,1x,E16.9)') &
      &   ii, ":", fexpr_dynk(ii)
       end do
       write (lout,*) "cexpr_dynk: (",ncexpr_dynk,")"
       do ii=1,ncexpr_dynk
-         write(lout,*)
+         write(lout,*) &
      &   ii, ":", "'"//trim(stringzerotrim(cexpr_dynk(ii)))//"'"
       end do
 
       write (lout,*) "SET:"      
-      write (lout,*) "sets(,:) csets(,1) csets(,2): (",
+      write (lout,*) "sets(,:) csets(,1) csets(,2): (", &
      &     nsets_dynk,")"
       do ii=1,nsets_dynk
-         write (lout,*)
-     &        ii, ":", sets_dynk(ii,:),
-     &        "'"//trim(stringzerotrim(csets_dynk(ii,1)))//
+         write (lout,*) &
+     &        ii, ":", sets_dynk(ii,:), &
+     &        "'"//trim(stringzerotrim(csets_dynk(ii,1)))// &
      &  "' ", "'"//trim(stringzerotrim(csets_dynk(ii,2)))//"'"
       end do
       write (lout,*) "csets_unique_dynk: (",nsets_unique_dynk,")"
       do ii=1,nsets_unique_dynk
-         write(lout, '(1x,I8,1x,A,1x,E16.9)')
-     &       ii, ": '"//
-     &       trim(stringzerotrim(csets_unique_dynk(ii,1)))//"' '"//
-     &       trim(stringzerotrim(csets_unique_dynk(ii,2)))//"' = ",
+         write(lout, '(1x,I8,1x,A,1x,E16.9)') &
+     &       ii, ": '"// &
+     &       trim(stringzerotrim(csets_unique_dynk(ii,1)))//"' '"// &
+     &       trim(stringzerotrim(csets_unique_dynk(ii,2)))//"' = ", &
      &        fsets_origvalue_dynk(ii)
       end do
 
@@ -2310,14 +2310,14 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       logical found, badelem
       integer ix
       if (ldynkdebug) then
-         write(lout,*)
+         write(lout,*) &
      &    "DYNKDEBUG> In dynk_pretrack()"
       end if
       
       ! Find which elem/attr combos are affected by SET
       nsets_unique_dynk = 0 !Assuming this is only run once
       do ii=1,nsets_dynk
-         if ( dynk_findSETindex(
+         if ( dynk_findSETindex( &
      &        csets_dynk(ii,1),csets_dynk(ii,2), ii+1 ) .eq. -1 ) then
             ! Last SET which has this attribute, store it
             nsets_unique_dynk = nsets_unique_dynk+1
@@ -2326,11 +2326,11 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             csets_unique_dynk(nsets_unique_dynk,2) = csets_dynk(ii,2)
             
             ! Sanity check: Does the element actually exist?
-            element_name_s =
-     &           trim(stringzerotrim(
+            element_name_s = &
+     &           trim(stringzerotrim( &
      &           csets_unique_dynk(nsets_unique_dynk,1) ))
-            att_name_s     =
-     &           trim(stringzerotrim(
+            att_name_s     = &
+     &           trim(stringzerotrim( &
      &           csets_unique_dynk(nsets_unique_dynk,2) ))
             found = .false.
 
@@ -2342,8 +2342,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                
                if (att_name_s .eq. "E0") then
                   if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
-                     write(lout,*) "DYNK> Insane - attribute '",
-     &                  att_name_s, "' is not valid for 'GLOBAL-VARS' ",
+                     write(lout,*) "DYNK> Insane - attribute '", &
+     &                  att_name_s, "' is not valid for 'GLOBAL-VARS' ", &
      &                  "when doing 4d tracking"
                      call prror(-1)
                   endif
@@ -2352,7 +2352,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                endif
 
                if (badelem) then
-                  write(lout,*) "DYNK> Insane - attribute '",
+                  write(lout,*) "DYNK> Insane - attribute '", &
      &                att_name_s, "' is not valid for 'GLOBAL-VARS'"
                   call prror(-1)
                endif
@@ -2371,32 +2371,31 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                         badelem = .true.
                      endif
                   elseif (abs(kz(jj)).eq.12) then !cavity
-                     if (.not. (att_name_s.eq."voltage"  .or.
-     &                    att_name_s.eq."harmonic"       .or.
+                     if (.not. (att_name_s.eq."voltage"  .or. &
+     &                    att_name_s.eq."harmonic"       .or. &
      &                    att_name_s.eq."lag_angle"          )) then
                         badelem = .true.
                      endif
                      if (kp(jj).ne.6) then
-                        write(lout,*) "DYNK> Insane - want to modify ",
-
-     &                      "DISABLED RF cavity named '",element_name_s,
-     &                      ". Please make sure that the voltage and ",
-     &                      "harmonic number in the SINGLE ELEMENTS ",
+                        write(lout,*) "DYNK> Insane - want to modify ", &
+     &                      "DISABLED RF cavity named '",element_name_s, &
+     &                      ". Please make sure that the voltage and ", &
+     &                      "harmonic number in the SINGLE ELEMENTS ", &
      &                      "block is not 0!"
                         call prror(-1)
                      endif
                      if (nvar .eq. 5) then
-                        write(lout,*) "DYNK> Insane - want to modify ",
-     &                       "RF cavity named '", element_name_s, "', ",
+                        write(lout,*) "DYNK> Insane - want to modify ", &
+     &                       "RF cavity named '", element_name_s, "', ", &
      &                       "but nvars=5 (from DIFF block)."
                      endif
 
-                  elseif (abs(kz(jj)).eq.23 .or.   ! crab
-     &                    abs(kz(jj)).eq.26 .or.   ! cc multipole,  order 2
-     &                    abs(kz(jj)).eq.27 .or.   ! cc multipole,  order 3
+                  elseif (abs(kz(jj)).eq.23 .or.  &  ! crab
+     &                    abs(kz(jj)).eq.26 .or. &   ! cc multipole,  order 2
+     &                    abs(kz(jj)).eq.27 .or. &   ! cc multipole,  order 3
      &                    abs(kz(jj)).eq.28 ) then ! cc muiltipole, order 4
-                     if (.not. (att_name_s.eq."voltage"   .or.
-     &                          att_name_s.eq."frequency" .or.
+                     if (.not. (att_name_s.eq."voltage"   .or. &
+     &                          att_name_s.eq."frequency" .or. &
      &                          att_name_s.eq."phase"         )) then
                         badelem = .true.
                      endif
@@ -2405,15 +2404,15 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                   ! Special case:
                   ! Should the error only occur if we actually have a GLOBAL-VARS element?
                   if (bez(jj) .eq. "GLOBAL-VARS") then
-                     write(lout,*) "DYNK> Insane - element found '",
-     &                    "GLOBAL-VARS' is not a valid element name, ",
+                     write(lout,*) "DYNK> Insane - element found '", &
+     &                    "GLOBAL-VARS' is not a valid element name, ", &
      &                    "it is reserved"
                      call prror(-1) 
                   endif
                   
                   if (badelem) then
-                     write(lout,*) "DYNK> Insane - attribute '",
-     &                    att_name_s, "' is not valid for element '",
+                     write(lout,*) "DYNK> Insane - attribute '", &
+     &                    att_name_s, "' is not valid for element '", &
      &                    element_name_s, "' which is of type",kz(jj)
                      call prror(-1) 
                   endif
@@ -2421,13 +2420,13 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
                endif
             enddo
             if (.not. found) then
-               write (lout,*) "DYNK> Insane: Element '", element_name_s,
+               write (lout,*) "DYNK> Insane: Element '", element_name_s, &
      &                        "' was not found"
                call prror(-1)
             endif
 
             ! Store original value of data point
-            fsets_origvalue_dynk(nsets_unique_dynk) =
+            fsets_origvalue_dynk(nsets_unique_dynk) = &
      &           dynk_getvalue(csets_dynk(ii,1),csets_dynk(ii,2))
          endif
       enddo
@@ -2435,8 +2434,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       ! Save original values for GET functions
       do ii=1,nfuncs_dynk
          if (funcs_dynk(ii,2) .eq. 0) then !GET
-            fexpr_dynk(funcs_dynk(ii,3)) =
-     &           dynk_getvalue( cexpr_dynk(funcs_dynk(ii,1)+1),
+            fexpr_dynk(funcs_dynk(ii,3)) = &
+     &           dynk_getvalue( cexpr_dynk(funcs_dynk(ii,1)+1), &
      &                          cexpr_dynk(funcs_dynk(ii,1)+2) )
          endif
       enddo
@@ -2497,8 +2496,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
       
       if ( ldynkdebug ) then
-         write (lout,*)
-     &   'DYNKDEBUG> In dynk_apply(), turn = ',
+         write (lout,*) &
+     &   'DYNKDEBUG> In dynk_apply(), turn = ', &
 +if collimat
      & turn, "samplenumber =", samplenumber
 +ei
@@ -2521,60 +2520,60 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          do ii=1, nfuncs_dynk
             if (funcs_dynk(ii,2) .eq. 6) then !RANDG
                if (ldynkdebug) then
-                  write (lout,*) 
-     &               "DYNKDEBUG> Resetting RANDG for FUN named '",
+                  write (lout,*)  &
+     &               "DYNKDEBUG> Resetting RANDG for FUN named '", &
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
-               iexpr_dynk(funcs_dynk(ii,3)+3) =
+               iexpr_dynk(funcs_dynk(ii,3)+3) = &
      &              iexpr_dynk(funcs_dynk(ii,3) )
-               iexpr_dynk(funcs_dynk(ii,3)+4) =
+               iexpr_dynk(funcs_dynk(ii,3)+4) = &
      &              iexpr_dynk(funcs_dynk(ii,3)+1)
                
             else if (funcs_dynk(ii,2) .eq. 7) then !RANDU
                if (ldynkdebug) then
-                  write (lout,*) 
-     &               "DYNKDEBUG> Resetting RANDU for FUN named '",
+                  write (lout,*)  &
+     &               "DYNKDEBUG> Resetting RANDU for FUN named '", &
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
-               iexpr_dynk(funcs_dynk(ii,3)+2) =
+               iexpr_dynk(funcs_dynk(ii,3)+2) = &
      &              iexpr_dynk(funcs_dynk(ii,3) )
-               iexpr_dynk(funcs_dynk(ii,3)+3) =
+               iexpr_dynk(funcs_dynk(ii,3)+3) = &
      &              iexpr_dynk(funcs_dynk(ii,3)+1)
 
             else if (funcs_dynk(ii,2) .eq. 8) then !RANDON
                if (ldynkdebug) then
-                  write (lout,*) 
-     &               "DYNKDEBUG> Resetting RANDON for FUN named '",
+                  write (lout,*)  &
+     &               "DYNKDEBUG> Resetting RANDON for FUN named '", &
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
 
-               iexpr_dynk(funcs_dynk(ii,3)+2) =
+               iexpr_dynk(funcs_dynk(ii,3)+2) = &
      &              iexpr_dynk(funcs_dynk(ii,3) )
-               iexpr_dynk(funcs_dynk(ii,3)+3) =
+               iexpr_dynk(funcs_dynk(ii,3)+3) = &
      &              iexpr_dynk(funcs_dynk(ii,3)+1)
 
             else if (funcs_dynk(ii,2) .eq. 10) then !FIR
                if (ldynkdebug) then
-                  write (lout,*)
-     &               "DYNKDEBUG> Resetting FIR named '",
+                  write (lout,*) &
+     &               "DYNKDEBUG> Resetting FIR named '", &
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
                do jj=0, funcs_dynk(ii,4)
-                  fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) =
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) = &
      &                 fexpr_dynk(funcs_dynk(ii,3)+jj*3+2)
                enddo
             else if (funcs_dynk(ii,2) .eq. 11) then !IIR
                if (ldynkdebug) then
-                  write (lout,*)
-     &               "DYNKDEBUG> Resetting IIR named '",
+                  write (lout,*) &
+     &               "DYNKDEBUG> Resetting IIR named '", &
      & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
                endif
                do jj=0, funcs_dynk(ii,4)
-                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) =
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) = &
      &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+2)
-                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+4) =
+                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+4) = &
      &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+5)
                enddo
             endif
@@ -2594,25 +2593,25 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             inquire( unit=665, opened=lopen )
             if (lopen) then
                write(lout,*) "DYNK> **** ERROR in dynk_apply() ****"
-               write(lout,*) "DYNK> unit 665 for dynksets.dat"//
+               write(lout,*) "DYNK> unit 665 for dynksets.dat"// &
      &                       " was already taken"
               call prror(-1)
             end if
 +if boinc
             call boincrf("dynksets.dat",filename)
-            open(unit=665, file=filename,
+            open(unit=665, file=filename, &
      &           status="replace",action="write")
 +ei
 +if .not.boinc
-            open(unit=665, file="dynksets.dat",
+            open(unit=665, file="dynksets.dat", &
      &           status="replace",action="write")
 +ei
 
             if (ldynkfiledisable) then
-               write (665,*) "### DYNK file output was disabled ",
+               write (665,*) "### DYNK file output was disabled ", &
      &                       "with flag NOFILE in fort.3 ###"
             else 
-               write(665,*)
+               write(665,*) &
      &              "# turn element attribute SETidx funname value"
             endif
 +if cr
@@ -2634,21 +2633,21 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! Reset values to original settings in turn 1 
          if (samplenumber.gt.1) then
             if (ldynkdebug) then
-               write (lout,*) "DYNKDEBUG> New collimat sample, ",
-     &            "samplenumber = ", samplenumber,
+               write (lout,*) "DYNKDEBUG> New collimat sample, ", &
+     &            "samplenumber = ", samplenumber, &
      &                     "resetting the SET'ed values."
             endif
             do ii=1, nsets_unique_dynk
                newValue = fsets_origvalue_dynk(ii)
                if (ldynkdebug) then
-                  write (lout,*) "DYNKDEBUG> Resetting: '",
-     &         trim(stringzerotrim(csets_unique_dynk(ii,1))),
-     &         "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))),
+                  write (lout,*) "DYNKDEBUG> Resetting: '", &
+     &         trim(stringzerotrim(csets_unique_dynk(ii,1))), &
+     &         "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))), &
      &         "', newValue=", newValue
                endif
 
-               call dynk_setvalue(csets_unique_dynk(ii,1),
-     &                            csets_unique_dynk(ii,2),
+               call dynk_setvalue(csets_unique_dynk(ii,1), &
+     &                            csets_unique_dynk(ii,2), &
      &                            newValue )
             enddo
          endif !END "if (samplenumber.gt.1) then"
@@ -2661,8 +2660,8 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          ! is active on a given element:attribute on a given turn.
          
          !Active in this turn?
-         if (turn .ge. sets_dynk(ii,2) .and.
-     &       ( turn .le. sets_dynk(ii,3) .or. 
+         if (turn .ge. sets_dynk(ii,2) .and. &
+     &       ( turn .le. sets_dynk(ii,3) .or.  &
      &         sets_dynk(ii,3) .eq. -1       ) ) then
             
             !Shifting
@@ -2671,32 +2670,32 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             !Set the value
             newValue = dynk_computeFUN(sets_dynk(ii,1),shiftedTurn)
             if (ldynkdebug) then
-               write (lout, '(1x,A,I5,A,I8,A,E16.9)')
-     &              "DYNKDEBUG> Applying set #", ii, " on '"//
-     &           trim(stringzerotrim(csets_dynk(ii,1)))//
-     &           "':'"// trim(stringzerotrim(csets_dynk(ii,2)))//
+               write (lout, '(1x,A,I5,A,I8,A,E16.9)') &
+     &              "DYNKDEBUG> Applying set #", ii, " on '"// &
+     &           trim(stringzerotrim(csets_dynk(ii,1)))// &
+     &           "':'"// trim(stringzerotrim(csets_dynk(ii,2)))// &
      &           "', shiftedTurn=",shiftedTurn,", value=",newValue
             endif
-            call dynk_setvalue(csets_dynk(ii,1),
-     &                         csets_dynk(ii,2),
+            call dynk_setvalue(csets_dynk(ii,1), &
+     &                         csets_dynk(ii,2), &
      &                         newValue)
-     &           
+
             
             if (ldynkdebug) then
-               getvaldata = dynk_getvalue( csets_dynk(ii,1), 
+               getvaldata = dynk_getvalue( csets_dynk(ii,1),  &
      &                                     csets_dynk(ii,2) )
-               write (lout, '(1x,A,E16.9)')
+               write (lout, '(1x,A,E16.9)') &
      &              "DYNKDEBUG> Read back value = ", getvaldata
 
                if (getvaldata .ne. newValue) then
-                  write(lout,*)
+                  write(lout,*) &
      &            "DYNKDEBUG> WARNING Read back value differs from set!"
                end if
             endif
             
             !For the output file: Which function was used?
             do jj=1, nsets_unique_dynk
-               if (csets_dynk(ii,1) .eq. csets_unique_dynk(jj,1) .and.
+               if (csets_dynk(ii,1) .eq. csets_unique_dynk(jj,1) .and. &
      &             csets_dynk(ii,2) .eq. csets_unique_dynk(jj,2) ) then
                   whichSET(jj)=ii
                   whichFUN(jj)=cexpr_dynk(funcs_dynk(sets_dynk(ii,1),1))
@@ -2713,7 +2712,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       if (.not.ldynkfiledisable) then
 +ei
          do jj=1,nsets_unique_dynk
-            getvaldata =  dynk_getvalue( csets_unique_dynk(jj,1),
+            getvaldata =  dynk_getvalue( csets_unique_dynk(jj,1), &
      &                                   csets_unique_dynk(jj,2) )
             
             if (whichSET(jj) .eq. -1) then
@@ -2723,22 +2722,22 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             !For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
             !Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
             !Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
-            write(outstring_tmp1,'(A20)')
+            write(outstring_tmp1,'(A20)') &
      &           stringzerotrim(csets_unique_dynk(jj,1))
             outstring_tmp1(len(outstring_tmp1)+1:) = ' ' !Pad with trailing blanks
-            write(outstring_tmp2,'(A20)')
+            write(outstring_tmp2,'(A20)') &
      &           stringzerotrim(csets_unique_dynk(jj,2))
             outstring_tmp2(len(outstring_tmp2)+1:) = ' '
-            write(outstring_tmp3,'(A20)')
+            write(outstring_tmp3,'(A20)') &
      &           stringzerotrim(whichFUN(jj))
             outstring_tmp3(len(outstring_tmp3)+1:) = ' '
             
-            write(665,'(I12,1x,A20,1x,A20,1x,I4,1x,A20,E16.9)')
-     &           turn, 
-     &           outstring_tmp1,
-     &           outstring_tmp2,
-     &           whichSET(jj),
-     &           outstring_tmp3,
+            write(665,'(I12,1x,A20,1x,A20,1x,I4,1x,A20,E16.9)') &
+     &           turn,  &
+     &           outstring_tmp1, &
+     &           outstring_tmp2, &
+     &           whichSET(jj), &
+     &           outstring_tmp3, &
      &           getvaldata
          enddo
          
@@ -2755,7 +2754,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       end subroutine
 !
       
-      recursive double precision function 
+      recursive double precision function  &
      &     dynk_computeFUN( funNum, turn ) result(retval)
 !-----------------------------------------------------------------------
 !     K. Sjobak, BE-ABP/HSS
@@ -2818,7 +2817,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          if (turn .gt. funcs_dynk(funNum,5) ) then
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
             write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
-            write(lout,*)"DYNK> Turn > length of file = ", 
+            write(lout,*)"DYNK> Turn > length of file = ",  &
      &           funcs_dynk(funNum,5)
             call dynk_dumpdata
             call prror(-1)
@@ -2835,23 +2834,23 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          filelin_start    = funcs_dynk(funNum,4)
          filelin_xypoints = funcs_dynk(funNum,5)
          !Pass the correct array views/sections to dynk_lininterp
-         retval = dynk_lininterp( dble(turn),
-     &       fexpr_dynk(filelin_start:filelin_start+filelin_xypoints-1),
-     &       fexpr_dynk(filelin_start +  filelin_xypoints:
-     &                  filelin_start +2*filelin_xypoints-1),
+         retval = dynk_lininterp( dble(turn), &
+     &       fexpr_dynk(filelin_start:filelin_start+filelin_xypoints-1), &
+     &       fexpr_dynk(filelin_start +  filelin_xypoints: &
+     &                  filelin_start +2*filelin_xypoints-1), &
      &        filelin_xypoints )
       case(3)                                                           ! PIPE
-         write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)") 
-     &        "GET ID="//
-     &        trim(stringzerotrim(
-     &        cexpr_dynk(funcs_dynk(funNum,1)+3)
+         write(iexpr_dynk(funcs_dynk(funNum,3))+1,"(a,i7)")  &
+     &        "GET ID="// &
+     &        trim(stringzerotrim( &
+     &        cexpr_dynk(funcs_dynk(funNum,1)+3) &
      &        ))//" TURN=",turn
 +if .not.crlibm
          read(iexpr_dynk(funcs_dynk(funNum,3)),*) retval
 +ei
 +if crlibm
          read(iexpr_dynk(funcs_dynk(funNum,3)),"(a)") ch
-         call getfields_split( ch, getfields_fields, getfields_lfields,
+         call getfields_split( ch, getfields_fields, getfields_lfields, &
      &                             getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) then
             write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
@@ -2864,37 +2863,37 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
             write(lout,*)"DYNK> Expected a single number."
             call prror(-1)
          endif
-         retval = round_near(errno,
+         retval = round_near(errno, &
      &        getfields_lfields(1)+1, getfields_fields(1) )
-         if (errno.ne.0)
+         if (errno.ne.0) &
      &        call rounderr( errno,getfields_fields,1,retval )
 +ei
          
       case (6)                                                          ! RANDG
          ! Save old seeds and load our current seeds
          call recuut(tmpseed1,tmpseed2)
-         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3),
+         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+3), &
      &               iexpr_dynk(funcs_dynk(funNum,3)+4) )
          ! Run generator for 1 value with current mcut
-         call ranecu( ranecu_rvec, 1,
+         call ranecu( ranecu_rvec, 1, &
      &                iexpr_dynk(funcs_dynk(funNum,3)+2) )
          ! Save our current seeds and load old seeds
-         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+3),
+         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+3), &
      &               iexpr_dynk(funcs_dynk(funNum,3)+4) )
          call recuin(tmpseed1,tmpseed2)
          ! Change to mu, sigma
-         retval = fexpr_dynk(funcs_dynk(funNum,4))
+         retval = fexpr_dynk(funcs_dynk(funNum,4)) &
      &          + fexpr_dynk(funcs_dynk(funNum,4)+1)*ranecu_rvec(1)
 
       case (7)                                                          ! RANDU
          ! Save old seeds and load our current seeds
          call recuut(tmpseed1,tmpseed2)
-         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2),
+         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2), &
      &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
          ! Run generator for 1 value with mcut=-1
          call ranecu( ranecu_rvec, 1, -1 )
          ! Save our current seeds and load old seeds
-         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),
+         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2), &
      &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
          call recuin(tmpseed1,tmpseed2)
          retval = ranecu_rvec(1)
@@ -2902,12 +2901,12 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
       case (8)                                                         ! RANDON
         ! Save old seeds and load our current seeds
          call recuut(tmpseed1,tmpseed2)
-         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2),
+         call recuin(iexpr_dynk(funcs_dynk(funNum,3)+2), &
      &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
          ! Run generator for 1 value with mcut=-1
          call ranecu( ranecu_rvec, 1, -1 )
          ! Save our current seeds and load old seeds
-         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2),
+         call recuut(iexpr_dynk(funcs_dynk(funNum,3)+2), &
      &               iexpr_dynk(funcs_dynk(funNum,3)+3) )
          call recuin(tmpseed1,tmpseed2)
 	! routine for switching element (orginially the electron lens) ON or OFF
@@ -2931,7 +2930,7 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          retval = 0.0
          do ii=0,funcs_dynk(funNum,4)
             jj = ii*3
-            retval = retval + 
+            retval = retval +  &
      &           fexpr_dynk(foff+jj)*fexpr_dynk(foff+jj+1)
          enddo
       case(11)                                                          ! IIR
@@ -2949,38 +2948,38 @@ C      write(*,*) "DBGDBG c:", funName, len(funName)
          retval = 0.0
          do ii=0,funcs_dynk(funNum,4)
             jj = ii*6
-            retval = retval +
-     &           fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) +
+            retval = retval + &
+     &           fexpr_dynk(foff+jj  ) * fexpr_dynk(foff+jj+1) + &
      &           fexpr_dynk(foff+jj+3) * fexpr_dynk(foff+jj+4)
          enddo
          !To be shifted at the next evaluation
          fexpr_dynk(foff+4) = retval
          
       case (20)                                                         ! ADD
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
+         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
      &          + dynk_computeFUN(funcs_dynk(funNum,4),turn)
       case (21)                                                         ! SUB
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
+         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
      &          - dynk_computeFUN(funcs_dynk(funNum,4),turn)
       case (22)                                                         ! MUL
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
+         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
      &          * dynk_computeFUN(funcs_dynk(funNum,4),turn)
       case (23)                                                         ! DIV
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
+         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
      &          / dynk_computeFUN(funcs_dynk(funNum,4),turn)
       case (24)                                                         ! POW
-         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn)
+         retval = dynk_computeFUN(funcs_dynk(funNum,3),turn) &
      &         ** dynk_computeFUN(funcs_dynk(funNum,4),turn)
          
       case (30)                                                         ! MINUS
          retval = (-1)*dynk_computeFUN(funcs_dynk(funNum,3),turn)
       case (31)                                                         ! SQRT
-C+if crlibm
-C      retval = sqrt_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-C+ei
-C+if .not.crlibm      
+!+if crlibm
+!      retval = sqrt_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+!+ei
+!+if .not.crlibm      
       retval = sqrt(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-C+ei
+!+ei
       case (32)                                                         ! SIN
 +if crlibm
          retval = sin_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
@@ -3022,54 +3021,54 @@ C+ei
       case (41)                                                         ! TURN
          retval = turn
       case (42)                                                         ! LIN
-         retval = turn*fexpr_dynk(funcs_dynk(funNum,3)) + 
+         retval = turn*fexpr_dynk(funcs_dynk(funNum,3)) +  &
      &                 fexpr_dynk(funcs_dynk(funNum,3)+1)
       case (43)                                                         ! LINSEG
          filelin_start    = funcs_dynk(funNum,3)
          filelin_xypoints = 2
          !Pass the correct array views/sections to dynk_lininterp
-         retval = dynk_lininterp( dble(turn),
-     &       fexpr_dynk(filelin_start:filelin_start+1),
-     &       fexpr_dynk(filelin_start+2:filelin_xypoints+3),
+         retval = dynk_lininterp( dble(turn), &
+     &       fexpr_dynk(filelin_start:filelin_start+1), &
+     &       fexpr_dynk(filelin_start+2:filelin_xypoints+3), &
      &       filelin_xypoints )
       case (44,45)                                                      ! QUAD/QUADSEG
-         retval = (turn**2)*fexpr_dynk(funcs_dynk(funNum,3))   + (
-     &                 turn*fexpr_dynk(funcs_dynk(funNum,3)+1) +
+         retval = (turn**2)*fexpr_dynk(funcs_dynk(funNum,3))   + ( &
+     &                 turn*fexpr_dynk(funcs_dynk(funNum,3)+1) + &
      &                      fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
       case (60)                                                         ! SINF
 +if crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3))
-     &     * SIN_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn 
+      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+     &     * SIN_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
      &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
 +ei
 +if .not.crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3))
-     &     * SIN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn 
+      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+     &     * SIN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
      &          + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
       case (61)                                                         ! COSF
 +if crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3))
-     &     * COS_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn 
+      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+     &     * COS_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
      &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
 +ei
 +if .not.crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3))
-     &     * COS( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn 
+      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+     &     * COS( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
      &          + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
       case (62)                                                         ! COSF_RIPP
 +if crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3))
-     & *COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1)
+      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+     & *COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
      &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
 +if .not.crlibm
-      retval = fexpr_dynk(funcs_dynk(funNum,3))
-     & *COS   ( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1)
+      retval = fexpr_dynk(funcs_dynk(funNum,3)) &
+     & *COS   ( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
      &             + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
       
@@ -3080,22 +3079,22 @@ C+ei
             retval = fexpr_dynk(foff+5)
          elseif (turn .le. fexpr_dynk(foff+1)) then ! <= te
             ! Parabola (accelerate)
-            retval = ( fexpr_dynk(foff+6) *
-     &                 (turn-fexpr_dynk(foff))**2 ) / 2.0
+            retval = ( fexpr_dynk(foff+6) * &
+     &                 (turn-fexpr_dynk(foff))**2 ) / 2.0 &
      &             + fexpr_dynk(foff+5)
          elseif (turn .le. fexpr_dynk(foff+2)) then ! <= t1
             ! Exponential
-            retval = fexpr_dynk(foff+7) *
+            retval = fexpr_dynk(foff+7) * &
      &          exp( fexpr_dynk(foff+8)*turn )
          elseif (turn .le. fexpr_dynk(foff+3)) then ! <= td
             ! Linear (max ramp rate)
-            retval = fexpr_dynk(foff+10) *
-     &               (turn-fexpr_dynk(foff+2))
+            retval = fexpr_dynk(foff+10) * &
+     &               (turn-fexpr_dynk(foff+2)) &
      &             + fexpr_dynk(foff+9)
          elseif (turn .le. fexpr_dynk(foff+4)) then ! <= tnom
             ! Parabola (decelerate)
-            retval =  - ( (fexpr_dynk(foff+11) *
-     &                    (fexpr_dynk(foff+4)-turn)**2) ) / 2.0
+            retval =  - ( (fexpr_dynk(foff+11) * &
+     &                    (fexpr_dynk(foff+4)-turn)**2) ) / 2.0 &
      &                + fexpr_dynk(foff+12)
          else ! > tnom
             ! Constant Inom
@@ -3113,7 +3112,7 @@ C+ei
       case default
          write(lout,*) "DYNK> **** ERROR in dynk_computeFUN(): ****"
          write(lout,*) "DYNK> funNum =", funNum, "turn=", turn
-         write(lout,*) "DYNK> Unknown function type ",
+         write(lout,*) "DYNK> Unknown function type ", &
      &        funcs_dynk(funNum,2)
          call dynk_dumpdata
          call prror(-1)
@@ -3156,13 +3155,13 @@ C+ei
       att_name_stripped = trim(stringzerotrim(att_name))
 
       if ( ldynkdebug ) then
-         write (lout, '(1x,A,E16.9)')
-     &        "DYNKDEBUG> In dynk_setvalue(), element_name = '"//
-     &        trim(element_name_stripped)//"', att_name = '"//
+         write (lout, '(1x,A,E16.9)') &
+     &        "DYNKDEBUG> In dynk_setvalue(), element_name = '"// &
+     &        trim(element_name_stripped)//"', att_name = '"// &
      &        trim(att_name_stripped)//"', newValue =", newValue
       endif
       
-C     Here comes the logic for setting the value of the attribute for all instances of the element...
+!     Here comes the logic for setting the value of the attribute for all instances of the element...
 
       ! Special non-physical elements
       if (element_name_stripped .eq. "GLOBAL-VARS") then
@@ -3192,21 +3191,21 @@ C     Here comes the logic for setting the value of the attribute for all instan
             el_type=kz(ii)      ! type found
             
             if (ldoubleElement) then ! Sanity check
-               write(lout,*)
+               write(lout,*) &
      &            "DYNK> ERROR: two elements with the same BEZ?"
                call prror(-1)
             end if
             ldoubleElement = .true.
           
-            if ((abs(el_type).eq.1).or. ! horizontal bending kick
-     &          (abs(el_type).eq.2).or. ! quadrupole kick
-     &          (abs(el_type).eq.3).or. ! sextupole kick
-     &          (abs(el_type).eq.4).or. ! octupole kick
-     &          (abs(el_type).eq.5).or. ! decapole kick
-     &          (abs(el_type).eq.6).or. ! dodecapole kick
-     &          (abs(el_type).eq.7).or. ! 14th pole kick
-     &          (abs(el_type).eq.8).or. ! 16th pole kick
-     &          (abs(el_type).eq.9).or. ! 18th pole kick
+            if ((abs(el_type).eq.1).or. & ! horizontal bending kick
+     &          (abs(el_type).eq.2).or. & ! quadrupole kick
+     &          (abs(el_type).eq.3).or. & ! sextupole kick
+     &          (abs(el_type).eq.4).or. & ! octupole kick
+     &          (abs(el_type).eq.5).or. & ! decapole kick
+     &          (abs(el_type).eq.7).or. & ! 14th pole kick
+     &          (abs(el_type).eq.6).or. & ! dodecapole kick
+     &          (abs(el_type).eq.8).or. & ! 16th pole kick
+     &          (abs(el_type).eq.9).or. & ! 18th pole kick
      &          (abs(el_type).eq.10)) then ! 20th pole kick
                
                if (att_name_stripped.eq."average_ms") then !
@@ -3217,13 +3216,13 @@ C     Here comes the logic for setting the value of the attribute for all instan
                call initialize_element(ii, .false.)
                
           !Not yet supported
-c$$$            elseif (abs(el_type).eq.11) then !MULTIPOLES
-c$$$               if (att_name_stripped.eq."bending_str") then
-c$$$                  ed(ii) = newValue
-c$$$               else
-c$$$                  goto 100 !ERROR
-c$$$               endif
-c$$$               call initialize_element(ii, .false.)
+!$$$            elseif (abs(el_type).eq.11) then !MULTIPOLES
+!$$$               if (att_name_stripped.eq."bending_str") then
+!$$$                  ed(ii) = newValue
+!$$$               else
+!$$$                  goto 100 !ERROR
+!$$$               endif
+!$$$               call initialize_element(ii, .false.)
 
 
           elseif (abs(el_type).eq.12) then ! cavities 
@@ -3244,32 +3243,32 @@ c$$$               call initialize_element(ii, .false.)
             endif
             
           !Not yet supported
-c$$$          elseif (abs(el_type).eq.16) then ! AC dipole 
-c$$$            if (att_name_stripped.eq."amplitude") then ! [T.m]
-c$$$               ed(ii) = dynk_computeFUN(funNum,turn)
-c$$$            elseif (att_name_stripped.eq."frequency") then ! [2pi]
-c$$$               ek(ii) = dynk_computeFUN(funNum,turn)
-c$$$            elseif (att_name_stripped.eq."phase") then ! [rad]
-c$$$               el(ii) = dynk_computeFUN(funNum,turn)
-c$$$            else
-c$$$               goto 100 !ERROR
-c$$$            endif
+!$$$          elseif (abs(el_type).eq.16) then ! AC dipole 
+!$$$            if (att_name_stripped.eq."amplitude") then ! [T.m]
+!$$$               ed(ii) = dynk_computeFUN(funNum,turn)
+!$$$            elseif (att_name_stripped.eq."frequency") then ! [2pi]
+!$$$               ek(ii) = dynk_computeFUN(funNum,turn)
+!$$$            elseif (att_name_stripped.eq."phase") then ! [rad]
+!$$$               el(ii) = dynk_computeFUN(funNum,turn)
+!$$$            else
+!$$$               goto 100 !ERROR
+!$$$            endif
 
           !Not yet supported
-c$$$          elseif (abs(el_type).eq.20) then ! beam-beam separation
-c$$$            if (att_name_stripped.eq."horizontal") then ! [mm]
-c$$$               ed(ii) = dynk_computeFUN(funNum,turn)
-c$$$            elseif (att_name_stripped.eq."vertical") then ! [mm]
-c$$$               ek(ii) = dynk_computeFUN(funNum,turn)
-c$$$            elseif (att_name_stripped.eq."strength") then ! [m]
-c$$$               el(ii) = dynk_computeFUN(funNum,turn)
-c$$$            else
-c$$$               goto 100 !ERROR
-c$$$            endif
+!$$$          elseif (abs(el_type).eq.20) then ! beam-beam separation
+!$$$            if (att_name_stripped.eq."horizontal") then ! [mm]
+!$$$               ed(ii) = dynk_computeFUN(funNum,turn)
+!$$$            elseif (att_name_stripped.eq."vertical") then ! [mm]
+!$$$               ek(ii) = dynk_computeFUN(funNum,turn)
+!$$$            elseif (att_name_stripped.eq."strength") then ! [m]
+!$$$               el(ii) = dynk_computeFUN(funNum,turn)
+!$$$            else
+!$$$               goto 100 !ERROR
+!$$$            endif
             
-            elseif ((abs(el_type).eq.23).or.    ! crab cavity
-     &              (abs(el_type).eq.26).or.    ! cc mult. kick order 2
-     &              (abs(el_type).eq.27).or.    ! cc mult. kick order 3
+            elseif ((abs(el_type).eq.23).or. &    ! crab cavity
+     &              (abs(el_type).eq.26).or. &    ! cc mult. kick order 2
+     &              (abs(el_type).eq.27).or. &    ! cc mult. kick order 3
      &              (abs(el_type).eq.28)) then  ! cc mult. kick order 4
                if (att_name_stripped.eq."voltage") then ![MV]
                   ed(ii) = newValue
@@ -3301,7 +3300,7 @@ c$$$            endif
             else
                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
                write (lout,*) "DYNK> Unsupported element type", el_type
-               write (lout,*) "DYNK> element name = '",
+               write (lout,*) "DYNK> element name = '", &
      &              element_name_stripped,"'"
                call prror(-1)
             endif
@@ -3318,13 +3317,13 @@ c$$$            endif
       !Error handlers
  100  continue
       WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (lout,*)"DYNK> Attribute'", att_name_stripped,
+      WRITE (lout,*)"DYNK> Attribute'", att_name_stripped, &
      &     "' does not exist for type =", el_type
       call prror(-1)
 
  101  continue
       WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (lout,*)"DYNK> The element named '",element_name_stripped,
+      WRITE (lout,*)"DYNK> The element named '",element_name_stripped, &
      &     "' was not found."
       call prror(-1)
       
@@ -3365,8 +3364,8 @@ c$$$            endif
       att_name_s = trim(stringzerotrim(att_name))
       
       if (ldynkdebug) then
-         write(lout,*)
-     &   "DYNKDEBUG> In dynk_getvalue(), element_name = '"//
+         write(lout,*) &
+     &   "DYNKDEBUG> In dynk_getvalue(), element_name = '"// &
      &    trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
       end if
 
@@ -3386,22 +3385,22 @@ c$$$            endif
          if (element_name_s.eq.bez(ii)) then ! name found
             el_type=kz(ii)
             if (ldoubleElement) then
-               write (lout,*)
+               write (lout,*) &
      &              "DYNK> ERROR: two elements with the same BEZ"
                call prror(-1)
             end if
             ldoubleElement = .true.
             
             ! Nonlinear elements
-            if ((abs(el_type).eq.1).or.
-     &          (abs(el_type).eq.2).or.
-     &          (abs(el_type).eq.3).or.
-     &          (abs(el_type).eq.4).or.
-     &          (abs(el_type).eq.5).or.
-     &          (abs(el_type).eq.6).or.
-     &          (abs(el_type).eq.7).or.
-     &          (abs(el_type).eq.8).or.
-     &          (abs(el_type).eq.9).or.
+            if ((abs(el_type).eq.1).or. &
+     &          (abs(el_type).eq.2).or. &
+     &          (abs(el_type).eq.3).or. &
+     &          (abs(el_type).eq.4).or. &
+     &          (abs(el_type).eq.5).or. &
+     &          (abs(el_type).eq.6).or. &
+     &          (abs(el_type).eq.7).or. &
+     &          (abs(el_type).eq.8).or. &
+     &          (abs(el_type).eq.9).or. &
      &          (abs(el_type).eq.10)) then
                if (att_name_s.eq."average_ms") then
                   dynk_getvalue = ed(ii)
@@ -3409,15 +3408,15 @@ c$$$            endif
                   goto 100 !ERROR
                endif
                
-c$$$            !Multipoles (Not yet supported)
-c$$$            elseif (abs(el_type).eq.11) then
-c$$$               if (att_name_s.eq."bending_str") then 
-c$$$                  dynk_getvalue = dynk_elemdata(ii,2)
-c$$$               elseif (att_name_s.eq."radius") then
-c$$$                  dynk_getvalue = dynk_elemdata(ii,3)
-c$$$               else
-c$$$                  goto 100 !ERROR
-c$$$               endif
+!$$$            !Multipoles (Not yet supported)
+!$$$            elseif (abs(el_type).eq.11) then
+!$$$               if (att_name_s.eq."bending_str") then 
+!$$$                  dynk_getvalue = dynk_elemdata(ii,2)
+!$$$               elseif (att_name_s.eq."radius") then
+!$$$                  dynk_getvalue = dynk_elemdata(ii,3)
+!$$$               else
+!$$$                  goto 100 !ERROR
+!$$$               endif
                
 
             elseif (abs(el_type).eq.12) then ! cavities
@@ -3432,38 +3431,38 @@ c$$$               endif
                endif
              
             !Not yet supported
-c$$$            elseif (abs(el_type).eq.16) then ! AC dipole 
-c$$$               if (att_name_s.eq."amplitude") then ! [T.m]
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = ed(ii)                
-c$$$               elseif (att_name_s.eq."frequency") then !  [2pi]
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = ek(ii)                
-c$$$               elseif (att_name_s.eq."phase") then !  [rad]
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = el(ii)      
-c$$$               else
-c$$$                  goto 100 !ERROR
-c$$$               endif
+!$$$            elseif (abs(el_type).eq.16) then ! AC dipole 
+!$$$               if (att_name_s.eq."amplitude") then ! [T.m]
+!$$$                  nretdata = nretdata+1
+!$$$                  retdata(nretdata) = ed(ii)                
+!$$$               elseif (att_name_s.eq."frequency") then !  [2pi]
+!$$$                  nretdata = nretdata+1
+!$$$                  retdata(nretdata) = ek(ii)                
+!$$$               elseif (att_name_s.eq."phase") then !  [rad]
+!$$$                  nretdata = nretdata+1
+!$$$                  retdata(nretdata) = el(ii)      
+!$$$               else
+!$$$                  goto 100 !ERROR
+!$$$               endif
                
             !Not yet supported
-c$$$            elseif (abs(el_type).eq.20) then ! beam-beam separation
-c$$$               if (att_name_s.eq."horizontal") then ! [mm]
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = ed(ii)                
-c$$$               elseif (att_name_s.eq."vertical") then ! [mm]
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = ek(ii)                
-c$$$               elseif (att_name_s.eq."strength") then ! [m]
-c$$$                  nretdata = nretdata+1
-c$$$                  retdata(nretdata) = el(ii)       
-c$$$               else
-c$$$                  goto 100 !ERROR
-c$$$               endif
+!$$$            elseif (abs(el_type).eq.20) then ! beam-beam separation
+!$$$               if (att_name_s.eq."horizontal") then ! [mm]
+!$$$                  nretdata = nretdata+1
+!$$$                  retdata(nretdata) = ed(ii)                
+!$$$               elseif (att_name_s.eq."vertical") then ! [mm]
+!$$$                  nretdata = nretdata+1
+!$$$                  retdata(nretdata) = ek(ii)                
+!$$$               elseif (att_name_s.eq."strength") then ! [m]
+!$$$                  nretdata = nretdata+1
+!$$$                  retdata(nretdata) = el(ii)       
+!$$$               else
+!$$$                  goto 100 !ERROR
+!$$$               endif
                
-            elseif ((abs(el_type).eq.23).or. ! crab cavity
-     &              (abs(el_type).eq.26).or. ! cc mult. kick order 2
-     &              (abs(el_type).eq.27).or. ! cc mult. kick order 3
+            elseif ((abs(el_type).eq.23).or. & ! crab cavity
+     &              (abs(el_type).eq.26).or. & ! cc mult. kick order 2
+     &              (abs(el_type).eq.27).or. & ! cc mult. kick order 3
      &              (abs(el_type).eq.28)) then ! cc mult. kick order 4
                if (att_name_s.eq."voltage") then ![MV]
                   dynk_getvalue = ed(ii)
@@ -3492,7 +3491,7 @@ c$$$               endif
 
             elseif (el_type.eq.40) then ! Scatter
                if(att_name_s.eq."scaling") then
-                  dynk_getvalue =
+                  dynk_getvalue = &
      &                 scatter_ELEM_scale(scatter_elemPointer(ii))
                else
                   goto 100 !ERROR
@@ -3503,7 +3502,7 @@ c$$$               endif
       enddo
       
       if (ldynkdebug) then
-         write(lout,*)
+         write(lout,*) &
      &   "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
       end if
 
@@ -3512,7 +3511,7 @@ c$$$               endif
       !Error handlers
  100  continue
       write(lout,*) "DYNK> *** ERROR in dynk_getvalue() ***"
-      write(lout,*) "DYNK> Unknown attribute '", trim(att_name_s),"'",
+      write(lout,*) "DYNK> Unknown attribute '", trim(att_name_s),"'", &
      &     " for type",el_type," name '", trim(bez(ii)), "'"
 
       call prror(-1)
@@ -3585,7 +3584,7 @@ c$$$               endif
       !We didn't return yet: Something wrong
       write (lout,*) "DYNK> ****ERROR in dynk_lininterp() ****"
       write (lout,*) "DYNK> Reached the end of the function"
-      write (lout,*) "DYNK> This should not happen, "//
+      write (lout,*) "DYNK> This should not happen, "// &
      &               "please contact developers"
       call prror(-1)
 
@@ -3611,32 +3610,32 @@ c$$$               endif
 
       !Sanity check
       if (i .gt. iu .or. i .le. 0) then
-         write (lout,*)
+         write (lout,*) &
      &        "Error in dynk_isused(): i=",i,"out of range"
          call prror(-1)
       endif
       ix = ic(i)-nblo
       if (i .le. 0) then
-         write (lout,*)
+         write (lout,*) &
      &        "Error in dynk_isused(): ix-nblo=",ix,"is a block?"
          call prror(-1)
       endif
       
       do k=1,nsets_dynk
-         element_name_stripped =
+         element_name_stripped = &
      &        trim(stringzerotrim(csets_dynk(k,1)))
          if (bez(ix) .eq. element_name_stripped) then
             dynk_isused = .true.
-            if (ldynkdebug)
-     &         write(lout,*)
-     &         "DYNKDEBUG> dynk_isused = TRUE, bez='"//bez(ix)//
+            if (ldynkdebug) &
+     &         write(lout,*) &
+     &         "DYNKDEBUG> dynk_isused = TRUE, bez='"//bez(ix)// &
      &         "', element_name_stripped='"//element_name_stripped//"'"
             return
          endif
       end do
       
       if (ldynkdebug) then
-         write(lout,*)
+         write(lout,*) &
      &      "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
       endif
 

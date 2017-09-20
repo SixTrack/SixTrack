@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K.B. Olsen, CERN
+!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K. Berglyd Olsen, CERN
 !!M. Fitterer, FNAL, CERN
 !!A. Patapenka,  NIU, CERN
 !!G. Robert-Demolaize, BNL
@@ -1236,12 +1236,12 @@
       double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
       double precision :: elens_r2(nele)        ! outer radius R2 [mm]
       double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
-      double precision :: elens_offset_x(nele),
+      double precision :: elens_offset_x(nele),                         &
      &                    elens_offset_y(nele)  ! hor./vert. offset of elens [mm]
-      integer          :: elens_bend_entrance(nele),
+      integer          :: elens_bend_entrance(nele),                    &
      &                    elens_bend_exit(nele) ! switch for elens bends
-      common /elensco/ elens_type,elens_theta_max,elens_r2,
-     &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
+      common /elensco/ elens_type,elens_theta_max,elens_r2,             &
+     &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,   &
      &     elens_bend_exit
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
@@ -17401,7 +17401,7 @@ cc2008
 
 !-----------------------------------------------------------------------
 !  SCATTER
-!  K. Sjobak, V. Olsen BE-ABP-HSS
+!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
 !  Last modified: 29-08-2017
 !-----------------------------------------------------------------------
  2900 continue
