@@ -50058,6 +50058,7 @@ c$$$            endif
 !                 eps2_max,eps3_max,eps1_avg, eps2_avg,eps3_avg,        *
 !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
 !-----------------------------------------------------------------------*
+      use platofma
       implicit none
 +ca comgetfields
 +ca stringzerotrim
@@ -50094,8 +50095,6 @@ c$$$            endif
      &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
       double precision, dimension(:,:,:),allocatable ::
      &epsnxyzv ! normalized emittances
-      double precision :: tunelask,tuneffti,tunefft,tuneapa,tunefit,    &
-     &tunenewt,tuneabt2,tuneabt,tunenewt1 !Define the functions to be called from PLATO
       integer :: dump_last_turn ! auxiliary variable for loop over turns
 +if naff
       interface
