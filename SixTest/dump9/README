@@ -1,0 +1,2 @@
+Test to check that
+1) checks writing of dump format 9 at the beginnin of the sequence (Start_DUMP) and at an aribtarry element (IP3 here). As the sequence starts at IP3, START_DUMP_1 and IP3_DUMP_1 should be identical. Small differences occur as the closed orbit from the 6D optics is slightly different than the one used for initializing the particle amplitudes. You should see small deviations in the last digits.

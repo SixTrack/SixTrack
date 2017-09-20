@@ -472,6 +472,19 @@ It is found on AFS, in the folder \texttt{/afs/cern.ch/sw/nag/mark24/lnx/fll6i24
 Note that in order to link with this library (when also using \texttt{DA}) when compiling with gfortran or nagfor, dynamic linking (i.e.\ the flag \texttt{-STATIC} to \texttt{cmake\_six}) is required.
 If compiling with ifort, it is possible to link (mostly) statically.
 
+\subsubsection{NAFF}
+\label{sec:building:libs:naff}
+The NAFF library~\cite{NAFFpaper2} is an optional library for improving the FMA analysis.
+To enable it, add the \texttt{NAFF} flag to the command line of \texttt{cmake\_six}:
+\begin{lstlisting}
+./cmake_six NAFF
+\end{lstlisting}
+The NAFF library links with the FFTW and BOOST libraries; these must therefore be installed on the system in the appropriate (static/dynamic) versions.
+
+Furthermore, while NAFF is supported by SixTest (\texttt{BUILD\_TESTING}, see Section~\ref{sec:testing}), the results are not expected to be exactly reproducible between different compilers, operating systems etc.; for this we would not only need to make NAFF itself exactly reproducible, but also the libraries it depends on.
+Deeply modifying these libraries is not a feasible project; however since this is not part of the tracking but is purely used for preprocessing, it is of little consequence. 
+
+
 \subsection{Building on platforms other than Linux}
 
 \subsubsection{Building on OS X}
@@ -604,6 +617,7 @@ in the folder created by the build command:
 \begin{lstlisting}
 ./cmake_six BUILD_TESTING
 \end{lstlisting}
+containing the new SixTrack executable, e.g.\ \texttt{*/SixTrack/\-SixTrack/\-SixTrack\-\_cmakesix\-\_*BUILD\-\_TEST\-ING*}.
 This will iterate over the tests, running SixTrack for each of them, and check the output for pass/fail.
 
 To run several tests in parallel, use the flag \texttt{-j \textit{numjobs}}.
@@ -616,8 +630,8 @@ The tests are classified as \texttt{fast} ($\lesssim 60~\mathrm{secconds}$), \te
 Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
 
 The tests will be ran in the \texttt{SixTest/\textit{testname}} sub-folder created by \texttt{cmake\_six}.
-It is therefore possible to find the produced files, together with the input- and reference files in this folder.
-The standard output of the simulation and output comparisons are by default stored in the \texttt{Testing/Temporary} subfolder.
+It is therefore possible to find the produced files, together with the input- and reference files in this folder; the simulation standard output is written to the file \texttt{fort.6} in this folder.
+The standard output of the test tool are by default stored in the \texttt{Testing/Temporary} subfolder.
 
 \subsubsection{Submitting to CDASH}
 In order to collect the results of all tests in a organized way, there is a CDash page for SixTrack, which can be found at \url{http://abp-cdash.web.cern.ch/abp-cdash/index.php?project=SixTrack}.
@@ -660,6 +674,11 @@ The following tests are currently known to fail:
 \bibitem{CERNgitlab} CERN GitLab \url{https://gitlab.cern.ch/}
 
 \bibitem{CERNgitProviders} KB0003132: When is it appropriate to use CERN GitLab or external services such as Github? \url{https://cern.service-now.com/service-portal/article.do?n=KB0003132}
+
+\bibitem{NAFFpaper2}
+  S.~Kostoglou, N.~Karastathis, Y.~Papaphilippou, D.~Pellegrini and P.~Zisopoulos,
+  ``Development of computational tools for noise studies in the LHC'', 
+  2017, Proceedings of IPAC'17, Copenhagen, Denmark, 2017.
 
 \end{thebibliography}
 
