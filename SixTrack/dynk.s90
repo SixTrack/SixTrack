@@ -2250,27 +2250,23 @@ subroutine dynk_pretrack
 end subroutine dynk_pretrack
 
 ! ================================================================================================ !
+!  A.Mereghetti, for the FLUKA Team
+!  K.Sjobak & A. Santamaria, BE-ABP/HSS
+!  Last modified: 30-10-2014
+!  - Actually apply dynamic kicks
+!  - Always in main code
+!
+!  For each element (group) flagged with SET(R), compute the new value using dynk_computeFUN() at
+!  the given (shifted) turn number using the specified FUN function. The values are stored in the
+!  element using dynk_setvalue().
+!
+!  Also resets the values at the beginning of each pass through the turn loop (for COLLIMATION).
+!
+!  Also writes the file "dynksets.dat", only on the first turn.
+! ================================================================================================ !
+subroutine dynk_apply(turn)
 
-      
-      subroutine dynk_apply(turn)
-!-----------------------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     K.Sjobak & A. Santamaria, BE-ABP/HSS
-!     last modified: 30-10-2014
-!     actually apply dynamic kicks
-!     always in main code
-!
-!     For each element (group) flagged with SET(R), compute the new value
-!     using dynk_computeFUN() at the given (shifted) turn number
-!     using the specified FUN function. The values are stored 
-!     in the element using dynk_setvalue().
-!     
-!     Also resets the values at the beginning of each pass through the
-!     turn loop (for COLLIMATION).
-!
-!     Also writes the file "dynksets.dat", only on the first turn.
-!-----------------------------------------------------------------------
-      implicit none
+    implicit none
 
 +ca crcoall
 +ca parnum
@@ -2280,7 +2276,7 @@ end subroutine dynk_pretrack
 +ca comgetfields
 +ca stringzerotrim
 +if boinc
-      character*256 filename
+    character*256 filename
 +ei
 
 +if collimat
@@ -2288,279 +2284,233 @@ end subroutine dynk_pretrack
 +ca dbcommon
 +ei
 
-!     interface variables
-      integer turn  ! current turn number
-      intent(in) turn
+    ! interface variables
+    integer turn  ! current turn number
+    intent(in) turn
 
-!     temporary variables
-      integer ii, jj, shiftedTurn
-      logical lopen
-      double precision getvaldata, newValue
-      
-      character(maxstrlen_dynk) whichFUN(maxsets_dynk) !Which function was used to set a given elem/attr?
-      integer whichSET(maxsets_dynk) !Which SET was used for a given elem/attr?
+    ! temporary variables
+    integer ii, jj, shiftedTurn
+    logical lopen
+    double precision getvaldata, newValue
 
-      !Temp variable for padding the strings for output to dynksets.dat
-      character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
-      
-      if ( ldynkdebug ) then
-         write (lout,*) &
-     &   'DYNKDEBUG> In dynk_apply(), turn = ', &
+    character(maxstrlen_dynk) whichFUN(maxsets_dynk) ! Which function was used to set a given elem/attr?
+    integer whichSET(maxsets_dynk)                   ! Which SET was used for a given elem/attr?
+
+    ! Temp variable for padding the strings for output to dynksets.dat
+    character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
+
+    if ( ldynkdebug ) then
+        write (lout,*) 'DYNKDEBUG> In dynk_apply(), turn = ', &
 +if collimat
-     & turn, "samplenumber =", samplenumber
+                       turn, "samplenumber =", samplenumber
 +ei
 +if .not.collimat
-     & turn
+                       turn
 +ei
-      end if
-      
-      !Initialize variables (every call)
-      do jj=1, nsets_unique_dynk
-         whichSET(jj) = -1
-         do ii=1,maxstrlen_dynk
+    end if
+
+    ! Initialize variables (every call)
+    do jj=1, nsets_unique_dynk
+        whichSET(jj) = -1
+        do ii=1,maxstrlen_dynk
             whichFUN(jj)(ii:ii) = char(0)
-         enddo
-      enddo
+        end do
+    end do
 
-      !First-turn initialization, including some parts which are specific for collimat.
-      if (turn .eq. 1) then
-         ! Reset RNGs and filters 
-         do ii=1, nfuncs_dynk
-            if (funcs_dynk(ii,2) .eq. 6) then !RANDG
-               if (ldynkdebug) then
-                  write (lout,*)  &
-     &               "DYNKDEBUG> Resetting RANDG for FUN named '", &
-     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
-               endif
+    ! First-turn initialization, including some parts which are specific for collimat.
+    if (turn .eq. 1) then
+        ! Reset RNGs and filters 
+        do ii=1, nfuncs_dynk
+            if (funcs_dynk(ii,2) .eq. 6) then ! RANDG
+                if (ldynkdebug) then
+                    write (lout,*) "DYNKDEBUG> Resetting RANDG for FUN named '", &
+                                   trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))),"'"
+                end if
+                iexpr_dynk(funcs_dynk(ii,3)+3) = iexpr_dynk(funcs_dynk(ii,3))
+                iexpr_dynk(funcs_dynk(ii,3)+4) = iexpr_dynk(funcs_dynk(ii,3)+1)
+            else if (funcs_dynk(ii,2) .eq. 7) then ! RANDU
+                if (ldynkdebug) then
+                    write (lout,*) "DYNKDEBUG> Resetting RANDU for FUN named '", &
+                                   trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))),"'"
+                end if
+                iexpr_dynk(funcs_dynk(ii,3)+2) = iexpr_dynk(funcs_dynk(ii,3))
+                iexpr_dynk(funcs_dynk(ii,3)+3) = iexpr_dynk(funcs_dynk(ii,3)+1)
+            else if (funcs_dynk(ii,2) .eq. 8) then ! RANDON
+                if (ldynkdebug) then
+                    write (lout,*) "DYNKDEBUG> Resetting RANDON for FUN named '", &
+                                   trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))),"'"
+                end if
+                iexpr_dynk(funcs_dynk(ii,3)+2) = iexpr_dynk(funcs_dynk(ii,3))
+                iexpr_dynk(funcs_dynk(ii,3)+3) = iexpr_dynk(funcs_dynk(ii,3)+1)
+            else if (funcs_dynk(ii,2) .eq. 10) then ! FIR
+                if (ldynkdebug) then
+                    write (lout,*) "DYNKDEBUG> Resetting FIR named '", &
+                                   trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))),"'"
+                end if
+                do jj=0, funcs_dynk(ii,4)
+                    fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) = fexpr_dynk(funcs_dynk(ii,3)+jj*3+2)
+                end do
+            else if (funcs_dynk(ii,2) .eq. 11) then ! IIR
+                if (ldynkdebug) then
+                    write (lout,*) "DYNKDEBUG> Resetting IIR named '", &
+                                   trim(stringzerotrim(cexpr_dynk(funcs_dynk(ii,1)))),"'"
+                end if
+                do jj=0, funcs_dynk(ii,4)
+                    fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) = fexpr_dynk(funcs_dynk(ii,3)+jj*6+2)
+                    fexpr_dynk(funcs_dynk(ii,3)+jj*6+4) = fexpr_dynk(funcs_dynk(ii,3)+jj*6+5)
+                end do
+            end if
 
-               iexpr_dynk(funcs_dynk(ii,3)+3) = &
-     &              iexpr_dynk(funcs_dynk(ii,3) )
-               iexpr_dynk(funcs_dynk(ii,3)+4) = &
-     &              iexpr_dynk(funcs_dynk(ii,3)+1)
-               
-            else if (funcs_dynk(ii,2) .eq. 7) then !RANDU
-               if (ldynkdebug) then
-                  write (lout,*)  &
-     &               "DYNKDEBUG> Resetting RANDU for FUN named '", &
-     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
-               endif
+        end do ! END "do ii=1, nfuncs_dynk"
 
-               iexpr_dynk(funcs_dynk(ii,3)+2) = &
-     &              iexpr_dynk(funcs_dynk(ii,3) )
-               iexpr_dynk(funcs_dynk(ii,3)+3) = &
-     &              iexpr_dynk(funcs_dynk(ii,3)+1)
-
-            else if (funcs_dynk(ii,2) .eq. 8) then !RANDON
-               if (ldynkdebug) then
-                  write (lout,*)  &
-     &               "DYNKDEBUG> Resetting RANDON for FUN named '", &
-     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
-               endif
-
-               iexpr_dynk(funcs_dynk(ii,3)+2) = &
-     &              iexpr_dynk(funcs_dynk(ii,3) )
-               iexpr_dynk(funcs_dynk(ii,3)+3) = &
-     &              iexpr_dynk(funcs_dynk(ii,3)+1)
-
-            else if (funcs_dynk(ii,2) .eq. 10) then !FIR
-               if (ldynkdebug) then
-                  write (lout,*) &
-     &               "DYNKDEBUG> Resetting FIR named '", &
-     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
-               endif
-               do jj=0, funcs_dynk(ii,4)
-                  fexpr_dynk(funcs_dynk(ii,3)+jj*3+1) = &
-     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*3+2)
-               enddo
-            else if (funcs_dynk(ii,2) .eq. 11) then !IIR
-               if (ldynkdebug) then
-                  write (lout,*) &
-     &               "DYNKDEBUG> Resetting IIR named '", &
-     & trim(stringzerotrim( cexpr_dynk(funcs_dynk(ii,1)) )), "'"
-               endif
-               do jj=0, funcs_dynk(ii,4)
-                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+1) = &
-     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+2)
-                  fexpr_dynk(funcs_dynk(ii,3)+jj*6+4) = &
-     &                 fexpr_dynk(funcs_dynk(ii,3)+jj*6+5)
-               enddo
-            endif
-            
-         enddo !END "do ii=1, nfuncs_dynk"
-
-         !Open dynksets.dat
+        ! Open dynksets.dat
 +if collimat
-         if (samplenumber.eq.1) then
+        if (samplenumber.eq.1) then
 +ei
 +if cr
-         ! Could have loaded a CR just before tracking starts;
-         ! In this case, the dynksets is already open and positioned,
-         ! so don't try to open the file again.
-         if (dynkfilepos .eq.-1) then
+        ! Could have loaded a CR just before tracking starts;
+        ! In this case, the dynksets is already open and positioned,
+        ! so don't try to open the file again.
+        if (dynkfilepos .eq.-1) then
 +ei
             inquire( unit=665, opened=lopen )
             if (lopen) then
-               write(lout,*) "DYNK> **** ERROR in dynk_apply() ****"
-               write(lout,*) "DYNK> unit 665 for dynksets.dat"// &
-     &                       " was already taken"
-              call prror(-1)
+                write(lout,*) "DYNK> **** ERROR in dynk_apply() ****"
+                write(lout,*) "DYNK> unit 665 for dynksets.dat was already taken"
+                call prror(-1)
             end if
 +if boinc
             call boincrf("dynksets.dat",filename)
-            open(unit=665, file=filename, &
-     &           status="replace",action="write")
+            open(unit=665,file=filename,status="replace",action="write")
 +ei
 +if .not.boinc
-            open(unit=665, file="dynksets.dat", &
-     &           status="replace",action="write")
+            open(unit=665,file="dynksets.dat",status="replace",action="write")
 +ei
 
             if (ldynkfiledisable) then
-               write (665,*) "### DYNK file output was disabled ", &
-     &                       "with flag NOFILE in fort.3 ###"
+                write (665,*) "### DYNK file output was disabled with flag NOFILE in fort.3 ###"
             else 
-               write(665,*) &
-     &              "# turn element attribute SETidx funname value"
-            endif
+                write(665,*) "# turn element attribute SETidx funname value"
+            end if
 +if cr
-            !Note: To be able to reposition, each line should be shorter than 255 chars
+            ! Note: To be able to reposition, each line should be shorter than 255 chars
             dynkfilepos = 1
-            
+
             ! Flush the unit
             endfile (665,iostat=ierro)
             backspace (665,iostat=ierro)
 +ei
 +if cr
-         endif !END if(dynkfilepos.eq.-1)
+        end if ! END if(dynkfilepos.eq.-1)
 +ei
 +if collimat
-         endif !END if(samplenumber.eq.1)
+        end if !END if(samplenumber.eq.1)
 +ei
  
 +if collimat
-         ! Reset values to original settings in turn 1 
-         if (samplenumber.gt.1) then
+        ! Reset values to original settings in turn 1 
+        if (samplenumber.gt.1) then
             if (ldynkdebug) then
-               write (lout,*) "DYNKDEBUG> New collimat sample, ", &
-     &            "samplenumber = ", samplenumber, &
-     &                     "resetting the SET'ed values."
-            endif
+                write (lout,*) "DYNKDEBUG> New collimat sample, ", &
+                               "samplenumber = ",samplenumber,"resetting the SET'ed values."
+            end if
             do ii=1, nsets_unique_dynk
-               newValue = fsets_origvalue_dynk(ii)
-               if (ldynkdebug) then
-                  write (lout,*) "DYNKDEBUG> Resetting: '", &
-     &         trim(stringzerotrim(csets_unique_dynk(ii,1))), &
-     &         "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))), &
-     &         "', newValue=", newValue
-               endif
+                newValue = fsets_origvalue_dynk(ii)
+                if (ldynkdebug) then
+                    write (lout,*) "DYNKDEBUG> Resetting: '", &
+                                   trim(stringzerotrim(csets_unique_dynk(ii,1))), &
+                                   "':'",trim(stringzerotrim(csets_unique_dynk(ii,2))), &
+                                   "', newValue=", newValue
+                end if
 
-               call dynk_setvalue(csets_unique_dynk(ii,1), &
-     &                            csets_unique_dynk(ii,2), &
-     &                            newValue )
-            enddo
-         endif !END "if (samplenumber.gt.1) then"
-+ei !END +if collimat
-      endif ! END "if (turn .eq. 1) then"
-      
-      !Apply the sets
-      do ii=1,nsets_dynk
-         ! Sanity check already confirms that only a single SET
-         ! is active on a given element:attribute on a given turn.
-         
-         !Active in this turn?
-         if (turn .ge. sets_dynk(ii,2) .and. &
-     &       ( turn .le. sets_dynk(ii,3) .or.  &
-     &         sets_dynk(ii,3) .eq. -1       ) ) then
-            
-            !Shifting
+                call dynk_setvalue(csets_unique_dynk(ii,1),csets_unique_dynk(ii,2),newValue)
+            end do
+        end if !END "if (samplenumber.gt.1) then"
++ei ! END +if collimat
+    end if ! END "if (turn .eq. 1) then"
+
+    ! Apply the sets
+    do ii=1,nsets_dynk
+        ! Sanity check already confirms that only a single SET
+        ! is active on a given element:attribute on a given turn.
+
+        ! Active in this turn?
+        if (turn .ge. sets_dynk(ii,2) .and. (turn .le. sets_dynk(ii,3) .or. sets_dynk(ii,3) .eq. -1)) then
+
+            ! Shifting
             shiftedTurn = turn + sets_dynk(ii,4)
-            
-            !Set the value
+
+            ! Set the value
             newValue = dynk_computeFUN(sets_dynk(ii,1),shiftedTurn)
             if (ldynkdebug) then
-               write (lout, '(1x,A,I5,A,I8,A,E16.9)') &
-     &              "DYNKDEBUG> Applying set #", ii, " on '"// &
-     &           trim(stringzerotrim(csets_dynk(ii,1)))// &
-     &           "':'"// trim(stringzerotrim(csets_dynk(ii,2)))// &
-     &           "', shiftedTurn=",shiftedTurn,", value=",newValue
-            endif
-            call dynk_setvalue(csets_dynk(ii,1), &
-     &                         csets_dynk(ii,2), &
-     &                         newValue)
+                write (lout, '(1x,A,I5,A,I8,A,E16.9)') "DYNKDEBUG> Applying set #", ii, " on '"// &
+                                trim(stringzerotrim(csets_dynk(ii,1)))// &
+                                "':'"// trim(stringzerotrim(csets_dynk(ii,2)))// &
+                                "', shiftedTurn=",shiftedTurn,", value=",newValue
+            end if
+            call dynk_setvalue(csets_dynk(ii,1),csets_dynk(ii,2),newValue)
 
-            
             if (ldynkdebug) then
-               getvaldata = dynk_getvalue( csets_dynk(ii,1),  &
-     &                                     csets_dynk(ii,2) )
-               write (lout, '(1x,A,E16.9)') &
-     &              "DYNKDEBUG> Read back value = ", getvaldata
+                getvaldata = dynk_getvalue(csets_dynk(ii,1),csets_dynk(ii,2))
+                write (lout, '(1x,A,E16.9)') "DYNKDEBUG> Read back value = ", getvaldata
 
-               if (getvaldata .ne. newValue) then
-                  write(lout,*) &
-     &            "DYNKDEBUG> WARNING Read back value differs from set!"
-               end if
-            endif
-            
-            !For the output file: Which function was used?
+                if (getvaldata .ne. newValue) then
+                    write(lout,*) "DYNKDEBUG> WARNING Read back value differs from set!"
+                end if
+            end if
+
+            ! For the output file: Which function was used?
             do jj=1, nsets_unique_dynk
-               if (csets_dynk(ii,1) .eq. csets_unique_dynk(jj,1) .and. &
-     &             csets_dynk(ii,2) .eq. csets_unique_dynk(jj,2) ) then
-                  whichSET(jj)=ii
-                  whichFUN(jj)=cexpr_dynk(funcs_dynk(sets_dynk(ii,1),1))
-               endif
-            enddo
-         end if
-      end do
-      
-      !Write output file
+                if (csets_dynk(ii,1) .eq. csets_unique_dynk(jj,1) .and. &
+                    csets_dynk(ii,2) .eq. csets_unique_dynk(jj,2)) then
+                    whichSET(jj)=ii
+                    whichFUN(jj)=cexpr_dynk(funcs_dynk(sets_dynk(ii,1),1))
+                end if
+            end do
+        end if
+    end do
+
+    ! Write output file
 +if collimat
-      if (samplenumber.eq.1 .and..not.ldynkfiledisable) then
+    if (samplenumber.eq.1 .and..not.ldynkfiledisable) then
 +ei
 +if .not.collimat
-      if (.not.ldynkfiledisable) then
+    if (.not.ldynkfiledisable) then
 +ei
-         do jj=1,nsets_unique_dynk
-            getvaldata =  dynk_getvalue( csets_unique_dynk(jj,1), &
-     &                                   csets_unique_dynk(jj,2) )
-            
+        do jj=1,nsets_unique_dynk
+            getvaldata = dynk_getvalue(csets_unique_dynk(jj,1),csets_unique_dynk(jj,2))
+
             if (whichSET(jj) .eq. -1) then
-               whichFUN(jj) = "N/A"
-            endif
+                whichFUN(jj) = "N/A"
+            end if
 
-            !For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
-            !Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
-            !Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
-            write(outstring_tmp1,'(A20)') &
-     &           stringzerotrim(csets_unique_dynk(jj,1))
-            outstring_tmp1(len(outstring_tmp1)+1:) = ' ' !Pad with trailing blanks
-            write(outstring_tmp2,'(A20)') &
-     &           stringzerotrim(csets_unique_dynk(jj,2))
+            ! For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
+            ! Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
+            ! Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
+            write(outstring_tmp1,'(A20)') stringzerotrim(csets_unique_dynk(jj,1))
+            outstring_tmp1(len(outstring_tmp1)+1:) = ' ' ! Pad with trailing blanks
+            write(outstring_tmp2,'(A20)') stringzerotrim(csets_unique_dynk(jj,2))
             outstring_tmp2(len(outstring_tmp2)+1:) = ' '
-            write(outstring_tmp3,'(A20)') &
-     &           stringzerotrim(whichFUN(jj))
+            write(outstring_tmp3,'(A20)') stringzerotrim(whichFUN(jj))
             outstring_tmp3(len(outstring_tmp3)+1:) = ' '
-            
+
             write(665,'(I12,1x,A20,1x,A20,1x,I4,1x,A20,E16.9)') &
-     &           turn,  &
-     &           outstring_tmp1, &
-     &           outstring_tmp2, &
-     &           whichSET(jj), &
-     &           outstring_tmp3, &
-     &           getvaldata
-         enddo
-         
+                 turn,outstring_tmp1,outstring_tmp2,whichSET(jj),outstring_tmp3,getvaldata
+        end do
+
 +if cr
-         !Note: To be able to reposition, each line should be shorter than 255 chars
-         dynkfilepos = dynkfilepos+nsets_unique_dynk
+        ! Note: To be able to reposition, each line should be shorter than 255 chars
+        dynkfilepos = dynkfilepos+nsets_unique_dynk
 +ei
-         !Flush the unit
-         endfile (665,iostat=ierro)
-         backspace (665,iostat=ierro)
+        ! Flush the unit
+        endfile (665,iostat=ierro)
+        backspace (665,iostat=ierro)
 
-      endif
+    end if
 
-      end subroutine
-!
+end subroutine dynk_apply
+
+! ================================================================================================ !
       
       recursive double precision function  &
      &     dynk_computeFUN( funNum, turn ) result(retval)
