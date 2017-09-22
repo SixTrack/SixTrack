@@ -175,8 +175,7 @@ end subroutine dynk_allocate
 ! =================================================================================================
 !   K. Sjobak, BE-ABP-HSS
 !   Last modified: 30-10-2014
-!   - Parse FUN lines in the fort.3 input file, 
-!   - Store it in COMMON block dynkComExpr.
+!   Parse FUN lines in the fort.3 input file.
 ! =================================================================================================
 subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
@@ -1748,8 +1747,7 @@ end subroutine dynk_checkspace
 ! ================================================================================================ !
 !  K. Sjobak, BE-ABP/HSS
 !  Last modified: 15-10-2014
-!  - Parse SET lines in the fort.3 input file, 
-!  - Store it in COMMON block dynkComExpr.
+!  - Parse SET lines in the fort.3 input file.
 ! ================================================================================================ !
 subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
 
@@ -2959,8 +2957,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
                 (abs(el_type).eq.3).or. & ! sextupole kick
                 (abs(el_type).eq.4).or. & ! octupole kick
                 (abs(el_type).eq.5).or. & ! decapole kick
-                (abs(el_type).eq.7).or. & ! 14th pole kick
                 (abs(el_type).eq.6).or. & ! dodecapole kick
+                (abs(el_type).eq.7).or. & ! 14th pole kick
                 (abs(el_type).eq.8).or. & ! 16th pole kick
                 (abs(el_type).eq.9).or. & ! 18th pole kick
                 (abs(el_type).eq.10)) then ! 20th pole kick
