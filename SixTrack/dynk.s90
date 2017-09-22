@@ -15,8 +15,6 @@ module dynk
 +ca comgetfields
 +ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
 
-!+cd   comdynk
-
     ! A.Mereghetti, for the FLUKA Team,
     ! K.Sjobak, A. Santamaria, V.K. Berglyd Olsen BE-ABP-HSS
     ! last modified: 30/10-2014
@@ -29,12 +27,18 @@ module dynk
     ! Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
     ! and comgetfields (for getfields_l_max_string)
 
-    ! General-purpose variables
+! ================================================================================================ !
+! General-purpose variables
+! ================================================================================================ !
+
     logical ldynk            ! dynamic kick requested, i.e. DYNK input bloc issued in the fort.3 file
     logical ldynkdebug       ! print debug messages in main output
     logical ldynkfiledisable ! Disable writing dynksets.dat?
 
-    ! Store the FUN statements
+! ================================================================================================ !
+! Store the FUN statements
+! ================================================================================================ !
+
     integer maxfuncs_dynk, maxdata_dynk, maxstrlen_dynk
     parameter (maxfuncs_dynk=100,maxdata_dynk=50000,maxstrlen_dynk=stringzerotrim_maxlen)
 
@@ -49,9 +53,13 @@ module dynk
     double precision,          allocatable :: fexpr_dynk (:)
     character(maxstrlen_dynk), allocatable :: cexpr_dynk (:)
 
-    integer nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk !Number of used positions in arrays
+    !Number of used positions in arrays
+    integer nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
 
-    ! Store the SET statements
+! ================================================================================================ !
+! Store the SET statements
+! ================================================================================================ !
+
     integer maxsets_dynk
     parameter (maxsets_dynk=200)
 
@@ -67,7 +75,8 @@ module dynk
     ! (2) attribute name
     character(maxstrlen_dynk) csets_dynk (maxsets_dynk,2)
 
-    integer nsets_dynk ! Number of used positions in arrays
+    ! Number of used positions in arrays
+    integer nsets_dynk
 
     ! Similar to csets_dynk, but only one entry per elem/attr
     character(maxstrlen_dynk) csets_unique_dynk (maxsets_dynk,2) 
@@ -85,16 +94,18 @@ module dynk
     dimension dynk_izuIndex(nele)
     double precision dynk_elemdata(nele,3)
 
-    ! fortran COMMON declaration follows padding requirements
-    ! common /dynkComGen/ ldynk, ldynkdebug, ldynkfiledisable
-    ! common /dynkComExpr/ funcs_dynk,iexpr_dynk, fexpr_dynk, cexpr_dynk,nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
-    ! common /dynkComSet/ sets_dynk, csets_dynk, nsets_dynk
-    ! common /dynkComUniqueSet/ csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-    ! common /dynkComReinitialize/ dynk_izuIndex, dynk_elemdata
+! ================================================================================================ !
+    
+    save ldynk, ldynkdebug, ldynkfiledisable
+    save funcs_dynk, iexpr_dynk, fexpr_dynk, cexpr_dynk, nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
+    save sets_dynk, csets_dynk, nsets_dynk
+    save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
+    save dynk_izuIndex, dynk_elemdata
 
 +if cr
-!+cd comdynkcr
-    ! Block with data/fields needed for checkpoint/restart of DYNK
+! ================================================================================================ !
+! Block with data/fields needed for checkpoint/restart of DYNK
+! ================================================================================================ !
 
     ! Number of records written to dynkfile (dynksets.dat)
     integer dynkfilepos, dynkfilepos_cr
@@ -110,17 +121,6 @@ module dynk
     ! Store current settings from dynk
     double precision fsets_dynk_cr(maxsets_dynk)
 
-    ! common /dynkComCR/ dynkfilepos,dynkfilepos_cr
-    ! common /dynkComExprCR/ iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr, niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
-    ! common /dynkComUniqueSetCR/ fsets_dynk_cr
-+ei
-
-    save ldynk, ldynkdebug, ldynkfiledisable
-    save funcs_dynk, iexpr_dynk, fexpr_dynk, cexpr_dynk, nfuncs_dynk, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
-    save sets_dynk, csets_dynk, nsets_dynk
-    save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-    save dynk_izuIndex, dynk_elemdata
-+if cr
     save dynkfilepos,dynkfilepos_cr
     save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr, niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
     save fsets_dynk_cr
