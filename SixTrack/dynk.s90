@@ -3281,131 +3281,123 @@ double precision function dynk_getvalue(element_name, att_name)
 end function dynk_getvalue
 
 ! ================================================================================================ !
-      
-      double precision function dynk_lininterp(x,xvals,yvals,datalen)
-      implicit none
-!-----------------------------------------------------------------------
+!  A.Mereghetti, for the FLUKA Team and K.Sjobak for BE-ABP/HSS
+!  Last modified: 29-10-2014
 !
-!     A.Mereghetti, for the FLUKA Team and K.Sjobak for BE-ABP/HSS
-!     last modified: 29-10-2014
-!     
-!     Define a linear function with a set of x,y-coordinates xvals, yvals
-!     Return this function evaluated at the point x.
-!     The length of the arrays xvals and yvals should be given in datalen.
+!  - Define a linear function with a set of x,y-coordinates xvals, yvals
+!  - Return this function evaluated at the point x.
+!  - The length of the arrays xvals and yvals should be given in datalen.
 !
-!     xvals should be in increasing order, if not then program is aborted.
-!     If x < min(xvals) or x>max(xvals), program is aborted.
-!     If datalen <= 0, program is aborted. 
-!     
-!-----------------------------------------------------------------------
+!  - xvals should be in increasing order, if not then program is aborted.
+!  - If x < min(xvals) or x>max(xvals), program is aborted.
+!  - If datalen <= 0, program is aborted. 
+! ================================================================================================ !
+double precision function dynk_lininterp(x,xvals,yvals,datalen)
+
+    implicit none
 
 +ca crcoall
 
-      double precision x, xvals(*),yvals(*)
-      integer datalen
-      intent(in) x,xvals,yvals,datalen
-      
-      integer ii
-      double precision dydx, y0
-      
-      !Sanity checks
-      if (datalen .le. 0) then
-         write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
-         write(lout,*) "DYNK> datalen was 0!"
+    double precision x, xvals(*),yvals(*)
+    integer datalen
+    intent(in) x,xvals,yvals,datalen
 
-         call prror(-1)
-      endif
-      if ( x .lt. xvals(1) .or. x .gt. xvals(datalen) ) then
-         write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
-         write(lout,*) "x =",x, "outside range", xvals(1),xvals(datalen)
-         call prror(-1)
-      endif
+    integer ii
+    double precision dydx, y0
 
-      !Find the right indexes i1 and i2
-      ! Special case: first value at first point
-      if (x .eq. xvals(1)) then
-         dynk_lininterp = yvals(1)
-         return
-      endif
-      
-      do ii=1, datalen-1
-         if (xvals(ii) .ge. xvals(ii+1)) then
+    ! Sanity checks
+    if (datalen .le. 0) then
+        write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
+        write(lout,*) "DYNK> datalen was 0!"
+        call prror(-1)
+    end if
+    if (x .lt. xvals(1) .or. x .gt. xvals(datalen)) then
+        write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
+        write(lout,*) "x =",x, "outside range", xvals(1),xvals(datalen)
+        call prror(-1)
+    end if
+
+    ! Find the right indexes i1 and i2
+    ! Special case: first value at first point
+    if (x .eq. xvals(1)) then
+        dynk_lininterp = yvals(1)
+        return
+    end if
+
+    do ii=1, datalen-1
+        if (xvals(ii) .ge. xvals(ii+1)) then
             write (lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
             write (lout,*) "DYNK> xvals should be in increasing order"
             write (lout,*) "DYNK> xvals =", xvals(:datalen)
             call prror(-1)
-         endif
-         
-         if (x .le. xvals(ii+1)) then
-            ! we're in the right interval
+        end if
+
+        if (x .le. xvals(ii+1)) then
+            ! We're in the right interval
             dydx = (yvals(ii+1)-yvals(ii)) / (xvals(ii+1)-xvals(ii))
             y0   = yvals(ii) - dydx*xvals(ii)
             dynk_lininterp = dydx*x + y0
             return
-         endif
-      enddo
-      
-      !We didn't return yet: Something wrong
-      write (lout,*) "DYNK> ****ERROR in dynk_lininterp() ****"
-      write (lout,*) "DYNK> Reached the end of the function"
-      write (lout,*) "DYNK> This should not happen, "// &
-     &               "please contact developers"
-      call prror(-1)
+        end if
+    end do
 
-      end function
+    ! We didn't return yet: Something wrong
+    write (lout,*) "DYNK> ****ERROR in dynk_lininterp() ****"
+    write (lout,*) "DYNK> Reached the end of the function"
+    write (lout,*) "DYNK> This should not happen, please contact developers"
+    call prror(-1)
 
-      logical function dynk_isused(i)
-!
-!-----------------------------------------------------------------------
-!     K. Sjobak, ABP-HSS, 23-01-2015
-!     Indicates whether a structure element is in use by DYNK
-!-----------------------------------------------------------------------
-      
-      implicit none
+end function dynk_lininterp
+
+! ================================================================================================ !
+!  K. Sjobak, ABP-HSS, 
+!  Last modified: 23-01-2015
+!  - Indicates whether a structure element is in use by DYNK
+! ================================================================================================ !
+logical function dynk_isused(i)
+
+    implicit none
 
 +ca common
 +ca comgetfields
 +ca stringzerotrim
 +ca crcoall
 
-      integer, intent(in) :: i
-      integer ix,k
-      character(maxstrlen_dynk) element_name_stripped
+    integer, intent(in) :: i
+    integer ix,k
+    character(maxstrlen_dynk) element_name_stripped
 
-      !Sanity check
-      if (i .gt. iu .or. i .le. 0) then
-         write (lout,*) &
-     &        "Error in dynk_isused(): i=",i,"out of range"
-         call prror(-1)
-      endif
-      ix = ic(i)-nblo
-      if (i .le. 0) then
-         write (lout,*) &
-     &        "Error in dynk_isused(): ix-nblo=",ix,"is a block?"
-         call prror(-1)
-      endif
-      
-      do k=1,nsets_dynk
-         element_name_stripped = &
-     &        trim(stringzerotrim(csets_dynk(k,1)))
-         if (bez(ix) .eq. element_name_stripped) then
+    ! Sanity check
+    if (i .gt. iu .or. i .le. 0) then
+        write (lout,*) "Error in dynk_isused(): i=",i,"out of range"
+        call prror(-1)
+    end if
+    ix = ic(i)-nblo
+    if (i .le. 0) then
+        write (lout,*) "Error in dynk_isused(): ix-nblo=",ix,"is a block?"
+        call prror(-1)
+    end if
+
+    do k=1,nsets_dynk
+        element_name_stripped = trim(stringzerotrim(csets_dynk(k,1)))
+        if (bez(ix) .eq. element_name_stripped) then
             dynk_isused = .true.
-            if (ldynkdebug) &
-     &         write(lout,*) &
-     &         "DYNKDEBUG> dynk_isused = TRUE, bez='"//bez(ix)// &
-     &         "', element_name_stripped='"//element_name_stripped//"'"
+            if (ldynkdebug) then
+                write(lout,*) "DYNKDEBUG> dynk_isused = TRUE, bez='"//bez(ix)// &
+                              "', element_name_stripped='"//element_name_stripped//"'"
+            end if
             return
-         endif
-      end do
-      
-      if (ldynkdebug) then
-         write(lout,*) &
-     &      "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
-      endif
+        end if
+    end do
 
-      dynk_isused = .false.
-      return
-      
-      end function
+    if (ldynkdebug) then
+        write(lout,*) "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
+    end if
 
-      end module dynk
+    dynk_isused = .false.
+    return
+
+end function dynk_isused
+
+! ================================================================================================ !
+end module dynk
