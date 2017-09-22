@@ -2877,15 +2877,14 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
 end function dynk_computeFUN
 
 ! ================================================================================================ !
-      
-      subroutine dynk_setvalue(element_name, att_name, newValue)
-!-----------------------------------------------------------------------
-!     A.Santamaria & K.Sjobak, BE-ABP/HSS
-!     last modified: 31-10-2014
-!     Set the value of the element's attribute
-!-----------------------------------------------------------------------
-      use scatter, only : scatter_ELEM_scale, scatter_elemPointer
-      implicit none
+!  A.Santamaria & K.Sjobak, BE-ABP/HSS
+!  Last modified: 31-10-2014
+!  - Set the value of the element's attribute
+! ================================================================================================ !
+subroutine dynk_setvalue(element_name, att_name, newValue)
+
+    use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+    implicit none
 
 +ca parnum
 +ca common
@@ -2896,196 +2895,202 @@ end function dynk_computeFUN
 +ca stringzerotrim
 +ca elensparam
 +ca crcoall
-      
-      character(maxstrlen_dynk) element_name, att_name
-      double precision newValue
-      intent (in) element_name, att_name, newValue
-      !Functions
-      ! temp variables
-      integer el_type, ii, j
-      character(maxstrlen_dynk) element_name_stripped
-      character(maxstrlen_dynk) att_name_stripped
-      ! For sanity check
-      logical ldoubleElement
-      ldoubleElement = .false.
-      
-      element_name_stripped = trim(stringzerotrim(element_name))
-      att_name_stripped = trim(stringzerotrim(att_name))
 
-      if ( ldynkdebug ) then
-         write (lout, '(1x,A,E16.9)') &
-     &        "DYNKDEBUG> In dynk_setvalue(), element_name = '"// &
-     &        trim(element_name_stripped)//"', att_name = '"// &
-     &        trim(att_name_stripped)//"', newValue =", newValue
-      endif
-      
-!     Here comes the logic for setting the value of the attribute for all instances of the element...
+    character(maxstrlen_dynk) element_name, att_name
+    double precision newValue
+    intent (in) element_name, att_name, newValue
 
-      ! Special non-physical elements
-      if (element_name_stripped .eq. "GLOBAL-VARS") then
-         if (att_name_stripped .eq. "E0" ) then
+    ! Temp variables
+    integer el_type, ii, j
+    character(maxstrlen_dynk) element_name_stripped
+    character(maxstrlen_dynk) att_name_stripped
+
+    ! For sanity check
+    logical ldoubleElement
+    ldoubleElement = .false.
+
+    element_name_stripped = trim(stringzerotrim(element_name))
+    att_name_stripped = trim(stringzerotrim(att_name))
+
+    if (ldynkdebug) then
+        write (lout, '(1x,A,E16.9)') "DYNKDEBUG> In dynk_setvalue(), element_name = '"// &
+                                     trim(element_name_stripped)//"', att_name = '"// &
+                                     trim(att_name_stripped)//"', newValue =", newValue
+    end if
+
+    ! Here comes the logic for setting the value of the attribute for all instances of the element.
+
+    ! Special non-physical elements
+    if (element_name_stripped .eq. "GLOBAL-VARS") then
+        if (att_name_stripped .eq. "E0" ) then
             ! Modify the reference particle
-            e0 = newValue
-            e0f = sqrt(e0**2 - pma**2)
+            e0     = newValue
+            e0f    = sqrt(e0**2 - pma**2)
             gammar = pma/e0
+
             ! Modify the Energy
             do j = 1, napx
-              dpsv(j) = (ejfv(j) - e0f)/e0f
-              dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
-              dpd(j) = one + dpsv(j)
-              dpsq(j) = sqrt(dpd(j))
-              oidpsv(j) = one/(one + dpsv(j))
-              rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
-            enddo
-         endif
-         ldoubleElement = .true.
-      endif
-      
-      ! Normal SINGLE ELEMENTs
-      do ii=1,il
-         ! TODO: Here one could find the right ii in dynk_pretrack,
-         ! and then avoid this loop / string-comparison
-         if (element_name_stripped.eq.bez(ii)) then ! name found
+                dpsv(j) = (ejfv(j) - e0f)/e0f
+                dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
+                dpd(j) = one + dpsv(j)
+                dpsq(j) = sqrt(dpd(j))
+                oidpsv(j) = one/(one + dpsv(j))
+                rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
+            end do
+        end if
+        ldoubleElement = .true.
+    end if
+
+    ! Normal SINGLE ELEMENTs
+    do ii=1,il
+        ! TODO: Here one could find the right ii in dynk_pretrack,
+        ! and then avoid this loop / string-comparison
+        if (element_name_stripped.eq.bez(ii)) then ! name found
             el_type=kz(ii)      ! type found
-            
+
             if (ldoubleElement) then ! Sanity check
-               write(lout,*) &
-     &            "DYNK> ERROR: two elements with the same BEZ?"
-               call prror(-1)
+                write(lout,*) "DYNK> ERROR: two elements with the same BEZ?"
+                call prror(-1)
             end if
             ldoubleElement = .true.
-          
+
             if ((abs(el_type).eq.1).or. & ! horizontal bending kick
-     &          (abs(el_type).eq.2).or. & ! quadrupole kick
-     &          (abs(el_type).eq.3).or. & ! sextupole kick
-     &          (abs(el_type).eq.4).or. & ! octupole kick
-     &          (abs(el_type).eq.5).or. & ! decapole kick
-     &          (abs(el_type).eq.7).or. & ! 14th pole kick
-     &          (abs(el_type).eq.6).or. & ! dodecapole kick
-     &          (abs(el_type).eq.8).or. & ! 16th pole kick
-     &          (abs(el_type).eq.9).or. & ! 18th pole kick
-     &          (abs(el_type).eq.10)) then ! 20th pole kick
-               
-               if (att_name_stripped.eq."average_ms") then !
-                  ed(ii) = newValue
-               else
-                  goto 100 !ERROR
-               endif
-               call initialize_element(ii, .false.)
-               
-          !Not yet supported
-!$$$            elseif (abs(el_type).eq.11) then !MULTIPOLES
-!$$$               if (att_name_stripped.eq."bending_str") then
-!$$$                  ed(ii) = newValue
-!$$$               else
-!$$$                  goto 100 !ERROR
-!$$$               endif
-!$$$               call initialize_element(ii, .false.)
+                (abs(el_type).eq.2).or. & ! quadrupole kick
+                (abs(el_type).eq.3).or. & ! sextupole kick
+                (abs(el_type).eq.4).or. & ! octupole kick
+                (abs(el_type).eq.5).or. & ! decapole kick
+                (abs(el_type).eq.7).or. & ! 14th pole kick
+                (abs(el_type).eq.6).or. & ! dodecapole kick
+                (abs(el_type).eq.8).or. & ! 16th pole kick
+                (abs(el_type).eq.9).or. & ! 18th pole kick
+                (abs(el_type).eq.10)) then ! 20th pole kick
 
+                if (att_name_stripped.eq."average_ms") then !
+                    ed(ii) = newValue
+                else
+                    goto 100 ! ERROR
+                end if
+                call initialize_element(ii, .false.)
 
-          elseif (abs(el_type).eq.12) then ! cavities 
-            if (att_name_stripped.eq."voltage") then ! [MV]
-               ed(ii) = newValue
-            elseif (att_name_stripped.eq."harmonic") then !
-               ek(ii) = newValue
-               el(ii) = dynk_elemdata(ii,3) !Need to reset el before calling initialize_element()
-               call initialize_element(ii, .false.)
-            elseif (att_name_stripped.eq."lag_angle") then ! [deg]
-               el(ii) = newValue
-               ! Note: el is set to 0 in initialize_element and in daten.
-               !  Calling initialize element on a cavity without setting el
-               !  will set phasc = 0!
-               call initialize_element(ii, .false.)
-            else
-               goto 100 !ERROR
-            endif
+            ! Not yet supported
+            ! else if (abs(el_type).eq.11) then ! MULTIPOLES
+            !     if (att_name_stripped.eq."bending_str") then
+            !         ed(ii) = newValue
+            !     else
+            !         goto 100 ! ERROR
+            !     end if
+            !     call initialize_element(ii, .false.)
+
+            ! Cavities 
+            else if (abs(el_type).eq.12) then 
+                if (att_name_stripped.eq."voltage") then ! [MV]
+                    ed(ii) = newValue
+                else if (att_name_stripped.eq."harmonic") then !
+                    ek(ii) = newValue
+                    el(ii) = dynk_elemdata(ii,3) ! Need to reset el before calling initialize_element()
+                    call initialize_element(ii, .false.)
+                else if (att_name_stripped.eq."lag_angle") then ! [deg]
+                    el(ii) = newValue
+                    ! Note: el is set to 0 in initialize_element and in daten.
+                    ! Calling initialize element on a cavity without setting el
+                    ! will set phasc = 0!
+                    call initialize_element(ii, .false.)
+                else
+                    goto 100 ! ERROR
+                end if
+
+            ! Not yet supported
+            ! AC dipole
+            ! else if (abs(el_type).eq.16) then 
+            !     if (att_name_stripped.eq."amplitude") then ! [T.m]
+            !         ed(ii) = dynk_computeFUN(funNum,turn)
+            !     else if (att_name_stripped.eq."frequency") then ! [2pi]
+            !         ek(ii) = dynk_computeFUN(funNum,turn)
+            !     else if (att_name_stripped.eq."phase") then ! [rad]
+            !         el(ii) = dynk_computeFUN(funNum,turn)
+            !     else
+            !         goto 100 ! ERROR
+            !     end if
+
+            ! Not yet supported
+            ! beam-beam separation
+            ! else if (abs(el_type).eq.20) then 
+            !     if (att_name_stripped.eq."horizontal") then ! [mm]
+            !         ed(ii) = dynk_computeFUN(funNum,turn)
+            !     else if (att_name_stripped.eq."vertical") then ! [mm]
+            !         ek(ii) = dynk_computeFUN(funNum,turn)
+            !     else if (att_name_stripped.eq."strength") then ! [m]
+            !         el(ii) = dynk_computeFUN(funNum,turn)
+            !     else
+            !         goto 100 ! ERROR
+            !     end if
             
-          !Not yet supported
-!$$$          elseif (abs(el_type).eq.16) then ! AC dipole 
-!$$$            if (att_name_stripped.eq."amplitude") then ! [T.m]
-!$$$               ed(ii) = dynk_computeFUN(funNum,turn)
-!$$$            elseif (att_name_stripped.eq."frequency") then ! [2pi]
-!$$$               ek(ii) = dynk_computeFUN(funNum,turn)
-!$$$            elseif (att_name_stripped.eq."phase") then ! [rad]
-!$$$               el(ii) = dynk_computeFUN(funNum,turn)
-!$$$            else
-!$$$               goto 100 !ERROR
-!$$$            endif
+            else if ((abs(el_type).eq.23).or. &  ! crab cavity
+                     (abs(el_type).eq.26).or. &  ! cc mult. kick order 2
+                     (abs(el_type).eq.27).or. &  ! cc mult. kick order 3
+                     (abs(el_type).eq.28)) then  ! cc mult. kick order 4
+                if (att_name_stripped.eq."voltage") then ! [MV]
+                    ed(ii) = newValue
+                else if (att_name_stripped.eq."frequency") then ! [MHz]
+                    ek(ii) = newValue
+                else if (att_name_stripped.eq."phase") then ! [rad]
+                    ! Note: el is set to 0 in initialize_element and in daten.
+                    ! Calling initialize element on a crab without setting el
+                    ! will set crabph = 0!
+                    el(ii) = newValue 
+                    call initialize_element(ii, .false.)
+                else
+                    goto 100 ! ERROR
+                end if
 
-          !Not yet supported
-!$$$          elseif (abs(el_type).eq.20) then ! beam-beam separation
-!$$$            if (att_name_stripped.eq."horizontal") then ! [mm]
-!$$$               ed(ii) = dynk_computeFUN(funNum,turn)
-!$$$            elseif (att_name_stripped.eq."vertical") then ! [mm]
-!$$$               ek(ii) = dynk_computeFUN(funNum,turn)
-!$$$            elseif (att_name_stripped.eq."strength") then ! [m]
-!$$$               el(ii) = dynk_computeFUN(funNum,turn)
-!$$$            else
-!$$$               goto 100 !ERROR
-!$$$            endif
-            
-            elseif ((abs(el_type).eq.23).or. &    ! crab cavity
-     &              (abs(el_type).eq.26).or. &    ! cc mult. kick order 2
-     &              (abs(el_type).eq.27).or. &    ! cc mult. kick order 3
-     &              (abs(el_type).eq.28)) then  ! cc mult. kick order 4
-               if (att_name_stripped.eq."voltage") then ![MV]
-                  ed(ii) = newValue
-               elseif (att_name_stripped.eq."frequency") then ![MHz]
-                  ek(ii) = newValue
-               elseif (att_name_stripped.eq."phase") then ![rad]
-                  el(ii) = newValue ! Note: el is set to 0 in initialize_element and in daten.
-                                    ! Calling initialize element on a crab without setting el
-                                    ! will set crabph = 0!
-                  call initialize_element(ii, .false.)
-               else
-                  goto 100 !ERROR
-               endif
-               
-            elseif (el_type.eq.29) then          ! Electron lens
-               if (att_name_stripped.eq."thetamax") then ![mrad]
-                  elens_theta_max(ii) = newValue
-               else
-                  goto 100 !ERROR
-               endif
+            ! Electron lens
+            else if (el_type.eq.29) then
+                if (att_name_stripped.eq."thetamax") then ! [mrad]
+                    elens_theta_max(ii) = newValue
+                else
+                    goto 100 ! ERROR
+                end if
 
-            elseif (el_type.eq.40) then          ! Scatter
-               if(att_name_stripped.eq."scaling") then
-                  scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
-               else
-                  goto 100 !ERROR
-               endif
-               
+            ! Scatter
+            else if (el_type.eq.40) then
+                if(att_name_stripped.eq."scaling") then
+                    scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
+                else
+                    goto 100 ! ERROR
+                end if
+
             else
-               WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
-               write (lout,*) "DYNK> Unsupported element type", el_type
-               write (lout,*) "DYNK> element name = '", &
-     &              element_name_stripped,"'"
-               call prror(-1)
-            endif
-         endif
-      enddo
-      
-      !Sanity check
-      if (.not.ldoubleElement) then
-         goto 101
-      endif
+                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
+                write (lout,*) "DYNK> Unsupported element type", el_type
+                write (lout,*) "DYNK> element name = '",element_name_stripped,"'"
+                call prror(-1)
+            end if
+        end if
+    end do
 
-      return
-      
-      !Error handlers
- 100  continue
-      WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (lout,*)"DYNK> Attribute'", att_name_stripped, &
-     &     "' does not exist for type =", el_type
-      call prror(-1)
+    ! Sanity check
+    if (.not.ldoubleElement) then
+        goto 101
+    end if
 
- 101  continue
-      WRITE (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
-      WRITE (lout,*)"DYNK> The element named '",element_name_stripped, &
-     &     "' was not found."
-      call prror(-1)
+    return
       
-      end subroutine
+    ! Error handlers
+100 continue
+        write (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
+        write (lout,*)"DYNK> Attribute'", att_name_stripped, &
+                      "' does not exist for type =", el_type
+        call prror(-1)
+
+101 continue
+        write (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
+        write (lout,*)"DYNK> The element named '",element_name_stripped, &
+                             "' was not found."
+        call prror(-1)
+
+end subroutine dynk_setvalue
+
+! ================================================================================================ !
 
       double precision function dynk_getvalue (element_name, att_name)
 !-----------------------------------------------------------------------
