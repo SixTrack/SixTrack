@@ -3091,19 +3091,18 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 end subroutine dynk_setvalue
 
 ! ================================================================================================ !
-
-      double precision function dynk_getvalue (element_name, att_name)
-!-----------------------------------------------------------------------
-!     A.Santamaria & K. Sjobak, BE-ABP/HSS
-!     last modified: 2101-2015
+!  A.Santamaria & K. Sjobak, BE-ABP/HSS
+!  Last modified: 2101-2015
+!  - Returns the original value currently set by an element.
 !
-!     Returns the original value currently set by an element.
-!     
-!     Note: Expects that arguments element_name and att_name are
-!     zero-terminated strings of length maxstrlen_dynk!
-!-----------------------------------------------------------------------
-      use scatter, only : scatter_ELEM_scale, scatter_elemPointer
-      implicit none
+!  Note: Expects that arguments element_name and att_name are zero-terminated strings of
+!        length maxstrlen_dynk!
+! ================================================================================================ !
+double precision function dynk_getvalue(element_name, att_name)
+
+    use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+    implicit none
+
 +ca parnum
 +ca common
 +ca commonmn
@@ -3113,173 +3112,175 @@ end subroutine dynk_setvalue
 
 +ca elensparam
 +ca crcoall
-      
-      character(maxstrlen_dynk) element_name, att_name
-      intent(in) element_name, att_name
-      
-      integer el_type, ii
-      character(maxstrlen_dynk) element_name_s, att_name_s
-      
-      logical ldoubleElement
-      ldoubleElement = .false.  ! For sanity check
-      
-      element_name_s = trim(stringzerotrim(element_name))
-      att_name_s = trim(stringzerotrim(att_name))
-      
-      if (ldynkdebug) then
-         write(lout,*) &
-     &   "DYNKDEBUG> In dynk_getvalue(), element_name = '"// &
-     &    trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
-      end if
 
-      ! Special non-physical elements
-      if (element_name_s .eq. "GLOBAL-VARS") then
-         if (att_name_s .eq. "E0" ) then
+    character(maxstrlen_dynk) element_name, att_name
+    intent(in) element_name, att_name
+
+    integer el_type, ii
+    character(maxstrlen_dynk) element_name_s, att_name_s
+
+    logical ldoubleElement
+    ldoubleElement = .false.  ! For sanity check
+
+    element_name_s = trim(stringzerotrim(element_name))
+    att_name_s = trim(stringzerotrim(att_name))
+
+    if (ldynkdebug) then
+        write(lout,*) "DYNKDEBUG> In dynk_getvalue(), element_name = '"// &
+                      trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
+    end if
+
+    ! Special non-physical elements
+    if (element_name_s .eq. "GLOBAL-VARS") then
+        if (att_name_s .eq. "E0" ) then
             ! Return the energy
             dynk_getvalue = e0
-         endif
-         ldoubleElement = .true.
-      endif
-      
-      ! Normal SINGLE ELEMENTs
-      do ii=1,il
-         ! TODO: Here one could find the right ii in dynk_pretrack,
-         ! and then avoid this loop / string-comparison
-         if (element_name_s.eq.bez(ii)) then ! name found
+        end if
+        ldoubleElement = .true.
+    end if
+
+    ! Normal SINGLE ELEMENTs
+    do ii=1,il
+        ! TODO: Here one could find the right ii in dynk_pretrack,
+        ! and then avoid this loop / string-comparison
+        if (element_name_s.eq.bez(ii)) then ! name found
             el_type=kz(ii)
             if (ldoubleElement) then
-               write (lout,*) &
-     &              "DYNK> ERROR: two elements with the same BEZ"
+               write (lout,*) "DYNK> ERROR: two elements with the same BEZ"
                call prror(-1)
             end if
             ldoubleElement = .true.
-            
+
             ! Nonlinear elements
             if ((abs(el_type).eq.1).or. &
-     &          (abs(el_type).eq.2).or. &
-     &          (abs(el_type).eq.3).or. &
-     &          (abs(el_type).eq.4).or. &
-     &          (abs(el_type).eq.5).or. &
-     &          (abs(el_type).eq.6).or. &
-     &          (abs(el_type).eq.7).or. &
-     &          (abs(el_type).eq.8).or. &
-     &          (abs(el_type).eq.9).or. &
-     &          (abs(el_type).eq.10)) then
-               if (att_name_s.eq."average_ms") then
-                  dynk_getvalue = ed(ii)
-               else
-                  goto 100 !ERROR
-               endif
-               
-!$$$            !Multipoles (Not yet supported)
-!$$$            elseif (abs(el_type).eq.11) then
-!$$$               if (att_name_s.eq."bending_str") then 
-!$$$                  dynk_getvalue = dynk_elemdata(ii,2)
-!$$$               elseif (att_name_s.eq."radius") then
-!$$$                  dynk_getvalue = dynk_elemdata(ii,3)
-!$$$               else
-!$$$                  goto 100 !ERROR
-!$$$               endif
-               
+                (abs(el_type).eq.2).or. &
+                (abs(el_type).eq.3).or. &
+                (abs(el_type).eq.4).or. &
+                (abs(el_type).eq.5).or. &
+                (abs(el_type).eq.6).or. &
+                (abs(el_type).eq.7).or. &
+                (abs(el_type).eq.8).or. &
+                (abs(el_type).eq.9).or. &
+                (abs(el_type).eq.10)) then
+                if (att_name_s.eq."average_ms") then
+                    dynk_getvalue = ed(ii)
+                else
+                    goto 100 ! ERROR
+                end if
 
-            elseif (abs(el_type).eq.12) then ! cavities
-               if     (att_name_s.eq."voltage"  ) then ! MV
-                  dynk_getvalue = ed(ii)
-               elseif (att_name_s.eq."harmonic" ) then ! harmonic number
-                  dynk_getvalue = ek(ii)
-               elseif (att_name_s.eq."lag_angle") then ! [deg]
-                  dynk_getvalue = dynk_elemdata(ii,3)
-               else
-                  goto 100 !ERROR
-               endif
-             
-            !Not yet supported
-!$$$            elseif (abs(el_type).eq.16) then ! AC dipole 
-!$$$               if (att_name_s.eq."amplitude") then ! [T.m]
-!$$$                  nretdata = nretdata+1
-!$$$                  retdata(nretdata) = ed(ii)                
-!$$$               elseif (att_name_s.eq."frequency") then !  [2pi]
-!$$$                  nretdata = nretdata+1
-!$$$                  retdata(nretdata) = ek(ii)                
-!$$$               elseif (att_name_s.eq."phase") then !  [rad]
-!$$$                  nretdata = nretdata+1
-!$$$                  retdata(nretdata) = el(ii)      
-!$$$               else
-!$$$                  goto 100 !ERROR
-!$$$               endif
-               
-            !Not yet supported
-!$$$            elseif (abs(el_type).eq.20) then ! beam-beam separation
-!$$$               if (att_name_s.eq."horizontal") then ! [mm]
-!$$$                  nretdata = nretdata+1
-!$$$                  retdata(nretdata) = ed(ii)                
-!$$$               elseif (att_name_s.eq."vertical") then ! [mm]
-!$$$                  nretdata = nretdata+1
-!$$$                  retdata(nretdata) = ek(ii)                
-!$$$               elseif (att_name_s.eq."strength") then ! [m]
-!$$$                  nretdata = nretdata+1
-!$$$                  retdata(nretdata) = el(ii)       
-!$$$               else
-!$$$                  goto 100 !ERROR
-!$$$               endif
-               
-            elseif ((abs(el_type).eq.23).or. & ! crab cavity
-     &              (abs(el_type).eq.26).or. & ! cc mult. kick order 2
-     &              (abs(el_type).eq.27).or. & ! cc mult. kick order 3
-     &              (abs(el_type).eq.28)) then ! cc mult. kick order 4
-               if (att_name_s.eq."voltage") then ![MV]
-                  dynk_getvalue = ed(ii)
-               elseif (att_name_s.eq."frequency") then ![MHz]
-                  dynk_getvalue = ek(ii)
-               elseif (att_name_s.eq."phase") then ![rad]
-                  if (abs(el_type).eq.23) then
-                     dynk_getvalue = crabph(ii)
-                  elseif (abs(el_type).eq.26) then
-                     dynk_getvalue = crabph2(ii)
-                  elseif (abs(el_type).eq.27) then
-                     dynk_getvalue = crabph3(ii)
-                  elseif (abs(el_type).eq.28) then
-                     dynk_getvalue = crabph4(ii)
-                  endif
-               else
-                  goto 100 !ERROR
-               endif
-               
-            elseif (el_type.eq.29) then     ! Electron lens
-               if(att_name_s.eq."thetamax") then ! [mrad]
-                  dynk_getvalue = elens_theta_max(ii)
-               else
-                  goto 100 !ERROR
-               endif
+            ! Multipoles (Not yet supported)
+            ! else if (abs(el_type).eq.11) then
+            !     if (att_name_s.eq."bending_str") then 
+            !         dynk_getvalue = dynk_elemdata(ii,2)
+            !     elseif (att_name_s.eq."radius") then
+            !         dynk_getvalue = dynk_elemdata(ii,3)
+            !     else
+            !         goto 100 ! ERROR
+            !     end if
 
-            elseif (el_type.eq.40) then ! Scatter
-               if(att_name_s.eq."scaling") then
-                  dynk_getvalue = &
-     &                 scatter_ELEM_scale(scatter_elemPointer(ii))
-               else
-                  goto 100 !ERROR
-               endif
+            ! Cavities
+            else if (abs(el_type).eq.12) then
+                if (att_name_s.eq."voltage"  ) then ! MV
+                    dynk_getvalue = ed(ii)
+                else if (att_name_s.eq."harmonic" ) then ! harmonic number
+                    dynk_getvalue = ek(ii)
+                else if (att_name_s.eq."lag_angle") then ! [deg]
+                    dynk_getvalue = dynk_elemdata(ii,3)
+                else
+                    goto 100 ! ERROR
+                end if
+
+            ! Not yet supported
+            ! AC dipole 
+            ! else if (abs(el_type).eq.16) then
+            !     if (att_name_s.eq."amplitude") then ! [T.m]
+            !         nretdata = nretdata+1
+            !         retdata(nretdata) = ed(ii)
+            !     else if (att_name_s.eq."frequency") then !  [2pi]
+            !         nretdata = nretdata+1
+            !         retdata(nretdata) = ek(ii)
+            !     else if (att_name_s.eq."phase") then !  [rad]
+            !         nretdata = nretdata+1
+            !         retdata(nretdata) = el(ii)
+            !     else
+            !         goto 100 ! ERROR
+            !     end if
                
-            endif !el_type
-         endif !bez
-      enddo
-      
-      if (ldynkdebug) then
-         write(lout,*) &
-     &   "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
-      end if
+            ! Not yet supported
+            ! beam-beam separation
+            ! else if (abs(el_type).eq.20) then
+            !     if (att_name_s.eq."horizontal") then ! [mm]
+            !         nretdata = nretdata+1
+            !         retdata(nretdata) = ed(ii)                
+            !     else if (att_name_s.eq."vertical") then ! [mm]
+            !         nretdata = nretdata+1
+            !         retdata(nretdata) = ek(ii)                
+            !     else if (att_name_s.eq."strength") then ! [m]
+            !         nretdata = nretdata+1
+            !         retdata(nretdata) = el(ii)       
+            !     else
+            !         goto 100 ! ERROR
+            !     end if
 
-      return
-      
-      !Error handlers
- 100  continue
-      write(lout,*) "DYNK> *** ERROR in dynk_getvalue() ***"
-      write(lout,*) "DYNK> Unknown attribute '", trim(att_name_s),"'", &
-     &     " for type",el_type," name '", trim(bez(ii)), "'"
+            else if ((abs(el_type).eq.23).or. & ! crab cavity
+                     (abs(el_type).eq.26).or. & ! cc mult. kick order 2
+                     (abs(el_type).eq.27).or. & ! cc mult. kick order 3
+                     (abs(el_type).eq.28)) then ! cc mult. kick order 4
+                if (att_name_s.eq."voltage") then ! [MV]
+                    dynk_getvalue = ed(ii)
+                else if (att_name_s.eq."frequency") then ! [MHz]
+                    dynk_getvalue = ek(ii)
+                else if (att_name_s.eq."phase") then ! [rad]
+                    if (abs(el_type).eq.23) then
+                        dynk_getvalue = crabph(ii)
+                    else if (abs(el_type).eq.26) then
+                        dynk_getvalue = crabph2(ii)
+                    else if (abs(el_type).eq.27) then
+                        dynk_getvalue = crabph3(ii)
+                    else if (abs(el_type).eq.28) then
+                        dynk_getvalue = crabph4(ii)
+                    end if
+                else
+                    goto 100 ! ERROR
+                end if
 
-      call prror(-1)
-  
-      end function
+            ! Electron lens
+            else if (el_type.eq.29) then
+                if(att_name_s.eq."thetamax") then ! [mrad]
+                    dynk_getvalue = elens_theta_max(ii)
+                else
+                    goto 100 ! ERROR
+                end if
+
+            ! Scatter
+            else if (el_type.eq.40) then
+                if(att_name_s.eq."scaling") then
+                    dynk_getvalue = scatter_ELEM_scale(scatter_elemPointer(ii))
+                else
+                    goto 100 ! ERROR
+                end if
+
+            end if ! el_type
+        end if ! bez
+    end do
+
+    if (ldynkdebug) then
+        write(lout,*) "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
+    end if
+
+    return
+
+    ! Error handlers
+100 continue
+        write(lout,*) "DYNK> *** ERROR in dynk_getvalue() ***"
+        write(lout,*) "DYNK> Unknown attribute '", trim(att_name_s),"'", &
+                      " for type",el_type," name '", trim(bez(ii)), "'"
+
+        call prror(-1)
+
+end function dynk_getvalue
+
+! ================================================================================================ !
       
       double precision function dynk_lininterp(x,xvals,yvals,datalen)
       implicit none
