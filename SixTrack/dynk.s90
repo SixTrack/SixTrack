@@ -1,6 +1,7 @@
 +dk dynk
 
 module dynk
+
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
@@ -3396,6 +3397,37 @@ logical function dynk_isused(i)
     return
 
 end function dynk_isused
+
+! ================================================================================================ !
+!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
+!  Last modified: 25-09-2017
+!   - Called from CRPOINT; write checkpoint data to fort.95/96
+! ================================================================================================ !
+subroutine dynk_crpoint(fileunit,fileerror,ierro)
+
+    implicit none
+
++ca crcoall
+
+    integer, intent(in)    :: fileunit
+    logical, intent(out)   :: fileerror
+    integer, intent(inout) :: ierro 
+
+    integer j
+
+    write(fileunit,err=100,iostat=ierro) &
+        dynkfilepos, niexpr_dynk, nfexpr_dynk, ncexpr_dynk, &
+        (iexpr_dynk(j),j=1,maxdata_dynk), (fexpr_dynk(j),j=1,maxdata_dynk), &
+        (cexpr_dynk(j),j=1,maxdata_dynk), (fsets_dynk_cr(j),j=1,maxsets_dynk)
+    endfile (95,iostat=ierro)
+    backspace (95,iostat=ierro)
+
+    return
+  
+100 continue
+    fileerror=.true.
+
+end subroutine dynk_crpoint
 
 ! ================================================================================================ !
 end module dynk

@@ -50904,7 +50904,8 @@ c$$$         backspace (93,iostat=ierro)
      &csets_unique_dynk, ldynk,
      &dynkfilepos,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
      &maxdata_dynk,maxsets_dynk,
-     &iexpr_dynk,fexpr_dynk,cexpr_dynk,fsets_dynk_cr
+     &iexpr_dynk,fexpr_dynk,cexpr_dynk,fsets_dynk_cr,
+     &dynk_crpoint
 
       use scatter, only : scatter_active, scatter_crpoint
       
@@ -51141,18 +51142,8 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
-        !TODO: One could probably be more efficient when saving
-        write(95,err=100,iostat=ierro)                                  &
-     &dynkfilepos,
-     &niexpr_dynk,
-     &nfexpr_dynk,
-     &ncexpr_dynk,
-     &(iexpr_dynk(j),j=1,maxdata_dynk),
-     &(fexpr_dynk(j),j=1,maxdata_dynk),
-     &(cexpr_dynk(j),j=1,maxdata_dynk),
-     &(fsets_dynk_cr(j),j=1,maxsets_dynk)
-        endfile (95,iostat=ierro)
-        backspace (95,iostat=ierro)
+        call dynk_crpoint(95,lerror,ierro)
+        if (lerror) goto 100
       endif
       
       if (scatter_active) then
@@ -51401,18 +51392,8 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
-        !TODO: One could probably be more efficient when saving
-        write(96,err=100,iostat=ierro)                                  &
-     &dynkfilepos,
-     &niexpr_dynk,
-     &nfexpr_dynk,
-     &ncexpr_dynk,
-     &(iexpr_dynk(j),j=1,maxdata_dynk),
-     &(fexpr_dynk(j),j=1,maxdata_dynk),
-     &(cexpr_dynk(j),j=1,maxdata_dynk),
-     &(fsets_dynk_cr(j),j=1,maxsets_dynk)
-        endfile (96,iostat=ierro)
-        backspace (96,iostat=ierro)
+        call dynk_crpoint(96,lerror,ierro)
+        if (lerror) goto 100
       endif
       
       if (scatter_active) then
