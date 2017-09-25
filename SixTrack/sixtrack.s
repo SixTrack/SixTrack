@@ -49762,7 +49762,7 @@ c$$$            endif
      &iexpr_dynk_cr,fexpr_dynk_cr,cexpr_dynk_cr,
      &cexpr_dynk_cr,fsets_dynk_cr,
      &ldynkfiledisable, dynkfilepos_cr,dynkfilepos,
-     &dynk_crcheck_readdata
+     &dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
       use scatter, only : scatter_active, scatter_crcheck_readdata,
      &     scatter_crcheck_positionFiles
@@ -50507,67 +50507,11 @@ c$$$            endif
       
       !reposition dynksets.dat
       if (ldynk .and.(.not.ldynkfiledisable) ) then
-         write(93,*)
-     &"SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
+         write(93,*) "SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          
-         inquire( unit=665, opened=lopen )
-         if (lopen) then
-            write(93,*)
-     &"SIXTRACR CRCHECK FAILED while repositioning dynksets.dat"
-            write(93,*)
-     &"Unit 665 already in use!"
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-
-            write(lout,*)
-     &           'SIXTRACR CRCHECK failure positioning dynksets.dat'
-            call prror(-1)
-         end if
-         if (dynkfilepos_cr .ne. -1) then
-+if boinc
-            call boincrf("dynksets.dat",filename)
-            open(unit=665,file=filename,status="old",
-     &           action="readwrite", err=110)
-+ei
-+if .not.boinc
-            open(unit=665,file='dynksets.dat',status="old",
-     &           action="readwrite", err=110)
-+ei
-            dynkfilepos = 0     ! Start counting lines at 0, not -1
-            do j=1,dynkfilepos_cr
-               read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
-               dynkfilepos=dynkfilepos+1
-            end do
-
-            endfile (665,iostat=ierro)
-            close(665)
-+if boinc
-            call boincrf("dynksets.dat",filename)
-            open(unit=665, file=filename, status="old",
-     &           position='append', action="write")
-+ei
-+if .not.boinc
-            open(unit=665, file="dynksets.dat", status="old",
-     &           position='append', action="write")
-+ei
-         
-            write(93,*)
-     &'SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, '//
-     &'dynkfilepos=',dynkfilepos, "dynkfilepos_cr=",dynkfilepos_cr
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-         else
-            write(93,*)
-     &           'SIXTRACR CRCHECK did not attempt repositioning '//
-     &           'of dynksets.dat, dynkfilepos_cr=',dynkfilepos_cr
-            write(93,*) "If anything has been written to the file, "//
-     &           "it will be correctly truncated in dynk_apply "//
-     &           "on the first turn."
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-         endif !END "if (dynkfilepos_cr .ne. -1)"
+         call dynk_crcheck_positionFiles
       endif !END if (ldynk .and.(.not.ldynkfiledisable) )
       
       !Reposition files for DUMP
@@ -50834,15 +50778,15 @@ c$$$            endif
 !GRDRHIC
 !GRD-042008
 +ei
- 110  write(93,*)                                                       &
-     &'SIXTRACR CRCHECK *** ERROR ***'//
-     &' reading dynksets.dat, iostat=',ierro
-      write(93,*)                                                       &
-     &'dynkfilepos=',dynkfilepos,' dynkfilepos_cr=',dynkfilepos_cr
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning dynksets.dat'
-      call prror(-1)
+!110  write(93,*)                                                       &
+!     &'SIXTRACR CRCHECK *** ERROR ***'//
+!     &' reading dynksets.dat, iostat=',ierro
+!      write(93,*)                                                       &
+!     &'dynkfilepos=',dynkfilepos,' dynkfilepos_cr=',dynkfilepos_cr
+!      endfile (93,iostat=ierro)
+!      backspace (93,iostat=ierro)
+!      write(lout,*)'SIXTRACR CRCHECK failure positioning dynksets.dat'
+!      call prror(-1)
 
  111  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR ***'//

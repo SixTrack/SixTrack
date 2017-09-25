@@ -3439,6 +3439,85 @@ end subroutine dynk_crcheck_readdata
 ! ================================================================================================ !
 !  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
 !  Last modified: 25-09-2017
+!  - Called from CRCHECK; resets the position of scatter_log.txt
+! ================================================================================================ !
+subroutine dynk_crcheck_positionFiles
+
+    implicit none
+
++ca crcoall
+
+    logical lopen
+    integer ierro
++if boinc
+    character*256 filename
++ei
+    integer j
+    character*1024 arecord
+
+    inquire(unit=665, opened=lopen)
+    if (lopen) then
+        write(93,*) "SIXTRACR CRCHECK FAILED while repositioning dynksets.dat"
+        write(93,*) "Unit 665 already in use!"
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
+
+        write(lout,*) "SIXTRACR CRCHECK failure positioning dynksets.dat"
+        call prror(-1)
+    end if
+
+    if (dynkfilepos_cr .ne. -1) then
++if boinc
+        call boincrf("dynksets.dat",filename)
+        open(unit=665,file=filename,status="old",action="readwrite",err=110)
++ei
++if .not.boinc
+        open(unit=665,file='dynksets.dat',status="old",action="readwrite",err=110)
++ei
+        dynkfilepos = 0     ! Start counting lines at 0, not -1
+        do j=1,dynkfilepos_cr
+            read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
+            dynkfilepos=dynkfilepos+1
+        end do
+
+        endfile(665,iostat=ierro)
+        close(665)
++if boinc
+        call boincrf("dynksets.dat",filename)
+        open(unit=665,file=filename,status="old",position='append',action="write")
++ei
++if .not.boinc
+        open(unit=665,file="dynksets.dat",status="old",position='append',action="write")
++ei
+
+        write(93,*) "SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, "// &
+                    "dynkfilepos=",dynkfilepos, "dynkfilepos_cr=",dynkfilepos_cr
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
+    else
+        write(93,*) "SIXTRACR CRCHECK did not attempt repositioning "// &
+                    "of dynksets.dat, dynkfilepos_cr=",dynkfilepos_cr
+        write(93,*) "If anything has been written to the file, "// &
+                    "it will be correctly truncated in dynk_apply on the first turn."
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
+    end if
+
+    return
+
+110 continue
+    write(93,*) "SIXTRACR CRCHECK *** ERROR *** reading dynksets.dat, iostat=",ierro
+    write(93,*) "dynkfilepos=",dynkfilepos," dynkfilepos_cr=",dynkfilepos_cr
+    endfile   (93,iostat=ierro)
+    backspace (93,iostat=ierro)
+    write(lout,*) "SIXTRACR CRCHECK failure positioning dynksets.dat"
+    call prror(-1)  
+
+end subroutine dynk_crcheck_positionFiles
+
+! ================================================================================================ !
+!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
+!  Last modified: 25-09-2017
 !   - Called from CRPOINT; write checkpoint data to fort.95/96
 ! ================================================================================================ !
 subroutine dynk_crpoint(fileunit,fileerror,ierro)
