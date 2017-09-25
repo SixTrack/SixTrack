@@ -49761,7 +49761,8 @@ c$$$            endif
      &maxdata_dynk,maxsets_dynk,
      &iexpr_dynk_cr,fexpr_dynk_cr,cexpr_dynk_cr,
      &cexpr_dynk_cr,fsets_dynk_cr,
-     &ldynkfiledisable, dynkfilepos_cr,dynkfilepos
+     &ldynkfiledisable, dynkfilepos_cr,dynkfilepos,
+     &dynk_crcheck_readdata
 
       use scatter, only : scatter_active, scatter_crcheck_readdata,
      &     scatter_crcheck_positionFiles
@@ -49937,25 +49938,8 @@ c$$$            endif
          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
-         read(95,err=100,end=100)
-     &        dynkfilepos_cr,
-     &        niexpr_dynk_cr,
-     &        nfexpr_dynk_cr,
-     &        ncexpr_dynk_cr,
-     &        (iexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (cexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fsets_dynk_cr(j),j=1,maxsets_dynk)
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
+         call dynk_crcheck_readdata(95,lerror)
+         if (lerror) goto 100
       endif
 
       if(scatter_active) then
@@ -50132,25 +50116,8 @@ c$$$         backspace (93,iostat=ierro)
          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
-         read(96,err=101,end=101)
-     &        dynkfilepos_cr,
-     &        niexpr_dynk_cr,
-     &        nfexpr_dynk_cr,
-     &        ncexpr_dynk_cr,
-     &        (iexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (cexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fsets_dynk_cr(j),j=1,maxsets_dynk)
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
+         call dynk_crcheck_readdata(96,lerror)
+         if (lerror) goto 101
       endif
 
       if(scatter_active) then
@@ -51560,7 +51527,8 @@ c$$$         backspace (93,iostat=ierro)
      &iexpr_dynk,iexpr_dynk_cr,fexpr_dynk,fexpr_dynk_cr,
      &cexpr_dynk,cexpr_dynk_cr,
      &nsets_unique_dynk,dynk_setvalue,
-     &csets_unique_dynk,fsets_dynk_cr
+     &csets_unique_dynk,fsets_dynk_cr,
+     &dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
       
@@ -51697,33 +51665,7 @@ c$$$         backspace (93,iostat=ierro)
 !ERIC new extended checkpoint for synuthck
       
       if (ldynk) then
-         !LOAD DYNK DATA from temp arrays (loaded from file in crcheck)
-         niexpr_dynk = niexpr_dynk_cr
-         nfexpr_dynk = nfexpr_dynk_cr
-         ncexpr_dynk = ncexpr_dynk_cr
-         do j=1,maxdata_dynk
-            iexpr_dynk(j) = iexpr_dynk_cr(j)
-            fexpr_dynk(j) = fexpr_dynk_cr(j)
-            cexpr_dynk(j) = cexpr_dynk_cr(j)
-         enddo
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
-         
-         ! Load current settings from fsets_dynk_cr into the elements affected by DYNK.
-         do j=1,nsets_unique_dynk
-            !It is OK to write to lout from here
-            call dynk_setvalue( csets_unique_dynk(j,1),
-     &                          csets_unique_dynk(j,2),
-     &                          fsets_dynk_cr(j)        )
-         enddo
+         call dynk_crstart
       endif
 
       if (scatter_active) then

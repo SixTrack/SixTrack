@@ -3399,6 +3399,44 @@ logical function dynk_isused(i)
 end function dynk_isused
 
 ! ================================================================================================ !
+!  BEGIN Checkpoint Restart
+! ================================================================================================ !
++if cr
+
+! ================================================================================================ !
+!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
+!  Last modified: 25-09-2017
+!  - Called from CRCHECK; reads the _cr arrays for scatter from file.
+!  - Sets readerr=.true. if something goes wrong while reading.
+! ================================================================================================ !
+subroutine dynk_crcheck_readdata(fileunit,readerr)
+
+    implicit none
+
+    integer, intent(in)  :: fileunit
+    logical, intent(out) :: readerr
+
++ca crcoall
+
+    integer j
+
+    read(fileunit,err=100,end=100) &
+        dynkfilepos_cr, niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr, &
+        (iexpr_dynk_cr(j),j=1,maxdata_dynk), (fexpr_dynk_cr(j),j=1,maxdata_dynk), &
+        (cexpr_dynk_cr(j),j=1,maxdata_dynk), (fsets_dynk_cr(j),j=1,maxsets_dynk)
+
+    readerr=.false.
+    return
+
+100 continue
+
+    write(lout,*) "READERR in scatter_crcheck; fileunit=",fileunit
+    write(93,*)   "READERR in scatter_crcheck; fileunit=",fileunit
+    readerr=.true.
+
+end subroutine dynk_crcheck_readdata
+
+! ================================================================================================ !
 !  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
 !  Last modified: 25-09-2017
 !   - Called from CRPOINT; write checkpoint data to fort.95/96
@@ -3428,6 +3466,40 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
     fileerror=.true.
 
 end subroutine dynk_crpoint
+
+! ================================================================================================ !
+!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
+!  Last modified: 25-09-2017
+!   - Called from CRSTART; copies the _cr arrays into the normal arrays used during tracking in
+!     order to recreate the state of the SCATTER block at the time of the checkpoint.
+! ================================================================================================ !
+subroutine dynk_crstart
+
+    implicit none
+
+    integer j
+
+    niexpr_dynk = niexpr_dynk_cr
+    nfexpr_dynk = nfexpr_dynk_cr
+    ncexpr_dynk = ncexpr_dynk_cr
+
+    do j=1,maxdata_dynk
+        iexpr_dynk(j) = iexpr_dynk_cr(j)
+        fexpr_dynk(j) = fexpr_dynk_cr(j)
+        cexpr_dynk(j) = cexpr_dynk_cr(j)
+    end do
+
+    do j=1,nsets_unique_dynk
+       ! It is OK to write to lout from here
+       call dynk_setvalue(csets_unique_dynk(j,1),csets_unique_dynk(j,2),fsets_dynk_cr(j))
+    end do
+
+end subroutine dynk_crstart
+
+! ================================================================================================ !
+!  END Checkpoint Restart
+! ================================================================================================ !
++ei
 
 ! ================================================================================================ !
 end module dynk
