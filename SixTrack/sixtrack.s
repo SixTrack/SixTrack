@@ -33514,7 +33514,7 @@ C Should get me a NaN
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
      &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
      &     maxfuncs_dynk,funcs_dynk,
-     &     maxdata_dynk,maxstrlen_dynk,
+     &     maxidata_dynk,maxfdata_dynk,maxcdata_dynk,maxstrlen_dynk,
      &     nsets_dynk,maxsets_dynk,
      &     sets_dynk,csets_dynk,csets_unique_dynk,fsets_origvalue_dynk,
      &     dynk_izuIndex,dynk_elemdata
@@ -49758,7 +49758,7 @@ c$$$            endif
 +ei
       use dynk, only : ldynk,
      &niexpr_dynk_cr,nfexpr_dynk_cr, ncexpr_dynk_cr,
-     &maxdata_dynk,maxsets_dynk,
+     &maxidata_dynk,maxfdata_dynk,maxcdata_dynk,maxsets_dynk,
      &iexpr_dynk_cr,fexpr_dynk_cr,cexpr_dynk_cr,
      &cexpr_dynk_cr,fsets_dynk_cr,
      &ldynkfiledisable, dynkfilepos_cr,dynkfilepos,
@@ -50814,7 +50814,7 @@ c$$$            endif
       use dynk, only : nsets_unique_dynk,fsets_dynk_cr,dynk_getvalue,
      &csets_unique_dynk, ldynk,
      &dynkfilepos,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
-     &maxdata_dynk,maxsets_dynk,
+     &maxidata_dynk,maxfdata_dynk,maxcdata_dynk,maxsets_dynk,
      &iexpr_dynk,fexpr_dynk,cexpr_dynk,fsets_dynk_cr,
      &dynk_crpoint
 
@@ -51467,7 +51467,8 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       use dynk, only : ldynk,
      &niexpr_dynk, niexpr_dynk_cr, nfexpr_dynk, nfexpr_dynk_cr,
-     &ncexpr_dynk, ncexpr_dynk_cr, maxdata_dynk,
+     &ncexpr_dynk, ncexpr_dynk_cr,
+     &maxidata_dynk,maxfdata_dynk,maxcdata_dynk,
      &iexpr_dynk,iexpr_dynk_cr,fexpr_dynk,fexpr_dynk_cr,
      &cexpr_dynk,cexpr_dynk_cr,
      &nsets_unique_dynk,dynk_setvalue,
