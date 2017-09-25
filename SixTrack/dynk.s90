@@ -1728,6 +1728,11 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks)
     implicit none
     integer iblocks,fblocks,cblocks
     intent(in) iblocks,fblocks,cblocks
+    
+    ! 
+    ! temp = iexpr_dynk
+    ! 
+    ! iexpr_dynk(1:500) = temp(:)
 
 +ca crcoall
     if ((niexpr_dynk+iblocks .gt. maxdata_dynk) .or. &
@@ -3420,10 +3425,13 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
     integer j
 
+    read(fileunit,err=100,end=100) dynkfilepos_cr, niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
+    call dynk_checkspace(niexpr_dynk_cr - niexpr_dynk, &
+                         nfexpr_dynk_cr - nfexpr_dynk, &
+                         ncexpr_dynk_cr - ncexpr_dynk)
     read(fileunit,err=100,end=100) &
-        dynkfilepos_cr, niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr, &
-        (iexpr_dynk_cr(j),j=1,maxdata_dynk), (fexpr_dynk_cr(j),j=1,maxdata_dynk), &
-        (cexpr_dynk_cr(j),j=1,maxdata_dynk), (fsets_dynk_cr(j),j=1,maxsets_dynk)
+        (iexpr_dynk_cr(j),j=1,niexpr_dynk_cr), (fexpr_dynk_cr(j),j=1,nfexpr_dynk_cr), &
+        (cexpr_dynk_cr(j),j=1,ncexpr_dynk_cr), (fsets_dynk_cr(j),j=1,maxsets_dynk)
 
     readerr=.false.
     return
@@ -3532,10 +3540,10 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
 
     integer j
 
+    write(fileunit,err=100,iostat=ierro) dynkfilepos, niexpr_dynk, nfexpr_dynk, ncexpr_dynk
     write(fileunit,err=100,iostat=ierro) &
-        dynkfilepos, niexpr_dynk, nfexpr_dynk, ncexpr_dynk, &
-        (iexpr_dynk(j),j=1,maxdata_dynk), (fexpr_dynk(j),j=1,maxdata_dynk), &
-        (cexpr_dynk(j),j=1,maxdata_dynk), (fsets_dynk_cr(j),j=1,maxsets_dynk)
+        (iexpr_dynk(j),j=1,niexpr_dynk), (fexpr_dynk(j),j=1,nfexpr_dynk), &
+        (cexpr_dynk(j),j=1,ncexpr_dynk), (fsets_dynk_cr(j),j=1,maxsets_dynk)
     endfile (95,iostat=ierro)
     backspace (95,iostat=ierro)
 
