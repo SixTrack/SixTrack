@@ -42,7 +42,6 @@ module dynk
 
     integer maxfuncs_dynk, maxidata_dynk, maxfdata_dynk, maxcdata_dynk, maxstrlen_dynk
     parameter (maxfuncs_dynk=100, maxstrlen_dynk=stringzerotrim_maxlen)
-    parameter (maxidata_dynk=50000, maxfdata_dynk=50000, maxcdata_dynk=50000)
 
     ! 1 row/FUN, cols are:
     ! (1) = function name in fort.3 (points within cexpr_dynk),
@@ -103,6 +102,7 @@ module dynk
     save sets_dynk, csets_dynk, nsets_dynk
     save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
     save dynk_izuIndex, dynk_elemdata
+    save maxidata_dynk, maxfdata_dynk, maxcdata_dynk
 
 +if cr
 ! ================================================================================================ !
@@ -142,6 +142,10 @@ subroutine dynk_allocate
 
     integer stat
     integer i,j
+
+    maxidata_dynk = 500
+    maxfdata_dynk = 500
+    maxcdata_dynk = 500
 
     write(lout,'(A,I8)') "DYNK_ALLOCATE : maxidata_dynk=", maxidata_dynk
     write(lout,'(A,I8)') "DYNK_ALLOCATE : maxfdata_dynk=", maxfdata_dynk
@@ -1740,27 +1744,156 @@ end subroutine dynk_checkargs
 subroutine dynk_checkspace(iblocks,fblocks,cblocks)
 
     implicit none
-    integer iblocks,fblocks,cblocks
-    intent(in) iblocks,fblocks,cblocks
-    
-    ! 
-    ! temp = iexpr_dynk
-    ! 
-    ! iexpr_dynk(1:500) = temp(:)
+
+    integer iblocks, fblocks, cblocks
+
+    intent(in) iblocks, fblocks, cblocks
 
 +ca crcoall
-    if ((niexpr_dynk+iblocks .gt. maxidata_dynk) .or. &
-        (nfexpr_dynk+fblocks .gt. maxfdata_dynk) .or. &
-        (ncexpr_dynk+cblocks .gt. maxcdata_dynk)) then
++ca parnum
 
-        write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-        write (lout,*) "Max number of maxdata_dynk to be exceeded"
-        write (lout,*) "niexpr_dynk:", niexpr_dynk
-        write (lout,*) "nfexpr_dynk:", nfexpr_dynk
-        write (lout,*) "ncexpr_dynk:", ncexpr_dynk
+    integer newidata_dynk, newfdata_dynk, newcdata_dynk
+    integer,                   allocatable :: itemp_dynk(:)
+    double precision,          allocatable :: ftemp_dynk(:)
+    character(maxstrlen_dynk), allocatable :: ctemp_dynk(:)
 
-        call prror(51)
+    integer stat, i, j
+
+    ! Growing iexpr_dynk if necessary
+    if (niexpr_dynk+iblocks .gt. maxidata_dynk) then
+
+        ! Try to double the allocated array size to prevent repeated resizing
+        newidata_dynk = 2*maxidata_dynk
+        ! If this is insufficient, just set it to the requested size
+        if(newidata_dynk .lt. niexpr_dynk+iblocks) then
+            newidata_dynk = niexpr_dynk+iblocks
+        end if
+
+        ! Copy the current array to a temp array, including zeroed elements
+        allocate(itemp_dynk(maxidata_dynk))
+        itemp_dynk(:) = iexpr_dynk(:)
+        deallocate(iexpr_dynk)
+
+        ! Reallocate the array with new size, and copy back the elements
+        allocate(iexpr_dynk(newidata_dynk), STAT=stat)
+        iexpr_dynk(1:maxidata_dynk) = itemp_dynk(:)
+        deallocate(itemp_dynk)
+
+        if (stat.ne.0) then
+            write(lout,'(A,I8)') "ERROR in DYNK_CHECKSPACE; stat=",stat
+            write(lout,'(A)')    "Attempted to grow iexpr_dynk to",newidata_dynk
+            call prror(-1)
+        endif
+
+        ! Zero out the new elements
+        do i=maxidata_dynk+1, newidata_dynk
+            iexpr_dynk(i) = 0
+        end do
+
+        ! Set the new maximum
+        maxidata_dynk = newidata_dynk
+
+        if (ldynkdebug) then
+            write (lout,*) "DYNKDEBUG> maxidata_dynk increased to",maxidata_dynk
+        end if
+
     end if
+
+    ! Growing fexpr_dynk if necessary
+    if (nfexpr_dynk+fblocks .gt. maxfdata_dynk) then
+
+        ! Try to double the allocated array size to prevent repeated resizing
+        newfdata_dynk = 2*maxfdata_dynk
+        ! If this is insufficient, just set it to the requested size
+        if(newfdata_dynk .lt. nfexpr_dynk+fblocks) then
+            newfdata_dynk = nfexpr_dynk+fblocks
+        end if
+
+        ! Copy the current array to a temp array, including zeroed elements
+        allocate(ftemp_dynk(maxfdata_dynk))
+        ftemp_dynk(:) = fexpr_dynk(:)
+        deallocate(fexpr_dynk)
+
+        ! Reallocate the array with new size, and copy back the elements
+        allocate(fexpr_dynk(newfdata_dynk), STAT=stat)
+        fexpr_dynk(1:maxfdata_dynk) = ftemp_dynk(:)
+        deallocate(ftemp_dynk)
+
+        if (stat.ne.0) then
+            write(lout,'(A,I8)') "ERROR in DYNK_CHECKSPACE; stat=",stat
+            write(lout,'(A)')    "Attempted to grow fexpr_dynk to",newfdata_dynk
+            call prror(-1)
+        endif
+
+        ! Zero out the new elements
+        do i=maxfdata_dynk+1, newfdata_dynk
+            fexpr_dynk(i) = zero
+        end do
+
+        ! Set the new maximum
+        maxfdata_dynk = newfdata_dynk
+
+        if (ldynkdebug) then
+            write (lout,*) "DYNKDEBUG> maxfdata_dynk increased to",maxfdata_dynk
+        end if
+
+    end if
+
+    ! Growing cexpr_dynk if necessary
+    if (ncexpr_dynk+cblocks .gt. maxcdata_dynk) then
+
+        ! Try to double the allocated array size to prevent repeated resizing
+        newcdata_dynk = 2*maxcdata_dynk
+        ! If this is insufficient, just set it to the requested size
+        if(newcdata_dynk .lt. ncexpr_dynk+cblocks) then
+            newcdata_dynk = ncexpr_dynk+cblocks
+        end if
+
+        ! Copy the current array to a temp array, including zeroed elements
+        allocate(ctemp_dynk(maxcdata_dynk))
+        ctemp_dynk(:) = cexpr_dynk(:)
+        deallocate(cexpr_dynk)
+
+        ! Reallocate the array with new size, and copy back the elements
+        allocate(cexpr_dynk(newcdata_dynk), STAT=stat)
+        cexpr_dynk(1:maxcdata_dynk) = ctemp_dynk(:)
+        deallocate(ctemp_dynk)
+
+        if (stat.ne.0) then
+            write(lout,'(A,I8)') "ERROR in DYNK_CHECKSPACE; stat=",stat
+            write(lout,'(A)')    "Attempted to grow cexpr_dynk to",newcdata_dynk
+            call prror(-1)
+        endif
+
+        ! Zero out the new elements
+        do i=maxcdata_dynk+1, newcdata_dynk
+            do j=1,maxstrlen_dynk
+                cexpr_dynk(i)(j:j) = char(0)
+            end do
+        end do
+
+        ! Set the new maximum
+        maxcdata_dynk = newcdata_dynk
+
+        if (ldynkdebug) then
+            write (lout,*) "DYNKDEBUG> maxcdata_dynk increased to",maxcdata_dynk
+        end if
+
+    end if
+
+    ! Old Version
+    ! if ((niexpr_dynk+iblocks .gt. maxidata_dynk) .or. &
+    !     (nfexpr_dynk+fblocks .gt. maxfdata_dynk) .or. &
+    !     (ncexpr_dynk+cblocks .gt. maxcdata_dynk)) then
+    !
+    !     write (lout,*) "ERROR in DYNK block parsing (fort.3):"
+    !     write (lout,*) "Max number of maxdata_dynk to be exceeded"
+    !     write (lout,*) "niexpr_dynk:", niexpr_dynk
+    !     write (lout,*) "nfexpr_dynk:", nfexpr_dynk
+    !     write (lout,*) "ncexpr_dynk:", ncexpr_dynk
+    !
+    !     call prror(51)
+    ! end if
 
 end subroutine dynk_checkspace
 
