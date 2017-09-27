@@ -7644,11 +7644,11 @@ c$$$     &           myalphay * cos(phiy))
 ! The collimation coordinates/units are
 ! x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
 
-         write(lout,*) " myenom [MeV]= ",myenom
-         write(lout,*) " myemitx [m]= ",myemitx
-         write(lout,*) " myemity [m]= ",myemity
-         write(lout,*) " bunchlength [mm]= ",bunchlength
-         write(lout,*) " enerror = ",enerror
+!         write(lout,*) " myenom [MeV]= ",myenom
+!         write(lout,*) " myemitx [m]= ",myemitx
+!         write(lout,*) " myemity [m]= ",myemity
+!         write(lout,*) " bunchlength [mm]= ",bunchlength
+!         write(lout,*) " enerror = ",enerror
                   
          !convert bunchlength from [mm] to [m]
          ! enerror is the energy spread
