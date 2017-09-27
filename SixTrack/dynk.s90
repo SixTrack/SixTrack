@@ -17,7 +17,7 @@ module dynk
 +ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
 
     ! A.Mereghetti, for the FLUKA Team,
-    ! K.Sjobak, A. Santamaria, V.K. Berglyd Olsen BE-ABP-HSS
+    ! K.Sjobak, A. Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
     ! last modified: 30/10-2014
 
     ! COMMON for dynamic kicks (DYNK)
@@ -135,6 +135,10 @@ module dynk
 ! ================================================================================================ !
 contains
 
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 27-09-2017
+! =================================================================================================
 subroutine dynk_allocate
 
     implicit none
@@ -145,13 +149,15 @@ subroutine dynk_allocate
     integer stat
     integer i,j
 
+    ! Setting inital allocations
+    ! These values are increased if needed when dynk_checkspace is called
     maxidata_dynk = 500
     maxfdata_dynk = 500
-    maxcdata_dynk = 500
+    maxcdata_dynk = 100
 
-    write(lout,'(A,I8)') "DYNK_ALLOCATE : maxidata_dynk=", maxidata_dynk
-    write(lout,'(A,I8)') "DYNK_ALLOCATE : maxfdata_dynk=", maxfdata_dynk
-    write(lout,'(A,I8)') "DYNK_ALLOCATE : maxcdata_dynk=", maxcdata_dynk
+    write(lout,'(A,I8)') "DYNK_ALLOCATE : Initial maxidata_dynk=", maxidata_dynk
+    write(lout,'(A,I8)') "DYNK_ALLOCATE : Initial maxfdata_dynk=", maxfdata_dynk
+    write(lout,'(A,I8)') "DYNK_ALLOCATE : Initial maxcdata_dynk=", maxcdata_dynk
     
     allocate(iexpr_dynk(maxidata_dynk), fexpr_dynk(maxfdata_dynk), &
              cexpr_dynk(maxcdata_dynk), STAT=stat)
@@ -170,18 +176,21 @@ subroutine dynk_allocate
     ! do i=1, maxfdata_dynk
     !     fexpr_dynk(i) = zero
     ! end do
-    ! do i=1, maxcdata_dynk
-    !     do j=1,maxstrlen_dynk
-    !         cexpr_dynk(i)(j:j) = char(0)
-    !     end do
-    ! end do
+    ! Only need to zero out strings
+    do i=1, maxcdata_dynk
+        do j=1,maxstrlen_dynk
+            cexpr_dynk(i)(j:j) = char(0)
+        end do
+    end do
+
+    write(lout,*) "maxstrlen_dynk=",maxstrlen_dynk
 
 end subroutine dynk_allocate
 
 ! =================================================================================================
-!   K. Sjobak, BE-ABP-HSS
-!   Last modified: 30-10-2014
-!   Parse FUN lines in the fort.3 input file.
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 27-09-2017
+!  Parse FUN lines in the fort.3 input file.
 ! =================================================================================================
 subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
@@ -194,7 +203,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
     intent(in) getfields_fields, getfields_lfields, getfields_nfields
 
     ! Temp variables
-    integer ii, stat, t
+    integer ii, stat, t, nlines
     double precision x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
     double precision x1,x2,y1,y2,deriv                        ! LINSEG, QUADSEG,
     double precision tinj,Iinj,Inom,A,D,R,te                  ! PELP (input)
@@ -316,13 +325,13 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         nfuncs_dynk = nfuncs_dynk+1
         ncexpr_dynk = ncexpr_dynk+1
         ! Store pointers
-        funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   !NAME (in cexpr_dynk)
-        funcs_dynk(nfuncs_dynk,2) = 1             !TYPE (FILE)
-        funcs_dynk(nfuncs_dynk,3) = ncexpr_dynk+1 !Filename (in cexpr_dynk)
-        funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk+1 !Data     (in fexpr_dynk)
-        funcs_dynk(nfuncs_dynk,5) = -1            !Below: Length of file
+        funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk   ! NAME     (in cexpr_dynk)
+        funcs_dynk(nfuncs_dynk,2) = 1             ! TYPE     (FILE)
+        funcs_dynk(nfuncs_dynk,3) = ncexpr_dynk+1 ! Filename (in cexpr_dynk)
+        funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk+1 ! Data     (in fexpr_dynk)
+        funcs_dynk(nfuncs_dynk,5) = -1            ! Below: Length of file
 
-        !Sanity checks
+        ! Sanity checks
         if (getfields_lfields(4) .gt. maxstrlen_dynk-1) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
@@ -343,7 +352,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ncexpr_dynk = ncexpr_dynk+1
 
         ! Open the file
-        inquire( unit=664, opened=lopen )
+        inquire(unit=664,opened=lopen)
         if (lopen) then
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
             write(lout,*)"DYNK> unit 664 for file '" // &
@@ -364,6 +373,16 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
             write(lout,*) "DYNK> Error opening file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))// "'"
             call prror(51)
         end if
+
+        ! Count number of lines and allocate space
+        nlines = 0
+        do
+            read(664,*, iostat=stat)
+            if (stat .ne. 0) exit
+            nlines = nlines + 1
+        end do
+        rewind(664)
+        call dynk_checkspace(0,nlines,0,.false.)
 
         ii = 0 ! Number of data lines read
         do
@@ -392,11 +411,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
             read(filefields_fields(1)(1:filefields_lfields(1)),*) t
             y = round_near(errno, filefields_lfields(2)+1, filefields_fields(2))
             if (errno.ne.0) call rounderr(errno,filefields_fields,2,y)
-            ! write(*,*) "DBGDBG: ch=",ch
-            ! write(*,*) "DBGDBG: filefields_fields(1)=",filefields_fields(1)
-            ! write(*,*) "DBGDBG: filefields_fields(2)=",filefields_fields(2)
 +ei
-            ! write(*,*) "DBGDBG: t,y = ",t,y
 
             ii = ii+1
             if (t .ne. ii) then
@@ -405,14 +420,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
                 write(lout,*) "DYNK> Missing turn number", ii,", got turn", t
                 call prror(51)
             end if
-            call dynk_checkspace(0,nfexpr_dynk+1,0,.false.)
-            ! if (nfexpr_dynk+1 .gt. maxdata_dynk) then
-            !     write(lout,*) "DYNK> dynk_parseFUN():FILE"
-            !     write(lout,*) "DYNK> Error reading file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
-            !     write(lout,*) "DYNK> Ran out of memory in fexpr_dynk in turn", t
-            !     write(lout,*) "DYNK> Please increase maxdata_dynk."
-            !     call prror(51)
-            ! end if
+            ! call dynk_checkspace(0,1,0,.false.)
 
             nfexpr_dynk = nfexpr_dynk+1
             fexpr_dynk(nfexpr_dynk) = y
@@ -487,7 +495,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         end if
 
         ! Find the size of the file
-        ii = 0 !Number of data lines read
+        ii = 0 ! Number of data lines read
         do
 +if .not.crlibm
             read(664,*, iostat=stat) x,y
@@ -517,12 +525,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
             if (errno.ne.0) call rounderr(errno,filefields_fields,1,x)
             y = round_near(errno, filefields_lfields(2)+1, filefields_fields(2))
             if (errno.ne.0) call rounderr(errno,filefields_fields,2,y)
-
-            ! write(*,*) "DBGDBG: ch=",ch
-            ! write(*,*) "DBGDBG: filefields_fields(1)=", filefields_fields(1)(1:filefields_lfields(1))
-            ! write(*,*) "DBGDBG: filefields_fields(2)=", filefields_fields(2)(1:filefields_lfields(2))
 +ei
-            ! write(*,*) "DBGDBG: x,y = ",x,y
 
             if (ii .gt. 0 .and. x .le. x2) then ! Insane: Decreasing x
                 write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
@@ -537,7 +540,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         t = ii
         rewind(664)
 
-        call dynk_checkspace(0,nfexpr_dynk+2*t,0,.false.)
+        call dynk_checkspace(0,2*t,0,.false.)
         ! if (nfexpr_dynk+2*t .gt. maxdata_dynk) then
         !     write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
         !     write (lout,*) "DYNK> Error reading file '"// &
@@ -1729,9 +1732,11 @@ subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
 end subroutine dynk_checkargs
 
 ! ================================================================================================ !
-!  V.K. Berglyd Olsen BE-ABP-HSS
-!  Last modified: 26-09-2017
-!  - Checks if the expr_dynk arrays are large enough, and allocate more memory if they're not
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 27-09-2017
+!  Checks if the expr_dynk arrays are large enough, and allocate more memory if they're not.
+!  - If a small increase is requested, just allocate a new chunk of 500 numbers or 100 strings
+!  - If a large number of new elements is requested, allocate this in one chunk
 ! ================================================================================================ !
 subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
@@ -1760,8 +1765,8 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
     ! Growing iexpr_dynk if necessary
     if (reqidata .gt. maxidata_dynk) then
 
-        ! Try to double the allocated array size to prevent repeated resizing
-        newidata = 2*maxidata_dynk
+        ! Adding 500 elements to prevent repeate requests for small allocations
+        newidata = maxidata_dynk + 500
         ! If this is insufficient, just set it to the requested size
         if(newidata .lt. reqidata) then
             newidata = reqidata
@@ -1787,8 +1792,8 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
         maxidata_dynk = newidata
 
         if (ldynkdebug .and. .not. quiet) then
-            write (lout,'(A,I8)') "DYNKDEBUG> Requested size for iexpr_dynk is",reqidata
-            write (lout,'(A,I8)') "DYNKDEBUG> maxidata_dynk increased to      ",maxidata_dynk
+            write (lout,'(A,I8,A,I8)') "DYNKDEBUG> Requested size for iexpr_dynk is ",reqidata, &
+                                       ", maxidata_dynk increased to ",maxidata_dynk
         end if
 
     end if
@@ -1796,8 +1801,8 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
     ! Growing fexpr_dynk if necessary
     if (reqfdata .gt. maxfdata_dynk) then
 
-        ! Try to double the allocated array size to prevent repeated resizing
-        newfdata = 2*maxfdata_dynk
+        ! Adding 500 elements to prevent repeate requests for small allocations
+        newfdata = maxfdata_dynk + 500
         ! If this is insufficient, just set it to the requested size
         if(newfdata .lt. reqfdata) then
             newfdata = reqfdata
@@ -1823,8 +1828,8 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
         maxfdata_dynk = newfdata
 
         if (ldynkdebug .and. .not. quiet) then
-            write (lout,'(A,I8)') "DYNKDEBUG> Requested size for fexpr_dynk is",reqfdata
-            write (lout,'(A,I8)') "DYNKDEBUG> maxfdata_dynk increased to      ",maxfdata_dynk
+            write (lout,'(A,I8,A,I8)') "DYNKDEBUG> Requested size for fexpr_dynk is ",reqfdata, &
+                                       ", maxfdata_dynk increased to ",maxfdata_dynk
         end if
 
     end if
@@ -1832,8 +1837,8 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
     ! Growing cexpr_dynk if necessary
     if (reqcdata .gt. maxcdata_dynk) then
 
-        ! Try to double the allocated array size to prevent repeated resizing
-        newcdata = 2*maxcdata_dynk
+        ! Adding 100 elements to prevent repeate requests for small allocations
+        newcdata = maxcdata_dynk + 100
         ! If this is insufficient, just set it to the requested size
         if(newcdata .lt. reqcdata) then
             newcdata = reqcdata
@@ -1858,9 +1863,16 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
         ! Set the new maximum
         maxcdata_dynk = newcdata
 
+        ! Zero the new strings
+        do i=ncexpr_dynk+1, maxcdata_dynk
+            do j=1,maxstrlen_dynk
+                cexpr_dynk(i)(j:j) = char(0)
+            end do
+        end do
+
         if (ldynkdebug .and. .not. quiet) then
-            write (lout,'(A,I8)') "DYNKDEBUG> Requested size for cexpr_dynk is",reqcdata
-            write (lout,'(A,I8)') "DYNKDEBUG> maxcdata_dynk increased to      ",maxcdata_dynk
+            write (lout,'(A,I8,A,I8)') "DYNKDEBUG> Requested size for cexpr_dynk is ",reqcdata, &
+                                       ", maxcdata_dynk increased to ",maxcdata_dynk
         end if
 
     end if
