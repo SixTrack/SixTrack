@@ -1784,7 +1784,7 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
         if (stat.ne.0) then
             write(lout,'(A,I8)') "ERROR in DYNK_CHECKSPACE; stat=",stat
-            write(lout,'(A)')    "Attempted to grow iexpr_dynk to",newidata
+            write(lout,'(A,I8)') "Attempted to grow iexpr_dynk to",newidata
             call prror(-1)
         end if
 
@@ -1820,7 +1820,7 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
         if (stat.ne.0) then
             write(lout,'(A,I8)') "ERROR in DYNK_CHECKSPACE; stat=",stat
-            write(lout,'(A)')    "Attempted to grow fexpr_dynk to",newfdata
+            write(lout,'(A,I8)') "Attempted to grow fexpr_dynk to",newfdata
             call prror(-1)
         end if
 
@@ -1856,7 +1856,7 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
         if (stat.ne.0) then
             write(lout,'(A,I8)') "ERROR in DYNK_CHECKSPACE; stat=",stat
-            write(lout,'(A)')    "Attempted to grow cexpr_dynk to",newcdata
+            write(lout,'(A,I8)') "Attempted to grow cexpr_dynk to",newcdata
             call prror(-1)
         end if
 
