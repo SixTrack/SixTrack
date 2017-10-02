@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K.B. Olsen, CERN
+!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K. Berglyd Olsen, CERN
 !!M. Fitterer, FNAL, CERN
 !!A. Patapenka,  NIU, CERN
 !!G. Robert-Demolaize, BNL
@@ -1236,12 +1236,12 @@
       double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
       double precision :: elens_r2(nele)        ! outer radius R2 [mm]
       double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
-      double precision :: elens_offset_x(nele),
+      double precision :: elens_offset_x(nele),                         &
      &                    elens_offset_y(nele)  ! hor./vert. offset of elens [mm]
-      integer          :: elens_bend_entrance(nele),
+      integer          :: elens_bend_entrance(nele),                    &
      &                    elens_bend_exit(nele) ! switch for elens bends
-      common /elensco/ elens_type,elens_theta_max,elens_r2,
-     &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
+      common /elensco/ elens_type,elens_theta_max,elens_r2,             &
+     &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,   &
      &     elens_bend_exit
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
@@ -17408,7 +17408,7 @@ cc2008
 
 !-----------------------------------------------------------------------
 !  SCATTER
-!  K. Sjobak, V. Olsen BE-ABP-HSS
+!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
 !  Last modified: 29-08-2017
 !-----------------------------------------------------------------------
  2900 continue
@@ -33513,11 +33513,9 @@ C Should get me a NaN
 
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
      &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
-     &     maxfuncs_dynk,funcs_dynk,
-     &     maxdata_dynk,maxstrlen_dynk,
-     &     nsets_dynk,maxsets_dynk,
-     &     sets_dynk,csets_dynk,csets_unique_dynk,fsets_origvalue_dynk,
-     &     dynk_izuIndex,dynk_elemdata
+     &     maxfuncs_dynk,funcs_dynk,maxstrlen_dynk,nsets_dynk,
+     &     maxsets_dynk,sets_dynk,csets_dynk,csets_unique_dynk,
+     &     fsets_origvalue_dynk,dynk_izuIndex,dynk_elemdata
 +if cr
      &     , dynkfilepos
 +ei
@@ -49756,12 +49754,8 @@ c$$$            endif
 +if datamods
       use bigmats
 +ei
-      use dynk, only : ldynk,
-     &niexpr_dynk_cr,nfexpr_dynk_cr, ncexpr_dynk_cr,
-     &maxdata_dynk,maxsets_dynk,
-     &iexpr_dynk_cr,fexpr_dynk_cr,cexpr_dynk_cr,
-     &cexpr_dynk_cr,fsets_dynk_cr,
-     &ldynkfiledisable, dynkfilepos_cr,dynkfilepos
+      use dynk, only : ldynk, ldynkfiledisable,
+     &dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
       use scatter, only : scatter_active, scatter_crcheck_readdata,
      &     scatter_crcheck_positionFiles
@@ -49937,25 +49931,8 @@ c$$$            endif
          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
-         read(95,err=100,end=100)
-     &        dynkfilepos_cr,
-     &        niexpr_dynk_cr,
-     &        nfexpr_dynk_cr,
-     &        ncexpr_dynk_cr,
-     &        (iexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (cexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fsets_dynk_cr(j),j=1,maxsets_dynk)
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
+         call dynk_crcheck_readdata(95,lerror)
+         if (lerror) goto 100
       endif
 
       if(scatter_active) then
@@ -50132,25 +50109,8 @@ c$$$         backspace (93,iostat=ierro)
          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
-         read(96,err=101,end=101)
-     &        dynkfilepos_cr,
-     &        niexpr_dynk_cr,
-     &        nfexpr_dynk_cr,
-     &        ncexpr_dynk_cr,
-     &        (iexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (cexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fsets_dynk_cr(j),j=1,maxsets_dynk)
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
+         call dynk_crcheck_readdata(96,lerror)
+         if (lerror) goto 101
       endif
 
       if(scatter_active) then
@@ -50540,67 +50500,11 @@ c$$$         backspace (93,iostat=ierro)
       
       !reposition dynksets.dat
       if (ldynk .and.(.not.ldynkfiledisable) ) then
-         write(93,*)
-     &"SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
+         write(93,*) "SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          
-         inquire( unit=665, opened=lopen )
-         if (lopen) then
-            write(93,*)
-     &"SIXTRACR CRCHECK FAILED while repositioning dynksets.dat"
-            write(93,*)
-     &"Unit 665 already in use!"
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-
-            write(lout,*)
-     &           'SIXTRACR CRCHECK failure positioning dynksets.dat'
-            call prror(-1)
-         end if
-         if (dynkfilepos_cr .ne. -1) then
-+if boinc
-            call boincrf("dynksets.dat",filename)
-            open(unit=665,file=filename,status="old",
-     &           action="readwrite", err=110)
-+ei
-+if .not.boinc
-            open(unit=665,file='dynksets.dat',status="old",
-     &           action="readwrite", err=110)
-+ei
-            dynkfilepos = 0     ! Start counting lines at 0, not -1
-            do j=1,dynkfilepos_cr
-               read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
-               dynkfilepos=dynkfilepos+1
-            end do
-
-            endfile (665,iostat=ierro)
-            close(665)
-+if boinc
-            call boincrf("dynksets.dat",filename)
-            open(unit=665, file=filename, status="old",
-     &           position='append', action="write")
-+ei
-+if .not.boinc
-            open(unit=665, file="dynksets.dat", status="old",
-     &           position='append', action="write")
-+ei
-         
-            write(93,*)
-     &'SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, '//
-     &'dynkfilepos=',dynkfilepos, "dynkfilepos_cr=",dynkfilepos_cr
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-         else
-            write(93,*)
-     &           'SIXTRACR CRCHECK did not attempt repositioning '//
-     &           'of dynksets.dat, dynkfilepos_cr=',dynkfilepos_cr
-            write(93,*) "If anything has been written to the file, "//
-     &           "it will be correctly truncated in dynk_apply "//
-     &           "on the first turn."
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-         endif !END "if (dynkfilepos_cr .ne. -1)"
+         call dynk_crcheck_positionFiles
       endif !END if (ldynk .and.(.not.ldynkfiledisable) )
       
       !Reposition files for DUMP
@@ -50867,16 +50771,6 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
 +ei
- 110  write(93,*)                                                       &
-     &'SIXTRACR CRCHECK *** ERROR ***'//
-     &' reading dynksets.dat, iostat=',ierro
-      write(93,*)                                                       &
-     &'dynkfilepos=',dynkfilepos,' dynkfilepos_cr=',dynkfilepos_cr
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning dynksets.dat'
-      call prror(-1)
-
  111  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR ***'//
      &' reading DUMP file#', dumpunit(i),' iostat=',ierro
@@ -50900,11 +50794,8 @@ c$$$         backspace (93,iostat=ierro)
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
 
-      use dynk, only : nsets_unique_dynk,fsets_dynk_cr,dynk_getvalue,
-     &csets_unique_dynk, ldynk,
-     &dynkfilepos,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
-     &maxdata_dynk,maxsets_dynk,
-     &iexpr_dynk,fexpr_dynk,cexpr_dynk,fsets_dynk_cr
+      use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,
+     &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
 
       use scatter, only : scatter_active, scatter_crpoint
       
@@ -51141,18 +51032,8 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
-        !TODO: One could probably be more efficient when saving
-        write(95,err=100,iostat=ierro)                                  &
-     &dynkfilepos,
-     &niexpr_dynk,
-     &nfexpr_dynk,
-     &ncexpr_dynk,
-     &(iexpr_dynk(j),j=1,maxdata_dynk),
-     &(fexpr_dynk(j),j=1,maxdata_dynk),
-     &(cexpr_dynk(j),j=1,maxdata_dynk),
-     &(fsets_dynk_cr(j),j=1,maxsets_dynk)
-        endfile (95,iostat=ierro)
-        backspace (95,iostat=ierro)
+        call dynk_crpoint(95,lerror,ierro)
+        if (lerror) goto 100
       endif
       
       if (scatter_active) then
@@ -51401,18 +51282,8 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
-        !TODO: One could probably be more efficient when saving
-        write(96,err=100,iostat=ierro)                                  &
-     &dynkfilepos,
-     &niexpr_dynk,
-     &nfexpr_dynk,
-     &ncexpr_dynk,
-     &(iexpr_dynk(j),j=1,maxdata_dynk),
-     &(fexpr_dynk(j),j=1,maxdata_dynk),
-     &(cexpr_dynk(j),j=1,maxdata_dynk),
-     &(fsets_dynk_cr(j),j=1,maxsets_dynk)
-        endfile (96,iostat=ierro)
-        backspace (96,iostat=ierro)
+        call dynk_crpoint(96,lerror,ierro)
+        if (lerror) goto 100
       endif
       
       if (scatter_active) then
@@ -51573,13 +51444,7 @@ c$$$         backspace (93,iostat=ierro)
 +if datamods
       use bigmats
 +ei
-      use dynk, only : ldynk,
-     &niexpr_dynk, niexpr_dynk_cr, nfexpr_dynk, nfexpr_dynk_cr,
-     &ncexpr_dynk, ncexpr_dynk_cr, maxdata_dynk,
-     &iexpr_dynk,iexpr_dynk_cr,fexpr_dynk,fexpr_dynk_cr,
-     &cexpr_dynk,cexpr_dynk_cr,
-     &nsets_unique_dynk,dynk_setvalue,
-     &csets_unique_dynk,fsets_dynk_cr
+      use dynk, only : ldynk, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
       
@@ -51716,33 +51581,7 @@ c$$$         backspace (93,iostat=ierro)
 !ERIC new extended checkpoint for synuthck
       
       if (ldynk) then
-         !LOAD DYNK DATA from temp arrays (loaded from file in crcheck)
-         niexpr_dynk = niexpr_dynk_cr
-         nfexpr_dynk = nfexpr_dynk_cr
-         ncexpr_dynk = ncexpr_dynk_cr
-         do j=1,maxdata_dynk
-            iexpr_dynk(j) = iexpr_dynk_cr(j)
-            fexpr_dynk(j) = fexpr_dynk_cr(j)
-            cexpr_dynk(j) = cexpr_dynk_cr(j)
-         enddo
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
-         
-         ! Load current settings from fsets_dynk_cr into the elements affected by DYNK.
-         do j=1,nsets_unique_dynk
-            !It is OK to write to lout from here
-            call dynk_setvalue( csets_unique_dynk(j,1),
-     &                          csets_unique_dynk(j,2),
-     &                          fsets_dynk_cr(j)        )
-         enddo
+         call dynk_crstart
       endif
 
       if (scatter_active) then
