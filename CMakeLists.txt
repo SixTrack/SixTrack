@@ -1233,7 +1233,7 @@ endif()
 #same with OSX, using gfortran from homebrew
 if(STATIC)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/)
+		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/ /usr/local/opt/gcc/lib/gcc/7/ /usr/local/opt/gcc/lib/gcc/8/)
 		target_link_libraries(SixTrack ${lquadmath})
 	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(STATIC)
