@@ -696,14 +696,20 @@ The length of the ramps and the flat top are specified in the
 ``Initial coordinates'' block~\ref{IniCoo} is used to compute the 
 deflection angle.
 
-% \subsubsection{Dipole edge}
-% \paragraph{Format} {\em name type ed ek}
-% \begin{description}
-% \item[name] May contain up to sixteen characters
-% \item[type] Type identifier $24$
-% \item[ed] First argument, meaning unknown
-% \item[ek] Second argument, meaning unknown
-% \end{description}
+ \subsubsection{Dipole edge}
+ \paragraph{Format} {\em name type ed ek}
+ \begin{description}
+ \item[name] May contain up to sixteen characters
+ \item[type] Type identifier $24$
+ \item[ed] $r_{21}$, horizontal edge focusing.
+ \item[ek] $r_{43}$, vertical edge focusing. 
+
+\paragraph{Remark}
+MAD-X is outputting the right format when using the dipedge element. The hard edge model is described in the physics guide.
+
+
+
+ \end{description}
 
 % This element needs more documentation and possibly testing -- not currently supported!
 
