@@ -14,6 +14,8 @@ int main(int argc, char* argv[]){
   }
 
   list_archive(argv[1]);
+  cout << "OK, now inflating!"<<endl;
+  read_archive(argv[1], "libarchive_test");
 
   return EXIT_SUCCESS;
 }
