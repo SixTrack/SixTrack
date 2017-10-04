@@ -5,9 +5,9 @@
 set -e #Exit on error
 
 echo
-echo ####################################
-echo ### SUBMODULES #####################
-echo ####################################
+echo "####################################"
+echo "### GIT SUBMODULES##################"
+echo "####################################"
 echo
 
 #Make sure we have the right submodule versions
@@ -21,10 +21,11 @@ if [[ $(uname) != MINGW* ]]; then     # Use MSYS on Windows, git on MINGW is bug
 fi
 
 echo
-echo ####################################
-echo ### BOINC ##########################
-echo ####################################
+echo "####################################"
+echo "### BOINC ##########################"
+echo "####################################"
 echo
+
 cd boinc
 
 if [[ $(uname) == FreeBSD* ]]; then
@@ -66,9 +67,9 @@ cd ..
 cd ..
 
 echo
-echo ####################################
-echo ### libArchive #####################
-echo ####################################
+echo "####################################"
+echo "### libArchive #####################"
+echo "####################################"
 echo
 echo "**** ZLIB ****"
 echo
@@ -100,6 +101,7 @@ ZLIB_PATH=$ZLIB_BASE/install/lib/libz.a
 
 cd ..
 
+echo
 echo "**** libArchive ****"
 echo
 
@@ -110,10 +112,7 @@ fi
 mkdir libarchive_build
 cd libarchive_build
 
-export ZLIB_ROOT=$ZLIB_BASE/install
-cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF -DZLIB_LIBRARY=$ZLIB_PATH -DZLIB_INCLUDE_DIR=$ZLIB_ROOT/include -G "Unix Makefiles" ../libarchive -LH
-
-#cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF -DZLIB_ROOT=$ZLIB_BASE/install -D -G "Unix Makefiles" ../libarchive -LH
+cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF -DZLIB_LIBRARY=$ZLIB_PATH -DZLIB_INCLUDE_DIR=$ZLIB_BASE/install/include -G "Unix Makefiles" ../libarchive -LH
 
 if [[ $(pwd) == /afs/* ]]; then
     #AFS doesn't like parallel make
