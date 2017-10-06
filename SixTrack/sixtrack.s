@@ -15526,7 +15526,7 @@ cc2008
 
 +if collimat
       has_coll = .true. !We have a collimation block.
-      if (ilin.eq.2) then
+      if (ilin.ne.1) then
          write(lout,*) "ERROR DETECTED:"
          write(lout,*) "Incompatible flag with collimation version"
          write(lout,*) "in LINEAR OPTICS block. You have chosen"
