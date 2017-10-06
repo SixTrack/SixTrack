@@ -15559,17 +15559,17 @@ cc2008
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
 
-      if(do_coll .and. numl.ge.10000) then
-         write(lout,*) ""
-         write(lout,*) "Error when parsing COLL block in fort.3"
-         write(lout,*) "Collimation supports a maximum of 10000 turns;"
-         write(lout,*) " trying to use more than this "//
-     &        "corrupts the output files."
-         write(lout,*) "Sorry!"
-         write(lout,*) ""
-         
-         call prror(-1)
-      endif
+!      if(do_coll .and. numl.ge.10000) then
+!         write(lout,*) ""
+!         write(lout,*) "Error when parsing COLL block in fort.3"
+!         write(lout,*) "Collimation supports a maximum of 10000 turns;"
+!         write(lout,*) " trying to use more than this "//
+!     &        "corrupts the output files."
+!         write(lout,*) "Sorry!"
+!         write(lout,*) ""
+!         
+!         call prror(-1)
+!      endif
       
 
       
