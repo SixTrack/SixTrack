@@ -701,11 +701,15 @@ deflection angle.
  \begin{description}
  \item[name] May contain up to sixteen characters
  \item[type] Type identifier $24$
- \item[$r_{21}$] Horizontal edge focusing.
+ \item[$r_{21}$] Horizontal edge focusing. 
  \item[$r_{43}$] Vertical edge focusing. 
 
 \paragraph{Remark}
-MAD-X is outputting the correct format when using the dipedge element. An example of  the hard edge model is described in the physics guide, which gives $r_{21} = -r_{43}$. Note that the values of the vertical edge focusing is dependent on the modeling of the fringe fields \cite{dipedge}.  
+MAD-X is outputting the correct format when using the dipedge element. An example of  the hard edge model is described in the physics guide \cite{sixphys}, which gives $r_{21} = -r_{43}$. Note that the values of the vertical edge focusing is dependent on the modeling of the fringe fields \cite{dipedge}. A particle with position $x_{1},y_1$ and angle $x'_{1},y'_1$ will have the angle $x'_{2},y'_2$ after passing through the dipedge element. The following equations describe their relation:
+\begin{eqnarray}
+x'_{2} = x'_{1} + x_{1}\frac{r_{21}}{1+\delta} \\
+y'_{2} = y'_{1} + y_{1}\frac{r_{43}}{1+\delta}
+\end{eqnarray}
 
 
 
