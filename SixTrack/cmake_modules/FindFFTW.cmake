@@ -27,6 +27,8 @@ if( NOT FFTW_ROOT AND ENV{FFTWDIR} )
   set( FFTW_ROOT $ENV{FFTWDIR} )
 endif()
 
+message(STATUS "..........fftw...: " ${FFTW_ROOT})
+
 # Check if we can use PkgConfig
 find_package(PkgConfig)
 
@@ -55,21 +57,21 @@ if( FFTW_ROOT )
     NO_DEFAULT_PATH
   )
 
-  find_library(
-    FFTWF_LIB
-    NAMES "fftw3f"
-    PATHS ${FFTW_ROOT}
-    PATH_SUFFIXES "lib" "lib64"
-    NO_DEFAULT_PATH
-  )
-
-  find_library(
-    FFTWL_LIB
-    NAMES "fftw3l"
-    PATHS ${FFTW_ROOT}
-    PATH_SUFFIXES "lib" "lib64"
-    NO_DEFAULT_PATH
-  )
+#  find_library(
+#    FFTWF_LIB
+#    NAMES "fftw3f"
+#    PATHS ${FFTW_ROOT}
+#    PATH_SUFFIXES "lib" "lib64"
+#    NO_DEFAULT_PATH
+#  )
+#
+#  find_library(
+#    FFTWL_LIB
+#    NAMES "fftw3l"
+#    PATHS ${FFTW_ROOT}
+#    PATH_SUFFIXES "lib" "lib64"
+#    NO_DEFAULT_PATH
+#  )
 
   #find includes
   find_path(
@@ -88,18 +90,18 @@ else()
     PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
   )
 
-  find_library(
-    FFTWF_LIB
-    NAMES "fftw3f"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
+#  find_library(
+#    FFTWF_LIB
+#    NAMES "fftw3f"
+#    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
 
 
-  find_library(
-    FFTWL_LIB
-    NAMES "fftw3l"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
+#  find_library(
+#    FFTWL_LIB
+#    NAMES "fftw3l"
+#    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
 
   find_path(
     FFTW_INCLUDES
