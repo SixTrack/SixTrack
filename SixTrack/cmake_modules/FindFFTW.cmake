@@ -27,8 +27,6 @@ if( NOT FFTW_ROOT AND ENV{FFTWDIR} )
   set( FFTW_ROOT $ENV{FFTWDIR} )
 endif()
 
-message(STATUS "..........fftw...: " ${FFTW_ROOT})
-
 # Check if we can use PkgConfig
 find_package(PkgConfig)
 
