@@ -8,7 +8,7 @@
 
 #Set the cmake version required
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
-set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+#set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
 PROJECT(SixTrack)
@@ -1222,7 +1222,7 @@ endforeach()
 ###################################################################################################
 #linking
 ###################################################################################################
-set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/5.3.0/libquadmath.a")
+set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/6.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
 	target_link_libraries(astuce_old ${MSYS_QUADMATH})
