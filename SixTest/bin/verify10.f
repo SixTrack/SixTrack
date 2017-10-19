@@ -70,17 +70,16 @@
       write (*,*) "Comparing VERSION ",probv," to ",probv1
       write (*,*)
      & "verify10_DIFF I/O error, wrong no of lines!!?? line no ",line
-      call exit(1)
-      stop
+      stop 1
  100  continue
       if (line.eq.0) go to 99
       if (diff) then
         write (*,*) "Comparing VERSION ",probv," to ",probv1
         write (*,*) "Different after comparing ",line," lines"
-        call exit(2)
+        stop 2
       else
         write (*,*) "Comparing VERSION ",probv," to ",probv1
         write (*,*) "verify10_SAME after comparing ",line," lines"
-        call exit(0) 
+        stop 0
       endif
       end

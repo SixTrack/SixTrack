@@ -68,27 +68,24 @@
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       write (*,*)
      & "checkf10_DIFF I/O error, wrong no of lines!! line no ",line
-      call exit(2)
-      stop
+      stop 2
  98   continue
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       write (*,*) "checkf10_DIFF I/O error!! fort.20 line no ",line
-      call exit(3)
-      stop
+      stop 3
  97   continue
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       write (*,*) "checkf10_DIFF I/O error!! fort.21 line no ",line
-      call exit(4)
-      stop
+      stop 4
  100  continue
       if (line.eq.0) go to 99
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       if (diff) then
         write (*,*) "checkf10_DIFF after comparing ",line ,"lines"
-        call exit(1)
+        stop 1
       else
         write (*,*)
      & "checkf10_checkf10_SAME after comparing ",line ,"lines"
-        call exit(0)
+        stop 0
       endif
       end
