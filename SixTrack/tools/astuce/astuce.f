@@ -595,9 +595,9 @@
      +sudeck * (mtab)
 *---------*---------*---------*---------*---------*---------*---------*-
  
-      m = min(2 * marg, iargc())
+      m = min(2 * marg, command_argument_count())
       do 10  i = 1, m
-        call getarg(i, sargin(i))
+        call get_command_argument(i, sargin(i))
    10 continue
       do 20  i = 1, m - 1
         if(sargin(i)(:2) .eq. '-s')  then
