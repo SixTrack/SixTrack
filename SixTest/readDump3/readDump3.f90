@@ -5,6 +5,7 @@ program readDump3
   ! For now, no explicit binary->decimal conversion,
   ! since DUMP in SixTrack is also not doing this correctly...
 
+  use, intrinsic :: iso_fortran_env, only : output_unit
   implicit none
 
   integer :: stat
@@ -33,6 +34,7 @@ program readDump3
 
      if (cmdarg_status.eq.-1) then
         write(*,*) "Error: Command line argument ", cmdarg_i, " was truncated."
+        flush(output_unit)
         stop 2
      endif
      
@@ -42,6 +44,7 @@ program readDump3
         ofname = cmdarg_arg
      else
         write(*,*) "Expected 2 arguments: inputfile outputfile"
+        flush(output_unit)
         stop 1
      endif
      
@@ -51,12 +54,14 @@ program readDump3
 
   if (cmdarg_i.ne. 3) then
         write(*,*) "Expected 2 arguments: inputfile outputfile"
+        flush(output_unit)
         stop 3
   endif
   ! Check that the input files is there
   INQUIRE(FILE=ifname,EXIST=fileExists)
   if (.not. fileExists) then
      write(*,'(a,a,a)') "Error in readDump3 - input file '"//trim(ifname)//"' was not found"
+     flush(output_unit)
      stop 4
   endif
 
@@ -81,6 +86,7 @@ program readDump3
   !Error while reading
 6000 continue
   write(*,*) "Error while reading file", ifname
+  flush(output_unit)
   stop 5
   
   !Copied from dump_beam_population in sixtrack.s

@@ -645,22 +645,12 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=32 ${CMAKE_Fortran_FLAGS_DEBUG}")
-		if(STATIC)
-			find_library(g2cLink NAMES libg2c.a PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 )
-		else()
-			find_library(g2cLink NAMES libg2c.so PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 )
-		endif()
 	endif(32BIT)
 
 	if(64BIT)
 		#See the nagfor man page for the different 64bit -abi options.
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=64t ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=64t ${CMAKE_Fortran_FLAGS_DEBUG}")
-		if(STATIC)
-			find_library(g2cLink NAMES libg2c.a PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6 )
-		else()
-			find_library(g2cLink NAMES libg2c.so PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6 )
-		endif()
 	endif(64BIT)
 
 	if(NATIVE)
@@ -887,9 +877,6 @@ SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" 
 ##build astuce
 add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
 SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
-if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	target_link_libraries(astuce_old ${g2cLink})
-endif()
 
 add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
 add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
@@ -1370,12 +1357,6 @@ IF(BUILD_TESTING)
 	SET_TARGET_PROPERTIES(checkf1014 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-
-	if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-		target_link_libraries(verify10 ${g2cLink})
-		target_link_libraries(checkf10 ${g2cLink})
-		target_link_libraries(compf10 ${g2cLink})
-	endif()
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
