@@ -880,7 +880,7 @@ SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_F
 
 add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
 add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
-SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS ${CMAKE_CXX_LINKER_FLAGS} OUTPUT_NAME "astuce++")
+SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}" OUTPUT_NAME "astuce++")
 target_link_libraries(astuce astuce++)
 
 #build dafor
