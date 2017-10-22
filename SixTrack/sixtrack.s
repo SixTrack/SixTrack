@@ -47901,6 +47901,8 @@ c$$$            endif
       implicit none
 +ca parnum   !numbers (zero,one,two etc.)
 +ca commonta
++ca crcoall
+
       integer :: i,j            !iterators
       double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
       double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
@@ -47931,8 +47933,12 @@ c$$$            endif
       endif
 !     - invert: dinv returns the transposed matrix
       call dinv(6,fma_tas_inv,6,idummy,ierro)
-      call fma_error(ierro,'matrix inversion failed!',                  &
-     &'invert_tas')
+      if (ierro.ne.0) then
+         write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
+         write(lout,*) "Subroutine DINV returned ierro=",ierro
+         call prror(-1)
+      endif
+      
 !     - transpose fma_tas_inv
       tdummy=fma_tas_inv
       do i=1,6
