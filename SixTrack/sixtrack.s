@@ -44631,6 +44631,9 @@ c$$$            endif
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
 !     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
 !     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
+!     
+!     This is similar but not exactly the same as the subroutine invert_tas;
+!     the "tasum" is missing from there
       do 160 i=1,6
         do 160 j=1,6
   160 t(i,j)=ta(j,i)
@@ -46564,60 +46567,6 @@ c$$$            endif
       endif
       end subroutine
       
-      subroutine invert_tas(fma_tas_inv,fma_tas)
-!-----------------------------------------------------------------------*
-!  FMA                                                                  *
-!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
-!  last modified: 04-01-2016                                            *
-!  purpose: invert the matrix of eigenvecors tas                        *
-!           (code copied from postpr only that ta is here fma_tas)      *
-!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
-!           note: inversion method copied from subroutine postpr        *
-!-----------------------------------------------------------------------*
-      implicit none
-+ca parnum   !numbers (zero,one,two etc.)
-+ca commonta
-      integer :: i,j            !iterators
-      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-      integer ierro                   !error messages
-!     dummy variables
-      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-      integer, dimension(6) :: idummy !for matrix inversion
-!     units: [mm,mrad,mm,mrad,mm,1]
-!     invert matrix
-!     - set values close to 1 equal to 1
-      do 160 i=1,6
-        do 160 j=1,6
-  160 fma_tas_inv(i,j)=fma_tas(j,i)
-      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
-     &pieni) then
-        fma_tas_inv(1,1)=one
-        fma_tas_inv(2,2)=one
-      endif
-      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
-     &pieni) then
-        fma_tas_inv(3,3)=one
-        fma_tas_inv(4,4)=one
-      endif
-      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
-     &pieni) then
-        fma_tas_inv(5,5)=one
-        fma_tas_inv(6,6)=one
-      endif
-!     - invert: dinv returns the transposed matrix
-      call dinv(6,fma_tas_inv,6,idummy,ierro)
-      call fma_error(ierro,'matrix inversion failed!',                  &
-     &'invert_tas')
-!     - transpose fma_tas_inv
-      tdummy=fma_tas_inv
-      do i=1,6
-        do j=1,6
-          fma_tas_inv(i,j)=tdummy(j,i)
-        enddo
-      enddo
-      end subroutine invert_tas
-      
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -47939,6 +47888,73 @@ c$$$            endif
 10010 format(//10x,'** ERROR IN JOIN** ----- PROBLEMS WITH DATA ' ,     &
      &'FILE : ',i2,' ----- ERROR CODE : ',i10//)
       end
+
++dk utils ! Various utility functions
+
+      subroutine invert_tas(fma_tas_inv,fma_tas)
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: invert the matrix of eigenvecors tas                        *
+!           (code copied from postpr only that ta is here fma_tas)      *
+!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
+!           note: inversion method copied from subroutine postpr        *
+!-----------------------------------------------------------------------*
+      implicit none
++ca parnum   !numbers (zero,one,two etc.)
++ca commonta
++ca crcoall
+
+      integer :: i,j            !iterators
+      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
+      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
+      integer ierro                   !error messages
+!     dummy variables
+      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
+      integer, dimension(6) :: idummy !for matrix inversion
+!     units: [mm,mrad,mm,mrad,mm,1]
+!     invert matrix
+!     - set values close to 1 equal to 1
+      do i=1,6
+         do j=1,6
+            fma_tas_inv(i,j)=fma_tas(j,i)
+         enddo
+      enddo
+      
+      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
+     &pieni) then
+        fma_tas_inv(1,1)=one
+        fma_tas_inv(2,2)=one
+      endif
+      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
+     &pieni) then
+        fma_tas_inv(3,3)=one
+        fma_tas_inv(4,4)=one
+      endif
+      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
+     &pieni) then
+        fma_tas_inv(5,5)=one
+        fma_tas_inv(6,6)=one
+      endif
+      
+!     - invert: dinv returns the transposed matrix
+      call dinv(6,fma_tas_inv,6,idummy,ierro)
+      if (ierro.ne.0) then
+         write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
+         write(lout,*) "Subroutine DINV returned ierro=",ierro
+         call prror(-1)
+      endif
+      
+!     - transpose fma_tas_inv
+      tdummy=fma_tas_inv
+      do i=1,6
+        do j=1,6
+          fma_tas_inv(i,j)=tdummy(j,i)
+        enddo
+      enddo
+      end subroutine invert_tas
+
 +dk sumpos
       subroutine sumpos
 !-----------------------------------------------------------------------
