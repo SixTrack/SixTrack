@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.9'/
-      data moddate /'20.09.2017'/
+      data version /'4.7.10'/
+      data moddate /'02.10.2017'/
 +cd license
 !!SixTrack
 !!
@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K.B. Olsen, CERN
+!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K. Berglyd Olsen, CERN
 !!M. Fitterer, FNAL, CERN
 !!A. Patapenka,  NIU, CERN
 !!G. Robert-Demolaize, BNL
@@ -1236,12 +1236,12 @@
       double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
       double precision :: elens_r2(nele)        ! outer radius R2 [mm]
       double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
-      double precision :: elens_offset_x(nele),
+      double precision :: elens_offset_x(nele),                         &
      &                    elens_offset_y(nele)  ! hor./vert. offset of elens [mm]
-      integer          :: elens_bend_entrance(nele),
+      integer          :: elens_bend_entrance(nele),                    &
      &                    elens_bend_exit(nele) ! switch for elens bends
-      common /elensco/ elens_type,elens_theta_max,elens_r2,
-     &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,
+      common /elensco/ elens_type,elens_theta_max,elens_r2,             &
+     &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,   &
      &     elens_bend_exit
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
@@ -17416,7 +17416,7 @@ cc2008
 
 !-----------------------------------------------------------------------
 !  SCATTER
-!  K. Sjobak, V. Olsen BE-ABP-HSS
+!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
 !  Last modified: 29-08-2017
 !-----------------------------------------------------------------------
  2900 continue
@@ -33521,11 +33521,9 @@ C Should get me a NaN
 
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
      &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
-     &     maxfuncs_dynk,funcs_dynk,
-     &     maxdata_dynk,maxstrlen_dynk,
-     &     nsets_dynk,maxsets_dynk,
-     &     sets_dynk,csets_dynk,csets_unique_dynk,fsets_origvalue_dynk,
-     &     dynk_izuIndex,dynk_elemdata
+     &     maxfuncs_dynk,funcs_dynk,maxstrlen_dynk,nsets_dynk,
+     &     maxsets_dynk,sets_dynk,csets_dynk,csets_unique_dynk,
+     &     fsets_origvalue_dynk,dynk_izuIndex,dynk_elemdata
 +if cr
      &     , dynkfilepos
 +ei
@@ -44641,6 +44639,9 @@ c$$$            endif
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
 !     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
 !     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
+!     
+!     This is similar but not exactly the same as the subroutine invert_tas;
+!     the "tasum" is missing from there
       do 160 i=1,6
         do 160 j=1,6
   160 t(i,j)=ta(j,i)
@@ -46574,60 +46575,6 @@ c$$$            endif
       endif
       end subroutine
       
-      subroutine invert_tas(fma_tas_inv,fma_tas)
-!-----------------------------------------------------------------------*
-!  FMA                                                                  *
-!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
-!  last modified: 04-01-2016                                            *
-!  purpose: invert the matrix of eigenvecors tas                        *
-!           (code copied from postpr only that ta is here fma_tas)      *
-!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
-!           note: inversion method copied from subroutine postpr        *
-!-----------------------------------------------------------------------*
-      implicit none
-+ca parnum   !numbers (zero,one,two etc.)
-+ca commonta
-      integer :: i,j            !iterators
-      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-      integer ierro                   !error messages
-!     dummy variables
-      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-      integer, dimension(6) :: idummy !for matrix inversion
-!     units: [mm,mrad,mm,mrad,mm,1]
-!     invert matrix
-!     - set values close to 1 equal to 1
-      do 160 i=1,6
-        do 160 j=1,6
-  160 fma_tas_inv(i,j)=fma_tas(j,i)
-      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
-     &pieni) then
-        fma_tas_inv(1,1)=one
-        fma_tas_inv(2,2)=one
-      endif
-      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
-     &pieni) then
-        fma_tas_inv(3,3)=one
-        fma_tas_inv(4,4)=one
-      endif
-      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
-     &pieni) then
-        fma_tas_inv(5,5)=one
-        fma_tas_inv(6,6)=one
-      endif
-!     - invert: dinv returns the transposed matrix
-      call dinv(6,fma_tas_inv,6,idummy,ierro)
-      call fma_error(ierro,'matrix inversion failed!',                  &
-     &'invert_tas')
-!     - transpose fma_tas_inv
-      tdummy=fma_tas_inv
-      do i=1,6
-        do j=1,6
-          fma_tas_inv(i,j)=tdummy(j,i)
-        enddo
-      enddo
-      end subroutine invert_tas
-      
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -47949,6 +47896,73 @@ c$$$            endif
 10010 format(//10x,'** ERROR IN JOIN** ----- PROBLEMS WITH DATA ' ,     &
      &'FILE : ',i2,' ----- ERROR CODE : ',i10//)
       end
+
++dk utils ! Various utility functions
+
+      subroutine invert_tas(fma_tas_inv,fma_tas)
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: invert the matrix of eigenvecors tas                        *
+!           (code copied from postpr only that ta is here fma_tas)      *
+!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
+!           note: inversion method copied from subroutine postpr        *
+!-----------------------------------------------------------------------*
+      implicit none
++ca parnum   !numbers (zero,one,two etc.)
++ca commonta
++ca crcoall
+
+      integer :: i,j            !iterators
+      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
+      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
+      integer ierro                   !error messages
+!     dummy variables
+      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
+      integer, dimension(6) :: idummy !for matrix inversion
+!     units: [mm,mrad,mm,mrad,mm,1]
+!     invert matrix
+!     - set values close to 1 equal to 1
+      do i=1,6
+         do j=1,6
+            fma_tas_inv(i,j)=fma_tas(j,i)
+         enddo
+      enddo
+      
+      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
+     &pieni) then
+        fma_tas_inv(1,1)=one
+        fma_tas_inv(2,2)=one
+      endif
+      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
+     &pieni) then
+        fma_tas_inv(3,3)=one
+        fma_tas_inv(4,4)=one
+      endif
+      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
+     &pieni) then
+        fma_tas_inv(5,5)=one
+        fma_tas_inv(6,6)=one
+      endif
+      
+!     - invert: dinv returns the transposed matrix
+      call dinv(6,fma_tas_inv,6,idummy,ierro)
+      if (ierro.ne.0) then
+         write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
+         write(lout,*) "Subroutine DINV returned ierro=",ierro
+         call prror(-1)
+      endif
+      
+!     - transpose fma_tas_inv
+      tdummy=fma_tas_inv
+      do i=1,6
+        do j=1,6
+          fma_tas_inv(i,j)=tdummy(j,i)
+        enddo
+      enddo
+      end subroutine invert_tas
+
 +dk sumpos
       subroutine sumpos
 !-----------------------------------------------------------------------
@@ -49764,12 +49778,8 @@ c$$$            endif
 +if datamods
       use bigmats
 +ei
-      use dynk, only : ldynk,
-     &niexpr_dynk_cr,nfexpr_dynk_cr, ncexpr_dynk_cr,
-     &maxdata_dynk,maxsets_dynk,
-     &iexpr_dynk_cr,fexpr_dynk_cr,cexpr_dynk_cr,
-     &cexpr_dynk_cr,fsets_dynk_cr,
-     &ldynkfiledisable, dynkfilepos_cr,dynkfilepos
+      use dynk, only : ldynk, ldynkfiledisable,
+     &dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
       use scatter, only : scatter_active, scatter_crcheck_readdata,
      &     scatter_crcheck_positionFiles
@@ -49945,25 +49955,8 @@ c$$$            endif
          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
-         read(95,err=100,end=100)
-     &        dynkfilepos_cr,
-     &        niexpr_dynk_cr,
-     &        nfexpr_dynk_cr,
-     &        ncexpr_dynk_cr,
-     &        (iexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (cexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fsets_dynk_cr(j),j=1,maxsets_dynk)
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
+         call dynk_crcheck_readdata(95,lerror)
+         if (lerror) goto 100
       endif
 
       if(scatter_active) then
@@ -50140,25 +50133,8 @@ c$$$         backspace (93,iostat=ierro)
          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
-         read(96,err=101,end=101)
-     &        dynkfilepos_cr,
-     &        niexpr_dynk_cr,
-     &        nfexpr_dynk_cr,
-     &        ncexpr_dynk_cr,
-     &        (iexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (cexpr_dynk_cr(j),j=1,maxdata_dynk),
-     &        (fsets_dynk_cr(j),j=1,maxsets_dynk)
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
+         call dynk_crcheck_readdata(96,lerror)
+         if (lerror) goto 101
       endif
 
       if(scatter_active) then
@@ -50548,67 +50524,11 @@ c$$$         backspace (93,iostat=ierro)
       
       !reposition dynksets.dat
       if (ldynk .and.(.not.ldynkfiledisable) ) then
-         write(93,*)
-     &"SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
+         write(93,*) "SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          
-         inquire( unit=665, opened=lopen )
-         if (lopen) then
-            write(93,*)
-     &"SIXTRACR CRCHECK FAILED while repositioning dynksets.dat"
-            write(93,*)
-     &"Unit 665 already in use!"
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-
-            write(lout,*)
-     &           'SIXTRACR CRCHECK failure positioning dynksets.dat'
-            call prror(-1)
-         end if
-         if (dynkfilepos_cr .ne. -1) then
-+if boinc
-            call boincrf("dynksets.dat",filename)
-            open(unit=665,file=filename,status="old",
-     &           action="readwrite", err=110)
-+ei
-+if .not.boinc
-            open(unit=665,file='dynksets.dat',status="old",
-     &           action="readwrite", err=110)
-+ei
-            dynkfilepos = 0     ! Start counting lines at 0, not -1
-            do j=1,dynkfilepos_cr
-               read(665,'(a1024)',end=110,err=110,iostat=ierro) arecord
-               dynkfilepos=dynkfilepos+1
-            end do
-
-            endfile (665,iostat=ierro)
-            close(665)
-+if boinc
-            call boincrf("dynksets.dat",filename)
-            open(unit=665, file=filename, status="old",
-     &           position='append', action="write")
-+ei
-+if .not.boinc
-            open(unit=665, file="dynksets.dat", status="old",
-     &           position='append', action="write")
-+ei
-         
-            write(93,*)
-     &'SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, '//
-     &'dynkfilepos=',dynkfilepos, "dynkfilepos_cr=",dynkfilepos_cr
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-         else
-            write(93,*)
-     &           'SIXTRACR CRCHECK did not attempt repositioning '//
-     &           'of dynksets.dat, dynkfilepos_cr=',dynkfilepos_cr
-            write(93,*) "If anything has been written to the file, "//
-     &           "it will be correctly truncated in dynk_apply "//
-     &           "on the first turn."
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-         endif !END "if (dynkfilepos_cr .ne. -1)"
+         call dynk_crcheck_positionFiles
       endif !END if (ldynk .and.(.not.ldynkfiledisable) )
       
       !Reposition files for DUMP
@@ -50875,16 +50795,6 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
 +ei
- 110  write(93,*)                                                       &
-     &'SIXTRACR CRCHECK *** ERROR ***'//
-     &' reading dynksets.dat, iostat=',ierro
-      write(93,*)                                                       &
-     &'dynkfilepos=',dynkfilepos,' dynkfilepos_cr=',dynkfilepos_cr
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning dynksets.dat'
-      call prror(-1)
-
  111  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR ***'//
      &' reading DUMP file#', dumpunit(i),' iostat=',ierro
@@ -50908,11 +50818,8 @@ c$$$         backspace (93,iostat=ierro)
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
 
-      use dynk, only : nsets_unique_dynk,fsets_dynk_cr,dynk_getvalue,
-     &csets_unique_dynk, ldynk,
-     &dynkfilepos,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
-     &maxdata_dynk,maxsets_dynk,
-     &iexpr_dynk,fexpr_dynk,cexpr_dynk,fsets_dynk_cr
+      use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,
+     &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
 
       use scatter, only : scatter_active, scatter_crpoint
       
@@ -51149,18 +51056,8 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
-        !TODO: One could probably be more efficient when saving
-        write(95,err=100,iostat=ierro)                                  &
-     &dynkfilepos,
-     &niexpr_dynk,
-     &nfexpr_dynk,
-     &ncexpr_dynk,
-     &(iexpr_dynk(j),j=1,maxdata_dynk),
-     &(fexpr_dynk(j),j=1,maxdata_dynk),
-     &(cexpr_dynk(j),j=1,maxdata_dynk),
-     &(fsets_dynk_cr(j),j=1,maxsets_dynk)
-        endfile (95,iostat=ierro)
-        backspace (95,iostat=ierro)
+        call dynk_crpoint(95,lerror,ierro)
+        if (lerror) goto 100
       endif
       
       if (scatter_active) then
@@ -51409,18 +51306,8 @@ c$$$         backspace (93,iostat=ierro)
 +if .not.debug
         endif
 +ei
-        !TODO: One could probably be more efficient when saving
-        write(96,err=100,iostat=ierro)                                  &
-     &dynkfilepos,
-     &niexpr_dynk,
-     &nfexpr_dynk,
-     &ncexpr_dynk,
-     &(iexpr_dynk(j),j=1,maxdata_dynk),
-     &(fexpr_dynk(j),j=1,maxdata_dynk),
-     &(cexpr_dynk(j),j=1,maxdata_dynk),
-     &(fsets_dynk_cr(j),j=1,maxsets_dynk)
-        endfile (96,iostat=ierro)
-        backspace (96,iostat=ierro)
+        call dynk_crpoint(96,lerror,ierro)
+        if (lerror) goto 100
       endif
       
       if (scatter_active) then
@@ -51581,13 +51468,7 @@ c$$$         backspace (93,iostat=ierro)
 +if datamods
       use bigmats
 +ei
-      use dynk, only : ldynk,
-     &niexpr_dynk, niexpr_dynk_cr, nfexpr_dynk, nfexpr_dynk_cr,
-     &ncexpr_dynk, ncexpr_dynk_cr, maxdata_dynk,
-     &iexpr_dynk,iexpr_dynk_cr,fexpr_dynk,fexpr_dynk_cr,
-     &cexpr_dynk,cexpr_dynk_cr,
-     &nsets_unique_dynk,dynk_setvalue,
-     &csets_unique_dynk,fsets_dynk_cr
+      use dynk, only : ldynk, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
       
@@ -51724,33 +51605,7 @@ c$$$         backspace (93,iostat=ierro)
 !ERIC new extended checkpoint for synuthck
       
       if (ldynk) then
-         !LOAD DYNK DATA from temp arrays (loaded from file in crcheck)
-         niexpr_dynk = niexpr_dynk_cr
-         nfexpr_dynk = nfexpr_dynk_cr
-         ncexpr_dynk = ncexpr_dynk_cr
-         do j=1,maxdata_dynk
-            iexpr_dynk(j) = iexpr_dynk_cr(j)
-            fexpr_dynk(j) = fexpr_dynk_cr(j)
-            cexpr_dynk(j) = cexpr_dynk_cr(j)
-         enddo
-
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
-         
-         ! Load current settings from fsets_dynk_cr into the elements affected by DYNK.
-         do j=1,nsets_unique_dynk
-            !It is OK to write to lout from here
-            call dynk_setvalue( csets_unique_dynk(j,1),
-     &                          csets_unique_dynk(j,2),
-     &                          fsets_dynk_cr(j)        )
-         enddo
+         call dynk_crstart
       endif
 
       if (scatter_active) then

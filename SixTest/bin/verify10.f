@@ -1,4 +1,5 @@
       program verify10
+      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
       double precision prob(60),prob1(60),probv,probv1
       integer line,word,i
@@ -19,6 +20,7 @@
       if (.not. hasInputFile) then
          write(*,'(a,a)') "Error in verify10 - file 'fort.20'"//
      &        " was not found"
+         flush(output_unit)
          stop 1
       endif
       hasInputFile = .false.
@@ -26,6 +28,7 @@
       if (.not. hasInputFile) then
          write(*,'(a,a)') "Error in verify10 - file 'fort.21'"//
      &        " was not found"
+         flush(output_unit)
          stop 2
       endif
       
@@ -70,17 +73,19 @@
       write (*,*) "Comparing VERSION ",probv," to ",probv1
       write (*,*)
      & "verify10_DIFF I/O error, wrong no of lines!!?? line no ",line
-      call exit(1)
-      stop
+      flush(output_unit)
+      stop 1
  100  continue
       if (line.eq.0) go to 99
       if (diff) then
         write (*,*) "Comparing VERSION ",probv," to ",probv1
         write (*,*) "Different after comparing ",line," lines"
-        call exit(2)
+        flush(output_unit)
+        stop 2
       else
         write (*,*) "Comparing VERSION ",probv," to ",probv1
         write (*,*) "verify10_SAME after comparing ",line," lines"
-        call exit(0) 
+        flush(output_unit)
+        stop 0
       endif
       end

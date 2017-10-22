@@ -52,12 +52,12 @@
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.7.7 \\
+  Version 4.7.10 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, S.~Kostoglou and K.~Sjobak
+  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, S.~Kostoglou, K.~Sjobak and T.~Persson
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -696,14 +696,24 @@ The length of the ramps and the flat top are specified in the
 ``Initial coordinates'' block~\ref{IniCoo} is used to compute the 
 deflection angle.
 
-% \subsubsection{Dipole edge}
-% \paragraph{Format} {\em name type ed ek}
-% \begin{description}
-% \item[name] May contain up to sixteen characters
-% \item[type] Type identifier $24$
-% \item[ed] First argument, meaning unknown
-% \item[ek] Second argument, meaning unknown
-% \end{description}
+ \subsubsection{Dipole edge}
+ \paragraph{Format} {\em name type $r_{21}$ $r_{43}$}
+ \begin{description}
+ \item[name] May contain up to sixteen characters
+ \item[type] Type identifier $24$
+ \item[$r_{21}$] Horizontal edge focusing. 
+ \item[$r_{43}$] Vertical edge focusing. 
+
+\paragraph{Remark}
+MAD-X is outputting the correct format when using the dipedge element. An example of  the hard edge model is described in the physics guide \cite{sixphys}, which gives $r_{21} = -r_{43}$. Note that the values of the vertical edge focusing is dependent on the modeling of the fringe fields \cite{dipedge}. A particle with position $x_{1},y_1$ and angle $x'_{1},y'_1$ will have the angle $x'_{2},y'_2$ after passing through the dipedge element. The following equations describe their relation:
+\begin{eqnarray}
+x'_{2} = x'_{1} + x_{1}\frac{r_{21}}{1+\delta} \\
+y'_{2} = y'_{1} + y_{1}\frac{r_{43}}{1+\delta}
+\end{eqnarray}
+
+
+
+ \end{description}
 
 % This element needs more documentation and possibly testing -- not currently supported!
 
@@ -4766,6 +4776,11 @@ summary of the post--processing is given.
   (AP) (Rev. 4)\\
   \htmladdnormallink{http://cern.ch/Hans.Grote/mad/mad8/doc/mad8\_user.ps.gz}
   {http://cern.ch/Hans.Grote/mad/mad8/doc/mad8\_user.ps.gz}.
+%
+\bibitem{dipedge}
+R.~Molloy and S.~Blitz, ``Fringe Field Effects on Bending Magnets, Derived for, 
+TRANSPORT/TURTLE'', FERMILAB-TM-2564-AD-APC-PPD
+\url{http://lss.fnal.gov/archive/test-tm/2000/fermilab-tm-2564-ad-apc-ppd.pdf}
 %
 \bibitem{ERIC} private communication.  
 %

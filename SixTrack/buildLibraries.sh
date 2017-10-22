@@ -4,6 +4,12 @@
 
 set -e #Exit on error
 
+echo
+echo "####################################"
+echo "### GIT SUBMODULES##################"
+echo "####################################"
+echo
+
 #Make sure we have the right submodule versions
 if [[ $(uname) != MINGW* ]]; then     # Use MSYS on Windows, git on MINGW is buggy.
     #On LxPlus, you need to run git submodule init
@@ -14,9 +20,12 @@ if [[ $(uname) != MINGW* ]]; then     # Use MSYS on Windows, git on MINGW is bug
     cd SixTrack
 fi
 
-####################################
-### BOINC ##########################
-####################################
+echo
+echo "####################################"
+echo "### BOINC ##########################"
+echo "####################################"
+echo
+
 cd boinc
 
 if [[ $(uname) == FreeBSD* ]]; then
@@ -56,10 +65,14 @@ make boinc_api_fortran.o
 cd ..
 
 cd ..
-####################################
-### libArchive #####################
-####################################
 
+echo
+echo "####################################"
+echo "### libArchive #####################"
+echo "####################################"
+echo
+echo "**** ZLIB ****"
+echo
 #Support library zlib
 cd zlib
 ZLIB_BASE=$(pwd)
@@ -88,6 +101,10 @@ ZLIB_PATH=$ZLIB_BASE/install/lib/libz.a
 
 cd ..
 
+echo
+echo "**** libArchive ****"
+echo
+
 #Then: LibArchive itself
 if [[ -d libarchive_build ]]; then
     rm -rf libarchive_build
@@ -95,7 +112,7 @@ fi
 mkdir libarchive_build
 cd libarchive_build
 
-cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF -DZLIB_LIBRARY=$ZLIB_PATH -G "Unix Makefiles" ../libarchive -LH
+cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF -DZLIB_LIBRARY=$ZLIB_PATH -DZLIB_INCLUDE_DIR=$ZLIB_BASE/install/include -G "Unix Makefiles" ../libarchive -LH
 
 if [[ $(pwd) == /afs/* ]]; then
     #AFS doesn't like parallel make
