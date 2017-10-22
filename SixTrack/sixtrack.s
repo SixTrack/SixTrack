@@ -44631,6 +44631,9 @@ c$$$            endif
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
 !     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
 !     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
+!     
+!     This is similar but not exactly the same as the subroutine invert_tas;
+!     the "tasum" is missing from there
       do 160 i=1,6
         do 160 j=1,6
   160 t(i,j)=ta(j,i)
@@ -47913,9 +47916,12 @@ c$$$            endif
 !     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
 !     - set values close to 1 equal to 1
-      do 160 i=1,6
-        do 160 j=1,6
-  160 fma_tas_inv(i,j)=fma_tas(j,i)
+      do i=1,6
+         do j=1,6
+            fma_tas_inv(i,j)=fma_tas(j,i)
+         enddo
+      enddo
+      
       if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
      &pieni) then
         fma_tas_inv(1,1)=one
@@ -47931,6 +47937,7 @@ c$$$            endif
         fma_tas_inv(5,5)=one
         fma_tas_inv(6,6)=one
       endif
+      
 !     - invert: dinv returns the transposed matrix
       call dinv(6,fma_tas_inv,6,idummy,ierro)
       if (ierro.ne.0) then
