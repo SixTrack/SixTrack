@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.10'/
-      data moddate /'02.10.2017'/
+      data version /'4.7.11'/
+      data moddate /'22.10.2017'/
 +cd license
 !!SixTrack
 !!
@@ -15526,6 +15526,20 @@ cc2008
 
 +if collimat
       has_coll = .true. !We have a collimation block.
+      if (ilin.ne.1) then
+         write(lout,*) "ERROR DETECTED:"
+         write(lout,*) "Incompatible flag with collimation version"
+         write(lout,*) "detected in the LINEAR OPTICS block."
+         write(lout,*) ""
+         write(lout,*) "You have not chosen ilin=1 (4D mode),"
+         write(lout,*) "which is required for the collimation version."
+         write(lout,*) ""
+         write(lout,*) "Note that the ilin=2 (6D mode) is not"
+         write(lout,*) "compatible with the collimation version."
+         write(lout,*) ""
+         write(lout,*) "Current setting ilin=",ilin
+         call prror(-1)
+      endif
 +ei
 
       if(ch(1:1).ne.'/') then
