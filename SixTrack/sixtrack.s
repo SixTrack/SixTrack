@@ -15529,9 +15529,15 @@ cc2008
       if (ilin.ne.1) then
          write(lout,*) "ERROR DETECTED:"
          write(lout,*) "Incompatible flag with collimation version"
-         write(lout,*) "in LINEAR OPTICS block. You have chosen"
-         write(lout,*) "ilin=2 which is calling 6D but is not "
+         write(lout,*) "detected in the LINEAR OPTICS block."
+         write(lout,*) ""
+         write(lout,*) "You have not chosen ilin=1 (4D mode),"
+         write(lout,*) "which is required for the collimation version."
+         write(lout,*) ""
+         write(lout,*) "Note that the ilin=2 (6D mode) is not"
          write(lout,*) "compatible with the collimation version."
+         write(lout,*) ""
+         write(lout,*) "Current setting ilin=",ilin
          call prror(-1)
       endif
 +ei
