@@ -123,3 +123,17 @@ else
 fi
 
 cd ..
+
+# echo
+# echo "**** FFTW ****"
+# echo
+# 
+# wget http://fftw.org/fftw-3.3.6-pl2.tar.gz
+# tar xvfz fftw-3.3.6-pl2.tar.gz
+# cd fftw-3.3.6-pl2
+# ./configure --prefix `readlink -f ..`/fftw/
+# make && make install
+# cd ..
+
+
+
