@@ -1045,17 +1045,24 @@ double precision function scatter_profile_getDensity(profileIdx, x,y) result(ret
 
     implicit none
 
++ca common
 +ca crcoall
 +ca stringzerotrim
 
     integer, intent(in) :: profileIdx
     double precision, intent(in) :: x, y
+    
+    double precision density, sigmaX, sigmaY
 
     select case (scatter_PROFILE(profileIdx,2))
     case (1)  ! FLAT
         retval = scatter_fdata(scatter_PROFILE(profileIdx,3))
     case (10) ! GAUSS1
-        ! TODO
+        density = scatter_fdata(scatter_PROFILE(profileIdx,3))
+        sigmaX  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 1)
+        sigmaY  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 2)
+        retval  = density/(2*pi*sigmaX*sigmaY) * exp(-(x**2)/(2*sigmaX**2)) * exp(-(y**2)/(2*sigmaY**2))
+        write(lout,*) retval, x, y, sigmaX, sigmaY
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
