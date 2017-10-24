@@ -927,13 +927,10 @@ if(NAFF)
 	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
 	
-	find_package(Boost REQUIRED)
-	message(STATUS "Include dirs of boost: " ${Boost_INCLUDE_DIRS} )
-	message(STATUS "Libs of boost: " ${Boost_LIBRARIES} )
 	
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
-	target_link_libraries(naff ${FFTW_LIBRARIES} ${Boost_LIBRARIES})
+	target_link_libraries(naff ${FFTW_LIBRARIES})
 	
 	#Enable c++11
 	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
