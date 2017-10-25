@@ -1067,15 +1067,14 @@ double precision function scatter_profile_getDensity(profileIdx, x, y) result(re
         sigmaY  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 2)
 +if crlibm
         retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
-                * exp_rn(-(x**2)/(2d0*sigmaX**2)) &
-                * exp_rn(-(y**2)/(2d0*sigmaY**2))
+                * exp_rn(-0.5d0*(x/sigmaX)**2) &
+                * exp_rn(-0.5d0*(y/sigmaY)**2)
 +ei
 +if .not.crlibm
-        retval  = beamtot/(2d0*pi*sigmaX*sigmaY) &
-                * exp(-(x**2)/(2d0*sigmaX**2)) &
-                * exp(-(y**2)/(2d0*sigmaY**2))
+        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
+                * exp(-0.5d0*(x/sigmaX)**2) &
+                * exp(-0.5d0*(y/sigmaY)**2)
 +ei
-        write(lout,*) retval, x, y, sigmaX, sigmaY
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
