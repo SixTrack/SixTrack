@@ -2,6 +2,8 @@
 
 module dynk
 
+    use floatPrecision
+
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
@@ -51,7 +53,7 @@ module dynk
 
     ! Data for DYNK FUNs
     integer,                   allocatable :: iexpr_dynk (:)
-    double precision,          allocatable :: fexpr_dynk (:)
+    real(kind=fPrec),          allocatable :: fexpr_dynk (:)
     character(maxstrlen_dynk), allocatable :: cexpr_dynk (:)
 
     !Number of used positions in arrays
@@ -83,7 +85,7 @@ module dynk
     character(maxstrlen_dynk) csets_unique_dynk (maxsets_dynk,2) 
 
     ! Store original value from dynk
-    double precision fsets_origvalue_dynk(maxsets_dynk)
+    real(kind=fPrec) fsets_origvalue_dynk(maxsets_dynk)
 
     ! Number of used positions in arrays
     integer nsets_unique_dynk 
@@ -93,7 +95,7 @@ module dynk
     ! Also used by setvalue and getvalue
     integer dynk_izuIndex
     dimension dynk_izuIndex(nele)
-    double precision dynk_elemdata(nele,3)
+    real(kind=fPrec) dynk_elemdata(nele,3)
 
 ! ================================================================================================ !
     
@@ -115,14 +117,14 @@ module dynk
 
     ! Data for DYNK FUNs
     integer,                   allocatable :: iexpr_dynk_cr (:)
-    double precision,          allocatable :: fexpr_dynk_cr (:)
+    real(kind=fPrec),          allocatable :: fexpr_dynk_cr (:)
     character(maxstrlen_dynk), allocatable :: cexpr_dynk_cr (:)
 
     ! Number of used positions in arrays
     integer niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
 
     ! Store current settings from dynk
-    double precision fsets_dynk_cr(maxsets_dynk)
+    read(kind=fPrec) fsets_dynk_cr(maxsets_dynk)
 
     save dynkfilepos, dynkfilepos_cr
     save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr
@@ -204,10 +206,10 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
     ! Temp variables
     integer ii, stat, t, nlines
-    double precision x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
-    double precision x1,x2,y1,y2,deriv                        ! LINSEG, QUADSEG,
-    double precision tinj,Iinj,Inom,A,D,R,te                  ! PELP (input)
-    double precision derivI_te,I_te,bexp,aexp, t1,I1, td,tnom ! PELP (calc)
+    real(kind=fPrec) x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
+    real(kind=fPrec) x1,x2,y1,y2,deriv                        ! LINSEG, QUADSEG,
+    real(kind=fPrec) tinj,Iinj,Inom,A,D,R,te                  ! PELP (input)
+    real(kind=fPrec) derivI_te,I_te,bexp,aexp, t1,I1, td,tnom ! PELP (calc)
 
     logical isFIR ! FIR/IIR
     logical lopen
@@ -223,7 +225,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
     integer filefields_lfields(getfields_n_max_fields)
     logical filefields_lerr
 
-    double precision round_near
+    real(kind=fPrec) round_near
     integer errno
 +ei
 
@@ -1751,7 +1753,7 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 +ca parnum
 
     integer,                   allocatable :: itemp_dynk(:)
-    double precision,          allocatable :: ftemp_dynk(:)
+    real(kind=fPrec),          allocatable :: ftemp_dynk(:)
     character(maxstrlen_dynk), allocatable :: ctemp_dynk(:)
 
     integer newidata, newfdata, newcdata
@@ -2450,7 +2452,7 @@ subroutine dynk_apply(turn)
     ! temporary variables
     integer ii, jj, shiftedTurn
     logical lopen
-    double precision getvaldata, newValue
+    real(kind=fPrec) getvaldata, newValue
 
     character(maxstrlen_dynk) whichFUN(maxsets_dynk) ! Which function was used to set a given elem/attr?
     integer whichSET(maxsets_dynk)                   ! Which SET was used for a given elem/attr?
@@ -2674,7 +2676,7 @@ end subroutine dynk_apply
 !  Last modified: 17-10-2014
 !  - Compute the value of a given DYNK function (funNum) for the given turn
 ! ================================================================================================ !
-recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
+recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     implicit none
 
@@ -2686,7 +2688,7 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
 
     ! Functions to call
 +if crlibm
-    double precision round_near
+    real(kind=fPrec) round_near
 +ei
 
 +if crlibm
@@ -2700,7 +2702,7 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
 
     ! Temporaries for random generator functions
     integer tmpseed1, tmpseed2
-    double precision ranecu_rvec(1)
+    real(kind=fPrec) ranecu_rvec(1)
 
     ! General temporaries
     integer foff  ! Base offset into fexpr array
@@ -2752,7 +2754,7 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
         filelin_start    = funcs_dynk(funNum,4)
         filelin_xypoints = funcs_dynk(funNum,5)
         ! Pass the correct array views/sections to dynk_lininterp
-        retval = dynk_lininterp( dble(turn), &
+        retval = dynk_lininterp( real(turn,fPrec), &
                  fexpr_dynk(filelin_start:filelin_start+filelin_xypoints-1), &
                  fexpr_dynk(filelin_start +  filelin_xypoints: &
                             filelin_start +2*filelin_xypoints-1), &
@@ -2945,7 +2947,7 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
         filelin_start    = funcs_dynk(funNum,3)
         filelin_xypoints = 2
         ! Pass the correct array views/sections to dynk_lininterp
-        retval = dynk_lininterp( dble(turn), &
+        retval = dynk_lininterp( real(turn,fPrec), &
                  fexpr_dynk(filelin_start:filelin_start+1), &
                  fexpr_dynk(filelin_start+2:filelin_xypoints+3), &
                  filelin_xypoints )
@@ -3056,7 +3058,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 +ca crcoall
 
     character(maxstrlen_dynk) element_name, att_name
-    double precision newValue
+    real(kind=fPrec) newValue
     intent (in) element_name, att_name, newValue
 
     ! Temp variables
@@ -3257,7 +3259,7 @@ end subroutine dynk_setvalue
 !  Note: Expects that arguments element_name and att_name are zero-terminated strings of
 !        length maxstrlen_dynk!
 ! ================================================================================================ !
-double precision function dynk_getvalue(element_name, att_name)
+real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
     implicit none
@@ -3451,18 +3453,18 @@ end function dynk_getvalue
 !  - If x < min(xvals) or x>max(xvals), program is aborted.
 !  - If datalen <= 0, program is aborted. 
 ! ================================================================================================ !
-double precision function dynk_lininterp(x,xvals,yvals,datalen)
+real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
 
     implicit none
 
 +ca crcoall
 
-    double precision x, xvals(*),yvals(*)
+    real(kind=fPrec) x, xvals(*),yvals(*)
     integer datalen
     intent(in) x,xvals,yvals,datalen
 
     integer ii
-    double precision dydx, y0
+    real(kind=fPrec) dydx, y0
 
     ! Sanity checks
     if (datalen .le. 0) then
