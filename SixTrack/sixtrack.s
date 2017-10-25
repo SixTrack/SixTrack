@@ -33,7 +33,7 @@
 !!submit itself to any jurisdiction.
 +cd rhicelens
 !GRDRHIC
-      double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
+      real(kind=fPrec) tbetax(nblz),tbetay(nblz),talphax(nblz),         &
      &talphay(nblz),torbx(nblz),torbxp(nblz),torby(nblz),torbyp(nblz),  &
      &tdispx(nblz),tdispy(nblz),totals,sampl(nblz)
       integer ielem
@@ -44,9 +44,9 @@
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      double precision twojx,twojy,twojr,sumtwojx,sumtwojy,             &
+      real(kind=fPrec) twojx,twojy,twojr,sumtwojx,sumtwojy,             &
      &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp
-      double precision limit_twojx,limit_twojy,limit_twojr
+      real(kind=fPrec) limit_twojx,limit_twojy,limit_twojr
       integer n_cut,n_nocut
       common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
      &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut,&
@@ -55,7 +55,7 @@
       parameter (napx00=64)
       integer   mynp
       common /mynp/ mynp
-      double precision myx,myxp,myy,myyp,myp,mys
+      real(kind=fPrec) myx,myxp,myy,myyp,myp,mys
       common /coord/ myx(npart),myxp(npart),myy(npart),myyp(npart),     &
      &myp(npart),mys(npart)
       integer   samplenumber
@@ -95,7 +95,7 @@
      &crsixrecs,crbinrec,crbinrecs,crbnlrec,crbllrec,cril
       logical crpstop,crsythck
       real crtime3
-      double precision cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
+      real(kind=fPrec) cre0,crxv,cryv,crsigmv,crdpsv,crdpsv1,crejv,     &
      &crejfv,craperv,crxvl,cryvl,crdpsvl,crejvl,crsigmvl
 
       character*8  cr_version !Keep data type in sync with 'version'
@@ -104,7 +104,7 @@
 !GRDRHIC
 !GRD-042008
       integer crnamepart,crn_nocut,crn_cut
-      double precision crtotals,crsumtwojx,crsumtwojy,                  &
+      real(kind=fPrec) crtotals,crsumtwojx,crsumtwojy,                  &
      &crsumsquarex,crsumsquarey,                                        &
      &crlimit_twojx,crlimit_twojy,crlimit_twojr
 !GRDRHIC
@@ -223,7 +223,7 @@
 +ei
 +cd parbeam
       integer idim,kstep,nx,ny
-      double precision h,half,hrecip,one,wtimag,wtreal,xcut,ycut
+      real(kind=fPrec) h,half,hrecip,one,wtimag,wtreal,xcut,ycut
       parameter ( xcut = 7.77d0, ycut = 7.46d0 )
       parameter ( h = 1.d0/63.d0 )
       parameter ( nx = 490, ny = 470 )
@@ -236,7 +236,7 @@
       logical beam_expfile_open ! have we opened the file 'beam_expert.txt'?
       common /beam_exp/ beam_expflag, beam_expfile_open
 +cd beamdim
-      double precision cc,xlim,ylim
+      real(kind=fPrec) cc,xlim,ylim
       parameter(cc = 1.12837916709551d0)
       parameter(xlim = 5.33d0)
       parameter(ylim = 4.29d0)
@@ -258,7 +258,7 @@
      &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrr,nskew,                 &
      &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
      &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml
-      double precision a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
+      real(kind=fPrec) a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
      &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
      &di0,dip0,dki,dkq,dma,dmap,dphix,dphiz,dppoff,dpscor,dqq,dres,dsi, &
@@ -271,7 +271,7 @@
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4
 +if time
-      double precision tcnst35,exterr35,zfz35
+      real(kind=fPrec) tcnst35,exterr35,zfz35
       integer icext35
 +ei
       real hmal
@@ -341,8 +341,8 @@
 ! wire parameters for closed orbit calculation (FOX part)
 ! for FOX length of variable names must be smaller 8
       integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
-      double precision wire_clo            ! closed orbit at wire
-      double precision wireclo0         ! initial coordinates for closed orbit
+      real(kind=fPrec) wire_clo            ! closed orbit at wire
+      real(kind=fPrec) wireclo0         ! initial coordinates for closed orbit
       integer wire_num_aux              ! auxiliary variable to count number of wires
       integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
       common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
@@ -350,37 +350,37 @@
       integer idz,itra
 +if vvector
 +if .not.datamods
-      double precision al,as,chi0,chid,dp1,dps,exz,sigm
+      real(kind=fPrec) al,as,chi0,chid,dp1,dps,exz,sigm
       common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),      &
      &dps(mpa),idz(2)
 +ei
 +if datamods
-      double precision chi0,chid,dp1,dps,exz,sigm
+      real(kind=fPrec) chi0,chid,dp1,dps,exz,sigm
       common/syos/sigm(mpa),dps(mpa),idz(2)
 +ei
       common/anf/chi0,chid,exz(2,6),dp1,itra
 +ei
 +if .not.vvector
-      double precision a2,al,as,at,chi0,chid,dp1,dps,exz,sigm
+      real(kind=fPrec) a2,al,as,at,chi0,chid,dp1,dps,exz,sigm
       common/syos/as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),         &
      &al(6,2,2,nele),sigm(mpa),dps(mpa),idz(2)
       common/anf/chi0,chid,exz(2,6),dp1,itra
 +ei
 +cd commont1
       integer ichrom,is
-      double precision alf0,amp,bet0,clo,clop,cro,x,y
+      real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,x,y
       common/tra/x(mpa,2),y(mpa,2),amp(2),bet0(2),alf0(2),clo(2),clop(2)
       common/chrom/cro(2),is(2),ichrom
 +cd commont2
       integer ichrom,issss
-      double precision alf0,amp,bet0,clo,clop,cro,xxtr,yytr
+      real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,xxtr,yytr
       common/tra/xxtr(mpa,2),yytr(mpa,2),amp(2),                        &
      &bet0(2),alf0(2),clo(2),clop(2)
       common/chrom/cro(2),issss(2),ichrom
 +cd common1
       integer iav,iconv,icow,icr,idis,iffw,ifh,imad,ipos,ires,iskip,    &
      &istw,itf,ivox,ivoz,iwg,kwtype,ndafi,nprint,nstart,nstop
-      double precision cma1,cma2,dfft,dphix,dphiz,dres,qx0,qz0
+      real(kind=fPrec) cma1,cma2,dfft,dphix,dphiz,dres,qx0,qz0
       real hmal
       character*80 toptit,sixtit,commen
       common/postr/dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,             &
@@ -392,10 +392,10 @@
       integer nnumxv
       common/postr2/nnumxv(npart)
 +cd commonl
-      double precision aml6,edcor
+      real(kind=fPrec) aml6,edcor
       common/sixdim/aml6(6,6),edcor(2)
 +cd commonxz
-      double precision aai,ampt,bbi,damp,smi,smizf,xsi,                 &
+      real(kind=fPrec) aai,ampt,bbi,damp,smi,smizf,xsi,                 &
      &zsi
       integer napxto
       real tlim,time0,time1,time2,time3,trtime
@@ -407,7 +407,7 @@
       common/ttime/tlim,time0,time1,time2,time3,trtime,napxto,          &
      &pretime,posttime,tottime
 +cd commonta
-      double precision tasm
+      real(kind=fPrec) tasm
       common/tasm/tasm(6,6)
 +cd commond1
       common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda, &
@@ -419,17 +419,17 @@
      &asdaq_da(2,6),smida_da(mcor),xx_da(2),yy_da(2),dpda_da,dpda1_da,  &
      &sigmda_da,ej1_da,ejf1_da,rv_da
 +cd commond2
-      double precision ald6,asd6
+      real(kind=fPrec) ald6,asd6
       common/dael6/ald6(nele,2,6,nema),asd6(nele,2,6,nema)
 +cd commonas
       integer idao,iscrri
       integer          iscrda
-      double precision rscrri
+      real(kind=fPrec) rscrri
       common/dascr/iscrda(100),rscrri(100),iscrri(100),idao
 +cd commondl
       integer icorr,idial,idptr,imod1,imod2,inorm,ipar,namp,ncor,nctype,&
      &ndimf,nmom,nmom1,nmom2,nord,nord1,nordf,nsix,nvar,nvar2,nvarf
-      double precision dpmax,preda,weig1,weig2
+      real(kind=fPrec) dpmax,preda,weig1,weig2
       character*16 coel
       common/dial/preda,idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
       common/norf/nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
@@ -438,37 +438,37 @@
 +cd commadha
       integer iamp
       real x
-      double precision ham,hama,hamp
+      real(kind=fPrec) ham,hama,hamp
       common/hamil1/ham(0:3),x(10)
       common/hamil2/hama(0:4),hamp(0:1),iamp
 +cd commadh1
       integer jeltot,maxa,maxp
-      double precision hda
+      real(kind=fPrec) hda
       common/ad1/hda(0:3,3,0:3,0:4000),jeltot,maxa,maxp
 +cd commadh2
       integer jeltot,nordp,nordm,norda
-      double precision hda,hdp
+      real(kind=fPrec) hda,hdp
       common/ad2/hda(0:4,5,0:8000),hdp(0:1,5,0:8000),jeltot,nordp,nordm,&
      &norda
 +cd commonds
       integer icode,idam,its6d
-      double precision dpscor,sigcor
+      real(kind=fPrec) dpscor,sigcor
       common/corcom/dpscor,sigcor,icode,idam,its6d
 +cd commonmn
 +if time
-      double precision aaiv35,bbiv35
+      real(kind=fPrec) aaiv35,bbiv35
       common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
 +ei
       integer iv,ixv,nlostp,nms,numxv
 +if .not.datamods
-      double precision aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
+      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
      &bet0v,bl1v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam, &
      &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
      &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,ekv,eps,epsa,fake,fi,fok,fok1,fokqv, &
      &g,gl,hc,hi,hi1,hm,hp,hs,hv,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,  &
 +ei
 +if datamods
-      double precision aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
+      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
      &bet0v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam,      &
      &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
      &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,eps,epsa,fake,fi,fok,fok1,fokqv,     &
@@ -519,7 +519,7 @@
      &di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
 +cd commonm1
       integer numx
-      double precision e0f
+      real(kind=fPrec) e0f
 +if cr
       logical sythckcr
       common/main4/ e0f,numx,sythckcr
@@ -529,12 +529,12 @@
 +ei
 +cd commontr
       integer ktrack,nwri
-      double precision dpsv1,strack,strackc,stracks,strackx,strackz
+      real(kind=fPrec) dpsv1,strack,strackc,stracks,strackx,strackz
       common/track/ ktrack(nblz),strack(nblz),strackc(nblz),            &
      &stracks(nblz),strackx(nblz),strackz(nblz),dpsv1(npart),nwri
 +cd commonc
       integer ichromc,ilinc,iqmodc
-      double precision clon,chromc,corr,wxys
+      real(kind=fPrec) clon,chromc,corr,wxys
       common/correct/ corr(3,3),chromc(2),wxys(3),clon(6),iqmodc,       &
      &ichromc,ilinc
 +cd commonex
@@ -547,7 +547,7 @@
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
-      double precision pz
+      real(kind=fPrec) pz
 +cd ex4Ddrift
             do j=1,napx
               xv(1,j)=xv(1,j)*c1m3
@@ -625,7 +625,7 @@
       integer nloop,rnd_seed,c_offsettilt_seed,ibeam,jobnumber,         &
      &do_thisdis,n_slices,pencil_distr
 
-      double precision myenom,mynex,mdex,myney,mdey,                    &
+      real(kind=fPrec) myenom,mynex,mdex,myney,mdey,                    &
      &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
      &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
      &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
@@ -682,20 +682,20 @@
 
 !++ Vectors of coordinates
 
-      double precision mygammax,mygammay
+      real(kind=fPrec) mygammax,mygammay
 !
       real rndm4
 !
       character*80 dummy
 !
       ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-!      double precision remitx_dist,remity_dist,
+!      real(kind=fPrec) remitx_dist,remity_dist,
 !     &     remitx_collgap,remity_collgap
 !      common  /remit/ remitx_dist, remity_dist,
 !     &     remitx_collgap,remity_collgap
 !
 
-      double precision ielem,iclr,grd
+      real(kind=fPrec) ielem,iclr,grd
       character*160 ch
       character*320 ch1
       logical flag
@@ -719,7 +719,7 @@
 !      common /cut/ cut_input
 
       ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-      double precision remitx_dist,remity_dist,
+      real(kind=fPrec) remitx_dist,remity_dist,
      &     remitx_collgap,remity_collgap
       common  /remit/ remitx_dist, remity_dist,
      &     remitx_collgap,remity_collgap
@@ -730,7 +730,7 @@
 !
 ! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
 !
-      double precision tbetax(nblz),tbetay(nblz),talphax(nblz),         &
+      real(kind=fPrec) tbetax(nblz),tbetay(nblz),talphax(nblz),         &
      &talphay(nblz),torbx(nblz),torbxp(nblz),torby(nblz),torbyp(nblz),  &
      &tdispx(nblz),tdispy(nblz)
 !
@@ -743,8 +743,8 @@
 ! and defining, stroring the gap rms error
 !
       character*16 coll_mingap1, coll_mingap2
-      double precision gap_rms_error(max_ncoll), nsig_err, sig_offset
-      double precision mingap,gap_h1,gap_h2,gap_h3,gap_h4
+      real(kind=fPrec) gap_rms_error(max_ncoll), nsig_err, sig_offset
+      real(kind=fPrec) mingap,gap_h1,gap_h2,gap_h3,gap_h4
       integer coll_mingap_id
 
       common /gap_err/ gap_rms_error
@@ -762,15 +762,15 @@
 !     SR, 29-08-2005: add the required variable for slicing collimators
       integer jjj, ijk
 !
-      double precision  ran_gauss, myran_gauss
+      real(kind=fPrec)  ran_gauss, myran_gauss
       real rndm5,zbv
 !
-      double precision c_length    !length in m
-      double precision c_rotation  !rotation angle vs vertical in radian
-      double precision c_aperture  !aperture in m
-      double precision c_offset    !offset in m
-      double precision c_tilt(2)   !tilt in radian
-      double precision cx(npart),cxp(npart),cy(npart),cyp(npart),       &
+      real(kind=fPrec) c_length    !length in m
+      real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
+      real(kind=fPrec) c_aperture  !aperture in m
+      real(kind=fPrec) c_offset    !offset in m
+      real(kind=fPrec) c_tilt(2)   !tilt in radian
+      real(kind=fPrec) cx(npart),cxp(npart),cy(npart),cyp(npart),       &
      &cp(npart),cs(npart),rcx(npart),rcxp(npart),rcy(npart),rcyp(npart),&
      &rcp(npart),rcs(npart),rcx0(npart),rcxp0(npart),rcy0(npart),       &
      &rcyp0(npart),rcp0(npart),enom_gev,betax,betay,xmax,ymax,          &
@@ -790,7 +790,7 @@
      &grdpiover2,grdpiover4,grd3piover4
 
 !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-      double precision x_sl(100),x1_sl(100),x2_sl(100),                 &
+      real(kind=fPrec) x_sl(100),x1_sl(100),x2_sl(100),                 &
      &     y1_sl(100), y2_sl(100),                                      &
      &     angle1(100), angle2(100),                                    &
      &     max_tmp,                                                     &
@@ -847,20 +847,20 @@
 
       integer myix,myktrack
 
-      double precision nspx,nspy,mux0,muy0
-      double precision ax0,ay0,bx0,by0
-      double precision totals
+      real(kind=fPrec) nspx,nspy,mux0,muy0
+      real(kind=fPrec) ax0,ay0,bx0,by0
+      real(kind=fPrec) totals
 
       ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
       logical cut_input
       common /cut/ cut_input
 
-      double precision xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),   &
+      real(kind=fPrec) xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),   &
      &xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
 
       common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
      &ypineff
-      double precision mux(nblz),muy(nblz)
+      real(kind=fPrec) mux(nblz),muy(nblz)
       common /mu/ mux,muy
 
       common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
@@ -872,7 +872,7 @@
 !
       integer ieff,ieffdpop
 !
-      double precision myemitx0_dist,myemity0_dist,                     &
+      real(kind=fPrec) myemitx0_dist,myemity0_dist,                     &
      &     myemitx0_collgap,myemity0_collgap,                           &
      &     myemitx,myalphay,mybetay,myalphax,                           &
      &     mybetax,rselect
@@ -887,45 +887,45 @@
 ! of normalized and off-momentum halo
 ! Last modified: July 2016
 
-      double precision neff(numeff),rsig(numeff)
+      real(kind=fPrec) neff(numeff),rsig(numeff)
       common  /eff/ neff,rsig
 
       integer counteddpop(npart,numeffdpop)
       integer counted2d(npart,numeff,numeffdpop)
-      double precision neffdpop(numeffdpop),dpopbins(numeffdpop)
+      real(kind=fPrec) neffdpop(numeffdpop),dpopbins(numeffdpop)
       integer npartdpop(numeffdpop)
       common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
-      double precision dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
+      real(kind=fPrec) dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
       common /eff2d/ neff2d
 !
       integer  nimpact(50)
-      double precision sumimpact(50),sqsumimpact(50)
+      real(kind=fPrec) sumimpact(50),sqsumimpact(50)
       common  /rimpact/ sumimpact,sqsumimpact,nimpact
 !
       integer  nampl(nblz)
       character*16  ename(nblz)
-      double precision sum_ax(nblz),sqsum_ax(nblz),sum_ay(nblz),        &
+      real(kind=fPrec) sum_ax(nblz),sqsum_ax(nblz),sum_ay(nblz),        &
      &sqsum_ay(nblz),sampl(nblz)
       common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,   &
      &nampl
 !
-      double precision neffx(numeff),neffy(numeff)
+      real(kind=fPrec) neffx(numeff),neffy(numeff)
       common /efficiency/ neffx,neffy
 
 
       integer secondary(npart),tertiary(npart),other(npart),            &
      &part_hit_before(npart)
-      double precision part_indiv(npart),part_linteract(npart)
+      real(kind=fPrec) part_indiv(npart),part_linteract(npart)
 
       integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed &
      &,part_select(npart),nabs_type(npart)
-      double precision part_impact(npart)
+      real(kind=fPrec) part_impact(npart)
       common /stats/ part_impact,part_hit,part_abs,nabs_type,part_indiv,&
      &part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
-!      double precision x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
+!      real(kind=fPrec) x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
 !      common   /beam00/ x00,xp00,y00,yp00
 !
       logical firstrun
@@ -950,12 +950,12 @@
       character*16 db_name1(max_ncoll),db_name2(max_ncoll)
       character*4 db_material(max_ncoll)
 !APRIL2005
-      double precision db_nsig(max_ncoll),db_length(max_ncoll),         &
+      real(kind=fPrec) db_nsig(max_ncoll),db_length(max_ncoll),         &
      &db_offset(max_ncoll),db_rotation(max_ncoll),                      &
      &db_bx(max_ncoll),db_by(max_ncoll),db_tilt(max_ncoll,2)
       common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,    &
      &db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
-!      double precision db_length(max_ncoll),db_rotation(max_ncoll),     &
+!      real(kind=fPrec) db_length(max_ncoll),db_rotation(max_ncoll),     &
 !     &db_offset(max_ncoll),                                             &
 !     &db_bx(max_ncoll),db_by(max_ncoll),db_tilt(max_ncoll,2)
 !      common /colldatabase/ db_length,db_rotation,db_offset,db_bx,db_by,&
@@ -965,10 +965,10 @@
 !APRIL2005
 !
       integer cn_impact(max_ncoll),cn_absorbed(max_ncoll)
-      double precision caverage(max_ncoll),csigma(max_ncoll)
+      real(kind=fPrec) caverage(max_ncoll),csigma(max_ncoll)
       common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
 !
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
+      real(kind=fPrec) myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
      &myp(maxn),mys(maxn)
       common /coord/ myx,myxp,myy,myyp,myp,mys
 !
@@ -988,7 +988,7 @@
 ! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
 !
       integer ipencil
-      double precision xp_pencil0,yp_pencil0,x_pencil(max_ncoll),       &
+      real(kind=fPrec) xp_pencil0,yp_pencil0,x_pencil(max_ncoll),       &
      &y_pencil(max_ncoll),pencil_dx(max_ncoll)
       common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
       common  /pencil2/ x_pencil, y_pencil
@@ -1007,18 +1007,18 @@
 !      integer lhit(npart),part_abs(npart)
       integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
 !MAY2005
-      double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
+      real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
      &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
      &indiv(npart),lint(npart),
      &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
      &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
 !
-      double precision c_length    !length in m
-      double precision c_rotation  !rotation angle vs vertical in radian
-      double precision c_aperture  !aperture in m
-      double precision c_offset    !offset in m
-      double precision c_tilt(2)   !tilt in radian
+      real(kind=fPrec) c_length    !length in m
+      real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
+      real(kind=fPrec) c_aperture  !aperture in m
+      real(kind=fPrec) c_offset    !offset in m
+      real(kind=fPrec) c_tilt(2)   !tilt in radian
       character*4      c_material  !material
 !
       character*(nc) filen,tit
@@ -1028,7 +1028,7 @@
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
 !
-      double precision ran_gauss
+      real(kind=fPrec) ran_gauss
 !
       common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,  &
      &nev
@@ -1049,7 +1049,7 @@
 
 +cd flukavars
 !     RB DM 2014 added variables for FLUKA output
-      double precision xInt,xpInt,yInt,ypInt,sInt
+      real(kind=fPrec) xInt,xpInt,yInt,ypInt,sInt
       common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
 !
 !
@@ -1063,7 +1063,7 @@
 !++ Vectors of coordinates
 !
       integer i,j,mynp,nloop
-      double precision myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
+      real(kind=fPrec) myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
      &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
      &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
      &xsigmax,ysigmay,myenom,nr,ndr
@@ -1086,12 +1086,12 @@
 +cd interac
       integer mat,mcurr
 +ca collMatNum
-      double precision xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
+      real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
      &pptco,ppeco,sdcoe,freeco,fnavo,zatom,exenergy
 !electron density and plasma energy
-      double precision edens, pleng
+      real(kind=fPrec) edens, pleng
       parameter(fnavo=6.02214129d23)
       real cgen
       character * 4 mname(nmat)
@@ -1128,11 +1128,11 @@
 !       array, for storing the positions of the MARKERs at the beginning and
 !       end of the accelerator structure
 
-      double precision dcum                  ! actual values [m]
+      real(kind=fPrec) dcum                  ! actual values [m]
       logical print_dcum                     ! flag for printout
       parameter ( print_dcum = .false. )
 
-      double precision eps_dcum              ! Tolerance for machine length mismatch [m]
+      real(kind=fPrec) eps_dcum              ! Tolerance for machine length mismatch [m]
       parameter ( eps_dcum = c1m6 )
 
       common /dcumdb/ dcum(0:nblz+1)
@@ -1170,12 +1170,12 @@
       logical :: ldump (-1:nele)              ! flag the SINGLE ELEMENT for
                                               !   dumping
 
-      double precision :: dumptas (-1:nblz,6,6) ! tas matrix used for FMA analysis
+      real(kind=fPrec) :: dumptas (-1:nblz,6,6) ! tas matrix used for FMA analysis
                                                 !  (nomalisation of phase space)
                                                 !  First index = -1 -> StartDUMP, filled differently;
                                                 !  First index = 0  -> Unused.
-      double precision :: dumptasinv (-1:nblz,6,6) ! inverse matrix of dumptas
-      double precision :: dumpclo (-1:nblz,6)   ! closed orbit used for FMA
+      real(kind=fPrec) :: dumptasinv (-1:nblz,6,6) ! inverse matrix of dumptas
+      real(kind=fPrec) :: dumpclo (-1:nblz,6)   ! closed orbit used for FMA
                                                  !  (normalisation of phase space)
                                                  !  TODO: check units used in dumpclo (is x' or px used?)
       
@@ -1212,10 +1212,10 @@
       integer          :: elens_type(nele)      ! integer for elens type
                                                 ! 0 : Un-initialized.
                                                 ! 1 : Hollow annular elens, uniform profile
-      double precision :: elens_theta_max(nele) ! maximum kick strength [mrad]
-      double precision :: elens_r2(nele)        ! outer radius R2 [mm]
-      double precision :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
-      double precision :: elens_offset_x(nele),                         &
+      real(kind=fPrec) :: elens_theta_max(nele) ! maximum kick strength [mrad]
+      real(kind=fPrec) :: elens_r2(nele)        ! outer radius R2 [mm]
+      real(kind=fPrec) :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
+      real(kind=fPrec) :: elens_offset_x(nele),                         &
      &                    elens_offset_y(nele)  ! hor./vert. offset of elens [mm]
       integer          :: elens_bend_entrance(nele),                    &
      &                    elens_bend_exit(nele) ! switch for elens bends
@@ -1225,7 +1225,7 @@
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
-      double precision :: rrelens,frrelens,r1elens,xelens,yelens
+      real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1233,9 +1233,9 @@
 !     A. Patapenka (NIU), M. Fitterer (FNAL)
 !     Common block for wire definition
       ! variables to save wire parameters for tracking etc.
-      double precision :: wire_current(nele)    ! wire current [A]
-      double precision :: wire_lint(nele)       ! integrated length of the wire [m]
-      double precision :: wire_lphys(nele)      ! physical length of the wire [m]
+      real(kind=fPrec) :: wire_current(nele)    ! wire current [A]
+      real(kind=fPrec) :: wire_lint(nele)       ! integrated length of the wire [m]
+      real(kind=fPrec) :: wire_lphys(nele)      ! physical length of the wire [m]
       ! integer to include or not closed orbit in the separation between beam and wire
       ! 0  : Un-initialized if wire element not found
       ! +1 : dispx is the distance between x0=y0=0 and the wire
@@ -1247,17 +1247,17 @@
       ! wire_flagco = -1: dispx = xwire - xco -> rx = x - xco + xsep
       ! -> rx = x + xwire
       integer          :: wire_flagco(nele)     
-      double precision :: wire_dispx(nele),
+      real(kind=fPrec) :: wire_dispx(nele),
      &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
-      double precision :: wire_tiltx(nele),
+      real(kind=fPrec) :: wire_tiltx(nele),
      &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
       common /wireparamco/ wire_current,wire_lint,wire_lphys,
      &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
 +cd wiretracktmp
 ! temporary variables
-      double precision RTWO !RTWO=x^2+y^2
-      double precision NNORM_, NNORM
-      double precision l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+      real(kind=fPrec) RTWO !RTWO=x^2+y^2
+      real(kind=fPrec) NNORM_, NNORM
+      real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -6334,7 +6334,7 @@ cc2008
             l1=l1+10
             write(ch(l1:l1+9),'(1x,i8)') n_nocut
             l1=l1+10
-! and now the four double precision
+! and now the four real(kind=fPrec)
 ! We return the length of the string (always 24)
             errno=dtostr(sumsquarex,ch1)
             ch(l1:l1+errno)=' '//ch1(1:errno)
@@ -6414,10 +6414,10 @@ cc2008
                l1=l1+11
 +ei
 ! Now do the conversions
-! A 5-digit integer, followed by 7 double precision numbers
+! A 5-digit integer, followed by 7 real(kind=fPrec) numbers
                write(ch(l1:l1+5),'(i5)') i
                l1=l1+6
-! and now the 7 double precision
+! and now the 7 real(kind=fPrec)
 ! We return the length of the string (always 24)
             errno=dtostr(sampl(i),ch1)
             ch(l1:l1+errno)=' '//ch1(1:errno)
@@ -8920,9 +8920,9 @@ cc2008
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
       
       !Big arrays used for thick tracking
-      double precision, allocatable :: al(:,:,:,:), as(:,:,:,:)
-      double precision, allocatable :: ekv(:,:)
-      double precision, allocatable :: hv(:,:,:,:), bl1v(:,:,:,:)
+      real(kind=fPrec), allocatable :: al(:,:,:,:), as(:,:,:,:)
+      real(kind=fPrec), allocatable :: ekv(:,:)
+      real(kind=fPrec), allocatable :: hv(:,:,:,:), bl1v(:,:,:,:)
       
       save
 
@@ -8984,8 +8984,10 @@ cc2008
       end subroutine
       
       end module
+
 +dk close
       subroutine closeUnits
+      use floatPrecision
       use scatter, only : scatter_closefiles
       use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
       implicit none
@@ -9222,6 +9224,8 @@ cc2008
 !----   =========>                  EFFECTS                   <=========
 !----
 !-----------------------------------------------------------------------
+      use floatPrecision
+
       implicit none
 +ca crcoall
 +if crlibm
@@ -9231,7 +9235,7 @@ cc2008
      &jconf,jord,jpord,jrow,jsex,jvar,k,kcol,l,liwork,lwork,mcor,n,     &
      &nclin,ncnln,nconf,ndim2,nout,nrel,nrowa,nrowj,nrowr
       real a,bl,bu,c,cjac,clamda,objf,objgrd,r,user,work
-      double precision ainv,bmat,chia,chib,cmat,cvec,det,detinv,dvec,   &
+      real(kind=fPrec) ainv,bmat,chia,chib,cmat,cvec,det,detinv,dvec,   &
      &pi2in,sex,sgn
       external e04udm,objfun1
       parameter(mcor = 10)
@@ -9496,7 +9500,9 @@ cc2008
 10140 format(/,t10,'CHI_',i1,',0  = ',e16.8,11x, 'CHI_',i1,',0  = ',e16.&
      &8)
       end
+
       subroutine readd1(user,jaord,jpord)
+      use floatPrecision
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
@@ -9508,7 +9514,7 @@ cc2008
       integer icont,ind,j,j1,j2,j3,j4,j5,j6,jaord,jcomp,jel,jord,jpord, &
      &maxcomp,njx,njx1,njz,njz1,nmax,np,ncoef,nord,point,kointer
       real user
-      double precision cc
+      real(kind=fPrec) cc
 +ca commadha
 +ca commadh1
       dimension ind(10),user(500)
@@ -9523,7 +9529,7 @@ cc2008
       parameter (nofields=20)
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
-      double precision fround
+      real(kind=fPrec) fround
       data lineno /0/
 +ei
       save
@@ -9749,6 +9755,7 @@ cc2008
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
       end
       subroutine hamilton1(ja,jp)
+      use floatPrecision
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
@@ -9757,7 +9764,7 @@ cc2008
 +ca crlibco
 +ei
       integer j1,j2,j3,j4,j5,j6,ja,jcomp,jel,jord,jp,l,ncoef,kointer
-      double precision tham
+      real(kind=fPrec) tham
       dimension tham(0:3)
 +ca commadha
 +ca commadh1
@@ -9889,6 +9896,7 @@ cc2008
 !-----------------------------------------------------------------------
       end
       subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
+      use floatPrecision
 !-----------------------------------------------------------------------
 !---- ROUTINE TO COMPUTE THE VALUE OF THE FUNCTION AND OF ITS
 !---- DERIVATIVES
@@ -9900,7 +9908,7 @@ cc2008
       integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jvar,l,mode,n,nmax,&
      &nstate,kointer
       real user
-      double precision fder,fun,objf,objgrd,x
+      real(kind=fPrec) fder,fun,objf,objgrd,x
       dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
       save
 !-----------------------------------------------------------------------
@@ -10131,6 +10139,7 @@ cc2008
       end
 +dk cor_glo
       subroutine coruglo
+      use floatPrecision
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
 !----
@@ -10147,7 +10156,7 @@ cc2008
      &jcomp,jconf,jord,jrow,jsex,jvar,kcol,l,liwork,lwork,mcor,n,nclin, &
      &ncnln,ndim2,nout,nrowa,nrowj,nrowr
       real a,bl,bu,c,cjac,clamda,objf,objgrd,r,user,work
-      double precision ainv,bmat,chia,chib,cmat,cvec,delta,detinv,dvec, &
+      real(kind=fPrec) ainv,bmat,chia,chib,cmat,cvec,delta,detinv,dvec, &
      &pi2in,sex,sgn,value
       external e04udm,objfun2
       parameter(mcor = 10)
@@ -10411,6 +10420,7 @@ cc2008
      &.8)
       end
       subroutine readd2(user)
+      use floatPrecision
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
@@ -10422,7 +10432,7 @@ cc2008
       integer icont,ind,j,j1,j2,j3,j4,j5,j6,jcomp,jel,jord,jp,ncoef,njx,&
      &njx1,njz,njz1,nor,np,point,kointer
       real user
-      double precision cc
+      real(kind=fPrec) cc
 +ca commadha
 +ca commadh2
       dimension ind(10),user(500)
@@ -10435,7 +10445,7 @@ cc2008
       parameter (nofields=20)
       character*(nchars) fields(nofields)
       integer errno,nfields,nunit,lineno,maxf,nf
-      double precision fround
+      real(kind=fPrec) fround
       data lineno /0/
 +ei
       save
@@ -10673,6 +10683,7 @@ cc2008
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
       end
       subroutine hamilton2(jp)
+      use floatPrecision
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
@@ -10681,7 +10692,7 @@ cc2008
 +ca crlibco
 +ei
       integer j,j1,j2,j3,j4,j5,j6,jel,jord,jp,l,kointer
-      double precision thama,thamp
+      real(kind=fPrec) thama,thamp
 +ca commadha
 +ca commadh2
       dimension thamp(0:1),thama(0:4)
@@ -10938,6 +10949,7 @@ cc2008
 !-----------------------------------------------------------------------
       end
       subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
+      use floatPrecision
 !-----------------------------------------------------------------------
 !---- ROUTINE TO COMPUTE THE VALUE OF THE FUNCTION AND OF ITS
 !---- DERIVATIVES
@@ -10949,7 +10961,7 @@ cc2008
       integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jp,jvar,kord,l,    &
      &mode,n,nstate,kointer
       real user
-      double precision add1,add2,fder,fun,objf,objgrd,sgn,tunedx,       &
+      real(kind=fPrec) add1,add2,fder,fun,objf,objgrd,sgn,tunedx,       &
      &tunedy,tunex,tuney,weight,x
       dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
       dimension iuser(*),tunedx(10),tunedy(10)
@@ -11188,9 +11200,10 @@ cc2008
       end
 +dk errf
       subroutine errf(xx,yy,wx,wy)
+      use floatPrecision
 !----------------------------------------------------------------------*
 ! purpose:                                                             *
-!   modification of wwerf, double precision complex error function,    *
+!   modification of wwerf, real(kind=fPrec) complex error function,    *
 !   written at cern by k. koelbig.                                     *
 !   taken from mad8                                                    *
 ! input:                                                               *
@@ -11198,13 +11211,13 @@ cc2008
 ! output:                                                              *
 !   wx, wy    (real)    function result.                               *
 !----------------------------------------------------------------------*
-!---- double precision version.
+!---- real(kind=fPrec) version.
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer n,nc,nu
-      double precision cc,h,one,q,rx,ry,saux,sx,sy,tn,two,tx,ty,wx,wy,x,&
+      real(kind=fPrec) cc,h,one,q,rx,ry,saux,sx,sy,tn,two,tx,ty,wx,wy,x,&
      &xh,xl,xlim,xx,y,yh,ylim,yy
       parameter(cc = 1.12837916709551d0)
       parameter(one = 1.d0)
@@ -11339,10 +11352,11 @@ cc2008
 !        <1.E-8  for  x>=7.8  or  y>=7.5
 !
 !  *********************************************************************
+      use floatPrecision
       implicit none
       dimension vx(*),vy(*),vu(*),vv(*)
       integer i,j,k,n,vmu,vnu
-      double precision a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,             &
+      real(kind=fPrec) a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,             &
      &vd34i,vd34r,vp,vq,vqsq,vr,vsimag,vsreal,vt,vtdd13i,vtdd13r,       &
      &vtdd24i,vtdd24r,vtdddi,vtdddr,vti,vtr,vu,vusum,vusum3,vv,         &
      &vvsum,vvsum3,vw1i,vw1r,vw2i,vw2r,vw3i,vw3r,vw4i,vw4r,vx,          &
@@ -11360,7 +11374,7 @@ cc2008
       parameter(npart = 65536)
 +ei
       integer idim,kstep,nx,ny
-      double precision h,half,hrecip,one,wtimag,wtreal,xcut,ycut
+      real(kind=fPrec) h,half,hrecip,one,wtimag,wtreal,xcut,ycut
       parameter ( xcut = 7.77d0, ycut = 7.46d0 )
       parameter ( h = 1.d0/63.d0 )
       parameter ( nx = 490, ny = 470 )
@@ -11370,7 +11384,7 @@ cc2008
       common /wzcom2/ wtreal(idim), wtimag(idim)
       parameter ( a1 = 0.5124242248d0, a2 = 0.0517653588d0 )
       parameter ( b1 = 0.2752551286d0, b2 = 2.7247448714d0 )
-      double precision xm,xx,yy
+      real(kind=fPrec) xm,xx,yy
       parameter (xm=1d120)
 !     temporary arrays to facilitate vectorisation
       integer in,out,ins,outs
@@ -11577,12 +11591,13 @@ cc2008
 !  and 3 respectively, and a preceding 't' indicates twice the value.
 !
 !  *********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer k,mu,nu
-      double precision a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,     &
+      real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,     &
      &q,qsq,r,simag,sreal,t,tdd13i,tdd13r,tdd24i,tdd24r,tdddi,tdddr,ti, &
      &tr,u,usum,usum3,v,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,x,xh,&
      &xhrel,y,yh,yhrel
@@ -11673,12 +11688,13 @@ cc2008
 !-----------------------------------------------------------------------
 !  ADIABATIC ENERGY-INCREASE
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer numx
-      double precision e0f
+      real(kind=fPrec) e0f
 +ca parpro
 +ca parnum
 +ca common
@@ -11710,11 +11726,12 @@ cc2008
 !-----------------------------------------------------------------------
 !  ADIABATIC ENERGY-DECREASE
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
-      double precision e0f
+      real(kind=fPrec) e0f
 +ca parpro
 +ca parnum
 +ca common
@@ -11741,6 +11758,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
+      use floatPrecision
       use scatter, only : scatter_active, scatter_debug,
      &     scatter_seed1,scatter_seed2,
      &     scatter_dumpdata,
@@ -11764,15 +11782,15 @@ cc2008
      &i4,i5
 +if time
       integer ifiend35
-      double precision tcnst
+      real(kind=fPrec) tcnst
 +ei
-      double precision ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
+      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
       !For BEAM-EXP
-      double precision separx,separy
-      double precision mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+      real(kind=fPrec) separx,separy
+      real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
       
       character*16 sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character*16 fluc,chro,tune,iter,limi,orbi,deco
@@ -11795,7 +11813,7 @@ cc2008
       parameter (nofields=41)
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,nf
-      double precision fround
+      real(kind=fPrec) fround
 +ei
 +if .not.crlibm
       integer nunit
@@ -11872,7 +11890,7 @@ cc2008
       data scat /'SCAT'/
       
 +if crlibm
-      double precision round_near
+      real(kind=fPrec) round_near
 +ei
       save
 !-----------------------------------------------------------------------
@@ -17902,12 +17920,13 @@ cc2008
 !-----------------------------------------------------------------------
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ii,ikz
-      double precision rdum1,rdum2,rel1
+      real(kind=fPrec) rdum1,rdum2,rel1
       character*160  ch
       character*320 ch1
       character*16 idat
@@ -17999,6 +18018,7 @@ cc2008
 !    CH ... INPUT CHARACTERSTRING
 !   CH1 ... OUTPUT CHARACTERSTRING
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -18081,6 +18101,7 @@ cc2008
 !     print an error and exit.
 !-----------------------------------------------------------------------
 !
+      use floatPrecision
       use dynk, only : dynk_elemdata
       implicit none
       
@@ -18418,6 +18439,7 @@ c$$$         endif
 +if crlibm
       
       subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
+      use floatPrecision
       implicit none
 +ca crcoall
       integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
@@ -18503,7 +18525,8 @@ c$$$         endif
       call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       end
       
-      double precision function fround(errno,fields,f)
+      real(kind=fPrec) function fround(errno,fields,f)
+      use floatPrecision
       implicit none
       integer maxf
       ! MAXF be kept in sync with maxf in various routines
@@ -18511,7 +18534,7 @@ c$$$         endif
       parameter (maxf=30)
       integer errno,f
       character*(*) fields(*)
-      double precision round_near,value
+      real(kind=fPrec) round_near,value
       fround=round_near(errno,maxf,fields(f))
       if (errno.ne.0) then
         value=fround
@@ -18521,13 +18544,14 @@ c$$$         endif
       end
       
       subroutine rounderr(errno,fields,f,value)
+      use floatPrecision
       implicit none
 +ca crcoall
       integer nchars,nofields
       integer errno,nfields,f,l
       character*(*) fields(*)
       character*999 localstr
-      double precision value
+      real(kind=fPrec) value
 
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
@@ -18580,9 +18604,10 @@ c$$$         endif
       integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
+      use floatPrecision
       implicit none
 +ca crcoall
-      double precision x
+      real(kind=fPrec) x
       character*(24) results
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
@@ -18666,9 +18691,10 @@ c$$$         endif
       return
       end
       
-      double precision function acos_rn(x)
+      real(kind=fPrec) function acos_rn(x)
+      use floatPrecision
       implicit none
-      double precision atan_rn,x,pi,pi2
+      real(kind=fPrec) atan_rn,x,pi,pi2
       logical myisnan
       data pi  /3.1415926535897932d0/
       data pi2 /1.5707963267948966d0/
@@ -18687,9 +18713,10 @@ c$$$         endif
       endif
       end
       
-      double precision function asin_rn(x)
+      real(kind=fPrec) function asin_rn(x)
+      use floatPrecision
       implicit none
-      double precision atan_rn,x,pi2
+      real(kind=fPrec) atan_rn,x,pi2
       logical myisnan
       data pi2 /1.5707963267948966d0/
       if (myisnan(x,x)) then
@@ -18706,9 +18733,10 @@ c$$$         endif
       endif
       end
       
-      double precision function atan2_rn(y,x)
+      real(kind=fPrec) function atan2_rn(y,x)
+      use floatPrecision
       implicit none
-      double precision atan_rn,x,y,pi,pi2
+      real(kind=fPrec) atan_rn,x,y,pi,pi2
       logical myisnan
       data pi  /3.1415926535897932d0/
       data pi2 /1.5707963267948966d0/
@@ -18756,12 +18784,13 @@ C Should get me a NaN
 !  (G.A.Erskine, 29.09.1995)
 !
 !  *********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,k
-      double precision wi,wr,x,y
+      real(kind=fPrec) wi,wr,x,y
 +ca parpro
 +ca parbeam
       save
@@ -18780,13 +18809,15 @@ C Should get me a NaN
  1       continue
  2    continue
       end
+
       subroutine mywwerf(x,y,wr,wi)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer n
-      double precision c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
+      real(kind=fPrec) c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
      &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
       parameter (z1=1,hf=z1/2d0,z10=10d0)
       parameter (c1=74d0/z10,c2=83d0/z10,c3=z10/32d0,c4=16d0/z10)
@@ -18988,12 +19019,13 @@ C Should get me a NaN
 
 +dk ranecu
       subroutine ranecu(rvec,len,mcut)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,is1,is2,iseed1,iseed2,iz,j,k,len,mcut
-      double precision rvec0,rvec,pi,r
+      real(kind=fPrec) rvec0,rvec,pi,r
 +ca parnum
       dimension rvec(*),r(2)
       data iseed1,iseed2 / 12345, 67890 /
@@ -19054,6 +19086,7 @@ C Should get me a NaN
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !-----------------------------------------------------------------------
+      use floatPrecision
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -19062,7 +19095,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,ih,j,kz1,l,ll
-      double precision aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,&
+      real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,&
      &fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,rv,si,siq,sm1,         &
      &sm12,sm2,sm23,sm3,sm5,sm6,wf,wfa,wfhi
 +if .not.vvector
@@ -19487,12 +19520,13 @@ C Should get me a NaN
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ien,ih,ip,kz1,l,idaa
-      double precision dare,result
+      real(kind=fPrec) dare,result
 +ca parpro
 +ca parnum
 +ca common
@@ -19864,12 +19898,13 @@ C Should get me a NaN
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ih,ipch,idaa
-      double precision dare
+      real(kind=fPrec) dare
 +ca parpro
 +ca parnum
 +ca common
@@ -19963,6 +19998,7 @@ C Should get me a NaN
 !        SPECIALLY PREPARED FOR NEW D.A.
 !        5 --> 6  AND  ASD6 / ALD6
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -19971,7 +20007,7 @@ C Should get me a NaN
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
      &nsta,nsto,idaa
-      double precision beamoff1,beamoff2,beamoff4,beamoff5,             &
+      real(kind=fPrec) beamoff1,beamoff2,beamoff4,beamoff5,             &
      &beamoff6,benkcc,betr0,c5m4,cbxb,cbzb,cik,crk,crxb,crzb,dare,dpdav,&
      &dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,rho2b,&
      &rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,      &
@@ -21070,11 +21106,13 @@ C Should get me a NaN
 10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,      &
      &' second(s) of CPU Time'//131('-')//)
       end
+
 +dk umlau6
       subroutine umlauda
 !-----------------------------------------------------------------------
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -21084,7 +21122,7 @@ C Should get me a NaN
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
      &aa2r,a1,a1r,xy,h,df
-      double precision al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
+      real(kind=fPrec) al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
      &beamoff2,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
      &cik,coefh2,coefv1,coefv2,cp,crk,crxb,crzb,cx,d,dicu,dare,det1,dp, &
      &dpdav,dpdav2,dphi,dps1,dps11,dummy,ed1,ed2,g1,g2,g3,ox,oxp,oxp1,  &
@@ -22510,14 +22548,15 @@ C Should get me a NaN
 !     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer ix,idaa,i
-      double precision NNORM_, XCLO, YCLO
-      double precision l,cur,dx,dy,tx,ty,embl,chi
+      real(kind=fPrec) NNORM_, XCLO, YCLO
+      real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
 +ca parpro
 +ca parnum
 +ca common
@@ -22705,13 +22744,14 @@ C Should get me a NaN
 !               DIFFERENTIAL ALGEBRA FOR CAVITY
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer idaa
-      double precision betr0,dare,sigmdac
+      real(kind=fPrec) betr0,dare,sigmdac
 +ca parpro
 +ca parnum
 +ca common
@@ -22799,12 +22839,14 @@ C Should get me a NaN
 10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,      &
      &' second(s) of CPU Time'//131('-')//)
       end
+
 +dk synoda
       subroutine synoda
 !-----------------------------------------------------------------------
 !  SYNCHROTRON OSCILLATIONS
 !        SPECIALLY PREPARED FOR NEW D.A.
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -22845,6 +22887,7 @@ C Should get me a NaN
 *FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
       return
       end
+
 +dk errff
       subroutine errff(xx,yy,wx,wy)
 !----------------------------------------------------------------------*
@@ -22858,13 +22901,14 @@ C Should get me a NaN
 ! OUTPUT:                                                              *
 !   WX, WY    (REAL)    FUNCTION RESULT.                               *
 !----------------------------------------------------------------------*
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer n,n1,nc,nuu,nuu1,idaa
-      double precision cc,dare,dum,xlim,ylim
+      real(kind=fPrec) cc,dare,dum,xlim,ylim
 +ca parpro
 +ca parnum
       parameter(cc = 1.12837916709551d0)
@@ -22975,6 +23019,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+
 +dk beam6df
       subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
 !-----------------------------------------------------------------------
@@ -22984,13 +23029,14 @@ C Should get me a NaN
 !   January 1999         
 !
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer ibb,ibbc,ne,nsli,idaa
-      double precision alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
+      real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
 +ca parpro
 +ca parnum
@@ -23071,6 +23117,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+
       subroutine boostf(sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
 !
@@ -23081,12 +23128,13 @@ C Should get me a NaN
 ! BOOSTF Boost Operation *******************************************
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer idaa
-      double precision calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2    &
+      real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2    &
 +ca parpro
 +ca parnum
 +ca commondl
@@ -23132,6 +23180,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+
       subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
 !-----------------------------------------------------------------------
 !
@@ -23142,12 +23191,13 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !**SBCF ***Synchro-Beam for headon collision*********************
 !****************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
-      double precision bcu,cphi,cphi2,dare,f,sfac,star
+      real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
 +ca parpro
 +ca parnum
 +ca commondl
@@ -23279,6 +23329,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+
       subroutine boostif(sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
 !
@@ -23288,12 +23339,13 @@ C Should get me a NaN
 !
 !-----------------------------------------------------------------------
 ! BOOSTIF **************inverse boost ****************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer idaa
-      double precision calpha,cphi,salpha,sphi,tphi
+      real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
 +ca parpro
 +ca parnum
 +ca commondl
@@ -23345,6 +23397,7 @@ C Should get me a NaN
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+
       subroutine bbff(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy)
 !-----------------------------------------------------------------------
 !
@@ -23358,12 +23411,13 @@ C Should get me a NaN
 ! beam-beam kicks except for the kinematical term (nr_e/\gamma)
 ! SIGXX is \Sigma
 !**********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer idaa
-      double precision dare,hundred,sqrpi2
+      real(kind=fPrec) dare,hundred,sqrpi2
 +ca parpro
 +ca parnum
       parameter(sqrpi2 = 3.544907701811032d0,hundred = 100d0)
@@ -23568,7 +23622,7 @@ C Should get me a NaN
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
      &nerror,nlino,nlinoo,nmz,nthinerr
-      double precision alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
+      real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
      &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
      &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
      &gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
@@ -23599,7 +23653,7 @@ C Should get me a NaN
       parameter (nofields=41)
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
-      double precision fround
+      real(kind=fPrec) fround
       data lineno /0/
 +ei
 +if debug
@@ -25969,6 +26023,7 @@ C Should get me a NaN
 !!--------------------------------------------------------------------------
 !<
       subroutine trauthin(nthinerr)
+      use floatPrecision
       use scatter, only : scatter_elemPointer
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
@@ -25977,7 +26032,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -26443,6 +26498,7 @@ C Should get me a NaN
 !!  F. SCHMIDT
 !<
       subroutine thin4d(nthinerr)
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -26455,18 +26511,18 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
-      double precision cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
+      real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb, &
      &yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      double precision e0fo,e0o,xv1j,xv2j
-      double precision acdipamp, qd, acphase, acdipamp2,                &
+      real(kind=fPrec) e0fo,e0o,xv1j,xv2j
+      real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1, crabamp, crabfreq
 +ca wiretracktmp
       logical llost
 +if time
-      double precision expt
+      real(kind=fPrec) expt
 +ei
 +ca parnum
 +ca common
@@ -26969,6 +27025,8 @@ C Should get me a NaN
 !!  F. SCHMIDT
 !<
       subroutine thin6d(nthinerr)
+      use floatPrecision
+
 +if datamods
       use bigmats
 +ei
@@ -26991,22 +27049,22 @@ C Should get me a NaN
 !   YIL: In order to make sure we are sending the correct
 !        data types to appendreading..
        INTEGER hdfturn,hdfpid,hdftyp
-       DOUBLE PRECISION hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+       real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 +ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
-      double precision c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
+      real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,  &
      &xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      double precision e0fo,e0o,xv1j,xv2j
-      double precision acdipamp, qd, acphase,acdipamp2,acdipamp1,       &
+      real(kind=fPrec) e0fo,e0o,xv1j,xv2j
+      real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1,       &
      &crabamp,crabfreq,                                                 &
      &crabamp2,crabamp3,crabamp4
 +ca wiretracktmp
       logical llost
 +if time
-      double precision expt
+      real(kind=fPrec) expt
 +ei
 +ca parnum
 +ca common
@@ -27818,6 +27876,8 @@ C Should get me a NaN
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
+      use floatPrecision
+
 +if datamods
       use bigmats
 +ei
@@ -27830,18 +27890,18 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
-      double precision c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
+      real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,e0fo,e0o,r0,r2b,rb,rho2b,rkb,stracki, &
      &tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      double precision xv1j,xv2j
-      double precision acdipamp, qd, acphase,acdipamp2,                 &
+      real(kind=fPrec) xv1j,xv2j
+      real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
 +ca wiretracktmp
       logical llost
 +if time
-      double precision expt
+      real(kind=fPrec) expt
 +ei
 +ca parnum
 +ca common
@@ -28412,6 +28472,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -28619,6 +28680,7 @@ C Should get me a NaN
 +ei
       return
       end
+
       subroutine callcrp()
 !-----------------------------------------------------------------------
 !
@@ -28626,6 +28688,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -28704,6 +28767,7 @@ C Should get me a NaN
 +ei
       return
       end
+
       subroutine lostpart(nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -28711,6 +28775,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -28741,6 +28806,7 @@ C Should get me a NaN
 +ca lost3a
 +ca lost4
 +ca lost5a
+
       subroutine lostpar2(i,ix,nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -28748,6 +28814,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -28779,6 +28846,7 @@ C Should get me a NaN
 +ca lost3b
 +ca lost4
 +ca lost5b
+
       subroutine lostpar3(i,ix,nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -28786,6 +28854,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -28817,6 +28886,7 @@ C Should get me a NaN
 +ca lost3b
 +ca lost4
 +ca lost5b
+
       subroutine lostpar4(i,ix,nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -28824,6 +28894,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -28863,12 +28934,14 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
+
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ia,ib2,ib3,ie
-      double precision dam1
+      real(kind=fPrec) dam1
 +ca parpro
 +ca parnum
 +ca common
@@ -28931,6 +29004,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -29039,13 +29113,15 @@ C Should get me a NaN
 !     lhighprec : High precission output y/n
 !-----------------------------------------------------------------------
 
+      use floatPrecision
+
       implicit none
 
 !     interface variables:
       integer nturn, i, ix, unit, fmt
       logical lhighprec
-      double precision :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
-      double precision clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
+      real(kind=fPrec) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
+      real(kind=fPrec) clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
       intent (in) nturn, i, ix, unit, fmt, lhighprec, tasinv, clo
 +ca parpro
 +ca parnum
@@ -29076,12 +29152,12 @@ C Should get me a NaN
       integer j,k,l,m,n
       character*16 localBez
 
-      double precision localDcum
+      real(kind=fPrec) localDcum
       integer localKtrack
 
-      double precision xyz_particle(6),nxyz_particle(6)
-      double precision xyz(6)
-      double precision xyz2(6,6)
+      real(kind=fPrec) xyz_particle(6),nxyz_particle(6)
+      real(kind=fPrec) xyz(6)
+      real(kind=fPrec) xyz2(6,6)
       
 +if cr      
       !For accessing dumpfilepos
@@ -29596,6 +29672,7 @@ C Should get me a NaN
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
+      use floatPrecision
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
@@ -29603,7 +29680,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
 +ca parpro
 +ca parnum
@@ -30002,6 +30079,7 @@ C Should get me a NaN
       endif
       return
       end
+
       subroutine thck4d(nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -30010,6 +30088,7 @@ C Should get me a NaN
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -30020,18 +30099,18 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
-      double precision cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
+      real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,puxve,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj, &
      &xrb,yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      double precision e0fo,e0o,xv1j,xv2j
-      double precision acdipamp, qd, acphase, acdipamp2,                &
+      real(kind=fPrec) e0fo,e0o,xv1j,xv2j
+      real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,                &
      &acdipamp1,crabamp,crabfreq
 +ca wiretracktmp
       logical llost
 +if time
-      double precision expt
+      real(kind=fPrec) expt
 +ei
 +ca parnum
 +ca common
@@ -30554,6 +30633,7 @@ C Should get me a NaN
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -30564,18 +30644,18 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
-      double precision cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
+      real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,  &
      &rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      double precision e0fo,e0o,xv1j,xv2j
-      double precision acdipamp, qd, acphase,acdipamp2,                 &
+      real(kind=fPrec) e0fo,e0o,xv1j,xv2j
+      real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
 +ca wiretracktmp
       logical llost
 +if time
-      double precision expt
+      real(kind=fPrec) expt
 +ei
 +ca parnum
 +ca common
@@ -31256,6 +31336,7 @@ C Should get me a NaN
 !
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -31266,18 +31347,18 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
-      double precision cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
+      real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,e0fo,e0o,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,  &
      &rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      double precision xv1j,xv2j
-      double precision acdipamp, qd, acphase,acdipamp2,                 &
+      real(kind=fPrec) xv1j,xv2j
+      real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,                 &
      &acdipamp1, crabamp, crabfreq
 +ca wiretracktmp
       logical llost
 +if time
-      double precision expt
+      real(kind=fPrec) expt
 +ei
 +ca parnum
 +ca common
@@ -31858,6 +31939,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -31866,7 +31948,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer ih1,ih2,j,kz1,l
-      double precision fokm
+      real(kind=fPrec) fokm
 +ca parpro
 +ca parnum
 +ca common
@@ -32397,6 +32479,7 @@ C Should get me a NaN
 !  CAUTION:
 !          A SPECIAL VERSION FOR VECTORIZATION - AUGUST   1994
 !-----------------------------------------------------------------------
+      use floatPrecision
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -32406,7 +32489,7 @@ C Should get me a NaN
 +ca crlibco
 +ei
       integer ih1,ih2,j,kz1,l,l1,l2
-      double precision aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,ekv,fi,    &
+      real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,ekv,fi,    &
      &fok,fok1,fokm,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
      &rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
 +ca parpro
@@ -32913,8 +32996,10 @@ C Should get me a NaN
   160 continue
       return
       end
+
 +dk mainda
       program mainda
+      use floatPrecision
       use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
@@ -32923,7 +33008,7 @@ C Should get me a NaN
 +ei
       integer i,iation,itiono,idate,im,imonth,itime,ix,izu,j,jj,k,kpz,  &
      &kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
-      double precision alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
+      real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
      &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,&
      &dp0,dp10,e0f,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,gam0x3,  &
      &gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,                       &
@@ -32991,7 +33076,7 @@ C Should get me a NaN
       parameter (nofields=41)
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
-      double precision fround
+      real(kind=fPrec) fround
       data lineno /0/
 +ei
 +ca version
@@ -33485,11 +33570,13 @@ C Should get me a NaN
 10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
       end
+
 +dk comnul
       subroutine comnul
 !-----------------------------------------------------------------------
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -33569,7 +33656,7 @@ C Should get me a NaN
 ! Set all new variables to 0 or ZERO
 ! Note we do not initialise the checkpoint cr* variables
 ! nor the my* variables as they should all be read in!
-! double precision
+! real(kind=fPrec)
       do i=1,nblz
         tbetax(i)=zero
         tbetay(i)=zero
@@ -33583,7 +33670,7 @@ C Should get me a NaN
         tdispy(i)=zero
         sampl(i)=zero
       enddo
-! double precision
+! real(kind=fPrec)
       totals=zero
       limit_twojx=zero
       limit_twojy=zero
@@ -34285,13 +34372,14 @@ C Should get me a NaN
 !           UMSCHR    DIFFERENTIAL ALGEBRA 5 -> 6
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
-      double precision c,c1
+      real(kind=fPrec) c,c1
       character*80 aaa
       character*18 a18
       character*58 a58
@@ -34359,8 +34447,10 @@ C Should get me a NaN
       rewind iu2
       return
       end
+
 +dk daliesix
       subroutine daliesix
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -34369,7 +34459,7 @@ C Should get me a NaN
       integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,&
      &a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
       real tlim,time0,time1,time
-      double precision angle,coe,rad,x2pi
+      real(kind=fPrec) angle,coe,rad,x2pi
 +ca parpro
 +ca parnum
 +ca commondl
@@ -34519,17 +34609,19 @@ C Should get me a NaN
      &'OO  NORMAL FORMS  OO', /t10,2('O'),16x,2('O')/t10,20('O')//130(  &
      &'-')//)
       end
+
 +dk distance
       subroutine distance(x,clo,di0,t,dam)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ii,iq,j,jq
-      double precision clo,cx,dam,di0,phi,pi,sx,t,x,x1
+      real(kind=fPrec) clo,cx,dam,di0,phi,pi,sx,t,x,x1
 +ca parpro
 +ca parnum
 +ca commonds
@@ -34589,18 +34681,20 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       return
       end
+
 +dk anfb
       subroutine anfb(tas)
 !-----------------------------------------------------------------------
 !  CALCULATION OF INITIAL COORDINATES
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ii,jj,l,ll
-      double precision bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
+      real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
      &tas,tas56,x1,x11,x13,x2
 +ca parpro
 +ca parnum
@@ -34712,18 +34806,20 @@ C Should get me a NaN
      &'OO  INITIAL COORDINATES  OO'/ t10,2('O'),23x,2('O')/t10,27('O')  &
      &//131('-')//)
       end
+
 +dk betalf
       subroutine betalf(dpp,qw)
 !-----------------------------------------------------------------------
 !  CALCULATION OF : OPT. PARAMETERS AT THE STARTING POSITION:
 !                   BETA-, ALFA-FUNCTIONS, Q-VALUES
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j
-      double precision am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
+      real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
      &fak2,qw,rca1,rca2,rclam1,rclam2,rcw1(4),rcw2(4),rn1,rn2,spa,spd,  &
      &sqrn,yca1,yca2,yclam1,yclam2,ycw1(4),ycw2(4)
 +ca parpro
@@ -34905,17 +35001,19 @@ C Should get me a NaN
   160 ierro=1
       return
       end
+
 +dk block
       subroutine block
 !-----------------------------------------------------------------------
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,jm,k,l,m,n
-      double precision g,h
+      real(kind=fPrec) g,h
 +ca parpro
 +ca parnum
 +ca common
@@ -34961,17 +35059,19 @@ C Should get me a NaN
    60 continue
       return
       end
+
 +dk blockdis
       subroutine blockdis(aeg,bl1eg,bl2eg)
 !-----------------------------------------------------------------------
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX, USED FOR DISPERSION
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,jm,k,l,m,n
-      double precision aeg,bl1eg,bl2eg,g,h
+      real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
 +ca parpro
 +ca parnum
 +ca common
@@ -35022,18 +35122,20 @@ C Should get me a NaN
    60 continue
       return
       end
+
 +dk chroma
       subroutine chroma
 !-----------------------------------------------------------------------
 !  CALCULATION OF CHROMATICITY FROM 5 ENERGIE-VALUES
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ii,isl,j,jj,l,n
-      double precision cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
+      real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
      &sm0,su2,suxy,suzy,xi,zi
 +ca parpro
 +ca parnum
@@ -35148,17 +35250,19 @@ C Should get me a NaN
      &t10,'                 ',g17.10,7x,g17.10,'           ',a16)
 10035 format(/t5,'---- NO Improvement in last Step ----'/)
       end
+
       subroutine chromda
 !-----------------------------------------------------------------------
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
-      double precision cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
+      real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
 +ca parpro
 +ca parnum
 +ca common
@@ -35284,18 +35388,20 @@ C Should get me a NaN
      &'MAXIMUM NUMBER OF ITERATIONS ACHIEVED--->',2x,i4/ t10,           &
      &'PROCEDURE MAY NOT HAVE CONVERGED')
       end
+
 +dk clorb
       subroutine clorb(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer ierr,ii,l,ll
-      double precision am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
+      real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
      &dy,x0,x1,y0,y1
 +ca parpro
 +ca parnum
@@ -35371,18 +35477,20 @@ C Should get me a NaN
 10010 format(t5,'---- ENTRY CLORB ----/DPP=',f8.5,' /CLOX/', 2f10.5,    &
      &' /CLOY/',2f10.5,' /ITERAT.=',i3,'/ ACCURACY=',d13.6)
       end
+
 +dk clor6
       subroutine clorda(nn,idummy,am)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE SIX-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
-      double precision am,cloc,cor,coro,dc,dd,dlo,xx
+      real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
 +ca parpro
 +ca parnum
 +ca common
@@ -35704,11 +35812,13 @@ C Should get me a NaN
 10070 format(5x,a6,1p,2(1x,g16.9)/5x,a6,1p,2(1x,g16.9))
 10080 format(5x,' ITERAT.=',i3,' ACCURACY=',d13.6/)
       end
+
 +dk mydaini
       subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -35716,7 +35826,7 @@ C Should get me a NaN
 +ei
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
-      double precision am
+      real(kind=fPrec) am
 +ca parpro
 +ca commondl
 +ca commonas
@@ -35785,11 +35895,13 @@ C Should get me a NaN
      &', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
       return
       end
+
 +dk mydainf
       subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -35797,7 +35909,7 @@ C Should get me a NaN
 +ei
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
-      double precision am
+      real(kind=fPrec) am
 +ca parpro
 +ca commondl
 +ca commonas
@@ -35853,17 +35965,19 @@ C Should get me a NaN
      &', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
       return
       end
+
 +dk clorb2
       subroutine clorb2(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ierr,ii,l,ll
-      double precision am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
+      real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
      &x1,y0,y1
 +ca parpro
 +ca parnum
@@ -35919,11 +36033,13 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       return
       end
+
 +dk combel
       subroutine combel(iql)
 !-----------------------------------------------------------------------
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -35965,17 +36081,19 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
       return
       end
+
 +dk envar
       subroutine envar(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ih,kz1,l,ll
-      double precision afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1, &
+      real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1, &
      &hm,hp,hs,rho,rhoi,si,wf
 +ca parpro
 +ca parnum
@@ -36265,17 +36383,19 @@ C Should get me a NaN
       call block
       return
       end
+
 +dk envardis
       subroutine envardis(dpp,aeg,bl1eg,bl2eg)
 !-----------------------------------------------------------------------
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ih,kz1,l,ll
-      double precision aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,&
+      real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,&
      &g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
 +ca parpro
 +ca parnum
@@ -36565,11 +36685,13 @@ C Should get me a NaN
       call blockdis(aeg,bl1eg,bl2eg)
       return
       end
+
 +dk error
       subroutine prror(ier)
 !-----------------------------------------------------------------------
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
+      use floatPrecision
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca crcoall
@@ -37013,6 +37135,7 @@ C Should get me a NaN
 !     always in main code
 !-----------------------------------------------------------------------
 !
+      use floatPrecision
       implicit none
 
 +ca parpro
@@ -37023,7 +37146,7 @@ C Should get me a NaN
       save
 
 !     temporary variables
-      double precision tmpdcum, ds
+      real(kind=fPrec) tmpdcum, ds
       integer ientry, jentry, kentry, ix
 
       write(lout,*)''
@@ -37092,6 +37215,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -37099,12 +37223,12 @@ C Should get me a NaN
 +ei
       integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,
      &nmz,nr,dj
-      double precision aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
+      real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
      &ci,cikve,clo0,clop0,cr,crkve,crkveuk,di00,dip00,dphi,dpp,dpp1,    &
      &dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,pie,puf,qu,qv,qw,qwc,r0,r0a, &
      &t,xl,xs,zl,zs,quz,qvz
 +if tilt
-      double precision dyy11,qu1,tiltck,tiltsk
+      real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
       character*16 idum
 +ca parpro
@@ -37972,13 +38096,14 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,iwrite,ixwl,l,ll,nr
-      double precision al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
+      real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character*16 typ
       ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
       logical isBLOC
@@ -38097,12 +38222,13 @@ c$$$            endif
 !  BET(1-4), ALF(1-4), GAM(1-4), COOR-PHI(1-4), COOR-PRIME-PHI(1-4),
 !  COUUANGL
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,iwrite
-      double precision alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
+      real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
       character*16 typ
@@ -38239,13 +38365,14 @@ c$$$            endif
 !  SOLUTION OF A SYSTEM OF LINEAR EQUATIONS
 !  VEC1 = VEC2 * RMAT , WITH VEC2 AS RESULT
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer ik,indi,j,jk,jy,k,kk,kod,l,n,n1,dimtot,dimakt
-      double precision emax,eps,r,rmat,vec
+      real(kind=fPrec) emax,eps,r,rmat,vec
 +ca parpro
 +ca parnum
       dimension rmat(dimtot,dimakt),vec(dimakt)
@@ -38293,12 +38420,13 @@ c$$$            endif
       end
 +dk matrix
       subroutine matrix(dpp,am)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ierr,l
-      double precision am,dpp
+      real(kind=fPrec) am,dpp
 +ca parpro
 +ca parnum
 +ca common
@@ -38338,6 +38466,7 @@ c$$$            endif
 !  USING MICADO), THEN
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -38349,7 +38478,7 @@ c$$$            endif
       real ar(nmon1,ncor1)
       real b(nmon1),orbr(nmon1),xinc(ncor1)
       real rmsx,ptpx,rmsz,ptpz,rzero,rzero1
-      double precision clo0,clop0,hfac,qwc1,vfac
+      real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
       character*16 bezlo(nele)
 +ca parnum
 +ca common
@@ -38644,6 +38773,7 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -38652,7 +38782,7 @@ c$$$            endif
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
 +ca parpro
       real xinc(ncor1)
-      double precision ckicknew,ckickold,r0,r0a
+      real(kind=fPrec) ckicknew,ckickold,r0,r0a
 +ca parnum
 +ca common
 +ca commons
@@ -38747,12 +38877,13 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,im,ix,izu,kpz,kzz,nmz
-      double precision r0
+      real(kind=fPrec) r0
 +ca parpro
 +ca parnum
 +ca common
@@ -38819,6 +38950,7 @@ c$$$            endif
 !     RMS  - RMS VALUE TO CORRECT FOR                                *
 !     PTP  - PEAK TO PEAK VALUE TO CORRECT FOR                       *
 !*********************************************************************
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -38984,6 +39116,7 @@ c$$$            endif
 !                                                                    *
 !     Householder transform of matrix A
 !*********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -39017,6 +39150,7 @@ c$$$            endif
 !                                                                    *
 !     Householder transform of vector B
 !*********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -39048,6 +39182,7 @@ c$$$            endif
 !                                                                    *
 !     calculate residual orbit vector
 !*********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -39082,6 +39217,7 @@ c$$$            endif
 !                                                                    *
 !     calculate vector U
 !*********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -39115,6 +39251,7 @@ c$$$            endif
 !                                                                    *
 !     calculates rms and p.to.p value of R(1) .... R(M)
 !*********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -39172,6 +39309,7 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -39179,7 +39317,7 @@ c$$$            endif
 +ei
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
      &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
-      double precision extalig1,exterr1
+      real(kind=fPrec) extalig1,exterr1
 +ca parpro
 +ca parnum
 +ca common
@@ -39189,7 +39327,7 @@ c$$$            endif
       dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
      &icextal1(nblz)
 +if time
-      double precision exterr2,tcnst2
+      real(kind=fPrec) exterr2,tcnst2
       dimension exterr2(nblz,40),tcnst2(nblz)
 +ei
 +if bnlelens
@@ -39439,6 +39577,7 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  ADDITIONAL ADJUSTMENT OF THE X-PHASEADVANCE BETWEEN 2 POSITIONS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -39446,11 +39585,11 @@ c$$$            endif
 +ei
       integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,&
      &dj
-      double precision aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk, &
+      real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk, &
      &dphi,dpp,dppi,dpr,dyy1,dyy2,ekk,phi,phibf,pie,puf,qu,qv,qw,qwc,   &
      &qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
 +if tilt
-      double precision dyy11,qu1,tiltck,tiltsk
+      real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
 +ca parpro
 +ca parnum
@@ -39934,13 +40073,14 @@ c$$$            endif
 !  ADJUSTMENT OF THE Q-VALUES PLUS AN ADDITIONAL ADJUSTMENT OF A
 !  X-PHASEADVANCE BETWEEN 2 POSITIONS IN THE MACHINE
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
-      double precision a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
+      real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
 +ca parpro
 +ca parnum
@@ -40177,17 +40317,19 @@ c$$$            endif
      &a16/t10,                  23x,g17.10,2x,g17.10,'           ',     &
      &a16)
       end
+
       subroutine qmodda(mm,qwc)
 !-----------------------------------------------------------------------
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
-      double precision cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
+      real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
 +ca parpro
 +ca parnum
 +ca common
@@ -40474,20 +40616,22 @@ c$$$            endif
 10090 format(/t10,'Initial ',i1,'-D DA CLOSED ORBIT IN QMODDA (NO ',    &
      &'TUNE ADJUSTEMENT)')
       end
+
 +dk umlauf
       subroutine umlauf(dpp,ium,ierr)
 !-----------------------------------------------------------------------
 !     ONE TURN-TRANSFORMATION (INCLUDING QUADRUPOLE CONTRIBUTIONS)
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
-      double precision aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,   &
+      real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,   &
      &dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
 +if tilt
-      double precision dyy11,qu1,tiltck,tiltsk
+      real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
 +ca parpro
 +ca parnum
@@ -40891,12 +41035,14 @@ c$$$            endif
 !-----------------------------------------------------------------------
       return
       end
+
 +dk resex
       subroutine resex(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DRIVINGTERMS OF RESONANCES INCLUDING SUBRESONANCE
 !  USED FOR RMOD
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -40904,13 +41050,13 @@ c$$$            endif
       integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,    &
      &kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,  &
      &nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
-      double precision aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,   &
+      real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,   &
      &chy,ci,cikve,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dphi,dpp,  &
      &dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,phy,pie, &
      &puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,    &
      &vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
 +if tilt
-      double precision dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
+      real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
      &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
 +ca parpro
@@ -41639,11 +41785,13 @@ c$$$            endif
   850 continue
       return
       end
+
 +dk rmod
       subroutine rmod(dppr)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -41651,7 +41799,7 @@ c$$$            endif
 +ei
       integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,   &
      &nteo
-      double precision aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,   &
+      real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,   &
      &se2,sen,sen15,sen16,sen17,sen18,sn,ss
 +ca parpro
 +ca parnum
@@ -41948,18 +42096,20 @@ c$$$            endif
      &.5/ 19x,'VERTICAL     ',2g15.5/ 10x,'   SEXTUPOLE'/)
 10110 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
       end
+
 +dk search
       subroutine search(dpp)
 !-----------------------------------------------------------------------
 !  FINDING THE BEST POSITIONS FOR CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,id,n21,n22,n23,ntao,nteo
-      double precision b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
+      real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character*16 ref
 +ca parpro
 +ca parnum
@@ -42035,11 +42185,13 @@ c$$$            endif
 10050 format(1x,a16,1x,'|',i3,'  |',g15.5,'|',g15.5,'|',g15.5,'|',      &
      &g15.5,'|',g15.5,'|',g15.5,'|')
       end
+
 +dk subre
       subroutine subre(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -42049,14 +42201,14 @@ c$$$            endif
      &k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,mis,mm,mpe,mx,n2,n22,n2e,nf1,&
      &nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,nv2, &
      &nv21,nz2,dj
-      double precision aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc,&
+      real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc,&
      &chy,ci,cikve,clo0,clop0,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,&
      &dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,ekk,    &
      &ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,&
      &r0a,radi,rc,re,re1,res,rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,&
      &vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
 +if tilt
-      double precision dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
+      real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
      &tiltck5,tiltck6,tiltck8,tiltck10,tiltckuk,tiltsk,tiltsk1,tiltsk2, &
      &tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
 +ei
@@ -42990,17 +43142,19 @@ c$$$            endif
      &2,1x,f6.3,1x,f6.2,1x,f6.3,1x, f7.2,1x,f6.2,1x,f6.2,1x,f6.2,1x,f6. &
      &3,1x,f6.2,1x,f6.3)
       end
+
       subroutine detune(iv,ekk,ep,beta,dtu,dtup,dfac)
 !-----------------------------------------------------------------------
 !  USED FOR SUBRE - CALCULATES DETUNING
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer iv,iv2,iv3,iv4,iv5,iv6
-      double precision beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,pi,vor,vtu1, &
+      real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,pi,vor,vtu1, &
      &vtu2
 +ca parpro
 +ca parnum
@@ -43077,12 +43231,14 @@ c$$$            endif
       dtu(2,iv)=dtu(2,iv)+vtu1*dtu2
       return
       end
+
 +dk subsea
       subroutine subsea(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DRIVINGTERMS OF RESONANCES INCLUDING SUBRESONANCE
 !  USED FOR SEARCH
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -43090,13 +43246,13 @@ c$$$            endif
       integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,    &
      &l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,   &
      &np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
-      double precision aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,   &
+      real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,   &
      &chy,ci,cikve,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dphi,dpp,  &
      &dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,phy,pie, &
      &puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,    &
      &vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
 +if tilt
-      double precision dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
+      real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
      &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
 +ca parpro
@@ -43797,19 +43953,21 @@ c$$$            endif
   780 continue
       return
       end
+
 +dk decoup
       subroutine decoup
 !-----------------------------------------------------------------------
 !  DECOUPLING USING MATRIX ELEMENTS
 !
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ierr,j,no
-      double precision aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
+      real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
 +ca parpro
 +ca parnum
 +ca common
@@ -44013,6 +44171,7 @@ c$$$            endif
 !             (the first particle in pair if ntwin=2, i.e. it is a  pair).
 !  NNUML   :  ??
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -44038,12 +44197,12 @@ c$$$            endif
      &numl
 +if stf
       integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
-      double precision b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
+      real(kind=fPrec) b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
 +ei
       real tim1,tim2,fxs,fzs
-      double precision const,dle,slope,tle,varlea,wgh
-      double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
+      real(kind=fPrec) const,dle,slope,tle,varlea,wgh
+      real(kind=fPrec) alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
      &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
      &bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold,c, &
      &c0,c1,c6,clo,cloau,clop,cx,cz,d,d0,d1,dani,dared,dares,di0,di0au, &
@@ -46574,6 +46733,7 @@ c$$$            endif
 !                 eps2_max,eps3_max,eps1_avg, eps2_avg,eps3_avg,        *
 !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
 !-----------------------------------------------------------------------*
+      use floatPrecision
       use platofma
       implicit none
 +ca comgetfields
@@ -46602,15 +46762,15 @@ c$$$            endif
       integer filefields_nfields
       integer filefields_lfields( getfields_n_max_fields )
       logical filefields_lerr
-      double precision round_near
+      real(kind=fPrec) round_near
 
       integer, dimension(:,:),allocatable :: turn ! Current turn no (particle, rel. turn no)
       integer, dimension(:),allocatable :: nturns ! Number of turns to analyze for this particle
       logical hasNormDumped(-1:nele)              ! Have we written a normDump file for this element before?
       integer fma_nturn (fma_max)                 ! Number of turns used for fft for this FMA
-      double precision, dimension(:,:,:),allocatable ::
+      real(kind=fPrec), dimension(:,:,:),allocatable ::
      &xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
-      double precision, dimension(:,:,:),allocatable ::
+      real(kind=fPrec), dimension(:,:,:),allocatable ::
      &epsnxyzv ! normalized emittances
       integer :: dump_last_turn ! auxiliary variable for loop over turns
 +if naff
@@ -46628,17 +46788,17 @@ c$$$            endif
       !  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to C++.
       ! (We can't interpret the struct that Fortran is passing us;
       !  see the naff_interface.cpp for more info                 )
-      double precision, dimension(:), allocatable ::
+      real(kind=fPrec), dimension(:), allocatable ::
      &     naff_xyzv1,naff_xyzv2
 +ei
 !     dummy variables for readin + normalisation + loops
       integer :: id,kt,counter,thisturn
-      double precision :: pos
-      double precision, dimension(6) :: xyzvdummy,xyzvdummy2,nxyzvdummy !phase space variables x,x',y,y',sig,delta
-      double precision, dimension(3) :: q123 !tune q1,q2,q3
-      double precision, dimension(3) :: eps123_0,eps123_min,eps123_max, &
+      real(kind=fPrec) :: pos
+      real(kind=fPrec), dimension(6) :: xyzvdummy,xyzvdummy2,nxyzvdummy !phase space variables x,x',y,y',sig,delta
+      real(kind=fPrec), dimension(3) :: q123 !tune q1,q2,q3
+      real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max, &
      &eps123_avg !initial,minimum,maximum,average emittance
-      double precision, dimension(3) :: phi123_0  !initial phase
+      real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
       
 +if boinc
       character*256 filename
@@ -47540,12 +47700,13 @@ c$$$            endif
 !      WRITTEN BY : RUI DILAO
 !
 !---------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ip,j,k,l,le,le1,m,n,nm1,nv2
-      double precision ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
+      real(kind=fPrec) ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
 +ca parnum
       dimension ar(n),ai(n)
       save
@@ -47611,13 +47772,15 @@ c$$$            endif
    60 continue
       return
       end
+
       subroutine caconv(a,b,c)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
 +ca parnum
-      double precision a,b,c
+      real(kind=fPrec) a,b,c
       save
 !---------------------------------------------------------------------
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
@@ -47632,13 +47795,15 @@ c$$$            endif
       endif
       return
       end
+
       subroutine cphase(k,a,b,c,d,i,j,ie)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ie,j,k
-      double precision a,b,c,d,f,phase,tpi,dani
+      real(kind=fPrec) a,b,c,d,f,phase,tpi,dani
 +ca parpro
 +ca parnum
 +ca commphin
@@ -47666,13 +47831,15 @@ c$$$            endif
       endif
       return
       end
+
       subroutine cinvar(a,b,c,d,j,e,xinv,invx)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,invx,j
-      double precision a,b,c,d,phase,dani,e,xinv
+      real(kind=fPrec) a,b,c,d,phase,dani,e,xinv
 +ca parpro
 +ca parnum
 +ca commphin
@@ -47696,12 +47863,14 @@ c$$$            endif
       endif
       return
       end
+
       subroutine sinpro(a,b,c,d,e)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
-      double precision a,b,c,d,e
+      real(kind=fPrec) a,b,c,d,e
 +ca parnum
       save
 !---------------------------------------------------------------------
@@ -47720,15 +47889,17 @@ c$$$            endif
       endif
       return
       end
+
 +dk join
       subroutine join
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
-      double precision alf0,bet0,clo,clop,dam,di0,dip0,dps,dummy,e0,pi, &
+      real(kind=fPrec) alf0,bet0,clo,clop,dam,di0,dip0,dps,dummy,e0,pi, &
      &qwc,sigm,ta,x,y
       character*80 sixtit,commen
       character*8 cdate,ctime,progrm
@@ -47895,17 +48066,18 @@ c$$$            endif
 !           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
+      use floatPrecision
       implicit none
 +ca parnum   !numbers (zero,one,two etc.)
 +ca commonta
 +ca crcoall
 
       integer :: i,j            !iterators
-      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
+      real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
+      real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
       integer ierro                   !error messages
 !     dummy variables
-      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
+      real(kind=fPrec), dimension(6,6) :: tdummy !dummy variable for transposing the matrix
       integer, dimension(6) :: idummy !for matrix inversion
 !     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
@@ -47954,13 +48126,14 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  SUBROUTINE TO SUMMARIZE THE RESULTS OF THE POSTPROCESSING
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ierro,j
-      double precision d,dlost
+      real(kind=fPrec) d,dlost
       character*4 ch
 +ca parnum
 +ca parpro
@@ -47975,7 +48148,7 @@ c$$$            endif
       parameter (nofields=60)
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
-      double precision fround
+      real(kind=fPrec) fround
       data lineno /0/
 +ei
       save
@@ -48098,13 +48271,14 @@ c$$$            endif
 !   January 1999
 !
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer ibb,ibbc,ibtyp,ne,np,nsli
-      double precision alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
+      real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,tphi,track,star,phi2,cphi2,sphi2,tphi2
 +ca parpro
 +ca parnum
@@ -48178,6 +48352,7 @@ c$$$            endif
       call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
       return
       end
+
       subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
 !
@@ -48188,12 +48363,13 @@ c$$$            endif
 ! BOOST Boost Operation ********************************************
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,np
-      double precision calpha,cphi,h,h1x,h1y,h1z,hd1,salpha,sphi,tphi,  &
+      real(kind=fPrec) calpha,cphi,h,h1x,h1y,h1z,hd1,salpha,sphi,tphi,  &
      &track,x1,y1
 +ca parpro
 +ca parnum
@@ -48222,6 +48398,7 @@ c$$$            endif
  1000 continue
       return
       end
+
       subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
 !-----------------------------------------------------------------------
 !
@@ -48233,12 +48410,13 @@ c$$$            endif
 !  call BBF  (table) disabled
 !****************************************************************
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
-      double precision bbf0,bbfx,bbfy,bbgx,bbgy,bcu,costh,costhp,cphi,  &
+      real(kind=fPrec) bbf0,bbfx,bbfy,bbgx,bbgy,bcu,costh,costhp,cphi,  &
      &dum,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,star,sx,       &
      &sy,track,cphi2
 +ca parpro
@@ -48348,6 +48526,7 @@ c$$$            endif
  2000 continue
       return
       end
+
       subroutine boosti(np,sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
 !
@@ -48357,12 +48536,13 @@ c$$$            endif
 !
 ! BOOSTI **************inverse boost *****************
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,np
-      double precision calpha,cphi,det,h1,h1d,h1x,h1y,h1z,salpha,sphi,  &
+      real(kind=fPrec) calpha,cphi,det,h1,h1d,h1x,h1y,h1z,salpha,sphi,  &
      &tphi,track,x1,y1,z1
 +ca parpro
 +ca parnum
@@ -48397,6 +48577,7 @@ c$$$            endif
  1000 continue
       return
       end
+
       subroutine bbf(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy,ibtyp)
 !-----------------------------------------------------------------------
 !
@@ -48410,12 +48591,13 @@ c$$$            endif
 ! beam-beam kicks except for the kinematical term (nr_e/\gamma)
 ! SIGXX is \Sigma
 !**********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ibtyp
-      double precision arg1x,arg1y,arg2x,arg2y,bbfx,bbfy,bbgx,bbgy,     &
+      real(kind=fPrec) arg1x,arg1y,arg2x,arg2y,bbfx,bbfy,bbgx,bbgy,     &
      &comfac,comfac2,const,expfac,fac,fac2,sepx,sepy,sigxx,sigxy,sigyy, &
      &sqrpi2,wx1,wx2,wy1,wy2,x,xxyy
 +ca parpro
@@ -48486,6 +48668,7 @@ c$$$            endif
       endif
       return
       end
+
       subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
 !-----------------------------------------------------------------------
 !
@@ -48497,12 +48680,13 @@ c$$$            endif
 !   makes longitudinal position of the strong slice for all slices
 !*********************************************************************
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,nsli
-      double precision bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,   &
+      real(kind=fPrec) bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,   &
      &salpha,sigz,sigzs,sphi,sphi2,star,yy
 +ca parpro
 +ca parnum
@@ -48558,12 +48742,13 @@ c$$$            endif
 !  GAUSSIAN, MAXIMUM RELATIVE ERROR IN THE DISTRIBUTION FUNCTION
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
-      double precision a0,a1,a2,a3,b0,b1,b2,b3,b4,c0,c1,c2,c3,c4,d0,d1, &
+      real(kind=fPrec) a0,a1,a2,a3,b0,b1,b2,b3,b4,c0,c1,c2,c3,c4,d0,d1, &
      &d2,d3,d4,e0,e1,e2,e3,e4,f0,f1,f2,gauinv,p,p0,p1,p2,pp1,q,qq2,qq3, &
      &qq4,qq5,t
 !-----------------------------------------------------------------------
@@ -48710,6 +48895,7 @@ c$$$            endif
      &'CONDITION ',a6)
 1002  format(/' ***** CERN LIBRARY ERROR CONDITION ',a6)
       end
+
       subroutine rinv(n,a,idim,ir,ifail)
 !-----------------------------------------------------------------------
 !
@@ -48723,6 +48909,7 @@ c$$$            endif
 !
 !     ******************************************************************
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -48828,6 +49015,7 @@ c$$$            endif
       return
 !
       end
+
       subroutine dinv(n,a,idim,ir,ifail)
 !-----------------------------------------------------------------------
 !
@@ -48841,6 +49029,7 @@ c$$$            endif
 !
 !     ******************************************************************
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -48848,7 +49037,7 @@ c$$$            endif
       integer idim,ifail,jfail,k,kprnt,n
       integer ir
       real t1,t2,t3
-      double precision a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
+      real(kind=fPrec) a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
       character*6 name
       dimension ir(n),a(idim,n)
       data name/'DINV'/,kprnt/0/
@@ -48962,6 +49151,7 @@ c$$$            endif
 !     KPRNT        PRINT FLAG FOR K (K IS NOT PRINTED IF KPRNT=0).
 !
 !     ******************************************************************
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -48995,7 +49185,9 @@ c$$$            endif
      &' error (n.lt.1 or n.gt.idim or k.lt.1).',                        &
      &6x,'n =', i4, 6x,'idim =', i4, 6x,'k =', i4,'.')
       end
+
       subroutine rfact(n,a,idim,ir,ifail,det,jfail)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -49003,7 +49195,7 @@ c$$$            endif
       integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
       real a,det,g1,g2,one,p,pivotf,q,sizef,t,tf,x,y,zero
-      double precision s11,s12,dotf
+      real(kind=fPrec) s11,s12,dotf
       character*6 hname
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
@@ -49079,7 +49271,9 @@ c$$$            endif
       ir(n)  =  nxch
       return
       end
+
       subroutine dfact(n,a,idim,ir,ifail,det,jfail)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -49087,7 +49281,7 @@ c$$$            endif
       integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
       real g1,g2,p,pivotf,q,sizef,t
-      double precision a,det,dotf,zero,one,s11,s12,x,y,tf
+      real(kind=fPrec) a,det,dotf,zero,one,s11,s12,x,y,tf
       character*6         hname
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
@@ -49163,14 +49357,16 @@ c$$$            endif
       ir(n)  =  nxch
       return
       end
+
       subroutine rfeqn(n,a,idim,ir,k,b)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
       real a,b,te,x,y
-      double precision dotf,s21,s22
+      real(kind=fPrec) dotf,s21,s22
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' RFEQN'  /
@@ -49219,14 +49415,16 @@ c$$$            endif
  299  continue
       return
       end
+
       subroutine dfeqn(n,a,idim,ir,k,b)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
-      double precision a,b,x,y,te
-      double precision dotf,s21,s22
+      real(kind=fPrec) a,b,x,y,te
+      real(kind=fPrec) dotf,s21,s22
       character*6 hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' DFEQN'  /
@@ -49275,14 +49473,16 @@ c$$$            endif
  299  continue
       return
       end
+
       subroutine rfinv(n,a,idim,ir)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
       real a,ti,x,y
-      double precision dotf,s31,s32,s33,s34,zero
+      real(kind=fPrec) dotf,s31,s32,s33,s34,zero
       character*6 hname
       dimension ir(*),a(idim,*)
       data      zero      /  0.d0  /
@@ -49345,13 +49545,15 @@ c$$$            endif
  342     continue
       return
       end
+
       subroutine dfinv(n,a,idim,ir)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
-      double precision a,dotf,s31,s32,s33,s34,ti,x,y,zero
+      real(kind=fPrec) a,dotf,s31,s32,s33,s34,ti,x,y,zero
       character*6 hname
       dimension ir(*),a(idim,*)
       data      hname               /  ' DFINV'  /
@@ -49457,6 +49659,7 @@ c$$$            endif
      &' ... (n.lt.1 or idim.lt.n or k.lt.1).',                          &
      &5x,'n =', i4, 5x,'idim =', i4, 5x,'k =', i4,'.')
       end
+
       subroutine lfitd(x,y,l,key,a,b,e)
 !-----------------------------------------------------------------------
 !
@@ -49467,13 +49670,14 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer j,key,l
-      double precision a,b,count,e,scartx,scarty
-      double precision sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
+      real(kind=fPrec) a,b,count,e,scartx,scarty
+      real(kind=fPrec) sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
       dimension x(l),y(l)                                                !hr07
       save
 !-----------------------------------------------------------------------
@@ -49534,13 +49738,14 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer icnt,j,key,l
-      double precision a,b,e,x,y,w
-      double precision w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
+      real(kind=fPrec) a,b,e,x,y,w
+      real(kind=fPrec) w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
       dimension x(l),y(l),w(l)                                           !hr07
       save
 !-----------------------------------------------------------------------
@@ -49597,6 +49802,7 @@ c$$$            endif
 !               s      -> [ mm ]
 !               DE     -> [ MeV ]
 !
+      use floatPrecision
       implicit none
 +ca parpro
 !ERIC
@@ -49623,7 +49829,7 @@ c$$$            endif
       character*(maxf) fields(nofields)
 !     integer errno,nfields,nunit,nf
       integer nfields,nunit,nf
-      double precision fround
+      real(kind=fPrec) fround
 +ei
       save
       write(lout,*) "Reading input bunch from beambeamdist.dat"
@@ -49761,6 +49967,7 @@ c$$$            endif
 !     The file fort.93 is used as a log file for the checkpoint/restarting.
 !     
 !     See also subroutines crpoint and crstart.
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -49804,7 +50011,7 @@ c$$$            endif
 
       !For skipping through binary DUMP files (format 3&8)
       integer tmp_ID, tmp_nturn, tmp_ktrack
-      double precision tmp_dcum, tmp_x,tmp_xp,
+      real(kind=fPrec) tmp_dcum, tmp_x,tmp_xp,
      &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
 
 +if boinc
@@ -50800,6 +51007,7 @@ c$$$            endif
 !     The file fort.93 is used as a log file for the checkpoint/restarting.
 !     
 !     See also subroutine crcheck and crstart.
+      use floatPrecision
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -51442,6 +51650,7 @@ c$$$         backspace (93,iostat=ierro)
       write(lout,*)'SIXTRACR CHECKPOINT I/O Error'
       call prror(-1)
       end
+
       subroutine crstart
 !     If we are restarting (restart is TRUE), this routine is called
 !     in the beginning of the tracking loops.
@@ -51451,6 +51660,7 @@ c$$$         backspace (93,iostat=ierro)
 !     The file fort.93 is used as a log file for the checkpoint/restarting.
 !     
 !     See also subroutines crpoint and crcheck.
+      use floatPrecision
 +if datamods
       use bigmats
 +ei
@@ -51479,7 +51689,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
 +ca crco
 
-      double precision dynk_newValue
+      real(kind=fPrec) dynk_newValue
 
       integer j,l,k,m,i
       character*256 filename
@@ -51961,19 +52171,22 @@ c$$$         backspace (93,iostat=ierro)
       write(lout,*)'SIXTRACR CRSTART Problem fort.6'
       call prror(-1)
       end
+
 +dk aux
 !      logical function isnan(arg1,arg2)
       logical function myisnan(arg1,arg2)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
-      double precision arg1,arg2
+      real(kind=fPrec) arg1,arg2
 !      isnan=.false.
 !      if(arg1.ne.arg2) isnan=.true.
       myisnan=.false.
       if(arg1.ne.arg2) myisnan=.true.
       end
+
       subroutine datime(nd,nt)
       implicit none
 ! Fill common slate for usage by hmachi call as per z007 writeup.        !hr08
@@ -52007,6 +52220,7 @@ c$$$         backspace (93,iostat=ierro)
       nt=values(5)*100+values(6)
       return
       end
+
       subroutine timest(r1)
       implicit none
 +ca commtim
@@ -52019,6 +52233,7 @@ c$$$         backspace (93,iostat=ierro)
       endif
       return
       end
+
       subroutine timex(r1)
       implicit none
 +ca commtim
@@ -52030,6 +52245,7 @@ c$$$         backspace (93,iostat=ierro)
       end
       
       subroutine abend(cstring)
+      use floatPrecision
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca parpro
@@ -52043,7 +52259,7 @@ c$$$         backspace (93,iostat=ierro)
       integer i,lstring,j
       character*(*) cstring
       character*256 filename
-      double precision sumda(60)
+      real(kind=fPrec) sumda(60)
       logical fopen
       character*8192 ch
       character*25 ch1
@@ -52416,6 +52632,7 @@ c$$$         backspace (93,iostat=ierro)
       
 +dk plotdumy
       subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
+      use floatPrecision
       implicit none
       integer lout
       common /crflags/lout
@@ -52425,6 +52642,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hdelet(i1)
       implicit none
       integer lout
@@ -52433,6 +52651,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hlimit(i1)
       implicit none
       integer lout
@@ -52441,6 +52660,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplax(c1,c2)
       implicit none
       integer lout
@@ -52449,6 +52669,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplcap(i1)
       implicit none
       integer lout
@@ -52457,6 +52678,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplend()
       implicit none
       integer lout
@@ -52464,6 +52686,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplint(i1)
       implicit none
       integer lout
@@ -52472,6 +52695,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplopt(c1,i1)
       implicit none
       integer lout
@@ -52481,6 +52705,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplot(i1,c1,c2,i2)
       implicit none
       integer lout
@@ -52490,7 +52715,9 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplset(c1,r1)
+      use floatPrecision
       implicit none
       integer lout
       common /crflags/lout
@@ -52499,7 +52726,9 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplsiz(r1,r2,c1)
+      use floatPrecision
       implicit none
       integer lout
       common /crflags/lout
@@ -52508,7 +52737,9 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
+      use floatPrecision
       implicit none
       integer lout
       common /crflags/lout
@@ -52518,7 +52749,9 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine htitle(c1)
+      use floatPrecision
       implicit none
       integer lout
       common /crflags/lout
@@ -52526,7 +52759,9 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine ipl(i1,r1,r2)
+      use floatPrecision
       implicit none
       integer lout
       common /crflags/lout
@@ -52535,7 +52770,9 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine ipm(i1,r1,r2)
+      use floatPrecision
       implicit none
       integer lout
       common /crflags/lout
@@ -52544,6 +52781,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine iselnt(i1)
       implicit none
       integer lout
@@ -52552,6 +52790,7 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine igmeta(i1,i2)
       implicit none
       integer lout
@@ -52560,11 +52799,13 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
 +dk nagdumy
       subroutine e04ucf(n,nclin,ncnln,lda,ldcj,ldr,a,bl,bu,
      +confun,objfun,iter,ierroe,c,cjac,clamda,
      +objf,objgrd,r,x,iwork,liwork,work,lwork,
      +iuser,user,ifail)
+      use floatPrecision
       implicit none
       integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe,
      +istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,
@@ -52576,31 +52817,36 @@ c$$$         backspace (93,iostat=ierro)
       save
       return
       end
+
       subroutine e04uef(c1)
       implicit none
       character c1
       save
       return
       end
+
       subroutine e04udm(c1)
       implicit none
       character c1
       save
       return
       end
+
       subroutine x04abf(n1,n2)
       implicit none
       integer n1,n2
       save
       return
       end
+
 +dk dumps
 +if debug
 !DUMPS
       subroutine warr(vname,value,i,j,k,l)
+      use floatPrecision
       implicit none
       character*(*) vname
-      double precision value
+      real(kind=fPrec) value
       integer i,j,k,l
       integer ierro
       character*(16) myname
@@ -52611,6 +52857,7 @@ c$$$         backspace (93,iostat=ierro)
       return
       end
       subroutine dumpbl1(dumpname,n,i)
+      use floatPrecision
       implicit none
 +ca parpro
 +ca common
@@ -52625,6 +52872,7 @@ c$$$         backspace (93,iostat=ierro)
  100  format (a10,(Z20))
       end
       subroutine dumpzfz(dumpname,n,i)
+      use floatPrecision
       implicit none
 +ca parpro
 +ca common
@@ -52644,6 +52892,7 @@ c$$$         backspace (93,iostat=ierro)
       backspace (101,iostat=ierro)
       end
       subroutine dumpxy(dumpname,n,i,k)
+      use floatPrecision
       implicit none
 +ca parpro
 +ca common
@@ -52672,6 +52921,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRDRHIC
 !GRD-042008
       subroutine dumpbnl(dumpname,n,i)
+      use floatPrecision
       implicit none
 +ca parpro
 +if bnlelens
@@ -52698,6 +52948,7 @@ c$$$         backspace (93,iostat=ierro)
 !GRD-042008
 +ei
       subroutine dumpsynu(dumpname,n,i)
+      use floatPrecision
       implicit none
 +ca parpro
 +ca common
@@ -52747,7 +52998,9 @@ c$$$         backspace (93,iostat=ierro)
       endfile (99,iostat=ierro)
       backspace (99,iostat=ierro)
       end
+
       subroutine dump(dumpname,n,i)
+      use floatPrecision
       implicit none
 +ca parpro
 +ca common
@@ -53236,6 +53489,7 @@ c$$$         backspace (93,iostat=ierro)
       backspace (99,iostat=ierro)
       end
       subroutine dumpbin(dumpname,n,i)
+      use floatPrecision
       implicit none
 +ca parpro
 +ca common
@@ -53727,6 +53981,7 @@ c$$$         backspace (93,iostat=ierro)
       backspace (99,iostat=ierro)
       end
       subroutine dumphex(dumpname,n,i)
+      use floatPrecision
       implicit none
 +ca parpro
 +ca common

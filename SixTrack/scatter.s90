@@ -3,6 +3,8 @@
 
 module scatter
 
+  use floatPrecision
+
   IMPLICIT NONE
 
   ! We have to declare all this stuff, and we can't set them PRIVATE.
