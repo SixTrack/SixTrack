@@ -1,19 +1,18 @@
 !     This file contains variables that are shared between all
 !     parts of the code, such as lout and crlibm functions
-    module floatPrecision
-    use, intrinsic :: iso_fortran_env, only : real32, real64, real128
+      module floatPrecision
+      use, intrinsic :: iso_fortran_env, only : real32, real64, real128
 
 +if 32bitm
-    integer, parameter :: fPrec = real32
+      integer, parameter :: fPrec = real32
 +ei
 +if 64bitm
-    integer, parameter :: fPrec = real64
+      integer, parameter :: fPrec = real64
 +ei
 +if 128bitm
-    integer, parameter :: fPrec = real128
+      integer, parameter :: fPrec = real128
 +ei
-
-    end module floatPrecision
+      end module floatPrecision
 
 !add in floating point constants
 +cd parnum
