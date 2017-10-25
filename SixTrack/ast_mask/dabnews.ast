@@ -1,6 +1,6 @@
 dabnew.s common_headers.s
 dabnewsn.f
-df small,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
+df small,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95,32bitm,64bitm,128bitm
 e daini
 e daexter
 e dallsta

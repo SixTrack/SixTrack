@@ -1,6 +1,6 @@
 sixtrack.s common_headers.s
 sixscn.f
-df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods,naff
+df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods,naff,32bitm,64bitm,128bitm
 e ADIA,ADIB,DATEN,ENVARS,ERRF
 e COMNUL,RANECU
 e ANFB,BETALF,BLOCK,BLOCKDIS

@@ -1,5 +1,5 @@
 scatter.s90 sixtrack.s common_headers.s
 scattern.f
-df bignpart,hugenpart,collimat,bignblz,hugenblz,beamgas,crlibm,time,datamods,rvet,cr,boinc
+df bignpart,hugenpart,collimat,bignblz,hugenblz,beamgas,crlibm,time,datamods,rvet,cr,boinc,32bitm,64bitm,128bitm
 e scatter
 ex

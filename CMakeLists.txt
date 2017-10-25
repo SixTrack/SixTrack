@@ -103,6 +103,15 @@ OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction s
 
 OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
+OPTION(32BITM "Floats are 32bit (single precision)" OFF)
+OPTION(64BITM "Floats are 64bit (double precision)" ON)
+OPTION(128BITM "Floats are 128bit (quad precision)" OFF)
+
+OPTION(ROUND_NEAR "Always round to the nearest number after floating point operations" ON)
+OPTION(ROUND_UP "Always round up after floating point operations" OFF)
+OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
+OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
+
 #OPTION(ROOT "Link to the root libraries" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
@@ -235,6 +244,16 @@ if(32BIT)
 endif()
 if(64BIT)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_64bit")
+endif()
+
+if(32BITM)
+	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_single")
+endif()
+if(64BITM)
+	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_double")
+endif()
+if(128BITM)
+	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_quad")
 endif()
 
 #Create the sixtrack binary name string
@@ -533,6 +552,38 @@ if(AVX2)
 	endif(NOT AVX)
 endif(AVX2)
 
+if(32BITM)
+	if(64BITM)
+		message(FATAL_ERROR "Cannot use both single and double precision math.")
+	endif(64BITM)
+	if(128BITM)
+		message(FATAL_ERROR "Cannot use both single and quad precision math.")
+	endif(128BITM)
+endif(32BITM)
+
+if(64BITM)
+	if(32BITM)
+		message(FATAL_ERROR "Cannot use both double and single precision math.")
+	endif(32BITM)
+	if(128BITM)
+		message(FATAL_ERROR "Cannot use both double and quad precision math.")
+	endif(128BITM)
+endif(64BITM)
+
+if(128BITM)
+	if(32BITM)
+		message(FATAL_ERROR "Cannot use both quad and single precision math.")
+	endif(32BITM)
+	if(64BITM)
+		message(FATAL_ERROR "Cannot use both quad and double precision math.")
+	endif(64BITM)
+endif(128BITM)
+
+#CRLIBM configuration
+#OPTION(ROUND_NEAR "Always round to the nearest number after floating point operations" ON)
+#OPTION(ROUND_UP "Always round up after floating point operations" OFF)
+#OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
+#OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
 ###################################################################################################
 # Settings for compiler build flags
 ###################################################################################################
@@ -1144,6 +1195,16 @@ foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
 	if(NOT G4COLLIMAT)
 		ast_masks_flag(g4collimat ${loop})
 	endif()
+
+	if(NOT 32BITM)
+		ast_masks_flag(32bitm ${loop})
+	endif(NOT 32BITM)
+	if(NOT 64BITM)
+		ast_masks_flag(64bitm ${loop})
+	endif(NOT 64BITM)
+	if(NOT 128BITM)
+		ast_masks_flag(128bitm ${loop})
+	endif(NOT 128BITM)
 
 	#Clean up the astuce decks for only what is enabled
 	if(NOT COLLIMAT)
