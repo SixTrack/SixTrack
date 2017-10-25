@@ -8917,6 +8917,7 @@ cc2008
 
 +dk datamods
       module bigmats
+      use floatPrecision
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
       
       !Big arrays used for thick tracking
