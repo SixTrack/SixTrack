@@ -26,6 +26,7 @@
 !! can be used to do any initial configuration and/or file loading.
 !<
       subroutine collimate_init()
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -496,6 +497,7 @@
 !! is injected into thin 6d
 !<
       subroutine collimate_start_sample(nsample)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1177,6 +1179,7 @@
 !! This routine is called each time we hit a collimator
 !<
       subroutine collimate_start_collimator(stracki)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1462,6 +1465,7 @@
 !! This routine is calls the actual scattering functions
 !<
       subroutine collimate_do_collimator(stracki)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2463,6 +2467,7 @@
 !! This routine is called at the exit of a collimator
 !<
       subroutine collimate_end_collimator()
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2905,6 +2910,7 @@
 !! has been tracked by thin6d
 !<
       subroutine collimate_end_sample(j)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3113,6 +3119,7 @@
 !! can be used to do any final postrocessing and/or file saving.
 !<
       subroutine collimate_exit()
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3278,6 +3285,7 @@
 !! This routine is called at the start of each tracking turn
 !<
       subroutine collimate_start_turn(n)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3321,6 +3329,7 @@
 !! This routine is called at the start of every element
 !<
       subroutine collimate_start_element(i)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3433,6 +3442,7 @@
 !! This routine is called at the end of every element
 !<
       subroutine collimate_end_element(i)
+      use floatPrecision
       implicit none
 
 +ca crcoall
@@ -3623,6 +3633,7 @@
 !! This routine is called at the end of every turn
 !<
       subroutine collimate_end_turn(n)
+      use floatPrecision
       implicit none
 
 +ca crcoall
@@ -4159,6 +4170,7 @@
 !! the nuclear properties
 !<
       subroutine collimate_init_merlin()
+      use floatPrecision
       implicit none
       integer i
       double precision CalcElectronDensity,CalcPlasmaEnergy
@@ -4174,6 +4186,7 @@
 !! K2 scattering collimation configuration
 !<
       subroutine collimate_init_k2()
+      use floatPrecision
 !nothing currently
       end
 
@@ -4213,6 +4226,8 @@
      &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
      &np, enom, lhit,part_abs, impact, indiv, lint, onesided, name,     &
      &flagsec, j_slices, nabs_type)
+
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5010,6 +5025,7 @@ c$$$          endif
 !++  - Added debug comments
 !++  - Put real dp/dx
 !
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5708,6 +5724,7 @@ c$$$          endif
 !! Select a scattering type (elastic, sd, inelastic, ...)
 !<
       function ichoix(ma)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -5733,6 +5750,7 @@ c$$$          endif
 !! is modified (energy loss is applied)
 !<
       function gettran(inter,xmat,p)
+      use floatPrecision
 
       implicit none
 +if crlibm
@@ -5822,6 +5840,7 @@ c$$$          endif
 !!
 !<
       subroutine tetat(t,p,tx,tz)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -5846,6 +5865,7 @@ c$$$          endif
 !! Calculate the rutherford scattering cross section
 !<
       function ruth(t)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -5871,6 +5891,7 @@ c$$$          endif
 !! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
 !<
       block data scdata
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -5972,6 +5993,7 @@ c$$$          endif
 !!
 !<
       subroutine scatin(plab)
+      use floatPrecision
       implicit none
 +if merlinscatter
 +ca database
@@ -6110,6 +6132,7 @@ c$$$          endif
 !!
 !<
       subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
+      use floatPrecision
 
       implicit none
 +if crlibm
@@ -6357,6 +6380,7 @@ c$$$          endif
 !!
 !<
       subroutine jaw0(s,nabs)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6509,6 +6533,7 @@ c$$$          endif
 !!     collimator: x>0 and y<zlm1
 !<
       subroutine mcs(s)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6560,6 +6585,7 @@ c$$$          endif
 !! ???
 !<
       subroutine scamcs(xx,xxp,s,radl_mat)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6598,6 +6624,7 @@ c$$$          endif
 !! ???
 !<
       subroutine soln3(a,b,dh,smax,s)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6645,6 +6672,7 @@ c$$$          endif
 
 
       subroutine iterat(a,b,dh,s)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -6673,6 +6701,7 @@ c$$$          endif
 !! calculate mean ionization energy loss according to Bethe-Bloch
 !<
       function get_dpodx(p,mat_i)          !Claudia
+      use floatPrecision
       implicit none
       integer mat
 +ca collMatNum
@@ -6719,6 +6748,7 @@ c$$$          endif
 !! Should give the number per cubic meter
 !<
       function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+      use floatPrecision
       implicit none
       double precision AtomicNumber, Density, AtomicMass
       double precision Avogadro
@@ -6738,6 +6768,7 @@ c$$$          endif
 !! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
 !<
       function CalcPlasmaEnergy(ElectronDensity)
+      use floatPrecision
       implicit none
       double precision ElectronDensity
       double precision CalcPlasmaEnergy
@@ -6781,6 +6812,7 @@ c$$$          endif
 ! DZ length traversed in material (meters)
 ! EnLo energy loss in GeV/meter
 
+      use floatPrecision
       IMPLICIT none
       integer IS
 +ca collMatNum
@@ -6912,6 +6944,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !
 !  Generate distribution
 !
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -7054,6 +7087,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 !
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -7208,6 +7242,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
      &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,        &
      &     myx, myxp, myy, myyp, myp, mys)
  
+      use floatPrecision
       implicit none
 +ca crcoall
 +ca collpara
@@ -7322,6 +7357,7 @@ c$$$     &           myalphay * cos(phiy))
 !     are generated starting from thetwiss functions).
 !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -7509,6 +7545,7 @@ c$$$     &           myalphay * cos(phiy))
 !               s      -> [ mm ]
 !               DE     -> [ MeV ]
 !
+      use floatPrecision
       implicit none
 
 +ca crcoall
@@ -7567,6 +7604,7 @@ c$$$     &           myalphay * cos(phiy))
      &mybetay, myemitx0, myemity0, myenom, nr, ndr,myx, myxp, myy,      &
      &myyp, myp, mys)
 !
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -7729,6 +7767,7 @@ c$$$     &           myalphay * cos(phiy))
      &     myx, myxp, myy, myyp, myp, mys,
      &     enerror, bunchlength )
 !
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -7870,6 +7909,7 @@ c$$$     &           myalphay * cos(phiy))
 
 
       function rndm4()
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -7903,6 +7943,7 @@ c$$$     &           myalphay * cos(phiy))
 !cccccccccccccccccccccccccccccccccc
 !
       function rndm5(irnd)
+      use floatPrecision
       implicit none
       integer len, inn, irnd
       real rndm5, a
@@ -7941,6 +7982,7 @@ c$$$     &           myalphay * cos(phiy))
 !     changed rndm4 to rndm5(irnd) and defined flag as true 
 ! 
 !*********************************************************************
+      use floatPrecision
       implicit none
       
 +if crlibm
@@ -8038,6 +8080,7 @@ c$$$     &           myalphay * cos(phiy))
 !!!                 32-bit integer seeds, to be used for restarting ++
 !!!      ISVEC must be dimensioned 25 in the calling program        ++
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -8320,6 +8363,7 @@ c$$$     &           myalphay * cos(phiy))
 !    3. FUNLXP calls FUNPCT to do the actual finding of percentiles.
 !    4. both FUNLXP and FUNPCT use RADAPT for Gaussian integration.
 !
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -8372,6 +8416,7 @@ c$$$     &           myalphay * cos(phiy))
      &ierr)
 !        Array XFCUM is filled from NLO to NLO+NBINS, which makes
 !        the number of values NBINS+1, or the number of bins NBINS
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -8491,6 +8536,7 @@ c$$$     &           myalphay * cos(phiy))
 !         Generation of LEN random numbers in any given distribution,
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -8561,6 +8607,7 @@ c$$$     &           myalphay * cos(phiy))
 !            COVERING AT LEAST 1% OF THE GIVEN REGION.
 !         OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
 !         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -8641,6 +8688,7 @@ c$$$     &           myalphay * cos(phiy))
 !        segments exceeds NDIM.  Either TOLA or TOLR (but not both!)
 !        can be set to zero, in which case only the other is used.
 
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -8723,6 +8771,7 @@ c$$$     &           myalphay * cos(phiy))
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine rgs56p(f,a,b,res,err)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -8771,6 +8820,7 @@ c$$$     &           myalphay * cos(phiy))
 !
       integer function mclock_liar( )
 !
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -8813,6 +8863,7 @@ c$$$     &           myalphay * cos(phiy))
 !                the cut must be greater than 0.5
 !
 !*********************************************************************
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -8871,6 +8922,7 @@ c$$$     &           myalphay * cos(phiy))
 !! is used to read the collimator settings input file
 !<
         subroutine readcollimator
+        use floatPrecision
 !
         integer I,J,K
 +ca crcoall
