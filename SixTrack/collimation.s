@@ -6727,7 +6727,7 @@ c$$$          endif
       beta_s=beta_p**2
       gamma_s=gamma_p**2
       T=(2*me*beta_s*gamma_s)/(1+(2*gamma_p*me/mp)+me2/mp2)
-      PE=dsqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9
+      PE=sqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9
       I_s=exenergy(mat_i)**2
       part_1=K*zatom(mat_i)/(anuc(mat_i)*beta_s)
 +if crlibm 
