@@ -1,6 +1,6 @@
 +cd dascr
       integer idao,is,iscrri
-      double precision rs
+      real(kind=fPrec) rs
       common/dascr/is(100),rs(100),iscrri(100),idao
 +cd alloc
       logical allvec(lda)
@@ -14,7 +14,7 @@
 +cd dabinc
       integer i1,i2,ia1,ia2,idall,idalm,idano,idanv,idapo,ie1,ie2,ieo,  &
      &ifi,lfi,nda,ndamaxi,nmmax,nocut,nomax,nst,nvmax
-      double precision cc,eps,epsmac,facint
+      real(kind=fPrec) cc,eps,epsmac,facint
 +if small
       parameter(lda=10000,lst=200000,lea=500,                           &
      &lia=10000,lno=120,lnv=40)
@@ -222,6 +222,7 @@
 !-----------------------------------------------------------------------------1
 !
       subroutine daini(no,nv,iunit)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -483,6 +484,7 @@
       end
 +dk daexter
       subroutine daexter
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -505,6 +507,7 @@
 
 +dk dallsta
       subroutine dallsta(ldanow)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -588,13 +591,14 @@
 !
 +dk daallno
       subroutine daallno(ic,l,ccc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
-      double precision x
+      real(kind=fPrec) x
 !     ********************************
 !
 !     THIS SUBROUTINE ALLOCATES STORAGE FOR A DA VECTOR WITH
@@ -698,13 +702,14 @@
       end
 +dk daall
       subroutine daall(ic,l,ccc,no,nv)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
-      double precision x
+      real(kind=fPrec) x
 !     ********************************
 !
 !     THIS SUBROUTINE ALLOCATES STORAGE FOR A DA VECTOR WITH
@@ -812,6 +817,7 @@
 !
 +dk dadal
       subroutine dadal(idal,l)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -862,6 +868,7 @@
 
 +dk davar
       subroutine davar(ina,ckon,i)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -869,7 +876,7 @@
 +ei
       integer i,ibase,ic1,ic2,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia, &
      &lno,lnv,lst
-      double precision ckon
+      real(kind=fPrec) ckon
 !     ****************************
 !
 !     THIS SUBROUTINE DECLARES THE DA VECTOR
@@ -929,12 +936,13 @@
 !
 +dk dacon
       subroutine dacon(ina,ckon)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
-      double precision ckon
+      real(kind=fPrec) ckon
 !     **************************
 !
 !     THIS SUBROUTINE SETS THE VECTOR C TO THE CONSTANT CKON
@@ -962,6 +970,7 @@
 !
 +dk danot
       subroutine danot(not)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -990,6 +999,7 @@
 
 +dk getdanot
       subroutine getdanot(not)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1015,12 +1025,13 @@
 
 +dk daeps
       subroutine daeps(deps)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer lda,lea,lia,lno,lnv,lst
-      double precision deps
+      real(kind=fPrec) deps
 !     **********************
 !
 !     THIS SUBROUTINE RESETS THE TRUNCATION ORDER NOCUT TO A NEW VALUE
@@ -1039,6 +1050,7 @@
 !
 +dk dapek
       subroutine dapek(ina,jj,cjj)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1046,7 +1058,7 @@
 +ei
       integer i,ibase,ic,ic1,ic2,icu,icz,ii1,ikk,illa,ilma,ina,         &
      &inoa,inva,ipek,ipoa,iu,iz,jj,jj1,lda,lea,lia,lno,lnv,lst,mchk
-      double precision cjj
+      real(kind=fPrec) cjj
 !     ****************************
 !
 !     THIS SUBROUTINE DETERMINES THE COEFFICIENT OF THE ARRAY
@@ -1212,6 +1224,7 @@
 !
 +dk dapok
       subroutine dapok(ina,jj,cjj)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1219,7 +1232,7 @@
 +ei
       integer i,ic,ic1,ic2,icu,icz,ii,illa,ilma,ina,inoa,inva,          &
      &ipoa,ipok,iu,iz,jj,jj1,lda,lea,lia,lno,lnv,lst,mchk
-      double precision cjj
+      real(kind=fPrec) cjj
 !     ****************************
 !
 !     THIS SUBROUTINE SETS THE COEFFICIENT OF THE ARRAY
@@ -1413,6 +1426,7 @@
 !
 +dk daclr
       subroutine daclr(inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1439,6 +1453,7 @@
 !
 +dk dacop
       subroutine dacop(ina,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1513,6 +1528,7 @@
 !
 +dk datrashn
       subroutine datrashn(idif,ina,inbb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1521,7 +1537,7 @@
       integer i,ia,idif,illa,ilma,ina,inbb,inoa,inva,ipoa,lda,lea,      &
      &lia,lno,lnv,lst
       integer inb(1)
-      double precision rr
+      real(kind=fPrec) rr
 !     *************************
 !
 !     THIS SUBROUTINE COPIES THE DA VECTOR A TO THE DA VECTOR B
@@ -1572,6 +1588,7 @@
 !
 +dk daadd
       subroutine daadd(ina,inb,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1598,6 +1615,7 @@
 !
 +dk dasub
       subroutine dasub(ina,inb,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1624,13 +1642,14 @@
 !
 +dk damulin
       subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ina,inb,inc,incc(1),ind,ine,inoc,invc,lda,lea,lia,lno,lnv,&
      &lst
-      double precision coe1,coe2
+      real(kind=fPrec) coe1,coe2
 !     *****************************
 !
 !     THIS SUBROUTINE PERFORMS A DA MULTIPLICATION OF THE DA VECTORS A AND B.
@@ -1656,6 +1675,7 @@
 ! ANFANG UNTERPROGRAMM
 +dk daexx
       subroutine daexx(ina,inb,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1692,6 +1712,7 @@
 ! ANFANG UNTERPROGRAMM
 +dk daexxt
       subroutine daexxt(ina,inb,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1722,6 +1743,7 @@
 ! ANFANG UNTERPROGRAMM
 +dk dacex
       subroutine dacex(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1730,7 +1752,7 @@
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
      &lnv,lst
       integer incc(1)
-      double precision ckon
+      real(kind=fPrec) ckon
 +ca dabinc
 !     ******************************
 !
@@ -1753,6 +1775,7 @@
       end
 +dk dacext
       subroutine dacext(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -1760,7 +1783,7 @@
 +ei
       integer idacex(1),illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,&
      &ipoa,ipob,lda,lea,lia,lno,lnv,lst
-      double precision ckon
+      real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE EXPONENTIATES THE CONSTANT CKON WITH INA
@@ -1793,6 +1816,7 @@
 
 +dk daexc
       subroutine daexc(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1800,7 +1824,7 @@
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
      &lnv,lst
       integer incc(1)
-      double precision ckon
+      real(kind=fPrec) ckon
 +ca dabinc
 !     ******************************
 !
@@ -1825,6 +1849,7 @@
 
 +dk daexct
       subroutine daexct(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -1834,7 +1859,7 @@
 +ei
       integer i,ic,idaexc(1),illa,illb,ilma,ilmb,ina,inb,inoa,inob,     &
      &inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
-      double precision ckon,xic
+      real(kind=fPrec) ckon,xic
 +ca dabinc
 !     ******************************
 !
@@ -1873,6 +1898,7 @@
 
 +dk damul
       subroutine damul(ina,inb,inc)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -1909,6 +1935,7 @@
 
 +dk damult
       subroutine damult(ina,inb,inc)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -1919,7 +1946,7 @@
       integer i,i1ia,i2ia,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,ina,   &
      &inb,inc,inoa,inob,inoc,inva,invb,invc,ioffb,ipno,ipoa,ipob,ipoc,  &
      &ipos,lda,lea,lia,lno,lnv,lst,minv,noff,noib,nom
-      double precision ccia,ccipoa,ccipob
+      real(kind=fPrec) ccia,ccipoa,ccipob
 !     *****************************
 !
 !     THIS SUBROUTINE PERFORMS A DA MULTIPLICATION OF THE DA VECTORS A AND B.
@@ -2009,6 +2036,7 @@
 !
 +dk dadiv
       subroutine dadiv(ina,inb,inc)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2034,6 +2062,7 @@
 !
 +dk dasqr
       subroutine dasqr(ina,inc)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2066,6 +2095,7 @@
       end
 +dk dasqrt
       subroutine dasqrt(ina,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2074,7 +2104,7 @@
       integer i,i1ia,i2ia,ia,ib,ib1,ic,illa,illc,ilma,ilmc,ina,inc,inoa,&
      &inoc,inva,invc,ioffa,ioffb,ipno,ipoa,ipoc,ipos,lda,lea,lia,lno,   &
      &lnv,lst,minv,noff,noia,noib,nom
-      double precision ccia,ccipoa
+      real(kind=fPrec) ccia,ccipoa
 !     *************************
 !
 !     THIS SUBROUTINE SQUARES THE VECTOR A AND STORES THE RESULT IN C.
@@ -2184,6 +2214,7 @@
 !
 +dk dacad
       subroutine dacad(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2193,7 +2224,7 @@
 +ei
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
      &lda,lea,lia,lno,lnv,lst
-      double precision ckon,const
+      real(kind=fPrec) ckon,const
 !     ******************************
 !
 !     THIS SUBROUTINE ADDS THE CONSTANT CKON TO THE VECTOR A
@@ -2222,6 +2253,7 @@
 !
 +dk dacsu
       subroutine dacsu(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2231,7 +2263,7 @@
 +ei
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
      &lda,lea,lia,lno,lnv,lst
-      double precision ckon,const
+      real(kind=fPrec) ckon,const
 !     ******************************
 !
 !     THIS SUBROUTINE SUBTRACTS THE CONSTANT CKON FROM THE VECTOR A
@@ -2337,6 +2369,7 @@
 !
 +dk dasuc
       subroutine dasuc(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2346,7 +2379,7 @@
 +ei
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
      &lda,lea,lia,lno,lnv,lst
-      double precision ckon
+      real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE SUBTRACTS THE VECTOR INA FROM THE CONSTANT CKON
@@ -2366,6 +2399,7 @@
 !
 +dk dacmu
       subroutine dacmu(ina,ckon,inc)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2375,7 +2409,7 @@
 +ei
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
      &lst,incc(1)
-      double precision ckon
+      real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE MULTIPLIES THE DA VECTOR DENOTED BY THE
@@ -2415,6 +2449,7 @@
 
 +dk dacmut
       subroutine dacmut(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2422,7 +2457,7 @@
 +ei
       integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,  &
      &ipoa,ipob,lda,lea,lia,lno,lnv,lst,minv
-      double precision ckon
+      real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE MULTIPLIES THE DA VECTOR DENOTED BY THE
@@ -2495,6 +2530,7 @@
 !
 +dk dacdi
       subroutine dacdi(ina,ckon,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2502,7 +2538,7 @@
 +ei
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
      &lda,lea,lia,lno,lnv,lst
-      double precision ckon
+      real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE DIVIDES THE VECTOR INA BY THE CONSTANT CKON
@@ -2526,6 +2562,7 @@
 !
 +dk dadic
       subroutine dadic(ina,ckon,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2533,7 +2570,7 @@
 +ei
       integer idadic(1),illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,&
      &ipoa,ipoc,lda,lea,lia,lno,lnv,lst
-      double precision ckon,zero
+      real(kind=fPrec) ckon,zero
       parameter(zero=0d0)
 !     ******************************
 !
@@ -2567,6 +2604,7 @@
 !
 +dk dacma
       subroutine dacma(ina,inb,bfac,inc)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2576,7 +2614,7 @@
 +ei
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,         &
      &lno,lnv,lst,idacma(1)
-      double precision bfac
+      real(kind=fPrec) bfac
 !     **********************************
 !
 !     THIS SUBROUTINE PERFORMS THE OPERATIONS C = A + B*BFAC, WHERE A,B,C ARE
@@ -2598,13 +2636,14 @@
 !
 +dk dalin
       subroutine dalin(ina,afac,inb,bfac,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
      &lnv,lst,incc(1)
-      double precision afac,bfac
+      real(kind=fPrec) afac,bfac
 !     ***************************************
 !
 !     THIS SUBROUTINE COMPUTES THE LINEAR COMBINATION
@@ -2630,6 +2669,7 @@
 
 +dk dalint
       subroutine dalint(ina,afac,inb,bfac,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2638,7 +2678,7 @@
       integer i,ia,iamax,ib,ibmax,ic,icmax,illa,illb,illc,ilma,ilmb,    &
      &ilmc,ina,inb,inc,inoa,inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,is, &
      &ismax,ismin,ja,jb,lda,lea,lia,lno,lnv,lst,minv,mchk
-      double precision afac,bfac,ccc,copf
+      real(kind=fPrec) afac,bfac,ccc,copf
 !     ***************************************
 !
 !     THIS SUBROUTINE COMPUTES THE LINEAR COMBINATION
@@ -2795,6 +2835,7 @@
 !
 +dk dafun
       subroutine dafun(cf,ina,inc)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -2849,6 +2890,7 @@
 
 +dk dafunt
       subroutine dafunt(cf,ina,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -2857,7 +2899,7 @@
       integer i,illa,illc,ilma,ilmc,ina,inc,ind,inoa,inoc,inon(1),inva, &
      &invc,ipoa,ipoc,ipow(1),iscr(1),jj,lda,lea,lfun,lia,lno,lnv,lst,no
 
-      double precision a0,a1,a2,a3,a4,a5,ca,e1,                         &
+      real(kind=fPrec) a0,a1,a2,a3,a4,a5,ca,e1,                         &
      &e2,ea,era,p,ra,rpi4,sa,scr,                                       &
      &t,xf
 !     ****************************
@@ -2869,6 +2911,7 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
++ca parnum
 !
       character cf*4,cfh*4,abcs*26,abcc*26
       dimension xf(0:lno),jj(lnv)
@@ -3351,10 +3394,10 @@
          endif
       elseif(cf.eq.'ASNH') then
 +if crlibm
-         xf(0) = log_rn(a0+dsqrt(a0*a0+1.d0))
+         xf(0) = log_rn(a0+sqrt(a0*a0+one))
 +ei
 +if .not.crlibm
-         xf(0) = log(a0+dsqrt(a0*a0+1.d0))
+         xf(0) = log(a0+sqrt(a0*a0+one))
 +ei
          xf(1) = (1.d0+a0*a0)**(-0.5d0)
          xf(2) = -a0*xf(1)**3.d0/2.d0
@@ -3534,12 +3577,13 @@
 
 +dk daabs
       subroutine daabs(ina,anorm)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
-      double precision anorm
+      real(kind=fPrec) anorm
 !     ***************************
 !
 !     THIS SUBROUTINE COMPUTES THE NORM OF THE DA VECTOR A
@@ -3559,6 +3603,7 @@
 !
 +dk dacom
       subroutine dacom(ina,inb,dnorm)
+      use floatPrecision
       implicit none
 +if cr
 +ca crcoall
@@ -3567,7 +3612,7 @@
 +ca crlibco
 +ei
       integer idacom(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
-      double precision dnorm
+      real(kind=fPrec) dnorm
 !     *******************************
 !
 !     THIS SUBROUTINE COMPARES TWO DA VECTORS BY RETURNING THE NORM
@@ -3586,6 +3631,7 @@
 
 +dk dapos
       subroutine dapos(ina,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3629,6 +3675,7 @@
 !
 +dk dacct
       subroutine dacct(ma,ia,mb,ib,mc,ic)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3664,6 +3711,7 @@
 
 +dk dacctt
       subroutine dacctt(mb,ib,mc,ic,ma,ia)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3672,7 +3720,7 @@
       integer i,ia,ib,ic,iia,iib,iic,illa,illb,illc,ilma,ilmb,ilmc,inoa,&
      &inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,iv,jl,jv,lda,lea,lia,lno, &
      &lnv,lst
-      double precision ccf
+      real(kind=fPrec) ccf
 !     ***********************************
 !
 !     THIS SUBROUTINE PERFORMS A CONCATENATION MA = MB o MC
@@ -3753,6 +3801,7 @@
 !
 +dk mtree
       subroutine mtree(mb,ib,mc,ic)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3761,7 +3810,7 @@
       integer i,ib,ib1,ibi,ic,ic1,ic2,icc,ichk(1),ii,iib,iic,illb,illc, &
      &ilmb,ilmc,inob,inoc,invb,invc,ipob,ipoc,j,jl,jnon,lda,lea,lia,lno,&
      &lnv,lst,nterm,ntermf
-      double precision apek,bbijj,chkjj
+      real(kind=fPrec) apek,bbijj,chkjj
 !     *****************************
 !
 !     THIS SUBROUTINE IS USED FOR CONCATENATION AND TRACKING OF VECTORS
@@ -3956,6 +4005,7 @@
 !
 +dk ppushpr
       subroutine ppushpri(mc,ic,mf,jc,line)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3988,12 +4038,13 @@
 
 +dk ppush
       subroutine ppush(mc,ic,xi,xf)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ic,iv,jl,jv,lda,lea,lia,lno,lnv,lst,mc
-      double precision xf,xi,xm,xt,xx
+      real(kind=fPrec) xf,xi,xm,xt,xx
 !     *****************************
 !
 !     THIS SUBROUTINE APPLIES THE MATRIX WHOSE TREE IS STORED IN CA VECTOR MC
@@ -4028,12 +4079,13 @@
 
 +dk ppush1
       subroutine ppush1(mc,xi,xf)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,jl,jv,lda,lea,lia,lno,lnv,lst,mc
-      double precision xf,xi,xm,xt,xx
+      real(kind=fPrec) xf,xi,xm,xt,xx
 !     *****************************
 !
 !     THIS SUBROUTINE APPLIES THE MATRIX WHOSE TREE IS STORED IN CA VECTOR MC
@@ -4067,13 +4119,14 @@
 
 +dk dainv
       subroutine dainv(ma,ia,mb,ib)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,  &
      &lst
-      double precision x
+      real(kind=fPrec) x
 !     *****************************
 !
 !     THIS SUBROUTINE INVERTS THE MATRIX MA WITH IA DA VECTORS AND
@@ -4115,6 +4168,7 @@
 
 +dk dainvt
       subroutine dainvt(ma,ia,mb,ib)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -4122,7 +4176,7 @@
 +ei
       integer i,ia,ib,ie,ier,illa,illb,ilma,ilmb,inoa,inob,inva,invb,   &
      &ipoa,ipob,j,k,lda,lea,lia,lno,lnv,lst,nocut0
-      double precision aa,ai,amjj,amsjj,prod
+      real(kind=fPrec) aa,ai,amjj,amsjj,prod
 !     *****************************
 !
 !     THIS SUBROUTINE INVERTS THE MATRIX MA WITH IA DA VECTORS AND
@@ -4261,12 +4315,13 @@
 !
 +dk matinv
       subroutine matinv(a,ai,n,nmx,ier)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ier,indx,j,n,nmax,nmx
-      double precision a,ai,aw,d
+      real(kind=fPrec) a,ai,aw,d
 !     *********************************
 !
 !     THIS SUBROUTINE INVERTS THE MATRIX A AND STORES THE RESULT IN AI
@@ -4295,12 +4350,13 @@
 !
 +dk ludcmp
       subroutine ludcmp(a,n,np,indx,d,ier)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ier,imax,indx,j,k,n,nmax,np
-      double precision a,aamax,d,dum,sum,tiny,vv
+      real(kind=fPrec) a,aamax,d,dum,sum,tiny,vv
 !     ************************************
 !
 !     THIS SUBROUTINE DECOMPOSES A MATRIX INTO LU FORMAT
@@ -4377,12 +4433,13 @@
 !
 +dk lubksb
       subroutine lubksb(a,n,np,indx,b,nmx)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ii,indx,j,ll,n,nmx,np
-      double precision a,b,sum
+      real(kind=fPrec) a,b,sum
 !     ************************************
 !
 !     THIS SUBROUTINE SOLVES SET OF LINEAR EQUATIONS AX=B,
@@ -4426,13 +4483,14 @@
 
 +dk dapin
       subroutine dapin(ma,ia,mb,ib,jx)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,  &
      &lst
-      double precision x
+      real(kind=fPrec) x
 !     *****************************
 !
 !     THIS SUBROUTINE INVERTS THE MATRIX MA WITH IA DA VECTORS AND
@@ -4474,6 +4532,7 @@
 
 +dk dapint
       subroutine dapint(ma,ia,mb,ib,jind)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4531,6 +4590,7 @@
 !
 +dk dader
       subroutine dader(idif,ina,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4562,6 +4622,7 @@
 
 +dk dadert
       subroutine dadert(idif,ina,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -4570,7 +4631,7 @@
       integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,iee,ifac,illa,  &
      &illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,lda,      &
      &lea,lia,lno,lnv,lst
-      double precision rr,x,xdivi
+      real(kind=fPrec) rr,x,xdivi
 !     ******************************
 !
 !     THIS SUBROUTINE COMPUTES THE DERIVATIVE WITH RESPECT TO VARIABLE I
@@ -4659,6 +4720,7 @@
 !
 +dk dapoi
       subroutine dapoi(ina,inb,inc,n)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4706,6 +4768,7 @@
 !
 +dk dacfur
       subroutine dacfur(ina,fun,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4741,6 +4804,7 @@
       end
 +dk dacfurt
       subroutine dacfurt(ina,fun,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -4748,7 +4812,7 @@
 +ei
       integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
      &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
-      double precision cfac,rr
+      real(kind=fPrec) cfac,rr
       double complex fun
       external fun
 !     *****************************
@@ -4823,6 +4887,7 @@
 !
 +dk dacfu
       subroutine dacfu(ina,fun,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4830,7 +4895,7 @@
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
      &lst
       integer incc(1)
-      double precision fun
+      real(kind=fPrec) fun
       external fun
 !     *****************************
 !
@@ -4858,6 +4923,7 @@
       end
 +dk dacfui
       subroutine dacfui(ina,fun,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4893,6 +4959,7 @@
       end
 +dk dacfuit
       subroutine dacfuit(ina,fun,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -4900,7 +4967,7 @@
 +ei
       integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
      &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
-      double precision cfac,rr
+      real(kind=fPrec) cfac,rr
       double complex fun
       external fun
 !     *****************************
@@ -4975,6 +5042,7 @@
 !
 +dk dacfut
       subroutine dacfut(ina,fun,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -4982,7 +5050,7 @@
 +ei
       integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
      &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
-      double precision cfac,fun,rr
+      real(kind=fPrec) cfac,fun,rr
       external fun
 !     *****************************
 !
@@ -5056,6 +5124,7 @@
 
 +dk dapri
       subroutine dapri(ina,iunit)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5195,6 +5264,7 @@
 
 +dk dapri77
       subroutine dapri77(ina,iunit)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5327,6 +5397,7 @@
 
 +dk dashift
       subroutine dashift(ina,inc,ishift)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5465,6 +5536,7 @@
 
 +dk darea
       subroutine darea(ina,iunit)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5472,7 +5544,7 @@
 +ei
       integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,  &
      &ipoa,iunit,iwarin,iwarno,iwarnv,j,lda,lea,lia,lno,lnv,lst,nno
-      double precision c
+      real(kind=fPrec) c
 !       Frank
 +ca dabinc
 !-----------------------------------------------------------------------------9
@@ -5626,6 +5698,7 @@
 !
 +dk darea77
       subroutine darea77(ina,iunit)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5633,7 +5706,7 @@
 +ei
       integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,ipoa,    &
      &iunit,j,k,lda,lea,lia,lno,lnv,lst,nojoh,nvjoh
-      double precision c
+      real(kind=fPrec) c
 !     ***************************
 !     Etienne
 !     THIS SUBROUTINE READS THE DA VECTOR INA FROM UNIT IUNIT.
@@ -5712,6 +5785,7 @@
 
 +dk dadeb
       subroutine dadeb(iunit,c,istop)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5745,6 +5819,7 @@
 !
 +dk danum
       subroutine danum(no,nv,numda)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -5766,6 +5841,7 @@
 !
 +dk dainf
       subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5797,13 +5873,14 @@
 !
 +dk dapac
       subroutine dapac(inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ic,illc,ilmc,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
-      double precision ccc
+      real(kind=fPrec) ccc
 !     ************************
 !
 !     THIS SUBROUTINE PACKS THE INFORMATION IN THE SCRATCH VECTOR 1
@@ -5839,6 +5916,7 @@
 !
 +dk dachk
       subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5899,6 +5977,7 @@
 !
 +dk damch
       subroutine damch(iaa,ia)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -5933,6 +6012,7 @@
 !
 +dk dadcd
       subroutine dadcd(jj,ic1,ic2)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -5962,12 +6042,13 @@
 !
 +dk dancd
       subroutine dancd(ic1,ic2,jj)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst
-      double precision x
+      real(kind=fPrec) x
 !     ****************************
 !
 !     THIS SUBROUTINE ENCODES THE EXPONENTS IN JJ FROM THEIR DA CODES I1,I2.
@@ -6000,6 +6081,7 @@
 !ETIENNE
 +dk datra
       subroutine datra(idif,ina,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6008,7 +6090,7 @@
       integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,iee,ifac,illa,  &
      &illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,lda,      &
      &lea,lia,lno,lnv,lst
-      double precision x,xdivi
+      real(kind=fPrec) x,xdivi
 !     ******************************
 !
 !     THIS SUBROUTINE COMPUTES THE PSEUDO DERIVATIVE WITH RESPECT TO VARIABLE I
@@ -6088,6 +6170,7 @@
 
 +dk etred
       subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6142,6 +6225,7 @@
 
 +dk hash
       subroutine hash(no1,nv1,jj,ic1,ic2)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6171,6 +6255,7 @@
 !
 +dk dehash
       subroutine dehash(no1,nv1,ic1,ic2,jj)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6178,7 +6263,7 @@
 +ei
       integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,        &
      &no1,nv1
-      double precision x
+      real(kind=fPrec) x
 !     ****************************
 !
 !     THIS SUBROUTINE ENCODES THE EXPONENTS IN JJ FROM THEIR DA CODES I1,I2.
@@ -6209,6 +6294,7 @@
 
 +dk daswap
       subroutine daswap(j1,j2,inb)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6253,13 +6339,14 @@
 
 +dk dagauss
       subroutine dagauss(ina,inb,nd2,anorm)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,  &
      &ipoa,ipob,ja,jb,lda,lea,lia,lno,lnv,lst,nd2
-      double precision anorm,gau
+      real(kind=fPrec) anorm,gau
 !     ***************************
 !
 !     THIS SUBROUTINE COMPUTES THE NORM OF THE DA VECTOR A
@@ -6291,6 +6378,7 @@
 
 +dk daran
       subroutine daran(ina,cm,xran)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6298,7 +6386,7 @@
 +ei
       integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,       &
      &lst
-      double precision bran,cm,xran
+      real(kind=fPrec) bran,cm,xran
 !     ************************
 !
 !     THIS SUBROUTINE FILLS THE DA VECTOR A WITH RANDOM ENTRIES.
@@ -6353,12 +6441,13 @@
       end
 !
 +dk bran
-      double precision function bran(xran)
+      real(kind=fPrec) function bran(xran)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
-      double precision xran
+      real(kind=fPrec) xran
 !     ************************************
 !
 !     VERY SIMPLE RANDOM NUMBER GENERATOR
@@ -6382,6 +6471,7 @@
 
 +dk danorm2
       subroutine danorm2(ina,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6415,6 +6505,7 @@
 
 +dk danorm2t
       subroutine danorm2t(ina,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6461,6 +6552,7 @@
 
 +dk danormr
       subroutine danormr(ina,inc)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6494,6 +6586,7 @@
 
 +dk danormrt
       subroutine danormrt(ina,inb)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6539,6 +6632,7 @@
       end
 +dk dakey
       subroutine dakey(c)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6552,6 +6646,7 @@
 ! ANFANG UNTERPROGRAMM
 +dk dapri6
       subroutine dapri6(ina,result,ien,i56)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6559,7 +6654,7 @@
 +ei
       integer i,i56,ien,ihp,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,   &
      &j,lda,lea,lia,lno,lnv,lst
-      double precision result
+      real(kind=fPrec) result
 !     *************************************
 !
 !     THIS SUBROUTINE IS FOR REDUCED STORAGE DA VERSION JULY 91
@@ -6638,6 +6733,7 @@
 ! ANFANG UNTERPROGRAMM
 +dk darea6
       subroutine darea6(ina,zfeld,i56)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6645,7 +6741,7 @@
 +ei
       integer i,i56,ic,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,ip,   &
      &ipoa,iwarin,iwarno,iwarnv,j,lda,lea,lia,lno,lnv,lst
-      double precision zfeld
+      real(kind=fPrec) zfeld
 !     *************************************
 !
 !     THIS SUBROUTINE IS FOR REDUCED STORAGE DA VERSION JULY 91
@@ -6725,7 +6821,8 @@
       end
 ! ANFANG FUNKTION
 +dk dare
-      double precision function dare(ina)
+      real(kind=fPrec) function dare(ina)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -6777,6 +6874,7 @@
 ! ANFANG UNTERPROGRAMM
 +dk daprimax
       subroutine daprimax(ina,iunit)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6889,6 +6987,7 @@
 !  unknown stuff
 +dk damono
       subroutine damono(ina,jd,cfac,istart,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6896,7 +6995,7 @@
 +ei
       integer ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,    &
      &ipoa,ipoc,istart,jd,lda,lea,lia,lno,lnv,lst
-      double precision cfac
+      real(kind=fPrec) cfac
 !     *****************************
 !
 !     THIS SUBROUTINE RETURNS THE MONOMIALS ONE BY ONE
@@ -6955,6 +7054,7 @@
 
 +dk dacycle
       subroutine dacycle(ina,ipresent,value,j,illa)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -6962,7 +7062,7 @@
 +ei
       integer i,ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent,j,lda,lea,&
      &lia,lno,lnv,lst
-      double precision value
+      real(kind=fPrec) value
 !     ***************************
 !
 !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
@@ -7010,6 +7110,7 @@
       end
 +dk daorder
       subroutine daorder(ina,iunit,jx,invo,nchop)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -7018,7 +7119,7 @@
       integer i,ic,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,invo,io,io1,  &
      &ipoa,iunit,iwarin,iwarno,iwarnv,j,jh,jt,jx,lda,lea,lia,lno,lnv,   &
      &lst,nchop
-      double precision c
+      real(kind=fPrec) c
 !     ***************************
 !
 !     THIS SUBROUTINE READS THE DA VECTOR INA FROM UNIT IUNIT.
@@ -7124,6 +7225,7 @@
 !ETIENNE
 +dk datrash
       subroutine datrash(idif,ina,inc)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -7132,7 +7234,7 @@
       integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,ikil1,ikil2,    &
      &illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,     &
      &lda,lea,lia,lno,lnv,lst
-      double precision xdivi
+      real(kind=fPrec) xdivi
 !     ******************************
 !
 !     THIS SUBROUTINE COMPUTES THE DERIVATIVE WITH RESPECT TO VARIABLE I
@@ -7213,6 +7315,7 @@
 +if debug
 !DUMPS
       subroutine dumpda(dumpname,n,i)
+      use floatPrecision
       implicit none
       integer i,lda,lea,lia,lno,lnv,lst
 +ca dabinc
@@ -7226,12 +7329,13 @@
       backspace 99
       end
       subroutine wda(vname,value,i,j,k,l)
+      use floatPrecision
       implicit none
       integer i,lda,lea,lia,lno,lnv,lst
 +ca dabinc
       integer n
       character*(*) vname
-      double precision value
+      real(kind=fPrec) value
       integer j,k,l
       character*(16) myname,ccname
       myname=vname
