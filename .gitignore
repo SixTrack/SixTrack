@@ -20,6 +20,8 @@ SixTrack/astuce
 SixTrack/dafor
 
 SixTrack/libarchive_build
+SixTrack/zlib/build
+SixTrack/zlib/install
 
 SixTrack/count.log
 
