@@ -213,8 +213,8 @@ subroutine scatter_crcheck_readdata(fileunit,readerr)
     !Called from CRCHECK; reads the _cr arrays for scatter from file.
     !Sets readerr=.true. if something goes wrong while reading.
     implicit none
-    integer, intent(in) :: fileunit
-    logical,intent(out) :: readerr
+    integer, intent(in)  :: fileunit
+    logical, intent(out) :: readerr
 
 +ca crcoall
     
@@ -329,9 +329,9 @@ subroutine scatter_crpoint(fileunit,writeerr,ierro)
     !Called from CRPOINT; write checkpoint data to fort.95/96
     implicit none
 +ca crcoall
-    integer, intent(in)   :: fileunit
-    logical,intent(out)   :: writeerr
-    integer,intent(inout) :: ierro    !Operate dummy in "passthrough" mode if no error -> inout
+    integer, intent(in)    :: fileunit
+    logical, intent(out)   :: writeerr
+    integer, intent(inout) :: ierro    !Operate dummy in "passthrough" mode if no error -> inout
 
     integer j
     
@@ -1054,7 +1054,7 @@ end subroutine scatter_thin
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 24-10-2017
+!  Last modified: 26-10-2017
 ! =================================================================================================
 double precision function scatter_profile_getDensity(profileIdx, x, y) result(retval)
     
@@ -1067,7 +1067,7 @@ double precision function scatter_profile_getDensity(profileIdx, x, y) result(re
 +ca crlibco
 +ei
 +ca stringzerotrim
-
+    
     integer, intent(in) :: profileIdx
     real(kind=real64), intent(in) :: x, y
     
@@ -1197,8 +1197,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
         b2     = scatter_fdata(tmpIdx+2)
         phi    = scatter_fdata(tmpIdx+3)
         tmin   = scatter_fdata(tmpIdx+4)
-
-       !t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
+        
         t  = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
         xi = 0d0   ! Dummy value, for now
         t  = t*1d6 ! Scale return variable to MeV^2
@@ -1272,15 +1271,15 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         
         ! Exact distribution
 +if crlibm
-        g1 =            exp_rn(-b1*t)                                    ! Soft scatter term
-        g2 =  ( (2*a) * exp_rn( ( (-0.5d0)*(b1+b2) )*t ) ) * cos_rn(phi) ! Interference
-        g3 =   (a**2) * exp_rn(-b2*t)                                    ! Hard scatter term
+        g1 =             exp_rn(-b1*t)                               ! Soft scatter term
+        g2 =  ((2d0*a) * exp_rn(((-0.5d0)*(b1+b2))*t)) * cos_rn(phi) ! Interference
+        g3 =    (a**2) * exp_rn(-b2*t)                               ! Hard scatter term
         gg = ((g1+g2)+g3)/(g1+g3)
 +ei
 +if .not.crlibm
-        g1 =        exp(-b1*t)                       ! Soft scatter term
-        g2 =  2*a * exp(-0.5d0*(b1+b2)*t) * cos(phi) ! Interference
-        g3 = a**2 * exp(-b2*t)                       ! Hard scatter term
+        g1 =          exp(-b1*t)                       ! Soft scatter term
+        g2 =  2d0*a * exp(-0.5d0*(b1+b2)*t) * cos(phi) ! Interference
+        g3 =   a**2 * exp(-b2*t)                       ! Hard scatter term
         gg = (g1+g2+g3)/(g1+g3)
 +ei
         
