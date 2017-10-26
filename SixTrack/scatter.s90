@@ -698,23 +698,24 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
     case("GAUSS1")
         scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
-        if(getfields_nfields .ne. 6) then
-            write(lout,'(a)') "SCATTER> ERROR, PROfile type GAUSS1 expected 6 arguments:"
-            write(lout,'(a)') "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm]"
+        if(getfields_nfields .ne. 8) then
+            write(lout,'(a)') "SCATTER> ERROR, PROfile type GAUSS1 expected 8 arguments:"
+            write(lout,'(a)') "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] "// &
+                              "offset_x[mm] offset_y[mm]"
             call prror(-1)
         end if
 
         ! Request space to store the density
         tmpIdx = scatter_nfdata + 1
         scatter_PROFILE(scatter_nPROFILE,3) = tmpIdx
-        scatter_nfdata = scatter_nfdata + 3
+        scatter_nfdata = scatter_nfdata + 5
         if(scatter_nfdata .gt. scatter_maxdata) then
             write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
             call prror(-1)
         end if
 
 +if crlibm
-        ! Density
+        ! Beam Charge
         scatter_fdata(tmpIdx) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
 
@@ -725,9 +726,17 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
         ! Sigma Y
         scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
+        
+        ! Offset X
+        scatter_fdata(tmpIdx+3) = round_near(errno,getfields_lfields(7)+1,getfields_fields(7))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,7,scatter_fdata(tmpIdx+3))
+
+        ! Offset Y
+        scatter_fdata(tmpIdx+4) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
 +ei
 +if .not.crlibm
-        ! Density
+        ! Beam Charge
         read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
 
         ! Sigma X
@@ -735,6 +744,12 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
         ! Sigma Y
         read(getfields_fields(6)(1:getfields_lfields(6)),*) scatter_fdata(tmpIdx+2)
+
+        ! Offset X
+        read(getfields_fields(7)(1:getfields_lfields(7)),*) scatter_fdata(tmpIdx+3)
+
+        ! Offset Y
+        read(getfields_fields(8)(1:getfields_lfields(8)),*) scatter_fdata(tmpIdx+4)
 +ei
 
     case default
@@ -1056,24 +1071,29 @@ double precision function scatter_profile_getDensity(profileIdx, x, y) result(re
     integer, intent(in) :: profileIdx
     real(kind=real64), intent(in) :: x, y
     
-    real(kind=real64) beamtot, sigmaX, sigmaY
+    real(kind=real64) beamtot, sigmaX, sigmaY, offsetX, offsetY
+    integer tmpIdx
+    
+    tmpIdx = scatter_PROFILE(profileIdx,3)
     
     select case (scatter_PROFILE(profileIdx,2))
     case (1)  ! FLAT
-        retval  = scatter_fdata(scatter_PROFILE(profileIdx,3))
+        retval  = scatter_fdata(tmpIdx)
     case (10) ! GAUSS1
-        beamtot = scatter_fdata(scatter_PROFILE(profileIdx,3))
-        sigmaX  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 1)
-        sigmaY  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 2)
+        beamtot = scatter_fdata(tmpIdx)
+        sigmaX  = scatter_fdata(tmpIdx + 1)
+        sigmaY  = scatter_fdata(tmpIdx + 2)
+        offsetX = scatter_fdata(tmpIdx + 3)
+        offsetY = scatter_fdata(tmpIdx + 4)
 +if crlibm
-        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
-                * exp_rn(-0.5d0*(x/sigmaX)**2) &
-                * exp_rn(-0.5d0*(y/sigmaY)**2)
+        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY)))     &
+                * exp_rn(-0.5d0*((x-offsetX)/sigmaX)**2) &
+                * exp_rn(-0.5d0*((y-offsetY)/sigmaY)**2)
 +ei
 +if .not.crlibm
-        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
-                * exp(-0.5d0*(x/sigmaX)**2) &
-                * exp(-0.5d0*(y/sigmaY)**2)
+        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY)))  &
+                * exp(-0.5d0*((x-offsetX)/sigmaX)**2) &
+                * exp(-0.5d0*((y-offsetY)/sigmaY)**2)
 +ei
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
