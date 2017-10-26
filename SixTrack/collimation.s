@@ -33,7 +33,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -65,7 +65,7 @@
 +ei
 
 +if g4collimat
-      double precision g4_ecut
+      real(kind=fPrec) g4_ecut
       integer g4_physics
 +ei
 
@@ -504,7 +504,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -1186,7 +1186,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -1220,7 +1220,7 @@
 +ca rhicelens
 +ei
 
-      double precision c5m4,stracki
+      real(kind=fPrec) c5m4,stracki
 
 +if fast
       c5m4=5.0d-4
@@ -1472,7 +1472,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -1506,11 +1506,11 @@
 +ca rhicelens
 +ei
 
-      double precision c5m4,stracki
+      real(kind=fPrec) c5m4,stracki
 
 +if g4collimat
       integer g4_lostc
-      double precision x_tmp,y_tmp,xp_tmp,yp_tmp
+      real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
 +ei
 
 +if fast
@@ -2474,7 +2474,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -2508,7 +2508,7 @@
 +ca rhicelens
 +ei
 
-      double precision c5m4,stracki
+      real(kind=fPrec) c5m4,stracki
 
 +if fast
       c5m4=5.0d-4
@@ -2917,7 +2917,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -3126,7 +3126,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -3292,7 +3292,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -3336,7 +3336,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -3450,7 +3450,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -3641,7 +3641,7 @@
 +ca crlibco
 +ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
@@ -4173,7 +4173,7 @@
       use floatPrecision
       implicit none
       integer i
-      double precision CalcElectronDensity,CalcPlasmaEnergy
+      real(kind=fPrec) CalcElectronDensity,CalcPlasmaEnergy
 +ca interac
       ! compute the electron densnity and plasma energy for each material
       do i=1, nmat
@@ -4245,15 +4245,15 @@
 +ca database
 +ca collMatNum
 
-      double precision x_flk,xp_flk,y_flk,yp_flk,zpj
+      real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
 
-      double precision s_impact
+      real(kind=fPrec) s_impact
       integer flagsec(npart)
 
 !     SR, 18-08-2005: add temporary variable to write in FirstImpacts
 !     the initial distribution of the impacting particles in the
 !     collimator frame.
-      double precision xinn,xpinn,yinn,ypinn
+      real(kind=fPrec) xinn,xpinn,yinn,ypinn
 
 !     SR, 29-08-2005: add the slice number to calculate the impact
 !     location within the collimator.
@@ -5032,7 +5032,7 @@ c$$$          endif
 +ca crlibco
 +ei
 !
-      double precision sx, sz
+      real(kind=fPrec) sx, sz
 !
 +ca parpro
 +ca collpara
@@ -5042,9 +5042,9 @@ c$$$          endif
 !
 +ca database
 !
-      double precision x_flk,xp_flk,y_flk,yp_flk
+      real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk
 !JUNE2005
-      double precision n_aperture  !aperture in m for the vertical plane
+      real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
 !JUNE2005
 !DEBUG
       integer event
@@ -5731,7 +5731,7 @@ c$$$          endif
 +ei
 +ca interac
       integer ma,i,ichoix
-      double precision aran
+      real(kind=fPrec) aran
       real rndm4
       aran=dble(rndm4())
       i=1
@@ -5758,7 +5758,7 @@ c$$$          endif
 +ei
 +ca interac
       integer inter,length,xmat
-      double precision p,gettran,t,xm2,bsd
+      real(kind=fPrec) p,gettran,t,xm2,bsd
       real rndm4,truth,xran(1)
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
@@ -5845,7 +5845,7 @@ c$$$          endif
 +if crlibm
 +ca crlibco
 +ei
-      double precision t,p,tx,tz,va,vb,va2,vb2,r2,teta
+      real(kind=fPrec) t,p,tx,tz,va,vb,va2,vb2,r2,teta
       real rndm4
       teta = sqrt(t)/p
 ! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
@@ -5872,7 +5872,7 @@ c$$$          endif
 +ei
 +ca interac
       real ruth,t
-      double precision cnorm,cnform
+      real(kind=fPrec) cnorm,cnform
       parameter(cnorm=2.607d-5,cnform=0.8561d3) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
 
 +if crlibm
@@ -6003,7 +6003,7 @@ c$$$          endif
 +ei
 +ca interac
       integer ma,i
-      double precision plab
+      real(kind=fPrec) plab
       real ruth,tlow,thigh
       external ruth
 !
@@ -6143,8 +6143,8 @@ c$$$          endif
 +ca flukavars
       integer nabs,inter,ichoix,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
       logical dowrite_impact
-      double precision  m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
-      double precision p,rlen,s,t,gettran,dxp,dzp,p1,zpBef,xpBef,pBef
+      real(kind=fPrec)  m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
+      real(kind=fPrec) p,rlen,s,t,gettran,dxp,dzp,p1,zpBef,xpBef,pBef
       real get_dpodx
       real rndm4
 !...cne=1/(sqrt(b))
@@ -6388,7 +6388,7 @@ c$$$          endif
 !
 +ca interac
       integer nabs,inter,ichoix,icoll,iturn,ipart
-      double precision p,rlen,s,t,gettran,dxp,dzp,p1
+      real(kind=fPrec) p,rlen,s,t,gettran,dxp,dzp,p1
       real rndm4
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
@@ -6540,8 +6540,8 @@ c$$$          endif
 +ei
 !      save h,dh,bn
 +ca interac
-      double precision h,dh,theta,rlen0,rlen,ae,be,bn0,s
-      double precision radl_mat,rad_len ! Claudia 2013 added variables
+      real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
+      real(kind=fPrec) radl_mat,rad_len ! Claudia 2013 added variables
 
 
 !   bn=sqrt(3)/(number of sigmas for s-determination(=4))
@@ -6590,8 +6590,8 @@ c$$$          endif
 +if crlibm
 +ca crlibco
 +ei
-      double precision v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-      double precision radl_mat
+      real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
+      real(kind=fPrec) radl_mat
       real rndm4
       x0=xx
       xp0=xxp
@@ -6629,7 +6629,7 @@ c$$$          endif
 +if crlibm
 +ca crlibco
 +ei
-      double precision b,a,s,smax,c,dh
+      real(kind=fPrec) b,a,s,smax,c,dh
       if(b.eq.0.d0) then
        s=a**0.6666666666666667d0
 !      s=a**(2.d0/3.d0)
@@ -6680,7 +6680,7 @@ c$$$          endif
 +if crlibm
 +ca crlibco
 +ei
-      double precision ds,s,a,b,dh
+      real(kind=fPrec) ds,s,a,b,dh
 
       ds=s
 10    ds=ds*.5d0
@@ -6706,16 +6706,16 @@ c$$$          endif
       integer mat
 +ca collMatNum
       common/materia/mat
-      double precision anuc,zatom,rho,emr,exenergy
-      double precision PE,me,mp,K,gamma_p
+      real(kind=fPrec) anuc,zatom,rho,emr,exenergy
+      real(kind=fPrec) PE,me,mp,K,gamma_p
       common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/meanexen/exenergy(nmat)
-      double precision beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,   &
+      real(kind=fPrec) beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,   &
      &I_s,delta
       parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
-      double precision p
+      real(kind=fPrec) p
       integer mat_i
-      double precision dpodx,get_dpodx   
+      real(kind=fPrec) dpodx,get_dpodx   
 +if crlibm
 +ca crlibco
 +ei
@@ -6750,10 +6750,10 @@ c$$$          endif
       function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
       use floatPrecision
       implicit none
-      double precision AtomicNumber, Density, AtomicMass
-      double precision Avogadro
-      double precision CalcElectronDensity
-      double precision PartA, PartB
+      real(kind=fPrec) AtomicNumber, Density, AtomicMass
+      real(kind=fPrec) Avogadro
+      real(kind=fPrec) CalcElectronDensity
+      real(kind=fPrec) PartA, PartB
       parameter (Avogadro = 6.022140857e23)
       PartA = AtomicNumber * Avogadro * Density
       !1e-6 factor converts to n/m^-3
@@ -6770,15 +6770,15 @@ c$$$          endif
       function CalcPlasmaEnergy(ElectronDensity)
       use floatPrecision
       implicit none
-      double precision ElectronDensity
-      double precision CalcPlasmaEnergy
-      double precision sqrtAB,PartA,PartB,FSPC2
+      real(kind=fPrec) ElectronDensity
+      real(kind=fPrec) CalcPlasmaEnergy
+      real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
 
       !Values from the 2016 PDG
-      double precision PlanckConstantBar,ElectronCharge,ElectronMass
-      double precision ElectronCharge2
-      double precision FreeSpacePermittivity,FreeSpacePermeability
-      double precision SpeedOfLight,SpeedOfLight2
+      real(kind=fPrec) PlanckConstantBar,ElectronCharge,ElectronMass
+      real(kind=fPrec) ElectronCharge2
+      real(kind=fPrec) FreeSpacePermittivity,FreeSpacePermeability
+      real(kind=fPrec) SpeedOfLight,SpeedOfLight2
 
       parameter (PlanckConstantBar = 1.054571800e-34)
       parameter (ElectronCharge = 1.6021766208e-19)
@@ -6816,14 +6816,14 @@ c$$$          endif
       IMPLICIT none
       integer IS
 +ca collMatNum
-      double precision PC,DZ,EnLo,exenergy,exEn
-      double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-      double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-      double precision Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-      double precision thl,Tt,cs_tail,prob_tail
-      double precision ranc
+      real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
+      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+      real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
+      real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
+      real(kind=fPrec) thl,Tt,cs_tail,prob_tail
+      real(kind=fPrec) ranc
       REAL*4 RNDM4
-      double precision anuc,zatom,rho,emr
+      real(kind=fPrec) anuc,zatom,rho,emr
 
 
       common/meanexen/exenergy(nmat)
@@ -6953,7 +6953,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !
 +ca collpara
 +ca dbmkdist
-      double precision pi
+      real(kind=fPrec) pi
 !
       save
 !-----------------------------------------------------------------------
@@ -7096,9 +7096,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !
 +ca collpara
 +ca dbmkdist
-      double precision pi
+      real(kind=fPrec) pi
 !
-      double precision iix, iiy, phix, phiy
+      real(kind=fPrec) iix, iiy, phix, phiy
 !
       save
 !
@@ -7248,7 +7248,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ca collpara
 +ca dbmkdist
 
-      double precision pi, iix, iiy, phix,phiy,cutoff
+      real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
       
       save
 !
@@ -7366,15 +7366,15 @@ c$$$     &           myalphay * cos(phiy))
 !
 +ca collpara
 +ca dbmkdist
-      double precision pi
+      real(kind=fPrec) pi
 !
-      double precision ran_gauss
-      double precision iix, iiy, phix, phiy
-      double precision enerror, bunchlength
-      double precision en_error, bunch_length
+      real(kind=fPrec) ran_gauss
+      real(kind=fPrec) iix, iiy, phix, phiy
+      real(kind=fPrec) enerror, bunchlength
+      real(kind=fPrec) en_error, bunch_length
 !
-      double precision long_cut
-      double precision a_st, b_st
+      real(kind=fPrec) long_cut
+      real(kind=fPrec) a_st, b_st
 !
       save
 !-----------------------------------------------------------------------
@@ -7613,7 +7613,7 @@ c$$$     &           myalphay * cos(phiy))
 !
 +ca collpara
 +ca dbmkdist
-      double precision pi
+      real(kind=fPrec) pi
 !
       save
 !-----------------------------------------------------------------------
@@ -7781,17 +7781,17 @@ c$$$     &           myalphay * cos(phiy))
 +ca parpro
 +ca commont1
 
-      double precision pi
+      real(kind=fPrec) pi
 !YIL march2010 edit: was missing enerror, bunchlength etc... 
 ! no common block for these parameters?
 !
-      double precision ran_gauss, gauss_rand
-      double precision iix, iiy, phix, phiy
-      double precision enerror, bunchlength
-      double precision en_error, bunch_length
+      real(kind=fPrec) ran_gauss, gauss_rand
+      real(kind=fPrec) iix, iiy, phix, phiy
+      real(kind=fPrec) enerror, bunchlength
+      real(kind=fPrec) en_error, bunch_length
 !
-      double precision long_cut
-      double precision a_st, b_st
+      real(kind=fPrec) long_cut
+      real(kind=fPrec) a_st, b_st
       integer startpar
 !
       save
@@ -7969,14 +7969,14 @@ c$$$     &           myalphay * cos(phiy))
 !ccccccccccccccccccccccccccccccccccccccc 
 !
 !
-      double precision function myran_gauss(cut)
+      real(kind=fPrec) function myran_gauss(cut)
 !*********************************************************************
 !
 ! myran_gauss - will generate a normal distribution from a uniform
 !     distribution between [0,1].
 !     See "Communications of the ACM", V. 15 (1972), p. 873.
 !
-!     cut - double precision - cut for distribution in units of sigma
+!     cut - real(kind=fPrec) - cut for distribution in units of sigma
 !     the cut must be greater than 0.5
 !
 !     changed rndm4 to rndm5(irnd) and defined flag as true 
@@ -7990,7 +7990,7 @@ c$$$     &           myalphay * cos(phiy))
 +ei
       logical flag
       real rndm5
-      double precision x, u1, u2, twopi, r,cut
+      real(kind=fPrec) x, u1, u2, twopi, r,cut
       save
       
       flag = .true. !Does this initialize only once, or is it executed every pass?
@@ -8697,7 +8697,7 @@ c$$$     &           myalphay * cos(phiy))
       integer nseg,ndim,nter,nsegd,i,iter,ibig
       real err,res,abstol,reltol,b,a,xlo,xhi,tval,ters,te,root,xhib,    &
      &bin,xlob,bige,hf,xnew,r1,f
-      double precision tvals,terss
+      real(kind=fPrec) tvals,terss
 
       parameter (ndim=100)
       parameter (r1 = 1., hf = r1/2.)
@@ -8778,7 +8778,7 @@ c$$$     &           myalphay * cos(phiy))
 +ei
       integer i
       real err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
-      double precision e5,e6
+      real(kind=fPrec) e5,e6
 
       parameter (r1 = 1., hf = r1/2.)
       dimension x5(5),w5(5),x6(6),w6(6)
@@ -8852,14 +8852,14 @@ c$$$     &           myalphay * cos(phiy))
 !
       return
       end
-      double precision function ran_gauss(cut)
+      real(kind=fPrec) function ran_gauss(cut)
 !*********************************************************************
 !
 ! RAN_GAUSS - will generate a normal distribution from a uniform
 !   distribution between [0,1].
 !   See "Communications of the ACM", V. 15 (1972), p. 873.
 !
-! cut - double precision - cut for distribution in units of sigma
+! cut - real(kind=fPrec) - cut for distribution in units of sigma
 !                the cut must be greater than 0.5
 !
 !*********************************************************************
@@ -8872,7 +8872,7 @@ c$$$     &           myalphay * cos(phiy))
       logical flag
       DATA flag/.TRUE./
       real rndm4
-      double precision x, u1, u2, twopi, r,cut
+      real(kind=fPrec) x, u1, u2, twopi, r,cut
       save
       
 +if crlibm
