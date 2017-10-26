@@ -8930,6 +8930,7 @@ cc2008
       contains !Here comes the subroutines!
 
       subroutine allocate_thickarrays(npart,nele,nblo)
+      use floatPrecision
       implicit none
       integer, intent(in) :: npart,nele,nblo
       integer stat
@@ -8981,6 +8982,7 @@ cc2008
       end subroutine
       
       subroutine deallocate_thickarrays
+      use floatPrecision
       !TODO
       end subroutine
       
@@ -39285,6 +39287,7 @@ c$$$            endif
 !     if M=1, MAXMIN=lowest index of maximun element in A
 !     if N<1, MAXMIN=1
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -48804,6 +48807,7 @@ c$$$            endif
       end
 +dk myrinv
       subroutine kerset(ercode,lgfile,limitm,limitr)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -49618,6 +49622,7 @@ c$$$            endif
       return
       end
       subroutine tmprnt(name,n,idim,k)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
