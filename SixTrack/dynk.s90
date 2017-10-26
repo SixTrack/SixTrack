@@ -124,7 +124,7 @@ module dynk
     integer niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
 
     ! Store current settings from dynk
-    read(kind=fPrec) fsets_dynk_cr(maxsets_dynk)
+    real(kind=fPrec) fsets_dynk_cr(maxsets_dynk)
 
     save dynkfilepos, dynkfilepos_cr
     save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr
