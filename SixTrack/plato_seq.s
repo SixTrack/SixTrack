@@ -1,10 +1,10 @@
 +dk plato_seq
 
-	module platoFMA
-        use floatPrecision
-	implicit none
+      module platoFMA
+      use floatPrecision
+      implicit none
 	
-	contains
+      contains
 *
 * $Id: cfft.F,v 1.1.1.1 1996/02/15 17:48:48 mclareni Exp $
 *
@@ -48,7 +48,7 @@
       W=CMPLX(C,S,kind(1.d0))
       U=W
       C=SQRT(C*.5+.5)
-      S=DIMAG(W)/(C+C)
+      S=IMAG(W)/(C+C)
       LE1=LE
       LE=LE1+LE1
       DO 9 I=1,N,LE
@@ -489,8 +489,8 @@ C
       N=2*NN
 C create real array DATA out of complex array CDATA
       DO I=1,N,2
-        DATA(I)=DREAL(CDATA(I/2+1))
-        DATA(I+1)=DIMAG(CDATA(I/2+1))
+        DATA(I)=REAL(CDATA(I/2+1))
+        DATA(I+1)=IMAG(CDATA(I/2+1))
       ENDDO
       J=1
       DO 11 I=1,N,2
@@ -756,14 +756,14 @@ C............................................................
 +ei
       CALL CALC(ZTUNE1,ZF,Z,MAXN)
       CALL CALC(ZTUNE1,ZFD,ZD,MAXN)
-      DTUNEA1=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
+      DTUNEA1=REAL(ZF)*REAL(ZFD)+IMAG(ZF)*IMAG(ZFD)
       NUM=1
       DO NTEST=1, 10
         TUNEA2=TUNEA1+DELTAT
         ZTUNE2=EXP((-ZU*DUEPI)*TUNEA2)
         CALL CALC(ZTUNE2,ZF,Z,MAXN)
         CALL CALC(ZTUNE2,ZFD,ZD,MAXN)
-        DTUNEA2=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
+        DTUNEA2=REAL(ZF)*REAL(ZFD)+IMAG(ZF)*IMAG(ZFD)
         IF ((DTUNEA1.LE.0D0).AND.(DTUNEA2.GE.0D0)) THEN
            TUNE1=TUNEA1
            TUNE2=TUNEA2
@@ -775,7 +775,7 @@ C............................................................
               ZTUNE3=EXP((-ZU*DUEPI)*TUNE3)
               CALL CALC(ZTUNE3,ZF,Z,MAXN)
               CALL CALC(ZTUNE3,ZFD,ZD,MAXN)
-              DTUNE3=DREAL(ZF)*DREAL(ZFD)+DIMAG(ZF)*DIMAG(ZFD)
+              DTUNE3=REAL(ZF)*REAL(ZFD)+IMAG(ZF)*IMAG(ZFD)
               IF (DTUNE3.LE.0D0) THEN
                  IF(TUNE1.EQ.TUNE3) GOTO 100
                  TUNE1=TUNE3
@@ -1191,8 +1191,8 @@ C.........................................BISECTION PROCEDURE
 +if crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
      .        *(1D0+COS_RN(STEP*(2*N-MAX1)))
-            TMPR=DREAL((-(0D+0,1D+0)*OME)*N)
-            TMPI=DIMAG((-(0D+0,1D+0)*OME)*N)
+            TMPR=REAL((-(0D+0,1D+0)*OME)*N)
+            TMPI=IMAG((-(0D+0,1D+0)*OME)*N)
             Z(N)=ZC*(EXP_RN(TMPR)*DCMPLX(COS_RN(TMPI),SIN_RN(TMPI))) !exp_rn is only defined for real numbers -> decompose in real and imaginary part
 +ei
 +if .not.crlibm

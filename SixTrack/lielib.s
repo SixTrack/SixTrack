@@ -3196,8 +3196,8 @@
      &'       ArcSin(Imaginary Part)/2/pi'
         write(lout,*) '   '
         do i=1,nd-ndc
-          rd1=dsqrt(rr(2*i-1)**2+ri(2*i-1)**2)
-          rd=dsqrt(rr(2*i)**2+ri(2*i)**2)
+          rd1=sqrt(rr(2*i-1)**2+ri(2*i-1)**2)
+          rd=sqrt(rr(2*i)**2+ri(2*i)**2)
 +if crlibm
           write(lout,*) 2*i-1,rr(2*i-1),asin_rn(ri(2*i-1)/rd1)/x2pi
 +ei
@@ -3211,10 +3211,10 @@
           write(lout,*) 2*i,rr(2*i),asin(ri(2*i)/rd)/x2pi
 +ei
 +if crlibm
-          write(lout,*) ' alphas ', log_rn(dsqrt(rd*rd1))
+          write(lout,*) ' alphas ', log_rn(sqrt(rd*rd1))
 +ei
 +if .not.crlibm
-          write(lout,*) ' alphas ', log(dsqrt(rd*rd1))
+          write(lout,*) ' alphas ', log(sqrt(rd*rd1))
 +ei
         enddo
         write(lout,*)
@@ -3257,7 +3257,7 @@
 
       do i=1,nd-ndc
         if(x(i).lt.0.d0) xx(i)=-1.d0
-        x(i)=dsqrt(abs(x(i)))
+        x(i)=sqrt(abs(x(i)))
       enddo
       do i=1,nd2-ndc2
         do j=1,nd-ndc
@@ -3267,8 +3267,8 @@
           else
             ax=vr(i,n(j))*xx(j)/x(j)
             ap=vi(i,n(j))/x(j)
-            sai(2*j-1,i)=(ax+ap)/dsqrt(2.d0)
-            sai(2*j,i)=(ap-ax)/dsqrt(2.d0)
+            sai(2*j-1,i)=(ax+ap)/sqrt(2.d0)
+            sai(2*j,i)=(ap-ax)/sqrt(2.d0)
           endif
         enddo
       enddo
@@ -3613,8 +3613,8 @@
         dsta(i)=1.d0-sta(i)
       enddo
       do i=1,nd
-        ista(i)=idint(sta(i)+.01)
-        idsta(i)=idint(dsta(i)+.01)
+        ista(i)=int(sta(i)+.01)
+        idsta(i)=int(dsta(i)+.01)
       enddo
       return
       end
@@ -3964,7 +3964,7 @@
             h = h + ort(i) * ort(i)
   100    continue
 !
-         g = -dsign(dsqrt(h),ort(m))
+         g = -sign(sqrt(h),ort(m))
          h = h - ort(m) * g
          ort(m) = ort(m) - g
 !     ********** form (i-(u*ut)/h) * a **********
@@ -4272,7 +4272,7 @@
          p = p / x
          q = q / x
          r = r / x
-  170    s = dsign(dsqrt(p*p+q*q+r*r),p)
+  170    s = sign(sqrt(p*p+q*q+r*r),p)
          if (k .eq. m) goto 180
          h(k,k-1) = -s * x
          goto 190
@@ -4325,13 +4325,13 @@
 !     ********** two roots found **********
   280 p = (y - x) / 2.0
       q = p * p + w
-      zz = dsqrt(abs(q))
+      zz = sqrt(abs(q))
       h(en,en) = x + t
       x = h(en,en)
       h(na,na) = y + t
       if (q .lt. 0.0) goto 320
 !     ********** real pair **********
-      zz = p + dsign(zz,p)
+      zz = p + sign(zz,p)
       wr(na) = x + zz
       wr(en) = wr(na)
       if (zz .ne. 0.0) wr(en) = x - w / zz
@@ -4341,7 +4341,7 @@
       s = abs(x) + abs(zz)
       p = x / s
       q = zz / s
-      r = dsqrt(p*p+q*q)
+      r = sqrt(p*p+q*q)
       p = p / r
       q = q / r
 !     ********** row modification **********

@@ -1883,7 +1883,7 @@
           call dacmu(inb,ckon,idaexc(1))
           call dafun('EXP   ',idaexc(1),inb)
         else
-          ic=idint(ckon)
+          ic=int(ckon)
           call dacon(idaexc(1),1.d0)
           do i=1,ic
             call damul(idaexc(1),ina,idaexc(1))
@@ -3416,10 +3416,10 @@
             return
          endif
 +if crlibm
-         xf(0) = log_rn(a0+dsqrt(a0*a0-1.d0))
+         xf(0) = log_rn(a0+sqrt(a0*a0-1.d0))
 +ei
 +if .not.crlibm
-         xf(0) = log(a0+dsqrt(a0*a0-1.d0))
+         xf(0) = log(a0+sqrt(a0*a0-1.d0))
 +ei
          xf(1) = (a0*a0-1.d0)**(-0.5d0)
          xf(2) = -a0*xf(1)**3.d0/2.d0
@@ -6616,7 +6616,7 @@
 !
       if(ieo(ia1(i1(ia))+ia2(i2(ia))).gt.nocut) goto 100
       ib = ib + 1
-      cc(ib) = dsqrt(cc(ia))
+      cc(ib) = sqrt(cc(ia))
       i1(ib) = i1(ia)
       i2(ib) = i2(ia)
 !
