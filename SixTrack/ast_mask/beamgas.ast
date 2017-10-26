@@ -1,6 +1,6 @@
 beamgas.s90 sixtrack.s common_headers.s
 beamgasn.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,beamgas,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,bignpart,hugenpart,32bitm,64bitm,128bitm
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,beamgas,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,bignpart,hugenpart
 e beamGasK
 e hdf5K
 ex

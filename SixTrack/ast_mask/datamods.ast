@@ -1,6 +1,6 @@
 sixtrack.s common_headers.s
 datamodsn.f
-df vvector,cr,32bitm,64bitm,128bitm
+df vvector,cr
 e datamods
 e nocode
 ex

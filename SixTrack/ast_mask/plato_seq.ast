@@ -1,4 +1,4 @@
 plato_seq.s common_headers.s
 plato_seqn.f
-df crlibm,cr,32bitm,64bitm,128bitm
+df crlibm,cr
 e plato_seq
