@@ -5,7 +5,7 @@
 !!
 !<
       MODULE SIXTRACKHDF5
-      
+      use floatPrecision
       USE HDF5
       
       IMPLICIT NONE
@@ -25,6 +25,7 @@
       CONTAINS
       
       SUBROUTINE WRITETOFILE
+          use floatPrecision
 +if debug
 +ca crcoall
 +ei
@@ -57,6 +58,7 @@
       !! @todo attribute (header) not yet working...
       !< 
       SUBROUTINE INITHDF5
+        use floatPrecision
         USE SIXTRACKHDF5
 
         CHARACTER(LEN=9), PARAMETER :: aname = "header"   ! Attribute name
@@ -115,9 +117,10 @@
       END SUBROUTINE INITHDF5
 
       SUBROUTINE APPENDREADING(pid,turn,s,x,xp,y,yp,dee,typ)
+       use floatPrecision
        USE SIXTRACKHDF5
        INTEGER turn,pid,typ
-       DOUBLE PRECISION x,xp,y,yp,dee,s
+       real(kind=fPrec) x,xp,y,yp,dee,s
 +if debug
 +ca crcoall
 +ei
@@ -155,6 +158,7 @@
       END SUBROUTINE APPENDREADING
       
       SUBROUTINE CLOSEHDF5
+       use floatPrecision
        USE SIXTRACKHDF5
         
           if (mod(h5dims(2),incr).ne.0) then
@@ -187,6 +191,7 @@
 +dk beamGasK
 +if .not.beamgas
       subroutine nobeamgasactive
+      use floatPrecision
 +ca crcoall
       write(lout,*) &
       "Dummy routine in beamgas.f if beamgas module off"
@@ -198,6 +203,7 @@
 !!
 !<
       module beamgascommon
+      use floatPrecision
 !       common to beamGasInit and beamGas
       integer, parameter :: bgmaxx=40000,bamount=1000
       integer bgmax,bgid,bgiddb(bgmaxx),ibgloc,pressID,njobs,njobthis,  &
@@ -213,13 +219,14 @@
 !       elements
 !       n_here is a counter telling you how many particles are scattered
 !       at this location
-      double precision bgParameters(3)
+      real(kind=fPrec) bgParameters(3)
       real bgxpdb(bgmaxx),bgypdb(bgmaxx),bgEdb(bgmaxx)
       end module beamgascommon
 
       module lorentzcommon
+      use floatPrecision
       ! Common to lorentzBoost and createLorentzMatrix
-      double precision lorentzmatrix(4,4),new4MomCoord(4)
+      real(kind=fPrec) lorentzmatrix(4,4),new4MomCoord(4)
       end module lorentzcommon
 !>
 !! \brief YIL subroutine beam gas scattering process.
@@ -248,6 +255,7 @@
 !! \see thin6d, beamGasInit and rotateMatrix
 !< 
       subroutine beamGas( myix, mysecondary, totals, myenom, ipart )
+      use floatPrecision
 !BELOW YOU FIND NEW ADDITIONS:
       use beamgascommon
       use lorentzcommon
@@ -287,7 +295,7 @@
 !YIL: This is leftovers that does not have a cd-block
 
       !YIL need to save, this is input variable
-      double precision myenom
+      real(kind=fPrec) myenom
       integer ipart(npart)
       
       !YIL: think this probably should be saved as well...
@@ -301,12 +309,12 @@
       integer mysecondary(npart)
       
 !These are local subroutine stuff
-      double precision totals,oldCoordinates(5),protonmass,             &
+      real(kind=fPrec) totals,oldCoordinates(5),protonmass,             &
      & totMomentum, doLorentz,tmpPX,tmpPY
       
 
       integer choice,myix
-      double precision rotm(3,3), z(3),ztmp(3) ! the variable used to store rotation matrix and coordinates
+      real(kind=fPrec) rotm(3,3), z(3),ztmp(3) ! the variable used to store rotation matrix and coordinates
 !       CHECK: Is ichar('0')=48 and so on for all systems??
       
       integer i,j,k,i_tmp
@@ -503,6 +511,7 @@
 !! \todo pressure marker ID not used anymore, should be removed
 !< 
       subroutine beamGasInit(myenom)
+      use floatPrecision
       
       use beamgascommon
       IMPLICIT NONE
@@ -510,7 +519,7 @@
 +ca crcoall
       
       integer check,j,i
-      double precision myenom,minenergy
+      real(kind=fPrec) myenom,minenergy
 
       integer   mynp
       common /mynp/ mynp
@@ -673,9 +682,10 @@
 !!
 !<
       subroutine rotateMatrix(ax,ay,matrix)
-      double precision matrix(3,3)
-      double precision sinax, sinay, cosax, cosay
-      double precision ax,ay
+      use floatPrecision
+      real(kind=fPrec) matrix(3,3)
+      real(kind=fPrec) sinax, sinay, cosax, cosay
+      real(kind=fPrec) ax,ay
       
       sinax = sin(ax*0.001)
       cosax = cos(ax*0.001)
@@ -717,12 +727,13 @@
 !! \see createLorentzMatrix
 !< 
       subroutine lorentzBoost(px,py,ptot,mass)
+      use floatPrecision
       
       use lorentzcommon
       implicit none
        
-       double precision px,py,ptot,mass
-       double precision oldcoord(4)
+       real(kind=fPrec) px,py,ptot,mass
+       real(kind=fPrec) oldcoord(4)
 
        integer i,j
        
@@ -776,9 +787,9 @@
        use lorentzcommon
        implicit none
 
-       double precision E,xp,yp,mass
+       real(kind=fPrec) E,xp,yp,mass
        ! local variables:
-       double precision v0,gpart,p0,b(3),b2,b2inv,g
+       real(kind=fPrec) v0,gpart,p0,b(3),b2,b2inv,g
 
        integer i,j
         
