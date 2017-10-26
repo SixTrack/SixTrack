@@ -92,9 +92,16 @@ module scatter
        scatter_seed1_cr, scatter_seed2_cr
 +ei
 
-  contains !Subroutines are defined below this line
+! ================================================================================================ !
+!  HERE COMES THE SUBROUTINES
+! ================================================================================================ !
+contains !Subroutines are defined below this line
 
-  subroutine scatter_allocate
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_allocate
     implicit none
 
 +ca crcoall
@@ -139,9 +146,13 @@ module scatter
        call prror(-1)
     endif
 +ei
-  end subroutine scatter_allocate
-  
-  subroutine scatter_initialize
+end subroutine scatter_allocate
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_initialize
     implicit none
     integer ierro
 +ca crcoall
@@ -177,9 +188,13 @@ module scatter
     endif !scatter_filepos .eq. -1
 +ei
     
-  end subroutine scatter_initialize
+end subroutine scatter_initialize
 
-  subroutine scatter_closefiles
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_closefiles
     implicit none
     logical lopen
     
@@ -189,10 +204,14 @@ module scatter
 667    continue
     endif
 
-  end subroutine scatter_closefiles
+end subroutine scatter_closefiles
 
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
 +if cr
-  subroutine scatter_crcheck_readdata(fileunit,readerr)
+subroutine scatter_crcheck_readdata(fileunit,readerr)
     !Called from CRCHECK; reads the _cr arrays for scatter from file.
     !Sets readerr=.true. if something goes wrong while reading.
     implicit none
@@ -219,9 +238,13 @@ module scatter
     write(93,*)   "READERR in scatter_crcheck; fileunit=",fileunit
     readerr=.true.
     
-  end subroutine scatter_crcheck_readdata
+end subroutine scatter_crcheck_readdata
 
-  subroutine scatter_crcheck_positionFiles
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_crcheck_positionFiles
     !Called from CRCHECK; resets the position of scatter_log.txt
     
     implicit none
@@ -298,9 +321,13 @@ module scatter
     
     call prror(-1)
     
-  end subroutine scatter_crcheck_positionFiles
+end subroutine scatter_crcheck_positionFiles
 
-  subroutine scatter_crpoint(fileunit,writeerr,ierro)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_crpoint(fileunit,writeerr,ierro)
     !Called from CRPOINT; write checkpoint data to fort.95/96
     implicit none
 +ca crcoall
@@ -325,9 +352,13 @@ module scatter
 1   continue
     writeerr=.true.
     
-  end subroutine scatter_crpoint
+end subroutine scatter_crpoint
 
-  subroutine scatter_crstart
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_crstart
     !Called from CRSTART; copies the _cr arrays into the normal arrays used during tracking
     ! in order to recreate the state of the SCATTER block at the time of the checkpoint.
     implicit none
@@ -344,11 +375,14 @@ module scatter
        scatter_cdata(j) = scatter_cdata_cr(j)
     end do
     
-  end subroutine scatter_crstart
+end subroutine scatter_crstart
 +ei
 
-  
-  subroutine scatter_dumpdata
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_dumpdata
 
     implicit none
 
@@ -403,14 +437,17 @@ module scatter
 
     write(lout,'(a)') "**** END SCATTER DUMP ****"
 
-  end subroutine scatter_dumpdata
+end subroutine scatter_dumpdata
 
-!---------------------------------------------------------------------------------------------------
+! =================================================================================================
 ! BEGIN Input Parser Functions
-!---------------------------------------------------------------------------------------------------
+! =================================================================================================
 
-! ***** PARSE SCATTER ELEM SUBROUTINE *****
-  subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -562,10 +599,13 @@ module scatter
         end do
     end do
 
-  end subroutine scatter_parseElem
+end subroutine scatter_parseElem
 
-! ***** PARSE SCATTER PRO SUBROUTINE *****
-  subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 20-10-2017
+! =================================================================================================
+subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -618,7 +658,7 @@ module scatter
     ! Profile type dependent code
     select case (getfields_fields(3)(1:getfields_lfields(3)))
     case("FLAT")
-        scatter_PROFILE(scatter_nPROFILE,2) = 1 !Integer code for FLAT
+        scatter_PROFILE(scatter_nPROFILE,2) = 1 ! Integer code for FLAT
         if(getfields_nfields .ne. 6) then
             write(lout,'(a)') "SCATTER> ERROR, PROfile type FLAT expected 6 arguments:"
             write(lout,'(a)') "PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
@@ -659,8 +699,45 @@ module scatter
 +ei
 
     case("GAUSS1")
-        scatter_PROFILE(scatter_nPROFILE,2) = 10  !Integer code for BEAM_GAUSS1
-        !TODO: Read sigma x,y, density
+        scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
+        if(getfields_nfields .ne. 6) then
+            write(lout,'(a)') "SCATTER> ERROR, PROfile type GAUSS1 expected 6 arguments:"
+            write(lout,'(a)') "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm]"
+            call prror(-1)
+        end if
+
+        ! Request space to store the density
+        tmpIdx = scatter_nfdata + 1
+        scatter_PROFILE(scatter_nPROFILE,3) = tmpIdx
+        scatter_nfdata = scatter_nfdata + 3
+        if(scatter_nfdata .gt. scatter_maxdata) then
+            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
+            call prror(-1)
+        end if
+
++if crlibm
+        ! Density
+        scatter_fdata(tmpIdx) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
+
+        ! Sigma X
+        scatter_fdata(tmpIdx+1) = round_near(errno,getfields_lfields(5)+1,getfields_fields(5))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,5,scatter_fdata(tmpIdx+1))
+
+        ! Sigma Y
+        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
+        if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
++ei
++if .not.crlibm
+        ! Density
+        read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
+
+        ! Sigma X
+        read(getfields_fields(5)(1:getfields_lfields(5)),*) scatter_fdata(tmpIdx+1)
+
+        ! Sigma Y
+        read(getfields_fields(6)(1:getfields_lfields(6)),*) scatter_fdata(tmpIdx+2)
++ei
 
     case default
         write(lout,'(a)') "SCATTER> ERROR, PRO name '"// &
@@ -670,10 +747,13 @@ module scatter
 
     end select
 
-  end subroutine scatter_parseProfile
+end subroutine scatter_parseProfile
 
-! ***** PARSE SCATTER GEN SUBROUTINE *****
-  subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -819,10 +899,13 @@ module scatter
 
     end select
 
-  end subroutine scatter_parseGenerator
+end subroutine scatter_parseGenerator
 
-! ***** PARSE SCATTER SEED SUBROUTINE *****
-  subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
 
     implicit none
 
@@ -840,13 +923,16 @@ module scatter
     read(getfields_fields(2)(1:getfields_lfields(2)),*) scatter_seed1
     read(getfields_fields(3)(1:getfields_lfields(3)),*) scatter_seed2
 
-  end subroutine scatter_parseSeed
-
-!---------------------------------------------------------------------------------------------------
+end subroutine scatter_parseSeed
+! =================================================================================================
 ! END Input Parser Functions
-!---------------------------------------------------------------------------------------------------
+! =================================================================================================
 
-  subroutine scatter_thin(ix, turn)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 24-10-2017
+! =================================================================================================
+subroutine scatter_thin(ix, turn)
     implicit none
 
 +ca crcoall
@@ -892,15 +978,6 @@ module scatter
     call recuut(tmpSeed1,tmpSeed2)
     call recuin(scatter_seed1,scatter_seed2)
 
-    ! ! Code to run a test of the distribution
-    ! open(13077,file="t.txt",status="replace",form="formatted")
-    ! do i=1,100000000
-    !     t = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
-    !     write(13077,*) t
-    ! end do
-    ! close(13077)
-    ! stop
-
     ! Loop over generators
     do i=3,scatter_maxGenELEM
         GENidx = scatter_ELEM(ELEMidx,i)
@@ -908,7 +985,7 @@ module scatter
 
         call ranecu(rndPhi, napx, -1)
         call ranecu(rndP,   napx, -1)
-        rndPhi = rndPhi*(2*pi)
+        rndPhi = rndPhi*(2d0*pi)
 
         do j=1, napx
             ! Compute the cross section at this s
@@ -960,23 +1037,46 @@ module scatter
     call recuut(scatter_seed1,scatter_seed2)
     call recuin(tmpSeed1,tmpSeed2)
 
-  end subroutine scatter_thin
+end subroutine scatter_thin
 
-  double precision function scatter_profile_getDensity(profileIdx, x,y) result(retval)
-
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 24-10-2017
+! =================================================================================================
+double precision function scatter_profile_getDensity(profileIdx, x, y) result(retval)
+    
+    use, intrinsic :: iso_fortran_env, only : real32, real64, real128
     implicit none
-
+    
++ca common
 +ca crcoall
++if crlibm
++ca crlibco
++ei
 +ca stringzerotrim
 
     integer, intent(in) :: profileIdx
-    double precision, intent(in) :: x, y
-
+    real(kind=real64), intent(in) :: x, y
+    
+    real(kind=real64) beamtot, sigmaX, sigmaY
+    
     select case (scatter_PROFILE(profileIdx,2))
     case (1)  ! FLAT
-        retval = scatter_fdata(scatter_PROFILE(profileIdx,3))
+        retval  = scatter_fdata(scatter_PROFILE(profileIdx,3))
     case (10) ! GAUSS1
-        ! TODO
+        beamtot = scatter_fdata(scatter_PROFILE(profileIdx,3))
+        sigmaX  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 1)
+        sigmaY  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 2)
++if crlibm
+        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
+                * exp_rn(-0.5d0*(x/sigmaX)**2) &
+                * exp_rn(-0.5d0*(y/sigmaY)**2)
++ei
++if .not.crlibm
+        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
+                * exp(-0.5d0*(x/sigmaX)**2) &
+                * exp(-0.5d0*(y/sigmaY)**2)
++ei
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
@@ -985,10 +1085,14 @@ module scatter
                       ))//"' not understood."
         call prror(-1)
     end select
+    
+end function scatter_profile_getDensity
 
-  end function scatter_profile_getDensity
-
-  subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_profile_getParticle(profileIdx, x,y, xp,yp,E)
 
     implicit none
 
@@ -998,9 +1102,13 @@ module scatter
 
     ! Return a particle to collide with
 
-  end subroutine scatter_profile_getParticle
-  
-  double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
+end subroutine scatter_profile_getParticle
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
 
     implicit none
 
@@ -1040,9 +1148,13 @@ module scatter
 
     end select
 
-  end function scatter_generator_getCrossSection
+end function scatter_generator_getCrossSection
 
-  subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+! =================================================================================================
+subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     implicit none
 
 +ca crcoall
@@ -1080,12 +1192,16 @@ module scatter
 
     end select
 
-  end subroutine scatter_generator_getTandXi
+end subroutine scatter_generator_getTandXi
 
-  ! Based on Helmut Burkhardt's code presented on 05-04-2017
-  ! "Elastic pp scattering estimates and simulation relevant for burn-off"
-  ! https://indico.cern.ch/event/625576/
-  double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 09-2017
+!  Based on Helmut Burkhardt's code presented on 05-04-2017
+!  "Elastic pp scattering estimates and simulation relevant for burn-off"
+!  https://indico.cern.ch/event/625576/
+! =================================================================================================
+double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
     implicit none
 +if crlibm
@@ -1162,6 +1278,6 @@ module scatter
         call prror(-1)
     end if
 
-  end function scatter_generator_getPPElastic
+end function scatter_generator_getPPElastic
 
 end module scatter
