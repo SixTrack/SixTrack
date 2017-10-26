@@ -1,6 +1,6 @@
 +cd choice
       integer nplane
-      double precision epsplane,xplane
+      real(kind=fPrec) epsplane,xplane
       common /choice/ xplane(ndim),epsplane,nplane(ndim)
 +cd coast
       integer ndc,ndc2,ndpt,ndt
@@ -10,7 +10,7 @@
       common /dano/lienot
 +cd dascr
       integer idao,is,iscrri
-      double precision rs
+      real(kind=fPrec) rs
       common/dascr/is(100),rs(100),iscrri(100),idao
 +cd filtr
       integer ifilt
@@ -19,7 +19,7 @@
       integer nd,nd2,no,nv
       common /ii/no,nv,nd,nd2
 +cd integratedex
-      double precision xintex
+      real(kind=fPrec) xintex
       common /integratedex/ xintex(0:20)
 +cd istable
       integer idsta,ista
@@ -34,26 +34,27 @@
       integer mx,nres
       common /reson/mx(ndim,nreso),nres
 +cd stable
-      double precision angle,dsta,rad,sta
+      real(kind=fPrec) angle,dsta,rad,sta
       common /stable/sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
 +cd tunedef
       integer itu
       common /tunedef/itu
 +cd tunerad
-      double precision ps,rads
+      real(kind=fPrec) ps,rads
       common /tunerad/ ps(ndim),rads(ndim)
 +cd vecflow
       integer iflow,jtune
       common /vecflow/ iflow,jtune
 +dk lieinit
       subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,iref1,nd1,ndc1,ndim,ndpt1,nis,no1,nv1
-      double precision ang,ra,st
+      real(kind=fPrec) ang,ra,st
 !! Lieinit initializes AD Package and Lielib
       parameter (ndim=3)
       dimension st(ndim),ang(ndim),ra(ndim)
@@ -130,6 +131,7 @@
       end
 +dk flowpara
       subroutine flowpara(ifl,jtu)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -142,12 +144,13 @@
       end
 +dk pertpeek
       subroutine pertpeek(st,ang,ra)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,nreso,ntt
-      double precision ang,ra,st
+      real(kind=fPrec) ang,ra,st
       parameter (ndim=3)
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -168,6 +171,7 @@
       end
 +dk inputres
       subroutine inputres(mx1,nres1)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -194,12 +198,13 @@
       end
 +dk respoke
       subroutine respoke(mres,nre,ire)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ire,j,ndim,ndim2,nre,nreso,ntt
-      double precision ang,ra,st
+      real(kind=fPrec) ang,ra,st
       parameter (ndim=3)
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -224,6 +229,7 @@
       end
 +dk liepeek
       subroutine liepeek(iia,icoast)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -250,6 +256,7 @@
       end
 +dk lienot
       subroutine lienot(not)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -263,6 +270,7 @@
       end
 +dk etallnom
       subroutine etallnom(x,n,nom)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -285,6 +293,7 @@
       end
 +dk etall
       subroutine etall(x,n)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -305,6 +314,7 @@
       end
 +dk etall1
       subroutine etall1(x)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -318,6 +328,7 @@
       end
 +dk dadal1
       subroutine dadal1(x)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -328,6 +339,7 @@
       end
 +dk etppulnv
       subroutine etppulnv(x,xi,xff)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -338,7 +350,7 @@
       parameter (ntt=40)
 +ca ii
       integer  x(*)
-      double precision xi(*),xff(*),xf(ntt),xii(ntt)
+      real(kind=fPrec) xi(*),xff(*),xf(ntt),xii(ntt)
 
       do i=1,nv
       xii(i)=xi(i)
@@ -357,6 +369,7 @@
       end
 +dk etmtree
       subroutine etmtree(y,x)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -389,6 +402,7 @@
       end
 +dk etppush
       subroutine etppush(x,xi)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -399,7 +413,7 @@
       parameter (ntt=40)
 +ca ii
       integer  x(*)
-      double precision xi(*),xf(ntt),xii(ntt)
+      real(kind=fPrec) xi(*),xf(ntt),xii(ntt)
 
       do i=1,nd2
       xii(i)=xi(i)
@@ -415,6 +429,7 @@
       end
 +dk etppush2
       subroutine etppush2(x,xi,xff)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -425,7 +440,7 @@
       parameter (ntt=40)
 +ca ii
       integer  x(*)
-      double precision xi(*),xff(*),xf(ntt),xii(ntt)
+      real(kind=fPrec) xi(*),xff(*),xf(ntt),xii(ntt)
 
       do i=1,nd2
       xii(i)=xi(i)
@@ -441,6 +456,7 @@
       end
 +dk ppushlnv
       subroutine ppushlnv(x,xi,xff,nd1)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -451,7 +467,7 @@
       parameter (ntt=40)
 +ca ii
       integer  x(*)
-      double precision xi(*),xff(*),xf(ntt),xii(ntt)
+      real(kind=fPrec) xi(*),xff(*),xf(ntt),xii(ntt)
 
       do i=1,nd1
       xii(i)=xi(i)
@@ -470,6 +486,7 @@
       end
 +dk etcct
       subroutine etcct(x,y,z)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -502,6 +519,7 @@
       end
 +dk trx
       subroutine trx(h,rh,y)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -535,6 +553,7 @@
       end
 +dk trxflo
       subroutine trxflo(h,rh,y)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -577,6 +596,7 @@
       end
 +dk simil
       subroutine simil(a,x,ai,y)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -605,6 +625,7 @@
       end
 +dk etini
       subroutine etini(x)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -624,6 +645,7 @@
       end
 +dk etinv
       subroutine etinv(x,y)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -665,6 +687,7 @@
       end
 +dk etpin
       subroutine etpin(x,y,jj)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -706,12 +729,13 @@
       end
 +dk dapek0
       subroutine dapek0(v,x,jj)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,jj,ndim2,ntt
-      double precision x
+      real(kind=fPrec) x
 !- MORE EXTENSIONS OF BASIC BERZ'S PACKAGE
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -725,12 +749,13 @@
       end
 +dk dapok0
       subroutine dapok0(v,x,jj)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,jj,ndim2,ntt
-      double precision x
+      real(kind=fPrec) x
       parameter (ndim2=6)
       parameter (ntt=40)
       integer v(*),jd(ntt)
@@ -743,6 +768,7 @@
       end
 +dk dapokzer
       subroutine dapokzer(v,jj)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -759,12 +785,13 @@
       end
 +dk davar0
       subroutine davar0(v,x,jj)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,jj,ndim2,ntt
-      double precision x
+      real(kind=fPrec) x
       parameter (ndim2=6)
       parameter (ntt=40)
       integer v(*)
@@ -775,11 +802,12 @@
       end
 +dk comcfu
       subroutine comcfu(b,f1,f2,c)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
-      double precision f1,f2
+      real(kind=fPrec) f1,f2
       external f1,f2
 ! Complex dacfu
       integer b(*),c(*),t(4)
@@ -797,12 +825,13 @@
       end
 +dk take
       subroutine take(h,m,ht)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,m,ndim,ntt
-      double precision r
+      real(kind=fPrec) r
 !  HT= H_M  (TAKES M^th DEGREE PIECE ALL VARIABLES INCLUDED)
       parameter (ndim=3)
       parameter (ntt=40)
@@ -859,6 +888,7 @@
       end
 +dk taked
       subroutine taked(h,m,ht)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -891,6 +921,7 @@
       end
 +dk daclrd
       subroutine daclrd(h)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -907,6 +938,7 @@
       end
 +dk dacopd
       subroutine dacopd(h,ht)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -923,12 +955,13 @@
       end
 +dk dacmud
       subroutine dacmud(h,sca,ht)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim2,ntt
-      double precision sca
+      real(kind=fPrec) sca
       parameter (ndim2=6)
       parameter (ntt=40)
 +ca ii
@@ -939,12 +972,13 @@
       end
 +dk dalind
       subroutine dalind(h,rh,ht,rt,hr)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim2
-      double precision rh,rt
+      real(kind=fPrec) rh,rt
       parameter (ndim2=6)
 +ca ii
       integer h(*),ht(*),hr(*)
@@ -961,12 +995,13 @@
       end
 +dk daread
       subroutine daread(h,nd1,mfile,xipo)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,mfile,nd1,ndim2,ntt
-      double precision rx,xipo
+      real(kind=fPrec) rx,xipo
 !  read a map
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -983,6 +1018,7 @@
       end
 +dk daprid
       subroutine daprid(h,n1,n2,mfile)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -999,12 +1035,13 @@
       end
 +dk prresflo
       subroutine prresflo(h,eps,mfile)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,mfile,ndim2,ntt
-      double precision deps,eps,filtres
+      real(kind=fPrec) deps,eps,filtres
 !  print a map   in resonance basis for human consumption (useless)
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -1031,7 +1068,8 @@
       return
       end
 +dk filtres
-      double precision function filtres(j)
+      real(kind=fPrec) function filtres(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1058,6 +1096,7 @@
       end
 +dk daflo
       subroutine daflo(h,x,y)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1093,6 +1132,7 @@
       end
 +dk daflod
       subroutine daflod(h,x,y)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1121,12 +1161,13 @@
       end
 +dk intd
       subroutine intd(v,h,sca)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,ntt
-      double precision dlie,sca
+      real(kind=fPrec) dlie,sca
 ! IF SCA=-1.D0
 !     \VEC{V}.GRAD   = J GRAD H . GRAD = :H:
 
@@ -1170,12 +1211,13 @@
       end
 +dk difd
       subroutine difd(h1,v,sca)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,ntt
-      double precision sca
+      real(kind=fPrec) sca
 ! INVERSE OF INTD ROUTINE
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1197,13 +1239,14 @@
       end
 +dk expflo
       subroutine expflo(h,x,y,eps,nrmax)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,nrmax,ntt
-      double precision coe,eps,r,rbefore
+      real(kind=fPrec) coe,eps,r,rbefore
 ! DOES EXP( \VEC{H} ) X = Y
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1265,12 +1308,13 @@
       end
 +dk expflod
       subroutine expflod(h,x,w,eps,nrmax)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer j,ndim,ndim2,nrmax,ntt
-      double precision eps
+      real(kind=fPrec) eps
 ! DOES EXP( \VEC{H} ) \VEC{X} = \VEC{Y}
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1294,12 +1338,13 @@
       end
 +dk facflo
       subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ifac,ndim,ndim2,nmax,nrmax,nrmin,ntt
-      double precision eps,sca
+      real(kind=fPrec) eps,sca
 ! IFAC=1
 ! DOES EXP(SCA \VEC{H}_MRMIN ) ... EXP(SCA \VEC{H}_NRMAX ) X= Y
 ! IFAC=-1
@@ -1348,12 +1393,13 @@
       end
 +dk facflod
       subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ifac,ndim,ndim2,nrmax,nrmin,ntt
-      double precision sca
+      real(kind=fPrec) sca
 ! IFAC=1
 ! DOES EXP(SCA \VEC{H}_MRMIN ) ... EXP(SCA \VEC{H}_NRMAX )  \VEC{X}= \VEC{Y}
 ! IFAC=-1
@@ -1372,12 +1418,13 @@
       end
 +dk fexpo
       subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ifac,ndim,ndim2,nrma,nrmax,nrmi,nrmin,ntt
-      double precision sca
+      real(kind=fPrec) sca
 !   WRAPPED ROUTINES FOR THE OPERATOR  \VEC{H}=:H:
 ! WRAPPING FACFLOD
       parameter (ndim=3)
@@ -1400,6 +1447,7 @@
       end
 +dk etcom
       subroutine etcom(x,y,h)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1438,6 +1486,7 @@
       end
 +dk etpoi
       subroutine etpoi(x,y,h)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1478,12 +1527,13 @@
       end
 +dk exp1d
       subroutine exp1d(h,x,y,eps,non)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ndim,ndim2,non,ntt
-      double precision eps
+      real(kind=fPrec) eps
 ! WRAPPING EXPFLO
       parameter (ndim2=6)
       parameter (ndim=3)
@@ -1504,12 +1554,13 @@
       end
 +dk expnd2
       subroutine expnd2(h,x,w,eps,nrmax)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer j,ndim,ndim2,nrmax,ntt
-      double precision eps
+      real(kind=fPrec) eps
 ! WRAPPING EXPFLOD USING EXP1D
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1534,13 +1585,14 @@
       end
 +dk flofacg
       subroutine flofacg(xy,h,epsone)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,k,kk,ndim,ndim2,nrmax,ntt
-      double precision eps,epsone,r,xn,xnbefore,xnorm,xnorm1,xx
+      real(kind=fPrec) eps,epsone,r,xn,xnbefore,xnorm,xnorm1,xx
 ! GENERAL ONE EXPONENT FACTORIZATION
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1622,6 +1674,7 @@
       end
 +dk flofac
       subroutine flofac(xy,x,h)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1662,6 +1715,7 @@
       end
 +dk liefact
       subroutine liefact(xy,x,h)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1687,6 +1741,7 @@
       end
 +dk mapnorm
       subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1713,6 +1768,7 @@
       end
 +dk gettura
       subroutine gettura(psq,radsq)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1721,7 +1777,7 @@
       parameter (ndim=3)
       parameter (ndim2=6)
       parameter (ntt=40)
-      double precision psq(ndim),radsq(ndim)
+      real(kind=fPrec) psq(ndim),radsq(ndim)
 +ca ii
 +ca tunerad
 
@@ -1734,6 +1790,7 @@
       end
 +dk setidpr
       subroutine setidpr(idprint,nplan)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1755,6 +1812,7 @@
       end
 +dk idprset
       subroutine idprset(idprint)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1772,13 +1830,14 @@
       end
 +dk mapnormf
       subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer ij,isi,ndim,ndim2,nord,ntt
-      double precision angle,p,rad,st,x2pi,x2pii
+      real(kind=fPrec) angle,p,rad,st,x2pi,x2pii
       parameter (ndim=3)
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -1857,12 +1916,13 @@
       end
 +dk gofix
       subroutine gofix(xy,a1,a1i,nord)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,nord,ntt
-      double precision xic
+      real(kind=fPrec) xic
 ! GETTING TO THE FIXED POINT AND CHANGING TIME APPROPRIATELY IN THE
 ! COASTING BEAM CASE
 
@@ -1958,7 +2018,8 @@
       return
       end
 +dk transver
-      double precision function transver(j)
+      real(kind=fPrec) function transver(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -1982,13 +2043,14 @@
       end
 +dk orderflo
       subroutine orderflo(h,ft,x,ang,ra)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer k,ndim,ndim2,ntt
-      double precision ang,ra
+      real(kind=fPrec) ang,ra
 !-   NONLINEAR NORMALIZATION PIECE OF MAPNORMF
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -2056,12 +2118,13 @@
       end
 +dk nuanaflo
       subroutine nuanaflo(h,ft)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,ntt
-      double precision dfilt,filt,xgam,xgbm
+      real(kind=fPrec) dfilt,filt,xgam,xgbm
 ! RESONANCE DENOMINATOR OPERATOR (1-R^-1)^-1
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -2117,13 +2180,14 @@
       return
       end
 +dk xgam
-      double precision function xgam(j)
+      real(kind=fPrec) function xgam(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ic,ij,ik,ndim,ndim2
-      double precision ad,ans,as,ex,exh
+      real(kind=fPrec) ad,ans,as,ex,exh
 ! XGAM AND XGBM ARE THE EIGENVALUES OF THE OPERATOR NEWANAFLO
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -2179,13 +2243,14 @@
       return
       end
 +dk xgbm
-      double precision function xgbm(j)
+      real(kind=fPrec) function xgbm(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ic,ij,ik,ndim,ndim2
-      double precision ad,ans,as,ex,exh
+      real(kind=fPrec) ad,ans,as,ex,exh
       parameter (ndim=3)
       parameter (ndim2=6)
 !      PARAMETER (NTT=40)
@@ -2240,7 +2305,8 @@
       return
       end
 +dk filt
-      double precision function filt(j)
+      real(kind=fPrec) function filt(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2292,13 +2358,14 @@
       return
        end
 +dk dfilt
-      double precision function dfilt(j)
+      real(kind=fPrec) function dfilt(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ndim,ndim2,nreso
-      double precision fil,filt
+      real(kind=fPrec) fil,filt
 !-  THE RANGE OF (1-R^-1)^1
 !- CALLS FILT AND EXCHANGES 1 INTO 0 AND 0 INTO 1.
       parameter (ndim=3)
@@ -2322,12 +2389,13 @@
        end
 +dk dhdjflo
       subroutine dhdjflo(h,t)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,ntt
-      double precision coe,x2pi
+      real(kind=fPrec) coe,x2pi
 ! CONVENIENT TUNE SHIFT FINDED FOR SYMPLECTIC CASE (NU,DL)(H)=T
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -2374,12 +2442,13 @@
       end
 +dk dhdj
       subroutine dhdj(h,t)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,ntt
-      double precision coe,x2pi
+      real(kind=fPrec) coe,x2pi
       parameter (ndim=3)
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -2430,12 +2499,13 @@
       end
 +dk h2pluflo
       subroutine h2pluflo(h,ang,ra)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,ndim,ndim2,ntt
-      double precision ang,r1,r2,ra,st
+      real(kind=fPrec) ang,r1,r2,ra,st
 ! POKES IN \VEC{H}  ANGLES AND DAMPING COEFFFICIENTS
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -2484,12 +2554,13 @@
       end
 +dk rotflo
       subroutine rotflo(ro,ang,ra)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,ntt
-      double precision ang,ch,co,ra,sh,si,sim,xx
+      real(kind=fPrec) ang,ch,co,ra,sh,si,sim,xx
 ! CREATES R AND R^-1 USING THE EXISTING ANGLES AND DAMPING
 ! COULD BE REPLACED BY A CALL H2PLUFLO FOLLOWED BY EXPFLOD
 ! CREATES R
@@ -2560,12 +2631,13 @@
       end
 +dk rotiflo
       subroutine rotiflo(roi,ang,ra)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,ntt
-      double precision ang,ch,co,ra,sh,si,sim,simv,xx
+      real(kind=fPrec) ang,ch,co,ra,sh,si,sim,simv,xx
 ! CREATES  R^-1
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -2641,11 +2713,12 @@
       end
 +dk hyper
       subroutine hyper(a,ch,sh)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
-      double precision a,ch,sh,x,xi
+      real(kind=fPrec) a,ch,sh,x,xi
 !   USED IN ROTIFLO AND ROTFLO
 +if crlibm
       x=exp_rn(a)
@@ -2660,6 +2733,7 @@
       end
 +dk ctor
       subroutine ctor(c1,r2,i2)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2690,6 +2764,7 @@
       end
 +dk rtoc
       subroutine rtoc(r1,i1,c2)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2712,6 +2787,7 @@
       end
 +dk ctorflo
       subroutine ctorflo(c,dr,di)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2730,6 +2806,7 @@
       end
 +dk rtocflo
       subroutine rtocflo(dr,di,c)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2755,6 +2832,7 @@
       end
 +dk ctord
       subroutine ctord(c,cr,ci)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2775,6 +2853,7 @@
       end
 +dk rtocd
       subroutine rtocd(cr,ci,c)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2793,6 +2872,7 @@
       end
 +dk resvec
       subroutine resvec(cr,ci,dr,di)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2844,6 +2924,7 @@
       end
 +dk reelflo
       subroutine reelflo(c,ci,f,fi)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2888,6 +2969,7 @@
       end
 +dk compcjg
       subroutine compcjg(cr,ci,dr,di)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -2912,12 +2994,13 @@
       end
 +dk midbflo
       subroutine midbflo(c,a2,a2i,q,a,st)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,ndim,ndim2,ntt
-      double precision a,ch,cm,cr,q,r,sa,sai,shm,                       &
+      real(kind=fPrec) a,ch,cm,cr,q,r,sa,sai,shm,                       &
      &st,x2pi
 ! LINEAR EXACT NORMALIZATION USING EIGENVALUE PACKAGE OF NERI
       parameter (ntt=40)
@@ -3032,13 +3115,14 @@
       end
 +dk mapflol
       subroutine mapflol(sa,sai,cr,cm,st)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ier,iunst,j,l,n,n1,ndim,ndim2
-      double precision ap,ax,cm,cr,                                     &
+      real(kind=fPrec) ap,ax,cm,cr,                                     &
      &p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
       parameter (ndim2=6)
       parameter (ndim=3)
@@ -3259,12 +3343,13 @@
       end
 +dk mulnd2
       subroutine mulnd2(rt,r)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ia,j,ndim,ndim2
-      double precision r,rt,rtt
+      real(kind=fPrec) r,rt,rtt
       parameter (ndim2=6)
       parameter (ndim=3)
 +ca ii
@@ -3290,13 +3375,14 @@
       end
 +dk movearou
       subroutine movearou(rt)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ic,j,ndim,ndim2
-      double precision rt,rto,s,xr,xrold,xy,xyz,xz,xzy,yz
+      real(kind=fPrec) rt,rto,s,xr,xrold,xy,xyz,xz,xzy,yz
       parameter (ndim2=6)
       parameter (ndim=3)
 +ca ii
@@ -3425,12 +3511,13 @@
       end
 +dk movemul
       subroutine movemul(rt,xy,rto,xr)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,k,ndim,ndim2
-      double precision rt,rto,xr,xy
+      real(kind=fPrec) rt,rto,xr,xy
       parameter (ndim2=6)
       parameter (ndim=3)
 +ca ii
@@ -3466,13 +3553,14 @@
       end
 +dk initpert
       subroutine initpert(st,ang,ra)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,nn,nreso
-      double precision ang,ra,st
+      real(kind=fPrec) ang,ra,st
 !   X-RATED
 !- SETS UP ALL THE COMMON BLOCKS RELEVANT TO NORMAL FORM AND THE BASIS
 !- CHANGES INSIDE  MAPNORMF
@@ -3531,7 +3619,8 @@
       return
       end
 +dk dlie
-      double precision function dlie(j)
+      real(kind=fPrec) function dlie(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3550,7 +3639,8 @@
       return
       end
 +dk rext
-      double precision function rext(j)
+      real(kind=fPrec) function rext(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3579,12 +3669,13 @@
       end
 +dk cpart
       subroutine cpart(h,ch)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ndim,ntt
-      double precision rext
+      real(kind=fPrec) rext
       parameter (ndim=3)
       parameter (ntt=40)
       external rext
@@ -3595,6 +3686,7 @@
       end
 +dk ctoi
       subroutine ctoi(f1,f2)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3619,6 +3711,7 @@
       end
 +dk itoc
       subroutine itoc(f1,f2)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3642,6 +3735,7 @@
       end
 +dk etrtc
       subroutine etrtc(x)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3670,6 +3764,7 @@
       end
 +dk etctr
       subroutine etctr(x)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3697,6 +3792,7 @@
       end
 +dk etcjg
       subroutine etcjg(x)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -3731,6 +3827,7 @@
       end
 +dk eig6
       subroutine eig6(fm,reval,aieval,revec,aievec)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
@@ -3758,11 +3855,11 @@
       integer ilo,ihi,mdim,info
 +ca ii
 +ca coast
-      double precision reval(ndim2),aieval(ndim2),                      &
+      real(kind=fPrec) reval(ndim2),aieval(ndim2),                      &
      &revec(ndim2,ndim2),aievec(ndim2,ndim2)
-      double precision fm(ndim2,ndim2),aa(ndim2,ndim2)
+      real(kind=fPrec) fm(ndim2,ndim2),aa(ndim2,ndim2)
       integer i,i1
-      double precision ort(ndim2),vv(ndim2,ndim2)
+      real(kind=fPrec) ort(ndim2),vv(ndim2,ndim2)
 !  copy matrix to temporary storage (the matrix aa is destroyed)
       do i=1,nd2-ndc2
         do i1=1,nd2-ndc2
@@ -3800,13 +3897,14 @@
       end
 +dk ety
       subroutine ety(nm,n,low,igh,a,ort)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,m,n,ii,jj,la,mp,nm,igh,kp1,low
-      double precision a(nm,n),ort(igh)
-      double precision f,g,h,scale
+      real(kind=fPrec) a(nm,n),ort(igh)
+      real(kind=fPrec) f,g,h,scale
 !
 !     this subroutine is a translation of the algol procedure orthes,
 !     num. math. 12, 349-368(1968) by martin and wilkinson.
@@ -3909,13 +4007,14 @@
       end
 +dk etyt
       subroutine etyt(nm,n,low,igh,a,ort,z)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,n,kl,mm,mp,nm,igh,low,mp1
-      double precision a(nm,igh),ort(igh),z(nm,n)
-      double precision g
+      real(kind=fPrec) a(nm,igh),ort(igh),z(nm,n)
+      real(kind=fPrec) g
 !
 !     this subroutine is a translation of the algol procedure ortrans,
 !     num. math. 16, 181-204(1970) by peters and wilkinson.
@@ -3997,16 +4096,17 @@
       end
 +dk ety2
       subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,j,k,l,m,n,en,ii,jj,ll,mm,na,nm,nn,                      &
      &igh,its,low,mp2,enm2,ierr
-      double precision h(nm,n),wr(n),wi(n),z(nm,n)
-      double precision p,q,r,s,t,w,x,y,ra,sa,vi,vr,zz,norm,machep
+      real(kind=fPrec) h(nm,n),wr(n),wi(n),z(nm,n)
+      real(kind=fPrec) p,q,r,s,t,w,x,y,ra,sa,vi,vr,zz,norm,machep
       logical notlas
-      double precision z3r,z3i
+      real(kind=fPrec) z3r,z3i
 !
 !
 !
@@ -4066,7 +4166,7 @@
 !          j          if the j-th eigenvalue has not been
 !                     determined after 200 iterations.
 !
-!     arithmetic is double precision. complex division
+!     arithmetic is real(kind=fPrec). complex division
 !     is simulated by routin etdiv.
 !
 !     fortran routine by b. s. garbow.
@@ -4424,6 +4524,7 @@
       end
 +dk etdiv
       subroutine etdiv(a,b,c,d,e,f)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4436,10 +4537,10 @@
 !  problems.
 !  Written by F. Neri Feb. 12 1986
 !
-      double precision a,b,c,d,e,f
-      double precision s,t
-      double precision cc,dd,ee,ff
-      double precision temp
+      real(kind=fPrec) a,b,c,d,e,f
+      real(kind=fPrec) s,t
+      real(kind=fPrec) cc,dd,ee,ff
+      real(kind=fPrec) temp
       integer flip
       flip = 0
       cc = c
@@ -4481,6 +4582,7 @@
       end
 +dk sympl3
       subroutine sympl3(m)
+      use floatPrecision
 !**********************************************************
 !
 !    SYMPL3
@@ -4501,8 +4603,8 @@
       integer n
       parameter ( n = 3 )
       integer kp,kq,lp,lq,jp,jq,i
-      double precision m(2*n,2*n)
-      double precision qq,pq,qp,pp
+      real(kind=fPrec) m(2*n,2*n)
+      real(kind=fPrec) qq,pq,qp,pp
 !
       do 100 kp=2,2*n,2
         kq = kp-1
@@ -4551,12 +4653,13 @@
       end
 +dk averaged
       subroutine averaged(f,a,flag,fave)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer isi,ndim,ndim2,nord,ntt
-      double precision avepol
+      real(kind=fPrec) avepol
 !      TAKES THE AVERAGE OF A FUNCTION F
 !  FLAG TRUE A=ONE TURN MAP
 !       FALSE A=A_SCRIPT
@@ -4614,7 +4717,8 @@
       return
       end
 +dk avepol
-      double precision function avepol(j)
+      real(kind=fPrec) function avepol(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4638,13 +4742,14 @@
       end
 +dk couplean
       subroutine couplean(map1,tune,map2,oneturn)
+      use floatPrecision
       implicit none
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
       integer i,ndim,ndim2,no1,nord,ntt
-      double precision crazy,tpi
+      real(kind=fPrec) crazy,tpi
 !  map1 ascript a1 not there
 !  tune 2 or 3 tunes
 
@@ -4660,8 +4765,8 @@
       integer xy(ndim2),m1(ndim2),m2(ndim2),a2(ndim2),a1(ndim2)
       integer cs(1),h(1)
 
-      double precision killnonl,planar,psq(ndim),radsq(ndim)
-      double precision tune(ndim)
+      real(kind=fPrec) killnonl,planar,psq(ndim),radsq(ndim)
+      real(kind=fPrec) tune(ndim)
       external killnonl,planar
 
       call etall(ftf(1),1)
@@ -4738,7 +4843,8 @@
       return
       end
 +dk planar
-      double precision function planar(j)
+      real(kind=fPrec) function planar(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4769,7 +4875,8 @@
       return
       end
 +dk killnonl
-      double precision function killnonl(j)
+      real(kind=fPrec) function killnonl(j)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
@@ -4795,12 +4902,13 @@
       end
 +dk fexpo1
       subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer ifac,ndim,ndim2,nrma,nrmax,nrmi,nrmin,ntt
-      double precision sca
+      real(kind=fPrec) sca
       parameter (ndim=3)
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -4820,12 +4928,13 @@
       end
 +dk etcctpar
       subroutine etcctpar(x,ix,xj,z)
+      use floatPrecision
       implicit none
 +if crlibm
 +ca crlibco
 +ei
       integer i,ie,ix,ndim,ndim2,ntt
-      double precision xj
+      real(kind=fPrec) xj
       parameter (ndim=3)
       parameter (ndim2=6)
       parameter (ntt=40)

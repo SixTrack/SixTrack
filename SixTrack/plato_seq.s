@@ -1,6 +1,7 @@
 +dk plato_seq
 
 	module platoFMA
+        use floatPrecision
 	implicit none
 	
 	contains
@@ -13,10 +14,11 @@
 * Conversion single->double precission by K.Sjobak, Dec. 2016
 *
       SUBROUTINE CFFT(A,MSIGN)
+      use floatPrecision
       IMPLICIT NONE
       COMPLEX*16 A(*),U,W,T
       INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
-      double precision C,S
+      real(kind=fPrec) C,S
       IF(MSIGN.EQ.0) RETURN
       M=IABS(MSIGN)
       N=2**M
@@ -76,12 +78,12 @@ C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME
 C                                   MODIFICATIONS
 C
 
-      DOUBLE PRECISION FUNCTION TUNENEWT1(X,XP,MAXN)
+      REAL(KIND=fPrec) FUNCTION TUNENEWT1(X,XP,MAXN)
       
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      DOUBLE PRECISION X,XP, DUEPI, STEP, SUM, FTMAX, TUNEFOU, DELTAT,
+      REAL(KIND=fPrec) X,XP, DUEPI, STEP, SUM, FTMAX, TUNEFOU, DELTAT,
      &     TUNE1, TUNE
       INTEGER MAXN, MFT, NPOINT, MAXN2, MF, NPMIN, NPMAX, NFTMAX, NFT
       COMPLEX*16 Z
@@ -155,12 +157,12 @@ C
 C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
-      DOUBLE PRECISION FUNCTION TUNEFIT(X,XP,MAX)
+      REAL(KIND=fPrec) FUNCTION TUNEFIT(X,XP,MAX)
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAX,MAX1,MAX2,N
-      DOUBLE PRECISION X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,&
+      REAL(KIND=fPrec) X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,&
      &TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
@@ -190,8 +192,8 @@ C.............................................................
 C.............................................................
       DO N=1,MAX-1
 C.............................................................
-        R1=DSQRT(X(N)**2+XP(N)**2)
-        R2=DSQRT(X(N+1)**2+XP(N+1)**2)
+        R1=SQRT(X(N)**2+XP(N)**2)
+        R2=SQRT(X(N+1)**2+XP(N+1)**2)
         CTHETA=((X(N)*X(N+1)+XP(N)*XP(N+1))/R1)/R2
         STHETA=((-X(N)*XP(N+1)+X(N+1)*XP(N))/R1)/R2
 +if crlibm
@@ -235,9 +237,10 @@ C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE FIT(X,Y,N,A,B)
+      use floatPrecision
       IMPLICIT NONE
       INTEGER N,I
-      DOUBLE PRECISION X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
+      REAL(KIND=fPrec) X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
       DIMENSION X(*),Y(*)
 +ca crcoall
 C............................................................
@@ -281,12 +284,12 @@ C
 C AUTHOR:     E. TODESCO - INFN AND CERN 
 C
 
-      DOUBLE PRECISION FUNCTION TUNEABT(X,XP,MAXN)              
+      REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)              
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MF,NPMIN,NPMAX,NFTMAX,NFT
-      DOUBLE PRECISION X,XP,PI,DUEPI,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
+      REAL(KIND=fPrec) X,XP,PI,DUEPI,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
       COMPLEX*16 Z,ZSING
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER),ZSING(MAXITER)
@@ -351,7 +354,7 @@ C................................................INTERPOLATION
      .       ATAN2(CF2*SIN(PI/NPOINT),CF1+CF2*COS(PI/NPOINT))
       ENDIF
 +ei
-      TUNEABT=1D+0-(ASSK-1D+0)/DBLE(NPOINT) !1D+0 = 1D0, i.e. double precision 1.0?
+      TUNEABT=1D+0-(ASSK-1D+0)/DBLE(NPOINT) !1D+0 = 1D0, i.e. real(kind=fPrec) 1.0?
 C............................................................  
       RETURN 
 C............................................................  
@@ -366,12 +369,12 @@ C
 C AUTHOR:     E. TODESCO - INFN AND CERN 
 C
 
-      DOUBLE PRECISION FUNCTION TUNEABT2(X,XP,MAXN)              
+      REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)              
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MFT,MF,NPMIN,NPMAX,NFTMAX,NN,NFT
-      DOUBLE PRECISION X,XP,PI,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,
+      REAL(KIND=fPrec) X,XP,PI,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,
      &CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
       COMPLEX*16 Z
       COMPLEX*16 ZSING(MAXITER)
@@ -460,7 +463,7 @@ C............................................................
 
 CDECK  ID>, FFT_PLATO.
 C============================================================
-C           COMPUTES THE FFT_PLATO   (DOUBLE PRECISION)
+C           COMPUTES THE FFT_PLATO   (REAL(KIND=fPrec))
 C           AUTHOR: NUMERICAL RECEIPES, PG. 395
 C           NN IS THE NUMBER OF DATA: MUST BE A POWER OF 2
 C           ISIGN=1: DIRECT FT
@@ -474,6 +477,7 @@ C           GOOD LUCK, BABY
 C
 
       SUBROUTINE FFT_PLATO(CDATA,NN,ISIGN)
+      use floatPrecision
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -546,7 +550,7 @@ C.............................................................
 
 CDECK  ID>, FFT_PLATO_REAL.
 C============================================================
-C           COMPUTES THE FFT_PLATO_REAL   (DOUBLE PRECISION)
+C           COMPUTES THE FFT_PLATO_REAL   (REAL(KIND=fPrec))
 C           AUTHOR: NUMERICAL RECEIPES, PG. 395
 C           NN IS THE NUMBER OF DATA: MUST BE A POWER OF 2
 C           ISIGN=1: DIRECT FT
@@ -560,6 +564,7 @@ C           GOOD LUCK, BABY
 C
 
       SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
+      use floatPrecision
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -632,12 +637,12 @@ C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME
 C                                   MODIFICATIONS
 C
 
-      DOUBLE PRECISION FUNCTION TUNENEWT(X,XP,MAXN)
+      REAL(KIND=fPrec) FUNCTION TUNENEWT(X,XP,MAXN)
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,MFT,NPOINT,MAXN2,MF,NPMAX,NPMIN,NFTMAX,NFT
-      DOUBLE PRECISION X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,
+      REAL(KIND=fPrec) X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,
      &TUNE
       COMPLEX*16 Z
       COMPLEX*16 ZSING(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
@@ -711,11 +716,12 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE ZFUN(TUNE,Z,MAXN,TUNEA1,DELTAT)
+      use floatPrecision
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER ND,MAXN,NUM,NTEST,NCONT,NFT,NC
-      DOUBLE PRECISION DUEPI,ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2,
+      REAL(KIND=fPrec) DUEPI,ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2,
      &TUNE1,TUNE2,DTUNE1,DTUNE2,RATIO,TUNE3,DTUNE3,TUNETEST,TUNEVAL,
      &TUNEVMAX,TUNE
       COMPLEX*16 ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
@@ -742,7 +748,7 @@ C............................................................
       ENDDO
 C............................................................  
 +if crlibm
-      ! EXP_RN expects a DOUBLE PRECISION, not COMPLEX -> rewrite expression for crlibm.
+      ! EXP_RN expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
       ZTUNE1=cos_rn(DUEPI*TUNEA1) + ZU*sin_rn(DUEPI*TUNEA1)
 +ei
 +if .not.crlibm
@@ -807,6 +813,7 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE CALC(ZV,ZPP,ZP,MAXD)
+      use floatPrecision
       IMPLICIT NONE
       INTEGER MAXD,NP
       COMPLEX*16 ZV,ZPP,ZP
@@ -834,11 +841,11 @@ C
 C AUTHOR:    E. TODESCO - UNIVERSITY OF BOLOGNA
 C
  
-      DOUBLE PRECISION FUNCTION TUNEAPA(X,P,N)
+      REAL(KIND=fPrec) FUNCTION TUNEAPA(X,P,N)
 C............................................................
       IMPLICIT NONE
       INTEGER N,I
-      DOUBLE PRECISION X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,
+      REAL(KIND=fPrec) X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,
      &ADVSIG,ADVMIN,ADVMAX
       DIMENSION X(*),P(*)
 
@@ -883,7 +890,7 @@ C............................................................
 C............................................................
       ENDDO
 C...............................................COMPUTES SIGMA
-      ADVSIG=DSQRT((((ADVS/(N-1))/4)/PI)/PI-
+      ADVSIG=SQRT((((ADVS/(N-1))/4)/PI)/PI-
      .            (((ADV/(N-1))/2)/PI)*(((ADV/(N-1))/2)/PI))
 C......................................NORMALIZATION TO [0,1]
       ADV1=-ADV1
@@ -916,14 +923,14 @@ C
 C AUTHOR:    E. TODESCO - UNIVERSITY OF BOLOGNA
 C
  
-      DOUBLE PRECISION FUNCTION TUNEFFT(X,P,N)
+      REAL(KIND=fPrec) FUNCTION TUNEFFT(X,P,N)
 C............................................................
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER N,M,NPOINT,I,NPMIN,NPMAX
-      DOUBLE PRECISION SUM,AMAX
-      DOUBLE PRECISION X(*),P(*)
+      REAL(KIND=fPrec) SUM,AMAX
+      REAL(KIND=fPrec) X(*),P(*)
       COMPLEX*16  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
 +ca crcoall
 C..................................................CHECK OF N
@@ -991,15 +998,15 @@ C
 C AUTHOR:     E. TODESCO - UNIVERSITY OF BOLOGNA
 C
  
-      DOUBLE PRECISION FUNCTION TUNEFFTI(X,P,N)
+      REAL(KIND=fPrec) FUNCTION TUNEFFTI(X,P,N)
 C............................................................
       IMPLICIT NONE
       INTEGER*4 MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER*4 N,M,NPOINT,NPMAX,NPMIN,ITUNE,I
-      DOUBLE PRECISION SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
+      REAL(KIND=fPrec) SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
      &X213,A,B
-      DOUBLE PRECISION X(*),P(*)
+      REAL(KIND=fPrec) X(*),P(*)
       COMPLEX*16 Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
 +ca crlibco
@@ -1096,16 +1103,16 @@ C             M. GIOVANNOZZI - CERN HAS INTRODUCED SIGNIFICANT
 C             MODFICATIONS
 C
 
-      DOUBLE PRECISION FUNCTION TUNELASK(X,PX,MAX)
+      REAL(KIND=fPrec) FUNCTION TUNELASK(X,PX,MAX)
 C............................................................
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAX,NPOINT,MF,NFTMAX,NPMIN,NPMAX,NFT,JITER,JMAX,MAX1,JIT,
      &I,K,JOM,J,N,MBODE,MFT
-      DOUBLE PRECISION DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,
+      REAL(KIND=fPrec) DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,
      &OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
-      DOUBLE PRECISION X(*),PX(*)
+      REAL(KIND=fPrec) X(*),PX(*)
       COMPLEX*16 ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
 
