@@ -985,7 +985,7 @@ subroutine scatter_thin(ix, turn)
 
         call ranecu(rndPhi, napx, -1)
         call ranecu(rndP,   napx, -1)
-        rndPhi = rndPhi*(2d0*pi)
+        rndPhi = rndPhi*(two*pi)
 
         do j=1, napx
             ! Compute the cross section at this s
@@ -1046,7 +1046,8 @@ end subroutine scatter_thin
 real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
     
     implicit none
-    
+
++ca parnum
 +ca common
 +ca crcoall
 +if crlibm
@@ -1067,14 +1068,14 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
         sigmaX  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 1)
         sigmaY  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 2)
 +if crlibm
-        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
-                * exp_rn(-0.5d0*(x/sigmaX)**2) &
-                * exp_rn(-0.5d0*(y/sigmaY)**2)
+        retval  = beamtot/(two*(pi*(sigmaX*sigmaY))) &
+                * exp_rn(-half*(x/sigmaX)**2) &
+                * exp_rn(-half*(y/sigmaY)**2)
 +ei
 +if .not.crlibm
-        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY))) &
-                * exp(-0.5d0*(x/sigmaX)**2) &
-                * exp(-0.5d0*(y/sigmaY)**2)
+        retval  = beamtot/(two*(pi*(sigmaX*sigmaY))) &
+                * exp(-half*(x/sigmaX)**2) &
+                * exp(-half*(y/sigmaY)**2)
 +ei
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
@@ -1156,6 +1157,7 @@ end function scatter_generator_getCrossSection
 subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     implicit none
 
++ca parnum
 +ca crcoall
 
     integer, intent(in) :: generatorIDX
@@ -1181,8 +1183,8 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
        !t  = scatter_generator_getPPElastic(0.046d0,18.52d0,4.601d0,2.647d0,0.0d0)
         t  = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
-        xi = 0d0   ! Dummy value, for now
-        t  = t*1d6 ! Scale return variable to MeV^2
+        xi = zero   ! Dummy value, for now
+        t  = t*c1e6 ! Scale return variable to MeV^2
 
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getTandXi"
@@ -1203,6 +1205,7 @@ end subroutine scatter_generator_getTandXi
 real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
     implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1226,8 +1229,8 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     prob3 = g3/(g1+g3)              ! Probability of g3
     
     ! Pre-calculate inverses
-    invB1 = 1.0d0/b1
-    invB2 = 1.0d0/b2
+    invB1 = one/b1
+    invB2 = one/b2
 
     nItt   = 0
     maxItt = 1000000
@@ -1254,13 +1257,13 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         ! Exact distribution
 +if crlibm
         g1 =            exp_rn(-b1*t)                                    ! Soft scatter term
-        g2 =  ( (2*a) * exp_rn( ( (-0.5d0)*(b1+b2) )*t ) ) * cos_rn(phi) ! Interference
+        g2 =  ( (2*a) * exp_rn( ( (-half)*(b1+b2) )*t ) ) * cos_rn(phi) ! Interference
         g3 =   (a**2) * exp_rn(-b2*t)                                    ! Hard scatter term
         gg = ((g1+g2)+g3)/(g1+g3)
 +ei
 +if .not.crlibm
         g1 =        exp(-b1*t)                       ! Soft scatter term
-        g2 =  2*a * exp(-0.5d0*(b1+b2)*t) * cos(phi) ! Interference
+        g2 =  2*a * exp(-half*(b1+b2)*t) * cos(phi) ! Interference
         g3 = a**2 * exp(-b2*t)                       ! Hard scatter term
         gg = (g1+g2+g3)/(g1+g3)
 +ei
