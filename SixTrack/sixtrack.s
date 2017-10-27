@@ -3883,50 +3883,72 @@
           pi=4d0*atan(1d0)
 +ei
         crabfreq=ek(ix)*c1e3
-
+ 
         do j=1,napx ! loop over particles
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
 
+
 +if .not.tilt
 +if crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))         !hr03
-      dpsv(j)=dpsv(j) -                                                 &!hr03
-     &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
-     &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3   !hr03
+       print *, "noTilt" 
+       yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
+     &sin_rn((((sigmv(j)/((clight*(e0/e0f))))*                          &!hr03
+     &crabfreq)*2d0)*pi + crabph(ix))                                    !hr03
+      ejv(j)=ejv(j) -                                                   &!hr03
+     &((((((crabamp*crabfreq)*2d0)*pi)/clight)                          &!hr03
+     &*xv(xory,j))*                                                     &!hr03
+     &cos_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi           &!hr03
+     & + crabph(ix)))                                                    !hr03
+
+
 +ei
 +if .not.crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))            !hr03
-      dpsv(j)=dpsv(j) -                                                 &!hr03
-     &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3      !hr03
+      print *, "noTiltCRM" 
+       yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
+     &sin((((sigmv(j)/((clight*(e0f/e0))))*                             &!hr03
+     &crabfreq)*2d0)*pi + crabph(ix)))                                   !hr03
+      ejv(j)=ejv(j) -                                                   &!hr03
+     &((((((crabamp*crabfreq)*2d0)*pi)/clight)                          &!hr03
+     &*xv(xory,j))*                                                     &!hr03
+     &cos((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi              &!hr03
+     & + crabph(ix)))                                                    !hr03
 +ei
 +ei
 +if tilt
 +if crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))         !hr03
-      dpsv(j)=dpsv(j) -                                                 &!hr03
-     &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
-     &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3   !hr03
+
+       print *, "This is the one!"
+
+       yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
+     &sin_rn((((sigmv(j)/((clight*(e0/e0f))))*                          &!hr03
+     &crabfreq)*2d0)*pi + crabph(ix))                                    !hr03
+      ejv(j)=ejv(j) -                                                   &!hr03
+     &((((((crabamp*crabfreq)*2d0)*pi)/clight)                          &!hr03
+     &*xv(xory,j))*                                                     &!hr03
+     &cos_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi           &!hr03
+     & + crabph(ix)))                                                    !hr03
 +ei
 +if .not.crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix))            !hr03
-      dpsv(j)=dpsv(j) -                                                 &!hr03
-     &((((((crabamp*crabfreq)*2d0)*pi)/clight)*xv(xory,j))*             &!hr03
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph(ix)))*c1m3      !hr03
+print *, "we are here!!!"
+       yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
+     &sin((((sigmv(j)/((clight*(e0/e0f))))*                             &!hr03
+     &crabfreq)*2d0)*pi + crabph(ix))                                    !hr03
+      ejv(j)=ejv(j) -                                                   &!hr03
+     &((((((crabamp*crabfreq)*2d0)*pi)/clight)                          &!hr03
+     &*xv(xory,j))*                                                     &!hr03
+     &cos((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi              &!hr03
+     & + crabph(ix)))                                                    !hr03
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=dpsv(j)*e0f+e0f
-      ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     !hr03
+      dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+ 
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
       enddo
 +cd ccmul2
@@ -21803,35 +21825,50 @@ C Should get me a NaN
           pi=4d0*atan(1d0)
 +ei
         if(kzz.eq.23) then
-*FOX  CRABAMP=ED(IX)/(EJF1) ;
-!       call dapri(EJF1,234)
-!       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
-        crabfreq=ek(ix)*c1e3
-        crabpht=crabph(ix)
-*FOX  Y(1)=Y(1) - CRABAMP*C1E3*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
-*FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(1)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+*FOX  CRABAMP=ED(IX) ;
+           crabfreq=ek(ix)*c1e3
+           crabpht=crabph(ix)
+           
+*FOX  Y(1)=Y(1) - CRABAMP*C1E3/E0F*
+*FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
+*FOX  *CRABFREQ*2D0*PI + CRABPHT))/(1+DPDA) ;
+
+*FOX  EJ1=EJ1-CRABAMP
+*FOX  *CRABFREQ*2D0*PI/(CLIGHT)*X(1)*
+*FOX  COS((SIGMDA/(CLIGHT*(E0F/E0))
+*FOX  *CRABFREQ*2D0*PI + CRABPHT)) ;
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
+
           goto 440
       endif
         if(kzz.eq.-23) then
-*FOX  CRABAMP=ED(IX)/(EJF1) ;
+*FOX  CRABAMP=ED(IX) ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
-*FOX  Y(2)=Y(2) - CRABAMP*C1E3*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
-*FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(2)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
+          
+*FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
+*FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
+*FOX  *CRABFREQ*2D0*PI + CRABPHT))/(1+DPDA) ;
+
+*FOX  EJ1=EJ1-CRABAMP
+*FOX  *CRABFREQ*2D0*PI/(CLIGHT)*X(2)*
+*FOX  COS((SIGMDA/(CLIGHT*(E0F/E0))
+*FOX  *CRABFREQ*2D0*PI + CRABPHT)) ;
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
