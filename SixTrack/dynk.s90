@@ -2986,12 +2986,12 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     case (62)                                                         ! COSF_RIPP
 +if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
+               * COS_RN( (two*pi)*real(turn-1,fPrec)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
 +if .not.crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               *COS   ( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
+               *COS   ( (two*pi)*real(turn-1,fPrec)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
 
