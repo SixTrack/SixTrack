@@ -49,6 +49,7 @@
       subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -71,9 +72,9 @@
       call daexter
       do 1 i=1,ndim
       nplane(i)=2*i-1
-      ang(i)=0.d0
-      ra(i)=0.d0
- 1    st(i)=1.d0
+      ang(i)=zero
+      ra(i)=zero
+ 1    st(i)=one
       no=no1
       nv=nv1
       nd=nd1
@@ -114,19 +115,19 @@
       if(idpr.eq.1)write(lout,*) ' NO = ',no,' IN DA-CALCULATIONS '
 
       do i=0,20
-      xintex(i)=0.d0
+      xintex(i)=zero
       enddo
-      xintex(          0)=       1.000000000000000d0                     !hr11
-      xintex(          1)=  5.000000000000000d-001                       !hr11
-      xintex(          2)=  8.333333333333334d-002                       !hr11
-      xintex(          3)=  0.000000000000000d+000                       !hr11
-      xintex(          4)= -1.388888888888898d-003                       !hr11
-      xintex(          5)=  0.000000000000000d+000                       !hr11
-      xintex(          6)=  3.306878306878064d-005                       !hr11
-      xintex(          7)= 0.d0
-      xintex(          8)= -8.267195767165669d-007                       !hr11
-      xintex(          9)=  0.d0
-      xintex(         10)=  4.592886537931051d-008                       !hr11
+      xintex(          0)=       1.000000000000000_fPrec                     !hr11
+      xintex(          1)=  5.000000000000000e-001_fPrec                       !hr11
+      xintex(          2)=  8.333333333333334e-002_fPrec                       !hr11
+      xintex(          3)=  0.000000000000000e+000_fPrec                       !hr11
+      xintex(          4)= -1.388888888888898e-003_fPrec                       !hr11
+      xintex(          5)=  0.000000000000000e+000_fPrec                       !hr11
+      xintex(          6)=  3.306878306878064e-005_fPrec                       !hr11
+      xintex(          7)= zero
+      xintex(          8)= -8.267195767165669e-007_fPrec                       !hr11
+      xintex(          9)=  zero
+      xintex(         10)=  4.592886537931051e-008_fPrec                       !hr11
       return
       end
 +dk flowpara
@@ -272,6 +273,7 @@
       subroutine etallnom(x,n,nom)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -287,7 +289,7 @@
           call liepeek(i1,i2)
           nd2=i1(4)
            do 2 i=nd2+1,-n
- 2         call davar(x(i),0.d0,i)
+ 2         call davar(x(i),zero,i)
          endif
       return
       end
@@ -295,6 +297,7 @@
       subroutine etall(x,n)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -308,7 +311,7 @@
           call liepeek(i1,i2)
           nd2=i1(4)
            do 2 i=nd2+1,-n
- 2         call davar(x(i),0.d0,i)
+ 2         call davar(x(i),zero,i)
          endif
       return
       end
@@ -341,6 +344,7 @@
       subroutine etppulnv(x,xi,xff)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -356,7 +360,7 @@
       xii(i)=xi(i)
       enddo
       do i=nv+1,ntt
-      xii(i)=0.d0
+      xii(i)=zero
       enddo
 
       call ppush(x,nv,xii,xf)
@@ -371,6 +375,7 @@
       subroutine etmtree(y,x)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -387,7 +392,7 @@
       if(nt.gt.0) then
       call etallnom(ie,nt,'IE        ')
       do 1 i=nd2+1,nv
-      call davar(ie(i-nd2),0.d0,i)
+      call davar(ie(i-nd2),zero,i)
  1    continue
       do 3 i=nd2+1,nv
  3    iv(i)=ie(i-nd2)
@@ -458,6 +463,7 @@
       subroutine ppushlnv(x,xi,xff,nd1)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -473,7 +479,7 @@
       xii(i)=xi(i)
       enddo
       do i=nd1+1,ntt
-      xii(i)=0.d0
+      xii(i)=zero
       enddo
 
       call ppush(x,nv,xii,xf)
@@ -488,6 +494,7 @@
       subroutine etcct(x,y,z)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -504,7 +511,7 @@
       if(nt.gt.0) then
       call etallnom(ie,nt,'IE        ')
       do 1 i=nd2+1,nv
-      call davar(ie(i-nd2),0.d0,i)
+      call davar(ie(i-nd2),zero,i)
  1    continue
       do 3 i=nd2+1,nv
  3    iv(i)=ie(i-nd2)
@@ -521,6 +528,7 @@
       subroutine trx(h,rh,y)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -538,7 +546,7 @@
       if(nt.gt.0) then
       call etallnom(ie,nt,'IE        ')
       do 1 i=nd2+1,nv
-      call davar(ie(i-nd2),0.d0,i)
+      call davar(ie(i-nd2),zero,i)
  1    continue
       do 3 i=nd2+1,nv
  3    iv(i)=ie(i-nd2)
@@ -627,6 +635,7 @@
       subroutine etini(x)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -639,7 +648,7 @@
       integer x(*)
 !*DAEXT(NO,NV) X(NDIM2)
       do 1 i=1,nd2
-      call davar(x(i),0.d0,i)
+      call davar(x(i),zero,i)
  1    continue
       return
       end
@@ -647,6 +656,7 @@
       subroutine etinv(x,y)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -668,7 +678,7 @@
        call etallnom(ie1,nt,'IE1       ')
        call etallnom(ie2,nt,'IE2       ')
        do 1 i=nd2+1,nv
-       call davar(ie1(i-nd2),0.d0,i)
+       call davar(ie1(i-nd2),zero,i)
  1     continue
        do 3 i=nd2+1,nv
        iv1(i)=ie1(i-nd2)
@@ -689,6 +699,7 @@
       subroutine etpin(x,y,jj)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -710,7 +721,7 @@
        call etallnom(ie1,nt,'IE1       ')
        call etallnom(ie2,nt,'IE2       ')
        do 1 i=nd2+1,nv
-       call davar(ie1(i-nd2),0.d0,i)
+       call davar(ie1(i-nd2),zero,i)
  1     continue
        do 3 i=nd2+1,nv
        iv1(i)=ie1(i-nd2)
@@ -770,6 +781,7 @@
       subroutine dapokzer(v,jj)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -780,7 +792,7 @@
       do 2 i=1,ntt
  2    jd(i)=0
       do 1 i=1,jj
- 1    call dapok(v(i),jd,0.d0)
+ 1    call dapok(v(i),jd,zero)
       return
       end
 +dk davar0
@@ -1037,6 +1049,7 @@
       subroutine prresflo(h,eps,mfile)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1057,7 +1070,7 @@
       call  dacfu(c(i),filtres,h(i))
       enddo
 
-      deps=-1.d0
+      deps=-one
       call daeps(deps)
       call daeps(eps)
 
@@ -1071,6 +1084,7 @@
       real(kind=fPrec) function filtres(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1082,15 +1096,15 @@
 +ca ii
 +ca coast
 +ca filtr
-      filtres=1.d0
+      filtres=one
       ic=0
       do i=1,(nd2-ndc2)
         ic=ic+j(i)*(-1)**(i+1)
       enddo
       ic=ic+ifilt
-      if(ic.lt.0) filtres=0.d0
+      if(ic.lt.0) filtres=zero
       if(ic.eq.0.and.ifilt.eq.1) then
-        filtres=0.0d0
+        filtres=zero
       endif
       return
       end
@@ -1163,6 +1177,7 @@
       subroutine intd(v,h,sca)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1197,7 +1212,7 @@
       call dacfu(v(2*i),dlie,b1(1))
       call damul(b1(1),x(2*i-1),b2(1))
       call damul(b3(1),x(2*i),b1(1))
-      call dalin(b2(1),1.d0,b1(1),sca,b3(1))
+      call dalin(b2(1),one,b1(1),sca,b3(1))
       call daadd(b3(1),b4(1),b2(1))
       call dacop(b2(1),b4(1))
  1    continue
@@ -1241,6 +1256,7 @@
       subroutine expflo(h,x,y,eps,nrmax)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -1265,9 +1281,9 @@
       call dacop(x,b4(1))
       call dacop(x,b1(1))
       more=.true.
-      rbefore=1.d30
+      rbefore=1.0e30_fPrec
       do 1 i=1,nrmax
-      coe=1.d0/dble(i)
+      coe=one/real(i,fPrec)
       call dacmu(b1(1),coe,b2(1))
       call daflo(h,b2(1),b1(1))
       call daadd(b4(1),b1(1),b3(1))
@@ -1340,6 +1356,7 @@
       subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1362,7 +1379,7 @@
 
       call dacop(x,v(1))
 
-      eps=-1.d0
+      eps=-one
       call daeps(eps)
       nmax=100
 !
@@ -1420,6 +1437,7 @@
       subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1438,7 +1456,7 @@
       nrmi=nrmin-1
       nrma=nrmax-1
       call etall(v,nd2)
-      call difd(h,v,-1.d0)
+      call difd(h,v,-one)
       call facflod(v,x,w,nrmi,nrma,sca,ifac)
 
       call dadal(v,nd2)
@@ -1449,6 +1467,7 @@
       subroutine etcom(x,y,h)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1471,7 +1490,7 @@
       call dader(i,y(j),t2(1))
       call damul(x(i),t2(1),t2(1))
       call damul(y(i),t1(1),t1(1))
-      call dalin(t2(1),1.d0,t1(1),-1.d0,t1(1))
+      call dalin(t2(1),one,t1(1),-one,t1(1))
       call daadd(t1(1),t3(j),t3(j))
 
  1    continue
@@ -1488,6 +1507,7 @@
       subroutine etpoi(x,y,h)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1509,12 +1529,12 @@
       call dader(2*i,y,t2(1))
       call damul(t1(1),t2(1),t1(1))
 
-      call dalin(t1(1),1.d0,t3(1),1.d0,t3(1))
+      call dalin(t1(1),one,t3(1),one,t3(1))
       call dader(2*i-1,y,t1(1))
       call dader(2*i,x,t2(1))
       call damul(t1(1),t2(1),t1(1))
 
-      call dalin(t1(1),-1.d0,t3(1),1.d0,t3(1))
+      call dalin(t1(1),-one,t3(1),one,t3(1))
 
  1    continue
 
@@ -1529,6 +1549,7 @@
       subroutine exp1d(h,x,y,eps,non)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1545,7 +1566,7 @@
       integer v(ndim2)
 
       call etall(v,nd2)
-      call difd(h,v,-1.d0)
+      call difd(h,v,-one)
       call expflo(v,x,y,eps,non)
 
       call dadal(v,nd2)
@@ -1587,6 +1608,7 @@
       subroutine flofacg(xy,h,epsone)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -1614,26 +1636,26 @@
 
       call etini(v)
       call daclrd(w)
-      xnorm1=0.d0
+      xnorm1=zero
       do i=1,nd2
         call daabs(xy(i),r)
       xnorm1=xnorm1+r
        enddo
-      xnbefore=1.d36
+      xnbefore=1.0e36_fPrec
       more=.false.
-      eps=1.e-9
+      eps=c1m9
       nrmax=1000
-      xn=10000.d0
+      xn=c1e4
       do 333 k=1,nrmax
-      call dacmud(h,-1.d0,t)
+      call dacmud(h,-one,t)
       call expflod(t,xy,x,eps,nrmax)
-      call dalind(x,1.d0,v,-1.d0,t)
+      call dalind(x,one,v,-one,t)
 ! write(20,*) "$$$$$$$$$$$$$$",k,"$$$$$$$$$$$$$$$$$$$$"
 ! call daprid(t,1,1,20)
        if(xn.lt.epsone) then
             if(idpr.ge.0) write(lout,*) "xn quadratic",xn
         call daflod(t,t,w)
-        call dalind(t,1.d0,w,-0.5d0,t)
+        call dalind(t,one,w,-half,t)
         call dacopd(t,z)
         call dacopd(t,w)
 !  second order in W
@@ -1643,15 +1665,15 @@
 
               do kk=1,10
         call etcom(h,w,w)
-        call dalind(z,1.d0,w,xintex(kk),z)
+        call dalind(z,one,w,xintex(kk),z)
               enddo
         call dacopd(z,t)
-      xx=1.d0/12.d0
-      call dalind(x,xx,h,1.d0,h)
+      xx=one/12.0_fPrec
+      call dalind(x,xx,h,one,h)
        endif
 
-      call dalind(t,1.d0,h,1.d0,h)
-      xnorm=0.d0
+      call dalind(t,one,h,one,h)
+      xnorm=zero
       do i=1,nd2
         call daabs(t(i),r)
       xnorm=xnorm+r
@@ -1676,6 +1698,7 @@
       subroutine flofac(xy,x,h)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1705,8 +1728,8 @@
       call daclrd(h)
       do 333 k=2,no
       call taked(w,k,v)
-      call dalind(v,1.d0,h,1.d0,h)
-      call facflod(h,w,v,k,k,-1.d0,-1)
+      call dalind(v,one,h,one,h)
+      call facflod(h,w,v,k,k,-one,-1)
       call dacopd(v,w)
  333  continue
       call dadal(w,nd2)
@@ -1717,6 +1740,7 @@
       subroutine liefact(xy,x,h)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1733,7 +1757,7 @@
       call etall(v,nd2)
 
       call flofac(xy,x,v)
-      call intd(v,h,-1.d0)
+      call intd(v,h,-one)
 !
       call dadal(v,nd2)
 
@@ -1743,6 +1767,7 @@
       subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1759,8 +1784,8 @@
       call etall(hf,nd2)
       isi=0
       call mapnormf(x,ftf,a2,a1,xy,hf,nord,isi)
-      call intd(hf,h,-1.d0)
-      call intd(ftf,ft,-1.d0)
+      call intd(hf,h,-one)
+      call intd(ftf,ft,-one)
       call dadal(ftf,nd2)
       call dadal(hf,nd2)
 
@@ -1832,6 +1857,7 @@
       subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -1855,25 +1881,25 @@
       call etallnom(a2i,nd2  ,'A2I       ')
 !     frank/etienne
       do itu=1,ndim
-        angle(itu)=0.d0
-        p(itu)=0.d0
-        st(itu)=0.d0
-        rad(itu)=0.d0
-        ps(itu)=0.d0
-        rads(itu)=0.d0
+        angle(itu)=zero
+        p(itu)=zero
+        st(itu)=zero
+        rad(itu)=zero
+        ps(itu)=zero
+        rads(itu)=zero
       enddo
       jtune=isi
 +if crlibm
-      x2pii=(1.d0/atan_rn(1.d0))/8.d0                                    !hr11
+      x2pii=(one/atan_rn(one))/eight                                    !hr11
 +ei
 +if .not.crlibm
-      x2pii=(1.d0/atan(1.d0))/8.d0                                       !hr11
+      x2pii=(one/atan(one))/eight                                       !hr11
 +ei
 +if crlibm
-      x2pi=atan_rn(1.d0)*8.d0
+      x2pi=atan_rn(one)*eight
 +ei
 +if .not.crlibm
-      x2pi=atan(1.d0)*8.d0
+      x2pi=atan(one)*eight
 +ei
       call dacopd(x,xy)
 ! goto fix point in the parameters + pt to order nord>=1
@@ -1882,7 +1908,7 @@
 ! linear part
       call midbflo(xy,a2,a2i,angle,rad,st)
       do ij=1,nd-ndc
-        p(ij)=angle(ij)*(st(ij)*(x2pii-1.d0)+1.d0)
+        p(ij)=angle(ij)*(st(ij)*(x2pii-one)+one)
       enddo
       if(ndc.eq.1) p(nd)=angle(nd)
       if(idpr.ge.0) then
@@ -1900,7 +1926,7 @@
       call orderflo(h,ft,xy,angle,rad)
       do ij=1,nd-ndc
         p(ij)=angle(ij)
-        if(angle(ij).gt.x2pi/2.d0.and.st(ij).gt.0.d0.and.itu.eq.1)then
+        if(angle(ij).gt.x2pi/two.and.st(ij).gt.zero.and.itu.eq.1)then
           p(ij)=angle(ij)-x2pi
           write(lout,*) ij,' TH TUNE MODIFIED IN H2 TO ',p(ij)/x2pi
         endif
@@ -1918,6 +1944,7 @@
       subroutine gofix(xy,a1,a1i,nord)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -1954,20 +1981,20 @@
 
       do i=1,nd2-ndc2
         call dacop(xy(i),x(i))
-        call dalin(x(i),1.d0,rel(i),-1.d0,v(i))
+        call dalin(x(i),one,rel(i),-one,v(i))
       enddo
       call etinv(v,w)
       call daclrd(x)
       if(ndc.eq.1) then
-        call davar(x(ndpt),0.d0,ndpt)
+        call davar(x(ndpt),zero,ndpt)
       endif
       call etcct(w,x,v)
       if(ndc.eq.1) then
         call daclr(v(nd2))
         call daclr(v(nd2-ndc))
       endif
-      call dalind(rel,1.d0,v,1.d0,a1)
-      call dalind(rel,1.d0,v,-1.d0,a1i)
+      call dalind(rel,one,v,one,a1)
+      call dalind(rel,one,v,-one,a1i)
 
       if(ndpt.ne.0) then
 
@@ -1977,7 +2004,7 @@
         call daclrd(x)
 
         do i=1,nd2-ndc2
-          call dalin(a1(i),1.d0,rel(i),-1.d0,w(i))
+          call dalin(a1(i),one,rel(i),-one,w(i))
         enddo
 
 !      COMPUTE Deta/Ddelta
@@ -1989,11 +2016,11 @@
 !      COMPUTE J*Deta/dDELTA
 
         do i=1,nd-ndc
-          call dacmu(w(2*i),1.d0,v(2*i-1) )
-          call dacmu(w(2*i-1),-1.d0,v(2*i) )
+          call dacmu(w(2*i),one,v(2*i-1) )
+          call dacmu(w(2*i-1),-one,v(2*i) )
         enddo
 
-        xic=dble((-1)**(ndt))                                            !hr11
+        xic=real((-1)**(ndt),fPrec)                                            !hr11
 
         do i=1,nd2-ndc2
           call damul(v(i),rel(i),x(1))
@@ -2002,7 +2029,7 @@
         enddo
         call dacmu(w(ndt),xic,w(ndt))
 
-        call expflod(w,rel,a1,1.d-7,10000)
+        call expflod(w,rel,a1,c1m7,10000)
 ! END OF  CORRECTIONS
 
         call etinv(a1,a1i)
@@ -2021,6 +2048,7 @@
       real(kind=fPrec) function transver(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2033,18 +2061,19 @@
 +ca ii
 +ca coast
 
-      transver=1.d0
+      transver=one
       ic=0
       do i=1,nd2-ndc2
         ic=ic+j(i)
       enddo
-      if(ic.ne.1) transver=0.d0
+      if(ic.ne.1) transver=zero
       return
       end
 +dk orderflo
       subroutine orderflo(h,ft,x,ang,ra)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -2078,7 +2107,7 @@
       call etcct(x,roi,x)
       do 33 k=2,no
 ! IF K>2 V = H(K)^-1 X(K)
-      call facflod(h,x,v,2,k-1,-1.d0,-1)
+      call facflod(h,x,v,2,k-1,-one,-1)
 ! EXTRACTING K TH DEGREE OF V ----> W
       call taked(v,k,w)
 !  write(16,*) "$$$$$$$$  K  $$$$$$$$$$", k
@@ -2088,22 +2117,22 @@
 ! B5 ON EXIT IS THE NEW CONTRIBUTION TO H
 ! B6 IS THE NEW CONTRIBUTION TO FT
        call nuanaflo(b5,b6)
-      call dalind(b5,1.d0,h,1.d0,b1)
+      call dalind(b5,one,h,one,b1)
       call dacopd(b1,h)
 ! EXP(B9) = EXP( : ROTI B6 :)
       call trxflo(b6,b9,roi)
 
 ! V = EXP(-B6) REL
-      call facflod(b6,rel,v,k,k,-1.d0,1)
+      call facflod(b6,rel,v,k,k,-one,1)
 ! W = V o X
       call etcct(v,x,w)
       if(idpr.ge.0) then
         write(lout,*) ' ORDERFLO K= ', k
       endif
 ! X = EXP(B9) W
-      call facflod(b9,w,x,k,k,1.d0,1)
+      call facflod(b9,w,x,k,k,one,1)
 ! B6 IS THE NEW CONTRIBUTION TO FT
-      call dalind(b6,1.d0,ft,1.d0,b1)
+      call dalind(b6,one,ft,one,b1)
       call dacopd(b1,ft)
  33   continue
       call dadal(b9,nd2)
@@ -2183,6 +2212,7 @@
       real(kind=fPrec) function xgam(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2199,9 +2229,9 @@
 +ca coast
 !      INTEGER J(NTT),JJ(NDIM),JP(NDIM)
       integer j(*),jj(ndim),jp(ndim)
-      xgam=0.d0
-      ad=0.d0
-      as=0.d0
+      xgam=zero
+      ad=zero
+      as=zero
       ic=0
       do i=1,nd-ndc
         ik=2*i-1
@@ -2216,28 +2246,29 @@
       enddo
 
       do i=1,nd-ndc
-        ad=((dsta(i)*dble(jj(i)))*angle(i)-dble(jp(i))*rad(i))+ad        !hr11
-        as=(sta(i)*dble(jj(i)))*angle(i)+as                              !hr11
+        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)      &
+     &*rad(i))+ad        !hr11
+        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
 +if crlibm
-      exh=exp_rn(ad/2.d0)
+      exh=exp_rn(ad/two)
 +ei
 +if .not.crlibm
-      exh=exp(ad/2.d0)
+      exh=exp(ad/two)
 +ei
       ex=exh**2
 +if crlibm
-      ans=(4.d0*ex)*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)             !hr11
+      ans=(four*ex)*(sinh_rn(ad/two)**2+sin_rn(as/two)**2)             !hr11
 +ei
 +if .not.crlibm
-      ans=(4.d0*ex)*(sinh(ad/2.d0)**2+sin(as/2.d0)**2)                   !hr11
+      ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                   !hr11
 +ei
 +if crlibm
-      xgam=(2.d0*(ex*sin_rn(as/2.d0)**2-exh*sinh_rn(ad/2.d0)))/ans       !hr11
+      xgam=(two*(ex*sin_rn(as/two)**2-exh*sinh_rn(ad/two)))/ans       !hr11
 +ei
 +if .not.crlibm
-      xgam=(2.d0*(ex*sin(as/2.d0)**2-exh*sinh(ad/2.d0)))/ans            !hr11
+      xgam=(two*(ex*sin(as/two)**2-exh*sinh(ad/two)))/ans            !hr11
 +ei
 
       return
@@ -2246,6 +2277,7 @@
       real(kind=fPrec) function xgbm(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2261,9 +2293,9 @@
 +ca coast
 !      INTEGER J(NTT),JJ(NDIM),JP(NDIM)
       integer j(*),jj(ndim),jp(ndim)
-      xgbm=0.d0
-      ad=0.d0
-      as=0.d0
+      xgbm=zero
+      ad=zero
+      as=zero
       ic=0
       do i=1,nd-ndc
         ik=2*i-1
@@ -2278,22 +2310,23 @@
       enddo
 
       do i=1,nd-ndc
-        ad=((dsta(i)*dble(jj(i)))*angle(i)-dble(jp(i))*rad(i))+ad        !hr11
-        as=(sta(i)*dble(jj(i)))*angle(i)+as                              !hr11
+        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)      &
+     &*rad(i))+ad        !hr11
+        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
 +if crlibm
-      exh=exp_rn(ad/2.d0)
+      exh=exp_rn(ad/two)
 +ei
 +if .not.crlibm
-      exh=exp(ad/2.d0)
+      exh=exp(ad/two)
 +ei
       ex=exh**2
 +if crlibm
-      ans=(4.d0*ex)*(sinh_rn(ad/2.d0)**2+sin_rn(as/2.d0)**2)             !hr11
+      ans=(four*ex)*(sinh_rn(ad/two)**2+sin_rn(as/two)**2)             !hr11
 +ei
 +if .not.crlibm
-      ans=(4.d0*ex)*(sinh(ad/2.d0)**2+sin(as/2.d0)**2)                  !hr11
+      ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                  !hr11
 +ei
 +if crlibm
       xgbm=(sin_rn(as)*ex)/ans                                           !hr11
@@ -2308,6 +2341,7 @@
       real(kind=fPrec) function filt(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2327,7 +2361,7 @@
 !      INTEGER J(NTT),JJ(NDIM)
       integer j(*),jj(ndim)
 
-      filt=1.d0
+      filt=one
 
       ic=0
       do i=1,nd-ndc
@@ -2354,13 +2388,14 @@
  3      continue
       enddo
 
-      filt=0.d0
+      filt=zero
       return
        end
 +dk dfilt
       real(kind=fPrec) function dfilt(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2380,10 +2415,10 @@
       integer j(*)
 
       fil=filt(j)
-      if(fil.gt.0.5d0) then
-       dfilt=0.d0
+      if(fil.gt.half) then
+       dfilt=zero
       else
-       dfilt=1.d0
+       dfilt=one
       endif
       return
        end
@@ -2391,6 +2426,7 @@
       subroutine dhdjflo(h,t)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2412,13 +2448,13 @@
       call etall(bb2(1),1)
 
 +if crlibm
-      x2pi=atan_rn(1.d0)*8.d0
+      x2pi=atan_rn(one)*eight
 +ei
 +if .not.crlibm
-      x2pi=atan(1.d0)*8.d0
+      x2pi=atan(one)*eight
 +ei
       call ctorflo(h,b1,b2)
-      coe=1.d0/x2pi
+      coe=one/x2pi
 
       do i=1,nd-ndc
         call datra(2*i,b2(2*i),bb1(1))
@@ -2444,6 +2480,7 @@
       subroutine dhdj(h,t)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2464,13 +2501,13 @@
       call etallnom(bb2(1),1,'BB2       ')
 
 +if crlibm
-      x2pi=atan_rn(1.d0)*8.d0
+      x2pi=atan_rn(one)*eight
 +ei
 +if .not.crlibm
-      x2pi=atan(1.d0)*8.d0
+      x2pi=atan(one)*eight
 +ei
       call ctor(h,b1(1),b2(1))
-      coe=-2.d0/x2pi
+      coe=-two/x2pi
       do i=1,nd-ndc
         call dader(2*i-1,b1(1),b2(1))
         call datra(2*i,b2(1),bb2(1))
@@ -2484,8 +2521,8 @@
       if(ndpt.eq.nd2) then
         call dader(ndpt,h,t(nd))
         call dader(ndpt,b1(1),t(nd2))
-        call dacmu(t(nd),-1.d0,t(nd))
-        call dacmu(t(nd2),-1.d0,t(nd2))
+        call dacmu(t(nd),-one,t(nd))
+        call dacmu(t(nd2),-one,t(nd2))
       endif
       if(ndt.eq.nd2) then
         call dader(ndpt,h,t(nd))
@@ -2501,6 +2538,7 @@
       subroutine h2pluflo(h,ang,ra)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2518,7 +2556,7 @@
 !*DAEXT(NO,NV) H
 
       do i=1,nd
-        st(i)=2.d0*sta(i)-1.d0
+        st(i)=two*sta(i)-one
       enddo
 
       do i=1,ntt
@@ -2527,7 +2565,7 @@
 
       do i=1,nd-ndc
         j(2*i-1)=1
-        r1=-1d0*ang(i)                                                   !hr11
+        r1=-one*ang(i)                                                   !hr11
 !-----
         call dapok(h(2*i),j,r1)
 
@@ -2548,7 +2586,7 @@
         call dapok(h(ndt),j,ang(nd))
       elseif(ndpt.eq.nd2) then
         j(ndpt)=1
-        call dapok(h(ndt),j,-1d0*ang(nd))                                !hr11
+        call dapok(h(ndt),j,-one*ang(nd))                                !hr11
       endif
       return
       end
@@ -2556,6 +2594,7 @@
       subroutine rotflo(ro,ang,ra)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2584,7 +2623,7 @@
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-          si(i)=(-1d0*sh)*xx                                             !hr11
+          si(i)=(-one*sh)*xx                                             !hr11
         else
 +if crlibm
           co(i)=cos_rn(ang(i))*xx
@@ -2604,7 +2643,7 @@
         if(ista(i).eq.0)then
           sim=si(i)
         else
-          sim=-1d0*si(i)                                                 !hr11
+          sim=-one*si(i)                                                 !hr11
         endif
         j(2*i-1)=1
         call dapok(ro(2*i-1),j,co(i))
@@ -2618,12 +2657,12 @@
 
       if(ndc.eq.1) then
         j(ndt)=1
-        call dapok(ro(ndt),j,1.d0)
-        call dapok(ro(ndpt),j,0.d0)
+        call dapok(ro(ndt),j,one)
+        call dapok(ro(ndpt),j,zero)
         j(ndt)=0
         j(ndpt)=1
         call dapok(ro(ndt),j,ang(nd))
-        call dapok(ro(ndpt),j,1.d0)
+        call dapok(ro(ndpt),j,one)
         j(ndpt)=0
       endif
 
@@ -2633,6 +2672,7 @@
       subroutine rotiflo(roi,ang,ra)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2656,15 +2696,15 @@
       call daclrd(roi)
       do i=1,nd-ndc
 +if crlibm
-        xx=exp_rn(-1d0*ra(i))                                            !hr11
+        xx=exp_rn(-one*ra(i))                                            !hr11
 +ei
 +if .not.crlibm
-        xx=exp(-1d0*ra(i))                                               !hr11
+        xx=exp(-one*ra(i))                                               !hr11
 +ei
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-          si(i)=(-1d0*sh)*xx
+          si(i)=(-one*sh)*xx
         else
 +if crlibm
           co(i)=cos_rn(ang(i))*xx
@@ -2684,15 +2724,15 @@
         if(ista(i).eq.0)then
           sim=si(i)
         else
-          sim=-1d0*si(i)                                                 !hr11
+          sim=-one*si(i)                                                 !hr11
         endif
         j(2*i-1)=1
         call dapok(roi(2*i-1),j,co(i))
-        simv=-1d0*sim                                                    !hr11
+        simv=-one*sim                                                    !hr11
         call dapok(roi(2*i),j,simv)
         j(2*i-1)=0
         j(2*i)=1
-        simv=-1d0*si(i)                                                  !hr11
+        simv=-one*si(i)                                                  !hr11
         call dapok(roi(2*i),j,co(i))
         call dapok(roi(2*i-1),j,simv)
         j(2*i)=0
@@ -2700,12 +2740,12 @@
 
       if(ndc.eq.1) then
         j(ndt)=1
-        call dapok(roi(ndt),j,1.d0)
-        call dapok(roi(ndpt),j,0.d0)
+        call dapok(roi(ndt),j,one)
+        call dapok(roi(ndpt),j,zero)
         j(ndt)=0
         j(ndpt)=1
         call dapok(roi(ndt),j,-ang(nd))
-        call dapok(roi(ndpt),j,1.d0)
+        call dapok(roi(ndpt),j,one)
         j(ndpt)=0
       endif
 
@@ -2715,6 +2755,7 @@
       subroutine hyper(a,ch,sh)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2726,15 +2767,16 @@
 +if .not.crlibm
       x=exp(a)
 +ei
-      xi=1.d0/x
-      ch=(x+xi)/2.d0
-      sh=(x-xi)/2.d0
+      xi=one/x
+      ch=(x+xi)/two
+      sh=(x-xi)/two
       return
       end
 +dk ctor
       subroutine ctor(c1,r2,i2)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2755,8 +2797,8 @@
       call ctoi(c1,b1(1))
       call etcjg(x)
       call trx(b1(1),b2(1),x)
-      call dalin(b1(1),.5d0,b2(1),.5d0,r2)
-      call dalin(b1(1),.5d0,b2(1),-.5d0,i2)
+      call dalin(b1(1),half,b2(1),half,r2)
+      call dalin(b1(1),half,b2(1),-half,i2)
       call dadal(x,nd2)
       call dadal(b2(1),1)
       call dadal(b1(1),1)
@@ -2926,6 +2968,7 @@
       subroutine reelflo(c,ci,f,fi)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2944,14 +2987,14 @@
       call etall(ei,nd2)
 
       do i=1,nd-ndc
-        call dalin(c(2*i-1),0.5d0,c(2*i),0.5d0,e(2*i-1))
-        call dalin(ci(2*i-1),0.5d0,ci(2*i),0.5d0,ei(2*i-1))
+        call dalin(c(2*i-1),half,c(2*i),half,e(2*i-1))
+        call dalin(ci(2*i-1),half,ci(2*i),half,ei(2*i-1))
         if(ista(i).eq.1) then
-          call dalin(ci(2*i-1),0.5d0,ci(2*i),-0.5d0,e(2*i))
-          call dalin(c(2*i-1),-0.5d0,c(2*i),0.5d0,ei(2*i))
+          call dalin(ci(2*i-1),half,ci(2*i),-half,e(2*i))
+          call dalin(c(2*i-1),-half,c(2*i),half,ei(2*i))
         else
-          call dalin(ci(2*i-1),0.5d0,ci(2*i),-0.5d0,ei(2*i))
-          call dalin(c(2*i-1),0.5d0,c(2*i),-0.5d0,e(2*i))
+          call dalin(ci(2*i-1),half,ci(2*i),-half,ei(2*i))
+          call dalin(c(2*i-1),half,c(2*i),-half,e(2*i))
         endif
       enddo
 
@@ -2971,6 +3014,7 @@
       subroutine compcjg(cr,ci,dr,di)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -2987,7 +3031,7 @@
       call etcjg(x)
       call trx(cr,dr,x)
       call trx(ci,di,x)
-      call dacmu(di,-1.d0,di)
+      call dacmu(di,-one,di)
 
       call dadal(x,nd2)
       return
@@ -2996,6 +3040,7 @@
       subroutine midbflo(c,a2,a2i,q,a,st)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -3014,10 +3059,10 @@
       integer c(*),a2(*),a2i(*)
 !*DAEXT(NO,NV) C(NDIM2),A2(NDIM2),A2I(NDIM2)
 +if crlibm
-      x2pi=atan_rn(1.d0)*8.d0
+      x2pi=atan_rn(one)*eight
 +ei
 +if .not.crlibm
-      x2pi=atan(1.d0)*8.d0
+      x2pi=atan(one)*eight
 +ei
 
       do i=1,ntt
@@ -3026,18 +3071,18 @@
 
 !     frank/etienne
       do i=1,ndim
-        st(i)=0d0
-        q(i)=0d0
-        a(i)=0d0
+        st(i)=zero
+        q(i)=zero
+        a(i)=zero
       enddo
 !     frank/etienne
       do i=1,ndim2
 !     frank/etienne
         do j=1,ndim2
-          sai(i,j)=0.d0
-          sa(i,j)=0.d0
-          cm(i,j)=0.d0
-          cr(i,j)=0.d0
+          sai(i,j)=zero
+          sa(i,j)=zero
+          cm(i,j)=zero
+          cr(i,j)=zero
         enddo
       enddo
 
@@ -3052,7 +3097,7 @@
 
       call mapflol(sa,sai,cr,cm,st)
       do i=1,nd-ndc
-        if(st(i)+0.001d0.gt.1.d0) then                                   !hr11
+        if(st(i)+c1m3.gt.one) then                                   !hr11
           a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
 +if crlibm
           q(i)=acos_rn(cr(2*i-1,2*i-1)/a(i))
@@ -3066,7 +3111,7 @@
 +if .not.crlibm
           a(i)=log(a(i))
 +ei
-          if(cr(2*i-1,2*i).lt.0.d0) q(i)=x2pi-q(i)
+          if(cr(2*i-1,2*i).lt.zero) q(i)=x2pi-q(i)
         else
           a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)                 !hr11
           ch=cr(2*i-1,2*i-1)/a(i)
@@ -3074,10 +3119,10 @@
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
 +if crlibm
-          q(i)=-1d0*log_rn(ch+shm)                                       !hr11
+          q(i)=-one*log_rn(ch+shm)                                       !hr11
 +ei
 +if .not.crlibm
-          q(i)=-1d0*log(ch+shm)                                          !hr11
+          q(i)=-one*log(ch+shm)                                          !hr11
 +ei
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
 +if crlibm
@@ -3090,7 +3135,7 @@
       enddo
 
       if(ndc.eq.0) then
-        if(st(3)+0.001d0.gt.1.d0.and.nd.eq.3.and.q(nd).gt.0.5d0)        &!hr11
+        if(st(3)+c1m3.gt.one.and.nd.eq.3.and.q(nd).gt.half)             &!hr11
      &q(3)=q(3)-x2pi
       else
         q(nd)=cr(ndt,ndpt)
@@ -3103,10 +3148,10 @@
         do j=1,nd2
           jx(j)=1
           r=sa(i,j)
-          if(r.ne.0.d0)call  dapok(a2(i),jx,r)
+          if(r.ne.zero)call  dapok(a2(i),jx,r)
           jx(j)=1
           r=sai(i,j)
-          if(r.ne.0.d0)call  dapok(a2i(i),jx,r)
+          if(r.ne.zero)call  dapok(a2i(i),jx,r)
           jx(j)=0
         enddo
       enddo
@@ -3117,6 +3162,7 @@
       subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -3137,45 +3183,45 @@
      &,sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
 +if crlibm
-      x2pi=atan_rn(1.d0)*8.d0
+      x2pi=atan_rn(one)*eight
 +ei
 +if .not.crlibm
-      x2pi=atan(1.d0)*8.d0
+      x2pi=atan(one)*eight
 +ei
       n1=0
 !     frank/etienne
       do i=1,ndim2
         do j=1,ndim2
           cr(j,i)=cm(i,j)
-          xj(i,j)=0.d0
-          s1(i,j)=0.d0
+          xj(i,j)=zero
+          s1(i,j)=zero
         enddo
       enddo
 !     frank/etienne
       do i=1,ndim
         n(i)=0
-        xj(2*i-1,2*i)=1.d0
-        xj(2*i,2*i-1)=-1.d0
+        xj(2*i-1,2*i)=one
+        xj(2*i,2*i-1)=-one
       enddo
 !     frank/etienne
       do i=1,ndim2
         do j=1,ndim2
-          sai(i,j)=0.d0
+          sai(i,j)=zero
           w(i,j)=cm(i,j)
         enddo
       enddo
       if(ndc.eq.1) then
-        s1(nd2-ndc,nd2-ndc)=1.d0
-        s1(nd2,nd2)=1.d0
-        sai(nd2-ndc,nd2-ndc)=1.d0
-        sai(nd2,nd2)=1.d0
+        s1(nd2-ndc,nd2-ndc)=one
+        s1(nd2,nd2)=one
+        sai(nd2-ndc,nd2-ndc)=one
+        sai(nd2,nd2)=one
       endif
       call mulnd2(xj,w)
       call mulnd2(cr,w)
       if(idpr.ge.0.or.idpr.eq.-102) then
         write(lout,*)                                                   &
      &'Check of the symplectic condition on the linear part'
-        xsu=0.d0
+        xsu=zero
         do i=1,nd2
           write(lout,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
           do j=1,nd2
@@ -3183,7 +3229,7 @@
           enddo
         enddo
         write(lout,*)'deviation for symplecticity ',                    &
-     &100.d0*(xsu-nd2)/xsu,
+     &100.0_fPrec*(xsu-nd2)/xsu,
      &' %'
 +if debug
 !       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
@@ -3227,7 +3273,7 @@
         enddo
       elseif(idpr.eq.-101.or.idpr.eq.-102) then
         do i=1,nd-ndc
-          if(ri(2*i).ne.0.d0) then
+          if(ri(2*i).ne.zero) then
             n(i)=2*i-1
           else
             n(i)=-2*i+1
@@ -3242,13 +3288,13 @@
       do i=1,nd-ndc                  ! frank ndc  kept
         if(n(i).lt.0) then
           n(i)=-n(i)
-          st(i)=0.d0
+          st(i)=zero
           iunst=1
         else
-          st(i)=1.d0
+          st(i)=one
         endif
-        x(i)=0.d0
-        xx(i)=1.d0
+        x(i)=zero
+        xx(i)=one
         do j=1,nd-ndc
           x(i)=vr(2*j-1,n(i))*vi(2*j,n(i))-vr(2*j,n(i))*vi(2*j-1,n(i))+ &
      &x(i)
@@ -3256,19 +3302,19 @@
       enddo
 
       do i=1,nd-ndc
-        if(x(i).lt.0.d0) xx(i)=-1.d0
+        if(x(i).lt.zero) xx(i)=-one
         x(i)=sqrt(abs(x(i)))
       enddo
       do i=1,nd2-ndc2
         do j=1,nd-ndc
-          if(st(j)+0.001.gt.1.d0) then
+          if(st(j)+0.001.gt.one) then
             sai(2*j-1,i)=vr(i,n(j))*xx(j)/x(j)
             sai(2*j,i)=vi(i,n(j))/x(j)
           else
             ax=vr(i,n(j))*xx(j)/x(j)
             ap=vi(i,n(j))/x(j)
-            sai(2*j-1,i)=(ax+ap)/sqrt(2.d0)
-            sai(2*j,i)=(ap-ax)/sqrt(2.d0)
+            sai(2*j-1,i)=(ax+ap)/sqrt(two)
+            sai(2*j,i)=(ap-ax)/sqrt(two)
           endif
         enddo
       enddo
@@ -3313,11 +3359,11 @@
         call mulnd2(s1,sai)
 ! adjust sa to have sa(1,1)>0 and sa(3,3)>0 rotate by pi if necessary.
         do i=1,nd-ndc
-          xd=1.d0
-          if(sai(2*i-1,2*i-1).lt.0.d0) xd=-1.d0
+          xd=one
+          if(sai(2*i-1,2*i-1).lt.zero) xd=-one
           s1(2*i-1,2*i-1)=xd
-          s1(2*i-1,2*i)=0.d0
-          s1(2*i,2*i-1)=0.d0
+          s1(2*i-1,2*i)=zero
+          s1(2*i,2*i-1)=zero
           s1(2*i,2*i)=xd
         enddo
         call mulnd2(s1,sai)
@@ -3345,6 +3391,7 @@
       subroutine mulnd2(rt,r)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -3356,7 +3403,7 @@
       dimension rt(ndim2,ndim2),r(ndim2,ndim2),rtt(ndim2,ndim2)
       do 11 i=1,nd2
         do 12 j=1,nd2
- 12     rtt(i,j)=0.d0
+ 12     rtt(i,j)=zero
  11   continue
       do 1 i=1,nd2
         do 2 j=1,nd2
@@ -3377,6 +3424,7 @@
       subroutine movearou(rt)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -3393,53 +3441,53 @@
       dimension s(ndim2,ndim2)
       do 11 i=1,nd2
         do 12 j=1,nd2
-          s(i,j)=0.d0
-          s(i,i)=1.d0
-          xy(i,j)=0.d0
-          xz(i,j)=0.d0
-          yz(i,j)=0.d0
-          xyz(i,j)=0.d0
-          xzy(i,j)=0.d0
+          s(i,j)=zero
+          s(i,i)=one
+          xy(i,j)=zero
+          xz(i,j)=zero
+          yz(i,j)=zero
+          xyz(i,j)=zero
+          xzy(i,j)=zero
  12     continue
  11   continue
 
-      xy(1,3)=1.d0
-      xy(3,1)=1.d0
-      xy(2,4)=1.d0
-      xy(4,2)=1.d0
-      xy(5,5)=1.d0
-      xy(6,6)=1.d0
+      xy(1,3)=one
+      xy(3,1)=one
+      xy(2,4)=one
+      xy(4,2)=one
+      xy(5,5)=one
+      xy(6,6)=one
 
-      xz(1,5)=1.d0
-      xz(5,1)=1.d0
-      xz(2,6)=1.d0
-      xz(6,2)=1.d0
-      xz(3,3)=1.d0
-      xz(4,4)=1.d0
+      xz(1,5)=one
+      xz(5,1)=one
+      xz(2,6)=one
+      xz(6,2)=one
+      xz(3,3)=one
+      xz(4,4)=one
 
-      yz(3,5)=1.d0
-      yz(5,3)=1.d0
-      yz(4,6)=1.d0
-      yz(6,4)=1.d0
-      yz(1,1)=1.d0
-      yz(2,2)=1.d0
+      yz(3,5)=one
+      yz(5,3)=one
+      yz(4,6)=one
+      yz(6,4)=one
+      yz(1,1)=one
+      yz(2,2)=one
 
-      xyz(1,3)=1.d0
-      xyz(3,5)=1.d0
-      xyz(5,1)=1.d0
-      xyz(2,4)=1.d0
-      xyz(4,6)=1.d0
-      xyz(6,2)=1.d0
+      xyz(1,3)=one
+      xyz(3,5)=one
+      xyz(5,1)=one
+      xyz(2,4)=one
+      xyz(4,6)=one
+      xyz(6,2)=one
 
-      xzy(1,5)=1.d0
-      xzy(5,3)=1.d0
-      xzy(3,1)=1.d0
-      xzy(2,6)=1.d0
-      xzy(6,4)=1.d0
-      xzy(4,2)=1.d0
+      xzy(1,5)=one
+      xzy(5,3)=one
+      xzy(3,1)=one
+      xzy(2,6)=one
+      xzy(6,4)=one
+      xzy(4,2)=one
 
       ic=0
-      xrold=1000000000.d0
+      xrold=1000000000.0_fPrec
       call movemul(rt,s,rto,xr)
 ! write(6,*) xr,xrold
 !  do i=1,6
@@ -3513,6 +3561,7 @@
       subroutine movemul(rt,xy,rto,xr)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -3526,7 +3575,7 @@
 
       do 11 i=1,nd2
         do 12 j=1,nd2
- 12       rto(i,j)=0.d0
+ 12       rto(i,j)=zero
  11   continue
 
       do  i=1,nd2
@@ -3537,7 +3586,7 @@
         enddo
       enddo
 
-      xr=0.d0
+      xr=zero
       do i=1,nd2
         do j=1,nd2
           xr=xr+abs(rto(i,j))
@@ -3555,6 +3604,7 @@
       subroutine initpert(st,ang,ra)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -3599,10 +3649,10 @@
       enddo
 !      frank/Etienne
       do i=1,ndim
-        angle(i)=0.d0
-        rad(i)=0.d0
-        sta(i)=0.d0
-        dsta(i)=1.d0-sta(i)
+        angle(i)=zero
+        rad(i)=zero
+        sta(i)=zero
+        dsta(i)=one-sta(i)
         ista(i)=0
         idsta(i)=0
       enddo
@@ -3610,11 +3660,11 @@
         angle(i)=ang(i)
         rad(i)=ra(i)
         sta(i)=st(i)
-        dsta(i)=1.d0-sta(i)
+        dsta(i)=one-sta(i)
       enddo
       do i=1,nd
-        ista(i)=int(sta(i)+.01)
-        idsta(i)=int(dsta(i)+.01)
+        ista(i)=int(sta(i)+c1m2)
+        idsta(i)=int(dsta(i)+c1m2)
       enddo
       return
       end
@@ -3622,6 +3672,7 @@
       real(kind=fPrec) function dlie(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -3631,17 +3682,18 @@
 !      INTEGER J(NTT)
       integer j(*)
 +ca ii
-      dlie=0.d0
+      dlie=zero
       do 1 i=1,nd
- 1    dlie=dble(j(2*i-1)+j(2*i))+dlie
-      dlie=dlie+1.d0
-      dlie=1.d0/dlie
+ 1    dlie=real(j(2*i-1)+j(2*i),fPrec)+dlie
+      dlie=dlie+one
+      dlie=one/dlie
       return
       end
 +dk rext
       real(kind=fPrec) function rext(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -3658,13 +3710,13 @@
       enddo
       mo=mod(lie,4)+1
       goto(11,12,13,14),mo
- 11   rext = 1.d0
+ 11   rext = one
       return
- 12   rext = -1.d0
+ 12   rext = -one
       return
- 13   rext = -1.d0
+ 13   rext = -one
       return
- 14   rext = 1.d0
+ 14   rext = one
       return
       end
 +dk cpart
@@ -3766,6 +3818,7 @@
       subroutine etctr(x)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -3784,8 +3837,8 @@
       call etini(rel)
       call etini(x)
       do i=1,nd-ndc
-        call dalin(rel(2*i-1),.5d0,rel(2*i),.5d0,x(2*i-1))
-        call dalin(rel(2*i-1),.5d0,rel(2*i),-.5d0,x(2*i))
+        call dalin(rel(2*i-1),half,rel(2*i),half,x(2*i-1))
+        call dalin(rel(2*i-1),half,rel(2*i),-half,x(2*i))
       enddo
       call dadal(rel,nd2)
       return
@@ -3829,6 +3882,7 @@
       subroutine eig6(fm,reval,aieval,revec,aievec)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -3889,7 +3943,7 @@
         enddo
       enddo
       do i=1,nd2-ndc2
-        if(abs(reval(i)**2+aieval(i)**2 -1.d0).gt.1.d-10) then
+        if(abs(reval(i)**2+aieval(i)**2 -one).gt.c1m10) then
           write(lout,*) ' EIG6: Eigenvalues off the unit circle!'
         endif
       enddo
@@ -4098,6 +4152,7 @@
       subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4177,7 +4232,7 @@
 !                the relative precision of floating point arithmetic.
 !
 !                **********
-      machep = 1.d-17
+      machep = 1.0e-17_fPrec
 !     machep = r1mach(4)
 !
       ierr = 0
@@ -4431,7 +4486,7 @@
 ! 720    z3 = cmplx(0.0,-h(na,en)) / cmplx(h(na,na)-p,q)
 !        h(na,na) = real(z3)
 !        h(na,en) = aimag(z3)
-  720    call etdiv(z3r,z3i,0.d0,-h(na,en),h(na,na)-p,q)
+  720    call etdiv(z3r,z3i,zero,-h(na,en),h(na,na)-p,q)
          h(na,na) = z3r
          h(na,en) = z3i
   730    h(en,na) = 0.0
@@ -4526,6 +4581,7 @@
       subroutine etdiv(a,b,c,d,e,f)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4554,8 +4610,8 @@
         dd = c
         flip = 1
       endif
-      s = 1.d0/ee
-      t = 1.d0/(ee+ ff*(ff*s))
+      s = one/ee
+      t = one/(ee+ ff*(ff*s))
       if ( abs(ff) .ge. abs(s) ) then
         temp = ff
         ff = s
@@ -4597,6 +4653,7 @@
 !  Written by F. Neri  Feb 7 1986
 !
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4610,10 +4667,10 @@
         kq = kp-1
         do 200 lp=2,kp-2,2
           lq = lp-1
-          qq = 0.d0
-          pq = 0.d0
-          qp = 0.d0
-          pp = 0.d0
+          qq = zero
+          pq = zero
+          qp = zero
+          pp = zero
           do 300 jp=2,2*n,2
             jq = jp-1
             qq = qq + m(lq,jq)*m(kq,jp) - m(lq,jp)*m(kq,jq)
@@ -4627,7 +4684,7 @@
             m(kp,i) = m(kp,i) - qp*m(lp,i) + pp*m(lq,i)
   400     continue
   200   continue
-        qp = 0.d0
+        qp = zero
         do 500 jp=2,2*n,2
           jq = jp-1
           qp = qp + m(kq,jq)*m(kp,jp) - m(kq,jp)*m(kp,jq)
@@ -4655,6 +4712,7 @@
       subroutine averaged(f,a,flag,fave)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4699,7 +4757,7 @@
       call mapnormf(a,ftf,a2,a1,xy,hf,nord,isi)
       nord=no
       call etcct(a1,a2,xy)
-      call facflod(ftf,xy,a1,2,nord,1.d0,-1)
+      call facflod(ftf,xy,a1,2,nord,one,-1)
       call trx(f,f,a1)
       call ctor(f,cosi(1),sine(1))
       call dacfu(cosi(1),avepol,fave)
@@ -4720,6 +4778,7 @@
       real(kind=fPrec) function avepol(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4730,10 +4789,10 @@
       integer j(*)
 +ca ii
 +ca coast
-      avepol=1.d0
+      avepol=one
       do i=1,(nd-ndc)
         if(j(2*i).ne.j(2*i-1)) then
-          avepol=0.d0
+          avepol=zero
           return
         endif
       enddo
@@ -4744,6 +4803,7 @@
       subroutine couplean(map1,tune,map2,oneturn)
       use floatPrecision
       implicit none
++ca parnum
 +ca crcoall
 +if crlibm
 +ca crlibco
@@ -4784,10 +4844,10 @@
 !     one order is lost because I use PB-field
 
 +if crlibm
-      tpi=atan_rn(1.d0)*8.d0
+      tpi=atan_rn(one)*eight
 +ei
 +if .not.crlibm
-      tpi=atan(1.d0)*8.d0
+      tpi=atan(one)*eight
 +ei
       do i=1,nd2
         call dacfu(map1(i),killnonl,m1(i))
@@ -4800,7 +4860,7 @@
         call dasqr(xy(2*i-1),a2(2*i-1))
         call dasqr(xy(2*i),a2(2*i))
         call daadd(a2(2*i-1),a2(2*i),ftf(1))
-        crazy=-tune(i)*tpi/2.d0
+        crazy=-tune(i)*tpi/two
         call dacmu(ftf(1),crazy,ftf(1))
         call daadd(ftf(1),cs(1),cs(1))
       enddo
@@ -4810,11 +4870,11 @@
 
       call dacfu(h(1),planar,cs(1))
       call dasub(h(1),cs(1),h(1))
-      call davar(a2(1),0.d0,nv)
+      call davar(a2(1),zero,nv)
 
       call damul(a2(1),h(1),h(1))
       call daadd(cs(1),h(1),h(1))
-      call expnd2(h(1),xy,xy,1.d-9,1000)
+      call expnd2(h(1),xy,xy,c1m9,1000)
 
       call dacopd(xy,oneturn)
 
@@ -4826,7 +4886,7 @@
 
       call etini(xy)
       no1=no
-      call fexpo(ftf(1),xy,xy,3,no1,1.d0,-1)
+      call fexpo(ftf(1),xy,xy,3,no1,one,-1)
       call etcct(a2,xy,map2)
       call etcct(a1,map2,map2)
 
@@ -4846,6 +4906,7 @@
       real(kind=fPrec) function planar(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4856,18 +4917,18 @@
       integer j(*)
 +ca ii
 +ca coast
-      planar=0.d0
+      planar=zero
       do i=1,(nd-ndc)
         if(j(2*i).eq.j(2*i-1)) then
-          planar=1.d0
+          planar=one
           return
         endif
         if(j(2*i).eq.2) then
-          planar=1.d0
+          planar=one
           return
         endif
         if(j(2*i-1).eq.2) then
-          planar=1.d0
+          planar=one
           return
         endif
       enddo
@@ -4878,6 +4939,7 @@
       real(kind=fPrec) function killnonl(j)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4889,14 +4951,14 @@
 +ca ii
 +ca coast
 
-      killnonl=1.d0
+      killnonl=one
 
       ic=0
       do i=1,nd2-ndc2
         ic=ic+j(i)
       enddo
-      if(ic.gt.1) killnonl=0.d0
-      if(j(nv).ne.0) killnonl=0.d0
+      if(ic.gt.1) killnonl=zero
+      if(j(nv).ne.0) killnonl=zero
 
       return
       end
@@ -4904,6 +4966,7 @@
       subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4920,7 +4983,7 @@
       nrmi=nrmin-1
       nrma=nrmax-1
       call etall(v,nd2)
-      call difd(h,v,-1.d0)
+      call difd(h,v,-one)
       call facflo(v,x,w,nrmi,nrma,sca,ifac)
       call dadal(v,nd2)
 
@@ -4930,6 +4993,7 @@
       subroutine etcctpar(x,ix,xj,z)
       use floatPrecision
       implicit none
++ca parnum
 +if crlibm
 +ca crlibco
 +ei
@@ -4945,7 +5009,7 @@
 
       call etallnom(ie,nv,'IE        ')
       do i=1,nd2
-      call davar(ie(i),0.d0,i)
+      call davar(ie(i),zero,i)
       enddo
       do  i=nd2+1,nv
       call dacon(ie(i),xj(i-nd2))
