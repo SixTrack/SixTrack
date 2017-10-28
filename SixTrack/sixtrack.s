@@ -939,11 +939,11 @@
       double precision part_indiv(npart),part_linteract(npart)
 
       integer part_hit(npart),part_abs_pos(npart),part_abs_turn(npart), &
-     &     n_tot_absorbed,n_absorbed,
+     &     n_tot_absorbed,n_absorbed,                                   &
      &     part_select(npart),nabs_type(npart)
       double precision part_impact(npart)
-      common /stats/ part_impact,part_hit,part_abs_pos,part_abs_turn,
-     &     nabs_type,part_indiv,
+      common /stats/ part_impact,part_hit,part_abs_pos,part_abs_turn,   &
+     &     nabs_type,part_indiv,                                        &
      &     part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
