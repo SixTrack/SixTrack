@@ -7,27 +7,11 @@
 !
 !     WUENSCHE
 !     -ALLE OUTPUTS VON ZENTRALER ROUTINE, DIE RICHTIG FORMATIERT
+
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
+
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
-!      CHARACTER A*160
-!      INTEGER NA(50)
-!
+
       !For command line argument parsing
       INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
       CHARACTER(len=100) :: cmdarg_arg
@@ -36,32 +20,32 @@
 !
 !      IARI = 0
 !
-      WRITE(6,*)' '
-      WRITE(6,*)' '
-      WRITE(6,*)' '
-      WRITE(6,*)' '
-      WRITE(6,*)' '
-      WRITE(6,*)'               **************************************'
-      WRITE(6,*)'               *                                    *'
-      WRITE(6,*)'               *               F O X                *'
-      WRITE(6,*)'               *                                    *'
-      WRITE(6,*)'               *    EXTENDED FORTRAN PRECOMPILER    *'
-      WRITE(6,*)'               *                                    *'
-      WRITE(6,*)'               *             VERSION  2             *'
-      WRITE(6,*)'               *                                    *'
-      WRITE(6,*)'               *            M. BERZ 1989            *'
-      WRITE(6,*)'               *                                    *'
-      WRITE(6,*)'               *     Minor Modifications for        *'
-      WRITE(6,*)'               *             SIXTRACK               *'
-      WRITE(6,*)'               *                                    *'
-      WRITE(6,*)'               *         F. Schmidt 1997            *'
-      WRITE(6,*)'               *                                    *'
-      WRITE(6,*)'               **************************************'
-      WRITE(6,*)' '
-      WRITE(6,*)' '
-      WRITE(6,*)' '
-      WRITE(6,*)' '
-      WRITE(6,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)'               **************************************'
+      WRITE(OUTPUT_UNIT,*)'               *                                    *'
+      WRITE(OUTPUT_UNIT,*)'               *               F O X                *'
+      WRITE(OUTPUT_UNIT,*)'               *                                    *'
+      WRITE(OUTPUT_UNIT,*)'               *    EXTENDED FORTRAN PRECOMPILER    *'
+      WRITE(OUTPUT_UNIT,*)'               *                                    *'
+      WRITE(OUTPUT_UNIT,*)'               *             VERSION  2             *'
+      WRITE(OUTPUT_UNIT,*)'               *                                    *'
+      WRITE(OUTPUT_UNIT,*)'               *            M. BERZ 1989            *'
+      WRITE(OUTPUT_UNIT,*)'               *                                    *'
+      WRITE(OUTPUT_UNIT,*)'               *     Minor Modifications for        *'
+      WRITE(OUTPUT_UNIT,*)'               *             SIXTRACK               *'
+      WRITE(OUTPUT_UNIT,*)'               *                                    *'
+      WRITE(OUTPUT_UNIT,*)'               *         F. Schmidt 1997            *'
+      WRITE(OUTPUT_UNIT,*)'               *                                    *'
+      WRITE(OUTPUT_UNIT,*)'               **************************************'
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
+      WRITE(OUTPUT_UNIT,*)' '
 !
 ! 5    CONTINUE
       
@@ -78,19 +62,19 @@
             continue
          else if (cmdarg_i.eq.1) then
             if (cmdarg_status.ne.0) then
-               write(6,*) "Error: Input file name too long."
+               WRITE(ERROR_UNIT,*) "Error: Input file name too long."
                stop 1
             end if
             fname_in = trim(cmdarg_arg)
          else if (cmdarg_i.eq.2) then
             if (cmdarg_status.ne.0) then
-               write(6,*) "Error: Output file name too long."
+               WRITE(ERROR_UNIT,*) "Error: Output file name too long."
                stop 1
             end if
             fname_out = trim(cmdarg_arg)
          else
-            write(6,*) "Error: Expected either no arguments OR "
-            write(6,*) "two arguements (input and output file name)"
+            WRITE(ERROR_UNIT,*) "Error: Expected either no arguments OR "
+            WRITE(ERROR_UNIT,*) "two arguements (input and output file name)"
             stop 1
          end if
          cmdarg_i = cmdarg_i+1
@@ -100,12 +84,12 @@
          fname_in = "fort.1"
          fname_out = "fort.2"
       else if(cmdarg_i.ne.3) then
-         write(6,*) "Error: Expected either no arguments OR "
-         write(6,*) "two arguements (input and output file name)"
+         WRITE(ERROR_UNIT,*) "Error: Expected either no arguments OR "
+         WRITE(ERROR_UNIT,*) "two arguements (input and output file name)"
          stop 2
       end if
       if (fname_in.eq.fname_out) then
-         write(6,*) "Error: input and output filename should not be the same!"
+         WRITE(ERROR_UNIT,*) "Error: input and output filename should not be the same!"
          stop 3
       end if
       
@@ -127,10 +111,11 @@
       subroutine predata
 !
 ! Eric: use local LL DATA and copy it to the COMMON blocks
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
 !-----MEMORY MANAGEMENT ----------------------------------------------------- ! 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)                ! 2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                            ! 3
+      PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                               ! 2
+      CHARACTER(LEN=8), DIMENSION(LNAM) :: CNAM
+      CHARACTER(LEN=80), DIMENSION(LTEX) :: CTEX
+      CHARACTER(LEN=80) CBLA                                                  ! 3
       INTEGER NPAR(LNAM,17)                                                   ! 4
       DOUBLE PRECISION CC(LCC)                                                ! 5
       COMMON / CMEM / CNAM,CTEX,CBLA                                          ! 6
@@ -154,16 +139,20 @@
       PARAMETER (LFUNC=100,LOPER=16)                                         ! 2
       INTEGER KFUN(LFUNC)
       INTEGER llKFUN(LFUNC)
-      CHARACTER OPER(LOPER)*6, FUNC(LFUNC)*6                                 ! 3
-      CHARACTER llOPER(LOPER)*6, llFUNC(LFUNC)*6                             ! 3
+      CHARACTER(LEN=6), DIMENSION(LOPER) :: OPER
+      CHARACTER(LEN=6), DIMENSION(LFUNC) :: FUNC                             ! 3
+      CHARACTER(LEN=6), DIMENSION(LOPER) :: llOPER
+      CHARACTER(LEN=6), DIMENSION(LFUNC) :: llFUNC                           ! 3
       COMMON / SYMBOL1 / KFUN
       COMMON / SYMBOL / OPER, FUNC                                           ! 4
 !----------------------------------------------------------------------------! 5
       integer i,j
-      character blanks*80
+      character(len=80) blanks
 !      character blank6*6
-      character blank8*8
-!
+      character(len=8) blank8
+
+      PARAMETER(ZERO=0.0D0)
+
 !     OPER     : CONTAINS LOPER NAMES OF SUPPORTED BINARY OPERTORS
 !     FUNC     : CONTAINS LFUNC NAMES OF SUPPORTED INTRINSIC FUNCTIONS
 !
@@ -261,13 +250,14 @@
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE PRECOM
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
 !     *****************
 !
 !     THIS IS THE FOX EXTENDED FORTRAN PRECOMILER.
 !     IT READS A FILE AND TRANSFORMS IT TO REGULAR FORTRAN.
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)               ! 2
       CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
@@ -278,13 +268,16 @@
       PARAMETER (LARI=10000)                                                 ! 2
       INTEGER NARI(LARI,11), IARI                                            ! 3
       COMMON / CODE / NARI, IARI                                             ! 4
-      CHARACTER NAMEDAL*480
+      CHARACTER(LEN=480) NAMEDAL
       PARAMETER(MNAME=1000)
       COMMON / DADAL / NAMEDAL(MNAME),icount
 !----------------------------------------------------------------------------! 5
 !
-      CHARACTER A*10000,CID*2,BLANK*8,DNAM*8
-      CHARACTER PREC*6,IDAT*64
+      CHARACTER(LEN=10000) A
+      CHARACTER(LEN=2) CID
+      CHARACTER(LEN=8) BLANK,DNAM
+      CHARACTER(LEN=6) PREC
+      CHARACTER(LEN=64) IDAT
     
       INTEGER NA(50)
 !
@@ -339,7 +332,7 @@
 !frs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
          READ(1,'(A6,i1,1X,A64)',END=600) PREC,INITIAL,IDAT
          IF(PREC(1:4).ne.'*FOX'.and.(INITIAL.ne.0.or.INITIAL.ne.1)) then
-           write(6,*) 'Sorry, you are not using the format introduced ',&
+           WRITE(ERROR_UNIT,*) 'Sorry, you are not using the format introduced ',&
            'by F.Schmidt'//' which ',                                   &
            'requires an additional line right after the line: ',        &
            '*FOX  E D; for a properly allocation'//                     &
@@ -382,9 +375,9 @@
              write(2,*) 'C   Number of variables to be allocated and ' 
              write(2,*) 'C   deallocated is larger than the parameter ', 'MNAME: ',MNAME
              write(2,*) 'C   Change in program dafor.f'  
-             write(6,*) 'C   Number of variables to be allocated and ' 
-             write(6,*) 'C   deallocated is larger than the parameter ', 'MNAME: ',MNAME
-             write(6,*) 'C   Change in program dafor.f'  
+             WRITE(OUTPUT_UNIT,*) 'C   Number of variables to be allocated and ' 
+             WRITE(OUTPUT_UNIT,*) 'C   deallocated is larger than the parameter ', 'MNAME: ',MNAME
+             WRITE(OUTPUT_UNIT,*) 'C   Change in program dafor.f'  
              stop 5
            endif
                write(NAMEDAL(icount),'(A,38A1,5(/''     *   '',60A1))') &
@@ -414,7 +407,7 @@
             NPAR(INAM,2) = 4
          ELSE
             WRITE(2,'(1X,A)') '### ERROR, UNKNOWN TYPE'
-            WRITE(6,'(1X,A)') '### ERROR, UNKNOWN TYPE'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, UNKNOWN TYPE'
             INAM = INAM - 1
             GOTO 100
          ENDIF
@@ -429,14 +422,14 @@
             IDN = INAM
          ELSE
             WRITE(2,'(1X,A)') '### ERROR, EXT, INT OR COM NOT SPECIFIED'
-            WRITE(6,'(1X,A)') '### ERROR, EXT, INT OR COM NOT SPECIFIED'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, EXT, INT OR COM NOT SPECIFIED'
             INAM = INAM - 1
             GOTO 100
          ENDIF
          IL = ILAST(A,NA(5),NA(6)-1)
          IF(IVCHK(A,NA(5),IL).NE.1) THEN
             WRITE(2,'(1X,A)') '### ERROR, NO VARIABLE FOUND'
-            WRITE(6,'(1X,A)') '### ERROR, NO VARIABLE FOUND'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, NO VARIABLE FOUND'
             INAM = INAM - 1
             GOTO 100
          ENDIF
@@ -452,23 +445,23 @@
             NPAR(INAM,4) = IA - 8
          ENDIF
          IF(NPAR(INAM,4).LT.0) THEN
-            WRITE(6,'(1X,A)') '### ERROR, MORE ENTRIES REQUIRED'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, MORE ENTRIES REQUIRED'
             WRITE(2,'(1X,A)') '### ERROR, MORE ENTRIES REQUIRED'
             INAM = INAM - 1
             GOTO 100
          ELSEIF(NPAR(INAM,4).GT.7) THEN
-            WRITE(6,'(1X,A)') '### ERROR, TOO MANY DIMENSIONS'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TOO MANY DIMENSIONS'
             WRITE(2,'(1X,A)') '### ERROR, TOO MANY DIMENSIONS'
             INAM = INAM - 1
             GOTO 100
          ELSEIF((NPAR(INAM,4).NE.0).AND.(NPAR(INAM,6).EQ.3)) THEN
-            WRITE(6,'(1X,A)') '### ERROR, NO ARRAYS IN FUNCTION NAME'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, NO ARRAYS IN FUNCTION NAME'
             WRITE(2,'(1X,A)') '### ERROR, NO ARRAYS IN FUNCTION NAME'
             INAM = INAM - 1
             GOTO 100
          ENDIF
          IF(ITEX+IA-5.GT.LTEX) THEN
-            WRITE(6,'(1X,A)') '!!! ERROR IN PRECOM, CTEX EXHAUSTED'
+            WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN PRECOM, CTEX EXHAUSTED'
             WRITE(2,'(1X,A)') '!!! ERROR IN PRECOM, CTEX EXHAUSTED'
             STOP 6
          ENDIF
@@ -492,14 +485,14 @@
             NPAR(INAM,2) = 4
          ELSE
             WRITE(2,'(1X,A)') '### ERROR, UNKNOWN TYPE'
-            WRITE(6,'(1X,A)') '### ERROR, UNKNOWN TYPE'
+            WRITE(OUTPUT_UNIT,'(1X,A)') '### ERROR, UNKNOWN TYPE'
             INAM = INAM - 1
             GOTO 100
          ENDIF
          IL = ILAST(A,NA(4),NA(5)-1)
          IF(IVCHK(A,NA(4),IL).NE.1) THEN
             WRITE(2,'(1X,A)') '### ERROR, NO FUNCTION FOUND'
-            WRITE(6,'(1X,A)') '### ERROR, NO FUNCTION FOUND'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, NO FUNCTION FOUND'
             INAM = INAM - 1
             GOTO 100
          ENDIF
@@ -508,13 +501,13 @@
          NPAR(INAM,4) = INDEX('123456789',A(NA(5):NA(5)))
          IF(NPAR(INAM,4).EQ.0) THEN
             WRITE(2,'(1X,A)') '### ERROR IN NUMBER OF ARGUMENTS'
-            WRITE(6,'(1X,A)') '### ERROR IN NUMBER OF ARGUMENTS'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR IN NUMBER OF ARGUMENTS'
             INAM = INAM - 1
             GOTO 100
          ENDIF
       ELSE
          LERR = 1
-         WRITE(6,'(1X,2A)') '### ERROR, UNKNOWN COMMAND ',CID
+         WRITE(ERROR_UNIT,'(1X,2A)') '### ERROR, UNKNOWN COMMAND ',CID
          WRITE(2,'(1X,2A)') '### ERROR, UNKNOWN COMMAND ',CID
       ENDIF
 !
@@ -525,33 +518,17 @@
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE GETCOM(CMOD,A,NA,IA,IEND)
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     ************************************
 !
 !     THIS SUBROUTINE GETS THE NEXT COMMAND FROM THE INPUT FILE AND STORES
 !     IT IN THE CHARACTER A
-!
+
       INTEGER MA(50)
-!
+
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                              ! 2
       CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
@@ -561,25 +538,26 @@
       PARAMETER(MNAME=1000)
       COMMON / DADAL / NAMEDAL(MNAME),icount
 !----------------------------------------------------------------------------! 8
-!
+
       CHARACTER CMOD*6,PREC*6,REST*8,A*(*),ALIN*10000
-!
+
       SAVE ALIN,IAMAX
       DATA IAMAX / 0 /
-!
+
       IEND = 0
       IA   = 0
-!
-      DO 10 I=1,NA
-  10  A(I:I) = ' '
-!
+
+      DO I=1,NA
+        A(I:I) = ' '
+      END DO
+
   20  CONTINUE
       IF(IAMAX.NE.0) THEN
          IF(INDEX(ALIN(1:IAMAX),';').NE.0) GOTO 40
       ENDIF
-!
+
       IF(IAMAX+80.GT.10000) THEN
-         WRITE(6,'(1X,A)') '### ERROR, COMMAND TOO LONG'
+         WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          WRITE(2,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          STOP 7
       ELSEIF(CMOD.EQ.'PRECOM') THEN
@@ -651,15 +629,16 @@
   40  CONTINUE
       IA = INDEX(ALIN(1:IAMAX),';')
       IF(IA.GT.NA) THEN
-         WRITE(6,'(1X,A)') '### ERROR, COMMAND TOO LONG'
+         WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          WRITE(2,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          STOP 8
       ELSEIF(IA.EQ.0) THEN
          GOTO 20
       ENDIF
       A(1:IA) = ALIN(1:IA)
-      DO 50 I=IA+1,IAMAX
-  50  ALIN(I-IA:I-IA) = ALIN(I:I)
+      DO I=IA+1,IAMAX
+        ALIN(I-IA:I-IA) = ALIN(I:I)
+      END DO
       IAMAX = IAMAX - IA
 !
 !     REPLACING '**' BY '^ '
@@ -690,24 +669,8 @@
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE POSFRA(A,IA1,IA2,CDEL,NA,LA,IA)
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     ******************************************
 !
 !     THIS SUBROUTINE TAKES THE INFORMATION IN CHARACTER A BETWEEN IA1 AND
@@ -728,7 +691,7 @@
       IF(A(I-1:I-1).EQ.CDEL.AND.A(I:I).NE.CDEL) THEN
          IA = IA + 1
          IF(IA.GT.LA) THEN
-            WRITE(6,'(1X,A)') '!!! ERROR, TOO MANY FRAGS IN POSFRA'
+            WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR, TOO MANY FRAGS IN POSFRA'
             WRITE(2,'(1X,A)') '!!! ERROR, TOO MANY FRAGS IN POSFRA'
             STOP 9
          ENDIF
@@ -741,23 +704,6 @@
 !
       INTEGER FUNCTION ILAST(A,IA1,IA2)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     *********************************
 !
 !     THIS FUNCTION DETERMINES THE LAST NONBLANK POSITION IN CHARACTER A
@@ -779,24 +725,6 @@
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE CAP(A,IA1,IA2)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     *************************
 !
 !     THIS SUBROUTINE CAPITALIZES POSITIONS IA1 THROUGH IA2 IN CHARACTER A
@@ -826,23 +754,6 @@
 !
       INTEGER FUNCTION IVCHK(A,IA1,IA2)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     *********************************
 !
 !     THIS FUNCTION RETURNS 1 IF THE SUBSTRING A(IA1:IA2) IS A SYNTACTICALLY
@@ -873,25 +784,8 @@
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE SYNTAX(B, IB1,IB2, IX, IN, IU, LERR)
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!     PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     ***********************************************
 !
 !     THIS SUBROUTINE DECODES THE CODE STORED ON CHARACTER B FROM IB1 TO IB2
@@ -921,7 +815,7 @@
 !
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LCC=10000)                       ! 2
       CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
@@ -944,47 +838,50 @@
 !frs      PARAMETER(LANA=100,LA=10000,LCHECK=0,LDEC=37)
       PARAMETER(LANA=100,LA=10000,LDEC=37)
       PARAMETER(LSCR=99)
-!
+
+      PARAMETER(ZERO=0D0,ONE=1.0D0,TEN=10.0D0)
+
       INTEGER NANA(LANA,5)
       CHARACTER B*(*),A*10000
       CHARACTER OPS*6,CANA*10!,CTYP*7!,CCNA*1
       CHARACTER BLANK*8,NUM*10,LET*26,SEARCH*8,AER*50
       DOUBLE PRECISION CDEC(0:LDEC)
       SAVE IFI, CDEC
-!
+
       DATA OPS  / '+-*/^#' /
       DATA CANA / '=OFAVSC#,;' /
 !      DATA CTYP / 'RICDGPB' /
-!
+
       DATA NUM  / '1234567890' /
       DATA LET  / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' /
       DATA AER  / '                                                  ' /
       DATA IFI  / 0 /
-!
+
       INTEGER IPRIO
 ! Eric
       IB = 0
-!
+
       IPRIO = -4242
-!
+
       IFUVA = 0
       IF(IFI.EQ.0) THEN
          IFI = 1
          CDEC(0) = ONE
-         DO 1 J=1,LDEC
-   1     CDEC(J) = CDEC(J-1) * TEN
+         DO J=1,LDEC
+           CDEC(J) = CDEC(J-1) * TEN
+         END DO
       ENDIF
-!
+
 !-----------------------------------------------------------------------
-!
+
       IF(IB2.GE.LA) THEN
-         WRITE(6,'(1X,A)') '!!! ERROR IN SYNTAX, CHARACTER B TOO LARGE'
+         WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN SYNTAX, CHARACTER B TOO LARGE'
          WRITE(2,'(1X,A)') '!!! ERROR IN SYNTAX, CHARACTER B TOO LARGE'
          STOP 10
       ENDIF
-!
+
 !frs
-!frs      IF(LCHECK.EQ.1) WRITE(6,'(1X,A)') B(IB1:IB2)
+!frs      IF(LCHECK.EQ.1) WRITE(OUTPUT_UNIT,'(1X,A)') B(IB1:IB2)
 !frs
 !
 !     DELETING BLANKS IN CODE LINE AND CAPITALIZING
@@ -1008,9 +905,10 @@
 !     SETTING START VALUES
 !     ********************
 !
-      DO 5 I=1,LVAR
-  5   BLANK(I:I) = ' '
-!
+      DO I=1,LVAR
+        BLANK(I:I) = ' '
+      END DO
+
 !      IARIA = IARI+1
       ILEFT = IX
       ISCR  = 0
@@ -1232,8 +1130,9 @@
       ENDIF
       CC(ICC) = CVAL
       CTEX(ITEX)(1:I-IOLD) = A(IOLD:I-1)
-      DO 123 J=I-IOLD+1,80
- 123  CTEX(ITEX)(J:J) = ' '
+      DO J=I-IOLD+1,80
+        CTEX(ITEX)(J:J) = ' '
+      END DO
       IANA = IANA + 1
       NANA(IANA,1) = INDEX(CANA,'C')
       IF(IN.EQ.1) NANA(IANA,2) = ICC
@@ -1333,8 +1232,9 @@
          I = I + 1
          ITEX = ITEX + 1
          CTEX(ITEX)(1:4) = '-ONE'
-         DO 171 J=5,80
- 171     CTEX(ITEX)(J:J) = ' '
+         DO J=5,80
+           CTEX(ITEX)(J:J) = ' '
+         END DO
          ICC = ICC + 1
          CC(ICC) = -ONE
          IANA = IANA + 1
@@ -1468,23 +1368,24 @@
          IF(IA.EQ.IANA) GOTO 350
          GOTO 310
       ENDIF
-!
+
 !frs
 !frs      IF(LCHECK.EQ.1) THEN
-!frs         WRITE(6,'(A,I3,71A)') ' IO = ',IO , ' ',('-',J=1,70)
-!frs         WRITE(6,'(100(6X,8(A1,I3,I3,A1)/))')
+!frs         WRITE(OUTPUT_UNIT,'(A,I3,71A)') ' IO = ',IO , ' ',('-',J=1,70)
+!frs         WRITE(OUTPUT_UNIT,'(100(6X,8(A1,I3,I3,A1)/))')
 !frs     *   (CANA(NANA(J,1):NANA(J,1)),NANA(J,2),NANA(J,3),'|',J=1,IANA)
 !frs      ENDIF
 !frs
-!
+
       IARI = IARI + 1
-!
-      DO 320 J=1,11
- 320  NARI(IARI,J) = 0
-!
+
+      DO J=1,11
+        NARI(IARI,J) = 0
+      END DO
+
 !     FILLING IN FIRST THREE ENTRIES OF NARI
 !     **************************************
-!
+
       ITYP = NANA(IA,1)
       IF(CANA(ITYP:ITYP).EQ.'=') THEN
          NARI(IARI,1) = ILEFT
@@ -1496,13 +1397,13 @@
          ENDIF
          NARI(IARI,1) = -ISCR
       ENDIF
-!
+
       NARI(IARI,2) = ITYP
       NARI(IARI,3) = NANA(IA,2)
-!
+
 !     FINDING LEFT OPERANDS
 !     *********************
-!
+
       IF(CANA(ITYP:ITYP).EQ.'O') THEN
          NL = 1
       ELSEIF(CANA(ITYP:ITYP).EQ.'=') THEN
@@ -1617,8 +1518,8 @@
 !
 !frs
 !frs      IF(LCHECK.EQ.1) THEN
-!frs         WRITE(6,'(79A)') ('-',J=1,79)
-!frs         WRITE(6,'(100(6X,8(A1,I3,I3,A1)/))')
+!frs         WRITE(OUTPUT_UNIT,'(79A)') ('-',J=1,79)
+!frs         WRITE(OUTPUT_UNIT,'(100(6X,8(A1,I3,I3,A1)/))')
 !frs     *   (CANA(NANA(J,1):NANA(J,1)),NANA(J,2),NANA(J,3),'|',J=1,IANA)
 !frs      ENDIF
 !frs
@@ -1629,7 +1530,7 @@
 ! 400  CONTINUE
 !
       IF(NANA(1,5).NE.NANA(IANA,4)) THEN
-         WRITE(6,'(1X,2A)') '### ERROR, CODE NOT FULLY PROCESSED ', '(CHECK DIMENSIONS)'
+         WRITE(ERROR_UNIT,'(1X,2A)') '### ERROR, CODE NOT FULLY PROCESSED ', '(CHECK DIMENSIONS)'
          IF(IU.NE.0) WRITE(IU,'(1X,2A)') '### ERROR, CODE NOT FULLY ', 'PROCESSED (CHECK DIMENSIONS)'
          LERR = 1
       ENDIF
@@ -1637,7 +1538,7 @@
 !frs
 !frs      IF(LCHECK.GE.1) THEN
 !frs         DO 410 I=IARIA,IARI
-!frs  410    WRITE(6,'(5I5)') (NARI(I,J),J=1,5)
+!frs  410    WRITE(OUTPUT_UNIT,'(5I5)') (NARI(I,J),J=1,5)
 !frs      ENDIF
 !frs
 !
@@ -1647,9 +1548,9 @@
 !     *****************
 !
  1000 CONTINUE
-      WRITE(6,'(1X,2A)') ' ### ', AER
-      WRITE(6,'(1X,2A)') ' ', A(1:IA-1)
-      WRITE(6,'(1X,255A)') ' ', (' ',K=1,I-1),'*'
+      WRITE(OUTPUT_UNIT,'(1X,2A)') ' ### ', AER
+      WRITE(OUTPUT_UNIT,'(1X,2A)') ' ', A(1:IA-1)
+      WRITE(OUTPUT_UNIT,'(1X,255A)') ' ', (' ',K=1,I-1),'*'
       IF(IU.NE.0) THEN
          WRITE(IU,'(1X,2A)') ' ### ', AER
          WRITE(IU,'(1X,2A)') ' ', A(1:IA-1)
@@ -1661,11 +1562,11 @@
  2000 CONTINUE
 !frs
 !frs      IF(LCHECK.EQ.1) THEN
-!frs         WRITE(6,'(1X,A)') '### INTERNAL ERROR WHILE EXTRACTING CODE:'
-!frs         WRITE(6,'(1X,A)') AER
-!frs         WRITE(6,'(100(6X,8(A1,I3,I3,A1)/))')
+!frs         WRITE(OUTPUT_UNIT,'(1X,A)') '### INTERNAL ERROR WHILE EXTRACTING CODE:'
+!frs         WRITE(OUTPUT_UNIT,'(1X,A)') AER
+!frs         WRITE(OUTPUT_UNIT,'(100(6X,8(A1,I3,I3,A1)/))')
 !frs     *     (CANA(NANA(J,1):NANA(J,1)),NANA(J,2),NANA(J,3),'|',J=1,IANA)
-!frs         WRITE(6,'(100(6X,8A8/))') ('        ',K=1,IA-1),'*       '
+!frs         WRITE(OUTPUT_UNIT,'(100(6X,8A8/))') ('        ',K=1,IA-1),'*       '
 !frs      ENDIF
 !frs
       IF(IU.NE.0) THEN
@@ -1680,31 +1581,15 @@
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE ARIFOR(IARI1,IARI2,IU)
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     **********************************
 !
 !     THIS SUBROUTINE OUTPUTS THE ARITMETIC INSTRUCTIONS CODED IN
 !     THE ARRAY CODE BY THE SUBROUTINE SYNTAX AS REGULAR FORTRAN
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                              ! 2
       CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
@@ -1727,34 +1612,35 @@
       PARAMETER (LSCR=99)
       CHARACTER A*800,AL*808,AR*800,AS*800,AC*800,BLANK*800!,ABC*26
       INTEGER ISCRTY(LSCR),INDEX(7)
-!
+
       INTEGER ITS
-!
+
       SAVE ICALL
       SAVE BLANK
-!
+
       DATA ICALL / 0 /
 !      DATA ABC / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' /
       IF(ICALL.EQ.0) THEN
          ICALL = 1
-         DO 1 I=1,800
-  1      BLANK(I:I) = ' '
+         DO I=1,800
+           BLANK(I:I) = ' '
+         END DO
       ENDIF
-!
+
       ITS = -4242
-!
+
       ISOFF = 0
       ISOUT = 1
-!
+
       DO 900 I=IARI1,IARI2
 !     ********************
-!
+
       IS  = NARI(I,1)
       ITY = NARI(I,2)
-!
+
 !     DETERMINE AL AND AR AND TYPE OF STORAGE ADDRESS
 !     -----------------------------------------------
-!
+
       IF(ITY.EQ.1) THEN
          IR  = NARI(I,4)
          CALL VNAM(IR, INDEX, AR,800,LR,ITR,ISCRTY)
@@ -1770,7 +1656,7 @@
             ELSEIF(ITL.EQ.4) THEN
                ITS = 4
             ELSE
-               WRITE(6,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE1'
+               WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE1'
                WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE1'
             ENDIF
          ELSEIF(ITR.EQ.2) THEN
@@ -1781,7 +1667,7 @@
             ELSEIF(ITL.EQ.4) THEN
                ITS = 4
             ELSE
-               WRITE(6,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE1'
+               WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE1'
                WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE1'
             ENDIF
          ELSEIF(ITR.EQ.4) THEN
@@ -1790,18 +1676,19 @@
             ELSEIF(ITL.EQ.4) THEN
                ITS = 4
             ELSE
-               WRITE(6,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE2'
+               WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE2'
                WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE2'
             ENDIF
          ELSE
-            WRITE(6,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE3'
+            WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE3'
             WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE3'
          ENDIF
       ELSEIF(ITY.EQ.3) THEN
          IF(NARI(I,3).GT.0) THEN
             IR  = NARI(I,3)
-            DO 10 J=1,NPAR(IR,4)
-  10        INDEX(J) = NARI(I,4+J)
+            DO J=1,NPAR(IR,4)
+              INDEX(J) = NARI(I,4+J)
+            END DO
             CALL VNAM(IR, INDEX, AR,800,LR,ITR,ISCRTY)
             ITS = ITR
          ELSE
@@ -1814,7 +1701,7 @@
                IR = NARI(I,6)
                CALL VNAM(IR, INDEX, AR,800,LR,ITR,ISCRTY)
                IF(ITL.NE.ITR) THEN
-                  WRITE(6,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE9'
+                  WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE9'
                   WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE9'
                ENDIF
             ENDIF
@@ -1822,8 +1709,9 @@
          ENDIF
       ELSEIF(ITY.EQ.4) THEN
          IR  = NARI(I,3)
-         DO 20 J=1,NPAR(IR,4)
-  20     INDEX(J) = NARI(I,4+J)
+         DO J=1,NPAR(IR,4)
+           INDEX(J) = NARI(I,4+J)
+         END DO
          CALL VNAM(IR, INDEX, AR,800,LR,ITR,ISCRTY)
          ITS = ITR
       ENDIF
@@ -1839,8 +1727,9 @@
          ISOFF = -IS
          CALL VNAM(IS, INDEX, AS,800,LS,ITSS,ISCRTY)
       ELSEIF(IS.GT.0.AND.IS.LE.LNAM) THEN
-         DO 30 J=1,NPAR(IS,4)
-  30     INDEX(J) = NARI(I,4+J)
+         DO J=1,NPAR(IS,4)
+           INDEX(J) = NARI(I,4+J)
+         END DO
          CALL VNAM(IS, INDEX, AS,800,LS,ITSS,ISCRTY)
          IF(ITS.NE.NPAR(IS,2)) THEN
             IF((ITS.EQ.1).AND.(NPAR(IS,2).EQ.4)) THEN
@@ -1858,12 +1747,12 @@
                AS(1:11) = 'ISCRRI(100)'
                LS = 11
             ELSE
-               WRITE(6,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE4'
+               WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE4'
                WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBLE4'
             ENDIF
          ENDIF
       ELSE
-         WRITE(6,'(1X,A)') '### ERROR, TYPES INCOMPATIBILE5'
+         WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBILE5'
          WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBILE5'
       ENDIF
 !
@@ -2056,7 +1945,7 @@
 !     ******
 !
       if (ITS.eq.-4242) then
-         write(6,*) "ERROR in ARIFOR - ITS not set"
+         WRITE(ERROR_UNIT,*) "ERROR in ARIFOR - ITS not set"
          stop 16
       endif
       
@@ -2093,8 +1982,8 @@
 !
  1000 CONTINUE
       WRITE(IU,'(1X,A)') '!!! ERROR IN ARIFOR, CODE NOT SUPPORTED'
-      WRITE(6,'(1X,A)') '!!! ERROR IN ARIFOR, CODE NOT SUPPORTED:'
-      WRITE(6,'(1X,5I5)') (NARI(I,J),J=1,5)
+      WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN ARIFOR, CODE NOT SUPPORTED:'
+      WRITE(ERROR_UNIT,'(1X,5I5)') (NARI(I,J),J=1,5)
   
       RETURN
       END
@@ -2102,24 +1991,8 @@
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE VNAM(IA, IN, A,NA,LA, ITA, ISCRTY)
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(PIENI=1D-17)
-      PARAMETER(ZERO=0.0D0,HALF=5.0D-1,ONE=1.0D0)
-      PARAMETER(HALFM=-5.0D-1,ONEM=-1.0D0)
-      PARAMETER(TWO=2.0D0,THREE=3.0D0,FOUR=4.0D0)
-      PARAMETER(C1E3=1.0D3,C2E3=2.0D3,C4E3=4.0D3,C1E4=1.0D4)
-      PARAMETER(C1E12=1.0D12,C1E13=1.0D13,C1E15=1.0D15,C1E16=1.0D16)
-      PARAMETER(C1M1=1.0D-1,C1M3=1.0D-3,C1M6=1.0D-6,C1M7=1.0D-7)
-      PARAMETER(C1M8=1.0D-8,C1M9=1.0D-9,C1M10=1.0D-10)
-      PARAMETER(C1M12=1.0D-12,C1M13=1.0D-13,C1M14=1.0D-14)
-      PARAMETER(C1M15=1.0D-15,C1M17=1.0D-17,C1M18=1.0D-18)
-      PARAMETER(C1M21=1.0D-21,C1M24=1.0D-24,C1M38=1.0D-38)
-      PARAMETER(FIVE=5.0D0,SIX=6.0D0,SEVEN=7.0D0,EIGHT=8.0D0)
-!      PARAMETER(NINE=9.0D0,TEN=10.0D0)
-      PARAMETER(C24E0=24.0D0,C120E0=120.0D0,C16E0=16.0D0,C40E0=40.0D0)
-      PARAMETER(C80E0=80.0D0,C72E0=72.0D0)
-      PARAMETER(C12E0=12.0D0,C32E0=32.0D0,C48E0=48.0D0,C160E0=160.0D0)
-      PARAMETER(ISZ=200)
 !     *********************************************
 !
 !     THIS SUBROUTINE DETERMINES THE PROPER CHARACTER NAME A BELONGING
@@ -2129,7 +2002,7 @@
 !     THE SUBROUTINE IS CALLED FROM ARIFOR.
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
-      PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LTTE=80,LCC=10000)               ! 2
+      PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                              ! 2
       CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
@@ -2166,7 +2039,7 @@
          ITA = ISCRTY(IA)
          ND = 0
          IF(IA.LT.1.OR.IA.GT.100.OR.IA.GT.LSCR) THEN
-            WRITE(6,'(1X,A,I4)') '!!! ERROR IN VNAM, IA = ',IA
+            WRITE(ERROR_UNIT,'(1X,A,I4)') '!!! ERROR IN VNAM, IA = ',IA
             WRITE(2,'(1X,A,I4)') '!!! ERROR IN VNAM, IA = ',IA
             STOP 11
          ENDIF
@@ -2198,11 +2071,11 @@
          ENDIF
          ND = 0
       ELSE
-         WRITE(6,'(1X,A)') '!!! ERROR, IA = 0 IN VNAM'
+         WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR, IA = 0 IN VNAM'
          WRITE(2,'(1X,A)') '!!! ERROR, IA = 0 IN VNAM'
       ENDIF
       if (ND .eq. -4242) then
-         write(6,*) "!!! ERROR, ND was not initialized in VNAM"
+         WRITE(ERROR_UNIT,*) "!!! ERROR, ND was not initialized in VNAM"
          stop 15
       end if
       
@@ -2239,7 +2112,7 @@
          II = -II
          ITI = ISCRTY(II)
          IF(II.LT.1.OR.II.GT.40.OR.II.GT.LSCR) THEN
-            WRITE(6,'(1X,A,I4)') '!!! ERROR IN VNAM, II = ',II
+            WRITE(ERROR_UNIT,'(1X,A,I4)') '!!! ERROR IN VNAM, II = ',II
             WRITE(2,'(1X,A,I4)') '!!! ERROR IN VNAM, II = ',II
             STOP 12
          ENDIF
@@ -2270,12 +2143,12 @@
          IL = IL + 2
          LA = LA + IL
       ELSE
-         WRITE(6,'(1X,A)') '!!! ERROR IN VNAM, II = 0'
+         WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN VNAM, II = 0'
          WRITE(2,'(1X,A)') '!!! ERROR IN VNAM, II = 0'
          STOP 13
       ENDIF
       IF((NPAR(IA,1).EQ.1).AND.(ITI.NE.1).AND.(ITI.NE.2)) THEN
-         WRITE(6,'(1X,A)') '### ERROR, ARRAY INDEX NOT INTEGER OR REAL'
+         WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, ARRAY INDEX NOT INTEGER OR REAL'
          WRITE(2,'(1X,A)') '### ERROR, ARRAY INDEX NOT INTEGER OR REAL'
          RETURN
       ENDIF
@@ -2298,7 +2171,7 @@
 !      ENDIF
 !
       IF(LA.GT.NA) THEN
-         WRITE(6,'(1X,A)') '!!! ERROR IN ROUTINE VNAM, IA > NA'
+         WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN ROUTINE VNAM, IA > NA'
          WRITE(2,'(1X,A)') '!!! ERROR IN ROUTINE VNAM, IA > NA'
          STOP 14
       ENDIF
