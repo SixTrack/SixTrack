@@ -1,7 +1,7 @@
 sixtrack.s common_headers.s
 sixscfoxn.f
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods
-e UMLAU6,ENVADA,SYNODA,ERRFF,wireda
+e UMLAU6,ENVADA,SYNODA,ERRFF,wireda,UTILS
 e CLOR6
 ex
 

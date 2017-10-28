@@ -1,0 +1,4 @@
+This test aims at checking:
+1) all available tune calculation methods available in the plato library
+2) peforming the FMA on normalized or physical coordinates (fma_norm_flag = 0 or =1)
+3) performing FMA at arbitrary elements in the sequence (uses the 6D optics for normalization) or at the start of the sequence (uses closed orbit and tas as used for the initialization of the particles). "NORM_IP3_DUMP_1" has to agree with "NORM_START_DUMP_1" up to the last digits. The difference comes from the slightly different closed orbit used for the normalization.

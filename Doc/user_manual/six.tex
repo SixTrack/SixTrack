@@ -48,16 +48,16 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update August 2017
+  Update September 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.7.5 \\
+  Version 4.7.10 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
 \begin{center}\em
-  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, and K.~Sjobak
+  F. Schmidt, update by A.~Alekou, M.~Fitterer, J.F.~Wagner, S.J.~Wretborn, R.~De~Maria, S.~Kostoglou, K.~Sjobak and T.~Persson
 \end{center}
 \begin{center}\large
   {\bf Abstract} \\
@@ -696,14 +696,24 @@ The length of the ramps and the flat top are specified in the
 ``Initial coordinates'' block~\ref{IniCoo} is used to compute the 
 deflection angle.
 
-% \subsubsection{Dipole edge}
-% \paragraph{Format} {\em name type ed ek}
-% \begin{description}
-% \item[name] May contain up to sixteen characters
-% \item[type] Type identifier $24$
-% \item[ed] First argument, meaning unknown
-% \item[ek] Second argument, meaning unknown
-% \end{description}
+ \subsubsection{Dipole edge}
+ \paragraph{Format} {\em name type $r_{21}$ $r_{43}$}
+ \begin{description}
+ \item[name] May contain up to sixteen characters
+ \item[type] Type identifier $24$
+ \item[$r_{21}$] Horizontal edge focusing. 
+ \item[$r_{43}$] Vertical edge focusing. 
+
+\paragraph{Remark}
+MAD-X is outputting the correct format when using the dipedge element. An example of  the hard edge model is described in the physics guide \cite{sixphys}, which gives $r_{21} = -r_{43}$. Note that the values of the vertical edge focusing is dependent on the modeling of the fringe fields \cite{dipedge}. A particle with position $x_{1},y_1$ and angle $x'_{1},y'_1$ will have the angle $x'_{2},y'_2$ after passing through the dipedge element. The following equations describe their relation:
+\begin{eqnarray}
+x'_{2} = x'_{1} + x_{1}\frac{r_{21}}{1+\delta} \\
+y'_{2} = y'_{1} + y_{1}\frac{r_{43}}{1+\delta}
+\end{eqnarray}
+
+
+
+ \end{description}
 
 % This element needs more documentation and possibly testing -- not currently supported!
 
@@ -813,6 +823,19 @@ So in order for this paper's~\cite{RFmultsPaper} analytical equations to be comp
 \paragraph{Remark}
 The ``e-lens'' elements become active when the
 ELEN input block~\ref{sec:elen} is used. All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts. The parameters for the e-lens are defined in the ELEN input block.
+
+\subsubsection{Scattering point} \label{SCAT}
+\paragraph{Format} {\em name type}
+\begin{description}
+	\item [name] May contain up to sixteen characters
+	\item [type] 40
+\end{description}
+
+\paragraph{Remark}
+The ``scattering'' elements become active when the SCAT(ter) input block~\ref{sec:scatter} is used.
+All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts.
+The parameters of the scattering are defined in the SCAT(ter) input block.
+
 
 \subsubsection{Beam Position Monitor} \label{BPM}
 \paragraph{Format} {\em BPMname 0 0 0 0}
@@ -1085,8 +1108,6 @@ ripple frequency are the input parameters.
 \paragraph{Description}
 The DYNamic Kicks module~\cite{DYNKpaper} allows time-dependent modification of the settings of single elements.
 The supported elements and attributes are listed in Table~\ref{tab:DYNK_SET}.
-%Currently supported are thin ``standard'' elements (type $\pm$1--$\pm$10~\ref{NonEle}) and crab cavities/RF multipoles (type $\pm$23, $\pm$26, $\pm$27 and $\pm$28~\ref{CrabCav}).
-%Different element types support different attributes, where the standard elements support setting the multipole strength $K_n$ while crab cavities support setting of the voltage, frequency, and phase relative to the bunch.
 The settings can be computed on-the fly using several functions, loaded from input files or a combination, as described in Table~\ref{tab:DYNK_FUN}.
 
 Further, unless explicitly switched off using a NOFILE statement, DYNK produces an output file ``dynksets.dat''.
@@ -1371,8 +1392,13 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{frequency}   & MHz     & Frequency \\
     & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
   \hline
-    \multirow{3}{*}{\parbox{4cm}{Electron lens \\ ($\pm$29),\\ Section~\ref{sec:elen}}}
+    \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
     & \texttt{thetamax}     & mrad      & Maximum angular kick \\
+    &      &       &  \\
+    &      &       &  \\
+  \hline
+    \multirow{3}{*}{\parbox{4cm}{Scattering \\ (40),\\ Section~\ref{sec:scatter}} }
+    & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter}, paragraph about ELEM command.\\
     &      &       &  \\
     &      &       &  \\
   \hline
@@ -1840,7 +1866,7 @@ considered for the time being.
 \paragraph{Format} \emph{name type thetamax r2 r2ovr1 offset\_x offset\_y flag\_entrance flag\_exit}
 A description of the input parameters for the different e-lens types is given in Table~\ref{tab:elen}. Currently only the ideal hollow electron lens is implemented in SixTrack (type ANNULAR).
 \begin{center}
-	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{9.2cm}|}
+	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{9.0cm}|}
 		%Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
 		\caption{Input parameters for ELEN block.}
 		\label{tab:elen} \\*
@@ -1873,7 +1899,7 @@ A description of the input parameters for the different e-lens types is given in
 		
 		& \emph{type} & - &
 		type of electron lens. Available types are ANNULAR. \\*
-		\hline
+		%\hline
 
 		\hline
 		\rowcolor{blue!15}
@@ -1924,6 +1950,70 @@ BLOC56            hel1              hel2
 \end{verbatim}
 Note that all parameters except for the type are set to 0 in the single element definition.
 
+\subsection{Scattering} \label{sec:scatter}
+\todo[inline]{This module is experimental! Use at your own risk; both the input format and physics implementation may change.}
+
+\paragraph{Description}
+The SCATTER module is a framework for scattering particles through Monte Carlo processes at various points in the machine.
+
+\paragraph{Keyword} SCAT(TER)
+
+\paragraph{Number of data lines} variable
+
+\paragraph{Format}
+There are several different main statement classes possible in a SCATTER block, listed below.
+Furthermore, lines starting with ``/'' are treated as a comment and ignored
+
+\subparagraph{DEBUG} \emph{DEBUG}\\
+This statement switches on extra ``debugging'' output from SCATTER.
+This can be useful if debugging the code or if debugging the input.
+
+\subparagraph{ELEMent} \emph{ELEM elemname profile scaling gen1 (gen2, (gen3))}\\
+This statements associates a PROfile and between one and 3\footnote{Controlled by the parameter \texttt{scatter\_maxGenELEM}.} GENerators with a SINGLE ELEMENT which must be of type 40, as described in Section~\ref{SCAT}.
+The \texttt{scaling} argument, which is a floating point number, is used to scale the probability of an interaction.
+This can be controlled through DYNK, for example in order to scale only at one specified turn.
+The PROfile, GENerator(s), and single elements are referenced through their names, and for the GENerators and PROfile they must be defined above the ELEMent in the SCATTER block.
+
+\subparagraph{PROfile} \emph{PRO name type (arguments)} \\
+This statement defines a profile, that is a density profile and general properties of the targets which with the tracked particles are colliding.
+Several different types are available:
+\begin{description}
+\item[PROfile type \texttt{FLAT}:]\emph{PRO name FLAT density[targets/cm$^2$] mass[MeV/c$^2$] momentum[MeV/c]}
+\item[PROfile type \texttt{GAUSS1}:]\emph{PRO name GAUSS1 beamtot[particles] sigmaX[mm] sigmaY[mm]}
+\begin{align}
+    \rho(x,y) = \frac{N_{\mathrm{tot}}}{2\pi\sigma_x\sigma_y}
+                \exp\left(-\frac{x^2}{2\sigma_x^2}\right)
+                \exp\left(-\frac{y^2}{2\sigma_y^2}\right)
+\end{align}
+\end{description}
+
+\subparagraph{GENerator} \emph{GEN name type (arguments)} \\
+The generator block takes a name and a generator type input, followed by the parameters for the
+generator type.
+\begin{description}
+\item[GENerator type \texttt{PPBEAMELASTIC}:] \emph{GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)}\\
+Takes five or six input arguments, and generates the probability distribution given by
+\begin{align}
+    g(t) = \frac{1}{a_1^2}\frac{d\sigma}{dt} = e^{-b_1 t}+ 2ae^{-(b_1+b_2)t/2}\cos{\phi} + a^2e^{-b_2 t},
+\end{align}
+where the first expression is a soft scatter data fit, the third expression a hard scatter fit,
+and the second expression is the interference. $a = a_2/a_1$ is the amplitudes of the expressions.
+These are combined into the first four input arguments $a$, $b_1$, $b_2$, and $\phi$, as well as
+$t_{min}$ which provides a cut-off limit.
+
+The optional sixth argument defines a fixed cross section for the scattering probability.\\
+\\
+\noindent Input example with values for a fit to 13 TeV LHC.
+\begin{verbatim}
+    GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30e-27
+\end{verbatim}
+\end{description}
+
+\subparagraph{SEED} \emph{SEED seed1 seed2}\\
+This sets the seed of the internal RNG used by the SCATTER block \todo{Cite RANECU}.
+Two integer seeds are required, for this block.
+The \texttt{SEED} block is mandatory for the SCATTER block to work.
+Note that when running several simulations, the seed settings must be varied between each run in order to get uncorrelated results.
 
 \section{Organising Tasks}
 
@@ -3163,7 +3253,7 @@ The following formats are accepted:
 	Header line 2: \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
         If there are multiple single elements attached to the file, the headers are repeated.\\
 	Data lines: as described in the header, one per particle and per turn.
-        \item[3] -- \textbf{Modified format for aperture check (Binary):}\\
+    \item[3] -- \textbf{Modified format for aperture check (Binary):}\\
         No header\\
         A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
         Records: \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\\
@@ -3189,6 +3279,40 @@ The following formats are accepted:
         For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
         Note that the $\sigma=s -\beta_0 c t$ is the same as the $z$ used in the formats above, except for the unit of m instead of mm; and that $p_\sigma = \Delta E / \left(\beta_0 P_0 c\right)$.
         For more details, see the physics manual~\cite{sixphys}.
+     \item[7] -- \textbf{Modified format for aperture check (normalized coordinates):}\\
+      Dumps the particle trajectories in normalized coordinates. If the coordinates are dumped at the start of the sequence (\texttt{StartDUMP}), the normalization matrix as used for the initialization of the particle amplitudes is used. This means, that if 4D optics are chosen, the 4D matrix is used, if 6D optics is chosen, the matrix obtained from the 6D optics calculation is chosen. For every other element except \texttt{StartDUMP}, the 6D optics are used independent of the tracking method chosen. In this case the 6D optics needs to be run and the following lines have to be inserted in \texttt{fort.3}:
+     \begin{verbatim}
+     DUMP
+     element_name_1 1 unit_1 7 filename_1 first_turn_1 last_turn_1
+     ...
+     NEXT
+     LINE
+     ELEMENT  0 2 1 emit_1 emit_2
+     NEXT
+     \end{verbatim} 
+     If there are multiple single elements attached to the file, the headers are repeated.\\
+     Data lines: as described in the header, one per particle and per turn.\\
+     Header line 1: The same as for format 2.\\
+     Header line 2: closed orbit  $x$,$x'$,$y$,$y'$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
+     Header line 3: matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
+     Header line 4: inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \begin{equation}
+		z_{\rm norm}=\texttt{inv(tamatrix)}\cdot z
+     \end{equation}
+     Matrix \texttt{inv(tamatrix)} and $z$ is given in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are \linebreak $[\rm mm,mrad,mm,mrad,1]$.\\
+     Header line 5: header with units of normalized particle coordinates:\\
+     \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack}\\
+    \item[8] -- \textbf{Modified format for aperture check (normalized coordinates, binary):}\\
+	No header\\
+	A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block. Format 8 is format 7 without header and in binary format.\\
+	Records: \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack}\\
+	The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers).
+	\item[9] -- \textbf{Beam mean and sigma (normalized coordinates):}\\
+	Header line 1 is the same as for format 2.\\
+	Header: \texttt{\# napx turn s[m] <nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] <ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] <nsigma>[1.e-3 sqrt(m)] <npsigma>[1.e-3 sqrt(m)] <nx\^{}2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> <npx\^{}2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> <ny\^{}2> <ny*npy> <ny*nsigma> <ny*npsigma> <npy\^{}2> <npy*nsigma> <npy*npsigma> <nsigma\^{}2> <nsigma*npsigma> <npsigma\^{}2>}\\
+	If there are multiple single elements attached to the file, the headers are repeated.\\
+	A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
+	Data lines: As described in the header; one per turn (and for collimation, one per pack of particles).
+	For the ``product'' quantities, the units are the product of the units of the ``normal'' ones.
 \end{enumerate}
 
 \subparagraph{filename} is the name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}.
@@ -3218,7 +3342,14 @@ NEXT
 \label{sec:FMA}
 
 \paragraph{Description}
-The FMA block generates the basic files needed for frequency map analysis (FMA). Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the DUMP block, see Sec.~\ref{sec:DUMP}. For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the LINE block (linear optics calculation in 6D, \ref{LinOpt}). The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the FMA block either in physical coordinates ($x$,$x'$,$y$,$y'$,$z$,$dE/E$) or normalized phase space coordinates and dumped to the file \verb|fma_sixtrack| together with the minimum, maximum and average normalized particle amplitudes and phases. 
+The FMA block generates the basic files needed for frequency map analysis (FMA). Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the DUMP block, see Sec.~\ref{sec:DUMP}. For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the LINE block (linear optics calculation in 6D, \ref{LinOpt}). In case the particles are dumped at the beginning of the sequence (StartDUMP), the closed orbit and normalization matrix used also for the initialization of the particles is used. In this case, the LINE block is not needed. The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the FMA block either in physical coordinates ($x$,$x'$,$y$,$y'$,$z$,$dE/E$) or normalized phase space coordinates and dumped to the file \verb|fma_sixtrack| together with the minimum, maximum and average normalized particle amplitudes and phases.
+
+To use normalized coordinates for th FMA analysis is always possible in case of 6D tracking (remember to put the LINE block for other elements than the start of the sequence). In case of 4D tracking, the following limitations apply:
+\begin{itemize}
+	\item the FMA analysis is only implemented for the start of the sequence (StartDUMP). For other elements the normalization matrix would need to be obtained from the LINE block, which has not been checked in case of 4D optics.
+	\item 4D tracking with scan in energy is disabled as in this case the normalization matrix would need to be saved for each element and particle, which requires a huge amount of memory breaking other parts of the code.	
+\end{itemize}
+In general it is also recommended to already normalize the coordinates in DUMP as this is faster than in FMA.
 
 \paragraph{Keyword}
 FMA
@@ -3227,30 +3358,30 @@ FMA
 variable, one for each file with particle amplitudes and tune calculation method, and one for each flag given.
 
 \paragraph{Format of input block}
-\texttt{filename\_1 method\_1 (fma\_flag\_norm\_1)}\\
+\texttt{filename\_1 method\_1 (fma\_flag\_norm\_1 (fma\_first\_turn fma\_last\_turn))}\\
 or \texttt{NoNormDUMP}\\
 
 The FMA block has to be proceeded by the LINE block (calculation of the normalization matrix) and the DUMP block (dump particle coordinates).
 \begin{verbatim}
 DUMP
 element_name_1 1 unit_1 2 filename_1 first_turn_1 last_turn_1
-element_name_2 1 unit_2 2 filename_2 first_turn_2 last_turn_3
+element_name_2 1 unit_2 2 filename_2 first_turn_2 last_turn_2
 NEXT
 LINE
 ELEMENT  0 2 1 emit_1 emit_2
 NEXT
 FMA
-filename_1 method_1 fma_flag_norm_1
-filename_2 method_2 fma_flag_norm_2
+filename_1 method_1 fma_flag_norm_1 fma_first_turn_1 fma_last_turn_1
+filename_2 method_2 fma_flag_norm_2 fma_first_turn_2 fma_last_turn_2
 NEXT
 \end{verbatim}
 For the DUMP block (Sec.~\ref{sec:DUMP}) the frequency has to be 1 (dump every turn) and the file format has to be 2 or 3.
-For the linear optics calculation \ref{LinOpt}, the optics needs to be calculated at eatch element (mode ELEMENT), the number-of-blocks is then 0 and 6D linear optics calculation is required (\verb|ilin = 2|) in order to decouple the 6D motion. 
+For the linear optics calculation \ref{LinOpt}, the optics needs to be calculated at each element (mode ELEMENT), the number-of-blocks is then 0 and 6D linear optics calculation is required (\verb|ilin = 2|) in order to decouple the 6D motion. 
 
 \subparagraph{filename}
-one of the outputfiles specified in the FMA block preceding DUMP block.
+one of the output files specified in the FMA block preceding DUMP block.
 \subparagraph{method}
-method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|. A short description of the different methods is given in Table~\ref{fma:tab:1}.
+method used to calculate the tune. Available methods are: \verb|TUNELASK|, \verb|TUNEFIT|, \verb|TUNENEWT1|, \verb|TUNEABT|, \verb|TUNEABT2|, \verb|TUNEFFT|, \verb|TUNEFFTI|, \verb|TUNENEWT|, \verb|TUNEAPA|, \verb|NAFF|. A short description of the different methods is given in Table~\ref{fma:tab:1}.
 
 \begin{table}[H]
 	\begin{center}
@@ -3269,13 +3400,18 @@ PLATO \cite{plato1,plato2}
 & TUNEFFT &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$, where the maximum number of iterates is fixed in the parameter n.\\\cline{2-3}
 & TUNEFFTI &	Computes the tune as the FFT on a two dimensional plane, given n iterates of a map. The FFT is performed over the maximum mft which satifies $2^{\rm mft} <= n$. Then, the FFT is interpolated fitting the three points around the maximum using a Gaussian. The tune is computed as the maximum of the Gaussian.\\\cline{2-3}
 & TUNEAPA &	Computes the tune as the average phase advance on a two dimensional plane, given n iterates of a map. \\\hline
+NAFF \cite{NAFFpaper, NAFFpaper2}
+& NAFF &	Computes the tune using the laskar method. The first estimation of the tune is obtained with an FFT and the precise value is determined by maximizing the Fourier integral. A Hann window of first and second order for the transverse and longitudinal motion are used respectively. The NAFF flag must be enabled at build time \cite{sixbuild}. \\\hline
 	\end{tabularx}
 \end{center}
 \end{table}
 
 \subparagraph{fma\_flag\_norm}
-optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates. The default is using normalized coordinates (\verb|fma_flag_norm=1|).
-For using physical coordinates explicitly set (\verb|fma_flag_norm=0|).
+optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|). See \textbf{Description} for the conditions under which normalization is available.
+
+\subparagraph{fma\_first\_turn, fma\_last\_turn}
+Turns used for FMA analysis. As the DUMP files are used as input for the FMA analysis \texttt{fma\_first\_turn} must be larger \texttt{first\_turn} in the DUMP block and  \texttt{fma\_last\_turn} must be smaller than \texttt{last\_turn} in the DUMP block. If \texttt{fma\_last\_turn = -1} the last turn number in the dump file is taken as the last turn number, including the last turn tracked if the \texttt{last} setting of the dump equals -1.
+By default, FMA will use the same turns as for the DUMP.
 
 \subparagraph{NoNormDUMP} is a flag for disabling the \texttt{NORM\_filename*} output files.
 This saves disk space and speeds up the calculation of the FMA.
@@ -3314,7 +3450,8 @@ The FMA block returns the output files \verb|NORM_filename*| containing the norm
 			& & \verb|   # eps0*,eps2*,eps3* all in 1.e-6*m,     phi* [rad] | \\
 			& & \verb|  # inputfile method id q1 q2 q3 eps1_min eps2_min eps3_min | \\
 			& & \quad \verb| eps1_max eps2_max eps3_max eps1_avg eps2_avg eps3_avg |\\
-			& & \quad \verb| eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0| \\\hline
+			& & \quad \verb| eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0| \\
+			& & \quad \verb| norm_flag first_turn last_turn|\\\hline
 			3 - eof & Lines & see header in line 1-2: The lines are ordered as particles 1-npart for (inputfile1,method1), then  particles 1-npart for (inputfile2,method2), etc.. The minimum (min), maximum (max) and average (avg) are taken over the number of turns in the inputfile (fiel specified in the FMA and DUMP block). Units are $\mu \rm m$ for \verb|eps*| and rad for \verb|phi*|, where \verb|phi*| is the angle in the normalized phase space coordinates.\\\hline
 		\end{tabularx}
 	\end{center}
@@ -3333,12 +3470,12 @@ ELEMENT  0 2 1 3.75 3.75
 NEXT
 FMA
 IP3_DUMP_1 TUNELASK
-IP3_DUMP_2 TUNELASK
+IP3_DUMP_2 TUNELASK 1 512 1024
 IP3_DUMP_3 TUNELASK 0
-IP3_DUMP_4 TUNELASK 0
+IP3_DUMP_4 TUNELASK 0 512 1024
 NEXT
 \end{verbatim}
-where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). 
+where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). For \verb|IP3_DUMP_2| and \verb|IP3_DUMP_4| the turns from 512 to 1024 are used for the FMA analysis. This is particularly useful for detecting the maximum diffusion in tunes by taking the maximum over difference over several moving windows.
 
 Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
 
@@ -4646,6 +4783,11 @@ summary of the post--processing is given.
   \htmladdnormallink{http://cern.ch/Hans.Grote/mad/mad8/doc/mad8\_user.ps.gz}
   {http://cern.ch/Hans.Grote/mad/mad8/doc/mad8\_user.ps.gz}.
 %
+\bibitem{dipedge}
+R.~Molloy and S.~Blitz, ``Fringe Field Effects on Bending Magnets, Derived for, 
+TRANSPORT/TURTLE'', FERMILAB-TM-2564-AD-APC-PPD
+\url{http://lss.fnal.gov/archive/test-tm/2000/fermilab-tm-2564-ad-apc-ppd.pdf}
+%
 \bibitem{ERIC} private communication.  
 %
 \bibitem{RANECU} F.~James, ``A review of
@@ -4668,6 +4810,14 @@ summary of the post--processing is given.
 \bibitem{plato1} R.~Bartolini, A.~Bazzani, M.~Giovannozzi, W.~Scandale, E.~Todesco,``Tune evaluation in simulations and experiments'',Part. Accel. 52 147
 
 \bibitem{plato2} M.~Giovannozzi, E.~Todesco, A.~Bazzani and R.~Bartolini (1997). ``PLATO: a program library for the analysis of nonlinear betatronic motion'', Nucl. Instrum. and Methods A 388 1
+
+\bibitem{NAFFpaper} J.~Laskar, C.~Froeschle and C.~Celletti,
+  ``The measure of chaos by the numerical analysis of the fundamental frequencies. Application to the standard mapping'', 
+  Physica D, vol. 56, pp 253-269, 1992.
+\bibitem{NAFFpaper2} S.~Kostoglou, N.~Karastathis, Y.~Papaphilippou, D.~Pellegrini and P.~Zisopoulos,
+  ``Development of computational tools for noise studies in the LHC'', 
+  2017, Proceedings of IPAC'17, Copenhagen, Denmark, 2017.
+\bibitem{sixbuild} SixTrack build manual, see SixTrack website, \url{http://sixtrack.web.cern.ch/SixTrack/}
 
 \bibitem{sixdesk1} SixDesk manual, see SixTrack website, \url{http://sixtrack.web.cern.ch/SixTrack/}
 

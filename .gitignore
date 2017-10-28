@@ -20,10 +20,13 @@ SixTrack/astuce
 SixTrack/dafor
 
 SixTrack/libarchive_build
+SixTrack/zlib/build
+SixTrack/zlib/install
 
 SixTrack/count.log
 
 #LaTeX temps
+Doc/user_manual/six.pdf
 Doc/*/*.aux
 Doc/*/*.log
 Doc/*/*.lot

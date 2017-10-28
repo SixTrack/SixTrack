@@ -140,7 +140,7 @@
       print *, ' '
       print *, ' +++ Warning: input file (SOURCE) is empty, STOP'
       print *, ' '
-      stop
+      stop 1
     2 continue
       write(ipunit,10000)  smast
    10 continue
@@ -251,6 +251,7 @@
      +               '++++++ WARNING - user deck table full at:',
      +               nudeck)
                      idfull=1
+                     stop 1
                      goto 999
                   else
                      do 20 i=nudeck,ipos,-1
@@ -370,6 +371,7 @@
          call errms1(
      +   ' ++++++ WARNING - limit of COMDECK expansion (loop ?)',
      +   string)
+         stop 1
          goto 999
       endif
       call getall(sline,sexp,ipt,npt)
@@ -388,6 +390,7 @@
       if(ipos.eq.0)  then
          call errms1( ' ++++++ WARNING - comdeck '//sexp(i)//
      +   ' not found',string)
+         stop 1
          goto 20
       endif
       j=isc(ipos)-1
@@ -401,6 +404,7 @@
             call errms1(
      +      ' ++++++ WARNING - limit of COMDECK expansion (loop ?)',
      +      sline)
+            stop 1
             goto 999
          endif
          lev=lev+1
@@ -451,6 +455,7 @@
      +               ' ++++++ WARNING - user flag table full at:',
      +               nuflag)
                      iffull=1
+                     stop 1
                      goto 999
                   else
                      nuflag=nuflag+1
@@ -497,6 +502,7 @@
             if(ndflag.eq.maxflg) then
                call errms2(
      +         ' ++++++ WARNING - flag table full at limit =' ,ndflag)
+               stop 1
                goto 999
             endif
             ndflag=ndflag+1
@@ -589,9 +595,9 @@
      +sudeck * (mtab)
 *---------*---------*---------*---------*---------*---------*---------*-
  
-      m = min(2 * marg, iargc())
+      m = min(2 * marg, command_argument_count())
       do 10  i = 1, m
-        call getarg(i, sargin(i))
+        call get_command_argument(i, sargin(i))
    10 continue
       do 20  i = 1, m - 1
         if(sargin(i)(:2) .eq. '-s')  then
@@ -993,6 +999,7 @@
             if(k.eq.0) then
                call errms1(' ++++++ WARNING - empty COMDECK declaration'
      +         ,sline)
+               stop 1
                goto 10
             endif
             call getnam(sline,k,l,kfch,klch)
@@ -1001,6 +1008,7 @@
                call errms1(' ++++++ WARNING - duplicate COMDECK ignored'
      +         ,sline)
                cdflag=.false.
+               stop 1
                goto 10
             endif
             if(ndcomm.eq.mxdcom) then
@@ -1008,6 +1016,7 @@
      +         sline)
                call errms2(' limit of COMDECKs reached =',ndcomm)
                call summup
+               stop 1
             endif
             ndcomm=ndcomm+1
             do 20 ii=ndcomm,iposd+1,-1
@@ -1103,6 +1112,7 @@
             if(k.eq.0) then
                call errms1(' ++++++ WARNING - empty DECK declaration'
      +         ,sline)
+               stop 1
                goto 10
             endif
             call getnam(sline,k,l,kfch,klch)
@@ -1113,6 +1123,7 @@
                call errms2(
      +         ' ++++++ WARNING - deck table reset at limit =',nddeck)
                nddeck=0
+               stop 1
             endif
             nddeck=nddeck+1
             sddeck(nddeck)=sname

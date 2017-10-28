@@ -1,6 +1,6 @@
 sixtrack.s common_headers.s
 sixven.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,libarchive,g4collimat
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,libarchive,g4collimat,naff
 e maincr,envarsv
 e ADIA,ADIB,DATEN,ENVARS,ERRF
 e COMNUL,RANECU
@@ -11,7 +11,7 @@ e ERROR,LINOPT,LOESD
 e MATRIX,ORBIT,ORD,PHASAD,QMOD,UMLAUF
 e DISTANCE,DECOUP
 e RESEX,RMOD,SEARCH,SUBRE,SUBSEA
-e POSTPR,JOIN,SUMPOS
+e POSTPR,JOIN,SUMPOS,UTILS
 e myrinv
 e beam6d
 e aux
@@ -19,7 +19,6 @@ e plotdumy
 e checkpt
 e dumps
 e cadcum
-e dynkancil
 e stringhandling
 e close
 ex

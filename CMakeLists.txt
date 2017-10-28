@@ -7,8 +7,8 @@
 ###################################################################################################
 
 #Set the cmake version required
-cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
-set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+#set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
 PROJECT(SixTrack)
@@ -76,6 +76,7 @@ OPTION(DEBUG "Debugging output" OFF)
 OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postprocessing with BeamLossPattern) there instead of writing it to ASCII." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
+OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
@@ -191,6 +192,9 @@ endif()
 if(MERLINSCATTER)
 	SET(SIXTRACK_FEATURES "merlinscatter_${SIXTRACK_FEATURES}")
 endif()
+if(NAFF)
+	SET(SIXTRACK_FEATURES "naff_${SIXTRACK_FEATURES}")
+endif()
 if(G4COLLIMAT)
 	SET(SIXTRACK_FEATURES "g4collimat_${SIXTRACK_FEATURES}")
 endif()
@@ -238,22 +242,30 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 
 # Select which fortran files to generate and compile
 if(DA)
-	SET(FORS sixda sixsc sixscfox dabnew lielib)
+	LIST(APPEND FORS_FIXFORM sixda sixsc sixscfox dabnew lielib)
+	LIST(APPEND FORS_FREEFORM scatter dynk)
 else()
-	SET(FORS track sixve sixvefox dabnews lielib plato_seq)
+	LIST(APPEND FORS_FIXFORM track sixve sixvefox dabnews lielib plato_seq)
+	LIST(APPEND FORS_FREEFORM beamgas scatter dynk)
 endif()
 
 if(NOT DA AND DATAMODS)
-	SET(FORS datamods ${FORS})
+	LIST(APPEND FORS_FIXFORM datamods)
 endif()
 
 if(COLLIMAT)
-	SET(FORS collimation ${FORS})
+	LIST(APPEND FORS_FIXFORM collimation)
 endif()
 
-foreach(loop IN ITEMS ${FORS})
+foreach(loop IN LISTS FORS_FIXFORM)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
+foreach(loop IN LISTS FORS_FREEFORM)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
+endforeach()
+
+#List of files that must be treated by DAFOR
+LIST(APPEND FORS_DAFOR sixvefox sixscfox sixda)
 
 if(BOINC AND NOT API)
 	#We have a BOINC build but no API, load the fake API substitute for debugging.
@@ -264,10 +276,6 @@ if(LIBARCHIVE)
 	add_library(libArchive_wrapper STATIC  libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
 	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif()
-
-#add back in beamgas, which is in free format
-SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90)
-SET(FORS ${FORS} beamgas)
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -637,22 +645,12 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=32 ${CMAKE_Fortran_FLAGS_DEBUG}")
-		if(STATIC)
-			find_library(g2cLink NAMES libg2c.a PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 )
-		else()
-			find_library(g2cLink NAMES libg2c.so PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 )
-		endif()
 	endif(32BIT)
 
 	if(64BIT)
 		#See the nagfor man page for the different 64bit -abi options.
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=64t ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=64t ${CMAKE_Fortran_FLAGS_DEBUG}")
-		if(STATIC)
-			find_library(g2cLink NAMES libg2c.a PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6 )
-		else()
-			find_library(g2cLink NAMES libg2c.so PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6 )
-		endif()
 	endif(64BIT)
 
 	if(NATIVE)
@@ -874,18 +872,15 @@ endif()
 ###################################################################################################
 #add the source files that will be used to build sixtrack
 add_executable(SixTrack ${SIXTRACK_SOURCES})
-SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 
 ##build astuce
 add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
 SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
-if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	target_link_libraries(astuce_old ${g2cLink})
-endif()
 
 add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
 add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
-SET_TARGET_PROPERTIES(astuce PROPERTIES OUTPUT_NAME "astuce++")
+SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}" OUTPUT_NAME "astuce++")
 target_link_libraries(astuce astuce++)
 
 #build dafor
@@ -922,9 +917,39 @@ if(MERLINSCATTER)
 	endif(64BIT)
 endif()
 
+if(NAFF)
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/SixTrack/cmake_modules/")
+	if (STATIC)
+		SET(FFTW_USE_STATIC_LIBS 1)
+	endif()
+	find_package(FFTW REQUIRED)
+	include_directories( ${FFTW3_INCLUDES} )
+	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
+	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
+	
+	find_package(Boost REQUIRED)
+	message(STATUS "Include dirs of boost: " ${Boost_INCLUDE_DIRS} )
+	message(STATUS "Libs of boost: " ${Boost_LIBRARIES} )
+	
+	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
+	add_library(naff STATIC ${NAFF_SOURCES})
+	target_link_libraries(naff ${FFTW_LIBRARIES} ${Boost_LIBRARIES})
+	
+	#Enable c++11
+	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
+
+	if(32BIT)
+		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+	endif(32BIT)
+	if(64BIT)
+		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+	endif(64BIT)
+endif()
+
+
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s)
+file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
@@ -1044,8 +1069,7 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-
-foreach(loop IN ITEMS ${FORS})
+foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
 	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
@@ -1110,6 +1134,10 @@ foreach(loop IN ITEMS ${FORS})
 	if(NOT MERLINSCATTER)
 		ast_masks_flag(merlinscatter ${loop})
 	endif()
+	if(NOT NAFF)
+		ast_masks_flag(naff ${loop})
+	endif()
+
 	if(NOT LIBARCHIVE)
 		ast_masks_flag(libarchive ${loop})
 	endif()
@@ -1147,30 +1175,41 @@ foreach(loop IN ITEMS ${FORS})
 endforeach(loop)
 
 add_custom_target(generate_input)
-add_dependencies(generate_input run_astuce dafor rename_beamgas)
+add_dependencies(generate_input run_astuce dafor)
 
-#we rename beamgas.f to beamgas.f90 since it should be in free format fortran
-add_custom_target(rename_beamgas)
-add_dependencies(rename_beamgas run_astuce)
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E copy beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
-
-foreach(loop IN ITEMS ${FORS})
-	#This runs astuce
-#	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+## Run ASTUCE and DAFOR to generate Fortran source files ##
+foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
+	message(STATUS "Will run astuce to generate ${loop}n.f using ${loop}.ast")
 	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
-
-	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
-		message(STATUS "Will run dafor on ${loop}.f")
+	
+	LIST(FIND FORS_DAFOR   ${loop}  FORS_DAFOR_LISTINDEX )
+	LIST(FIND FORS_FIXFORM ${loop}  FORS_FIXFORM_LISTINDEX )
+	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
+	
+	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
+		message(STATUS "Will run dafor to generate ${loop}.f from ${loop}n.f")
+		if(NOT ${FORS_FIXFORM_LISTINDEX} GREATER -1)
+			message(FATAL_ERROR "Was configured to run dafor on ${loop}, but this is not a fixform file!")
+		endif()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND $<TARGET_FILE:dafor> ${loop}n.f ${loop}.f > ${loop}_dafor.log DEPENDS run_astuce)
-	else()
+		
+	elseif(${FORS_FIXFORM_LISTINDEX} GREATER -1)
+		message(STATUS "Will copy ${loop}n.f to ${loop}.f")
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f DEPENDS run_astuce)
+		
+	elseif(${FORS_FREEFORM_LISTINDEX} GREATER -1)
+		message(STATUS "Will copy ${loop}n.f to ${loop}.f90")
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f90 DEPENDS run_astuce)
+		
+	else()
+		message(FATAL_ERROR "Error when preprocessing ${loop}: Logic error in CMakeLists.txt.")
 	endif()
 endforeach()
 
 ###################################################################################################
 #linking
 ###################################################################################################
-set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/5.3.0/libquadmath.a")
+set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/6.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
 	target_link_libraries(astuce_old ${MSYS_QUADMATH})
@@ -1181,7 +1220,7 @@ endif()
 #same with OSX, using gfortran from homebrew
 if(STATIC)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/)
+		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/ /usr/local/opt/gcc/lib/gcc/7/ /usr/local/opt/gcc/lib/gcc/8/)
 		target_link_libraries(SixTrack ${lquadmath})
 	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(STATIC)
@@ -1229,6 +1268,11 @@ endif(CRLIBM)
 if(MERLINSCATTER)
 	target_link_libraries(SixTrack merlinscatter)
 endif(MERLINSCATTER)
+#if we are using naff, link to the naff library
+if(NAFF)
+	target_link_libraries(SixTrack naff)
+endif(NAFF)
+
 
 #if we are using root, link to all the root libraries
 #if(ROOT)
@@ -1248,21 +1292,41 @@ endif(G4COLLIMAT)
 if(NAGLIB)
 	if(64BIT)
 		if(STATIC)
+			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
 		else()
+			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
 		endif(STATIC)
 	endif(64BIT)
 
 	if(32BIT)
 		if(STATIC)
+			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
 		else()
+			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
 		endif(STATIC)
 	endif(32BIT)
 
-	target_link_libraries(SixTrack ${nglib})
+	target_link_libraries(SixTrack ${nglib} ${nglibifcoremt} ${nglibsvml} ${nglibirng} ${nglibimf} ${nglibirc} dl pthread )
 endif(NAGLIB)
 
 IF(COVERAGE)
@@ -1313,12 +1377,6 @@ IF(BUILD_TESTING)
 	SET_TARGET_PROPERTIES(checkf1014 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-
-	if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-		target_link_libraries(verify10 ${g2cLink})
-		target_link_libraries(checkf10 ${g2cLink})
-		target_link_libraries(compf10 ${g2cLink})
-	endif()
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)

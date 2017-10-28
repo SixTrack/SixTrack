@@ -1,4 +1,5 @@
       program compf10
+      use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
       double precision prob(60),prob1(60),eps(60)
       integer line,word,i
@@ -19,6 +20,7 @@
       if (.not. hasInputFile) then
          write(*,'(a,a)') "Error in compf10 - file 'fort.20'"//
      &        " was not found"
+         flush(output_unit)
          stop 1
       endif
       hasInputFile = .false.
@@ -26,6 +28,7 @@
       if (.not. hasInputFile) then
          write(*,'(a,a)') "Error in compf10 - file 'fort.21'"//
      &        " was not found"
+         flush(output_unit)
          stop 2
       endif
       
@@ -74,26 +77,28 @@
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       write (*,*)
      & "compf10_DIFF I/O error, wrong no of lines!! line no ",line
-      call exit(2)
-      stop
+      flush(output_unit)
+      stop 2
  98   continue
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       write (*,*) "compf10_DIFF I/O error!! fort.20 line no ",line
-      call exit(3)
-      stop
+      flush(output_unit)
+      stop 3
  97   continue
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       write (*,*) "compf10_DIFF I/O error!! fort.21 line no ",line
-      call exit(4)
-      stop
+      flush(output_unit)
+      stop 4
  100  continue
       if (line.eq.0) go to 99
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
       if (diff) then
         write (*,*) "compf10_DIFF after comparing ",line ,"lines"
-        call exit(1)
+        flush(output_unit)
+        stop 1
       else
         write (*,*) "compf10_SAME after comparing ",line ,"lines"
-        call exit(0)
+        flush(output_unit)
+        stop 0
       endif
       end
