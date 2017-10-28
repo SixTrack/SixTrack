@@ -303,7 +303,7 @@
 !
       ibase = no+1
       js    = nv/2
-      if(real(ibase)**((nv+1)/2).gt.real(lia)) then                      !hr10
+      if(real(ibase,fPrec)**((nv+1)/2).gt.real(lia,fPrec)) then          !hr10
          write(lout,*)'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',
      &' LIA = ',lia
          call dadeb(31,'ERR DAINI ',1)
@@ -4821,7 +4821,7 @@
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
      &lst
       integer incc(1)
-      double complex fun
+      complex(kind=fPrec) fun
       external fun
 !     *****************************
 !
@@ -4858,7 +4858,7 @@
       integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
      &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) cfac,rr
-      double complex fun
+      complex(kind=fPrec) fun
       external fun
 !     *****************************
 !
@@ -4880,13 +4880,13 @@
         j(i)=0
       enddo
       call dapek(ina,j,rr)
-      cfac = dreal(fun(j))
+      cfac = real(fun(j))
       rr=cfac*rr
       call dapok(inc,j,rr)
       do i=1,lnv
         j(i)=1
         call dapek(ina,j,rr)
-        cfac = dreal(fun(j))
+        cfac = real(fun(j))
         rr=cfac*rr
         call dapok(inc,j,rr)
         j(i)=0
@@ -4908,7 +4908,7 @@
       do ia=ipoa,ipoa+illa-1
 !
       call dancd(i1(ia),i2(ia),j)
-      cfac = dreal(fun(j))
+      cfac = real(fun(j))
 !      IF(dABS(CFAC).LT.EPS) GOTO 100
 !      IF(dABS(CFAC*CC(IA)).LT.EPS) GOTO 100
        if(abs(cfac*cc(ia)).lt.eps.or.abs(cc(ia)).lt.eps) goto 100
@@ -4975,7 +4975,7 @@
 +ei
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,&
      &lst
-      double complex fun
+      complex(kind=fPrec) fun
       integer incc(1)
       external fun
 !     *****************************
@@ -5013,7 +5013,7 @@
       integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
      &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) cfac,rr
-      double complex fun
+      complex(kind=fPrec) fun
       external fun
 !     *****************************
 !
@@ -5035,13 +5035,13 @@
         j(i)=0
       enddo
       call dapek(ina,j,rr)
-      cfac = dimag(fun(j))
+      cfac = aimag(fun(j))
       rr=cfac*rr
       call dapok(inc,j,rr)
       do i=1,lnv
         j(i)=1
         call dapek(ina,j,rr)
-        cfac = dimag(fun(j))
+        cfac = aimag(fun(j))
         rr=cfac*rr
         call dapok(inc,j,rr)
         j(i)=0
@@ -5063,7 +5063,7 @@
       do ia=ipoa,ipoa+illa-1
 !
       call dancd(i1(ia),i2(ia),j)
-      cfac = dimag(fun(j))
+      cfac = aimag(fun(j))
 !      IF(dABS(CFAC).LT.EPS) GOTO 100
 !      IF(dABS(CFAC*CC(IA)).LT.EPS) GOTO 100
        if(abs(cfac*cc(ia)).lt.eps.or.abs(cc(ia)).lt.eps) goto 100
