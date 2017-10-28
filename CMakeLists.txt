@@ -935,7 +935,7 @@ SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}" O
 target_link_libraries(astuce astuce++)
 
 #build dafor
-add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/tools/dafor/dafor.f)
+add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/tools/dafor/dafor.f90)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
