@@ -1,0 +1,25 @@
++dk mathlib_bouncer
+module mathlib_bouncer
+  use floatPrecision
+  implicit none
+  
+contains
+
+  real(kind=fPrec) function sin_mb(arg)
+    implicit none
+    real(kind=fPrec) arg
+    intent(in) arg
+    
+    !Temporary, to make linking possible
+    double precision sin_rn
+    
++if .not.crlibm
+    !Input KIND = output KIND
+    sin_mb=sin(arg)
++ei
++if crlibm
+    sin_mb=sin_rn(arg)
++ei
+  end function sin_mb
+  
+end module mathlib_bouncer
