@@ -1,6 +1,6 @@
 #CMakeLists.txt for crlibm
 
-SET(CRLIBM1_SOURCES csh_fast.c rem_pio2.c trigo_fast.c tan.c sine.c cosine.c exp.c exp_fast.c log.c log_fast.c log10.c atan.c atan_fast.c ericc.c)
+SET(CRLIBM1_SOURCES csh_fast.c rem_pio2.c trigo_fast.c tan.c sine.c cosine.c exp.c exp_fast.c log.c log_fast.c log10.c atan.c atan_fast.c)
 SET(CRLIBM2_SOURCES addition_scs.c double2scs.c multiplication_scs.c division_scs.c scs2double.c zero_scs.c)
 
 add_library(crlibm1 OBJECT ${CRLIBM1_SOURCES})
