@@ -2692,9 +2692,6 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     real(kind=fPrec) round_near
 +ei
 
-+if crlibm
-+ca crlibco
-+ei
 
 +ca crcoall
 

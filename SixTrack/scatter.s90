@@ -937,9 +937,6 @@ subroutine scatter_thin(ix, turn)
     implicit none
 
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 
 +ca stringzerotrim
 
@@ -1051,9 +1048,6 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
 +ca parnum
 +ca common
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +ca stringzerotrim
 
     integer, intent(in) :: profileIdx
@@ -1207,9 +1201,6 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 
     implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
 +ca crcoall
 
     real(kind=fPrec), intent(in) :: a, b1, b2, phi, tmin

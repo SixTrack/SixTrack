@@ -9239,9 +9239,6 @@ cc2008
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ifail,istate,iter,iuser,iwork,j,jaord,jbound,jcol,jcomp,&
      &jconf,jord,jpord,jrow,jsex,jvar,k,kcol,l,liwork,lwork,mcor,n,     &
      &nclin,ncnln,nconf,ndim2,nout,nrel,nrowa,nrowj,nrowr
@@ -9520,9 +9517,6 @@ cc2008
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer icont,ind,j,j1,j2,j3,j4,j5,j6,jaord,jcomp,jel,jord,jpord, &
      &maxcomp,njx,njx1,njz,njz1,nmax,np,ncoef,nord,point,kointer
       real user
@@ -9774,9 +9768,6 @@ cc2008
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer j1,j2,j3,j4,j5,j6,ja,jcomp,jel,jord,jp,l,ncoef,kointer
       real(kind=fPrec) tham
       dimension tham(0:3)
@@ -9917,9 +9908,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jvar,l,mode,n,nmax,&
      &nstate,kointer
       real user
@@ -10166,9 +10154,6 @@ cc2008
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ifail,istate,iter,itype,iuser,iwork,j,jbound,jcol,      &
      &jcomp,jconf,jord,jrow,jsex,jvar,kcol,l,liwork,lwork,mcor,n,nclin, &
      &ncnln,ndim2,nout,nrowa,nrowj,nrowr
@@ -10444,9 +10429,6 @@ cc2008
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer icont,ind,j,j1,j2,j3,j4,j5,j6,jcomp,jel,jord,jp,ncoef,njx,&
      &njx1,njz,njz1,nor,np,point,kointer
       real user
@@ -10707,9 +10689,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer j,j1,j2,j3,j4,j5,j6,jel,jord,jp,l,kointer
       real(kind=fPrec) thama,thamp
 +ca commadha
@@ -10975,9 +10954,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jp,jvar,kord,l,    &
      &mode,n,nstate,kointer
       real user
@@ -11235,9 +11211,6 @@ cc2008
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer n,nc,nu
       real(kind=fPrec) cc,h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,        &
      &xh,xl,xlim,xx,y,yh,ylim,yy
@@ -11614,9 +11587,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer k,mu,nu
       real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,     &
      &q,qsq,r,simag,sreal,t,tdd13i,tdd13r,tdd24i,tdd24r,tdddi,tdddr,ti, &
@@ -11712,9 +11682,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer numx
       real(kind=fPrec) e0f
 +ca parpro
@@ -11751,9 +11718,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) e0f
 +ca parpro
 +ca parnum
@@ -11796,9 +11760,6 @@ cc2008
       
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
      &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
@@ -17949,9 +17910,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ii,ikz
       real(kind=fPrec) rdum1,rdum2,rel1
       character*160  ch
@@ -18048,9 +18006,6 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 !ERIC
       integer i,i0,i1,i2,i3,i4,iev,ii,j
       integer nchars
@@ -18747,9 +18702,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,k
       real(kind=fPrec) wi,wr,x,y
 +ca parpro
@@ -18776,9 +18728,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer n
       real(kind=fPrec) c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
      &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
@@ -18987,9 +18936,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,is1,is2,iseed1,iseed2,iz,j,k,len,mcut
       real(kind=fPrec) rvec0,rvec,pi,r
 +ca parnum
@@ -19058,9 +19004,6 @@ c$$$         endif
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ih,j,kz1,l,ll
       real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,&
      &fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,rv,si,siq,sm1,         &
@@ -19490,9 +19433,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ien,ih,ip,kz1,l,idaa
       real(kind=fPrec) dare,result
 +ca parpro
@@ -19869,9 +19809,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
 +ca parpro
@@ -19971,9 +19908,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
      &nsta,nsto,idaa
@@ -21086,9 +21020,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
@@ -22523,9 +22454,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
@@ -22720,9 +22648,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer idaa
       real(kind=fPrec) betr0,dare,sigmdac
 +ca parpro
@@ -22822,9 +22747,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ix,idaa
 +ca parpro
 +ca parnum
@@ -22879,9 +22801,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
 +ca parpro
@@ -23008,9 +22927,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ibb,ibbc,ne,nsli,idaa
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
@@ -23107,9 +23023,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2    &
 +ca parpro
@@ -23171,9 +23084,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
 +ca parpro
@@ -23320,9 +23230,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
 +ca parpro
@@ -23393,9 +23300,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer idaa
       real(kind=fPrec) dare,hundred,sqrpi2
 +ca parpro
@@ -23520,9 +23424,6 @@ c$$$         endif
       
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +ca errout
 !-----------------------------------------------------------------------
 !
@@ -26010,9 +25911,6 @@ c$$$         endif
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -26490,9 +26388,6 @@ c$$$         endif
 +ca exactvars
 +ca commonex
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb, &
@@ -27026,9 +26921,6 @@ c$$$         endif
 +ca exactvars
 +ca commonex
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +if hdf5
 !   YIL: In order to make sure we are sending the correct
 !        data types to appendreading..
@@ -27870,9 +27762,6 @@ c$$$         endif
 +ca exactvars
 +ca commonex
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,e0fo,e0o,r0,r2b,rb,rho2b,rkb,stracki, &
@@ -28460,9 +28349,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +ca parpro
 +ca parnum
 +ca common
@@ -28677,9 +28563,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +ca parpro
 +ca parnum
 +ca common
@@ -28765,9 +28648,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !      logical isnan
       logical myisnan
       integer ib2,ib3,ilostch,j,jj,jj1,lnapx,nthinerr
@@ -28805,9 +28685,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !      logical isnan
       logical myisnan
       integer i,ib2,ib3,ilostch,ix,j,jj,jj1,lnapx,nthinerr
@@ -28846,9 +28723,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !      logical isnan
       logical myisnan
       integer i,ib2,ib3,ilostch,ix,j,jj,jj1,lnapx,nthinerr
@@ -28887,9 +28761,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !      logical isnan
       logical myisnan
       integer i,ib2,ib3,ilostch,ix,j,jj,jj1,lnapx,nthinerr
@@ -28927,9 +28798,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
 +ca parpro
@@ -28998,9 +28866,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ia,ia2,id,ie,ig,n
 +ca parpro
 +ca parnum
@@ -29668,9 +29533,6 @@ c$$$         endif
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -30088,9 +29950,6 @@ c$$$         endif
       use dynk, only : ldynk, dynk_apply
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,puxve,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj, &
@@ -30634,9 +30493,6 @@ c$$$         endif
       use dynk, only : ldynk, dynk_apply
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,  &
@@ -31338,9 +31194,6 @@ c$$$         endif
       use dynk, only : ldynk, dynk_apply
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,e0fo,e0o,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,  &
@@ -31940,9 +31793,6 @@ c$$$         endif
       use bigmats
 +ei
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
 +ca parpro
@@ -32482,9 +32332,6 @@ c$$$         endif
 +ei
 
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ih1,ih2,j,kz1,l,l1,l2
       real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,ekv,fi,    &
      &fok,fok1,fokm,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
@@ -33001,9 +32848,6 @@ c$$$         endif
       use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,iation,itiono,idate,im,imonth,itime,ix,izu,j,jj,k,kpz,  &
      &kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
       real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
@@ -33602,9 +33446,6 @@ c$$$         endif
 
       implicit none
       
-+if crlibm
-+ca crlibco
-+ei
       integer i,i1,i2,i3,i4,j
 +ca parpro
 +ca parnum
@@ -34375,9 +34216,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
       real(kind=fPrec) c,c1
       character(len=80) aaa
@@ -34454,9 +34292,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,&
      &a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
       real tlim,time0,time1,time
@@ -34619,9 +34454,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ii,iq,j,jq
       real(kind=fPrec) clo,cx,dam,di0,phi,pi,sx,t,x,x1
 +ca parpro
@@ -34693,9 +34525,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ii,jj,l,ll
       real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
      &tas,tas56,x1,x11,x13,x2
@@ -34819,9 +34648,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
      &fak2,qw,rca1,rca2,rclam1,rclam2,rcw1(4),rcw2(4),rn1,rn2,spa,spd,  &
@@ -35014,9 +34840,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
 +ca parpro
@@ -35073,9 +34896,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
 +ca parpro
@@ -35138,9 +34958,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ii,isl,j,jj,l,n
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
      &sm0,su2,suxy,suzy,xi,zi
@@ -35266,9 +35083,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
 +ca parpro
@@ -35406,9 +35220,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
      &dy,x0,x1,y0,y1
@@ -35496,9 +35307,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
       real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
 +ca parpro
@@ -35832,9 +35640,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
@@ -35916,9 +35721,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
@@ -35986,9 +35788,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ierr,ii,l,ll
       real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
      &x1,y0,y1
@@ -36055,9 +35854,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ico,ico0,iql,j,m
 +ca parpro
 +ca parnum
@@ -36104,9 +35900,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ih,kz1,l,ll
       real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1, &
      &hm,hp,hs,rho,rhoi,si,wf
@@ -36407,9 +36200,6 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ih,kz1,l,ll
       real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,&
      &g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
@@ -36712,9 +36502,6 @@ c$$$         endif
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ier
 +ca parpro
 +ca parnum
@@ -37236,9 +37023,6 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,
      &nmz,nr,dj
       real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
@@ -38118,9 +37902,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,iwrite,ixwl,l,ll,nr
       real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character(len=16) typ
@@ -38244,9 +38025,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,iwrite
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
@@ -38389,9 +38167,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ik,indi,j,jk,jy,k,kk,kod,l,n,n1,dimtot,dimakt
       real(kind=fPrec) emax,eps,r,rmat,vec
 +ca parpro
@@ -38444,9 +38219,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ierr,l
       real(kind=fPrec) am,dpp
 +ca parpro
@@ -38492,9 +38264,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
      &nlino,ntcoo,nto,nx
 +ca parpro
@@ -38800,9 +38569,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
 +ca parpro
       real xinc(ncor1)
@@ -38904,9 +38670,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
 +ca parpro
@@ -38980,9 +38743,6 @@ c$$$            endif
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1, &
      &nmon1
       real a,b,piv,pivt,ptop,r,rho,rmss,x,xiter,xptp,xrms
@@ -39146,9 +38906,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer j,k,k1,m,n,nc,ncor1,nmon1
       real a,beta,h
       parameter (nmon1 = 600)
@@ -39181,9 +38938,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer k,k1,m,n,ncor1,nmon1
       real a,b,beta,h
       parameter (nmon1 = 600)
@@ -39214,9 +38968,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,k,kk,kl,kn,lv,m,n,ncor1,nmon1
       real a,b,beta,rho
       parameter (nmon1 = 600)
@@ -39250,9 +39001,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,k,m,n,ncor1,nmon1
       real a,beta,h,sig
       parameter (nmon1 = 600)
@@ -39285,9 +39033,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,imax,imin,m,maxmin
       real ave,ptp,r,rms,xave,xrms
       dimension r(m)
@@ -39319,9 +39064,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,m,maxmin,n
       real a,curent
       dimension a(n)
@@ -39347,9 +39089,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
      &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
       real(kind=fPrec) extalig1,exterr1
@@ -39616,9 +39355,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,&
      &dj
       real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk, &
@@ -40113,9 +39849,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
@@ -40363,9 +40096,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
 +ca parpro
@@ -40663,9 +40393,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
       real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,   &
      &dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
@@ -41084,9 +40811,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,    &
      &kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,  &
      &nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -41836,9 +41560,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,   &
      &nteo
       real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,   &
@@ -42148,9 +41869,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=16) ref
@@ -42238,9 +41956,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,    &
      &k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,mis,mm,mpe,mx,n2,n22,n2e,nf1,&
      &nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,nv2, &
@@ -43195,9 +42910,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer iv,iv2,iv3,iv4,iv5,iv6
       real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,pi,vor,vtu1, &
      &vtu2
@@ -43286,9 +42998,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,    &
      &l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,   &
      &np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -44010,9 +43719,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
 +ca parpro
@@ -44222,9 +43928,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +ca parpro
 +ca parnum
 +ca common1
@@ -46795,9 +46498,6 @@ c$$$            endif
 +ca common   !napx = number of particles 
 +ca parnum   !numbers (zero,one,two etc.)
 +ca commonc
-+if crlibm
-+ca crlibco
-+ei
 +ca crcoall
       integer :: i,j,k,l,m,n                    ! for do loops
       integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
@@ -47752,9 +47452,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ip,j,k,l,le,le1,m,n,nm1,nv2
       real(kind=fPrec) ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
 +ca parnum
@@ -47827,9 +47524,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 +ca parnum
       real(kind=fPrec) a,b,c
       save
@@ -47851,9 +47545,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ie,j,k
       real(kind=fPrec) a,b,c,d,f,phase,tpi,dani
 +ca parpro
@@ -47888,9 +47579,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,invx,j
       real(kind=fPrec) a,b,c,d,phase,dani,e,xinv
 +ca parpro
@@ -47921,9 +47609,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) a,b,c,d,e
 +ca parnum
       save
@@ -47950,9 +47635,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
       real(kind=fPrec) alf0,bet0,clo,clop,dam,di0,dip0,dps,dummy,e0,pi, &
      &qwc,sigm,ta,x,y
@@ -48185,9 +47867,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ierro,j
       real(kind=fPrec) d,dlost
       character*4 ch
@@ -48331,9 +48010,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ibb,ibbc,ibtyp,ne,np,nsli
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,tphi,track,star,phi2,cphi2,sphi2,tphi2
@@ -48423,9 +48099,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,np
       real(kind=fPrec) calpha,cphi,h,h1x,h1y,h1z,hd1,salpha,sphi,tphi,  &
      &track,x1,y1
@@ -48471,9 +48144,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
       real(kind=fPrec) bbf0,bbfx,bbfy,bbgx,bbgy,bcu,costh,costhp,cphi,  &
      &dum,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,star,sx,       &
@@ -48598,9 +48268,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,np
       real(kind=fPrec) calpha,cphi,det,h1,h1d,h1x,h1y,h1z,salpha,sphi,  &
      &tphi,track,x1,y1,z1
@@ -48654,9 +48321,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ibtyp
       real(kind=fPrec) arg1x,arg1y,arg2x,arg2y,bbfx,bbfy,bbgx,bbgy,     &
      &comfac,comfac2,const,expfac,fac,fac2,sepx,sepy,sigxx,sigxy,sigyy, &
@@ -48744,9 +48408,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,nsli
       real(kind=fPrec) bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,   &
      &salpha,sigz,sigzs,sphi,sphi2,star,yy
@@ -48809,9 +48470,6 @@ c$$$            endif
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) a0,a1,a2,a3,b0,b1,b2,b3,b4,c0,c1,c2,c3,c4,d0,d1, &
      &d2,d3,d4,e0,e1,e2,e3,e4,f0,f1,f2,gauinv,p,p0,p1,p2,pp1,q,qq2,qq3, &
      &qq4,qq5,t
@@ -48876,9 +48534,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,kounte,l,lgfile,limitm,limitr,log,logf
       parameter(kounte = 27)
       character*6         ercode,   code(kounte)
@@ -48984,9 +48639,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer idim,ifail,ir,jfail,k,kprnt,n
       real t1,t2,t3,a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
       character*6 name
@@ -49106,9 +48758,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer idim,ifail,jfail,k,kprnt,n
       integer ir
       real t1,t2,t3
@@ -49230,9 +48879,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer idim,k,kprnt,lgfile,n
       character*6 name
       logical mflag,rflag
@@ -49266,9 +48912,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
       real a,det,g1,g2,one,p,pivotf,q,sizef,t,tf,x,y,zero
@@ -49353,9 +48996,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
       real g1,g2,p,pivotf,q,sizef,t
@@ -49441,9 +49081,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
       real a,b,te,x,y
       real(kind=fPrec) dotf,s21,s22
@@ -49501,9 +49138,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
       real(kind=fPrec) a,b,x,y,te
       real(kind=fPrec) dotf,s21,s22
@@ -49561,9 +49195,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
       real a,ti,x,y
       real(kind=fPrec) dotf,s31,s32,s33,s34
@@ -49634,9 +49265,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
       real(kind=fPrec) a,dotf,s31,s32,s33,s34,ti,x,y
       character*6 hname
@@ -49705,9 +49333,6 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer idim,k,lgfile,n
       character*6 name
       logical mflag,rflag
@@ -49759,9 +49384,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer j,key,l
       real(kind=fPrec) a,b,count,e,scartx,scarty
       real(kind=fPrec) sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
@@ -49828,9 +49450,6 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer icnt,j,key,l
       real(kind=fPrec) a,b,e,x,y,w
       real(kind=fPrec) w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
@@ -52266,9 +51885,6 @@ c$$$         backspace (93,iostat=ierro)
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) arg1,arg2
 !      isnan=.false.
 !      if(arg1.ne.arg2) isnan=.true.

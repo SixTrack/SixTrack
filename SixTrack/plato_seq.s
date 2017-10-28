@@ -91,7 +91,6 @@ C
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
       
-+ca crlibco
 +ca crcoall
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
@@ -165,7 +164,6 @@ C
      &TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
-+ca crlibco
 +ca crcoall
 C............................................................
       IF (MAX.LE.0) THEN
@@ -292,8 +290,6 @@ C
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER),ZSING(MAXITER)
 
-+ca crlibco
-
 C..................................ESTIMATION OF TUNE WITH FFT 
 +if crlibm
       PI=ATAN_MB(1D0)*4D0
@@ -378,8 +374,6 @@ C
       COMPLEX*16 ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
-
-+ca crlibco
 
 C..................................ESTIMATION OF TUNE WITH FFT 
 +if crlibm
@@ -481,8 +475,6 @@ C
       COMPLEX*16 CDATA(NN)
       REAL*8 DATA(2*NN)
 
-+ca crlibco
-
       N=2*NN
 C create real array DATA out of complex array CDATA
       DO I=1,N,2
@@ -566,7 +558,6 @@ C
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
       REAL*8 DATA(*)
 
-+ca crlibco
       N=2*NN
       J=1
       DO 11 I=1,N,2
@@ -645,7 +636,6 @@ C
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca crlibco
 +ca crcoall
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
@@ -722,7 +712,6 @@ C
       COMPLEX*16 ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
 
-+ca crlibco
 
 C............................................................  
 +if crlibm
@@ -843,7 +832,6 @@ C............................................................
      &ADVSIG,ADVMIN,ADVMAX
       DIMENSION X(*),P(*)
 
-+ca crlibco
 +ca crcoall
 C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
@@ -1003,7 +991,6 @@ C............................................................
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX*16 Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
-+ca crlibco
 +ca crcoall
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
@@ -1110,7 +1097,6 @@ C............................................................
       COMPLEX*16 ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
 
-+ca crlibco
 +ca crcoall
 +if crlibm
       DUEPI=8*ATAN_MB(1D+0)
