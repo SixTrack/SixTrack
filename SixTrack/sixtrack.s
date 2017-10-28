@@ -28442,6 +28442,7 @@ c$$$         endif
 !     Subroutine for writing the header of the binary files (fort.90 etc.)
 !     Always converting to real64 before writing to disk
       use floatPrecision
+      use, intrinsic :: iso_fortran_env, only : real64
       implicit none
       
       integer, intent(in) :: ia_p1, ia_p2, fileunit_in
@@ -28453,33 +28454,68 @@ c$$$         endif
 +ca common
 +ca commonmn
 
+      integer i,j
+      
+      real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
+      real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
+      real(kind=real64) tas_tmp(6,6)
+      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp
+      
+      real(kind=real64) zero64,one64
+      parameter(zero64 = 0.0_real64)
+      parameter(one64  = 1.0_real64)
+      
+      !Convert from whatever precission is used internally to real64,
+      ! which is what should go in the output file
+      do i=1,3
+         qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
+         clo6v_tmp (i) = real(clo6v (i,ia_p1), real64)
+         clop6v_tmp(i) = real(clop6v(i,ia_p1), real64)
+      enddo
+
+      di0xs_tmp  = real(di0xs (ia_p1), real64)
+      dip0xs_tmp = real(dip0xs(ia_p1), real64)
+      di0zs_tmp  = real(di0zs (ia_p1), real64)
+      dip0zs_tmp = real(dip0zs(ia_p1), real64)
+      
+      do i=1,6
+         do j=1,6
+            tas_tmp(j,i) = real(tas(ia_p1,j,i), real64)
+         enddo
+      enddo
+      
+      mmac_tmp  = real(mmac,       real64)
+      nms_tmp   = real(nms(ia_p1), real64)
+      izu0_tmp  = real(izu0,       real64)
+      numlr_tmp = real(numlr_tmp,  real64)
+      
       write(fileunit_in,iostat=ierro_wbh)
      &sixtit,commen,cdate, ctime,progrm, ia_p1,ia_p2, napx, icode,numl, &
-     &qwcs(ia_p1,1),qwcs(ia_p1,2), qwcs(ia_p1,3),                       &
-     &clo6v(1,ia_p1),clop6v(1,ia_p1),clo6v(2,ia_p1),clop6v(2,ia_p1),    &
-     &clo6v(3,ia_p1),clop6v(3,ia_p1),                                   &
-     &di0xs(ia_p1),dip0xs(ia_p1),di0zs(ia_p1),dip0zs(ia_p1),            &
-     &zero,one,                                                         &
-     &tas(ia_p1,1,1),tas(ia_p1,1,2),tas(ia_p1,1,3),                     &
-     &tas(ia_p1,1,4),tas(ia_p1,1,5),tas(ia_p1,1,6),                     &
-     &tas(ia_p1,2,1),tas(ia_p1,2,2),tas(ia_p1,2,3),                     &
-     &tas(ia_p1,2,4),tas(ia_p1,2,5),tas(ia_p1,2,6),                     &
-     &tas(ia_p1,3,1),tas(ia_p1,3,2),tas(ia_p1,3,3),                     &
-     &tas(ia_p1,3,4),tas(ia_p1,3,5),tas(ia_p1,3,6),                     &
-     &tas(ia_p1,4,1),tas(ia_p1,4,2),tas(ia_p1,4,3),                     &
-     &tas(ia_p1,4,4),tas(ia_p1,4,5),tas(ia_p1,4,6),                     &
-     &tas(ia_p1,5,1),tas(ia_p1,5,2),tas(ia_p1,5,3),                     &
-     &tas(ia_p1,5,4),tas(ia_p1,5,5),tas(ia_p1,5,6),                     &
-     &tas(ia_p1,6,1),tas(ia_p1,6,2),tas(ia_p1,6,3),                     &
-     &tas(ia_p1,6,4),tas(ia_p1,6,5),tas(ia_p1,6,6),                     &
-     &dble(mmac),dble(nms(ia_p1)),dble(izu0),                           &
+     &qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                              &
+     &clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),            &
+     &clo6v_tmp(3),clop6v_tmp(3),                                       &
+     &di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                        &
+     &zero64,one64,                                                     &
+     &tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                           &
+     &tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                           &
+     &tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                           &
+     &tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                           &
+     &tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                           &
+     &tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                           &
+     &tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                           &
+     &tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                           &
+     &tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                           &
+     &tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                           &
+     &tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                           &
+     &tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                           &
+     &mmac_tmp,nms_tmp,izu0_tmp,                                        &
      &dble(numlr),sigcor,dpscor,                                        &
-     &zero,zero,zero,zero,                                              &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
-
+     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,          &
+     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,   &
+     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,   &
+     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,   &
+     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64
+      
       end subroutine writebin_header
       
       subroutine writebin(nthinerr)
