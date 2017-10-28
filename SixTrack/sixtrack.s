@@ -2020,13 +2020,13 @@
       cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
 +if crlibm
             yv(1,j)=crkve*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &cikve*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
+     &cikve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
             yv(2,j)=cikve*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &crkve*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
+     &crkve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
             crkve=xv(1,j)*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &xv(2,j)*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
+     &xv(2,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
             cikve=xv(2,j)*cos_rn((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &xv(1,j)*sin_rn((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
+     &xv(1,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
 +ei
 +if .not.crlibm
             yv(1,j)=crkve*cos((strackz(i)*ejf0v(j))/ejfv(j))+           &!hr02
@@ -2173,9 +2173,9 @@
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
 +if crlibm
             dyy1=(crkve*cos_rn(ek(IX)/(one+dpp))+                       &!hr02
-     &cikve*sin_rn(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
+     &cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
             dyy2=(cikve*cos_rn(ek(IX)/(one+dpp))-                       &!hr02
-     &crkve*sin_rn(ek(IX)/(one+dpp)))-y(1,2)                             !hr02
+     &crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2)                             !hr02
 +ei
 +if .not.crlibm
             dyy1=(crkve*cos(ek(IX)/(one+dpp))+                          &!hr02
@@ -2240,9 +2240,9 @@
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
 +if crlibm
             dyy1=(crkve*cos_rn(ek(IX)/(one+dpp))+                       &!hr02
-     &cikve*sin_rn(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
+     &cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
             dyy2=(cikve*cos_rn(ek(IX)/(one+dpp))-                       &!hr02
-     &crkve*sin_rn(ek(IX)/(one+dpp)))-y(1,2)                             !hr02
+     &crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2)                             !hr02
 +ei
 +if .not.crlibm
             dyy1=(crkve*cos(ek(IX)/(one+dpp))+                          &!hr02
@@ -2555,9 +2555,9 @@
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
 +if crlibm
             dyy1=(crkve*cos_rn(ek(IX))/(one+dpp))+                      &!hr02
-     &(cikve*sin_rn(ek(IX))/(one+dpp))-y(1,1)                            !hr02
+     &(cikve*sin_mb(ek(IX))/(one+dpp))-y(1,1)                            !hr02
             dyy2=cikve*cos_rn(ek(IX)/(one+dpp))-                        &!hr02
-     &crkve*sin_rn(ek(IX)/(one+dpp))-y(1,2)                              !hr02
+     &crkve*sin_mb(ek(IX)/(one+dpp))-y(1,2)                              !hr02
 +ei
 +if .not.crlibm
             dyy1=(crkve*cos(ek(IX))/(one+dpp))+                         &!hr02
@@ -2588,10 +2588,10 @@
             crkve=t(i,2)-(t(i,1)*qu)*qv                                  !hr02
             cikve=t(i,4)-(t(i,3)*qu)*qv                                  !hr02
 +if crlibm
-            t(i,2)=crkve*cos_rn(qv)+cikve*sin_rn(qv)                     !hr02
-            t(i,4)=cikve*cos_rn(qv)-crkve*sin_rn(qv)                     !hr02
-            crkve=t(i,1)*cos_rn(qv)+t(i,3)*sin_rn(qv)                    !hr02
-            cikve=t(i,3)*cos_rn(qv)-t(i,1)*sin_rn(qv)                    !hr02
+            t(i,2)=crkve*cos_rn(qv)+cikve*sin_mb(qv)                     !hr02
+            t(i,4)=cikve*cos_rn(qv)-crkve*sin_mb(qv)                     !hr02
+            crkve=t(i,1)*cos_rn(qv)+t(i,3)*sin_mb(qv)                    !hr02
+            cikve=t(i,3)*cos_rn(qv)-t(i,1)*sin_mb(qv)                    !hr02
 +ei
 +if .not.crlibm
             t(i,2)=crkve*cos(qv)+cikve*sin(qv)                           
@@ -3869,7 +3869,7 @@
 +if .not.tilt
 +if crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))         !hr03
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))         !hr03
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix)))*c1m3   !hr03
@@ -3885,7 +3885,7 @@
 +if tilt
 +if crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))         !hr03
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))         !hr03
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix)))*c1m3   !hr03
@@ -3934,7 +3934,7 @@
      &cos_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((half*(crabamp2*oidpsv(j)))*(crkve**2-       &!hr13
      &cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*                   &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
@@ -3954,7 +3954,7 @@
      &cos_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((half*(crabamp2*oidpsv(j)))*(crkve**2-       &!hr13
      &cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*                   &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
@@ -3996,7 +3996,7 @@
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
@@ -4016,7 +4016,7 @@
      &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
 +ei
 +if .not.crlibm
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
@@ -4065,7 +4065,7 @@
      &cos_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
       dpsv(j)=dpsv(j)-(((((one/three)*(crabamp3*oidpsv(j)))*(crkve**3-  &!hr13
      &(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight))*c1m6)*     &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
@@ -4087,7 +4087,7 @@
      &cos_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
       dpsv(j)=dpsv(j)-(((((one/three)*(crabamp3*oidpsv(j)))*(crkve**3-  &!hr13
      &(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight))*c1m6)*     &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
@@ -4132,7 +4132,7 @@
      &c1m3)*cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
       dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(cikve**3-    &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
 +ei
 +if .not.crlibm
         yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
@@ -4154,7 +4154,7 @@
      &c1m3)*cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
       dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(cikve**3-    &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
 +ei
 +if .not.crlibm
         yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
@@ -4207,7 +4207,7 @@
       dpsv(j)=dpsv(j) - ((((0.25_fPrec*(crabamp4*oidpsv(j)))*(crkve**4- &!hr13
      &(six*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*two)*pi)/clight))*c1m9)*                              &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
@@ -4233,7 +4233,7 @@
       dpsv(j)=dpsv(j) - ((((0.25_fPrec*(crabamp4*oidpsv(j)))*(crkve**4- &!hr13
      &(six*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*two)*pi)/clight))*c1m9)*                              &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
@@ -4282,7 +4282,7 @@
       dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
      &*cikve)-(cikve**3*crkve)))*                                       &
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
@@ -4308,7 +4308,7 @@
       dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
      &*cikve)-(cikve**3*crkve)))*                                       &
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
@@ -4358,7 +4358,7 @@
               if(nramp1.gt.nac) then
 +if crlibm
                 yv(xory,j)=yv(xory,j)+(((acdipamp*                      &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
 +ei
 +if .not.crlibm
@@ -4370,7 +4370,7 @@
               if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
 +if crlibm
                 yv(xory,j)=yv(xory,j)+(acdipamp*                        &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
 +ei
 +if .not.crlibm
                 yv(xory,j)=yv(xory,j)+(acdipamp*                        &!hr03
@@ -4381,7 +4381,7 @@
      &nac)then
 +if crlibm
               yv(xory,j)=yv(xory,j)+((acdipamp*                         &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/real(nramp2,fPrec)))/&
      &ejfv(j)      !hr03
 +ei
@@ -4404,7 +4404,7 @@
               if(nramp1.gt.nac) then
 +if crlibm
                 yv(1,j)=yv(1,j)+(((acdipamp1*                           &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
 +ei
 +if .not.crlibm
@@ -4414,7 +4414,7 @@
 +ei
 +if crlibm
                 yv(2,j)=yv(2,j)+(((acdipamp2*                           &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
 +ei
 +if .not.crlibm
@@ -4426,7 +4426,7 @@
               if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
 +if crlibm
                 yv(1,j)=yv(1,j)+(acdipamp1*                             &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
 +ei
 +if .not.crlibm
                 yv(1,j)=yv(1,j)+(acdipamp1*                             &!hr03
@@ -4434,7 +4434,7 @@
 +ei
 +if crlibm
                 yv(2,j)=yv(2,j)+(acdipamp2*                             &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
 +ei
 +if .not.crlibm
                 yv(2,j)=yv(2,j)+(acdipamp2*                             &!hr03
@@ -4445,7 +4445,7 @@
      &nac)then
 +if crlibm
               yv(1,j)=yv(1,j)+((acdipamp1*                              &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/                     &
      &real(nramp2,fPrec)))/ejfv(j)      !hr03
 +ei
@@ -4457,7 +4457,7 @@
 +ei
 +if crlibm
               yv(2,j)=yv(2,j)+((acdipamp2*                              &!hr03
-     &sin_rn(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
+     &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/                     &
      &real(nramp2,fPrec)))/ejfv(j)      !hr03
 +ei
@@ -7640,24 +7640,24 @@ cc2008
 !ibeco = 0
       if(ibeco.eq.0) then
 ! 2 symplectic rotation of coordinate system (tx, ty)
-          yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                           &
+          yi = yi-(((xi*sin_mb(tx))*yv(2,j))/                           &
      &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
      &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-tx)
-          xi = xi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/        &
+          xi = xi*(cos_rn(tx)-sin_mb(tx)*tan_rn(atan_rn(yv(1,j)/        &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
           yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
-     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sin_mb(atan_rn(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
       
-          xi = xi-(((yi*sin_rn(ty))*yv(1,j))/                           &
+          xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
      &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)
-          yi = yi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/        &
+          yi = yi*(cos_rn(ty)-sin_mb(ty)*tan_rn(atan_rn(yv(2,j)/        &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
           yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                  &
-     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sin_mb(atan_rn(yv(2,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
       
 ! 3 apply wire kick
@@ -7671,40 +7671,40 @@ cc2008
       elseif(ibeco.eq.1) then
 ! 2 symplectic rotation of coordinate system (tx, ty)
 
-          dyi = dyi-(((dxi*sin_rn(tx))*yv(2,j))/                        &
+          dyi = dyi-(((dxi*sin_mb(tx))*yv(2,j))/                        &
      &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
      &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-tx) 
-          dxi = dxi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/      &
+          dxi = dxi*(cos_rn(tx)-sin_mb(tx)*tan_rn(atan_rn(yv(1,j)/      &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
  
-          yi = yi-(((xi*sin_rn(tx))*yv(2,j))/                           &
+          yi = yi-(((xi*sin_mb(tx))*yv(2,j))/                           &
      &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
      &cos_rn(atan_rn(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-tx)
-          xi = xi*(cos_rn(tx)-sin_rn(tx)*tan_rn(atan_rn(yv(1,j)/        &
+          xi = xi*(cos_rn(tx)-sin_mb(tx)*tan_rn(atan_rn(yv(1,j)/        &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
 
           yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
-     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sin_mb(atan_rn(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
               
-          dxi = dxi-(((dyi*sin_rn(ty))*yv(1,j))/                        &
+          dxi = dxi-(((dyi*sin_mb(ty))*yv(1,j))/                        &
      &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)
-          dyi = dyi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/      &
+          dyi = dyi*(cos_rn(ty)-sin_mb(ty)*tan_rn(atan_rn(yv(2,j)/      &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
       
-          xi = xi-(((yi*sin_rn(ty))*yv(1,j))/                           &
+          xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
      &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos_rn(atan_rn(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)
-          yi = yi*(cos_rn(ty)-sin_rn(ty)*tan_rn(atan_rn(yv(2,j)/        &
+          yi = yi*(cos_rn(ty)-sin_mb(ty)*tan_rn(atan_rn(yv(2,j)/        &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
 
          yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                   &
-     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sin_mb(atan_rn(yv(2,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
 
 ! 3 apply wire kick
@@ -7725,10 +7725,10 @@ cc2008
 
 ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
       yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
-     &sin_rn(atan_rn(yv(2,j)/                                           &
+     &sin_mb(atan_rn(yv(2,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
       yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
-     &sin_rn(atan_rn(yv(1,j)/                                           &
+     &sin_mb(atan_rn(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 
 +ei
@@ -9234,7 +9234,8 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       use floatPrecision
-
+      use mathlib_bouncer
+      
       implicit none
 +ca parnum
 +ca crcoall
@@ -9512,10 +9513,11 @@ cc2008
       end
 
       subroutine readd1(user,jaord,jpord)
-      use floatPrecision
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -9765,10 +9767,11 @@ cc2008
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
       end
       subroutine hamilton1(ja,jp)
-      use floatPrecision
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -9907,11 +9910,12 @@ cc2008
 !-----------------------------------------------------------------------
       end
       subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
-      use floatPrecision
 !-----------------------------------------------------------------------
 !---- ROUTINE TO COMPUTE THE VALUE OF THE FUNCTION AND OF ITS
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -10150,7 +10154,6 @@ cc2008
       end
 +dk cor_glo
       subroutine coruglo
-      use floatPrecision
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
 !----
@@ -10158,6 +10161,8 @@ cc2008
 !----   =========>           GLOBAL MINIMIZATION               <========
 !----
 !-----------------------------------------------------------------------
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -10432,10 +10437,11 @@ cc2008
      &.8)
       end
       subroutine readd2(user)
-      use floatPrecision
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -10695,10 +10701,11 @@ cc2008
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
       end
       subroutine hamilton2(jp)
-      use floatPrecision
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -10961,11 +10968,12 @@ cc2008
 !-----------------------------------------------------------------------
       end
       subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
-      use floatPrecision
 !-----------------------------------------------------------------------
 !---- ROUTINE TO COMPUTE THE VALUE OF THE FUNCTION AND OF ITS
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -11212,7 +11220,6 @@ cc2008
       end
 +dk errf
       subroutine errf(xx,yy,wx,wy)
-      use floatPrecision
 !----------------------------------------------------------------------*
 ! purpose:                                                             *
 !   modification of wwerf, real(kind=fPrec) complex error function,    *
@@ -11224,6 +11231,8 @@ cc2008
 !   wx, wy    (real)    function result.                               *
 !----------------------------------------------------------------------*
 !---- real(kind=fPrec) version.
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -11309,7 +11318,7 @@ cc2008
         wx=(two*exp(y**2-x**2))*cos((two*x)*y)-wx                        !hr05
 +ei
 +if crlibm
-        wy=((-one*two)*exp_rn(y**2-x**2))*sin_rn((two*x)*y)-wy           !hr05
+        wy=((-one*two)*exp_rn(y**2-x**2))*sin_mb((two*x)*y)-wy           !hr05
 +ei
 +if .not.crlibm
         wy=((-one*two)*exp(y**2-x**2))*sin((two*x)*y)-wy                 !hr05
@@ -11603,6 +11612,7 @@ cc2008
 !
 !  *********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -11700,6 +11710,7 @@ cc2008
 !  ADIABATIC ENERGY-INCREASE
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -11724,7 +11735,7 @@ cc2008
       if(numx.gt.nde(2)) return
       phas=phas0
 +if crlibm
-      e0=e0+hsy(1)*sin_rn(phas)
+      e0=e0+hsy(1)*sin_mb(phas)
 +ei
 +if .not.crlibm
       e0=e0+hsy(1)*sin(phas)
@@ -11738,6 +11749,7 @@ cc2008
 !  ADIABATIC ENERGY-DECREASE
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -11756,7 +11768,7 @@ cc2008
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
 +if crlibm
-      e0=e0+hsy(1)*sin_rn(phas)
+      e0=e0+hsy(1)*sin_mb(phas)
 +ei
 +if .not.crlibm
       e0=e0+hsy(1)*sin(phas)
@@ -11770,6 +11782,7 @@ cc2008
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       use scatter, only : scatter_active, scatter_debug,
      &     scatter_seed1,scatter_seed2,
      &     scatter_dumpdata,
@@ -17934,6 +17947,7 @@ cc2008
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -18032,6 +18046,7 @@ cc2008
 !   CH1 ... OUTPUT CHARACTERSTRING
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -18707,77 +18722,6 @@ c$$$         endif
       return
       end
       
-      real(kind=fPrec) function acos_rn(x)
-      use floatPrecision
-      implicit none
-      real(kind=fPrec) atan_rn,x,pi,pi2
-      logical myisnan
-      data pi  /3.1415926535897932d0/
-      data pi2 /1.5707963267948966d0/
-      if (myisnan(x,x)) then
-        acos_rn=x
-      elseif (abs(x).eq.0.0d0) then
-        acos_rn=pi2
-      else
-!       acos_rn=atan_rn(sqrt(1.0d0-x*x)/x)
-! Try using (1-x)*(1+x) in case x is very small.........
-! or close to 1.....write a test program!!!
-         acos_rn=atan_rn(sqrt((1.0d0-x)*(1.0d0+x))/x)
-        if (x.lt.0d0) then
-          acos_rn=pi+acos_rn
-        endif
-      endif
-      end
-      
-      real(kind=fPrec) function asin_rn(x)
-      use floatPrecision
-      implicit none
-      real(kind=fPrec) atan_rn,x,pi2
-      logical myisnan
-      data pi2 /1.5707963267948966d0/
-      if (myisnan(x,x)) then
-        asin_rn=x
-        return
-      endif
-      if (abs(x).eq.1.0d0) then
-        asin_rn=sign(pi2,x)
-      else 
-!       asin_rn=atan_rn(x/sqrt(1.0d0-x*x))
-! Try using (1-x)*(1+x) in case x is very small.........
-! or close to 1.....write a test program!!!
-        asin_rn=atan_rn(x/sqrt((1.0d0-x)*(1.0d0+x)))
-      endif
-      end
-      
-      real(kind=fPrec) function atan2_rn(y,x)
-      use floatPrecision
-      implicit none
-      real(kind=fPrec) atan_rn,x,y,pi,pi2
-      logical myisnan
-      data pi  /3.1415926535897932d0/
-      data pi2 /1.5707963267948966d0/
-      if (x.eq.0d0) then
-         if (y.eq.0d0) then
-C Should get me a NaN 
-           atan2_rn=atan_rn(y/x)
-         else
-           atan2_rn=sign(pi2,y)
-         endif
-      else
-        if (y.eq.0d0) then
-          if (x.gt.0d0) then
-            atan2_rn=0d0
-          else
-            atan2_rn=pi
-          endif
-        else          
-          atan2_rn=atan_rn(y/x)
-          if (x.lt.0d0) then
-            atan2_rn=sign(pi,y)+atan2_rn
-          endif
-        endif
-      endif
-      end
 +ei ! END of crlibm-specific functions
       
       subroutine wzset
@@ -18801,6 +18745,7 @@ C Should get me a NaN
 !
 !  *********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -18828,6 +18773,7 @@ C Should get me a NaN
 
       subroutine mywwerf(x,y,wr,wi)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -18909,7 +18855,7 @@ C Should get me a NaN
         vr=(two*exp(ya**2-xa**2))*cos((two*xa)*ya)-vr                    !hr05
 +ei
 +if crlibm
-        vi=(-two*exp_rn(ya**2-xa**2))*sin_rn((two*xa)*ya)-vi             !hr05
+        vi=(-two*exp_rn(ya**2-xa**2))*sin_mb((two*xa)*ya)-vi             !hr05
 +ei
 +if .not.crlibm
         vi=(-two*exp(ya**2-xa**2))*sin((two*xa)*ya)-vi                   !hr05
@@ -19039,6 +18985,7 @@ C Should get me a NaN
 +dk ranecu
       subroutine ranecu(rvec,len,mcut)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -19106,6 +19053,7 @@ C Should get me a NaN
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -19174,7 +19122,7 @@ C Should get me a NaN
         fok1=(tan(fok*half))/rho
 +ei
 +if crlibm
-        si=sin_rn(fok)
+        si=sin_mb(fok)
 +ei
 +if .not.crlibm
         si=sin(fok)
@@ -19203,13 +19151,13 @@ C Should get me a NaN
         sm1=cos(fok)
 +ei
 +if crlibm
-        sm2=sin_rn(fok)*rho
+        sm2=sin_mb(fok)*rho
 +ei
 +if .not.crlibm
         sm2=sin(fok)*rho
 +ei
 +if crlibm
-        sm3=(-one*sin_rn(fok))/rho                                       !hr05
+        sm3=(-one*sin_mb(fok))/rho                                       !hr05
 +ei
 +if .not.crlibm
         sm3=(-one*sin(fok))/rho                                          !hr05
@@ -19256,7 +19204,7 @@ C Should get me a NaN
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
 +if crlibm
-        si=sin_rn(fok)
+        si=sin_mb(fok)
 +ei
 +if .not.crlibm
         si=sin(fok)
@@ -19322,7 +19270,7 @@ C Should get me a NaN
         al(1,ih,j,i)=cos(fi)
 +ei
 +if crlibm
-        hi1=sin_rn(fi)
+        hi1=sin_mb(fi)
 +ei
 +if .not.crlibm
         hi1=sin(fi)
@@ -19371,7 +19319,7 @@ C Should get me a NaN
         if(fok.gt.zero) goto 160
   140   ih=ih+1
 +if crlibm
-        si=sin_rn(fi)
+        si=sin_mb(fi)
 +ei
 +if .not.crlibm
         si=sin(fi)
@@ -19458,7 +19406,7 @@ C Should get me a NaN
         hi=sqrt(aek)
         fi=hi*el(i)
 +if crlibm
-        si=sin_rn(fi)
+        si=sin_mb(fi)
 +ei
 +if .not.crlibm
         si=sin(fi)
@@ -19540,6 +19488,7 @@ C Should get me a NaN
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -19918,6 +19867,7 @@ C Should get me a NaN
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -20018,6 +19968,7 @@ C Should get me a NaN
 !        5 --> 6  AND  ASD6 / ALD6
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -21132,6 +21083,7 @@ C Should get me a NaN
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -22568,6 +22520,7 @@ C Should get me a NaN
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -22764,6 +22717,7 @@ C Should get me a NaN
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -22866,6 +22820,7 @@ C Should get me a NaN
 !        SPECIALLY PREPARED FOR NEW D.A.
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -22921,6 +22876,7 @@ C Should get me a NaN
 !   WX, WY    (REAL)    FUNCTION RESULT.                               *
 !----------------------------------------------------------------------*
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -23049,6 +23005,7 @@ C Should get me a NaN
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -23093,8 +23050,8 @@ C Should get me a NaN
          call prror(-1)
       endif
 +if crlibm
-      sphi=sin_rn(phi)
-      sphi2=sin_rn(phi2)
+      sphi=sin_mb(phi)
+      sphi2=sin_mb(phi2)
 +ei
 +if .not.crlibm
       sphi=sin(phi)
@@ -23117,7 +23074,7 @@ C Should get me a NaN
       tphi2=tan(phi2)
 +ei
 +if crlibm
-      salpha=sin_rn(alpha)
+      salpha=sin_mb(alpha)
 +ei
 +if .not.crlibm
       salpha=sin(alpha)
@@ -23148,6 +23105,7 @@ C Should get me a NaN
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -23211,6 +23169,7 @@ C Should get me a NaN
 !**SBCF ***Synchro-Beam for headon collision*********************
 !****************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -23359,6 +23318,7 @@ C Should get me a NaN
 !-----------------------------------------------------------------------
 ! BOOSTIF **************inverse boost ****************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -23431,6 +23391,7 @@ C Should get me a NaN
 ! SIGXX is \Sigma
 !**********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -23547,6 +23508,7 @@ C Should get me a NaN
 +dk maincr
       program maincr
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -24842,7 +24804,7 @@ C Should get me a NaN
           do 320 i2=1,2
             i3=ia+i2-1
 +if crlibm
-            sic=sin_rn(chi)
+            sic=sin_mb(chi)
 +ei
 +if .not.crlibm
             sic=sin(chi)
@@ -26043,6 +26005,7 @@ C Should get me a NaN
 !<
       subroutine trauthin(nthinerr)
       use floatPrecision
+      use mathlib_bouncer
       use scatter, only : scatter_elemPointer
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
@@ -26518,6 +26481,7 @@ C Should get me a NaN
 !<
       subroutine thin4d(nthinerr)
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -27045,6 +27009,7 @@ C Should get me a NaN
 !<
       subroutine thin6d(nthinerr)
       use floatPrecision
+      use mathlib_bouncer
 
 +if datamods
       use bigmats
@@ -27398,14 +27363,14 @@ C Should get me a NaN
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(kz(ix).eq.12) then
 +if crlibm
-              ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+phasc(ix))
+              ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
 +if .not.crlibm
               ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
             else
 +if crlibm
-              ejv(j)=ejv(j)+hsy(1)*sin_rn(hsy(3)*sigmv(j))
+              ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
 +ei
 +if .not.crlibm
               ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j))
@@ -27896,7 +27861,7 @@ C Should get me a NaN
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
-
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -28063,7 +28028,7 @@ C Should get me a NaN
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr
             if(kz(ix).eq.12) then
 +if crlibm
-              ejv(j)=ejv(j)+ed(ix)*sin_rn((hsyc(ix)*sigmv(j)+phas)+     &!hr01
+              ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+     &!hr01
      &                                    phasc(ix))                     !hr01
 +ei
 +if .not.crlibm
@@ -28072,7 +28037,7 @@ C Should get me a NaN
 +ei
             else
 +if crlibm
-              ejv(j)=ejv(j)+hsy(1)*sin_rn(hsy(3)*sigmv(j)+phas)
+              ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
 +ei
 +if .not.crlibm
               ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j)+phas)
@@ -28492,6 +28457,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -28708,6 +28674,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -28795,6 +28762,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -28834,6 +28802,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -28874,6 +28843,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -28914,6 +28884,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -28954,7 +28925,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
-
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -29024,6 +28995,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -29692,6 +29664,7 @@ C Should get me a NaN
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
@@ -30108,6 +30081,7 @@ C Should get me a NaN
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -30653,6 +30627,7 @@ C Should get me a NaN
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -30853,14 +30828,14 @@ C Should get me a NaN
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
               if(kz(ix).eq.12) then
 +if crlibm
-                ejv(j)=ejv(j)+ed(ix)*sin_rn(hsyc(ix)*sigmv(j)+phasc(ix))
+                ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
 +if .not.crlibm
                 ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phasc(ix))
 +ei
               else
 +if crlibm
-                ejv(j)=ejv(j)+hsy(1)*sin_rn(hsy(3)*sigmv(j))
+                ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
 +ei
 +if .not.crlibm
                 ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j))
@@ -31356,6 +31331,7 @@ C Should get me a NaN
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -31520,7 +31496,7 @@ C Should get me a NaN
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
               if(kz(ix).eq.12) then
 +if crlibm
-                ejv(j)=ejv(j)+ed(ix)*sin_rn((hsyc(ix)*sigmv(j)+phas)+   &!hr01
+                ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+   &!hr01
      &                                      phasc(ix))
 +ei
 +if .not.crlibm
@@ -31529,7 +31505,7 @@ C Should get me a NaN
 +ei
               else
 +if crlibm
-                ejv(j)=ejv(j)+hsy(1)*sin_rn(hsy(3)*sigmv(j)+phas)
+                ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
 +ei
 +if .not.crlibm
                 ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j)+phas)
@@ -31959,6 +31935,7 @@ C Should get me a NaN
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -32034,7 +32011,7 @@ C Should get me a NaN
             fok1(j)=(tan(fok(j)*half))/rho(j)
 +ei
 +if crlibm
-            si(j)=sin_rn(fok(j))
+            si(j)=sin_mb(fok(j))
 +ei
 +if .not.crlibm
             si(j)=sin(fok(j))
@@ -32062,13 +32039,13 @@ C Should get me a NaN
             sm1(j)=cos(fok(j))
 +ei
 +if crlibm
-            sm2(j)=sin_rn(fok(j))*rho(j)
+            sm2(j)=sin_mb(fok(j))*rho(j)
 +ei
 +if .not.crlibm
             sm2(j)=sin(fok(j))*rho(j)
 +ei
 +if crlibm
-            sm3(j)=-sin_rn(fok(j))/rho(j)
+            sm3(j)=-sin_mb(fok(j))/rho(j)
 +ei
 +if .not.crlibm
             sm3(j)=-sin(fok(j))/rho(j)
@@ -32130,7 +32107,7 @@ C Should get me a NaN
             fok(j)=fokm/dpsq(j)
             rho(j)=(one/ed(l))*dpsq(j)
 +if crlibm
-            si(j)=sin_rn(fok(j))
+            si(j)=sin_mb(fok(j))
 +ei
 +if .not.crlibm
             si(j)=sin(fok(j))
@@ -32189,7 +32166,7 @@ C Should get me a NaN
               al(1,1,j,l)=cos(fi(j))
 +ei
 +if crlibm
-              hi1(j)=sin_rn(fi(j))
+              hi1(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
               hi1(j)=sin(fi(j))
@@ -32241,7 +32218,7 @@ C Should get me a NaN
               al(1,2,j,l)=cos(fi(j))
 +ei
 +if crlibm
-              hi1(j)=sin_rn(fi(j))
+              hi1(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
               hi1(j)=sin(fi(j))
@@ -32325,7 +32302,7 @@ C Should get me a NaN
             endif
             if(fok(j).lt.(-one*pieni)) then                              !hr06
 +if crlibm
-              si(j)=sin_rn(fi(j))
+              si(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
               si(j)=sin(fi(j))
@@ -32429,7 +32406,7 @@ C Should get me a NaN
               hi(j)=sqrt(aek(j))
               fi(j)=hi(j)*el(l)
 +if crlibm
-              si(j)=sin_rn(fi(j))
+              si(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
               si(j)=sin(fi(j))
@@ -32499,6 +32476,7 @@ C Should get me a NaN
 !          A SPECIAL VERSION FOR VECTORIZATION - AUGUST   1994
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -32601,7 +32579,7 @@ C Should get me a NaN
           fok1(j)=(tan(fok(j)*half))/rho(j)
 +ei
 +if crlibm
-          si(j)=sin_rn(fok(j))
+          si(j)=sin_mb(fok(j))
 +ei
 +if .not.crlibm
           si(j)=sin(fok(j))
@@ -32632,13 +32610,13 @@ C Should get me a NaN
           sm1(j)=cos(fok(j))
 +ei
 +if crlibm
-          sm2(j)=sin_rn(fok(j))*rho(j)
+          sm2(j)=sin_mb(fok(j))*rho(j)
 +ei
 +if .not.crlibm
           sm2(j)=sin(fok(j))*rho(j)
 +ei
 +if crlibm
-          sm3(j)=(-one*sin_rn(fok(j)))/rho(j)                            !hr06
+          sm3(j)=(-one*sin_mb(fok(j)))/rho(j)                            !hr06
 +ei
 +if .not.crlibm
           sm3(j)=(-one*sin(fok(j)))/rho(j)                               !hr06
@@ -32694,7 +32672,7 @@ C Should get me a NaN
           fok(j)=fokm/dpsq(j)
           rho(j)=(one/ed(l))*dpsq(j)
 +if crlibm
-          si(j)=sin_rn(fok(j))
+          si(j)=sin_mb(fok(j))
 +ei
 +if .not.crlibm
           si(j)=sin(fok(j))
@@ -32750,7 +32728,7 @@ C Should get me a NaN
             al(1,1,j,l)=cos(fi(j))
 +ei
 +if crlibm
-            hi1(j)=sin_rn(fi(j))
+            hi1(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
             hi1(j)=sin(fi(j))
@@ -32797,7 +32775,7 @@ C Should get me a NaN
             al(1,2,j,l)=cos(fi(j))
 +ei
 +if crlibm
-            hi1(j)=sin_rn(fi(j))
+            hi1(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
             hi1(j)=sin(fi(j))
@@ -32878,7 +32856,7 @@ C Should get me a NaN
           endif
           if(fok(j).lt.(-one*pieni)) then                                !hr06
 +if crlibm
-            si(j)=sin_rn(fi(j))
+            si(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
             si(j)=sin(fi(j))
@@ -32969,7 +32947,7 @@ C Should get me a NaN
             hi(j)=sqrt(aek(j))
             fi(j)=hi(j)*el(l)
 +if crlibm
-            si(j)=sin_rn(fi(j))
+            si(j)=sin_mb(fi(j))
 +ei
 +if .not.crlibm
             si(j)=sin(fi(j))
@@ -33019,6 +32997,7 @@ C Should get me a NaN
 +dk mainda
       program mainda
       use floatPrecision
+      use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
@@ -33596,6 +33575,7 @@ C Should get me a NaN
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
 +if datamods
       use bigmats
 +ei
@@ -34392,6 +34372,7 @@ C Should get me a NaN
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -34470,6 +34451,7 @@ C Should get me a NaN
 +dk daliesix
       subroutine daliesix
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -34635,6 +34617,7 @@ C Should get me a NaN
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -34707,6 +34690,7 @@ C Should get me a NaN
 !  CALCULATION OF INITIAL COORDINATES
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -34746,7 +34730,7 @@ C Should get me a NaN
       dchi=chid*rad
       do 50 i=1,itra
 +if crlibm
-        si=sin_rn(chi)
+        si=sin_mb(chi)
 +ei
 +if .not.crlibm
         si=sin(chi)
@@ -34833,6 +34817,7 @@ C Should get me a NaN
 !                   BETA-, ALFA-FUNCTIONS, Q-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -35027,6 +35012,7 @@ C Should get me a NaN
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -35085,6 +35071,7 @@ C Should get me a NaN
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX, USED FOR DISPERSION
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -35148,6 +35135,7 @@ C Should get me a NaN
 !  CALCULATION OF CHROMATICITY FROM 5 ENERGIE-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -35275,6 +35263,7 @@ C Should get me a NaN
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -35414,6 +35403,7 @@ C Should get me a NaN
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -35503,6 +35493,7 @@ C Should get me a NaN
 !  CALCULATION OF THE SIX-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -35838,6 +35829,7 @@ C Should get me a NaN
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -35921,6 +35913,7 @@ C Should get me a NaN
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -35991,6 +35984,7 @@ C Should get me a NaN
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -36059,6 +36053,7 @@ C Should get me a NaN
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -36107,6 +36102,7 @@ C Should get me a NaN
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -36154,7 +36150,7 @@ C Should get me a NaN
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
 +if crlibm
-        si=sin_rn(fok)
+        si=sin_mb(fok)
 +ei
 +if .not.crlibm
         si=sin(fok)
@@ -36200,7 +36196,7 @@ C Should get me a NaN
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
 +if crlibm
-        si=sin_rn(fok)
+        si=sin_mb(fok)
 +ei
 +if .not.crlibm
         si=sin(fok)
@@ -36253,7 +36249,7 @@ C Should get me a NaN
         a(i,ih,1)=cos(fi)
 +ei
 +if crlibm
-        hi1=sin_rn(fi)
+        hi1=sin_mb(fi)
 +ei
 +if .not.crlibm
         hi1=sin(fi)
@@ -36294,7 +36290,7 @@ C Should get me a NaN
         if(fok.gt.zero) goto 160
   140   ih=ih+1
 +if crlibm
-        si=sin_rn(fi)
+        si=sin_mb(fi)
 +ei
 +if .not.crlibm
         si=sin(fi)
@@ -36353,7 +36349,7 @@ C Should get me a NaN
         hi=sqrt(abs(ek(i)/dpd))
         fi=hi*el(i)
 +if crlibm
-        si=sin_rn(fi)
+        si=sin_mb(fi)
 +ei
 +if .not.crlibm
         si=sin(fi)
@@ -36409,6 +36405,7 @@ C Should get me a NaN
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -36457,7 +36454,7 @@ C Should get me a NaN
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
 +if crlibm
-        si=sin_rn(fok)
+        si=sin_mb(fok)
 +ei
 +if .not.crlibm
         si=sin(fok)
@@ -36503,7 +36500,7 @@ C Should get me a NaN
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
 +if crlibm
-        si=sin_rn(fok)
+        si=sin_mb(fok)
 +ei
 +if .not.crlibm
         si=sin(fok)
@@ -36556,7 +36553,7 @@ C Should get me a NaN
         aeg(i,ih,1)=cos(fi)
 +ei
 +if crlibm
-        hi1=sin_rn(fi)
+        hi1=sin_mb(fi)
 +ei
 +if .not.crlibm
         hi1=sin(fi)
@@ -36597,7 +36594,7 @@ C Should get me a NaN
         if(fok.gt.zero) goto 160
   140   ih=ih+1
 +if crlibm
-        si=sin_rn(fi)
+        si=sin_mb(fi)
 +ei
 +if .not.crlibm
         si=sin(fi)
@@ -36656,7 +36653,7 @@ C Should get me a NaN
         hi=sqrt(abs(ek(i)/dpd))
         fi=hi*el(i)
 +if crlibm
-        si=sin_rn(fi)
+        si=sin_mb(fi)
 +ei
 +if .not.crlibm
         si=sin(fi)
@@ -36711,6 +36708,7 @@ C Should get me a NaN
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca crcoall
@@ -37235,6 +37233,7 @@ C Should get me a NaN
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -38116,6 +38115,7 @@ c$$$            endif
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -38242,6 +38242,7 @@ c$$$            endif
 !  COUUANGL
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -38385,6 +38386,7 @@ c$$$            endif
 !  VEC1 = VEC2 * RMAT , WITH VEC2 AS RESULT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -38440,6 +38442,7 @@ c$$$            endif
 +dk matrix
       subroutine matrix(dpp,am)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -38486,6 +38489,7 @@ c$$$            endif
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -38604,7 +38608,7 @@ c$$$            endif
           do 70 j=1,nhcorr
 +if crlibm
       ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos_rn(abs(pam(i,1)-pac&!hr06
-     &(j,1))-qwc1(1)*pi))*c1e3)/(2d0*sin_rn(qwc1(1)*pi)))                !hr06
+     &(j,1))-qwc1(1)*pi))*c1e3)/(2d0*sin_mb(qwc1(1)*pi)))                !hr06
 +ei
 +if .not.crlibm
       ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos(abs(pam(i,1)- pac  &!hr06
@@ -38621,7 +38625,7 @@ c$$$            endif
           do 80 j=1,nvcorr
 +if crlibm
       ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos_rn(abs(pam(i,2)-pac&!hr06
-     &(j,2))-qwc1(2)*pi))*c1e3)/(2d0*sin_rn(qwc1(2)*pi)))                !hr06
+     &(j,2))-qwc1(2)*pi))*c1e3)/(2d0*sin_mb(qwc1(2)*pi)))                !hr06
 +ei
 +if .not.crlibm
       ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos(abs(pam(i,2)-pac   &!hr06
@@ -38793,6 +38797,7 @@ c$$$            endif
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -38897,6 +38902,7 @@ c$$$            endif
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -38970,6 +38976,7 @@ c$$$            endif
 !     PTP  - PEAK TO PEAK VALUE TO CORRECT FOR                       *
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -39137,6 +39144,7 @@ c$$$            endif
 !     Householder transform of matrix A
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -39171,6 +39179,7 @@ c$$$            endif
 !     Householder transform of vector B
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -39203,6 +39212,7 @@ c$$$            endif
 !     calculate residual orbit vector
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -39238,6 +39248,7 @@ c$$$            endif
 !     calculate vector U
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -39272,6 +39283,7 @@ c$$$            endif
 !     calculates rms and p.to.p value of R(1) .... R(M)
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -39305,6 +39317,7 @@ c$$$            endif
 !     if N<1, MAXMIN=1
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -39331,6 +39344,7 @@ c$$$            endif
 !  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -39565,7 +39579,7 @@ c$$$            endif
           tiltc(i)=cos(extalign(i,3)*c1m3)
 +ei
 +if crlibm
-          tilts(i)=sin_rn(extalign(i,3)*c1m3)
+          tilts(i)=sin_mb(extalign(i,3)*c1m3)
 +ei
 +if .not.crlibm
           tilts(i)=sin(extalign(i,3)*c1m3)
@@ -39599,6 +39613,7 @@ c$$$            endif
 !  ADDITIONAL ADJUSTMENT OF THE X-PHASEADVANCE BETWEEN 2 POSITIONS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -40095,6 +40110,7 @@ c$$$            endif
 !  X-PHASEADVANCE BETWEEN 2 POSITIONS IN THE MACHINE
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -40344,6 +40360,7 @@ c$$$            endif
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -40644,6 +40661,7 @@ c$$$            endif
 !     ONE TURN-TRANSFORMATION (INCLUDING QUADRUPOLE CONTRIBUTIONS)
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -41034,10 +41052,10 @@ c$$$            endif
             crkve=y(j,1)-(x(j,1)*qu)*qv                                  !hr06
             cikve=y(j,2)-(x(j,2)*qu)*qv                                  !hr06
 +if crlibm
-            y(j,1)=crkve*cos_rn(qv)+cikve*sin_rn(qv)                     !hr09
-            y(j,2)=cikve*cos_rn(qv)-crkve*sin_rn(qv)                     !hr09
-            crkve=x(j,1)*cos_rn(qv)+x(j,2)*sin_rn(qv)                    !hr09
-            cikve=x(j,2)*cos_rn(qv)-x(j,1)*sin_rn(qv)                    !hr09
+            y(j,1)=crkve*cos_rn(qv)+cikve*sin_mb(qv)                     !hr09
+            y(j,2)=cikve*cos_rn(qv)-crkve*sin_mb(qv)                     !hr09
+            crkve=x(j,1)*cos_rn(qv)+x(j,2)*sin_mb(qv)                    !hr09
+            cikve=x(j,2)*cos_rn(qv)-x(j,1)*sin_mb(qv)                    !hr09
 +ei
 +if .not.crlibm
             y(j,1)=crkve*cos(qv)+cikve*sin(qv) 
@@ -41064,6 +41082,7 @@ c$$$            endif
 !  USED FOR RMOD
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -41641,7 +41660,7 @@ c$$$            endif
            chy(np,nv)=cos((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
 +ei
 +if crlibm
-           shy(np,nv)=sin_rn((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
+           shy(np,nv)=sin_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
 +ei
 +if .not.crlibm
             shy(np,nv)=sin((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)   !hr06
@@ -41814,6 +41833,7 @@ c$$$            endif
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -42125,6 +42145,7 @@ c$$$            endif
 !  FINDING THE BEST POSITIONS FOR CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -42214,6 +42235,7 @@ c$$$            endif
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -42891,7 +42913,7 @@ c$$$            endif
      &res*etl)                                                           !hr06
 +ei
 +if crlibm
-          shy(np,nv)=sin_rn((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
+          shy(np,nv)=sin_mb((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
      &res*etl)                                                           !hr06
 +ei
 +if .not.crlibm
@@ -43170,6 +43192,7 @@ c$$$            endif
 !  USED FOR SUBRE - CALCULATES DETUNING
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -43261,6 +43284,7 @@ c$$$            endif
 !  USED FOR SEARCH
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -43834,7 +43858,7 @@ c$$$            endif
            chy(np,nv)=cos((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
 +ei
 +if crlibm
-           shy(np,nv)=sin_rn((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
+           shy(np,nv)=sin_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
 +ei
 +if .not.crlibm
            shy(np,nv)=sin((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
@@ -43983,6 +44007,7 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -44194,6 +44219,7 @@ c$$$            endif
 !  NNUML   :  ??
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -46756,6 +46782,7 @@ c$$$            endif
 !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
 !-----------------------------------------------------------------------*
       use floatPrecision
+      use mathlib_bouncer
       use platofma
       implicit none
 +ca comgetfields
@@ -47723,6 +47750,7 @@ c$$$            endif
 !
 !---------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -47769,7 +47797,7 @@ c$$$            endif
         wr=cos(pi/dble(le1))                                             !hr06
 +ei
 +if crlibm
-        wi=-one*sin_rn(pi/dble(le1))                                     !hr06
+        wi=-one*sin_mb(pi/dble(le1))                                     !hr06
 +ei
 +if .not.crlibm
         wi=-one*sin(pi/dble(le1))                                        !hr06
@@ -47797,6 +47825,7 @@ c$$$            endif
 
       subroutine caconv(a,b,c)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -47820,6 +47849,7 @@ c$$$            endif
 
       subroutine cphase(k,a,b,c,d,i,j,ie)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -47856,6 +47886,7 @@ c$$$            endif
 
       subroutine cinvar(a,b,c,d,j,e,xinv,invx)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -47888,6 +47919,7 @@ c$$$            endif
 
       subroutine sinpro(a,b,c,d,e)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -47915,6 +47947,7 @@ c$$$            endif
 +dk join
       subroutine join
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -48149,6 +48182,7 @@ c$$$            endif
 !  SUBROUTINE TO SUMMARIZE THE RESULTS OF THE POSTPROCESSING
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -48294,6 +48328,7 @@ c$$$            endif
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -48332,8 +48367,8 @@ c$$$            endif
       endif
 
 +if crlibm
-      sphi=sin_rn(phi)
-      sphi2=sin_rn(phi2)
+      sphi=sin_mb(phi)
+      sphi2=sin_mb(phi2)
 +ei
 +if .not.crlibm
       sphi=sin(phi)
@@ -48356,7 +48391,7 @@ c$$$            endif
       tphi2=tan(phi2)
 +ei
 +if crlibm
-      salpha=sin_rn(alpha)
+      salpha=sin_mb(alpha)
 +ei
 +if .not.crlibm
       salpha=sin(alpha)
@@ -48386,6 +48421,7 @@ c$$$            endif
 !    P,Q,E are all normalized by P0
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -48433,6 +48469,7 @@ c$$$            endif
 !****************************************************************
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -48559,6 +48596,7 @@ c$$$            endif
 ! BOOSTI **************inverse boost *****************
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -48614,6 +48652,7 @@ c$$$            endif
 ! SIGXX is \Sigma
 !**********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -48703,6 +48742,7 @@ c$$$            endif
 !*********************************************************************
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -48765,6 +48805,7 @@ c$$$            endif
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -48832,6 +48873,7 @@ c$$$            endif
 +dk myrinv
       subroutine kerset(ercode,lgfile,limitm,limitr)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -48939,6 +48981,7 @@ c$$$            endif
 !     ******************************************************************
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -49060,6 +49103,7 @@ c$$$            endif
 !     ******************************************************************
 !-----------------------------------------------------------------------
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -49183,6 +49227,7 @@ c$$$            endif
 !
 !     ******************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -49219,6 +49264,7 @@ c$$$            endif
 
       subroutine rfact(n,a,idim,ir,ifail,det,jfail)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -49305,6 +49351,7 @@ c$$$            endif
 
       subroutine dfact(n,a,idim,ir,ifail,det,jfail)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -49391,6 +49438,7 @@ c$$$            endif
 
       subroutine rfeqn(n,a,idim,ir,k,b)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -49450,6 +49498,7 @@ c$$$            endif
 
       subroutine dfeqn(n,a,idim,ir,k,b)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -49509,6 +49558,7 @@ c$$$            endif
 
       subroutine rfinv(n,a,idim,ir)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -49581,6 +49631,7 @@ c$$$            endif
 
       subroutine dfinv(n,a,idim,ir)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -49651,6 +49702,7 @@ c$$$            endif
       end
       subroutine tmprnt(name,n,idim,k)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -49705,6 +49757,7 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -49773,6 +49826,7 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -52210,6 +52264,7 @@ c$$$         backspace (93,iostat=ierro)
 !      logical function isnan(arg1,arg2)
       logical function myisnan(arg1,arg2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco

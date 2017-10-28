@@ -97,4 +97,3 @@
 +ei
 
       end module floatPrecision
-
