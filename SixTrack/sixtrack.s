@@ -28439,8 +28439,12 @@ c$$$         endif
 
       subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,
      &     cdate,ctime,progrm)
+!-------------------------------------------------------------------------
 !     Subroutine for writing the header of the binary files (fort.90 etc.)
 !     Always converting to real64 before writing to disk
+!-----------------------------------------------------------------------
+!     K. SJOBAK, October 2017
+!-----------------------------------------------------------------------
       use floatPrecision
       use, intrinsic :: iso_fortran_env, only : real64
       implicit none
@@ -28519,14 +28523,16 @@ c$$$         endif
       end subroutine writebin_header
       
       subroutine writebin(nthinerr)
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!     Subroutine for writing the the binary files (fort.90 etc.)
+!     Always converting to real64 before writing to disk
+!-------------------------------------------------------------------------
+!     F. SCHMIDT, 3 February 1999
+!     K. SJOBAK,    October  2017
+!-------------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use, intrinsic :: iso_fortran_env, only : real64
       implicit none
 +ca crcoall
 +ca parpro
@@ -28556,6 +28562,10 @@ c$$$         endif
 +if cr
       data ncalls /0/
 +ei
+
+      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),
+     &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+      
       save
 !-----------------------------------------------------------------------
 +if cr
@@ -28563,22 +28573,21 @@ c$$$         endif
       write(91,*,iostat=ierro,err=11) numx,numl
       rewind 91
       if (restart) then
-        write(93,*) 'WRITEBIN bailing out on restart'
-        write(93,*) 'numl, nnuml, numx, numlcr '
-        write(93,*)  numl,nnuml,numx,numlcr
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-        return
+         write(93,*) 'WRITEBIN bailing out on restart'
+         write(93,*) 'numl, nnuml, numx, numlcr '
+         write(93,*)  numl,nnuml,numx,numlcr
+         call flush(93)
+         return
       else
 +if .not.debug
-        if (ncalls.le.20.or.numx.ge.nnuml-20) then
+         if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
-        write(93,*) 'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
-        write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+            write(93,*)
+     &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
+            write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
+            call flush(93)
 +if .not.debug
-        endif
+         endif
 +ei
       endif
 +ei
@@ -28587,20 +28596,17 @@ c$$$         endif
       if (ncalls.le.20.or.numx.ge.nnuml-20) then      
 +ei
 +if bnlelens
-        if (lhc.ne.9) then
-          write(93,*) 'WRITEBIN writing binrec ',binrec+1
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-        else
-          write(93,*) 'WRITEBIN skipping write for bnlelens',binrec+1
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-        endif
+         if (lhc.ne.9) then
+            write(93,*) 'WRITEBIN writing binrec ',binrec+1
+            call flush(93)
+         else
+            write(93,*) 'WRITEBIN skipping write for bnlelens',binrec+1
+            call flush(93)
+         endif
 +ei
 +if .not.bnlelens
-        write(93,*) 'WRITEBIN writing binrec ',binrec+1
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+         write(93,*) 'WRITEBIN writing binrec ',binrec+1
+         call flush(93)
 +ei
 +if .not.debug
       endif
@@ -28613,78 +28619,110 @@ c$$$         endif
 !GRDRHIC
 !GRD-042008
 +ei
-        do 10 ia=1,napx-1
+         do ia=1,napx-1
 !GRD
 !     PSTOP=true -> particle lost,
 !     nlostp(ia)=particle ID that is not changing
 !     (the particle arrays are compressed to remove lost particles)
 !     In the case of no lost particles, all nlostp(i)=i for 1..npart
-           if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.   &
-     &(mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
-            ia2=(nlostp(ia)+1)/2     !File ID for non-STF & binrecs
-            ie=ia+1                  !ia = Particle ID 1, ie = Particle ID 2
-            if(ntwin.ne.2) then !Write particle nlostp(ia) only
+            if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and. &
+     &           (mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
+              
+               ia2=(nlostp(ia)+1)/2 !File ID for non-STF & binrecs
+               ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
+              
+               if(ntwin.ne.2) then !Write particle nlostp(ia) only
+                  dam_tmp      = real(dam(ia),   real64)
+                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
+                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
+                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
+                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  sigmv_tmp(1) = real(sigmv(ia), real64)
+                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
+                  e0_tmp       = real(e0,        real64)
 +if .not.stf
-              write(91-ia2,iostat=ierro)                                &
-     &numx,nlostp(ia),dam(ia),                                          &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0
-              endfile (91-ia2,iostat=ierro)
-              backspace (91-ia2,iostat=ierro)
+                  write(91-ia2,iostat=ierro)                            &
 +ei
 +if stf
-              write(90,iostat=ierro)                                    &
-     &numx,nlostp(ia),dam(ia),                                          &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0
-              endfile (90,iostat=ierro)
-              backspace (90,iostat=ierro)
+                  write(90,iostat=ierro)                                &
 +ei
-+if cr
-              binrecs(ia2)=binrecs(ia2)+1
-+ei
-            else !Write particle nlostp(ia) and nlostp(ia)+1
-                 ! Note that dam(ia) (distance in angular phase space)
-                 ! is written twice.
+     &               numx,nlostp(ia),dam_tmp,                           &
+     &               xv_tmp(1,1),yv_tmp(1,1),                           &
+     &               xv_tmp(2,1),yv_tmp(2,1),                           &
+     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
 +if .not.stf
-              write(91-ia2,iostat=ierro)                                &
-     &numx,nlostp(ia),dam(ia),                                          &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0,        &
-     &nlostp(ia)+1,dam(ia),                                             &
-     &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),e0
-              endfile (91-ia2,iostat=ierro)
-              backspace (91-ia2,iostat=ierro)
+                  call flush(91-ia2)
 +ei
 +if stf
-              write(90,iostat=ierro)                                    &
-     &numx,nlostp(ia),dam(ia),                                          &
-     &xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),e0,        &
-     &nlostp(ia)+1,dam(ia),                                             &
-     &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),e0
-              endfile (90,iostat=ierro)
-              backspace (90,iostat=ierro)
-+ei
+                  call flush(90)
++ei                 
 +if cr
-              binrecs(ia2)=binrecs(ia2)+1
+                  binrecs(ia2)=binrecs(ia2)+1
 +ei
-            endif
-            if(ierro.ne.0) then
-              write(lout,*)
-              write(lout,*) '*** ERROR ***,PROBLEM WRITING TO FILE# : ',&
-     &91-ia2
-              write(lout,*) 'ERROR CODE : ',ierro
-              write(lout,*)
+              
+               else !Write both particles nlostp(ia) and nlostp(ia)+1
+                    ! Note that dam(ia) (distance in angular phase space)
+                    ! is written twice.
+                  dam_tmp      = real(dam(ia),   real64)
+
+                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
+                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
+                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
+                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  sigmv_tmp(1) = real(sigmv(ia), real64)
+                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
+                  
+                  xv_tmp(1,2)  = real(xv(1,ie),  real64)
+                  yv_tmp(1,2)  = real(yv(1,ie),  real64)
+                  xv_tmp(2,2)  = real(xv(2,ie),  real64)
+                  yv_tmp(2,2)  = real(yv(2,ie),  real64)
+                  sigmv_tmp(2) = real(sigmv(ie), real64)
+                  dpsv_tmp(2)  = real(dpsv(ie),  real64)
+                  
+                  e0_tmp       = real(e0,        real64)
++if .not.stf
+                  write(91-ia2,iostat=ierro)                            &
++ei
++if stf
+                  write(90,iostat=ierro)                                &
++ei
+     &               numx,nlostp(ia),dam_tmp,                           &
+     &               xv_tmp(1,1),yv_tmp(1,1),                           &
+     &               xv_tmp(2,1),yv_tmp(2,1),                           &
+     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
+     &               nlostp(ia)+1,dam_tmp,                              &
+     &               xv_tmp(1,2),yv_tmp(1,2),                           &
+     &               xv_tmp(2,2),yv_tmp(2,2),                           &
+     &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp                    &
++if .not.stf
+                  call flush(91-ia2)
++ei
++if stf
+                  call flush(90)
++ei                 
+
 +if cr
-              endfile (lout,iostat=ierro)
-              backspace (lout,iostat=ierro)
+                  binrecs(ia2)=binrecs(ia2)+1
++ei
+               endif
+               if(ierro.ne.0) then
+                  write(lout,*)
+                  write(lout,*)
+     &                 '*** ERROR ***,PROBLEM WRITING TO FILE# : ',     &
+     &                 91-ia2
+                  write(lout,*) 'ERROR CODE : ',ierro
+                  write(lout,*)
++if cr
+                  call flush(lout)
 +ei
 +if .not.cr
-              endfile (12,iostat=ierro)
-              backspace (12,iostat=ierro)
+                  call flush(12)
 +ei
-              nthinerr=3000
-              return
+                  nthinerr=3000
+                  return
+               endif
             endif
-          endif
-   10 continue !END "do 10 ia=1,napx-1"
+         end do !END "do 10 ia=1,napx-1"
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -28698,9 +28736,9 @@ c$$$         endif
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
-        write(93,*) 'WRITEBIN written binrec ',binrec
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+         write(93,*) 'WRITEBIN written binrec ',binrec
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
 +if .not.debug
       endif
 +ei
@@ -28709,15 +28747,14 @@ c$$$         endif
 !GRDRHIC
 !GRD-042008
       if (lhc.ne.9) then
-        binrec=binrec+1
+         binrec=binrec+1
 +if .not.debug
-        if (ncalls.le.20.or.numx.ge.nnuml-20) then
+         if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
-          write(93,*) 'WRITEBIN written binrec ',binrec
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+            write(93,*) 'WRITEBIN written binrec ',binrec
+            call flush(93)
 +if .not.debug
-        endif
+         endif
 +ei
       endif
 !GRDRHIC
@@ -28730,7 +28767,7 @@ c$$$         endif
       call prror(-1)
 +ei
       return
-      end
+      end subroutine
 
       subroutine callcrp()
 !-----------------------------------------------------------------------
