@@ -23520,7 +23520,7 @@ c$$$         endif
 +if .not.cr
       character(len=80) day,runtim
 +ei
-      character(len=8) cdate,ctime,progrm
+      character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header
 +if boinc
       character*256 filename
 +ei
@@ -25029,17 +25029,14 @@ c$$$         endif
             call distance(xau,cloau,di0au,tau,dam1)
             dam(ia)=dam1
             dam(ia+1)=dam1
-          endif
+          endif !endif(mod(ia+1,2).eq.0)
+
 +if bnlelens
-!GRDRHIC
-!GRD-042008
           if (lhc.eq.9) then
             write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
-!GRDRHIC
-!GRD-042008
 +ei !END +if bnlelens
 
 !     Write header of track output file(s) used by postprocessing
@@ -25048,68 +25045,30 @@ c$$$         endif
           if (.not.restart) then
 +ei
 +if .not.stf
-          write(91-ia2,iostat=ierro) sixtit,commen,cdate, ctime,progrm, &
-     &ia,ia,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),clo6v     &
-     &(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v(3,ia),        &
-     &clop6v(3,ia), di0xs(ia),dip0xs(ia),di0zs(ia),dip0zs(ia),zero,     &
-     &one, tas(ia,1,1),tas(ia,1,2),tas(ia,1,3),tas(ia,1,4),tas          &
-     &(ia,1,5), tas(ia,1,6), tas(ia,2,1),tas(ia,2,2),tas(ia,2,3),tas    &
-     &(ia,2,4),tas(ia,2,5), tas(ia,2,6), tas(ia,3,1),tas(ia,3,2),tas    &
-     &(ia,3,3),tas(ia,3,4),tas(ia,3,5), tas(ia,3,6), tas(ia,4,1),tas    &
-     &(ia,4,2),tas(ia,4,3),tas(ia,4,4),tas(ia,4,5), tas(ia,4,6), tas    &
-     &(ia,5,1),tas(ia,5,2),tas(ia,5,3),tas(ia,5,4),tas(ia,5,5), tas     &
-     &(ia,5,6), tas(ia,6,1),tas(ia,6,2),tas(ia,6,3),tas(ia,6,4),tas     &
-     &(ia,6,5), tas(ia,6,6),                                            &
-     &dble(mmac),dble(nms(ia)),dble(izu0),                              &
-     &dble(numlr),sigcor,dpscor,zero,zero,zero,zero,                    &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
+            call writebin_header(ia,ia,91-ia2,ierro,
+     &        cdate,ctime,progrm)
 +if cr
-          endfile (91-ia2,iostat=ierro)
-          backspace (91-ia2,iostat=ierro)
-          binrecs(ia2)=1
+            flush(91-ia2)
+            binrecs(ia2)=1
           endif
 +ei
 +ei ! END +if .not.stf
 +if stf
-          write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
-     &ia,ia,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),clo6v     &
-     &(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v(3,ia),        &
-     &clop6v(3,ia), di0xs(ia),dip0xs(ia),di0zs(ia),dip0zs(ia),zero,     &
-     &one, tas(ia,1,1),tas(ia,1,2),tas(ia,1,3),tas(ia,1,4),tas          &
-     &(ia,1,5), tas(ia,1,6), tas(ia,2,1),tas(ia,2,2),tas(ia,2,3),tas    &
-     &(ia,2,4),tas(ia,2,5), tas(ia,2,6), tas(ia,3,1),tas(ia,3,2),tas    &
-     &(ia,3,3),tas(ia,3,4),tas(ia,3,5), tas(ia,3,6), tas(ia,4,1),tas    &
-     &(ia,4,2),tas(ia,4,3),tas(ia,4,4),tas(ia,4,5), tas(ia,4,6), tas    &
-     &(ia,5,1),tas(ia,5,2),tas(ia,5,3),tas(ia,5,4),tas(ia,5,5), tas     &
-     &(ia,5,6), tas(ia,6,1),tas(ia,6,2),tas(ia,6,3),tas(ia,6,4),tas     &
-     &(ia,6,5), tas(ia,6,6),                                            &
-     &dble(mmac),dble(nms(ia)),dble(izu0),                              &
-     &dble(numlr),sigcor,dpscor,zero,zero,zero,zero,                    &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
+            call writebin_header(ia,ia,90,ierro,
+     &        cdate,ctime,progrm)
 +if cr
-          endfile (90,iostat=ierro)
-          backspace (90,iostat=ierro)
-          binrecs(ia2)=1
+            flush(90)
+            binrecs(ia2)=1
           endif
 +ei
 +ei ! END +if stf
         else !ELSE for "if(ntwin.ne.2)"
 +if bnlelens
-!GRDRHIC
-!GRD-042008
           if (lhc.eq.9) then
             write(lout,*)                                               &
      & 'SKIPPING Binary File Initialisation for BNLELENS'
             go to 340
           endif
-!GRDRHIC
-!GRD-042008
 +ei !END +if bnlelens
 
 !     Write header of track output file(s) used by postprocessing
@@ -25119,58 +25078,24 @@ c$$$         endif
           if (.not.restart) then
 +ei
 +if .not.stf
-          write(91-ia2,iostat=ierro) sixtit,commen,cdate, ctime,progrm, &
-     &ia,ia+1,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),        &
-     &clo6v(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v          &
-     &(3,ia),clop6v(3,ia), di0xs(ia),dip0xs(ia),di0zs(ia),dip0zs        &
-     &(ia),zero,one, tas(ia,1,1),tas(ia,1,2),tas(ia,1,3),tas            &
-     &(ia,1,4),tas(ia,1,5), tas(ia,1,6), tas(ia,2,1),tas(ia,2,2),tas    &
-     &(ia,2,3),tas(ia,2,4),tas(ia,2,5), tas(ia,2,6), tas(ia,3,1),tas    &
-     &(ia,3,2),tas(ia,3,3),tas(ia,3,4),tas(ia,3,5), tas(ia,3,6), tas    &
-     &(ia,4,1),tas(ia,4,2),tas(ia,4,3),tas(ia,4,4),tas(ia,4,5), tas     &
-     &(ia,4,6), tas(ia,5,1),tas(ia,5,2),tas(ia,5,3),tas(ia,5,4),tas     &
-     &(ia,5,5), tas(ia,5,6), tas(ia,6,1),tas(ia,6,2),tas(ia,6,3),tas    &
-     &(ia,6,4),tas(ia,6,5), tas(ia,6,6),                                &
-     &dble(mmac),dble(nms(ia)),dble(izu0),                              &
-     &dble(numlr),sigcor,dpscor,zero,zero,zero,zero,                    &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
+            call writebin_header(ia,ia+1,91-ia2,ierro,
+     &        cdate,ctime,progrm)
 +if cr
-          endfile (91-ia2,iostat=ierro)
-          backspace (91-ia2,iostat=ierro)
-          binrecs(ia2)=1
+            call flush(91-ia2)
+            binrecs(ia2)=1
           endif
 +ei
 +ei ! END +if .not.stf
 +if stf
-          write(90,iostat=ierro) sixtit,commen,cdate, ctime,progrm,     &
-     &ia,ia+1,napx,icode,numl,qwcs(ia,1),qwcs(ia,2), qwcs(ia,3),        &
-     &clo6v(1,ia),clop6v(1,ia),clo6v(2,ia),clop6v(2,ia), clo6v          &
-     &(3,ia),clop6v(3,ia), di0xs(ia),dip0xs(ia),di0zs(ia),dip0zs        &
-     &(ia),zero,one, tas(ia,1,1),tas(ia,1,2),tas(ia,1,3),tas            &
-     &(ia,1,4),tas(ia,1,5), tas(ia,1,6), tas(ia,2,1),tas(ia,2,2),tas    &
-     &(ia,2,3),tas(ia,2,4),tas(ia,2,5), tas(ia,2,6), tas(ia,3,1),tas    &
-     &(ia,3,2),tas(ia,3,3),tas(ia,3,4),tas(ia,3,5), tas(ia,3,6), tas    &
-     &(ia,4,1),tas(ia,4,2),tas(ia,4,3),tas(ia,4,4),tas(ia,4,5), tas     &
-     &(ia,4,6), tas(ia,5,1),tas(ia,5,2),tas(ia,5,3),tas(ia,5,4),tas     &
-     &(ia,5,5), tas(ia,5,6), tas(ia,6,1),tas(ia,6,2),tas(ia,6,3),tas    &
-     &(ia,6,4),tas(ia,6,5), tas(ia,6,6),                                &
-     &dble(mmac),dble(nms(ia)),dble(izu0),                              &
-     &dble(numlr),sigcor,dpscor,zero,zero,zero,zero,                    &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
-     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
+            call writebin_header(ia,ia+1,90,ierro,
+     &        cdate,ctime,progrm)
 +if cr
-          endfile (90,iostat=ierro)
-          backspace (90,iostat=ierro)
-          binrecs(ia2)=1
+            call flush(90)
+            binrecs(ia2)=1
           endif
 +ei
 +ei ! END +if stf
-        endif
+        endif !ENDIF (ntwin.ne.2)
         if(ierro.ne.0) then
           write(lout,*)
           write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91&
@@ -28512,6 +28437,51 @@ c$$$         endif
       return
       end
 
+      subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,
+     &     cdate,ctime,progrm)
+!     Subroutine for writing the header of the binary files (fort.90 etc.)
+!     Always converting to real64 before writing to disk
+      use floatPrecision
+      implicit none
+      
+      integer, intent(in) :: ia_p1, ia_p2, fileunit_in
+      integer, intent(inout) :: ierro_wbh
+      
+      character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
++ca parnum
++ca parpro
++ca common
++ca commonmn
+
+      write(fileunit_in,iostat=ierro_wbh)
+     &sixtit,commen,cdate, ctime,progrm, ia_p1,ia_p2, napx, icode,numl, &
+     &qwcs(ia_p1,1),qwcs(ia_p1,2), qwcs(ia_p1,3),                       &
+     &clo6v(1,ia_p1),clop6v(1,ia_p1),clo6v(2,ia_p1),clop6v(2,ia_p1),    &
+     &clo6v(3,ia_p1),clop6v(3,ia_p1),                                   &
+     &di0xs(ia_p1),dip0xs(ia_p1),di0zs(ia_p1),dip0zs(ia_p1),            &
+     &zero,one,                                                         &
+     &tas(ia_p1,1,1),tas(ia_p1,1,2),tas(ia_p1,1,3),                     &
+     &tas(ia_p1,1,4),tas(ia_p1,1,5),tas(ia_p1,1,6),                     &
+     &tas(ia_p1,2,1),tas(ia_p1,2,2),tas(ia_p1,2,3),                     &
+     &tas(ia_p1,2,4),tas(ia_p1,2,5),tas(ia_p1,2,6),                     &
+     &tas(ia_p1,3,1),tas(ia_p1,3,2),tas(ia_p1,3,3),                     &
+     &tas(ia_p1,3,4),tas(ia_p1,3,5),tas(ia_p1,3,6),                     &
+     &tas(ia_p1,4,1),tas(ia_p1,4,2),tas(ia_p1,4,3),                     &
+     &tas(ia_p1,4,4),tas(ia_p1,4,5),tas(ia_p1,4,6),                     &
+     &tas(ia_p1,5,1),tas(ia_p1,5,2),tas(ia_p1,5,3),                     &
+     &tas(ia_p1,5,4),tas(ia_p1,5,5),tas(ia_p1,5,6),                     &
+     &tas(ia_p1,6,1),tas(ia_p1,6,2),tas(ia_p1,6,3),                     &
+     &tas(ia_p1,6,4),tas(ia_p1,6,5),tas(ia_p1,6,6),                     &
+     &dble(mmac),dble(nms(ia_p1)),dble(izu0),                           &
+     &dble(numlr),sigcor,dpscor,                                        &
+     &zero,zero,zero,zero,                                              &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero,                &
+     &zero,zero,zero,zero,zero,zero,zero,zero,zero,zero
+
+      end subroutine writebin_header
+      
       subroutine writebin(nthinerr)
 !-----------------------------------------------------------------------
 !
