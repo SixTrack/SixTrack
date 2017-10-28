@@ -17,9 +17,7 @@
       CHARACTER(len=100) :: cmdarg_arg
       CHARACTER(len=100) :: fname_in
       CHARACTER(len=100) :: fname_out
-!
-!      IARI = 0
-!
+
       WRITE(OUTPUT_UNIT,*)' '
       WRITE(OUTPUT_UNIT,*)' '
       WRITE(OUTPUT_UNIT,*)' '
@@ -46,9 +44,7 @@
       WRITE(OUTPUT_UNIT,*)' '
       WRITE(OUTPUT_UNIT,*)' '
       WRITE(OUTPUT_UNIT,*)' '
-!
-! 5    CONTINUE
-      
+
       ! Read command line arguments -- inspired by read90
       cmdarg_i = 0
       do
@@ -79,7 +75,7 @@
          end if
          cmdarg_i = cmdarg_i+1
       end do
-      
+
       if (cmdarg_i.eq.1) then
          fname_in = "fort.1"
          fname_out = "fort.2"
@@ -92,24 +88,24 @@
          WRITE(ERROR_UNIT,*) "Error: input and output filename should not be the same!"
          stop 3
       end if
-      
+
       open(1,file=fname_in,form='formatted',status='old')
       open(2,file=fname_out,form='formatted',status='unknown') !status unknown -> allow overwrites
-!
+
       CALL predata
-!
+
       CALL PRECOM
-!
+
       close(1)
       close(2)
       
       STOP
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       subroutine predata
-!
+
 ! Eric: use local LL DATA and copy it to the COMMON blocks
 !-----MEMORY MANAGEMENT ----------------------------------------------------- ! 1
       PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                               ! 2
@@ -148,19 +144,18 @@
 !----------------------------------------------------------------------------! 5
       integer i,j
       character(len=80) blanks
-!      character blank6*6
       character(len=8) blank8
 
       PARAMETER(ZERO=0.0D0)
 
 !     OPER     : CONTAINS LOPER NAMES OF SUPPORTED BINARY OPERTORS
 !     FUNC     : CONTAINS LFUNC NAMES OF SUPPORTED INTRINSIC FUNCTIONS
-!
+
       DATA llOPER /  '+     ','-     ','*     ','/     ','^     ', &
                      'DIM   ','DIST  ','MIN   ','MAX   ','MOD   ', & !2
                      'EQ    ','NE    ','GT    ','LT    ','GE    ', & !3
                      'LE    ' /                                      !4
-!
+
       DATA llFUNC /  'COS   ','SIN   ','TAN   ','ACOS  ','ASIN  ', &
                      'ATAN  ','COSD  ','SIND  ','TAND  ','ACOSD ', & !2
                      'ASIND ','ATAND ','COSH  ','SINH  ','TANH  ', & !3
@@ -181,72 +176,72 @@
                      'MIN1  ','AMIN0 ','DIM   ','IDIM  ','MOD   ', & !18
                      'AMOD  ','SIGN  ','ISIGN ','DPROD ','ATAN2 ', & !19
                      'DATAN2','DMAX1 ','DDIM  ','DSIGN ','DMOD  '/   !20
-!
+
       DATA llKFUN / 74*1,26*2 /
 !   Eric left unchanged, but trying a DO loop later
 !     DATA llCBLA / '
 !    *                           ' /
-!
+
       DATA llINAM / 0 /
-!
+
       do i=1,80
         blanks(i:i)=' '     
       enddo
 !      blank6='      '
       blank8='        '
-!
+
       do i=1,lnam
         cnam(i)=blank8
       enddo
-!
+
       do i=1,ltex
         ctex(i)=blanks
       enddo
-!
+
       cbla=blanks
-!
+
       do i=1,lnam
         do j=1,17
           npar(i,j)=0
         enddo
       enddo
-!
+
       do i=1,lcc
         cc(i)=ZERO
       enddo
-!
+
       itex=0
       icc=0
-!
+
       do i=1,lari
         do j=1,11
           nari(i,j)=0
         enddo
       enddo
       iari=0
-!
+
       do i=1,100
         kfun(i)=llkfun(i)
       enddo
-!
+
       do i=1,lnam
         do j=1,17
           npar(i,j)=0
         enddo
       enddo
-!
+
       do i=1,lfunc
         func(i)=llfunc(i)
       enddo
-!
+
       do i=1,loper
         oper(i)=lloper(i)
       enddo
-!
+
       inam=llINAM
-!
+
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE PRECOM
@@ -272,7 +267,7 @@
       PARAMETER(MNAME=1000)
       COMMON / DADAL / NAMEDAL(MNAME),icount
 !----------------------------------------------------------------------------! 5
-!
+
       CHARACTER(LEN=10000) A
       CHARACTER(LEN=2) CID
       CHARACTER(LEN=8) BLANK,DNAM
@@ -280,19 +275,19 @@
       CHARACTER(LEN=64) IDAT
     
       INTEGER NA(50)
-!
+
       DATA  BLANK / '        ' /
-!
+
       IDN = 0
  100  CONTINUE
-!
+
       CALL GETCOM('PRECOM',A,10000,LA,IEND)
-!
+
       CALL POSFRA(A,1,LA,' ',NA,200,IA)
       IF(IEND.EQ.1) RETURN
-!
+
       CID = A(NA(1):NA(1))//A(NA(2):NA(2))
-!
+
       IF(INDEX(A(1:LA),'=').NE.0) THEN
          IARI = 0
          CALL SYNTAX(A,1,LA, 0,0,2,LERR)
@@ -302,7 +297,7 @@
          ITEX = 0
       ELSEIF(CID.EQ.'ED') THEN
          WRITE(2,'(A)')      '*FOX{'
-!
+
          DO 30 I=1,INAM
          IF(NPAR(I,1).NE.1) GOTO 30
          IF(NPAR(I,2).NE.4) GOTO 30
@@ -318,17 +313,17 @@
              ( CTEX(IT+ID+2)(K:K),K=1,ILAST(CTEX(IT+ID+2),1,80) ),')'
          ENDIF
   30     CONTINUE
-!
+
          WRITE(2,'(6X,A)') 'INTEGER ISCRDA, ISCRRI,IDAO'
-         WRITE(2,'(6X,A)') 'DOUBLE PRECISION RSCRRI'
+         WRITE(2,'(6X,A)') 'REAL(KIND=fPrec) RSCRRI'
          WRITE(2,'(6X,A)') 'COMMON/DASCR/ISCRDA(100),RSCRRI(100)'       &
                                //',ISCRRI(100),IDAO'
-!
+
          DO 60 I=1,INAM
 !         IF((NPAR(I,1).EQ.1).AND.(NPAR(I,2).EQ.4).AND.(NPAR(I,6).EQ.0))
 !     *      WRITE(2,'(A)') '      SAVE '//CNAM(I)
   60     CONTINUE
-!
+
 !frs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
          READ(1,'(A6,i1,1X,A64)',END=600) PREC,INITIAL,IDAT
          IF(PREC(1:4).ne.'*FOX'.and.(INITIAL.ne.0.or.INITIAL.ne.1)) then
@@ -352,7 +347,7 @@
            WRITE(2,'(A6,A64)') '      ',IDAT
          endif
          WRITE(2,'(A)') '         CALL DAKEY(''FOX V2.1'')'
-!
+
          DO 70 I=1,INAM
          ID = NPAR(I,4)
          IT = NPAR(I,5) - 1
@@ -388,7 +383,7 @@
             CNAM(I) = DNAM
          ENDIF
   70     CONTINUE
-!
+
          WRITE(2,'(A)') '      ENDIF'
          WRITE(2,'(A)') '      IDAA = IDAO'
          IF(IDN.NE.0) WRITE(2,'(A)') '      '//DNAM//' = LFOX1'
@@ -510,11 +505,11 @@
          WRITE(ERROR_UNIT,'(1X,2A)') '### ERROR, UNKNOWN COMMAND ',CID
          WRITE(2,'(1X,2A)') '### ERROR, UNKNOWN COMMAND ',CID
       ENDIF
-!
+
       GOTO 100
  600  CONTINUE
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE GETCOM(CMOD,A,NA,IA,IEND)
@@ -570,10 +565,10 @@
  70          continue
            endif
          endif
-!
+
 !        CHECKING IF LINE CONTAINS DA VARIABLE
 !        *************************************
-!
+
          IF((PREC(1:1).NE.'*'.AND.PREC(1:1).NE.'C').OR.PREC(1:4).EQ.'*FOX'.OR.PREC(1:3).EQ.'*DA') THEN
             DO 30 I=1,INAM
             ICN = ILAST(CNAM(I),1,8)
@@ -594,18 +589,18 @@
    30       CONTINUE
    35       CONTINUE
          ENDIF
-!
+
 !        CHECKING IF LINE IS END STATEMENT
 !        *********************************
-!
+
          CALL POSFRA(ALIN,IAMAX+1,IAMAX+67,' ',MA,200,IA)
          IF(IA.EQ.1) THEN
             IF(ALIN(MA(1):MA(1)+3).EQ.'END ') INAM = 0
          ENDIF
-!
+
 !        WRITING LINE TO OUTPUT
 !        **********************
-!
+
          ILL = ILAST(ALIN(IAMAX+1:IAMAX+67),2,67)
          IF(REST.NE.'        ') THEN
             WRITE(2,'(A6,A66,A)') PREC,ALIN(IAMAX+2:IAMAX+67), REST(1:ILAST(REST,1,8))
@@ -613,19 +608,19 @@
             WRITE(2,'(A6,A)') PREC,ALIN(IAMAX+2:IAMAX+ILL)
          ENDIF
          IF(PREC(1:4).EQ.'*FOX'.OR.PREC(1:3).EQ.'*DA') IAMAX = IAMAX + ILL
-!
+
 !     DIRECT COMPILE MODE
 !     *******************
-!
+
       ELSE
          READ(1,'(A80)',END=60) PREC,ALIN(IAMAX+1:IAMAX+80)
          IAMAX = IAMAX + ILAST(ALIN(IAMAX+1:IAMAX+80),1,80)
       ENDIF
       GOTO 20
-!
+
 !     EXTRACTING FOX COMMAND
 !     **********************
-!
+
   40  CONTINUE
       IA = INDEX(ALIN(1:IAMAX),';')
       IF(IA.GT.NA) THEN
@@ -640,10 +635,10 @@
         ALIN(I-IA:I-IA) = ALIN(I:I)
       END DO
       IAMAX = IAMAX - IA
-!
+
 !     REPLACING '**' BY '^ '
 !     **********************
-!
+
       DO 55 I=1,IA
       IF(A(I:I).EQ.'*') THEN
          DO 54 J=I+1,IA
@@ -657,15 +652,15 @@
   54     CONTINUE
       ENDIF
   55  CONTINUE
-!
+
       RETURN
-!
+
   60  CONTINUE
       IA = 0
       IEND = 1
       RETURN
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE POSFRA(A,IA1,IA2,CDEL,NA,LA,IA)
@@ -676,17 +671,17 @@
 !     THIS SUBROUTINE TAKES THE INFORMATION IN CHARACTER A BETWEEN IA1 AND
 !     IA2 AND DETERMINES THE BEGINNING POSITIONS OF FRAGMENTS, SEPERATED BY
 !     DELIMITER CDEL, STORING THEM IN NA
-!
+
       CHARACTER A*(*),CDEL*1
       INTEGER NA(LA)
-!
+
       IF(A(IA1:IA1).NE.CDEL) THEN
          IA = 1
          NA(IA) = IA1
       ELSE
          IA = 0
       ENDIF
-!
+
       DO 100 I=IA1+1,IA2
       IF(A(I-1:I-1).EQ.CDEL.AND.A(I:I).NE.CDEL) THEN
          IA = IA + 1
@@ -698,41 +693,41 @@
          NA(IA) = I
       ENDIF
  100  CONTINUE
-!
+
       RETURN
       END
-!
+
       INTEGER FUNCTION ILAST(A,IA1,IA2)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 !     *********************************
 !
 !     THIS FUNCTION DETERMINES THE LAST NONBLANK POSITION IN CHARACTER A
 !     BETWEEN POSITIONS IA1 AND IA2
-!
+
       CHARACTER A*(*)
-!
+
 ! Eric sets ILAST when line has no trailing blanks
       ILAST = IA2
-!
+
       DO 10 ILAST = IA2,IA1,-1
       IF(A(ILAST:ILAST).NE.' ') RETURN
   10  CONTINUE
-!
+
       ILAST = IA1
       RETURN
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE CAP(A,IA1,IA2)
 !     *************************
 !
 !     THIS SUBROUTINE CAPITALIZES POSITIONS IA1 THROUGH IA2 IN CHARACTER A
-!
+
       CHARACTER A*(*)
       SAVE ICALL,ICSA,ICSZ,IDIF
       DATA ICALL / 0 /
-!
+
       IF(ICALL.EQ.0) THEN
          ICALL = 1
          ICSA = ICHAR('A')
@@ -740,7 +735,7 @@
          ICCA = ICHAR('A')
          IDIF = ICCA - ICSA
       ENDIF
-!
+
       DO 100 I=IA1,IA2
       ICI = ICHAR(A(I:I))
       IF(ICI.GE.ICSA.AND.ICI.LE.ICSZ) THEN
@@ -748,27 +743,27 @@
          A(I:I) = CHAR(ICI)
       ENDIF
  100  CONTINUE
-!
+
       RETURN
       END
-!
+
       INTEGER FUNCTION IVCHK(A,IA1,IA2)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 !     *********************************
 !
 !     THIS FUNCTION RETURNS 1 IF THE SUBSTRING A(IA1:IA2) IS A SYNTACTICALLY
 !     LEGAL NAME OF A VARIABLE, ZERO OTHERWISE.
-!
+
       CHARACTER A*(*)
-!
+
       IVCHK = 0
-!
+
       IF(IA2.LT.IA1) RETURN
       IF(IA2-IA1.GT.7) RETURN
       IF(INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ',A(IA1:IA1)).EQ.0) RETURN
-!
+
       ICH = 0
-!
+
       DO 100 I=IA1+1,IA2
       IF(INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_', A(IA1:IA1)).EQ.0) THEN
         RETURN
@@ -776,11 +771,11 @@
         ICH = ICH + 1
       ENDIF
   100 CONTINUE
-!
+
       IVCHK = 1
       RETURN
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE SYNTAX(B, IB1,IB2, IX, IN, IU, LERR)
@@ -886,7 +881,7 @@
 !
 !     DELETING BLANKS IN CODE LINE AND CAPITALIZING
 !     *********************************************
-!
+
       IA = 0
       DO 10 I=IB1,IB2
       IF(B(I:I).NE.' ') THEN
@@ -901,10 +896,10 @@
       CALL CAP(A,1,IA)
       IA = IA + 1
       A(IA:IA) = ';'
-!
+
 !     SETTING START VALUES
 !     ********************
-!
+
       DO I=1,LVAR
         BLANK(I:I) = ' '
       END DO
@@ -924,15 +919,15 @@
       NANA(IANA,3) = 0
       NANA(IANA,4) = 0
       NANA(IANA,5) = IANA + 1
-!
+
 !     PROCESSING LEFT SIDE OF EQUAL SIGN
 !     **********************************
-!
+
       IF(ILEFT.NE.0) THEN
          IEQU = 1
          GOTO 100
       ENDIF
-!
+
       IF(INDEX(LET,A(1:1)).EQ.0) THEN
          AER = 'ERROR, ILLEGAL VARIABLE NAME'
          GOTO 1000
@@ -967,10 +962,10 @@
          GOTO 1000
       ENDIF
       GOTO 100
-!
+
 !     EQUAL SIGN
 !     **********
-!
+
   50  CONTINUE
       IF(A(I:I).NE.'=') THEN
          AER = 'ERROR, EXPECTED EQUAL SIGN'
@@ -991,10 +986,10 @@
       IEQU = 1
       I = I + 1
       GOTO 100
-!
+
 !     SWITCH TO EQUAL, OPEN PARENTHESIS, SIGN, CONSTANT, FUNCTION OR VARIABLE
 !     ***********************************************************************
-!
+
  100  CONTINUE
       IF(A(I:I).EQ.'=') GOTO 50
       IF(A(I:I).EQ.'(') GOTO 110
@@ -1002,10 +997,10 @@
       IF(INDEX(NUM,A(I:I)).NE.0.OR.A(I:I).EQ.'.') GOTO 120
       IF(A(I:I).EQ.'[') GOTO 130
       GOTO 101
-!
+
 !     DECODING NAME OF FUNCTION OR VARIABLE
 !     *************************************
-!
+
  101  IF(INDEX(LET,A(I:I)).EQ.0) THEN
          AER = 'ERROR, ILLEGAL NAME OF VARIABLE OR FUNCTION'
          GOTO 1000
@@ -1034,10 +1029,10 @@
  105  CONTINUE
       AER = 'ERROR, UNKNOWN VARIABLE OR FUNCTION'
       GOTO 1000
-!
+
 !     OPEN PARENTHESIS
 !     ****************
-!
+
  110  CONTINUE
       IF(A(I:I).NE.'(') THEN
          AER = 'ERROR, EXPECTED OPENING PARENTHESIS'
@@ -1050,10 +1045,10 @@
          GOTO 1000
       ENDIF
       GOTO 100
-!
+
 !     CONSTANT
 !     ********
-!
+
  120  CONTINUE
       CVAL = ZERO
       IFRA = 0
@@ -1141,17 +1136,17 @@
       NANA(IANA,4) = IANA - 1
       NANA(IANA,5) = IANA + 1
       GOTO 200
-!
+
 !     ADDITIONAL OPTION
 !     *****************
-!
+
  130  CONTINUE
       AER = 'ERROR, OPERATION NOT SUPPORTED YET'
       GOTO 1000
-!
+
 !     CLOSING PARENTHESIS
 !     *******************
-!
+
  140  CONTINUE
       IF(A(I:I).NE.')') THEN
          AER = 'ERROR, EXPECTED CLOSING PARENTHESIS'
@@ -1169,10 +1164,10 @@
       ENDIF
       I = I + 1
       GOTO 200
-!
+
 !     FUNCTION
 !     ********
-!
+
  150  CONTINUE
       IF(SEARCH.EQ.FUNC(II)) II = -II
       IF(A(I:I).NE.'(') THEN
@@ -1188,10 +1183,10 @@
       NANA(IANA,5) = IANA + 1
       IOP = MAX(IOP,4*(IPAR+1)+4)
       GOTO 110
-!
+
 !     VARIABLE
 !     ********
-!
+
  160  CONTINUE
       IF(A(I:I).NE.'(') THEN
          IF(NPAR(II,4).NE.0) THEN
@@ -1220,10 +1215,10 @@
          IOP = MAX(IOP,4*(IPAR+1)+4)
          GOTO 110
       ENDIF
-!
+
 !     PLUS OR MINUS SIGN IN FRONT OF VARIABLE,FUNCTION OR CONSTANT
 !     ************************************************************
-!
+
  170  CONTINUE
       IF(A(I:I).EQ.'+') THEN
          I = I + 1
@@ -1257,10 +1252,10 @@
          AER = 'ERROR WITH PLUS OR MINUS SIGN'
          GOTO 1000
       ENDIF
-!
+
 !     COMMA (IN FUNCTION OR ARRAY)
 !     ****************************
-!
+
  180  CONTINUE
       IF(A(I:I).NE.',') THEN
          AER = 'ERROR, COMMA EXPECTED'
@@ -1278,10 +1273,10 @@
       NANA(IANA,4) = IANA - 1
       NANA(IANA,5) = IANA + 1
       GOTO 100
-!
+
 !     SWITCH TO OPERATOR, CLOSING PARENTHESIS, COMMA OR END
 !     *****************************************************
-!
+
  200  CONTINUE
       SEARCH = BLANK
       IF(INDEX(OPS,A(I:I)).NE.0) GOTO 210
@@ -1291,10 +1286,10 @@
       IF(A(I:I).EQ.';') GOTO 220
       AER = 'ERROR, OPERATOR, COMMA OR CLOSING PARENS EXPECTED'
       GOTO 1000
-!
+
 !     OPERATORS
 !     *********
-!
+
  210  CONTINUE
       SEARCH = BLANK
       IF(A(I:I).EQ.'#') THEN
@@ -1335,10 +1330,10 @@
  219  CONTINUE
       AER = 'ERROR, UNSUPPORTED OPERATOR'
       GOTO 1000
-!
+
 !     END OF SOURCE CODE
 !     ******************
-!
+
  220  CONTINUE
       IF(IPAR.NE.0) THEN
          AER = 'ERROR, UNBALANCED PARENTHESES'
@@ -1354,13 +1349,13 @@
       NANA(IANA,3) = 0
       NANA(IANA,4) = IANA - 1
       NANA(IANA,5) = 0
-!
+
       DO 350 IO = IOP,1,-1
 !     ********************
-!
+
 !     EXTRACTING NEXT ELEMENTARY OPERATION
 !     ************************************
-!
+
       IA = 1
  310  CONTINUE
       IF(NANA(IA,3).NE.IO) THEN
@@ -1414,7 +1409,7 @@
          AER = 'ERROR, UNKNOWN TYPE'
          GOTO 2000
       ENDIF
-!
+
       JL = NANA(IA,4)
       DO 330 IL=1,NL
       IF(IL.GE.2) THEN
@@ -1434,23 +1429,23 @@
       ELSE
          NARI(IARI,4) = NANA(JL,2)
       ENDIF
-!
+
       NANA(IA,4) = NANA(JL,4)
       NANA(NANA(JL,4),5) = IA
-!
+
       NANA(JL,1) = INDEX(CANA,'#')
       NANA(JL,2) = 0
       NANA(JL,3) = 0
       NANA(JL,4) = 0
       NANA(JL,5) = 0
-!
+
       JL = NANA(IA,4)
-!
+
  330  CONTINUE
-!
+
 !     FINDING RIGHT OPERANDS
 !     **********************
-!
+
       IF(CANA(ITYP:ITYP).EQ.'O') THEN
          NR = 1
       ELSEIF(CANA(ITYP:ITYP).EQ.'A') THEN
@@ -1471,7 +1466,7 @@
          AER = 'ERROR, UNKNOWN TYPE'
          GOTO 2000
       ENDIF
-!
+
       JR = NANA(IA,5)
       DO 340 IR = 1,NR
       IF(IR.GE.2) THEN
@@ -1491,31 +1486,31 @@
       ELSE
          NARI(IARI,4+IR) = NANA(JR,2)
       ENDIF
-!
+
       NANA(IA,5) = NANA(JR,5)
       NANA(NANA(JR,5),4) = IA
-!
+
       NANA(JR,1) = INDEX(CANA,'#')
       NANA(JR,2) = 0
       NANA(JR,3) = 0
       NANA(JR,4) = 0
       NANA(JR,5) = 0
-!
+
       JR = NANA(IA,5)
-!
+
  340  CONTINUE
-!
+
 !     REPLACING OPERATION JUST PROCESSED BY SCRATCH ADDRESS
 !     *****************************************************
-!
+
       NANA(IA,1) = INDEX(CANA,'S')
       NANA(IA,2) = -ISCR
       NANA(IA,3) = 0
-!
+
       GOTO 310
-!
+
  350  CONTINUE
-!
+
 !frs
 !frs      IF(LCHECK.EQ.1) THEN
 !frs         WRITE(OUTPUT_UNIT,'(79A)') ('-',J=1,79)
@@ -1523,30 +1518,30 @@
 !frs     *   (CANA(NANA(J,1):NANA(J,1)),NANA(J,2),NANA(J,3),'|',J=1,IANA)
 !frs      ENDIF
 !frs
-!
+
 !     ALL OPERATIONS EXTRACTED
 !     ************************
-!
+
 ! 400  CONTINUE
-!
+
       IF(NANA(1,5).NE.NANA(IANA,4)) THEN
          WRITE(ERROR_UNIT,'(1X,2A)') '### ERROR, CODE NOT FULLY PROCESSED ', '(CHECK DIMENSIONS)'
          IF(IU.NE.0) WRITE(IU,'(1X,2A)') '### ERROR, CODE NOT FULLY ', 'PROCESSED (CHECK DIMENSIONS)'
          LERR = 1
       ENDIF
-!
+
 !frs
 !frs      IF(LCHECK.GE.1) THEN
 !frs         DO 410 I=IARIA,IARI
 !frs  410    WRITE(OUTPUT_UNIT,'(5I5)') (NARI(I,J),J=1,5)
 !frs      ENDIF
 !frs
-!
+
       RETURN
-!
+
 !     SYNTAX ERROR EXIT
 !     *****************
-!
+
  1000 CONTINUE
       WRITE(OUTPUT_UNIT,'(1X,2A)') ' ### ', AER
       WRITE(OUTPUT_UNIT,'(1X,2A)') ' ', A(1:IA-1)
@@ -1558,7 +1553,7 @@
       ENDIF
       LERR = 1
       RETURN
-!
+
  2000 CONTINUE
 !frs
 !frs      IF(LCHECK.EQ.1) THEN
@@ -1577,7 +1572,7 @@
       ENDIF
       RETURN
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE ARIFOR(IARI1,IARI2,IU)
@@ -1715,13 +1710,13 @@
          CALL VNAM(IR, INDEX, AR,800,LR,ITR,ISCRTY)
          ITS = ITR
       ENDIF
-!
+
 !     CHECKING IF STORAGE TYPE IS CONSISTENT AND DETERMINING AS
 !     ---------------------------------------------------------
-!
+
       ISOUT = 0
       ICON = 0
-!
+
       IF(IS.LT.0) THEN
          ISCRTY(-IS) = ITS
          ISOFF = -IS
@@ -1755,12 +1750,12 @@
          WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, TYPES INCOMPATIBILE5'
          WRITE(2,'(1X,A)') '### ERROR, TYPES INCOMPATIBILE5'
       ENDIF
-!
+
 !     ASSIGNMENT
 !     **********
-!
+
       IF(ITY.EQ.1) THEN
-!
+
          IF((ITR.EQ.1).OR.(ITR.EQ.2)) THEN
             IF((ITS.EQ.1).OR.(ITS.EQ.2)) THEN
                A = AS(1:LS)//' = '//AR(1:LR)
@@ -1778,13 +1773,13 @@
          ELSE
             GOTO 1000
          ENDIF
-!
+
 !     BINARY OPERATOR
 !     ****************
-!
+
       ELSEIF(ITY.EQ.2) THEN
          IOP = NARI(I,3)
-!
+
          IF(IOP.EQ.1) THEN
 !        -----------------
             IF((ITL.EQ.1).OR.(ITL.EQ.2)) THEN
@@ -1810,7 +1805,7 @@
             ELSE
                GOTO 1000
             ENDIF
-!
+
          ELSEIF(IOP.EQ.2) THEN
 !        ---------------------
             IF((ITL.EQ.1).OR.(ITL.EQ.2)) THEN
@@ -1832,7 +1827,7 @@
             ELSE
                GOTO 1000
             ENDIF
-!
+
          ELSEIF(IOP.EQ.3) THEN
 !        ---------------------
             IF((ITL.EQ.1).OR.(ITL.EQ.2)) THEN
@@ -1852,7 +1847,7 @@
                   GOTO 1000
                ENDIF
             ENDIF
-!
+
          ELSEIF(IOP.EQ.4) THEN
 !        ---------------------
             IF((ITL.EQ.1).OR.(ITL.EQ.2)) THEN
@@ -1900,20 +1895,20 @@
 !        ----
             GOTO 1000
          ENDIF
-!
+
 !     FUNCTIONS
 !     *********
-!
+
       ELSEIF(ITY.EQ.3) THEN
          IOP = NARI(I,3)
          IF(IOP.GT.0) THEN
             WRITE(2,'(6X,A,I5)') 'IDAO = IDAA + ',ISOFF
             ISOUT = 1
          ENDIF
-!
+
          IF((ITR.EQ.1).OR.(ITR.EQ.2)) THEN
 !        ---------------------------------
-!
+
             IF(IOP.GT.0) THEN
                A = AS(1:LS)//' = '//AR(1:LR)
             ELSE
@@ -1923,10 +1918,10 @@
                   A = AS(1:LS)//' = '//FUNC(-IOP)(1:4)// '('//AL(1:LL)//','//AR(1:LR)//')'
                ENDIF
             ENDIF
-!
+
          ELSEIF(ITR.EQ.4) THEN
 !        ---------------------
-!
+
             IF(IOP.GT.0) THEN
                A = 'CALL DACOP('//AR(1:LR)//','//AS(1:LS)//')'
             ELSE
@@ -1936,14 +1931,14 @@
                   A = 'CALL DAFUN2('//''''//FUNC(-IOP)(1:4)//''''//','// AL(1:LL)//','//AR(1:LR)//','//AS(1:LS)//')'
                ENDIF
             ENDIF
-!
+
          ELSE
             GOTO 1000
          ENDIF
-!
+
 !     ARRAYS
 !     ******
-!
+
       if (ITS.eq.-4242) then
          WRITE(ERROR_UNIT,*) "ERROR in ARIFOR - ITS not set"
          stop 16
@@ -1958,10 +1953,10 @@
             GOTO 1000
          ENDIF
       ENDIF
-!
+
 !     OUTPUTTING FORTRAN STATEMENT
 !     ****************************
-!
+
       ILIN = ILAST(A,1,800) / 66
       WRITE(2,'(A)') '      '//A(1:66), ('     *'//A(J*66+1:(J+1)*66),J=1,ILIN)
 ! Eric Moved the ILIN = ....
@@ -1974,12 +1969,12 @@
          WRITE(2,'(6X,A,I5)') 'IDAO = IDAA - ',ISOFF
          ISOUT = 0
       ENDIF
-!
-!
+
+
   900 CONTINUE
-!
+
       RETURN
-!
+
  1000 CONTINUE
       WRITE(IU,'(1X,A)') '!!! ERROR IN ARIFOR, CODE NOT SUPPORTED'
       WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN ARIFOR, CODE NOT SUPPORTED:'
@@ -1987,7 +1982,7 @@
   
       RETURN
       END
-!
+
 ! ANFANG UNTERPROGRAMM
   
       SUBROUTINE VNAM(IA, IN, A,NA,LA, ITA, ISCRTY)
@@ -2014,13 +2009,13 @@
       INTEGER NARI(LARI,11), IARI                                            ! 3
       COMMON / CODE / NARI, IARI                                             ! 4
 !----------------------------------------------------------------------------! 5
-!
+
       PARAMETER (LSCR=99)
       CHARACTER A*(*),CNUM(99)*2
       INTEGER ISCRTY(*),IN(*)
-!
+
       INTEGER ND
-!
+
       DATA CNUM / ' 1',' 2',' 3',' 4',' 5',' 6',' 7',' 8',' 9','10', &
                   '11','12','13','14','15','16','17','18','19','20', &
                   '21','22','23','24','25','26','27','28','29','30', &
@@ -2031,7 +2026,7 @@
                   '71','72','73','74','75','76','77','78','79','80', &
                   '81','82','83','84','85','86','87','88','89','90', &
                   '91','92','93','94','95','96','97','98','99'/
-!
+
       ND = -4242
       
       IF(IA.LT.0) THEN
@@ -2053,7 +2048,7 @@
             LA = 16
             A(1:LA) = 'ISCRDA( '//CNUM(IA)//'+IDAA)'
          ENDIF
-!
+
       ELSEIF((IA.GE.1).AND.(IA.LE.LNAM)) THEN
          ITA = NPAR(IA,2)
          LA = 11
@@ -2079,12 +2074,12 @@
          stop 15
       end if
       
-!
+
 !     CASE OF ARRAYS OR FUNCTIONS
 !     ***************************
-!
+
       IF(ND.EQ.0) RETURN
-!
+
 !      IF(NPAR(IA,1).EQ.1) THEN
 !         NT = NPAR(IA,5)
 !         A(LA+1:LA+11) = '(NINT(ONE*'
@@ -2093,9 +2088,9 @@
          A(LA+1:LA+1) = '('
          LA = LA + 1
 !      ENDIF
-!
+
       DO 100 ID=1,ND
-!
+
       IF(ID.NE.1) THEN
 !         IF(NPAR(IA,1).EQ.1) THEN
 !            LT = ILAST(CTEX(NT+ID),1,80)
@@ -2106,7 +2101,7 @@
             LA = LA + 1
 !         ENDIF
       ENDIF
-!
+
       II = IN(ID)
       IF(II.LT.0) THEN
          II = -II
@@ -2126,7 +2121,7 @@
             A(LA+1:LA+16) = 'ISCRDA( '//CNUM(II)//'+IDAA)'
             LA = LA + 16
          ENDIF
-!
+
       ELSEIF(II.LE.LNAM.AND.II.GE.1) THEN
          A(LA+1:LA+11) = CNAM(II)//'   '
          LA = LA + 11
@@ -2152,14 +2147,14 @@
          WRITE(2,'(1X,A)') '### ERROR, ARRAY INDEX NOT INTEGER OR REAL'
          RETURN
       ENDIF
-!
+
 !      IF(ID.NE.1.AND.NPAR(IA,1).EQ.1) THEN
 !         A(LA+1:LA+2) = '-1'
 !         LA = LA + 2
 !      ENDIF
-!
+
  100  CONTINUE
-!
+
 !      IF(NPAR(IA,1).EQ.1) THEN
 !         DO 110 ID=2,ND+2
 !         A(LA+1:LA+1) = ')'
@@ -2169,12 +2164,12 @@
          A(LA+1:LA+1) = ')'
          LA = LA + 1
 !      ENDIF
-!
+
       IF(LA.GT.NA) THEN
          WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN ROUTINE VNAM, IA > NA'
          WRITE(2,'(1X,A)') '!!! ERROR IN ROUTINE VNAM, IA > NA'
          STOP 14
       ENDIF
-!
+
       RETURN
       END
